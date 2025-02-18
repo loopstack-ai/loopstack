@@ -1,0 +1,13 @@
+{
+  "name": "loopstack-monorepo",
+  "displayName": "Loopstack Monorepo",
+  "description": "A monorepo to maintain loopstack core module and demo applications",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": {
+    "name": "Jakob Klippel",
+    "email": "jakob@loopstack.ai",
+    "url": "https://www.linkedin.com/in/jakob-klippel-414a30261/"
+  },
+  "license": "ISC"
+}

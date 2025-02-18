@@ -1,0 +1,5 @@
+.idea
+apps/*
+packages/*
+node_modules
+dist
