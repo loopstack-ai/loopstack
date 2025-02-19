@@ -42,7 +42,7 @@
             "name": {
               "oneOf": [
                 { "type": "string" },
-                { "$ref": "function-from.schema.json" }
+                { "$ref": "function-from.schema.json"}
               ]
             }
           },

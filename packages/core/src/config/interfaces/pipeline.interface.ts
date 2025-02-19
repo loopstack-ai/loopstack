@@ -1,5 +1,5 @@
-import { UtilInterface } from './util.interface.js';
-import { FunctionFromInterface } from './function-from.interface.js';
+import { UtilInterface } from './util.interface';
+import { FunctionFromInterface } from './function-from.interface';
 import { NamedCollectionItem } from './named-collection-item.interface';
 
 export interface PipelineInterface extends NamedCollectionItem {

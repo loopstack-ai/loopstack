@@ -1,5 +1,5 @@
-import { WorkflowTransitionInterface } from './workflow-transition.interface.js';
-import { WorkflowObserverInterface } from './workflow-observer.interface.js';
+import { WorkflowTransitionInterface } from './workflow-transition.interface';
+import { WorkflowObserverInterface } from './workflow-observer.interface';
 
 export interface WorkflowTemplateInterface {
   name: string;
