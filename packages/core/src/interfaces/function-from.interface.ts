@@ -1,3 +1,3 @@
 export interface FunctionFromInterface {
-    from: string;
+  from: string;
 }

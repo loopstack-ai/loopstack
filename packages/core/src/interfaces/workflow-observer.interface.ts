@@ -1,5 +1,5 @@
 export interface WorkflowObserverInterface {
-    name: string;
-    transition: string;
-    action: string;
+  name: string;
+  transition: string;
+  action: string;
 }

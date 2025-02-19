@@ -1,22 +1,22 @@
-import {UtilInterface} from "./util.interface.js";
-import {FunctionFromInterface} from "./function-from.interface.js";
-import {NamedCollectionItem} from "./named-collection-item.interface";
+import { UtilInterface } from './util.interface.js';
+import { FunctionFromInterface } from './function-from.interface.js';
+import { NamedCollectionItem } from './named-collection-item.interface';
 
 export interface PipelineInterface extends NamedCollectionItem {
+  name: string;
+  options?: {
+    contextCarryOver?: boolean;
+  };
+  sequence?: {
+    type: 'Workflow' | 'Pipeline';
     name: string;
-    options?: {
-        contextCarryOver?: boolean;
+  }[];
+  factory?: {
+    pipeline: string;
+    props: {
+      name: string | FunctionFromInterface;
     };
-    sequence?: {
-        type: "Workflow" | "Pipeline";
-        name: string;
-    }[];
-    factory?: {
-        pipeline: string;
-        props: {
-            name: string | FunctionFromInterface;
-        };
-    };
-    before?: UtilInterface[];
-    after?: UtilInterface[];
+  };
+  before?: UtilInterface[];
+  after?: UtilInterface[];
 }

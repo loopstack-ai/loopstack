@@ -1,3 +1,3 @@
 export interface NamedCollectionItem {
-    name: string;
+  name: string;
 }

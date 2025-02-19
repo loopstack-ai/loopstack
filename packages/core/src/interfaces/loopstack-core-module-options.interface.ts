@@ -1,3 +1,1 @@
-export interface LoopstackCoreModuleOptionsInterface {
-
-}
+export interface LoopstackCoreModuleOptionsInterface {}

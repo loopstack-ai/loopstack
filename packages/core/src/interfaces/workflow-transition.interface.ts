@@ -1,5 +1,5 @@
 export interface WorkflowTransitionInterface {
-    from: string;
-    to: string;
-    trigger: "manual" | "auto";
+  from: string;
+  to: string;
+  trigger: 'manual' | 'auto';
 }

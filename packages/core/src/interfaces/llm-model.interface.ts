@@ -1,5 +1,5 @@
 export interface LlmModelInterface {
-    name: string;
-    model: string;
-    baseUrl?: string;
+  name: string;
+  model: string;
+  baseUrl?: string;
 }

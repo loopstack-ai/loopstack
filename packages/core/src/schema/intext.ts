@@ -1,4 +1,4 @@
-import {Schema} from "ajv";
+import { Schema } from 'ajv';
 
 const mainSchema = require('../schema/main.schema.json');
 const actionSchema = require('../schema/action.schema.json');
@@ -16,24 +16,24 @@ const workflowTransitionSchema = require('../schema/workflow-transition.schema.j
 const workspaceSchema = require('../schema/workspace.schema.json');
 
 export const modelSchemas: {
-    mainSchema: Schema,
-    other: Schema[],
+  mainSchema: Schema;
+  other: Schema[];
 } = {
+  mainSchema,
+  other: [
     mainSchema,
-    other: [
-        mainSchema,
-        actionSchema,
-        entitySchema,
-        functionFromSchema,
-        llmModelSchema,
-        pipelineSchema,
-        projectSchema,
-        promptTemplateSchema,
-        utilSchema,
-        workflowSchema,
-        workflowObserverSchema,
-        workflowTemplateSchema,
-        workflowTransitionSchema,
-        workspaceSchema,
-    ]
-}
+    actionSchema,
+    entitySchema,
+    functionFromSchema,
+    llmModelSchema,
+    pipelineSchema,
+    projectSchema,
+    promptTemplateSchema,
+    utilSchema,
+    workflowSchema,
+    workflowObserverSchema,
+    workflowTemplateSchema,
+    workflowTransitionSchema,
+    workspaceSchema,
+  ],
+};
