@@ -1,5 +1,5 @@
 {
-  "name": "loopstack-core-module",
+  "name": "@loopstack/core",
   "displayName": "Loopstack Core Module",
   "description": "The core module of the loopstack automation framework",
   "version": "0.0.1",
@@ -28,15 +28,18 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@loopstack/shared": "workspace:^",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "ajv": "^8.17.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
+    "@golevelup/ts-jest": "^0.6.2",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
