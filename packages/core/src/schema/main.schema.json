@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "main.schema.json",
+  "type": "object",
+  "properties": {
+    "workspaces": {
+      "type": "array",
+      "items": { "$ref": "workspace.schema.json" }
+    },
+    "projects": {
+      "type": "array",
+      "items": { "$ref": "project.schema.json" }
+    },
+    "utils": {
+      "type": "array",
+      "items": { "$ref": "util.schema.json" }
+    },
+    "pipelines": {
+      "type": "array",
+      "items": { "$ref": "pipeline.schema.json" }
+    },
+    "workflows": {
+      "type": "array",
+      "items": { "$ref": "workflow.schema.json" }
+    },
+    "workflowTemplates": {
+      "type": "array",
+      "items": { "$ref": "workflow-template.schema.json" }
+    },
+    "actions": {
+      "type": "array",
+      "items": { "$ref": "action.schema.json" }
+    },
+    "promptTemplates": {
+      "type": "array",
+      "items": { "$ref": "prompt-template.schema.json" }
+    },
+    "llmModels": {
+      "type": "array",
+      "items": { "$ref": "llm-model.schema.json" }
+    },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "entity.schema.json" }
+    }
+  }
+}

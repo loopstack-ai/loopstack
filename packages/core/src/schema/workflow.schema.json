@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "workflow.schema.json",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "template": {
+          "type": "string"
+        },
+        "transitions": {
+          "type": "array",
+          "items": {
+            "$ref": "workflow-transition.schema.json"
+          }
+        },
+        "observers": {
+          "type": "array",
+          "items": {
+            "$ref": "workflow-observer.schema.json"
+          }
+        },
+        "before": {
+          "type": "array",
+          "items": {
+            "$ref": "util.schema.json"
+          }
+        },
+        "after": {
+          "type": "array",
+          "items": {
+            "$ref": "util.schema.json"
+          }
+        }
+      },
+      "oneOf": [
+        { "required": ["template"] },
+        { "required": ["transitions", "observers"] }
+      ]
+    }
+  },
+  "required": ["name", "config"]
+}

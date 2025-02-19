@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "util.schema.json",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "args": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "string",
+              "number",
+              "boolean",
+              "object",
+              "array"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
+      }
+    },
+    "execute": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "function": {
+            "type": "string",
+            "description": "Any function or util name"
+          },
+          "props": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "function"
+        ]
+      }
+    }
+  },
+  "required": ["name", "execute"]
+}
