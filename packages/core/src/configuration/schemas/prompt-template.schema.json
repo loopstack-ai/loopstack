@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loopstack.ai/schemas/prompt-template.schema.json",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "systemPrompt": {
+      "type": "string"
+    },
+    "prompt": {
+      "type": "string"
+    },
+    "output": {
+      "type": "string"
+    }
+  },
+  "required": ["name", "prompt", "output"]
+}

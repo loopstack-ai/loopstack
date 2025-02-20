@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loopstack.ai/schemas/main.schema.json",
+  "type": "object",
+  "properties": {
+    "workspaces": {
+      "type": "array",
+      "items": { "$ref": "https://loopstack.ai/schemas/workspace.schema.json"}
+    },
+    "projects": {
+      "type": "array",
+      "items": { "$ref": "https://loopstack.ai/schemas/project.schema.json"}
+    },
+    "utils": {
+      "type": "array",
+      "items": { "$ref": "https://loopstack.ai/schemas/util.schema.json"}
+    },
+    "pipelines": {
+      "type": "array",
+      "items": { "$ref": "https://loopstack.ai/schemas/pipeline.schema.json"}
+    },
+    "workflows": {
+      "type": "array",
+      "items": { "$ref": "https://loopstack.ai/schemas/workflow.schema.json"}
+    },
+    "workflowTemplates": {
+      "type": "array",
+      "items": { "$ref": "https://loopstack.ai/schemas/workflow-template.schema.json"}
+    },
+    "actions": {
+      "type": "array",
+      "items": { "$ref": "https://loopstack.ai/schemas/action.schema.json"}
+    },
+    "promptTemplates": {
+      "type": "array",
+      "items": { "$ref": "https://loopstack.ai/schemas/prompt-template.schema.json"}
+    },
+    "llmModels": {
+      "type": "array",
+      "items": { "$ref": "https://loopstack.ai/schemas/llm-model.schema.json"}
+    },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "https://loopstack.ai/schemas/entity.schema.json"}
+    }
+  },
+  "additionalProperties": false
+}

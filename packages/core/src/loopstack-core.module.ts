@@ -1,30 +1,22 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { LoopstackCoreService } from './loopstack-core.service';
-import { LoopstackCoreModuleOptionsInterface } from './config/interfaces/loopstack-core-module-options.interface';
-import { ConfigModule } from './config/config.module';
+import { LoopstackCoreModuleOptionsInterface } from './configuration/interfaces/loopstack-core-module-options.interface';
+import { ConfigurationModule } from './configuration/configuration.module';
+import {ProcessorModule} from "./processor/processor.module";
 
 @Module({
-  imports: [ConfigModule],
+  imports: [
+    ConfigurationModule,
+    ProcessorModule,
+  ],
   providers: [LoopstackCoreService],
+  exports: [ConfigurationModule, ProcessorModule],
 })
 export class LoopstackCoreModule {
   static forRoot(config: LoopstackCoreModuleOptionsInterface): DynamicModule {
     return {
       module: LoopstackCoreModule,
       imports: [],
-    };
-  }
-
-  static forRootAsync(
-    configFactory: () => Promise<LoopstackCoreModuleOptionsInterface>,
-  ): DynamicModule {
-    return {
-      module: LoopstackCoreModule,
-      imports: [
-        // TypeOrmModule.forRootAsync({
-        //   useFactory: dbConfigFactory,
-        // }),
-      ],
     };
   }
 }
