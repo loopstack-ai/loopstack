@@ -1,5 +1,5 @@
 {
-  "name": "loopstack-api-module",
+  "name": "@loopstack/api",
   "displayName": "Loopstack Api Module",
   "description": "The api module of the loopstack automation framework",
   "version": "0.0.1",
@@ -28,6 +28,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@loopstack/shared": "workspace:^",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
