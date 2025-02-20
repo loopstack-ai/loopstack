@@ -9,5 +9,8 @@
     "email": "jakob@loopstack.ai",
     "url": "https://www.linkedin.com/in/jakob-klippel-414a30261/"
   },
-  "license": "ISC"
+  "license": "MIT",
+  "scripts": {
+    "watch:all": "pnpm --parallel -r run watch"
+  }
 }
