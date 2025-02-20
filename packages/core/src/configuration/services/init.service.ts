@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import { WorkspaceCollectionService } from './workspace-collection.service';
 import { ProjectCollectionService } from './project-collection.service';
 import { UtilsCollectionService } from './utils-collection.service';
@@ -9,10 +9,11 @@ import { ActionCollectionService } from './action-collection.service';
 import { PromptTemplateCollectionService } from './prompt-template-collection.service';
 import { AdapterCollectionService } from './adapter-collection.service';
 import { EntityCollectionService } from './entity-collection.service';
-import {MainConfigInterface, MainSchema} from "@loopstack/shared/dist/schemas/main.schema";
+import { MainConfigInterface, MainSchema } from "@loopstack/shared/dist/schemas/main.schema";
 
 @Injectable()
 export class InitService {
+
   constructor(
     private workspaceCollectionService: WorkspaceCollectionService,
     private projectCollectionService: ProjectCollectionService,
@@ -25,6 +26,19 @@ export class InitService {
     private llmModelCollectionService: AdapterCollectionService,
     private entityCollectionService: EntityCollectionService,
   ) {}
+
+  clear() {
+    this.workspaceCollectionService.clear();
+    this.projectCollectionService.clear();
+    this.utilCollectionService.clear();
+    this.pipelineCollectionService.clear();
+    this.workflowCollectionService.clear();
+    this.workflowTemplateCollectionService.clear();
+    this.actionCollectionService.clear();
+    this.promptTemplateCollectionService.clear();
+    this.llmModelCollectionService.clear();
+    this.entityCollectionService.clear();
+  }
 
   createFromConfig(data: MainConfigInterface): any {
     const config = MainSchema.parse(data);

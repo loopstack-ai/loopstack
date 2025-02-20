@@ -1,7 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import {PipelineCollectionService} from "../../configuration/services/pipeline-collection.service";
 import {WorkflowProcessorService} from "./workflow-processor.service";
-import {PipelineInterface} from "../../configuration/interfaces/pipeline.interface";
+import {PipelineConfigInterface} from "@loopstack/shared";
 
 @Injectable()
 export class PipelineProcessorService {
@@ -15,7 +15,7 @@ export class PipelineProcessorService {
         return this.pipelineCollectionService.has(name);
     }
 
-    getSequence(pipeline: PipelineInterface): any[] {
+    getSequence(pipeline: PipelineConfigInterface): any[] {
         if (undefined === pipeline.sequence) {
             const factory = pipeline.factory;
             if (undefined === factory) {

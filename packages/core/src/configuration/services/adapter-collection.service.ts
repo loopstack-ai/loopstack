@@ -5,6 +5,6 @@ import {AdapterConfigInterface} from "@loopstack/shared";
 @Injectable()
 export class AdapterCollectionService extends CollectionService<AdapterConfigInterface> {
   create(models: AdapterConfigInterface[]): void {
-    this.set(models);
+    this.merge(models);
   }
 }

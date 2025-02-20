@@ -5,6 +5,6 @@ import {WorkflowConfigInterface} from "@loopstack/shared";
 @Injectable()
 export class WorkflowCollectionService extends CollectionService<WorkflowConfigInterface> {
   create(workflows: WorkflowConfigInterface[]): void {
-    this.set(workflows);
+    this.merge(workflows);
   }
 }

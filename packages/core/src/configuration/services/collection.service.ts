@@ -5,11 +5,15 @@ import { Injectable, Scope } from '@nestjs/common';
 export class CollectionService<T extends NamedCollectionItem> {
   private items: Map<string, T> = new Map();
 
-  protected set(items: T[]): void {
+  set(items: T[]): void {
     this.items.clear();
     for (const item of items) {
       this.items.set(item.name, item);
     }
+  }
+
+  clear() {
+    this.items.clear();
   }
 
   add(item: T): void {
@@ -36,10 +40,7 @@ export class CollectionService<T extends NamedCollectionItem> {
 
   merge(items: T[]): void {
     for (const item of items) {
-      if (this.items.has(item.name)) {
-        throw new Error(`item with name "${item.name}" already exists.`);
-      }
-      this.items.set(item.name, item);
+      this.add(item);
     }
   }
 

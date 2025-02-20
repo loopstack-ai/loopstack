@@ -5,6 +5,6 @@ import {ProjectConfigInterface} from "@loopstack/shared";
 @Injectable()
 export class ProjectCollectionService extends CollectionService<ProjectConfigInterface> {
   create(projects: ProjectConfigInterface[]): void {
-    this.set(projects);
+    this.merge(projects);
   }
 }

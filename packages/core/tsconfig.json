@@ -20,7 +20,5 @@
     "paths": {
       "@loopstack/shared": ["packages/shared/src"],
     },
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
   }
 }

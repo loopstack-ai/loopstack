@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WorkspaceCollectionService } from './workspace-collection.service';
-import {WorkspaceConfigInterface} from "@loopstack/shared";
 
 describe('WorkspaceCollectionService - Singleton Test', () => {
   let moduleRef: TestingModule;
@@ -29,7 +28,7 @@ describe('WorkspaceCollectionService - Singleton Test', () => {
   });
 
   it('should retain data across multiple injections', () => {
-    const workspaces: WorkspaceConfigInterface[] = [
+    const workspaces = [
       { name: 'Workspace1' },
     ];
 

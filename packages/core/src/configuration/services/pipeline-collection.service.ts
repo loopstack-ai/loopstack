@@ -5,6 +5,6 @@ import {PipelineConfigInterface} from "@loopstack/shared";
 @Injectable()
 export class PipelineCollectionService extends CollectionService<PipelineConfigInterface> {
   create(pipelines: PipelineConfigInterface[]): void {
-    this.set(pipelines);
+    this.merge(pipelines);
   }
 }

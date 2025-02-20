@@ -5,6 +5,6 @@ import {WorkflowTemplateConfigInterface} from "@loopstack/shared";
 @Injectable()
 export class WorkflowTemplateCollectionService extends CollectionService<WorkflowTemplateConfigInterface> {
   create(templates: WorkflowTemplateConfigInterface[]): void {
-    this.set(templates);
+    this.merge(templates);
   }
 }

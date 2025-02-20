@@ -5,6 +5,6 @@ import {EntityConfigInterface} from "@loopstack/shared";
 @Injectable()
 export class EntityCollectionService extends CollectionService<EntityConfigInterface> {
   create(entities: EntityConfigInterface[]): void {
-    this.set(entities);
+    this.merge(entities);
   }
 }
