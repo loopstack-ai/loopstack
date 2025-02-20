@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ActionCollectionService } from './services/action-collection.service';
 import { CollectionService } from './services/collection.service';
 import { EntityCollectionService } from './services/entity-collection.service';
-import { LlmModelCollectionService } from './services/llm-model-collection.service';
+import { AdapterCollectionService } from './services/adapter-collection.service';
 import { InitService } from './services/init.service';
 import { PipelineCollectionService } from './services/pipeline-collection.service';
 import { ProjectCollectionService } from './services/project-collection.service';
@@ -11,7 +11,6 @@ import { UtilsCollectionService } from './services/utils-collection.service';
 import { WorkspaceCollectionService } from './services/workspace-collection.service';
 import { WorkflowTemplateCollectionService } from './services/workflow-template-collection.service';
 import { WorkflowCollectionService } from './services/workflow-collection.service';
-import { ModelSchemaValidatorService } from './services/model-schema-validator.service';
 import {ConfigModule} from "@nestjs/config/dist/config.module";
 import loadSchemas from "./configuration";
 
@@ -23,11 +22,10 @@ import loadSchemas from "./configuration";
   ],
   providers: [
     InitService,
-    ModelSchemaValidatorService,
     CollectionService,
     ActionCollectionService,
     EntityCollectionService,
-    LlmModelCollectionService,
+    AdapterCollectionService,
     PipelineCollectionService,
     ProjectCollectionService,
     PromptTemplateCollectionService,
@@ -40,7 +38,7 @@ import loadSchemas from "./configuration";
     InitService,
     ActionCollectionService,
     EntityCollectionService,
-    LlmModelCollectionService,
+    AdapterCollectionService,
     PipelineCollectionService,
     ProjectCollectionService,
     PromptTemplateCollectionService,

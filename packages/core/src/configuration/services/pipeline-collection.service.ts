@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import { PipelineInterface } from '../interfaces/pipeline.interface';
+import {PipelineConfigInterface} from "@loopstack/shared";
 
 @Injectable()
-export class PipelineCollectionService extends CollectionService<PipelineInterface> {
-  create(pipelines: PipelineInterface[]): void {
+export class PipelineCollectionService extends CollectionService<PipelineConfigInterface> {
+  create(pipelines: PipelineConfigInterface[]): void {
     this.set(pipelines);
   }
 }

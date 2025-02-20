@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import { PromptTemplateInterface } from '../interfaces/prompt-template.interface';
+import {PromptTemplateConfigInterface} from "@loopstack/shared";
 
 @Injectable()
-export class PromptTemplateCollectionService extends CollectionService<PromptTemplateInterface> {
-  create(templates: PromptTemplateInterface[]): void {
+export class PromptTemplateCollectionService extends CollectionService<PromptTemplateConfigInterface> {
+  create(templates: PromptTemplateConfigInterface[]): void {
     this.set(templates);
   }
 }

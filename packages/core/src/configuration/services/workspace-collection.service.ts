@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import { WorkspaceInterface } from '../interfaces/workspace.interface';
+import { WorkspaceConfigInterface } from "@loopstack/shared";
 
 @Injectable()
-export class WorkspaceCollectionService extends CollectionService<WorkspaceInterface> {
-  create(workspaces: WorkspaceInterface[]): void {
+export class WorkspaceCollectionService extends CollectionService<WorkspaceConfigInterface> {
+  create(workspaces: WorkspaceConfigInterface[]): void {
     this.set(workspaces);
   }
 }
