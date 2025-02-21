@@ -10,4 +10,6 @@ export interface ContextInterface {
   labels: string[];
   namespaces: NamespacesType;
   transitions: TransitionPayloadInterface[];
+
+  iterator?: { key: string; value: string };
 }

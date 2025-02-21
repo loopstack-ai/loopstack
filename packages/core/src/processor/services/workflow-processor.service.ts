@@ -6,6 +6,7 @@ import { ContextInterface } from '../interfaces/context.interface';
 import _ from 'lodash';
 import { ResultInterface } from '../interfaces/result.interface';
 import { ContextService } from './context.service';
+import {ValueParserService} from "./value-parser.service";
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -13,6 +14,7 @@ export class WorkflowProcessorService {
     private contextService: ContextService,
     private workflowCollectionService: WorkflowCollectionService,
     private functionCallService: FunctionCallService,
+    private valueParserService: ValueParserService,
   ) {}
 
   hasWorkflow(name: string): boolean {
@@ -23,6 +25,8 @@ export class WorkflowProcessorService {
       workflow: WorkflowConfigInterface,
       context: ContextInterface,
   ) {
+    console.log('Processing workflow:', workflow.name, context.namespaces);
+
     let result: { context: ContextInterface } = { context };
 
     if (workflow.sequence) {
@@ -30,6 +34,28 @@ export class WorkflowProcessorService {
       for (const itemName of sequence) {
         result = await this.processWorkflow(itemName, context);
       }
+      return result;
+    }
+
+    if (workflow.factory) {
+      const workflowName = workflow.factory.workflow;
+
+      if (!this.hasWorkflow(workflowName)) {
+        throw new Error(`Workflow ${workflowName} for factory in ${workflow.name} does not exist.`)
+      }
+
+      const iteratorName = workflow.factory.iterator.name;
+      const iteratorValues = this.valueParserService.parseValue(workflow.factory.iterator.values, result);
+
+      if (!Array.isArray(iteratorValues)) {
+        throw new Error(`Iterator values for ${iteratorName} must be array, got ${typeof iteratorValues}`);
+      }
+
+      for (const iterator of iteratorValues) {
+        result.context.iterator = { key: iteratorName, value: iterator };
+        result = await this.processWorkflow(workflowName, result.context);
+      }
+
       return result;
     }
 
@@ -44,11 +70,9 @@ export class WorkflowProcessorService {
       throw new Error(`workflow with name "${name}" not found.`);
     }
 
-    console.log('Processing pipeline:', name);
-
     const workflow = this.workflowCollectionService.getByName(name);
     if (!workflow) {
-      throw new Error(`pipeline with name "${name}" not found.`);
+      throw new Error(`workflow with name "${name}" not found.`);
     }
 
     const context = this.contextService.create(parentContext);
@@ -56,7 +80,7 @@ export class WorkflowProcessorService {
 
     // before functions update the working context
     result = this.functionCallService.applyFunctions(
-        workflow.prepare,
+      workflow.prepare,
       result.context,
       result.context,
     );

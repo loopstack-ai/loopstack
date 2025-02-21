@@ -10,6 +10,6 @@ import { ResultInterface } from '../../processor/interfaces/result.interface';
 export class ForwardChildContextFunction implements FunctionInterface {
 
   apply(options: any, target: ContextInterface, context: ContextInterface): ResultInterface {
-    return { context: _.merge({}, _.omit(context, options.omit)) };
+    return { context: _.merge({}, target, _.omit(context, options.omit)) };
   }
 }

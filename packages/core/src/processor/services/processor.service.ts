@@ -12,7 +12,10 @@ export class ProcessorService {
   ) {}
 
   process(payload: ProcessRunInterface): Promise<ResultInterface> {
-    const context = this.contextService.create(payload);
+    const context = this.contextService.create({
+      ...payload,
+      namespaces: {},
+    });
     return this.projectProcessorService.processProject(
       payload.config.projectName,
       context,

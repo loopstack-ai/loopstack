@@ -11,15 +11,10 @@ export class TemplateEngineService {
     return ejs.render(template, variables);
   }
 
-  parseObjectValues(
-    obj: Record<string, any>,
-    variables: Record<string, any>,
-  ): any {
-    return Object.fromEntries(
-      Object.entries(obj).map(([key, value]) => [
-        key,
-        this.isTemplate(value) ? this.render(value, variables) : value,
-      ]),
-    );
+  parseValue(
+     value: string,
+     variables: Record<string, any>,
+  ){
+    return this.isTemplate(value) ? this.render(value, variables) : value;
   }
 }
