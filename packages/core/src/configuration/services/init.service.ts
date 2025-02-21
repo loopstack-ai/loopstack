@@ -1,7 +1,7 @@
-import {Injectable} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { WorkspaceCollectionService } from './workspace-collection.service';
 import { ProjectCollectionService } from './project-collection.service';
-import { UtilsCollectionService } from './utils-collection.service';
+import { UtilCollectionService } from './util-collection.service';
 import { PipelineCollectionService } from './pipeline-collection.service';
 import { WorkflowCollectionService } from './workflow-collection.service';
 import { WorkflowTemplateCollectionService } from './workflow-template-collection.service';
@@ -9,15 +9,17 @@ import { ActionCollectionService } from './action-collection.service';
 import { PromptTemplateCollectionService } from './prompt-template-collection.service';
 import { AdapterCollectionService } from './adapter-collection.service';
 import { EntityCollectionService } from './entity-collection.service';
-import { MainConfigInterface, MainSchema } from "@loopstack/shared/dist/schemas/main.schema";
+import {
+  MainConfigInterface,
+  MainSchema,
+} from '@loopstack/shared/dist/schemas/main.schema';
 
 @Injectable()
 export class InitService {
-
   constructor(
     private workspaceCollectionService: WorkspaceCollectionService,
     private projectCollectionService: ProjectCollectionService,
-    private utilCollectionService: UtilsCollectionService,
+    private utilCollectionService: UtilCollectionService,
     private pipelineCollectionService: PipelineCollectionService,
     private workflowCollectionService: WorkflowCollectionService,
     private workflowTemplateCollectionService: WorkflowTemplateCollectionService,

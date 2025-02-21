@@ -1,18 +1,17 @@
-import {Inject, Injectable, OnApplicationBootstrap} from '@nestjs/common';
-import { MainConfigInterface } from "@loopstack/shared/dist/schemas/main.schema";
-import {InitService} from "./configuration/services/init.service";
-import {MODULE_OPTIONS_TOKEN} from "./loopstack-core.module-definition";
-import {ModuleOptionsInterface} from "./interfaces/module-options.interface";
-import path from "path";
-import fs from "fs";
+import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { MainConfigInterface } from '@loopstack/shared/dist/schemas/main.schema';
+import { InitService } from './configuration/services/init.service';
+import { MODULE_OPTIONS_TOKEN } from './loop-core.module-definition';
+import { ModuleOptionsInterface } from './interfaces/module-options.interface';
+import path from 'path';
+import fs from 'fs';
 import * as yaml from 'js-yaml';
 
 @Injectable()
-export class LoopstackCoreService implements OnApplicationBootstrap {
-
+export class LoopCoreService implements OnApplicationBootstrap {
   constructor(
-      @Inject(MODULE_OPTIONS_TOKEN) private options: ModuleOptionsInterface,
-      private initService: InitService
+    @Inject(MODULE_OPTIONS_TOKEN) private options: ModuleOptionsInterface,
+    private initService: InitService,
   ) {}
 
   loadConfigFilesUtil(directoryPath: string): any[] {
@@ -23,8 +22,11 @@ export class LoopstackCoreService implements OnApplicationBootstrap {
 
       files.forEach((file) => {
         const filePath = path.join(absolutePath, file);
-        if (fs.statSync(filePath).isFile() && file.endsWith('.loopstack.yaml')) {
-          configs.push(yaml.load(fs.readFileSync(filePath, 'utf8')))
+        if (
+          fs.statSync(filePath).isFile() &&
+          file.endsWith('.loopstack.yaml')
+        ) {
+          configs.push(yaml.load(fs.readFileSync(filePath, 'utf8')));
         }
       });
     } catch (error) {

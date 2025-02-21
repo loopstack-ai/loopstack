@@ -7,12 +7,12 @@ import { InitService } from './services/init.service';
 import { PipelineCollectionService } from './services/pipeline-collection.service';
 import { ProjectCollectionService } from './services/project-collection.service';
 import { PromptTemplateCollectionService } from './services/prompt-template-collection.service';
-import { UtilsCollectionService } from './services/utils-collection.service';
+import { UtilCollectionService } from './services/util-collection.service';
 import { WorkspaceCollectionService } from './services/workspace-collection.service';
 import { WorkflowTemplateCollectionService } from './services/workflow-template-collection.service';
 import { WorkflowCollectionService } from './services/workflow-collection.service';
-import {ConfigModule} from "@nestjs/config/dist/config.module";
-import loadSchemas from "./configuration";
+import { ConfigModule } from '@nestjs/config/dist/config.module';
+import loadSchemas from './configuration';
 
 @Module({
   imports: [
@@ -29,7 +29,7 @@ import loadSchemas from "./configuration";
     PipelineCollectionService,
     ProjectCollectionService,
     PromptTemplateCollectionService,
-    UtilsCollectionService,
+    UtilCollectionService,
     WorkflowCollectionService,
     WorkflowTemplateCollectionService,
     WorkspaceCollectionService,
@@ -42,7 +42,7 @@ import loadSchemas from "./configuration";
     PipelineCollectionService,
     ProjectCollectionService,
     PromptTemplateCollectionService,
-    UtilsCollectionService,
+    UtilCollectionService,
     WorkflowCollectionService,
     WorkflowTemplateCollectionService,
     WorkspaceCollectionService,

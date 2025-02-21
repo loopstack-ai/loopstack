@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import {WorkflowConfigInterface} from "@loopstack/shared";
+import { WorkflowConfigInterface } from '@loopstack/shared';
 
 @Injectable()
 export class WorkflowCollectionService extends CollectionService<WorkflowConfigInterface> {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import {ProjectConfigInterface} from "@loopstack/shared";
+import { ProjectConfigInterface } from '@loopstack/shared';
 
 @Injectable()
 export class ProjectCollectionService extends CollectionService<ProjectConfigInterface> {

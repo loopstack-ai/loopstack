@@ -28,9 +28,7 @@ describe('WorkspaceCollectionService - Singleton Test', () => {
   });
 
   it('should retain data across multiple injections', () => {
-    const workspaces = [
-      { name: 'Workspace1' },
-    ];
+    const workspaces = [{ name: 'Workspace1' }];
 
     serviceInstance1.create(workspaces);
     expect(serviceInstance2.getAll()).toEqual(workspaces);

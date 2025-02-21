@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { InitService } from './init.service';
 import { WorkspaceCollectionService } from './workspace-collection.service';
 import { ProjectCollectionService } from './project-collection.service';
-import { UtilsCollectionService } from './utils-collection.service';
+import { UtilCollectionService } from './util-collection.service';
 import { PipelineCollectionService } from './pipeline-collection.service';
 import { WorkflowCollectionService } from './workflow-collection.service';
 import { WorkflowTemplateCollectionService } from './workflow-template-collection.service';
@@ -10,15 +10,15 @@ import { ActionCollectionService } from './action-collection.service';
 import { PromptTemplateCollectionService } from './prompt-template-collection.service';
 import { AdapterCollectionService } from './adapter-collection.service';
 import { EntityCollectionService } from './entity-collection.service';
-import {ConfigModule, ConfigService} from "@nestjs/config";
-import loadSchemas from "../configuration";
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import loadSchemas from '../configuration';
 
 describe('InitService', () => {
   let modelService: InitService;
   let workspaceCollectionService: WorkspaceCollectionService;
   let workspaceCollectionService2: WorkspaceCollectionService;
   let projectCollectionService: ProjectCollectionService;
-  let utilsCollectionService: UtilsCollectionService;
+  let utilsCollectionService: UtilCollectionService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -32,7 +32,7 @@ describe('InitService', () => {
         InitService,
         WorkspaceCollectionService,
         ProjectCollectionService,
-        UtilsCollectionService,
+        UtilCollectionService,
         PipelineCollectionService,
         WorkflowCollectionService,
         WorkflowTemplateCollectionService,
@@ -53,8 +53,8 @@ describe('InitService', () => {
     projectCollectionService = module.get<ProjectCollectionService>(
       ProjectCollectionService,
     );
-    utilsCollectionService = module.get<UtilsCollectionService>(
-      UtilsCollectionService,
+    utilsCollectionService = module.get<UtilCollectionService>(
+      UtilCollectionService,
     );
   });
 

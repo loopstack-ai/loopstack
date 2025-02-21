@@ -1,3 +1,3 @@
 export interface ModuleOptionsInterface {
-    configFilePath: string;
+  configFilePath: string;
 }

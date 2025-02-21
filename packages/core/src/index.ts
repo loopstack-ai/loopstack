@@ -1,1 +1,1 @@
-export * from './loopstack-core.module';
+export * from './loop-core.module';
