@@ -6,7 +6,7 @@ import { FunctionCallService } from './function-call.service';
 import { ContextInterface } from '../interfaces/context.interface';
 import _ from 'lodash';
 import { ResultInterface } from '../interfaces/result.interface';
-import {ContextService} from "./context.service";
+import { ContextService } from './context.service';
 
 @Injectable()
 export class PipelineProcessorService {
@@ -61,26 +61,25 @@ export class PipelineProcessorService {
     }
 
     const context = this.contextService.create(parentContext);
-
     let result: { context: ContextInterface } = { context };
-    if (pipeline.before) {
-      result = this.functionCallService.applyFunctions(
-        pipeline.before,
-        result.context,
-      );
-    }
+
+    // before functions update the working context
+    result = this.functionCallService.applyFunctions(
+      pipeline.prepare,
+      result.context,
+      result.context,
+    );
 
     for (const itemName of this.getSequence(pipeline)) {
       result = await this.runSequenceItem(itemName, result);
     }
 
-    if (pipeline.after) {
-      result = this.functionCallService.applyFunctions(
-        pipeline.after,
-        result.context,
-      );
-    }
-
-    return pipeline.options?.contextCarryOver ? result : { context };
+    // pipelines return the parentContext and apply actions to it
+    // they do not pass down its working context
+    return this.functionCallService.applyFunctions(
+      pipeline.export,
+      parentContext,
+      result.context,
+    );
   }
 }

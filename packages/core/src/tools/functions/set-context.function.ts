@@ -14,20 +14,10 @@ export class SetContextFunction implements FunctionInterface {
     value: z.any(),
   });
 
-  mergeContext(
-    context: ContextInterface,
-    updates: Record<string, any>,
-  ): ContextInterface {
-    return merge({}, context, updates);
-  }
-
-  apply(options: any, context: ContextInterface): ResultInterface {
+  apply(options: any, target: ContextInterface): ResultInterface {
     const validOptions = this.schema.parse(options);
 
-    const newContext = this.mergeContext(context, {
-      [validOptions.key]: validOptions.value,
-    });
-
-    return { context: newContext };
+    target[validOptions.key] = validOptions.value;
+    return { context: target };
   }
 }

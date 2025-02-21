@@ -21,23 +21,25 @@ export class FunctionCallService {
   applyUtil(
     util: UtilConfigInterface,
     props: Record<string, any>,
+    target: ContextInterface,
     context: ContextInterface,
   ): ResultInterface {
     const argKeys = util.args ? _.map(util.args, 'name') : [];
     const args: Record<string, any> = _.pick(props, argKeys);
 
-    return this.applyFunctions(util.execute, context, args);
+    return this.applyFunctions(util.execute, target, context, args);
   }
 
   applyFunctions(
-    executions: UtilCallConfigInterface[],
+    executions: UtilCallConfigInterface[] | undefined,
+    target: ContextInterface,
     context: ContextInterface,
     args?: Record<string, any>,
   ) {
-    let result: { context: ContextInterface } = { context };
+    let result: { context: ContextInterface } = { context: target };
     if (executions?.length) {
       for (const item of executions) {
-        result = this.applyFunction(item, result.context, args);
+        result = this.applyFunction(item, result.context, context, args);
       }
     }
     return result;
@@ -55,6 +57,7 @@ export class FunctionCallService {
 
   applyFunction(
     payload: UtilCallConfigInterface,
+    target: ContextInterface,
     context: ContextInterface,
     args?: Record<string, any>,
   ): ResultInterface {
@@ -64,12 +67,12 @@ export class FunctionCallService {
       payload.function,
     );
     if (functionInstance) {
-      return functionInstance.apply(props, context);
+      return functionInstance.apply(props, target, context);
     }
 
     const util = this.utilCollectionService.getByName(payload.function);
     if (util) {
-      return this.applyUtil(util, props, context);
+      return this.applyUtil(util, props, target, context);
     }
 
     throw new Error(
