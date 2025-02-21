@@ -3,7 +3,6 @@ import { InitService } from './init.service';
 import { WorkspaceCollectionService } from './workspace-collection.service';
 import { ProjectCollectionService } from './project-collection.service';
 import { UtilCollectionService } from './util-collection.service';
-import { PipelineCollectionService } from './pipeline-collection.service';
 import { WorkflowCollectionService } from './workflow-collection.service';
 import { WorkflowTemplateCollectionService } from './workflow-template-collection.service';
 import { ActionCollectionService } from './action-collection.service';
@@ -33,7 +32,6 @@ describe('InitService', () => {
         WorkspaceCollectionService,
         ProjectCollectionService,
         UtilCollectionService,
-        PipelineCollectionService,
         WorkflowCollectionService,
         WorkflowTemplateCollectionService,
         ActionCollectionService,
