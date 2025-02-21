@@ -63,10 +63,10 @@ export class WorkflowProcessorService {
 
     result = await this.runWorkflow(workflow, result.context)
 
-    // pipelines return the parentContext and apply actions to it
+    // workflows return the parentContext and apply actions
     // they do not pass down its working context
     return this.functionCallService.applyFunctions(
-        workflow.export,
+      workflow.export,
       parentContext,
       result.context,
     );
