@@ -51,7 +51,7 @@ export class WorkflowStateService {
 
   async createState(data: Partial<WorkflowState>): Promise<WorkflowState> {
     const stateMachine = this.WorkflowStateMachineRepository.create({
-      place: null,
+      place: 'initial',
     });
 
     const dto = this.workflowStateRepository.create({

@@ -23,9 +23,8 @@ export class WorkflowState {
     () => WorkflowStateMachine,
     (workflowStateMachine) => workflowStateMachine.workflowState,
     {
-      nullable: true,
       cascade: ['insert', 'update'],
     },
   )
-  stateMachine: WorkflowStateMachine | null;
+  stateMachine: WorkflowStateMachine;
 }

@@ -18,8 +18,8 @@ export class WorkflowStateMachine {
   @JoinColumn()
   workflowState: WorkflowState;
 
-  @Column({ type: 'varchar', nullable: true })
-  place: string | null;
+  @Column({ type: 'varchar' })
+  place: string;
 
   @Column('jsonb', { nullable: false, default: [] })
   availableTransitions: WorkflowTransitionConfigInterface[];

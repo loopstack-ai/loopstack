@@ -8,7 +8,7 @@ import { FunctionsRegistry } from '../../tools/registry/functions.registry';
 import { ContextInterface } from '../interfaces/context.interface';
 import _ from 'lodash';
 import { ResultInterface } from '../interfaces/result.interface';
-import {ValueParserService} from "./value-parser.service";
+import { ValueParserService } from './value-parser.service';
 
 @Injectable()
 export class FunctionCallService {
@@ -36,7 +36,10 @@ export class FunctionCallService {
     contextArgs?: Record<string, any>,
   ): Record<string, any> {
     return args
-      ? this.valueParserService.parseObjectValues(args, { context, args: contextArgs })
+      ? this.valueParserService.parseObjectValues(args, {
+          context,
+          args: contextArgs,
+        })
       : {};
   }
 
@@ -49,7 +52,7 @@ export class FunctionCallService {
     const args = this.prepareArgs(functionCall.args, context, contextArgs);
 
     const functionInstance = this.functionsRegistry.getFunctionByName(
-        functionCall.function,
+      functionCall.function,
     );
     if (functionInstance) {
       return functionInstance.apply(args, target, context);
@@ -66,10 +69,10 @@ export class FunctionCallService {
   }
 
   applyFunctions(
-      executions: UtilCallConfigInterface[] | undefined,
-      target: ContextInterface,
-      context: ContextInterface,
-      args?: Record<string, any>,
+    executions: UtilCallConfigInterface[] | undefined,
+    target: ContextInterface,
+    context: ContextInterface,
+    args?: Record<string, any>,
   ) {
     let result: { context: ContextInterface } = { context: target };
     if (executions?.length) {

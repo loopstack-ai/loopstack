@@ -15,6 +15,7 @@ export class ProcessorService {
     const context = this.contextService.create({
       ...payload,
       namespaces: {},
+      transitions: [],
     });
     return this.projectProcessorService.processProject(
       payload.config.projectName,

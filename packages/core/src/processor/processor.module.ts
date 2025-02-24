@@ -7,11 +7,13 @@ import { ContextService } from './services/context.service';
 import { ToolsModule } from '../tools/tools.module';
 import { FunctionCallService } from './services/function-call.service';
 import { TemplateEngineService } from './services/template-engine.service';
-import {GetterFunctionService} from "./services/getter-function.service";
-import {ValueParserService} from "./services/value-parser.service";
+import { GetterFunctionService } from './services/getter-function.service';
+import { ValueParserService } from './services/value-parser.service';
+import { PersistenceModule } from '../persistence/persistence.module';
+import {StateMachineModule} from "../state-machine/state-machine.module";
 
 @Module({
-  imports: [ConfigurationModule, ToolsModule],
+  imports: [ConfigurationModule, PersistenceModule, ToolsModule, StateMachineModule],
   providers: [
     ProjectProcessorService,
     WorkflowProcessorService,

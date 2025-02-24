@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TemplateEngineService } from './template-engine.service';
-import {GetterFunctionService} from "./getter-function.service";
+import { GetterFunctionService } from './getter-function.service';
 
 @Injectable()
 export class ValueParserService {
@@ -9,10 +9,7 @@ export class ValueParserService {
     private getterFunctionService: GetterFunctionService,
   ) {}
 
-  parseValue(
-      value: string | string[],
-      variables: Record<string, any>,
-  ){
+  parseValue(value: string | string[], variables: Record<string, any>) {
     if (Array.isArray(value)) {
       return value.map((item) => this.parseValue(item, variables));
     }
@@ -29,15 +26,14 @@ export class ValueParserService {
   }
 
   parseObjectValues(
-      obj: Record<string, any>,
-      variables: Record<string, any>,
+    obj: Record<string, any>,
+    variables: Record<string, any>,
   ): any {
     return Object.fromEntries(
-        Object.entries(obj).map(([key, value]) => [
-          key,
-          this.parseValue(value, variables),
-        ]),
+      Object.entries(obj).map(([key, value]) => [
+        key,
+        this.parseValue(value, variables),
+      ]),
     );
   }
-
 }

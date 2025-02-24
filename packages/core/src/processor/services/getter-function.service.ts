@@ -13,18 +13,15 @@ export class GetterFunctionService {
     return match ? match[1] : input;
   }
 
-  parseValue(
-      value: string,
-      variables: Record<string, any>,
-  ){
+  parseValue(value: string, variables: Record<string, any>) {
     if (!this.isGetter(value)) {
       return value;
     }
 
     const contents = this.extractGetContents(value);
 
-    const context = variables['context'] ?? {}
-    const args = variables['args'] ?? {}
+    const context = variables['context'] ?? {};
+    const args = variables['args'] ?? {};
     const func = new Function('context', 'args', `return ${contents};`);
 
     return func(context, args);
