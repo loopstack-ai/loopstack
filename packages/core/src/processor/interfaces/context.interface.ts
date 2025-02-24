@@ -1,5 +1,5 @@
 import { NamespacesType } from './namespaces-type';
-import { TransitionPayloadInterface } from '../dtos/transition-payload.interface';
+import { TransitionPayloadInterface } from '../../state-machine/interfaces/transition-payload.interface';
 
 export interface ContextInterface {
   userId: string;

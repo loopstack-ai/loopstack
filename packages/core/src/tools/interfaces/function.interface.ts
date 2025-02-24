@@ -5,6 +5,6 @@ export interface FunctionInterface {
   apply(
     options: any,
     target: ContextInterface,
-    context: ContextInterface,
+    source: ResultInterface,
   ): ResultInterface;
 }

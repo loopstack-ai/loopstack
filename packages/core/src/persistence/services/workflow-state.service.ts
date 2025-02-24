@@ -67,4 +67,8 @@ export class WorkflowStateService {
 
     return loaded;
   }
+
+  saveWorkflowState(entity: WorkflowState) {
+    return this.workflowStateRepository.save(entity);
+  }
 }

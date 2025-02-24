@@ -27,4 +27,10 @@ export class WorkflowState {
     },
   )
   stateMachine: WorkflowStateMachine;
+
+  @Column({ type: 'varchar', nullable: true })
+  error: string | null;
+
+  @Column({ default: false })
+  isWorking: boolean;
 }

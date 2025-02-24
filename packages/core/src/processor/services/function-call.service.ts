@@ -22,22 +22,22 @@ export class FunctionCallService {
     util: UtilConfigInterface,
     contextArgs: Record<string, any>,
     target: ContextInterface,
-    context: ContextInterface,
+    source: ResultInterface,
   ): ResultInterface {
     const paramKeys = util.params ? _.map(util.params, 'name') : [];
     const args: Record<string, any> = _.pick(contextArgs, paramKeys);
 
-    return this.applyFunctions(util.execute, target, context, args);
+    return this.applyFunctions(util.execute, target, source, args);
   }
 
   private prepareArgs(
     args: Record<string, any> | undefined,
-    context: ContextInterface,
+    source: ResultInterface,
     contextArgs?: Record<string, any>,
   ): Record<string, any> {
     return args
       ? this.valueParserService.parseObjectValues(args, {
-          context,
+          ...source,
           args: contextArgs,
         })
       : {};
@@ -46,21 +46,21 @@ export class FunctionCallService {
   private applyFunction(
     functionCall: UtilCallConfigInterface,
     target: ContextInterface,
-    context: ContextInterface,
+    source: ResultInterface,
     contextArgs?: Record<string, any>,
   ): ResultInterface {
-    const args = this.prepareArgs(functionCall.args, context, contextArgs);
+    const args = this.prepareArgs(functionCall.args, source, contextArgs);
 
     const functionInstance = this.functionsRegistry.getFunctionByName(
       functionCall.function,
     );
     if (functionInstance) {
-      return functionInstance.apply(args, target, context);
+      return functionInstance.apply(args, target, source);
     }
 
     const util = this.utilCollectionService.getByName(functionCall.function);
     if (util) {
-      return this.applyUtil(util, args, target, context);
+      return this.applyUtil(util, args, target, source);
     }
 
     throw new Error(
@@ -71,13 +71,13 @@ export class FunctionCallService {
   applyFunctions(
     executions: UtilCallConfigInterface[] | undefined,
     target: ContextInterface,
-    context: ContextInterface,
+    source: ResultInterface,
     args?: Record<string, any>,
   ) {
     let result: { context: ContextInterface } = { context: target };
     if (executions?.length) {
       for (const item of executions) {
-        result = this.applyFunction(item, result.context, context, args);
+        result = this.applyFunction(item, result.context, source, args);
       }
     }
     return result;

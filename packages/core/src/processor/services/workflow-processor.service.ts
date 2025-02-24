@@ -11,6 +11,7 @@ import { ResultInterface } from '../interfaces/result.interface';
 import { ContextService } from './context.service';
 import { ValueParserService } from './value-parser.service';
 import { StateMachineProcessorService } from '../../state-machine/services/state-machine-processor.service';
+import {WorkflowState} from "../../persistence/entities/workflow-state.entity";
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -28,8 +29,8 @@ export class WorkflowProcessorService {
   async runSequence(
     workflow: WorkflowConfigInterface,
     context: ContextInterface,
-  ) {
-    let result: { context: ContextInterface } = { context };
+  ): Promise<ResultInterface> {
+    let result: ResultInterface = { context };
     const sequence = _.map(workflow.sequence, 'name');
     for (const itemName of sequence) {
       result = await this.processWorkflow(itemName, context);
@@ -40,7 +41,7 @@ export class WorkflowProcessorService {
   async runFactory(
     factory: WorkflowFactorySchemaConfigInterface,
     context: ContextInterface,
-  ) {
+  ): Promise<ResultInterface> {
     let result: { context: ContextInterface } = { context };
     const workflowName = factory.workflow;
 
@@ -70,7 +71,7 @@ export class WorkflowProcessorService {
   async runWorkflow(
     workflow: WorkflowConfigInterface,
     context: ContextInterface,
-  ) {
+  ): Promise<ResultInterface> {
     console.log('Processing workflow:', workflow.name, context.namespaces);
 
     let result: { context: ContextInterface } = { context };
@@ -84,11 +85,16 @@ export class WorkflowProcessorService {
     }
 
     if (workflow.stateMachine) {
-      return this.stateMachineProcessorService.runStateMachine(
+      const workflowState = await this.stateMachineProcessorService.processStateMachine(
         workflow.name,
         workflow.stateMachine,
         result.context,
       );
+
+      return {
+        context,
+        lastState: workflowState,
+      }
     }
 
     throw new Error(
@@ -106,13 +112,13 @@ export class WorkflowProcessorService {
     }
 
     const context = this.contextService.create(parentContext);
-    let result: { context: ContextInterface } = { context };
+    let result: ResultInterface = { context };
 
     // before functions update the working context
     result = this.functionCallService.applyFunctions(
       workflow.prepare,
       result.context,
-      result.context,
+      result,
     );
 
     result = await this.runWorkflow(workflow, result.context);
@@ -122,7 +128,7 @@ export class WorkflowProcessorService {
     return this.functionCallService.applyFunctions(
       workflow.export,
       parentContext,
-      result.context,
+      result,
     );
   }
 }

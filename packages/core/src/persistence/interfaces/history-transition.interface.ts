@@ -1,5 +1,5 @@
 export interface HistoryTransition {
-  name: string;
+  transition: string;
   from: string;
   to: string;
 }

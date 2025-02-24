@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import {LOOP_STATE_MACHINE_VALIDATOR_DECORATOR} from "../decorators/run-validation.decorator";
-import {StateMachineValidatorInterface} from "../../processor/interfaces/state-machine-validator.interface";
+import {StateMachineValidatorInterface} from "../interfaces/state-machine-validator.interface";
 
 @Injectable()
 export class StateMachineValidatorRegistry implements OnModuleInit {
