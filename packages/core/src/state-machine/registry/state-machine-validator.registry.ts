@@ -2,10 +2,14 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import {LOOP_STATE_MACHINE_VALIDATOR_DECORATOR} from "../decorators/run-validation.decorator";
 import {StateMachineValidatorInterface} from "../interfaces/state-machine-validator.interface";
+import _ from 'lodash';
 
 @Injectable()
 export class StateMachineValidatorRegistry implements OnModuleInit {
-  private validators: StateMachineValidatorInterface[] = [];
+  private validators: {
+    priority: number;
+    instance: StateMachineValidatorInterface;
+  }[] = [];
 
   constructor(
     private readonly discoveryService: DiscoveryService,
@@ -19,17 +23,20 @@ export class StateMachineValidatorRegistry implements OnModuleInit {
       const instance = provider.instance;
       if (!instance || !instance.constructor) continue;
 
-      const functionOptions = this.reflector.get<boolean>(
+      const options = this.reflector.get<{ priority: number; }>(
         LOOP_STATE_MACHINE_VALIDATOR_DECORATOR,
         instance.constructor,
       );
-      if (functionOptions) {
-        this.validators.push(instance);
+      if (options) {
+        this.validators.push({
+          priority: options.priority ?? 0,
+          instance
+        });
       }
     }
   }
 
   getValidators(): StateMachineValidatorInterface[] {
-    return this.validators;
+    return _.orderBy(this.validators, 'priority', 'asc').map((item) => item.instance);
   }
 }

@@ -28,6 +28,9 @@ export class WorkflowState {
   )
   stateMachine: WorkflowStateMachine;
 
+  @Column({ nullable: true })
+  optionsHash: string;
+
   @Column({ type: 'varchar', nullable: true })
   error: string | null;
 

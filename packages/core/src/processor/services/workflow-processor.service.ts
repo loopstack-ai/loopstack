@@ -68,13 +68,28 @@ export class WorkflowProcessorService {
     return result;
   }
 
+  parseOptions(obj: Record<string, any>, variables: Record<string, any>): Record<string, any> {
+    const keys = Object.keys(obj);
+    const parsedObject: Record<string, any> = {};
+    for (const key of keys) {
+      parsedObject[key] = this.valueParserService.parseValue(
+          obj[key],
+          variables,
+      );
+    }
+
+    return parsedObject;
+  }
+
   async runWorkflow(
     workflow: WorkflowConfigInterface,
     context: ContextInterface,
   ): Promise<ResultInterface> {
-    console.log('Processing workflow:', workflow.name, context.namespaces);
+    let result: ResultInterface = { context };
 
-    let result: { context: ContextInterface } = { context };
+    const options = workflow.options ? this.parseOptions(workflow.options, result) : {}
+
+    console.log('Processing workflow:', workflow.name, context.namespaces, options);
 
     if (workflow.sequence) {
       return this.runSequence(workflow, result.context);
@@ -89,6 +104,7 @@ export class WorkflowProcessorService {
         workflow.name,
         workflow.stateMachine,
         result.context,
+        options,
       );
 
       return {

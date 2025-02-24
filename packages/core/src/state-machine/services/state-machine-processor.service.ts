@@ -50,8 +50,8 @@ export class StateMachineProcessorService {
     });
   }
 
-  canSkipRun(pendingWorkflowTransitions: any[], workflowState: any): { valid: boolean; reasons: string[]; } {
-    const validationResults = this.stateMachineValidatorRegistry.getValidators().map(validator => validator.validate(pendingWorkflowTransitions, workflowState));
+  canSkipRun(pendingWorkflowTransitions: TransitionPayloadInterface[], workflowState: WorkflowState, options: Record<string, any>): { valid: boolean; reasons: string[]; } {
+    const validationResults = this.stateMachineValidatorRegistry.getValidators().map(validator => validator.validate(pendingWorkflowTransitions, workflowState, options));
     return {
       valid: validationResults.every((item) => item.valid),
       reasons: _.map(validationResults, 'reason').filter((item) => null !== item),
@@ -62,6 +62,7 @@ export class StateMachineProcessorService {
     workflowName: string,
     stateMachineConfig: WorkflowStateMachineConfigInterface,
     context: ContextInterface,
+    options: Record<string, any>,
   ): Promise<WorkflowState> {
     const workflowState = await this.getWorkflowState(workflowName, context);
 
@@ -69,7 +70,7 @@ export class StateMachineProcessorService {
         (t) => t.workflowStateId === workflowState.id,
     );
 
-    const { valid, reasons: invalidationReasons } = this.canSkipRun(pendingWorkflowTransitions, workflowState);
+    const { valid, reasons: invalidationReasons } = this.canSkipRun(pendingWorkflowTransitions, workflowState, options);
 
     const workflowContext: StateMachineContextInterface = {
       pendingTransitions: pendingWorkflowTransitions,
