@@ -83,13 +83,13 @@ export class WorkflowProcessorService {
       return this.runFactory(workflow.factory, result.context);
     }
 
-    // if (workflow.stateMachine) {
-    //   return this.stateMachineProcessorService.runStateMachine(
-    //     workflow.name,
-    //     workflow.stateMachine,
-    //     result.context,
-    //   );
-    // }
+    if (workflow.stateMachine) {
+      return this.stateMachineProcessorService.runStateMachine(
+        workflow.name,
+        workflow.stateMachine,
+        result.context,
+      );
+    }
 
     throw new Error(
       'workflow needs to implement a sequence or a factory or a stateMachine',
