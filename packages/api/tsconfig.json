@@ -18,7 +18,8 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
+      "loopstack-core-module": ["packages/loopstack-core-module/src"],
       "@loopstack/shared": ["packages/shared/src"]
-    }
+    },
   }
 }
