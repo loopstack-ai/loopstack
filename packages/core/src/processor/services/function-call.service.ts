@@ -1,85 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { UtilCollectionService } from '../../configuration/services/util-collection.service';
-import {
-  UtilCallConfigInterface,
-  UtilConfigInterface,
-} from '@loopstack/shared';
-import { FunctionsRegistry } from '../../tools/registry/functions.registry';
-import { ContextInterface } from '../interfaces/context.interface';
 import _ from 'lodash';
-import { ResultInterface } from '../interfaces/result.interface';
-import { ValueParserService } from './value-parser.service';
 
 @Injectable()
 export class FunctionCallService {
-  constructor(
-    private utilCollectionService: UtilCollectionService,
-    private functionsRegistry: FunctionsRegistry,
-    private valueParserService: ValueParserService,
-  ) {}
-
-  private applyUtil(
-    util: UtilConfigInterface,
-    contextArgs: Record<string, any>,
-    target: ContextInterface,
-    source: ResultInterface,
-  ): ResultInterface {
-    const paramKeys = util.params ? _.map(util.params, 'name') : [];
-    const args: Record<string, any> = _.pick(contextArgs, paramKeys);
-
-    return this.applyFunctions(util.execute, target, source, args);
+  isFunction(input: string): boolean {
+    const trimmed = input.trim();
+    return trimmed.startsWith('{') && trimmed.endsWith('}');
   }
 
-  private prepareArgs(
-    args: Record<string, any> | undefined,
-    source: ResultInterface,
-    contextArgs?: Record<string, any>,
-  ): Record<string, any> {
-    return args
-      ? this.valueParserService.parseObjectValues(args, {
-          ...source,
-          args: contextArgs,
-        })
-      : {};
+  extractGetContents(input: string): string {
+    return input.replace(/^{/, '').replace(/}$/, '');
   }
 
-  private applyFunction(
-    functionCall: UtilCallConfigInterface,
-    target: ContextInterface,
-    source: ResultInterface,
-    contextArgs?: Record<string, any>,
-  ): ResultInterface {
-    const args = this.prepareArgs(functionCall.args, source, contextArgs);
-
-    const functionInstance = this.functionsRegistry.getFunctionByName(
-      functionCall.function,
-    );
-    if (functionInstance) {
-      return functionInstance.apply(args, target, source);
+  parseValue(value: string, variables: Record<string, any>) {
+    const trimmed = value.trim();
+    if (!this.isFunction(trimmed)) {
+      return trimmed;
     }
 
-    const util = this.utilCollectionService.getByName(functionCall.function);
-    if (util) {
-      return this.applyUtil(util, args, target, source);
-    }
+    const contents = this.extractGetContents(trimmed);
 
-    throw new Error(
-      `Function or Util with name "${functionCall.function}" not found.`,
-    );
-  }
+    const context = variables['context'] ?? {};
+    const args = variables['args'] ?? {};
+    const func = new Function('context', 'args', '_', `return ${contents};`);
 
-  applyFunctions(
-    executions: UtilCallConfigInterface[] | undefined,
-    target: ContextInterface,
-    source: ResultInterface,
-    args?: Record<string, any>,
-  ) {
-    let result: { context: ContextInterface } = { context: target };
-    if (executions?.length) {
-      for (const item of executions) {
-        result = this.applyFunction(item, result.context, source, args);
-      }
-    }
-    return result;
+    return func(context, args, _);
   }
 }

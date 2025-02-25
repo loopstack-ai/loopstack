@@ -7,7 +7,7 @@ import { InitService } from './services/init.service';
 import { WorkflowCollectionService } from './services/workflow-collection.service';
 import { ProjectCollectionService } from './services/project-collection.service';
 import { PromptTemplateCollectionService } from './services/prompt-template-collection.service';
-import { UtilCollectionService } from './services/util-collection.service';
+import { ToolWrapperCollectionService } from './services/tool-wrapper-collection.service';
 import { WorkspaceCollectionService } from './services/workspace-collection.service';
 import { WorkflowTemplateCollectionService } from './services/workflow-template-collection.service';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
@@ -28,7 +28,7 @@ import loadSchemas from './configuration';
     WorkflowCollectionService,
     ProjectCollectionService,
     PromptTemplateCollectionService,
-    UtilCollectionService,
+    ToolWrapperCollectionService,
     WorkflowTemplateCollectionService,
     WorkspaceCollectionService,
   ],
@@ -40,7 +40,7 @@ import loadSchemas from './configuration';
     WorkflowCollectionService,
     ProjectCollectionService,
     PromptTemplateCollectionService,
-    UtilCollectionService,
+    ToolWrapperCollectionService,
     WorkflowTemplateCollectionService,
     WorkspaceCollectionService,
   ],

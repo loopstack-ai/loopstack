@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { InitService } from './init.service';
 import { WorkspaceCollectionService } from './workspace-collection.service';
 import { ProjectCollectionService } from './project-collection.service';
-import { UtilCollectionService } from './util-collection.service';
+import { ToolWrapperCollectionService } from './tool-wrapper-collection.service';
 import { WorkflowCollectionService } from './workflow-collection.service';
 import { WorkflowTemplateCollectionService } from './workflow-template-collection.service';
 import { ActionCollectionService } from './action-collection.service';
@@ -17,7 +17,7 @@ describe('InitService', () => {
   let workspaceCollectionService: WorkspaceCollectionService;
   let workspaceCollectionService2: WorkspaceCollectionService;
   let projectCollectionService: ProjectCollectionService;
-  let utilsCollectionService: UtilCollectionService;
+  let utilsCollectionService: ToolWrapperCollectionService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -31,7 +31,7 @@ describe('InitService', () => {
         InitService,
         WorkspaceCollectionService,
         ProjectCollectionService,
-        UtilCollectionService,
+        ToolWrapperCollectionService,
         WorkflowCollectionService,
         WorkflowTemplateCollectionService,
         ActionCollectionService,
@@ -51,8 +51,8 @@ describe('InitService', () => {
     projectCollectionService = module.get<ProjectCollectionService>(
       ProjectCollectionService,
     );
-    utilsCollectionService = module.get<UtilCollectionService>(
-      UtilCollectionService,
+    utilsCollectionService = module.get<ToolWrapperCollectionService>(
+      ToolWrapperCollectionService,
     );
   });
 

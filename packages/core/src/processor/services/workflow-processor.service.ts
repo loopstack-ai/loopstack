@@ -4,7 +4,7 @@ import {
   WorkflowConfigInterface,
   WorkflowFactorySchemaConfigInterface,
 } from '@loopstack/shared';
-import { FunctionCallService } from './function-call.service';
+import { ToolExecutionService } from './tool-execution.service';
 import { ContextInterface } from '../interfaces/context.interface';
 import _ from 'lodash';
 import { ResultInterface } from '../interfaces/result.interface';
@@ -17,7 +17,7 @@ export class WorkflowProcessorService {
   constructor(
     private contextService: ContextService,
     private workflowCollectionService: WorkflowCollectionService,
-    private functionCallService: FunctionCallService,
+    private toolExecutionService: ToolExecutionService,
     private valueParserService: ValueParserService,
     private stateMachineProcessorService: StateMachineProcessorService,
   ) {}
@@ -141,7 +141,7 @@ export class WorkflowProcessorService {
     let result: ResultInterface = { context };
 
     // before functions update the working context
-    result = this.functionCallService.applyFunctions(
+    result = this.toolExecutionService.applyTools(
       workflow.prepare,
       result.context,
       result,
@@ -151,7 +151,7 @@ export class WorkflowProcessorService {
 
     // workflows return the parentContext and apply actions
     // they do not pass down its working context
-    return this.functionCallService.applyFunctions(
+    return this.toolExecutionService.applyTools(
       workflow.export,
       parentContext,
       result,

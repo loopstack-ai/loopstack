@@ -9,6 +9,7 @@ import { DocumentEntity } from './entities/document.entity';
 import { ProjectService } from './services/project.service';
 import { WorkspaceService } from './services/workspace.service';
 import { ProjectRepository } from './repositories/project.repository';
+import { DocumentService } from './services/document.service';
 
 @Module({
   imports: [
@@ -25,12 +26,14 @@ import { ProjectRepository } from './repositories/project.repository';
     ProjectService,
     WorkspaceService,
     ProjectRepository,
+    DocumentService,
   ],
   exports: [
     WorkflowService,
     ProjectService,
     WorkspaceService,
     ProjectRepository,
+    DocumentService,
   ],
 })
 export class PersistenceModule {}

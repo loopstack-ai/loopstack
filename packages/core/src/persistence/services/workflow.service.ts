@@ -18,7 +18,7 @@ export class WorkflowService {
   findById(id: string): Promise<WorkflowEntity | null> {
     return this.workflowRepository.findOne({
       where: { id },
-      relations: ['state'],
+      relations: ['state', 'documents'],
     });
   }
 
@@ -29,7 +29,6 @@ export class WorkflowService {
   ) {
     const entity = await this.workflowRepository
       .createQueryBuilder('entity')
-      .leftJoinAndSelect('entity.state', 'state')
       .where('entity.project_id = :projectId', {
         projectId: projectId,
       })

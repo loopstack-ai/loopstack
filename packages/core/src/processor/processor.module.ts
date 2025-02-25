@@ -5,9 +5,9 @@ import { WorkflowProcessorService } from './services/workflow-processor.service'
 import { ProcessorService } from './services/processor.service';
 import { ContextService } from './services/context.service';
 import { ToolsModule } from '../tools/tools.module';
-import { FunctionCallService } from './services/function-call.service';
+import { ToolExecutionService } from './services/tool-execution.service';
 import { TemplateEngineService } from './services/template-engine.service';
-import { GetterFunctionService } from './services/getter-function.service';
+import { FunctionCallService } from './services/function-call.service';
 import { ValueParserService } from './services/value-parser.service';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { StateMachineModule } from '../state-machine/state-machine.module';
@@ -24,9 +24,9 @@ import { StateMachineModule } from '../state-machine/state-machine.module';
     WorkflowProcessorService,
     ProcessorService,
     ContextService,
-    FunctionCallService,
+    ToolExecutionService,
     TemplateEngineService,
-    GetterFunctionService,
+    FunctionCallService,
     ValueParserService,
   ],
   exports: [ProcessorService],

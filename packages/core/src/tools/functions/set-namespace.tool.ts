@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { LoopFunction } from '../../processor/decorators/loop-function.decorator';
 import { z } from 'zod';
 import { ContextInterface } from '../../processor/interfaces/context.interface';
-import { FunctionInterface } from '../interfaces/function.interface';
+import { ToolInterface } from '../interfaces/tool.interface';
 import { ResultInterface } from '../../processor/interfaces/result.interface';
+import { Tool } from '../../processor/decorators/tool.decorator';
 
 @Injectable()
-@LoopFunction()
-export class SetNamespaceFunction implements FunctionInterface {
+@Tool()
+export class SetNamespaceTool implements ToolInterface {
   schema = z.object({
     key: z.string(),
     value: z.any(),

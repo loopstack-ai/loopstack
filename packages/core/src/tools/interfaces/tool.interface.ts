@@ -1,7 +1,7 @@
 import { ContextInterface } from '../../processor/interfaces/context.interface';
 import { ResultInterface } from '../../processor/interfaces/result.interface';
 
-export interface FunctionInterface {
+export interface ToolInterface {
   apply(
     options: any,
     target: ContextInterface,

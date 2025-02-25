@@ -46,7 +46,7 @@ export class TransitionManagerService {
 
     const entity = this.documentService.create({
       ...dto,
-      index: this.workflow.documents.length,
+      index: this.workflow.documents?.length ?? 0,
       workflowIndex: this.workflow.index,
       namespaces: this.workflow.namespaces,
       transition: this.transitionContext.transition,

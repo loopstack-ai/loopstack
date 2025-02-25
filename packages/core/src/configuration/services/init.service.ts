@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { WorkspaceCollectionService } from './workspace-collection.service';
 import { ProjectCollectionService } from './project-collection.service';
-import { UtilCollectionService } from './util-collection.service';
+import { ToolWrapperCollectionService } from './tool-wrapper-collection.service';
 import { WorkflowCollectionService } from './workflow-collection.service';
 import { WorkflowTemplateCollectionService } from './workflow-template-collection.service';
 import { ActionCollectionService } from './action-collection.service';
@@ -18,7 +18,7 @@ export class InitService {
   constructor(
     private workspaceCollectionService: WorkspaceCollectionService,
     private projectCollectionService: ProjectCollectionService,
-    private utilCollectionService: UtilCollectionService,
+    private toolWrapperCollectionService: ToolWrapperCollectionService,
     private workflowCollectionService: WorkflowCollectionService,
     private workflowTemplateCollectionService: WorkflowTemplateCollectionService,
     private actionCollectionService: ActionCollectionService,
@@ -30,7 +30,7 @@ export class InitService {
   clear() {
     this.workspaceCollectionService.clear();
     this.projectCollectionService.clear();
-    this.utilCollectionService.clear();
+    this.toolWrapperCollectionService.clear();
     this.workflowCollectionService.clear();
     this.workflowTemplateCollectionService.clear();
     this.actionCollectionService.clear();
@@ -44,7 +44,7 @@ export class InitService {
 
     this.workspaceCollectionService.create(config.workspaces ?? []);
     this.projectCollectionService.create(config.projects ?? []);
-    this.utilCollectionService.create(config.utils ?? []);
+    this.toolWrapperCollectionService.create(config.tools ?? []);
     this.workflowCollectionService.create(config.workflows ?? []);
     this.workflowTemplateCollectionService.create(
       config.workflowTemplates ?? [],

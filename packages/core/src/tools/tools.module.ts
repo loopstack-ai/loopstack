@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
-import { SetContextFunction } from './functions/set-context.function';
-import { FunctionsRegistry } from './registry/functions.registry';
+import { SetContextTool } from './functions/set-context.tool';
+import { ToolRegistry } from './registry/tool.registry';
 import { DiscoveryModule } from '@nestjs/core';
-import { ForwardChildContextFunction } from './functions/forward-child-context.function';
-import { SetNamespaceFunction } from './functions/set-namespace.function';
+import { ForwardChildContextTool } from './functions/forward-child-context.tool';
+import { SetNamespaceTool } from './functions/set-namespace.tool';
 
 @Module({
   imports: [DiscoveryModule],
   providers: [
-    FunctionsRegistry,
-    ForwardChildContextFunction,
-    SetContextFunction,
-    SetNamespaceFunction,
+    ToolRegistry,
+    ForwardChildContextTool,
+    SetContextTool,
+    SetNamespaceTool,
   ],
-  exports: [FunctionsRegistry],
+  exports: [ToolRegistry],
 })
 export class ToolsModule {}

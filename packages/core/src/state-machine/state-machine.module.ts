@@ -12,6 +12,7 @@ import { StateMachineActionService } from './services/state-machine-action.servi
 import { InitialRunValidator } from './validators/initial-run.validator';
 import { WorkflowOptionValidator } from './validators/workflow-option.validator';
 import { InitAction } from './actions/init.action';
+import { FinalizeAction } from './actions/finalize.action';
 
 @Module({
   imports: [DiscoveryModule, ConfigurationModule, PersistenceModule],
@@ -27,6 +28,7 @@ import { InitAction } from './actions/init.action';
     WorkflowOptionValidator,
 
     InitAction,
+    FinalizeAction,
     PromptAction,
   ],
   exports: [StateMachineProcessorService],

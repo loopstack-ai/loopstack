@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { TemplateEngineService } from './template-engine.service';
-import { GetterFunctionService } from './getter-function.service';
+import { FunctionCallService } from './function-call.service';
 
 @Injectable()
 export class ValueParserService {
   constructor(
     private templateEngineService: TemplateEngineService,
-    private getterFunctionService: GetterFunctionService,
+    private functionCallService: FunctionCallService,
   ) {}
 
   parseValue(value: string | string[], variables: Record<string, any>) {
@@ -18,8 +18,8 @@ export class ValueParserService {
       return this.templateEngineService.parseValue(value, variables);
     }
 
-    if (this.getterFunctionService.isGetter(value)) {
-      return this.getterFunctionService.parseValue(value, variables);
+    if (this.functionCallService.isFunction(value)) {
+      return this.functionCallService.parseValue(value, variables);
     }
 
     return value;
