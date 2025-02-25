@@ -1,14 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProjectEntity } from '@loopstack/core/dist/persistence/entities/project.entity';
 import { IsNull, Repository } from 'typeorm';
-import { ProcessorService } from '@loopstack/core/dist/processor/services/processor.service';
+import {ProcessorService} from "@loopstack/core/dist/processor/services/processor.service";
+import {WorkspaceEntity} from "@loopstack/core/dist/persistence/entities/workspace.entity";
 
 @Injectable()
 export class ProcessorApiService {
   constructor(
     @InjectRepository(ProjectEntity)
     private projectRepository: Repository<ProjectEntity>,
+    @InjectRepository(WorkspaceEntity)
+    private workspaceRepository: Repository<WorkspaceEntity>,
     private processorService: ProcessorService,
   ) {}
 
@@ -29,31 +36,32 @@ export class ProcessorApiService {
     });
 
     if (!project) {
-      throw new Error(`Project with id ${projectId} not found.`);
+      throw new NotFoundException(`Project with id ${projectId} not found.`);
     }
 
     if (project.workspace.isLocked && !options?.force) {
-      throw new Error(
+      throw new ConflictException(
         `Project with id ${projectId} is locked by another process. User force = true to override.`,
       );
     }
 
     project.workspace.isLocked = true;
-    await this.projectRepository.save(project.workspace);
+    await this.workspaceRepository.save(project.workspace);
 
-    const result = await this.processorService.process(
-      {
-        projectName: project.name,
-      },
-      {
-        userId: user,
-        projectId: project.id,
-        workspaceId: project.workspaceId,
-      },
+    let result: any;
+    result = await this.processorService.process(
+        {
+          projectName: project.name,
+        },
+        {
+          userId: user,
+          projectId: project.id,
+          workspaceId: project.workspaceId,
+        },
     );
 
     project.workspace.isLocked = false;
-    await this.projectRepository.save(project.workspace);
+    await this.workspaceRepository.save(project.workspace);
 
     return result;
   }
