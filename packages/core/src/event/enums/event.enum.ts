@@ -1,2 +1,1 @@
-export enum LoopEvent {
-}
+export enum LoopEvent {}

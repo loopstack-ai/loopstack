@@ -27,8 +27,14 @@ export class WorkflowEntity {
   @Column('jsonb', { default: {} })
   namespaces: NamespacesType;
 
+  @Column({ default: 0 })
+  index: number;
+
   @Column({ type: 'varchar', name: 'options_hash', nullable: true })
   optionsHash: string | null;
+
+  @Column({ default: 0 })
+  progress: number;
 
   @Column({ type: 'varchar', nullable: true })
   error: string | null;

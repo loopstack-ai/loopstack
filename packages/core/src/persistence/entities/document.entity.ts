@@ -43,8 +43,8 @@ export class DocumentEntity<T = any> {
   @Column({ name: 'is_pending_removal', default: false })
   isPendingRemoval: boolean;
 
-  @Column({ name: 'creators_index', default: 0 })
-  creatorsIndex: number;
+  @Column({ name: 'workflow_index', default: 0 })
+  workflowIndex: number;
 
   @Column({ default: 1 })
   version: number;

@@ -1,27 +1,40 @@
 import { Injectable } from '@nestjs/common';
 import { StateMachineAction } from '../decorators/state-machine-observer.decorator';
-import { StateMachineActionInterface } from '../interfaces/state-machine-action.interface';
-import { ContextInterface } from 'src/processor/interfaces/context.interface';
-import { WorkflowStateContextInterface } from '../interfaces/workflow-state-context.interface';
-import { TransitionContextInterface } from '../interfaces/transition-context.interface';
+import {
+  ActionExecutePayload,
+  StateMachineActionInterface,
+} from '../interfaces/state-machine-action.interface';
 import { TransitionResultInterface } from '../interfaces/transition-result.interface';
-import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
-import {generateObjectFingerprint} from "@loopstack/shared";
+import { generateObjectFingerprint } from '@loopstack/shared';
+import { TransitionManagerService } from '../services/transition-manager.service';
 
 @Injectable()
 @StateMachineAction()
 export class InitAction implements StateMachineActionInterface {
+  constructor(private transitionManagerService: TransitionManagerService) {}
+
   async execute(
-    workflowContext: ContextInterface,
-    workflowStateContext: WorkflowStateContextInterface,
-    transitionContext: TransitionContextInterface,
-    workflow: WorkflowEntity,
-    props: any,
+    payload: ActionExecutePayload,
   ): Promise<TransitionResultInterface> {
+    const manager = this.transitionManagerService.setContext(payload);
 
-    const options = workflowStateContext.options;
-    workflow.optionsHash = generateObjectFingerprint(options);
+    manager.setWorkflowData({
+      optionsHash: generateObjectFingerprint(manager.getOptions()),
+      progress: 0,
+    });
 
-    return { workflow };
+    const optionList = Object.entries(manager.getOptions())
+      .map(([name, value]) => ({ name, value }))
+      .filter((option) => option.value !== undefined);
+
+    for (const item of optionList) {
+      manager.createDocument({
+        name: item.name,
+        contents: item.value,
+        type: 'option',
+      });
+    }
+
+    return manager.getResult();
   }
 }

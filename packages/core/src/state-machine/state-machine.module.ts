@@ -5,13 +5,13 @@ import { DiscoveryModule } from '@nestjs/core';
 import { ConfigurationModule } from '../configuration/configuration.module';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { StateMachineConfigService } from './services/state-machine-config.service';
-import { StateManagerService } from './services/state-manager.service';
+import { TransitionManagerService } from './services/transition-manager.service';
 import { StateMachineActionRegistry } from './registry/state-machine-action-registry.service';
 import { PromptAction } from './actions/prompt.action';
 import { StateMachineActionService } from './services/state-machine-action.service';
 import { InitialRunValidator } from './validators/initial-run.validator';
 import { WorkflowOptionValidator } from './validators/workflow-option.validator';
-import {InitAction} from "./actions/init.action";
+import { InitAction } from './actions/init.action';
 
 @Module({
   imports: [DiscoveryModule, ConfigurationModule, PersistenceModule],
@@ -20,7 +20,7 @@ import {InitAction} from "./actions/init.action";
     StateMachineActionRegistry,
     StateMachineProcessorService,
     StateMachineConfigService,
-    StateManagerService,
+    TransitionManagerService,
     StateMachineActionService,
 
     InitialRunValidator,

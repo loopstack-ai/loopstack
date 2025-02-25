@@ -4,12 +4,14 @@ import { WorkflowStateContextInterface } from './workflow-state-context.interfac
 import { TransitionResultInterface } from './transition-result.interface';
 import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
 
+export interface ActionExecutePayload {
+  workflowContext: ContextInterface;
+  workflowStateContext: WorkflowStateContextInterface;
+  transitionContext: TransitionContextInterface;
+  workflow: WorkflowEntity;
+  props: any;
+}
+
 export interface StateMachineActionInterface {
-  execute(
-    workflowContext: ContextInterface,
-    stateMachineContext: WorkflowStateContextInterface,
-    transitionContext: TransitionContextInterface,
-    workflow: WorkflowEntity,
-    props: any,
-  ): Promise<TransitionResultInterface>;
+  execute(payload: ActionExecutePayload): Promise<TransitionResultInterface>;
 }

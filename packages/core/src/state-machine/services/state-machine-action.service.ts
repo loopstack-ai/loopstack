@@ -7,6 +7,7 @@ import { TransitionResultInterface } from '../interfaces/transition-result.inter
 import { StateMachineActionRegistry } from '../registry/state-machine-action-registry.service';
 import { ActionCollectionService } from '../../configuration/services/action-collection.service';
 import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
+import { ActionExecutePayload } from '../interfaces/state-machine-action.interface';
 
 @Injectable()
 export class StateMachineActionService {
@@ -40,12 +41,12 @@ export class StateMachineActionService {
 
     const props = {}; // todo action props from actionConfig
 
-    return actionInstance.execute(
+    return actionInstance.execute({
       workflowContext,
       workflowStateContext,
       transitionContext,
       workflow,
       props,
-    );
+    });
   }
 }

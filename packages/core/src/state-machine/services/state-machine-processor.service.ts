@@ -78,7 +78,10 @@ export class StateMachineProcessorService {
 
     console.log('starting with', workflow.state.place);
 
-    const pendingTransition = context.transition?.workflowId === workflow.id ? context.transition : undefined;
+    const pendingTransition =
+      context.transition?.workflowId === workflow.id
+        ? context.transition
+        : undefined;
 
     const { valid, reasons: invalidationReasons } = this.canSkipRun(
       pendingTransition,
@@ -170,7 +173,7 @@ export class StateMachineProcessorService {
     if (!nextTransition && userTransitions.length) {
       const nextPending = userTransitions.shift()!;
       nextTransition = workflow.state.availableTransitions.find(
-        (item) => item.name === nextPending.transition,
+        (item) => item.name === nextPending.name,
       );
 
       if (nextTransition) {
@@ -205,7 +208,9 @@ export class StateMachineProcessorService {
       workflowStateContext.invalidationReasons,
     );
 
-    const userTransitions = workflowStateContext.pendingTransition ? [workflowStateContext.pendingTransition] : [];
+    const userTransitions = workflowStateContext.pendingTransition
+      ? [workflowStateContext.pendingTransition]
+      : [];
 
     outerLoop: while (true) {
       while (true) {
