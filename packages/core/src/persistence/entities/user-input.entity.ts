@@ -24,14 +24,10 @@ export class UserInputEntity {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToOne(
-    () => WorkflowEntity,
-    (workflowState) => workflowState.userInputs,
-    {
-      onDelete: 'CASCADE',
-      nullable: false,
-    },
-  )
+  @ManyToOne(() => WorkflowEntity, (workflow) => workflow.userInputs, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
   @JoinColumn({ name: 'workflow_id' })
   workflow: WorkflowEntity;
 

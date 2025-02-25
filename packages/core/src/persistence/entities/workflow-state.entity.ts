@@ -38,7 +38,7 @@ export class WorkflowStateEntity {
     cascade: true,
     nullable: false,
   })
-  workflowState: WorkflowEntity;
+  workflow: WorkflowEntity;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdBy: string | null;

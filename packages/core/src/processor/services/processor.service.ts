@@ -19,7 +19,7 @@ export class ProcessorService {
     });
 
     if (!config.projectName) {
-      throw new Error(`No project name defined.`)
+      throw new Error(`No project name defined.`);
     }
 
     return this.projectProcessorService.processProject(

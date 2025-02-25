@@ -14,7 +14,7 @@ export class InitialRunValidator implements StateMachineValidatorInterface {
   ): { valid: boolean; reason: string | null } {
     const isValid =
       pendingWorkflowTransitions.length === 0 &&
-      workflow.stateMachine.place !== 'initial';
+      workflow.state.place !== 'initial';
 
     return { valid: isValid, reason: null };
   }

@@ -45,17 +45,17 @@ export class WorkflowEntity {
 
   @OneToOne(
     () => WorkflowStateEntity,
-    (workflowStateMachine) => workflowStateMachine.workflowState,
+    (workflowStateMachine) => workflowStateMachine.workflow,
     {
       onDelete: 'CASCADE',
-      nullable: false,
+      nullable: true,
     },
   )
-  @JoinColumn({ name: 'state_machine_id' })
-  stateMachine: WorkflowStateEntity;
+  @JoinColumn({ name: 'state_id' })
+  state: WorkflowStateEntity;
 
-  @Column({ name: 'state_machine_id' })
-  stateMachineId: string;
+  @Column({ name: 'state_id', nullable: true })
+  stateId: string;
 
   @ManyToOne(() => ProjectEntity, (project) => project.workflows, {
     onDelete: 'CASCADE',

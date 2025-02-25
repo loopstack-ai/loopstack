@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {WorkspaceEntity} from "../entities/workspace.entity";
+import { WorkspaceEntity } from '../entities/workspace.entity';
 
 export class WorkspaceService {
   constructor(
@@ -13,10 +13,5 @@ export class WorkspaceService {
       where: { id },
       relations,
     });
-  }
-
-  async createWorkspace(options: any): Promise<WorkspaceEntity> {
-    const entity = this.workspaceRepository.create({});
-    return this.workspaceRepository.save(entity);
   }
 }

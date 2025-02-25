@@ -14,9 +14,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     ProcessorModule,
   ],
   providers: [LoopCoreService],
-  exports: [
-    ConfigurationModule,
-    PersistenceModule,
-  ],
+  exports: [ConfigurationModule, PersistenceModule, ProcessorModule],
 })
 export class LoopCoreModule extends ConfigurableModuleClass {}

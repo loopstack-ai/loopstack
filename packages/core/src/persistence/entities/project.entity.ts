@@ -64,7 +64,7 @@ export class ProjectEntity {
   @OneToMany(() => UserInputEntity, (userInput) => userInput.project)
   userInputs: UserInputEntity[];
 
-  @OneToMany(() => WorkflowEntity, (workflowState) => workflowState.project)
+  @OneToMany(() => WorkflowEntity, (workflow) => workflow.project)
   workflows: WorkflowEntity[];
 
   @OneToMany(

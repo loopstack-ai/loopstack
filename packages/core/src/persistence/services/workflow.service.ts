@@ -7,18 +7,18 @@ import { WorkflowStateEntity } from '../entities/workflow-state.entity';
 import { WorkflowEntity } from '../entities/workflow.entity';
 
 @Injectable()
-export class WorkflowStateService {
+export class WorkflowService {
   constructor(
     @InjectRepository(WorkflowEntity)
-    private workflowStateRepository: Repository<WorkflowEntity>,
+    private workflowRepository: Repository<WorkflowEntity>,
     @InjectRepository(WorkflowStateEntity)
-    private WorkflowStateMachineRepository: Repository<WorkflowStateEntity>,
+    private workflowStateRepository: Repository<WorkflowStateEntity>,
   ) {}
 
   findById(id: string): Promise<WorkflowEntity | null> {
-    return this.workflowStateRepository.findOne({
+    return this.workflowRepository.findOne({
       where: { id },
-      relations: ['stateMachine'],
+      relations: ['state'],
     });
   }
 
@@ -27,8 +27,9 @@ export class WorkflowStateService {
     name: string,
     namespaces: NamespacesType,
   ) {
-    const entity = await this.workflowStateRepository
+    const entity = await this.workflowRepository
       .createQueryBuilder('entity')
+      .leftJoinAndSelect('entity.state', 'state')
       .where('entity.project_id = :projectId', {
         projectId: projectId,
       })
@@ -38,6 +39,8 @@ export class WorkflowStateService {
       })
       .getOne();
 
+    console.log(entity);
+
     if (!entity) {
       return undefined;
     }
@@ -46,21 +49,25 @@ export class WorkflowStateService {
   }
 
   async remove(entity) {
-    return this.workflowStateRepository.remove(entity);
+    return this.workflowRepository.remove(entity);
   }
 
   async createState(data: Partial<WorkflowEntity>): Promise<WorkflowEntity> {
-    const stateMachine = this.WorkflowStateMachineRepository.create({
+    const workflowState = this.workflowStateRepository.create({
       place: 'initial',
     });
 
-    const dto = this.workflowStateRepository.create({
-      ...data,
-      stateMachine,
-    });
-    const entity = await this.workflowStateRepository.save(dto);
-    const loaded = await this.findById(entity.id);
+    const state = await this.workflowStateRepository.save(workflowState);
 
+    const dto = this.workflowRepository.create({
+      ...data,
+      project: { id: data.projectId },
+      workspace: { id: data.workspaceId },
+      state,
+    });
+    const entity = await this.workflowRepository.save(dto);
+
+    const loaded = await this.findById(entity.id);
     if (!loaded) {
       throw new Error(`Entity could not be created`);
     }
@@ -69,6 +76,6 @@ export class WorkflowStateService {
   }
 
   saveWorkflowState(entity: WorkflowEntity) {
-    return this.workflowStateRepository.save(entity);
+    return this.workflowRepository.save(entity);
   }
 }
