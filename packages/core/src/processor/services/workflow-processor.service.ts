@@ -11,7 +11,6 @@ import { ResultInterface } from '../interfaces/result.interface';
 import { ContextService } from './context.service';
 import { ValueParserService } from './value-parser.service';
 import { StateMachineProcessorService } from '../../state-machine/services/state-machine-processor.service';
-import {WorkflowState} from "../../persistence/entities/workflow-state.entity";
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -68,13 +67,16 @@ export class WorkflowProcessorService {
     return result;
   }
 
-  parseOptions(obj: Record<string, any>, variables: Record<string, any>): Record<string, any> {
+  parseOptions(
+    obj: Record<string, any>,
+    variables: Record<string, any>,
+  ): Record<string, any> {
     const keys = Object.keys(obj);
     const parsedObject: Record<string, any> = {};
     for (const key of keys) {
       parsedObject[key] = this.valueParserService.parseValue(
-          obj[key],
-          variables,
+        obj[key],
+        variables,
       );
     }
 
@@ -87,9 +89,16 @@ export class WorkflowProcessorService {
   ): Promise<ResultInterface> {
     let result: ResultInterface = { context };
 
-    const options = workflow.options ? this.parseOptions(workflow.options, result) : {}
+    const options = workflow.options
+      ? this.parseOptions(workflow.options, result)
+      : {};
 
-    console.log('Processing workflow:', workflow.name, context.namespaces, options);
+    console.log(
+      'Processing workflow:',
+      workflow.name,
+      context.namespaces,
+      options,
+    );
 
     if (workflow.sequence) {
       return this.runSequence(workflow, result.context);
@@ -100,17 +109,18 @@ export class WorkflowProcessorService {
     }
 
     if (workflow.stateMachine) {
-      const workflowState = await this.stateMachineProcessorService.processStateMachine(
-        workflow.name,
-        workflow.stateMachine,
-        result.context,
-        options,
-      );
+      const workflowState =
+        await this.stateMachineProcessorService.processStateMachine(
+          workflow.name,
+          workflow.stateMachine,
+          result.context,
+          options,
+        );
 
       return {
         context,
         lastState: workflowState,
-      }
+      };
     }
 
     throw new Error(

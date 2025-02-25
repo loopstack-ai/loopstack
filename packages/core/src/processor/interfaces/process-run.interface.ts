@@ -1,9 +1,5 @@
 export interface ProcessRunInterface {
-  userId: string;
+  userId: string | null;
   projectId: string;
   workspaceId: string;
-
-  config: {
-    projectName: string;
-  };
 }

@@ -1,6 +1,6 @@
-import {WorkflowState} from "../../persistence/entities/workflow-state.entity";
+import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
 
 export interface TransitionResultInterface {
-    state?: WorkflowState;
-    nextPlace?: string | undefined;
+  workflow?: WorkflowEntity;
+  nextPlace?: string | undefined;
 }

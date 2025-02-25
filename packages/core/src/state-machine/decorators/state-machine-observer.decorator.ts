@@ -1,4 +1,5 @@
-export const LOOP_STATE_MACHINE_ACTION_DECORATOR = 'LOOP_STATE_MACHINE_ACTION_DECORATOR';
+export const LOOP_STATE_MACHINE_ACTION_DECORATOR =
+  'LOOP_STATE_MACHINE_ACTION_DECORATOR';
 
 export function StateMachineAction(): ClassDecorator {
   return (target) => {

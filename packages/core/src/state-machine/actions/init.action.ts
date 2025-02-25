@@ -9,7 +9,7 @@ import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
 
 @Injectable()
 @StateMachineAction()
-export class PromptAction implements StateMachineActionInterface {
+export class InitAction implements StateMachineActionInterface {
   async execute(
     workflowContext: ContextInterface,
     stateMachineContext: StateMachineContextInterface,
@@ -17,7 +17,18 @@ export class PromptAction implements StateMachineActionInterface {
     workflow: WorkflowEntity,
     props: any,
   ): Promise<TransitionResultInterface> {
-    console.log('PromptAction');
+    // let previousOptions: WorkflowDocumentEntity<any>[] = [];
+    // if (event.runContext.isReRun) {
+    //     previousOptions = event.getExportedType<any>('input-option');
+    //
+    //     if (previousOptions?.length) {
+    //         event.addMessage(
+    //             `Re-Running workflow due to: ${event.runContext.invalidationReasons?.join(', ')}`,
+    //         );
+    //     }
+    // }
+    // const hasPreviousOptions = !!previousOptions?.length;
+
     return {};
   }
 }

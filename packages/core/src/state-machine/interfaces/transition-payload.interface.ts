@@ -1,7 +1,7 @@
 export interface TransitionPayloadInterface {
-    id: string;
-    workflowStateId: string;
-    transition: string;
-    payload?: any;
-    meta?: any;
+  id: string;
+  workflowStateId: string;
+  transition: string;
+  payload?: any;
+  meta?: any;
 }

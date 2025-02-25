@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { NamespacesType } from '../../processor/interfaces/namespaces-type';
 import { InjectRepository } from '@nestjs/typeorm';
-import { WorkflowState } from '../entities/workflow-state.entity';
 import { Repository } from 'typeorm';
 import { normalizeObject } from '@loopstack/shared';
-import { WorkflowStateMachine } from '../entities/workflow-state-machine.entity';
+import { WorkflowStateEntity } from '../entities/workflow-state.entity';
+import { WorkflowEntity } from '../entities/workflow.entity';
 
 @Injectable()
 export class WorkflowStateService {
   constructor(
-    @InjectRepository(WorkflowState)
-    private workflowStateRepository: Repository<WorkflowState>,
-    @InjectRepository(WorkflowStateMachine)
-    private WorkflowStateMachineRepository: Repository<WorkflowStateMachine>,
+    @InjectRepository(WorkflowEntity)
+    private workflowStateRepository: Repository<WorkflowEntity>,
+    @InjectRepository(WorkflowStateEntity)
+    private WorkflowStateMachineRepository: Repository<WorkflowStateEntity>,
   ) {}
 
-  findById(id: string): Promise<WorkflowState | null> {
+  findById(id: string): Promise<WorkflowEntity | null> {
     return this.workflowStateRepository.findOne({
       where: { id },
       relations: ['stateMachine'],
@@ -49,7 +49,7 @@ export class WorkflowStateService {
     return this.workflowStateRepository.remove(entity);
   }
 
-  async createState(data: Partial<WorkflowState>): Promise<WorkflowState> {
+  async createState(data: Partial<WorkflowEntity>): Promise<WorkflowEntity> {
     const stateMachine = this.WorkflowStateMachineRepository.create({
       place: 'initial',
     });
@@ -68,7 +68,7 @@ export class WorkflowStateService {
     return loaded;
   }
 
-  saveWorkflowState(entity: WorkflowState) {
+  saveWorkflowState(entity: WorkflowEntity) {
     return this.workflowStateRepository.save(entity);
   }
 }

@@ -1,7 +1,7 @@
 export interface TransitionContextInterface {
-    transition: string;
-    from: string;
-    to: string | string[];
-    payload: any;
-    meta: any;
+  transition: string;
+  from: string;
+  to: string | string[];
+  payload: any;
+  meta: any;
 }

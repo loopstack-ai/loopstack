@@ -11,14 +11,19 @@ export class ProcessorService {
     private contextService: ContextService,
   ) {}
 
-  process(payload: ProcessRunInterface): Promise<ResultInterface> {
+  process(config: any, payload: ProcessRunInterface): Promise<ResultInterface> {
     const context = this.contextService.create({
       ...payload,
       namespaces: {},
       transitions: [],
     });
+
+    if (!config.projectName) {
+      throw new Error(`No project name defined.`)
+    }
+
     return this.projectProcessorService.processProject(
-      payload.config.projectName,
+      config.projectName,
       context,
     );
   }

@@ -1,13 +1,14 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
-import {LOOP_STATE_MACHINE_VALIDATOR_DECORATOR} from "../decorators/run-validation.decorator";
-import {StateMachineValidatorInterface} from "../interfaces/state-machine-validator.interface";
-import {StateMachineActionInterface} from "../interfaces/state-machine-action.interface";
-import {LOOP_STATE_MACHINE_ACTION_DECORATOR} from "../decorators/state-machine-observer.decorator";
+import { StateMachineActionInterface } from '../interfaces/state-machine-action.interface';
+import { LOOP_STATE_MACHINE_ACTION_DECORATOR } from '../decorators/state-machine-observer.decorator';
 
 @Injectable()
 export class StateMachineActionRegistry implements OnModuleInit {
-  private actions: Map<string, StateMachineActionInterface> = new Map<string, StateMachineActionInterface>([]);
+  private actions: Map<string, StateMachineActionInterface> = new Map<
+    string,
+    StateMachineActionInterface
+  >([]);
 
   constructor(
     private readonly discoveryService: DiscoveryService,

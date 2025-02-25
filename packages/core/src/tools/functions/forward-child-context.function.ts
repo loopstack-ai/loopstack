@@ -13,6 +13,8 @@ export class ForwardChildContextFunction implements FunctionInterface {
     target: ContextInterface,
     source: ResultInterface,
   ): ResultInterface {
-    return { context: _.merge({}, target, _.omit(source.context, options.omit)) };
+    return {
+      context: _.merge({}, target, _.omit(source.context, options.omit)),
+    };
   }
 }

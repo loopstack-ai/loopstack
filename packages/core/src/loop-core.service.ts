@@ -37,14 +37,16 @@ export class LoopCoreService implements OnApplicationBootstrap {
   }
 
   onApplicationBootstrap() {
-    const fullPath = path.join(process.cwd(), this.options.configFilePath);
-    const configs: MainConfigInterface[] = [];
-    const customConfig = this.loadConfigFilesUtil(fullPath);
-    configs.push(...customConfig);
+    if (this.options.configFilePath) {
+      const fullPath = path.join(process.cwd(), this.options.configFilePath);
+      const configs: MainConfigInterface[] = [];
+      const customConfig = this.loadConfigFilesUtil(fullPath);
+      configs.push(...customConfig);
 
-    this.initService.clear();
-    for (const config of configs) {
-      this.initService.createFromConfig(config);
+      this.initService.clear();
+      for (const config of configs) {
+        this.initService.createFromConfig(config);
+      }
     }
   }
 }
