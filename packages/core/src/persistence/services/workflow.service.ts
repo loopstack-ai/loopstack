@@ -39,8 +39,6 @@ export class WorkflowService {
       })
       .getOne();
 
-    console.log(entity);
-
     if (!entity) {
       return undefined;
     }
@@ -52,7 +50,7 @@ export class WorkflowService {
     return this.workflowRepository.remove(entity);
   }
 
-  async createState(data: Partial<WorkflowEntity>): Promise<WorkflowEntity> {
+  async createWorkflow(data: Partial<WorkflowEntity>): Promise<WorkflowEntity> {
     const workflowState = this.workflowStateRepository.create({
       place: 'initial',
     });
@@ -75,7 +73,7 @@ export class WorkflowService {
     return loaded;
   }
 
-  saveWorkflowState(entity: WorkflowEntity) {
+  saveWorkflow(entity: WorkflowEntity) {
     return this.workflowRepository.save(entity);
   }
 }

@@ -3,7 +3,7 @@ import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
 
 export interface StateMachineValidatorInterface {
   validate(
-    pendingWorkflowTransitions: TransitionPayloadInterface[],
+    pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
     options: Record<string, any>,
   ): { valid: boolean; reason: string | null };

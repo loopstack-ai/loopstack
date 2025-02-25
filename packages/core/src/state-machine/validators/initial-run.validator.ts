@@ -8,12 +8,12 @@ import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
 @StateMachineValidator({ priority: 0 })
 export class InitialRunValidator implements StateMachineValidatorInterface {
   validate(
-    pendingWorkflowTransitions: TransitionPayloadInterface[],
+    pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
     options: Record<string, any>,
   ): { valid: boolean; reason: string | null } {
     const isValid =
-      pendingWorkflowTransitions.length === 0 &&
+      !pendingTransition &&
       workflow.state.place !== 'initial';
 
     return { valid: isValid, reason: null };

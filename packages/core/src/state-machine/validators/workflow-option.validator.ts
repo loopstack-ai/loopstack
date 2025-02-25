@@ -9,7 +9,7 @@ import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
 @StateMachineValidator({ priority: 100 })
 export class WorkflowOptionValidator implements StateMachineValidatorInterface {
   validate(
-    pendingWorkflowTransitions: TransitionPayloadInterface[],
+    pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
     options: Record<string, any>,
   ): { valid: boolean; reason: string | null } {

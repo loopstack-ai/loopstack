@@ -15,7 +15,6 @@ export class ProcessorService {
     const context = this.contextService.create({
       ...payload,
       namespaces: {},
-      transitions: [],
     });
 
     if (!config.projectName) {

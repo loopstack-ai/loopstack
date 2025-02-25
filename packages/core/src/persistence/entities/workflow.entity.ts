@@ -13,7 +13,6 @@ import {
 import { NamespacesType } from '../../processor/interfaces/namespaces-type';
 import { WorkflowStateEntity } from './workflow-state.entity';
 import { ProjectEntity } from './project.entity';
-import { UserInputEntity } from './user-input.entity';
 import { WorkspaceEntity } from './workspace.entity';
 import { DocumentEntity } from './document.entity';
 
@@ -47,6 +46,7 @@ export class WorkflowEntity {
     () => WorkflowStateEntity,
     (workflowStateMachine) => workflowStateMachine.workflow,
     {
+      cascade: true,
       onDelete: 'CASCADE',
       nullable: true,
     },
@@ -82,13 +82,6 @@ export class WorkflowEntity {
 
   @Column({ type: 'varchar', nullable: true })
   dependenciesHash: string | null;
-
-  @OneToMany(
-    () => UserInputEntity,
-    (userInput) => userInput.workflow,
-    // { cascade: ['insert', 'update', 'remove'] }
-  )
-  userInputs: UserInputEntity[];
 
   @OneToMany(
     () => DocumentEntity,

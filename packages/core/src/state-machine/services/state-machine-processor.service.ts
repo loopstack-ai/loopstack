@@ -14,16 +14,15 @@ import _ from 'lodash';
 import { LoopEvent } from '../../event/enums/event.enum';
 import { TransitionContextInterface } from '../interfaces/transition-context.interface';
 import { HistoryTransition } from '../../persistence/interfaces/history-transition.interface';
-import { StateMachineContextInterface } from '../interfaces/state-machine-context.interface';
+import { WorkflowStateContextInterface } from '../interfaces/workflow-state-context.interface';
 import { StateMachineActionService } from './state-machine-action.service';
 import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
 
 @Injectable()
 export class StateMachineProcessorService {
   constructor(
-    private readonly eventEmitter: EventEmitter2,
     private readonly workflowConfigService: StateMachineConfigService,
-    private readonly workflowStateService: WorkflowService,
+    private readonly workflowService: WorkflowService,
     private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry,
     private readonly stateMachineActionService: StateMachineActionService,
   ) {}
@@ -32,7 +31,7 @@ export class StateMachineProcessorService {
     workflowName: string,
     context: ContextInterface,
   ): Promise<WorkflowEntity> {
-    let workflow = await this.workflowStateService.loadByIdentity(
+    let workflow = await this.workflowService.loadByIdentity(
       context.projectId,
       workflowName,
       context.namespaces,
@@ -42,7 +41,7 @@ export class StateMachineProcessorService {
       return workflow;
     }
 
-    return this.workflowStateService.createState({
+    return this.workflowService.createWorkflow({
       projectId: context.projectId,
       workspaceId: context.workspaceId,
       createdBy: context.userId,
@@ -52,14 +51,14 @@ export class StateMachineProcessorService {
   }
 
   canSkipRun(
-    pendingWorkflowTransitions: TransitionPayloadInterface[],
+    pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
     options: Record<string, any>,
   ): { valid: boolean; reasons: string[] } {
     const validationResults = this.stateMachineValidatorRegistry
       .getValidators()
       .map((validator) =>
-        validator.validate(pendingWorkflowTransitions, workflow, options),
+        validator.validate(pendingTransition, workflow, options),
       );
     return {
       valid: validationResults.every((item) => item.valid),
@@ -77,23 +76,24 @@ export class StateMachineProcessorService {
   ): Promise<WorkflowEntity> {
     const workflow = await this.getWorkflow(workflowName, context);
 
-    const pendingWorkflowTransitions = context.transitions.filter(
-      (t) => t.workflowStateId === workflow.id,
-    );
+    console.log('starting with', workflow.state.place);
+
+    const pendingTransition = context.transition?.workflowId === workflow.id ? context.transition : undefined;
 
     const { valid, reasons: invalidationReasons } = this.canSkipRun(
-      pendingWorkflowTransitions,
+      pendingTransition,
       workflow,
       options,
     );
 
-    const workflowContext: StateMachineContextInterface = {
-      pendingTransitions: pendingWorkflowTransitions,
+    const workflowStateContext: WorkflowStateContextInterface = {
+      options,
+      pendingTransition,
       isStateValid: valid,
       invalidationReasons,
     };
 
-    if (workflowContext.isStateValid) {
+    if (workflowStateContext.isStateValid) {
       return workflow;
     }
 
@@ -107,7 +107,7 @@ export class StateMachineProcessorService {
       context,
       transitions,
       observers,
-      workflowContext,
+      workflowStateContext,
     );
   }
 
@@ -127,7 +127,7 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     transitions: WorkflowTransitionConfigInterface[],
     invalidationReasons: string[],
-  ) {
+  ): Promise<WorkflowEntity> {
     // reset workflow to initial if there are invalidation reasons
     if (invalidationReasons.length) {
       workflow.state.place = 'initial';
@@ -140,12 +140,8 @@ export class StateMachineProcessorService {
       transitions,
     );
 
-    await this.workflowStateService.saveWorkflowState(workflow);
+    await this.workflowService.saveWorkflow(workflow);
     return workflow;
-  }
-
-  markPendingTransitionProcessed(transition: TransitionPayloadInterface) {
-    this.eventEmitter.emit(LoopEvent.userInputProcessed, transition.id);
   }
 
   validateTransition(
@@ -181,9 +177,6 @@ export class StateMachineProcessorService {
         transitionPayload = nextPending.payload;
         transitionMeta = nextPending.meta;
       }
-
-      // confirm even if transition could not be applied, so it does not block
-      this.markPendingTransitionProcessed(nextPending);
     }
 
     if (!nextTransition) {
@@ -204,20 +197,20 @@ export class StateMachineProcessorService {
     context: ContextInterface,
     transitions: WorkflowTransitionConfigInterface[],
     observers: WorkflowObserverConfigInterface[],
-    workflowContext: StateMachineContextInterface,
+    workflowStateContext: WorkflowStateContextInterface,
   ): Promise<WorkflowEntity> {
-    let state = await this.initStateMachine(
+    workflow = await this.initStateMachine(
       workflow,
       transitions,
-      workflowContext.invalidationReasons,
+      workflowStateContext.invalidationReasons,
     );
 
-    const userTransitions = [...workflowContext.pendingTransitions];
+    const userTransitions = workflowStateContext.pendingTransition ? [workflowStateContext.pendingTransition] : [];
 
     outerLoop: while (true) {
       while (true) {
         const transitionContext = this.getTransitionContext(
-          state,
+          workflow,
           userTransitions,
         );
 
@@ -235,9 +228,9 @@ export class StateMachineProcessorService {
             const result = await this.stateMachineActionService.executeAction(
               observer,
               context,
-              workflowContext,
+              workflowStateContext,
               transitionContext,
-              state,
+              workflow,
             );
 
             if (result.nextPlace) {
@@ -245,7 +238,7 @@ export class StateMachineProcessorService {
             }
 
             if (result.workflow) {
-              state = result.workflow;
+              workflow = result.workflow;
             }
           }
 
@@ -262,17 +255,17 @@ export class StateMachineProcessorService {
             to: nextPlace,
           };
 
-          state.state.place = historyItem.to;
-          state.state.transitionHistory.push(historyItem);
-          state.state.availableTransitions = this.getAvailableTransitions(
-            state.state.place,
+          workflow.state.place = historyItem.to;
+          workflow.state.transitionHistory.push(historyItem);
+          workflow.state.availableTransitions = this.getAvailableTransitions(
+            workflow.state.place,
             transitions,
           );
 
-          await this.workflowStateService.saveWorkflowState(state);
+          await this.workflowService.saveWorkflow(workflow);
         } catch (e) {
           console.log(e);
-          state.error = e.message;
+          workflow.error = e.message;
           break outerLoop;
         }
       }
@@ -282,9 +275,9 @@ export class StateMachineProcessorService {
       }
     }
 
-    state.isWorking = false;
-    await this.workflowStateService.saveWorkflowState(state);
+    workflow.isWorking = false;
+    await this.workflowService.saveWorkflow(workflow);
 
-    return state;
+    return workflow;
   }
 }

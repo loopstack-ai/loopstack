@@ -35,7 +35,6 @@ export class WorkflowStateEntity {
   updatedAt: Date;
 
   @OneToOne(() => WorkflowEntity, {
-    cascade: true,
     nullable: false,
   })
   workflow: WorkflowEntity;

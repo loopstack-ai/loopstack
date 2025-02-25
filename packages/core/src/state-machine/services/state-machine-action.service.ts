@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { WorkflowObserverConfigInterface } from '@loopstack/shared';
 import { ContextInterface } from '../../processor/interfaces/context.interface';
-import { StateMachineContextInterface } from '../interfaces/state-machine-context.interface';
+import { WorkflowStateContextInterface } from '../interfaces/workflow-state-context.interface';
 import { TransitionContextInterface } from '../interfaces/transition-context.interface';
 import { TransitionResultInterface } from '../interfaces/transition-result.interface';
 import { StateMachineActionRegistry } from '../registry/state-machine-action-registry.service';
@@ -18,7 +18,7 @@ export class StateMachineActionService {
   async executeAction(
     observer: WorkflowObserverConfigInterface,
     workflowContext: ContextInterface,
-    stateMachineContext: StateMachineContextInterface,
+    workflowStateContext: WorkflowStateContextInterface,
     transitionContext: TransitionContextInterface,
     workflow: WorkflowEntity,
   ): Promise<TransitionResultInterface> {
@@ -42,7 +42,7 @@ export class StateMachineActionService {
 
     return actionInstance.execute(
       workflowContext,
-      stateMachineContext,
+      workflowStateContext,
       transitionContext,
       workflow,
       props,

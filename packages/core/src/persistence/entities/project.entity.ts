@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 import { ProjectStatus } from '@loopstack/shared/dist/enums/project-status.enum';
 import { NamespacesType } from '../../processor/interfaces/namespaces-type';
-import { UserInputEntity } from './user-input.entity';
 import { WorkspaceEntity } from './workspace.entity';
 import { WorkflowEntity } from './workflow.entity';
 import { DocumentEntity } from './document.entity';
@@ -60,9 +59,6 @@ export class ProjectEntity {
 
   @Column({ name: 'workspace_id', nullable: true })
   workspaceId: string;
-
-  @OneToMany(() => UserInputEntity, (userInput) => userInput.project)
-  userInputs: UserInputEntity[];
 
   @OneToMany(() => WorkflowEntity, (workflow) => workflow.project)
   workflows: WorkflowEntity[];

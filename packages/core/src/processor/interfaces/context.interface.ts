@@ -7,7 +7,7 @@ export interface ContextInterface {
   workspaceId: string;
   projectNamespaces: NamespacesType;
 
-  transitions: TransitionPayloadInterface[];
+  transition?: TransitionPayloadInterface;
 
   labels: string[];
   namespaces: NamespacesType;
