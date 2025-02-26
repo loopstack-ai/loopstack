@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import _ from 'lodash';
+const safeEval = require('safe-eval')
+import _ from '../utils/safe-lodash';
 
 @Injectable()
 export class FunctionCallService {
@@ -9,7 +10,10 @@ export class FunctionCallService {
   }
 
   extractGetContents(input: string): string {
-    return input.replace(/^{/, '').replace(/}$/, '');
+    return input
+        .replace(/^{/, '')
+        .replace(/}$/, '')
+        .trim();
   }
 
   parseValue(value: string, variables: Record<string, any>) {
@@ -20,10 +24,11 @@ export class FunctionCallService {
 
     const contents = this.extractGetContents(trimmed);
 
-    const context = variables['context'] ?? {};
-    const args = variables['args'] ?? {};
-    const func = new Function('context', 'args', '_', `return ${contents};`);
+    const context = variables['context'] ? _.cloneDeep(variables['context']) : {};
+    const args = variables['args'] ? _.cloneDeep(variables['args']) : {};
 
-    return func(context, args, _);
+    // note, this is not safe to use with untrusted user input
+    // when running user configs those need to run in a safe environment
+    return safeEval(contents, { context, args, _ });
   }
 }
