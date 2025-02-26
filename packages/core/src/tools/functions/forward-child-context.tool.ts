@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
 import { _ } from 'lodash';
 import { ToolInterface } from '../interfaces/tool.interface';
-import { ResultInterface } from '../../processor/interfaces/result.interface';
+import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
 import { Tool } from '../../processor/decorators/tool.decorator';
 
 @Injectable()
@@ -10,11 +9,12 @@ import { Tool } from '../../processor/decorators/tool.decorator';
 export class ForwardChildContextTool implements ToolInterface {
   apply(
     options: any,
-    target: ContextInterface,
-    source: ResultInterface,
-  ): ResultInterface {
+    target: ProcessStateInterface,
+    source: ProcessStateInterface,
+  ): ProcessStateInterface {
     return {
-      context: _.merge({}, target, _.omit(source.context, options.omit)),
+      ...target,
+      context: _.merge({}, target.context, _.omit(source.context, options.omit)),
     };
   }
 }

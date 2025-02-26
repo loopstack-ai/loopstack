@@ -5,6 +5,6 @@ export interface StateMachineValidatorInterface {
   validate(
     pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
-    options: Record<string, any>,
+    options: Record<string, any> | undefined,
   ): { valid: boolean; reason: string | null };
 }

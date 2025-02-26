@@ -29,6 +29,7 @@ export class FunctionCallService {
 
     // note, this is not safe to use with untrusted user input
     // when running user configs those need to run in a safe environment
+    // consider using isolated-vm
     return safeEval(contents, { context, args, _ });
   }
 }

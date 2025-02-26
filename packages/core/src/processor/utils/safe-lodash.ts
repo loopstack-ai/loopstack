@@ -12,9 +12,15 @@ const safeLodash = {
     omit: _.omit,
 };
 
-Object.freeze(safeLodash);
-Object.keys(safeLodash).forEach((key) => {
-    Object.freeze(safeLodash[key]);
-});
+function deepFreeze(obj: any) {
+    Object.freeze(obj);
+    Object.getOwnPropertyNames(obj).forEach(prop => {
+        if (typeof obj[prop] === 'object' && obj[prop] !== null) {
+            deepFreeze(obj[prop]);
+        }
+    });
+}
+
+deepFreeze(safeLodash);
 
 export default safeLodash;

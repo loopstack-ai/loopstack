@@ -3,7 +3,7 @@ import { ToolWrapperCollectionService } from '../../configuration/services/tool-
 import { ToolRegistry } from '../../tools/registry/tool.registry';
 import { ContextInterface } from '../interfaces/context.interface';
 import _ from 'lodash';
-import { ResultInterface } from '../interfaces/result.interface';
+import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ValueParserService } from './value-parser.service';
 import {ToolWrapperConfigInterface} from "@loopstack/shared/dist/schemas/toolWrapperSchema";
 import {ToolCallConfigInterface} from "@loopstack/shared";
@@ -19,9 +19,9 @@ export class ToolExecutionService {
   private applyToolWrapper(
     toolWrapper: ToolWrapperConfigInterface,
     contextArgs: Record<string, any>,
-    target: ContextInterface,
-    source: ResultInterface,
-  ): ResultInterface {
+    target: ProcessStateInterface,
+    source: ProcessStateInterface,
+  ): ProcessStateInterface {
     const paramKeys = toolWrapper.params ? _.map(toolWrapper.params, 'name') : [];
     const args: Record<string, any> = _.pick(contextArgs, paramKeys);
 
@@ -30,7 +30,7 @@ export class ToolExecutionService {
 
   private prepareArgs(
     args: Record<string, any> | undefined,
-    source: ResultInterface,
+    source: ProcessStateInterface,
     contextArgs?: Record<string, any>,
   ): Record<string, any> {
     return args
@@ -43,10 +43,10 @@ export class ToolExecutionService {
 
   private applyTool(
     toolCall: ToolCallConfigInterface,
-    target: ContextInterface,
-    source: ResultInterface,
+    target: ProcessStateInterface,
+    source: ProcessStateInterface,
     contextArgs?: Record<string, any>,
-  ): ResultInterface {
+  ): ProcessStateInterface {
     const args = this.prepareArgs(toolCall.args, source, contextArgs);
 
     const instance = this.toolRegistry.getToolByName(toolCall.tool);
@@ -66,16 +66,18 @@ export class ToolExecutionService {
 
   applyTools(
     executions: ToolCallConfigInterface[] | undefined,
-    target: ContextInterface,
-    source: ResultInterface,
+    target: ProcessStateInterface,
+    source: ProcessStateInterface,
     args?: Record<string, any>,
-  ) {
-    let result: { context: ContextInterface } = { context: target };
-    if (executions?.length) {
-      for (const item of executions) {
-        result = this.applyTool(item, result.context, source, args);
-      }
+  ): ProcessStateInterface {
+    if (!executions?.length) {
+      return target;
     }
-    return result;
+
+    for (const item of executions) {
+      target = this.applyTool(item, target, source, args);
+    }
+
+    return target;
   }
 }

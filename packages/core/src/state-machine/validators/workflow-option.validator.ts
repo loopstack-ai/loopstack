@@ -11,16 +11,18 @@ export class WorkflowOptionValidator implements StateMachineValidatorInterface {
   validate(
     pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
-    options: Record<string, any>,
+    options: Record<string, any> | undefined,
   ): { valid: boolean; reason: string | null } {
-    const optionsHash = generateObjectFingerprint(options);
+    if (options) {
+      const optionsHash = generateObjectFingerprint(options);
 
-    console.log(
-      `Checking option invalidation: ${(workflow.optionsHash !== optionsHash).toString()}`,
-    );
+      console.log(
+          `Checking option invalidation: ${(workflow.optionsHash !== optionsHash).toString()}`,
+      );
 
-    if (workflow.optionsHash !== optionsHash) {
-      return { valid: false, reason: 'options' };
+      if (workflow.optionsHash !== optionsHash) {
+        return {valid: false, reason: 'options'};
+      }
     }
 
     return { valid: true, reason: null };

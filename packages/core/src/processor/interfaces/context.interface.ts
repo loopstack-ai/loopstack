@@ -13,4 +13,5 @@ export interface ContextInterface {
   namespaces: NamespacesType;
 
   iterator?: { key: string; value: string };
+  customOptions?: Record<string, any>;
 }

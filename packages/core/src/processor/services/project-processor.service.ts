@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ProjectCollectionService } from '../../configuration/services/project-collection.service';
 import { WorkflowProcessorService } from './workflow-processor.service';
 import { ContextInterface } from '../interfaces/context.interface';
-import { ResultInterface } from '../interfaces/result.interface';
+import { ProcessStateInterface } from '../interfaces/process-state.interface';
 
 @Injectable()
 export class ProjectProcessorService {
@@ -14,7 +14,7 @@ export class ProjectProcessorService {
   async processProject(
     name: string,
     context: ContextInterface,
-  ): Promise<ResultInterface> {
+  ): Promise<ContextInterface> {
     console.log('Processing project:', name);
 
     const project = this.projectCollectionService.getByName(name);
@@ -22,7 +22,7 @@ export class ProjectProcessorService {
       throw new Error(`project with name "${name}" not found.`);
     }
 
-    return this.workflowProcessorService.processWorkflow(
+    return this.workflowProcessorService.processChild(
       project.entrypoint,
       context,
     );

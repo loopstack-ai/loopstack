@@ -1,7 +1,7 @@
 import { ContextInterface } from './context.interface';
 import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
 
-export interface ResultInterface {
+export interface ProcessStateInterface {
   context: ContextInterface;
-  lastState?: WorkflowEntity;
+  workflow: WorkflowEntity | undefined;
 }

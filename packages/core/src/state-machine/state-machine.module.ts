@@ -11,7 +11,6 @@ import { PromptAction } from './actions/prompt.action';
 import { StateMachineActionService } from './services/state-machine-action.service';
 import { InitialRunValidator } from './validators/initial-run.validator';
 import { WorkflowOptionValidator } from './validators/workflow-option.validator';
-import { InitAction } from './actions/init.action';
 import { FinalizeAction } from './actions/finalize.action';
 
 @Module({
@@ -27,7 +26,6 @@ import { FinalizeAction } from './actions/finalize.action';
     InitialRunValidator,
     WorkflowOptionValidator,
 
-    InitAction,
     FinalizeAction,
     PromptAction,
   ],

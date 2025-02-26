@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
 import { ToolInterface } from '../interfaces/tool.interface';
-import { ResultInterface } from '../../processor/interfaces/result.interface';
+import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
 import { Tool } from '../../processor/decorators/tool.decorator';
 
 @Injectable()
@@ -13,10 +12,10 @@ export class SetContextTool implements ToolInterface {
     value: z.any(),
   });
 
-  apply(options: any, target: ContextInterface): ResultInterface {
+  apply(options: any, target: ProcessStateInterface): ProcessStateInterface {
     const validOptions = this.schema.parse(options);
 
-    target[validOptions.key] = validOptions.value;
-    return { context: target };
+    target.context[validOptions.key] = validOptions.value;
+    return target;
   }
 }

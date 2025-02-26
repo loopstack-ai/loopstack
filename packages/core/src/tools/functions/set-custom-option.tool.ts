@@ -1,0 +1,29 @@
+import { Injectable } from '@nestjs/common';
+import { z } from 'zod';
+import { ToolInterface } from '../interfaces/tool.interface';
+import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
+import { Tool } from '../../processor/decorators/tool.decorator';
+import {generateObjectFingerprint} from "@loopstack/shared";
+
+@Injectable()
+@Tool()
+export class SetCustomOptionTool implements ToolInterface {
+  schema = z.object({
+    key: z.string(),
+    value: z.any(),
+  });
+
+  apply(data: any, target: ProcessStateInterface): ProcessStateInterface {
+    const options = this.schema.parse(data);
+
+    const currentCustomOptions = target.context.customOptions ?? {};
+    currentCustomOptions[options.key] = options.value;
+
+    target.context.customOptions = currentCustomOptions;
+    target.workflow!.optionsHash = generateObjectFingerprint(
+      target.context.customOptions
+    );
+
+    return target;
+  }
+}

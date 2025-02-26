@@ -3,7 +3,7 @@ import { SetContextTool } from './functions/set-context.tool';
 import { ToolRegistry } from './registry/tool.registry';
 import { DiscoveryModule } from '@nestjs/core';
 import { ForwardChildContextTool } from './functions/forward-child-context.tool';
-import { SetNamespaceTool } from './functions/set-namespace.tool';
+import {SetCustomOptionTool} from "./functions/set-custom-option.tool";
 
 @Module({
   imports: [DiscoveryModule],
@@ -11,7 +11,7 @@ import { SetNamespaceTool } from './functions/set-namespace.tool';
     ToolRegistry,
     ForwardChildContextTool,
     SetContextTool,
-    SetNamespaceTool,
+    SetCustomOptionTool,
   ],
   exports: [ToolRegistry],
 })

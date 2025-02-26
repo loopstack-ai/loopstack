@@ -17,7 +17,7 @@ export class PromptAction implements StateMachineActionInterface {
   ): Promise<TransitionResultInterface> {
     const manager = this.transitionManagerService.setContext(payload);
 
-    console.log('PromptAction');
+    console.log('PromptAction', payload.workflowContext.customOptions);
 
     return manager.getResult();
   }

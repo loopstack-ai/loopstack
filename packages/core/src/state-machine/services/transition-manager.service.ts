@@ -10,28 +10,24 @@ import { WorkspaceEntity } from '../../persistence/entities/workspace.entity';
 import { ProjectEntity } from '../../persistence/entities/project.entity';
 import { DocumentEntity } from '../../persistence/entities/document.entity';
 import { TransitionResultInterface } from '../interfaces/transition-result.interface';
-import { WorkflowStateContextInterface } from '../interfaces/workflow-state-context.interface';
+import {ContextInterface} from "../../processor/interfaces/context.interface";
 
 @Injectable()
 export class TransitionManagerService {
   constructor(private documentService: DocumentService) {}
 
   private workflow: WorkflowEntity;
-  private workflowStateContext: WorkflowStateContextInterface;
+  private workflowContext: ContextInterface;
   private transitionContext: TransitionContextInterface;
   private nextPlace: string | undefined;
 
   public setContext(payload: ActionExecutePayload) {
     this.workflow = payload.workflow;
-    this.workflowStateContext = payload.workflowStateContext;
+    this.workflowContext = payload.workflowContext;
     this.transitionContext = payload.transitionContext;
     this.nextPlace = undefined;
 
     return this;
-  }
-
-  public getOptions(): Record<string, any> {
-    return this.workflowStateContext.options;
   }
 
   createDocument(document: DocumentCreateDto): DocumentEntity {

@@ -1,10 +1,9 @@
-import { ContextInterface } from '../../processor/interfaces/context.interface';
-import { ResultInterface } from '../../processor/interfaces/result.interface';
+import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
 
 export interface ToolInterface {
   apply(
     options: any,
-    target: ContextInterface,
-    source: ResultInterface,
-  ): ResultInterface;
+    target: ProcessStateInterface,
+    source: ProcessStateInterface,
+  ): ProcessStateInterface;
 }

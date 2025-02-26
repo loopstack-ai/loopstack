@@ -17,6 +17,7 @@ import { HistoryTransition } from '../../persistence/interfaces/history-transiti
 import { WorkflowStateContextInterface } from '../interfaces/workflow-state-context.interface';
 import { StateMachineActionService } from './state-machine-action.service';
 import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
+import {ProcessStateInterface} from "../../processor/interfaces/process-state.interface";
 
 @Injectable()
 export class StateMachineProcessorService {
@@ -27,33 +28,10 @@ export class StateMachineProcessorService {
     private readonly stateMachineActionService: StateMachineActionService,
   ) {}
 
-  async getWorkflow(
-    workflowName: string,
-    context: ContextInterface,
-  ): Promise<WorkflowEntity> {
-    let workflow = await this.workflowService.loadByIdentity(
-      context.projectId,
-      workflowName,
-      context.namespaces,
-    );
-
-    if (workflow) {
-      return workflow;
-    }
-
-    return this.workflowService.createWorkflow({
-      projectId: context.projectId,
-      workspaceId: context.workspaceId,
-      createdBy: context.userId,
-      namespaces: context.namespaces,
-      name: workflowName,
-    });
-  }
-
   canSkipRun(
     pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
-    options: Record<string, any>,
+    options: Record<string, any> | undefined,
   ): { valid: boolean; reasons: string[] } {
     const validationResults = this.stateMachineValidatorRegistry
       .getValidators()
@@ -69,14 +47,11 @@ export class StateMachineProcessorService {
   }
 
   async processStateMachine(
-    workflowName: string,
-    stateMachineConfig: WorkflowStateMachineConfigInterface,
     context: ContextInterface,
-    options: Record<string, any>,
+    workflow: WorkflowEntity,
+    stateMachineConfig: WorkflowStateMachineConfigInterface,
   ): Promise<WorkflowEntity> {
-    const workflow = await this.getWorkflow(workflowName, context);
-
-    console.log('starting with', workflow.state.place);
+    console.log('starting with', workflow?.state.place);
 
     const pendingTransition =
       context.transition?.workflowId === workflow.id
@@ -86,11 +61,10 @@ export class StateMachineProcessorService {
     const { valid, reasons: invalidationReasons } = this.canSkipRun(
       pendingTransition,
       workflow,
-      options,
+      context.customOptions,
     );
 
     const workflowStateContext: WorkflowStateContextInterface = {
-      options,
       pendingTransition,
       isStateValid: valid,
       invalidationReasons,
@@ -100,14 +74,14 @@ export class StateMachineProcessorService {
       return workflow;
     }
 
-    console.log(`Processing State Machine for workflow ${workflowName}`);
+    console.log(`Processing State Machine for workflow ${workflow.name}`);
 
     const { transitions, observers } =
       this.workflowConfigService.getStateMachineFlatConfig(stateMachineConfig);
 
     return this.loopStateMachine(
-      workflow,
       context,
+      workflow,
       transitions,
       observers,
       workflowStateContext,
@@ -196,8 +170,8 @@ export class StateMachineProcessorService {
   }
 
   async loopStateMachine(
-    workflow: WorkflowEntity,
     context: ContextInterface,
+    workflow: WorkflowEntity,
     transitions: WorkflowTransitionConfigInterface[],
     observers: WorkflowObserverConfigInterface[],
     workflowStateContext: WorkflowStateContextInterface,
@@ -230,7 +204,9 @@ export class StateMachineProcessorService {
 
           let nextPlace: string | null = null;
           for (const observer of matchedObservers) {
-            const result = await this.stateMachineActionService.executeAction(
+            console.log(`calling observer ${observer.action} on transition ${observer.transition}`);
+
+            const actionResult = await this.stateMachineActionService.executeAction(
               observer,
               context,
               workflowStateContext,
@@ -238,12 +214,12 @@ export class StateMachineProcessorService {
               workflow,
             );
 
-            if (result.nextPlace) {
-              nextPlace = result.nextPlace;
+            if (actionResult.nextPlace) {
+              nextPlace = actionResult.nextPlace;
             }
 
-            if (result.workflow) {
-              workflow = result.workflow;
+            if (actionResult.workflow) {
+              workflow = actionResult.workflow;
             }
           }
 
