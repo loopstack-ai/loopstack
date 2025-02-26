@@ -19,7 +19,7 @@ export class ValueParserService {
     }
 
     if (this.functionCallService.isFunction(value)) {
-      return this.functionCallService.parseValue(value, variables);
+      return this.functionCallService.runEval(value, variables);
     }
 
     return value;

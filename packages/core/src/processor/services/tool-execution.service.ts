@@ -16,12 +16,12 @@ export class ToolExecutionService {
     private valueParserService: ValueParserService,
   ) {}
 
-  private applyToolWrapper(
+  async applyToolWrapper(
     toolWrapper: ToolWrapperConfigInterface,
     contextArgs: Record<string, any>,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
-  ): ProcessStateInterface {
+  ): Promise<ProcessStateInterface> {
     const paramKeys = toolWrapper.params ? _.map(toolWrapper.params, 'name') : [];
     const args: Record<string, any> = _.pick(contextArgs, paramKeys);
 
@@ -41,12 +41,12 @@ export class ToolExecutionService {
       : {};
   }
 
-  private applyTool(
+  async applyTool(
     toolCall: ToolCallConfigInterface,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
     contextArgs?: Record<string, any>,
-  ): ProcessStateInterface {
+  ): Promise<ProcessStateInterface> {
     const args = this.prepareArgs(toolCall.args, source, contextArgs);
 
     const instance = this.toolRegistry.getToolByName(toolCall.tool);
@@ -64,18 +64,18 @@ export class ToolExecutionService {
     );
   }
 
-  applyTools(
+  async applyTools(
     executions: ToolCallConfigInterface[] | undefined,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
     args?: Record<string, any>,
-  ): ProcessStateInterface {
+  ): Promise<ProcessStateInterface> {
     if (!executions?.length) {
       return target;
     }
 
     for (const item of executions) {
-      target = this.applyTool(item, target, source, args);
+      target = await this.applyTool(item, target, source, args);
     }
 
     return target;

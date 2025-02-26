@@ -16,7 +16,7 @@ export class FunctionCallService {
         .trim();
   }
 
-  parseValue(value: string, variables: Record<string, any>) {
+  runEval(value: string, variables: Record<string, any>) {
     const trimmed = value.trim();
     if (!this.isFunction(trimmed)) {
       return trimmed;
@@ -24,12 +24,12 @@ export class FunctionCallService {
 
     const contents = this.extractGetContents(trimmed);
 
-    const context = variables['context'] ? _.cloneDeep(variables['context']) : {};
-    const args = variables['args'] ? _.cloneDeep(variables['args']) : {};
+    // const context = variables['context'] ? _.cloneDeep(variables['context']) : {};
+    // const args = variables['args'] ? _.cloneDeep(variables['args']) : {};
 
     // note, this is not safe to use with untrusted user input
     // when running user configs those need to run in a safe environment
     // consider using isolated-vm
-    return safeEval(contents, { context, args, _ });
+    return safeEval(contents, { ...variables, _ });
   }
 }

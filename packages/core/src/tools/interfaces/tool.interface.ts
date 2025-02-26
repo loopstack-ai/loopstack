@@ -5,5 +5,5 @@ export interface ToolInterface {
     options: any,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
-  ): ProcessStateInterface;
+  ): Promise<ProcessStateInterface>;
 }

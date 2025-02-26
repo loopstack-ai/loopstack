@@ -12,7 +12,7 @@ export class SetContextTool implements ToolInterface {
     value: z.any(),
   });
 
-  apply(options: any, target: ProcessStateInterface): ProcessStateInterface {
+  async apply(options: any, target: ProcessStateInterface): Promise<ProcessStateInterface> {
     const validOptions = this.schema.parse(options);
 
     target.context[validOptions.key] = validOptions.value;

@@ -7,11 +7,11 @@ import { Tool } from '../../processor/decorators/tool.decorator';
 @Injectable()
 @Tool()
 export class ForwardChildContextTool implements ToolInterface {
-  apply(
+  async apply(
     options: any,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
-  ): ProcessStateInterface {
+  ): Promise<ProcessStateInterface> {
     return {
       ...target,
       context: _.merge({}, target.context, _.omit(source.context, options.omit)),

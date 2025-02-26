@@ -13,7 +13,7 @@ export class SetCustomOptionTool implements ToolInterface {
     value: z.any(),
   });
 
-  apply(data: any, target: ProcessStateInterface): ProcessStateInterface {
+  async apply(data: any, target: ProcessStateInterface): Promise<ProcessStateInterface> {
     const options = this.schema.parse(data);
 
     const currentCustomOptions = target.context.customOptions ?? {};

@@ -1,5 +1,6 @@
 import { NamespacesType } from './namespaces-type';
 import { TransitionPayloadInterface } from '../../state-machine/interfaces/transition-payload.interface';
+import {ContextImportInterface} from "./context-import.interface";
 
 export interface ContextInterface {
   userId: string | null;
@@ -14,4 +15,5 @@ export interface ContextInterface {
 
   iterator?: { key: string; value: string };
   customOptions?: Record<string, any>;
+  imports?: ContextImportInterface[];
 }

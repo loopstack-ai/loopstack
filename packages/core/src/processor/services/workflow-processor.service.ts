@@ -159,7 +159,7 @@ export class WorkflowProcessorService {
     let processState: ProcessStateInterface = { context, workflow };
 
     // before functions update the working context
-    processState = this.toolExecutionService.applyTools(
+    processState = await this.toolExecutionService.applyTools(
       workflowConfig.prepare,
       processState,
       processState,
@@ -170,7 +170,7 @@ export class WorkflowProcessorService {
     // workflows return the parent context and apply actions
     // they do not pass down its working context
     // instead, tools can apply changes to it
-    processState = this.toolExecutionService.applyTools(
+    processState = await this.toolExecutionService.applyTools(
       workflowConfig.export,
       { context: parentContext, workflow: undefined },
       processState,
