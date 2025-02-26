@@ -4,7 +4,7 @@ import { ToolInterface } from '../interfaces/tool.interface';
 import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
 import { Tool } from '../../processor/decorators/tool.decorator';
 import {DocumentEntity} from "../../persistence/entities/document.entity";
-import _ from 'lodash';
+import * as _ from 'lodash';
 import {createHash} from "@loopstack/shared/dist/utils/create-hash.util";
 import {ContextImportInterface} from "../../processor/interfaces/context-import.interface";
 import {DocumentService} from "../../persistence/services/document.service";
@@ -19,6 +19,7 @@ const schema = z.object({
   namespaces: z.any().optional(),
   map: z.string().optional(),
   filter: z.string().optional(),
+  sort: z.boolean().optional(),
   sortBy: z.object({
     iteratees: z.array(z.string()),
     orders: z.array(z.enum(["asc", "desc"])),
@@ -44,7 +45,7 @@ export class LoadDocumentTool implements ToolInterface {
    * filters items using defined functions
    */
   applyFilters(options: LoadDocumentToolOptions, items: DocumentEntity[]) {
-    if (options.many && options.filter) {
+    if (options.filter) {
       return items.filter((item) => this.functionCallService.runEval(options.filter!, { item }));
     }
 
@@ -61,12 +62,16 @@ export class LoadDocumentTool implements ToolInterface {
 
     let documents = entities.map((entity) => this.functionCallService.runEval(mapFunc, { entity }));
 
-    if (options.many && options.flat) {
+    if (options.flat) {
       documents = documents.flat();
     }
 
     if (options.sortBy) {
-      documents = _.sortBy(documents, options.sortBy.iteratees, options.sortBy.orders);
+      documents = _.orderBy(documents, options.sortBy.iteratees, options.sortBy.orders);
+    }
+
+    if (options.sort) {
+      documents = documents.sort();
     }
 
     return documents;
@@ -95,7 +100,11 @@ export class LoadDocumentTool implements ToolInterface {
    * retrieves and filter related entities from workflow dependencies
    */
   getDocumentsByDependencies(options: LoadDocumentToolOptions, target: ProcessStateInterface) {
-    const previousDependencies = target.workflow!.dependencies
+    if (!target.workflow) {
+      throw new Error('Workflow is undefined');
+    }
+
+    const previousDependencies = target.workflow.dependencies
         .filter((item) => item.name === options.where.name && (!options.where.type || item.type === options.where.type));
 
     return this.applyFilters(options, previousDependencies);
@@ -105,11 +114,18 @@ export class LoadDocumentTool implements ToolInterface {
    * creates a new list of dependencies, replacing previous items with new while keeping unrelated dependencies untouched
    */
   replacePreviousDependenciesWithCurrent(target: ProcessStateInterface, currentEntities: DocumentEntity[], previousEntities: DocumentEntity[]): DocumentEntity[] {
-    const allEntities = target.workflow!.dependencies;
+    if (!target.workflow) {
+      throw new Error('Workflow is undefined');
+    }
 
-    const previousEntityIds = previousEntities.map((item) => item.id);
+    const allEntities = target.workflow.dependencies;
+
+    const previousEntityIdSet = new Set(
+        previousEntities.map(item => item?.id).filter(Boolean)
+    );
+
     return [
-      ...allEntities.filter((entity) => !previousEntityIds.includes(entity.id)),
+      ...allEntities.filter(entity => !previousEntityIdSet.has(entity.id)),
       ...currentEntities,
     ];
   }
@@ -118,16 +134,28 @@ export class LoadDocumentTool implements ToolInterface {
    * compares current dependency ids with new
    * updates the workflow's dependencies and hash, if changed
    */
-  updateWorkflowDependenciesIfChanged(target: ProcessStateInterface, newDependencies: DocumentEntity[]) {
-    const oldDependencies = target.workflow!.dependencies;
+  updateWorkflowDependenciesIfChanged(target: ProcessStateInterface, newDependencies: DocumentEntity[]): boolean {
+    if (!target.workflow) {
+      throw new Error('Workflow is undefined');
+    }
+
+    const oldDependencies = target.workflow.dependencies;
     const oldIds = oldDependencies.map((item) => item.id);
     const newIds = newDependencies.map((item) => item.id);
-    if (!_.isEqual(oldIds.sort(), newIds.sort())) {
+
+    const sortedOldIds = [...oldIds].sort();
+    const sortedNewIds = [...newIds].sort();
+
+    if (!_.isEqual(sortedOldIds, sortedNewIds)) {
       // ids have changed
       // update the workflow dependency relations and hash value
-      target.workflow!.dependenciesHash = createHash(newIds); // todo make sure when validating that hash could be null which is equivalent for no dependencies []!
+      target.workflow!.dependenciesHash = newIds.length ? createHash(newIds) : null;
       target.workflow!.dependencies = newDependencies;
+
+      return true;
     }
+
+    return false;
   }
 
   /**

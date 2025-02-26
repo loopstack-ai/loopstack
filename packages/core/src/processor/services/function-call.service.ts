@@ -11,6 +11,7 @@ export class FunctionCallService {
 
   extractGetContents(input: string): string {
     return input
+        .trim()
         .replace(/^{/, '')
         .replace(/}$/, '')
         .trim();

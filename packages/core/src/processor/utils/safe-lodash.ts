@@ -1,15 +1,16 @@
-import _ from 'lodash';
+import { map, filter, reduce, cloneDeep, merge, isEqual, get, pick, omit, sum } from 'lodash';
 
 const safeLodash = {
-    map: _.map,
-    filter: _.filter,
-    reduce: _.reduce,
-    cloneDeep: _.cloneDeep,
-    merge: _.merge,
-    isEqual: _.isEqual,
-    get: _.get,
-    pick: _.pick,
-    omit: _.omit,
+    map,
+    filter,
+    reduce,
+    cloneDeep,
+    merge,
+    isEqual,
+    get,
+    pick,
+    omit,
+    sum,
 };
 
 function deepFreeze(obj: any) {

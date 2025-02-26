@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { InitService } from './init.service';
-import { WorkspaceCollectionService } from './workspace-collection.service';
-import { ProjectCollectionService } from './project-collection.service';
-import { ToolWrapperCollectionService } from './tool-wrapper-collection.service';
-import { WorkflowCollectionService } from './workflow-collection.service';
-import { WorkflowTemplateCollectionService } from './workflow-template-collection.service';
-import { ActionCollectionService } from './action-collection.service';
-import { PromptTemplateCollectionService } from './prompt-template-collection.service';
-import { AdapterCollectionService } from './adapter-collection.service';
-import { EntityCollectionService } from './entity-collection.service';
+import { InitService } from '../init.service';
+import { WorkspaceCollectionService } from '../workspace-collection.service';
+import { ProjectCollectionService } from '../project-collection.service';
+import { ToolWrapperCollectionService } from '../tool-wrapper-collection.service';
+import { WorkflowCollectionService } from '../workflow-collection.service';
+import { WorkflowTemplateCollectionService } from '../workflow-template-collection.service';
+import { ActionCollectionService } from '../action-collection.service';
+import { PromptTemplateCollectionService } from '../prompt-template-collection.service';
+import { AdapterCollectionService } from '../adapter-collection.service';
+import { EntityCollectionService } from '../entity-collection.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import loadSchemas from '../configuration';
+import loadSchemas from '../../configuration';
 
 describe('InitService', () => {
   let modelService: InitService;
@@ -70,7 +70,7 @@ describe('InitService', () => {
           entrypoint: 'MainPipeline',
         },
       ],
-      utils: [
+      tools: [
         {
           name: 'Util 1',
           execute: [],
@@ -86,6 +86,6 @@ describe('InitService', () => {
 
     // assure transient for other collections
     expect(projectCollectionService.getAll()).toEqual(mockData.projects);
-    expect(utilsCollectionService.getAll()).toEqual(mockData.utils);
+    expect(utilsCollectionService.getAll()).toEqual(mockData.tools);
   });
 });
