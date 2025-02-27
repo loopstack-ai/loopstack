@@ -39,7 +39,8 @@ export class StateMachineActionService {
 
     console.log(`Executing action ${actionConfig.service}`);
 
-    const props = {}; // todo action props from actionConfig
+    const props = actionConfig.props;
+      // todo parse action props from actionConfig with function call
 
     return actionInstance.execute({
       workflowContext,
