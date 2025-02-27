@@ -1,7 +1,7 @@
 {
-  "name": "loopstack-api-client",
+  "name": "@loopstack/loopstack-api-client",
   "version": "1.0.1",
-  "description": "OpenAPI client for loopstack-api-client",
+  "description": "OpenAPI client for @loopstack/loopstack-api-client",
   "author": "OpenAPI-Generator Contributors",
   "repository": {
     "type": "git",
@@ -12,7 +12,7 @@
     "typescript",
     "openapi-client",
     "openapi-generator",
-    "loopstack-api-client"
+    "@loopstack/loopstack-api-client"
   ],
   "license": "Unlicense",
   "main": "./dist/index.js",
