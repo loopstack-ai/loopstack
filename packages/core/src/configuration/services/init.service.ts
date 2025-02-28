@@ -54,4 +54,11 @@ export class InitService {
     this.llmModelCollectionService.create(config.adapter ?? []);
     this.entityCollectionService.create(config.entities ?? []);
   }
+
+  init(configs: MainConfigInterface[]) {
+    this.clear();
+    for (const config of configs) {
+      this.createFromConfig(config);
+    }
+  }
 }
