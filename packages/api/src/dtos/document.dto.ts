@@ -43,11 +43,11 @@ export class DocumentDto<T = unknown> {
      * Contents of the document
      */
     @Expose()
-    @ApiPropertyOptional({
+    @ApiProperty({
         type: () => DocumentContentsDto,
         description: 'Contents of the document'
     })
-    contents?: DocumentContentsDto;
+    contents: DocumentContentsDto | null;
 
     /**
      * Indicates if document content is JSON serialized
@@ -63,11 +63,11 @@ export class DocumentDto<T = unknown> {
      * Document metadata
      */
     @Expose()
-    @ApiPropertyOptional({
+    @ApiProperty({
         type: () => DocumentMetaDto,
         description: 'Document metadata'
     })
-    meta?: DocumentMetaDto;
+    meta?: DocumentMetaDto | null;
 
     /**
      * Document namespaces
@@ -133,21 +133,21 @@ export class DocumentDto<T = unknown> {
      * Transition when this document was created
      */
     @Expose()
-    @ApiPropertyOptional({
+    @ApiProperty({
         description: 'Transition when this document was created',
         example: 'review'
     })
-    transition?: string;
+    transition: string | null;
 
     /**
      * Place when this document was created
      */
     @Expose()
-    @ApiPropertyOptional({
+    @ApiProperty({
         description: 'Place when this document was created',
         example: 'pending'
     })
-    place?: string;
+    place?: string | null;
 
     /**
      * Date when the document was created

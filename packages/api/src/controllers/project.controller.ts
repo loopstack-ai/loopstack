@@ -126,7 +126,7 @@ export class ProjectController {
    */
   @Post()
   @ApiOperation({ summary: 'Create a new project' })
-  @ApiBody({ type: Object, description: 'Project data' })
+  @ApiBody({ type: ProjectCreateDto, description: 'Project data' })
   @ApiOkResponse({ type: ProjectDto })
   async createProject(
     @Body() projectData: ProjectCreateDto,
@@ -143,7 +143,7 @@ export class ProjectController {
   @Put(':id')
   @ApiOperation({ summary: 'Update a project by ID' })
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
-  @ApiBody({ type: Object, description: 'Updated project data' })
+  @ApiBody({ type: ProjectUpdateDto, description: 'Updated project data' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   @ApiOkResponse({ type: ProjectDto })
   async updateProject(

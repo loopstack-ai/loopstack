@@ -35,14 +35,13 @@ export class ProjectCreateDto {
    * Human-readable title for the project
    * @example "My Awesome Project"
    */
-  @ValidateIf((o) => o.title !== undefined)
   @IsString()
   @MaxLength(200, { message: 'Project title must not exceed 200 characters' })
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Human-readable title for the project',
     example: 'My Awesome Project',
   })
-  title?: string;
+  title: string;
 
   /**
    * Array of labels/tags associated with the project

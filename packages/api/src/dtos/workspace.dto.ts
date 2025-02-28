@@ -16,6 +16,13 @@ export class WorkspaceDto {
     })
     id: string;
 
+    @Expose()
+    @ApiProperty({
+        description: 'Display title of the workspace',
+        example: 'Customer Portal'
+    })
+    title: string;
+
     /**
      * Indicates whether the workspace is locked for editing
      */

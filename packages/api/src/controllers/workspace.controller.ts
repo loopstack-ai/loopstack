@@ -127,7 +127,7 @@ export class WorkspaceController {
    */
   @Post()
   @ApiOperation({ summary: 'Create a new workspace' })
-  @ApiBody({ type: Object, description: 'Workspace data' })
+  @ApiBody({ type: WorkspaceCreateDto, description: 'Workspace data' })
   @ApiOkResponse({ type: WorkspaceDto })
   async createWorkspace(
       @Body() workspaceData: WorkspaceCreateDto,
@@ -144,7 +144,7 @@ export class WorkspaceController {
   @Put(':id')
   @ApiOperation({ summary: 'Update a workspace by ID' })
   @ApiParam({ name: 'id', type: String, description: 'The ID of the workspace' })
-  @ApiBody({ type: Object, description: 'Updated workspace data' })
+  @ApiBody({ type: WorkspaceUpdateDto, description: 'Updated workspace data' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiOkResponse({ type: WorkspaceDto })
   async updateWorkspace(

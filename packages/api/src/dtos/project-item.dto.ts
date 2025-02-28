@@ -1,6 +1,6 @@
-import { Exclude, Expose, plainToInstance } from "class-transformer";
+import { Expose, plainToInstance } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
-import { NamespacesType, ProjectEntity } from "@loopstack/core";
+import { ProjectEntity } from "@loopstack/core";
 import { ProjectStatus } from "@loopstack/shared";
 import { NamespacesDto } from "./namespaces.dto";
 

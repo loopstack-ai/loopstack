@@ -16,6 +16,13 @@ export class WorkspaceItemDto {
     })
     id: string;
 
+    @Expose()
+    @ApiProperty({
+        description: 'Display title of the workspace',
+        example: 'Customer Portal'
+    })
+    title: string;
+
     /**
      * Timestamp when the workspace item was created
      */

@@ -35,7 +35,7 @@ export class DocumentItemDto {
     @Expose()
     @ApiProperty({
         description: 'Type of the document',
-        example: 'pdf'
+        example: 'document'
     })
     type: string;
 
@@ -43,11 +43,11 @@ export class DocumentItemDto {
      * Document metadata
      */
     @Expose()
-    @ApiPropertyOptional({
+    @ApiProperty({
         type: () => DocumentMetaDto,
         description: 'Document metadata'
     })
-    meta?: DocumentMetaDto;
+    meta: DocumentMetaDto | null;
 
     /**
      * Document namespaces
