@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Plan a meal Api
- * An api for the loopstack plan a meal demo
+ * Loopstack API Documentation
+ * Loopstack API Documentation
  *
  * The version of the OpenAPI document: 1.0
  * 
