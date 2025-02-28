@@ -35,7 +35,6 @@ export class DocumentController {
     @ApiOperation({
         summary: 'Retrieve documents with filters, sorting, and pagination',
     })
-    @ApiResponse({ status: 200, description: 'Documents retrieved successfully' })
     @ApiPaginatedResponse(DocumentItemDto)
     async searchDocuments(@Body() query: DocumentQueryDto, @Request() req: any): Promise<PaginatedDto<DocumentItemDto>> {
         const user = req.user || null;
@@ -49,7 +48,6 @@ export class DocumentController {
     @Get(':id')
     @ApiOperation({ summary: 'Get a document by ID' })
     @ApiParam({ name: 'id', type: String, description: 'The ID of the document' })
-    @ApiResponse({ status: 200, description: 'Document retrieved successfully' })
     @ApiResponse({ status: 404, description: 'Document not found' })
     @ApiOkResponse({ type: DocumentDto })
     async getDocumentById(

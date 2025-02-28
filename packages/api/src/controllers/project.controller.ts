@@ -40,7 +40,6 @@ export class ProjectController {
   @ApiOperation({
     summary: 'Retrieve projects with filters, sorting, and pagination',
   })
-  @ApiResponse({ status: 200, description: 'Projects retrieved successfully' })
   @ApiPaginatedResponse(ProjectItemDto)
   async searchProjects(@Body() query: ProjectQueryDto, @Request() req: any): Promise<PaginatedDto<ProjectItemDto>> {
     const user = req.user || null;
@@ -54,7 +53,6 @@ export class ProjectController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a project by ID' })
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
-  @ApiResponse({ status: 200, description: 'Project retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   @ApiOkResponse({ type: ProjectDto })
   async getProjectById(
@@ -72,7 +70,6 @@ export class ProjectController {
   @Post()
   @ApiOperation({ summary: 'Create a new project' })
   @ApiBody({ type: Object, description: 'Project data' })
-  @ApiResponse({ status: 201, description: 'Project created successfully' })
   @ApiOkResponse({ type: ProjectDto })
   async createProject(
     @Body() projectData: ProjectCreateDto,
@@ -90,7 +87,6 @@ export class ProjectController {
   @ApiOperation({ summary: 'Update a project by ID' })
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
   @ApiBody({ type: Object, description: 'Updated project data' })
-  @ApiResponse({ status: 200, description: 'Project updated successfully' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   @ApiOkResponse({ type: ProjectDto })
   async updateProject(
@@ -109,9 +105,8 @@ export class ProjectController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a project by ID' })
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
-  @ApiResponse({ status: 200, description: 'Project deleted successfully' })
+  @ApiResponse({ status: 204, description: 'Project deleted successfully' })
   @ApiResponse({ status: 404, description: 'Project not found' })
-  @ApiNoContentResponse()
   async deleteProject(
     @Param('id') id: string,
     @Request() req: ApiRequestType,

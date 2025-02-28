@@ -35,7 +35,6 @@ export class WorkflowController {
     @ApiOperation({
         summary: 'Retrieve workflows with filters, sorting, and pagination',
     })
-    @ApiResponse({ status: 200, description: 'Workflows retrieved successfully' })
     @ApiPaginatedResponse(WorkflowItemDto)
     async searchWorkflows(@Body() query: WorkflowQueryDto, @Request() req: any): Promise<PaginatedDto<WorkflowItemDto>> {
         const user = req.user || null;
@@ -49,7 +48,6 @@ export class WorkflowController {
     @Get(':id')
     @ApiOperation({ summary: 'Get a workflow by ID' })
     @ApiParam({ name: 'id', type: String, description: 'The ID of the workflow' })
-    @ApiResponse({ status: 200, description: 'Workflow retrieved successfully' })
     @ApiResponse({ status: 404, description: 'Workflow not found' })
     @ApiOkResponse({ type: WorkflowDto })
     async getWorkflowById(

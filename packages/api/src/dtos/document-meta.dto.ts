@@ -1,3 +1,1 @@
-export class DocumentMetaDto {
-
-}
+export class DocumentMetaDto {}

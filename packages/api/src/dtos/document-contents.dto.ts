@@ -1,3 +1,1 @@
-export class DocumentContentsDto<T>{
-
-}
+export class DocumentContentsDto {}

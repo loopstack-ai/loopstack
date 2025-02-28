@@ -14,7 +14,7 @@ import {
   ApiResponse,
   ApiTags,
   ApiBody,
-  ApiExtraModels, ApiOkResponse, ApiNoContentResponse,
+  ApiExtraModels, ApiOkResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { WorkspaceApiService } from '../services/workspace-api.service';
@@ -40,7 +40,6 @@ export class WorkspaceController {
   @ApiOperation({
     summary: 'Retrieve workspaces with filters, sorting, and pagination',
   })
-  @ApiResponse({ status: 200, description: 'Workspaces retrieved successfully' })
   @ApiPaginatedResponse(WorkspaceItemDto)
   async searchWorkspaces(@Body() query: WorkspaceQueryDto, @Request() req: any): Promise<PaginatedDto<WorkspaceItemDto>> {
     const user = req.user || null;
@@ -54,7 +53,6 @@ export class WorkspaceController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a workspace by ID' })
   @ApiParam({ name: 'id', type: String, description: 'The ID of the workspace' })
-  @ApiResponse({ status: 200, description: 'Workspace retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiOkResponse({ type: WorkspaceDto })
   async getWorkspaceById(
@@ -72,7 +70,6 @@ export class WorkspaceController {
   @Post()
   @ApiOperation({ summary: 'Create a new workspace' })
   @ApiBody({ type: Object, description: 'Workspace data' })
-  @ApiResponse({ status: 201, description: 'Workspace created successfully' })
   @ApiOkResponse({ type: WorkspaceDto })
   async createWorkspace(
       @Body() workspaceData: WorkspaceCreateDto,
@@ -90,7 +87,6 @@ export class WorkspaceController {
   @ApiOperation({ summary: 'Update a workspace by ID' })
   @ApiParam({ name: 'id', type: String, description: 'The ID of the workspace' })
   @ApiBody({ type: Object, description: 'Updated workspace data' })
-  @ApiResponse({ status: 200, description: 'Workspace updated successfully' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiOkResponse({ type: WorkspaceDto })
   async updateWorkspace(
@@ -109,9 +105,8 @@ export class WorkspaceController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a workspace by ID' })
   @ApiParam({ name: 'id', type: String, description: 'The ID of the workspace' })
-  @ApiResponse({ status: 200, description: 'Workspace deleted successfully' })
+  @ApiResponse({ status: 204, description: 'Workspace deleted successfully' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
-  @ApiNoContentResponse()
   async deleteWorkspace(
       @Param('id') id: string,
       @Request() req: ApiRequestType,

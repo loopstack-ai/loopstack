@@ -4,14 +4,7 @@ import {ClassConstructor, plainToInstance} from "class-transformer";
 export class PaginatedDto<T> {
     @ApiProperty({
         type: 'array',
-        items: {
-            oneOf: [
-                { $ref: '#/components/schemas/ProjectDto' },
-                { $ref: '#/components/schemas/WorkspaceDto' },
-                { $ref: '#/components/schemas/WorkflowDto' },
-                { $ref: '#/components/schemas/DocumentDto' },
-            ]
-        }
+        items: { type: 'object' }
     })
     data: T[];
 
