@@ -1,6 +1,8 @@
 import {Expose, plainToInstance} from "class-transformer";
-import {ApiProperty} from "@nestjs/swagger";
+import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
 import {DocumentEntity, NamespacesType} from "@loopstack/core";
+import {DocumentMetaDto} from "./document-meta.dto";
+import {NamespacesDto} from "./namespaces.dto";
 
 export class DocumentItemDto<T = any> {
     @Expose()
@@ -16,12 +18,12 @@ export class DocumentItemDto<T = any> {
     type: string;
 
     @Expose()
-    @ApiProperty()
-    meta: Record<string, any> | null;
+    @ApiPropertyOptional({ type: DocumentMetaDto })
+    meta: DocumentMetaDto;
 
     @Expose()
-    @ApiProperty()
-    namespaces: NamespacesType;
+    @ApiProperty({ type: NamespacesDto })
+    namespaces: NamespacesDto;
 
     @Expose()
     @ApiProperty()

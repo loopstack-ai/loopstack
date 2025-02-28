@@ -1,6 +1,9 @@
 import {Exclude, Expose, plainToInstance} from "class-transformer";
-import {ApiProperty} from "@nestjs/swagger";
-import {DocumentEntity, NamespacesType} from "@loopstack/core";
+import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
+import {DocumentEntity} from "@loopstack/core";
+import {NamespacesDto} from "./namespaces.dto";
+import {DocumentMetaDto} from "./document-meta.dto";
+import {DocumentContentsDto} from "./document-contents.dto";
 
 export class DocumentDto<T = any> {
     @Expose()
@@ -16,20 +19,20 @@ export class DocumentDto<T = any> {
     type: string;
 
     @Expose()
-    @ApiProperty()
-    contents: T | null;
+    @ApiPropertyOptional({ type: DocumentContentsDto })
+    contents: DocumentContentsDto<T>;
 
     @Expose()
     @ApiProperty()
     isJsonSerialized: boolean;
 
     @Expose()
-    @ApiProperty()
-    meta: Record<string, any> | null;
+    @ApiPropertyOptional({ type: DocumentMetaDto })
+    meta: DocumentMetaDto;
 
     @Expose()
-    @ApiProperty()
-    namespaces: NamespacesType;
+    @ApiProperty({ type: NamespacesDto })
+    namespaces: NamespacesDto;
 
     @Expose()
     @ApiProperty()
@@ -52,12 +55,12 @@ export class DocumentDto<T = any> {
     index: number;
 
     @Expose()
-    @ApiProperty()
-    transition: string | null;
+    @ApiPropertyOptional()
+    transition: string;
 
     @Expose()
-    @ApiProperty()
-    place: string | null;
+    @ApiPropertyOptional()
+    place: string;
 
     @Expose()
     @ApiProperty({ type: Date })
@@ -78,9 +81,6 @@ export class DocumentDto<T = any> {
     @Expose()
     @ApiProperty()
     workflowId: string;
-
-    @Exclude()
-    createdBy: string | null;
 
     static create<T>(document: DocumentEntity<T>) {
         return plainToInstance(DocumentDto, document, {

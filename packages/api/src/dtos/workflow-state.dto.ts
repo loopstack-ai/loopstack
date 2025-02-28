@@ -1,7 +1,6 @@
-import {Exclude, Expose, plainToInstance} from "class-transformer";
-import {ApiProperty} from "@nestjs/swagger";
-import {WorkflowTransitionConfigInterface} from "@loopstack/shared";
-import {HistoryTransition, WorkflowStateEntity} from "@loopstack/core";
+import {Expose} from "class-transformer";
+import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
+import {WorkflowStateHistoryDto, WorkflowStatePlaceInfoDto} from "@loopstack/core";
 
 export class WorkflowStateDto {
     @Expose()
@@ -13,12 +12,12 @@ export class WorkflowStateDto {
     place: string;
 
     @Expose()
-    @ApiProperty({ isArray: true })
-    availableTransitions: WorkflowTransitionConfigInterface[];
+    @ApiPropertyOptional({ type: WorkflowStatePlaceInfoDto })
+    placeInfo: WorkflowStatePlaceInfoDto | null;
 
     @Expose()
-    @ApiProperty({ isArray: true })
-    transitionHistory: HistoryTransition[];
+    @ApiPropertyOptional({ type: WorkflowStateHistoryDto })
+    transitionHistory: WorkflowStateHistoryDto | null;
 
     @Expose()
     @ApiProperty({ type: Date })
@@ -27,7 +26,4 @@ export class WorkflowStateDto {
     @Expose()
     @ApiProperty({ type: Date })
     updatedAt: Date;
-
-    @Exclude()
-    createdBy: string | null;
 }

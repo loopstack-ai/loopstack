@@ -22,7 +22,7 @@ import { DocumentDto } from "../dtos/document.dto";
 import {DocumentItemDto} from "../dtos/document-item.dto";
 
 @ApiTags('api/v1/documents')
-@ApiExtraModels(DocumentItemDto)
+@ApiExtraModels(DocumentDto, DocumentItemDto)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @Controller('api/v1/documents')
 export class DocumentController {

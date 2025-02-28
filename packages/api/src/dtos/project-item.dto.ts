@@ -2,6 +2,7 @@ import {Exclude, Expose, plainToInstance} from "class-transformer";
 import {ApiProperty} from "@nestjs/swagger";
 import {NamespacesType, ProjectEntity} from "@loopstack/core";
 import {ProjectStatus} from "@loopstack/shared";
+import {NamespacesDto} from "./namespaces.dto";
 
 export class ProjectItemDto {
     @Expose()
@@ -13,8 +14,8 @@ export class ProjectItemDto {
     name: string;
 
     @Expose()
-    @ApiProperty()
-    namespaces: NamespacesType;
+    @ApiProperty({ type: NamespacesDto })
+    namespaces: NamespacesDto;
 
     @Expose()
     @ApiProperty()

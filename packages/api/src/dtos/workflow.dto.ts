@@ -1,7 +1,8 @@
-import {Exclude, Expose, plainToInstance, Type} from "class-transformer";
-import {ApiProperty} from "@nestjs/swagger";
+import {Expose, plainToInstance, Type} from "class-transformer";
+import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
 import {WorkflowStateDto} from "./workflow-state.dto";
-import {NamespacesType, WorkflowEntity} from "@loopstack/core";
+import {WorkflowEntity} from "@loopstack/core";
+import {NamespacesDto} from "./namespaces.dto";
 
 export class WorkflowDto {
     @Expose()
@@ -13,8 +14,8 @@ export class WorkflowDto {
     name: string;
 
     @Expose()
-    @ApiProperty()
-    namespaces: NamespacesType;
+    @ApiProperty({ type: NamespacesDto })
+    namespaces: NamespacesDto;
 
     @Expose()
     @ApiProperty()
@@ -25,8 +26,8 @@ export class WorkflowDto {
     progress: number;
 
     @Expose()
-    @ApiProperty()
-    error: string | null;
+    @ApiPropertyOptional()
+    error: string;
 
     @Expose()
     @ApiProperty()
@@ -47,7 +48,7 @@ export class WorkflowDto {
 
     @Expose()
     @ApiProperty()
-    stateId: string | null;
+    stateId: string;
 
     @Expose()
     @ApiProperty()

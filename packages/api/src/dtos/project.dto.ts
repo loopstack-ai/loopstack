@@ -1,7 +1,9 @@
 import {Exclude, Expose, plainToInstance} from "class-transformer";
 import {ApiProperty} from "@nestjs/swagger";
-import {NamespacesType, ProjectEntity} from "@loopstack/core";
+import {ProjectEntity} from "@loopstack/core";
 import {ProjectStatus} from "@loopstack/shared";
+import {NamespacesDto} from "./namespaces.dto";
+import {ProjectContextDto} from "./project-context.dto";
 
 export class ProjectDto {
     @Expose()
@@ -13,15 +15,15 @@ export class ProjectDto {
     name: string;
 
     @Expose()
-    @ApiProperty()
-    namespaces: NamespacesType;
+    @ApiProperty({ type: NamespacesDto })
+    namespaces: NamespacesDto;
 
     @Expose()
     @ApiProperty()
     title: string;
 
     @Expose()
-    @ApiProperty()
+    @ApiProperty({ type: 'array', items: { type: 'string' }})
     labels: string[];
 
     @Expose()
@@ -33,8 +35,8 @@ export class ProjectDto {
     status: ProjectStatus;
 
     @Expose()
-    @ApiProperty()
-    context: Record<string, any>;
+    @ApiProperty({ type: ProjectContextDto })
+    context: ProjectContextDto;
 
     @Expose()
     @ApiProperty({ type: Date })

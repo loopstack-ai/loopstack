@@ -2,7 +2,17 @@ import {ApiProperty} from "@nestjs/swagger";
 import {ClassConstructor, plainToInstance} from "class-transformer";
 
 export class PaginatedDto<T> {
-    @ApiProperty({ isArray: true })
+    @ApiProperty({
+        type: 'array',
+        items: {
+            oneOf: [
+                { $ref: '#/components/schemas/ProjectDto' },
+                { $ref: '#/components/schemas/WorkspaceDto' },
+                { $ref: '#/components/schemas/WorkflowDto' },
+                { $ref: '#/components/schemas/DocumentDto' },
+            ]
+        }
+    })
     data: T[];
 
     @ApiProperty()

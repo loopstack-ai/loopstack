@@ -11,6 +11,6 @@ export class ProjectUpdateDto {
   @ArrayNotEmpty()
   @IsString({ each: true })
   @IsOptional()
-  @ApiPropertyOptional({ isArray: true, type: 'string' })
+  @ApiPropertyOptional({ type: 'array', items: { type: 'string' }})
   labels?: string[];
 }

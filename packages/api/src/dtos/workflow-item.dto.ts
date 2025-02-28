@@ -1,6 +1,7 @@
 import {Expose, plainToInstance, Transform} from "class-transformer";
-import {ApiProperty} from "@nestjs/swagger";
-import {NamespacesType, WorkflowEntity} from "@loopstack/core";
+import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
+import {WorkflowEntity} from "@loopstack/core";
+import {NamespacesDto} from "./namespaces.dto";
 
 export class WorkflowItemDto {
     @Expose()
@@ -12,8 +13,8 @@ export class WorkflowItemDto {
     name: string;
 
     @Expose()
-    @ApiProperty()
-    namespaces: NamespacesType;
+    @ApiProperty({ type: NamespacesDto })
+    namespaces: NamespacesDto;
 
     @Expose()
     @ApiProperty()
@@ -24,8 +25,8 @@ export class WorkflowItemDto {
     progress: number;
 
     @Expose()
-    @ApiProperty()
-    error: string | null;
+    @ApiPropertyOptional()
+    error: string;
 
     @Expose()
     @ApiProperty()
@@ -41,8 +42,8 @@ export class WorkflowItemDto {
 
     @Expose()
     @ApiProperty()
-    @Transform(({ obj }) => obj.state?.place || null)
-    place: string | null;
+    @Transform(({ obj }) => obj.state?.place || '')
+    place: string;
 
     @Expose()
     @ApiProperty()
