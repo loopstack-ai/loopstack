@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { NamespacesType } from '../../processor/interfaces/namespaces-type';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { normalizeObject } from '@loopstack/shared';
+import {NamespacesType, normalizeObject} from '@loopstack/shared';
 import { WorkflowStateEntity } from '../entities/workflow-state.entity';
 import { WorkflowEntity } from '../entities/workflow.entity';
 

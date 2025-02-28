@@ -8,6 +8,9 @@ export class WorkspaceEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'varchar' })
+  title: string;
+
   @Column({ name: 'is_locked', default: false })
   isLocked: boolean;
 

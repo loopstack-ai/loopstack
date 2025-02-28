@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { NamespacesType } from '../../processor/interfaces/namespaces-type';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DocumentEntity } from '../entities/document.entity';
+import {NamespacesType} from "@loopstack/shared";
 
 @Injectable()
 export class DocumentService {

@@ -12,7 +12,7 @@ import {
 import { ProjectEntity } from './project.entity';
 import { WorkspaceEntity } from './workspace.entity';
 import { WorkflowEntity } from './workflow.entity';
-import {NamespacesType} from "../../processor/interfaces";
+import {NamespacesType} from "@loopstack/shared";
 
 @Entity({ name: 'document' })
 export class DocumentEntity<T = any> {

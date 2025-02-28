@@ -10,11 +10,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { NamespacesType } from '../../processor/interfaces';
 import { WorkflowStateEntity } from './workflow-state.entity';
 import { ProjectEntity } from './project.entity';
 import { WorkspaceEntity } from './workspace.entity';
 import { DocumentEntity } from './document.entity';
+import {NamespacesType} from "@loopstack/shared";
 
 @Entity({ name: 'workflow' })
 export class WorkflowEntity {
