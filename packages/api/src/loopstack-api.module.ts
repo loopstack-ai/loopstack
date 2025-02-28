@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import {INestApplication, Module} from '@nestjs/common';
 import { ConfigurableModuleClass } from './loop-api.module-definition';
 import { ProjectController } from './controllers/project.controller';
 import { ProjectApiService } from './services/project-api.service';
@@ -11,6 +11,8 @@ import { WorkspaceApiService } from './services/workspace-api.service';
 import {ProcessorApiService} from "./services/processor-api.service";
 import {LoopCoreModule} from "@loopstack/core";
 import {ProcessorController} from "./controllers/processor.controller";
+import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
+import {LoopstackApiConfigPluginOptions} from "./interfaces/api-config-options";
 
 @Module({
   imports: [
@@ -34,4 +36,26 @@ import {ProcessorController} from "./controllers/processor.controller";
     ProcessorApiService,
   ]
 })
-export class LoopstackApiModule extends ConfigurableModuleClass {}
+export class LoopstackApiModule extends ConfigurableModuleClass {
+  static setup(app: INestApplication, options: LoopstackApiConfigPluginOptions = {}): void {
+    const corsEnabled = options.cors?.enabled ?? true;
+    if (corsEnabled) {
+      app.enableCors(options.cors?.options ?? {
+        origin: true,
+        credentials: true,
+      });
+    }
+
+    const swaggerEnabled = options.swagger?.enabled ?? true;
+    if (swaggerEnabled) {
+      const config = options.swagger?.config ?? new DocumentBuilder()
+          .setTitle('Loopstack API Documentation')
+          .setDescription('Loopstack API Documentation')
+          .setVersion('1.0')
+          .build();
+
+      const documentFactory = () => SwaggerModule.createDocument(app, config);
+      SwaggerModule.setup('api', app, documentFactory);
+    }
+  }
+}

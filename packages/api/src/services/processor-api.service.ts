@@ -8,6 +8,7 @@ import { ProjectEntity } from '@loopstack/core/dist/persistence/entities/project
 import { IsNull, Repository } from 'typeorm';
 import {ProcessorService} from "@loopstack/core/dist/processor/services/processor.service";
 import {WorkspaceEntity} from "@loopstack/core/dist/persistence/entities/workspace.entity";
+import {TransitionPayloadInterface} from "@loopstack/core/dist/state-machine/interfaces/transition-payload.interface";
 
 @Injectable()
 export class ProcessorApiService {
@@ -22,7 +23,7 @@ export class ProcessorApiService {
   async processProject(
     projectId: string,
     user: string | null,
-    payload: any,
+    payload: { transition?: TransitionPayloadInterface; },
     options?: {
       force?: boolean;
     },
@@ -48,12 +49,12 @@ export class ProcessorApiService {
     project.workspace.isLocked = true;
     await this.workspaceRepository.save(project.workspace);
 
-    let result: any;
-    result = await this.processorService.process(
+    const context = await this.processorService.process(
         {
           projectName: project.name,
         },
         {
+          ...payload,
           userId: user,
           projectId: project.id,
           workspaceId: project.workspaceId,
@@ -63,6 +64,6 @@ export class ProcessorApiService {
     project.workspace.isLocked = false;
     await this.workspaceRepository.save(project.workspace);
 
-    return result;
+    return context;
   }
 }
