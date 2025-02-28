@@ -5,9 +5,9 @@ import { ProjectUpdateDto } from '../dtos/project-update.dto';
 import { ProjectEntity } from '@loopstack/core/dist/persistence/entities/project.entity';
 import { ConfigService } from '@nestjs/config';
 import { ProjectSortByDto } from '../dtos/project-sort-by.dto';
-import { ProjectQueryDto } from '../dtos/project-query-dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WorkspaceEntity } from '@loopstack/core/dist/persistence/entities/workspace.entity';
+import {ProjectFilterDto} from "../dtos/project-filter.dto";
 
 @Injectable()
 export class ProjectApiService {
@@ -24,7 +24,12 @@ export class ProjectApiService {
    */
   async findAll(
     user: string | null,
-    query: ProjectQueryDto,
+    filter: ProjectFilterDto,
+    sortBy: ProjectSortByDto[],
+    pagination: {
+      page: number | undefined;
+      limit: number | undefined;
+    },
   ): Promise<{
     data: ProjectEntity[];
     total: number;
@@ -43,17 +48,17 @@ export class ProjectApiService {
     const findOptions: FindManyOptions<ProjectEntity> = {
       where: {
         createdBy: user === null ? IsNull() : user,
-        ...query.filter,
+        ...filter,
       },
-      order: (query.sortBy ?? defaultSortBy).reduce(
+      order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {
           acc[sort.field] = sort.order;
           return acc;
         },
         {} as Record<string, 'ASC' | 'DESC'>,
       ),
-      take: query.limit ?? defaultLimit,
-      skip: query.page && query.limit ? (query.page - 1) * query.limit : 0,
+      take: pagination.limit ?? defaultLimit,
+      skip: pagination.page && pagination.limit ? (pagination.page - 1) * pagination.limit : 0,
     };
 
     const [data, total] =
@@ -62,8 +67,8 @@ export class ProjectApiService {
     return {
       data,
       total,
-      page: query.page ?? 1,
-      limit: query.limit ?? defaultLimit,
+      page: pagination.page ?? 1,
+      limit: pagination.limit ?? defaultLimit,
     };
   }
 

@@ -3,8 +3,8 @@ import { IsNull, FindManyOptions, Repository } from 'typeorm';
 import { WorkflowEntity } from '@loopstack/core/dist/persistence/entities/workflow.entity';
 import { ConfigService } from '@nestjs/config';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
-import { WorkflowQueryDto } from '../dtos/workflow-query-dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import {WorkflowFilterDto} from "../dtos/workflow-filter.dto";
 
 @Injectable()
 export class WorkflowApiService {
@@ -19,7 +19,12 @@ export class WorkflowApiService {
      */
     async findAll(
         user: string | null,
-        query: WorkflowQueryDto,
+        filter: WorkflowFilterDto,
+        sortBy: WorkflowSortByDto[],
+        pagination: {
+            page: number | undefined;
+            limit: number | undefined;
+        },
     ): Promise<{
         data: WorkflowEntity[];
         total: number;
@@ -38,17 +43,17 @@ export class WorkflowApiService {
         const findOptions: FindManyOptions<WorkflowEntity> = {
             where: {
                 createdBy: user === null ? IsNull() : user,
-                ...query.filter,
+                ...filter,
             },
-            order: (query.sortBy ?? defaultSortBy).reduce(
+            order: (sortBy ?? defaultSortBy).reduce(
                 (acc, sort) => {
                     acc[sort.field] = sort.order;
                     return acc;
                 },
                 {} as Record<string, 'ASC' | 'DESC'>,
             ),
-            take: query.limit ?? defaultLimit,
-            skip: query.page && query.limit ? (query.page - 1) * query.limit : 0,
+            take: pagination.limit ?? defaultLimit,
+            skip: pagination.page && pagination.limit ? (pagination.page - 1) * pagination.limit : 0,
             relations: ['state'],
         };
 
@@ -58,8 +63,8 @@ export class WorkflowApiService {
         return {
             data,
             total,
-            page: query.page ?? 1,
-            limit: query.limit ?? defaultLimit,
+            page: pagination.page ?? 1,
+            limit: pagination.limit ?? defaultLimit,
         };
     }
 

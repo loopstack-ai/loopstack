@@ -6,7 +6,7 @@ import {
   Delete,
   Body,
   Param,
-  Request, UsePipes, ValidationPipe,
+  Request, UsePipes, ValidationPipe, ParseIntPipe, Query, BadRequestException,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -14,7 +14,7 @@ import {
   ApiResponse,
   ApiTags,
   ApiBody,
-  ApiExtraModels, ApiOkResponse,
+  ApiExtraModels, ApiOkResponse, ApiQuery,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { WorkspaceApiService } from '../services/workspace-api.service';
@@ -25,6 +25,8 @@ import { PaginatedDto } from "../dtos/paginated.dto";
 import { ApiPaginatedResponse } from "../decorators/api-paginated-response.decorator";
 import { WorkspaceDto } from "../dtos/workspace.dto";
 import {WorkspaceItemDto} from "../dtos/workspace-item.dto";
+import {WorkspaceFilterDto} from "../dtos/workspace-filter.dto";
+import {WorkspaceSortByDto} from "../dtos/workspace-sort-by.dto";
 
 @ApiTags('api/v1/workspaces')
 @ApiExtraModels(WorkspaceDto, WorkspaceItemDto, WorkspaceCreateDto, WorkspaceUpdateDto)
@@ -36,14 +38,70 @@ export class WorkspaceController {
   /**
    * Retrieves all workspaces for the authenticated user with optional filters, sorting, and pagination.
    */
-  @Post('/list')
+  @Get()
   @ApiOperation({
     summary: 'Retrieve workspaces with filters, sorting, and pagination',
   })
+  @ApiExtraModels(WorkspaceFilterDto, WorkspaceSortByDto)
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number for pagination (starts at 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of items per page',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    schema: {
+      type: 'string',
+      example: '[{"field":"createdAt","order":"DESC"}]',
+    },
+    description: 'JSON string array of WorkspaceSortByDto objects',
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    schema: {
+      type: 'string',
+      example: '{"name":"MyWorkspace"}',
+    },
+    description: 'JSON string of WorkspaceFilterDto object',
+  })
   @ApiPaginatedResponse(WorkspaceItemDto)
-  async searchWorkspaces(@Body() query: WorkspaceQueryDto, @Request() req: any): Promise<PaginatedDto<WorkspaceItemDto>> {
+  async getWorkspaces(
+      @Request() req: any,
+      @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+      @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+      @Query('filter') filterParam?: string,
+      @Query('sortBy') sortByParam?: string,
+  ): Promise<PaginatedDto<WorkspaceItemDto>> {
     const user = req.user || null;
-    const result = await this.workspaceService.findAll(user, query);
+
+    let filter: WorkspaceFilterDto = {};
+    if (filterParam) {
+      try {
+        filter = JSON.parse(filterParam) as WorkspaceFilterDto;
+      } catch (e) {
+        throw new BadRequestException('Invalid filter format');
+      }
+    }
+
+    let sortBy: WorkspaceSortByDto[] = [];
+    if (sortByParam) {
+      try {
+        sortBy = JSON.parse(sortByParam) as WorkspaceSortByDto[];
+      } catch (e) {
+        throw new BadRequestException('Invalid sortBy format');
+      }
+    }
+
+    const result = await this.workspaceService.findAll(user, filter, sortBy, { page, limit });
     return PaginatedDto.create(WorkspaceItemDto, result);
   }
 

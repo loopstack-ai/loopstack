@@ -5,8 +5,8 @@ import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
 import { WorkspaceEntity } from '@loopstack/core/dist/persistence/entities/workspace.entity';
 import { ConfigService } from '@nestjs/config';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
-import { WorkspaceQueryDto } from '../dtos/workspace-query-dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import {WorkspaceFilterDto} from "../dtos/workspace-filter.dto";
 
 @Injectable()
 export class WorkspaceApiService {
@@ -21,7 +21,12 @@ export class WorkspaceApiService {
    */
   async findAll(
       user: string | null,
-      query: WorkspaceQueryDto,
+      filter: WorkspaceFilterDto,
+      sortBy: WorkspaceSortByDto[],
+      pagination: {
+        page: number | undefined;
+        limit: number | undefined;
+      },
   ): Promise<{
     data: WorkspaceEntity[];
     total: number;
@@ -40,17 +45,17 @@ export class WorkspaceApiService {
     const findOptions: FindManyOptions<WorkspaceEntity> = {
       where: {
         createdBy: user === null ? IsNull() : user,
-        ...query.filter,
+        ...filter,
       },
-      order: (query.sortBy ?? defaultSortBy).reduce(
+      order: (sortBy ?? defaultSortBy).reduce(
           (acc, sort) => {
             acc[sort.field] = sort.order;
             return acc;
           },
           {} as Record<string, 'ASC' | 'DESC'>,
       ),
-      take: query.limit ?? defaultLimit,
-      skip: query.page && query.limit ? (query.page - 1) * query.limit : 0,
+      take: pagination.limit ?? defaultLimit,
+      skip: pagination.page && pagination.limit ? (pagination.page - 1) * pagination.limit : 0,
     };
 
     const [data, total] =
@@ -59,8 +64,8 @@ export class WorkspaceApiService {
     return {
       data,
       total,
-      page: query.page ?? 1,
-      limit: query.limit ?? defaultLimit,
+      page: pagination.page ?? 1,
+      limit: pagination.limit ?? defaultLimit,
     };
   }
 

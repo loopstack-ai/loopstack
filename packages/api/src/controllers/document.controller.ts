@@ -1,25 +1,24 @@
 import {
     Controller,
     Get,
-    Post,
-    Body,
     Param,
-    Request, UsePipes, ValidationPipe,
+    Request, UsePipes, ValidationPipe, Query, ParseIntPipe, BadRequestException,
 } from '@nestjs/common';
 import {
     ApiOperation,
     ApiParam,
     ApiResponse,
     ApiTags,
-    ApiExtraModels, ApiOkResponse,
+    ApiExtraModels, ApiOkResponse, ApiQuery,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { DocumentApiService } from '../services/document-api.service';
-import { DocumentQueryDto } from '../dtos/document-query-dto';
 import { PaginatedDto } from "../dtos/paginated.dto";
 import { ApiPaginatedResponse } from "../decorators/api-paginated-response.decorator";
 import { DocumentDto } from "../dtos/document.dto";
 import {DocumentItemDto} from "../dtos/document-item.dto";
+import {DocumentFilterDto} from "../dtos/document-filter.dto";
+import {DocumentSortByDto} from "../dtos/document-sort-by.dto";
 
 @ApiTags('api/v1/documents')
 @ApiExtraModels(DocumentDto, DocumentItemDto)
@@ -31,14 +30,70 @@ export class DocumentController {
     /**
      * Retrieves all documents for the authenticated user with optional filters, sorting, and pagination.
      */
-    @Post('/list')
+    @Get()
     @ApiOperation({
         summary: 'Retrieve documents with filters, sorting, and pagination',
     })
+    @ApiExtraModels(DocumentFilterDto, DocumentSortByDto)
+    @ApiQuery({
+        name: 'page',
+        required: false,
+        type: Number,
+        description: 'Page number for pagination (starts at 1)',
+    })
+    @ApiQuery({
+        name: 'limit',
+        required: false,
+        type: Number,
+        description: 'Number of items per page',
+    })
+    @ApiQuery({
+        name: 'sortBy',
+        required: false,
+        schema: {
+            type: 'string',
+            example: '[{"field":"createdAt","order":"DESC"}]',
+        },
+        description: 'JSON string array of DocumentSortByDto objects',
+    })
+    @ApiQuery({
+        name: 'filter',
+        required: false,
+        schema: {
+            type: 'string',
+            example: '{"workflowId":"123e4567-e89b-12d3-a456-426614174000"}',
+        },
+        description: 'JSON string of DocumentFilterDto object',
+    })
     @ApiPaginatedResponse(DocumentItemDto)
-    async searchDocuments(@Body() query: DocumentQueryDto, @Request() req: any): Promise<PaginatedDto<DocumentItemDto>> {
+    async getDocuments(
+        @Request() req: any,
+        @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+        @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+        @Query('filter') filterParam?: string,
+        @Query('sortBy') sortByParam?: string,
+    ): Promise<PaginatedDto<DocumentItemDto>> {
         const user = req.user || null;
-        const result = await this.documentService.findAll(user, query);
+
+        let filter: DocumentFilterDto = {};
+        if (filterParam) {
+            try {
+                filter = JSON.parse(filterParam) as DocumentFilterDto;
+            } catch (e) {
+                throw new BadRequestException('Invalid filter format');
+            }
+        }
+
+        let sortBy: DocumentSortByDto[] = [];
+        if (sortByParam) {
+            try {
+                sortBy = JSON.parse(sortByParam) as DocumentSortByDto[];
+            } catch (e) {
+                throw new BadRequestException('Invalid sortBy format');
+            }
+        }
+
+        const result = await this.documentService.findAll(user, filter, sortBy, { page, limit });
         return PaginatedDto.create(DocumentItemDto, result);
     }
 

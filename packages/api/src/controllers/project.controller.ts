@@ -6,7 +6,7 @@ import {
   Delete,
   Body,
   Param,
-  Request, UsePipes, ValidationPipe,
+  Request, UsePipes, ValidationPipe, Query, ParseIntPipe, BadRequestException,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -14,17 +14,18 @@ import {
   ApiResponse,
   ApiTags,
   ApiBody,
-  ApiExtraModels, ApiOkResponse, ApiNoContentResponse,
+  ApiExtraModels, ApiOkResponse, ApiQuery,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { ProjectApiService } from '../services/project-api.service';
 import { ProjectUpdateDto } from '../dtos/project-update.dto';
 import { ProjectCreateDto } from '../dtos/project-create.dto';
-import { ProjectQueryDto } from '../dtos/project-query-dto';
 import {PaginatedDto} from "../dtos/paginated.dto";
 import {ApiPaginatedResponse} from "../decorators/api-paginated-response.decorator";
 import {ProjectDto} from "../dtos/project.dto";
 import {ProjectItemDto} from "../dtos/project-item.dto";
+import {ProjectSortByDto} from "../dtos/project-sort-by.dto";
+import {ProjectFilterDto} from "../dtos/project-filter.dto";
 
 @ApiTags('api/v1/projects')
 @ApiExtraModels(ProjectDto, ProjectItemDto, ProjectCreateDto, ProjectUpdateDto)
@@ -36,14 +37,70 @@ export class ProjectController {
   /**
    * Retrieves all projects for the authenticated user with optional filters, sorting, and pagination.
    */
-  @Post('/list')
+  @Get()
   @ApiOperation({
     summary: 'Retrieve projects with filters, sorting, and pagination',
   })
+  @ApiExtraModels(ProjectFilterDto, ProjectSortByDto)
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number for pagination (starts at 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of items per page',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    schema: {
+      type: 'string',
+      example: '[{"field":"createdAt","order":"DESC"}]',
+    },
+    description: 'JSON string array of ProjectSortByDto objects',
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    schema: {
+      type: 'string',
+      example: '{"workspaceId":"123e4567-e89b-12d3-a456-426614174000"}',
+    },
+    description: 'JSON string of ProjectFilterDto object',
+  })
   @ApiPaginatedResponse(ProjectItemDto)
-  async searchProjects(@Body() query: ProjectQueryDto, @Request() req: any): Promise<PaginatedDto<ProjectItemDto>> {
+  async getProjects(
+      @Request() req: any,
+      @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+      @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+      @Query('filter') filterParam?: string,
+      @Query('sortBy') sortByParam?: string,
+  ): Promise<PaginatedDto<ProjectItemDto>> {
     const user = req.user || null;
-    const result = await this.projectService.findAll(user, query);
+
+    let filter: ProjectFilterDto = {};
+    if (filterParam) {
+      try {
+        filter = JSON.parse(filterParam) as ProjectFilterDto;
+      } catch (e) {
+        throw new BadRequestException('Invalid filter format');
+      }
+    }
+
+    let sortBy: ProjectSortByDto[] = [];
+    if (sortByParam) {
+      try {
+        sortBy = JSON.parse(sortByParam) as ProjectSortByDto[];
+      } catch (e) {
+        throw new BadRequestException('Invalid sortBy format');
+      }
+    }
+
+    const result = await this.projectService.findAll(user, filter, sortBy, { page, limit });
     return PaginatedDto.create(ProjectItemDto, result);
   }
 
