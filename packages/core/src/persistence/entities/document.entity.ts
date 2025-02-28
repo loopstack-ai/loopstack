@@ -9,10 +9,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { NamespacesType } from '../../processor/interfaces/namespaces-type';
 import { ProjectEntity } from './project.entity';
 import { WorkspaceEntity } from './workspace.entity';
 import { WorkflowEntity } from './workflow.entity';
+import {NamespacesType} from "../../processor/interfaces";
 
 @Entity({ name: 'document' })
 export class DocumentEntity<T = any> {

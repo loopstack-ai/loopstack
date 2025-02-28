@@ -18,6 +18,9 @@ import { WorkflowStateContextInterface } from '../interfaces/workflow-state-cont
 import { StateMachineActionService } from './state-machine-action.service';
 import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
 import {ProcessStateInterface} from "../../processor/interfaces/process-state.interface";
+import {WorkflowStatePlaceInfoDto} from "../../persistence/dtos/workflow-state-place-info.dto";
+import {WorkflowStateEntity} from "../../persistence/entities";
+import {WorkflowStateHistoryDto} from "../../persistence/dtos";
 
 @Injectable()
 export class StateMachineProcessorService {
@@ -88,16 +91,23 @@ export class StateMachineProcessorService {
     );
   }
 
-  getAvailableTransitions(
-    place: string,
+  updateWorkflowState(
+    workflowState: WorkflowStateEntity,
     transitions: WorkflowTransitionConfigInterface[],
-  ): WorkflowTransitionConfigInterface[] {
-    return transitions.filter(
+    historyItem: HistoryTransition,
+  ): void {
+    workflowState.place = historyItem.to;
+    workflowState.history = new WorkflowStateHistoryDto([
+        ...(workflowState.history?.history ?? []),
+        historyItem,
+    ]);
+
+    workflowState.placeInfo = new WorkflowStatePlaceInfoDto(transitions.filter(
       (item) =>
         // (
-        item.from.includes('*') || (place && item.from.includes(place)),
+        item.from.includes('*') || (workflowState.place && item.from.includes(workflowState.place)),
       // ) && (!item.condition || item.condition?.(workflowState)),
-    );
+    ));
   }
 
   async initStateMachine(
@@ -105,17 +115,22 @@ export class StateMachineProcessorService {
     transitions: WorkflowTransitionConfigInterface[],
     invalidationReasons: string[],
   ): Promise<WorkflowEntity> {
-    // reset workflow to initial if there are invalidation reasons
-    if (invalidationReasons.length) {
-      workflow.state.place = 'initial';
-    }
-
     workflow.isWorking = true;
 
-    workflow.state.availableTransitions = this.getAvailableTransitions(
-      workflow.state.place,
-      transitions,
-    );
+    // reset workflow to initial if there are invalidation reasons
+    if (invalidationReasons.length) {
+      const initialTransition: HistoryTransition = {
+        transition: 'invalidation',
+        from: workflow.state.place,
+        to: 'initial'
+      }
+
+      this.updateWorkflowState(
+          workflow.state,
+          transitions,
+          initialTransition
+      );
+    }
 
     await this.workflowService.saveWorkflow(workflow);
     return workflow;
@@ -140,13 +155,13 @@ export class StateMachineProcessorService {
   ): TransitionContextInterface | null {
     let transitionPayload = {};
     let transitionMeta = {};
-    let nextTransition = workflow.state.availableTransitions.find(
+    let nextTransition = workflow.state.placeInfo?.availableTransitions.find(
       (item) => item.trigger === 'auto',
     );
 
     if (!nextTransition && userTransitions.length) {
       const nextPending = userTransitions.shift()!;
-      nextTransition = workflow.state.availableTransitions.find(
+      nextTransition = workflow.state.placeInfo?.availableTransitions.find(
         (item) => item.name === nextPending.name,
       );
 
@@ -236,11 +251,10 @@ export class StateMachineProcessorService {
             to: nextPlace,
           };
 
-          workflow.state.place = historyItem.to;
-          workflow.state.transitionHistory.push(historyItem);
-          workflow.state.availableTransitions = this.getAvailableTransitions(
-            workflow.state.place,
+          this.updateWorkflowState(
+            workflow.state,
             transitions,
+            historyItem,
           );
 
           await this.workflowService.saveWorkflow(workflow);

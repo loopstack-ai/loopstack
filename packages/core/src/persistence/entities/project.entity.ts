@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ProjectStatus } from '@loopstack/shared/dist/enums/project-status.enum';
-import { NamespacesType } from '../../processor/interfaces/namespaces-type';
+import { NamespacesType } from '../../processor/interfaces';
 import { WorkspaceEntity } from './workspace.entity';
 import { WorkflowEntity } from './workflow.entity';
 import { DocumentEntity } from './document.entity';

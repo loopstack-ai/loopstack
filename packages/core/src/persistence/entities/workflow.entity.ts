@@ -10,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { NamespacesType } from '../../processor/interfaces/namespaces-type';
+import { NamespacesType } from '../../processor/interfaces';
 import { WorkflowStateEntity } from './workflow-state.entity';
 import { ProjectEntity } from './project.entity';
 import { WorkspaceEntity } from './workspace.entity';
