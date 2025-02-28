@@ -6,10 +6,7 @@ import {
   Delete,
   Body,
   Param,
-  Request,
-  Query,
-  UsePipes,
-  ValidationPipe,
+  Request, UsePipes, ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -17,18 +14,21 @@ import {
   ApiResponse,
   ApiTags,
   ApiBody,
-  ApiExtraModels,
+  ApiExtraModels, ApiOkResponse, ApiNoContentResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { ProjectApiService } from '../services/project-api.service';
 import { ProjectUpdateDto } from '../dtos/project-update.dto';
 import { ProjectCreateDto } from '../dtos/project-create.dto';
-import { ProjectEntity } from '@loopstack/core/dist/persistence/entities/project.entity';
 import { ProjectQueryDto } from '../dtos/project-query-dto';
+import {PaginatedDto} from "../dtos/paginated.dto";
+import {ApiPaginatedResponse} from "../decorators/api-paginated-response.decorator";
+import {ProjectDto} from "../dtos/project.dto";
+import {ProjectItemDto} from "../dtos/project-item.dto";
 
 @ApiTags('api/v1/projects')
-@ApiExtraModels(ProjectEntity, ProjectCreateDto, ProjectUpdateDto)
-// @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@ApiExtraModels(ProjectDto, ProjectItemDto, ProjectCreateDto, ProjectUpdateDto)
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @Controller('api/v1/projects')
 export class ProjectController {
   constructor(private readonly projectService: ProjectApiService) {}
@@ -41,9 +41,11 @@ export class ProjectController {
     summary: 'Retrieve projects with filters, sorting, and pagination',
   })
   @ApiResponse({ status: 200, description: 'Projects retrieved successfully' })
-  async searchProjects(@Body() query: ProjectQueryDto, @Request() req: any) {
+  @ApiPaginatedResponse(ProjectItemDto)
+  async searchProjects(@Body() query: ProjectQueryDto, @Request() req: any): Promise<PaginatedDto<ProjectItemDto>> {
     const user = req.user || null;
-    return this.projectService.findAll(user, query);
+    const result = await this.projectService.findAll(user, query);
+    return PaginatedDto.create(ProjectItemDto, result);
   }
 
   /**
@@ -54,12 +56,14 @@ export class ProjectController {
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
   @ApiResponse({ status: 200, description: 'Project retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Project not found' })
+  @ApiOkResponse({ type: ProjectDto })
   async getProjectById(
     @Param('id') id: string,
     @Request() req: ApiRequestType,
-  ): Promise<ProjectEntity> {
+  ): Promise<ProjectDto> {
     const user = req.user || null;
-    return this.projectService.findOneById(id, user);
+    const project = await this.projectService.findOneById(id, user);
+    return ProjectDto.create(project);
   }
 
   /**
@@ -69,12 +73,14 @@ export class ProjectController {
   @ApiOperation({ summary: 'Create a new project' })
   @ApiBody({ type: Object, description: 'Project data' })
   @ApiResponse({ status: 201, description: 'Project created successfully' })
+  @ApiOkResponse({ type: ProjectDto })
   async createProject(
     @Body() projectData: ProjectCreateDto,
     @Request() req: ApiRequestType,
-  ): Promise<ProjectEntity> {
+  ): Promise<ProjectDto> {
     const user = req.user || null;
-    return this.projectService.create(projectData, user);
+    const project = await this.projectService.create(projectData, user);
+    return ProjectDto.create(project);
   }
 
   /**
@@ -86,13 +92,15 @@ export class ProjectController {
   @ApiBody({ type: Object, description: 'Updated project data' })
   @ApiResponse({ status: 200, description: 'Project updated successfully' })
   @ApiResponse({ status: 404, description: 'Project not found' })
+  @ApiOkResponse({ type: ProjectDto })
   async updateProject(
     @Param('id') id: string,
     @Body() projectData: ProjectUpdateDto,
     @Request() req: ApiRequestType,
-  ): Promise<ProjectEntity> {
+  ): Promise<ProjectDto> {
     const user = req.user || null;
-    return this.projectService.update(id, projectData, user);
+    const project = await this.projectService.update(id, projectData, user);
+    return ProjectDto.create(project);
   }
 
   /**
@@ -103,6 +111,7 @@ export class ProjectController {
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
   @ApiResponse({ status: 200, description: 'Project deleted successfully' })
   @ApiResponse({ status: 404, description: 'Project not found' })
+  @ApiNoContentResponse()
   async deleteProject(
     @Param('id') id: string,
     @Request() req: ApiRequestType,

@@ -1,9 +1,9 @@
 import { IsOptional, IsUUID } from 'class-validator';
 import { ApiPropertyOptional} from "@nestjs/swagger";
 
-export class ProjectFilterDto {
+export class DocumentFilterDto {
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional()
-  workspaceId?: string;
+  workflowId?: string;
 }

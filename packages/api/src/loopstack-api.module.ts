@@ -9,26 +9,40 @@ import { WorkspaceEntity } from '@loopstack/core/dist/persistence/entities/works
 import { WorkspaceController } from './controllers/workspace.controller';
 import { WorkspaceApiService } from './services/workspace-api.service';
 import {ProcessorApiService} from "./services/processor-api.service";
-import {LoopCoreModule} from "@loopstack/core";
+import {DocumentEntity, LoopCoreModule, WorkflowEntity, WorkflowStateEntity} from "@loopstack/core";
 import {ProcessorController} from "./controllers/processor.controller";
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {LoopstackApiConfigPluginOptions} from "./interfaces/api-config-options";
+import {WorkflowController} from "./controllers/workflow.controller";
+import {DocumentController} from "./controllers/document.controller";
+import {WorkflowApiService} from "./services/workflow-api.service";
+import {DocumentApiService} from "./services/document-api.service";
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    TypeOrmModule.forFeature([ProjectEntity, WorkspaceEntity]),
+    TypeOrmModule.forFeature([
+      ProjectEntity,
+      WorkspaceEntity,
+      WorkflowEntity,
+      DocumentEntity,
+      WorkflowStateEntity,
+    ]),
     LoopCoreModule.register({})
   ],
   controllers: [
     ProjectController,
     WorkspaceController,
     ProcessorController,
+    WorkflowController,
+    DocumentController,
   ],
   providers: [
     ProjectApiService,
     WorkspaceApiService,
     ProcessorApiService,
+    WorkflowApiService,
+    DocumentApiService,
   ],
   exports: [
     ProjectApiService,

@@ -58,6 +58,7 @@ export class ProjectApiService {
 
     const [data, total] =
       await this.projectRepository.findAndCount(findOptions);
+
     return {
       data,
       total,

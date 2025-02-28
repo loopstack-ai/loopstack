@@ -6,23 +6,28 @@ import {
   IsUUID,
   IsOptional,
 } from 'class-validator';
+import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
 
 export class ProjectCreateDto {
   @IsString()
   @IsNotEmpty()
+  @ApiProperty()
   name: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional()
   title?: string;
 
   @IsArray()
   @ArrayNotEmpty()
   @IsString({ each: true })
   @IsOptional()
+  @ApiPropertyOptional({ isArray: true, type: 'string' })
   labels?: string[];
 
   @IsUUID()
   @IsNotEmpty()
+  @ApiProperty()
   workspaceId: string;
 }

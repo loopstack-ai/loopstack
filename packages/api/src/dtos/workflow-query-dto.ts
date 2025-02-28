@@ -6,16 +6,16 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ProjectFilterDto } from './project-filter.dto';
-import { ProjectSortByDto } from './project-sort-by.dto';
 import { ApiPropertyOptional} from "@nestjs/swagger";
+import {WorkflowFilterDto} from "./workflow-filter.dto";
+import {WorkflowSortByDto} from "./workflow-sort-by.dto";
 
-export class ProjectQueryDto {
+export class WorkflowQueryDto {
   @IsOptional()
   @ValidateNested()
-  @Type(() => ProjectFilterDto)
-  @ApiPropertyOptional({ type: ProjectFilterDto })
-  filter?: ProjectFilterDto;
+  @Type(() => WorkflowFilterDto)
+  @ApiPropertyOptional({ type: WorkflowFilterDto })
+  filter?: WorkflowFilterDto;
 
   @IsOptional()
   @IsInt()
@@ -34,7 +34,7 @@ export class ProjectQueryDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => ProjectSortByDto)
-  @ApiPropertyOptional({ isArray: true, type: ProjectSortByDto })
-  sortBy?: ProjectSortByDto[];
+  @Type(() => WorkflowSortByDto)
+  @ApiPropertyOptional({ isArray: true, type: WorkflowSortByDto })
+  sortBy?: WorkflowSortByDto[];
 }

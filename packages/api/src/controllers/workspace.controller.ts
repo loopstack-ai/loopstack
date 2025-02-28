@@ -6,10 +6,7 @@ import {
   Delete,
   Body,
   Param,
-  Request,
-  Query,
-  UsePipes,
-  ValidationPipe,
+  Request, UsePipes, ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -17,17 +14,20 @@ import {
   ApiResponse,
   ApiTags,
   ApiBody,
-  ApiExtraModels,
+  ApiExtraModels, ApiOkResponse, ApiNoContentResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
-import { WorkspaceEntity } from '@loopstack/core/dist/persistence/entities/workspace.entity';
-import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
-import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
 import { WorkspaceApiService } from '../services/workspace-api.service';
+import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
+import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
 import { WorkspaceQueryDto } from '../dtos/workspace-query-dto';
+import { PaginatedDto } from "../dtos/paginated.dto";
+import { ApiPaginatedResponse } from "../decorators/api-paginated-response.decorator";
+import { WorkspaceDto } from "../dtos/workspace.dto";
+import {WorkspaceItemDto} from "../dtos/workspace-item.dto";
 
 @ApiTags('api/v1/workspaces')
-@ApiExtraModels(WorkspaceEntity, WorkspaceCreateDto, WorkspaceUpdateDto)
+@ApiExtraModels(WorkspaceDto, WorkspaceItemDto, WorkspaceCreateDto, WorkspaceUpdateDto)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @Controller('api/v1/workspaces')
 export class WorkspaceController {
@@ -36,18 +36,16 @@ export class WorkspaceController {
   /**
    * Retrieves all workspaces for the authenticated user with optional filters, sorting, and pagination.
    */
-  @Get()
-  @ApiOperation({ summary: 'Get all workspaces for the user' })
-  @ApiResponse({
-    status: 200,
-    description: 'Workspaces retrieved successfully',
+  @Post('/list')
+  @ApiOperation({
+    summary: 'Retrieve workspaces with filters, sorting, and pagination',
   })
-  async getAllWorkspaces(
-    @Query() query: WorkspaceQueryDto,
-    @Request() req: ApiRequestType,
-  ) {
+  @ApiResponse({ status: 200, description: 'Workspaces retrieved successfully' })
+  @ApiPaginatedResponse(WorkspaceItemDto)
+  async searchWorkspaces(@Body() query: WorkspaceQueryDto, @Request() req: any): Promise<PaginatedDto<WorkspaceItemDto>> {
     const user = req.user || null;
-    return this.workspaceService.findAll(user, query);
+    const result = await this.workspaceService.findAll(user, query);
+    return PaginatedDto.create(WorkspaceItemDto, result);
   }
 
   /**
@@ -55,19 +53,17 @@ export class WorkspaceController {
    */
   @Get(':id')
   @ApiOperation({ summary: 'Get a workspace by ID' })
-  @ApiParam({
-    name: 'id',
-    type: String,
-    description: 'The ID of the workspace',
-  })
+  @ApiParam({ name: 'id', type: String, description: 'The ID of the workspace' })
   @ApiResponse({ status: 200, description: 'Workspace retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
+  @ApiOkResponse({ type: WorkspaceDto })
   async getWorkspaceById(
-    @Param('id') id: string,
-    @Request() req: ApiRequestType,
-  ): Promise<WorkspaceEntity> {
+      @Param('id') id: string,
+      @Request() req: ApiRequestType,
+  ): Promise<WorkspaceDto> {
     const user = req.user || null;
-    return this.workspaceService.findOneById(id, user);
+    const workspace = await this.workspaceService.findOneById(id, user);
+    return WorkspaceDto.create(workspace);
   }
 
   /**
@@ -77,12 +73,14 @@ export class WorkspaceController {
   @ApiOperation({ summary: 'Create a new workspace' })
   @ApiBody({ type: Object, description: 'Workspace data' })
   @ApiResponse({ status: 201, description: 'Workspace created successfully' })
+  @ApiOkResponse({ type: WorkspaceDto })
   async createWorkspace(
-    @Body() workspaceData: WorkspaceCreateDto,
-    @Request() req: ApiRequestType,
-  ): Promise<WorkspaceEntity> {
+      @Body() workspaceData: WorkspaceCreateDto,
+      @Request() req: ApiRequestType,
+  ): Promise<WorkspaceDto> {
     const user = req.user || null;
-    return this.workspaceService.create(workspaceData, user);
+    const workspace = await this.workspaceService.create(workspaceData, user);
+    return WorkspaceDto.create(workspace);
   }
 
   /**
@@ -90,21 +88,19 @@ export class WorkspaceController {
    */
   @Put(':id')
   @ApiOperation({ summary: 'Update a workspace by ID' })
-  @ApiParam({
-    name: 'id',
-    type: String,
-    description: 'The ID of the workspace',
-  })
+  @ApiParam({ name: 'id', type: String, description: 'The ID of the workspace' })
   @ApiBody({ type: Object, description: 'Updated workspace data' })
   @ApiResponse({ status: 200, description: 'Workspace updated successfully' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
+  @ApiOkResponse({ type: WorkspaceDto })
   async updateWorkspace(
-    @Param('id') id: string,
-    @Body() workspaceData: WorkspaceUpdateDto,
-    @Request() req: ApiRequestType,
-  ): Promise<WorkspaceEntity> {
+      @Param('id') id: string,
+      @Body() workspaceData: WorkspaceUpdateDto,
+      @Request() req: ApiRequestType,
+  ): Promise<WorkspaceDto> {
     const user = req.user || null;
-    return this.workspaceService.update(id, workspaceData, user);
+    const workspace = await this.workspaceService.update(id, workspaceData, user);
+    return WorkspaceDto.create(workspace);
   }
 
   /**
@@ -112,16 +108,13 @@ export class WorkspaceController {
    */
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a workspace by ID' })
-  @ApiParam({
-    name: 'id',
-    type: String,
-    description: 'The ID of the workspace',
-  })
+  @ApiParam({ name: 'id', type: String, description: 'The ID of the workspace' })
   @ApiResponse({ status: 200, description: 'Workspace deleted successfully' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
+  @ApiNoContentResponse()
   async deleteWorkspace(
-    @Param('id') id: string,
-    @Request() req: ApiRequestType,
+      @Param('id') id: string,
+      @Request() req: ApiRequestType,
   ): Promise<void> {
     const user = req.user || null;
     await this.workspaceService.delete(id, user);
