@@ -1,14 +1,14 @@
 import {
   ConflictException,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProjectEntity } from '@loopstack/core/dist/persistence/entities/project.entity';
+import { ProjectEntity } from '@loopstack/core';
 import { IsNull, Repository } from 'typeorm';
-import {ProcessorService} from "@loopstack/core/dist/processor/services/processor.service";
-import {WorkspaceEntity} from "@loopstack/core/dist/persistence/entities/workspace.entity";
-import {TransitionPayloadInterface} from "@loopstack/core/dist/state-machine/interfaces/transition-payload.interface";
+import { ProcessorService } from '@loopstack/core';
+import { WorkspaceEntity } from '@loopstack/core';
+import { TransitionPayloadInterface } from '@loopstack/shared';
 
 @Injectable()
 export class ProcessorApiService {
@@ -23,7 +23,7 @@ export class ProcessorApiService {
   async processProject(
     projectId: string,
     user: string | null,
-    payload: { transition?: TransitionPayloadInterface; },
+    payload: { transition?: TransitionPayloadInterface },
     options?: {
       force?: boolean;
     },
@@ -50,17 +50,17 @@ export class ProcessorApiService {
     await this.workspaceRepository.save(project.workspace);
 
     const context = await this.processorService.process(
-        {
-          projectName: project.name,
-        },
-        {
-          ...payload,
-          userId: user,
-          projectId: project.id,
-          model: project.name,
-          workspaceId: project.workspaceId,
-          namespaces: project.namespaces,
-        },
+      {
+        projectName: project.name,
+      },
+      {
+        ...payload,
+        userId: user,
+        projectId: project.id,
+        model: project.name,
+        workspaceId: project.workspaceId,
+        namespaces: [], // todo
+      },
     );
 
     project.workspace.isLocked = false;

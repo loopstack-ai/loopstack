@@ -2,31 +2,31 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { IsNull, FindManyOptions, Repository } from 'typeorm';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
 import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
-import { WorkspaceEntity } from '@loopstack/core/dist/persistence/entities/workspace.entity';
+import { WorkspaceEntity } from '@loopstack/core';
 import { ConfigService } from '@nestjs/config';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import {WorkspaceFilterDto} from "../dtos/workspace-filter.dto";
+import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
 
 @Injectable()
 export class WorkspaceApiService {
   constructor(
-      @InjectRepository(WorkspaceEntity)
-      private workspaceRepository: Repository<WorkspaceEntity>,
-      private configService: ConfigService,
+    @InjectRepository(WorkspaceEntity)
+    private workspaceRepository: Repository<WorkspaceEntity>,
+    private configService: ConfigService,
   ) {}
 
   /**
    * find all workspaces for the user with optional filters, sorting, and pagination.
    */
   async findAll(
-      user: string | null,
-      filter: WorkspaceFilterDto,
-      sortBy: WorkspaceSortByDto[],
-      pagination: {
-        page: number | undefined;
-        limit: number | undefined;
-      },
+    user: string | null,
+    filter: WorkspaceFilterDto,
+    sortBy: WorkspaceSortByDto[],
+    pagination: {
+      page: number | undefined;
+      limit: number | undefined;
+    },
   ): Promise<{
     data: WorkspaceEntity[];
     total: number;
@@ -34,12 +34,12 @@ export class WorkspaceApiService {
     limit: number;
   }> {
     const defaultLimit = this.configService.get<number>(
-        'WORKSPACE_DEFAULT_LIMIT',
-        10,
+      'WORKSPACE_DEFAULT_LIMIT',
+      10,
     );
     const defaultSortBy = this.configService.get<WorkspaceSortByDto[]>(
-        'WORKSPACE_DEFAULT_SORT_BY',
-        [],
+      'WORKSPACE_DEFAULT_SORT_BY',
+      [],
     );
 
     const findOptions: FindManyOptions<WorkspaceEntity> = {
@@ -48,18 +48,21 @@ export class WorkspaceApiService {
         ...filter,
       },
       order: (sortBy ?? defaultSortBy).reduce(
-          (acc, sort) => {
-            acc[sort.field] = sort.order;
-            return acc;
-          },
-          {} as Record<string, 'ASC' | 'DESC'>,
+        (acc, sort) => {
+          acc[sort.field] = sort.order;
+          return acc;
+        },
+        {} as Record<string, 'ASC' | 'DESC'>,
       ),
       take: pagination.limit ?? defaultLimit,
-      skip: pagination.page && pagination.limit ? (pagination.page - 1) * pagination.limit : 0,
+      skip:
+        pagination.page && pagination.limit
+          ? (pagination.page - 1) * pagination.limit
+          : 0,
     };
 
     const [data, total] =
-        await this.workspaceRepository.findAndCount(findOptions);
+      await this.workspaceRepository.findAndCount(findOptions);
 
     return {
       data,
@@ -90,8 +93,8 @@ export class WorkspaceApiService {
    * Creates a new workspace.
    */
   async create(
-      workspaceData: WorkspaceCreateDto,
-      user: string | null,
+    workspaceData: WorkspaceCreateDto,
+    user: string | null,
   ): Promise<WorkspaceEntity> {
     const workspace = this.workspaceRepository.create({
       ...workspaceData,
@@ -104,9 +107,9 @@ export class WorkspaceApiService {
    * Updates an existing workspace by ID.
    */
   async update(
-      id: string,
-      workspaceData: WorkspaceUpdateDto,
-      user: string | null,
+    id: string,
+    workspaceData: WorkspaceUpdateDto,
+    user: string | null,
   ): Promise<WorkspaceEntity> {
     const workspace = await this.workspaceRepository.findOne({
       where: {

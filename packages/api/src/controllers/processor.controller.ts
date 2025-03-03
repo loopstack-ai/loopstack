@@ -8,11 +8,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
-import { ProjectEntity } from '@loopstack/core/dist/persistence/entities/project.entity';
+import { ProjectEntity } from '@loopstack/core';
 import { ProcessorApiService } from '../services/processor-api.service';
 import { IsBoolean, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
-import {RunProjectPayloadDto} from "../dtos/run-project-payload.dto";
+import { RunProjectPayloadDto } from '../dtos/run-project-payload.dto';
 
 /**
  * Query parameters for run project endpoint
@@ -38,7 +38,8 @@ export class ProcessorController {
   @Post('run/:projectId')
   @ApiOperation({
     summary: 'Run a project',
-    description: 'Triggers the processing of a project with the given ID and configuration',
+    description:
+      'Triggers the processing of a project with the given ID and configuration',
   })
   @ApiParam({
     name: 'projectId',
@@ -72,10 +73,10 @@ export class ProcessorController {
     description: 'Project not found',
   })
   async runProject(
-      @Param('projectId') projectId: string,
-      @Body() payload: RunProjectPayloadDto,
-      @Request() req: ApiRequestType,
-      @Query() queryParams: RunProjectQueryParams,
+    @Param('projectId') projectId: string,
+    @Body() payload: RunProjectPayloadDto,
+    @Request() req: ApiRequestType,
+    @Query() queryParams: RunProjectQueryParams,
   ): Promise<ProjectEntity> {
     const user = req.user || null;
     return this.processorApiService.processProject(projectId, user, payload, {

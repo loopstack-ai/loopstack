@@ -8,7 +8,7 @@ import {
 import { Type } from 'class-transformer';
 import { WorkspaceFilterDto } from './workspace-filter.dto';
 import { WorkspaceSortByDto } from './workspace-sort-by.dto';
-import {ApiPropertyOptional} from "@nestjs/swagger";
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class WorkspaceQueryDto {
   @IsOptional()

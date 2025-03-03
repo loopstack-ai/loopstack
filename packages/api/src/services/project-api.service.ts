@@ -2,12 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { IsNull, FindManyOptions, Repository } from 'typeorm';
 import { ProjectCreateDto } from '../dtos/project-create.dto';
 import { ProjectUpdateDto } from '../dtos/project-update.dto';
-import { ProjectEntity } from '@loopstack/core/dist/persistence/entities/project.entity';
+import { ProjectEntity } from '@loopstack/core';
 import { ConfigService } from '@nestjs/config';
 import { ProjectSortByDto } from '../dtos/project-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { WorkspaceEntity } from '@loopstack/core/dist/persistence/entities/workspace.entity';
-import {ProjectFilterDto} from "../dtos/project-filter.dto";
+import { WorkspaceEntity } from '@loopstack/core';
+import { ProjectFilterDto } from '../dtos/project-filter.dto';
 
 @Injectable()
 export class ProjectApiService {
@@ -58,7 +58,10 @@ export class ProjectApiService {
         {} as Record<string, 'ASC' | 'DESC'>,
       ),
       take: pagination.limit ?? defaultLimit,
-      skip: pagination.page && pagination.limit ? (pagination.page - 1) * pagination.limit : 0,
+      skip:
+        pagination.page && pagination.limit
+          ? (pagination.page - 1) * pagination.limit
+          : 0,
     };
 
     const [data, total] =

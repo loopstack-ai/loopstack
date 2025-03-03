@@ -1,7 +1,7 @@
-import { ProjectEntity } from '@loopstack/core/dist/persistence/entities/project.entity';
+import { ProjectEntity } from '@loopstack/core';
 import { SortOrder } from '../enums/sort-order.enum';
-import {ApiProperty} from "@nestjs/swagger";
-import {getEntityColumns} from "../utils/get-entity-columns.util";
+import { ApiProperty } from '@nestjs/swagger';
+import { getEntityColumns } from '../utils/get-entity-columns.util';
 
 const sortFields = getEntityColumns(ProjectEntity);
 

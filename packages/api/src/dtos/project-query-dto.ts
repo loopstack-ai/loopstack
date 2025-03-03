@@ -8,7 +8,7 @@ import {
 import { Type } from 'class-transformer';
 import { ProjectFilterDto } from './project-filter.dto';
 import { ProjectSortByDto } from './project-sort-by.dto';
-import { ApiPropertyOptional} from "@nestjs/swagger";
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ProjectQueryDto {
   @IsOptional()

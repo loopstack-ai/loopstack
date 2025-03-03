@@ -6,9 +6,9 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiPropertyOptional} from "@nestjs/swagger";
-import {DocumentSortByDto} from "./document-sort-by.dto";
-import {DocumentFilterDto} from "./document-filter.dto";
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { DocumentSortByDto } from './document-sort-by.dto';
+import { DocumentFilterDto } from './document-filter.dto';
 
 export class DocumentQueryDto {
   @IsOptional()

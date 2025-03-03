@@ -6,7 +6,12 @@ import {
   Delete,
   Body,
   Param,
-  Request, UsePipes, ValidationPipe, Query, ParseIntPipe, BadRequestException,
+  Request,
+  UsePipes,
+  ValidationPipe,
+  Query,
+  ParseIntPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -14,18 +19,20 @@ import {
   ApiResponse,
   ApiTags,
   ApiBody,
-  ApiExtraModels, ApiOkResponse, ApiQuery,
+  ApiExtraModels,
+  ApiOkResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { ProjectApiService } from '../services/project-api.service';
 import { ProjectUpdateDto } from '../dtos/project-update.dto';
 import { ProjectCreateDto } from '../dtos/project-create.dto';
-import {PaginatedDto} from "../dtos/paginated.dto";
-import {ApiPaginatedResponse} from "../decorators/api-paginated-response.decorator";
-import {ProjectDto} from "../dtos/project.dto";
-import {ProjectItemDto} from "../dtos/project-item.dto";
-import {ProjectSortByDto} from "../dtos/project-sort-by.dto";
-import {ProjectFilterDto} from "../dtos/project-filter.dto";
+import { PaginatedDto } from '../dtos/paginated.dto';
+import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
+import { ProjectDto } from '../dtos/project.dto';
+import { ProjectItemDto } from '../dtos/project-item.dto';
+import { ProjectSortByDto } from '../dtos/project-sort-by.dto';
+import { ProjectFilterDto } from '../dtos/project-filter.dto';
 
 @ApiTags('api/v1/projects')
 @ApiExtraModels(ProjectDto, ProjectItemDto, ProjectCreateDto, ProjectUpdateDto)
@@ -74,11 +81,11 @@ export class ProjectController {
   })
   @ApiPaginatedResponse(ProjectItemDto)
   async getProjects(
-      @Request() req: any,
-      @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-      @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-      @Query('filter') filterParam?: string,
-      @Query('sortBy') sortByParam?: string,
+    @Request() req: any,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('filter') filterParam?: string,
+    @Query('sortBy') sortByParam?: string,
   ): Promise<PaginatedDto<ProjectItemDto>> {
     const user = req.user || null;
 
@@ -100,7 +107,10 @@ export class ProjectController {
       }
     }
 
-    const result = await this.projectService.findAll(user, filter, sortBy, { page, limit });
+    const result = await this.projectService.findAll(user, filter, sortBy, {
+      page,
+      limit,
+    });
     return PaginatedDto.create(ProjectItemDto, result);
   }
 

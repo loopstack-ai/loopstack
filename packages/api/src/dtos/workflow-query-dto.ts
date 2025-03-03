@@ -6,9 +6,9 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiPropertyOptional} from "@nestjs/swagger";
-import {WorkflowFilterDto} from "./workflow-filter.dto";
-import {WorkflowSortByDto} from "./workflow-sort-by.dto";
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { WorkflowFilterDto } from './workflow-filter.dto';
+import { WorkflowSortByDto } from './workflow-sort-by.dto';
 
 export class WorkflowQueryDto {
   @IsOptional()

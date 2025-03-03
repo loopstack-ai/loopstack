@@ -8,7 +8,7 @@ import {
   Matches,
   ValidateIf,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 /**
@@ -23,7 +23,8 @@ export class ProjectCreateDto {
   @IsNotEmpty()
   @MaxLength(100, { message: 'Project name must not exceed 100 characters' })
   @Matches(/^[a-zA-Z0-9-_]+$/, {
-    message: 'Project name can only contain alphanumeric characters, hyphens, and underscores'
+    message:
+      'Project name can only contain alphanumeric characters, hyphens, and underscores',
   })
   @ApiProperty({
     description: 'Unique identifier for the project',
