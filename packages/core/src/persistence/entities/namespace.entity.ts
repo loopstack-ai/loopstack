@@ -10,6 +10,7 @@ import {
   Unique,
 } from 'typeorm';
 import { WorkflowEntity } from './workflow.entity';
+import {ProjectEntity} from "./project.entity";
 
 @Entity('namespace')
 @Unique(['name', 'model', 'workspaceId'])
@@ -51,6 +52,6 @@ export class NamespaceEntity {
   })
   workflows: WorkflowEntity[];
 
-  @ManyToMany(() => WorkflowEntity, (workflow) => workflow.namespaces)
-  projects: WorkflowEntity[];
+  @ManyToMany(() => ProjectEntity, (project) => project.namespaces)
+  projects: ProjectEntity[];
 }

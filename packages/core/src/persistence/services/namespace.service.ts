@@ -12,6 +12,51 @@ export class NamespacesService {
   ) {}
 
   /**
+   * Find namespace IDs by name, model, and workspaceId
+   */
+  async findNamespaceIdsByAttributes(
+      name: string,
+      model: string,
+      workspaceId: string,
+  ): Promise<string[]> {
+    const namespaces = await this.namespaceRepository.find({
+      where: {
+        name,
+        model,
+        workspaceId,
+      },
+      select: ['id'],
+    });
+
+    return namespaces.map(namespace => namespace.id);
+  }
+
+  /**
+   * Removes multiple namespaces and all their descendant namespaces from the provided array.
+   */
+  omitNamespacesByNames(names: string[], namespaces: NamespaceEntity[]): NamespaceEntity[] {
+    const idsToRemove = new Set<string>();
+
+    // Recursive function to collect a namespace's ID and all its descendant IDs
+    const collectDescendantIds = (id: string) => {
+      idsToRemove.add(id);
+      const children = namespaces.filter((item) => item.parentId === id);
+      for (const child of children) {
+        collectDescendantIds(child.id);
+      }
+    };
+
+    for (const name of names) {
+      const namespace = namespaces.find((item) => item.name === name);
+      if (namespace) {
+        collectDescendantIds(namespace.id);
+      }
+    }
+
+    return namespaces.filter((item) => !idsToRemove.has(item.id));
+  }
+
+  /**
    * Create a new namespace or update an existing one
    */
   async create(
@@ -29,9 +74,8 @@ export class NamespacesService {
 
     if (namespace) {
       // Verify that parentId is consistent
-      if (namespace.parentId !== createNamespaceDto.parentId) {
-        console.log('here', namespace.parentId, createNamespaceDto.parentId);
-        // throw new Error('Cannot change parent for an existing namespace');
+      if (namespace.parentId !== (createNamespaceDto.parentId ?? null)) {
+        throw new Error('Cannot change parent for an existing namespace');
       }
 
       // Merge metadata if provided
