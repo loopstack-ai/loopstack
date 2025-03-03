@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import {NamespacesType, normalizeObject} from '@loopstack/shared';
 import { WorkflowStateEntity } from '../entities/workflow-state.entity';
 import { WorkflowEntity } from '../entities/workflow.entity';
+import {NamespaceEntity} from "../entities/namespace.entity";
 
 @Injectable()
 export class WorkflowService {
@@ -24,7 +25,7 @@ export class WorkflowService {
   async loadByIdentity(
     projectId: string,
     name: string,
-    namespaces: NamespacesType,
+    namespaces: NamespaceEntity[],
   ) {
     const entity = await this.workflowRepository
       .createQueryBuilder('entity')
@@ -32,9 +33,7 @@ export class WorkflowService {
         projectId: projectId,
       })
       .andWhere('entity.name = :name', { name: name })
-      .andWhere('entity.namespaces = :json', {
-        json: JSON.stringify(normalizeObject(namespaces)),
-      })
+        // todo: where the same namespaces
       .getOne();
 
     if (!entity) {

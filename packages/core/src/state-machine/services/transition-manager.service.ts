@@ -44,7 +44,6 @@ export class TransitionManagerService {
       ...dto,
       index: this.workflow.documents?.length ?? 0,
       workflowIndex: this.workflow.index,
-      namespaces: this.workflow.namespaces,
       transition: this.transitionContext.transition,
       place: this.workflow.state.place,
       workspace: { id: this.workflow.workspaceId } as WorkspaceEntity,

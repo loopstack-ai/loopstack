@@ -14,7 +14,7 @@ import { WorkflowStateEntity } from './workflow-state.entity';
 import { ProjectEntity } from './project.entity';
 import { WorkspaceEntity } from './workspace.entity';
 import { DocumentEntity } from './document.entity';
-import {NamespacesType} from "@loopstack/shared";
+import {NamespaceEntity} from "./namespace.entity";
 
 @Entity({ name: 'workflow' })
 export class WorkflowEntity {
@@ -23,9 +23,6 @@ export class WorkflowEntity {
 
   @Column({ type: 'varchar' })
   name: string;
-
-  @Column('jsonb', { default: {} })
-  namespaces: NamespacesType;
 
   @Column({ default: 0 })
   index: number;
@@ -73,9 +70,11 @@ export class WorkflowEntity {
   @Column({ name: 'project_id' })
   projectId: string;
 
+  @ManyToMany(() => NamespaceEntity, (namespace) => namespace.workflows)
+  namespaces: NamespaceEntity[];
+
   @ManyToOne(() => WorkspaceEntity, (workspace) => workspace.workflows, {
     onDelete: 'CASCADE',
-    nullable: false,
   })
   @JoinColumn({ name: 'workspace_id' })
   workspace: WorkspaceEntity;

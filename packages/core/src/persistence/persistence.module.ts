@@ -10,6 +10,8 @@ import { ProjectService } from './services/project.service';
 import { WorkspaceService } from './services/workspace.service';
 import { ProjectRepository } from './repositories/project.repository';
 import { DocumentService } from './services/document.service';
+import {NamespacesService} from "./services/namespace.service";
+import {NamespaceEntity} from "./entities/namespace.entity";
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { DocumentService } from './services/document.service';
       DocumentEntity,
       WorkflowStateEntity,
       WorkspaceEntity,
+      NamespaceEntity,
     ]),
   ],
   providers: [
@@ -27,6 +30,7 @@ import { DocumentService } from './services/document.service';
     WorkspaceService,
     ProjectRepository,
     DocumentService,
+    NamespacesService,
   ],
   exports: [
     WorkflowService,
@@ -34,6 +38,7 @@ import { DocumentService } from './services/document.service';
     WorkspaceService,
     ProjectRepository,
     DocumentService,
+    NamespacesService,
   ],
 })
 export class PersistenceModule {}

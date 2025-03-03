@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ProcessRunInterface } from '../interfaces/process-run.interface';
 import { ProjectProcessorService } from './project-processor.service';
 import { ContextService } from './context.service';
-import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import {ContextInterface} from "../interfaces/context.interface";
 
 @Injectable()
@@ -13,10 +12,7 @@ export class ProcessorService {
   ) {}
 
   process(config: any, payload: ProcessRunInterface): Promise<ContextInterface> {
-    const context = this.contextService.create({
-      ...payload,
-      namespaces: {},
-    });
+    const context = this.contextService.create(payload);
 
     if (!config.projectName) {
       throw new Error(`No project name defined.`);

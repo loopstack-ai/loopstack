@@ -2,7 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
+  JoinColumn, ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -12,7 +12,7 @@ import { ProjectStatus } from '@loopstack/shared/dist/enums/project-status.enum'
 import { WorkspaceEntity } from './workspace.entity';
 import { WorkflowEntity } from './workflow.entity';
 import { DocumentEntity } from './document.entity';
-import {NamespacesType} from "@loopstack/shared";
+import {NamespaceEntity} from "./namespace.entity";
 
 @Entity({ name: 'project' })
 export class ProjectEntity {
@@ -21,9 +21,6 @@ export class ProjectEntity {
 
   @Column({ type: 'varchar' })
   name: string;
-
-  @Column('jsonb', { default: {} })
-  namespaces: NamespacesType;
 
   @Column({ type: 'varchar' })
   title: string;
@@ -50,9 +47,11 @@ export class ProjectEntity {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
+  @ManyToMany(() => NamespaceEntity, (namespace) => namespace.projects)
+  namespaces: NamespaceEntity[];
+
   @ManyToOne(() => WorkspaceEntity, (workspace) => workspace.projects, {
     onDelete: 'CASCADE',
-    nullable: false,
   })
   @JoinColumn({ name: 'workspace_id' })
   workspace: WorkspaceEntity;

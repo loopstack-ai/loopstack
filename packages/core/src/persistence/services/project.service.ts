@@ -11,7 +11,7 @@ export class ProjectService {
   getProject(
     id: string,
     userId: string | null,
-    relations: string[] = ['workspace'],
+    relations: string[] = ['workspace', 'namespaces'],
   ) {
     return this.projectRepository.findOne({
       where: {

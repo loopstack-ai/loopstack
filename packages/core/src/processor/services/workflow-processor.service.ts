@@ -11,8 +11,10 @@ import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ContextService } from './context.service';
 import { ValueParserService } from './value-parser.service';
 import { StateMachineProcessorService } from '../../state-machine/services/state-machine-processor.service';
-import {WorkflowEntity} from "../../persistence/entities/workflow.entity";
+import {WorkflowEntity} from "../../persistence/entities";
 import {WorkflowService} from "../../persistence/services/workflow.service";
+import {NamespacesService} from "../../persistence/services/namespace.service";
+import crypto from "crypto";
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -23,6 +25,7 @@ export class WorkflowProcessorService {
     private valueParserService: ValueParserService,
     private stateMachineProcessorService: StateMachineProcessorService,
     private workflowService: WorkflowService,
+    private namespacesService: NamespacesService,
   ) {}
 
   workflowExists(name: string): boolean {
@@ -35,9 +38,13 @@ export class WorkflowProcessorService {
   ): Promise<ProcessStateInterface> {
     const sequence = _.map(sequenceConfig.items, 'name');
     for (const itemName of sequence) {
-      processState.context = await this.processChild(itemName, processState.context);
+      processState.context = await this.processChild(itemName, processState.context, processState.context);
     }
     return processState;
+  }
+
+  generateUniqueNamespace(value: string): string {
+    return `${value}_${crypto.randomUUID()}`;
   }
 
   async runFactoryType(
@@ -61,15 +68,44 @@ export class WorkflowProcessorService {
       );
     }
 
+    const localContext = this.contextService.create(processState.context);
+
+    localContext.iteratorGroup = factory.iterator.name;
+
+    // create namespace for the iterator key (group)
+    const keyNamespace = await this.namespacesService.create({
+      name: localContext.iteratorGroup,
+      model: localContext.model,
+      projectId: localContext.projectId,
+      workspaceId: localContext.workspaceId,
+      parentId: localContext.namespaces[ localContext.namespaces.length - 1 ]?.id,
+      metadata: undefined,
+    });
+    localContext.namespaces.push(keyNamespace);
+
     for (const iterator of iteratorValues) {
+      // create a new context for each child
+      const childContext = this.contextService.create(localContext);
+
       // set iterator
-      processState.context.iterator = { key: factory.iterator.name, value: iterator };
+      localContext.iteratorValue = iterator;
 
-      // set namespace
-      processState.context.namespaces[processState.context.iterator.key] = processState.context.iterator.value;
+      // create namespace for the group iterator and make sure the value includes a unique id,
+      // so there is no risk of re-using the same value for different things within
+      // the same workspace and project model
+      const valueNamespace = await this.namespacesService.create({
+        name: this.generateUniqueNamespace(localContext.iteratorValue!),
+        model: childContext.model,
+        projectId: childContext.projectId,
+        workspaceId: childContext.workspaceId,
+        parentId: childContext.namespaces[ childContext.namespaces.length - 1 ]?.id,
+        metadata: undefined,
+      });
+      childContext.namespaces.push(valueNamespace);
 
-      // process the child workflows
-      processState.context = await this.processChild(workflowName, processState.context);
+      // process the child workflows and update the processing context
+      // note, we use previous context as target so that namespaces will not be carried over
+      processState.context = await this.processChild(workflowName, processState.context, childContext);
     }
 
     return processState;
@@ -145,20 +181,22 @@ export class WorkflowProcessorService {
 
   async processChild(
     name: string,
-    parentContext: ContextInterface,
+    targetContext: ContextInterface,
+    sourceContext: ContextInterface,
   ): Promise<ContextInterface> {
     const workflowConfig = this.workflowCollectionService.getByName(name);
     if (!workflowConfig) {
       throw new Error(`workflow with name "${name}" not found.`);
     }
 
-    const context = this.contextService.create(parentContext);
+    // create local context, so no unwanted changes are applied to the actual context to be returned
+    const localContext = this.contextService.create(sourceContext);
 
     // create or load state if needed
-    const workflow = this.isStateful(workflowConfig) ? await this.getWorkflow(workflowConfig.name, context) : undefined;
-    let processState: ProcessStateInterface = { context, workflow };
+    const workflow = this.isStateful(workflowConfig) ? await this.getWorkflow(workflowConfig.name, localContext) : undefined;
+    let processState: ProcessStateInterface = { context: localContext, workflow };
 
-    // before functions update the working context
+    // before functions update the local context
     processState = await this.toolExecutionService.applyTools(
       workflowConfig.prepare,
       processState,
@@ -167,12 +205,12 @@ export class WorkflowProcessorService {
 
     processState = await this.processWorkflow(workflowConfig, processState);
 
-    // workflows return the parent context and apply actions
-    // they do not pass down its working context
+    // workflows return the context and apply actions
+    // they do not pass down its local context
     // instead, tools can apply changes to it
     processState = await this.toolExecutionService.applyTools(
       workflowConfig.export,
-      { context: parentContext, workflow: undefined },
+      { context: targetContext, workflow: undefined },
       processState,
     );
 
