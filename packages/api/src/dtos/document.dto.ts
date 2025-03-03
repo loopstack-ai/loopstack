@@ -1,7 +1,6 @@
 import { Expose, plainToInstance } from "class-transformer";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { DocumentEntity } from "@loopstack/core";
-import { NamespacesDto } from "./namespaces.dto";
 import { DocumentMetaDto } from "./document-meta.dto";
 import { DocumentContentsDto } from "./document-contents.dto";
 
@@ -68,16 +67,6 @@ export class DocumentDto<T = unknown> {
         description: 'Document metadata'
     })
     meta?: DocumentMetaDto | null;
-
-    /**
-     * Document namespaces
-     */
-    @Expose()
-    @ApiProperty({
-        type: () => NamespacesDto,
-        description: 'Document namespaces'
-    })
-    namespaces: NamespacesDto;
 
     /**
      * Indicates if the document is invalidated

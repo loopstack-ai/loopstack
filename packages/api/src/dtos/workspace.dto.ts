@@ -1,4 +1,4 @@
-import { Exclude, Expose, plainToInstance } from "class-transformer";
+import { Expose, plainToInstance } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
 import { WorkspaceEntity } from "@loopstack/core/dist/persistence/entities/workspace.entity";
 

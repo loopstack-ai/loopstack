@@ -33,7 +33,7 @@ export class ProcessorApiService {
         id: projectId,
         createdBy: user === null ? IsNull() : user,
       },
-      relations: ['workspace'],
+      relations: ['workspace', 'namespaces'],
     });
 
     if (!project) {
@@ -57,7 +57,9 @@ export class ProcessorApiService {
           ...payload,
           userId: user,
           projectId: project.id,
+          model: project.name,
           workspaceId: project.workspaceId,
+          namespaces: project.namespaces,
         },
     );
 

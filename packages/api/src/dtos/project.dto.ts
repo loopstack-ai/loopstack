@@ -2,7 +2,6 @@ import { Exclude, Expose, plainToInstance } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
 import { ProjectEntity } from "@loopstack/core";
 import { ProjectStatus } from "@loopstack/shared";
-import { NamespacesDto } from "./namespaces.dto";
 import { ProjectContextDto } from "./project-context.dto";
 
 /**
@@ -22,13 +21,6 @@ export class ProjectDto {
         example: 'customer-portal'
     })
     name: string;
-
-    @Expose()
-    @ApiProperty({
-        type: NamespacesDto,
-        description: 'Namespace configurations for the project'
-    })
-    namespaces: NamespacesDto;
 
     @Expose()
     @ApiProperty({

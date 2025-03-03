@@ -2,7 +2,6 @@ import { Expose, plainToInstance } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
 import { ProjectEntity } from "@loopstack/core";
 import { ProjectStatus } from "@loopstack/shared";
-import { NamespacesDto } from "./namespaces.dto";
 
 /**
  * Data Transfer Object for Project item listing
@@ -21,13 +20,6 @@ export class ProjectItemDto {
         example: 'customer-portal'
     })
     name: string;
-
-    @Expose()
-    @ApiProperty({
-        type: NamespacesDto,
-        description: 'Namespace configurations for the project'
-    })
-    namespaces: NamespacesDto;
 
     @Expose()
     @ApiProperty({

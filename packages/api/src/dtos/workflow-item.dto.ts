@@ -1,12 +1,10 @@
 import {Expose, plainToInstance, Transform} from "class-transformer";
-import {ApiProperty, ApiPropertyOptional, ApiExtraModels} from "@nestjs/swagger";
+import {ApiProperty} from "@nestjs/swagger";
 import {WorkflowEntity} from "@loopstack/core";
-import {NamespacesDto} from "./namespaces.dto";
 
 /**
  * Data Transfer Object representing a workflow item
  */
-@ApiExtraModels(NamespacesDto)
 export class WorkflowItemDto {
     @Expose()
     @ApiProperty({
@@ -21,13 +19,6 @@ export class WorkflowItemDto {
         example: 'Data Processing Workflow'
     })
     name: string;
-
-    @Expose()
-    @ApiProperty({
-        type: () => NamespacesDto,
-        description: 'Namespaces configuration for the workflow item'
-    })
-    namespaces: NamespacesDto;
 
     @Expose()
     @ApiProperty({
