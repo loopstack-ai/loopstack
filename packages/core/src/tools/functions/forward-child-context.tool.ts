@@ -14,7 +14,11 @@ export class ForwardChildContextTool implements ToolInterface {
   ): Promise<ProcessStateInterface> {
     return {
       ...target,
-      context: _.merge({}, target.context, _.omit(source.context, options.omit)),
+      context: _.merge(
+        {},
+        target.context,
+        _.omit(source.context, options.omit),
+      ),
     };
   }
 }

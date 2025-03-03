@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-const safeEval = require('safe-eval')
+const safeEval = require('safe-eval');
 import _ from '../utils/safe-lodash';
 
 @Injectable()
@@ -10,11 +10,7 @@ export class FunctionCallService {
   }
 
   extractGetContents(input: string): string {
-    return input
-        .trim()
-        .replace(/^{/, '')
-        .replace(/}$/, '')
-        .trim();
+    return input.trim().replace(/^{/, '').replace(/}$/, '').trim();
   }
 
   runEval(value: string, variables: Record<string, any>) {

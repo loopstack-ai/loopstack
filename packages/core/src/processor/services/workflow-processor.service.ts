@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { WorkflowCollectionService } from '../../configuration/services/workflow-collection.service';
 import {
   WorkflowConfigInterface,
-  WorkflowFactorySchemaConfigInterface, WorkflowSequenceConfigInterface, WorkflowStateMachineConfigInterface,
+  WorkflowFactorySchemaConfigInterface,
+  WorkflowSequenceConfigInterface,
+  WorkflowStateMachineConfigInterface,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { ContextInterface } from '../interfaces/context.interface';
@@ -11,10 +13,10 @@ import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ContextService } from './context.service';
 import { ValueParserService } from './value-parser.service';
 import { StateMachineProcessorService } from '../../state-machine/services/state-machine-processor.service';
-import {WorkflowEntity} from "../../persistence/entities";
-import {WorkflowService} from "../../persistence/services/workflow.service";
-import {NamespacesService} from "../../persistence/services/namespace.service";
-import crypto from "crypto";
+import { WorkflowEntity } from '../../persistence/entities';
+import { WorkflowService } from '../../persistence/services/workflow.service';
+import { NamespacesService } from '../../persistence/services/namespace.service';
+import crypto from 'crypto';
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -38,7 +40,11 @@ export class WorkflowProcessorService {
   ): Promise<ProcessStateInterface> {
     const sequence = _.map(sequenceConfig.items, 'name');
     for (const itemName of sequence) {
-      processState.context = await this.processChild(itemName, processState.context, processState.context);
+      processState.context = await this.processChild(
+        itemName,
+        processState.context,
+        processState.context,
+      );
     }
     return processState;
   }
@@ -78,7 +84,7 @@ export class WorkflowProcessorService {
       model: localContext.model,
       projectId: localContext.projectId,
       workspaceId: localContext.workspaceId,
-      parentId: localContext.namespaces[ localContext.namespaces.length - 1 ]?.id,
+      parentId: localContext.namespaces[localContext.namespaces.length - 1]?.id,
       metadata: undefined,
     });
     localContext.namespaces.push(keyNamespace);
@@ -98,14 +104,19 @@ export class WorkflowProcessorService {
         model: childContext.model,
         projectId: childContext.projectId,
         workspaceId: childContext.workspaceId,
-        parentId: childContext.namespaces[ childContext.namespaces.length - 1 ]?.id,
+        parentId:
+          childContext.namespaces[childContext.namespaces.length - 1]?.id,
         metadata: undefined,
       });
       childContext.namespaces.push(valueNamespace);
 
       // process the child workflows and update the processing context
       // note, we use previous context as target so that namespaces will not be carried over
-      processState.context = await this.processChild(workflowName, processState.context, childContext);
+      processState.context = await this.processChild(
+        workflowName,
+        processState.context,
+        childContext,
+      );
     }
 
     return processState;
@@ -115,11 +126,12 @@ export class WorkflowProcessorService {
     stateMachineConfig: WorkflowStateMachineConfigInterface,
     processState: ProcessStateInterface,
   ) {
-    processState.workflow = await this.stateMachineProcessorService.processStateMachine(
+    processState.workflow =
+      await this.stateMachineProcessorService.processStateMachine(
         processState.context,
         processState.workflow!,
         stateMachineConfig,
-    );
+      );
 
     return processState;
   }
@@ -128,7 +140,6 @@ export class WorkflowProcessorService {
     workflowConfig: WorkflowConfigInterface,
     processState: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
-
     console.log(
       'Processing workflow:',
       workflowConfig.name,
@@ -144,7 +155,10 @@ export class WorkflowProcessorService {
     }
 
     if (workflowConfig.stateMachine) {
-      return this.runStateMachineType(workflowConfig.stateMachine, processState);
+      return this.runStateMachineType(
+        workflowConfig.stateMachine,
+        processState,
+      );
     }
 
     throw new Error(
@@ -153,13 +167,13 @@ export class WorkflowProcessorService {
   }
 
   async getWorkflow(
-      workflowName: string,
-      context: ContextInterface,
+    workflowName: string,
+    context: ContextInterface,
   ): Promise<WorkflowEntity> {
     let workflow = await this.workflowService.loadByIdentity(
-        context.projectId,
-        workflowName,
-        context.namespaces,
+      context.projectId,
+      workflowName,
+      context.namespaces,
     );
 
     if (workflow) {
@@ -168,7 +182,6 @@ export class WorkflowProcessorService {
 
     return this.workflowService.createWorkflow({
       projectId: context.projectId,
-      workspaceId: context.workspaceId,
       createdBy: context.userId,
       namespaces: context.namespaces,
       name: workflowName,
@@ -176,7 +189,7 @@ export class WorkflowProcessorService {
   }
 
   isStateful(workflowConfig: WorkflowConfigInterface) {
-    return !!workflowConfig.stateMachine
+    return !!workflowConfig.stateMachine;
   }
 
   async processChild(
@@ -193,8 +206,13 @@ export class WorkflowProcessorService {
     const localContext = this.contextService.create(sourceContext);
 
     // create or load state if needed
-    const workflow = this.isStateful(workflowConfig) ? await this.getWorkflow(workflowConfig.name, localContext) : undefined;
-    let processState: ProcessStateInterface = { context: localContext, workflow };
+    const workflow = this.isStateful(workflowConfig)
+      ? await this.getWorkflow(workflowConfig.name, localContext)
+      : undefined;
+    let processState: ProcessStateInterface = {
+      context: localContext,
+      workflow,
+    };
 
     // before functions update the local context
     processState = await this.toolExecutionService.applyTools(

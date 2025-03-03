@@ -15,6 +15,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
+    "compile": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

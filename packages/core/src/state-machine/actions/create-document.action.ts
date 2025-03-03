@@ -6,8 +6,11 @@ import {
 } from '../interfaces/state-machine-action.interface';
 import { TransitionResultInterface } from '../interfaces/transition-result.interface';
 import { TransitionManagerService } from '../services/transition-manager.service';
-import {DocumentCreateDto} from "../../persistence/dtos/document-create.dto";
-import {CreateDocumentPropsConfigType, CreateDocumentPropsSchema} from "@loopstack/shared";
+import { DocumentCreateDto } from '../../persistence/dtos/document-create.dto';
+import {
+  CreateDocumentPropsConfigType,
+  CreateDocumentPropsSchema,
+} from '@loopstack/shared';
 const crypto = require('crypto');
 
 @Injectable()
@@ -24,17 +27,20 @@ export class CreateDocumentAction implements StateMachineActionInterface {
   ): Promise<TransitionResultInterface> {
     const manager = this.transitionManagerService.setContext(payload);
 
-    console.log(payload.props)
-    const props: CreateDocumentPropsConfigType = CreateDocumentPropsSchema.parse(payload.props);
+    console.log(payload.props);
+    const props: CreateDocumentPropsConfigType =
+      CreateDocumentPropsSchema.parse(payload.props);
 
-    manager.createDocument(new DocumentCreateDto({
-      name: props.name ?? this.generateUUID(),
-      type: props.type,
-      contents: props.contents,
-      meta: {
-        ...(props.meta ?? {}),
-      }
-    }))
+    manager.createDocument(
+      new DocumentCreateDto({
+        name: props.name ?? this.generateUUID(),
+        type: props.type,
+        contents: props.contents,
+        meta: {
+          ...(props.meta ?? {}),
+        },
+      }),
+    );
 
     return manager.getResult();
   }

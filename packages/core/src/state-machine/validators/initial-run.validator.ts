@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { StateMachineValidatorInterface } from '../interfaces/state-machine-validator.interface';
-import { TransitionPayloadInterface } from '../interfaces/transition-payload.interface';
+import { TransitionPayloadInterface } from '@loopstack/shared';
 import { StateMachineValidator } from '../decorators/state-machine-validator.decorator';
-import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
+import { WorkflowEntity } from '../../persistence/entities';
 
 @Injectable()
 @StateMachineValidator({ priority: 0 })
@@ -11,7 +11,7 @@ export class InitialRunValidator implements StateMachineValidatorInterface {
     pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
   ): { valid: boolean; reason: string | null } {
-    const isValid = !pendingTransition && workflow.state.place !== 'initial';
+    const isValid = !pendingTransition && workflow.place !== 'initial';
 
     return { valid: isValid, reason: null };
   }

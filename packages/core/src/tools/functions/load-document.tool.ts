@@ -3,12 +3,12 @@ import { z } from 'zod';
 import { ToolInterface } from '../interfaces/tool.interface';
 import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
 import { Tool } from '../../processor/decorators/tool.decorator';
-import {DocumentEntity} from "../../persistence/entities/document.entity";
+import { DocumentEntity } from '../../persistence/entities';
 import * as _ from 'lodash';
-import {createHash} from "@loopstack/shared/dist/utils/create-hash.util";
-import {ContextImportInterface} from "../../processor/interfaces/context-import.interface";
-import {DocumentService} from "../../persistence/services/document.service";
-import {FunctionCallService} from "../../processor/services/function-call.service";
+import { createHash } from '@loopstack/shared';
+import { ContextImportInterface } from '../../processor/interfaces/context-import.interface';
+import { DocumentService } from '../../persistence/services/document.service';
+import { FunctionCallService } from '../../processor/services/function-call.service';
 
 const schema = z.object({
   name: z.string(),
@@ -20,10 +20,12 @@ const schema = z.object({
   map: z.string().optional(),
   filter: z.string().optional(),
   sort: z.boolean().optional(),
-  sortBy: z.object({
-    iteratees: z.array(z.string()),
-    orders: z.array(z.enum(["asc", "desc"])),
-  }).optional(),
+  sortBy: z
+    .object({
+      iteratees: z.array(z.string()),
+      orders: z.array(z.enum(['asc', 'desc'])),
+    })
+    .optional(),
   many: z.boolean().optional(),
   flat: z.boolean().optional(),
   ignoreChanges: z.boolean().optional(),
@@ -35,7 +37,6 @@ export interface LoadDocumentToolOptions extends z.infer<typeof schema> {}
 @Injectable()
 @Tool()
 export class LoadDocumentTool implements ToolInterface {
-
   constructor(
     private documentService: DocumentService,
     private functionCallService: FunctionCallService,
@@ -46,7 +47,9 @@ export class LoadDocumentTool implements ToolInterface {
    */
   applyFilters(options: LoadDocumentToolOptions, items: DocumentEntity[]) {
     if (options.filter) {
-      return items.filter((item) => this.functionCallService.runEval(options.filter!, { item }));
+      return items.filter((item) =>
+        this.functionCallService.runEval(options.filter!, { item }),
+      );
     }
 
     return items;
@@ -60,14 +63,20 @@ export class LoadDocumentTool implements ToolInterface {
     const defaultMapFunction = '{ entity.contents }';
     const mapFunc = options.map ?? defaultMapFunction;
 
-    let documents = entities.map((entity) => this.functionCallService.runEval(mapFunc, { entity }));
+    let documents = entities.map((entity) =>
+      this.functionCallService.runEval(mapFunc, { entity }),
+    );
 
     if (options.flat) {
       documents = documents.flat();
     }
 
     if (options.sortBy) {
-      documents = _.orderBy(documents, options.sortBy.iteratees, options.sortBy.orders);
+      documents = _.orderBy(
+        documents,
+        options.sortBy.iteratees,
+        options.sortBy.orders,
+      );
     }
 
     if (options.sort) {
@@ -80,32 +89,43 @@ export class LoadDocumentTool implements ToolInterface {
   /**
    * retrieves and filters entities from database
    */
-  async getDocumentsByQuery(options: LoadDocumentToolOptions, target: ProcessStateInterface): Promise<DocumentEntity[]> {
+  async getDocumentsByQuery(
+    options: LoadDocumentToolOptions,
+    target: ProcessStateInterface,
+  ): Promise<DocumentEntity[]> {
     const query = this.documentService.createQuery(
-        target.context.projectId,
-        target.context.workspaceId,
-        options.where,
-        {
-          isGlobal: !!options.global,
-          namespaces: options.namespaces,
-          ltWorkflowIndex: target.workflow!.index,
-        },
+      target.context.projectId,
+      target.context.workspaceId,
+      options.where,
+      {
+        isGlobal: !!options.global,
+        namespaces: options.namespaces,
+        ltWorkflowIndex: target.workflow!.index,
+      },
     );
 
-    const entities = options.many ? await query.getMany() : [await query.getOne()].filter((d) => !!d);
+    const entities = options.many
+      ? await query.getMany()
+      : [await query.getOne()].filter((d) => !!d);
     return this.applyFilters(options, entities);
   }
 
   /**
    * retrieves and filter related entities from workflow dependencies
    */
-  getDocumentsByDependencies(options: LoadDocumentToolOptions, target: ProcessStateInterface) {
+  getDocumentsByDependencies(
+    options: LoadDocumentToolOptions,
+    target: ProcessStateInterface,
+  ) {
     if (!target.workflow) {
       throw new Error('Workflow is undefined');
     }
 
-    const previousDependencies = target.workflow.dependencies
-        .filter((item) => item.name === options.where.name && (!options.where.type || item.type === options.where.type));
+    const previousDependencies = target.workflow.dependencies.filter(
+      (item) =>
+        item.name === options.where.name &&
+        (!options.where.type || item.type === options.where.type),
+    );
 
     return this.applyFilters(options, previousDependencies);
   }
@@ -113,7 +133,11 @@ export class LoadDocumentTool implements ToolInterface {
   /**
    * creates a new list of dependencies, replacing previous items with new while keeping unrelated dependencies untouched
    */
-  replacePreviousDependenciesWithCurrent(target: ProcessStateInterface, currentEntities: DocumentEntity[], previousEntities: DocumentEntity[]): DocumentEntity[] {
+  replacePreviousDependenciesWithCurrent(
+    target: ProcessStateInterface,
+    currentEntities: DocumentEntity[],
+    previousEntities: DocumentEntity[],
+  ): DocumentEntity[] {
     if (!target.workflow) {
       throw new Error('Workflow is undefined');
     }
@@ -121,11 +145,11 @@ export class LoadDocumentTool implements ToolInterface {
     const allEntities = target.workflow.dependencies;
 
     const previousEntityIdSet = new Set(
-        previousEntities.map(item => item?.id).filter(Boolean)
+      previousEntities.map((item) => item?.id).filter(Boolean),
     );
 
     return [
-      ...allEntities.filter(entity => !previousEntityIdSet.has(entity.id)),
+      ...allEntities.filter((entity) => !previousEntityIdSet.has(entity.id)),
       ...currentEntities,
     ];
   }
@@ -134,7 +158,10 @@ export class LoadDocumentTool implements ToolInterface {
    * compares current dependency ids with new
    * updates the workflow's dependencies and hash, if changed
    */
-  updateWorkflowDependenciesIfChanged(target: ProcessStateInterface, newDependencies: DocumentEntity[]): boolean {
+  updateWorkflowDependenciesIfChanged(
+    target: ProcessStateInterface,
+    newDependencies: DocumentEntity[],
+  ): boolean {
     if (!target.workflow) {
       throw new Error('Workflow is undefined');
     }
@@ -149,7 +176,9 @@ export class LoadDocumentTool implements ToolInterface {
     if (!_.isEqual(sortedOldIds, sortedNewIds)) {
       // ids have changed
       // update the workflow dependency relations and hash value
-      target.workflow!.dependenciesHash = newIds.length ? createHash(newIds) : null;
+      target.workflow!.dependenciesHash = newIds.length
+        ? createHash(newIds)
+        : null;
       target.workflow!.dependencies = newDependencies;
 
       return true;
@@ -162,7 +191,11 @@ export class LoadDocumentTool implements ToolInterface {
    * create an import item including previous and current document contents
    * adds flags for new and changed contents
    */
-  createImportItem(options: LoadDocumentToolOptions, currentEntities: DocumentEntity[], previousEntities: DocumentEntity[]): ContextImportInterface {
+  createImportItem(
+    options: LoadDocumentToolOptions,
+    currentEntities: DocumentEntity[],
+    previousEntities: DocumentEntity[],
+  ): ContextImportInterface {
     const currentDocuments = this.applyModifiers(options, currentEntities);
     const previousDocuments = this.applyModifiers(options, previousEntities);
 
@@ -171,22 +204,29 @@ export class LoadDocumentTool implements ToolInterface {
       prev: options.many ? previousDocuments : previousDocuments[0],
       curr: options.many ? currentDocuments : currentDocuments[0],
       isNew: !previousDocuments.length,
-      isChanged: !!previousDocuments.length && !_.isEqual(previousDocuments, currentDocuments),
+      isChanged:
+        !!previousDocuments.length &&
+        !_.isEqual(previousDocuments, currentDocuments),
       options,
-    }
+    };
   }
 
   /**
    * add import item to context object
    */
-  updateContext(processState: ProcessStateInterface, options: LoadDocumentToolOptions, currentEntities: DocumentEntity[], previousEntities: DocumentEntity[]): ProcessStateInterface {
+  updateContext(
+    processState: ProcessStateInterface,
+    options: LoadDocumentToolOptions,
+    currentEntities: DocumentEntity[],
+    previousEntities: DocumentEntity[],
+  ): ProcessStateInterface {
     if (!processState.context.imports) {
       processState.context.imports = [];
     }
 
     processState.context.imports.push(
-        this.createImportItem(options, currentEntities, previousEntities),
-    )
+      this.createImportItem(options, currentEntities, previousEntities),
+    );
 
     return processState;
   }
@@ -196,7 +236,11 @@ export class LoadDocumentTool implements ToolInterface {
    * tracks differences to previously imported documents
    * and updates workflow dependencies, if applicable
    */
-  async apply(data: any, target: ProcessStateInterface, source: ProcessStateInterface): Promise<ProcessStateInterface> {
+  async apply(
+    data: any,
+    target: ProcessStateInterface,
+    source: ProcessStateInterface,
+  ): Promise<ProcessStateInterface> {
     const options = schema.parse(data);
 
     // load and filter entities based on options from database
@@ -207,11 +251,20 @@ export class LoadDocumentTool implements ToolInterface {
 
     // update workflow dependencies, if applicable
     if (!options.ignoreChanges) {
-      const newDependencies = this.replacePreviousDependenciesWithCurrent(target, currentEntities, previousEntities);
+      const newDependencies = this.replacePreviousDependenciesWithCurrent(
+        target,
+        currentEntities,
+        previousEntities,
+      );
       this.updateWorkflowDependenciesIfChanged(target, newDependencies);
     }
 
     // update the context, add import data
-    return this.updateContext(target, options, currentEntities, previousEntities);
+    return this.updateContext(
+      target,
+      options,
+      currentEntities,
+      previousEntities,
+    );
   }
 }

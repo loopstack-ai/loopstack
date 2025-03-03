@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ToolInterface } from '../interfaces/tool.interface';
 import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
 import { Tool } from '../../processor/decorators/tool.decorator';
-import {generateObjectFingerprint} from "@loopstack/shared";
+import { generateObjectFingerprint } from '@loopstack/shared';
 
 @Injectable()
 @Tool()
@@ -13,7 +13,10 @@ export class SetCustomOptionTool implements ToolInterface {
     value: z.any(),
   });
 
-  async apply(data: any, target: ProcessStateInterface): Promise<ProcessStateInterface> {
+  async apply(
+    data: any,
+    target: ProcessStateInterface,
+  ): Promise<ProcessStateInterface> {
     const options = this.schema.parse(data);
 
     const currentCustomOptions = target.context.customOptions ?? {};
@@ -21,7 +24,7 @@ export class SetCustomOptionTool implements ToolInterface {
 
     target.context.customOptions = currentCustomOptions;
     target.workflow!.optionsHash = generateObjectFingerprint(
-      target.context.customOptions
+      target.context.customOptions,
     );
 
     return target;

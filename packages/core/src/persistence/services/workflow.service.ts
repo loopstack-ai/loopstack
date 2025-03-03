@@ -1,18 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {NamespacesType, normalizeObject} from '@loopstack/shared';
-import { WorkflowStateEntity } from '../entities/workflow-state.entity';
 import { WorkflowEntity } from '../entities/workflow.entity';
-import {NamespaceEntity} from "../entities/namespace.entity";
+import { NamespaceEntity } from '../entities/namespace.entity';
 
 @Injectable()
 export class WorkflowService {
   constructor(
     @InjectRepository(WorkflowEntity)
     private workflowRepository: Repository<WorkflowEntity>,
-    @InjectRepository(WorkflowStateEntity)
-    private workflowStateRepository: Repository<WorkflowStateEntity>,
   ) {}
 
   findById(id: string): Promise<WorkflowEntity | null> {
@@ -33,7 +29,7 @@ export class WorkflowService {
         projectId: projectId,
       })
       .andWhere('entity.name = :name', { name: name })
-        // todo: where the same namespaces
+      // todo: where the same namespaces
       .getOne();
 
     if (!entity) {
@@ -48,17 +44,9 @@ export class WorkflowService {
   }
 
   async createWorkflow(data: Partial<WorkflowEntity>): Promise<WorkflowEntity> {
-    const workflowState = this.workflowStateRepository.create({
-      place: 'initial',
-    });
-
-    const state = await this.workflowStateRepository.save(workflowState);
-
     const dto = this.workflowRepository.create({
       ...data,
-      project: { id: data.projectId },
-      workspace: { id: data.workspaceId },
-      state,
+      place: 'initial',
     });
     const entity = await this.workflowRepository.save(dto);
 

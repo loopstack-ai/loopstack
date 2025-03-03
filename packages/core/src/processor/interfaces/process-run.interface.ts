@@ -1,5 +1,5 @@
-import { TransitionPayloadInterface } from '../../state-machine/interfaces/transition-payload.interface';
-import {NamespaceEntity} from "../../persistence/entities/namespace.entity";
+import { NamespaceEntity } from '../../persistence/entities/namespace.entity';
+import {TransitionPayloadInterface} from "@loopstack/shared";
 
 export interface ProcessRunInterface {
   userId: string | null;

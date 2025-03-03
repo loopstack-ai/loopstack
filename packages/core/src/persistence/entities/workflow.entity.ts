@@ -3,18 +3,17 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
   ManyToMany,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { WorkflowStateEntity } from './workflow-state.entity';
 import { ProjectEntity } from './project.entity';
-import { WorkspaceEntity } from './workspace.entity';
 import { DocumentEntity } from './document.entity';
-import {NamespaceEntity} from "./namespace.entity";
+import { NamespaceEntity } from './namespace.entity';
+import { WorkflowStateHistoryDto, WorkflowStatePlaceInfoDto } from '../dtos';
 
 @Entity({ name: 'workflow' })
 export class WorkflowEntity {
@@ -45,44 +44,54 @@ export class WorkflowEntity {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToOne(
-    () => WorkflowStateEntity,
-    (workflowStateMachine) => workflowStateMachine.workflow,
-    {
-      cascade: true,
-      onDelete: 'CASCADE',
-      nullable: true,
-    },
-  )
-  @JoinColumn({ name: 'state_id' })
-  state: WorkflowStateEntity;
+  @Column({ type: 'varchar' })
+  place: string;
 
-  @Column({ name: 'state_id', nullable: true })
-  stateId: string;
+  @Column('jsonb', {
+    name: 'place_info',
+    nullable: true,
+  })
+  placeInfo: WorkflowStatePlaceInfoDto | null;
+
+  @Column('jsonb', { name: 'history', nullable: true })
+  history: WorkflowStateHistoryDto | null;
 
   @ManyToOne(() => ProjectEntity, (project) => project.workflows, {
-    onDelete: 'CASCADE',
-    nullable: false,
+    onDelete: 'SET NULL',
+    nullable: true,
   })
   @JoinColumn({ name: 'project_id' })
   project: ProjectEntity;
 
-  @Column({ name: 'project_id' })
+  @Column({ name: 'project_id', nullable: true })
   projectId: string;
 
   @ManyToMany(() => NamespaceEntity, (namespace) => namespace.workflows)
+  @JoinTable({
+    name: 'workflow_namespace',
+    joinColumn: {
+      name: 'workflow_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'namespace_id',
+      referencedColumnName: 'id',
+    },
+  })
   namespaces: NamespaceEntity[];
 
-  @ManyToOne(() => WorkspaceEntity, (workspace) => workspace.workflows, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'workspace_id' })
-  workspace: WorkspaceEntity;
-
-  @Column({ name: 'workspace_id' })
-  workspaceId: string;
-
   @ManyToMany(() => DocumentEntity, (document) => document.dependentStates)
+  @JoinTable({
+    name: 'workflow_document',
+    joinColumn: {
+      name: 'workflow_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'document_id',
+      referencedColumnName: 'id',
+    },
+  })
   dependencies: DocumentEntity[];
 
   @Column({ type: 'varchar', nullable: true })
@@ -91,7 +100,10 @@ export class WorkflowEntity {
   @OneToMany(
     () => DocumentEntity,
     (document: DocumentEntity) => document.workflow,
-    { cascade: true },
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    },
   )
   documents: DocumentEntity[];
 

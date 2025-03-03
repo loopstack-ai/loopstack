@@ -1,4 +1,4 @@
-import { TransitionPayloadInterface } from './transition-payload.interface';
+import { TransitionPayloadInterface } from '@loopstack/shared';
 
 export interface WorkflowStateContextInterface {
   pendingTransition: TransitionPayloadInterface | undefined;

@@ -4,7 +4,10 @@ import { ToolRegistry } from '../../tools/registry/tool.registry';
 import _ from 'lodash';
 import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ValueParserService } from './value-parser.service';
-import {ToolCallConfigInterface, ToolWrapperConfigInterface} from "@loopstack/shared";
+import {
+  ToolCallConfigInterface,
+  ToolWrapperConfigInterface,
+} from '@loopstack/shared';
 
 @Injectable()
 export class ToolExecutionService {
@@ -20,7 +23,9 @@ export class ToolExecutionService {
     target: ProcessStateInterface,
     source: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
-    const paramKeys = toolWrapper.params ? _.map(toolWrapper.params, 'name') : [];
+    const paramKeys = toolWrapper.params
+      ? _.map(toolWrapper.params, 'name')
+      : [];
     const args: Record<string, any> = _.pick(contextArgs, paramKeys);
 
     return this.applyTools(toolWrapper.execute, target, source, args);
@@ -57,9 +62,7 @@ export class ToolExecutionService {
       return this.applyToolWrapper(wrapper, args, target, source);
     }
 
-    throw new Error(
-      `Tool or Wrapper with name "${toolCall.tool}" not found.`,
-    );
+    throw new Error(`Tool or Wrapper with name "${toolCall.tool}" not found.`);
   }
 
   async applyTools(

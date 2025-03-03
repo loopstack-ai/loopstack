@@ -2,16 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn, ManyToMany,
+  JoinColumn, JoinTable, ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ProjectStatus } from '@loopstack/shared/dist/enums/project-status.enum';
+import { ProjectStatus } from '@loopstack/shared';
 import { WorkspaceEntity } from './workspace.entity';
 import { WorkflowEntity } from './workflow.entity';
-import { DocumentEntity } from './document.entity';
 import {NamespaceEntity} from "./namespace.entity";
 
 @Entity({ name: 'project' })
@@ -34,7 +33,7 @@ export class ProjectEntity {
   @Column({
     type: 'enum',
     enum: ProjectStatus,
-    default: ProjectStatus.New,
+    default: 'new',
   })
   status: ProjectStatus;
 
@@ -46,9 +45,6 @@ export class ProjectEntity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-
-  @ManyToMany(() => NamespaceEntity, (namespace) => namespace.projects)
-  namespaces: NamespaceEntity[];
 
   @ManyToOne(() => WorkspaceEntity, (workspace) => workspace.projects, {
     onDelete: 'CASCADE',
@@ -62,12 +58,20 @@ export class ProjectEntity {
   @OneToMany(() => WorkflowEntity, (workflow) => workflow.project)
   workflows: WorkflowEntity[];
 
-  @OneToMany(
-    () => DocumentEntity,
-    (workflowDocument) => workflowDocument.project,
-  )
-  documents: DocumentEntity[];
-
   @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdBy: string | null;
+
+  @ManyToMany(() => NamespaceEntity, (namespace) => namespace.projects)
+  @JoinTable({
+    name: 'project_namespace',
+    joinColumn: {
+      name: 'project_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'namespace_id',
+      referencedColumnName: 'id',
+    },
+  })
+  namespaces: NamespaceEntity[];
 }

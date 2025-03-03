@@ -1,5 +1,5 @@
-import { TransitionPayloadInterface } from './transition-payload.interface';
-import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
+import { TransitionPayloadInterface } from '@loopstack/shared';
+import { WorkflowEntity } from '../../persistence/entities';
 
 export interface StateMachineValidatorInterface {
   validate(

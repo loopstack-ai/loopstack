@@ -1,9 +1,9 @@
-import {WorkflowTransitionConfigInterface} from "@loopstack/shared";
+import { WorkflowTransitionConfigInterface } from '@loopstack/shared';
 
 export class WorkflowStatePlaceInfoDto {
-    availableTransitions: WorkflowTransitionConfigInterface[];
+  availableTransitions: WorkflowTransitionConfigInterface[];
 
-    constructor(items: WorkflowTransitionConfigInterface[]) {
-        this.availableTransitions = items;
-    }
+  constructor(items: WorkflowTransitionConfigInterface[]) {
+    this.availableTransitions = items;
+  }
 }

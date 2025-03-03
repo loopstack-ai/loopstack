@@ -11,7 +11,7 @@ import { PromptAction } from './actions/prompt.action';
 import { StateMachineActionService } from './services/state-machine-action.service';
 import { InitialRunValidator } from './validators/initial-run.validator';
 import { WorkflowOptionValidator } from './validators/workflow-option.validator';
-import {CreateDocumentAction} from "./actions/create-document.action";
+import { CreateDocumentAction } from './actions/create-document.action';
 
 @Module({
   imports: [DiscoveryModule, ConfigurationModule, PersistenceModule],

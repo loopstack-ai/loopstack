@@ -1,84 +1,56 @@
 import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    ManyToOne,
-    OneToMany,
-    JoinColumn,
-    Index,
-    ManyToMany,
-    JoinTable,
-    Unique
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  Index,
+  ManyToMany,
+  Unique,
 } from 'typeorm';
-import {ProjectEntity} from "./project.entity";
-import {WorkflowEntity} from "./workflow.entity";
-import {WorkspaceEntity} from "./workspace.entity";
+import { WorkflowEntity } from './workflow.entity';
 
-@Entity('namespaces')
+@Entity('namespace')
 @Unique(['name', 'model', 'workspaceId'])
 export class NamespaceEntity {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column()
-    @Index()
-    name: string;
+  @Column()
+  @Index()
+  name: string;
 
-    @Column()
-    @Index()
-    model: string;
+  @Column()
+  @Index()
+  model: string;
 
-    @ManyToOne(() => NamespaceEntity, namespace => namespace.children, {
-        onDelete: 'CASCADE',
-        nullable: true,
-    })
-    @JoinColumn({ name: 'parent_id' })
-    parent: NamespaceEntity;
+  @Column({ name: 'workspace_id' })
+  @Index()
+  workspaceId: string;
 
-    @Column({ name: 'parent_id', nullable: true })
-    @Index()
-    parentId: string | null;
+  @ManyToOne(() => NamespaceEntity, (namespace) => namespace.children, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'parent_id' })
+  parent: NamespaceEntity;
 
-    @Column('json', { nullable: true })
-    metadata: Record<string, any> | null;
+  @Column({ name: 'parent_id', nullable: true })
+  @Index()
+  parentId: string | null;
 
-    @OneToMany(() => NamespaceEntity, namespace => namespace.parent)
-    children: NamespaceEntity[];
+  @Column('json', { nullable: true })
+  metadata: Record<string, any> | null;
 
-    @ManyToOne(() => WorkspaceEntity, (workspace) => workspace.namespaces, {
-        onDelete: 'CASCADE',
-    })
-    @JoinColumn({ name: 'workspace_id' })
-    workspace: WorkspaceEntity;
+  @OneToMany(() => NamespaceEntity, (namespace) => namespace.parent)
+  children: NamespaceEntity[];
 
-    @Column({ name: 'workspace_id' })
-    workspaceId: string;
+  @ManyToMany(() => WorkflowEntity, (workflow) => workflow.namespaces, {
+    onDelete: 'CASCADE',
+  })
+  workflows: WorkflowEntity[];
 
-    @ManyToMany(() => ProjectEntity, (project) => project.namespaces)
-    @JoinTable({
-        name: 'project_namespace',
-        joinColumn: {
-            name: 'namespace_id',
-            referencedColumnName: 'id',
-        },
-        inverseJoinColumn: {
-            name: 'project_id',
-            referencedColumnName: 'id',
-        },
-    })
-    projects: ProjectEntity[];
-
-    @ManyToMany(() => WorkflowEntity, (workflow) => workflow.namespaces)
-    @JoinTable({
-        name: 'workflow_namespace',
-        joinColumn: {
-            name: 'namespace_id',
-            referencedColumnName: 'id',
-        },
-        inverseJoinColumn: {
-            name: 'workflow_id',
-            referencedColumnName: 'id',
-        },
-    })
-    workflows: WorkflowEntity[];
+  @ManyToMany(() => WorkflowEntity, (workflow) => workflow.namespaces)
+  projects: WorkflowEntity[];
 }

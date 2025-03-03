@@ -1,9 +1,9 @@
-import {HistoryTransition} from "../interfaces";
+import { HistoryTransition } from '../interfaces';
 
 export class WorkflowStateHistoryDto {
-    history: HistoryTransition[];
+  history: HistoryTransition[];
 
-    constructor(items: HistoryTransition[]) {
-        this.history = items;
-    }
+  constructor(items: HistoryTransition[]) {
+    this.history = items;
+  }
 }

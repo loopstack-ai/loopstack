@@ -10,7 +10,7 @@ import { PromptTemplateCollectionService } from './services/prompt-template-coll
 import { ToolWrapperCollectionService } from './services/tool-wrapper-collection.service';
 import { WorkspaceCollectionService } from './services/workspace-collection.service';
 import { WorkflowTemplateCollectionService } from './services/workflow-template-collection.service';
-import { ConfigModule } from '@nestjs/config/dist/config.module';
+import { ConfigModule } from '@nestjs/config';
 import loadSchemas from './configuration';
 
 @Module({

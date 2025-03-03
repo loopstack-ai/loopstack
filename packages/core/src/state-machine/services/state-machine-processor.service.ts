@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   WorkflowObserverConfigInterface,
   WorkflowStateMachineConfigInterface,
@@ -9,18 +8,15 @@ import { ContextInterface } from '../../processor/interfaces/context.interface';
 import { StateMachineConfigService } from './state-machine-config.service';
 import { WorkflowService } from '../../persistence/services/workflow.service';
 import { StateMachineValidatorRegistry } from '../registry/state-machine-validator.registry';
-import { TransitionPayloadInterface } from '../interfaces/transition-payload.interface';
+import { TransitionPayloadInterface } from '@loopstack/shared';
 import _ from 'lodash';
-import { LoopEvent } from '../../event/enums/event.enum';
 import { TransitionContextInterface } from '../interfaces/transition-context.interface';
-import { HistoryTransition } from '../../persistence/interfaces/history-transition.interface';
+import { HistoryTransition } from '../../persistence/interfaces';
 import { WorkflowStateContextInterface } from '../interfaces/workflow-state-context.interface';
 import { StateMachineActionService } from './state-machine-action.service';
-import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
-import {ProcessStateInterface} from "../../processor/interfaces/process-state.interface";
-import {WorkflowStatePlaceInfoDto} from "../../persistence/dtos/workflow-state-place-info.dto";
-import {WorkflowStateEntity} from "../../persistence/entities";
-import {WorkflowStateHistoryDto} from "../../persistence/dtos";
+import { WorkflowEntity } from '../../persistence/entities';
+import { WorkflowStatePlaceInfoDto } from '../../persistence/dtos';
+import { WorkflowStateHistoryDto } from '../../persistence/dtos';
 
 @Injectable()
 export class StateMachineProcessorService {
@@ -54,7 +50,7 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     stateMachineConfig: WorkflowStateMachineConfigInterface,
   ): Promise<WorkflowEntity> {
-    console.log('starting with', workflow?.state.place);
+    console.log('starting with', workflow?.place);
 
     const pendingTransition =
       context.transition?.workflowId === workflow.id
@@ -92,22 +88,25 @@ export class StateMachineProcessorService {
   }
 
   updateWorkflowState(
-    workflowState: WorkflowStateEntity,
+    workflow: WorkflowEntity,
     transitions: WorkflowTransitionConfigInterface[],
     historyItem: HistoryTransition,
   ): void {
-    workflowState.place = historyItem.to;
-    workflowState.history = new WorkflowStateHistoryDto([
-        ...(workflowState.history?.history ?? []),
-        historyItem,
+    workflow.place = historyItem.to;
+    workflow.history = new WorkflowStateHistoryDto([
+      ...(workflow.history?.history ?? []),
+      historyItem,
     ]);
 
-    workflowState.placeInfo = new WorkflowStatePlaceInfoDto(transitions.filter(
-      (item) =>
-        // (
-        item.from.includes('*') || (workflowState.place && item.from.includes(workflowState.place)),
-      // ) && (!item.condition || item.condition?.(workflowState)),
-    ));
+    workflow.placeInfo = new WorkflowStatePlaceInfoDto(
+      transitions.filter(
+        (item) =>
+          // (
+          item.from.includes('*') ||
+          (workflow.place && item.from.includes(workflow.place)),
+        // ) && (!item.condition || item.condition?.(workflowState)),
+      ),
+    );
   }
 
   async initStateMachine(
@@ -121,15 +120,11 @@ export class StateMachineProcessorService {
     if (invalidationReasons.length) {
       const initialTransition: HistoryTransition = {
         transition: 'invalidation',
-        from: workflow.state.place,
-        to: 'initial'
-      }
+        from: workflow.place,
+        to: 'initial',
+      };
 
-      this.updateWorkflowState(
-          workflow.state,
-          transitions,
-          initialTransition
-      );
+      this.updateWorkflowState(workflow, transitions, initialTransition);
     }
 
     await this.workflowService.saveWorkflow(workflow);
@@ -155,13 +150,13 @@ export class StateMachineProcessorService {
   ): TransitionContextInterface | null {
     let transitionPayload = {};
     let transitionMeta = {};
-    let nextTransition = workflow.state.placeInfo?.availableTransitions.find(
+    let nextTransition = workflow.placeInfo?.availableTransitions.find(
       (item) => item.trigger === 'auto',
     );
 
     if (!nextTransition && userTransitions.length) {
       const nextPending = userTransitions.shift()!;
-      nextTransition = workflow.state.placeInfo?.availableTransitions.find(
+      nextTransition = workflow.placeInfo?.availableTransitions.find(
         (item) => item.name === nextPending.name,
       );
 
@@ -177,7 +172,7 @@ export class StateMachineProcessorService {
 
     return {
       transition: nextTransition.name,
-      from: workflow.state.place,
+      from: workflow.place,
       to: nextTransition.to,
       payload: transitionPayload,
       meta: transitionMeta,
@@ -219,15 +214,18 @@ export class StateMachineProcessorService {
 
           let nextPlace: string | null = null;
           for (const observer of matchedObservers) {
-            console.log(`calling observer ${observer.action} on transition ${observer.transition}`);
-
-            const actionResult = await this.stateMachineActionService.executeAction(
-              observer,
-              context,
-              workflowStateContext,
-              transitionContext,
-              workflow,
+            console.log(
+              `calling observer ${observer.action} on transition ${observer.transition}`,
             );
+
+            const actionResult =
+              await this.stateMachineActionService.executeAction(
+                observer,
+                context,
+                workflowStateContext,
+                transitionContext,
+                workflow,
+              );
 
             if (actionResult.nextPlace) {
               nextPlace = actionResult.nextPlace;
@@ -251,11 +249,7 @@ export class StateMachineProcessorService {
             to: nextPlace,
           };
 
-          this.updateWorkflowState(
-            workflow.state,
-            transitions,
-            historyItem,
-          );
+          this.updateWorkflowState(workflow, transitions, historyItem);
 
           await this.workflowService.saveWorkflow(workflow);
         } catch (e) {

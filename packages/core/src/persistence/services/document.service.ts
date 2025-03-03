@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DocumentEntity } from '../entities/document.entity';
-import {NamespacesType} from "@loopstack/shared";
+import { DocumentEntity } from '../entities';
+import {NamespaceEntity} from "../entities/namespace.entity";
 
 @Injectable()
 export class DocumentService {
@@ -16,20 +16,19 @@ export class DocumentService {
   }
 
   createQuery(
-      projectId: string,
-      workspaceId: string,
-      where: {
-        name: string;
-        type?: string;
-      },
-      options?: {
-        isGlobal?: boolean;
-        namespaces?: NamespacesType;
-        ltWorkflowIndex?: number;
-      },
+    projectId: string,
+    workspaceId: string,
+    where: {
+      name: string;
+      type?: string;
+    },
+    options?: {
+      isGlobal?: boolean;
+      namespaces?: any;
+      ltWorkflowIndex?: number;
+    },
   ) {
-    const queryBuilder =
-        this.documentRepository.createQueryBuilder();
+    const queryBuilder = this.documentRepository.createQueryBuilder();
 
     queryBuilder.andWhere(where);
 
@@ -53,19 +52,20 @@ export class DocumentService {
       });
     }
 
-    if (options?.namespaces) {
-      const keys = Object.entries(options?.namespaces)
-          .filter(([key, value]) => undefined !== value)
-          .map(([key]) => key);
-
-      keys.forEach((key, index) => {
-        queryBuilder.andWhere(`namespaces @> :namespace${index}`, {
-          [`namespace${index}`]: JSON.stringify({
-            [key]: options?.namespaces![key],
-          }),
-        });
-      });
-    }
+    // todo
+    // if (options?.namespaces) {
+    //   const keys = Object.entries(options?.namespaces)
+    //     .filter(([key, value]) => undefined !== value)
+    //     .map(([key]) => key);
+    //
+    //   keys.forEach((key, index) => {
+    //     queryBuilder.andWhere(`namespaces @> :namespace${index}`, {
+    //       [`namespace${index}`]: JSON.stringify({
+    //         [key]: options?.namespaces![key],
+    //       }),
+    //     });
+    //   });
+    // }
 
     queryBuilder.orderBy('workflow_index', 'DESC');
 

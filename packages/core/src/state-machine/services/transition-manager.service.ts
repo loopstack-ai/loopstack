@@ -10,7 +10,7 @@ import { WorkspaceEntity } from '../../persistence/entities/workspace.entity';
 import { ProjectEntity } from '../../persistence/entities/project.entity';
 import { DocumentEntity } from '../../persistence/entities/document.entity';
 import { TransitionResultInterface } from '../interfaces/transition-result.interface';
-import {ContextInterface} from "../../processor/interfaces/context.interface";
+import { ContextInterface } from '../../processor/interfaces/context.interface';
 
 @Injectable()
 export class TransitionManagerService {
@@ -45,9 +45,9 @@ export class TransitionManagerService {
       index: this.workflow.documents?.length ?? 0,
       workflowIndex: this.workflow.index,
       transition: this.transitionContext.transition,
-      place: this.workflow.state.place,
-      workspace: { id: this.workflow.workspaceId } as WorkspaceEntity,
-      project: { id: this.workflow.projectId } as ProjectEntity,
+      place: this.workflow.place,
+      workspaceId: this.workflowContext.workspaceId,
+      projectId: this.workflowContext.projectId,
       workflow: { id: this.workflow.id } as WorkflowEntity,
     });
 
