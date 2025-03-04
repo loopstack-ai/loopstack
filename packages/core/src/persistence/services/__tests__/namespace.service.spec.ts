@@ -1,119 +1,34 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { INestApplication } from '@nestjs/common';
 import {NamespacesService} from "../namespace.service";
-import {NamespaceEntity} from "../../entities/namespace.entity";
-import {DocumentEntity, ProjectEntity, WorkflowEntity, WorkspaceEntity} from "../../entities";
+import {ProjectEntity} from "../../entities";
 import {ProjectStatus} from "@loopstack/shared";
+import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
 
 describe('NamespacesService', () => {
-    let pgConnection: DataSource;
-    let app: INestApplication;
-    let dataSource: DataSource;
+    let testSetup: TestSetup;
     let namespacesService: NamespacesService;
-    let namespaceRepo: Repository<NamespaceEntity>;
-    let projectRepo: Repository<ProjectEntity>;
-    let workspaceRepo: Repository<WorkspaceEntity>;
-    let workflowRepo: Repository<WorkflowEntity>;
-
-    const databaseName = 'test_namespaces_service';
 
     beforeAll(async () => {
-        pgConnection = new DataSource({
-            type: 'postgres',
-            host: 'localhost',
-            port: 5432,
-            username: 'postgres',
-            password: 'admin',
-            database: 'postgres', // Default database
+        testSetup = await setupTestEnvironment({
+            providers: [NamespacesService]
         });
-
-        await pgConnection.initialize();
-
-        // Create a unique test database
-        try {
-            await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-            await pgConnection.query(`CREATE DATABASE ${databaseName}`);
-        } catch (err) {
-            console.error('Could not create test database', err);
-            throw err;
-        }
-
-        const moduleRef: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    host: 'localhost',
-                    port: 5432,
-                    username: 'postgres',
-                    password: 'admin',
-                    database: databaseName,
-                    entities: [
-                        ProjectEntity,
-                        WorkspaceEntity,
-                        NamespaceEntity,
-                        DocumentEntity,
-                        WorkflowEntity,
-                    ],
-                    synchronize: true,
-                }),
-                TypeOrmModule.forFeature([
-                    ProjectEntity,
-                    WorkspaceEntity,
-                    NamespaceEntity,
-                    DocumentEntity,
-                    WorkflowEntity,
-                ]),
-            ],
-            providers: [NamespacesService],
-        }).compile();
-
-        app = moduleRef.createNestApplication();
-        await app.init();
-
-        dataSource = moduleRef.get<DataSource>(DataSource);
-        namespacesService = moduleRef.get<NamespacesService>(NamespacesService);
-        namespaceRepo = moduleRef.get<Repository<NamespaceEntity>>(
-            getRepositoryToken(NamespaceEntity),
-        );
-        projectRepo = moduleRef.get<Repository<ProjectEntity>>(
-            getRepositoryToken(ProjectEntity),
-        );
-        workspaceRepo = moduleRef.get<Repository<WorkspaceEntity>>(
-            getRepositoryToken(WorkspaceEntity),
-        );
-        workflowRepo = moduleRef.get<Repository<WorkflowEntity>>(
-            getRepositoryToken(WorkflowEntity),
-        );
+        namespacesService = testSetup.moduleRef.get<NamespacesService>(NamespacesService);
     });
 
     afterAll(async () => {
-        await dataSource.destroy(); // Explicitly destroy connection
-        await app.close();
-
-        if (pgConnection && pgConnection.isInitialized) {
-            try {
-                await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-            } finally {
-                await pgConnection.destroy();
-            }
-        }
+        await testSetup.cleanup();
     });
 
     beforeEach(async () => {
-        // Clear all tables before each test to ensure isolation
-        await dataSource.query('TRUNCATE "document" CASCADE');
-        await dataSource.query('TRUNCATE "workflow" CASCADE');
-        await dataSource.query('TRUNCATE "workflow_namespace" CASCADE');
-        await dataSource.query('TRUNCATE "workflow_document" CASCADE');
-        await dataSource.query('TRUNCATE "project" CASCADE');
-        await dataSource.query('TRUNCATE "namespace" CASCADE');
-        await dataSource.query('TRUNCATE "workspace" CASCADE');
+        await clearDatabase(testSetup.dataSource);
     });
 
     describe('findNamespaceIdsByAttributes', () => {
         it('should return namespace IDs that match the given attributes', async () => {
+            const {
+                workspaceRepo,
+                namespaceRepo,
+            } = testSetup;
+
             // Create a workspace
             const workspace = workspaceRepo.create({
                 title: 'Test Workspace',
@@ -150,6 +65,10 @@ describe('NamespacesService', () => {
         });
 
         it('should return empty array when no namespaces match the attributes', async () => {
+            const {
+                workspaceRepo,
+                namespaceRepo,
+            } = testSetup;
             // Create a workspace
             const workspace = workspaceRepo.create({
                 title: 'Test Workspace',
@@ -177,6 +96,10 @@ describe('NamespacesService', () => {
 
     describe('omitNamespacesByNames', () => {
         it('should remove namespaces and their descendants by name', async () => {
+            const {
+                workspaceRepo,
+                namespaceRepo,
+            } = testSetup;
             // Create a workspace
             const workspace = workspaceRepo.create({
                 title: 'Test Workspace',
@@ -238,6 +161,10 @@ describe('NamespacesService', () => {
         });
 
         it('should handle multiple namespaces to omit', async () => {
+            const {
+                workspaceRepo,
+                namespaceRepo,
+            } = testSetup;
             // Create a workspace
             const workspace = workspaceRepo.create({
                 title: 'Test Workspace',
@@ -282,6 +209,10 @@ describe('NamespacesService', () => {
         });
 
         it('should handle non-existent namespace names gracefully', async () => {
+            const {
+                workspaceRepo,
+                namespaceRepo,
+            } = testSetup;
             // Create a workspace
             const workspace = workspaceRepo.create({
                 title: 'Test Workspace',
@@ -320,18 +251,23 @@ describe('NamespacesService', () => {
 
     describe('create', () => {
         it('should create a new namespace when it does not exist', async () => {
+            const {
+                projectRepo,
+                workspaceRepo,
+                namespaceRepo,
+            } = testSetup;
             // Create a workspace
             const workspace = workspaceRepo.create({
                 title: 'Test Workspace',
             });
             await workspaceRepo.save(workspace);
 
-            const project = await projectRepo.save({
+            const project = await projectRepo.save(projectRepo.create({
                 name: 'Test Project',
                 title: 'Test Project',
                 status: ProjectStatus.New,
                 workspace: workspace,
-            });
+            }));
 
             const namespaceDto = {
                 name: 'new-namespace',
@@ -363,6 +299,11 @@ describe('NamespacesService', () => {
         });
 
         it('should update existing namespace metadata when it already exists', async () => {
+            const {
+                projectRepo,
+                workspaceRepo,
+                namespaceRepo,
+            } = testSetup;
             // Create a workspace
             const workspace = workspaceRepo.create({
                 title: 'Test Workspace',
@@ -378,12 +319,12 @@ describe('NamespacesService', () => {
             });
             await namespaceRepo.save(initialNamespace);
 
-            const project = await projectRepo.save({
+            const project = await projectRepo.save(projectRepo.create({
                 name: 'Test Project',
                 title: 'Test Project',
                 status: ProjectStatus.New,
                 workspace: workspace,
-            });
+            }));
 
             // Update the namespace with new metadata
             const updateDto = {
@@ -416,18 +357,23 @@ describe('NamespacesService', () => {
         });
 
         it('should handle parent-child relationships correctly', async () => {
+            const {
+                projectRepo,
+                workspaceRepo,
+                namespaceRepo,
+            } = testSetup;
             // Create a workspace
             const workspace = workspaceRepo.create({
                 title: 'Test Workspace',
             });
             await workspaceRepo.save(workspace);
 
-            const project = await projectRepo.save({
+            const project = await projectRepo.save(projectRepo.create({
                 name: 'Test Project',
                 title: 'Test Project',
                 status: ProjectStatus.New,
                 workspace: workspace,
-            });
+            }));
 
             // Create parent namespace
             const parentNamespaceDto = {
@@ -463,6 +409,12 @@ describe('NamespacesService', () => {
         });
 
         it('should maintain existing relationships when updating a namespace', async () => {
+            const {
+                projectRepo,
+                workflowRepo,
+                workspaceRepo,
+                namespaceRepo,
+            } = testSetup;
             // Create a workspace
             const workspace = workspaceRepo.create({
                 title: 'Test Workspace',
@@ -470,11 +422,11 @@ describe('NamespacesService', () => {
             await workspaceRepo.save(workspace);
 
             // Create a project
-            const project: ProjectEntity = await projectRepo.save({
+            const project: ProjectEntity = await projectRepo.save(projectRepo.create({
                 name: 'Test Project',
                 title: 'Test Project',
                 workspaceId: workspace.id,
-            });
+            }));
 
             // Create a workflow
             const workflow = workflowRepo.create({

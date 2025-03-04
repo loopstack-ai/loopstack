@@ -1,4 +1,5 @@
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -74,4 +75,12 @@ export class ProjectEntity {
     },
   })
   namespaces: NamespaceEntity[];
+
+  @Column('uuid', { name: 'namespace_ids', array: true, nullable: false })
+  namespaceIds: string[];
+
+  @BeforeInsert()
+  setNamespaceIds() {
+    this.namespaceIds = this.namespaces?.map(ns => ns.id) || [];
+  }
 }

@@ -1,113 +1,36 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { INestApplication } from '@nestjs/common';
 import {WorkflowService} from "../workflow.service";
-import {DocumentEntity, ProjectEntity, WorkflowEntity, WorkspaceEntity} from "../../entities";
-import {NamespaceEntity} from "../../entities/namespace.entity";
+import {WorkflowEntity} from "../../entities";
+import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
 
 describe('WorkflowService', () => {
-    let app: INestApplication;
-    let pgConnection: DataSource;
-    let dataSource: DataSource;
+    let testSetup: TestSetup;
     let workflowService: WorkflowService;
-    let projectRepo: Repository<ProjectEntity>;
-    let workflowRepo: Repository<WorkflowEntity>;
-    let workspaceRepo: Repository<WorkspaceEntity>;
-    let namespaceRepo: Repository<NamespaceEntity>;
-    let documentRepo: Repository<DocumentEntity>;
-
-    const databaseName = 'test_workflow_service';
 
     beforeAll(async () => {
-        // Connect to default database to create test database
-        pgConnection = new DataSource({
-            type: 'postgres',
-            host: 'localhost',
-            port: 5432,
-            username: 'postgres',
-            password: 'admin',
-            database: 'postgres',
+        testSetup = await setupTestEnvironment({
+            providers: [WorkflowService]
         });
-
-        await pgConnection.initialize();
-
-        // Create a unique test database
-        try {
-            await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-            await pgConnection.query(`CREATE DATABASE ${databaseName}`);
-        } catch (err) {
-            console.error('Could not create test database', err);
-            throw err;
-        }
-
-        const moduleRef: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    host: 'localhost',
-                    port: 5432,
-                    username: 'postgres',
-                    password: 'admin',
-                    database: databaseName,
-                    entities: [
-                        ProjectEntity,
-                        WorkspaceEntity,
-                        NamespaceEntity,
-                        DocumentEntity,
-                        WorkflowEntity,
-                    ],
-                    synchronize: true,
-                }),
-                TypeOrmModule.forFeature([
-                    ProjectEntity,
-                    WorkspaceEntity,
-                    NamespaceEntity,
-                    DocumentEntity,
-                    WorkflowEntity,
-                ]),
-            ],
-            providers: [WorkflowService],
-        }).compile();
-
-        app = moduleRef.createNestApplication();
-        await app.init();
-
-        workflowService = moduleRef.get<WorkflowService>(WorkflowService);
-        dataSource = moduleRef.get<DataSource>(DataSource);
-        projectRepo = moduleRef.get<Repository<ProjectEntity>>(getRepositoryToken(ProjectEntity));
-        workflowRepo = moduleRef.get<Repository<WorkflowEntity>>(getRepositoryToken(WorkflowEntity));
-        workspaceRepo = moduleRef.get<Repository<WorkspaceEntity>>(getRepositoryToken(WorkspaceEntity));
-        namespaceRepo = moduleRef.get<Repository<NamespaceEntity>>(getRepositoryToken(NamespaceEntity));
-        documentRepo = moduleRef.get<Repository<DocumentEntity>>(getRepositoryToken(DocumentEntity));
+        workflowService = testSetup.moduleRef.get<WorkflowService>(WorkflowService);
     });
 
     afterAll(async () => {
-        await dataSource.destroy();
-        await app.close();
-
-        if (pgConnection && pgConnection.isInitialized) {
-            try {
-                await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-            } finally {
-                await pgConnection.destroy();
-            }
-        }
+        await testSetup.cleanup();
     });
 
     beforeEach(async () => {
-        // Clear all tables before each test to ensure isolation
-        await dataSource.query('TRUNCATE "document" CASCADE');
-        await dataSource.query('TRUNCATE "workflow" CASCADE');
-        await dataSource.query('TRUNCATE "workflow_namespace" CASCADE');
-        await dataSource.query('TRUNCATE "workflow_document" CASCADE');
-        await dataSource.query('TRUNCATE "project" CASCADE');
-        await dataSource.query('TRUNCATE "namespace" CASCADE');
-        await dataSource.query('TRUNCATE "workspace" CASCADE');
+        await clearDatabase(testSetup.dataSource);
     });
 
     // Helper function to create test data with more workflow variations
     async function createTestData() {
+        const {
+            projectRepo,
+            workflowRepo,
+            workspaceRepo,
+            namespaceRepo,
+            documentRepo,
+        } = testSetup;
+
         // Create a workspace
         const workspace = await workspaceRepo.save({
             name: 'Test Workspace',

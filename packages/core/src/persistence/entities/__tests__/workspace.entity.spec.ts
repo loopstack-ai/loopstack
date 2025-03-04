@@ -7,111 +7,30 @@ import { NamespaceEntity } from '../namespace.entity';
 import { DocumentEntity } from '../document.entity';
 import { WorkflowEntity } from '../workflow.entity';
 import { INestApplication } from '@nestjs/common';
+import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
 
 describe('Workspace Entity Deletion Tests', () => {
-  let pgConnection: DataSource;
-  let app: INestApplication;
-  let dataSource: DataSource;
-  let projectRepo: Repository<ProjectEntity>;
-  let workspaceRepo: Repository<WorkspaceEntity>;
-  let namespaceRepo: Repository<NamespaceEntity>;
-  let documentRepo: Repository<DocumentEntity>;
-
-  const databaseName = 'test_workspace_entity';
+  let testSetup: TestSetup;
 
   beforeAll(async () => {
-    pgConnection = new DataSource({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'admin',
-      database: 'postgres', // Default database
-    });
-
-    await pgConnection.initialize();
-
-    // Create a unique test database
-    try {
-      await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-      await pgConnection.query(`CREATE DATABASE ${databaseName}`);
-    } catch (err) {
-      console.error('Could not create test database', err);
-      throw err;
-    }
-
-    const moduleRef: TestingModule = await Test.createTestingModule({
-      imports: [
-        TypeOrmModule.forRoot({
-          type: 'postgres',
-          host: 'localhost',
-          port: 5432,
-          username: 'postgres',
-          password: 'admin',
-          database: databaseName,
-          entities: [
-            ProjectEntity,
-            WorkspaceEntity,
-            NamespaceEntity,
-            DocumentEntity,
-            WorkflowEntity,
-          ],
-          synchronize: true,
-        }),
-        TypeOrmModule.forFeature([
-          ProjectEntity,
-          WorkspaceEntity,
-          NamespaceEntity,
-          DocumentEntity,
-          WorkflowEntity,
-        ]),
-      ],
-    }).compile();
-
-    app = moduleRef.createNestApplication();
-    await app.init();
-
-    dataSource = moduleRef.get<DataSource>(DataSource);
-    projectRepo = moduleRef.get<Repository<ProjectEntity>>(
-      getRepositoryToken(ProjectEntity),
-    );
-    workspaceRepo = moduleRef.get<Repository<WorkspaceEntity>>(
-      getRepositoryToken(WorkspaceEntity),
-    );
-    namespaceRepo = moduleRef.get<Repository<NamespaceEntity>>(
-      getRepositoryToken(NamespaceEntity),
-    );
-    documentRepo = moduleRef.get<Repository<DocumentEntity>>(
-      getRepositoryToken(DocumentEntity),
-    );
+    testSetup = await setupTestEnvironment();
   });
 
   afterAll(async () => {
-    await dataSource.destroy(); // Explicitly destroy connection
-    await app.close();
-
-    if (pgConnection && pgConnection.isInitialized) {
-      try {
-        await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-      } finally {
-        await pgConnection.destroy();
-      }
-    }
+    await testSetup.cleanup();
   });
 
   beforeEach(async () => {
-    // Clear all tables before each test to ensure isolation
-    await dataSource.query('TRUNCATE "document" CASCADE');
-    await dataSource.query('TRUNCATE "workflow" CASCADE');
-    await dataSource.query('TRUNCATE "workflow_namespace" CASCADE');
-    await dataSource.query('TRUNCATE "workflow_document" CASCADE');
-    await dataSource.query('TRUNCATE "project" CASCADE');
-    await dataSource.query('TRUNCATE "namespace" CASCADE');
-    await dataSource.query('TRUNCATE "workspace" CASCADE');
+    await clearDatabase(testSetup.dataSource);
   });
 
   describe('Workspace deletion cascade behavior', () => {
     it('should cascade delete all associated projects when workspace is deleted', async () => {
+      const {
+        projectRepo,
+        workspaceRepo,
+      } = testSetup;
+
       // Create a workspace
       const workspace = workspaceRepo.create({
         title: 'Test Workspace',
@@ -185,6 +104,11 @@ describe('Workspace Entity Deletion Tests', () => {
     });
 
     it('should not affect other workspaces and their projects when a workspace is deleted', async () => {
+      const {
+        projectRepo,
+        workspaceRepo,
+      } = testSetup;
+
       // Create two workspaces
       const workspace1 = workspaceRepo.create({
         title: 'Workspace 1',

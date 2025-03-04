@@ -1,4 +1,3 @@
-import { NamespaceEntity } from '../../persistence/entities/namespace.entity';
 import {TransitionPayloadInterface} from "@loopstack/shared";
 
 export interface ProcessRunInterface {
@@ -6,7 +5,8 @@ export interface ProcessRunInterface {
   projectId: string;
   model: string;
   workspaceId: string;
-  namespaces: NamespaceEntity[];
+  projectNamespaceIds: string[];
+  namespaceIds: string[];
 
   transition?: TransitionPayloadInterface;
 }

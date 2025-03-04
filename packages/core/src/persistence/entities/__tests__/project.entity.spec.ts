@@ -8,115 +8,31 @@ import { DocumentEntity } from '../document.entity';
 import { WorkflowEntity } from '../workflow.entity';
 import { INestApplication } from '@nestjs/common';
 import { ProjectStatus } from '@loopstack/shared';
+import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
 
 describe('Project Entity Deletion Tests', () => {
-  let pgConnection: DataSource;
-  let app: INestApplication;
-  let dataSource: DataSource;
-  let projectRepo: Repository<ProjectEntity>;
-  let workflowRepo: Repository<WorkflowEntity>;
-  let workspaceRepo: Repository<WorkspaceEntity>;
-  let namespaceRepo: Repository<NamespaceEntity>;
-  let documentRepo: Repository<DocumentEntity>;
-
-  const databaseName = 'test_project_entity';
+  let testSetup: TestSetup;
 
   beforeAll(async () => {
-    pgConnection = new DataSource({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'admin',
-      database: 'postgres', // Default database
-    });
-
-    await pgConnection.initialize();
-
-    // Create a unique test database
-    try {
-      await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-      await pgConnection.query(`CREATE DATABASE ${databaseName}`);
-    } catch (err) {
-      console.error('Could not create test database', err);
-      throw err;
-    }
-
-    const moduleRef: TestingModule = await Test.createTestingModule({
-      imports: [
-        TypeOrmModule.forRoot({
-          type: 'postgres',
-          host: 'localhost',
-          port: 5432,
-          username: 'postgres',
-          password: 'admin',
-          database: databaseName,
-          entities: [
-            ProjectEntity,
-            WorkspaceEntity,
-            NamespaceEntity,
-            DocumentEntity,
-            WorkflowEntity,
-          ],
-          synchronize: true,
-        }),
-        TypeOrmModule.forFeature([
-          ProjectEntity,
-          WorkspaceEntity,
-          NamespaceEntity,
-          DocumentEntity,
-          WorkflowEntity,
-        ]),
-      ],
-    }).compile();
-
-    app = moduleRef.createNestApplication();
-    await app.init();
-
-    dataSource = moduleRef.get<DataSource>(DataSource);
-    projectRepo = moduleRef.get<Repository<ProjectEntity>>(
-      getRepositoryToken(ProjectEntity),
-    );
-    workflowRepo = moduleRef.get<Repository<WorkflowEntity>>(
-      getRepositoryToken(WorkflowEntity),
-    );
-    workspaceRepo = moduleRef.get<Repository<WorkspaceEntity>>(
-      getRepositoryToken(WorkspaceEntity),
-    );
-    namespaceRepo = moduleRef.get<Repository<NamespaceEntity>>(
-      getRepositoryToken(NamespaceEntity),
-    );
-    documentRepo = moduleRef.get<Repository<DocumentEntity>>(
-      getRepositoryToken(DocumentEntity),
-    );
+    testSetup = await setupTestEnvironment();
   });
 
   afterAll(async () => {
-    await dataSource.destroy(); // Explicitly destroy connection
-    await app.close();
-
-    if (pgConnection && pgConnection.isInitialized) {
-      try {
-        await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-      } finally {
-        await pgConnection.destroy();
-      }
-    }
+    await testSetup.cleanup();
   });
 
   beforeEach(async () => {
-    // Clear all tables before each test to ensure isolation
-    await dataSource.query('TRUNCATE "document" CASCADE');
-    await dataSource.query('TRUNCATE "workflow" CASCADE');
-    await dataSource.query('TRUNCATE "workflow_namespace" CASCADE');
-    await dataSource.query('TRUNCATE "workflow_document" CASCADE');
-    await dataSource.query('TRUNCATE "project" CASCADE');
-    await dataSource.query('TRUNCATE "namespace" CASCADE');
-    await dataSource.query('TRUNCATE "workspace" CASCADE');
+    await clearDatabase(testSetup.dataSource);
   });
 
   describe('Project deletion cascade behaviors', () => {
     it('should cascade delete workflows when a project is deleted', async () => {
+      const {
+        projectRepo,
+        workflowRepo,
+        workspaceRepo,
+      } = testSetup;
+
       // Create a workspace
       const workspace = await workspaceRepo.save({
         name: 'Test Workspace',
@@ -124,13 +40,13 @@ describe('Project Entity Deletion Tests', () => {
       });
 
       // Create a project
-      const project = await projectRepo.save({
+      const project = await projectRepo.save(projectRepo.create({
         name: 'Test Project',
         title: 'Test Project',
         status: ProjectStatus.New,
         workspace: workspace,
         workspaceId: workspace.id,
-      });
+      }));
 
       // Create workflows linked to the project
       const workflow1 = await workflowRepo.save(workflowRepo.create({
@@ -170,6 +86,12 @@ describe('Project Entity Deletion Tests', () => {
     });
 
     it('should not delete workspaces and namespaces when a project is deleted', async () => {
+      const {
+        projectRepo,
+        workspaceRepo,
+        namespaceRepo,
+      } = testSetup;
+
       // Create a workspace
       const workspace = await workspaceRepo.save({
         name: 'Test Workspace',
@@ -185,14 +107,14 @@ describe('Project Entity Deletion Tests', () => {
       await namespaceRepo.save(namespace1);
 
       // Create a project in the workspace
-      const project = await projectRepo.save({
+      const project = await projectRepo.save(projectRepo.create({
         name: 'Test Project',
         title: 'Test Project',
         status: ProjectStatus.New,
         workspace: workspace,
         workspaceId: workspace.id,
         namespaces: [namespace1],
-      });
+      }));
 
       // Verify the project is created with workspace reference
       const createdProject = await projectRepo.findOne({

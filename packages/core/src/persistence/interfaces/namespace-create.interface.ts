@@ -5,4 +5,5 @@ export interface NamespaceCreateInterface {
   model: string;
   parentId?: string;
   metadata?: Record<string, any>;
+  createdBy?: string | null;
 }

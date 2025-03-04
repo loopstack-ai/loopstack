@@ -87,6 +87,7 @@ export class WorkflowProcessorService {
       workspaceId: localContext.workspaceId,
       parentId: localContext.namespaceIds[localContext.namespaceIds.length - 1],
       metadata: undefined,
+      createdBy: localContext.userId,
     });
     localContext.namespaceIds.push(keyNamespace.id);
 
@@ -108,6 +109,7 @@ export class WorkflowProcessorService {
         parentId:
           childContext.namespaceIds[childContext.namespaceIds.length - 1],
         metadata: undefined,
+        createdBy: localContext.userId,
       });
       childContext.namespaceIds.push(valueNamespace.id);
 

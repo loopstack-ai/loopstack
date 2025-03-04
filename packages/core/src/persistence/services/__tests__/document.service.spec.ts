@@ -1,122 +1,35 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { INestApplication } from '@nestjs/common';
-import {DocumentEntity, ProjectEntity, WorkflowEntity, WorkspaceEntity} from "../../entities";
-import {NamespaceEntity} from "../../entities/namespace.entity";
 import {DocumentService} from "../document.service";
+import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
 
 describe('Document Service Tests', () => {
-    let pgConnection: DataSource;
-    let app: INestApplication;
-    let dataSource: DataSource;
-    let projectRepo: Repository<ProjectEntity>;
-    let workflowRepo: Repository<WorkflowEntity>;
-    let workspaceRepo: Repository<WorkspaceEntity>;
-    let namespaceRepo: Repository<NamespaceEntity>;
-    let documentRepo: Repository<DocumentEntity>;
+    let testSetup: TestSetup;
     let documentService: DocumentService;
 
-    const databaseName = 'test_document_service';
-
     beforeAll(async () => {
-        pgConnection = new DataSource({
-            type: 'postgres',
-            host: 'localhost',
-            port: 5432,
-            username: 'postgres',
-            password: 'admin',
-            database: 'postgres', // Default database
+        testSetup = await setupTestEnvironment({
+            providers: [DocumentService]
         });
-
-        await pgConnection.initialize();
-
-        // Create a unique test database
-        try {
-            await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-            await pgConnection.query(`CREATE DATABASE ${databaseName}`);
-        } catch (err) {
-            console.error('Could not create test database', err);
-            throw err;
-        }
-
-        const moduleRef: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    host: 'localhost',
-                    port: 5432,
-                    username: 'postgres',
-                    password: 'admin',
-                    database: databaseName,
-                    entities: [
-                        ProjectEntity,
-                        WorkspaceEntity,
-                        NamespaceEntity,
-                        DocumentEntity,
-                        WorkflowEntity,
-                    ],
-                    synchronize: true,
-                }),
-                TypeOrmModule.forFeature([
-                    ProjectEntity,
-                    WorkspaceEntity,
-                    NamespaceEntity,
-                    DocumentEntity,
-                    WorkflowEntity,
-                ]),
-            ],
-            providers: [DocumentService],
-        }).compile();
-
-        app = moduleRef.createNestApplication();
-        await app.init();
-
-        dataSource = moduleRef.get<DataSource>(DataSource);
-        projectRepo = moduleRef.get<Repository<ProjectEntity>>(
-            getRepositoryToken(ProjectEntity),
-        );
-        workflowRepo = moduleRef.get<Repository<WorkflowEntity>>(
-            getRepositoryToken(WorkflowEntity),
-        );
-        workspaceRepo = moduleRef.get<Repository<WorkspaceEntity>>(
-            getRepositoryToken(WorkspaceEntity),
-        );
-        namespaceRepo = moduleRef.get<Repository<NamespaceEntity>>(
-            getRepositoryToken(NamespaceEntity),
-        );
-        documentRepo = moduleRef.get<Repository<DocumentEntity>>(
-            getRepositoryToken(DocumentEntity),
-        );
-        documentService = moduleRef.get<DocumentService>(DocumentService);
+        documentService = testSetup.moduleRef.get<DocumentService>(DocumentService);
     });
 
     afterAll(async () => {
-        await dataSource.destroy(); // Explicitly destroy connection
-        await app.close();
-
-        if (pgConnection && pgConnection.isInitialized) {
-            try {
-                await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-            } finally {
-                await pgConnection.destroy();
-            }
-        }
+        await testSetup.cleanup();
     });
 
     beforeEach(async () => {
-        // Clear all tables before each test to ensure isolation
-        await dataSource.query('TRUNCATE "document" CASCADE');
-        await dataSource.query('TRUNCATE "workflow" CASCADE');
-        await dataSource.query('TRUNCATE "workflow_namespace" CASCADE');
-        await dataSource.query('TRUNCATE "workflow_document" CASCADE');
-        await dataSource.query('TRUNCATE "project" CASCADE');
-        await dataSource.query('TRUNCATE "namespace" CASCADE');
-        await dataSource.query('TRUNCATE "workspace" CASCADE');
+        await clearDatabase(testSetup.dataSource);
     });
 
     // Helper function to setup test data
     async function setupTestData() {
+        const {
+            projectRepo,
+            workflowRepo,
+            workspaceRepo,
+            namespaceRepo,
+            documentRepo,
+        } = testSetup;
+
         // Create a workspace
         const workspace = workspaceRepo.create({
             title: 'Test Workspace',
@@ -305,6 +218,10 @@ describe('Document Service Tests', () => {
         });
 
         it('should return an empty array if no workflows contain all specified namespaces', async () => {
+            const {
+                workspaceRepo,
+                namespaceRepo,
+            } = testSetup;
             const { project, workspace,  namespace1, namespace3 } = await setupTestData();
 
             // Create a new namespace that isn't associated with any workflow
@@ -349,6 +266,10 @@ describe('Document Service Tests', () => {
         });
 
         it('should filter by document type', async () => {
+            const {
+                workflowRepo,
+                documentRepo,
+            } = testSetup;
             const { project, workspace } = await setupTestData();
 
             // Create a document with a different type
@@ -464,6 +385,11 @@ describe('Document Service Tests', () => {
         });
 
         it('should use global scope when isGlobal is true', async () => {
+            const {
+                projectRepo,
+                workflowRepo,
+                documentRepo,
+            } = testSetup;
             const { project, workspace } = await setupTestData();
 
             // Create a second project in the same workspace
@@ -522,6 +448,9 @@ describe('Document Service Tests', () => {
 
     describe('create', () => {
         it('should create a document entity without saving it', async () => {
+            const {
+                documentRepo,
+            } = testSetup;
             const { project, workspace, workflow1 } = await setupTestData();
 
             const documentDto = {

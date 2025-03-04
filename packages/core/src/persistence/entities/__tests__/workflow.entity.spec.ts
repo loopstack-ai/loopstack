@@ -7,116 +7,33 @@ import { NamespaceEntity } from '../namespace.entity';
 import { DocumentEntity } from '../document.entity';
 import { WorkflowEntity } from '../workflow.entity';
 import { INestApplication } from '@nestjs/common';
+import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
 
 describe('Workflow Entity Deletion Tests', () => {
-  let pgConnection: DataSource;
-  let app: INestApplication;
-  let dataSource: DataSource;
-  let projectRepo: Repository<ProjectEntity>;
-  let workflowRepo: Repository<WorkflowEntity>;
-  let workspaceRepo: Repository<WorkspaceEntity>;
-  let namespaceRepo: Repository<NamespaceEntity>;
-  let documentRepo: Repository<DocumentEntity>;
-
-  const databaseName = 'test_workflow_entity';
+  let testSetup: TestSetup;
 
   beforeAll(async () => {
-    pgConnection = new DataSource({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'admin',
-      database: 'postgres', // Default database
-    });
-
-    await pgConnection.initialize();
-
-    // Create a unique test database
-    try {
-      await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-      await pgConnection.query(`CREATE DATABASE ${databaseName}`);
-    } catch (err) {
-      console.error('Could not create test database', err);
-      throw err;
-    }
-
-    const moduleRef: TestingModule = await Test.createTestingModule({
-      imports: [
-        TypeOrmModule.forRoot({
-          type: 'postgres',
-          host: 'localhost',
-          port: 5432,
-          username: 'postgres',
-          password: 'admin',
-          database: databaseName,
-          entities: [
-            ProjectEntity,
-            WorkspaceEntity,
-            NamespaceEntity,
-            DocumentEntity,
-            WorkflowEntity,
-          ],
-          synchronize: true,
-        }),
-        TypeOrmModule.forFeature([
-          ProjectEntity,
-          WorkspaceEntity,
-          NamespaceEntity,
-          DocumentEntity,
-          WorkflowEntity,
-        ]),
-        // WorkflowSubscriber,
-      ],
-    }).compile();
-
-    app = moduleRef.createNestApplication();
-    await app.init();
-
-    dataSource = moduleRef.get<DataSource>(DataSource);
-    projectRepo = moduleRef.get<Repository<ProjectEntity>>(
-      getRepositoryToken(ProjectEntity),
-    );
-    workflowRepo = moduleRef.get<Repository<WorkflowEntity>>(
-      getRepositoryToken(WorkflowEntity),
-    );
-    workspaceRepo = moduleRef.get<Repository<WorkspaceEntity>>(
-      getRepositoryToken(WorkspaceEntity),
-    );
-    namespaceRepo = moduleRef.get<Repository<NamespaceEntity>>(
-      getRepositoryToken(NamespaceEntity),
-    );
-    documentRepo = moduleRef.get<Repository<DocumentEntity>>(
-      getRepositoryToken(DocumentEntity),
-    );
+    testSetup = await setupTestEnvironment();
   });
 
   afterAll(async () => {
-    await dataSource.destroy(); // Explicitly destroy connection
-    await app.close();
-
-    if (pgConnection && pgConnection.isInitialized) {
-      try {
-        await pgConnection.query(`DROP DATABASE IF EXISTS ${databaseName}`);
-      } finally {
-        await pgConnection.destroy();
-      }
-    }
+    await testSetup.cleanup();
   });
 
   beforeEach(async () => {
-    // Clear all tables before each test to ensure isolation
-    await dataSource.query('TRUNCATE "document" CASCADE');
-    await dataSource.query('TRUNCATE "workflow" CASCADE');
-    await dataSource.query('TRUNCATE "workflow_namespace" CASCADE');
-    await dataSource.query('TRUNCATE "workflow_document" CASCADE');
-    await dataSource.query('TRUNCATE "project" CASCADE');
-    await dataSource.query('TRUNCATE "namespace" CASCADE');
-    await dataSource.query('TRUNCATE "workspace" CASCADE');
+    await clearDatabase(testSetup.dataSource);
   });
 
   // Helper function to create test data
   async function createTestData() {
+    const {
+      projectRepo,
+      workflowRepo,
+      workspaceRepo,
+      namespaceRepo,
+      documentRepo,
+    } = testSetup;
+
     // Create a workspace
     const workspace = await workspaceRepo.save({
       name: 'Test Workspace',
@@ -124,11 +41,11 @@ describe('Workflow Entity Deletion Tests', () => {
     });
 
     // Create project
-    const project = projectRepo.create({
+    const project = projectRepo.create(projectRepo.create({
       name: 'Test Project',
       title: 'Test Project',
       workspace,
-    });
+    }));
     await projectRepo.save(project);
 
     // Create namespaces
@@ -231,6 +148,11 @@ describe('Workflow Entity Deletion Tests', () => {
   }
 
   it('should not delete project when workflow is deleted', async () => {
+    const {
+      projectRepo,
+      workflowRepo,
+    } = testSetup;
+
     // Arrange
     const { workflow2, project } = await createTestData();
 
@@ -246,6 +168,11 @@ describe('Workflow Entity Deletion Tests', () => {
   });
 
   it('should delete namespace relations when workflow is deleted', async () => {
+    const {
+      workflowRepo,
+      namespaceRepo,
+    } = testSetup;
+
     // Arrange
     const { workflow2, namespace1, namespace2 } = await createTestData();
 
@@ -274,7 +201,7 @@ describe('Workflow Entity Deletion Tests', () => {
     expect(foundNamespace2).not.toBeNull(); // This might seem counterintuitive, but ManyToMany relationships don't auto-delete the entities
 
     // Verify the relation in the junction table is removed
-    const relationCount = await dataSource.query(
+    const relationCount = await testSetup.dataSource.query(
       `SELECT COUNT(*) FROM workflow_namespace WHERE workflow_id = $1 AND namespace_id = $2`,
       [workflow2.id, namespace2.id],
     );
@@ -283,6 +210,11 @@ describe('Workflow Entity Deletion Tests', () => {
 
   // Test 4: Dependency relations should be removed but dependent entities should not be deleted
   it('should remove dependency relations but not delete dependent documents when workflow is deleted', async () => {
+    const {
+      workflowRepo,
+      documentRepo,
+    } = testSetup;
+
     // Arrange
     const { workflow2, dependentDoc1, dependentDoc2 } = await createTestData();
 
@@ -302,7 +234,7 @@ describe('Workflow Entity Deletion Tests', () => {
     expect(foundDoc2).not.toBeNull();
 
     // Verify the relations in the junction table are removed
-    const relationCount = await dataSource.query(
+    const relationCount = await testSetup.dataSource.query(
       `SELECT COUNT(*) FROM workflow_document WHERE workflow_id = $1`,
       [workflow2.id],
     );
@@ -311,6 +243,11 @@ describe('Workflow Entity Deletion Tests', () => {
 
   // Test 5: Related documents should be deleted when the workflow is deleted
   it('should delete related documents when workflow is deleted', async () => {
+    const {
+      workflowRepo,
+      documentRepo,
+    } = testSetup;
+
     // Arrange
     const { workflow2, workflowDoc1, workflowDoc2 } = await createTestData();
 
@@ -331,6 +268,12 @@ describe('Workflow Entity Deletion Tests', () => {
 
   // Test 6: Combined test to verify all cascade behaviors
   it('should correctly handle all cascade behaviors when workflow is deleted', async () => {
+    const {
+      projectRepo,
+      workflowRepo,
+      documentRepo,
+    } = testSetup;
+
     // Arrange
     const testData = await createTestData();
 
@@ -345,7 +288,7 @@ describe('Workflow Entity Deletion Tests', () => {
     expect(foundProject).not.toBeNull();
 
     // 2. Namespace relations should be deleted from junction table
-    const namespaceRelations = await dataSource.query(
+    const namespaceRelations = await testSetup.dataSource.query(
       `SELECT COUNT(*) FROM workflow_namespace WHERE workflow_id = $1`,
       [testData.workflow2.id],
     );
@@ -362,7 +305,7 @@ describe('Workflow Entity Deletion Tests', () => {
     expect(foundDependentDoc2).not.toBeNull();
 
     // Dependency relations should be removed from junction table
-    const documentRelations = await dataSource.query(
+    const documentRelations = await testSetup.dataSource.query(
       `SELECT COUNT(*) FROM workflow_document WHERE workflow_id = $1`,
       [testData.workflow2.id],
     );

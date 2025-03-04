@@ -7,7 +7,7 @@ import {
   JoinColumn,
   Index,
   ManyToMany,
-  Unique,
+  Unique, CreateDateColumn, UpdateDateColumn,
 } from 'typeorm';
 import { WorkflowEntity } from './workflow.entity';
 import {ProjectEntity} from "./project.entity";
@@ -54,4 +54,13 @@ export class NamespaceEntity {
 
   @ManyToMany(() => ProjectEntity, (project) => project.namespaces)
   projects: ProjectEntity[];
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
+  createdBy: string | null;
 }
