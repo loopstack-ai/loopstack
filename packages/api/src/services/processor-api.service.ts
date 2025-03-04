@@ -59,7 +59,8 @@ export class ProcessorApiService {
         projectId: project.id,
         model: project.name,
         workspaceId: project.workspaceId,
-        namespaces: [], // todo
+        projectNamespaceIds: project.namespaceIds,
+        namespaceIds: [],
       },
     );
 

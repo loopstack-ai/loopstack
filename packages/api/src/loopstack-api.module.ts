@@ -21,6 +21,8 @@ import { WorkflowController } from './controllers/workflow.controller';
 import { DocumentController } from './controllers/document.controller';
 import { WorkflowApiService } from './services/workflow-api.service';
 import { DocumentApiService } from './services/document-api.service';
+import {NamespaceController} from "./controllers/namespace.controller";
+import {NamespaceApiService} from "./services/namespace-api.service";
 
 @Module({
   imports: [
@@ -39,6 +41,7 @@ import { DocumentApiService } from './services/document-api.service';
     ProcessorController,
     WorkflowController,
     DocumentController,
+    NamespaceController,
   ],
   providers: [
     ProjectApiService,
@@ -46,6 +49,7 @@ import { DocumentApiService } from './services/document-api.service';
     ProcessorApiService,
     WorkflowApiService,
     DocumentApiService,
+    NamespaceApiService,
   ],
   exports: [ProjectApiService, WorkspaceApiService, ProcessorApiService],
 })
