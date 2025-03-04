@@ -17,6 +17,7 @@ import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowService } from '../../persistence/services/workflow.service';
 import { NamespacesService } from '../../persistence/services/namespace.service';
 import crypto from 'crypto';
+import {NamespaceEntity} from "../../persistence/entities/namespace.entity";
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -84,10 +85,10 @@ export class WorkflowProcessorService {
       model: localContext.model,
       projectId: localContext.projectId,
       workspaceId: localContext.workspaceId,
-      parentId: localContext.namespaces[localContext.namespaces.length - 1]?.id,
+      parentId: localContext.namespaceIds[localContext.namespaceIds.length - 1],
       metadata: undefined,
     });
-    localContext.namespaces.push(keyNamespace);
+    localContext.namespaceIds.push(keyNamespace.id);
 
     for (const iterator of iteratorValues) {
       // create a new context for each child
@@ -105,10 +106,10 @@ export class WorkflowProcessorService {
         projectId: childContext.projectId,
         workspaceId: childContext.workspaceId,
         parentId:
-          childContext.namespaces[childContext.namespaces.length - 1]?.id,
+          childContext.namespaceIds[childContext.namespaceIds.length - 1],
         metadata: undefined,
       });
-      childContext.namespaces.push(valueNamespace);
+      childContext.namespaceIds.push(valueNamespace.id);
 
       // process the child workflows and update the processing context
       // note, we use previous context as target so that namespaces will not be carried over
@@ -143,7 +144,6 @@ export class WorkflowProcessorService {
     console.log(
       'Processing workflow:',
       workflowConfig.name,
-      processState.context.namespaces,
     );
 
     if (workflowConfig.sequence) {
@@ -174,7 +174,7 @@ export class WorkflowProcessorService {
       context.projectId,
       {
         name: workflowName,
-        namespaceIds: context.namespaces.map((item) => item.id),
+        namespaceIds: context.namespaceIds,
       },
     ).getOne();
 
@@ -185,7 +185,7 @@ export class WorkflowProcessorService {
     return this.workflowService.create({
       projectId: context.projectId,
       createdBy: context.userId,
-      namespaces: context.namespaces,
+      namespaces: context.namespaceIds.map((id) => ({ id } as NamespaceEntity)),
       name: workflowName,
     });
   }
