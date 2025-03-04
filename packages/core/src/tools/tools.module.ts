@@ -4,9 +4,13 @@ import { ToolRegistry } from './registry/tool.registry';
 import { DiscoveryModule } from '@nestjs/core';
 import { ForwardChildContextTool } from './functions/forward-child-context.tool';
 import { SetCustomOptionTool } from './functions/set-custom-option.tool';
+import {PersistenceModule} from "../persistence/persistence.module";
 
 @Module({
-  imports: [DiscoveryModule],
+  imports: [
+    DiscoveryModule,
+    PersistenceModule,
+  ],
   providers: [
     ToolRegistry,
     ForwardChildContextTool,

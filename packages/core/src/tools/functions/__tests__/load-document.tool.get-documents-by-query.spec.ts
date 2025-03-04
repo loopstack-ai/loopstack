@@ -6,7 +6,7 @@ import {
 import { DocumentService } from '../../../persistence/services/document.service';
 import { FunctionCallService } from '../../../processor/services/function-call.service';
 import { ProcessStateInterface } from '../../../processor/interfaces/process-state.interface';
-import { DocumentEntity } from '../../../persistence/entities/document.entity';
+import { DocumentEntity } from '../../../persistence/entities';
 
 describe('LoadDocumentTool', () => {
   let loadDocumentTool: LoadDocumentTool;
@@ -52,7 +52,7 @@ describe('LoadDocumentTool', () => {
         {
           provide: DocumentService,
           useValue: {
-            createQuery: jest.fn().mockReturnValue(mockQueryBuilder),
+            createDocumentsQuery: jest.fn().mockReturnValue(mockQueryBuilder),
           },
         },
         {
@@ -103,7 +103,7 @@ describe('LoadDocumentTool', () => {
       await loadDocumentTool.getDocumentsByQuery(options, mockProcessState);
 
       // Assert
-      expect(documentService.createQuery).toHaveBeenCalledWith(
+      expect(documentService.createDocumentsQuery).toHaveBeenCalledWith(
         mockProjectId,
         mockWorkspaceId,
         options.where,
@@ -190,7 +190,7 @@ describe('LoadDocumentTool', () => {
       await loadDocumentTool.getDocumentsByQuery(options, mockProcessState);
 
       // Assert
-      expect(documentService.createQuery).toHaveBeenCalledWith(
+      expect(documentService.createDocumentsQuery).toHaveBeenCalledWith(
         mockProjectId,
         mockWorkspaceId,
         options.where,
@@ -202,11 +202,10 @@ describe('LoadDocumentTool', () => {
 
     it('should pass namespaces to query options', async () => {
       // Arrange
-      const namespaces = { test: 1 };
       const options: LoadDocumentToolOptions = {
         name: 'Test Load',
         where: { name: 'Document 1' },
-        namespaces,
+        namespaceIds: ['uuid1'],
         many: false,
       };
       mockQueryBuilder.getOne.mockResolvedValue(mockDocuments[0]);
@@ -215,12 +214,12 @@ describe('LoadDocumentTool', () => {
       await loadDocumentTool.getDocumentsByQuery(options, mockProcessState);
 
       // Assert
-      expect(documentService.createQuery).toHaveBeenCalledWith(
+      expect(documentService.createDocumentsQuery).toHaveBeenCalledWith(
         mockProjectId,
         mockWorkspaceId,
         options.where,
         expect.objectContaining({
-          namespaces,
+          namespaceIds: ['uuid1'],
         }),
       );
     });

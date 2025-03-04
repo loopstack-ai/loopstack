@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkflowService } from './services/workflow.service';
-import { ProjectEntity } from './entities/project.entity';
-import { WorkspaceEntity } from './entities/workspace.entity';
-import { WorkflowEntity } from './entities/workflow.entity';
-import { DocumentEntity } from './entities/document.entity';
+import { ProjectEntity } from './entities';
+import { WorkspaceEntity } from './entities';
+import { WorkflowEntity } from './entities';
+import { DocumentEntity } from './entities';
 import { ProjectService } from './services/project.service';
 import { WorkspaceService } from './services/workspace.service';
 import { ProjectRepository } from './repositories/project.repository';

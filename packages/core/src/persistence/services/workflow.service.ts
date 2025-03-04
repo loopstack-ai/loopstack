@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder} from 'typeorm';
 import { WorkflowEntity } from '../entities';
 
 @Injectable()
@@ -10,88 +10,42 @@ export class WorkflowService {
     private workflowRepository: Repository<WorkflowEntity>,
   ) {}
 
-  /**
-   * Find workflows with optional filtering by name and namespaces
-   * @param projectId - The project ID to filter workflows by
-   * @param options - Optional filters
-   * @param options.name - Optional workflow name to filter by
-   * @param options.namespaceIds - If array: workflows must have exactly these namespaces
-   *                              If undefined: no namespace filtering is applied
-   * @param options.findOne - If true, returns the first matching workflow, otherwise returns all matching workflows
-   */
-  async findByProject(
+  createFindQuery(
       projectId: string,
       options?: {
         name?: string;
         namespaceIds?: string[];
-        findOne?: boolean;
       }
-  ): Promise<WorkflowEntity[] | WorkflowEntity | null> {
+  ): SelectQueryBuilder<WorkflowEntity> {
+    const { name, namespaceIds } = options || {};
+
     const queryBuilder = this.workflowRepository
         .createQueryBuilder('workflow')
         .where('workflow.project_id = :projectId', { projectId })
         .leftJoinAndSelect('workflow.documents', 'document');
 
-    if (options?.name) {
-      queryBuilder.andWhere('workflow.name = :name', { name: options.name });
+    if (name) {
+      queryBuilder.andWhere('workflow.name = :name', { name });
     }
 
-    const namespaceIds = options?.namespaceIds;
-
-    // Handle the no namespace filtering case
-    if (namespaceIds === undefined) {
-      queryBuilder.leftJoinAndSelect('workflow.namespaces', 'namespace');
-      return options?.findOne ? queryBuilder.getOne() : queryBuilder.getMany();
+    if (namespaceIds !== undefined) {
+      if (namespaceIds.length === 0) {
+        queryBuilder.andWhere('array_length(workflow.namespace_ids, 1) IS NULL');
+      } else {
+        queryBuilder.andWhere(
+            'workflow.namespace_ids @> :namespaceIds AND array_length(workflow.namespace_ids, 1) = :namespaceCount',
+            { namespaceIds, namespaceCount: namespaceIds.length }
+        );
+      }
     }
 
-    // Handle empty namespaces array (get workflows with NO namespaces)
-    if (namespaceIds.length === 0) {
-      queryBuilder
-          .leftJoin('workflow.namespaces', 'namespace')
-          .andWhere('namespace.id IS NULL');
-      return options?.findOne ? queryBuilder.getOne() : queryBuilder.getMany();
-    }
-
-    // Handle the exact namespaces using subqueries for exact namespace matching
-
-    queryBuilder.leftJoinAndSelect('workflow.namespaces', 'namespace');
-
-    // Workflows must have all the specified namespaces
-    queryBuilder.andWhere(qb => {
-      const subQuery = qb
-          .subQuery()
-          .select('wf.id')
-          .from('workflow', 'wf')
-          .leftJoin('wf.namespaces', 'ns')
-          .where('wf.project_id = :projectId', { projectId })
-          .andWhere('ns.id IN (:...namespaceIds)', { namespaceIds })
-          .groupBy('wf.id')
-          .having('COUNT(DISTINCT ns.id) = :namespaceCount', {
-            namespaceCount: namespaceIds.length
-          });
-      return 'workflow.id IN ' + subQuery.getQuery();
-    });
-
-    // Workflows must not have any extra namespaces
-    queryBuilder.andWhere(qb => {
-      const subQuery = qb
-          .subQuery()
-          .select('wf.id')
-          .from('workflow', 'wf')
-          .leftJoin('wf.namespaces', 'ns')
-          .where('wf.project_id = :projectId', { projectId })
-          .andWhere('ns.id NOT IN (:...namespaceIds)', { namespaceIds })
-          .groupBy('wf.id');
-      return 'workflow.id NOT IN ' + subQuery.getQuery();
-    });
-
-    return options?.findOne ? queryBuilder.getOne() : queryBuilder.getMany();
+    return queryBuilder;
   }
 
   findById(id: string): Promise<WorkflowEntity | null> {
     return this.workflowRepository.findOne({
       where: { id },
-      relations: ['state', 'documents'],
+      relations: ['documents'],
     });
   }
 

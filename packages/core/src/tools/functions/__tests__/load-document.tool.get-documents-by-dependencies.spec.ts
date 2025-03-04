@@ -16,8 +16,7 @@ describe('LoadDocumentTool', () => {
 
   // Mock dependencies
   const mockDocumentService = {
-    findOne: jest.fn(),
-    find: jest.fn(),
+    createDocumentsQuery: jest.fn(),
   };
 
   const mockFunctionCallService = {

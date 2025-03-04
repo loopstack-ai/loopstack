@@ -5,7 +5,7 @@ import {
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
 import { FunctionCallService } from '../../../processor/services/function-call.service';
-import { DocumentEntity } from '../../../persistence/entities/document.entity';
+import { DocumentEntity } from '../../../persistence/entities';
 
 describe('LoadDocumentTool', () => {
   let tool: LoadDocumentTool;
@@ -41,8 +41,7 @@ describe('LoadDocumentTool', () => {
         {
           provide: DocumentService,
           useValue: {
-            findMany: jest.fn(),
-            findOne: jest.fn(),
+            createDocumentsQuery: jest.fn(),
           },
         },
         {

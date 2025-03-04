@@ -127,7 +127,7 @@ export class StateMachineProcessorService {
       this.updateWorkflowState(workflow, transitions, initialTransition);
     }
 
-    await this.workflowService.saveWorkflow(workflow);
+    await this.workflowService.save(workflow);
     return workflow;
   }
 
@@ -251,7 +251,7 @@ export class StateMachineProcessorService {
 
           this.updateWorkflowState(workflow, transitions, historyItem);
 
-          await this.workflowService.saveWorkflow(workflow);
+          await this.workflowService.save(workflow);
         } catch (e) {
           console.log(e);
           workflow.error = e.message;
@@ -265,7 +265,7 @@ export class StateMachineProcessorService {
     }
 
     workflow.isWorking = false;
-    await this.workflowService.saveWorkflow(workflow);
+    await this.workflowService.save(workflow);
 
     return workflow;
   }

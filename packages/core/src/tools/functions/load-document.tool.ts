@@ -16,7 +16,7 @@ const schema = z.object({
     name: z.string(),
     type: z.string().optional(),
   }),
-  namespaces: z.any().optional(),
+  namespaceIds: z.array(z.string()).optional(),
   map: z.string().optional(),
   filter: z.string().optional(),
   sort: z.boolean().optional(),
@@ -93,13 +93,13 @@ export class LoadDocumentTool implements ToolInterface {
     options: LoadDocumentToolOptions,
     target: ProcessStateInterface,
   ): Promise<DocumentEntity[]> {
-    const query = this.documentService.createQuery(
+    const query = this.documentService.createDocumentsQuery(
       target.context.projectId,
       target.context.workspaceId,
       options.where,
       {
         isGlobal: !!options.global,
-        namespaces: options.namespaces,
+        namespaceIds: options.namespaceIds,
         ltWorkflowIndex: target.workflow!.index,
       },
     );

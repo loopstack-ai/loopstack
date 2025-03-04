@@ -133,19 +133,19 @@ describe('Project Entity Deletion Tests', () => {
       });
 
       // Create workflows linked to the project
-      const workflow1 = await workflowRepo.save({
+      const workflow1 = await workflowRepo.save(workflowRepo.create({
         name: 'Workflow 1',
         place: 'test',
         project: project,
         projectId: project.id,
-      });
+      }));
 
-      const workflow2 = await workflowRepo.save({
+      const workflow2 = await workflowRepo.save(workflowRepo.create({
         name: 'Workflow 2',
         place: 'test',
         project: project,
         projectId: project.id,
-      });
+      }));
 
       // Verify workflows are created
       const workflowsBefore = await workflowRepo.find({

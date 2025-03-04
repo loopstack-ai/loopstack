@@ -1,4 +1,5 @@
 import {
+  BeforeInsert, BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -79,6 +80,14 @@ export class WorkflowEntity {
     },
   })
   namespaces: NamespaceEntity[];
+
+  @Column('uuid', { name: 'namespace_ids', array: true, nullable: false })
+  namespaceIds: string[];
+
+  @BeforeInsert()
+  setNamespaceIds() {
+    this.namespaceIds = this.namespaces?.map(ns => ns.id) || [];
+  }
 
   @ManyToMany(() => DocumentEntity, (document) => document.dependentStates)
   @JoinTable({

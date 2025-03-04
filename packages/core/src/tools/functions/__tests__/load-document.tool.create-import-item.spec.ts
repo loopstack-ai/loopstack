@@ -25,7 +25,7 @@ describe('LoadDocumentTool', () => {
         {
           provide: DocumentService,
           useValue: {
-            findAll: jest.fn(),
+            createDocumentsQuery: jest.fn(),
           },
         },
         {

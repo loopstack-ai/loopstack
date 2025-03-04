@@ -1,4 +1,5 @@
 import {
+  BeforeInsert, BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -73,6 +74,14 @@ export class DocumentEntity<T = any> {
   })
   @JoinColumn({ name: 'workflow_id' })
   workflow: WorkflowEntity;
+
+  @Column('uuid', { name: 'namespace_ids', array: true, nullable: false })
+  namespaceIds: string[];
+
+  @BeforeInsert()
+  setNamespaceIds() {
+    this.namespaceIds = this.workflow.namespaceIds || [];
+  }
 
   @Column({ name: 'workflow_id', nullable: true })
   workflowId: string;

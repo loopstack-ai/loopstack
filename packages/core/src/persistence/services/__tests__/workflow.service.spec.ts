@@ -250,7 +250,7 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project1.id);
+            const result = await workflowService.createFindQuery(testData.project1.id).getMany();
 
             // Assert
             expect(Array.isArray(result)).toBe(true);
@@ -268,9 +268,9 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project1.id, {
+            const result = await workflowService.createFindQuery(testData.project1.id, {
                 name: 'Workflow Two Namespaces'
-            });
+            }).getMany();
 
             // Assert
             expect(Array.isArray(result)).toBe(true);
@@ -283,10 +283,9 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project1.id, {
+            const result = await workflowService.createFindQuery(testData.project1.id, {
                 name: 'Workflow Two Namespaces',
-                findOne: true
-            });
+            }).getOne();
 
             // Assert
             expect(Array.isArray(result)).toBe(false);
@@ -298,9 +297,9 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project1.id, {
+            const result = await workflowService.createFindQuery(testData.project1.id, {
                 namespaceIds: []
-            });
+            }).getMany();
 
             // Assert
             expect(Array.isArray(result)).toBe(true);
@@ -313,9 +312,9 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project1.id, {
+            const result = await workflowService.createFindQuery(testData.project1.id, {
                 namespaceIds: [testData.namespace1.id]
-            });
+            }).getMany();
 
             // Assert
             expect(Array.isArray(result)).toBe(true);
@@ -328,9 +327,9 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project1.id, {
+            const result = await workflowService.createFindQuery(testData.project1.id, {
                 namespaceIds: [testData.namespace1.id, testData.namespace2.id]
-            });
+            }).getMany()
 
             // Assert
             expect(Array.isArray(result)).toBe(true);
@@ -344,9 +343,9 @@ describe('WorkflowService', () => {
 
             // Act
             // Looking for workflows with EXACTLY namespace1 & namespace3, which doesn't exist
-            const result = await workflowService.findByProject(testData.project1.id, {
+            const result = await workflowService.createFindQuery(testData.project1.id, {
                 namespaceIds: [testData.namespace1.id, testData.namespace3.id]
-            });
+            }).getMany();
 
             // Assert
             expect(Array.isArray(result)).toBe(true);
@@ -358,9 +357,9 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project1.id, {
+            const result = await workflowService.createFindQuery(testData.project1.id, {
                 namespaceIds: [testData.namespace1.id, testData.namespace2.id]
-            });
+            }).getMany();
 
             // Assert
             expect(Array.isArray(result)).toBe(true);
@@ -376,10 +375,10 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project1.id, {
+            const result = await workflowService.createFindQuery(testData.project1.id, {
                 name: 'Workflow All Namespaces',
                 namespaceIds: [testData.namespace1.id, testData.namespace2.id, testData.namespace3.id]
-            });
+            }).getMany();
 
             // Assert
             expect(Array.isArray(result)).toBe(true);
@@ -392,10 +391,9 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project1.id, {
+            const result = await workflowService.createFindQuery(testData.project1.id, {
                 name: 'Non-existent Workflow',
-                findOne: true
-            });
+            }).getOne();
 
             // Assert
             expect(result).toBeNull();
@@ -406,9 +404,9 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project1.id, {
+            const result = await workflowService.createFindQuery(testData.project1.id, {
                 name: 'Non-existent Workflow'
-            });
+            }).getMany();
 
             // Assert
             expect(Array.isArray(result)).toBe(true);
@@ -420,9 +418,9 @@ describe('WorkflowService', () => {
             const testData = await createTestData();
 
             // Act
-            const result = await workflowService.findByProject(testData.project2.id, {
+            const result = await workflowService.createFindQuery(testData.project2.id, {
                 namespaceIds: [testData.namespace1.id, testData.namespace2.id]
-            });
+            }).getMany();
 
             // Assert
             expect(Array.isArray(result)).toBe(true);

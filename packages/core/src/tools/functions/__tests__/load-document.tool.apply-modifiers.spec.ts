@@ -5,12 +5,11 @@ import {
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
 import { FunctionCallService } from '../../../processor/services/function-call.service';
-import { DocumentEntity } from '../../../persistence/entities/document.entity';
+import { DocumentEntity } from '../../../persistence/entities';
 
 // Mock dependencies
 const mockDocumentService = {
-  findOne: jest.fn(),
-  find: jest.fn(),
+  getDocumentsByQuery: jest.fn(),
 };
 
 const mockFunctionCallService = {

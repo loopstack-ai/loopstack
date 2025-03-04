@@ -170,17 +170,19 @@ export class WorkflowProcessorService {
     workflowName: string,
     context: ContextInterface,
   ): Promise<WorkflowEntity> {
-    let workflow = await this.workflowService.loadByIdentity(
+    let workflow = await this.workflowService.createFindQuery(
       context.projectId,
-      workflowName,
-      context.namespaces,
-    );
+      {
+        name: workflowName,
+        namespaceIds: context.namespaces.map((item) => item.id),
+      },
+    ).getOne();
 
     if (workflow) {
       return workflow;
     }
 
-    return this.workflowService.createWorkflow({
+    return this.workflowService.create({
       projectId: context.projectId,
       createdBy: context.userId,
       namespaces: context.namespaces,
