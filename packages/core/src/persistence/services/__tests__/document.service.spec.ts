@@ -1,11 +1,9 @@
 import { DocumentService } from '../document.service';
-import { DocumentEntity } from '../../entities';
 import {
   clearDatabase,
   setupTestEnvironment,
   TestSetup,
 } from '../../__tests__/database-entities-utils';
-import { WorkflowEntity } from '../../entities/workflow.entity';
 
 describe('DocumentService', () => {
   let testSetup: TestSetup;
@@ -13,6 +11,7 @@ describe('DocumentService', () => {
 
   beforeAll(async () => {
     testSetup = await setupTestEnvironment({
+      databaseName: 'document_service_test',
       providers: [DocumentService],
     });
     documentService = testSetup.moduleRef.get<DocumentService>(DocumentService);

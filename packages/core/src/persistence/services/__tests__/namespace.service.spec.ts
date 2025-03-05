@@ -11,6 +11,7 @@ describe('NamespacesService', () => {
 
   beforeAll(async () => {
     testSetup = await setupTestEnvironment({
+      databaseName: 'namespace_service_test',
       providers: [NamespacesService],
     });
     namespacesService = testSetup.moduleRef.get<NamespacesService>(NamespacesService);

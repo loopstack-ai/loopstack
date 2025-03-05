@@ -8,7 +8,9 @@ describe('Document Entity Deletion Tests', () => {
   let testSetup: TestSetup;
 
   beforeAll(async () => {
-    testSetup = await setupTestEnvironment();
+    testSetup = await setupTestEnvironment({
+      databaseName: 'document_entity_test',
+    });
   });
 
   afterAll(async () => {

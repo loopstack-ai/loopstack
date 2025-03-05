@@ -77,7 +77,7 @@ export class NamespacesService {
 
     if (namespace) {
       // Verify that parentId is consistent
-      if (namespace.parent.id !== (createNamespaceDto.parent?.id ?? null)) {
+      if (namespace.parentId !== (createNamespaceDto.parent?.id ?? null)) {
         throw new Error('Cannot change parent for an existing namespace');
       }
 

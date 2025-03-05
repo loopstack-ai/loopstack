@@ -11,6 +11,7 @@ describe('WorkflowService', () => {
 
   beforeAll(async () => {
     testSetup = await setupTestEnvironment({
+      databaseName: 'workflow_service_test',
       providers: [WorkflowService],
     });
     workflowService = testSetup.moduleRef.get<WorkflowService>(WorkflowService);

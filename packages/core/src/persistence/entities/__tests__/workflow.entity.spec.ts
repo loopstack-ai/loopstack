@@ -8,7 +8,9 @@ describe('Workflow Entity Cascade Delete Tests', () => {
     let testSetup: TestSetup;
 
     beforeAll(async () => {
-        testSetup = await setupTestEnvironment();
+        testSetup = await setupTestEnvironment({
+            databaseName: 'workflow_entity_test',
+        });
     });
 
     afterAll(async () => {

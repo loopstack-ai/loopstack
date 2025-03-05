@@ -17,7 +17,6 @@ import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowService } from '../../persistence/services/workflow.service';
 import { NamespacesService } from '../../persistence/services/namespace.service';
 import crypto from 'crypto';
-import { NamespaceEntity } from '../../persistence/entities';
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -64,55 +63,43 @@ export class WorkflowProcessorService {
       throw new Error(`Workflow ${workflowName} for factory does not exist.`);
     }
 
-    const iteratorValues = this.valueParserService.parseValue(
-      factory.iterator.values,
+    const items = this.valueParserService.parseValue(
+      factory.iterator.source,
       processState,
-    ) as string[];
+    );
 
-    if (!Array.isArray(iteratorValues)) {
+    if (!Array.isArray(items)) {
       throw new Error(
-        `Iterator values for ${factory.iterator.name} must be array, got ${typeof iteratorValues}`,
+        `Iterator values in ${factory.iterator.source} must be array, got ${typeof items}`,
       );
     }
 
     const localContext = this.contextService.create(processState.context);
 
-    localContext.iteratorGroup = factory.iterator.name;
-
-    // create namespace for the iterator key (group)
-    localContext.namespace = await this.namespacesService.create({
-      name: localContext.iteratorGroup,
-      model: localContext.model,
-      projectId: localContext.projectId,
-      workspaceId: localContext.workspaceId,
-      metadata: undefined,
-      createdBy: localContext.userId,
-      parent: localContext.namespace,
-    });
-    localContext.labels.push(localContext.namespace.name);
-
-    for (const iterator of iteratorValues) {
+    for (const item of items) {
       // create a new context for each child
       const childContext = this.contextService.create(localContext);
 
-      // set iterator
-      childContext.iteratorValue = iterator;
+      const label = factory.iterator.label ? this.valueParserService.parseValue(
+          factory.iterator.label,
+          { item, context: childContext, workflow: processState.workflow },
+      ) : item.toString();
+
+      const metadata = factory.iterator.meta ? this.valueParserService.parseValue(
+          factory.iterator.meta,
+          { item, context: childContext, workflow: processState.workflow },
+      ) : undefined;
 
       // create namespace for the group iterator and make sure the value includes a unique id,
       // so there is no risk of re-using the same value for different things within
       // the same workspace and project model
       childContext.namespace = await this.namespacesService.create({
-        name: this.generateUniqueNamespace(childContext.iteratorValue),
+        name: this.generateUniqueNamespace(label),
         model: childContext.model,
         projectId: childContext.projectId,
         workspaceId: childContext.workspaceId,
         parent: childContext.namespace,
-        metadata: {
-          ...(typeof childContext.iteratorValue === 'object' &&
-          childContext.iteratorValue !== null
-            ? childContext.iteratorValue
-            : {}),
-        } as Record<string, any>,
+        metadata: metadata,
         createdBy: childContext.userId,
       });
       localContext.labels.push(childContext.namespace.name);

@@ -8,7 +8,9 @@ describe('Namespace Entity Deletion Tests', () => {
   let testSetup: TestSetup;
 
   beforeAll(async () => {
-    testSetup = await setupTestEnvironment();
+    testSetup = await setupTestEnvironment({
+      databaseName: 'namespace_entity_test',
+    });
   });
 
   afterAll(async () => {

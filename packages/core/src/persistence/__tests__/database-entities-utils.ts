@@ -22,7 +22,11 @@ interface TestSetupOptions {
 }
 
 export async function setupTestEnvironment(options: TestSetupOptions = {}): Promise<TestSetup> {
-    const databaseName = options.databaseName || `test_db_${Date.now()}`;
+    const databaseName = options.databaseName;
+
+    if (!databaseName) {
+        throw new Error('need to define a test database name');
+    }
 
     const pgConnection = new DataSource({
         type: 'postgres',

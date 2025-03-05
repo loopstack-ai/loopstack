@@ -9,9 +9,9 @@ export class ValueParserService {
     private functionCallService: FunctionCallService,
   ) {}
 
-  parseValue(value: string | string[], variables: Record<string, any>): string | string[] | object | object[] {
+  parseValue(value: string | string[], variables: Record<string, any>): any | any[] {
     if (Array.isArray(value)) {
-      return value.map((item) => this.parseValue(item, variables) as string);
+      return value.map((item) => this.parseValue(item, variables));
     }
 
     if (this.templateEngineService.isTemplate(value)) {
