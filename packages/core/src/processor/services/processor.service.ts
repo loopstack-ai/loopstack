@@ -12,18 +12,15 @@ export class ProcessorService {
   ) {}
 
   process(
-    config: any,
+    config: { model: string },
     payload: ProcessRunInterface,
   ): Promise<ContextInterface> {
     const context = this.contextService.create(payload);
 
-    if (!config.projectName) {
-      throw new Error(`No project name defined.`);
+    if (!config.model) {
+      throw new Error(`No project model defined.`);
     }
 
-    return this.projectProcessorService.processProject(
-      config.projectName,
-      context,
-    );
+    return this.projectProcessorService.processProject(config.model, context);
   }
 }

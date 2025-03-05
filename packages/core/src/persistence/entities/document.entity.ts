@@ -1,5 +1,5 @@
 import {
-  BeforeInsert, BeforeUpdate,
+  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -75,18 +75,15 @@ export class DocumentEntity<T = any> {
   @JoinColumn({ name: 'workflow_id' })
   workflow: WorkflowEntity;
 
-  @Column('uuid', { name: 'namespace_ids', array: true, nullable: false })
-  namespaceIds: string[];
-
-  @BeforeInsert()
-  setNamespaceIds() {
-    this.namespaceIds = this.workflow.namespaceIds || [];
-  }
+  @Column('varchar', { name: 'labels', array: true, nullable: false })
+  labels: string[];
 
   @Column({ name: 'workflow_id', nullable: true })
   workflowId: string;
 
-  @ManyToMany(() => WorkflowEntity, (state) => state.dependencies)
+  @ManyToMany(() => WorkflowEntity, (state) => state.dependencies, {
+      onDelete: 'CASCADE'
+  })
   dependentStates: WorkflowEntity[];
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true })

@@ -205,7 +205,7 @@ describe('LoadDocumentTool', () => {
       const options: LoadDocumentToolOptions = {
         name: 'Test Load',
         where: { name: 'Document 1' },
-        namespaceIds: ['uuid1'],
+        labels: ['uuid1'],
         many: false,
       };
       mockQueryBuilder.getOne.mockResolvedValue(mockDocuments[0]);
@@ -219,7 +219,7 @@ describe('LoadDocumentTool', () => {
         mockWorkspaceId,
         options.where,
         expect.objectContaining({
-          namespaceIds: ['uuid1'],
+          labels: ['uuid1'],
         }),
       );
     });

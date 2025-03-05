@@ -1,4 +1,8 @@
-import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
+import {
+  clearDatabase,
+  setupTestEnvironment,
+  TestSetup,
+} from '../../__tests__/database-entities-utils';
 
 describe('Document Entity Deletion Tests', () => {
   let testSetup: TestSetup;
@@ -15,143 +19,145 @@ describe('Document Entity Deletion Tests', () => {
     await clearDatabase(testSetup.dataSource);
   });
 
-  describe('Document deletion behavior', () => {
-    it('should not delete a workflow when a document is deleted', async () => {
-      const {
-        projectRepo,
-        workflowRepo,
-        workspaceRepo,
-        documentRepo,
-      } = testSetup;
+  // Helper function to create test data
+  async function createTestData() {
+    const {
+      projectRepo,
+      workflowRepo,
+      workspaceRepo,
+      namespaceRepo,
+      documentRepo,
+    } = testSetup;
 
-      // Create a workspace
-      const workspace = workspaceRepo.create({
-        title: 'Test Workspace',
-      });
-      await workspaceRepo.save(workspace);
-
-      // Create a project
-      const project = projectRepo.create({
-        name: 'Test Project',
-        title: 'Test Project',
-        workspaceId: workspace.id,
-      });
-      await projectRepo.save(project);
-
-      // Create a workflow
-      const workflow = workflowRepo.create({
-        name: 'Test Workflow',
-        place: 'test',
-        project,
-      });
-      await workflowRepo.save(workflow);
-
-      // Create a document associated with the workflow
-      const document = documentRepo.create({
-        name: 'Test Document',
-        type: 'text',
-        workspaceId: workspace.id,
-        projectId: project.id,
-        workflow: workflow,
-        contents: { text: 'Test content' },
-        meta: { property: 'value' },
-      });
-      await documentRepo.save(document);
-
-      // Verify the document and workflow exist
-      const savedDocument = await documentRepo.findOne({
-        where: { id: document.id },
-        relations: ['workflow'],
-      });
-      expect(savedDocument).toBeDefined();
-      expect(savedDocument!.workflow.id).toBe(workflow.id);
-
-      // Delete the document
-      await documentRepo.delete(document.id);
-
-      // Verify the document is deleted
-      const deletedDocument = await documentRepo.findOne({
-        where: { id: document.id },
-      });
-      expect(deletedDocument).toBeNull();
-
-      // Verify the workflow still exists
-      const existingWorkflow = await workflowRepo.findOne({
-        where: { id: workflow.id },
-      });
-      expect(existingWorkflow).toBeDefined();
-      expect(existingWorkflow!.id).toBe(workflow.id);
+    // Create a workspace
+    const workspace = await workspaceRepo.save({
+      name: 'Test Workspace',
+      title: 'Test Workspace',
     });
 
-    it('should remove the document reference from the workflow after document deletion', async () => {
-      const {
-        projectRepo,
-        workflowRepo,
-        workspaceRepo,
-        documentRepo,
-      } = testSetup;
-
-      // Create a workspace
-      const workspace = workspaceRepo.create({
-        title: 'Test Workspace',
-      });
-      await workspaceRepo.save(workspace);
-
-      // Create a project
-      const project = projectRepo.create({
-        name: 'Test Project',
-        title: 'Test Project',
-        workspaceId: workspace.id,
-      });
-      await projectRepo.save(project);
-
-      // Create a workflow
-      const workflow = workflowRepo.create({
-        name: 'Test Workflow',
-        place: 'test',
-        project: project,
-      });
-      await workflowRepo.save(workflow);
-
-      // Create multiple documents associated with the workflow
-      const document1 = documentRepo.create({
-        name: 'Test Document 1',
-        type: 'text',
-        workspaceId: workspace.id,
-        projectId: project.id,
-        workflow: workflow,
-        contents: { text: 'Test content 1' },
-      });
-      await documentRepo.save(document1);
-
-      const document2 = documentRepo.create({
-        name: 'Test Document 2',
-        type: 'text',
-        workspaceId: workspace.id,
-        projectId: project.id,
-        workflow: workflow,
-        contents: { text: 'Test content 2' },
-      });
-      await documentRepo.save(document2);
-
-      // Verify both documents are associated with the workflow
-      const workflowWithDocs = await workflowRepo.findOne({
-        where: { id: workflow.id },
-        relations: ['documents'],
-      });
-      expect(workflowWithDocs!.documents.length).toBe(2);
-
-      // Delete one document
-      await documentRepo.delete(document1.id);
-
-      // Verify only one document remains associated with the workflow
-      const updatedWorkflow = await workflowRepo.findOne({
-        where: { id: workflow.id },
-        relations: ['documents'],
-      });
-      expect(updatedWorkflow).toBeDefined();
-      expect(updatedWorkflow!.documents.length).toBe(1);
-      expect(updatedWorkflow!.documents[0].id).toBe(document2.id);
+    // Create project
+    const project = projectRepo.create({
+      name: 'Test Project',
+      title: 'Test Project',
     });
+    await projectRepo.save(project);
+
+    // Create namespace
+    const namespace = namespaceRepo.create({
+      name: 'Test Namespace',
+      model: 'test',
+      project: project,
+      workspaceId: workspace.id,
+    });
+    await namespaceRepo.save(namespace);
+
+    // Create workflow
+    const workflow = workflowRepo.create({
+      name: 'Test Workflow',
+      place: 'test',
+      namespace: namespace,
+      labels: [namespace.name],
+    });
+    await workflowRepo.save(workflow);
+
+    // Create document
+    const document = documentRepo.create({
+      name: 'Test Document',
+      type: 'text',
+      workspaceId: workspace.id,
+      projectId: project.id,
+      workflow: workflow,
+      contents: { text: 'Test content' },
+      labels: workflow.labels,
+    });
+    await documentRepo.save(document);
+
+    // Create dependent workflow that depends on the document
+    const dependentWorkflow1 = workflowRepo.create({
+      name: 'Dependent Workflow 1',
+      place: 'dependent1',
+      namespace: namespace,
+      labels: [namespace.name],
+      dependencies: [document],
+    });
+    await workflowRepo.save(dependentWorkflow1);
+
+    // Create another dependent workflow
+    const dependentWorkflow2 = workflowRepo.create({
+      name: 'Dependent Workflow 2',
+      place: 'dependent2',
+      namespace: namespace,
+      labels: [namespace.name],
+      dependencies: [document],
+    });
+    await workflowRepo.save(dependentWorkflow2);
+
+    // Refresh to get the latest relationships
+    const refreshedDocument = await documentRepo.findOne({
+      where: { id: document.id },
+      relations: ['workflow', 'dependentStates'],
+    });
+
+    const refreshedWorkflow = await workflowRepo.findOne({
+      where: { id: workflow.id },
+      relations: ['documents', 'dependencies'],
+    });
+
+    const refreshedDependentWorkflow1 = await workflowRepo.findOne({
+      where: { id: dependentWorkflow1.id },
+      relations: ['documents', 'dependencies'],
+    });
+
+    const refreshedDependentWorkflow2 = await workflowRepo.findOne({
+      where: { id: dependentWorkflow2.id },
+      relations: ['documents', 'dependencies'],
+    });
+
+    return {
+      document: refreshedDocument!,
+      workflow: refreshedWorkflow!,
+      dependentWorkflow1: refreshedDependentWorkflow1!,
+      dependentWorkflow2: refreshedDependentWorkflow2!,
+    };
+  }
+
+  it('should not delete the workflow when document is deleted', async () => {
+    const { documentRepo, workflowRepo } = testSetup;
+
+    // Arrange
+    const { document, workflow } = await createTestData();
+
+    // Act
+    await documentRepo.delete(document.id);
+
+    // Assert
+    const foundWorkflow = await workflowRepo.findOne({
+      where: { id: workflow.id },
+    });
+    expect(foundWorkflow).not.toBeNull();
+    expect(foundWorkflow!.id).toBe(workflow.id);
+  });
+
+  it('should not delete the dependent workflows when document is deleted', async () => {
+    const { documentRepo, workflowRepo } = testSetup;
+
+    // Arrange
+    const { document, dependentWorkflow1, dependentWorkflow2 } = await createTestData();
+
+    // Act
+    await documentRepo.delete(document.id);
+
+    // Assert
+    const foundDependentWorkflow1 = await workflowRepo.findOne({
+      where: { id: dependentWorkflow1.id },
+    });
+    expect(foundDependentWorkflow1).not.toBeNull();
+    expect(foundDependentWorkflow1!.id).toBe(dependentWorkflow1.id);
+
+    const foundDependentWorkflow2 = await workflowRepo.findOne({
+      where: { id: dependentWorkflow2.id },
+    });
+    expect(foundDependentWorkflow2).not.toBeNull();
+    expect(foundDependentWorkflow2!.id).toBe(dependentWorkflow2.id);
   });
 });

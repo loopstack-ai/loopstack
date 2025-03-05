@@ -17,7 +17,7 @@ import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowService } from '../../persistence/services/workflow.service';
 import { NamespacesService } from '../../persistence/services/namespace.service';
 import crypto from 'crypto';
-import {NamespaceEntity} from "../../persistence/entities";
+import { NamespaceEntity } from '../../persistence/entities';
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -50,8 +50,8 @@ export class WorkflowProcessorService {
     return processState;
   }
 
-  generateUniqueNamespace(): string {
-    return `value_${crypto.randomUUID()}`;
+  generateUniqueNamespace(value: string): string {
+    return `${value}_${crypto.randomUUID()}`;
   }
 
   async runFactoryType(
@@ -67,7 +67,7 @@ export class WorkflowProcessorService {
     const iteratorValues = this.valueParserService.parseValue(
       factory.iterator.values,
       processState,
-    );
+    ) as string[];
 
     if (!Array.isArray(iteratorValues)) {
       throw new Error(
@@ -80,16 +80,16 @@ export class WorkflowProcessorService {
     localContext.iteratorGroup = factory.iterator.name;
 
     // create namespace for the iterator key (group)
-    const keyNamespace = await this.namespacesService.create({
+    localContext.namespace = await this.namespacesService.create({
       name: localContext.iteratorGroup,
       model: localContext.model,
       projectId: localContext.projectId,
       workspaceId: localContext.workspaceId,
-      parentId: localContext.namespaceIds[localContext.namespaceIds.length - 1],
       metadata: undefined,
       createdBy: localContext.userId,
+      parent: localContext.namespace,
     });
-    localContext.namespaceIds.push(keyNamespace.id);
+    localContext.labels.push(localContext.namespace.name);
 
     for (const iterator of iteratorValues) {
       // create a new context for each child
@@ -101,21 +101,21 @@ export class WorkflowProcessorService {
       // create namespace for the group iterator and make sure the value includes a unique id,
       // so there is no risk of re-using the same value for different things within
       // the same workspace and project model
-      const valueNamespace = await this.namespacesService.create({
-        name: this.generateUniqueNamespace(),
+      childContext.namespace = await this.namespacesService.create({
+        name: this.generateUniqueNamespace(childContext.iteratorValue),
         model: childContext.model,
         projectId: childContext.projectId,
         workspaceId: childContext.workspaceId,
-        parentId:
-          childContext.namespaceIds[childContext.namespaceIds.length - 1],
+        parent: childContext.namespace,
         metadata: {
-          ...(typeof childContext.iteratorValue === 'object' && childContext.iteratorValue !== null
-              ? childContext.iteratorValue
-              : {}),
-        },
+          ...(typeof childContext.iteratorValue === 'object' &&
+          childContext.iteratorValue !== null
+            ? childContext.iteratorValue
+            : {}),
+        } as Record<string, any>,
         createdBy: childContext.userId,
       });
-      childContext.namespaceIds.push(valueNamespace.id);
+      localContext.labels.push(childContext.namespace.name);
 
       // process the child workflows and update the processing context
       // note, we use previous context as target so that namespaces will not be carried over
@@ -147,10 +147,7 @@ export class WorkflowProcessorService {
     workflowConfig: WorkflowConfigInterface,
     processState: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
-    console.log(
-      'Processing workflow:',
-      workflowConfig.name,
-    );
+    console.log('Processing workflow:', workflowConfig.name);
 
     if (workflowConfig.sequence) {
       return this.runSequenceType(workflowConfig.sequence, processState);
@@ -176,23 +173,21 @@ export class WorkflowProcessorService {
     workflowName: string,
     context: ContextInterface,
   ): Promise<WorkflowEntity> {
-    let workflow = await this.workflowService.createFindQuery(
-      context.projectId,
-      {
+    const workflow = await this.workflowService
+      .createFindQuery(context.namespace?.id, {
         name: workflowName,
-        namespaceIds: context.namespaceIds,
-      },
-    ).getOne();
+        labels: context.labels,
+      })
+      .getOne();
 
     if (workflow) {
       return workflow;
     }
 
     return this.workflowService.create({
-      projectId: context.projectId,
       createdBy: context.userId,
-      namespaceIds: context.namespaceIds,
-      namespace: context.namespaceIds.length ? { id: context.namespaceIds[context.namespaceIds.length - 1] } as NamespaceEntity : undefined,
+      labels: context.labels,
+      namespace: context.namespace ?? undefined,
       name: workflowName,
     });
   }

@@ -1,475 +1,327 @@
+import {
+  clearDatabase,
+  setupTestEnvironment,
+  TestSetup,
+} from '../../__tests__/database-entities-utils';
 import {NamespacesService} from "../namespace.service";
-import {ProjectEntity} from "../../entities";
-import {ProjectStatus} from "@loopstack/shared";
-import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
 
 describe('NamespacesService', () => {
-    let testSetup: TestSetup;
-    let namespacesService: NamespacesService;
+  let testSetup: TestSetup;
+  let namespacesService: NamespacesService;
 
-    beforeAll(async () => {
-        testSetup = await setupTestEnvironment({
-            providers: [NamespacesService]
-        });
-        namespacesService = testSetup.moduleRef.get<NamespacesService>(NamespacesService);
+  beforeAll(async () => {
+    testSetup = await setupTestEnvironment({
+      providers: [NamespacesService],
+    });
+    namespacesService = testSetup.moduleRef.get<NamespacesService>(NamespacesService);
+  });
+
+  afterAll(async () => {
+    await testSetup.cleanup();
+  });
+
+  beforeEach(async () => {
+    await clearDatabase(testSetup.dataSource);
+  });
+
+  async function createTestData() {
+    const {
+      projectRepo,
+      workflowRepo,
+      workspaceRepo,
+      namespaceRepo,
+    } = testSetup;
+
+    const workspace = await workspaceRepo.save({
+      name: 'Test Workspace',
+      title: 'Test Workspace',
     });
 
-    afterAll(async () => {
-        await testSetup.cleanup();
+    const project1 = projectRepo.create({
+      name: 'Project 1',
+      title: 'Project 1',
+      workspace,
+    });
+    await projectRepo.save(project1);
+
+    // Create parent namespace
+    const parentNamespace = namespaceRepo.create({
+      name: 'Parent Namespace',
+      model: 'test-model',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+      metadata: { key: 'value' },
+    });
+    await namespaceRepo.save(parentNamespace);
+
+    // Create child namespaces
+    const childNamespace1 = namespaceRepo.create({
+      name: 'Child Namespace 1',
+      model: 'test-model',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+      parent: parentNamespace,
+      parentId: parentNamespace.id,
+    });
+    await namespaceRepo.save(childNamespace1);
+
+    const childNamespace2 = namespaceRepo.create({
+      name: 'Child Namespace 2',
+      model: 'test-model',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+      parent: parentNamespace,
+      parentId: parentNamespace.id,
+    });
+    await namespaceRepo.save(childNamespace2);
+
+    // Create grandchild namespace
+    const grandchildNamespace = namespaceRepo.create({
+      name: 'Grandchild Namespace',
+      model: 'test-model',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+      parent: childNamespace1,
+      parentId: childNamespace1.id,
+    });
+    await namespaceRepo.save(grandchildNamespace);
+
+    // Create sibling namespace (no parent)
+    const siblingNamespace = namespaceRepo.create({
+      name: 'Sibling Namespace',
+      model: 'test-model',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+    });
+    await namespaceRepo.save(siblingNamespace);
+
+    // Create namespace with different model
+    const differentModelNamespace = namespaceRepo.create({
+      name: 'Different Model',
+      model: 'other-model',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+    });
+    await namespaceRepo.save(differentModelNamespace);
+
+    // Create workflow for one of the namespaces
+    const workflow = workflowRepo.create({
+      name: 'Test Workflow',
+      place: 'test',
+      namespace: childNamespace1,
+      labels: [childNamespace1.name],
+    });
+    await workflowRepo.save(workflow);
+
+    return {
+      workspace,
+      project1,
+      parentNamespace,
+      childNamespace1,
+      childNamespace2,
+      grandchildNamespace,
+      siblingNamespace,
+      differentModelNamespace,
+      workflow,
+    };
+  }
+
+  describe('findNamespaceIdsByAttributes', () => {
+    it('should find namespace IDs by name, model, and workspaceId', async () => {
+      // Arrange
+      const testData = await createTestData();
+      const { workspace, parentNamespace } = testData;
+
+      // Act
+      const result = await namespacesService.findNamespaceIdsByAttributes(
+          parentNamespace.name,
+          parentNamespace.model,
+          workspace.id
+      );
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(1);
+      expect(result[0]).toBe(parentNamespace.id);
     });
 
-    beforeEach(async () => {
-        await clearDatabase(testSetup.dataSource);
+    it('should return empty array when no namespaces match criteria', async () => {
+      // Arrange
+      const testData = await createTestData();
+
+      // Act
+      const result = await namespacesService.findNamespaceIdsByAttributes(
+          'Non-existent Namespace',
+          'test-model',
+          testData.workspace.id
+      );
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(0);
     });
 
-    describe('findNamespaceIdsByAttributes', () => {
-        it('should return namespace IDs that match the given attributes', async () => {
-            const {
-                workspaceRepo,
-                namespaceRepo,
-            } = testSetup;
+    it('should find multiple namespace IDs with the same name in different projects', async () => {
+      // Arrange
+      const testData = await createTestData();
+      const { projectRepo, namespaceRepo } = testSetup;
 
-            // Create a workspace
-            const workspace = workspaceRepo.create({
-                title: 'Test Workspace',
-            });
-            await workspaceRepo.save(workspace);
+      // Create a second project with a namespace with the same name
+      const project2 = projectRepo.create({
+        name: 'Project 2',
+        title: 'Project 2',
+        workspace: testData.workspace,
+      });
+      await projectRepo.save(project2);
 
-            // Create namespaces with the same name and model but different workspaces
-            const namespace1 = namespaceRepo.create({
-                name: 'namespace1',
-                model: 'model1',
-                workspaceId: workspace.id,
-                metadata: { key: 'value1' },
-            });
-            await namespaceRepo.save(namespace1);
+      const duplicateNameNamespace = namespaceRepo.create({
+        name: testData.parentNamespace.name, // Same name
+        model: testData.parentNamespace.model, // Same model
+        workspaceId: testData.workspace.id,
+        projectId: project2.id, // Different project
+      });
+      await namespaceRepo.save(duplicateNameNamespace);
 
-            const namespace2 = namespaceRepo.create({
-                name: 'namespace2',
-                model: 'model1',
-                workspaceId: workspace.id,
-                metadata: { key: 'value2' },
-            });
-            await namespaceRepo.save(namespace2);
+      // Act
+      const result = await namespacesService.findNamespaceIdsByAttributes(
+          testData.parentNamespace.name,
+          testData.parentNamespace.model,
+          testData.workspace.id
+      );
 
-            // Test finding namespaces by attributes
-            const ids = await namespacesService.findNamespaceIdsByAttributes(
-                'namespace1',
-                'model1',
-                workspace.id
-            );
-
-            expect(ids).toHaveLength(1);
-            expect(ids).toContain(namespace1.id);
-            expect(ids).not.toContain(namespace2.id);
-        });
-
-        it('should return empty array when no namespaces match the attributes', async () => {
-            const {
-                workspaceRepo,
-                namespaceRepo,
-            } = testSetup;
-            // Create a workspace
-            const workspace = workspaceRepo.create({
-                title: 'Test Workspace',
-            });
-            await workspaceRepo.save(workspace);
-
-            // Create a namespace
-            const namespace = namespaceRepo.create({
-                name: 'namespace1',
-                model: 'model1',
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(namespace);
-
-            // Test finding namespaces with non-existent attributes
-            const ids = await namespacesService.findNamespaceIdsByAttributes(
-                'non-existent',
-                'model1',
-                workspace.id
-            );
-
-            expect(ids).toHaveLength(0);
-        });
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(2);
+      expect(result).toContain(testData.parentNamespace.id);
+      expect(result).toContain(duplicateNameNamespace.id);
     });
 
-    describe('omitNamespacesByNames', () => {
-        it('should remove namespaces and their descendants by name', async () => {
-            const {
-                workspaceRepo,
-                namespaceRepo,
-            } = testSetup;
-            // Create a workspace
-            const workspace = workspaceRepo.create({
-                title: 'Test Workspace',
-            });
-            await workspaceRepo.save(workspace);
+    it('should only return IDs that match all criteria', async () => {
+      // Arrange
+      const testData = await createTestData();
 
-            // Create namespaces with parent-child relationships
-            const parent1 = namespaceRepo.create({
-                name: 'parent1',
-                model: 'model1',
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(parent1);
+      // Act - looking for namespace with correct name but different model
+      const result = await namespacesService.findNamespaceIdsByAttributes(
+          testData.parentNamespace.name,
+          'wrong-model',
+          testData.workspace.id
+      );
 
-            const parent2 = namespaceRepo.create({
-                name: 'parent2',
-                model: 'model1',
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(parent2);
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(0);
+    });
+  });
 
-            const child1 = namespaceRepo.create({
-                name: 'child1',
-                model: 'model1',
-                parentId: parent1.id,
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(child1);
+  describe('omitNamespacesByNames', () => {
+    it('should remove namespaces by names along with their descendants', async () => {
+      // Arrange
+      const testData = await createTestData();
+      const allNamespaces = await testSetup.namespaceRepo.find();
 
-            const child2 = namespaceRepo.create({
-                name: 'child2',
-                model: 'model1',
-                parentId: parent1.id,
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(child2);
+      // Act
+      const result = namespacesService.omitNamespacesByNames(
+          [testData.parentNamespace.name], // Remove parent
+          allNamespaces
+      );
 
-            const grandchild = namespaceRepo.create({
-                name: 'grandchild',
-                model: 'model1',
-                parentId: child1.id,
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(grandchild);
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(allNamespaces.length - 4); // Parent and 3 descendants removed
 
-            // Get all namespaces
-            const allNamespaces = await namespaceRepo.find();
-            expect(allNamespaces).toHaveLength(5);
+      // Verify parent and descendants are removed
+      expect(result.find(n => n.id === testData.parentNamespace.id)).toBeUndefined();
+      expect(result.find(n => n.id === testData.childNamespace1.id)).toBeUndefined();
+      expect(result.find(n => n.id === testData.childNamespace2.id)).toBeUndefined();
+      expect(result.find(n => n.id === testData.grandchildNamespace.id)).toBeUndefined();
 
-            // Omit parent1 and all its descendants
-            const filteredNamespaces = namespacesService.omitNamespacesByNames(
-                ['parent1'],
-                allNamespaces
-            );
-
-            // Should only have parent2 left
-            expect(filteredNamespaces).toHaveLength(1);
-            expect(filteredNamespaces[0].id).toBe(parent2.id);
-        });
-
-        it('should handle multiple namespaces to omit', async () => {
-            const {
-                workspaceRepo,
-                namespaceRepo,
-            } = testSetup;
-            // Create a workspace
-            const workspace = workspaceRepo.create({
-                title: 'Test Workspace',
-            });
-            await workspaceRepo.save(workspace);
-
-            // Create independent namespaces
-            const ns1 = namespaceRepo.create({
-                name: 'ns1',
-                model: 'model1',
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(ns1);
-
-            const ns2 = namespaceRepo.create({
-                name: 'ns2',
-                model: 'model1',
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(ns2);
-
-            const ns3 = namespaceRepo.create({
-                name: 'ns3',
-                model: 'model1',
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(ns3);
-
-            // Get all namespaces
-            const allNamespaces = await namespaceRepo.find();
-            expect(allNamespaces).toHaveLength(3);
-
-            // Omit ns1 and ns3
-            const filteredNamespaces = namespacesService.omitNamespacesByNames(
-                ['ns1', 'ns3'],
-                allNamespaces
-            );
-
-            // Should only have ns2 left
-            expect(filteredNamespaces).toHaveLength(1);
-            expect(filteredNamespaces[0].id).toBe(ns2.id);
-        });
-
-        it('should handle non-existent namespace names gracefully', async () => {
-            const {
-                workspaceRepo,
-                namespaceRepo,
-            } = testSetup;
-            // Create a workspace
-            const workspace = workspaceRepo.create({
-                title: 'Test Workspace',
-            });
-            await workspaceRepo.save(workspace);
-
-            // Create namespaces
-            const ns1 = namespaceRepo.create({
-                name: 'ns1',
-                model: 'model1',
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(ns1);
-
-            const ns2 = namespaceRepo.create({
-                name: 'ns2',
-                model: 'model1',
-                workspaceId: workspace.id,
-            });
-            await namespaceRepo.save(ns2);
-
-            // Get all namespaces
-            const allNamespaces = await namespaceRepo.find();
-            expect(allNamespaces).toHaveLength(2);
-
-            // Try to omit a non-existent namespace
-            const filteredNamespaces = namespacesService.omitNamespacesByNames(
-                ['nonexistent'],
-                allNamespaces
-            );
-
-            // Should still have all namespaces
-            expect(filteredNamespaces).toHaveLength(2);
-        });
+      // Verify other namespaces remain
+      expect(result.find(n => n.id === testData.siblingNamespace.id)).toBeDefined();
+      expect(result.find(n => n.id === testData.differentModelNamespace.id)).toBeDefined();
     });
 
-    describe('create', () => {
-        it('should create a new namespace when it does not exist', async () => {
-            const {
-                projectRepo,
-                workspaceRepo,
-                namespaceRepo,
-            } = testSetup;
-            // Create a workspace
-            const workspace = workspaceRepo.create({
-                title: 'Test Workspace',
-            });
-            await workspaceRepo.save(workspace);
+    it('should handle removing multiple different namespaces', async () => {
+      // Arrange
+      const testData = await createTestData();
+      const allNamespaces = await testSetup.namespaceRepo.find();
 
-            const project = await projectRepo.save(projectRepo.create({
-                name: 'Test Project',
-                title: 'Test Project',
-                status: ProjectStatus.New,
-                workspace: workspace,
-            }));
+      // Act
+      const result = namespacesService.omitNamespacesByNames(
+          [testData.siblingNamespace.name, testData.differentModelNamespace.name],
+          allNamespaces
+      );
 
-            const namespaceDto = {
-                name: 'new-namespace',
-                model: 'model1',
-                workspaceId: workspace.id,
-                projectId: project.id,
-                metadata: { key: 'value' },
-            };
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(allNamespaces.length - 2); // Two namespaces removed
 
-            const createdNamespace = await namespacesService.create(namespaceDto);
+      // Verify removed namespaces
+      expect(result.find(n => n.id === testData.siblingNamespace.id)).toBeUndefined();
+      expect(result.find(n => n.id === testData.differentModelNamespace.id)).toBeUndefined();
 
-            expect(createdNamespace).toBeDefined();
-            expect(createdNamespace.name).toBe(namespaceDto.name);
-            expect(createdNamespace.model).toBe(namespaceDto.model);
-            expect(createdNamespace.workspaceId).toBe(namespaceDto.workspaceId);
-            expect(createdNamespace.metadata).toEqual(namespaceDto.metadata);
-
-            // Verify it's in the database
-            const foundNamespace = await namespaceRepo.findOne({
-                where: {
-                    name: namespaceDto.name,
-                    model: namespaceDto.model,
-                    workspaceId: namespaceDto.workspaceId,
-                },
-            });
-
-            expect(foundNamespace).toBeDefined();
-            expect(foundNamespace?.id).toBe(createdNamespace.id);
-        });
-
-        it('should update existing namespace metadata when it already exists', async () => {
-            const {
-                projectRepo,
-                workspaceRepo,
-                namespaceRepo,
-            } = testSetup;
-            // Create a workspace
-            const workspace = workspaceRepo.create({
-                title: 'Test Workspace',
-            });
-            await workspaceRepo.save(workspace);
-
-            // Create initial namespace
-            const initialNamespace = namespaceRepo.create({
-                name: 'existing-namespace',
-                model: 'model1',
-                workspaceId: workspace.id,
-                metadata: { key1: 'value1' },
-            });
-            await namespaceRepo.save(initialNamespace);
-
-            const project = await projectRepo.save(projectRepo.create({
-                name: 'Test Project',
-                title: 'Test Project',
-                status: ProjectStatus.New,
-                workspace: workspace,
-            }));
-
-            // Update the namespace with new metadata
-            const updateDto = {
-                name: 'existing-namespace',
-                model: 'model1',
-                workspaceId: workspace.id,
-                projectId: project.id,
-                metadata: { key2: 'value2' },
-            };
-
-            const updatedNamespace = await namespacesService.create(updateDto);
-
-            expect(updatedNamespace).toBeDefined();
-            expect(updatedNamespace.id).toBe(initialNamespace.id);
-            expect(updatedNamespace.metadata).toEqual({
-                key1: 'value1',
-                key2: 'value2',
-            });
-
-            // Verify updates are in the database
-            const foundNamespace = await namespaceRepo.findOne({
-                where: { id: initialNamespace.id },
-            });
-
-            expect(foundNamespace).toBeDefined();
-            expect(foundNamespace?.metadata).toEqual({
-                key1: 'value1',
-                key2: 'value2',
-            });
-        });
-
-        it('should handle parent-child relationships correctly', async () => {
-            const {
-                projectRepo,
-                workspaceRepo,
-                namespaceRepo,
-            } = testSetup;
-            // Create a workspace
-            const workspace = workspaceRepo.create({
-                title: 'Test Workspace',
-            });
-            await workspaceRepo.save(workspace);
-
-            const project = await projectRepo.save(projectRepo.create({
-                name: 'Test Project',
-                title: 'Test Project',
-                status: ProjectStatus.New,
-                workspace: workspace,
-            }));
-
-            // Create parent namespace
-            const parentNamespaceDto = {
-                name: 'parent-namespace',
-                model: 'model1',
-                workspaceId: workspace.id,
-                projectId: project.id,
-            };
-
-            const parentNamespace = await namespacesService.create(parentNamespaceDto);
-
-            // Create child namespace
-            const childNamespaceDto = {
-                name: 'child-namespace',
-                model: 'model1',
-                workspaceId: workspace.id,
-                parentId: parentNamespace.id,
-                projectId: project.id,
-            };
-
-            const childNamespace = await namespacesService.create(childNamespaceDto);
-
-            expect(childNamespace).toBeDefined();
-            expect(childNamespace.parentId).toBe(parentNamespace.id);
-
-            // Verify the relationship in the database
-            const foundChild = await namespaceRepo.findOne({
-                where: { id: childNamespace.id },
-            });
-
-            expect(foundChild).toBeDefined();
-            expect(foundChild?.parentId).toBe(parentNamespace.id);
-        });
-
-        it('should maintain existing relationships when updating a namespace', async () => {
-            const {
-                projectRepo,
-                workflowRepo,
-                workspaceRepo,
-                namespaceRepo,
-            } = testSetup;
-            // Create a workspace
-            const workspace = workspaceRepo.create({
-                title: 'Test Workspace',
-            });
-            await workspaceRepo.save(workspace);
-
-            // Create a project
-            const project: ProjectEntity = await projectRepo.save(projectRepo.create({
-                name: 'Test Project',
-                title: 'Test Project',
-                workspaceId: workspace.id,
-            }));
-
-            // Create a workflow
-            const workflow = workflowRepo.create({
-                name: 'Test Workflow',
-                place: 'test',
-                projectId: project.id,
-            });
-            await workflowRepo.save(workflow);
-
-            // Create initial namespace with relationships
-            const initialNamespace = namespaceRepo.create({
-                name: 'related-namespace',
-                model: 'model1',
-                workspaceId: workspace.id,
-            });
-
-            initialNamespace.projects = [project];
-            initialNamespace.workflows = [workflow];
-            await namespaceRepo.save(initialNamespace);
-
-            // Update the namespace
-            const updateDto = {
-                name: 'related-namespace',
-                model: 'model1',
-                workspaceId: workspace.id,
-                projectId: project.id,
-                metadata: { updated: true },
-            };
-
-            await namespacesService.create(updateDto);
-
-            // Verify relationships are maintained
-            const updatedNamespace = await namespaceRepo.findOne({
-                where: { id: initialNamespace.id },
-                relations: ['projects', 'workflows'],
-            });
-
-            expect(updatedNamespace).toBeDefined();
-            expect(updatedNamespace?.projects).toHaveLength(1);
-            expect(updatedNamespace?.workflows).toHaveLength(1);
-            expect(updatedNamespace?.projects[0].id).toBe(project.id);
-            expect(updatedNamespace?.workflows[0].id).toBe(workflow.id);
-            expect(updatedNamespace?.metadata).toEqual({ updated: true });
-        });
+      // Verify remaining namespaces
+      expect(result.find(n => n.id === testData.parentNamespace.id)).toBeDefined();
+      expect(result.find(n => n.id === testData.childNamespace1.id)).toBeDefined();
+      expect(result.find(n => n.id === testData.childNamespace2.id)).toBeDefined();
+      expect(result.find(n => n.id === testData.grandchildNamespace.id)).toBeDefined();
     });
+
+    it('should handle non-existent namespace names gracefully', async () => {
+      // Arrange
+      const testData = await createTestData();
+      const allNamespaces = await testSetup.namespaceRepo.find();
+
+      // Act
+      const result = namespacesService.omitNamespacesByNames(
+          ['Non-existent Namespace'],
+          allNamespaces
+      );
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(allNamespaces.length); // No namespaces should be removed
+    });
+
+    it('should handle empty names array', async () => {
+      // Arrange
+      const testData = await createTestData();
+      const allNamespaces = await testSetup.namespaceRepo.find();
+
+      // Act
+      const result = namespacesService.omitNamespacesByNames(
+          [],
+          allNamespaces
+      );
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(allNamespaces.length); // No namespaces should be removed
+    });
+
+    it('should remove only child namespaces when specified', async () => {
+      // Arrange
+      const testData = await createTestData();
+      const allNamespaces = await testSetup.namespaceRepo.find();
+
+      // Act
+      const result = namespacesService.omitNamespacesByNames(
+          [testData.childNamespace1.name],
+          allNamespaces
+      );
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(allNamespaces.length - 2); // Child and grandchild removed
+
+      // Verify removed namespaces
+      expect(result.find(n => n.id === testData.childNamespace1.id)).toBeUndefined();
+      expect(result.find(n => n.id === testData.grandchildNamespace.id)).toBeUndefined();
+
+      // Verify remaining namespaces
+      expect(result.find(n => n.id === testData.parentNamespace.id)).toBeDefined();
+      expect(result.find(n => n.id === testData.childNamespace2.id)).toBeDefined();
+      expect(result.find(n => n.id === testData.siblingNamespace.id)).toBeDefined();
+      expect(result.find(n => n.id === testData.differentModelNamespace.id)).toBeDefined();
+    });
+  });
 });

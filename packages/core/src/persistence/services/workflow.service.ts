@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder} from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { WorkflowEntity } from '../entities';
 
 @Injectable()
@@ -11,30 +11,30 @@ export class WorkflowService {
   ) {}
 
   createFindQuery(
-      projectId: string,
-      options?: {
-        name?: string;
-        namespaceIds?: string[];
-      }
+    namespaceId: string,
+    options?: {
+      name?: string;
+      labels?: string[];
+    },
   ): SelectQueryBuilder<WorkflowEntity> {
-    const { name, namespaceIds } = options || {};
+    const { name, labels } = options || {};
 
     const queryBuilder = this.workflowRepository
-        .createQueryBuilder('workflow')
-        .where('workflow.project_id = :projectId', { projectId })
-        .leftJoinAndSelect('workflow.documents', 'document');
+      .createQueryBuilder('workflow')
+      .where('workflow.namespace_id = :namespaceId', { namespaceId })
+      .leftJoinAndSelect('workflow.documents', 'document');
 
     if (name) {
       queryBuilder.andWhere('workflow.name = :name', { name });
     }
 
-    if (namespaceIds !== undefined) {
-      if (namespaceIds.length === 0) {
-        queryBuilder.andWhere('array_length(workflow.namespace_ids, 1) IS NULL');
+    if (labels !== undefined) {
+      if (labels.length === 0) {
+        queryBuilder.andWhere('array_length(workflow.labels, 1) IS NULL');
       } else {
         queryBuilder.andWhere(
-            'workflow.namespace_ids @> :namespaceIds AND array_length(workflow.namespace_ids, 1) = :namespaceCount',
-            { namespaceIds, namespaceCount: namespaceIds.length }
+          'workflow.labels @> :labels AND array_length(workflow.labels, 1) = :labelCount',
+          { labels, labelCount: labels.length },
         );
       }
     }

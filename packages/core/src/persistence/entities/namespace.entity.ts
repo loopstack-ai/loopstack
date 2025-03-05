@@ -6,11 +6,12 @@ import {
   OneToMany,
   JoinColumn,
   Index,
-  ManyToMany,
-  Unique, CreateDateColumn, UpdateDateColumn,
+  Unique,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { WorkflowEntity } from './workflow.entity';
-import {ProjectEntity} from "./project.entity";
+import { ProjectEntity } from './project.entity';
 
 @Entity('namespace')
 @Unique(['name', 'model', 'projectId'])
@@ -30,12 +31,17 @@ export class NamespaceEntity {
   @Index()
   workspaceId: string;
 
+  @ManyToOne(() => ProjectEntity, (project) => project.namespaces, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'project_id' })
+  project: ProjectEntity;
+
   @Column({ name: 'project_id' })
-  @Index()
   projectId: string;
 
   @ManyToOne(() => NamespaceEntity, (namespace) => namespace.children, {
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
     nullable: true,
   })
   @JoinColumn({ name: 'parent_id' })
@@ -48,16 +54,15 @@ export class NamespaceEntity {
   @Column('json', { nullable: true })
   metadata: Record<string, any> | null;
 
-  @OneToMany(() => NamespaceEntity, (namespace) => namespace.parent)
+  @OneToMany(() => NamespaceEntity, (namespace) => namespace.parent, {
+    onDelete: 'CASCADE',
+  })
   children: NamespaceEntity[];
 
   @OneToMany(() => WorkflowEntity, (workflow) => workflow.namespace, {
     onDelete: 'CASCADE',
   })
   workflows: WorkflowEntity[];
-
-  @ManyToMany(() => ProjectEntity, (project) => project.namespaces)
-  projects: ProjectEntity[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

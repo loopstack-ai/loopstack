@@ -1,9 +1,8 @@
 import {
-  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn, JoinTable, ManyToMany,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -11,8 +10,7 @@ import {
 } from 'typeorm';
 import { ProjectStatus } from '@loopstack/shared';
 import { WorkspaceEntity } from './workspace.entity';
-import { WorkflowEntity } from './workflow.entity';
-import {NamespaceEntity} from "./namespace.entity";
+import { NamespaceEntity } from './namespace.entity';
 
 @Entity({ name: 'project' })
 export class ProjectEntity {
@@ -56,31 +54,9 @@ export class ProjectEntity {
   @Column({ name: 'workspace_id', nullable: true })
   workspaceId: string;
 
-  @OneToMany(() => WorkflowEntity, (workflow) => workflow.project)
-  workflows: WorkflowEntity[];
-
   @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdBy: string | null;
 
-  @ManyToMany(() => NamespaceEntity, (namespace) => namespace.projects)
-  @JoinTable({
-    name: 'project_namespace',
-    joinColumn: {
-      name: 'project_id',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'namespace_id',
-      referencedColumnName: 'id',
-    },
-  })
+  @OneToMany(() => NamespaceEntity, (namespace) => namespace.project)
   namespaces: NamespaceEntity[];
-
-  @Column('uuid', { name: 'namespace_ids', array: true, nullable: false })
-  namespaceIds: string[];
-
-  @BeforeInsert()
-  setNamespaceIds() {
-    this.namespaceIds = this.namespaces?.map(ns => ns.id) || [];
-  }
 }

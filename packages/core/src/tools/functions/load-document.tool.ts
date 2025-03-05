@@ -16,7 +16,7 @@ const schema = z.object({
     name: z.string(),
     type: z.string().optional(),
   }),
-  namespaceIds: z.array(z.string()).optional(),
+  labels: z.array(z.string()).optional(),
   map: z.string().optional(),
   filter: z.string().optional(),
   sort: z.boolean().optional(),
@@ -99,7 +99,7 @@ export class LoadDocumentTool implements ToolInterface {
       options.where,
       {
         isGlobal: !!options.global,
-        namespaceIds: options.namespaceIds,
+        labels: options.labels,
         ltWorkflowIndex: target.workflow!.index,
       },
     );
@@ -176,10 +176,10 @@ export class LoadDocumentTool implements ToolInterface {
     if (!_.isEqual(sortedOldIds, sortedNewIds)) {
       // ids have changed
       // update the workflow dependency relations and hash value
-      target.workflow!.dependenciesHash = newIds.length
+      target.workflow.dependenciesHash = newIds.length
         ? createHash(newIds)
         : null;
-      target.workflow!.dependencies = newDependencies;
+      target.workflow.dependencies = newDependencies;
 
       return true;
     }
@@ -239,7 +239,6 @@ export class LoadDocumentTool implements ToolInterface {
   async apply(
     data: any,
     target: ProcessStateInterface,
-    source: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
     const options = schema.parse(data);
 

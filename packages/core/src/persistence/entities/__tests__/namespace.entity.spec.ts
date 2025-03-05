@@ -1,7 +1,8 @@
-import { WorkspaceEntity } from '../workspace.entity';
-import { NamespaceEntity } from '../namespace.entity';
-import { WorkflowEntity } from '../workflow.entity';
-import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
+import {
+  clearDatabase,
+  setupTestEnvironment,
+  TestSetup,
+} from '../../__tests__/database-entities-utils';
 
 describe('Namespace Entity Deletion Tests', () => {
   let testSetup: TestSetup;
@@ -18,250 +19,138 @@ describe('Namespace Entity Deletion Tests', () => {
     await clearDatabase(testSetup.dataSource);
   });
 
-  describe('Namespace parent-child relationship tests', () => {
-    let workspace: WorkspaceEntity;
-    let parentNamespace: NamespaceEntity;
-    let childNamespace1: NamespaceEntity;
-    let childNamespace2: NamespaceEntity;
+  // Helper function to create test data
+  async function createTestData() {
+    const {
+      projectRepo,
+      workflowRepo,
+      workspaceRepo,
+      namespaceRepo,
+    } = testSetup;
 
-    beforeEach(async () => {
-      const {
-        workspaceRepo,
-        namespaceRepo,
-      } = testSetup;
-
-      // Create a workspace
-      workspace = workspaceRepo.create({
-        title: 'Test Workspace',
-      });
-      await workspaceRepo.save(workspace);
-
-      // Create parent namespace
-      parentNamespace = namespaceRepo.create({
-        name: 'Parent Namespace',
-        model: 'test-model',
-        workspaceId: workspace.id,
-        metadata: { test: 'data' },
-      });
-      await namespaceRepo.save(parentNamespace);
-
-      // Create child namespaces
-      childNamespace1 = namespaceRepo.create({
-        name: 'Child Namespace 1',
-        model: 'test-model',
-        workspaceId: workspace.id,
-        parentId: parentNamespace.id,
-        metadata: { child: 'data1' },
-      });
-      await namespaceRepo.save(childNamespace1);
-
-      childNamespace2 = namespaceRepo.create({
-        name: 'Child Namespace 2',
-        model: 'test-model',
-        workspaceId: workspace.id,
-        parentId: parentNamespace.id,
-        metadata: { child: 'data2' },
-      });
-      await namespaceRepo.save(childNamespace2);
+    // Create a workspace
+    const workspace = await workspaceRepo.save({
+      name: 'Test Workspace',
+      title: 'Test Workspace',
     });
 
-    it('should set parentId to null for children when parent namespace is deleted', async () => {
-      const {
-        namespaceRepo,
-      } = testSetup;
-
-      // Delete the parent namespace
-      await namespaceRepo.delete(parentNamespace.id);
-
-      // Verify parent namespace is deleted
-      const parentResult = await namespaceRepo.findOne({
-        where: { id: parentNamespace.id },
-      });
-      expect(parentResult).toBeNull();
-
-      // Verify child namespaces still exist but have null parentId
-      const child1 = await namespaceRepo.findOne({
-        where: { id: childNamespace1.id },
-      });
-      const child2 = await namespaceRepo.findOne({
-        where: { id: childNamespace2.id },
-      });
-
-      expect(child1).not.toBeNull();
-      expect(child2).not.toBeNull();
-      expect(child1!.parentId).toBeNull();
-      expect(child2!.parentId).toBeNull();
+    // Create project
+    const project = projectRepo.create({
+      name: 'Test Project',
+      title: 'Test Project',
     });
+    await projectRepo.save(project);
 
-    it('should not affect parent when child namespace is deleted', async () => {
-      const {
-        namespaceRepo,
-      } = testSetup;
-
-      // Delete a child namespace
-      await namespaceRepo.delete(childNamespace1.id);
-
-      // Verify child is deleted
-      const deletedChild = await namespaceRepo.findOne({
-        where: { id: childNamespace1.id },
-      });
-      expect(deletedChild).toBeNull();
-
-      // Verify parent namespace is unchanged
-      const parent = await namespaceRepo.findOne({
-        where: { id: parentNamespace.id },
-        relations: ['children'],
-      });
-
-      expect(parent).not.toBeNull();
-      expect(parent!.children.length).toBe(1);
-      expect(parent!.children[0].id).toBe(childNamespace2.id);
+    // Create parent namespace
+    const parentNamespace = namespaceRepo.create({
+      name: 'Parent Namespace',
+      model: 'test',
+      workspaceId: workspace.id,
+      project: project,
     });
+    await namespaceRepo.save(parentNamespace);
+
+    // Create namespace to be deleted
+    const namespaceToDelete = namespaceRepo.create({
+      name: 'Namespace To Delete',
+      model: 'test',
+      workspaceId: workspace.id,
+      project: project,
+      parent: parentNamespace,
+    });
+    await namespaceRepo.save(namespaceToDelete);
+
+    // Create child namespace
+    const childNamespace = namespaceRepo.create({
+      name: 'Child Namespace',
+      model: 'test',
+      workspaceId: workspace.id,
+      project: project,
+      parent: namespaceToDelete,
+    });
+    await namespaceRepo.save(childNamespace);
+
+    // Create workflow in the namespace to be deleted
+    const workflow = workflowRepo.create({
+      name: 'Test Workflow',
+      place: 'test',
+      namespace: namespaceToDelete,
+      labels: [namespaceToDelete.name],
+    });
+    await workflowRepo.save(workflow);
+
+    return {
+      project,
+      parentNamespace,
+      namespaceToDelete,
+      childNamespace,
+      workflow,
+    };
+  }
+
+  it('should not delete the project when namespace is deleted', async () => {
+    const { projectRepo, namespaceRepo } = testSetup;
+
+    // Arrange
+    const { namespaceToDelete, project } = await createTestData();
+
+    // Act
+    await namespaceRepo.delete(namespaceToDelete.id);
+
+    // Assert
+    const foundProject = await projectRepo.findOne({
+      where: { id: project.id },
+    });
+    expect(foundProject).not.toBeNull();
+    expect(foundProject!.id).toBe(project.id);
   });
 
-  describe('Namespace to workspace relationship tests', () => {
-    let workspace: WorkspaceEntity;
-    let namespace: NamespaceEntity;
+  it('should not delete the parent namespace when namespace is deleted', async () => {
+    const { namespaceRepo } = testSetup;
 
-    beforeEach(async () => {
-      const {
-        workspaceRepo,
-        namespaceRepo,
-      } = testSetup;
+    // Arrange
+    const { namespaceToDelete, parentNamespace } = await createTestData();
 
-      // Create a workspace
-      workspace = workspaceRepo.create({
-        title: 'Test Workspace',
-      });
-      await workspaceRepo.save(workspace);
+    // Act
+    await namespaceRepo.delete(namespaceToDelete.id);
 
-      // Create namespace in the workspace
-      namespace = namespaceRepo.create({
-        name: 'Test Namespace',
-        model: 'test-model',
-        workspaceId: workspace.id,
-        metadata: { test: 'data' },
-      });
-      await namespaceRepo.save(namespace);
+    // Assert
+    const foundParentNamespace = await namespaceRepo.findOne({
+      where: { id: parentNamespace.id },
     });
-
-    it('should not delete workspace when namespace is deleted', async () => {
-      const {
-        workspaceRepo,
-        namespaceRepo,
-      } = testSetup;
-      // Delete the namespace
-      await namespaceRepo.delete(namespace.id);
-
-      // Verify namespace is deleted
-      const namespaceResult = await namespaceRepo.findOne({
-        where: { id: namespace.id },
-      });
-      expect(namespaceResult).toBeNull();
-
-      // Verify workspace still exists
-      const workspaceResult = await workspaceRepo.findOne({
-        where: { id: workspace.id },
-      });
-      expect(workspaceResult).not.toBeNull();
-      expect(workspaceResult!.id).toBe(workspace.id);
-    });
+    expect(foundParentNamespace).not.toBeNull();
+    expect(foundParentNamespace!.id).toBe(parentNamespace.id);
   });
 
-  describe('Namespace to workflow relationship tests', () => {
-    let workspace: WorkspaceEntity;
-    let namespace: NamespaceEntity;
-    let workflow: WorkflowEntity;
+  it('should delete child namespaces when namespace is deleted', async () => {
+    const { namespaceRepo } = testSetup;
 
-    beforeEach(async () => {
-      const {
-        workflowRepo,
-        workspaceRepo,
-        namespaceRepo,
-      } = testSetup;
+    // Arrange
+    const { namespaceToDelete, childNamespace } = await createTestData();
 
-      // Create a workspace
-      workspace = workspaceRepo.create({
-        title: 'Test Workspace',
-      });
-      await workspaceRepo.save(workspace);
+    // Act
+    await namespaceRepo.delete(namespaceToDelete.id);
 
-      // Create namespace
-      namespace = namespaceRepo.create({
-        name: 'Test Namespace',
-        model: 'test-model',
-        workspaceId: workspace.id,
-        metadata: { test: 'data' },
-      });
-      await namespaceRepo.save(namespace);
-
-      // Create workflow
-      workflow = workflowRepo.create({
-        name: 'Test Workflow',
-        place: 'initial',
-        index: 0,
-        namespace: namespace,
-        namespaceIds: [namespace.id],
-      });
-      await workflowRepo.save(workflow);
+    // Assert
+    const foundChildNamespace = await namespaceRepo.findOne({
+      where: { id: childNamespace.id },
     });
+    expect(foundChildNamespace).toBeNull();
+  });
 
-    it('should remove the relation when namespace is deleted but keep workflow', async () => {
-      const {
-        workflowRepo,
-        namespaceRepo,
-      } = testSetup;
+  it('should delete workflows when namespace is deleted', async () => {
+    const { namespaceRepo, workflowRepo } = testSetup;
 
-      // Delete the namespace
-      await namespaceRepo.delete(namespace.id);
+    // Arrange
+    const { namespaceToDelete, workflow } = await createTestData();
 
-      // Verify namespace is deleted
-      const namespaceResult = await namespaceRepo.findOne({
-        where: { id: namespace.id },
-      });
-      expect(namespaceResult).toBeNull();
+    // Act
+    await namespaceRepo.delete(namespaceToDelete.id);
 
-      // Verify workflow still exists
-      const workflowResult = await workflowRepo.findOne({
-        where: { id: workflow.id },
-      });
-      expect(workflowResult).not.toBeNull();
-
-      // Verify relation is removed
-      const relation = await testSetup.dataSource.query(
-        'SELECT * FROM workflow_namespace WHERE namespace_id = $1',
-        [namespace.id],
-      );
-      expect(relation.length).toBe(0);
+    // Assert
+    const foundWorkflow = await workflowRepo.findOne({
+      where: { id: workflow.id },
     });
-
-    it('should remove the relation when workflow is deleted but keep namespace', async () => {
-      const {
-        workflowRepo,
-        namespaceRepo,
-      } = testSetup;
-
-      // Delete the workflow
-      await workflowRepo.delete(workflow.id);
-
-      // Verify workflow is deleted
-      const workflowResult = await workflowRepo.findOne({
-        where: { id: workflow.id },
-      });
-      expect(workflowResult).toBeNull();
-
-      // Verify namespace still exists
-      const namespaceResult = await namespaceRepo.findOne({
-        where: { id: namespace.id },
-      });
-      expect(namespaceResult).not.toBeNull();
-
-      // Verify relation is removed
-      const relation = await testSetup.dataSource.query(
-        'SELECT * FROM workflow_namespace WHERE workflow_id = $1',
-        [workflow.id],
-      );
-      expect(relation.length).toBe(0);
-    });
+    expect(foundWorkflow).toBeNull();
   });
 });

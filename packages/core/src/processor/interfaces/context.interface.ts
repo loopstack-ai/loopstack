@@ -1,5 +1,6 @@
 import { TransitionPayloadInterface } from '@loopstack/shared';
 import { ContextImportInterface } from './context-import.interface';
+import { NamespaceEntity } from '../../persistence/entities';
 
 export interface ContextInterface {
   userId: string | null;
@@ -11,7 +12,7 @@ export interface ContextInterface {
   transition?: TransitionPayloadInterface;
 
   labels: string[];
-  namespaceIds: string[];
+  namespace: NamespaceEntity;
 
   iteratorGroup?: string;
   iteratorValue?: any;

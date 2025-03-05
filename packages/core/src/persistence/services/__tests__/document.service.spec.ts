@@ -1,482 +1,311 @@
-import {DocumentService} from "../document.service";
-import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
+import { DocumentService } from '../document.service';
+import { DocumentEntity } from '../../entities';
+import {
+  clearDatabase,
+  setupTestEnvironment,
+  TestSetup,
+} from '../../__tests__/database-entities-utils';
+import { WorkflowEntity } from '../../entities/workflow.entity';
 
-describe('Document Service Tests', () => {
-    let testSetup: TestSetup;
-    let documentService: DocumentService;
+describe('DocumentService', () => {
+  let testSetup: TestSetup;
+  let documentService: DocumentService;
 
-    beforeAll(async () => {
-        testSetup = await setupTestEnvironment({
-            providers: [DocumentService]
-        });
-        documentService = testSetup.moduleRef.get<DocumentService>(DocumentService);
+  beforeAll(async () => {
+    testSetup = await setupTestEnvironment({
+      providers: [DocumentService],
+    });
+    documentService = testSetup.moduleRef.get<DocumentService>(DocumentService);
+  });
+
+  afterAll(async () => {
+    await testSetup.cleanup();
+  });
+
+  beforeEach(async () => {
+    await clearDatabase(testSetup.dataSource);
+  });
+
+  async function createTestData() {
+    const {
+      projectRepo,
+      workflowRepo,
+      workspaceRepo,
+      namespaceRepo,
+      documentRepo,
+    } = testSetup;
+
+    const workspace = await workspaceRepo.save({
+      name: 'Test Workspace',
+      title: 'Test Workspace',
     });
 
-    afterAll(async () => {
-        await testSetup.cleanup();
+    const project1 = projectRepo.create({
+      name: 'Project 1',
+      title: 'Project 1',
+      workspace,
+    });
+    await projectRepo.save(project1);
+
+    const project2 = projectRepo.create({
+      name: 'Project 2',
+      title: 'Project 2',
+      workspace,
+    });
+    await projectRepo.save(project2);
+
+    const namespace1 = namespaceRepo.create({
+      name: 'Namespace 1',
+      model: 'test',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+    });
+    await namespaceRepo.save(namespace1);
+
+    const workflow1 = await workflowRepo.save(workflowRepo.create({
+      name: 'Workflow 1',
+      place: 'test1',
+      namespace: namespace1,
+      labels: ['label1', 'label2'],
+    }));
+
+    const workflow2 = await workflowRepo.save(workflowRepo.create({
+      name: 'Workflow 2',
+      place: 'test2',
+      namespace: namespace1,
+      labels: ['label3', 'label4'],
+    }));
+
+    // Create documents for Project 1
+    const document1 = documentRepo.create({
+      name: 'Document 1',
+      type: 'text',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+      workflow: workflow1,
+      workflowIndex: 1,
+      labels: ['label1', 'label2'],
+      contents: { text: 'Document 1 content' },
+    });
+    await documentRepo.save(document1);
+
+    const document2 = documentRepo.create({
+      name: 'Document 2',
+      type: 'image',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+      workflow: workflow1,
+      workflowIndex: 2,
+      labels: ['label1', 'label3'],
+      contents: { url: 'image-url' },
+    });
+    await documentRepo.save(document2);
+
+    const document3 = documentRepo.create({
+      name: 'Document 1', // Same name as document1 but different type
+      type: 'pdf',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+      workflow: workflow2,
+      workflowIndex: 3,
+      labels: ['label3', 'label4'],
+      contents: { url: 'pdf-url' },
+    });
+    await documentRepo.save(document3);
+
+    // Create an invalidated document
+    const document4 = documentRepo.create({
+      name: 'Document Invalidated',
+      type: 'text',
+      workspaceId: workspace.id,
+      projectId: project1.id,
+      workflow: workflow1,
+      workflowIndex: 4,
+      labels: ['label1', 'label2'],
+      isInvalidated: true,
+      contents: { text: 'Invalid content' },
+    });
+    await documentRepo.save(document4);
+
+    // Create a document for Project 2 (for global search testing)
+    const document5 = documentRepo.create({
+      name: 'Document 1', // Same name as document1 but different project
+      type: 'text',
+      workspaceId: workspace.id,
+      projectId: project2.id,
+      workflow: workflow1,
+      workflowIndex: 5,
+      labels: ['label1', 'label2'],
+      contents: { text: 'Document from Project 2' },
+    });
+    await documentRepo.save(document5);
+
+    return {
+      workspace,
+      project1,
+      project2,
+      namespace1,
+      workflow1,
+      workflow2,
+      document1,
+      document2,
+      document3,
+      document4,
+      document5,
+    };
+  }
+
+  describe('createDocumentsQuery', () => {
+    it('should find documents by name within a project', async () => {
+      // Arrange
+      const testData = await createTestData();
+
+      // Act
+      const query = documentService.createDocumentsQuery(
+          testData.project1.id,
+          testData.workspace.id,
+          { name: 'Document 1' }
+      );
+      const result = await query.getMany();
+
+      // Assert
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(2); // document1 and document3 have the same name
+      expect(result.map(d => d.id)).toContain(testData.document1.id);
+      expect(result.map(d => d.id)).toContain(testData.document3.id);
+      expect(result.map(d => d.id)).not.toContain(testData.document5.id); // Different project
     });
 
-    beforeEach(async () => {
-        await clearDatabase(testSetup.dataSource);
+    it('should find documents by name and type', async () => {
+      // Arrange
+      const testData = await createTestData();
+
+      // Act
+      const query = documentService.createDocumentsQuery(
+          testData.project1.id,
+          testData.workspace.id,
+          { name: 'Document 1', type: 'text' }
+      );
+      const result = await query.getMany();
+
+      // Assert
+      expect(result.length).toBe(1);
+      expect(result[0].id).toBe(testData.document1.id);
     });
 
-    // Helper function to setup test data
-    async function setupTestData() {
-        const {
-            projectRepo,
-            workflowRepo,
-            workspaceRepo,
-            namespaceRepo,
-            documentRepo,
-        } = testSetup;
+    it('should exclude invalidated documents', async () => {
+      // Arrange
+      const testData = await createTestData();
 
-        // Create a workspace
-        const workspace = workspaceRepo.create({
-            title: 'Test Workspace',
-        });
-        await workspaceRepo.save(workspace);
+      // Act
+      const query = documentService.createDocumentsQuery(
+          testData.project1.id,
+          testData.workspace.id,
+          { name: 'Document Invalidated' }
+      );
+      const result = await query.getMany();
 
-        // Create a project
-        const project = projectRepo.create({
-            name: 'Test Project',
-            title: 'Test Project',
-            workspaceId: workspace.id,
-        });
-        await projectRepo.save(project);
-
-        // Create namespaces
-        const namespace1 = namespaceRepo.create({
-            name: 'Namespace 1',
-            workspaceId: workspace.id,
-            model: 'model1',
-        });
-        await namespaceRepo.save(namespace1);
-
-        const namespace2 = namespaceRepo.create({
-            name: 'Namespace 2',
-            workspaceId: workspace.id,
-            model: 'model1',
-        });
-        await namespaceRepo.save(namespace2);
-
-        const namespace3 = namespaceRepo.create({
-            name: 'Namespace 3',
-            workspaceId: workspace.id,
-            model: 'model1',
-        });
-        await namespaceRepo.save(namespace3);
-
-        // Create workflows with different namespace combinations
-        // Workflow 1 with namespace1 and namespace2
-        const workflow1 = workflowRepo.create({
-            name: 'Workflow 1',
-            place: 'test',
-            project,
-            namespace: namespace2,
-            namespaceIds: [namespace1.id, namespace2.id],
-        });
-        await workflowRepo.save(workflow1);
-
-        // Workflow 2 with namespace2 and namespace3
-        const workflow2 = workflowRepo.create({
-            name: 'Workflow 2',
-            place: 'test',
-            project,
-            namespace: namespace3,
-            namespaceIds: [namespace2.id, namespace3.id],
-        });
-        await workflowRepo.save(workflow2);
-
-        // Workflow 3 with all namespaces
-        const workflow3 = workflowRepo.create({
-            name: 'Workflow 3',
-            place: 'test',
-            project,
-            namespace: namespace3,
-            namespaceIds: [namespace1.id, namespace2.id, namespace3.id],
-        });
-        await workflowRepo.save(workflow3);
-
-        // Create documents with the same name in different workflows
-        const document1 = documentRepo.create({
-            name: 'Common Document',
-            type: 'text',
-            workspaceId: workspace.id,
-            projectId: project.id,
-            workflow: workflow1,
-            contents: { text: 'Content 1' },
-            isInvalidated: false,
-            workflowIndex: 1,
-        });
-        await documentRepo.save(document1);
-
-        const document2 = documentRepo.create({
-            name: 'Common Document',
-            type: 'text',
-            workspaceId: workspace.id,
-            projectId: project.id,
-            workflow: workflow2,
-            contents: { text: 'Content 2' },
-            isInvalidated: false,
-            workflowIndex: 2,
-        });
-        await documentRepo.save(document2);
-
-        const document3 = documentRepo.create({
-            name: 'Common Document',
-            type: 'text',
-            workspaceId: workspace.id,
-            projectId: project.id,
-            workflow: workflow3,
-            contents: { text: 'Content 3' },
-            isInvalidated: false,
-            workflowIndex: 3,
-        });
-        await documentRepo.save(document3);
-
-        // Create another document with a different name
-        const document4 = documentRepo.create({
-            name: 'Different Document',
-            type: 'text',
-            workspaceId: workspace.id,
-            projectId: project.id,
-            workflow: workflow1,
-            contents: { text: 'Content 4' },
-            isInvalidated: false,
-            workflowIndex: 4,
-        });
-        await documentRepo.save(document4);
-
-        // Create an invalidated document
-        const document5 = documentRepo.create({
-            name: 'Invalidated Document',
-            type: 'text',
-            workspaceId: workspace.id,
-            projectId: project.id,
-            workflow: workflow1,
-            contents: { text: 'Content 5' },
-            isInvalidated: true,
-            workflowIndex: 5,
-        });
-        await documentRepo.save(document5);
-
-        return {
-            workspace,
-            project,
-            namespace1,
-            namespace2,
-            namespace3,
-            workflow1,
-            workflow2,
-            workflow3,
-            document1,
-            document2,
-            document3,
-            document4,
-            document5
-        };
-    }
-
-    describe('findDocumentsByNameInAllNamespaces', () => {
-        it('should find documents by name in workflows containing ALL specified namespaces', async () => {
-            const { project, workspace, namespace1, namespace2, namespace3 } = await setupTestData();
-
-            // Find documents with name "Common Document" in workflows containing both namespace1 and namespace2
-            const documents = await documentService.createDocumentsQuery(
-                project.id,
-                workspace.id,
-                {
-                    name: 'Common Document',
-                },
-                {
-                    namespaceIds: [namespace1.id, namespace2.id],
-                }
-            ).getMany();
-
-            // Should find document1 and document3 since their workflows contain both namespaces
-            expect(documents.length).toBe(2);
-            const contentTexts = documents.map(d => d.contents.text);
-            expect(contentTexts).toContain('Content 1');
-            expect(contentTexts).toContain('Content 3');
-        });
-
-        it('should find only documents in workflows containing all three namespaces', async () => {
-            const { project, workspace, namespace1, namespace2, namespace3 } = await setupTestData();
-
-            // Find documents with name "Common Document" in workflows containing all three namespaces
-            const documents = await documentService.createDocumentsQuery(
-                project.id,
-                workspace.id,
-                {
-                    name: 'Common Document',
-                },
-                {
-                    namespaceIds: [namespace1.id, namespace2.id, namespace3.id],
-                }
-            ).getMany();
-
-            // Should find only document3 since only workflow3 contains all three namespaces
-            expect(documents.length).toBe(1);
-            expect(documents[0].contents.text).toBe('Content 3');
-        });
-
-        it('should return an empty array if no workflows contain all specified namespaces', async () => {
-            const {
-                workspaceRepo,
-                namespaceRepo,
-            } = testSetup;
-            const { project, workspace,  namespace1, namespace3 } = await setupTestData();
-
-            // Create a new namespace that isn't associated with any workflow
-            const newNamespace = namespaceRepo.create({
-                name: 'New Namespace',
-                model: 'model1',
-                workspaceId: await workspaceRepo.findOne({ where: {} }).then(ws => ws?.id),
-            });
-            await namespaceRepo.save(newNamespace);
-
-            const documents = await documentService.createDocumentsQuery(
-                project.id,
-                workspace.id,
-                {
-                    name: 'Common Document',
-                },
-                {
-                    namespaceIds: [namespace1.id, namespace3.id, newNamespace.id],
-                }
-            ).getMany();
-
-            expect(documents).toEqual([]);
-        });
+      // Assert
+      expect(result.length).toBe(0); // document4 is invalidated
     });
 
-    describe('createQuery', () => {
-        it('should create a query builder with basic filters', async () => {
-            const { project, workspace } = await setupTestData();
+    it('should filter by workflow index', async () => {
+      // Arrange
+      const testData = await createTestData();
 
-            const queryBuilder = documentService.createDocumentsQuery(
-                project.id,
-                workspace.id,
-                {
-                    name: 'Common Document',
-                },
-            );
+      // Act
+      const query = documentService.createDocumentsQuery(
+          testData.project1.id,
+          testData.workspace.id,
+          undefined,
+          { ltWorkflowIndex: 3 }
+      );
+      const result = await query.getMany();
 
-            const documents = await queryBuilder.getMany();
-
-            // Should find 3 non-invalidated documents with name "Common Document"
-            expect(documents.length).toBe(3);
-        });
-
-        it('should filter by document type', async () => {
-            const {
-                workflowRepo,
-                documentRepo,
-            } = testSetup;
-            const { project, workspace } = await setupTestData();
-
-            // Create a document with a different type
-            const workflow = await workflowRepo.findOne({ where: {} });
-            const differentTypeDoc = documentRepo.create({
-                name: 'Common Document',
-                type: 'image',
-                workspaceId: workspace.id,
-                projectId: project.id,
-                workflow: workflow!,
-                contents: { text: 'Image content' },
-                isInvalidated: false,
-                workflowIndex: 10,
-            });
-            await documentRepo.save(differentTypeDoc);
-
-            const queryBuilder = documentService.createDocumentsQuery(
-                project.id,
-                workspace.id,
-                {
-                    name: 'Common Document',
-                    type: 'text',
-                },
-            );
-
-            const documents = await queryBuilder.getMany();
-
-            // Should find 3 text documents, not the image document
-            expect(documents.length).toBe(3);
-            documents.forEach(doc => {
-                expect(doc.type).toBe('text');
-            });
-        });
-
-        it('should exclude invalidated documents', async () => {
-            const { project, workspace } = await setupTestData();
-
-            const queryBuilder = documentService.createDocumentsQuery(
-                project.id,
-                workspace.id,
-                {
-                    name: 'Invalidated Document',
-                },
-            );
-
-            const documents = await queryBuilder.getMany();
-
-            // Should find 0 documents since the only matching one is invalidated
-            expect(documents.length).toBe(0);
-        });
-
-        it('should filter by workflow index', async () => {
-            const { project, workspace } = await setupTestData();
-
-            const queryBuilder = documentService.createDocumentsQuery(
-                project.id,
-                workspace.id,
-                {
-                    name: 'Common Document',
-                },
-                {
-                    ltWorkflowIndex: 3,
-                },
-            );
-
-            const documents = await queryBuilder.getMany();
-
-            // Should find documents with workflow_index < 3
-            expect(documents.length).toBe(2);
-            documents.forEach(doc => {
-                expect(doc.workflowIndex).toBeLessThan(3);
-            });
-        });
-
-        it('should filter by namespaces', async () => {
-            const { project, workspace, namespace1 } = await setupTestData();
-
-            const queryBuilder = documentService.createDocumentsQuery(
-                project.id,
-                workspace.id,
-                {
-                    name: 'Common Document',
-                },
-                {
-                    namespaceIds: [namespace1.id],
-                },
-            );
-
-            const documents = await queryBuilder.getMany();
-
-            // Should find documents in workflows containing namespace1
-            expect(documents.length).toBe(2);
-        });
-
-        it('should order documents by workflow_index DESC', async () => {
-            const { project, workspace } = await setupTestData();
-
-            const queryBuilder = documentService.createDocumentsQuery(
-                project.id,
-                workspace.id,
-                {
-                    name: 'Common Document',
-                },
-            );
-
-            const documents = await queryBuilder.getMany();
-
-            // Should be ordered by workflow_index DESC
-            expect(documents.length).toBe(3);
-            expect(documents[0].workflowIndex).toBe(3);
-            expect(documents[1].workflowIndex).toBe(2);
-            expect(documents[2].workflowIndex).toBe(1);
-        });
-
-        it('should use global scope when isGlobal is true', async () => {
-            const {
-                projectRepo,
-                workflowRepo,
-                documentRepo,
-            } = testSetup;
-            const { project, workspace } = await setupTestData();
-
-            // Create a second project in the same workspace
-            const project2 = projectRepo.create({
-                name: 'Test Project 2',
-                title: 'Test Project 2',
-                workspaceId: workspace.id,
-            });
-            await projectRepo.save(project2);
-
-            // Create a workflow in the second project
-            const workflow = workflowRepo.create({
-                name: 'Workflow in Project 2',
-                place: 'test',
-                project: project2,
-            });
-            await workflowRepo.save(workflow);
-
-            // Create a document in the second project
-            const document = documentRepo.create({
-                name: 'Common Document',
-                type: 'text',
-                workspaceId: workspace.id,
-                projectId: project2.id,
-                workflow,
-                contents: { text: 'Project 2 content' },
-                isInvalidated: false,
-                workflowIndex: 10,
-            });
-            await documentRepo.save(document);
-
-            // Query with isGlobal = true should include documents from all projects in the workspace
-            const queryBuilder = documentService.createDocumentsQuery(
-                project.id, // Original project ID
-                workspace.id,
-                {
-                    name: 'Common Document',
-                },
-                {
-                    isGlobal: true,
-                },
-            );
-
-            const documents = await queryBuilder.getMany();
-
-            // Should find 4 documents (3 from original project + 1 from project2)
-            expect(documents.length).toBe(4);
-
-            // Check that we have documents from both projects
-            const projectIds = [...new Set(documents.map(d => d.projectId))];
-            expect(projectIds.length).toBe(2);
-            expect(projectIds).toContain(project.id);
-            expect(projectIds).toContain(project2.id);
-        });
+      // Assert
+      expect(result.length).toBe(2);
+      expect(result[1].name).toBe(testData.document1.name);
+      expect(result[0].name).toBe(testData.document2.name);
     });
 
-    describe('create', () => {
-        it('should create a document entity without saving it', async () => {
-            const {
-                documentRepo,
-            } = testSetup;
-            const { project, workspace, workflow1 } = await setupTestData();
+    it('should find documents across workspaces when isGlobal is true', async () => {
+      // Arrange
+      const testData = await createTestData();
 
-            const documentDto = {
-                name: 'New Document',
-                type: 'text',
-                workspaceId: workspace.id,
-                projectId: project.id,
-                workflow: workflow1,
-                contents: { text: 'New content' },
-            };
+      // Act
+      const query = documentService.createDocumentsQuery(
+          testData.project1.id,
+          testData.workspace.id,
+          { name: 'Document 1' },
+          { isGlobal: true }
+      );
+      const result = await query.getMany();
 
-            const document = documentService.create(documentDto);
-
-            // The document should be created but not saved
-            expect(document).toBeDefined();
-            expect(document.name).toBe('New Document');
-            expect(document.id).toBeUndefined(); // Not saved, so no ID
-
-            // Verify it's not in the database
-            const foundDocument = await documentRepo.findOne({
-                where: { name: 'New Document' },
-            });
-            expect(foundDocument).toBeNull();
-        });
+      // Assert
+      expect(result.length).toBe(3); // document1, document3, and document5
+      expect(result.map(d => d.id)).toContain(testData.document1.id);
+      expect(result.map(d => d.id)).toContain(testData.document3.id);
+      expect(result.map(d => d.id)).toContain(testData.document5.id);
     });
+
+    it('should filter by labels', async () => {
+      // Arrange
+      const testData = await createTestData();
+
+      // Act
+      const query = documentService.createDocumentsQuery(
+          testData.project1.id,
+          testData.workspace.id,
+          undefined,
+          { labels: ['label1', 'label2'] }
+      );
+      const result = await query.getMany();
+
+      // Assert
+      expect(result.length).toBe(1); // Only document1 has both label1 and label2
+      expect(result[0].id).toBe(testData.document1.id);
+    });
+
+    it('should order results by workflow_index in descending order', async () => {
+      // Arrange
+      const testData = await createTestData();
+
+      // Act
+      const query = documentService.createDocumentsQuery(
+          testData.project1.id,
+          testData.workspace.id,
+          undefined
+      );
+      const result = await query.getMany();
+
+      // Assert
+      expect(result.length).toBe(3); // document1, document2, document3
+      // Check ordering
+      expect(result[0].workflowIndex).toBeGreaterThan(result[1].workflowIndex);
+      expect(result[1].workflowIndex).toBeGreaterThan(result[2].workflowIndex);
+    });
+
+    it('should combine multiple filter conditions correctly', async () => {
+      // Arrange
+      const testData = await createTestData();
+
+      // Act
+      const query = documentService.createDocumentsQuery(
+          testData.project1.id,
+          testData.workspace.id,
+          undefined,
+          {
+            labels: ['label1'],
+            ltWorkflowIndex: 3
+          }
+      );
+      const result = await query.getMany();
+
+      // Assert
+      expect(result.length).toBe(2); // document1 and document2
+      expect(result.map(d => d.id)).toContain(testData.document1.id);
+      expect(result.map(d => d.id)).toContain(testData.document2.id);
+      expect(result.map(d => d.id)).not.toContain(testData.document3.id); // workflow_index = 3
+    });
+  });
 });

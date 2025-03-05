@@ -108,10 +108,9 @@ export async function setupTestEnvironment(options: TestSetupOptions = {}): Prom
 
 export async function clearDatabase(dataSource: DataSource) {
     await dataSource.query('TRUNCATE "document" CASCADE');
-    await dataSource.query('TRUNCATE "workflow" CASCADE');
-    await dataSource.query('TRUNCATE "workflow_namespace" CASCADE');
-    await dataSource.query('TRUNCATE "workflow_document" CASCADE');
-    await dataSource.query('TRUNCATE "project" CASCADE');
     await dataSource.query('TRUNCATE "namespace" CASCADE');
+    await dataSource.query('TRUNCATE "project" CASCADE');
+    await dataSource.query('TRUNCATE "workflow" CASCADE');
+    await dataSource.query('TRUNCATE "workflow_document" CASCADE');
     await dataSource.query('TRUNCATE "workspace" CASCADE');
 }

@@ -15,9 +15,9 @@ export class NamespacesService {
    * Find namespace IDs by name, model, and workspaceId
    */
   async findNamespaceIdsByAttributes(
-      name: string,
-      model: string,
-      workspaceId: string,
+    name: string,
+    model: string,
+    workspaceId: string,
   ): Promise<string[]> {
     const namespaces = await this.namespaceRepository.find({
       where: {
@@ -28,13 +28,16 @@ export class NamespacesService {
       select: ['id'],
     });
 
-    return namespaces.map(namespace => namespace.id);
+    return namespaces.map((namespace) => namespace.id);
   }
 
   /**
    * Removes multiple namespaces and all their descendant namespaces from the provided array.
    */
-  omitNamespacesByNames(names: string[], namespaces: NamespaceEntity[]): NamespaceEntity[] {
+  omitNamespacesByNames(
+    names: string[],
+    namespaces: NamespaceEntity[],
+  ): NamespaceEntity[] {
     const idsToRemove = new Set<string>();
 
     // Recursive function to collect a namespace's ID and all its descendant IDs
@@ -69,12 +72,12 @@ export class NamespacesService {
         model: createNamespaceDto.model,
         projectId: createNamespaceDto.projectId,
       },
-      relations: ['projects', 'workflows'],
+      relations: ['workflows'],
     });
 
     if (namespace) {
       // Verify that parentId is consistent
-      if (namespace.parentId !== (createNamespaceDto.parentId ?? null)) {
+      if (namespace.parent.id !== (createNamespaceDto.parent?.id ?? null)) {
         throw new Error('Cannot change parent for an existing namespace');
       }
 
@@ -84,19 +87,23 @@ export class NamespacesService {
           ...namespace.metadata,
           ...createNamespaceDto.metadata,
         };
+
+        return this.namespaceRepository.save(namespace);
       }
     } else {
       // Create a new namespace
       namespace = this.namespaceRepository.create({
         name: createNamespaceDto.name,
         model: createNamespaceDto.model,
-        parentId: createNamespaceDto.parentId,
+        parent: createNamespaceDto.parent ?? undefined,
         workspaceId: createNamespaceDto.workspaceId,
         projectId: createNamespaceDto.projectId,
         metadata: createNamespaceDto.metadata,
       });
+
+      return this.namespaceRepository.save(namespace);
     }
 
-    return this.namespaceRepository.save(namespace);
+    return namespace;
   }
 }

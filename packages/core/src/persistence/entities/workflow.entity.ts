@@ -1,5 +1,4 @@
 import {
-  BeforeInsert, BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -11,7 +10,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ProjectEntity } from './project.entity';
 import { DocumentEntity } from './document.entity';
 import { NamespaceEntity } from './namespace.entity';
 import { WorkflowStateHistoryDto, WorkflowStatePlaceInfoDto } from '../dtos';
@@ -57,30 +55,21 @@ export class WorkflowEntity {
   @Column('jsonb', { name: 'history', nullable: true })
   history: WorkflowStateHistoryDto | null;
 
-  @ManyToOne(() => ProjectEntity, (project) => project.workflows, {
-    onDelete: 'SET NULL',
-    nullable: true,
-  })
-  @JoinColumn({ name: 'project_id' })
-  project: ProjectEntity;
-
-  @Column({ name: 'project_id', nullable: true })
-  projectId: string;
-
   @ManyToOne(() => NamespaceEntity, (namespace) => namespace.workflows, {
-    onDelete: 'SET NULL',
-    nullable: true,
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'namespace_id' })
   namespace: NamespaceEntity;
 
-  @Column({ name: 'namespace_id', nullable: true })
+  @Column({ name: 'namespace_id' })
   namespaceId: string;
 
-  @Column('uuid', { name: 'namespace_ids', array: true, nullable: false })
-  namespaceIds: string[];
+  @Column('varchar',{ name: 'labels', array: true, default: [] })
+  labels: string[];
 
-  @ManyToMany(() => DocumentEntity, (document) => document.dependentStates)
+  @ManyToMany(() => DocumentEntity, (document) => document.dependentStates, {
+      onDelete: 'CASCADE'
+  })
   @JoinTable({
     name: 'workflow_document',
     joinColumn: {

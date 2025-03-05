@@ -16,7 +16,7 @@ export class FunctionCallService {
     return input.trim().replace(/^{/, '').replace(/}$/, '').trim();
   }
 
-  runEval(value: string, variables: Record<string, any>) {
+  runEval(value: string, variables: Record<string, any>): any {
     const trimmed = value.trim();
     if (!this.isFunction(trimmed)) {
       return trimmed;
@@ -30,6 +30,6 @@ export class FunctionCallService {
     // note, this is not safe to use with untrusted user input
     // when running user configs those need to run in a safe environment
     // consider using isolated-vm
-    return safeEval(contents, { ...variables, _ });
+    return safeEval(contents, { ...variables, _ }) as unknown as any;
   }
 }

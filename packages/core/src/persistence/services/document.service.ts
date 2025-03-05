@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import {DocumentEntity} from '../entities';
+import { Repository, SelectQueryBuilder } from 'typeorm';
+import { DocumentEntity } from '../entities';
 
 @Injectable()
 export class DocumentService {
@@ -12,7 +12,9 @@ export class DocumentService {
 
   create(dto: Partial<DocumentEntity>): DocumentEntity {
     if (!dto.workflow) {
-      throw new Error(`Document needs a workflow relation. Create document failed.`)
+      throw new Error(
+        `Document needs a workflow relation. Create document failed.`,
+      );
     }
     return this.documentRepository.create(dto);
   }
@@ -20,20 +22,21 @@ export class DocumentService {
   createDocumentsQuery(
     projectId: string,
     workspaceId: string,
-    where: {
+    where?: {
       name: string;
       type?: string;
     },
     options?: {
       isGlobal?: boolean;
-      namespaceIds?: string[];
+      labels?: string[];
       ltWorkflowIndex?: number;
     },
-  ) {
-
+  ): SelectQueryBuilder<DocumentEntity> {
     const queryBuilder = this.documentRepository.createQueryBuilder();
 
-    queryBuilder.andWhere(where);
+    if (where) {
+        queryBuilder.andWhere(where);
+    }
 
     if (undefined !== options?.ltWorkflowIndex) {
       queryBuilder.andWhere(`workflow_index < :ltWorkflowIndex`, {
@@ -55,8 +58,10 @@ export class DocumentService {
       });
     }
 
-    if (options?.namespaceIds?.length) {
-      queryBuilder.andWhere('namespace_ids @> ARRAY[:...namespaceIds]::uuid[]', { namespaceIds: options.namespaceIds })
+    if (options?.labels?.length) {
+      queryBuilder.andWhere('labels @> ARRAY[:...labels]::varchar[]', {
+        labels: options.labels,
+      });
     }
 
     queryBuilder.orderBy('workflow_index', 'DESC');

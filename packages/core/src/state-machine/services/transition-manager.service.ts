@@ -49,6 +49,7 @@ export class TransitionManagerService {
       workspaceId: this.workflowContext.workspaceId,
       projectId: this.workflowContext.projectId,
       workflow: this.workflow,
+      labels: this.workflow.labels,
     });
 
     // invalidate previous versions of the same document
