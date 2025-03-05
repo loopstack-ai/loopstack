@@ -9,6 +9,7 @@ import { IsNull, Repository } from 'typeorm';
 import { ProcessorService } from '@loopstack/core';
 import { WorkspaceEntity } from '@loopstack/core';
 import { TransitionPayloadInterface } from '@loopstack/shared';
+import {ProjectProcessorService} from "@loopstack/core/dist/processor/services/project-processor.service";
 
 @Injectable()
 export class ProcessorApiService {
@@ -17,7 +18,7 @@ export class ProcessorApiService {
     private projectRepository: Repository<ProjectEntity>,
     @InjectRepository(WorkspaceEntity)
     private workspaceRepository: Repository<WorkspaceEntity>,
-    private processorService: ProcessorService,
+    private processorService: ProjectProcessorService,
   ) {}
 
   async processProject(
@@ -49,17 +50,11 @@ export class ProcessorApiService {
     project.workspace.isLocked = true;
     await this.workspaceRepository.save(project.workspace);
 
-    const context = await this.processorService.process(
-      {
-        model: project.name,
-      },
+    const context = await this.processorService.processProject(
       {
         ...payload,
         userId: user,
         projectId: project.id,
-        model: project.name,
-        workspaceId: project.workspaceId,
-        labels: project.labels,
       },
     );
 

@@ -27,10 +27,10 @@ export class ProjectCreateDto {
       'Project name can only contain alphanumeric characters, hyphens, and underscores',
   })
   @ApiProperty({
-    description: 'Unique identifier for the project',
+    description: 'Process model identifier for the project',
     example: 'my-project',
   })
-  name: string;
+  model: string;
 
   /**
    * Human-readable title for the project

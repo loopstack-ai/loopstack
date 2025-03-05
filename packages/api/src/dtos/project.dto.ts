@@ -17,10 +17,10 @@ export class ProjectDto {
 
   @Expose()
   @ApiProperty({
-    description: 'System name of the project, used for identification purposes',
-    example: 'customer-portal',
+    description: 'Process model identifier for the project',
+    example: 'customer-process',
   })
-  name: string;
+  model: string;
 
   @Expose()
   @ApiProperty({
