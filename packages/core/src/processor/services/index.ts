@@ -1,1 +1,1 @@
-export * from './processor.service';
+export * from './project-processor.service';

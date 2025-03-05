@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { _ } from 'lodash';
+import _ from 'lodash';
 import { ToolInterface } from '../interfaces/tool.interface';
 import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
 import { Tool } from '../../processor/decorators/tool.decorator';
