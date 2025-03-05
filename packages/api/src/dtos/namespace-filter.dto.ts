@@ -6,4 +6,9 @@ export class NamespaceFilterDto {
   @IsUUID()
   @ApiPropertyOptional()
   workspaceId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  @ApiPropertyOptional()
+  projectId?: string;
 }

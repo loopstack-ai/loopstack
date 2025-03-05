@@ -35,7 +35,7 @@ export class ProjectDto {
     items: { type: 'string' },
     description:
       'Tags associated with the project for categorization and filtering',
-    example: ['frontend', 'customer-facing', 'high-priority'],
+    example: ['frontend', 'featureXY'],
   })
   labels: string[];
 

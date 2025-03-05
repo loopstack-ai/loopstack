@@ -34,6 +34,16 @@ export class WorkflowDto {
 
   @Expose()
   @ApiProperty({
+    type: 'array',
+    items: { type: 'string' },
+    description:
+        'Tags associated with the workflow for categorization and filtering',
+    example: ['frontend', 'featureXY'],
+  })
+  labels: string[];
+
+  @Expose()
+  @ApiProperty({
     description: 'Completion percentage of the workflow (0-100)',
     example: 75,
     minimum: 0,

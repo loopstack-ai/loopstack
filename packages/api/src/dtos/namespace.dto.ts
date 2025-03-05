@@ -1,6 +1,7 @@
-import { Expose, plainToInstance } from 'class-transformer';
+import {Expose, plainToInstance, Transform, Type} from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import {NamespaceEntity} from "@loopstack/core/dist";
+import {NamespaceEntity} from "@loopstack/core";
+import {WorkflowItemDto} from "./workflow-item.dto";
 
 /**
  * Data Transfer Object representing a namespace
@@ -36,6 +37,13 @@ export class NamespaceDto {
 
   @Expose()
   @ApiProperty({
+    description: 'Unique identifier of the project this namespace belongs to',
+    example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
+  })
+  projectId: string;
+
+  @Expose()
+  @ApiProperty({
     type: 'object',
     additionalProperties: true,
     description: 'Metadata of this namespace',
@@ -43,12 +51,28 @@ export class NamespaceDto {
   })
   metadata: Record<string, any> | null;
 
+  @Expose()
+  @ApiProperty({
+    description: 'Parent namespace ID',
+    type: 'string',
+    nullable: true,
+  })
+  parentId: string | null;
+
+  @Expose()
+  @ApiProperty({
+    description: 'List of workflows',
+    type: () => [WorkflowItemDto],
+  })
+  @Type(() => WorkflowItemDto)
+  workflows: WorkflowItemDto[];
+
   /**
    * Creates a NamespaceDto instance from a NamespaceEntity
    */
   static create(namespace: NamespaceEntity): NamespaceDto {
     return plainToInstance(NamespaceDto, namespace, {
-      excludeExtraneousValues: true,
+      // excludeExtraneousValues: true,
     });
   }
 }

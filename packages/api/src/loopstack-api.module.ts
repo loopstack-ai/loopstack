@@ -23,6 +23,7 @@ import { WorkflowApiService } from './services/workflow-api.service';
 import { DocumentApiService } from './services/document-api.service';
 import {NamespaceController} from "./controllers/namespace.controller";
 import {NamespaceApiService} from "./services/namespace-api.service";
+import {NamespaceEntity} from "@loopstack/core";
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import {NamespaceApiService} from "./services/namespace-api.service";
       WorkspaceEntity,
       WorkflowEntity,
       DocumentEntity,
+      NamespaceEntity,
     ]),
     LoopCoreModule.register({}),
   ],

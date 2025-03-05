@@ -33,7 +33,7 @@ export class ProcessorApiService {
         id: projectId,
         createdBy: user === null ? IsNull() : user,
       },
-      relations: ['workspace', 'namespaces'],
+      relations: ['workspace'],
     });
 
     if (!project) {
@@ -51,7 +51,7 @@ export class ProcessorApiService {
 
     const context = await this.processorService.process(
       {
-        projectName: project.name,
+        model: project.name,
       },
       {
         ...payload,
@@ -59,8 +59,7 @@ export class ProcessorApiService {
         projectId: project.id,
         model: project.name,
         workspaceId: project.workspaceId,
-        projectNamespaceIds: project.namespaceIds,
-        namespaceIds: [],
+        labels: project.labels,
       },
     );
 

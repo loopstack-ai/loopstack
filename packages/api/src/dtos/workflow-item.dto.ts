@@ -1,4 +1,4 @@
-import { Expose, plainToInstance, Transform } from 'class-transformer';
+import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { WorkflowEntity } from '@loopstack/core';
 
@@ -27,6 +27,16 @@ export class WorkflowItemDto {
     type: Number,
   })
   index: number;
+
+  @Expose()
+  @ApiProperty({
+    type: 'array',
+    items: { type: 'string' },
+    description:
+        'Tags associated with the workflow for categorization and filtering',
+    example: ['frontend', 'featureXY'],
+  })
+  labels: string[];
 
   @Expose()
   @ApiProperty({

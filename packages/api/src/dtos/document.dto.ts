@@ -138,6 +138,16 @@ export class DocumentDto<T = unknown> {
   })
   place?: string | null;
 
+  @Expose()
+  @ApiProperty({
+    type: 'array',
+    items: { type: 'string' },
+    description:
+        'Tags associated with the document for categorization and filtering',
+    example: ['frontend', 'featureXY'],
+  })
+  labels: string[];
+
   /**
    * Date when the document was created
    */
