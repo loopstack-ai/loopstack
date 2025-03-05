@@ -72,7 +72,8 @@ describe('Document Service Tests', () => {
             name: 'Workflow 1',
             place: 'test',
             project,
-            namespaces: [namespace1, namespace2],
+            namespace: namespace2,
+            namespaceIds: [namespace1.id, namespace2.id],
         });
         await workflowRepo.save(workflow1);
 
@@ -81,7 +82,8 @@ describe('Document Service Tests', () => {
             name: 'Workflow 2',
             place: 'test',
             project,
-            namespaces: [namespace2, namespace3],
+            namespace: namespace3,
+            namespaceIds: [namespace2.id, namespace3.id],
         });
         await workflowRepo.save(workflow2);
 
@@ -90,7 +92,8 @@ describe('Document Service Tests', () => {
             name: 'Workflow 3',
             place: 'test',
             project,
-            namespaces: [namespace1, namespace2, namespace3],
+            namespace: namespace3,
+            namespaceIds: [namespace1.id, namespace2.id, namespace3.id],
         });
         await workflowRepo.save(workflow3);
 

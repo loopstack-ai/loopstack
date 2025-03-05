@@ -17,7 +17,7 @@ import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowService } from '../../persistence/services/workflow.service';
 import { NamespacesService } from '../../persistence/services/namespace.service';
 import crypto from 'crypto';
-import {NamespaceEntity} from "../../persistence/entities/namespace.entity";
+import {NamespaceEntity} from "../../persistence/entities";
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -50,8 +50,8 @@ export class WorkflowProcessorService {
     return processState;
   }
 
-  generateUniqueNamespace(value: string): string {
-    return `${value}_${crypto.randomUUID()}`;
+  generateUniqueNamespace(): string {
+    return `value_${crypto.randomUUID()}`;
   }
 
   async runFactoryType(
@@ -96,20 +96,24 @@ export class WorkflowProcessorService {
       const childContext = this.contextService.create(localContext);
 
       // set iterator
-      localContext.iteratorValue = iterator;
+      childContext.iteratorValue = iterator;
 
       // create namespace for the group iterator and make sure the value includes a unique id,
       // so there is no risk of re-using the same value for different things within
       // the same workspace and project model
       const valueNamespace = await this.namespacesService.create({
-        name: this.generateUniqueNamespace(localContext.iteratorValue!),
+        name: this.generateUniqueNamespace(),
         model: childContext.model,
         projectId: childContext.projectId,
         workspaceId: childContext.workspaceId,
         parentId:
           childContext.namespaceIds[childContext.namespaceIds.length - 1],
-        metadata: undefined,
-        createdBy: localContext.userId,
+        metadata: {
+          ...(typeof childContext.iteratorValue === 'object' && childContext.iteratorValue !== null
+              ? childContext.iteratorValue
+              : {}),
+        },
+        createdBy: childContext.userId,
       });
       childContext.namespaceIds.push(valueNamespace.id);
 
@@ -187,7 +191,8 @@ export class WorkflowProcessorService {
     return this.workflowService.create({
       projectId: context.projectId,
       createdBy: context.userId,
-      namespaces: context.namespaceIds.map((id) => ({ id } as NamespaceEntity)),
+      namespaceIds: context.namespaceIds,
+      namespace: context.namespaceIds.length ? { id: context.namespaceIds[context.namespaceIds.length - 1] } as NamespaceEntity : undefined,
       name: workflowName,
     });
   }
@@ -213,6 +218,7 @@ export class WorkflowProcessorService {
     const workflow = this.isStateful(workflowConfig)
       ? await this.getWorkflow(workflowConfig.name, localContext)
       : undefined;
+
     let processState: ProcessStateInterface = {
       context: localContext,
       workflow,

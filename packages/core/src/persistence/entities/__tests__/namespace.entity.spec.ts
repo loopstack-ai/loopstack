@@ -200,7 +200,8 @@ describe('Namespace Entity Deletion Tests', () => {
         name: 'Test Workflow',
         place: 'initial',
         index: 0,
-        namespaces: [namespace],
+        namespace: namespace,
+        namespaceIds: [namespace.id],
       });
       await workflowRepo.save(workflow);
     });

@@ -1,12 +1,3 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
-import { ProjectEntity } from '../project.entity';
-import { WorkspaceEntity } from '../workspace.entity';
-import { NamespaceEntity } from '../namespace.entity';
-import { DocumentEntity } from '../document.entity';
-import { WorkflowEntity } from '../workflow.entity';
-import { INestApplication } from '@nestjs/common';
 import {clearDatabase, setupTestEnvironment, TestSetup} from "../../__tests__/database-entities-utils";
 
 describe('Workflow Entity Deletion Tests', () => {
@@ -68,7 +59,8 @@ describe('Workflow Entity Deletion Tests', () => {
       name: 'Test Workflow',
       project: project,
       place: 'test1',
-      namespaces: [namespace1, namespace2],
+      namespace: namespace2,
+      namespaceIds: [namespace1.id, namespace2.id],
     });
     workflow1 = await workflowRepo.save(workflow1);
 
@@ -76,7 +68,8 @@ describe('Workflow Entity Deletion Tests', () => {
       name: 'Test Workflow',
       project: project,
       place: 'test2',
-      namespaces: [namespace1, namespace2],
+      namespace: namespace2,
+      namespaceIds: [namespace1.id, namespace2.id],
     });
     workflow2 = await workflowRepo.save(workflow2);
 
@@ -180,7 +173,8 @@ describe('Workflow Entity Deletion Tests', () => {
     const anotherWorkflow = workflowRepo.create({
       name: 'Another Workflow',
       place: 'test3',
-      namespaces: [namespace1],
+      namespace: namespace1,
+      namespaceIds: [namespace1.id],
     });
     await workflowRepo.save(anotherWorkflow);
 

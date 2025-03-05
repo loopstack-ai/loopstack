@@ -80,7 +80,7 @@ describe('WorkflowService', () => {
             name: 'Workflow No Namespaces',
             project: project1,
             place: 'test1',
-            namespaces: [],
+            namespaceIds: [],
         });
         workflow1 = await workflowRepo.save(workflow1);
 
@@ -89,7 +89,8 @@ describe('WorkflowService', () => {
             name: 'Workflow Single Namespace',
             project: project1,
             place: 'test2',
-            namespaces: [namespace1],
+            namespace: namespace1,
+            namespaceIds: [namespace1.id],
         });
         workflow2 = await workflowRepo.save(workflow2);
 
@@ -98,7 +99,8 @@ describe('WorkflowService', () => {
             name: 'Workflow Two Namespaces',
             project: project1,
             place: 'test3',
-            namespaces: [namespace1, namespace2],
+            namespace: namespace2,
+            namespaceIds: [namespace1.id, namespace2.id],
         });
         workflow3 = await workflowRepo.save(workflow3);
 
@@ -107,7 +109,8 @@ describe('WorkflowService', () => {
             name: 'Workflow All Namespaces',
             project: project1,
             place: 'test4',
-            namespaces: [namespace1, namespace2, namespace3],
+            namespace: namespace3,
+            namespaceIds: [namespace1.id, namespace2.id, namespace3.id],
         });
         workflow4 = await workflowRepo.save(workflow4);
 
@@ -116,7 +119,8 @@ describe('WorkflowService', () => {
             name: 'Workflow Other Namespaces',
             project: project1,
             place: 'test5',
-            namespaces: [namespace2, namespace3],
+            namespace: namespace3,
+            namespaceIds: [namespace2.id, namespace3.id],
         });
         workflow5 = await workflowRepo.save(workflow5);
 
@@ -125,7 +129,8 @@ describe('WorkflowService', () => {
             name: 'Workflow Two Namespaces',  // Same name as workflow3 but different project
             project: project2,
             place: 'test6',
-            namespaces: [namespace1, namespace2],
+            namespace: namespace2,
+            namespaceIds: [namespace1.id, namespace2.id],
         });
         workflow6 = await workflowRepo.save(workflow6);
 

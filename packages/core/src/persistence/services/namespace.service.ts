@@ -67,7 +67,7 @@ export class NamespacesService {
       where: {
         name: createNamespaceDto.name,
         model: createNamespaceDto.model,
-        workspaceId: createNamespaceDto.workspaceId,
+        projectId: createNamespaceDto.projectId,
       },
       relations: ['projects', 'workflows'],
     });
@@ -92,6 +92,7 @@ export class NamespacesService {
         model: createNamespaceDto.model,
         parentId: createNamespaceDto.parentId,
         workspaceId: createNamespaceDto.workspaceId,
+        projectId: createNamespaceDto.projectId,
         metadata: createNamespaceDto.metadata,
       });
     }

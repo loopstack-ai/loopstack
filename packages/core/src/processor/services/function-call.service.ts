@@ -4,7 +4,10 @@ import _ from '../utils/safe-lodash';
 
 @Injectable()
 export class FunctionCallService {
-  isFunction(input: string): boolean {
+  isFunction(input: any): boolean {
+    if (typeof input !== 'string') {
+      return false;
+    }
     const trimmed = input.trim();
     return trimmed.startsWith('{') && trimmed.endsWith('}');
   }

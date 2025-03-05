@@ -14,7 +14,7 @@ export interface ContextInterface {
   namespaceIds: string[];
 
   iteratorGroup?: string;
-  iteratorValue?: string;
+  iteratorValue?: any;
 
   customOptions?: Record<string, any>;
   imports?: ContextImportInterface[];

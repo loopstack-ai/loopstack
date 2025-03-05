@@ -13,7 +13,7 @@ import { WorkflowEntity } from './workflow.entity';
 import {ProjectEntity} from "./project.entity";
 
 @Entity('namespace')
-@Unique(['name', 'model', 'workspaceId'])
+@Unique(['name', 'model', 'projectId'])
 export class NamespaceEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -29,6 +29,10 @@ export class NamespaceEntity {
   @Column({ name: 'workspace_id' })
   @Index()
   workspaceId: string;
+
+  @Column({ name: 'project_id' })
+  @Index()
+  projectId: string;
 
   @ManyToOne(() => NamespaceEntity, (namespace) => namespace.children, {
     onDelete: 'SET NULL',
@@ -47,7 +51,7 @@ export class NamespaceEntity {
   @OneToMany(() => NamespaceEntity, (namespace) => namespace.parent)
   children: NamespaceEntity[];
 
-  @ManyToMany(() => WorkflowEntity, (workflow) => workflow.namespaces, {
+  @OneToMany(() => WorkflowEntity, (workflow) => workflow.namespace, {
     onDelete: 'CASCADE',
   })
   workflows: WorkflowEntity[];

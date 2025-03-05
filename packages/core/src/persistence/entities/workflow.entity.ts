@@ -67,27 +67,18 @@ export class WorkflowEntity {
   @Column({ name: 'project_id', nullable: true })
   projectId: string;
 
-  @ManyToMany(() => NamespaceEntity, (namespace) => namespace.workflows)
-  @JoinTable({
-    name: 'workflow_namespace',
-    joinColumn: {
-      name: 'workflow_id',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'namespace_id',
-      referencedColumnName: 'id',
-    },
+  @ManyToOne(() => NamespaceEntity, (namespace) => namespace.workflows, {
+    onDelete: 'SET NULL',
+    nullable: true,
   })
-  namespaces: NamespaceEntity[];
+  @JoinColumn({ name: 'namespace_id' })
+  namespace: NamespaceEntity;
+
+  @Column({ name: 'namespace_id', nullable: true })
+  namespaceId: string;
 
   @Column('uuid', { name: 'namespace_ids', array: true, nullable: false })
   namespaceIds: string[];
-
-  @BeforeInsert()
-  setNamespaceIds() {
-    this.namespaceIds = this.namespaces?.map(ns => ns.id) || [];
-  }
 
   @ManyToMany(() => DocumentEntity, (document) => document.dependentStates)
   @JoinTable({
