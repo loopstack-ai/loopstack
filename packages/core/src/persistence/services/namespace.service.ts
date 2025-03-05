@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NamespaceEntity } from '../entities/namespace.entity';
 import { NamespaceCreateInterface } from '../interfaces/namespace-create.interface';
+import {ProjectEntity} from "../entities";
 
 @Injectable()
 export class NamespacesService {
@@ -57,6 +58,20 @@ export class NamespacesService {
     }
 
     return namespaces.filter((item) => !idsToRemove.has(item.id));
+  }
+
+  async createRootNamespace(project: ProjectEntity): Promise<NamespaceEntity> {
+    return this.create({
+      name: project.model,
+      model: project.model,
+      projectId: project.id,
+      workspaceId: project.workspaceId,
+      metadata: {
+        title: project.title
+      },
+      createdBy: project.createdBy,
+      parent: null,
+    });
   }
 
   /**

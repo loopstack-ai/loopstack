@@ -39,7 +39,7 @@ describe('NamespacesService', () => {
     });
 
     const project1 = projectRepo.create({
-      name: 'Project 1',
+      model: 'Project 1',
       title: 'Project 1',
       workspace,
     });
@@ -169,7 +169,7 @@ describe('NamespacesService', () => {
 
       // Create a second project with a namespace with the same name
       const project2 = projectRepo.create({
-        name: 'Project 2',
+        model: 'Project 2',
         title: 'Project 2',
         workspace: testData.workspace,
       });

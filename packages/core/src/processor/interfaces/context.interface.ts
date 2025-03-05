@@ -7,15 +7,11 @@ export interface ContextInterface {
   projectId: string;
   workspaceId: string;
   model: string;
-  projectNamespaceIds: string[];
 
   transition?: TransitionPayloadInterface;
 
   labels: string[];
   namespace: NamespaceEntity;
-
-  iteratorGroup?: string;
-  iteratorValue?: any;
 
   customOptions?: Record<string, any>;
   imports?: ContextImportInterface[];

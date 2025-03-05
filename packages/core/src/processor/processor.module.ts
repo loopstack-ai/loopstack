@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ProjectProcessorService } from './services/project-processor.service';
 import { ConfigurationModule } from '../configuration/configuration.module';
 import { WorkflowProcessorService } from './services/workflow-processor.service';
-import { ProcessorService } from './services/processor.service';
 import { ContextService } from './services/context.service';
 import { ToolsModule } from '../tools/tools.module';
 import { ToolExecutionService } from './services/tool-execution.service';
@@ -22,13 +21,12 @@ import { StateMachineModule } from '../state-machine/state-machine.module';
   providers: [
     ProjectProcessorService,
     WorkflowProcessorService,
-    ProcessorService,
     ContextService,
     ToolExecutionService,
     TemplateEngineService,
     FunctionCallService,
     ValueParserService,
   ],
-  exports: [ProcessorService],
+  exports: [ProjectProcessorService],
 })
 export class ProcessorModule {}

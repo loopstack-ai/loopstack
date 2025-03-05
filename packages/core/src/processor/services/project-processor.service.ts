@@ -3,36 +3,40 @@ import { ProjectCollectionService } from '../../configuration/services/project-c
 import { WorkflowProcessorService } from './workflow-processor.service';
 import { ContextInterface } from '../interfaces/context.interface';
 import { NamespacesService } from '../../persistence/services/namespace.service';
+import {ProjectService} from "../../persistence/services/project.service";
+import {ContextService} from "./context.service";
+import {ProcessRunInterface} from "../interfaces/process-run.interface";
 
 @Injectable()
 export class ProjectProcessorService {
   constructor(
     private projectCollectionService: ProjectCollectionService,
+    private projectService: ProjectService,
     private workflowProcessorService: WorkflowProcessorService,
     private namespacesService: NamespacesService,
+    private contextService: ContextService,
   ) {}
 
   async processProject(
-    model: string,
-    context: ContextInterface,
+    payload: ProcessRunInterface
   ): Promise<ContextInterface> {
-    console.log('Processing project:', model);
-
-    const projectConfig = this.projectCollectionService.getByName(model);
-    if (!projectConfig) {
-      throw new Error(`project model "${model}" not found.`);
+    console.log('Processing project:', payload.projectId);
+    const project = await this.projectService.getProject(payload.projectId, payload.userId);
+    if (!project) {
+      throw new Error(`project "${payload.projectId}" not found.`);
     }
 
-    context.namespace = await this.namespacesService.create({
-      name: model,
-      model: model,
-      projectId: context.projectId,
-      workspaceId: context.workspaceId,
-      metadata: undefined,
-      createdBy: context.userId,
-      parent: null,
+    const projectConfig = this.projectCollectionService.getByName(project.model);
+    if (!projectConfig) {
+      throw new Error(`project model "${project.model}" not found.`);
+    }
+
+    const namespace = await this.namespacesService.createRootNamespace(project);
+    const context = this.contextService.createRootContext(project, {
+      labels: [...project.labels, namespace.name],
+      namespace: namespace,
+      transition: payload.transition,
     });
-    context.labels.push(context.namespace.name);
 
     return this.workflowProcessorService.processChild(
       projectConfig.entrypoint,

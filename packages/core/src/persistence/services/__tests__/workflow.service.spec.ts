@@ -40,7 +40,7 @@ describe('WorkflowService', () => {
     });
 
     const project1 = projectRepo.create({
-      name: 'Project 1',
+      model: 'Project 1',
       title: 'Project 1',
       workspace,
     });

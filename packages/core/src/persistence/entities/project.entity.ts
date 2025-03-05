@@ -18,7 +18,7 @@ export class ProjectEntity {
   id: string;
 
   @Column({ type: 'varchar' })
-  name: string;
+  model: string;
 
   @Column({ type: 'varchar' })
   title: string;

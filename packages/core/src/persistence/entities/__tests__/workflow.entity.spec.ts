@@ -39,7 +39,7 @@ describe('Workflow Entity Cascade Delete Tests', () => {
 
         // Create project
         const project = projectRepo.create({
-            name: 'Test Project',
+            model: 'Test Project',
             title: 'Test Project',
         });
         await projectRepo.save(project);

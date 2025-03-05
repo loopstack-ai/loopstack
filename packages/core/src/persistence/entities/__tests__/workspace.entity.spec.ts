@@ -33,14 +33,14 @@ describe('Workspace Entity Deletion Tests', () => {
 
     // Create projects
     const project1 = projectRepo.create({
-      name: 'Test Project 1',
+      model: 'Test Project 1',
       title: 'Test Project 1',
       workspace: workspace,
     });
     await projectRepo.save(project1);
 
     const project2 = projectRepo.create({
-      name: 'Test Project 2',
+      model: 'Test Project 2',
       title: 'Test Project 2',
       workspace: workspace,
     });
