@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { ToolInterface } from '../interfaces/tool.interface';
-import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
-import { Tool } from '../../processor/decorators/tool.decorator';
+import { ProcessStateInterface } from '../interfaces/process-state.interface';
+import { Tool } from '../decorators/tool.decorator';
 import { DocumentEntity } from '../../persistence/entities';
 import _ from 'lodash';
 import { createHash } from '@loopstack/shared';
-import { ContextImportInterface } from '../../processor/interfaces/context-import.interface';
+import { ContextImportInterface } from '../interfaces/context-import.interface';
 import { DocumentService } from '../../persistence/services/document.service';
-import { FunctionCallService } from '../../processor/services/function-call.service';
+import { FunctionCallService } from '../services/function-call.service';
 
 const schema = z.object({
   name: z.string(),

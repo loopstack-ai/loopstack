@@ -17,12 +17,11 @@ export class FunctionCallService {
   }
 
   runEval(value: any, variables: Record<string, any>): any {
-    const trimmed = value.trim();
-    if (!this.isFunction(trimmed)) {
-      return trimmed;
+    if (!this.isFunction(value)) {
+      return value;
     }
 
-    const contents = this.extractGetContents(trimmed);
+    const contents = this.extractGetContents(value);
 
     // const context = variables['context'] ? _.cloneDeep(variables['context']) : {};
     // const args = variables['args'] ? _.cloneDeep(variables['args']) : {};

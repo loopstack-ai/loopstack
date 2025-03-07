@@ -4,10 +4,10 @@ import {
   WorkflowStateMachineConfigInterface,
   WorkflowTransitionConfigInterface,
 } from '@loopstack/shared';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
+import { ContextInterface } from '../interfaces/context.interface';
 import { StateMachineConfigService } from './state-machine-config.service';
 import { WorkflowService } from '../../persistence/services/workflow.service';
-import { StateMachineValidatorRegistry } from '../registry/state-machine-validator.registry';
+import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
 import { TransitionPayloadInterface } from '@loopstack/shared';
 import _ from 'lodash';
 import { TransitionContextInterface } from '../interfaces/transition-context.interface';

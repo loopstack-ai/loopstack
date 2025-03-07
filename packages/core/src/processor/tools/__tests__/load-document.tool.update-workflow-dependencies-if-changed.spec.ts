@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoadDocumentTool } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
-import { FunctionCallService } from '../../../processor/services/function-call.service';
+import { FunctionCallService } from '../../services/function-call.service';
 import { DocumentEntity } from '../../../persistence/entities';
-import { ProcessStateInterface } from '../../../processor/interfaces/process-state.interface';
+import { ProcessStateInterface } from '../../interfaces/process-state.interface';
 import * as lodash from 'lodash';
 import { createHash } from '@loopstack/shared';
 

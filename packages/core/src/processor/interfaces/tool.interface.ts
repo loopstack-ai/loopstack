@@ -1,4 +1,4 @@
-import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
+import { ProcessStateInterface } from './process-state.interface';
 
 export interface ToolInterface {
   apply(

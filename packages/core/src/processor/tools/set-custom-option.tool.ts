@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { ToolInterface } from '../interfaces/tool.interface';
-import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
-import { Tool } from '../../processor/decorators/tool.decorator';
+import { ProcessStateInterface } from '../interfaces/process-state.interface';
+import { Tool } from '../decorators/tool.decorator';
 import { generateObjectFingerprint } from '@loopstack/shared';
 
 @Injectable()

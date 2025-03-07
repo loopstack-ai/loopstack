@@ -12,7 +12,7 @@ import _ from 'lodash';
 import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ContextService } from './context.service';
 import { ValueParserService } from './value-parser.service';
-import { StateMachineProcessorService } from '../../state-machine/services/state-machine-processor.service';
+import { StateMachineProcessorService } from './state-machine-processor.service';
 import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowService } from '../../persistence/services/workflow.service';
 import { NamespacesService } from '../../persistence/services/namespace.service';

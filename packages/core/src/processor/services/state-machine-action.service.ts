@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { WorkflowObserverConfigInterface } from '@loopstack/shared';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
+import { ContextInterface } from '../interfaces/context.interface';
 import { WorkflowStateContextInterface } from '../interfaces/workflow-state-context.interface';
 import { TransitionContextInterface } from '../interfaces/transition-context.interface';
 import { TransitionResultInterface } from '../interfaces/transition-result.interface';
-import { StateMachineActionRegistry } from '../registry/state-machine-action-registry.service';
+import { StateMachineActionRegistry } from './state-machine-action-registry.service';
 import { ActionCollectionService } from '../../configuration/services/action-collection.service';
 import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
-import { ActionExecutePayload } from '../interfaces/state-machine-action.interface';
 
 @Injectable()
 export class StateMachineActionService {

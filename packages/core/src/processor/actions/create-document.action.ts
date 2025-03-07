@@ -11,7 +11,7 @@ import {
   CreateDocumentPropsConfigType,
   CreateDocumentPropsSchema,
 } from '@loopstack/shared';
-import { FunctionCallService } from '../../processor/services/function-call.service';
+import { FunctionCallService } from '../services/function-call.service';
 const crypto = require('crypto');
 
 @Injectable()

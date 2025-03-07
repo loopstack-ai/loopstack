@@ -1,5 +1,5 @@
 import { TransitionContextInterface } from './transition-context.interface';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
+import { ContextInterface } from './context.interface';
 import { WorkflowStateContextInterface } from './workflow-state-context.interface';
 import { TransitionResultInterface } from './transition-result.interface';
 import { WorkflowEntity } from '../../persistence/entities/workflow.entity';

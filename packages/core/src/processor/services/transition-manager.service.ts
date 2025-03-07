@@ -10,7 +10,7 @@ import { WorkspaceEntity } from '../../persistence/entities/workspace.entity';
 import { ProjectEntity } from '../../persistence/entities/project.entity';
 import { DocumentEntity } from '../../persistence/entities/document.entity';
 import { TransitionResultInterface } from '../interfaces/transition-result.interface';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
+import { ContextInterface } from '../interfaces/context.interface';
 
 @Injectable()
 export class TransitionManagerService {

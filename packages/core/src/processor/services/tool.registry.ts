@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { ToolInterface } from '../interfaces/tool.interface';
-import { LOOP_TOOL_DECORATOR } from '../../processor/decorators/tool.decorator';
+import { LOOP_TOOL_DECORATOR } from '../decorators/tool.decorator';
 
 @Injectable()
 export class ToolRegistry implements OnModuleInit {
