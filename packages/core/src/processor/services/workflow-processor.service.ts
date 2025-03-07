@@ -45,6 +45,10 @@ export class WorkflowProcessorService {
         processState.context,
         processState.context,
       );
+
+      if (processState.context.stopSignal) {
+        break;
+      }
     }
     return processState;
   }
@@ -111,6 +115,10 @@ export class WorkflowProcessorService {
         processState.context,
         childContext,
       );
+
+      if (processState.context.stopSignal) {
+        break;
+      }
     }
 
     return processState;
@@ -126,6 +134,10 @@ export class WorkflowProcessorService {
         processState.workflow!,
         stateMachineConfig,
       );
+
+    if (processState.workflow.place !== 'finished') {
+      processState.context.stopSignal = true;
+    }
 
     return processState;
   }
@@ -157,12 +169,12 @@ export class WorkflowProcessorService {
   }
 
   async getWorkflow(
-    workflowName: string,
+    workflowConfig: WorkflowConfigInterface,
     context: ContextInterface,
   ): Promise<WorkflowEntity> {
     const workflow = await this.workflowService
       .createFindQuery(context.namespace?.id, {
-        name: workflowName,
+        name: workflowConfig.name,
         labels: context.labels,
       })
       .getOne();
@@ -175,7 +187,8 @@ export class WorkflowProcessorService {
       createdBy: context.userId,
       labels: context.labels,
       namespace: context.namespace ?? undefined,
-      name: workflowName,
+      name: workflowConfig.name,
+      title: workflowConfig.title,
     });
   }
 
@@ -198,7 +211,7 @@ export class WorkflowProcessorService {
 
     // create or load state if needed
     const workflow = this.isStateful(workflowConfig)
-      ? await this.getWorkflow(workflowConfig.name, localContext)
+      ? await this.getWorkflow(workflowConfig, localContext)
       : undefined;
 
     let processState: ProcessStateInterface = {

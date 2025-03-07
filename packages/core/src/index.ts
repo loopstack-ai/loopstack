@@ -4,5 +4,5 @@ export * from './utils';
 export * from './persistence/entities';
 export * from './persistence/dtos';
 export * from './persistence/interfaces';
-export * from './processor/interfaces';
+// export * from './processor/interfaces';
 export * from './processor/services';

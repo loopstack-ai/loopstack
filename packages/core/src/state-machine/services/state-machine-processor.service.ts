@@ -117,7 +117,7 @@ export class StateMachineProcessorService {
     workflow.isWorking = true;
 
     // reset workflow to initial if there are invalidation reasons
-    if (invalidationReasons.length) {
+    if (workflow.place === 'initial' || invalidationReasons.length) {
       const initialTransition: HistoryTransition = {
         transition: 'invalidation',
         from: workflow.place,
@@ -202,6 +202,8 @@ export class StateMachineProcessorService {
           workflow,
           userTransitions,
         );
+
+        console.log(transitionContext)
 
         if (null === transitionContext) {
           break;

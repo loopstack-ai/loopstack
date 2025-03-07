@@ -22,6 +22,9 @@ export class WorkflowEntity {
   @Column({ type: 'varchar' })
   name: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  title: string;
+
   @Column({ default: 0 })
   index: number;
 

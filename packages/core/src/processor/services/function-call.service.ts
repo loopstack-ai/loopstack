@@ -16,7 +16,7 @@ export class FunctionCallService {
     return input.trim().replace(/^{/, '').replace(/}$/, '').trim();
   }
 
-  runEval(value: string, variables: Record<string, any>): any {
+  runEval(value: any, variables: Record<string, any>): any {
     const trimmed = value.trim();
     if (!this.isFunction(trimmed)) {
       return trimmed;

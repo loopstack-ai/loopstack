@@ -15,4 +15,6 @@ export interface ContextInterface {
 
   customOptions?: Record<string, any>;
   imports?: ContextImportInterface[];
+
+  stopSignal?: boolean;
 }

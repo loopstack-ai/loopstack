@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
+    "target": "ES2023",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
