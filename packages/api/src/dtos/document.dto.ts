@@ -66,7 +66,7 @@ export class DocumentDto<T = unknown> {
     type: () => DocumentMetaDto,
     description: 'Document metadata',
   })
-  meta?: DocumentMetaDto | null;
+  meta: DocumentMetaDto | null;
 
   /**
    * Indicates if the document is invalidated

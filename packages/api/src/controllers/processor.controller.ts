@@ -27,7 +27,7 @@ export class RunProjectQueryParams {
 /**
  * Controller handling project processor operations
  */
-@ApiTags('Project Processor')
+@ApiTags('api/v1/processor')
 @Controller('api/v1/processor')
 export class ProcessorController {
   constructor(private readonly processorApiService: ProcessorApiService) {}

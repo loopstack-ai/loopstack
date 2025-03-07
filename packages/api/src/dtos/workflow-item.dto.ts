@@ -22,6 +22,13 @@ export class WorkflowItemDto {
 
   @Expose()
   @ApiProperty({
+    description: 'Display title of the workflow',
+    example: 'My workflow',
+  })
+  title: string;
+
+  @Expose()
+  @ApiProperty({
     description: 'Index position of the workflow item in a sequence',
     example: 1,
     type: Number,
@@ -86,14 +93,6 @@ export class WorkflowItemDto {
     example: 'approval_pending',
   })
   place: string;
-
-  @Expose()
-  @ApiProperty({
-    description:
-      'Unique identifier of the project this workflow item belongs to',
-    example: '2a1b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p',
-  })
-  projectId: string;
 
   @Expose()
   @ApiProperty({

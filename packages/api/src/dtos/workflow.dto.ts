@@ -26,6 +26,13 @@ export class WorkflowDto {
 
   @Expose()
   @ApiProperty({
+    description: 'Display title of the workflow',
+    example: 'My workflow',
+  })
+  title: string;
+
+  @Expose()
+  @ApiProperty({
     description: 'Index position of the workflow in the project sequence',
     example: 1,
     type: Number,
@@ -107,20 +114,6 @@ export class WorkflowDto {
     example: '2023-01-16T09:12:33.456Z',
   })
   updatedAt: Date;
-
-  @Expose()
-  @ApiProperty({
-    description: 'Unique identifier of the workflow state',
-    example: '7e9d2c8b-6a5f-4e3d-9c2a-1b3e5d7c9a8f',
-  })
-  stateId: string;
-
-  @Expose()
-  @ApiProperty({
-    description: 'Unique identifier of the project this workflow belongs to',
-    example: '2a1b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p',
-  })
-  projectId: string;
 
   @Expose()
   @ApiProperty({

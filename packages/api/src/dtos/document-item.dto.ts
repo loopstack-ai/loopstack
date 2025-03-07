@@ -2,6 +2,7 @@ import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { DocumentEntity } from '@loopstack/core';
 import { DocumentMetaDto } from './document-meta.dto';
+import { DocumentContentsDto } from './document-contents.dto';
 
 /**
  * Data Transfer Object for Document Item entities
@@ -39,6 +40,26 @@ export class DocumentItemDto {
   type: string;
 
   /**
+   * Contents of the document
+   */
+  @Expose()
+  @ApiProperty({
+    type: () => DocumentContentsDto,
+    description: 'Contents of the document',
+  })
+  contents: DocumentContentsDto | null;
+
+  /**
+   * Indicates if document content is JSON serialized
+   */
+  @Expose()
+  @ApiProperty({
+    description: 'Indicates if document content is JSON serialized',
+    example: true,
+  })
+  isJsonSerialized: boolean;
+
+  /**
    * Document metadata
    */
   @Expose()
@@ -67,6 +88,48 @@ export class DocumentItemDto {
     example: false,
   })
   isPendingRemoval: boolean;
+
+  /**
+   * Version of the document
+   */
+  @Expose()
+  @ApiProperty({
+    description: 'Version of the document',
+    example: 1,
+  })
+  version: number;
+
+  /**
+   * Index of the document
+   */
+  @Expose()
+  @ApiProperty({
+    description: 'Index of the document',
+    example: 0,
+  })
+  index: number;
+
+  /**
+   * Transition when this document was created
+   */
+  @Expose()
+  @ApiProperty({
+    description: 'Transition when this document was created',
+    example: 'review',
+  })
+  transition: string | null;
+
+  /**
+   * Place when this document was created
+   */
+  @Expose()
+  @ApiProperty({
+    description: 'Place when this document was created',
+    example: 'pending',
+    type: 'string',
+    nullable: true,
+  })
+  place: string;
 
   @Expose()
   @ApiProperty({

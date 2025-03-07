@@ -6,7 +6,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProjectEntity } from '@loopstack/core';
 import { IsNull, Repository } from 'typeorm';
-import { ProcessorService } from '@loopstack/core';
 import { WorkspaceEntity } from '@loopstack/core';
 import { TransitionPayloadInterface } from '@loopstack/shared';
 import {ProjectProcessorService} from "@loopstack/core/dist/processor/services/project-processor.service";
