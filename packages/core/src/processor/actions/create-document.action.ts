@@ -27,16 +27,15 @@ export class CreateDocumentAction implements StateMachineActionInterface {
   }
 
   async execute(
-    payload: ActionExecutePayload,
+    context: ActionExecutePayload,
   ): Promise<TransitionResultInterface> {
-    const manager = this.transitionManagerService.setContext(payload);
+    const manager = this.transitionManagerService.setContext(context);
 
-    console.log(payload.props);
     const props: CreateDocumentPropsConfigType =
-      CreateDocumentPropsSchema.parse(payload.props);
+      CreateDocumentPropsSchema.parse(context.props);
 
     const contents = this.functionCallService.runEval(props.contents, {
-      payload
+      context
     });
 
     manager.createDocument(
