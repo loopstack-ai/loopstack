@@ -9,7 +9,6 @@ import { ContextImportInterface } from '../../processor/interfaces/context-impor
 import { DocumentService } from '../../persistence/services/document.service';
 import { FunctionCallService } from '../../processor/services/function-call.service';
 import { z } from 'zod';
-import { ToolCallDefaultType } from '../../configuration/schemas/tool-config.schema';
 
 const LoadDocumentArgsSchema = z.object({
   name: z.string(),
@@ -111,6 +110,8 @@ export class LoadDocumentTool implements ToolInterface {
       },
     );
 
+    console.log(query.getQuery(), query.getParameters());
+
     const entities = options.many
       ? await query.getMany()
       : [await query.getOne()].filter((d) => !!d);
@@ -128,11 +129,11 @@ export class LoadDocumentTool implements ToolInterface {
       throw new Error('Workflow is undefined');
     }
 
-    const previousDependencies = target.workflow.dependencies.filter(
+    const previousDependencies = target.workflow.dependencies?.filter(
       (item) =>
         item.name === options.where.name &&
         (!options.where.type || item.type === options.where.type),
-    );
+    ) ?? [];
 
     return this.applyFilters(options, previousDependencies);
   }
@@ -149,7 +150,7 @@ export class LoadDocumentTool implements ToolInterface {
       throw new Error('Workflow is undefined');
     }
 
-    const allEntities = target.workflow.dependencies;
+    const allEntities = target.workflow.dependencies ?? [];
 
     const previousEntityIdSet = new Set(
       previousEntities.map((item) => item?.id).filter(Boolean),
@@ -173,7 +174,7 @@ export class LoadDocumentTool implements ToolInterface {
       throw new Error('Workflow is undefined');
     }
 
-    const oldDependencies = target.workflow.dependencies;
+    const oldDependencies = target.workflow.dependencies ?? [];
     const oldIds = oldDependencies.map((item) => item.id);
     const newIds = newDependencies.map((item) => item.id);
 
@@ -252,6 +253,7 @@ export class LoadDocumentTool implements ToolInterface {
     // load and filter entities based on options from database
     const currentEntities = await this.getDocumentsByQuery(options, target);
 
+    console.log('currentEntities', currentEntities)
     // get and filter entities from workflow dependencies
     const previousEntities = this.getDocumentsByDependencies(options, target);
 

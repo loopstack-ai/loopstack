@@ -4,7 +4,11 @@ import { ToolRegistry } from '../../configuration/services/tool.registry';
 import _ from 'lodash';
 import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ValueParserService } from './value-parser.service';
-import { ToolCallDefaultType, ToolConfigDefaultType } from '../../configuration/schemas/tool-config.schema';
+import {
+  ToolCallDefaultType,
+  ToolConfigDefaultType,
+} from '../../configuration/schemas/tool-config.schema';
+import { z } from 'zod';
 
 @Injectable()
 export class ToolExecutionService {
@@ -49,17 +53,21 @@ export class ToolExecutionService {
   ): Promise<ProcessStateInterface> {
     const args = this.prepareArgs(toolCall.args, source, contextArgs);
 
+    if ('RefTool' === toolCall.tool) {
+      const wrapper = this.toolWrapperCollectionService.getByName(args.name);
+      if (wrapper) {
+        return this.applyToolWrapper(wrapper, args, target, source);
+      }
+
+      throw new Error(`Wrapper with name "${args.name}" not found.`);
+    }
+
     const instance = this.toolRegistry.getToolByName(toolCall.tool);
     if (instance) {
       return instance.apply(args, target, source);
     }
 
-    const wrapper = this.toolWrapperCollectionService.getByName(toolCall.tool);
-    if (wrapper) {
-      return this.applyToolWrapper(wrapper, args, target, source);
-    }
-
-    throw new Error(`Tool or Wrapper with name "${toolCall.tool}" not found.`);
+      throw new Error(`Tool with name "${toolCall.tool}" not found.`);
   }
 
   async applyTools(

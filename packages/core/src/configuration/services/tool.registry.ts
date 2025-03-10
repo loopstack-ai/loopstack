@@ -2,8 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { ToolInterface } from '../../processor/interfaces/tool.interface';
 import { LOOP_TOOL_DECORATOR } from '../../processor/decorators/tool.decorator';
-import { z, ZodObject, ZodType } from 'zod';
-import { ToolCallDefaultSchema, ToolConfigDefaultSchema } from '../schemas/tool-config.schema';
+import { z, ZodType } from 'zod';
 
 @Injectable()
 export class ToolRegistry implements OnModuleInit {
@@ -51,7 +50,7 @@ export class ToolRegistry implements OnModuleInit {
     for (const [name, tool] of this.tools.entries()) {
 
       if (tool.argsSchema) {
-        const toolCallSchema = ToolCallDefaultSchema.extend({
+        const toolCallSchema = z.object({
           tool: z.literal(name),
           args: tool.argsSchema
         })

@@ -9,6 +9,7 @@ import { DocumentService } from '../../persistence/services/document.service';
 import { DocumentEntity } from '../../persistence/entities';
 import { TransitionResultInterface } from '../../processor/interfaces/transition-result.interface';
 import { ContextInterface } from '../../processor/interfaces/context.interface';
+import { DocumentSchema, DocumentType } from '@loopstack/shared';
 
 @Injectable()
 export class TransitionManagerService {
@@ -28,18 +29,11 @@ export class TransitionManagerService {
     return this;
   }
 
-  createDocument(document: DocumentCreateDto): DocumentEntity {
-    const dto = plainToInstance(DocumentCreateDto, document);
-    const errors = validateSync(dto);
-    if (errors.length > 0) {
-      console.log(errors);
-      throw new Error(
-        `Could not create document ${document.name}. Failed validation.`,
-      );
-    }
-
+  createDocument(data: any): DocumentEntity {
+    // todo validate by schema
+    // const document = DocumentSchema.parse(data);
     const entity = this.documentService.create({
-      ...dto,
+      ...data,
       index: this.workflow.documents?.length ?? 0,
       workflowIndex: this.workflow.index,
       transition: this.transitionContext.transition,

@@ -10,6 +10,7 @@ export interface ContextInterface {
 
   transition?: TransitionPayloadInterface;
 
+  index: number;
   labels: string[];
   namespace: NamespaceEntity;
 

@@ -6,7 +6,6 @@ import {
 } from '../../processor/interfaces/state-machine-action.interface';
 import { TransitionResultInterface } from '../../processor/interfaces/transition-result.interface';
 import { TransitionManagerService } from '../services/transition-manager.service';
-import { DocumentCreateDto } from '../../persistence/dtos';
 import { FunctionCallService } from '../../processor/services/function-call.service';
 import { DocumentType, DocumentSchema } from '@loopstack/shared';
 const crypto = require('crypto');
@@ -31,23 +30,23 @@ export class CreateDocumentAction implements StateMachineActionInterface {
   ): Promise<TransitionResultInterface> {
     const manager = this.transitionManagerService.setContext(context);
 
-    const props: DocumentType =
-      DocumentSchema.parse(context.props);
+    const props: DocumentType = DocumentSchema.parse(context.props);
+
+    console.log('create document', context.props, props)
 
     const contents = this.functionCallService.runEval(props.contents, {
       context
     });
 
-    manager.createDocument(
-      new DocumentCreateDto({
-        name: props.name ?? this.generateUUID(),
-        type: props.type,
-        contents: contents,
-        meta: {
-          ...(props.meta ?? {}),
-        },
-      }),
-    );
+    // console.log(contents)
+    manager.createDocument({
+      name: props.name ?? this.generateUUID(),
+      type: props.type,
+      contents: contents,
+      meta: {
+        ...(props.meta ?? {}),
+      },
+    });
 
     return manager.getResult();
   }

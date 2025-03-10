@@ -14,6 +14,7 @@ export class ContextService {
       projectId: project.id,
       workspaceId: project.workspaceId,
       labels: project.labels,
+      index: project.index,
       ...additional,
     } as ContextInterface
   }

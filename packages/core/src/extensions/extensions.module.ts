@@ -11,6 +11,8 @@ import { PersistenceModule } from '../persistence/persistence.module';
 import { ProcessorModule } from '../processor/processor.module';
 import { InitialRunValidator } from './validators/initial-run.validator';
 import { WorkflowOptionValidator } from './validators/workflow-option.validator';
+import { RefTool } from './tools/ref.tool';
+import { DebugImportsAction } from './actions/debug-imports.action';
 
 @Module({
   imports: [
@@ -22,12 +24,14 @@ import { WorkflowOptionValidator } from './validators/workflow-option.validator'
 
     PromptAction,
     CreateDocumentAction,
+    DebugImportsAction,
 
     ForwardChildContextTool,
     SetContextTool,
     SetCustomOptionTool,
     AddNamespaceTool,
     LoadDocumentTool,
+    RefTool,
 
     InitialRunValidator,
     WorkflowOptionValidator,

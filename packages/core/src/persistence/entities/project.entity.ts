@@ -27,7 +27,7 @@ export class ProjectEntity {
   labels: string[];
 
   @Column({ default: 0 })
-  order: number;
+  index: number;
 
   @Column({
     type: 'enum',

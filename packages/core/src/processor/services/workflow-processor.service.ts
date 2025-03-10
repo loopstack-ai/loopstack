@@ -189,6 +189,7 @@ export class WorkflowProcessorService {
       namespace: context.namespace ?? undefined,
       name: workflowConfig.name,
       title: workflowConfig.title,
+      index: context.index + 1,
     });
   }
 
@@ -237,6 +238,10 @@ export class WorkflowProcessorService {
       processState,
     );
 
+    // always pass down the index value
+    if (workflow) {
+      processState.context.index = workflow.index;
+    }
     return processState.context;
   }
 }
