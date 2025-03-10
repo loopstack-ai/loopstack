@@ -110,7 +110,7 @@ export class LoadDocumentTool implements ToolInterface {
       },
     );
 
-    console.log(query.getQuery(), query.getParameters());
+    // console.log(query.getQuery(), query.getParameters());
 
     const entities = options.many
       ? await query.getMany()
@@ -253,7 +253,6 @@ export class LoadDocumentTool implements ToolInterface {
     // load and filter entities based on options from database
     const currentEntities = await this.getDocumentsByQuery(options, target);
 
-    console.log('currentEntities', currentEntities)
     // get and filter entities from workflow dependencies
     const previousEntities = this.getDocumentsByDependencies(options, target);
 

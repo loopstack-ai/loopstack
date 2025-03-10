@@ -36,6 +36,9 @@ export class DocumentEntity<T = any> {
   @Column('jsonb', { nullable: true })
   contents: T | null;
 
+  @Column('jsonb',{ name: 'schema', nullable: true })
+  schema: string;
+
   @Column({ name: 'is_json_serialized', default: false })
   isJsonSerialized: boolean;
 

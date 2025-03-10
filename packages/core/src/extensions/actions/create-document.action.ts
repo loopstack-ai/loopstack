@@ -32,17 +32,15 @@ export class CreateDocumentAction implements StateMachineActionInterface {
 
     const props: DocumentType = DocumentSchema.parse(context.props);
 
-    console.log('create document', context.props, props)
-
     const contents = this.functionCallService.runEval(props.contents, {
       context
     });
 
-    // console.log(contents)
     manager.createDocument({
       name: props.name ?? this.generateUUID(),
       type: props.type,
       contents: contents,
+      schema: props.schema,
       meta: {
         ...(props.meta ?? {}),
       },

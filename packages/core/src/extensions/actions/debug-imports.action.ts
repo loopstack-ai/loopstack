@@ -23,8 +23,6 @@ export class DebugImportsAction implements StateMachineActionInterface {
 
     if (payload.workflowContext.imports) {
       for (const item of payload.workflowContext.imports) {
-
-        console.log('DebugImportsAction', item)
         manager.createDocument({
           name: `debug-${item.name}`,
           type: 'document',

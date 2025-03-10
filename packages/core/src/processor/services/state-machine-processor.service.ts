@@ -201,8 +201,6 @@ export class StateMachineProcessorService {
           userTransitions,
         );
 
-        console.log(transitionContext)
-
         if (null === transitionContext) {
           break;
         }

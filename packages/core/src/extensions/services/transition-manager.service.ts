@@ -1,15 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ActionExecutePayload } from '../../processor/interfaces/state-machine-action.interface';
-import { DocumentCreateDto } from '../../persistence/dtos';
-import { plainToInstance } from 'class-transformer';
-import { validateSync } from 'class-validator';
 import { WorkflowEntity } from '../../persistence/entities';
 import { TransitionContextInterface } from '../../processor/interfaces/transition-context.interface';
 import { DocumentService } from '../../persistence/services/document.service';
 import { DocumentEntity } from '../../persistence/entities';
 import { TransitionResultInterface } from '../../processor/interfaces/transition-result.interface';
 import { ContextInterface } from '../../processor/interfaces/context.interface';
-import { DocumentSchema, DocumentType } from '@loopstack/shared';
+const Ajv = require("ajv");
 
 @Injectable()
 export class TransitionManagerService {
@@ -29,9 +26,17 @@ export class TransitionManagerService {
     return this;
   }
 
-  createDocument(data: any): DocumentEntity {
-    // todo validate by schema
-    // const document = DocumentSchema.parse(data);
+  createDocument(data: Partial<DocumentEntity>): DocumentEntity {
+    if (data.schema) {
+      const ajv = new Ajv();
+      const validate = ajv.compile(data.schema);
+      const valid = validate(data.contents)
+      if (!valid) {
+        console.log(validate.errors);
+        throw new Error(`Error validating document contents.`)
+      }
+    }
+
     const entity = this.documentService.create({
       ...data,
       index: this.workflow.documents?.length ?? 0,
