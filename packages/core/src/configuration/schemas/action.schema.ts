@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DynamicSchemasInterface } from './main-schema-generator';
+import { DynamicSchemasInterface } from '../services/dynamic-schema-generator.service';
 
 export const ActionConfigDefaultSchema = z.object({
     name: z.string(),

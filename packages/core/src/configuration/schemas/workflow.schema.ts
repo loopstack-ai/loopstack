@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {WorkflowTransitionSchema} from "./workflow-transition.schema";
 import {WorkflowObserverSchema} from "./workflow-observer.schema";
-import { DynamicSchemasInterface } from './main-schema-generator';
+import { DynamicSchemasInterface } from '../services/dynamic-schema-generator.service';
 import { ToolCallDefaultSchema } from './tool-config.schema';
 
 export const WorkflowFactorySchema = z.object({

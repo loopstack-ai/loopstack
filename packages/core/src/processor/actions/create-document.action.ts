@@ -9,8 +9,8 @@ import { TransitionManagerService } from '../services/transition-manager.service
 import { DocumentCreateDto } from '../../persistence/dtos';
 import { FunctionCallService } from '../services/function-call.service';
 import { z } from 'zod';
-import { JSONSchemaType } from '../schemas/json-schema.schema';
-import { FormUISchema } from '../schemas/form-ui.schema';
+import { JSONSchemaType } from '../../configuration/schemas/json-schema.schema';
+import { FormUISchema } from '../../configuration/schemas/form-ui.schema';
 const crypto = require('crypto');
 
 export const FormRequestDocumentContentsSchema = z.object({

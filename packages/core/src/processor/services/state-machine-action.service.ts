@@ -3,15 +3,15 @@ import { ContextInterface } from '../interfaces/context.interface';
 import { WorkflowStateContextInterface } from '../interfaces/workflow-state-context.interface';
 import { TransitionContextInterface } from '../interfaces/transition-context.interface';
 import { TransitionResultInterface } from '../interfaces/transition-result.interface';
-import { StateMachineActionRegistry } from './state-machine-action-registry.service';
 import { ActionCollectionService } from '../../configuration/services/action-collection.service';
 import { WorkflowEntity } from '../../persistence/entities';
-import { WorkflowObserverType } from '../schemas/workflow-observer.schema';
+import { WorkflowObserverType } from '../../configuration/schemas/workflow-observer.schema';
+import { ActionRegistry } from '../../configuration/services/action-registry.service';
 
 @Injectable()
 export class StateMachineActionService {
   constructor(
-    private readonly stateMachineActionRegistry: StateMachineActionRegistry,
+    private readonly actionRegistry: ActionRegistry,
     private readonly actionCollectionService: ActionCollectionService,
   ) {}
 
@@ -29,7 +29,7 @@ export class StateMachineActionService {
       throw new Error(`Config for action ${observer.action} not found.`);
     }
 
-    const actionInstance = this.stateMachineActionRegistry.getActionByName(
+    const actionInstance = this.actionRegistry.getActionByName(
       actionConfig.service,
     );
     if (!actionInstance) {

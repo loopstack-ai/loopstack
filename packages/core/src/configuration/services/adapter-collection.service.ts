@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import { AdapterType } from '../../processor/schemas/adapter.schema';
+import { AdapterType } from '../schemas/adapter.schema';
 
 @Injectable()
 export class AdapterCollectionService extends CollectionService<AdapterType> {

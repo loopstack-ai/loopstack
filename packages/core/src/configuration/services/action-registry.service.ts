@@ -1,11 +1,11 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
-import { StateMachineActionInterface } from '../interfaces/state-machine-action.interface';
-import { LOOP_STATE_MACHINE_ACTION_DECORATOR } from '../decorators/state-machine-observer.decorator';
-import { z, ZodObject, ZodType } from 'zod';
+import { StateMachineActionInterface } from '../../processor/interfaces/state-machine-action.interface';
+import { LOOP_STATE_MACHINE_ACTION_DECORATOR } from '../../processor/decorators/state-machine-observer.decorator';
+import { z, ZodType } from 'zod';
 
 @Injectable()
-export class StateMachineActionRegistry implements OnModuleInit {
+export class ActionRegistry implements OnModuleInit {
   private actions: Map<string, StateMachineActionInterface> = new Map<
     string,
     StateMachineActionInterface
@@ -47,7 +47,6 @@ export class StateMachineActionRegistry implements OnModuleInit {
           service: z.literal(name),
           props: action.propsSchema,
         });
-        // console.log(JSON.stringify(Object.entries(toolSchema.shape), null, 2));
 
         schemas.push(actionSchema);
       }

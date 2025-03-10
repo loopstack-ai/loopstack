@@ -12,9 +12,16 @@ import { WorkspaceCollectionService } from './services/workspace-collection.serv
 import { WorkflowTemplateCollectionService } from './services/workflow-template-collection.service';
 import { ConfigModule } from '@nestjs/config';
 import loadSchemas from './configuration';
+import { JsonSchemaGeneratorService } from './services/json-schema-generator.service';
+import { ToolRegistry } from './services/tool.registry';
+import { GenerateSchemasCommand } from './commands/generate-schemas.command';
+import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generator.service';
+import { DiscoveryModule } from '@nestjs/core';
+import { ActionRegistry } from './services/action-registry.service';
 
 @Module({
   imports: [
+    DiscoveryModule,
     ConfigModule.forRoot({
       load: [loadSchemas],
     }),
@@ -31,6 +38,11 @@ import loadSchemas from './configuration';
     ToolWrapperCollectionService,
     WorkflowTemplateCollectionService,
     WorkspaceCollectionService,
+    JsonSchemaGeneratorService,
+    ToolRegistry,
+    ActionRegistry,
+    GenerateSchemasCommand,
+    DynamicSchemaGeneratorService,
   ],
   exports: [
     InitService,
@@ -43,6 +55,8 @@ import loadSchemas from './configuration';
     ToolWrapperCollectionService,
     WorkflowTemplateCollectionService,
     WorkspaceCollectionService,
+    ToolRegistry,
+    ActionRegistry,
   ],
 })
 export class ConfigurationModule {}

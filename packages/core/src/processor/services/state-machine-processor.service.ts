@@ -12,9 +12,9 @@ import { StateMachineActionService } from './state-machine-action.service';
 import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowStatePlaceInfoDto } from '../../persistence/dtos';
 import { WorkflowStateHistoryDto } from '../../persistence/dtos';
-import { WorkflowStateMachineDefaultType } from '../schemas/workflow.schema';
-import { WorkflowTransitionType } from '../schemas/workflow-transition.schema';
-import { WorkflowObserverType } from '../schemas/workflow-observer.schema';
+import { WorkflowStateMachineDefaultType } from '../../configuration/schemas/workflow.schema';
+import { WorkflowTransitionType } from '../../configuration/schemas/workflow-transition.schema';
+import { WorkflowObserverType } from '../../configuration/schemas/workflow-observer.schema';
 
 @Injectable()
 export class StateMachineProcessorService {

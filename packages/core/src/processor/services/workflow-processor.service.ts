@@ -16,7 +16,7 @@ import {
   WorkflowFactoryType,
   WorkflowSequenceType,
   WorkflowStateMachineDefaultType,
-} from '../schemas/workflow.schema';
+} from '../../configuration/schemas/workflow.schema';
 
 @Injectable()
 export class WorkflowProcessorService {

@@ -9,13 +9,11 @@ import { FunctionCallService } from './services/function-call.service';
 import { ValueParserService } from './services/value-parser.service';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { DiscoveryModule } from '@nestjs/core';
-import { ToolRegistry } from './services/tool.registry';
 import { ForwardChildContextTool } from './tools/forward-child-context.tool';
 import { SetContextTool } from './tools/set-context.tool';
 import { SetCustomOptionTool } from './tools/set-custom-option.tool';
 import { AddNamespaceTool } from './tools/add-namespace.tool';
 import { StateMachineValidatorRegistry } from './services/state-machine-validator.registry';
-import { StateMachineActionRegistry } from './services/state-machine-action-registry.service';
 import { StateMachineProcessorService } from './services/state-machine-processor.service';
 import { StateMachineConfigService } from './services/state-machine-config.service';
 import { TransitionManagerService } from './services/transition-manager.service';
@@ -24,8 +22,6 @@ import { InitialRunValidator } from './validators/initial-run.validator';
 import { WorkflowOptionValidator } from './validators/workflow-option.validator';
 import { PromptAction } from './actions/prompt.action';
 import { CreateDocumentAction } from './actions/create-document.action';
-import { SchemaGeneratorService } from './services';
-import { GenerateSchemasCommand } from './commands/generate-schemas.command';
 import { LoadDocumentTool } from './tools/load-document.tool';
 
 @Module({
@@ -42,10 +38,7 @@ import { LoadDocumentTool } from './tools/load-document.tool';
     TemplateEngineService,
     FunctionCallService,
     ValueParserService,
-    SchemaGeneratorService,
-    GenerateSchemasCommand,
 
-    ToolRegistry,
     ForwardChildContextTool,
     SetContextTool,
     SetCustomOptionTool,
@@ -53,7 +46,6 @@ import { LoadDocumentTool } from './tools/load-document.tool';
     LoadDocumentTool,
 
     StateMachineValidatorRegistry,
-    StateMachineActionRegistry,
     StateMachineProcessorService,
     StateMachineConfigService,
     TransitionManagerService,
@@ -67,7 +59,6 @@ import { LoadDocumentTool } from './tools/load-document.tool';
   ],
   exports: [
     ProjectProcessorService,
-    SchemaGeneratorService,
   ],
 })
 export class ProcessorModule {}

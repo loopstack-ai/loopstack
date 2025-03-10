@@ -1,4 +1,4 @@
-import { WorkflowTransitionType } from '../../processor/schemas/workflow-transition.schema';
+import { WorkflowTransitionType } from '../../configuration/schemas/workflow-transition.schema';
 
 export class WorkflowStatePlaceInfoDto {
   availableTransitions: WorkflowTransitionType[];

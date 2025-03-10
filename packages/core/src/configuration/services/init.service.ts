@@ -8,12 +8,12 @@ import { ActionCollectionService } from './action-collection.service';
 import { PromptTemplateCollectionService } from './prompt-template-collection.service';
 import { AdapterCollectionService } from './adapter-collection.service';
 import { EntityCollectionService } from './entity-collection.service';
-import { MainSchemaGenerator } from '../../processor/schemas/main-schema-generator';
+import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
 
 @Injectable()
 export class InitService {
   constructor(
-    private mainSchemaGenerator: MainSchemaGenerator,
+    private mainSchemaGenerator: DynamicSchemaGeneratorService,
     private workspaceCollectionService: WorkspaceCollectionService,
     private projectCollectionService: ProjectCollectionService,
     private toolWrapperCollectionService: ToolWrapperCollectionService,

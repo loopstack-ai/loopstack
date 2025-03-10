@@ -9,7 +9,7 @@ import { ContextImportInterface } from '../interfaces/context-import.interface';
 import { DocumentService } from '../../persistence/services/document.service';
 import { FunctionCallService } from '../services/function-call.service';
 import { z } from 'zod';
-import { ToolCallDefaultType } from '../schemas/tool-config.schema';
+import { ToolCallDefaultType } from '../../configuration/schemas/tool-config.schema';
 
 const LoadDocumentArgsSchema = z.object({
   name: z.string(),

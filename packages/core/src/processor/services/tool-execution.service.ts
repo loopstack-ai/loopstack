@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ToolWrapperCollectionService } from '../../configuration/services/tool-wrapper-collection.service';
-import { ToolRegistry } from './tool.registry';
+import { ToolRegistry } from '../../configuration/services/tool.registry';
 import _ from 'lodash';
 import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ValueParserService } from './value-parser.service';
-import { ToolCallDefaultType, ToolConfigDefaultType } from '../schemas/tool-config.schema';
+import { ToolCallDefaultType, ToolConfigDefaultType } from '../../configuration/schemas/tool-config.schema';
 
 @Injectable()
 export class ToolExecutionService {
