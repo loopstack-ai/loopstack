@@ -9,20 +9,13 @@ import { FunctionCallService } from './services/function-call.service';
 import { ValueParserService } from './services/value-parser.service';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { DiscoveryModule } from '@nestjs/core';
-import { ForwardChildContextTool } from './tools/forward-child-context.tool';
-import { SetContextTool } from './tools/set-context.tool';
-import { SetCustomOptionTool } from './tools/set-custom-option.tool';
-import { AddNamespaceTool } from './tools/add-namespace.tool';
 import { StateMachineValidatorRegistry } from './services/state-machine-validator.registry';
 import { StateMachineProcessorService } from './services/state-machine-processor.service';
 import { StateMachineConfigService } from './services/state-machine-config.service';
-import { TransitionManagerService } from './services/transition-manager.service';
+import { TransitionManagerService } from '../extensions/services/transition-manager.service';
 import { StateMachineActionService } from './services/state-machine-action.service';
 import { InitialRunValidator } from './validators/initial-run.validator';
 import { WorkflowOptionValidator } from './validators/workflow-option.validator';
-import { PromptAction } from './actions/prompt.action';
-import { CreateDocumentAction } from './actions/create-document.action';
-import { LoadDocumentTool } from './tools/load-document.tool';
 
 @Module({
   imports: [
@@ -39,12 +32,6 @@ import { LoadDocumentTool } from './tools/load-document.tool';
     FunctionCallService,
     ValueParserService,
 
-    ForwardChildContextTool,
-    SetContextTool,
-    SetCustomOptionTool,
-    AddNamespaceTool,
-    LoadDocumentTool,
-
     StateMachineValidatorRegistry,
     StateMachineProcessorService,
     StateMachineConfigService,
@@ -53,12 +40,10 @@ import { LoadDocumentTool } from './tools/load-document.tool';
 
     InitialRunValidator,
     WorkflowOptionValidator,
-
-    PromptAction,
-    CreateDocumentAction,
   ],
   exports: [
     ProjectProcessorService,
+    FunctionCallService,
   ],
 })
 export class ProcessorModule {}

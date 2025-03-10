@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { ToolInterface } from '../interfaces/tool.interface';
-import { ProcessStateInterface } from '../interfaces/process-state.interface';
-import { Tool } from '../decorators/tool.decorator';
+import { ToolInterface } from '../../processor/interfaces/tool.interface';
+import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
+import { Tool } from '../../processor/decorators/tool.decorator';
 import { z } from 'zod';
 
 @Injectable()

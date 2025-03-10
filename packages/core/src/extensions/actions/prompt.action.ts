@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { StateMachineAction } from '../decorators/state-machine-observer.decorator';
+import { StateMachineAction } from '../../processor/decorators/state-machine-observer.decorator';
 import {
   ActionExecutePayload,
   StateMachineActionInterface,
-} from '../interfaces/state-machine-action.interface';
-import { TransitionResultInterface } from '../interfaces/transition-result.interface';
+} from '../../processor/interfaces/state-machine-action.interface';
+import { TransitionResultInterface } from '../../processor/interfaces/transition-result.interface';
 import { TransitionManagerService } from '../services/transition-manager.service';
 import { z } from 'zod';
 

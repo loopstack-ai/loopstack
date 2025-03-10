@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { ProjectEntity } from '../entities/project.entity';
+import { ProjectEntity } from '../entities';
 
 export class ProjectService {
   constructor(

@@ -4,8 +4,8 @@ import {
   LoadDocumentTool,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
-import { FunctionCallService } from '../../services/function-call.service';
-import { ProcessStateInterface } from '../../interfaces/process-state.interface';
+import { FunctionCallService } from '../../../processor/services/function-call.service';
+import { ProcessStateInterface } from '../../../processor/interfaces/process-state.interface';
 import { DocumentEntity } from '../../../persistence/entities';
 
 describe('LoadDocumentTool', () => {

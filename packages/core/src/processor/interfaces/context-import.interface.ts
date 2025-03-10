@@ -1,4 +1,4 @@
-import { LoadDocumentArgsInterface } from '../tools/load-document.tool';
+import { LoadDocumentArgsInterface } from '../../extensions/tools/load-document.tool';
 
 export class ContextImportInterface {
   name: string;

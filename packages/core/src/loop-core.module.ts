@@ -4,6 +4,7 @@ import { ProcessorModule } from './processor/processor.module';
 import { ConfigurableModuleClass } from './loop-core.module-definition';
 import { PersistenceModule } from './persistence/persistence.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ExtensionsModule } from './extensions/extensions.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     ConfigurationModule,
     PersistenceModule,
     ProcessorModule,
+    ExtensionsModule,
   ],
   providers: [],
   exports: [ConfigurationModule, PersistenceModule, ProcessorModule],
