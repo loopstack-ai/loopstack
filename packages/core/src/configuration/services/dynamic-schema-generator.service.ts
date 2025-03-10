@@ -13,8 +13,8 @@ import { ToolRegistry } from './tool.registry';
 import { ActionRegistry } from './action-registry.service';
 
 export interface DynamicSchemasInterface {
-    toolConfigSchema: ZodType;
-    actionConfigSchema: ZodType;
+    toolCallSchemas: ZodType;
+    actionConfigSchemas: ZodType;
 }
 
 @Injectable()
@@ -55,17 +55,17 @@ export class DynamicSchemaGeneratorService {
     }
 
     private createDynamicSchema() {
-        const toolSchemas = this.toolRegistry.getToolSchemas();
+        const toolCallSchemas = this.toolRegistry.getToolCallSchemas();
         const actionSchemas = this.actionRegistry.getActionSchemas();
 
         // @ts-ignore
-        const unionToolSchemas = z.discriminatedUnion("tool", toolSchemas);
+        const unionToolCallSchemas = z.discriminatedUnion("tool", toolCallSchemas);
         // @ts-ignore
         const unionActionSchemas = z.discriminatedUnion("service", actionSchemas);
 
         this.dynamicSchemas = {
-            toolConfigSchema: unionToolSchemas,
-            actionConfigSchema: unionActionSchemas,
+            toolCallSchemas: unionToolCallSchemas,
+            actionConfigSchemas: unionActionSchemas,
         };
 
         this.schema = z.object({

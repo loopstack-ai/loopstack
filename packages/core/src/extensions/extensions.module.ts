@@ -9,6 +9,8 @@ import { CreateDocumentAction } from './actions/create-document.action';
 import { TransitionManagerService } from './services/transition-manager.service';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { ProcessorModule } from '../processor/processor.module';
+import { InitialRunValidator } from './validators/initial-run.validator';
+import { WorkflowOptionValidator } from './validators/workflow-option.validator';
 
 @Module({
   imports: [
@@ -26,6 +28,9 @@ import { ProcessorModule } from '../processor/processor.module';
     SetCustomOptionTool,
     AddNamespaceTool,
     LoadDocumentTool,
+
+    InitialRunValidator,
+    WorkflowOptionValidator,
   ],
 })
 export class ExtensionsModule {}

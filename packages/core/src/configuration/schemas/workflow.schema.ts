@@ -39,8 +39,8 @@ export const WorkflowSequenceSchema = z.object({
 export type WorkflowSequenceType = z.infer<typeof WorkflowSequenceSchema>;
 
 export const createWorkflowStateMachineSchema = (dynamicSchemas: DynamicSchemasInterface) => WorkflowStateMachineDefaultSchema.extend({
-  before: z.array(dynamicSchemas.toolConfigSchema).optional(),
-  after: z.array(dynamicSchemas.toolConfigSchema).optional(),
+  before: z.array(dynamicSchemas.toolCallSchemas).optional(),
+  after: z.array(dynamicSchemas.toolCallSchemas).optional(),
 }).refine((data) => data.template || (data.transitions && data.observers), {
   message: "Either template or both transitions and observers must be provided",
 });
@@ -65,8 +65,8 @@ export const createWorkflowSchema = (dynamicSchemas: DynamicSchemasInterface) =>
   sequence: WorkflowSequenceSchema.optional(),
   factory: WorkflowFactorySchema.optional(),
   stateMachine: createWorkflowStateMachineSchema(dynamicSchemas).optional(),
-  prepare: z.array(dynamicSchemas.toolConfigSchema).optional(),
-  export: z.array(dynamicSchemas.toolConfigSchema).optional(),
+  prepare: z.array(dynamicSchemas.toolCallSchemas).optional(),
+  export: z.array(dynamicSchemas.toolCallSchemas).optional(),
 }).refine((data) => data.sequence || data.factory || data.stateMachine, {
   message: "Either sequence or factory or stateMachine must be provided",
 });

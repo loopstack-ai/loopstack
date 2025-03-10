@@ -14,8 +14,6 @@ import { StateMachineProcessorService } from './services/state-machine-processor
 import { StateMachineConfigService } from './services/state-machine-config.service';
 import { TransitionManagerService } from '../extensions/services/transition-manager.service';
 import { StateMachineActionService } from './services/state-machine-action.service';
-import { InitialRunValidator } from './validators/initial-run.validator';
-import { WorkflowOptionValidator } from './validators/workflow-option.validator';
 
 @Module({
   imports: [
@@ -37,9 +35,6 @@ import { WorkflowOptionValidator } from './validators/workflow-option.validator'
     StateMachineConfigService,
     TransitionManagerService,
     StateMachineActionService,
-
-    InitialRunValidator,
-    WorkflowOptionValidator,
   ],
   exports: [
     ProjectProcessorService,

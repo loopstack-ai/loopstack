@@ -26,5 +26,5 @@ export const ToolConfigDefaultSchema = z.object({
 export type ToolConfigDefaultType = z.infer<typeof ToolConfigDefaultSchema>;
 
 export const ToolConfigSchema = (dynamicSchemas: DynamicSchemasInterface) => ToolConfigDefaultSchema.extend({
-  execute: z.array(dynamicSchemas.toolConfigSchema),
+  execute: z.array(dynamicSchemas.toolCallSchemas),
 });

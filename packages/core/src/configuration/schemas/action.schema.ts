@@ -11,7 +11,5 @@ export const ActionConfigDefaultSchema = z.object({
 
 export type ActionConfigDefaultType = z.infer<typeof ActionConfigDefaultSchema>;
 
-export const ActionSchema = (dynamicSchemas: DynamicSchemasInterface) => ActionConfigDefaultSchema.extend({
-    props: dynamicSchemas.actionConfigSchema,
-});
+export const ActionSchema = (dynamicSchemas: DynamicSchemasInterface) => dynamicSchemas.actionConfigSchemas;
 

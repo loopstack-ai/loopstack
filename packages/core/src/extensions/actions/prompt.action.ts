@@ -12,7 +12,7 @@ import { z } from 'zod';
 @StateMachineAction()
 export class PromptAction implements StateMachineActionInterface {
 
-  propsSchema = z.object({});
+  propsSchema = z.object({}).optional();
 
   constructor(private transitionManagerService: TransitionManagerService) {}
 
