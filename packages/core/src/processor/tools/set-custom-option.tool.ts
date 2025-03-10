@@ -8,7 +8,7 @@ import { generateObjectFingerprint } from '@loopstack/shared';
 @Injectable()
 @Tool()
 export class SetCustomOptionTool implements ToolInterface {
-  schema = z.object({
+  argsSchema = z.object({
     key: z.string(),
     value: z.any(),
   });
@@ -17,7 +17,7 @@ export class SetCustomOptionTool implements ToolInterface {
     data: any,
     target: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
-    const options = this.schema.parse(data);
+    const options = this.argsSchema.parse(data);
 
     const currentCustomOptions = target.context.customOptions ?? {};
     currentCustomOptions[options.key] = options.value;

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  LoadDocumentArgsInterface,
   LoadDocumentTool,
-  LoadDocumentToolOptions,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
 import { FunctionCallService } from '../../services/function-call.service';
@@ -92,7 +92,7 @@ describe('LoadDocumentTool', () => {
 
     it('should call createQuery with correct parameters', async () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'Test Load',
         where: { name: 'Document 1' },
         many: false,
@@ -117,7 +117,7 @@ describe('LoadDocumentTool', () => {
 
     it('should use getOne when many is false', async () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'Test Load',
         where: { name: 'Document 1' },
         many: false,
@@ -138,7 +138,7 @@ describe('LoadDocumentTool', () => {
 
     it('should use getMany when many is true', async () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'Test Load',
         where: { name: 'Document' },
         many: true,
@@ -159,7 +159,7 @@ describe('LoadDocumentTool', () => {
 
     it('should filter out null documents when getOne returns null', async () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'Test Load',
         where: { name: 'Non-existent Document' },
         many: false,
@@ -178,7 +178,7 @@ describe('LoadDocumentTool', () => {
 
     it('should apply global flag when specified', async () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'Test Load',
         where: { name: 'Document 1' },
         global: true,
@@ -202,7 +202,7 @@ describe('LoadDocumentTool', () => {
 
     it('should pass namespaces to query options', async () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'Test Load',
         where: { name: 'Document 1' },
         labels: ['uuid1'],
@@ -226,7 +226,7 @@ describe('LoadDocumentTool', () => {
 
     it('should call applyFilters with options and documents', async () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'Test Load',
         where: { name: 'Document' },
         many: true,

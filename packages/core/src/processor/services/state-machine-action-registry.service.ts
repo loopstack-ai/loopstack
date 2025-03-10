@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { StateMachineActionInterface } from '../interfaces/state-machine-action.interface';
 import { LOOP_STATE_MACHINE_ACTION_DECORATOR } from '../decorators/state-machine-observer.decorator';
+import { z, ZodObject, ZodType } from 'zod';
 
 @Injectable()
 export class StateMachineActionRegistry implements OnModuleInit {
@@ -34,5 +35,24 @@ export class StateMachineActionRegistry implements OnModuleInit {
 
   getActionByName(name: string): StateMachineActionInterface | undefined {
     return this.actions.get(name);
+  }
+
+  getActionSchemas(): ZodType[] {
+    const schemas: ZodType[] = [];
+    for (const [name, action] of this.actions.entries()) {
+
+      if (action.propsSchema) {
+        const actionSchema = z.object({
+          name: z.string(),
+          service: z.literal(name),
+          props: action.propsSchema,
+        });
+        // console.log(JSON.stringify(Object.entries(toolSchema.shape), null, 2));
+
+        schemas.push(actionSchema);
+      }
+    }
+
+    return schemas;
   }
 }

@@ -1,4 +1,4 @@
-import { LoadDocumentToolOptions } from '../tools/load-document.tool';
+import { LoadDocumentArgsInterface } from '../tools/load-document.tool';
 
 export class ContextImportInterface {
   name: string;
@@ -6,5 +6,5 @@ export class ContextImportInterface {
   curr: any;
   isNew: boolean;
   isChanged: boolean;
-  options: LoadDocumentToolOptions;
+  options: LoadDocumentArgsInterface;
 }

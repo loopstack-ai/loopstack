@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { z } from 'zod';
 import { ToolInterface } from '../interfaces/tool.interface';
 import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { Tool } from '../decorators/tool.decorator';
@@ -9,14 +8,19 @@ import { createHash } from '@loopstack/shared';
 import { ContextImportInterface } from '../interfaces/context-import.interface';
 import { DocumentService } from '../../persistence/services/document.service';
 import { FunctionCallService } from '../services/function-call.service';
+import { z } from 'zod';
+import { ToolCallDefaultType } from '../schemas/tool-config.schema';
 
-const schema = z.object({
+const LoadDocumentArgsSchema = z.object({
   name: z.string(),
   where: z.object({
     name: z.string(),
     type: z.string().optional(),
   }),
-  labels: z.array(z.string()).optional(),
+  labels: z.union([
+    z.string(),
+    z.array(z.string()).optional(),
+  ]),
   map: z.string().optional(),
   filter: z.string().optional(),
   sort: z.boolean().optional(),
@@ -32,11 +36,14 @@ const schema = z.object({
   global: z.boolean().optional(),
 });
 
-export interface LoadDocumentToolOptions extends z.infer<typeof schema> {}
+export type LoadDocumentArgsInterface = z.infer<typeof LoadDocumentArgsSchema>;
 
 @Injectable()
 @Tool()
 export class LoadDocumentTool implements ToolInterface {
+
+  argsSchema = LoadDocumentArgsSchema;
+
   constructor(
     private documentService: DocumentService,
     private functionCallService: FunctionCallService,
@@ -45,7 +52,7 @@ export class LoadDocumentTool implements ToolInterface {
   /**
    * filters items using defined functions
    */
-  applyFilters(options: LoadDocumentToolOptions, items: DocumentEntity[]) {
+  applyFilters(options: z.infer<typeof this.argsSchema>, items: DocumentEntity[]) {
     if (options.filter) {
       return items.filter((item) =>
         this.functionCallService.runEval(options.filter!, { item }),
@@ -59,7 +66,7 @@ export class LoadDocumentTool implements ToolInterface {
    * modify items by mapping, flattening and sorting entities
    * uses defined functions for mapping
    */
-  applyModifiers(options: LoadDocumentToolOptions, entities: DocumentEntity[]) {
+  applyModifiers(options: z.infer<typeof this.argsSchema>, entities: DocumentEntity[]) {
     const defaultMapFunction = '{ entity.contents }';
     const mapFunc = options.map ?? defaultMapFunction;
 
@@ -90,7 +97,7 @@ export class LoadDocumentTool implements ToolInterface {
    * retrieves and filters entities from database
    */
   async getDocumentsByQuery(
-    options: LoadDocumentToolOptions,
+    options: z.infer<typeof this.argsSchema>,
     target: ProcessStateInterface,
   ): Promise<DocumentEntity[]> {
     const query = this.documentService.createDocumentsQuery(
@@ -99,7 +106,7 @@ export class LoadDocumentTool implements ToolInterface {
       options.where,
       {
         isGlobal: !!options.global,
-        labels: options.labels,
+        labels: options.labels as string[],
         ltWorkflowIndex: target.workflow!.index,
       },
     );
@@ -114,7 +121,7 @@ export class LoadDocumentTool implements ToolInterface {
    * retrieves and filter related entities from workflow dependencies
    */
   getDocumentsByDependencies(
-    options: LoadDocumentToolOptions,
+    options: z.infer<typeof this.argsSchema>,
     target: ProcessStateInterface,
   ) {
     if (!target.workflow) {
@@ -192,7 +199,7 @@ export class LoadDocumentTool implements ToolInterface {
    * adds flags for new and changed contents
    */
   createImportItem(
-    options: LoadDocumentToolOptions,
+    options: LoadDocumentArgsInterface,
     currentEntities: DocumentEntity[],
     previousEntities: DocumentEntity[],
   ): ContextImportInterface {
@@ -216,7 +223,7 @@ export class LoadDocumentTool implements ToolInterface {
    */
   updateContext(
     processState: ProcessStateInterface,
-    options: LoadDocumentToolOptions,
+    options: z.infer<typeof this.argsSchema>,
     currentEntities: DocumentEntity[],
     previousEntities: DocumentEntity[],
   ): ProcessStateInterface {
@@ -240,7 +247,7 @@ export class LoadDocumentTool implements ToolInterface {
     data: any,
     target: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
-    const options = schema.parse(data);
+    const options = this.argsSchema.parse(data);
 
     // load and filter entities based on options from database
     const currentEntities = await this.getDocumentsByQuery(options, target);

@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ActionExecutePayload } from '../interfaces/state-machine-action.interface';
-import { DocumentCreateDto } from '../../persistence/dtos/document-create.dto';
+import { DocumentCreateDto } from '../../persistence/dtos';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
-import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
+import { WorkflowEntity } from '../../persistence/entities';
 import { TransitionContextInterface } from '../interfaces/transition-context.interface';
 import { DocumentService } from '../../persistence/services/document.service';
-import { WorkspaceEntity } from '../../persistence/entities/workspace.entity';
-import { ProjectEntity } from '../../persistence/entities/project.entity';
-import { DocumentEntity } from '../../persistence/entities/document.entity';
+import { DocumentEntity } from '../../persistence/entities';
 import { TransitionResultInterface } from '../interfaces/transition-result.interface';
 import { ContextInterface } from '../interfaces/context.interface';
 

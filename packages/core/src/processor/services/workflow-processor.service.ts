@@ -1,11 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { WorkflowCollectionService } from '../../configuration/services/workflow-collection.service';
-import {
-  WorkflowConfigInterface,
-  WorkflowFactorySchemaConfigInterface,
-  WorkflowSequenceConfigInterface,
-  WorkflowStateMachineConfigInterface,
-} from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { ContextInterface } from '../interfaces/context.interface';
 import _ from 'lodash';
@@ -17,6 +11,12 @@ import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowService } from '../../persistence/services/workflow.service';
 import { NamespacesService } from '../../persistence/services/namespace.service';
 import crypto from 'crypto';
+import {
+  WorkflowDefaultType,
+  WorkflowFactoryType,
+  WorkflowSequenceType,
+  WorkflowStateMachineDefaultType,
+} from '../schemas/workflow.schema';
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -35,7 +35,7 @@ export class WorkflowProcessorService {
   }
 
   async runSequenceType(
-    sequenceConfig: WorkflowSequenceConfigInterface,
+    sequenceConfig: WorkflowSequenceType,
     processState: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
     const sequence = _.map(sequenceConfig.items, 'name');
@@ -58,7 +58,7 @@ export class WorkflowProcessorService {
   }
 
   async runFactoryType(
-    factory: WorkflowFactorySchemaConfigInterface,
+    factory: WorkflowFactoryType,
     processState: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
     const workflowName = factory.workflow;
@@ -125,7 +125,7 @@ export class WorkflowProcessorService {
   }
 
   async runStateMachineType(
-    stateMachineConfig: WorkflowStateMachineConfigInterface,
+    stateMachineConfig: WorkflowStateMachineDefaultType,
     processState: ProcessStateInterface,
   ) {
     processState.workflow =
@@ -143,7 +143,7 @@ export class WorkflowProcessorService {
   }
 
   async processWorkflow(
-    workflowConfig: WorkflowConfigInterface,
+    workflowConfig: WorkflowDefaultType,
     processState: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
     console.log('Processing workflow:', workflowConfig.name);
@@ -169,7 +169,7 @@ export class WorkflowProcessorService {
   }
 
   async getWorkflow(
-    workflowConfig: WorkflowConfigInterface,
+    workflowConfig: WorkflowDefaultType,
     context: ContextInterface,
   ): Promise<WorkflowEntity> {
     const workflow = await this.workflowService
@@ -192,7 +192,7 @@ export class WorkflowProcessorService {
     });
   }
 
-  isStateful(workflowConfig: WorkflowConfigInterface) {
+  isStateful(workflowConfig: WorkflowDefaultType) {
     return !!workflowConfig.stateMachine;
   }
 

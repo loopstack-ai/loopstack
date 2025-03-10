@@ -1,9 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import {
-  WorkflowObserverConfigInterface,
-  WorkflowStateMachineConfigInterface,
-  WorkflowTransitionConfigInterface,
-} from '@loopstack/shared';
 import { ContextInterface } from '../interfaces/context.interface';
 import { StateMachineConfigService } from './state-machine-config.service';
 import { WorkflowService } from '../../persistence/services/workflow.service';
@@ -17,6 +12,9 @@ import { StateMachineActionService } from './state-machine-action.service';
 import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowStatePlaceInfoDto } from '../../persistence/dtos';
 import { WorkflowStateHistoryDto } from '../../persistence/dtos';
+import { WorkflowStateMachineDefaultType } from '../schemas/workflow.schema';
+import { WorkflowTransitionType } from '../schemas/workflow-transition.schema';
+import { WorkflowObserverType } from '../schemas/workflow-observer.schema';
 
 @Injectable()
 export class StateMachineProcessorService {
@@ -48,7 +46,7 @@ export class StateMachineProcessorService {
   async processStateMachine(
     context: ContextInterface,
     workflow: WorkflowEntity,
-    stateMachineConfig: WorkflowStateMachineConfigInterface,
+    stateMachineConfig: WorkflowStateMachineDefaultType,
   ): Promise<WorkflowEntity> {
     console.log('starting with', workflow?.place);
 
@@ -89,7 +87,7 @@ export class StateMachineProcessorService {
 
   updateWorkflowState(
     workflow: WorkflowEntity,
-    transitions: WorkflowTransitionConfigInterface[],
+    transitions: WorkflowTransitionType[],
     historyItem: HistoryTransition,
   ): void {
     workflow.place = historyItem.to;
@@ -111,7 +109,7 @@ export class StateMachineProcessorService {
 
   async initStateMachine(
     workflow: WorkflowEntity,
-    transitions: WorkflowTransitionConfigInterface[],
+    transitions: WorkflowTransitionType[],
     invalidationReasons: string[],
   ): Promise<WorkflowEntity> {
     workflow.isWorking = true;
@@ -182,8 +180,8 @@ export class StateMachineProcessorService {
   async loopStateMachine(
     context: ContextInterface,
     workflow: WorkflowEntity,
-    transitions: WorkflowTransitionConfigInterface[],
-    observers: WorkflowObserverConfigInterface[],
+    transitions: WorkflowTransitionType[],
+    observers: WorkflowObserverType[],
     workflowStateContext: WorkflowStateContextInterface,
   ): Promise<WorkflowEntity> {
     workflow = await this.initStateMachine(

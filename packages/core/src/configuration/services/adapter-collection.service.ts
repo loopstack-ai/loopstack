@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import { AdapterConfigInterface } from '@loopstack/shared';
+import { AdapterType } from '../../processor/schemas/adapter.schema';
 
 @Injectable()
-export class AdapterCollectionService extends CollectionService<AdapterConfigInterface> {
-  create(models: AdapterConfigInterface[]): void {
+export class AdapterCollectionService extends CollectionService<AdapterType> {
+  create(models: AdapterType[]): void {
     this.merge(models);
   }
 }

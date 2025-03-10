@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import {
-  WorkflowObserverConfigInterface,
-  WorkflowStateMachineConfigInterface,
-  WorkflowTransitionConfigInterface,
-} from '@loopstack/shared';
 import _ from 'lodash';
 import { WorkflowTemplateCollectionService } from '../../configuration/services/workflow-template-collection.service';
+import { WorkflowTransitionType } from '../schemas/workflow-transition.schema';
+import { WorkflowObserverType } from '../schemas/workflow-observer.schema';
+import { WorkflowStateMachineDefaultType } from '../schemas/workflow.schema';
 
 @Injectable()
 export class StateMachineConfigService {
@@ -21,9 +19,9 @@ export class StateMachineConfigService {
       );
     }
 
-    let transitions: WorkflowTransitionConfigInterface[] =
+    let transitions: WorkflowTransitionType[] =
       stateMachine.transitions ?? [];
-    let observers: WorkflowObserverConfigInterface[] =
+    let observers: WorkflowObserverType[] =
       stateMachine.observers ?? [];
 
     const parentTemplate = stateMachine?.extends;
@@ -45,11 +43,11 @@ export class StateMachineConfigService {
   }
 
   getStateMachineFlatConfig(
-    stateMachineConfig: WorkflowStateMachineConfigInterface,
+    stateMachineConfig: WorkflowStateMachineDefaultType,
   ) {
-    let transitions: WorkflowTransitionConfigInterface[] =
+    let transitions: WorkflowTransitionType[] =
       stateMachineConfig.transitions ?? [];
-    let observers: WorkflowObserverConfigInterface[] =
+    let observers: WorkflowObserverType[] =
       stateMachineConfig.observers ?? [];
 
     if (stateMachineConfig.template) {

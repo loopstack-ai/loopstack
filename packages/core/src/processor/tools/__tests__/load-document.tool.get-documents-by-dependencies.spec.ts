@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  LoadDocumentArgsInterface,
   LoadDocumentTool,
-  LoadDocumentToolOptions,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
 import { FunctionCallService } from '../../services/function-call.service';
 import { ProcessStateInterface } from '../../interfaces/process-state.interface';
-import { DocumentEntity } from '../../../persistence/entities/document.entity';
-import { WorkflowEntity } from '../../../persistence/entities/workflow.entity';
+import { DocumentEntity } from '../../../persistence/entities';
+import { WorkflowEntity } from '../../../persistence/entities';
 
 describe('LoadDocumentTool', () => {
   let loadDocumentTool: LoadDocumentTool;
@@ -43,7 +43,7 @@ describe('LoadDocumentTool', () => {
   describe('getDocumentsByDependencies', () => {
     it('should filter dependencies by name only when type is not provided', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'TestDocument',
         where: {
           name: 'dependency1',
@@ -87,7 +87,7 @@ describe('LoadDocumentTool', () => {
 
     it('should filter dependencies by both name and type when type is provided', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'TestDocument',
         where: {
           name: 'dependency1',
@@ -127,7 +127,7 @@ describe('LoadDocumentTool', () => {
 
     it('should return empty array when no matching dependencies found', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'TestDocument',
         where: {
           name: 'nonExistentDependency',

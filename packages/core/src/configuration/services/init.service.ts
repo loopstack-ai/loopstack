@@ -8,14 +8,12 @@ import { ActionCollectionService } from './action-collection.service';
 import { PromptTemplateCollectionService } from './prompt-template-collection.service';
 import { AdapterCollectionService } from './adapter-collection.service';
 import { EntityCollectionService } from './entity-collection.service';
-import {
-  MainConfigInterface,
-  MainSchema,
-} from '@loopstack/shared/dist/schemas/main.schema';
+import { MainSchemaGenerator } from '../../processor/schemas/main-schema-generator';
 
 @Injectable()
 export class InitService {
   constructor(
+    private mainSchemaGenerator: MainSchemaGenerator,
     private workspaceCollectionService: WorkspaceCollectionService,
     private projectCollectionService: ProjectCollectionService,
     private toolWrapperCollectionService: ToolWrapperCollectionService,
@@ -39,8 +37,8 @@ export class InitService {
     this.entityCollectionService.clear();
   }
 
-  createFromConfig(data: MainConfigInterface): any {
-    const config = MainSchema.parse(data);
+  createFromConfig(data: any): any {
+    const config = this.mainSchemaGenerator.getSchema().parse(data);
 
     this.workspaceCollectionService.create(config.workspaces ?? []);
     this.projectCollectionService.create(config.projects ?? []);
@@ -55,7 +53,7 @@ export class InitService {
     this.entityCollectionService.create(config.entities ?? []);
   }
 
-  init(configs: MainConfigInterface[]) {
+  init(configs: any[]) {
     this.clear();
     for (const config of configs) {
       this.createFromConfig(config);

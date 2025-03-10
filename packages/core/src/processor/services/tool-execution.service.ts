@@ -4,10 +4,7 @@ import { ToolRegistry } from './tool.registry';
 import _ from 'lodash';
 import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ValueParserService } from './value-parser.service';
-import {
-  ToolCallConfigInterface,
-  ToolWrapperConfigInterface,
-} from '@loopstack/shared';
+import { ToolCallDefaultType, ToolConfigDefaultType } from '../schemas/tool-config.schema';
 
 @Injectable()
 export class ToolExecutionService {
@@ -18,7 +15,7 @@ export class ToolExecutionService {
   ) {}
 
   async applyToolWrapper(
-    toolWrapper: ToolWrapperConfigInterface,
+    toolWrapper: ToolConfigDefaultType,
     contextArgs: Record<string, any>,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
@@ -45,7 +42,7 @@ export class ToolExecutionService {
   }
 
   async applyTool(
-    toolCall: ToolCallConfigInterface,
+    toolCall: ToolCallDefaultType,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
     contextArgs?: Record<string, any>,
@@ -66,7 +63,7 @@ export class ToolExecutionService {
   }
 
   async applyTools(
-    executions: ToolCallConfigInterface[] | undefined,
+    executions: ToolCallDefaultType[] | undefined,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
     args?: Record<string, any>,

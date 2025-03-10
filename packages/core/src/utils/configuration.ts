@@ -1,11 +1,10 @@
 import path from 'path';
 import fs from 'fs';
-import { MainConfigInterface } from '@loopstack/shared';
 import * as yaml from 'js-yaml';
 
 export function loadConfiguration(directoryPath: string): any[] {
   const fullPath = path.join(process.cwd(), directoryPath);
-  const configs: MainConfigInterface[] = [];
+  const configs: any[] = [];
 
   try {
     loadConfigsRecursively(fullPath, configs);
@@ -16,7 +15,7 @@ export function loadConfiguration(directoryPath: string): any[] {
   return configs;
 }
 
-function loadConfigsRecursively(currentPath: string, configs: MainConfigInterface[]): void {
+function loadConfigsRecursively(currentPath: string, configs: any[]): void {
   const items = fs.readdirSync(currentPath);
 
   items.forEach((item) => {

@@ -2,7 +2,8 @@ import { TransitionContextInterface } from './transition-context.interface';
 import { ContextInterface } from './context.interface';
 import { WorkflowStateContextInterface } from './workflow-state-context.interface';
 import { TransitionResultInterface } from './transition-result.interface';
-import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
+import { WorkflowEntity } from '../../persistence/entities';
+import { ZodType } from 'zod';
 
 export interface ActionExecutePayload {
   workflowContext: ContextInterface;
@@ -13,5 +14,6 @@ export interface ActionExecutePayload {
 }
 
 export interface StateMachineActionInterface {
+  propsSchema: ZodType | undefined;
   execute(payload: ActionExecutePayload): Promise<TransitionResultInterface>;
 }

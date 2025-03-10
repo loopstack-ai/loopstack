@@ -6,10 +6,14 @@ import {
 } from '../interfaces/state-machine-action.interface';
 import { TransitionResultInterface } from '../interfaces/transition-result.interface';
 import { TransitionManagerService } from '../services/transition-manager.service';
+import { z } from 'zod';
 
 @Injectable()
 @StateMachineAction()
 export class PromptAction implements StateMachineActionInterface {
+
+  propsSchema = z.object({});
+
   constructor(private transitionManagerService: TransitionManagerService) {}
 
   async execute(

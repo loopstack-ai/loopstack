@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  LoadDocumentArgsInterface,
   LoadDocumentTool,
-  LoadDocumentToolOptions,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
 import { FunctionCallService } from '../../services/function-call.service';
@@ -61,7 +61,7 @@ describe('LoadDocumentTool', () => {
   describe('applyFilters', () => {
     it('should return the original array when filter is not provided', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
       };
@@ -76,7 +76,7 @@ describe('LoadDocumentTool', () => {
 
     it('should filter items when filter is both provided', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
         filter: 'item.type === "type1"',
@@ -109,7 +109,7 @@ describe('LoadDocumentTool', () => {
 
     it('should return empty array when no items match the filter', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
         many: true,
@@ -130,7 +130,7 @@ describe('LoadDocumentTool', () => {
 
     it('should handle empty input array', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
         many: true,
@@ -148,7 +148,7 @@ describe('LoadDocumentTool', () => {
 
     it('should properly handle complex filter expressions', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
         many: true,

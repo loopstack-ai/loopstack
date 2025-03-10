@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import { ToolWrapperConfigInterface } from '@loopstack/shared';
+import { ToolConfigDefaultType } from '../../processor/schemas/tool-config.schema';
 
 @Injectable()
-export class ToolWrapperCollectionService extends CollectionService<ToolWrapperConfigInterface> {
-  create(tools: ToolWrapperConfigInterface[]): void {
+export class ToolWrapperCollectionService extends CollectionService<ToolConfigDefaultType> {
+  create(tools: ToolConfigDefaultType[]): void {
     this.merge(tools);
   }
 }

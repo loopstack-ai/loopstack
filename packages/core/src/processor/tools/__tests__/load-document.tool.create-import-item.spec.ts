@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  LoadDocumentArgsInterface,
   LoadDocumentTool,
-  LoadDocumentToolOptions,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
 import { FunctionCallService } from '../../services/function-call.service';
@@ -54,7 +54,7 @@ describe('LoadDocumentTool', () => {
   describe('createImportItem', () => {
     it('should return a single document when many is false', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'testDoc',
         where: { name: 'test' },
         many: false,
@@ -90,7 +90,7 @@ describe('LoadDocumentTool', () => {
 
     it('should return multiple documents when many is true', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'testDocs',
         where: { name: 'test' },
         many: true,
@@ -129,7 +129,7 @@ describe('LoadDocumentTool', () => {
 
     it('should mark as new when there are no previous entities', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'testDoc',
         where: { name: 'test' },
         many: false,
@@ -162,7 +162,7 @@ describe('LoadDocumentTool', () => {
 
     it('should mark as not changed when entities are equal', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'testDoc',
         where: { name: 'test' },
         many: false,
@@ -198,7 +198,7 @@ describe('LoadDocumentTool', () => {
 
     it('should handle empty arrays for both current and previous entities', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'testDoc',
         where: { name: 'test' },
         many: false,
@@ -229,7 +229,7 @@ describe('LoadDocumentTool', () => {
 
     it('should correctly handle many:true with empty arrays', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'testDocs',
         where: { name: 'test' },
         many: true,

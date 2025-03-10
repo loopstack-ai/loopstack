@@ -1,26 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { z } from 'zod';
 import { ToolInterface } from '../interfaces/tool.interface';
 import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { Tool } from '../decorators/tool.decorator';
 import {NamespacesService} from "../../persistence/services/namespace.service";
+import { z } from 'zod';
 
 @Injectable()
 @Tool()
 export class AddNamespaceTool implements ToolInterface {
 
-    constructor(private namespacesService: NamespacesService) {}
-
-    schema = z.object({
-        label: z.string(),
-        meta: z.any().optional(),
+    argsSchema = z.object({
+      label: z.string(),
+      meta: z.any().optional(),
     });
+
+    constructor(private namespacesService: NamespacesService) {}
 
     async apply(
         options: any,
         target: ProcessStateInterface,
     ): Promise<ProcessStateInterface> {
-        const validOptions = this.schema.parse(options);
+        const validOptions = this.argsSchema.parse(options);
 
         target.context.namespace = await this.namespacesService.create({
           name: validOptions.label,

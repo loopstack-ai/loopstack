@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  LoadDocumentArgsInterface,
   LoadDocumentTool,
-  LoadDocumentToolOptions,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
 import { FunctionCallService } from '../../services/function-call.service';
@@ -54,7 +54,7 @@ describe('LoadDocumentTool', () => {
 
     it('should use default map function when no map is provided', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
       };
@@ -81,7 +81,7 @@ describe('LoadDocumentTool', () => {
 
     it('should use custom map function when provided', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
         map: '{ entity.contents.title }',
@@ -110,7 +110,7 @@ describe('LoadDocumentTool', () => {
 
     it('should flatten results when flat option is true', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
         flat: true,
@@ -137,7 +137,7 @@ describe('LoadDocumentTool', () => {
 
     it('should sort results when sortBy option is provided', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
         sortBy: {
@@ -163,7 +163,7 @@ describe('LoadDocumentTool', () => {
 
     it('should sort results when sort option is set to true', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
         map: '{ entity.contents.title }',
@@ -195,7 +195,7 @@ describe('LoadDocumentTool', () => {
       ];
 
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
         map: '{ entity.contents.items }',
@@ -227,7 +227,7 @@ describe('LoadDocumentTool', () => {
 
     it('should handle empty document array', () => {
       // Arrange
-      const options: LoadDocumentToolOptions = {
+      const options: LoadDocumentArgsInterface = {
         name: 'test',
         where: { name: 'test' },
         map: '{ entity.contents }',

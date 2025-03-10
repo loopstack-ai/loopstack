@@ -24,6 +24,9 @@ import { InitialRunValidator } from './validators/initial-run.validator';
 import { WorkflowOptionValidator } from './validators/workflow-option.validator';
 import { PromptAction } from './actions/prompt.action';
 import { CreateDocumentAction } from './actions/create-document.action';
+import { SchemaGeneratorService } from './services';
+import { GenerateSchemasCommand } from './commands/generate-schemas.command';
+import { LoadDocumentTool } from './tools/load-document.tool';
 
 @Module({
   imports: [
@@ -39,12 +42,15 @@ import { CreateDocumentAction } from './actions/create-document.action';
     TemplateEngineService,
     FunctionCallService,
     ValueParserService,
+    SchemaGeneratorService,
+    GenerateSchemasCommand,
 
     ToolRegistry,
     ForwardChildContextTool,
     SetContextTool,
     SetCustomOptionTool,
     AddNamespaceTool,
+    LoadDocumentTool,
 
     StateMachineValidatorRegistry,
     StateMachineActionRegistry,
@@ -61,6 +67,7 @@ import { CreateDocumentAction } from './actions/create-document.action';
   ],
   exports: [
     ProjectProcessorService,
+    SchemaGeneratorService,
   ],
 })
 export class ProcessorModule {}

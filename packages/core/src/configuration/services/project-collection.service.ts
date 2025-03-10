@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import { ProjectConfigInterface } from '@loopstack/shared';
+import { ProjectType } from '../../processor/schemas/project.schema';
 
 @Injectable()
-export class ProjectCollectionService extends CollectionService<ProjectConfigInterface> {
-  create(projects: ProjectConfigInterface[]): void {
+export class ProjectCollectionService extends CollectionService<ProjectType> {
+  create(projects: ProjectType[]): void {
     this.merge(projects);
   }
 }

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import { WorkflowConfigInterface } from '@loopstack/shared';
+import { WorkflowDefaultType } from '../../processor/schemas/workflow.schema';
 
 @Injectable()
-export class WorkflowCollectionService extends CollectionService<WorkflowConfigInterface> {
-  create(workflows: WorkflowConfigInterface[]): void {
+export class WorkflowCollectionService extends CollectionService<WorkflowDefaultType> {
+  create(workflows: WorkflowDefaultType[]): void {
     this.merge(workflows);
   }
 }
