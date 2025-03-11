@@ -16,12 +16,14 @@ export class TransitionManagerService {
   private workflowContext: ContextInterface;
   private transitionContext: TransitionContextInterface;
   private nextPlace: string | undefined;
+  private props: any;
 
   public setContext(payload: ActionExecutePayload) {
     this.workflow = payload.workflow;
     this.workflowContext = payload.workflowContext;
     this.transitionContext = payload.transitionContext;
     this.nextPlace = undefined;
+    this.props = payload.props;
 
     return this;
   }
@@ -69,5 +71,20 @@ export class TransitionManagerService {
       workflow: this.workflow,
       nextPlace: this.nextPlace,
     };
+  }
+
+  selectMergeImports(names: string[] | undefined) {
+    if (!names?.length) {
+      return {};
+    }
+
+    return this.workflowContext.imports
+      ?.filter((item) => names.includes(item.name))
+      .map((item) => ({
+        [item.name]: item.curr,
+      })).reduce((prev, curr) => ({
+        ...prev,
+        ...curr,
+      }), {}) ?? {};
   }
 }

@@ -26,7 +26,7 @@ export class DebugImportsAction implements StateMachineActionInterface {
         manager.createDocument({
           name: `debug-${item.name}`,
           type: 'document',
-          contents: item.curr,
+          contents: item,
         });
       }
     }

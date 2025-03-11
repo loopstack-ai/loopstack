@@ -39,6 +39,7 @@ import { StateMachineActionService } from './services/state-machine-action.servi
   exports: [
     ProjectProcessorService,
     FunctionCallService,
+    TemplateEngineService,
   ],
 })
 export class ProcessorModule {}

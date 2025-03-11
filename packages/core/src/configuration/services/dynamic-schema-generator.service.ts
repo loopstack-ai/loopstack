@@ -7,7 +7,7 @@ import { WorkflowTemplateSchema } from '../schemas/workflow-template.schema';
 import { ActionSchema } from '../schemas/action.schema';
 import { PromptTemplateSchema } from '../schemas/prompt-template.schema';
 import { AdapterSchema } from '../schemas/adapter.schema';
-import { EntitySchema } from '../schemas/entity.schema';
+import { DocumentSchema } from '../schemas/document.schema';
 import { Injectable } from '@nestjs/common';
 import { ToolRegistry } from './tool.registry';
 import { ActionRegistry } from './action-registry.service';
@@ -83,7 +83,8 @@ export class DynamicSchemaGeneratorService {
             ).optional(),
             promptTemplates: z.array(PromptTemplateSchema).optional(),
             adapter: z.array(AdapterSchema).optional(),
-            entities: z.array(EntitySchema).optional(),
+            documents: z.array(DocumentSchema).optional(),
+            custom: z.any(),
         }).strict();
 
         return this.schema;

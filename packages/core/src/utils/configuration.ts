@@ -23,11 +23,9 @@ function loadConfigsRecursively(currentPath: string, configs: any[]): void {
     const stats = fs.statSync(itemPath);
 
     if (stats.isFile() && item.endsWith('.loopstack.yaml')) {
-      // Load the config file and add it to the configs array
       const config = yaml.load(fs.readFileSync(itemPath, 'utf8'));
       configs.push(config);
     } else if (stats.isDirectory()) {
-      // Recursively process subdirectories
       loadConfigsRecursively(itemPath, configs);
     }
   });

@@ -21,13 +21,22 @@ export class ForwardChildContextTool implements ToolInterface {
 
     const validOptions = this.argsSchema.parse(options);
 
+    const omit = validOptions?.omit ?? [
+      'namespaceIds',
+      'labels',
+      'iteratorGroup',
+      'iteratorValue',
+      'customOptions',
+      'imports',
+    ]
+
     return {
       ...target,
-      context: validOptions?.omit ? _.merge(
+      context: _.merge(
         {},
         target.context,
-        _.omit(source.context, validOptions.omit),
-      ) : source.context,
+        _.omit(source.context, omit),
+      ),
     };
   }
 }

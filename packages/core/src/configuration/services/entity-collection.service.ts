@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CollectionService } from './collection.service';
-import { EntityType } from '../schemas/entity.schema';
+import { DocumentType } from '../schemas/document.schema';
 
 @Injectable()
-export class EntityCollectionService extends CollectionService<EntityType> {
-  create(entities: EntityType[]): void {
+export class EntityCollectionService extends CollectionService<DocumentType> {
+  create(entities: DocumentType[]): void {
     this.merge(entities);
   }
 }

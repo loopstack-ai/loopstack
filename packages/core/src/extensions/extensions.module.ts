@@ -13,14 +13,25 @@ import { InitialRunValidator } from './validators/initial-run.validator';
 import { WorkflowOptionValidator } from './validators/workflow-option.validator';
 import { RefTool } from './tools/ref.tool';
 import { DebugImportsAction } from './actions/debug-imports.action';
+import { OpenaiClientService } from './clients/openai-client.service';
+import { ConfigModule } from '@nestjs/config';
+import { MarkdownParserService } from './services/markdown-parser.service';
+import { SchemaToTemplateBuilderService } from './services/schema-to-template-builder.service';
 
 @Module({
   imports: [
+    ConfigModule.forFeature(() => ({
+      llm: {
+        apiKey: 'REDACTED',
+      }
+    })),
     PersistenceModule,
     ProcessorModule,
   ],
   providers: [
     TransitionManagerService,
+    MarkdownParserService,
+    SchemaToTemplateBuilderService,
 
     PromptAction,
     CreateDocumentAction,
@@ -35,6 +46,8 @@ import { DebugImportsAction } from './actions/debug-imports.action';
 
     InitialRunValidator,
     WorkflowOptionValidator,
+
+    OpenaiClientService,
   ],
 })
 export class ExtensionsModule {}
