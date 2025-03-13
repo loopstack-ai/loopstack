@@ -29,6 +29,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@loopstack/markdown-parser": "^1.0.3",
+    "@loopstack/schema-to-template": "^1.0.1",
     "@loopstack/shared": "workspace:^",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",

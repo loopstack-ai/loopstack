@@ -11,6 +11,10 @@ import { AdapterCollectionService } from '../adapter-collection.service';
 import { EntityCollectionService } from '../entity-collection.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import loadSchemas from '../../configuration';
+import { DynamicSchemaGeneratorService } from '../dynamic-schema-generator.service';
+import { ToolRegistry } from '../tool.registry';
+import { ActionRegistry } from '../action-registry.service';
+import { DiscoveryModule } from '@nestjs/core';
 
 describe('InitService', () => {
   let modelService: InitService;
@@ -22,6 +26,7 @@ describe('InitService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
+        DiscoveryModule,
         ConfigModule.forRoot({
           load: [loadSchemas],
         }),
@@ -38,6 +43,9 @@ describe('InitService', () => {
         PromptTemplateCollectionService,
         AdapterCollectionService,
         EntityCollectionService,
+        DynamicSchemaGeneratorService,
+        ToolRegistry,
+        ActionRegistry,
       ],
     }).compile();
 

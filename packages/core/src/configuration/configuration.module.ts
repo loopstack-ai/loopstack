@@ -18,6 +18,7 @@ import { GenerateSchemasCommand } from './commands/generate-schemas.command';
 import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generator.service';
 import { DiscoveryModule } from '@nestjs/core';
 import { ActionRegistry } from './services/action-registry.service';
+import { SnippetCollectionService } from './services/snippet-collection.service';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ActionRegistry } from './services/action-registry.service';
     CollectionService,
     ActionCollectionService,
     EntityCollectionService,
+    SnippetCollectionService,
     AdapterCollectionService,
     WorkflowCollectionService,
     ProjectCollectionService,
@@ -48,6 +50,7 @@ import { ActionRegistry } from './services/action-registry.service';
     InitService,
     ActionCollectionService,
     EntityCollectionService,
+    SnippetCollectionService,
     AdapterCollectionService,
     WorkflowCollectionService,
     ProjectCollectionService,

@@ -7,10 +7,10 @@ import { WorkflowTemplateSchema } from '../schemas/workflow-template.schema';
 import { ActionSchema } from '../schemas/action.schema';
 import { PromptTemplateSchema } from '../schemas/prompt-template.schema';
 import { AdapterSchema } from '../schemas/adapter.schema';
-import { DocumentSchema } from '../schemas/document.schema';
 import { Injectable } from '@nestjs/common';
 import { ToolRegistry } from './tool.registry';
 import { ActionRegistry } from './action-registry.service';
+import { DocumentSchema } from '@loopstack/shared';
 
 export interface DynamicSchemasInterface {
     toolCallSchemas: ZodType;
@@ -85,6 +85,7 @@ export class DynamicSchemaGeneratorService {
             adapter: z.array(AdapterSchema).optional(),
             documents: z.array(DocumentSchema).optional(),
             custom: z.any(),
+            snippets: z.any(),
         }).strict();
 
         return this.schema;

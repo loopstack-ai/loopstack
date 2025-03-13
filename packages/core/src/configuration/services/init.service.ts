@@ -9,6 +9,7 @@ import { PromptTemplateCollectionService } from './prompt-template-collection.se
 import { AdapterCollectionService } from './adapter-collection.service';
 import { EntityCollectionService } from './entity-collection.service';
 import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
+import { SnippetCollectionService } from './snippet-collection.service';
 
 @Injectable()
 export class InitService {
@@ -23,6 +24,7 @@ export class InitService {
     private promptTemplateCollectionService: PromptTemplateCollectionService,
     private llmModelCollectionService: AdapterCollectionService,
     private entityCollectionService: EntityCollectionService,
+    private snippetCollectionService: SnippetCollectionService,
   ) {}
 
   clear() {
@@ -35,6 +37,7 @@ export class InitService {
     this.promptTemplateCollectionService.clear();
     this.llmModelCollectionService.clear();
     this.entityCollectionService.clear();
+    this.snippetCollectionService.clear();
   }
 
   createFromConfig(data: any): any {
@@ -51,6 +54,7 @@ export class InitService {
     this.promptTemplateCollectionService.create(config.promptTemplates ?? []);
     this.llmModelCollectionService.create(config.adapter ?? []);
     this.entityCollectionService.create(config.entities ?? []);
+    this.snippetCollectionService.create(config.snippets ? Object.entries(config.snippets).map(([name, value]) => ({ name, value})) : []);
   }
 
   init(configs: any[]) {
