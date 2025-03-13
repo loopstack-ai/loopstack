@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { StateMachineValidatorInterface } from '../interfaces/state-machine-validator.interface';
 import _ from 'lodash';
-import { LOOP_STATE_MACHINE_VALIDATOR_DECORATOR } from '../decorators/state-machine-validator.decorator';
+import { LOOP_STATE_MACHINE_VALIDATOR_DECORATOR } from '../decorators';
 
 @Injectable()
 export class StateMachineValidatorRegistry implements OnModuleInit {

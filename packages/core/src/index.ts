@@ -1,8 +1,13 @@
+import "reflect-metadata";
+
 export * from './loop-core.module';
-export * from './configuration/services/init.service';
 export * from './utils';
+export * from './persistence';
 export * from './persistence/entities';
 export * from './persistence/dtos';
 export * from './persistence/interfaces';
 // export * from './processor/interfaces';
-export * from './processor/services';
+export * from './processor';
+export * from './configuration';
+export * from './common';
+// export * from './extensions';

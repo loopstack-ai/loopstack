@@ -9,7 +9,7 @@ import { ActionCollectionService } from '../action-collection.service';
 import { PromptTemplateCollectionService } from '../prompt-template-collection.service';
 import { AdapterCollectionService } from '../adapter-collection.service';
 import { EntityCollectionService } from '../entity-collection.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import loadSchemas from '../../configuration';
 import { DynamicSchemaGeneratorService } from '../dynamic-schema-generator.service';
 import { ToolRegistry } from '../tool.registry';
@@ -32,7 +32,6 @@ describe('InitService', () => {
         }),
       ],
       providers: [
-        ConfigService,
         InitService,
         WorkspaceCollectionService,
         ProjectCollectionService,

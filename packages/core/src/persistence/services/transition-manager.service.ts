@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ActionExecutePayload } from '../../processor/interfaces/state-machine-action.interface';
-import { WorkflowEntity } from '../../persistence/entities';
+import { ActionExecutePayload } from '../../processor';
+import { WorkflowEntity } from '../entities';
 import { TransitionContextInterface } from '../../processor/interfaces/transition-context.interface';
-import { DocumentService } from '../../persistence/services/document.service';
-import { DocumentEntity } from '../../persistence/entities';
-import { TransitionResultInterface } from '../../processor/interfaces/transition-result.interface';
+import { DocumentService } from './document.service';
+import { DocumentEntity } from '../entities';
+import { TransitionResultInterface } from '../../processor';
 import { ContextInterface } from '../../processor/interfaces/context.interface';
 const Ajv = require("ajv");
 

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ToolInterface } from '../../processor/interfaces/tool.interface';
 import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
-import { Tool } from '../../processor/decorators/tool.decorator';
 import {NamespacesService} from "../../persistence/services/namespace.service";
 import { z } from 'zod';
+import { Tool } from '../../processor';
 
 @Injectable()
 @Tool()

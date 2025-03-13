@@ -4,7 +4,7 @@ import {
   LoadDocumentTool,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
-import { FunctionCallService } from '../../../processor/services/function-call.service';
+import { FunctionCallService } from '../../../common/services/function-call.service';
 import { DocumentEntity } from '../../../persistence/entities';
 
 describe('LoadDocumentTool', () => {

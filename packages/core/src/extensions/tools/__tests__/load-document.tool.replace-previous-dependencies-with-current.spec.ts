@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoadDocumentTool } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
-import { FunctionCallService } from '../../../processor/services/function-call.service';
+import { FunctionCallService } from '../../../processor';
 import { ProcessStateInterface } from '../../../processor/interfaces/process-state.interface';
 import { DocumentEntity } from '../../../persistence/entities';
 import { createMock } from '@golevelup/ts-jest';

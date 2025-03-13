@@ -1,20 +1,28 @@
 import { Module } from '@nestjs/common';
-import { ConfigurationModule } from './configuration/configuration.module';
-import { ProcessorModule } from './processor/processor.module';
+import { ProcessorModule } from './processor';
 import { ConfigurableModuleClass } from './loop-core.module-definition';
-import { PersistenceModule } from './persistence/persistence.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ExtensionsModule } from './extensions/extensions.module';
+import { ConfigurationModule } from './configuration';
+import { PersistenceModule } from './persistence/persistence.module';
+import { CommonModule } from './common';
 
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
+    CommonModule,
     ConfigurationModule,
     PersistenceModule,
     ProcessorModule,
     ExtensionsModule,
   ],
   providers: [],
-  exports: [ConfigurationModule, PersistenceModule, ProcessorModule],
+  exports: [
+    CommonModule,
+    ConfigurationModule,
+    PersistenceModule,
+    ProcessorModule,
+    ExtensionsModule,
+  ],
 })
 export class LoopCoreModule extends ConfigurableModuleClass {}

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FunctionCallService } from '../function-call.service';
+import { FunctionCallService } from '../../../common/services/function-call.service';
 
 describe('FunctionCallService', () => {
   let service: FunctionCallService;

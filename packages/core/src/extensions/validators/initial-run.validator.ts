@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { StateMachineValidatorInterface } from '../../processor/interfaces/state-machine-validator.interface';
 import { TransitionPayloadInterface } from '@loopstack/shared';
-import { StateMachineValidator } from '../../processor/decorators/state-machine-validator.decorator';
 import { WorkflowEntity } from '../../persistence/entities';
+import { StateMachineValidator } from '../../processor';
 
 @Injectable()
 @StateMachineValidator({ priority: 0 })

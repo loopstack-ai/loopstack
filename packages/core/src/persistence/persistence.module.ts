@@ -10,7 +10,8 @@ import { WorkspaceService } from './services/workspace.service';
 import { ProjectRepository } from './repositories/project.repository';
 import { DocumentService } from './services/document.service';
 import { NamespacesService } from './services/namespace.service';
-import { NamespaceEntity } from './entities/namespace.entity';
+import { NamespaceEntity } from './entities';
+import { TransitionManagerService } from './services';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { NamespaceEntity } from './entities/namespace.entity';
     ProjectRepository,
     DocumentService,
     NamespacesService,
+    TransitionManagerService,
   ],
   exports: [
     WorkflowService,
@@ -37,6 +39,7 @@ import { NamespaceEntity } from './entities/namespace.entity';
     ProjectRepository,
     DocumentService,
     NamespacesService,
+    TransitionManagerService,
   ],
 })
 export class PersistenceModule {}

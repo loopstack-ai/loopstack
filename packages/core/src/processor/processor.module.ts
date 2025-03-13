@@ -1,23 +1,22 @@
 import { Module } from '@nestjs/common';
 import { ProjectProcessorService } from './services';
-import { ConfigurationModule } from '../configuration/configuration.module';
+import { ConfigurationModule } from '../configuration';
 import { WorkflowProcessorService } from './services/workflow-processor.service';
 import { ContextService } from './services/context.service';
-import { ToolExecutionService } from './services/tool-execution.service';
-import { TemplateEngineService } from './services/template-engine.service';
-import { FunctionCallService } from './services/function-call.service';
+import { ToolExecutionService } from './services';
 import { ValueParserService } from './services/value-parser.service';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { DiscoveryModule } from '@nestjs/core';
 import { StateMachineValidatorRegistry } from './services/state-machine-validator.registry';
 import { StateMachineProcessorService } from './services/state-machine-processor.service';
 import { StateMachineConfigService } from './services/state-machine-config.service';
-import { TransitionManagerService } from '../extensions/services/transition-manager.service';
 import { StateMachineActionService } from './services/state-machine-action.service';
+import { CommonModule } from '../common';
 
 @Module({
   imports: [
     DiscoveryModule,
+    CommonModule,
     ConfigurationModule,
     PersistenceModule,
   ],
@@ -26,20 +25,15 @@ import { StateMachineActionService } from './services/state-machine-action.servi
     WorkflowProcessorService,
     ContextService,
     ToolExecutionService,
-    TemplateEngineService,
-    FunctionCallService,
     ValueParserService,
 
     StateMachineValidatorRegistry,
     StateMachineProcessorService,
     StateMachineConfigService,
-    TransitionManagerService,
     StateMachineActionService,
   ],
   exports: [
     ProjectProcessorService,
-    FunctionCallService,
-    TemplateEngineService,
   ],
 })
 export class ProcessorModule {}

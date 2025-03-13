@@ -4,8 +4,8 @@ import {
   LoadDocumentTool,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
-import { FunctionCallService } from '../../../processor/services/function-call.service';
-import { DocumentEntity } from '../../../persistence/entities/document.entity';
+import { FunctionCallService } from '../../../processor';
+import { DocumentEntity } from '../../../persistence/entities';
 import * as _ from 'lodash';
 
 // Mock the dependencies

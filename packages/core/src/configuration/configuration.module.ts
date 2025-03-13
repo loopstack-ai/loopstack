@@ -3,22 +3,22 @@ import { ActionCollectionService } from './services/action-collection.service';
 import { CollectionService } from './services/collection.service';
 import { EntityCollectionService } from './services/entity-collection.service';
 import { AdapterCollectionService } from './services/adapter-collection.service';
-import { InitService } from './services/init.service';
+import { InitService } from './services';
 import { WorkflowCollectionService } from './services/workflow-collection.service';
 import { ProjectCollectionService } from './services/project-collection.service';
 import { PromptTemplateCollectionService } from './services/prompt-template-collection.service';
-import { ToolWrapperCollectionService } from './services/tool-wrapper-collection.service';
+import { ToolWrapperCollectionService } from './services';
 import { WorkspaceCollectionService } from './services/workspace-collection.service';
 import { WorkflowTemplateCollectionService } from './services/workflow-template-collection.service';
 import { ConfigModule } from '@nestjs/config';
 import loadSchemas from './configuration';
 import { JsonSchemaGeneratorService } from './services/json-schema-generator.service';
-import { ToolRegistry } from './services/tool.registry';
+import { ToolRegistry } from './services';
 import { GenerateSchemasCommand } from './commands/generate-schemas.command';
 import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generator.service';
 import { DiscoveryModule } from '@nestjs/core';
-import { ActionRegistry } from './services/action-registry.service';
-import { SnippetCollectionService } from './services/snippet-collection.service';
+import { ActionRegistry } from './services';
+import { SnippetCollectionService } from './services';
 
 @Module({
   imports: [
