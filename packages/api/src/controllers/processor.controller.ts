@@ -79,7 +79,7 @@ export class ProcessorController {
     @Query() queryParams: RunProjectQueryParams,
   ): Promise<ProjectEntity> {
     const user = req.user || null;
-    return this.processorApiService.processProject(projectId, user, payload, {
+    return this.processorApiService.processProject(projectId, user, payload ?? {}, {
       force: !!queryParams.force,
     });
   }

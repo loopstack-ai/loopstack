@@ -7,8 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProjectEntity } from '@loopstack/core';
 import { IsNull, Repository } from 'typeorm';
 import { WorkspaceEntity } from '@loopstack/core';
-import { TransitionPayloadInterface } from '@loopstack/shared';
 import {ProjectProcessorService} from "@loopstack/core/dist/processor/services/project-processor.service";
+import { RunProjectPayloadDto } from '../dtos/run-project-payload.dto';
 
 @Injectable()
 export class ProcessorApiService {
@@ -23,7 +23,7 @@ export class ProcessorApiService {
   async processProject(
     projectId: string,
     user: string | null,
-    payload: { transition?: TransitionPayloadInterface },
+    payload: RunProjectPayloadDto,
     options?: {
       force?: boolean;
     },
@@ -51,9 +51,9 @@ export class ProcessorApiService {
 
     const context = await this.processorService.processProject(
       {
-        ...payload,
         userId: user,
         projectId: project.id,
+        transition: payload.transition
       },
     );
 

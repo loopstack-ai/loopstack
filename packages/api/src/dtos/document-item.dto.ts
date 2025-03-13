@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { DocumentEntity } from '@loopstack/core';
 import { DocumentMetaDto } from './document-meta.dto';
 import { DocumentContentsDto } from './document-contents.dto';
+import { JSONSchemaConfigType } from '@loopstack/shared';
 
 /**
  * Data Transfer Object for Document Item entities
@@ -49,15 +50,17 @@ export class DocumentItemDto {
   })
   contents: DocumentContentsDto | null;
 
-  /**
-   * Indicates if document content is JSON serialized
-   */
   @Expose()
   @ApiProperty({
-    description: 'Indicates if document content is JSON serialized',
-    example: true,
+    description: 'The json schema for document validation',
   })
-  isJsonSerialized: boolean;
+  schema: JSONSchemaConfigType;
+
+  @Expose()
+  @ApiProperty({
+    description: 'A ui schema config for rendering on the frontend',
+  })
+  uiSchema: JSONSchemaConfigType;
 
   /**
    * Document metadata
