@@ -7,12 +7,15 @@ import { ActionCollectionService } from '../../configuration/services/action-col
 import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowObserverType } from '../../configuration/schemas/workflow-observer.schema';
 import { ActionRegistry } from '../../configuration/services/action-registry.service';
+import { DocumentService } from '../../persistence/services/document.service';
 
 @Injectable()
 export class StateMachineActionService {
   constructor(
     private readonly actionRegistry: ActionRegistry,
     private readonly actionCollectionService: ActionCollectionService,
+    private readonly documentService: DocumentService,
+
   ) {}
 
   async executeAction(
@@ -41,12 +44,21 @@ export class StateMachineActionService {
     const props = actionConfig.props;
     // todo parse action props from actionConfig with function call
 
-    return actionInstance.execute({
+    const result = await actionInstance.execute({
       workflowContext,
       workflowStateContext,
       transitionContext,
       workflow,
       props,
     });
+
+    // create and add documents from action
+    if (result.documents?.length) {
+      for (const documentData of result.documents) {
+        this.documentService.create(workflow, workflowContext, documentData);
+      }
+    }
+
+    return result;
   }
 }

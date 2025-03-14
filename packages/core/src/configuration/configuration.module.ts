@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { ActionCollectionService } from './services/action-collection.service';
 import { CollectionService } from './services/collection.service';
 import { EntityCollectionService } from './services/entity-collection.service';
-import { AdapterCollectionService } from './services/adapter-collection.service';
-import { InitService } from './services';
+import { AdapterCollectionService } from './services';
+import { AdapterRegistry, InitService } from './services';
 import { WorkflowCollectionService } from './services/workflow-collection.service';
 import { ProjectCollectionService } from './services/project-collection.service';
 import { PromptTemplateCollectionService } from './services/prompt-template-collection.service';
@@ -43,6 +43,8 @@ import { SnippetCollectionService } from './services';
     JsonSchemaGeneratorService,
     ToolRegistry,
     ActionRegistry,
+    AdapterRegistry,
+    AdapterCollectionService,
     GenerateSchemasCommand,
     DynamicSchemaGeneratorService,
   ],
@@ -60,6 +62,8 @@ import { SnippetCollectionService } from './services';
     WorkspaceCollectionService,
     ToolRegistry,
     ActionRegistry,
+    AdapterRegistry,
+    AdapterCollectionService,
   ],
 })
 export class ConfigurationModule {}

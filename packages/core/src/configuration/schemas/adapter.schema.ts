@@ -1,13 +1,12 @@
 import { z } from "zod";
+import { DynamicSchemasInterface } from '../services/dynamic-schema-generator.service';
 
-export const AdapterSchema = z.object({
+export const AdapterConfigDefaultSchema = z.object({
   name: z.string(),
-  props: z.object({
-    llm: z.object({
-      model: z.string(),
-      baseUrl: z.string().optional(),
-    }).optional(),
-  })
-});
+  adapter: z.string(),
+  props: z.any().optional(),
+})
 
-export type AdapterType = z.infer<typeof AdapterSchema>;
+export type AdapterConfigDefaultType = z.infer<typeof AdapterConfigDefaultSchema>;
+
+export const AdapterSchema = (dynamicSchemas: DynamicSchemasInterface) => dynamicSchemas.adapterConfigSchemas;

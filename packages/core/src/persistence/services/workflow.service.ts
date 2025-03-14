@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { WorkflowEntity } from '../entities';
+import { DocumentEntity, WorkflowEntity } from '../entities';
 
 @Injectable()
 export class WorkflowService {
@@ -70,5 +70,16 @@ export class WorkflowService {
 
   save(entity: WorkflowEntity) {
     return this.workflowRepository.save(entity);
+  }
+
+  addDocument(workflow: WorkflowEntity, document: DocumentEntity) {
+    // invalidate previous versions of the same document
+    for (const doc of workflow.documents) {
+      if (doc.name === document.name && doc.type === document.type) {
+        doc.isInvalidated = true;
+      }
+    }
+
+    workflow.documents.push(document);
   }
 }

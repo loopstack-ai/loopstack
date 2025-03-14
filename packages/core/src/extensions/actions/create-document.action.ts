@@ -7,7 +7,7 @@ import { TransitionResultInterface } from '../../processor';
 import { DocumentType, DocumentSchema } from '@loopstack/shared';
 import { z } from 'zod';
 import { StateMachineAction } from '../../processor';
-import { TransitionManagerService } from '../../persistence/services/transition-manager.service';
+import { ActionHelperService } from '../../common/services/action-helper.service';
 import { FunctionCallService } from '../../common/services/function-call.service';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class CreateDocumentAction implements StateMachineActionInterface {
   });
 
   constructor(
-    private transitionManagerService: TransitionManagerService,
+    private transitionManagerService: ActionHelperService,
     private functionCallService: FunctionCallService,
   ) {}
 
@@ -34,14 +34,8 @@ export class CreateDocumentAction implements StateMachineActionInterface {
       context
     });
 
-    const schema = document.schema;
-    const uiSchema = document.uiSchema;
-
-    console.log(uiSchema);
-
-    manager.createDocument({
+    manager.addDocument({
       ...document,
-      uiSchema: uiSchema as any,
       contents: contents,
     });
 

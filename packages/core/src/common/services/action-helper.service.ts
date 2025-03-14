@@ -1,21 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { ActionExecutePayload } from '../../processor';
-import { WorkflowEntity } from '../entities';
+import { WorkflowEntity } from '../../persistence/entities';
 import { TransitionContextInterface } from '../../processor/interfaces/transition-context.interface';
-import { DocumentService } from './document.service';
-import { DocumentEntity } from '../entities';
 import { TransitionResultInterface } from '../../processor';
 import { ContextInterface } from '../../processor/interfaces/context.interface';
-const Ajv = require("ajv");
+import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
+import Ajv from 'ajv';
 
 @Injectable()
-export class TransitionManagerService {
-  constructor(private documentService: DocumentService) {}
-
+export class ActionHelperService {
   private workflow: WorkflowEntity;
   private workflowContext: ContextInterface;
   private transitionContext: TransitionContextInterface;
   private nextPlace: string | undefined;
+  private documents: DocumentCreateInterface[];
   private props: any;
 
   public setContext(payload: ActionExecutePayload) {
@@ -23,12 +21,13 @@ export class TransitionManagerService {
     this.workflowContext = payload.workflowContext;
     this.transitionContext = payload.transitionContext;
     this.nextPlace = undefined;
+    this.documents = [];
     this.props = payload.props;
 
     return this;
   }
 
-  createDocument(data: Partial<DocumentEntity>): DocumentEntity {
+  addDocument(data: DocumentCreateInterface): void {
     if (data.schema) {
       const ajv = new Ajv();
       const validate = ajv.compile(data.schema);
@@ -39,27 +38,10 @@ export class TransitionManagerService {
       }
     }
 
-    const entity = this.documentService.create({
+    this.documents.push({
       ...data,
-      index: this.workflow.documents?.length ?? 0,
-      workflowIndex: this.workflow.index,
       transition: this.transitionContext.transition,
-      place: this.workflow.place,
-      workspaceId: this.workflowContext.workspaceId,
-      projectId: this.workflowContext.projectId,
-      workflow: this.workflow,
-      labels: this.workflow.labels,
     });
-
-    // invalidate previous versions of the same document
-    for (const doc of this.workflow.documents) {
-      if (doc.name === entity.name && doc.type === entity.type) {
-        doc.isInvalidated = true;
-      }
-    }
-
-    this.workflow.documents.push(entity);
-    return entity;
   }
 
   setWorkflowData(obj: Partial<WorkflowEntity>) {
@@ -70,6 +52,7 @@ export class TransitionManagerService {
     return {
       workflow: this.workflow,
       nextPlace: this.nextPlace,
+      documents: this.documents
     };
   }
 

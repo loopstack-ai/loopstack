@@ -1,6 +1,8 @@
-import { WorkflowEntity } from '../../persistence/entities/workflow.entity';
+import { WorkflowEntity } from '../../persistence/entities';
+import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
 
 export interface TransitionResultInterface {
-  workflow?: WorkflowEntity;
-  nextPlace?: string | undefined;
+  workflow: WorkflowEntity;
+  nextPlace: string | undefined;
+  documents: DocumentCreateInterface[];
 }

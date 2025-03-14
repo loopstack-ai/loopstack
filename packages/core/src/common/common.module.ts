@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { FunctionCallService } from './services';
+import { ActionHelperService, FunctionCallService } from './services';
 
 @Module({
   providers: [
     FunctionCallService,
+    ActionHelperService,
   ],
   exports: [
     FunctionCallService,
+    ActionHelperService,
   ],
 })
 export class CommonModule {}

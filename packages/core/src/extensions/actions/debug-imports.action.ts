@@ -5,7 +5,7 @@ import {
 } from '../../processor';
 import { z } from 'zod';
 import { StateMachineAction } from '../../processor';
-import { TransitionManagerService } from '../../persistence/services/transition-manager.service';
+import { ActionHelperService } from '../../common/services/action-helper.service';
 
 @Injectable()
 @StateMachineAction()
@@ -13,7 +13,7 @@ export class DebugImportsAction implements StateMachineActionInterface {
 
   propsSchema = z.object({}).optional();
 
-  constructor(private transitionManagerService: TransitionManagerService) {}
+  constructor(private transitionManagerService: ActionHelperService) {}
 
   async execute(
     payload: ActionExecutePayload,
@@ -22,7 +22,7 @@ export class DebugImportsAction implements StateMachineActionInterface {
 
     if (payload.workflowContext.imports) {
       for (const item of payload.workflowContext.imports) {
-        manager.createDocument({
+        manager.addDocument({
           name: `debug-${item.name}`,
           type: 'document',
           contents: item,

@@ -1,11 +1,11 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { ToolInterface } from '../../processor/interfaces/tool.interface';
 import { z, ZodType } from 'zod';
 import { LOOP_TOOL_DECORATOR } from '../../processor';
 
 @Injectable()
-export class ToolRegistry implements OnModuleInit {
+export class ToolRegistry {
   private tools: Map<string, ToolInterface> = new Map();
 
   constructor(
@@ -13,7 +13,7 @@ export class ToolRegistry implements OnModuleInit {
     private readonly reflector: Reflector,
   ) {}
 
-  onModuleInit() {
+  initialize() {
     const providers = this.discoveryService.getProviders();
 
     for (const provider of providers) {

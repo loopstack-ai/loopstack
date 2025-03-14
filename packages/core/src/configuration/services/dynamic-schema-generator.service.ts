@@ -11,16 +11,19 @@ import { Injectable } from '@nestjs/common';
 import { ToolRegistry } from './tool.registry';
 import { ActionRegistry } from './action-registry.service';
 import { DocumentSchema } from '@loopstack/shared';
+import { AdapterRegistry } from './adapter-registry.service';
 
 export interface DynamicSchemasInterface {
     toolCallSchemas: ZodType;
     actionConfigSchemas: ZodType;
+    adapterConfigSchemas: ZodType;
 }
 
 @Injectable()
 export class DynamicSchemaGeneratorService {
     private dynamicSchemas: DynamicSchemasInterface;
     private toolConfigSchema: ZodType;
+    private adapterConfigSchema: ZodType;
     private actionConfigSchema: ZodType;
     private workflowSchema: ZodType;
     private schema: ZodType;
@@ -28,6 +31,7 @@ export class DynamicSchemaGeneratorService {
     constructor(
       private readonly toolRegistry: ToolRegistry,
       private readonly actionRegistry: ActionRegistry,
+      private readonly adapterRegistry: AdapterRegistry,
     ) {}
 
     private getActionConfigSchema() {
@@ -46,6 +50,14 @@ export class DynamicSchemaGeneratorService {
         return this.toolConfigSchema;
     }
 
+    private getAdapterConfigSchema() {
+        if (!this.adapterConfigSchema) {
+            this.adapterConfigSchema = AdapterSchema(this.dynamicSchemas);
+        }
+
+        return this.adapterConfigSchema;
+    }
+
     private getWorkflowSchema() {
         if (!this.workflowSchema) {
             this.workflowSchema = createWorkflowSchema(this.dynamicSchemas);
@@ -57,15 +69,19 @@ export class DynamicSchemaGeneratorService {
     private createDynamicSchema() {
         const toolCallSchemas = this.toolRegistry.getToolCallSchemas();
         const actionSchemas = this.actionRegistry.getActionSchemas();
+        const adapterSchemas = this.adapterRegistry.getAdapterSchemas();
 
         // @ts-ignore
         const unionToolCallSchemas = z.discriminatedUnion("tool", toolCallSchemas);
         // @ts-ignore
         const unionActionSchemas = z.discriminatedUnion("service", actionSchemas);
+        // @ts-ignore
+        const unionAdapterSchemas = z.discriminatedUnion("adapter", adapterSchemas);
 
         this.dynamicSchemas = {
             toolCallSchemas: unionToolCallSchemas,
             actionConfigSchemas: unionActionSchemas,
+            adapterConfigSchemas: unionAdapterSchemas,
         };
 
         this.schema = z.object({
@@ -82,7 +98,9 @@ export class DynamicSchemaGeneratorService {
               this.getActionConfigSchema()
             ).optional(),
             promptTemplates: z.array(PromptTemplateSchema).optional(),
-            adapter: z.array(AdapterSchema).optional(),
+            adapter: z.array(
+              this.getAdapterConfigSchema()
+            ).optional(),
             documents: z.array(DocumentSchema).optional(),
             custom: z.any(),
             snippets: z.any(),

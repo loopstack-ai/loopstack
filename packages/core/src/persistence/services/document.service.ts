@@ -1,22 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { DocumentEntity } from '../entities';
+import { DocumentEntity, WorkflowEntity } from '../entities';
+import Ajv from 'ajv';
+import { DocumentCreateInterface } from '../interfaces/document-create.interface';
+import { WorkflowService } from './workflow.service';
+import { ContextInterface } from '../../processor/interfaces/context.interface';
 
 @Injectable()
 export class DocumentService {
   constructor(
     @InjectRepository(DocumentEntity)
     private documentRepository: Repository<DocumentEntity>,
+    private readonly workflowService: WorkflowService,
   ) {}
 
-  create(dto: Partial<DocumentEntity>): DocumentEntity {
-    if (!dto.workflow) {
-      throw new Error(
-        `Document needs a workflow relation. Create document failed.`,
-      );
-    }
-    return this.documentRepository.create(dto);
+  create(workflow: WorkflowEntity, context: ContextInterface, data: DocumentCreateInterface): DocumentEntity {
+    const document = this.documentRepository.create({
+      ...data,
+      index: workflow!.documents?.length ?? 0,
+      workflowIndex: workflow!.index,
+      place: workflow!.place,
+      labels: workflow!.labels,
+      workflow: workflow,
+      workspaceId: context.workspaceId,
+      projectId: context.projectId,
+    });
+
+    this.workflowService.addDocument(workflow, document);
+    return document;
   }
 
   createDocumentsQuery(

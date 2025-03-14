@@ -11,7 +11,6 @@ import { ProjectRepository } from './repositories/project.repository';
 import { DocumentService } from './services/document.service';
 import { NamespacesService } from './services/namespace.service';
 import { NamespaceEntity } from './entities';
-import { TransitionManagerService } from './services';
 
 @Module({
   imports: [
@@ -30,7 +29,6 @@ import { TransitionManagerService } from './services';
     ProjectRepository,
     DocumentService,
     NamespacesService,
-    TransitionManagerService,
   ],
   exports: [
     WorkflowService,
@@ -39,7 +37,6 @@ import { TransitionManagerService } from './services';
     ProjectRepository,
     DocumentService,
     NamespacesService,
-    TransitionManagerService,
   ],
 })
 export class PersistenceModule {}

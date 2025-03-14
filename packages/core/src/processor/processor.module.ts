@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ProjectProcessorService } from './services';
+import { AdapterService, ProjectProcessorService } from './services';
 import { ConfigurationModule } from '../configuration';
 import { WorkflowProcessorService } from './services/workflow-processor.service';
 import { ContextService } from './services/context.service';
@@ -31,9 +31,11 @@ import { CommonModule } from '../common';
     StateMachineProcessorService,
     StateMachineConfigService,
     StateMachineActionService,
+    AdapterService,
   ],
   exports: [
     ProjectProcessorService,
+    AdapterService,
   ],
 })
 export class ProcessorModule {}

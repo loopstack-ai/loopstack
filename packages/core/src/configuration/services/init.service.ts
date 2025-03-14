@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { WorkspaceCollectionService } from './workspace-collection.service';
 import { ProjectCollectionService } from './project-collection.service';
 import { ToolWrapperCollectionService } from './tool-wrapper-collection.service';
@@ -10,10 +10,20 @@ import { AdapterCollectionService } from './adapter-collection.service';
 import { EntityCollectionService } from './entity-collection.service';
 import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
 import { SnippetCollectionService } from './snippet-collection.service';
+import { ConfigService } from '@nestjs/config';
+import { ActionRegistry } from './action-registry.service';
+import { AdapterRegistry } from './adapter-registry.service';
+import { ToolRegistry } from './tool.registry';
 
 @Injectable()
-export class InitService {
+export class InitService implements OnModuleInit{
+
   constructor(
+    private configService: ConfigService,
+    private actionRegistry: ActionRegistry,
+    private adapterRegistry: AdapterRegistry,
+    private toolRegistry: ToolRegistry,
+
     private mainSchemaGenerator: DynamicSchemaGeneratorService,
     private workspaceCollectionService: WorkspaceCollectionService,
     private projectCollectionService: ProjectCollectionService,
@@ -22,10 +32,17 @@ export class InitService {
     private workflowTemplateCollectionService: WorkflowTemplateCollectionService,
     private actionCollectionService: ActionCollectionService,
     private promptTemplateCollectionService: PromptTemplateCollectionService,
-    private llmModelCollectionService: AdapterCollectionService,
+    private adapterCollectionService: AdapterCollectionService,
     private entityCollectionService: EntityCollectionService,
     private snippetCollectionService: SnippetCollectionService,
   ) {}
+
+  onModuleInit() {
+    const configs = this.configService.get('configs');
+    if (configs) {
+      this.init(configs);
+    }
+  }
 
   clear() {
     this.workspaceCollectionService.clear();
@@ -35,7 +52,7 @@ export class InitService {
     this.workflowTemplateCollectionService.clear();
     this.actionCollectionService.clear();
     this.promptTemplateCollectionService.clear();
-    this.llmModelCollectionService.clear();
+    this.adapterCollectionService.clear();
     this.entityCollectionService.clear();
     this.snippetCollectionService.clear();
   }
@@ -52,13 +69,18 @@ export class InitService {
     );
     this.actionCollectionService.create(config.actions ?? []);
     this.promptTemplateCollectionService.create(config.promptTemplates ?? []);
-    this.llmModelCollectionService.create(config.adapter ?? []);
+    this.adapterCollectionService.create(config.adapter ?? []);
     this.entityCollectionService.create(config.entities ?? []);
     this.snippetCollectionService.create(config.snippets ? Object.entries(config.snippets).map(([name, value]) => ({ name, value})) : []);
   }
 
   init(configs: any[]) {
     this.clear();
+
+    this.actionRegistry.initialize();
+    this.adapterRegistry.initialize();
+    this.toolRegistry.initialize();
+
     for (const config of configs) {
       this.createFromConfig(config);
     }
