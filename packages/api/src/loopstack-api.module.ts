@@ -35,7 +35,7 @@ import {NamespaceEntity} from "@loopstack/core";
       DocumentEntity,
       NamespaceEntity,
     ]),
-    LoopCoreModule.register({}),
+    LoopCoreModule.forRoot(),
   ],
   controllers: [
     ProjectController,
