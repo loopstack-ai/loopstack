@@ -3,14 +3,11 @@ import { DiscoveryService, Reflector } from '@nestjs/core';
 import { z, ZodType } from 'zod';
 import { AdapterInterface } from '../../processor/interfaces/adapter.interface';
 import { LOOP_ADAPTER_DECORATOR } from '../../processor';
-import { AdapterConfigDefaultSchema } from '../schemas/adapter.schema';
+import { ServiceWithSchemaInterface } from '../../processor/interfaces/service-with-schema.interface';
 
 @Injectable()
 export class AdapterRegistry {
-  private adapters: Map<string, AdapterInterface> = new Map<
-    string,
-    AdapterInterface
-  >([]);
+  private adapters: Map<string, AdapterInterface> = new Map();
 
   constructor(
     private readonly discoveryService: DiscoveryService,
@@ -30,8 +27,7 @@ export class AdapterRegistry {
       );
 
       if (options) {
-        console.log(instance.constructor.name)
-        this.adapters.set(instance.constructor.name, instance);
+        this.registerAdapter(instance);
       }
     }
   }
@@ -40,20 +36,17 @@ export class AdapterRegistry {
     return this.adapters.get(name);
   }
 
-  getAdapterSchemas(): ZodType[] {
-    const schemas: ZodType[] = [];
-    for (const [name, adapter] of this.adapters.entries()) {
+  private registerAdapter(instance: AdapterInterface) {
+    const name = instance.constructor.name;
 
-      if (adapter.propsSchema) {
-        const adapterSchema = AdapterConfigDefaultSchema.extend({
-          adapter: z.literal(name),
-          props: adapter.propsSchema,
-        });
-
-        schemas.push(adapterSchema);
-      }
+    if (this.adapters.has(name)) {
+      throw new Error(`Duplicate adapter registration: "${name}"`);
     }
 
-    return schemas;
+    this.adapters.set(name, instance);
+  }
+
+  getEntries(): Array<[string, ServiceWithSchemaInterface]> {
+    return Array.from(this.adapters.entries());
   }
 }

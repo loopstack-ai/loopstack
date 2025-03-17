@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
-import { z, ZodType } from 'zod';
-import { ActionConfigDefaultSchema } from '../schemas/action.schema';
 import { LOOP_STATE_MACHINE_ACTION_DECORATOR, StateMachineActionInterface } from '../../processor';
+import { ServiceWithSchemaInterface } from '../../processor/interfaces/service-with-schema.interface';
 
 @Injectable()
 export class ActionRegistry {
@@ -38,22 +37,7 @@ export class ActionRegistry {
     return this.actions.get(name);
   }
 
-  getActionSchemas(): ZodType[] {
-    const schemas: ZodType[] = [];
-    for (const [name, action] of this.actions.entries()) {
-      if (action.propsSchema) {
-
-        console.log(name)
-
-        const actionSchema = ActionConfigDefaultSchema.extend({
-          service: z.literal(name),
-          props: action.propsSchema,
-        });
-
-        schemas.push(actionSchema);
-      }
-    }
-
-    return schemas;
+  getEntries(): Array<[string, ServiceWithSchemaInterface]> {
+    return Array.from(this.actions.entries());
   }
 }

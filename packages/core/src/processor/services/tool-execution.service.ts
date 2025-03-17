@@ -1,85 +1,69 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ToolWrapperCollectionService, ToolRegistry } from '../../configuration';
-import _ from 'lodash';
+import { Injectable } from '@nestjs/common';
+import { ToolCollectionService, ToolRegistry } from '../../configuration';
 import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ValueParserService } from './value-parser.service';
-import {
-  ToolCallDefaultType,
-  ToolConfigDefaultType,
-} from '../../configuration/schemas/tool-config.schema';
+import { ToolCallType } from '../../configuration/schemas/tool-config.schema';
 
 @Injectable()
 export class ToolExecutionService {
   constructor(
-    private toolWrapperCollectionService: ToolWrapperCollectionService,
+    private toolWrapperCollectionService: ToolCollectionService,
     private valueParserService: ValueParserService,
     private toolRegistry: ToolRegistry,
   ) {}
 
-  async applyToolWrapper(
-    toolWrapper: ToolConfigDefaultType,
-    contextArgs: Record<string, any>,
-    target: ProcessStateInterface,
+  private parseCallProps(
+    props: Record<string, any> | undefined,
     source: ProcessStateInterface,
-  ): Promise<ProcessStateInterface> {
-    const paramKeys = toolWrapper.params
-      ? _.map(toolWrapper.params, 'name')
-      : [];
-    const args: Record<string, any> = _.pick(contextArgs, paramKeys);
-
-    return this.applyTools(toolWrapper.execute, target, source, args);
-  }
-
-  private prepareArgs(
-    args: Record<string, any> | undefined,
-    source: ProcessStateInterface,
-    contextArgs?: Record<string, any>,
   ): Record<string, any> {
-    return args
-      ? this.valueParserService.parseObjectValues(args, {
-          ...source,
-          args: contextArgs,
-        })
+    return props
+      ? this.valueParserService.parseObjectValues(props, { ...source })
       : {};
   }
 
+  getToolConfig(toolName: string) {
+    const config = this.toolWrapperCollectionService.getByName(toolName);
+    if (!config) {
+      throw new Error(`Tool config with name ${toolName} not found.`);
+    }
+
+    return config;
+  }
+
   async applyTool(
-    toolCall: ToolCallDefaultType,
+    toolCall: ToolCallType,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
-    contextArgs?: Record<string, any>,
   ): Promise<ProcessStateInterface> {
-    const args = this.prepareArgs(toolCall.args, source, contextArgs);
+    const callProps = this.parseCallProps(toolCall.props, source);
 
-    if ('RefTool' === toolCall.tool) {
-      const wrapper = this.toolWrapperCollectionService.getByName(args.name);
-      if (wrapper) {
-        return this.applyToolWrapper(wrapper, args, target, source);
-      }
+    const toolConfig = this.getToolConfig(toolCall.tool);
 
-      throw new Error(`Wrapper with name "${args.name}" not found.`);
+    // merge config props will call props
+    const props = {
+      ...(toolConfig?.props ?? {}),
+      ...callProps
     }
 
-    const instance = this.toolRegistry.getToolByName(toolCall.tool);
-    if (instance) {
-      return instance.apply(args, target, source);
+    const instance = this.toolRegistry.getToolByName(toolConfig.service);
+    if (!instance) {
+      throw new Error(`Tool service ${toolConfig.service} not found.`);
     }
 
-      throw new Error(`Tool with name "${toolCall.tool}" not found.`);
+    return instance.apply(props, target, source);
   }
 
   async applyTools(
-    executions: ToolCallDefaultType[] | undefined,
+    executions: ToolCallType[] | undefined,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
-    args?: Record<string, any>,
   ): Promise<ProcessStateInterface> {
     if (!executions?.length) {
       return target;
     }
 
     for (const item of executions) {
-      target = await this.applyTool(item, target, source, args);
+      target = await this.applyTool(item, target, source);
     }
 
     return target;

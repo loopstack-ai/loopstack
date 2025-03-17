@@ -2,13 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { InitService } from '../init.service';
 import { WorkspaceCollectionService } from '../workspace-collection.service';
 import { ProjectCollectionService } from '../project-collection.service';
-import { ToolWrapperCollectionService } from '../tool-wrapper-collection.service';
+import { ToolCollectionService } from '../tool-collection.service';
 import { WorkflowCollectionService } from '../workflow-collection.service';
 import { WorkflowTemplateCollectionService } from '../workflow-template-collection.service';
 import { ActionCollectionService } from '../action-collection.service';
 import { PromptTemplateCollectionService } from '../prompt-template-collection.service';
 import { AdapterCollectionService } from '../adapter-collection.service';
-import { EntityCollectionService } from '../entity-collection.service';
+import { DocumentCollectionService } from '../document-collection.service';
 import { ConfigModule } from '@nestjs/config';
 import loadSchemas from '../../configuration';
 import { DynamicSchemaGeneratorService } from '../dynamic-schema-generator.service';
@@ -21,7 +21,7 @@ describe('InitService', () => {
   let workspaceCollectionService: WorkspaceCollectionService;
   let workspaceCollectionService2: WorkspaceCollectionService;
   let projectCollectionService: ProjectCollectionService;
-  let utilsCollectionService: ToolWrapperCollectionService;
+  let utilsCollectionService: ToolCollectionService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -35,13 +35,13 @@ describe('InitService', () => {
         InitService,
         WorkspaceCollectionService,
         ProjectCollectionService,
-        ToolWrapperCollectionService,
+        ToolCollectionService,
         WorkflowCollectionService,
         WorkflowTemplateCollectionService,
         ActionCollectionService,
         PromptTemplateCollectionService,
         AdapterCollectionService,
-        EntityCollectionService,
+        DocumentCollectionService,
         DynamicSchemaGeneratorService,
         ToolRegistry,
         ActionRegistry,
@@ -58,8 +58,8 @@ describe('InitService', () => {
     projectCollectionService = module.get<ProjectCollectionService>(
       ProjectCollectionService,
     );
-    utilsCollectionService = module.get<ToolWrapperCollectionService>(
-      ToolWrapperCollectionService,
+    utilsCollectionService = module.get<ToolCollectionService>(
+      ToolCollectionService,
     );
   });
 

@@ -7,7 +7,7 @@ import { createHash } from '@loopstack/shared';
 import { ContextImportInterface } from '../../processor/interfaces/context-import.interface';
 import { DocumentService } from '../../persistence/services/document.service';
 import { z } from 'zod';
-import { FunctionCallService } from '../../common/services/function-call.service';
+import { FunctionCallService } from '../../common';
 import { Tool } from '../../processor';
 
 const LoadDocumentArgsSchema = z.object({
@@ -41,7 +41,7 @@ export type LoadDocumentArgsInterface = z.infer<typeof LoadDocumentArgsSchema>;
 @Tool()
 export class LoadDocumentTool implements ToolInterface {
 
-  argsSchema = LoadDocumentArgsSchema;
+  schema = LoadDocumentArgsSchema;
 
   constructor(
     private documentService: DocumentService,
@@ -51,10 +51,10 @@ export class LoadDocumentTool implements ToolInterface {
   /**
    * filters items using defined functions
    */
-  applyFilters(options: z.infer<typeof this.argsSchema>, items: DocumentEntity[]) {
-    if (options.filter) {
+  applyFilters(props: z.infer<typeof this.schema>, items: DocumentEntity[]) {
+    if (props.filter) {
       return items.filter((item) =>
-        this.functionCallService.runEval(options.filter!, { item }),
+        this.functionCallService.runEval(props.filter!, { item }),
       );
     }
 
@@ -65,27 +65,27 @@ export class LoadDocumentTool implements ToolInterface {
    * modify items by mapping, flattening and sorting entities
    * uses defined functions for mapping
    */
-  applyModifiers(options: z.infer<typeof this.argsSchema>, entities: DocumentEntity[]) {
+  applyModifiers(props: z.infer<typeof this.schema>, entities: DocumentEntity[]) {
     const defaultMapFunction = '{ entity.contents }';
-    const mapFunc = options.map ?? defaultMapFunction;
+    const mapFunc = props.map ?? defaultMapFunction;
 
     let documents = entities.map((entity) =>
       this.functionCallService.runEval(mapFunc, { entity }),
     );
 
-    if (options.flat) {
+    if (props.flat) {
       documents = documents.flat();
     }
 
-    if (options.sortBy) {
+    if (props.sortBy) {
       documents = _.orderBy(
         documents,
-        options.sortBy.iteratees,
-        options.sortBy.orders,
+        props.sortBy.iteratees,
+        props.sortBy.orders,
       );
     }
 
-    if (options.sort) {
+    if (props.sort) {
       documents = documents.sort();
     }
 
@@ -96,33 +96,33 @@ export class LoadDocumentTool implements ToolInterface {
    * retrieves and filters entities from database
    */
   async getDocumentsByQuery(
-    options: z.infer<typeof this.argsSchema>,
+    props: z.infer<typeof this.schema>,
     target: ProcessStateInterface,
   ): Promise<DocumentEntity[]> {
     const query = this.documentService.createDocumentsQuery(
       target.context.projectId,
       target.context.workspaceId,
-      options.where,
+      props.where,
       {
-        isGlobal: !!options.global,
-        labels: options.labels as string[],
+        isGlobal: !!props.global,
+        labels: props.labels as string[],
         ltWorkflowIndex: target.workflow!.index,
       },
     );
 
     // console.log(query.getQuery(), query.getParameters());
 
-    const entities = options.many
+    const entities = props.many
       ? await query.getMany()
       : [await query.getOne()].filter((d) => !!d);
-    return this.applyFilters(options, entities);
+    return this.applyFilters(props, entities);
   }
 
   /**
    * retrieves and filter related entities from workflow dependencies
    */
   getDocumentsByDependencies(
-    options: z.infer<typeof this.argsSchema>,
+    props: z.infer<typeof this.schema>,
     target: ProcessStateInterface,
   ) {
     if (!target.workflow) {
@@ -131,11 +131,11 @@ export class LoadDocumentTool implements ToolInterface {
 
     const previousDependencies = target.workflow.dependencies?.filter(
       (item) =>
-        item.name === options.where.name &&
-        (!options.where.type || item.type === options.where.type),
+        item.name === props.where.name &&
+        (!props.where.type || item.type === props.where.type),
     ) ?? [];
 
-    return this.applyFilters(options, previousDependencies);
+    return this.applyFilters(props, previousDependencies);
   }
 
   /**
@@ -224,7 +224,7 @@ export class LoadDocumentTool implements ToolInterface {
    */
   updateContext(
     processState: ProcessStateInterface,
-    options: z.infer<typeof this.argsSchema>,
+    props: z.infer<typeof this.schema>,
     currentEntities: DocumentEntity[],
     previousEntities: DocumentEntity[],
   ): ProcessStateInterface {
@@ -233,7 +233,7 @@ export class LoadDocumentTool implements ToolInterface {
     }
 
     processState.context.imports.push(
-      this.createImportItem(options, currentEntities, previousEntities),
+      this.createImportItem(props, currentEntities, previousEntities),
     );
 
     return processState;
@@ -245,19 +245,19 @@ export class LoadDocumentTool implements ToolInterface {
    * and updates workflow dependencies, if applicable
    */
   async apply(
-    data: any,
+    props: z.infer<typeof this.schema>,
     target: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
-    const options = this.argsSchema.parse(data);
+    const validProps = this.schema.parse(props);
 
     // load and filter entities based on options from database
-    const currentEntities = await this.getDocumentsByQuery(options, target);
+    const currentEntities = await this.getDocumentsByQuery(validProps, target);
 
     // get and filter entities from workflow dependencies
-    const previousEntities = this.getDocumentsByDependencies(options, target);
+    const previousEntities = this.getDocumentsByDependencies(validProps, target);
 
     // update workflow dependencies, if applicable
-    if (!options.ignoreChanges) {
+    if (!validProps.ignoreChanges) {
       const newDependencies = this.replacePreviousDependenciesWithCurrent(
         target,
         currentEntities,
@@ -269,7 +269,7 @@ export class LoadDocumentTool implements ToolInterface {
     // update the context, add import data
     return this.updateContext(
       target,
-      options,
+      validProps,
       currentEntities,
       previousEntities,
     );

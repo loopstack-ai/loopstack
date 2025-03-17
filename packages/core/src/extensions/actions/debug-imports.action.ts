@@ -5,13 +5,13 @@ import {
 } from '../../processor';
 import { z } from 'zod';
 import { StateMachineAction } from '../../processor';
-import { ActionHelperService } from '../../common/services/action-helper.service';
+import { ActionHelperService } from '../../common';
 
 @Injectable()
 @StateMachineAction()
 export class DebugImportsAction implements StateMachineActionInterface {
 
-  propsSchema = z.object({}).optional();
+  schema = z.object({}).optional();
 
   constructor(private transitionManagerService: ActionHelperService) {}
 

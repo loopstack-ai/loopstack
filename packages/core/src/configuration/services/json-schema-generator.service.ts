@@ -23,7 +23,7 @@ export class JsonSchemaGeneratorService {
 
     const mainSchema = this.dynamicSchemaGeneratorService.getSchema();
 
-    const jsonSchema = zodToJsonSchema(mainSchema, {
+    const jsonSchema = zodToJsonSchema(mainSchema as any, {
       name: 'MainSchema',
       target: 'jsonSchema7'
     });

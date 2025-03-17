@@ -3,8 +3,8 @@ import { CollectionService } from './collection.service';
 import { ServiceConfigType } from '../schemas/service-config.schema';
 
 @Injectable()
-export class AdapterCollectionService extends CollectionService<ServiceConfigType> {
-  create(models: ServiceConfigType[]): void {
-    this.merge(models);
+export class ToolCollectionService extends CollectionService<ServiceConfigType> {
+  create(tools: ServiceConfigType[]): void {
+    this.merge(tools);
   }
 }

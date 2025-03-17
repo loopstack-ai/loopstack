@@ -1,6 +1,5 @@
-import { ZodType } from 'zod';
+import { ServiceWithSchemaInterface } from './service-with-schema.interface';
 
-export interface AdapterInterface {
-  propsSchema: ZodType | undefined;
+export interface AdapterInterface extends ServiceWithSchemaInterface {
   execute: (props: any, context?: any) => Promise<any>;
 }

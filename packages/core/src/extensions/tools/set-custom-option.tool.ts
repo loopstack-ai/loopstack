@@ -8,7 +8,7 @@ import { Tool } from '../../processor';
 @Injectable()
 @Tool()
 export class SetCustomOptionTool implements ToolInterface {
-  argsSchema = z.object({
+  schema = z.object({
     key: z.string(),
     value: z.any(),
   });
@@ -17,7 +17,7 @@ export class SetCustomOptionTool implements ToolInterface {
     data: any,
     target: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
-    const options = this.argsSchema.parse(data);
+    const options = this.schema.parse(data);
 
     const currentCustomOptions = target.context.customOptions ?? {};
     currentCustomOptions[options.key] = options.value;

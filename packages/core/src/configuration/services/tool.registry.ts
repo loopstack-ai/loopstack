@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { ToolInterface } from '../../processor/interfaces/tool.interface';
-import { z, ZodType } from 'zod';
 import { LOOP_TOOL_DECORATOR } from '../../processor';
+import { ServiceWithSchemaInterface } from '../../processor/interfaces/service-with-schema.interface';
 
 @Injectable()
 export class ToolRegistry {
@@ -26,9 +26,14 @@ export class ToolRegistry {
       );
 
       if (options) {
+        console.log(instance.constructor.name)
         this.registerTool(instance);
       }
     }
+  }
+
+  getToolByName(name: string): ToolInterface | undefined {
+    return this.tools.get(name);
   }
 
   private registerTool(instance: ToolInterface) {
@@ -41,23 +46,7 @@ export class ToolRegistry {
     this.tools.set(name, instance);
   }
 
-  getToolByName(name: string): ToolInterface | undefined {
-    return this.tools.get(name);
-  }
-
-  getToolCallSchemas(): ZodType[] {
-    const schemas: ZodType[] = [];
-    for (const [name, tool] of this.tools.entries()) {
-
-      if (tool.argsSchema) {
-        const toolCallSchema = z.object({
-          tool: z.literal(name),
-          args: tool.argsSchema
-        })
-        schemas.push(toolCallSchema);
-      }
-    }
-
-    return schemas;
+  getEntries(): Array<[string, ServiceWithSchemaInterface]> {
+    return Array.from(this.tools.entries());
   }
 }

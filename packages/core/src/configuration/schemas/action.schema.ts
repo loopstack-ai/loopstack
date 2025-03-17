@@ -1,13 +1,8 @@
-import { z } from "zod";
-import { DynamicSchemasInterface } from '../services/dynamic-schema-generator.service';
+import { z } from 'zod';
 
-export const ActionConfigDefaultSchema = z.object({
-    name: z.string(),
-    service: z.string(),
+export const ActionCallSchema = z.object({
+    action: z.string(),
     props: z.any().optional(),
 })
 
-export type ActionConfigDefaultType = z.infer<typeof ActionConfigDefaultSchema>;
-
-export const ActionSchema = (dynamicSchemas: DynamicSchemasInterface) => dynamicSchemas.actionConfigSchemas;
-
+export type ActionCallType = z.infer<typeof ActionCallSchema>;

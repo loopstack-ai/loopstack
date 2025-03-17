@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ActionCollectionService } from './services/action-collection.service';
 import { CollectionService } from './services/collection.service';
-import { EntityCollectionService } from './services/entity-collection.service';
+import { DocumentCollectionService } from './services/document-collection.service';
 import { AdapterCollectionService } from './services';
 import { AdapterRegistry, InitService } from './services';
 import { WorkflowCollectionService } from './services/workflow-collection.service';
 import { ProjectCollectionService } from './services/project-collection.service';
 import { PromptTemplateCollectionService } from './services/prompt-template-collection.service';
-import { ToolWrapperCollectionService } from './services';
+import { ToolCollectionService } from './services';
 import { WorkspaceCollectionService } from './services/workspace-collection.service';
 import { WorkflowTemplateCollectionService } from './services/workflow-template-collection.service';
 import { ConfigModule } from '@nestjs/config';
@@ -31,13 +31,13 @@ import { SnippetCollectionService } from './services';
     InitService,
     CollectionService,
     ActionCollectionService,
-    EntityCollectionService,
+    DocumentCollectionService,
     SnippetCollectionService,
     AdapterCollectionService,
     WorkflowCollectionService,
     ProjectCollectionService,
     PromptTemplateCollectionService,
-    ToolWrapperCollectionService,
+    ToolCollectionService,
     WorkflowTemplateCollectionService,
     WorkspaceCollectionService,
     JsonSchemaGeneratorService,
@@ -51,13 +51,13 @@ import { SnippetCollectionService } from './services';
   exports: [
     InitService,
     ActionCollectionService,
-    EntityCollectionService,
+    DocumentCollectionService,
     SnippetCollectionService,
     AdapterCollectionService,
     WorkflowCollectionService,
     ProjectCollectionService,
     PromptTemplateCollectionService,
-    ToolWrapperCollectionService,
+    ToolCollectionService,
     WorkflowTemplateCollectionService,
     WorkspaceCollectionService,
     ToolRegistry,

@@ -8,7 +8,7 @@ import { Tool } from '../../processor';
 @Tool()
 export class SetContextTool implements ToolInterface {
 
-  argsSchema = z.object({
+  schema = z.object({
     key: z.string(),
     value: z.any(),
   });
@@ -17,7 +17,7 @@ export class SetContextTool implements ToolInterface {
     options: any,
     target: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
-    const validOptions = this.argsSchema.parse(options);
+    const validOptions = this.schema.parse(options);
 
     target.context[validOptions.key] = validOptions.value;
     return target;

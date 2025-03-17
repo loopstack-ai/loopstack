@@ -9,7 +9,7 @@ import { Tool } from '../../processor';
 @Tool()
 export class AddNamespaceTool implements ToolInterface {
 
-    argsSchema = z.object({
+    schema = z.object({
       label: z.string(),
       meta: z.any().optional(),
     });
@@ -17,10 +17,10 @@ export class AddNamespaceTool implements ToolInterface {
     constructor(private namespacesService: NamespacesService) {}
 
     async apply(
-        options: any,
+        props: z.infer<typeof this.schema>,
         target: ProcessStateInterface,
     ): Promise<ProcessStateInterface> {
-        const validOptions = this.argsSchema.parse(options);
+        const validOptions = this.schema.parse(props);
 
         target.context.namespace = await this.namespacesService.create({
           name: validOptions.label,

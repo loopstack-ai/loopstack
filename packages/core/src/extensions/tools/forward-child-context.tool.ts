@@ -9,17 +9,17 @@ import { Tool } from '../../processor';
 @Tool()
 export class ForwardChildContextTool implements ToolInterface {
 
-  argsSchema = z.object({
+  schema = z.object({
     omit: z.array(z.string()).optional(),
   }).optional();
 
   async apply(
-    options: any,
+    props: z.infer<typeof this.schema>,
     target: ProcessStateInterface,
     source: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
 
-    const validOptions = this.argsSchema.parse(options);
+    const validOptions = this.schema.parse(props);
 
     const omit = validOptions?.omit ?? [
       'namespaceIds',

@@ -19,18 +19,18 @@ export class AdapterService {
   }
 
   async executeAdapter(
-    adapterClassName: string,
+    adapterServiceName: string,
     props: any,
     context?: any,
   ): Promise<any> {
     const adapterInstance = this.adapterRegistry.getAdapterByName(
-      adapterClassName,
+      adapterServiceName,
     );
     if (!adapterInstance) {
-      throw new Error(`Adapter ${adapterClassName} not found.`);
+      throw new Error(`Adapter ${adapterServiceName} not found.`);
     }
 
-    console.log(`Executing adapter ${adapterClassName}`);
+    console.log(`Executing adapter ${adapterServiceName}`);
     return adapterInstance.execute(props, context);
   }
 }

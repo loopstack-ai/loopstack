@@ -1,13 +1,13 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { WorkspaceCollectionService } from './workspace-collection.service';
 import { ProjectCollectionService } from './project-collection.service';
-import { ToolWrapperCollectionService } from './tool-wrapper-collection.service';
+import { ToolCollectionService } from './tool-collection.service';
 import { WorkflowCollectionService } from './workflow-collection.service';
 import { WorkflowTemplateCollectionService } from './workflow-template-collection.service';
 import { ActionCollectionService } from './action-collection.service';
 import { PromptTemplateCollectionService } from './prompt-template-collection.service';
 import { AdapterCollectionService } from './adapter-collection.service';
-import { EntityCollectionService } from './entity-collection.service';
+import { DocumentCollectionService } from './document-collection.service';
 import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
 import { SnippetCollectionService } from './snippet-collection.service';
 import { ConfigService } from '@nestjs/config';
@@ -27,21 +27,19 @@ export class InitService implements OnModuleInit{
     private mainSchemaGenerator: DynamicSchemaGeneratorService,
     private workspaceCollectionService: WorkspaceCollectionService,
     private projectCollectionService: ProjectCollectionService,
-    private toolWrapperCollectionService: ToolWrapperCollectionService,
+    private toolWrapperCollectionService: ToolCollectionService,
     private workflowCollectionService: WorkflowCollectionService,
     private workflowTemplateCollectionService: WorkflowTemplateCollectionService,
     private actionCollectionService: ActionCollectionService,
     private promptTemplateCollectionService: PromptTemplateCollectionService,
     private adapterCollectionService: AdapterCollectionService,
-    private entityCollectionService: EntityCollectionService,
+    private documentCollectionService: DocumentCollectionService,
     private snippetCollectionService: SnippetCollectionService,
   ) {}
 
   onModuleInit() {
     const configs = this.configService.get('configs');
-    if (configs) {
-      this.init(configs);
-    }
+    this.init(configs);
   }
 
   clear() {
@@ -53,7 +51,7 @@ export class InitService implements OnModuleInit{
     this.actionCollectionService.clear();
     this.promptTemplateCollectionService.clear();
     this.adapterCollectionService.clear();
-    this.entityCollectionService.clear();
+    this.documentCollectionService.clear();
     this.snippetCollectionService.clear();
   }
 
@@ -69,20 +67,21 @@ export class InitService implements OnModuleInit{
     );
     this.actionCollectionService.create(config.actions ?? []);
     this.promptTemplateCollectionService.create(config.promptTemplates ?? []);
-    this.adapterCollectionService.create(config.adapter ?? []);
-    this.entityCollectionService.create(config.entities ?? []);
+    this.adapterCollectionService.create(config.adapters ?? []);
+    this.documentCollectionService.create(config.documents ?? []);
     this.snippetCollectionService.create(config.snippets ? Object.entries(config.snippets).map(([name, value]) => ({ name, value})) : []);
   }
 
   init(configs: any[]) {
-    this.clear();
-
     this.actionRegistry.initialize();
     this.adapterRegistry.initialize();
     this.toolRegistry.initialize();
 
-    for (const config of configs) {
-      this.createFromConfig(config);
+    this.clear();
+    if (configs) {
+      for (const config of configs) {
+        this.createFromConfig(config);
+      }
     }
   }
 }

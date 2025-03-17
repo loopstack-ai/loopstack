@@ -1,4 +1,4 @@
-export * from './tool-wrapper-collection.service';
+export * from './tool-collection.service';
 export * from './snippet-collection.service';
 export * from './action-registry.service';
 export * from './adapter-registry.service';

@@ -1,31 +1,14 @@
 import { z, ZodType } from 'zod';
-import { ToolConfigSchema } from '../schemas/tool-config.schema';
-import { WorkspaceSchema } from '../schemas/workspace.schema';
-import { ProjectSchema } from '../schemas/project.schema';
-import { createWorkflowSchema } from '../schemas/workflow.schema';
-import { WorkflowTemplateSchema } from '../schemas/workflow-template.schema';
-import { ActionSchema } from '../schemas/action.schema';
-import { PromptTemplateSchema } from '../schemas/prompt-template.schema';
-import { AdapterSchema } from '../schemas/adapter.schema';
 import { Injectable } from '@nestjs/common';
 import { ToolRegistry } from './tool.registry';
 import { ActionRegistry } from './action-registry.service';
-import { DocumentSchema } from '@loopstack/shared';
 import { AdapterRegistry } from './adapter-registry.service';
-
-export interface DynamicSchemasInterface {
-    toolCallSchemas: ZodType;
-    actionConfigSchemas: ZodType;
-    adapterConfigSchemas: ZodType;
-}
+import { MainBaseSchema } from '../schemas/main.schema';
+import { ServiceWithSchemaInterface } from '../../processor/interfaces/service-with-schema.interface';
+import { ServiceConfigSchema } from '../schemas/service-config.schema';
 
 @Injectable()
 export class DynamicSchemaGeneratorService {
-    private dynamicSchemas: DynamicSchemasInterface;
-    private toolConfigSchema: ZodType;
-    private adapterConfigSchema: ZodType;
-    private actionConfigSchema: ZodType;
-    private workflowSchema: ZodType;
     private schema: ZodType;
 
     constructor(
@@ -34,82 +17,30 @@ export class DynamicSchemaGeneratorService {
       private readonly adapterRegistry: AdapterRegistry,
     ) {}
 
-    private getActionConfigSchema() {
-        if (!this.actionConfigSchema) {
-            this.actionConfigSchema = ActionSchema(this.dynamicSchemas);
-        }
+    createDiscriminatedServiceType<T extends Record<string, ServiceWithSchemaInterface>>(
+      entries: Array<[string, ServiceWithSchemaInterface]>
+    ) {
+        const configSchemas = entries.map(([ name, service ]) => ServiceConfigSchema.extend({
+            service: z.literal(name),
+            props: service.schema,
+        }));
 
-        return this.actionConfigSchema;
+        return z.discriminatedUnion("service", configSchemas as any);
     }
 
-    private getToolConfigSchema() {
-        if (!this.toolConfigSchema) {
-            this.toolConfigSchema = ToolConfigSchema(this.dynamicSchemas);
-        }
+    createDynamicSchema(): ReturnType<typeof MainBaseSchema.extend> {
+        const toolConfigSchemas = this.createDiscriminatedServiceType(this.toolRegistry.getEntries());
+        const actionConfigSchemas = this.createDiscriminatedServiceType(this.actionRegistry.getEntries());
+        const adapterConfigSchemas = this.createDiscriminatedServiceType(this.adapterRegistry.getEntries());
 
-        return this.toolConfigSchema;
+        return MainBaseSchema.extend({
+            tools: z.array(toolConfigSchemas).optional(),
+            actions: z.array(actionConfigSchemas).optional(),
+            adapters: z.array(adapterConfigSchemas).optional(),
+        }).strict()
     }
 
-    private getAdapterConfigSchema() {
-        if (!this.adapterConfigSchema) {
-            this.adapterConfigSchema = AdapterSchema(this.dynamicSchemas);
-        }
-
-        return this.adapterConfigSchema;
-    }
-
-    private getWorkflowSchema() {
-        if (!this.workflowSchema) {
-            this.workflowSchema = createWorkflowSchema(this.dynamicSchemas);
-        }
-
-        return this.workflowSchema;
-    }
-
-    private createDynamicSchema() {
-        const toolCallSchemas = this.toolRegistry.getToolCallSchemas();
-        const actionSchemas = this.actionRegistry.getActionSchemas();
-        const adapterSchemas = this.adapterRegistry.getAdapterSchemas();
-
-        // @ts-ignore
-        const unionToolCallSchemas = z.discriminatedUnion("tool", toolCallSchemas);
-        // @ts-ignore
-        const unionActionSchemas = z.discriminatedUnion("service", actionSchemas);
-        // @ts-ignore
-        const unionAdapterSchemas = z.discriminatedUnion("adapter", adapterSchemas);
-
-        this.dynamicSchemas = {
-            toolCallSchemas: unionToolCallSchemas,
-            actionConfigSchemas: unionActionSchemas,
-            adapterConfigSchemas: unionAdapterSchemas,
-        };
-
-        this.schema = z.object({
-            workspaces: z.array(WorkspaceSchema).optional(),
-            projects: z.array(ProjectSchema).optional(),
-            tools: z.array(
-              this.getToolConfigSchema()
-            ).optional(),
-            workflows: z.array(
-              this.getWorkflowSchema()
-            ).optional(),
-            workflowTemplates: z.array(WorkflowTemplateSchema).optional(),
-            actions: z.array(
-              this.getActionConfigSchema()
-            ).optional(),
-            promptTemplates: z.array(PromptTemplateSchema).optional(),
-            adapter: z.array(
-              this.getAdapterConfigSchema()
-            ).optional(),
-            documents: z.array(DocumentSchema).optional(),
-            custom: z.any(),
-            snippets: z.any(),
-        }).strict();
-
-        return this.schema;
-    }
-
-    getSchema() {
+    getSchema(): ZodType {
         if (!this.schema) {
             this.schema = this.createDynamicSchema();
         }

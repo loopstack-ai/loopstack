@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   ActionExecutePayload,
   StateMachineActionInterface,
@@ -7,14 +7,14 @@ import { TransitionResultInterface } from '../../processor';
 import { DocumentType, DocumentSchema } from '@loopstack/shared';
 import { z } from 'zod';
 import { StateMachineAction } from '../../processor';
-import { ActionHelperService } from '../../common/services/action-helper.service';
-import { FunctionCallService } from '../../common/services/function-call.service';
+import { ActionHelperService } from '../../common';
+import { FunctionCallService } from '../../common';
 
 @Injectable()
 @StateMachineAction()
 export class CreateDocumentAction implements StateMachineActionInterface {
 
-  propsSchema = z.object({
+  schema = z.object({
     output: DocumentSchema
   });
 
