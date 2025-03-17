@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { DocumentEntity } from '@loopstack/core';
 import { DocumentMetaDto } from './document-meta.dto';
 import { DocumentContentsDto } from './document-contents.dto';
-import { JSONSchemaConfigType } from '@loopstack/shared';
+import { JSONSchemaConfigType, UIFormOptionsType } from '@loopstack/shared';
 
 /**
  * Data Transfer Object for Document entities
@@ -57,9 +57,9 @@ export class DocumentDto<T = unknown> {
 
   @Expose()
   @ApiProperty({
-    description: 'A ui schema config for rendering on the frontend',
+    description: 'A ui options for rendering on the frontend',
   })
-  uiSchema: JSONSchemaConfigType;
+  uiOptions: UIFormOptionsType;
 
   /**
    * Document metadata
