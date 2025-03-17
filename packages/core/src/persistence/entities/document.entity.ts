@@ -39,8 +39,8 @@ export class DocumentEntity<T = any> {
   @Column('jsonb',{ name: 'schema', nullable: true })
   schema: string;
 
-  @Column('jsonb',{ name: 'ui_schema', nullable: true })
-  uiSchema: string;
+  @Column('jsonb',{ name: 'ui_options', nullable: true })
+  uiOptions: string;
 
   @Column('jsonb', { nullable: true })
   meta: Record<string, any> | null;

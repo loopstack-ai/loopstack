@@ -3,7 +3,7 @@ export interface DocumentCreateInterface {
   type: string;
   contents: any;
   schema?: any;
-  uiSchema?: any;
+  uiOptions?: any;
   meta?: Record<string, any> | null;
   transition?: string;
 }
