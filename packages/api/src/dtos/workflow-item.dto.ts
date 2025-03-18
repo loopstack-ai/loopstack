@@ -1,6 +1,6 @@
 import { Expose, plainToInstance } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
-import { WorkflowEntity } from '@loopstack/core';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { WorkflowEntity, WorkflowStatePlaceInfoDto } from '@loopstack/core';
 
 /**
  * Data Transfer Object representing a workflow item
@@ -93,6 +93,15 @@ export class WorkflowItemDto {
     example: 'approval_pending',
   })
   place: string;
+
+  @Expose()
+  @ApiPropertyOptional({
+    type: WorkflowStatePlaceInfoDto,
+    description:
+      'Additional information about the current place in the workflow',
+    nullable: true,
+  })
+  placeInfo: WorkflowStatePlaceInfoDto | null;
 
   @Expose()
   @ApiProperty({
