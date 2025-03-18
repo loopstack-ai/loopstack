@@ -41,6 +41,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "ejs": "^3.1.10",
+    "fast-json-stable-stringify": "^2.1.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
     "nest-commander": "^3.16.1",

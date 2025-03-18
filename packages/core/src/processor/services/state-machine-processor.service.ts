@@ -3,7 +3,7 @@ import { ContextInterface } from '../interfaces/context.interface';
 import { StateMachineConfigService } from './state-machine-config.service';
 import { WorkflowService } from '../../persistence/services/workflow.service';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
-import { TransitionPayloadInterface } from '@loopstack/shared';
+import { TransitionPayloadInterface, WorkflowTransitionType } from '@loopstack/shared';
 import _ from 'lodash';
 import { TransitionContextInterface } from '../interfaces/transition-context.interface';
 import { HistoryTransition } from '../../persistence/interfaces';
@@ -13,7 +13,6 @@ import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowStatePlaceInfoDto } from '../../persistence/dtos';
 import { WorkflowStateHistoryDto } from '../../persistence/dtos';
 import { WorkflowStateMachineDefaultType } from '../../configuration/schemas/workflow.schema';
-import { WorkflowTransitionType } from '../../configuration/schemas/workflow-transition.schema';
 import { WorkflowObserverType } from '../../configuration/schemas/workflow-observer.schema';
 
 @Injectable()

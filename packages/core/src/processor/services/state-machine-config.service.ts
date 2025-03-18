@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import _ from 'lodash';
 import { WorkflowTemplateCollectionService } from '../../configuration/services/workflow-template-collection.service';
-import { WorkflowTransitionType } from '../../configuration/schemas/workflow-transition.schema';
 import { WorkflowObserverType } from '../../configuration/schemas/workflow-observer.schema';
 import { WorkflowStateMachineDefaultType } from '../../configuration/schemas/workflow.schema';
+import { WorkflowTransitionType } from '@loopstack/shared';
 
 @Injectable()
 export class StateMachineConfigService {

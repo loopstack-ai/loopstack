@@ -1,6 +1,7 @@
-import { WorkflowTransitionType } from '../../configuration/schemas/workflow-transition.schema';
+import { WorkflowTransitionType } from '@loopstack/shared';
+import { WorkflowPlaceInfoInterface } from '@loopstack/shared/dist/interfaces/workflow-place-info.interface';
 
-export class WorkflowStatePlaceInfoDto {
+export class WorkflowStatePlaceInfoDto implements WorkflowPlaceInfoInterface {
   availableTransitions: WorkflowTransitionType[];
 
   constructor(items: WorkflowTransitionType[]) {

@@ -70,4 +70,19 @@ export class ActionHelperService {
         ...curr,
       }), {}) ?? {};
   }
+
+  mergeInputs(names: string[] | undefined, imports: ({ name: string; } & any)[] | undefined): Record<string, any> {
+    if (!names?.length) {
+      return {};
+    }
+
+    return imports
+      ?.filter((item) => names.includes(item.name))
+      .map((item) => ({
+        [item.name]: item.curr,
+      })).reduce((prev, curr) => ({
+        ...prev,
+        ...curr,
+      }), {}) ?? {};
+  }
 }

@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import {WorkflowTransitionSchema} from "./workflow-transition.schema";
 import {WorkflowObserverSchema} from "./workflow-observer.schema";
 import { ToolCallSchema } from './tool-config.schema';
+import { WorkflowTransitionSchema } from '@loopstack/shared';
 
 export const WorkflowFactorySchema = z.object({
     workflow: z.string(),

@@ -11,6 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { WorkflowEntity } from './workflow.entity';
+import { StableJsonTransformer } from '../../utils/stabel-json-transformer';
 
 @Entity({ name: 'document' })
 export class DocumentEntity<T = any> {
@@ -36,10 +37,20 @@ export class DocumentEntity<T = any> {
   @Column('jsonb', { nullable: true })
   contents: T | null;
 
-  @Column('jsonb',{ name: 'schema', nullable: true })
+  @Column({
+    type: 'jsonb',
+    transformer: new StableJsonTransformer(),
+    name: 'schema',
+    nullable: true,
+  })
   schema: string;
 
-  @Column('jsonb',{ name: 'ui_options', nullable: true })
+  @Column({
+    type: 'jsonb',
+    transformer: new StableJsonTransformer(),
+    name: 'ui_options',
+    nullable: true,
+  })
   uiOptions: string;
 
   @Column('jsonb', { nullable: true })
