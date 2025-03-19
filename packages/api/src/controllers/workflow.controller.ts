@@ -9,7 +9,7 @@ import {
   ValidationPipe,
   ParseIntPipe,
   Query,
-  BadRequestException,
+  BadRequestException, Delete,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -22,7 +22,6 @@ import {
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { WorkflowApiService } from '../services/workflow-api.service';
-import { WorkflowQueryDto } from '../dtos/workflow-query-dto';
 import { PaginatedDto } from '../dtos/paginated.dto';
 import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
 import { WorkflowDto } from '../dtos/workflow.dto';
@@ -125,5 +124,21 @@ export class WorkflowController {
     const user = req.user || null;
     const workflow = await this.workflowService.findOneById(id, user);
     return WorkflowDto.create(workflow);
+  }
+
+  /**
+   * Deletes a workflow by its ID.
+   */
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a workflow by ID' })
+  @ApiParam({ name: 'id', type: String, description: 'The ID of the workflow' })
+  @ApiResponse({ status: 204, description: 'Workflow deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Workflow not found' })
+  async deleteWorkflow(
+    @Param('id') id: string,
+    @Request() req: ApiRequestType,
+  ): Promise<void> {
+    const user = req.user || null;
+    await this.workflowService.delete(id, user);
   }
 }

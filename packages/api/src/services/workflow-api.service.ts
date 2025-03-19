@@ -86,4 +86,21 @@ export class WorkflowApiService {
     }
     return workflow;
   }
+
+  /**
+   * Deletes a workflow by ID (hard delete).
+   */
+  async delete(id: string, user: string | null): Promise<void> {
+    const workflow = await this.workflowRepository.findOne({
+      where: {
+        id,
+        createdBy: user === null ? IsNull() : user,
+      },
+    });
+
+    if (!workflow)
+      throw new NotFoundException(`Workflow with ID ${id} not found`);
+
+    await this.workflowRepository.delete(id);
+  }
 }
