@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { DocumentEntity } from '@loopstack/core';
 import { DocumentMetaDto } from './document-meta.dto';
 import { DocumentContentsDto } from './document-contents.dto';
-import { JSONSchemaConfigType, UIFormOptionsType } from '@loopstack/shared';
+import { ContentTypesType, JSONSchemaConfigType, UIFormOptionsType } from '@loopstack/shared';
 
 /**
  * Data Transfer Object for Document entities
@@ -48,6 +48,16 @@ export class DocumentDto<T = unknown> {
     description: 'Contents of the document',
   })
   contents: DocumentContentsDto | null;
+
+  /**
+   * Content type of the document
+   */
+  @Expose()
+  @ApiProperty({
+    description: 'Content type of the document',
+    example: 'markdown',
+  })
+  contentType: ContentTypesType;
 
   @Expose()
   @ApiProperty({
