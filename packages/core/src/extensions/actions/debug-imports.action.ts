@@ -24,8 +24,9 @@ export class DebugImportsAction implements StateMachineActionInterface {
       for (const item of payload.workflowContext.imports) {
         manager.addDocument({
           name: `debug-${item.name}`,
-          type: 'document',
-          contents: item,
+          type: 'info',
+          contents: JSON.stringify(item, null, 2),
+          contentType: 'json'
         });
       }
     }

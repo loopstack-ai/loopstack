@@ -4,10 +4,10 @@ import {
   StateMachineActionInterface,
 } from '../../processor';
 import { TransitionResultInterface } from '../../processor';
-import { DocumentType, DocumentSchema } from '@loopstack/shared';
+import { DocumentSchema } from '@loopstack/shared';
 import { z } from 'zod';
 import { StateMachineAction } from '../../processor';
-import { ActionHelperService } from '../../common';
+import { ActionHelperService, TemplateEngineService } from '../../common';
 import { FunctionCallService } from '../../common';
 import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
 
@@ -24,6 +24,7 @@ export class CreateDocumentAction implements StateMachineActionInterface {
     private actionHelperService: ActionHelperService,
     private transitionManagerService: ActionHelperService,
     private functionCallService: FunctionCallService,
+    private templateEngineService: TemplateEngineService,
   ) {}
 
   evalObjectLeafs<T>(obj: T, variables: any): T {
@@ -32,7 +33,8 @@ export class CreateDocumentAction implements StateMachineActionInterface {
     }
 
     if (typeof obj !== 'object') {
-      return this.functionCallService.runEval(obj, variables) as unknown as T;
+      const result = this.functionCallService.runEval(obj, variables);
+      return this.templateEngineService.parseValue(result, variables) as unknown as T;
     }
 
     if (Array.isArray(obj)) {
@@ -62,8 +64,6 @@ export class CreateDocumentAction implements StateMachineActionInterface {
       context.workflowContext.imports
     );
 
-
-    console.log('validProps.inputs', inputs)
     const updatedDocument = this.evalObjectLeafs(validProps.output, {
       context,
       inputs,

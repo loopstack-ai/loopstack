@@ -1,5 +1,4 @@
 import {
-  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -11,7 +10,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { WorkflowEntity } from './workflow.entity';
-import { StableJsonTransformer } from '../../utils/stabel-json-transformer';
+import { StableJsonTransformer } from '../../utils/stable-json-transformer';
+import { ContentTypesType } from '@loopstack/shared';
 
 @Entity({ name: 'document' })
 export class DocumentEntity<T = any> {
@@ -36,6 +36,9 @@ export class DocumentEntity<T = any> {
 
   @Column('jsonb', { nullable: true })
   contents: T | null;
+
+  @Column({ name: 'content_type' })
+  contentType: ContentTypesType;
 
   @Column({
     type: 'jsonb',
