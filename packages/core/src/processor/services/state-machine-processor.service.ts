@@ -210,7 +210,10 @@ export class StateMachineProcessorService {
           );
 
           let nextPlace: string | null = null;
+          let observerIndex = 0;
           for (const observer of matchedObservers) {
+            observerIndex++;
+
             console.log(
               `calling observer ${observer.action} on transition ${observer.transition}`,
             );
@@ -223,6 +226,12 @@ export class StateMachineProcessorService {
                 transitionContext,
                 workflow,
               );
+
+            // save immediately for multiple observers
+            // skip saving the last one here
+            if (observerIndex <= matchedObservers.length) {
+              await this.workflowService.save(workflow);
+            }
 
             if (actionResult.nextPlace) {
               nextPlace = actionResult.nextPlace;

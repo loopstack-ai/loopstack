@@ -26,7 +26,10 @@ export class DebugImportsAction implements StateMachineActionInterface {
           name: `debug-${item.name}`,
           type: 'info',
           contents: JSON.stringify(item, null, 2),
-          contentType: 'json'
+          contentType: 'json',
+          meta: {
+            hideAtPlaces: ['finished']
+          }
         });
       }
     }
