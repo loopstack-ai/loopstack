@@ -1,17 +1,20 @@
 import { Module } from '@nestjs/common';
 import { ActionHelperService, FunctionCallService } from './services';
-import { TemplateEngineService } from './services/template-engine.service';
+import { TemplateEngineService } from './services';
+import { DocumentHelperService } from './services';
 
 @Module({
   providers: [
     FunctionCallService,
     ActionHelperService,
     TemplateEngineService,
+    DocumentHelperService,
   ],
   exports: [
     FunctionCallService,
     ActionHelperService,
     TemplateEngineService,
+    DocumentHelperService,
   ],
 })
 export class CommonModule {}

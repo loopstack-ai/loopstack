@@ -4,12 +4,12 @@ import {
   StateMachineActionInterface,
 } from '../../processor';
 import { TransitionResultInterface } from '../../processor';
-import { DocumentSchema } from '@loopstack/shared';
+import { DocumentSchema, PartialDocumentSchema } from '@loopstack/shared';
 import { z } from 'zod';
 import { StateMachineAction } from '../../processor';
-import { ActionHelperService, TemplateEngineService } from '../../common';
-import { FunctionCallService } from '../../common';
+import { ActionHelperService, DocumentHelperService } from '../../common';
 import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
+import { DocumentCollectionService } from '../../configuration';
 
 @Injectable()
 @StateMachineAction()
@@ -17,45 +17,22 @@ export class CreateDocumentAction implements StateMachineActionInterface {
 
   schema = z.object({
     inputs: z.any(z.string()).optional(),
-    output: DocumentSchema
+    template: z.string().optional(),
+    update: PartialDocumentSchema.optional(),
+    create: DocumentSchema.optional(),
   });
 
   constructor(
     private actionHelperService: ActionHelperService,
     private transitionManagerService: ActionHelperService,
-    private functionCallService: FunctionCallService,
-    private templateEngineService: TemplateEngineService,
+    private documentCollectionService: DocumentCollectionService,
+    private documentHelperService: DocumentHelperService,
   ) {}
-
-  evalObjectLeafs<T>(obj: T, variables: any): T {
-    if (obj === null || obj === undefined) {
-      return obj;
-    }
-
-    if (typeof obj !== 'object') {
-      const result = this.functionCallService.runEval(obj, variables);
-      return this.templateEngineService.parseValue(result, variables) as unknown as T;
-    }
-
-    if (Array.isArray(obj)) {
-      return obj.map(item => this.evalObjectLeafs(item, variables)) as unknown as T;
-    }
-
-    const result = {} as T;
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        result[key] = this.evalObjectLeafs(obj[key], variables);
-      }
-    }
-
-    return result;
-  }
 
   async execute(
     context: ActionExecutePayload,
   ): Promise<TransitionResultInterface> {
     const manager = this.transitionManagerService.setContext(context);
-
     const validProps = this.schema.parse(context.props);
 
     // merge inputs in single object
@@ -64,12 +41,14 @@ export class CreateDocumentAction implements StateMachineActionInterface {
       context.workflowContext.imports
     );
 
-    const updatedDocument = this.evalObjectLeafs(validProps.output, {
+    const template = validProps.template ? this.documentCollectionService.getByName(validProps.template) : undefined;
+
+    const document = this.documentHelperService.createDocumentWithSchema(validProps, template, {
       context,
       inputs,
-    })
+    });
 
-    manager.addDocument(updatedDocument as DocumentCreateInterface);
+    manager.addDocument(document as DocumentCreateInterface);
 
     return manager.getResult();
   }

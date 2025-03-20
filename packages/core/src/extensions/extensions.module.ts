@@ -13,11 +13,13 @@ import { ConfigModule } from '@nestjs/config';
 import llmConfig from './extensions-module.config';
 import { PersistenceModule } from '../persistence/persistence.module';
 import { CommonModule } from '../common';
+import { ConfigurationModule } from '../configuration';
 
 @Module({
   imports: [
     ConfigModule.forFeature(llmConfig),
     CommonModule,
+    ConfigurationModule,
     PersistenceModule,
     ProcessorModule,
   ],

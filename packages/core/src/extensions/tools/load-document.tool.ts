@@ -33,6 +33,7 @@ const LoadDocumentArgsSchema = z.object({
   flat: z.boolean().optional(),
   ignoreChanges: z.boolean().optional(),
   global: z.boolean().optional(),
+  optional: z.boolean().optional(),
 });
 
 export type LoadDocumentArgsInterface = z.infer<typeof LoadDocumentArgsSchema>;
@@ -115,6 +116,11 @@ export class LoadDocumentTool implements ToolInterface {
     const entities = props.many
       ? await query.getMany()
       : [await query.getOne()].filter((d) => !!d);
+
+    if (!entities.length && !props.optional) {
+      throw new Error(`Document(s) not found.`)
+    }
+
     return this.applyFilters(props, entities);
   }
 

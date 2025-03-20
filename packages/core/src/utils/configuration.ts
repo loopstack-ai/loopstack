@@ -22,7 +22,7 @@ function loadConfigsRecursively(currentPath: string, configs: any[]): void {
     const itemPath = path.join(currentPath, item);
     const stats = fs.statSync(itemPath);
 
-    if (stats.isFile() && item.endsWith('.loopstack.yaml')) {
+    if (stats.isFile() && item.endsWith('.yaml')) {
       const config = yaml.load(fs.readFileSync(itemPath, 'utf8'));
       configs.push(config);
     } else if (stats.isDirectory()) {
