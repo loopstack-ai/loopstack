@@ -48,14 +48,6 @@ export class DocumentEntity<T = any> {
   })
   schema: string;
 
-  @Column({
-    type: 'jsonb',
-    transformer: new StableJsonTransformer(),
-    name: 'ui_options',
-    nullable: true,
-  })
-  uiOptions: string;
-
   @Column('jsonb', { nullable: true })
   meta: Record<string, any> | null;
 

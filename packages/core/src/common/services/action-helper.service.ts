@@ -29,7 +29,10 @@ export class ActionHelperService {
 
   addDocument(data: DocumentCreateInterface): void {
     if (data.schema) {
-      const ajv = new Ajv();
+      const ajv = new Ajv({
+        strict: false,
+        keywords: ['ui'],
+      });
       const validate = ajv.compile(data.schema);
       const valid = validate(data.contents)
       if (!valid) {
