@@ -5,13 +5,6 @@ import { Injectable, Scope } from '@nestjs/common';
 export class CollectionService<T extends NamedCollectionItem> {
   private items: Map<string, T> = new Map();
 
-  set(items: T[]): void {
-    this.items.clear();
-    for (const item of items) {
-      this.items.set(item.name, item);
-    }
-  }
-
   clear() {
     this.items.clear();
   }
@@ -21,13 +14,6 @@ export class CollectionService<T extends NamedCollectionItem> {
       throw new Error(`item with name "${item.name}" already exists.`);
     }
     this.items.set(item.name, item);
-  }
-
-  removeByName(name: string): void {
-    if (!this.items.has(name)) {
-      throw new Error(`item with name "${name}" not found.`);
-    }
-    this.items.delete(name);
   }
 
   has(name: string): boolean {

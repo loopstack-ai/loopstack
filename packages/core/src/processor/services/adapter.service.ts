@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { AdapterRegistry } from '../../configuration';
-import { AdapterCollectionService } from '../../configuration';
+import { AdapterRegistry, LoopConfigService } from '../../configuration';
+import { ServiceConfigType } from '../../configuration/schemas/service-config.schema';
 
 @Injectable()
 export class AdapterService {
   constructor(
     private readonly adapterRegistry: AdapterRegistry,
-    private readonly adapterCollectionService: AdapterCollectionService,
+    private readonly loopConfigService: LoopConfigService,
   ) {}
 
   getAdapterConfig(adapterName: string) {
-    const adapterConfig = this.adapterCollectionService.getByName(adapterName);
+    const adapterConfig = this.loopConfigService.get<ServiceConfigType>('adapters', adapterName);
     if (!adapterConfig) {
       throw new Error(`Adapter config with name ${adapterName} not found.`);
     }

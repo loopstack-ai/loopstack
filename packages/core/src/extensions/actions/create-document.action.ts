@@ -9,7 +9,8 @@ import { z } from 'zod';
 import { StateMachineAction } from '../../processor';
 import { ActionHelperService, DocumentHelperService } from '../../common';
 import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
-import { DocumentCollectionService } from '../../configuration';
+import { LoopConfigService } from '../../configuration';
+import { DocumentType } from '@loopstack/shared';
 
 @Injectable()
 @StateMachineAction()
@@ -25,7 +26,7 @@ export class CreateDocumentAction implements StateMachineActionInterface {
   constructor(
     private actionHelperService: ActionHelperService,
     private transitionManagerService: ActionHelperService,
-    private documentCollectionService: DocumentCollectionService,
+    private loopConfigService: LoopConfigService,
     private documentHelperService: DocumentHelperService,
   ) {}
 
@@ -41,7 +42,7 @@ export class CreateDocumentAction implements StateMachineActionInterface {
       context.workflowContext.imports
     );
 
-    const template = validProps.template ? this.documentCollectionService.getByName(validProps.template) : undefined;
+    const template = validProps.template ? this.loopConfigService.get<DocumentType>('documents', validProps.template) : undefined;
 
     const document = this.documentHelperService.createDocumentWithSchema(validProps, template, {
       context,

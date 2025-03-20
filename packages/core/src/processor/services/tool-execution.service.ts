@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { ToolCollectionService, ToolRegistry } from '../../configuration';
+import { LoopConfigService, ToolRegistry } from '../../configuration';
 import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ValueParserService } from './value-parser.service';
 import { ToolCallType } from '../../configuration/schemas/tool-config.schema';
+import { ServiceConfigType } from '../../configuration/schemas/service-config.schema';
 
 @Injectable()
 export class ToolExecutionService {
   constructor(
-    private toolWrapperCollectionService: ToolCollectionService,
+    private loopConfigService: LoopConfigService,
     private valueParserService: ValueParserService,
     private toolRegistry: ToolRegistry,
   ) {}
@@ -22,7 +23,7 @@ export class ToolExecutionService {
   }
 
   getToolConfig(toolName: string) {
-    const config = this.toolWrapperCollectionService.getByName(toolName);
+    const config = this.loopConfigService.get<ServiceConfigType>('tools', toolName);
     if (!config) {
       throw new Error(`Tool config with name ${toolName} not found.`);
     }

@@ -1,18 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import _ from 'lodash';
-import { WorkflowTemplateCollectionService } from '../../configuration/services/workflow-template-collection.service';
 import { WorkflowObserverType } from '../../configuration/schemas/workflow-observer.schema';
 import { WorkflowStateMachineDefaultType } from '../../configuration/schemas/workflow.schema';
 import { WorkflowTransitionType } from '@loopstack/shared';
+import { LoopConfigService } from '../../configuration';
+import { WorkflowTemplateType } from '../../configuration/schemas/workflow-template.schema';
 
 @Injectable()
 export class StateMachineConfigService {
   constructor(
-    private workflowTemplateCollectionService: WorkflowTemplateCollectionService,
+    private loopConfigService: LoopConfigService,
   ) {}
 
   getTemplateFlat(name: string) {
-    const stateMachine = this.workflowTemplateCollectionService.getByName(name);
+    const stateMachine = this.loopConfigService.get<WorkflowTemplateType>('workflowTemplates', name);
     if (!stateMachine) {
       throw new Error(
         `State machine template with name ${name} does not exist.`,

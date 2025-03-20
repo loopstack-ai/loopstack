@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { InitService } from '../init.service';
+import { ConfigService } from '../config.service';
 import { WorkspaceCollectionService } from '../workspace-collection.service';
 import { ProjectCollectionService } from '../project-collection.service';
 import { ToolCollectionService } from '../tool-collection.service';
@@ -17,7 +17,7 @@ import { ActionRegistry } from '../action-registry.service';
 import { DiscoveryModule } from '@nestjs/core';
 
 describe('InitService', () => {
-  let modelService: InitService;
+  let modelService: ConfigService;
   let workspaceCollectionService: WorkspaceCollectionService;
   let workspaceCollectionService2: WorkspaceCollectionService;
   let projectCollectionService: ProjectCollectionService;
@@ -32,7 +32,7 @@ describe('InitService', () => {
         }),
       ],
       providers: [
-        InitService,
+        ConfigService,
         WorkspaceCollectionService,
         ProjectCollectionService,
         ToolCollectionService,
@@ -48,7 +48,7 @@ describe('InitService', () => {
       ],
     }).compile();
 
-    modelService = module.get<InitService>(InitService);
+    modelService = module.get<ConfigService>(ConfigService);
     workspaceCollectionService = module.get<WorkspaceCollectionService>(
       WorkspaceCollectionService,
     );

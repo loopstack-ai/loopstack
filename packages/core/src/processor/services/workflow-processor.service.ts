@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { WorkflowCollectionService } from '../../configuration/services/workflow-collection.service';
 import { ToolExecutionService } from './tool-execution.service';
 import { ContextInterface } from '../interfaces/context.interface';
 import _ from 'lodash';
@@ -17,12 +16,13 @@ import {
   WorkflowSequenceType,
   WorkflowStateMachineDefaultType,
 } from '../../configuration/schemas/workflow.schema';
+import { LoopConfigService } from '../../configuration';
 
 @Injectable()
 export class WorkflowProcessorService {
   constructor(
     private contextService: ContextService,
-    private workflowCollectionService: WorkflowCollectionService,
+    private loopConfigService: LoopConfigService,
     private toolExecutionService: ToolExecutionService,
     private valueParserService: ValueParserService,
     private stateMachineProcessorService: StateMachineProcessorService,
@@ -31,7 +31,7 @@ export class WorkflowProcessorService {
   ) {}
 
   workflowExists(name: string): boolean {
-    return this.workflowCollectionService.has(name);
+    return this.loopConfigService.has('workflows', name);
   }
 
   async runSequenceType(
@@ -202,7 +202,7 @@ export class WorkflowProcessorService {
     targetContext: ContextInterface,
     sourceContext: ContextInterface,
   ): Promise<ContextInterface> {
-    const workflowConfig = this.workflowCollectionService.getByName(name);
+    const workflowConfig = this.loopConfigService.get<WorkflowDefaultType>('workflows', name);
     if (!workflowConfig) {
       throw new Error(`workflow with name "${name}" not found.`);
     }
