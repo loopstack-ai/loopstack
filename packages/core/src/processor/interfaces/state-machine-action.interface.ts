@@ -1,16 +1,12 @@
 import { TransitionContextInterface } from './transition-context.interface';
-import { ContextInterface } from './context.interface';
 import { WorkflowStateContextInterface } from './workflow-state-context.interface';
 import { TransitionResultInterface } from './transition-result.interface';
-import { WorkflowEntity } from '../../persistence/entities';
-import { ZodType } from 'zod';
 import { ServiceWithSchemaInterface } from './service-with-schema.interface';
+import { ProcessStateInterface } from './process-state.interface';
 
-export interface ActionExecutePayload {
-  workflowContext: ContextInterface;
+export interface ActionExecutePayload extends ProcessStateInterface {
   workflowStateContext: WorkflowStateContextInterface;
   transitionContext: TransitionContextInterface;
-  workflow: WorkflowEntity;
   props: any;
 }
 

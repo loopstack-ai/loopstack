@@ -10,6 +10,7 @@ import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generat
 import { DiscoveryModule } from '@nestjs/core';
 import { ActionRegistry } from './services';
 import { SnippetCollectionService } from './services';
+import { MigrationsService } from './services/migrations.service';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SnippetCollectionService } from './services';
   ],
   providers: [
     LoopConfigService,
+    MigrationsService,
     CollectionService,
     SnippetCollectionService,
     JsonSchemaGeneratorService,

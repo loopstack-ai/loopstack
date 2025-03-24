@@ -39,10 +39,6 @@ export class ProjectProcessorService {
       transition: payload.transition,
     });
 
-    return this.workflowProcessorService.processChild(
-      projectConfig.entrypoint,
-      context,
-      context,
-    );
+    return this.workflowProcessorService.start(projectConfig.entrypoint, context);
   }
 }

@@ -41,7 +41,7 @@ export class DocumentService {
     options?: {
       isGlobal?: boolean;
       labels?: string[];
-      ltWorkflowIndex?: number;
+      ltWorkflowIndex?: string;
     },
   ): SelectQueryBuilder<DocumentEntity> {
     const queryBuilder = this.documentRepository.createQueryBuilder();
@@ -51,9 +51,10 @@ export class DocumentService {
     }
 
     if (undefined !== options?.ltWorkflowIndex) {
-      queryBuilder.andWhere(`workflow_index < :ltWorkflowIndex`, {
-        ltWorkflowIndex: options.ltWorkflowIndex,
-      });
+      queryBuilder.andWhere(
+        `(workflow_index <@ :index OR text(workflow_index) < text(:index))`,
+        { index: options.ltWorkflowIndex }
+      );
     }
 
     // we dont want invalidate items

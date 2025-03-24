@@ -234,13 +234,16 @@ export class LoadDocumentTool implements ToolInterface {
     currentEntities: DocumentEntity[],
     previousEntities: DocumentEntity[],
   ): ProcessStateInterface {
-    if (!processState.context.imports) {
-      processState.context.imports = [];
+    if (!processState.data) {
+      processState.data = {};
     }
 
-    processState.context.imports.push(
-      this.createImportItem(props, currentEntities, previousEntities),
-    );
+    if (!processState.data.imports) {
+      processState.data.imports = {};
+    }
+
+    processState.data.imports[props.name] =
+      this.createImportItem(props, currentEntities, previousEntities);
 
     return processState;
   }

@@ -19,12 +19,15 @@ export class SetCustomOptionTool implements ToolInterface {
   ): Promise<ProcessStateInterface> {
     const options = this.schema.parse(data);
 
-    const currentCustomOptions = target.context.customOptions ?? {};
+    const currentCustomOptions = target.data?.options ?? {};
     currentCustomOptions[options.key] = options.value;
 
-    target.context.customOptions = currentCustomOptions;
+    if (!target.data) {
+      target.data = {};
+    }
+    target.data.options = currentCustomOptions;
     target.workflow!.optionsHash = generateObjectFingerprint(
-      target.context.customOptions,
+      target.data.options,
     );
 
     return target;

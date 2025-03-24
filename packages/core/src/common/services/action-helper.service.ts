@@ -17,8 +17,8 @@ export class ActionHelperService {
   private props: any;
 
   public setContext(payload: ActionExecutePayload) {
-    this.workflow = payload.workflow;
-    this.workflowContext = payload.workflowContext;
+    this.workflow = payload.workflow!;
+    this.workflowContext = payload.context;
     this.transitionContext = payload.transitionContext;
     this.nextPlace = undefined;
     this.documents = [];
@@ -57,21 +57,6 @@ export class ActionHelperService {
       nextPlace: this.nextPlace,
       documents: this.documents
     };
-  }
-
-  selectMergeImports(names: string[] | undefined) {
-    if (!names?.length) {
-      return {};
-    }
-
-    return this.workflowContext.imports
-      ?.filter((item) => names.includes(item.name))
-      .map((item) => ({
-        [item.name]: item.curr,
-      })).reduce((prev, curr) => ({
-        ...prev,
-        ...curr,
-      }), {}) ?? {};
   }
 
   mergeInputs(names: string[] | undefined, imports: ({ name: string; } & any)[] | undefined): Record<string, any> {

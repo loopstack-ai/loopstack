@@ -11,6 +11,7 @@ import { ActionHelperService, DocumentHelperService } from '../../common';
 import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
 import { LoopConfigService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
+import {pick} from 'lodash';
 
 @Injectable()
 @StateMachineAction()
@@ -25,27 +26,23 @@ export class CreateDocumentAction implements StateMachineActionInterface {
 
   constructor(
     private actionHelperService: ActionHelperService,
-    private transitionManagerService: ActionHelperService,
     private loopConfigService: LoopConfigService,
     private documentHelperService: DocumentHelperService,
   ) {}
 
   async execute(
-    context: ActionExecutePayload,
+    payload: ActionExecutePayload,
   ): Promise<TransitionResultInterface> {
-    const manager = this.transitionManagerService.setContext(context);
-    const validProps = this.schema.parse(context.props);
+    const manager = this.actionHelperService.setContext(payload);
+    const validProps = this.schema.parse(payload.props);
 
-    // merge inputs in single object
-    let inputs = this.actionHelperService.mergeInputs(
-      context.props.inputs,
-      context.workflowContext.imports
-    );
+    // select imports as inputs
+    let inputs = pick(payload.data?.imports ?? {}, payload.props.inputs);
 
     const template = validProps.template ? this.loopConfigService.get<DocumentType>('documents', validProps.template) : undefined;
 
     const document = this.documentHelperService.createDocumentWithSchema(validProps, template, {
-      context,
+      context: payload,
       inputs,
     });
 

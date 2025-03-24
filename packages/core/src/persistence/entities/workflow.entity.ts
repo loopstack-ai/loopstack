@@ -25,8 +25,8 @@ export class WorkflowEntity {
   @Column({ type: 'varchar', nullable: true })
   title: string;
 
-  @Column({ default: 0 })
-  index: number;
+  @Column("ltree", { default: '1' })
+  index: string;
 
   @Column({ type: 'varchar', name: 'options_hash', nullable: true })
   optionsHash: string | null;

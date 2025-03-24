@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import _ from 'lodash';
 import { WorkflowObserverType } from '../../configuration/schemas/workflow-observer.schema';
-import { WorkflowStateMachineDefaultType } from '../../configuration/schemas/workflow.schema';
+import { WorkflowStateMachineType } from '../../configuration/schemas/workflow.schema';
 import { WorkflowTransitionType } from '@loopstack/shared';
 import { LoopConfigService } from '../../configuration';
 import { WorkflowTemplateType } from '../../configuration/schemas/workflow-template.schema';
@@ -44,7 +44,7 @@ export class StateMachineConfigService {
   }
 
   getStateMachineFlatConfig(
-    stateMachineConfig: WorkflowStateMachineDefaultType,
+    stateMachineConfig: WorkflowStateMachineType,
   ) {
     let transitions: WorkflowTransitionType[] =
       stateMachineConfig.transitions ?? [];

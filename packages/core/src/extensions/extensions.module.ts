@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ForwardChildContextTool } from './tools/forward-child-context.tool';
 import { SetContextTool } from './tools/set-context.tool';
 import { SetCustomOptionTool } from './tools/set-custom-option.tool';
 import { AddNamespaceTool } from './tools/add-namespace.tool';
@@ -27,7 +26,6 @@ import { ConfigurationModule } from '../configuration';
     CreateDocumentAction,
     DebugImportsAction,
 
-    ForwardChildContextTool,
     SetContextTool,
     SetCustomOptionTool,
     AddNamespaceTool,
