@@ -1,7 +1,10 @@
 import { Module, DynamicModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { ConfigurableModuleClass, LoopCoreModuleOptions } from './loop-core.module-definition';
+import {
+  ConfigurableModuleClass,
+  LoopCoreModuleOptions,
+} from './loop-core.module-definition';
 import { CommonModule } from './common';
 import { PersistenceModule } from './persistence/persistence.module';
 import { ProcessorModule } from './processor';

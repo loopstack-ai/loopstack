@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const WorkflowObserverSchema = z.object({
   transition: z.string(),

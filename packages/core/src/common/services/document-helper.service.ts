@@ -12,7 +12,6 @@ export const CreateDocumentWithSchema = z.object({
 
 @Injectable()
 export class DocumentHelperService {
-
   constructor(
     private functionCallService: FunctionCallService,
     private templateEngineService: TemplateEngineService,
@@ -28,12 +27,14 @@ export class DocumentHelperService {
         return {
           ...template,
           ...options.update,
-        }
+        };
       }
       return template;
     }
 
-    throw new Error(`Create document requires template or create property to be defined.`);
+    throw new Error(
+      `Create document requires template or create property to be defined.`,
+    );
   }
 
   evalObjectLeafs<T>(obj: T, variables: any): T {
@@ -43,11 +44,16 @@ export class DocumentHelperService {
 
     if (typeof obj !== 'object') {
       const result = this.functionCallService.runEval(obj, variables);
-      return this.templateEngineService.parseValue(result, variables) as unknown as T;
+      return this.templateEngineService.parseValue(
+        result,
+        variables,
+      ) as unknown as T;
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.evalObjectLeafs(item, variables)) as unknown as T;
+      return obj.map((item) =>
+        this.evalObjectLeafs(item, variables),
+      ) as unknown as T;
     }
 
     const result = {} as T;
@@ -60,7 +66,11 @@ export class DocumentHelperService {
     return result;
   }
 
-  createDocumentWithSchema(options: z.infer<typeof CreateDocumentWithSchema>, template: any, context: any) {
+  createDocumentWithSchema(
+    options: z.infer<typeof CreateDocumentWithSchema>,
+    template: any,
+    context: any,
+  ) {
     const prototype = this.prepare(options, template);
     return this.evalObjectLeafs(prototype, context);
   }

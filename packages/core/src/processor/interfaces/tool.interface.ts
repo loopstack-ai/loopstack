@@ -10,7 +10,7 @@ export interface ToolApplicationInfo {
 }
 
 export interface ToolExecutionResult {
-  context?: ContextInterface,
+  context?: ContextInterface;
   workflow?: WorkflowEntity;
   data?: WorkflowData;
   info?: any;
@@ -18,14 +18,14 @@ export interface ToolExecutionResult {
 }
 
 export interface ToolResult {
-  context?: ContextInterface,
+  context?: ContextInterface;
   workflow?: WorkflowEntity;
   data?: WorkflowData;
   info?: any;
   documents?: DocumentCreateInterface[];
 }
 
-export interface ToolInterface extends ServiceWithSchemaInterface{
+export interface ToolInterface extends ServiceWithSchemaInterface {
   apply(
     props: any,
     workflow: WorkflowEntity | undefined,

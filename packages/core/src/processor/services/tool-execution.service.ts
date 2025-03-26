@@ -3,7 +3,11 @@ import { LoopConfigService, ToolRegistry } from '../../configuration';
 import { ValueParserService } from './value-parser.service';
 import { ToolCallType } from '../../configuration/schemas/tool-config.schema';
 import { ServiceConfigType } from '../../configuration/schemas/service-config.schema';
-import { ToolApplicationInfo, ToolExecutionResult, ToolResult } from '../interfaces/tool.interface';
+import {
+  ToolApplicationInfo,
+  ToolExecutionResult,
+  ToolResult,
+} from '../interfaces/tool.interface';
 import { ContextInterface } from '../interfaces/context.interface';
 import { WorkflowData } from '../interfaces/workflow-data.interface';
 import { DocumentEntity, WorkflowEntity } from '../../persistence/entities';
@@ -28,7 +32,10 @@ export class ToolExecutionService {
   }
 
   getToolConfig(toolName: string) {
-    const config = this.loopConfigService.get<ServiceConfigType>('tools', toolName);
+    const config = this.loopConfigService.get<ServiceConfigType>(
+      'tools',
+      toolName,
+    );
     if (!config) {
       throw new Error(`Tool config with name ${toolName} not found.`);
     }
@@ -53,8 +60,8 @@ export class ToolExecutionService {
     // merge config props will call props
     const props = {
       ...(toolConfig?.props ?? {}),
-      ...callProps
-    }
+      ...callProps,
+    };
 
     const instance = this.toolRegistry.getToolByName(toolConfig.service);
     if (!instance) {
@@ -64,17 +71,18 @@ export class ToolExecutionService {
     const result = await instance.apply(props, workflow, context, data, info);
 
     // create and add documents from action
-    const documents: DocumentEntity[] = []
+    const documents: DocumentEntity[] = [];
     if (workflow && result.documents?.length) {
       for (const documentData of result.documents) {
-        documents.push(this.documentService.create(workflow, context, documentData));
+        documents.push(
+          this.documentService.create(workflow, context, documentData),
+        );
       }
     }
 
     return {
       ...result,
       documents,
-    }
+    };
   }
-
 }

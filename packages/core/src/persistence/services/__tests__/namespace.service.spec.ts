@@ -3,7 +3,7 @@ import {
   setupTestEnvironment,
   TestSetup,
 } from '../../__tests__/database-entities-utils';
-import {NamespacesService} from "../namespace.service";
+import { NamespacesService } from '../namespace.service';
 
 describe('NamespacesService', () => {
   let testSetup: TestSetup;
@@ -14,7 +14,8 @@ describe('NamespacesService', () => {
       databaseName: 'namespace_service_test',
       providers: [NamespacesService],
     });
-    namespacesService = testSetup.moduleRef.get<NamespacesService>(NamespacesService);
+    namespacesService =
+      testSetup.moduleRef.get<NamespacesService>(NamespacesService);
   });
 
   afterAll(async () => {
@@ -26,12 +27,8 @@ describe('NamespacesService', () => {
   });
 
   async function createTestData() {
-    const {
-      projectRepo,
-      workflowRepo,
-      workspaceRepo,
-      namespaceRepo,
-    } = testSetup;
+    const { projectRepo, workflowRepo, workspaceRepo, namespaceRepo } =
+      testSetup;
 
     const workspace = await workspaceRepo.save({
       name: 'Test Workspace',
@@ -135,9 +132,9 @@ describe('NamespacesService', () => {
 
       // Act
       const result = await namespacesService.findNamespaceIdsByAttributes(
-          parentNamespace.name,
-          parentNamespace.model,
-          workspace.id
+        parentNamespace.name,
+        parentNamespace.model,
+        workspace.id,
       );
 
       // Assert
@@ -152,9 +149,9 @@ describe('NamespacesService', () => {
 
       // Act
       const result = await namespacesService.findNamespaceIdsByAttributes(
-          'Non-existent Namespace',
-          'test-model',
-          testData.workspace.id
+        'Non-existent Namespace',
+        'test-model',
+        testData.workspace.id,
       );
 
       // Assert
@@ -185,9 +182,9 @@ describe('NamespacesService', () => {
 
       // Act
       const result = await namespacesService.findNamespaceIdsByAttributes(
-          testData.parentNamespace.name,
-          testData.parentNamespace.model,
-          testData.workspace.id
+        testData.parentNamespace.name,
+        testData.parentNamespace.model,
+        testData.workspace.id,
       );
 
       // Assert
@@ -203,9 +200,9 @@ describe('NamespacesService', () => {
 
       // Act - looking for namespace with correct name but different model
       const result = await namespacesService.findNamespaceIdsByAttributes(
-          testData.parentNamespace.name,
-          'wrong-model',
-          testData.workspace.id
+        testData.parentNamespace.name,
+        'wrong-model',
+        testData.workspace.id,
       );
 
       // Assert
@@ -222,8 +219,8 @@ describe('NamespacesService', () => {
 
       // Act
       const result = namespacesService.omitNamespacesByNames(
-          [testData.parentNamespace.name], // Remove parent
-          allNamespaces
+        [testData.parentNamespace.name], // Remove parent
+        allNamespaces,
       );
 
       // Assert
@@ -231,14 +228,26 @@ describe('NamespacesService', () => {
       expect(result.length).toBe(allNamespaces.length - 4); // Parent and 3 descendants removed
 
       // Verify parent and descendants are removed
-      expect(result.find(n => n.id === testData.parentNamespace.id)).toBeUndefined();
-      expect(result.find(n => n.id === testData.childNamespace1.id)).toBeUndefined();
-      expect(result.find(n => n.id === testData.childNamespace2.id)).toBeUndefined();
-      expect(result.find(n => n.id === testData.grandchildNamespace.id)).toBeUndefined();
+      expect(
+        result.find((n) => n.id === testData.parentNamespace.id),
+      ).toBeUndefined();
+      expect(
+        result.find((n) => n.id === testData.childNamespace1.id),
+      ).toBeUndefined();
+      expect(
+        result.find((n) => n.id === testData.childNamespace2.id),
+      ).toBeUndefined();
+      expect(
+        result.find((n) => n.id === testData.grandchildNamespace.id),
+      ).toBeUndefined();
 
       // Verify other namespaces remain
-      expect(result.find(n => n.id === testData.siblingNamespace.id)).toBeDefined();
-      expect(result.find(n => n.id === testData.differentModelNamespace.id)).toBeDefined();
+      expect(
+        result.find((n) => n.id === testData.siblingNamespace.id),
+      ).toBeDefined();
+      expect(
+        result.find((n) => n.id === testData.differentModelNamespace.id),
+      ).toBeDefined();
     });
 
     it('should handle removing multiple different namespaces', async () => {
@@ -248,8 +257,8 @@ describe('NamespacesService', () => {
 
       // Act
       const result = namespacesService.omitNamespacesByNames(
-          [testData.siblingNamespace.name, testData.differentModelNamespace.name],
-          allNamespaces
+        [testData.siblingNamespace.name, testData.differentModelNamespace.name],
+        allNamespaces,
       );
 
       // Assert
@@ -257,14 +266,26 @@ describe('NamespacesService', () => {
       expect(result.length).toBe(allNamespaces.length - 2); // Two namespaces removed
 
       // Verify removed namespaces
-      expect(result.find(n => n.id === testData.siblingNamespace.id)).toBeUndefined();
-      expect(result.find(n => n.id === testData.differentModelNamespace.id)).toBeUndefined();
+      expect(
+        result.find((n) => n.id === testData.siblingNamespace.id),
+      ).toBeUndefined();
+      expect(
+        result.find((n) => n.id === testData.differentModelNamespace.id),
+      ).toBeUndefined();
 
       // Verify remaining namespaces
-      expect(result.find(n => n.id === testData.parentNamespace.id)).toBeDefined();
-      expect(result.find(n => n.id === testData.childNamespace1.id)).toBeDefined();
-      expect(result.find(n => n.id === testData.childNamespace2.id)).toBeDefined();
-      expect(result.find(n => n.id === testData.grandchildNamespace.id)).toBeDefined();
+      expect(
+        result.find((n) => n.id === testData.parentNamespace.id),
+      ).toBeDefined();
+      expect(
+        result.find((n) => n.id === testData.childNamespace1.id),
+      ).toBeDefined();
+      expect(
+        result.find((n) => n.id === testData.childNamespace2.id),
+      ).toBeDefined();
+      expect(
+        result.find((n) => n.id === testData.grandchildNamespace.id),
+      ).toBeDefined();
     });
 
     it('should handle non-existent namespace names gracefully', async () => {
@@ -274,8 +295,8 @@ describe('NamespacesService', () => {
 
       // Act
       const result = namespacesService.omitNamespacesByNames(
-          ['Non-existent Namespace'],
-          allNamespaces
+        ['Non-existent Namespace'],
+        allNamespaces,
       );
 
       // Assert
@@ -289,10 +310,7 @@ describe('NamespacesService', () => {
       const allNamespaces = await testSetup.namespaceRepo.find();
 
       // Act
-      const result = namespacesService.omitNamespacesByNames(
-          [],
-          allNamespaces
-      );
+      const result = namespacesService.omitNamespacesByNames([], allNamespaces);
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -306,8 +324,8 @@ describe('NamespacesService', () => {
 
       // Act
       const result = namespacesService.omitNamespacesByNames(
-          [testData.childNamespace1.name],
-          allNamespaces
+        [testData.childNamespace1.name],
+        allNamespaces,
       );
 
       // Assert
@@ -315,14 +333,26 @@ describe('NamespacesService', () => {
       expect(result.length).toBe(allNamespaces.length - 2); // Child and grandchild removed
 
       // Verify removed namespaces
-      expect(result.find(n => n.id === testData.childNamespace1.id)).toBeUndefined();
-      expect(result.find(n => n.id === testData.grandchildNamespace.id)).toBeUndefined();
+      expect(
+        result.find((n) => n.id === testData.childNamespace1.id),
+      ).toBeUndefined();
+      expect(
+        result.find((n) => n.id === testData.grandchildNamespace.id),
+      ).toBeUndefined();
 
       // Verify remaining namespaces
-      expect(result.find(n => n.id === testData.parentNamespace.id)).toBeDefined();
-      expect(result.find(n => n.id === testData.childNamespace2.id)).toBeDefined();
-      expect(result.find(n => n.id === testData.siblingNamespace.id)).toBeDefined();
-      expect(result.find(n => n.id === testData.differentModelNamespace.id)).toBeDefined();
+      expect(
+        result.find((n) => n.id === testData.parentNamespace.id),
+      ).toBeDefined();
+      expect(
+        result.find((n) => n.id === testData.childNamespace2.id),
+      ).toBeDefined();
+      expect(
+        result.find((n) => n.id === testData.siblingNamespace.id),
+      ).toBeDefined();
+      expect(
+        result.find((n) => n.id === testData.differentModelNamespace.id),
+      ).toBeDefined();
     });
   });
 });

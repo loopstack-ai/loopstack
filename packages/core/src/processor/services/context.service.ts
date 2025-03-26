@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { ContextInterface } from '../interfaces/context.interface';
 import _ from 'lodash';
 import { ProcessRunInterface } from '../interfaces/process-run.interface';
-import {ProjectEntity} from "../../persistence/entities";
+import { ProjectEntity } from '../../persistence/entities';
 
 @Injectable()
 export class ContextService {
-
-  createRootContext(project: ProjectEntity, additional: Partial<ContextInterface>): ContextInterface {
+  createRootContext(
+    project: ProjectEntity,
+    additional: Partial<ContextInterface>,
+  ): ContextInterface {
     return {
       model: project.model,
       userId: project.createdBy,
@@ -16,7 +18,7 @@ export class ContextService {
       labels: project.labels,
       index: project.index,
       ...additional,
-    } as ContextInterface
+    } as ContextInterface;
   }
 
   create(payload: ProcessRunInterface | ContextInterface): ContextInterface {

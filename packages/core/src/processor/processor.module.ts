@@ -31,9 +31,6 @@ import { CommonModule } from '../common';
     StateMachineConfigService,
     AdapterService,
   ],
-  exports: [
-    ProjectProcessorService,
-    AdapterService,
-  ],
+  exports: [ProjectProcessorService, AdapterService],
 })
 export class ProcessorModule {}

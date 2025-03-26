@@ -1,4 +1,4 @@
-import {NamespaceEntity} from "../entities";
+import { NamespaceEntity } from '../entities';
 
 export interface NamespaceCreateInterface {
   name: string;

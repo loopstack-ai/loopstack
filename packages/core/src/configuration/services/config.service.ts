@@ -9,8 +9,7 @@ import _ from 'lodash';
 
 @Injectable()
 export class LoopConfigService implements OnModuleInit {
-
-  registry: Map<string, Map<string, any>>
+  registry: Map<string, Map<string, any>>;
 
   constructor(
     private configService: ConfigService,
@@ -63,7 +62,6 @@ export class LoopConfigService implements OnModuleInit {
   }
 
   get<T>(registry: string, searchKey: string): T | undefined {
-
     const config = this.registry.get(registry);
     if (!config) {
       throw new Error(`Registry with name ${registry} not found`);
@@ -81,12 +79,19 @@ export class LoopConfigService implements OnModuleInit {
   createFromConfig(data: any): any {
     const config = this.mainSchemaGenerator.getSchema().parse(data);
 
-    const keys= Object.keys(config);
+    const keys = Object.keys(config);
     for (const key of keys) {
       this.updateConfig(key, config[key]);
     }
 
-    this.snippetCollectionService.create(config.snippets ? Object.entries(config.snippets).map(([name, value]) => ({ name, value})) : []);
+    this.snippetCollectionService.create(
+      config.snippets
+        ? Object.entries(config.snippets).map(([name, value]) => ({
+            name,
+            value,
+          }))
+        : [],
+    );
   }
 
   init(configs: any[]) {

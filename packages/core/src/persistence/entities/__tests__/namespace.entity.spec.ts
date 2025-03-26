@@ -23,12 +23,8 @@ describe('Namespace Entity Deletion Tests', () => {
 
   // Helper function to create test data
   async function createTestData() {
-    const {
-      projectRepo,
-      workflowRepo,
-      workspaceRepo,
-      namespaceRepo,
-    } = testSetup;
+    const { projectRepo, workflowRepo, workspaceRepo, namespaceRepo } =
+      testSetup;
 
     // Create a workspace
     const workspace = await workspaceRepo.save({

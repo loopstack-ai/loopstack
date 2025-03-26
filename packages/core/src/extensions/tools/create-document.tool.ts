@@ -5,7 +5,11 @@ import { ActionHelperService, DocumentHelperService } from '../../common';
 import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
 import { LoopConfigService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
-import { ToolApplicationInfo, ToolInterface, ToolResult } from '../../processor/interfaces/tool.interface';
+import {
+  ToolApplicationInfo,
+  ToolInterface,
+  ToolResult,
+} from '../../processor/interfaces/tool.interface';
 import { WorkflowEntity } from '../../persistence/entities';
 import { ContextInterface } from '../../processor/interfaces/context.interface';
 import { WorkflowData } from '../../processor/interfaces/workflow-data.interface';
@@ -15,7 +19,6 @@ import { z } from 'zod';
 @Injectable()
 @Tool()
 export class CreateDocumentTool implements ToolInterface {
-
   schema = z.object({
     inputs: z.any(z.string()).optional(),
     template: z.string().optional(),
@@ -41,17 +44,29 @@ export class CreateDocumentTool implements ToolInterface {
     // select imports as inputs
     let inputs = pick(data?.imports ?? {}, props.inputs);
 
-    const template = validProps.template ? this.loopConfigService.get<DocumentType>('documents', validProps.template) : undefined;
+    const template = validProps.template
+      ? this.loopConfigService.get<DocumentType>(
+          'documents',
+          validProps.template,
+        )
+      : undefined;
 
-    let document = this.documentHelperService.createDocumentWithSchema(validProps, template, {
-      context,
-      inputs,
-      info,
-    });
+    let document = this.documentHelperService.createDocumentWithSchema(
+      validProps,
+      template,
+      {
+        context,
+        inputs,
+        info,
+      },
+    );
 
     this.actionHelperService.validateDocument(document);
 
-    document = this.actionHelperService.createDocument(document as DocumentCreateInterface, info);
+    document = this.actionHelperService.createDocument(
+      document as DocumentCreateInterface,
+      info,
+    );
 
     return {
       documents: [document],

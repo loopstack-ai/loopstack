@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { ToolApplicationInfo, ToolInterface, ToolResult } from '../../processor/interfaces/tool.interface';
+import {
+  ToolApplicationInfo,
+  ToolInterface,
+  ToolResult,
+} from '../../processor/interfaces/tool.interface';
 import { generateObjectFingerprint } from '@loopstack/shared';
 import { Tool } from '../../processor';
 import { WorkflowEntity } from '../../persistence/entities';
@@ -31,9 +35,7 @@ export class SetCustomOptionTool implements ToolInterface {
       data = {};
     }
     data.options = currentCustomOptions;
-    workflow!.optionsHash = generateObjectFingerprint(
-      data.options,
-    );
+    workflow!.optionsHash = generateObjectFingerprint(data.options);
 
     return {
       data,

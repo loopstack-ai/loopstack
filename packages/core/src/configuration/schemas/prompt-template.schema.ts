@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const PromptTemplateSchema = z.object({
   name: z.string(),
@@ -8,4 +8,4 @@ export const PromptTemplateSchema = z.object({
   output: z.string(),
 });
 
-export type PromptTemplateType = z.infer<typeof PromptTemplateSchema>
+export type PromptTemplateType = z.infer<typeof PromptTemplateSchema>;

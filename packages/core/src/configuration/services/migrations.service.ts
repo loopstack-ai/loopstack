@@ -10,7 +10,7 @@ export class MigrationsService implements OnModuleInit {
 
   async onModuleInit() {
     // if (process.env.RUN_MIGRATIONS === 'true') {
-      await this.runMigrations();
+    await this.runMigrations();
     // }
   }
 
@@ -18,9 +18,7 @@ export class MigrationsService implements OnModuleInit {
     this.logger.log('Running migrations...');
 
     try {
-      const allMigrations = [
-        EnableLtreeExtension1742827301075,
-      ];
+      const allMigrations = [EnableLtreeExtension1742827301075];
 
       const queryRunner = this.dataSource.createQueryRunner();
 
@@ -40,10 +38,9 @@ export class MigrationsService implements OnModuleInit {
             )
           `);
 
-          const existingMigration = await queryRunner.manager.query(
-            `SELECT * FROM migrations WHERE name = $1`,
-            [name]
-          ).catch(() => null);
+          const existingMigration = await queryRunner.manager
+            .query(`SELECT * FROM migrations WHERE name = $1`, [name])
+            .catch(() => null);
 
           if (!existingMigration && existingMigration !== null) {
             await queryRunner.manager.query(`
@@ -61,7 +58,7 @@ export class MigrationsService implements OnModuleInit {
 
             await queryRunner.manager.query(
               `INSERT INTO migrations (name, timestamp) VALUES ($1, $2)`,
-              [name, Date.now()]
+              [name, Date.now()],
             );
 
             this.logger.log(`Migration applied: ${name}`);
@@ -69,7 +66,9 @@ export class MigrationsService implements OnModuleInit {
             this.logger.log(`Migration already applied: ${name}`);
           }
         } catch (error) {
-          this.logger.error(`Failed to apply migration ${name}: ${error.message}`);
+          this.logger.error(
+            `Failed to apply migration ${name}: ${error.message}`,
+          );
           throw error;
         }
       }

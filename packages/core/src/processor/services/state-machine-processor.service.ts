@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { StateMachineConfigService } from './state-machine-config.service';
 import { WorkflowService } from '../../persistence/services/workflow.service';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
-import { TransitionPayloadInterface, WorkflowTransitionType } from '@loopstack/shared';
+import {
+  TransitionPayloadInterface,
+  WorkflowTransitionType,
+} from '@loopstack/shared';
 import _ from 'lodash';
 import { TransitionContextInterface } from '../interfaces/transition-context.interface';
 import { HistoryTransition } from '../../persistence/interfaces';
@@ -216,17 +219,16 @@ export class StateMachineProcessorService {
               `calling observer ${observer.tool} on transition ${observer.transition}`,
             );
 
-            const result =
-              await this.toolExecutionService.applyTool(
-                observer,
-                workflow,
-                context,
-                data,
-                {
-                  transition: transitionContext.transition,
-                  payload: transitionContext.payload,
-                }
-              );
+            const result = await this.toolExecutionService.applyTool(
+              observer,
+              workflow,
+              context,
+              data,
+              {
+                transition: transitionContext.transition,
+                payload: transitionContext.payload,
+              },
+            );
 
             if (result.data?.data?.nextPlace) {
               nextPlace = result.data?.data?.nextPlace;

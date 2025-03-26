@@ -25,7 +25,7 @@ export class WorkflowEntity {
   @Column({ type: 'varchar', nullable: true })
   title: string;
 
-  @Column("ltree", { default: '1' })
+  @Column('ltree', { default: '1' })
   index: string;
 
   @Column({ type: 'varchar', name: 'options_hash', nullable: true })
@@ -67,11 +67,11 @@ export class WorkflowEntity {
   @Column({ name: 'namespace_id' })
   namespaceId: string;
 
-  @Column('varchar',{ name: 'labels', array: true, default: [] })
+  @Column('varchar', { name: 'labels', array: true, default: [] })
   labels: string[];
 
   @ManyToMany(() => DocumentEntity, (document) => document.dependentStates, {
-      onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   })
   @JoinTable({
     name: 'workflow_document',

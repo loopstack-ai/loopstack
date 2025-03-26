@@ -15,7 +15,11 @@ export class DocumentService {
     private readonly workflowService: WorkflowService,
   ) {}
 
-  create(workflow: WorkflowEntity, context: ContextInterface, data: DocumentCreateInterface): DocumentEntity {
+  create(
+    workflow: WorkflowEntity,
+    context: ContextInterface,
+    data: DocumentCreateInterface,
+  ): DocumentEntity {
     const document = this.documentRepository.create({
       ...data,
       index: workflow!.documents?.length ?? 0,
@@ -47,13 +51,13 @@ export class DocumentService {
     const queryBuilder = this.documentRepository.createQueryBuilder();
 
     if (where) {
-        queryBuilder.andWhere(where);
+      queryBuilder.andWhere(where);
     }
 
     if (undefined !== options?.ltWorkflowIndex) {
       queryBuilder.andWhere(
         `(workflow_index <@ :index OR text(workflow_index) < text(:index))`,
-        { index: options.ltWorkflowIndex }
+        { index: options.ltWorkflowIndex },
       );
     }
 

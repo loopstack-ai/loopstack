@@ -145,7 +145,8 @@ describe('Document Entity Deletion Tests', () => {
     const { documentRepo, workflowRepo } = testSetup;
 
     // Arrange
-    const { document, dependentWorkflow1, dependentWorkflow2 } = await createTestData();
+    const { document, dependentWorkflow1, dependentWorkflow2 } =
+      await createTestData();
 
     // Act
     await documentRepo.delete(document.id);

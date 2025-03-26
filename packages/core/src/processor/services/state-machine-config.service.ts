@@ -8,22 +8,21 @@ import { WorkflowTemplateType } from '../../configuration/schemas/workflow-templ
 
 @Injectable()
 export class StateMachineConfigService {
-  constructor(
-    private loopConfigService: LoopConfigService,
-  ) {}
+  constructor(private loopConfigService: LoopConfigService) {}
 
   getTemplateFlat(name: string) {
-    const stateMachine = this.loopConfigService.get<WorkflowTemplateType>('workflowTemplates', name);
+    const stateMachine = this.loopConfigService.get<WorkflowTemplateType>(
+      'workflowTemplates',
+      name,
+    );
     if (!stateMachine) {
       throw new Error(
         `State machine template with name ${name} does not exist.`,
       );
     }
 
-    let transitions: WorkflowTransitionType[] =
-      stateMachine.transitions ?? [];
-    let observers: WorkflowObserverType[] =
-      stateMachine.observers ?? [];
+    let transitions: WorkflowTransitionType[] = stateMachine.transitions ?? [];
+    let observers: WorkflowObserverType[] = stateMachine.observers ?? [];
 
     const parentTemplate = stateMachine?.extends;
     if (parentTemplate) {
@@ -43,13 +42,10 @@ export class StateMachineConfigService {
     };
   }
 
-  getStateMachineFlatConfig(
-    stateMachineConfig: WorkflowStateMachineType,
-  ) {
+  getStateMachineFlatConfig(stateMachineConfig: WorkflowStateMachineType) {
     let transitions: WorkflowTransitionType[] =
       stateMachineConfig.transitions ?? [];
-    let observers: WorkflowObserverType[] =
-      stateMachineConfig.observers ?? [];
+    let observers: WorkflowObserverType[] = stateMachineConfig.observers ?? [];
 
     if (stateMachineConfig.template) {
       const stateMachine = this.getTemplateFlat(stateMachineConfig.template);

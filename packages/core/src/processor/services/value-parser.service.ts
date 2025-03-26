@@ -3,11 +3,12 @@ import { FunctionCallService } from '../../common/services/function-call.service
 
 @Injectable()
 export class ValueParserService {
-  constructor(
-    private functionCallService: FunctionCallService,
-  ) {}
+  constructor(private functionCallService: FunctionCallService) {}
 
-  parseValue(value: string | string[], variables: Record<string, any>): any | any[] {
+  parseValue(
+    value: string | string[],
+    variables: Record<string, any>,
+  ): any | any[] {
     if (Array.isArray(value)) {
       return value.map((item) => this.parseValue(item, variables));
     }

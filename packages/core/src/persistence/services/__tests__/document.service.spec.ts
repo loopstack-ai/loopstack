@@ -62,19 +62,23 @@ describe('DocumentService', () => {
     });
     await namespaceRepo.save(namespace1);
 
-    const workflow1 = await workflowRepo.save(workflowRepo.create({
-      name: 'Workflow 1',
-      place: 'test1',
-      namespace: namespace1,
-      labels: ['label1', 'label2'],
-    }));
+    const workflow1 = await workflowRepo.save(
+      workflowRepo.create({
+        name: 'Workflow 1',
+        place: 'test1',
+        namespace: namespace1,
+        labels: ['label1', 'label2'],
+      }),
+    );
 
-    const workflow2 = await workflowRepo.save(workflowRepo.create({
-      name: 'Workflow 2',
-      place: 'test2',
-      namespace: namespace1,
-      labels: ['label3', 'label4'],
-    }));
+    const workflow2 = await workflowRepo.save(
+      workflowRepo.create({
+        name: 'Workflow 2',
+        place: 'test2',
+        namespace: namespace1,
+        labels: ['label3', 'label4'],
+      }),
+    );
 
     // Create documents for Project 1
     const document1 = documentRepo.create({
@@ -167,18 +171,18 @@ describe('DocumentService', () => {
 
       // Act
       const query = documentService.createDocumentsQuery(
-          testData.project1.id,
-          testData.workspace.id,
-          { name: 'Document 1' }
+        testData.project1.id,
+        testData.workspace.id,
+        { name: 'Document 1' },
       );
       const result = await query.getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(2); // document1 and document3 have the same name
-      expect(result.map(d => d.id)).toContain(testData.document1.id);
-      expect(result.map(d => d.id)).toContain(testData.document3.id);
-      expect(result.map(d => d.id)).not.toContain(testData.document5.id); // Different project
+      expect(result.map((d) => d.id)).toContain(testData.document1.id);
+      expect(result.map((d) => d.id)).toContain(testData.document3.id);
+      expect(result.map((d) => d.id)).not.toContain(testData.document5.id); // Different project
     });
 
     it('should find documents by name and type', async () => {
@@ -187,9 +191,9 @@ describe('DocumentService', () => {
 
       // Act
       const query = documentService.createDocumentsQuery(
-          testData.project1.id,
-          testData.workspace.id,
-          { name: 'Document 1', type: 'text' }
+        testData.project1.id,
+        testData.workspace.id,
+        { name: 'Document 1', type: 'text' },
       );
       const result = await query.getMany();
 
@@ -204,9 +208,9 @@ describe('DocumentService', () => {
 
       // Act
       const query = documentService.createDocumentsQuery(
-          testData.project1.id,
-          testData.workspace.id,
-          { name: 'Document Invalidated' }
+        testData.project1.id,
+        testData.workspace.id,
+        { name: 'Document Invalidated' },
       );
       const result = await query.getMany();
 
@@ -220,10 +224,10 @@ describe('DocumentService', () => {
 
       // Act
       const query = documentService.createDocumentsQuery(
-          testData.project1.id,
-          testData.workspace.id,
-          undefined,
-          { ltWorkflowIndex: '3' }
+        testData.project1.id,
+        testData.workspace.id,
+        undefined,
+        { ltWorkflowIndex: '3' },
       );
       const result = await query.getMany();
 
@@ -240,18 +244,18 @@ describe('DocumentService', () => {
 
       // Act
       const query = documentService.createDocumentsQuery(
-          testData.project1.id,
-          testData.workspace.id,
-          { name: 'Document 1' },
-          { isGlobal: true }
+        testData.project1.id,
+        testData.workspace.id,
+        { name: 'Document 1' },
+        { isGlobal: true },
       );
       const result = await query.getMany();
 
       // Assert
       expect(result.length).toBe(3); // document1, document3, and document5
-      expect(result.map(d => d.id)).toContain(testData.document1.id);
-      expect(result.map(d => d.id)).toContain(testData.document3.id);
-      expect(result.map(d => d.id)).toContain(testData.document5.id);
+      expect(result.map((d) => d.id)).toContain(testData.document1.id);
+      expect(result.map((d) => d.id)).toContain(testData.document3.id);
+      expect(result.map((d) => d.id)).toContain(testData.document5.id);
     });
 
     it('should filter by labels', async () => {
@@ -260,10 +264,10 @@ describe('DocumentService', () => {
 
       // Act
       const query = documentService.createDocumentsQuery(
-          testData.project1.id,
-          testData.workspace.id,
-          undefined,
-          { labels: ['label1', 'label2'] }
+        testData.project1.id,
+        testData.workspace.id,
+        undefined,
+        { labels: ['label1', 'label2'] },
       );
       const result = await query.getMany();
 
@@ -278,17 +282,21 @@ describe('DocumentService', () => {
 
       // Act
       const query = documentService.createDocumentsQuery(
-          testData.project1.id,
-          testData.workspace.id,
-          undefined
+        testData.project1.id,
+        testData.workspace.id,
+        undefined,
       );
       const result = await query.getMany();
 
       // Assert
       expect(result.length).toBe(3); // document1, document2, document3
       // Check ordering
-      expect(Number(result[0].workflowIndex)).toBeGreaterThan(Number(result[1].workflowIndex));
-      expect(Number(result[1].workflowIndex)).toBeGreaterThan(Number(result[2].workflowIndex));
+      expect(Number(result[0].workflowIndex)).toBeGreaterThan(
+        Number(result[1].workflowIndex),
+      );
+      expect(Number(result[1].workflowIndex)).toBeGreaterThan(
+        Number(result[2].workflowIndex),
+      );
     });
 
     it('should combine multiple filter conditions correctly', async () => {
@@ -297,21 +305,21 @@ describe('DocumentService', () => {
 
       // Act
       const query = documentService.createDocumentsQuery(
-          testData.project1.id,
-          testData.workspace.id,
-          undefined,
-          {
-            labels: ['label1'],
-            ltWorkflowIndex: '3'
-          }
+        testData.project1.id,
+        testData.workspace.id,
+        undefined,
+        {
+          labels: ['label1'],
+          ltWorkflowIndex: '3',
+        },
       );
       const result = await query.getMany();
 
       // Assert
       expect(result.length).toBe(2); // document1 and document2
-      expect(result.map(d => d.id)).toContain(testData.document1.id);
-      expect(result.map(d => d.id)).toContain(testData.document2.id);
-      expect(result.map(d => d.id)).not.toContain(testData.document3.id); // workflow_index = 3
+      expect(result.map((d) => d.id)).toContain(testData.document1.id);
+      expect(result.map((d) => d.id)).toContain(testData.document2.id);
+      expect(result.map((d) => d.id)).not.toContain(testData.document3.id); // workflow_index = 3
     });
   });
 });

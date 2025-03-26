@@ -3,7 +3,9 @@ import { JsonSchemaGeneratorService } from '../services/json-schema-generator.se
 
 @Command({ name: 'generate-schemas', description: 'Generate json schema' })
 export class GenerateSchemasCommand extends CommandRunner {
-  constructor(private readonly jsonSchemaGeneratorService: JsonSchemaGeneratorService) {
+  constructor(
+    private readonly jsonSchemaGeneratorService: JsonSchemaGeneratorService,
+  ) {
     super();
   }
 

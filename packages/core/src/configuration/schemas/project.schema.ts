@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const ProjectSchema = z.object({
   name: z.string(),
@@ -6,4 +6,4 @@ export const ProjectSchema = z.object({
   entrypoint: z.string(),
 });
 
-export type ProjectType = z.infer<typeof ProjectSchema>
+export type ProjectType = z.infer<typeof ProjectSchema>;

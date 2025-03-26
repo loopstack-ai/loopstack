@@ -26,7 +26,7 @@ export class ProjectEntity {
   @Column('jsonb', { default: [] })
   labels: string[];
 
-  @Column("ltree", { default: '1' })
+  @Column('ltree', { default: '1' })
   index: string;
 
   @Column({

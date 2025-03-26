@@ -1,5 +1,4 @@
-export const LOOP_ADAPTER_DECORATOR =
-  'LOOP_ADAPTER_DECORATOR';
+export const LOOP_ADAPTER_DECORATOR = 'LOOP_ADAPTER_DECORATOR';
 
 export function Adapter(): ClassDecorator {
   return (target) => {

@@ -1,4 +1,4 @@
-import "reflect-metadata";
+import 'reflect-metadata';
 
 export * from './loop-core.module';
 export * from './utils';

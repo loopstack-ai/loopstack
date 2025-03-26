@@ -13,14 +13,14 @@ import crypto from 'crypto';
 import {
   WorkflowType,
   WorkflowFactoryType,
-  WorkflowStateMachineType, WorkflowPipelineType,
+  WorkflowStateMachineType,
+  WorkflowPipelineType,
 } from '../../configuration/schemas/workflow.schema';
 import { LoopConfigService } from '../../configuration';
 import { WorkflowData } from '../interfaces/workflow-data.interface';
 
 @Injectable()
 export class WorkflowProcessorService {
-
   stop: boolean = false;
 
   constructor(
@@ -59,10 +59,7 @@ export class WorkflowProcessorService {
       const localContext = this.contextService.create(processState.context);
       localContext.index = this.incrementIndex(index, i + 1);
 
-      processState.context = await this.processChild(
-        itemName,
-        localContext,
-      );
+      processState.context = await this.processChild(itemName, localContext);
 
       if (this.stop) {
         break;
@@ -106,15 +103,21 @@ export class WorkflowProcessorService {
       const localContext = this.contextService.create(processState.context);
       localContext.index = this.incrementIndex(index, i + 1);
 
-      const label = factory.iterator.label ? this.valueParserService.parseValue(
-          factory.iterator.label,
-          { item, context: localContext, workflow: processState.workflow },
-      ) : item.toString();
+      const label = factory.iterator.label
+        ? this.valueParserService.parseValue(factory.iterator.label, {
+            item,
+            context: localContext,
+            workflow: processState.workflow,
+          })
+        : item.toString();
 
-      const metadata = factory.iterator.meta ? this.valueParserService.parseValue(
-          factory.iterator.meta,
-          { item, context: localContext, workflow: processState.workflow },
-      ) : undefined;
+      const metadata = factory.iterator.meta
+        ? this.valueParserService.parseValue(factory.iterator.meta, {
+            item,
+            context: localContext,
+            workflow: processState.workflow,
+          })
+        : undefined;
 
       // create namespace for the group iterator and make sure the value includes a unique id,
       // so there is no risk of re-using the same value for different things within
@@ -132,10 +135,7 @@ export class WorkflowProcessorService {
 
       // since a factory always adds a namespace and thus, separates the context
       // we do not need to update the processState context
-      await this.processChild(
-        workflowName,
-        localContext,
-      );
+      await this.processChild(workflowName, localContext);
 
       if (this.stop) {
         break;
@@ -156,7 +156,7 @@ export class WorkflowProcessorService {
           item,
           processState.workflow,
           processState.context,
-          processState.data
+          processState.data,
         );
 
         // if (workflow) {
@@ -188,7 +188,7 @@ export class WorkflowProcessorService {
     workflowConfig: WorkflowType,
     processState: ProcessStateInterface,
   ): Promise<ProcessStateInterface> {
-    switch(workflowConfig.type) {
+    switch (workflowConfig.type) {
       case 'pipeline':
         return this.runSequenceType(workflowConfig, processState);
       case 'factory':
@@ -226,19 +226,24 @@ export class WorkflowProcessorService {
   }
 
   isStateful(workflowConfig: WorkflowType) {
-    return workflowConfig.type === 'stateMachine' || workflowConfig.type === 'tool';
+    return (
+      workflowConfig.type === 'stateMachine' || workflowConfig.type === 'tool'
+    );
   }
 
   async processChild(
     name: string,
     context: ContextInterface,
   ): Promise<ContextInterface> {
-    const workflowConfig = this.loopConfigService.get<WorkflowType>('workflows', name);
+    const workflowConfig = this.loopConfigService.get<WorkflowType>(
+      'workflows',
+      name,
+    );
     if (!workflowConfig) {
       throw new Error(`workflow with name "${name}" not found.`);
     }
 
-    const data: WorkflowData = {}
+    const data: WorkflowData = {};
 
     // create or load state if needed
     const workflow = this.isStateful(workflowConfig)
@@ -261,15 +266,8 @@ export class WorkflowProcessorService {
     return context;
   }
 
-  start(
-    entrypoint: string,
-    context: ContextInterface,
-  ) {
-
+  start(entrypoint: string, context: ContextInterface) {
     this.stop = false;
-    return this.processChild(
-      entrypoint,
-      context,
-    );
+    return this.processChild(entrypoint, context);
   }
 }

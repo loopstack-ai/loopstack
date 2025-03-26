@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { ToolApplicationInfo, ToolInterface, ToolResult } from '../../processor/interfaces/tool.interface';
+import {
+  ToolApplicationInfo,
+  ToolInterface,
+  ToolResult,
+} from '../../processor/interfaces/tool.interface';
 import { DocumentEntity, WorkflowEntity } from '../../persistence/entities';
 import _ from 'lodash';
 import { createHash } from '@loopstack/shared';
@@ -17,10 +21,7 @@ const LoadDocumentArgsSchema = z.object({
     name: z.string(),
     type: z.string().optional(),
   }),
-  labels: z.union([
-    z.string(),
-    z.array(z.string()).optional(),
-  ]),
+  labels: z.union([z.string(), z.array(z.string()).optional()]),
   map: z.string().optional(),
   filter: z.string().optional(),
   sort: z.boolean().optional(),
@@ -42,7 +43,6 @@ export type LoadDocumentArgsInterface = z.infer<typeof LoadDocumentArgsSchema>;
 @Injectable()
 @Tool()
 export class LoadDocumentTool implements ToolInterface {
-
   schema = LoadDocumentArgsSchema;
 
   constructor(
@@ -67,7 +67,10 @@ export class LoadDocumentTool implements ToolInterface {
    * modify items by mapping, flattening and sorting entities
    * uses defined functions for mapping
    */
-  applyModifiers(props: z.infer<typeof this.schema>, entities: DocumentEntity[]) {
+  applyModifiers(
+    props: z.infer<typeof this.schema>,
+    entities: DocumentEntity[],
+  ) {
     const defaultMapFunction = '{ entity.contents }';
     const mapFunc = props.map ?? defaultMapFunction;
 
@@ -121,7 +124,7 @@ export class LoadDocumentTool implements ToolInterface {
       : [await query.getOne()].filter((d) => !!d);
 
     if (!entities.length && !props.optional) {
-      throw new Error(`Document(s) not found.`)
+      throw new Error(`Document(s) not found.`);
     }
 
     return this.applyFilters(props, entities);
@@ -134,11 +137,12 @@ export class LoadDocumentTool implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity,
   ) {
-    const previousDependencies = workflow.dependencies?.filter(
-      (item) =>
-        item.name === props.where.name &&
-        (!props.where.type || item.type === props.where.type),
-    ) ?? [];
+    const previousDependencies =
+      workflow.dependencies?.filter(
+        (item) =>
+          item.name === props.where.name &&
+          (!props.where.type || item.type === props.where.type),
+      ) ?? [];
 
     return this.applyFilters(props, previousDependencies);
   }
@@ -189,9 +193,7 @@ export class LoadDocumentTool implements ToolInterface {
     if (!_.isEqual(sortedOldIds, sortedNewIds)) {
       // ids have changed
       // update the workflow dependency relations and hash value
-      workflow.dependenciesHash = newIds.length
-        ? createHash(newIds)
-        : null;
+      workflow.dependenciesHash = newIds.length ? createHash(newIds) : null;
       workflow.dependencies = newDependencies;
 
       return true;
@@ -241,8 +243,11 @@ export class LoadDocumentTool implements ToolInterface {
       data.imports = {};
     }
 
-    data.imports[props.name] =
-      this.createImportItem(props, currentEntities, previousEntities);
+    data.imports[props.name] = this.createImportItem(
+      props,
+      currentEntities,
+      previousEntities,
+    );
 
     return data;
   }
@@ -274,7 +279,10 @@ export class LoadDocumentTool implements ToolInterface {
     );
 
     // get and filter entities from workflow dependencies
-    const previousEntities = this.getDocumentsByDependencies(validProps, workflow);
+    const previousEntities = this.getDocumentsByDependencies(
+      validProps,
+      workflow,
+    );
 
     // update workflow dependencies, if applicable
     if (!validProps.ignoreChanges) {
@@ -297,6 +305,6 @@ export class LoadDocumentTool implements ToolInterface {
     return {
       data,
       workflow,
-    }
+    };
   }
 }

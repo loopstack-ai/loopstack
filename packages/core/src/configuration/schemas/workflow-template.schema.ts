@@ -1,5 +1,5 @@
-import { z } from "zod";
-import {WorkflowObserverSchema} from "./workflow-observer.schema";
+import { z } from 'zod';
+import { WorkflowObserverSchema } from './workflow-observer.schema';
 import { WorkflowTransitionSchema } from '@loopstack/shared';
 
 export const WorkflowTemplateSchema = z.object({

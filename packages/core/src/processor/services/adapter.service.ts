@@ -10,7 +10,10 @@ export class AdapterService {
   ) {}
 
   getAdapterConfig(adapterName: string) {
-    const adapterConfig = this.loopConfigService.get<ServiceConfigType>('adapters', adapterName);
+    const adapterConfig = this.loopConfigService.get<ServiceConfigType>(
+      'adapters',
+      adapterName,
+    );
     if (!adapterConfig) {
       throw new Error(`Adapter config with name ${adapterName} not found.`);
     }
@@ -23,9 +26,8 @@ export class AdapterService {
     props: any,
     context?: any,
   ): Promise<any> {
-    const adapterInstance = this.adapterRegistry.getAdapterByName(
-      adapterServiceName,
-    );
+    const adapterInstance =
+      this.adapterRegistry.getAdapterByName(adapterServiceName);
     if (!adapterInstance) {
       throw new Error(`Adapter ${adapterServiceName} not found.`);
     }

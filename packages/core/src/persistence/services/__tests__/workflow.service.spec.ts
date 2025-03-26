@@ -194,8 +194,8 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(testData.namespace1.id)
-          .getMany();
+        .createFindQuery(testData.namespace1.id)
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -213,10 +213,10 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(testData.namespace1.id, {
-            name: 'Workflow Single Label',
-          })
-          .getMany();
+        .createFindQuery(testData.namespace1.id, {
+          name: 'Workflow Single Label',
+        })
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -231,10 +231,10 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(testData.namespace1.id, {
-            labels: [],
-          })
-          .getMany();
+        .createFindQuery(testData.namespace1.id, {
+          labels: [],
+        })
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -249,10 +249,10 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(testData.namespace1.id, {
-            labels: ['label1'],
-          })
-          .getMany();
+        .createFindQuery(testData.namespace1.id, {
+          labels: ['label1'],
+        })
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -267,10 +267,10 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(testData.namespace1.id, {
-            labels: ['label1', 'label2', 'label3'],
-          })
-          .getMany();
+        .createFindQuery(testData.namespace1.id, {
+          labels: ['label1', 'label2', 'label3'],
+        })
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -285,10 +285,10 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(testData.namespace1.id, {
-            name: 'Non-existent Workflow',
-          })
-          .getMany();
+        .createFindQuery(testData.namespace1.id, {
+          name: 'Non-existent Workflow',
+        })
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -301,10 +301,10 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(testData.namespace1.id, {
-            labels: ['non-existent-label'],
-          })
-          .getMany();
+        .createFindQuery(testData.namespace1.id, {
+          labels: ['non-existent-label'],
+        })
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -317,11 +317,11 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(testData.namespace1.id, {
-            name: 'Workflow Multiple Labels',
-            labels: ['label1', 'label2', 'label3'],
-          })
-          .getMany();
+        .createFindQuery(testData.namespace1.id, {
+          name: 'Workflow Multiple Labels',
+          labels: ['label1', 'label2', 'label3'],
+        })
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -335,11 +335,11 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(testData.namespace1.id, {
-            name: 'Workflow No Labels',
-            labels: ['label1'], // This workflow has no labels
-          })
-          .getMany();
+        .createFindQuery(testData.namespace1.id, {
+          name: 'Workflow No Labels',
+          labels: ['label1'], // This workflow has no labels
+        })
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -352,10 +352,10 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(testData.namespace1.id, {
-            name: 'Workflow Multiple Labels',
-          })
-          .getMany();
+        .createFindQuery(testData.namespace1.id, {
+          name: 'Workflow Multiple Labels',
+        })
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);
@@ -373,8 +373,8 @@ describe('WorkflowService', () => {
 
       // Act
       const result = await workflowService
-          .createFindQuery(nonExistentNamespaceId)
-          .getMany();
+        .createFindQuery(nonExistentNamespaceId)
+        .getMany();
 
       // Assert
       expect(Array.isArray(result)).toBe(true);

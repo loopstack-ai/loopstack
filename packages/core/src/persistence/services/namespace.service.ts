@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NamespaceEntity } from '../entities/namespace.entity';
 import { NamespaceCreateInterface } from '../interfaces/namespace-create.interface';
-import {ProjectEntity} from "../entities";
+import { ProjectEntity } from '../entities';
 
 @Injectable()
 export class NamespacesService {
@@ -67,7 +67,7 @@ export class NamespacesService {
       projectId: project.id,
       workspaceId: project.workspaceId,
       metadata: {
-        title: project.title
+        title: project.title,
       },
       createdBy: project.createdBy,
       parent: null,

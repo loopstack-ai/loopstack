@@ -5,13 +5,16 @@ import { ActionHelperService } from '../../common';
 import { WorkflowEntity } from '../../persistence/entities';
 import { ContextInterface } from '../../processor/interfaces/context.interface';
 import { WorkflowData } from '../../processor/interfaces/workflow-data.interface';
-import { ToolApplicationInfo, ToolInterface, ToolResult } from '../../processor/interfaces/tool.interface';
+import {
+  ToolApplicationInfo,
+  ToolInterface,
+  ToolResult,
+} from '../../processor/interfaces/tool.interface';
 import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
 
 @Injectable()
 @Tool()
 export class DebugImportsTool implements ToolInterface {
-
   schema = z.object({}).optional();
 
   constructor(private actionHelperService: ActionHelperService) {}
@@ -32,12 +35,14 @@ export class DebugImportsTool implements ToolInterface {
           contents: JSON.stringify(item, null, 2),
           contentType: 'json',
           meta: {
-            hideAtPlaces: ['finished']
-          }
+            hideAtPlaces: ['finished'],
+          },
         } as DocumentCreateInterface;
 
-        this.actionHelperService.validateDocument(documentData)
-        documents.push(this.actionHelperService.createDocument(documentData, info));
+        this.actionHelperService.validateDocument(documentData);
+        documents.push(
+          this.actionHelperService.createDocument(documentData, info),
+        );
       }
     }
 

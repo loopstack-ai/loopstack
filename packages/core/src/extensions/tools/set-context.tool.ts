@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { ToolApplicationInfo, ToolInterface, ToolResult } from '../../processor/interfaces/tool.interface';
+import {
+  ToolApplicationInfo,
+  ToolInterface,
+  ToolResult,
+} from '../../processor/interfaces/tool.interface';
 import { z } from 'zod';
 import { Tool } from '../../processor';
 import { WorkflowEntity } from '../../persistence/entities';
@@ -9,7 +13,6 @@ import { WorkflowData } from '../../processor/interfaces/workflow-data.interface
 @Injectable()
 @Tool()
 export class SetContextTool implements ToolInterface {
-
   schema = z.object({
     key: z.string(),
     value: z.any(),

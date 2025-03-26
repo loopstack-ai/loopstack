@@ -26,7 +26,7 @@ export class ToolRegistry {
       );
 
       if (options) {
-        console.log(instance.constructor.name)
+        console.log(instance.constructor.name);
         this.registerTool(instance);
       }
     }

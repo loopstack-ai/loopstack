@@ -34,6 +34,6 @@ import { ConfigurationModule } from '../configuration';
     InitialRunValidator,
     WorkflowOptionValidator,
   ],
-  exports: []
+  exports: [],
 })
 export class ExtensionsModule {}
