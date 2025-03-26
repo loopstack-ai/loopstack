@@ -8,7 +8,6 @@ import { ToolRegistry } from './services';
 import { GenerateSchemasCommand } from './commands/generate-schemas.command';
 import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generator.service';
 import { DiscoveryModule } from '@nestjs/core';
-import { ActionRegistry } from './services';
 import { SnippetCollectionService } from './services';
 import { MigrationsService } from './services/migrations.service';
 
@@ -26,7 +25,6 @@ import { MigrationsService } from './services/migrations.service';
     SnippetCollectionService,
     JsonSchemaGeneratorService,
     ToolRegistry,
-    ActionRegistry,
     AdapterRegistry,
     GenerateSchemasCommand,
     DynamicSchemaGeneratorService,
@@ -35,7 +33,6 @@ import { MigrationsService } from './services/migrations.service';
     LoopConfigService,
     SnippetCollectionService,
     ToolRegistry,
-    ActionRegistry,
     AdapterRegistry,
   ],
 })

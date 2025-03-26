@@ -1,5 +1,4 @@
 import { TransitionPayloadInterface } from '@loopstack/shared';
-import { ContextImportInterface } from './context-import.interface';
 import { NamespaceEntity } from '../../persistence/entities';
 
 export interface ContextInterface {
@@ -14,11 +13,4 @@ export interface ContextInterface {
   index: string;
   labels: string[];
   namespace: NamespaceEntity;
-
-  // global, always carried over or set globally
-  stopSignal?: boolean;
-
-  // only local
-  // customOptions?: Record<string, any>;
-  // imports?: ContextImportInterface[];
 }

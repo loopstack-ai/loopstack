@@ -1,7 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
 import { SnippetCollectionService } from './snippet-collection.service';
-import { ActionRegistry } from './action-registry.service';
 import { AdapterRegistry } from './adapter-registry.service';
 import { ToolRegistry } from './tool.registry';
 import { ConfigService } from '@nestjs/config';
@@ -15,7 +14,6 @@ export class LoopConfigService implements OnModuleInit {
 
   constructor(
     private configService: ConfigService,
-    private actionRegistry: ActionRegistry,
     private adapterRegistry: AdapterRegistry,
     private toolRegistry: ToolRegistry,
 
@@ -94,7 +92,6 @@ export class LoopConfigService implements OnModuleInit {
   init(configs: any[]) {
     this.clear();
 
-    this.actionRegistry.initialize();
     this.adapterRegistry.initialize();
     this.toolRegistry.initialize();
     if (configs) {

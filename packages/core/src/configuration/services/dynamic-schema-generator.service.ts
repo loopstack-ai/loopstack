@@ -1,7 +1,6 @@
 import { z, ZodType } from 'zod';
 import { Injectable } from '@nestjs/common';
 import { ToolRegistry } from './tool.registry';
-import { ActionRegistry } from './action-registry.service';
 import { AdapterRegistry } from './adapter-registry.service';
 import { MainBaseSchema } from '../schemas/main.schema';
 import { ServiceWithSchemaInterface } from '../../processor/interfaces/service-with-schema.interface';
@@ -13,7 +12,6 @@ export class DynamicSchemaGeneratorService {
 
     constructor(
       private readonly toolRegistry: ToolRegistry,
-      private readonly actionRegistry: ActionRegistry,
       private readonly adapterRegistry: AdapterRegistry,
     ) {}
 
@@ -30,12 +28,10 @@ export class DynamicSchemaGeneratorService {
 
     createDynamicSchema(): ReturnType<typeof MainBaseSchema.extend> {
         const toolConfigSchemas = this.createDiscriminatedServiceType(this.toolRegistry.getEntries());
-        const actionConfigSchemas = this.createDiscriminatedServiceType(this.actionRegistry.getEntries());
         const adapterConfigSchemas = this.createDiscriminatedServiceType(this.adapterRegistry.getEntries());
 
         return MainBaseSchema.extend({
             tools: z.array(toolConfigSchemas).optional(),
-            actions: z.array(actionConfigSchemas).optional(),
             adapters: z.array(adapterConfigSchemas).optional(),
         }).strict()
     }

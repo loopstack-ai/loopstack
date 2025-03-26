@@ -16,7 +16,6 @@ export const MainBaseSchema = z.object({
   documents: z.array(DocumentSchema).optional(),
   snippets: z.any(),
   tools: z.array(ServiceConfigSchema).optional(),
-  actions: z.array(ServiceConfigSchema).optional(),
   adapters: z.array(ServiceConfigSchema).optional(),
 }).strict();
 
