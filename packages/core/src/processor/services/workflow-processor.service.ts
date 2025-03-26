@@ -150,11 +150,26 @@ export class WorkflowProcessorService {
     processState: ProcessStateInterface,
   ) {
     // before functions update the local context
-    processState = await this.toolExecutionService.applyTools(
-      stateMachineConfig.prepare,
-      processState,
-      processState,
-    );
+    if (stateMachineConfig.prepare) {
+      for (const item of stateMachineConfig.prepare) {
+        const result = await this.toolExecutionService.applyTool(
+          item,
+          processState.workflow,
+          processState.context,
+          processState.data
+        );
+
+        // if (workflow) {
+        //   processState.workflow = workflow;
+        // }
+        if (result.context) {
+          processState.context = result.context;
+        }
+        if (result.data) {
+          processState.data = result.data;
+        }
+      }
+    }
 
     processState.workflow =
       await this.stateMachineProcessorService.processStateMachine(

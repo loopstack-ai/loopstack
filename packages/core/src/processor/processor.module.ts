@@ -10,7 +10,6 @@ import { DiscoveryModule } from '@nestjs/core';
 import { StateMachineValidatorRegistry } from './services/state-machine-validator.registry';
 import { StateMachineProcessorService } from './services/state-machine-processor.service';
 import { StateMachineConfigService } from './services/state-machine-config.service';
-import { StateMachineActionService } from './services/state-machine-action.service';
 import { CommonModule } from '../common';
 
 @Module({
@@ -30,7 +29,6 @@ import { CommonModule } from '../common';
     StateMachineValidatorRegistry,
     StateMachineProcessorService,
     StateMachineConfigService,
-    StateMachineActionService,
     AdapterService,
   ],
   exports: [

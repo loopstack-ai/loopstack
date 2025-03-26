@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ContextInterface } from '../interfaces/context.interface';
 import { StateMachineConfigService } from './state-machine-config.service';
 import { WorkflowService } from '../../persistence/services/workflow.service';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
@@ -8,21 +7,20 @@ import _ from 'lodash';
 import { TransitionContextInterface } from '../interfaces/transition-context.interface';
 import { HistoryTransition } from '../../persistence/interfaces';
 import { WorkflowStateContextInterface } from '../interfaces/workflow-state-context.interface';
-import { StateMachineActionService } from './state-machine-action.service';
 import { WorkflowEntity } from '../../persistence/entities';
 import { WorkflowStatePlaceInfoDto } from '../../persistence/dtos';
 import { WorkflowStateHistoryDto } from '../../persistence/dtos';
 import { WorkflowStateMachineType } from '../../configuration/schemas/workflow.schema';
-import { WorkflowObserverType } from '../../configuration/schemas/workflow-observer.schema';
 import { ProcessStateInterface } from '../interfaces/process-state.interface';
+import { ToolExecutionService } from './tool-execution.service';
 
 @Injectable()
 export class StateMachineProcessorService {
   constructor(
     private readonly workflowConfigService: StateMachineConfigService,
     private readonly workflowService: WorkflowService,
+    private readonly toolExecutionService: ToolExecutionService,
     private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry,
-    private readonly stateMachineActionService: StateMachineActionService,
   ) {}
 
   canSkipRun(
@@ -180,11 +178,14 @@ export class StateMachineProcessorService {
     const { transitions, observers } =
       this.workflowConfigService.getStateMachineFlatConfig(stateMachineConfig);
 
-    processState.workflow = await this.initStateMachine(
+    let workflow = await this.initStateMachine(
       processState.workflow!,
       transitions,
       workflowStateContext.invalidationReasons,
     );
+
+    const context = processState.context;
+    const data = processState.data;
 
     const userTransitions = workflowStateContext.pendingTransition
       ? [workflowStateContext.pendingTransition]
@@ -193,7 +194,7 @@ export class StateMachineProcessorService {
     outerLoop: while (true) {
       while (true) {
         const transitionContext = this.getTransitionContext(
-          processState.workflow,
+          workflow,
           userTransitions,
         );
 
@@ -212,29 +213,33 @@ export class StateMachineProcessorService {
             observerIndex++;
 
             console.log(
-              `calling observer ${observer.action} on transition ${observer.transition}`,
+              `calling observer ${observer.tool} on transition ${observer.transition}`,
             );
 
-            const actionResult =
-              await this.stateMachineActionService.executeAction(
+            const result =
+              await this.toolExecutionService.applyTool(
                 observer,
-                processState,
-                workflowStateContext,
-                transitionContext,
+                workflow,
+                context,
+                data,
+                {
+                  transition: transitionContext.transition,
+                  payload: transitionContext.payload,
+                }
               );
+
+            if (result.data?.data?.nextPlace) {
+              nextPlace = result.data?.data?.nextPlace;
+            }
+
+            if (result.workflow) {
+              workflow = result.workflow;
+            }
 
             // save immediately for multiple observers
             // skip saving the last one here
             if (observerIndex <= matchedObservers.length) {
-              await this.workflowService.save(processState.workflow);
-            }
-
-            if (actionResult.nextPlace) {
-              nextPlace = actionResult.nextPlace;
-            }
-
-            if (actionResult.workflow) {
-              processState.workflow = actionResult.workflow;
+              await this.workflowService.save(workflow);
             }
           }
 
@@ -251,11 +256,11 @@ export class StateMachineProcessorService {
             to: nextPlace,
           };
 
-          this.updateWorkflowState(processState.workflow, transitions, historyItem);
-          await this.workflowService.save(processState.workflow);
+          this.updateWorkflowState(workflow, transitions, historyItem);
+          await this.workflowService.save(workflow);
         } catch (e) {
           console.log(e);
-          processState.workflow.error = e.message;
+          workflow.error = e.message;
           break outerLoop;
         }
       }
@@ -265,9 +270,9 @@ export class StateMachineProcessorService {
       }
     }
 
-    processState.workflow.isWorking = false;
-    await this.workflowService.save(processState.workflow);
+    workflow.isWorking = false;
+    await this.workflowService.save(workflow);
 
-    return processState.workflow;
+    return workflow;
   }
 }

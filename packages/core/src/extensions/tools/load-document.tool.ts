@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ToolInterface } from '../../processor/interfaces/tool.interface';
-import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
-import { DocumentEntity } from '../../persistence/entities';
+import { ToolApplicationInfo, ToolInterface, ToolResult } from '../../processor/interfaces/tool.interface';
+import { DocumentEntity, WorkflowEntity } from '../../persistence/entities';
 import _ from 'lodash';
 import { createHash } from '@loopstack/shared';
 import { ContextImportInterface } from '../../processor/interfaces/context-import.interface';
@@ -9,6 +8,8 @@ import { DocumentService } from '../../persistence/services/document.service';
 import { z } from 'zod';
 import { FunctionCallService } from '../../common';
 import { Tool } from '../../processor';
+import { ContextInterface } from '../../processor/interfaces/context.interface';
+import { WorkflowData } from '../../processor/interfaces/workflow-data.interface';
 
 const LoadDocumentArgsSchema = z.object({
   name: z.string(),
@@ -98,16 +99,18 @@ export class LoadDocumentTool implements ToolInterface {
    */
   async getDocumentsByQuery(
     props: z.infer<typeof this.schema>,
-    target: ProcessStateInterface,
+    projectId: string,
+    workspaceId: string,
+    workflow: WorkflowEntity,
   ): Promise<DocumentEntity[]> {
     const query = this.documentService.createDocumentsQuery(
-      target.context.projectId,
-      target.context.workspaceId,
+      projectId,
+      workspaceId,
       props.where,
       {
         isGlobal: !!props.global,
         labels: props.labels as string[],
-        ltWorkflowIndex: target.workflow!.index,
+        ltWorkflowIndex: workflow.index,
       },
     );
 
@@ -129,13 +132,9 @@ export class LoadDocumentTool implements ToolInterface {
    */
   getDocumentsByDependencies(
     props: z.infer<typeof this.schema>,
-    target: ProcessStateInterface,
+    workflow: WorkflowEntity,
   ) {
-    if (!target.workflow) {
-      throw new Error('Workflow is undefined');
-    }
-
-    const previousDependencies = target.workflow.dependencies?.filter(
+    const previousDependencies = workflow.dependencies?.filter(
       (item) =>
         item.name === props.where.name &&
         (!props.where.type || item.type === props.where.type),
@@ -148,15 +147,15 @@ export class LoadDocumentTool implements ToolInterface {
    * creates a new list of dependencies, replacing previous items with new while keeping unrelated dependencies untouched
    */
   replacePreviousDependenciesWithCurrent(
-    target: ProcessStateInterface,
+    workflow: WorkflowEntity,
     currentEntities: DocumentEntity[],
     previousEntities: DocumentEntity[],
   ): DocumentEntity[] {
-    if (!target.workflow) {
+    if (!workflow) {
       throw new Error('Workflow is undefined');
     }
 
-    const allEntities = target.workflow.dependencies ?? [];
+    const allEntities = workflow.dependencies ?? [];
 
     const previousEntityIdSet = new Set(
       previousEntities.map((item) => item?.id).filter(Boolean),
@@ -173,14 +172,14 @@ export class LoadDocumentTool implements ToolInterface {
    * updates the workflow's dependencies and hash, if changed
    */
   updateWorkflowDependenciesIfChanged(
-    target: ProcessStateInterface,
+    workflow: WorkflowEntity,
     newDependencies: DocumentEntity[],
   ): boolean {
-    if (!target.workflow) {
+    if (!workflow) {
       throw new Error('Workflow is undefined');
     }
 
-    const oldDependencies = target.workflow.dependencies ?? [];
+    const oldDependencies = workflow.dependencies ?? [];
     const oldIds = oldDependencies.map((item) => item.id);
     const newIds = newDependencies.map((item) => item.id);
 
@@ -190,10 +189,10 @@ export class LoadDocumentTool implements ToolInterface {
     if (!_.isEqual(sortedOldIds, sortedNewIds)) {
       // ids have changed
       // update the workflow dependency relations and hash value
-      target.workflow.dependenciesHash = newIds.length
+      workflow.dependenciesHash = newIds.length
         ? createHash(newIds)
         : null;
-      target.workflow.dependencies = newDependencies;
+      workflow.dependencies = newDependencies;
 
       return true;
     }
@@ -229,23 +228,23 @@ export class LoadDocumentTool implements ToolInterface {
    * add import item to context object
    */
   updateContext(
-    processState: ProcessStateInterface,
+    data: WorkflowData | undefined,
     props: z.infer<typeof this.schema>,
     currentEntities: DocumentEntity[],
     previousEntities: DocumentEntity[],
-  ): ProcessStateInterface {
-    if (!processState.data) {
-      processState.data = {};
+  ): WorkflowData {
+    if (!data) {
+      data = {};
     }
 
-    if (!processState.data.imports) {
-      processState.data.imports = {};
+    if (!data.imports) {
+      data.imports = {};
     }
 
-    processState.data.imports[props.name] =
+    data.imports[props.name] =
       this.createImportItem(props, currentEntities, previousEntities);
 
-    return processState;
+    return data;
   }
 
   /**
@@ -255,32 +254,49 @@ export class LoadDocumentTool implements ToolInterface {
    */
   async apply(
     props: z.infer<typeof this.schema>,
-    target: ProcessStateInterface,
-  ): Promise<ProcessStateInterface> {
+    workflow: WorkflowEntity | undefined,
+    context: ContextInterface,
+    data: WorkflowData | undefined,
+    info: ToolApplicationInfo,
+  ): Promise<ToolResult> {
+    if (!workflow) {
+      throw new Error('Workflow is undefined');
+    }
+
     const validProps = this.schema.parse(props);
 
     // load and filter entities based on options from database
-    const currentEntities = await this.getDocumentsByQuery(validProps, target);
+    const currentEntities = await this.getDocumentsByQuery(
+      validProps,
+      context.projectId,
+      context.workspaceId,
+      workflow,
+    );
 
     // get and filter entities from workflow dependencies
-    const previousEntities = this.getDocumentsByDependencies(validProps, target);
+    const previousEntities = this.getDocumentsByDependencies(validProps, workflow);
 
     // update workflow dependencies, if applicable
     if (!validProps.ignoreChanges) {
       const newDependencies = this.replacePreviousDependenciesWithCurrent(
-        target,
+        workflow,
         currentEntities,
         previousEntities,
       );
-      this.updateWorkflowDependenciesIfChanged(target, newDependencies);
+      this.updateWorkflowDependenciesIfChanged(workflow, newDependencies);
     }
 
     // update the context, add import data
-    return this.updateContext(
-      target,
+    data = this.updateContext(
+      data,
       validProps,
       currentEntities,
       previousEntities,
     );
+
+    return {
+      data,
+      workflow,
+    }
   }
 }

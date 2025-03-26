@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { LoopConfigService, ToolRegistry } from '../../configuration';
-import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ValueParserService } from './value-parser.service';
 import { ToolCallType } from '../../configuration/schemas/tool-config.schema';
 import { ServiceConfigType } from '../../configuration/schemas/service-config.schema';
+import { ToolApplicationInfo, ToolExecutionResult, ToolResult } from '../interfaces/tool.interface';
+import { ContextInterface } from '../interfaces/context.interface';
+import { WorkflowData } from '../interfaces/workflow-data.interface';
+import { DocumentEntity, WorkflowEntity } from '../../persistence/entities';
+import { DocumentService } from '../../persistence/services/document.service';
 
 @Injectable()
 export class ToolExecutionService {
@@ -11,14 +15,15 @@ export class ToolExecutionService {
     private loopConfigService: LoopConfigService,
     private valueParserService: ValueParserService,
     private toolRegistry: ToolRegistry,
+    private documentService: DocumentService,
   ) {}
 
   private parseCallProps(
     props: Record<string, any> | undefined,
-    source: ProcessStateInterface,
+    variables: any,
   ): Record<string, any> {
     return props
-      ? this.valueParserService.parseObjectValues(props, { ...source })
+      ? this.valueParserService.parseObjectValues(props, variables)
       : {};
   }
 
@@ -33,10 +38,15 @@ export class ToolExecutionService {
 
   async applyTool(
     toolCall: ToolCallType,
-    target: ProcessStateInterface,
-    source: ProcessStateInterface,
-  ): Promise<ProcessStateInterface> {
-    const callProps = this.parseCallProps(toolCall.props, source);
+    workflow: WorkflowEntity | undefined,
+    context: ContextInterface,
+    data: WorkflowData | undefined,
+    info: ToolApplicationInfo = {},
+  ): Promise<ToolExecutionResult> {
+    const callProps = this.parseCallProps(toolCall.props, {
+      context,
+      data,
+    });
 
     const toolConfig = this.getToolConfig(toolCall.tool);
 
@@ -51,22 +61,20 @@ export class ToolExecutionService {
       throw new Error(`Tool service ${toolConfig.service} not found.`);
     }
 
-    return instance.apply(props, target, source);
-  }
+    const result = await instance.apply(props, workflow, context, data, info);
 
-  async applyTools(
-    executions: ToolCallType[] | undefined,
-    target: ProcessStateInterface,
-    source: ProcessStateInterface,
-  ): Promise<ProcessStateInterface> {
-    if (!executions?.length) {
-      return target;
+    // create and add documents from action
+    const documents: DocumentEntity[] = []
+    if (workflow && result.documents?.length) {
+      for (const documentData of result.documents) {
+        documents.push(this.documentService.create(workflow, context, documentData));
+      }
     }
 
-    for (const item of executions) {
-      target = await this.applyTool(item, target, source);
+    return {
+      ...result,
+      documents,
     }
-
-    return target;
   }
+
 }

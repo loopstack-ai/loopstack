@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ToolInterface } from '../../processor/interfaces/tool.interface';
-import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
+import { ToolApplicationInfo, ToolInterface, ToolResult } from '../../processor/interfaces/tool.interface';
 import { z } from 'zod';
 import { Tool } from '../../processor';
+import { WorkflowEntity } from '../../persistence/entities';
+import { ContextInterface } from '../../processor/interfaces/context.interface';
+import { WorkflowData } from '../../processor/interfaces/workflow-data.interface';
 
 @Injectable()
 @Tool()
@@ -14,12 +16,17 @@ export class SetContextTool implements ToolInterface {
   });
 
   async apply(
-    options: any,
-    target: ProcessStateInterface,
-  ): Promise<ProcessStateInterface> {
-    const validOptions = this.schema.parse(options);
+    props: z.infer<typeof this.schema>,
+    workflow: WorkflowEntity | undefined,
+    context: ContextInterface,
+    data: WorkflowData | undefined,
+    info: ToolApplicationInfo,
+  ): Promise<ToolResult> {
+    const validOptions = this.schema.parse(props);
 
-    target.context[validOptions.key] = validOptions.value;
-    return target;
+    context[validOptions.key] = validOptions.value;
+    return {
+      context,
+    };
   }
 }

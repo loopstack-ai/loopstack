@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { ToolInterface } from '../../processor/interfaces/tool.interface';
-import { ProcessStateInterface } from '../../processor/interfaces/process-state.interface';
+import { ToolApplicationInfo, ToolInterface, ToolResult } from '../../processor/interfaces/tool.interface';
 import { generateObjectFingerprint } from '@loopstack/shared';
 import { Tool } from '../../processor';
+import { WorkflowEntity } from '../../persistence/entities';
+import { ContextInterface } from '../../processor/interfaces/context.interface';
+import { WorkflowData } from '../../processor/interfaces/workflow-data.interface';
 
 @Injectable()
 @Tool()
@@ -14,22 +16,28 @@ export class SetCustomOptionTool implements ToolInterface {
   });
 
   async apply(
-    data: any,
-    target: ProcessStateInterface,
-  ): Promise<ProcessStateInterface> {
-    const options = this.schema.parse(data);
+    props: z.infer<typeof this.schema>,
+    workflow: WorkflowEntity | undefined,
+    context: ContextInterface,
+    data: WorkflowData | undefined,
+    info: ToolApplicationInfo,
+  ): Promise<ToolResult> {
+    const options = this.schema.parse(props);
 
-    const currentCustomOptions = target.data?.options ?? {};
+    const currentCustomOptions = data?.options ?? {};
     currentCustomOptions[options.key] = options.value;
 
-    if (!target.data) {
-      target.data = {};
+    if (!data) {
+      data = {};
     }
-    target.data.options = currentCustomOptions;
-    target.workflow!.optionsHash = generateObjectFingerprint(
-      target.data.options,
+    data.options = currentCustomOptions;
+    workflow!.optionsHash = generateObjectFingerprint(
+      data.options,
     );
 
-    return target;
+    return {
+      data,
+      workflow,
+    };
   }
 }
