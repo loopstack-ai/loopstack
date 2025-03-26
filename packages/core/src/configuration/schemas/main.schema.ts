@@ -6,6 +6,7 @@ import { PromptTemplateSchema } from './prompt-template.schema';
 import { DocumentSchema } from '@loopstack/shared';
 import { WorkflowSchema } from './workflow.schema';
 import { ServiceConfigSchema } from './service-config.schema';
+import { SnippetConfigSchema } from './snippet-config.schema';
 
 export const MainBaseSchema = z
   .object({
@@ -15,7 +16,7 @@ export const MainBaseSchema = z
     workflowTemplates: z.array(WorkflowTemplateSchema).optional(),
     promptTemplates: z.array(PromptTemplateSchema).optional(),
     documents: z.array(DocumentSchema).optional(),
-    snippets: z.any(),
+    snippets: z.array(SnippetConfigSchema).optional(),
     tools: z.array(ServiceConfigSchema).optional(),
     adapters: z.array(ServiceConfigSchema).optional(),
   })

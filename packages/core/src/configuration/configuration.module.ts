@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { CollectionService } from './services/collection.service';
 import { AdapterRegistry, LoopConfigService } from './services';
 import { ConfigModule } from '@nestjs/config';
 import loadSchemas from './configuration';
@@ -8,7 +7,6 @@ import { ToolRegistry } from './services';
 import { GenerateSchemasCommand } from './commands/generate-schemas.command';
 import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generator.service';
 import { DiscoveryModule } from '@nestjs/core';
-import { SnippetCollectionService } from './services';
 import { MigrationsService } from './services/migrations.service';
 
 @Module({
@@ -21,8 +19,6 @@ import { MigrationsService } from './services/migrations.service';
   providers: [
     LoopConfigService,
     MigrationsService,
-    CollectionService,
-    SnippetCollectionService,
     JsonSchemaGeneratorService,
     ToolRegistry,
     AdapterRegistry,
@@ -31,7 +27,6 @@ import { MigrationsService } from './services/migrations.service';
   ],
   exports: [
     LoopConfigService,
-    SnippetCollectionService,
     ToolRegistry,
     AdapterRegistry,
   ],

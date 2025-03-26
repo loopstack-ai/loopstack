@@ -1,6 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
-import { SnippetCollectionService } from './snippet-collection.service';
 import { AdapterRegistry } from './adapter-registry.service';
 import { ToolRegistry } from './tool.registry';
 import { ConfigService } from '@nestjs/config';
@@ -17,7 +16,6 @@ export class LoopConfigService implements OnModuleInit {
     private toolRegistry: ToolRegistry,
 
     private mainSchemaGenerator: DynamicSchemaGeneratorService,
-    private snippetCollectionService: SnippetCollectionService,
   ) {
     this.registry = new Map();
   }
@@ -29,7 +27,6 @@ export class LoopConfigService implements OnModuleInit {
 
   clear() {
     this.registry = new Map();
-    this.snippetCollectionService.clear();
   }
 
   updateConfig(key: string, data: NamedCollectionItem[]) {
@@ -83,15 +80,6 @@ export class LoopConfigService implements OnModuleInit {
     for (const key of keys) {
       this.updateConfig(key, config[key]);
     }
-
-    this.snippetCollectionService.create(
-      config.snippets
-        ? Object.entries(config.snippets).map(([name, value]) => ({
-            name,
-            value,
-          }))
-        : [],
-    );
   }
 
   init(configs: any[]) {
