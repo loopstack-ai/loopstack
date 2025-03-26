@@ -4,10 +4,10 @@ import {
   LoadDocumentTool,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
-import { FunctionCallService } from '../../../processor';
 import { ProcessStateInterface } from '../../../processor/interfaces/process-state.interface';
 import { DocumentEntity } from '../../../persistence/entities';
 import { WorkflowEntity } from '../../../persistence/entities';
+import { FunctionCallService } from '../../../common';
 
 describe('LoadDocumentTool', () => {
   let loadDocumentTool: LoadDocumentTool;
@@ -69,7 +69,7 @@ describe('LoadDocumentTool', () => {
       // Act
       const result = loadDocumentTool.getDocumentsByDependencies(
         options,
-        mockProcessState as ProcessStateInterface,
+        mockProcessState.workflow!,
       );
 
       // Assert
@@ -113,7 +113,7 @@ describe('LoadDocumentTool', () => {
       // Act
       const result = loadDocumentTool.getDocumentsByDependencies(
         options,
-        mockProcessState as ProcessStateInterface,
+        mockProcessState.workflow!,
       );
 
       // Assert
@@ -149,7 +149,7 @@ describe('LoadDocumentTool', () => {
       // Act
       const result = loadDocumentTool.getDocumentsByDependencies(
         options,
-        mockProcessState as ProcessStateInterface,
+        mockProcessState.workflow!,
       );
 
       // Assert

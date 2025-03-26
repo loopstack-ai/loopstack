@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoadDocumentTool } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
-import { FunctionCallService } from '../../../processor';
 import { ProcessStateInterface } from '../../../processor/interfaces/process-state.interface';
 import { DocumentEntity } from '../../../persistence/entities';
 import { createMock } from '@golevelup/ts-jest';
+import { FunctionCallService } from '../../../common';
 
 describe('LoadDocumentTool', () => {
   let loadDocumentTool: LoadDocumentTool;
@@ -57,7 +57,7 @@ describe('LoadDocumentTool', () => {
 
       // Act
       const result = loadDocumentTool.replacePreviousDependenciesWithCurrent(
-        mockProcessState,
+        mockProcessState.workflow!,
         mockCurrentEntities,
         mockPreviousEntities,
       );
@@ -91,7 +91,7 @@ describe('LoadDocumentTool', () => {
 
       // Act
       const result = loadDocumentTool.replacePreviousDependenciesWithCurrent(
-        mockProcessState,
+        mockProcessState.workflow!,
         mockCurrentEntities,
         mockPreviousEntities,
       );
@@ -122,7 +122,7 @@ describe('LoadDocumentTool', () => {
 
       // Act
       const result = loadDocumentTool.replacePreviousDependenciesWithCurrent(
-        mockProcessState,
+        mockProcessState.workflow!,
         mockCurrentEntities,
         mockPreviousEntities,
       );
@@ -150,7 +150,7 @@ describe('LoadDocumentTool', () => {
 
       // Act
       const result = loadDocumentTool.replacePreviousDependenciesWithCurrent(
-        mockProcessState,
+        mockProcessState.workflow!,
         mockCurrentEntities,
         mockPreviousEntities,
       );
@@ -184,7 +184,7 @@ describe('LoadDocumentTool', () => {
 
       // Act
       const result = loadDocumentTool.replacePreviousDependenciesWithCurrent(
-        mockProcessState,
+        mockProcessState.workflow!,
         mockCurrentEntities,
         mockPreviousEntities,
       );

@@ -4,9 +4,9 @@ import {
   LoadDocumentTool,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
-import { FunctionCallService } from '../../../processor';
 import { DocumentEntity } from '../../../persistence/entities';
 import * as _ from 'lodash';
+import { FunctionCallService } from '../../../common';
 
 // Mock the dependencies
 jest.mock('lodash', () => ({

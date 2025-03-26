@@ -4,9 +4,9 @@ import {
   LoadDocumentTool,
 } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
-import { FunctionCallService } from '../../../processor';
 import { ProcessStateInterface } from '../../../processor/interfaces/process-state.interface';
 import { DocumentEntity } from '../../../persistence/entities';
+import { FunctionCallService } from '../../../common';
 
 describe('LoadDocumentTool', () => {
   let loadDocumentTool: LoadDocumentTool;
@@ -100,7 +100,7 @@ describe('LoadDocumentTool', () => {
       mockQueryBuilder.getOne.mockResolvedValue(mockDocuments[0]);
 
       // Act
-      await loadDocumentTool.getDocumentsByQuery(options, mockProcessState);
+      await loadDocumentTool.getDocumentsByQuery(options, mockProjectId, mockWorkspaceId, mockProcessState.workflow!);
 
       // Assert
       expect(documentService.createDocumentsQuery).toHaveBeenCalledWith(
@@ -127,7 +127,7 @@ describe('LoadDocumentTool', () => {
       // Act
       const result = await loadDocumentTool.getDocumentsByQuery(
         options,
-        mockProcessState,
+        mockProjectId, mockWorkspaceId, mockProcessState.workflow!
       );
 
       // Assert
@@ -148,7 +148,7 @@ describe('LoadDocumentTool', () => {
       // Act
       const result = await loadDocumentTool.getDocumentsByQuery(
         options,
-        mockProcessState,
+        mockProjectId, mockWorkspaceId, mockProcessState.workflow!
       );
 
       // Assert
@@ -163,13 +163,13 @@ describe('LoadDocumentTool', () => {
         name: 'Test Load',
         where: { name: 'Non-existent Document' },
         many: false,
+        optional: true,
       };
       mockQueryBuilder.getOne.mockResolvedValue(null);
 
       // Act
       const result = await loadDocumentTool.getDocumentsByQuery(
-        options,
-        mockProcessState,
+        options, mockProjectId, mockWorkspaceId, mockProcessState.workflow!
       );
 
       // Assert
@@ -187,7 +187,7 @@ describe('LoadDocumentTool', () => {
       mockQueryBuilder.getOne.mockResolvedValue(mockDocuments[0]);
 
       // Act
-      await loadDocumentTool.getDocumentsByQuery(options, mockProcessState);
+      await loadDocumentTool.getDocumentsByQuery(options, mockProjectId, mockWorkspaceId, mockProcessState.workflow!);
 
       // Assert
       expect(documentService.createDocumentsQuery).toHaveBeenCalledWith(
@@ -211,7 +211,7 @@ describe('LoadDocumentTool', () => {
       mockQueryBuilder.getOne.mockResolvedValue(mockDocuments[0]);
 
       // Act
-      await loadDocumentTool.getDocumentsByQuery(options, mockProcessState);
+      await loadDocumentTool.getDocumentsByQuery(options, mockProjectId, mockWorkspaceId, mockProcessState.workflow!);
 
       // Assert
       expect(documentService.createDocumentsQuery).toHaveBeenCalledWith(
@@ -235,7 +235,7 @@ describe('LoadDocumentTool', () => {
       mockQueryBuilder.getMany.mockResolvedValue(mockDocuments);
 
       // Act
-      await loadDocumentTool.getDocumentsByQuery(options, mockProcessState);
+      await loadDocumentTool.getDocumentsByQuery(options, mockProjectId, mockWorkspaceId, mockProcessState.workflow!);
 
       // Assert
       expect(loadDocumentTool.applyFilters).toHaveBeenCalledWith(

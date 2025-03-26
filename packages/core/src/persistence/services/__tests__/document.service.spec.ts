@@ -4,6 +4,7 @@ import {
   setupTestEnvironment,
   TestSetup,
 } from '../../__tests__/database-entities-utils';
+import { WorkflowService } from '../workflow.service';
 
 describe('DocumentService', () => {
   let testSetup: TestSetup;
@@ -12,7 +13,7 @@ describe('DocumentService', () => {
   beforeAll(async () => {
     testSetup = await setupTestEnvironment({
       databaseName: 'document_service_test',
-      providers: [DocumentService],
+      providers: [DocumentService, WorkflowService],
     });
     documentService = testSetup.moduleRef.get<DocumentService>(DocumentService);
   });
@@ -82,8 +83,9 @@ describe('DocumentService', () => {
       workspaceId: workspace.id,
       projectId: project1.id,
       workflow: workflow1,
-      workflowIndex: 1,
+      workflowIndex: '1',
       labels: ['label1', 'label2'],
+      contentType: 'object',
       contents: { text: 'Document 1 content' },
     });
     await documentRepo.save(document1);
@@ -94,8 +96,9 @@ describe('DocumentService', () => {
       workspaceId: workspace.id,
       projectId: project1.id,
       workflow: workflow1,
-      workflowIndex: 2,
+      workflowIndex: '2',
       labels: ['label1', 'label3'],
+      contentType: 'object',
       contents: { url: 'image-url' },
     });
     await documentRepo.save(document2);
@@ -106,8 +109,9 @@ describe('DocumentService', () => {
       workspaceId: workspace.id,
       projectId: project1.id,
       workflow: workflow2,
-      workflowIndex: 3,
+      workflowIndex: '3',
       labels: ['label3', 'label4'],
+      contentType: 'object',
       contents: { url: 'pdf-url' },
     });
     await documentRepo.save(document3);
@@ -119,9 +123,10 @@ describe('DocumentService', () => {
       workspaceId: workspace.id,
       projectId: project1.id,
       workflow: workflow1,
-      workflowIndex: 4,
+      workflowIndex: '4',
       labels: ['label1', 'label2'],
       isInvalidated: true,
+      contentType: 'object',
       contents: { text: 'Invalid content' },
     });
     await documentRepo.save(document4);
@@ -133,8 +138,9 @@ describe('DocumentService', () => {
       workspaceId: workspace.id,
       projectId: project2.id,
       workflow: workflow1,
-      workflowIndex: 5,
+      workflowIndex: '5',
       labels: ['label1', 'label2'],
+      contentType: 'object',
       contents: { text: 'Document from Project 2' },
     });
     await documentRepo.save(document5);
@@ -217,14 +223,15 @@ describe('DocumentService', () => {
           testData.project1.id,
           testData.workspace.id,
           undefined,
-          { ltWorkflowIndex: 3 }
+          { ltWorkflowIndex: '3' }
       );
       const result = await query.getMany();
 
       // Assert
-      expect(result.length).toBe(2);
-      expect(result[1].name).toBe(testData.document1.name);
-      expect(result[0].name).toBe(testData.document2.name);
+      expect(result.length).toBe(3);
+      expect(result[0].name).toBe(testData.document1.name);
+      expect(result[1].name).toBe(testData.document2.name);
+      expect(result[2].name).toBe(testData.document3.name);
     });
 
     it('should find documents across workspaces when isGlobal is true', async () => {
@@ -280,8 +287,8 @@ describe('DocumentService', () => {
       // Assert
       expect(result.length).toBe(3); // document1, document2, document3
       // Check ordering
-      expect(result[0].workflowIndex).toBeGreaterThan(result[1].workflowIndex);
-      expect(result[1].workflowIndex).toBeGreaterThan(result[2].workflowIndex);
+      expect(Number(result[0].workflowIndex)).toBeGreaterThan(Number(result[1].workflowIndex));
+      expect(Number(result[1].workflowIndex)).toBeGreaterThan(Number(result[2].workflowIndex));
     });
 
     it('should combine multiple filter conditions correctly', async () => {
@@ -295,7 +302,7 @@ describe('DocumentService', () => {
           undefined,
           {
             labels: ['label1'],
-            ltWorkflowIndex: 3
+            ltWorkflowIndex: '3'
           }
       );
       const result = await query.getMany();

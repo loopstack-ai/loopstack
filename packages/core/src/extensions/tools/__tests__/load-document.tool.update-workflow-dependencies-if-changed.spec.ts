@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoadDocumentTool } from '../load-document.tool';
 import { DocumentService } from '../../../persistence/services/document.service';
-import { FunctionCallService } from '../../../processor';
 import { DocumentEntity } from '../../../persistence/entities';
 import { ProcessStateInterface } from '../../../processor/interfaces/process-state.interface';
 import * as lodash from 'lodash';
 import { createHash } from '@loopstack/shared';
+import { FunctionCallService } from '../../../common';
 
 // Mock the lodash module
 jest.mock('lodash', () => ({
@@ -76,7 +76,7 @@ describe('LoadDocumentTool', () => {
 
       // Act
       const result = loadDocumentTool.updateWorkflowDependenciesIfChanged(
-        mockProcessState,
+        mockProcessState.workflow!,
         newDependencies,
       );
 
@@ -108,7 +108,7 @@ describe('LoadDocumentTool', () => {
 
       // Act
       const result = loadDocumentTool.updateWorkflowDependenciesIfChanged(
-        mockProcessState,
+        mockProcessState.workflow!,
         newDependencies,
       );
 
@@ -137,7 +137,7 @@ describe('LoadDocumentTool', () => {
 
       // Act
       const result = loadDocumentTool.updateWorkflowDependenciesIfChanged(
-        mockProcessState,
+        mockProcessState.workflow!,
         newDependencies,
       );
 
@@ -157,7 +157,7 @@ describe('LoadDocumentTool', () => {
       // Act & Assert
       expect(() => {
         loadDocumentTool.updateWorkflowDependenciesIfChanged(
-          mockProcessStateWithoutWorkflow,
+          mockProcessStateWithoutWorkflow.workflow!,
           newDependencies,
         );
       }).toThrow();

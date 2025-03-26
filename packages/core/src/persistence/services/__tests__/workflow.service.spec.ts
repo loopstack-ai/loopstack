@@ -116,6 +116,7 @@ describe('WorkflowService', () => {
       workspaceId: workspace.id,
       projectId: project1.id,
       workflow: workflow1,
+      contentType: 'object',
       contents: { text: 'Document 1 content' },
       labels: [],
     });
@@ -127,6 +128,7 @@ describe('WorkflowService', () => {
       workspaceId: workspace.id,
       projectId: project1.id,
       workflow: workflow2,
+      contentType: 'object',
       contents: { text: 'Document 2 content' },
       labels: [],
     });
@@ -138,6 +140,7 @@ describe('WorkflowService', () => {
       workspaceId: workspace.id,
       projectId: project1.id,
       workflow: workflow3,
+      contentType: 'object',
       contents: { text: 'Document 3 content' },
       labels: [],
     });
@@ -149,6 +152,7 @@ describe('WorkflowService', () => {
       workspaceId: workspace.id,
       projectId: project1.id,
       workflow: workflow4,
+      contentType: 'object',
       contents: { text: 'Document 4 content' },
       labels: [],
     });
@@ -160,6 +164,7 @@ describe('WorkflowService', () => {
       workspaceId: workspace.id,
       projectId: project1.id,
       workflow: workflow5,
+      contentType: 'object',
       contents: { text: 'Document 5 content' },
       labels: [],
     });

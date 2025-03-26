@@ -68,6 +68,7 @@ describe('Workflow Entity Cascade Delete Tests', () => {
             type: 'text',
             workspaceId: workspace.id,
             projectId: project.id,
+            contentType: 'object',
             contents: { text: 'Dependent content 1' },
             labels: [],
         });
@@ -78,6 +79,7 @@ describe('Workflow Entity Cascade Delete Tests', () => {
             type: 'text',
             workspaceId: workspace.id,
             projectId: project.id,
+            contentType: 'object',
             contents: { text: 'Dependent content 2' },
             labels: [],
         });
@@ -94,6 +96,7 @@ describe('Workflow Entity Cascade Delete Tests', () => {
             workspaceId: workspace.id,
             projectId: project.id,
             workflow: workflow,
+            contentType: 'object',
             contents: { text: 'Workflow Doc 1' },
             labels: [],
         });
@@ -105,6 +108,7 @@ describe('Workflow Entity Cascade Delete Tests', () => {
             workspaceId: workspace.id,
             projectId: project.id,
             workflow: workflow,
+            contentType: 'object',
             contents: { text: 'Workflow Doc 2' },
             labels: [],
         });

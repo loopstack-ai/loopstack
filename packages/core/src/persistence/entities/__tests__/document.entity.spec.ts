@@ -69,6 +69,7 @@ describe('Document Entity Deletion Tests', () => {
       workspaceId: workspace.id,
       projectId: project.id,
       workflow: workflow,
+      contentType: 'object',
       contents: { text: 'Test content' },
       labels: workflow.labels,
     });

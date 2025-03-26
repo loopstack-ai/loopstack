@@ -6,8 +6,8 @@ import { TemplateEngineService } from './template-engine.service';
 
 export const CreateDocumentWithSchema = z.object({
   template: z.string().optional(),
-  update: PartialDocumentSchema.optional(),
-  create: DocumentSchema.optional(),
+  update: PartialDocumentSchema?.optional(),
+  create: DocumentSchema?.optional(),
 });
 
 @Injectable()
