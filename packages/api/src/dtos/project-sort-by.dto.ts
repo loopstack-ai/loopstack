@@ -1,13 +1,10 @@
-import { ProjectEntity } from '@loopstack/core';
 import { SortOrder } from '../enums/sort-order.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { getEntityColumns } from '../utils/get-entity-columns.util';
-
-const sortFields = getEntityColumns(ProjectEntity);
+import { ProjectEntityInterface } from '@loopstack/shared';
 
 export class ProjectSortByDto {
-  @ApiProperty({ enum: sortFields })
-  field: keyof ProjectEntity;
+  @ApiProperty({ enum: [] })
+  field: keyof ProjectEntityInterface;
 
   @ApiProperty({ enum: SortOrder })
   order: SortOrder;

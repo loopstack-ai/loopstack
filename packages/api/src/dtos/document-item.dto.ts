@@ -1,9 +1,8 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { DocumentEntity } from '@loopstack/core';
 import { DocumentMetaDto } from './document-meta.dto';
 import { DocumentContentsDto } from './document-contents.dto';
-import { ContentTypesType, JSONSchemaConfigType } from '@loopstack/shared';
+import { DocumentEntityInterface, JSONSchemaConfigType } from '@loopstack/shared';
 
 /**
  * Data Transfer Object for Document Item entities
@@ -31,16 +30,6 @@ export class DocumentItemDto {
   name: string;
 
   /**
-   * Type of the document
-   */
-  @Expose()
-  @ApiProperty({
-    description: 'Type of the document',
-    example: 'document',
-  })
-  type: string;
-
-  /**
    * Contents of the document
    */
   @Expose()
@@ -49,16 +38,6 @@ export class DocumentItemDto {
     description: 'Contents of the document',
   })
   contents: DocumentContentsDto | null;
-
-  /**
-   * Content type of the document
-   */
-  @Expose()
-  @ApiProperty({
-    description: 'Content type of the document',
-    example: 'markdown',
-  })
-  contentType: ContentTypesType;
 
   @Expose()
   @ApiProperty({
@@ -201,11 +180,11 @@ export class DocumentItemDto {
   workflowId: string;
 
   /**
-   * Creates a DocumentItemDto instance from a DocumentEntity
+   * Creates a DocumentItemDto instance from a DocumentEntityInterface
    * @param document The document entity to convert
    * @returns A new DocumentItemDto instance
    */
-  static create<T>(document: DocumentEntity<T>): DocumentItemDto {
+  static create<T>(document: DocumentEntityInterface<T>): DocumentItemDto {
     return plainToInstance(DocumentItemDto, document, {
       excludeExtraneousValues: true,
     }) as DocumentItemDto;

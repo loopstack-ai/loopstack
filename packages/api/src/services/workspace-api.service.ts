@@ -2,11 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { IsNull, FindManyOptions, Repository } from 'typeorm';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
 import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
-import { WorkspaceEntity } from '@loopstack/core';
 import { ConfigService } from '@nestjs/config';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
+import { WorkspaceEntity } from '@loopstack/core';
 
 @Injectable()
 export class WorkspaceApiService {

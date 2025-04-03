@@ -2,12 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { IsNull, FindManyOptions, Repository } from 'typeorm';
 import { ProjectCreateDto } from '../dtos/project-create.dto';
 import { ProjectUpdateDto } from '../dtos/project-update.dto';
-import { ProjectEntity } from '@loopstack/core';
 import { ConfigService } from '@nestjs/config';
 import { ProjectSortByDto } from '../dtos/project-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { WorkspaceEntity } from '@loopstack/core';
 import { ProjectFilterDto } from '../dtos/project-filter.dto';
+import { ProjectEntity, WorkspaceEntity } from '@loopstack/core';
 
 @Injectable()
 export class ProjectApiService {

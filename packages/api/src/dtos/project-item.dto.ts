@@ -1,7 +1,6 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { ProjectEntity } from '@loopstack/core';
-import { ProjectStatus } from '@loopstack/shared';
+import { ProjectEntityInterface, ProjectStatus } from '@loopstack/shared';
 
 /**
  * Data Transfer Object for Project item listing
@@ -77,11 +76,11 @@ export class ProjectItemDto {
   workspaceId: string;
 
   /**
-   * Creates a ProjectItemDto instance from a ProjectEntity
-   * @param project The source ProjectEntity to transform
-   * @returns A new ProjectItemDto instance with values from the ProjectEntity
+   * Creates a ProjectItemDto instance from a ProjectEntityInterface
+   * @param project The source ProjectEntityInterface to transform
+   * @returns A new ProjectItemDto instance with values from the ProjectEntityInterface
    */
-  static create(project: ProjectEntity): ProjectItemDto {
+  static create(project: ProjectEntityInterface): ProjectItemDto {
     return plainToInstance(ProjectItemDto, project, {
       excludeExtraneousValues: true,
     });

@@ -27,7 +27,6 @@ import { ApiRequestType } from '../interfaces/api-request.type';
 import { WorkspaceApiService } from '../services/workspace-api.service';
 import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
-import { WorkspaceQueryDto } from '../dtos/workspace-query-dto';
 import { PaginatedDto } from '../dtos/paginated.dto';
 import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
 import { WorkspaceDto } from '../dtos/workspace.dto';

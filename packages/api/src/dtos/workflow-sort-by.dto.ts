@@ -1,13 +1,10 @@
 import { SortOrder } from '../enums/sort-order.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { getEntityColumns } from '../utils/get-entity-columns.util';
-import { WorkflowEntity } from '@loopstack/core';
-
-const sortFields = getEntityColumns(WorkflowEntity);
+import { WorkflowEntityInterface } from '@loopstack/shared';
 
 export class WorkflowSortByDto {
-  @ApiProperty({ enum: sortFields })
-  field: keyof WorkflowEntity;
+  @ApiProperty({ enum: [] })
+  field: keyof WorkflowEntityInterface;
 
   @ApiProperty({ enum: SortOrder })
   order: SortOrder;

@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { IsNull, FindManyOptions, Repository } from 'typeorm';
-import { DocumentEntity } from '@loopstack/core';
 import { ConfigService } from '@nestjs/config';
 import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DocumentFilterDto } from '../dtos/document-filter.dto';
+import { DocumentEntity } from '@loopstack/core';
 
 @Injectable()
 export class DocumentApiService {

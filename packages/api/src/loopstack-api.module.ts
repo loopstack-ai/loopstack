@@ -4,15 +4,12 @@ import { ProjectController } from './controllers/project.controller';
 import { ProjectApiService } from './services/project-api.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProjectEntity } from '@loopstack/core';
-import { WorkspaceEntity } from '@loopstack/core';
 import { WorkspaceController } from './controllers/workspace.controller';
 import { WorkspaceApiService } from './services/workspace-api.service';
 import { ProcessorApiService } from './services/processor-api.service';
 import {
   DocumentEntity,
-  LoopCoreModule,
-  WorkflowEntity,
+  LoopCoreModule, NamespaceEntity, ProjectEntity, WorkflowEntity, WorkspaceEntity,
 } from '@loopstack/core';
 import { ProcessorController } from './controllers/processor.controller';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -23,7 +20,6 @@ import { WorkflowApiService } from './services/workflow-api.service';
 import { DocumentApiService } from './services/document-api.service';
 import {NamespaceController} from "./controllers/namespace.controller";
 import {NamespaceApiService} from "./services/namespace-api.service";
-import {NamespaceEntity} from "@loopstack/core";
 
 @Module({
   imports: [

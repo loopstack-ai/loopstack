@@ -1,7 +1,7 @@
-import {Expose, plainToInstance, Transform, Type} from 'class-transformer';
+import {Expose, plainToInstance, Type} from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import {NamespaceEntity} from "@loopstack/core";
 import {WorkflowItemDto} from "./workflow-item.dto";
+import { NamespaceEntityInterface } from '@loopstack/shared';
 
 /**
  * Data Transfer Object representing a namespace
@@ -68,9 +68,9 @@ export class NamespaceDto {
   workflows: WorkflowItemDto[];
 
   /**
-   * Creates a NamespaceDto instance from a NamespaceEntity
+   * Creates a NamespaceDto instance from a NamespaceEntityInterface
    */
-  static create(namespace: NamespaceEntity): NamespaceDto {
+  static create(namespace: NamespaceEntityInterface): NamespaceDto {
     return plainToInstance(NamespaceDto, namespace, {
       // excludeExtraneousValues: true,
     });

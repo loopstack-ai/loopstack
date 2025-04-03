@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import {IsNull, FindManyOptions, Repository, Any, In} from 'typeorm';
+import {IsNull, FindManyOptions, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import {NamespaceEntity} from "@loopstack/core";
 import {NamespaceFilterDto} from "../dtos/namespace-filter.dto";
 import {NamespaceSortByDto} from "../dtos/namespace-sort-by.dto";
+import { NamespaceEntity } from '@loopstack/core';
 
 @Injectable()
 export class NamespaceApiService {

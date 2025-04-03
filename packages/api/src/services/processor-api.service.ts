@@ -4,11 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProjectEntity } from '@loopstack/core';
 import { IsNull, Repository } from 'typeorm';
-import { WorkspaceEntity } from '@loopstack/core';
 import {ProjectProcessorService} from "@loopstack/core/dist/processor/services/project-processor.service";
 import { RunProjectPayloadDto } from '../dtos/run-project-payload.dto';
+import { ProjectEntity, WorkspaceEntity } from '@loopstack/core';
 
 @Injectable()
 export class ProcessorApiService {
