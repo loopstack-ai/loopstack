@@ -1,7 +1,7 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { DocumentMetaDto } from './document-meta.dto';
-import { DocumentContentsDto } from './document-contents.dto';
+import { DocumentContentDto } from './document-content.dto';
 import { DocumentEntityInterface, JSONSchemaConfigType } from '@loopstack/shared';
 
 /**
@@ -34,10 +34,10 @@ export class DocumentItemDto {
    */
   @Expose()
   @ApiProperty({
-    type: () => DocumentContentsDto,
+    type: () => DocumentContentDto,
     description: 'Contents of the document',
   })
-  contents: DocumentContentsDto | null;
+  content: DocumentContentDto | null;
 
   @Expose()
   @ApiProperty({
