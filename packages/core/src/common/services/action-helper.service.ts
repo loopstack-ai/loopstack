@@ -11,10 +11,10 @@ export class ActionHelperService {
         keywords: ['ui'],
       });
       const validate = ajv.compile(data.schema);
-      const valid = validate(data.contents);
+      const valid = validate(data.content);
       if (!valid) {
         console.log(validate.errors);
-        throw new Error(`Error validating document contents.`);
+        throw new Error(`Error validating document content.`);
       }
     }
   }

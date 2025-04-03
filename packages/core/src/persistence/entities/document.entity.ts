@@ -31,7 +31,7 @@ export class DocumentEntity<T = any> implements DocumentEntityInterface<T> {
   projectId: string;
 
   @Column('jsonb', { nullable: true })
-  contents: T | null;
+  content: T | null;
 
   @Column({
     type: 'jsonb',

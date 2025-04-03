@@ -21,7 +21,7 @@ export class FunctionCallService {
       return value;
     }
 
-    const contents = this.extractGetContents(value);
+    const content = this.extractGetContents(value);
 
     // const context = variables['context'] ? _.cloneDeep(variables['context']) : {};
     // const args = variables['args'] ? _.cloneDeep(variables['args']) : {};
@@ -29,6 +29,6 @@ export class FunctionCallService {
     // note, this is not safe to use with untrusted user input
     // when running user configs those need to run in a safe environment
     // consider using isolated-vm
-    return safeEval(contents, { ...variables, _ }) as unknown as any;
+    return safeEval(content, { ...variables, _ }) as unknown as any;
   }
 }

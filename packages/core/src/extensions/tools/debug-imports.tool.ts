@@ -30,7 +30,7 @@ export class DebugImportsTool implements ToolInterface {
       for (const [name, item] of Object.entries(data.imports)) {
         const documentData = {
           name: `debug-${name}`,
-          contents: JSON.stringify(item, null, 2),
+          content: JSON.stringify(item, null, 2),
           schema: {
             type: 'string',
             ui: {
