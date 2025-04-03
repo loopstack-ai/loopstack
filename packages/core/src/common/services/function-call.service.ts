@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 const safeEval = require('safe-eval');
-import _ from '../../processor/utils/safe-lodash';
+import _ from '../utils/safe-lodash';
 
 @Injectable()
 export class FunctionCallService {

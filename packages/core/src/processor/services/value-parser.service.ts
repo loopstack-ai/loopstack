@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FunctionCallService } from '../../common/services/function-call.service';
+import { FunctionCallService } from '../../common';
 
 @Injectable()
 export class ValueParserService {

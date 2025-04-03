@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { DocumentSchema, PartialDocumentSchema } from '@loopstack/shared';
+import { DocumentSchema, DocumentType, PartialDocumentSchema } from '@loopstack/shared';
 import { FunctionCallService } from './function-call.service';
 import { TemplateEngineService } from './template-engine.service';
 
@@ -70,7 +70,7 @@ export class DocumentHelperService {
     options: z.infer<typeof CreateDocumentWithSchema>,
     template: any,
     context: any,
-  ) {
+  ): DocumentType {
     const prototype = this.prepare(options, template);
     return this.evalObjectLeafs(prototype, context);
   }

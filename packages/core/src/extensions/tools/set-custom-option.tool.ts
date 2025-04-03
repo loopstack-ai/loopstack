@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import {
+  ContextInterface,
+  generateObjectFingerprint, Tool,
   ToolApplicationInfo,
-  ToolInterface,
-  ToolResult,
-} from '../../processor/interfaces/tool.interface';
-import { generateObjectFingerprint } from '@loopstack/shared';
-import { Tool } from '../../processor';
-import { WorkflowEntity } from '../../persistence/entities';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
-import { WorkflowData } from '../../processor/interfaces/workflow-data.interface';
+  ToolInterface, ToolResult,
+  WorkflowData,
+} from '@loopstack/shared';
+import { WorkflowEntity } from '../../persistence';
 
 @Injectable()
 @Tool()

@@ -1,1 +1,2 @@
-export * from './configuration';
+export * from './load-configuration';
+export * from './stable-json-transformer'

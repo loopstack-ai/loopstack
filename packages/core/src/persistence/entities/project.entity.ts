@@ -8,12 +8,12 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ProjectStatus } from '@loopstack/shared';
+import { ProjectEntityInterface, ProjectStatus } from '@loopstack/shared';
 import { WorkspaceEntity } from './workspace.entity';
 import { NamespaceEntity } from './namespace.entity';
 
 @Entity({ name: 'project' })
-export class ProjectEntity {
+export class ProjectEntity implements ProjectEntityInterface {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

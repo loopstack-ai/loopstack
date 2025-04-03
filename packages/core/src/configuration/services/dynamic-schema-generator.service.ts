@@ -2,9 +2,8 @@ import { z, ZodType } from 'zod';
 import { Injectable } from '@nestjs/common';
 import { ToolRegistry } from './tool.registry';
 import { AdapterRegistry } from './adapter-registry.service';
-import { MainBaseSchema } from '../schemas/main.schema';
-import { ServiceWithSchemaInterface } from '../../processor/interfaces/service-with-schema.interface';
-import { ServiceConfigSchema } from '../schemas/service-config.schema';
+import { MainBaseSchema, ServiceConfigSchema } from '@loopstack/shared';
+import { ServiceWithSchemaInterface } from '@loopstack/shared';
 
 @Injectable()
 export class DynamicSchemaGeneratorService {

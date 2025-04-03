@@ -11,20 +11,16 @@ import {
 } from 'typeorm';
 import { WorkflowEntity } from './workflow.entity';
 import { StableJsonTransformer } from '../../utils/stable-json-transformer';
-import { ContentTypesType } from '@loopstack/shared';
+import { DocumentEntityInterface } from '@loopstack/shared';
 
 @Entity({ name: 'document' })
-export class DocumentEntity<T = any> {
+export class DocumentEntity<T = any> implements DocumentEntityInterface<T> {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'varchar' })
   @Index()
   name: string;
-
-  @Column({ type: 'varchar' })
-  @Index()
-  type: string;
 
   @Column({ name: 'workspace_id' })
   @Index()
@@ -37,14 +33,11 @@ export class DocumentEntity<T = any> {
   @Column('jsonb', { nullable: true })
   contents: T | null;
 
-  @Column({ name: 'content_type' })
-  contentType: ContentTypesType;
-
   @Column({
     type: 'jsonb',
     transformer: new StableJsonTransformer(),
     name: 'schema',
-    nullable: true,
+    nullable: false,
   })
   schema: string;
 

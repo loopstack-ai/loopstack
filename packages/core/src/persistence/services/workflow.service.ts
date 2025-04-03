@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { DocumentEntity, WorkflowEntity } from '../entities';
+import { WorkflowEntityInterface } from '@loopstack/shared';
 
 @Injectable()
 export class WorkflowService {
@@ -53,11 +54,11 @@ export class WorkflowService {
     return this.workflowRepository.remove(entity);
   }
 
-  async create(data: Partial<WorkflowEntity>): Promise<WorkflowEntity> {
+  async create(data: Partial<WorkflowEntityInterface>): Promise<WorkflowEntity> {
     const dto = this.workflowRepository.create({
       ...data,
       place: 'initial',
-    });
+    } as WorkflowEntity);
     const entity = await this.workflowRepository.save(dto);
 
     const loaded = await this.findById(entity.id);
@@ -68,14 +69,14 @@ export class WorkflowService {
     return loaded;
   }
 
-  save(entity: WorkflowEntity) {
-    return this.workflowRepository.save(entity);
+  save(entity: WorkflowEntityInterface) {
+    return this.workflowRepository.save(entity as WorkflowEntity);
   }
 
   addDocument(workflow: WorkflowEntity, document: DocumentEntity) {
     // invalidate previous versions of the same document
     for (const doc of workflow.documents) {
-      if (doc.name === document.name && doc.type === document.type) {
+      if (doc.name === document.name) {
         doc.isInvalidated = true;
       }
     }

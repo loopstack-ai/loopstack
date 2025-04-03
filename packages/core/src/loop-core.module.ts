@@ -1,6 +1,5 @@
 import { Module, DynamicModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
   ConfigurableModuleClass,
   LoopCoreModuleOptions,
@@ -21,16 +20,15 @@ export class LoopCoreModule extends ConfigurableModuleClass {
           isGlobal: true,
           load: [() => options ?? {}],
         }),
-        ConfigurationModule,
-        EventEmitterModule.forRoot(),
         CommonModule,
+        ConfigurationModule,
         PersistenceModule,
         ProcessorModule,
         ExtensionsModule,
       ],
       exports: [
-        ConfigurationModule,
         CommonModule,
+        ConfigurationModule,
         PersistenceModule,
         ProcessorModule,
         ExtensionsModule,

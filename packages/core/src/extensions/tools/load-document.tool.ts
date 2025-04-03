@@ -1,25 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import {
-  ToolApplicationInfo,
-  ToolInterface,
-  ToolResult,
-} from '../../processor/interfaces/tool.interface';
-import { DocumentEntity, WorkflowEntity } from '../../persistence/entities';
 import _ from 'lodash';
-import { createHash } from '@loopstack/shared';
-import { ContextImportInterface } from '../../processor/interfaces/context-import.interface';
-import { DocumentService } from '../../persistence/services/document.service';
+import {
+  ContextImportInterface,
+  ContextInterface,
+  createHash, Tool,
+  ToolApplicationInfo,
+  ToolInterface, ToolResult,
+  WorkflowData,
+} from '@loopstack/shared';
 import { z } from 'zod';
 import { FunctionCallService } from '../../common';
-import { Tool } from '../../processor';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
-import { WorkflowData } from '../../processor/interfaces/workflow-data.interface';
+import { DocumentEntity, DocumentService, WorkflowEntity } from '../../persistence';
 
 const LoadDocumentArgsSchema = z.object({
   name: z.string(),
   where: z.object({
     name: z.string(),
-    type: z.string().optional(),
   }),
   labels: z.union([z.string(), z.array(z.string()).optional()]),
   map: z.string().optional(),
@@ -138,11 +134,7 @@ export class LoadDocumentTool implements ToolInterface {
     workflow: WorkflowEntity,
   ) {
     const previousDependencies =
-      workflow.dependencies?.filter(
-        (item) =>
-          item.name === props.where.name &&
-          (!props.where.type || item.type === props.where.type),
-      ) ?? [];
+      workflow.dependencies?.filter((item) => item.name === props.where.name) ?? [];
 
     return this.applyFilters(props, previousDependencies);
   }

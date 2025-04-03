@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { z } from 'zod';
 import {
+  ContextInterface,
+  Tool,
   ToolApplicationInfo,
   ToolInterface,
   ToolResult,
-} from '../../processor/interfaces/tool.interface';
-import { z } from 'zod';
-import { Tool } from '../../processor';
-import { WorkflowEntity } from '../../persistence/entities';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
-import { WorkflowData } from '../../processor/interfaces/workflow-data.interface';
+  WorkflowData,
+} from '@loopstack/shared';
+import { WorkflowEntity } from '../../persistence';
 
 @Injectable()
 @Tool()

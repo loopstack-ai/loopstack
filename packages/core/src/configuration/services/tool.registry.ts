@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
-import { ToolInterface } from '../../processor/interfaces/tool.interface';
-import { LOOP_TOOL_DECORATOR } from '../../processor';
-import { ServiceWithSchemaInterface } from '../../processor/interfaces/service-with-schema.interface';
+import { ToolInterface, ServiceWithSchemaInterface, LOOP_TOOL_DECORATOR } from '@loopstack/shared';
 
 @Injectable()
 export class ToolRegistry {

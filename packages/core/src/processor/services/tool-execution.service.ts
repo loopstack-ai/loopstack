@@ -1,22 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { LoopConfigService, ToolRegistry } from '../../configuration';
+import { ConfigurationService, ToolRegistry } from '../../configuration';
 import { ValueParserService } from './value-parser.service';
-import { ToolCallType } from '../../configuration/schemas/tool-config.schema';
-import { ServiceConfigType } from '../../configuration/schemas/service-config.schema';
 import {
-  ToolApplicationInfo,
-  ToolExecutionResult,
-  ToolResult,
-} from '../interfaces/tool.interface';
-import { ContextInterface } from '../interfaces/context.interface';
-import { WorkflowData } from '../interfaces/workflow-data.interface';
-import { DocumentEntity, WorkflowEntity } from '../../persistence/entities';
-import { DocumentService } from '../../persistence/services/document.service';
+  ContextInterface,
+  ServiceConfigType, ToolApplicationInfo,
+  ToolCallType, ToolResult,
+  WorkflowData,
+  WorkflowEntityInterface,
+} from '@loopstack/shared';
+import { DocumentEntity, DocumentService, WorkflowEntity } from '../../persistence';
 
 @Injectable()
 export class ToolExecutionService {
   constructor(
-    private loopConfigService: LoopConfigService,
+    private loopConfigService: ConfigurationService,
     private valueParserService: ValueParserService,
     private toolRegistry: ToolRegistry,
     private documentService: DocumentService,
@@ -45,11 +42,11 @@ export class ToolExecutionService {
 
   async applyTool(
     toolCall: ToolCallType,
-    workflow: WorkflowEntity | undefined,
+    workflow: WorkflowEntityInterface | undefined,
     context: ContextInterface,
     data: WorkflowData | undefined,
     info: ToolApplicationInfo = {},
-  ): Promise<ToolExecutionResult> {
+  ): Promise<ToolResult> {
     const callProps = this.parseCallProps(toolCall.props, {
       context,
       data,
@@ -75,14 +72,14 @@ export class ToolExecutionService {
     if (workflow && result.documents?.length) {
       for (const documentData of result.documents) {
         documents.push(
-          this.documentService.create(workflow, context, documentData),
+          this.documentService.create(workflow as WorkflowEntity, context, {
+            ...documentData,
+            transition: info.transition,
+          }),
         );
       }
     }
 
-    return {
-      ...result,
-      documents,
-    };
+    return result;
   }
 }

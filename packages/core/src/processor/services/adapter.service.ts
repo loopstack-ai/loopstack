@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { AdapterRegistry, LoopConfigService } from '../../configuration';
-import { ServiceConfigType } from '../../configuration/schemas/service-config.schema';
+import { AdapterRegistry, ConfigurationService } from '../../configuration';
+import { ServiceConfigType } from '@loopstack/shared';
 
 @Injectable()
 export class AdapterService {
   constructor(
     private readonly adapterRegistry: AdapterRegistry,
-    private readonly loopConfigService: LoopConfigService,
+    private readonly loopConfigService: ConfigurationService,
   ) {}
 
   getAdapterConfig(adapterName: string) {

@@ -2,10 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { DocumentEntity, WorkflowEntity } from '../entities';
-import Ajv from 'ajv';
-import { DocumentCreateInterface } from '../interfaces/document-create.interface';
 import { WorkflowService } from './workflow.service';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
+import { ContextInterface } from '@loopstack/shared';
 
 @Injectable()
 export class DocumentService {
@@ -18,7 +16,7 @@ export class DocumentService {
   create(
     workflow: WorkflowEntity,
     context: ContextInterface,
-    data: DocumentCreateInterface,
+    data: Partial<DocumentEntity>,
   ): DocumentEntity {
     const document = this.documentRepository.create({
       ...data,
@@ -40,7 +38,6 @@ export class DocumentService {
     workspaceId: string,
     where?: {
       name: string;
-      type?: string;
     },
     options?: {
       isGlobal?: boolean;

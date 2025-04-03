@@ -14,6 +14,7 @@ export class MigrationsService implements OnModuleInit {
     // }
   }
 
+
   async runMigrations() {
     this.logger.log('Running migrations...');
 

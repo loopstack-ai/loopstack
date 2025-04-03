@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { StateMachineValidatorInterface } from '../../processor';
-import { generateObjectFingerprint } from '@loopstack/shared';
+import { generateObjectFingerprint, StateMachineValidator, StateMachineValidatorInterface } from '@loopstack/shared';
 import { TransitionPayloadInterface } from '@loopstack/shared';
-import { WorkflowEntity } from '../../persistence/entities';
-import { StateMachineValidator } from '../../processor';
+import { WorkflowEntity } from '../../persistence';
 
 @Injectable()
 @StateMachineValidator({ priority: 100 })

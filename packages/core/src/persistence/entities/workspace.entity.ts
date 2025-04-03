@@ -1,9 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ProjectEntity } from './project.entity';
+import { WorkspaceEntityInterface } from '@loopstack/shared';
 
 @Entity({ name: 'workspace' })
-export class WorkspaceEntity {
+export class WorkspaceEntity implements WorkspaceEntityInterface {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

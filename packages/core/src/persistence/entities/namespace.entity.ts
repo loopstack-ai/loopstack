@@ -12,10 +12,11 @@ import {
 } from 'typeorm';
 import { WorkflowEntity } from './workflow.entity';
 import { ProjectEntity } from './project.entity';
+import { NamespaceEntityInterface } from '@loopstack/shared';
 
 @Entity('namespace')
 @Unique(['name', 'model', 'projectId'])
-export class NamespaceEntity {
+export class NamespaceEntity implements NamespaceEntityInterface {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

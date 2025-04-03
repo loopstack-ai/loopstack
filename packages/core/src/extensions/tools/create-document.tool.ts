@@ -1,20 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { Tool } from '../../processor';
-import { DocumentSchema, PartialDocumentSchema } from '@loopstack/shared';
-import { ActionHelperService, DocumentHelperService } from '../../common';
-import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
-import { LoopConfigService } from '../../configuration';
-import { DocumentType } from '@loopstack/shared';
 import {
-  ToolApplicationInfo,
-  ToolInterface,
-  ToolResult,
-} from '../../processor/interfaces/tool.interface';
-import { WorkflowEntity } from '../../persistence/entities';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
-import { WorkflowData } from '../../processor/interfaces/workflow-data.interface';
+  ContextInterface,
+  DocumentSchema,
+  PartialDocumentSchema, Tool, ToolApplicationInfo,
+  ToolInterface, ToolResult,
+  WorkflowData,
+} from '@loopstack/shared';
+import { ActionHelperService, DocumentHelperService } from '../../common';
+import { ConfigurationService } from '../../configuration';
+import { DocumentType } from '@loopstack/shared';
 import { pick } from 'lodash';
 import { z } from 'zod';
+import { WorkflowEntity } from '../../persistence';
 
 @Injectable()
 @Tool()
@@ -28,7 +25,7 @@ export class CreateDocumentTool implements ToolInterface {
 
   constructor(
     private actionHelperService: ActionHelperService,
-    private loopConfigService: LoopConfigService,
+    private loopConfigService: ConfigurationService,
     private documentHelperService: DocumentHelperService,
   ) {}
 
@@ -51,6 +48,8 @@ export class CreateDocumentTool implements ToolInterface {
         )
       : undefined;
 
+    console.log('create template', template)
+
     let document = this.documentHelperService.createDocumentWithSchema(
       validProps,
       template,
@@ -63,10 +62,7 @@ export class CreateDocumentTool implements ToolInterface {
 
     this.actionHelperService.validateDocument(document);
 
-    document = this.actionHelperService.createDocument(
-      document as DocumentCreateInterface,
-      info,
-    );
+    console.log(document)
 
     return {
       documents: [document],

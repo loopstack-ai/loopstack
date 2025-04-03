@@ -1,16 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { WorkflowService } from './services/workflow.service';
-import { ProjectEntity } from './entities';
-import { WorkspaceEntity } from './entities';
-import { WorkflowEntity } from './entities';
-import { DocumentEntity } from './entities';
-import { ProjectService } from './services/project.service';
-import { WorkspaceService } from './services/workspace.service';
-import { ProjectRepository } from './repositories/project.repository';
-import { DocumentService } from './services/document.service';
-import { NamespacesService } from './services/namespace.service';
-import { NamespaceEntity } from './entities';
+import { DocumentEntity, NamespaceEntity, ProjectEntity, WorkflowEntity, WorkspaceEntity } from './entities';
+import { DocumentService, NamespacesService, ProjectService, WorkflowService, WorkspaceService } from './services';
 
 @Module({
   imports: [
@@ -26,7 +17,6 @@ import { NamespaceEntity } from './entities';
     WorkflowService,
     ProjectService,
     WorkspaceService,
-    ProjectRepository,
     DocumentService,
     NamespacesService,
   ],
@@ -34,7 +24,6 @@ import { NamespaceEntity } from './entities';
     WorkflowService,
     ProjectService,
     WorkspaceService,
-    ProjectRepository,
     DocumentService,
     NamespacesService,
   ],

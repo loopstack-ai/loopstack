@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { Tool } from '../../processor';
 import { z } from 'zod';
 import { ActionHelperService } from '../../common';
-import { WorkflowEntity } from '../../persistence/entities';
-import { ContextInterface } from '../../processor/interfaces/context.interface';
-import { WorkflowData } from '../../processor/interfaces/workflow-data.interface';
 import {
+  ContextInterface,
+  DocumentType, Tool,
   ToolApplicationInfo,
   ToolInterface,
   ToolResult,
-} from '../../processor/interfaces/tool.interface';
-import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
+  WorkflowData,
+} from '@loopstack/shared';
+import { WorkflowEntity } from '../../persistence';
 
 @Injectable()
 @Tool()
@@ -26,23 +25,27 @@ export class DebugImportsTool implements ToolInterface {
     data: WorkflowData | undefined,
     info: ToolApplicationInfo,
   ): Promise<ToolResult> {
-    const documents: DocumentCreateInterface[] = [];
+    const documents: DocumentType[] = [];
     if (data?.imports) {
       for (const [name, item] of Object.entries(data.imports)) {
         const documentData = {
           name: `debug-${name}`,
-          type: 'info',
           contents: JSON.stringify(item, null, 2),
-          contentType: 'json',
+          schema: {
+            type: 'string',
+            ui: {
+              widget: 'debug',
+            }
+          },
           meta: {
+            mimeType: 'text/plain',
             hideAtPlaces: ['finished'],
           },
-        } as DocumentCreateInterface;
+        } as DocumentType;
 
         this.actionHelperService.validateDocument(documentData);
-        documents.push(
-          this.actionHelperService.createDocument(documentData, info),
-        );
+
+        documents.push(documentData);
       }
     }
 

@@ -1,21 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { StateMachineConfigService } from './state-machine-config.service';
-import { WorkflowService } from '../../persistence/services/workflow.service';
-import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
 import {
-  TransitionPayloadInterface,
+  HistoryTransition,
+  ProcessStateInterface, TransitionContextInterface,
+  TransitionPayloadInterface, WorkflowEntityInterface,
+  WorkflowStateContextInterface,
+  WorkflowStateHistoryDto,
+  WorkflowStateMachineType,
+  WorkflowStatePlaceInfoDto,
   WorkflowTransitionType,
 } from '@loopstack/shared';
 import _ from 'lodash';
-import { TransitionContextInterface } from '../interfaces/transition-context.interface';
-import { HistoryTransition } from '../../persistence/interfaces';
-import { WorkflowStateContextInterface } from '../interfaces/workflow-state-context.interface';
-import { WorkflowEntity } from '../../persistence/entities';
-import { WorkflowStatePlaceInfoDto } from '../../persistence/dtos';
-import { WorkflowStateHistoryDto } from '../../persistence/dtos';
-import { WorkflowStateMachineType } from '../../configuration/schemas/workflow.schema';
-import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ToolExecutionService } from './tool-execution.service';
+import { WorkflowService } from '../../persistence';
+import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
 
 @Injectable()
 export class StateMachineProcessorService {
@@ -28,7 +26,7 @@ export class StateMachineProcessorService {
 
   canSkipRun(
     pendingTransition: TransitionPayloadInterface | undefined,
-    workflow: WorkflowEntity,
+    workflow: WorkflowEntityInterface,
     options: Record<string, any> | undefined,
   ): { valid: boolean; reasons: string[] } {
     const validationResults = this.stateMachineValidatorRegistry
@@ -47,7 +45,7 @@ export class StateMachineProcessorService {
   async processStateMachine(
     processState: ProcessStateInterface,
     stateMachineConfig: WorkflowStateMachineType,
-  ): Promise<WorkflowEntity> {
+  ): Promise<WorkflowEntityInterface> {
     const { context, workflow, data } = processState;
     console.log('starting with', workflow!.place);
 
@@ -82,7 +80,7 @@ export class StateMachineProcessorService {
   }
 
   updateWorkflowState(
-    workflow: WorkflowEntity,
+    workflow: WorkflowEntityInterface,
     transitions: WorkflowTransitionType[],
     historyItem: HistoryTransition,
   ): void {
@@ -104,10 +102,10 @@ export class StateMachineProcessorService {
   }
 
   async initStateMachine(
-    workflow: WorkflowEntity,
+    workflow: WorkflowEntityInterface,
     transitions: WorkflowTransitionType[],
     invalidationReasons: string[],
-  ): Promise<WorkflowEntity> {
+  ): Promise<WorkflowEntityInterface> {
     workflow.isWorking = true;
 
     // reset workflow to initial if there are invalidation reasons
@@ -139,7 +137,7 @@ export class StateMachineProcessorService {
   }
 
   getTransitionContext(
-    workflow: WorkflowEntity,
+    workflow: WorkflowEntityInterface,
     userTransitions: TransitionPayloadInterface[],
   ): TransitionContextInterface | null {
     let transitionPayload = {};
@@ -177,7 +175,7 @@ export class StateMachineProcessorService {
     processState: ProcessStateInterface,
     stateMachineConfig: WorkflowStateMachineType,
     workflowStateContext: WorkflowStateContextInterface,
-  ): Promise<WorkflowEntity> {
+  ): Promise<WorkflowEntityInterface> {
     const { transitions, observers } =
       this.workflowConfigService.getStateMachineFlatConfig(stateMachineConfig);
 

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { DocumentCreateInterface } from '../../persistence/interfaces/document-create.interface';
 import Ajv from 'ajv';
+import { DocumentType } from '@loopstack/shared';
 
 @Injectable()
 export class ActionHelperService {
-  validateDocument(data: DocumentCreateInterface): void {
+  validateDocument(data: DocumentType): void {
     if (data.schema) {
       const ajv = new Ajv({
         strict: false,
@@ -17,15 +17,5 @@ export class ActionHelperService {
         throw new Error(`Error validating document contents.`);
       }
     }
-  }
-
-  createDocument(
-    data: DocumentCreateInterface,
-    info: any,
-  ): DocumentCreateInterface {
-    return {
-      ...data,
-      transition: info.transition,
-    } as DocumentCreateInterface;
   }
 }

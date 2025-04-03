@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
-import { z, ZodType } from 'zod';
-import { AdapterInterface } from '../../processor/interfaces/adapter.interface';
-import { LOOP_ADAPTER_DECORATOR } from '../../processor';
-import { ServiceWithSchemaInterface } from '../../processor/interfaces/service-with-schema.interface';
+import { AdapterInterface, LOOP_ADAPTER_DECORATOR, ServiceWithSchemaInterface } from '@loopstack/shared';
 
 @Injectable()
 export class AdapterRegistry {

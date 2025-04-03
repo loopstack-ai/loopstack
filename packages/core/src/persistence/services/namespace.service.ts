@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NamespaceEntity } from '../entities/namespace.entity';
-import { NamespaceCreateInterface } from '../interfaces/namespace-create.interface';
-import { ProjectEntity } from '../entities';
+import { NamespaceEntity, ProjectEntity } from '../entities';
+import { NamespaceCreateInterface } from '@loopstack/shared';
 
 @Injectable()
 export class NamespacesService {
@@ -110,7 +109,7 @@ export class NamespacesService {
       namespace = this.namespaceRepository.create({
         name: createNamespaceDto.name,
         model: createNamespaceDto.model,
-        parent: createNamespaceDto.parent ?? undefined,
+        parent: createNamespaceDto.parent as NamespaceEntity ?? undefined,
         workspaceId: createNamespaceDto.workspaceId,
         projectId: createNamespaceDto.projectId,
         metadata: createNamespaceDto.metadata,

@@ -12,10 +12,10 @@ import {
 } from 'typeorm';
 import { DocumentEntity } from './document.entity';
 import { NamespaceEntity } from './namespace.entity';
-import { WorkflowStateHistoryDto, WorkflowStatePlaceInfoDto } from '../dtos';
+import { WorkflowEntityInterface, WorkflowStateHistoryDto, WorkflowStatePlaceInfoDto } from '@loopstack/shared';
 
 @Entity({ name: 'workflow' })
-export class WorkflowEntity {
+export class WorkflowEntity implements WorkflowEntityInterface {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

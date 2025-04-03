@@ -3,11 +3,11 @@ import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.servic
 import { AdapterRegistry } from './adapter-registry.service';
 import { ToolRegistry } from './tool.registry';
 import { ConfigService } from '@nestjs/config';
-import { NamedCollectionItem } from '../interfaces/named-collection-item.interface';
+import { NamedCollectionItem } from '@loopstack/shared';
 import _ from 'lodash';
 
 @Injectable()
-export class LoopConfigService implements OnModuleInit {
+export class ConfigurationService implements OnModuleInit {
   registry: Map<string, Map<string, any>>;
 
   constructor(

@@ -1,17 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigurationService } from '../../configuration';
+import { NamespacesService, ProjectService } from '../../persistence';
 import { WorkflowProcessorService } from './workflow-processor.service';
-import { ContextInterface } from '../interfaces/context.interface';
-import { NamespacesService } from '../../persistence/services/namespace.service';
-import { ProjectService } from '../../persistence/services/project.service';
 import { ContextService } from './context.service';
-import { ProcessRunInterface } from '../interfaces/process-run.interface';
-import { LoopConfigService } from '../../configuration';
-import { ProjectType } from '../../configuration/schemas/project.schema';
+import { ContextInterface, ProcessRunInterface, ProjectType } from '@loopstack/shared';
 
 @Injectable()
 export class ProjectProcessorService {
   constructor(
-    private loopConfigService: LoopConfigService,
+    private loopConfigService: ConfigurationService,
     private projectService: ProjectService,
     private workflowProcessorService: WorkflowProcessorService,
     private namespacesService: NamespacesService,

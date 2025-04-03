@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ActionHelperService, FunctionCallService } from './services';
-import { TemplateEngineService } from './services';
-import { DocumentHelperService } from './services';
+import { ActionHelperService, FunctionCallService, TemplateEngineService, DocumentHelperService } from './services';
 
 @Module({
   providers: [

@@ -1,23 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { ToolExecutionService } from './tool-execution.service';
-import { ContextInterface } from '../interfaces/context.interface';
 import _ from 'lodash';
-import { ProcessStateInterface } from '../interfaces/process-state.interface';
 import { ContextService } from './context.service';
 import { ValueParserService } from './value-parser.service';
 import { StateMachineProcessorService } from './state-machine-processor.service';
-import { WorkflowEntity } from '../../persistence/entities';
-import { WorkflowService } from '../../persistence/services/workflow.service';
-import { NamespacesService } from '../../persistence/services/namespace.service';
 import crypto from 'crypto';
+import { ConfigurationService } from '../../configuration';
+import { NamespacesService, WorkflowEntity, WorkflowService } from '../../persistence';
 import {
-  WorkflowType,
+  ContextInterface,
+  ProcessStateInterface, WorkflowData,
   WorkflowFactoryType,
-  WorkflowStateMachineType,
   WorkflowPipelineType,
-} from '../../configuration/schemas/workflow.schema';
-import { LoopConfigService } from '../../configuration';
-import { WorkflowData } from '../interfaces/workflow-data.interface';
+  WorkflowStateMachineType, WorkflowType,
+} from '@loopstack/shared';
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -25,7 +21,7 @@ export class WorkflowProcessorService {
 
   constructor(
     private contextService: ContextService,
-    private loopConfigService: LoopConfigService,
+    private loopConfigService: ConfigurationService,
     private toolExecutionService: ToolExecutionService,
     private valueParserService: ValueParserService,
     private stateMachineProcessorService: StateMachineProcessorService,
