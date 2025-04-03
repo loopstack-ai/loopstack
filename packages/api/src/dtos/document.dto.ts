@@ -2,7 +2,7 @@ import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { DocumentMetaDto } from './document-meta.dto';
 import { DocumentContentDto } from './document-content.dto';
-import { DocumentEntityInterface, JSONSchemaConfigType } from '@loopstack/shared';
+import { DocumentEntity, JSONSchemaConfigType } from '@loopstack/shared';
 
 /**
  * Data Transfer Object for Document entities
@@ -187,11 +187,11 @@ export class DocumentDto<T = unknown> {
   workflowId: string;
 
   /**
-   * Creates a DocumentDto instance from a DocumentEntityInterface
+   * Creates a DocumentDto instance from a DocumentEntity
    * @param document The document entity to convert
    * @returns A new DocumentDto instance
    */
-  static create<T>(document: DocumentEntityInterface<T>): DocumentDto<T> {
+  static create<T>(document: DocumentEntity<T>): DocumentDto<T> {
     return plainToInstance(DocumentDto, document, {
       excludeExtraneousValues: true,
     }) as DocumentDto<T>;

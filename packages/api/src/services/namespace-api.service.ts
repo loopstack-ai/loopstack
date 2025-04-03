@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import {NamespaceFilterDto} from "../dtos/namespace-filter.dto";
 import {NamespaceSortByDto} from "../dtos/namespace-sort-by.dto";
-import { NamespaceEntity } from '@loopstack/core';
+import { NamespaceEntity } from '@loopstack/shared';
 
 @Injectable()
 export class NamespaceApiService {

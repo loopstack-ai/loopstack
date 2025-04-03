@@ -1,10 +1,13 @@
 import { SortOrder } from '../enums/sort-order.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { NamespaceEntityInterface } from '@loopstack/shared';
+import { NamespaceEntity } from '@loopstack/shared';
+import { getEntityColumns } from '../utils/get-entity-columns.util';
+
+const sortFields = getEntityColumns(NamespaceEntity);
 
 export class NamespaceSortByDto {
-  @ApiProperty({ enum: [] })
-  field: keyof NamespaceEntityInterface;
+  @ApiProperty({ enum: sortFields })
+  field: keyof NamespaceEntity;
 
   @ApiProperty({ enum: SortOrder })
   order: SortOrder;

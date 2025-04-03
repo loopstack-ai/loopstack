@@ -1,6 +1,6 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { WorkspaceEntityInterface } from '@loopstack/shared';
+import { WorkspaceEntity } from '@loopstack/shared';
 
 /**
  * Data Transfer Object for Workspace entity
@@ -56,11 +56,11 @@ export class WorkspaceDto {
   updatedAt: Date;
 
   /**
-   * Creates a WorkspaceDto instance from a WorkspaceEntityInterface
+   * Creates a WorkspaceDto instance from a WorkspaceEntity
    * @param workspace - The workspace entity to transform
    * @returns A new WorkspaceDto instance
    */
-  static create(workspace: WorkspaceEntityInterface): WorkspaceDto {
+  static create(workspace: WorkspaceEntity): WorkspaceDto {
     return plainToInstance(WorkspaceDto, workspace, {
       excludeExtraneousValues: true,
     });

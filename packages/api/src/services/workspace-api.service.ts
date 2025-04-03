@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
-import { WorkspaceEntity } from '@loopstack/core';
+import { WorkspaceEntity } from '@loopstack/shared';
 
 @Injectable()
 export class WorkspaceApiService {

@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DocumentFilterDto } from '../dtos/document-filter.dto';
-import { DocumentEntity } from '@loopstack/core';
+import { DocumentEntity } from '@loopstack/shared';
 
 @Injectable()
 export class DocumentApiService {

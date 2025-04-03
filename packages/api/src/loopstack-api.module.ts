@@ -9,8 +9,8 @@ import { WorkspaceApiService } from './services/workspace-api.service';
 import { ProcessorApiService } from './services/processor-api.service';
 import {
   DocumentEntity,
-  LoopCoreModule, NamespaceEntity, ProjectEntity, WorkflowEntity, WorkspaceEntity,
-} from '@loopstack/core';
+  NamespaceEntity, ProjectEntity, WorkflowEntity, WorkspaceEntity,
+} from '@loopstack/shared';
 import { ProcessorController } from './controllers/processor.controller';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoopstackApiConfigPluginOptions } from './interfaces/api-config-options';
@@ -20,6 +20,7 @@ import { WorkflowApiService } from './services/workflow-api.service';
 import { DocumentApiService } from './services/document-api.service';
 import {NamespaceController} from "./controllers/namespace.controller";
 import {NamespaceApiService} from "./services/namespace-api.service";
+import { LoopCoreModule } from '@loopstack/core';
 
 @Module({
   imports: [

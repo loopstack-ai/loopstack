@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { ProjectSortByDto } from '../dtos/project-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProjectFilterDto } from '../dtos/project-filter.dto';
-import { ProjectEntity, WorkspaceEntity } from '@loopstack/core';
+import { ProjectEntity, WorkspaceEntity } from '@loopstack/shared';
 
 @Injectable()
 export class ProjectApiService {

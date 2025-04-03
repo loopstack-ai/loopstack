@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import {ProjectProcessorService} from "@loopstack/core/dist/processor/services/project-processor.service";
+import { ProjectProcessorService } from "@loopstack/core/dist/processor/services/project-processor.service";
 import { RunProjectPayloadDto } from '../dtos/run-project-payload.dto';
-import { ProjectEntity, WorkspaceEntity } from '@loopstack/core';
+import { ProjectEntity, WorkspaceEntity } from '@loopstack/shared';
 
 @Injectable()
 export class ProcessorApiService {

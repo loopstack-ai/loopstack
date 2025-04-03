@@ -12,7 +12,7 @@ import { ProcessorApiService } from '../services/processor-api.service';
 import { IsBoolean, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { RunProjectPayloadDto } from '../dtos/run-project-payload.dto';
-import { ProjectEntityInterface } from '@loopstack/shared';
+import { ProjectEntity } from '@loopstack/shared';
 
 /**
  * Query parameters for run project endpoint
@@ -77,7 +77,7 @@ export class ProcessorController {
     @Body() payload: RunProjectPayloadDto,
     @Request() req: ApiRequestType,
     @Query() queryParams: RunProjectQueryParams,
-  ): Promise<ProjectEntityInterface> {
+  ): Promise<ProjectEntity> {
     const user = req.user || null;
     return this.processorApiService.processProject(projectId, user, payload ?? {}, {
       force: !!queryParams.force,

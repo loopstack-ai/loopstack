@@ -1,6 +1,6 @@
 import { Exclude, Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { ProjectEntityInterface, ProjectStatus } from '@loopstack/shared';
+import { ProjectEntity, ProjectStatus } from '@loopstack/shared';
 import { ProjectContextDto } from './project-context.dto';
 
 /**
@@ -87,11 +87,11 @@ export class ProjectDto {
   createdBy: string | null;
 
   /**
-   * Creates a ProjectDto instance from a ProjectEntityInterface
-   * @param project The source ProjectEntityInterface to transform
-   * @returns A new ProjectDto instance with values from the ProjectEntityInterface
+   * Creates a ProjectDto instance from a ProjectEntity
+   * @param project The source ProjectEntity to transform
+   * @returns A new ProjectDto instance with values from the ProjectEntity
    */
-  static create(project: ProjectEntityInterface): ProjectDto {
+  static create(project: ProjectEntity): ProjectDto {
     return plainToInstance(ProjectDto, project, {
       excludeExtraneousValues: true,
     });
