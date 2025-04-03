@@ -6,9 +6,9 @@ import {
   ToolApplicationInfo,
   ToolInterface,
   ToolResult,
-  WorkflowData,
+  WorkflowData, WorkflowEntity,
 } from '@loopstack/shared';
-import { NamespacesService, WorkflowEntity } from '../../persistence';
+import { NamespacesService } from '../../persistence';
 
 @Injectable()
 @Tool()

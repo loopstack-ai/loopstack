@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { ProjectEntity } from '../entities';
+import { ProjectEntity } from '@loopstack/shared';
 
 export class ProjectService {
   constructor(

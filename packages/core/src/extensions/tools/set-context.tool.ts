@@ -8,7 +8,7 @@ import {
   ToolResult,
   WorkflowData,
 } from '@loopstack/shared';
-import { WorkflowEntity } from '../../persistence';
+import { WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
 @Tool()

@@ -6,10 +6,10 @@ import { ValueParserService } from './value-parser.service';
 import { StateMachineProcessorService } from './state-machine-processor.service';
 import crypto from 'crypto';
 import { ConfigurationService } from '../../configuration';
-import { NamespacesService, WorkflowEntity, WorkflowService } from '../../persistence';
+import { NamespacesService, WorkflowService } from '../../persistence';
 import {
   ContextInterface,
-  ProcessStateInterface, WorkflowData,
+  ProcessStateInterface, WorkflowData, WorkflowEntity,
   WorkflowFactoryType,
   WorkflowPipelineType,
   WorkflowStateMachineType, WorkflowType,

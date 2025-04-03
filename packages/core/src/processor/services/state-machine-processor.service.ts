@@ -3,7 +3,7 @@ import { StateMachineConfigService } from './state-machine-config.service';
 import {
   HistoryTransition,
   ProcessStateInterface, TransitionContextInterface,
-  TransitionPayloadInterface, WorkflowEntityInterface,
+  TransitionPayloadInterface, WorkflowEntity,
   WorkflowStateContextInterface,
   WorkflowStateHistoryDto,
   WorkflowStateMachineType,
@@ -26,7 +26,7 @@ export class StateMachineProcessorService {
 
   canSkipRun(
     pendingTransition: TransitionPayloadInterface | undefined,
-    workflow: WorkflowEntityInterface,
+    workflow: WorkflowEntity,
     options: Record<string, any> | undefined,
   ): { valid: boolean; reasons: string[] } {
     const validationResults = this.stateMachineValidatorRegistry
@@ -45,7 +45,7 @@ export class StateMachineProcessorService {
   async processStateMachine(
     processState: ProcessStateInterface,
     stateMachineConfig: WorkflowStateMachineType,
-  ): Promise<WorkflowEntityInterface> {
+  ): Promise<WorkflowEntity> {
     const { context, workflow, data } = processState;
     console.log('starting with', workflow!.place);
 
@@ -80,7 +80,7 @@ export class StateMachineProcessorService {
   }
 
   updateWorkflowState(
-    workflow: WorkflowEntityInterface,
+    workflow: WorkflowEntity,
     transitions: WorkflowTransitionType[],
     historyItem: HistoryTransition,
   ): void {
@@ -102,10 +102,10 @@ export class StateMachineProcessorService {
   }
 
   async initStateMachine(
-    workflow: WorkflowEntityInterface,
+    workflow: WorkflowEntity,
     transitions: WorkflowTransitionType[],
     invalidationReasons: string[],
-  ): Promise<WorkflowEntityInterface> {
+  ): Promise<WorkflowEntity> {
     workflow.isWorking = true;
 
     // reset workflow to initial if there are invalidation reasons
@@ -137,7 +137,7 @@ export class StateMachineProcessorService {
   }
 
   getTransitionContext(
-    workflow: WorkflowEntityInterface,
+    workflow: WorkflowEntity,
     userTransitions: TransitionPayloadInterface[],
   ): TransitionContextInterface | null {
     let transitionPayload = {};
@@ -175,7 +175,7 @@ export class StateMachineProcessorService {
     processState: ProcessStateInterface,
     stateMachineConfig: WorkflowStateMachineType,
     workflowStateContext: WorkflowStateContextInterface,
-  ): Promise<WorkflowEntityInterface> {
+  ): Promise<WorkflowEntity> {
     const { transitions, observers } =
       this.workflowConfigService.getStateMachineFlatConfig(stateMachineConfig);
 

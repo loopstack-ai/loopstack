@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DocumentEntity, NamespaceEntity, ProjectEntity, WorkflowEntity, WorkspaceEntity } from './entities';
+import { DocumentEntity, NamespaceEntity, ProjectEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/shared';
 import { DocumentService, NamespacesService, ProjectService, WorkflowService, WorkspaceService } from './services';
 
 @Module({

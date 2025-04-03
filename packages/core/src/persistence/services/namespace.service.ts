@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NamespaceEntity, ProjectEntity } from '../entities';
+import { NamespaceEntity, ProjectEntity } from '@loopstack/shared';
 import { NamespaceCreateInterface } from '@loopstack/shared';
 
 @Injectable()

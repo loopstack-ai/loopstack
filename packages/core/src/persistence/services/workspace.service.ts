@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { WorkspaceEntity } from '../entities/workspace.entity';
+import { WorkspaceEntity } from '@loopstack/shared';
 
 export class WorkspaceService {
   constructor(

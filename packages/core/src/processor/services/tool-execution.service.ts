@@ -6,9 +6,9 @@ import {
   ServiceConfigType, ToolApplicationInfo,
   ToolCallType, ToolResult,
   WorkflowData,
-  WorkflowEntityInterface,
 } from '@loopstack/shared';
-import { DocumentEntity, DocumentService, WorkflowEntity } from '../../persistence';
+import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
+import { DocumentService } from '../../persistence';
 
 @Injectable()
 export class ToolExecutionService {
@@ -42,7 +42,7 @@ export class ToolExecutionService {
 
   async applyTool(
     toolCall: ToolCallType,
-    workflow: WorkflowEntityInterface | undefined,
+    workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     data: WorkflowData | undefined,
     info: ToolApplicationInfo = {},

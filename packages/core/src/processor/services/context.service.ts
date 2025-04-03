@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import _ from 'lodash';
-import { ProjectEntity } from '../../persistence';
-import { ContextInterface, ProcessRunInterface } from '@loopstack/shared';
+import { ContextInterface, ProcessRunInterface, ProjectEntity } from '@loopstack/shared';
 
 @Injectable()
 export class ContextService {

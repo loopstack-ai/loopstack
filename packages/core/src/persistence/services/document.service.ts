@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { DocumentEntity, WorkflowEntity } from '../entities';
+import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
 import { WorkflowService } from './workflow.service';
 import { ContextInterface } from '@loopstack/shared';
 

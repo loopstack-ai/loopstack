@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { DocumentEntity, WorkflowEntity } from '../entities';
-import { WorkflowEntityInterface } from '@loopstack/shared';
+import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
 export class WorkflowService {
@@ -54,7 +53,7 @@ export class WorkflowService {
     return this.workflowRepository.remove(entity);
   }
 
-  async create(data: Partial<WorkflowEntityInterface>): Promise<WorkflowEntity> {
+  async create(data: Partial<WorkflowEntity>): Promise<WorkflowEntity> {
     const dto = this.workflowRepository.create({
       ...data,
       place: 'initial',
@@ -69,7 +68,7 @@ export class WorkflowService {
     return loaded;
   }
 
-  save(entity: WorkflowEntityInterface) {
+  save(entity: WorkflowEntity) {
     return this.workflowRepository.save(entity as WorkflowEntity);
   }
 

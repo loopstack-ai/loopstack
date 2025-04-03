@@ -10,7 +10,8 @@ import {
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { FunctionCallService } from '../../common';
-import { DocumentEntity, DocumentService, WorkflowEntity } from '../../persistence';
+import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
+import { DocumentService } from '../../persistence';
 
 const LoadDocumentArgsSchema = z.object({
   name: z.string(),

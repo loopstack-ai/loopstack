@@ -11,7 +11,7 @@ import { ConfigurationService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { pick } from 'lodash';
 import { z } from 'zod';
-import { WorkflowEntity } from '../../persistence';
+import { WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
 @Tool()
