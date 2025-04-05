@@ -1,2 +1,2 @@
 export * from './load-configuration';
-export * from '../../../shared/src/utils/stable-json-transformer'
+export * from '../../../shared/src/utils/stable-json-transformer';

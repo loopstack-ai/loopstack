@@ -4,11 +4,15 @@ import {
   ConfigurableModuleClass,
   LoopCoreModuleOptions,
 } from './loop-core.module-definition';
-import { CommonModule } from './common';
-import { PersistenceModule } from './persistence/persistence.module';
-import { ProcessorModule } from './processor';
-import { ExtensionsModule } from './extensions/extensions.module';
-import { ConfigurationModule } from './configuration';
+import {
+  CommonModule,
+  CoreExtensionModule,
+  WorkflowProcessorModule,
+  PersistenceModule,
+  ConfigurationModule,
+  ProjectProcessorModule,
+} from './modules';
+import { MigrationsService } from './services/migrations.service';
 
 @Module({})
 export class LoopCoreModule extends ConfigurableModuleClass {
@@ -23,15 +27,18 @@ export class LoopCoreModule extends ConfigurableModuleClass {
         CommonModule,
         ConfigurationModule,
         PersistenceModule,
-        ProcessorModule,
-        ExtensionsModule,
+        WorkflowProcessorModule,
+        ProjectProcessorModule,
+        CoreExtensionModule,
       ],
+      providers: [MigrationsService],
       exports: [
         CommonModule,
         ConfigurationModule,
         PersistenceModule,
-        ProcessorModule,
-        ExtensionsModule,
+        WorkflowProcessorModule,
+        ProjectProcessorModule,
+        CoreExtensionModule,
       ],
     };
   }
