@@ -9,6 +9,7 @@ import {
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { ConfigValueParserService, DocumentService } from '../../index';
+import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 
 @Injectable()
 export class ToolExecutionService {
@@ -44,11 +45,12 @@ export class ToolExecutionService {
     toolCall: ToolCallType,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: ToolApplicationInfo = {},
+    info: StateMachineInfoDto,
   ): Promise<ToolResult> {
     const callProps = this.parseCallProps(toolCall.props, {
       context,
       data: workflow?.currData,
+      info,
     });
 
     const toolConfig = this.getToolConfig(toolCall.tool);
@@ -66,12 +68,13 @@ export class ToolExecutionService {
 
     const result = await instance.apply(props, workflow, context, info);
 
-    // create and add documents from action
-    if (workflow && result.documents?.length) {
-      for (const documentData of result.documents) {
+    // create and add documents from tool result
+    // todo: move into actual tool?
+    if (workflow && result.data.documents?.length) {
+      for (const documentData of result.data.documents) {
         this.documentService.create(workflow as WorkflowEntity, context, {
           ...documentData,
-          transition: info.transition,
+          transition: info.transitionInfo!.transition,
         });
       }
     }

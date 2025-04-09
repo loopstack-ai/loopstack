@@ -11,9 +11,9 @@ import {
 import { ActionHelperService, DocumentHelperService } from '../../common';
 import { ConfigurationService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
-import { pick } from 'lodash';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
+import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 
 @Injectable()
 @Tool()
@@ -34,12 +34,11 @@ export class CreateDocumentTool implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: ToolApplicationInfo,
+    info: StateMachineInfoDto,
   ): Promise<ToolResult> {
     const validProps = this.schema.parse(props);
 
-    // imports
-    let imports = workflow?.currData?.imports;
+    let data = workflow?.currData;
 
     const template = validProps.template
       ? this.loopConfigService.get<DocumentType>(
@@ -53,7 +52,7 @@ export class CreateDocumentTool implements ToolInterface {
       template,
       {
         context,
-        imports,
+        data,
         info,
       },
     );
@@ -61,7 +60,9 @@ export class CreateDocumentTool implements ToolInterface {
     this.actionHelperService.validateDocument(document);
 
     return {
-      documents: [document],
+      data: {
+        documents: [document],
+      },
     };
   }
 }

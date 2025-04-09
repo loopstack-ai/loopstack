@@ -141,7 +141,11 @@ export class LoadDocumentTool implements ToolInterface {
     const deps = workflow.dependencies ?? [];
     const newIds = deps.map((item) => item.id).sort();
 
-    workflow.dependenciesHash = newIds.length ? createHash(newIds) : null;
+    const hash = newIds.length ? createHash(newIds) : null;
+    workflow.hashRecord = {
+      ...(workflow.hashRecord ?? {}),
+      dependencies: hash,
+    }
   }
 
   /**
@@ -164,33 +168,6 @@ export class LoadDocumentTool implements ToolInterface {
       isChanged: !!prevImport && !_.isEqual(prevImport.curr, curr),
       options,
     };
-  }
-
-  /**
-   * add import item to context object
-   */
-  updateContext(
-    transition: string,
-    data: WorkflowData | null,
-    props: z.infer<typeof this.schema>,
-    currentEntities: DocumentEntity[],
-    prev: ContextImportInterface | undefined,
-  ): WorkflowData {
-    if (!data) {
-      data = {};
-    }
-
-    if (!data.imports) {
-      data.imports = {};
-    }
-
-    data.imports[transition] = this.createImportItem(
-      props,
-      currentEntities,
-      prev,
-    );
-
-    return data;
   }
 
   /**
@@ -239,11 +216,8 @@ export class LoadDocumentTool implements ToolInterface {
       this.updateWorkflowDependenciesHash(workflow);
     }
 
-    // update the context, add import data
-    const data: WorkflowData = this.updateContext(
-      info.transition!,
-      workflow.currData,
-      validProps,
+    const data = this.createImportItem(
+      props,
       currentEntities,
       prevImport,
     );

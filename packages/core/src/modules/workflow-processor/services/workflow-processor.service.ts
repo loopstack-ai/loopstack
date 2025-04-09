@@ -44,27 +44,29 @@ export class WorkflowProcessorService {
 
   async runSequenceType(
     sequenceConfig: WorkflowPipelineType,
-    processState: ProcessStateInterface,
-  ): Promise<ProcessStateInterface> {
+    context: ContextInterface,
+  ): Promise<ContextInterface | undefined> {
     const sequence = _.map(sequenceConfig.items, 'name');
 
     //create a new index level
-    const index = `${processState.context.index}.0`;
+    const index = `${context.index}.0`;
 
+    let lastContext: ContextInterface | undefined;
     for (let i = 0; i < sequence.length; i++) {
       const itemName = sequence[i];
 
       // create local context, so no unwanted changes are applied to the actual context to be returned
-      const localContext = this.contextService.create(processState.context);
+      const localContext = this.contextService.create(context);
       localContext.index = this.incrementIndex(index, i + 1);
 
-      processState.context = await this.processChild(itemName, localContext);
+      lastContext = await this.processChild(itemName, localContext);
 
       if (this.stop) {
         break;
       }
     }
-    return processState;
+
+    return lastContext;
   }
 
   generateUniqueNamespace(value: string): string {
@@ -73,8 +75,8 @@ export class WorkflowProcessorService {
 
   async runFactoryType(
     factory: WorkflowFactoryType,
-    processState: ProcessStateInterface,
-  ): Promise<ProcessStateInterface> {
+    context: ContextInterface,
+  ): Promise<ContextInterface> {
     const workflowName = factory.workflow;
 
     if (!this.workflowExists(factory.workflow)) {
@@ -83,7 +85,7 @@ export class WorkflowProcessorService {
 
     const items = this.valueParserService.parseValue(
       factory.iterator.source,
-      processState,
+      { context },
     );
 
     if (!Array.isArray(items)) {
@@ -93,20 +95,19 @@ export class WorkflowProcessorService {
     }
 
     //create a new index level
-    const index = `${processState.context.index}.0`;
+    const index = `${context.index}.0`;
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
 
       // create a new context for each child
-      const localContext = this.contextService.create(processState.context);
+      const localContext = this.contextService.create(context);
       localContext.index = this.incrementIndex(index, i + 1);
 
       const label = factory.iterator.label
         ? this.valueParserService.parseValue(factory.iterator.label, {
             item,
             context: localContext,
-            workflow: processState.workflow,
           })
         : item.toString();
 
@@ -114,7 +115,6 @@ export class WorkflowProcessorService {
         ? this.valueParserService.parseValue(factory.iterator.meta, {
             item,
             context: localContext,
-            workflow: processState.workflow,
           })
         : undefined;
 
@@ -141,37 +141,40 @@ export class WorkflowProcessorService {
       }
     }
 
-    return processState;
+    return context;
   }
 
   async runStateMachineType(
-    stateMachineConfig: WorkflowStateMachineType,
-    processState: ProcessStateInterface,
+    config: WorkflowStateMachineType,
+    context: ContextInterface,
   ) {
-    processState.workflow =
-      await this.stateMachineProcessorService.processStateMachine(
-        processState,
-        stateMachineConfig,
+    // create or load state if needed
+    let workflow = await this.getWorkflow(config, context);
+
+    workflow = await this.stateMachineProcessorService.processStateMachine(
+        context,
+        workflow,
+        config,
       );
 
-    if (processState.workflow.place !== 'finished') {
+    if (workflow.place !== 'finished') {
       this.stop = true;
     }
 
-    return processState;
+    return context;
   }
 
   async processWorkflow(
     workflowConfig: WorkflowType,
-    processState: ProcessStateInterface,
-  ): Promise<ProcessStateInterface> {
+    context: ContextInterface,
+  ): Promise<ContextInterface | undefined> {
     switch (workflowConfig.type) {
       case 'pipeline':
-        return this.runSequenceType(workflowConfig, processState);
+        return this.runSequenceType(workflowConfig, context);
       case 'factory':
-        return this.runFactoryType(workflowConfig, processState);
+        return this.runFactoryType(workflowConfig, context);
       case 'stateMachine':
-        return this.runStateMachineType(workflowConfig, processState);
+        return this.runStateMachineType(workflowConfig, context);
     }
 
     throw new Error('Unknown workflow type');
@@ -220,24 +223,10 @@ export class WorkflowProcessorService {
       throw new Error(`workflow with name "${name}" not found.`);
     }
 
-    const data: WorkflowData = {};
-
-    // create or load state if needed
-    const workflow = this.isStateful(workflowConfig)
-      ? await this.getWorkflow(workflowConfig, context)
-      : undefined;
-
-    let processState: ProcessStateInterface = {
-      context,
-      data,
-      workflow,
-    };
-
-    processState = await this.processWorkflow(workflowConfig, processState);
-
+    const newContext = await this.processWorkflow(workflowConfig, context);
     // if the workflow did execute under the same namespace, pass over the updated local context
-    if (processState.context.namespace.id === context.namespace.id) {
-      return processState.context;
+    if (newContext && newContext.namespace.id === context.namespace.id) {
+      return newContext;
     }
 
     return context;

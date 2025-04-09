@@ -1,21 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { StateMachineConfigService } from './state-machine-config.service';
 import {
+  ContextInterface,
   HistoryTransition,
-  ProcessStateInterface,
-  TransitionContextInterface,
+  TransitionInfoInterface,
   TransitionPayloadInterface,
   WorkflowEntity,
-  WorkflowStateContextInterface,
   WorkflowStateHistoryDto,
   WorkflowStateMachineType,
   WorkflowStatePlaceInfoDto,
   WorkflowTransitionType,
 } from '@loopstack/shared';
-import _ from 'lodash';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
+import { ConfigValueParserService } from '../../common';
+import {
+  StateMachineValidatorResultInterface
+} from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
+import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 
 @Injectable()
 export class StateMachineProcessorService {
@@ -24,60 +27,75 @@ export class StateMachineProcessorService {
     private readonly workflowService: WorkflowService,
     private readonly toolExecutionService: ToolExecutionService,
     private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry,
+    private readonly configValueParserService: ConfigValueParserService,
   ) {}
 
   canSkipRun(
     pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
     options: Record<string, any> | undefined,
-  ): { valid: boolean; reasons: string[] } {
+  ): StateMachineValidatorResultInterface {
     const validationResults = this.stateMachineValidatorRegistry
       .getValidators()
       .map((validator) =>
         validator.validate(pendingTransition, workflow, options),
       );
+
     return {
       valid: validationResults.every((item) => item.valid),
-      reasons: _.map(validationResults, 'reason').filter(
-        (item) => null !== item,
-      ),
+      hashRecordUpdates: validationResults.reduce((prev, curr) => {
+        if (curr.target && curr.hash) {
+          return {
+            ...prev,
+            [curr.target as string]: curr.hash,
+          }
+        }
+
+        return prev;
+      }, {}),
     };
   }
 
   async processStateMachine(
-    processState: ProcessStateInterface,
-    stateMachineConfig: WorkflowStateMachineType,
+    context: ContextInterface,
+    workflow: WorkflowEntity,
+    config: WorkflowStateMachineType,
   ): Promise<WorkflowEntity> {
-    const { context, workflow, data } = processState;
-    console.log('starting with', workflow!.place);
+
+    const options = config.options ? this.configValueParserService.parseObjectValues(config.options, { context }) : {};
+
+    if (!workflow) {
+      throw new Error(`No workflow entry.`)
+    }
 
     const pendingTransition =
-      context.transition?.workflowId === workflow!.id
-        ? processState.context.transition
+      context.transition?.workflowId === workflow.id
+        ? context.transition
         : undefined;
 
-    const { valid, reasons: invalidationReasons } = this.canSkipRun(
+    const validatorResult = this.canSkipRun(
       pendingTransition,
-      workflow!,
-      data?.options,
+      workflow,
+      options,
     );
 
-    const workflowStateContext: WorkflowStateContextInterface = {
+    const stateMachineInfo = new StateMachineInfoDto(
+      options,
       pendingTransition,
-      isStateValid: valid,
-      invalidationReasons,
-    };
+      validatorResult,
+    )
 
-    if (workflowStateContext.isStateValid) {
+    if (stateMachineInfo.isStateValid) {
       return workflow!;
     }
 
     console.log(`Processing State Machine for workflow ${workflow!.name}`);
 
     return this.loopStateMachine(
-      processState,
-      stateMachineConfig,
-      workflowStateContext,
+      context,
+      workflow,
+      config,
+      stateMachineInfo,
     );
   }
 
@@ -106,12 +124,12 @@ export class StateMachineProcessorService {
   async initStateMachine(
     workflow: WorkflowEntity,
     transitions: WorkflowTransitionType[],
-    invalidationReasons: string[],
+    stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
     workflow.isWorking = true;
 
     // reset workflow to initial if there are invalidation reasons
-    if (workflow.place === 'initial' || invalidationReasons.length) {
+    if (workflow.place === 'initial' || Object.keys(stateMachineInfo.hashRecordUpdates).length) {
       const initialTransition: HistoryTransition = {
         transition: 'invalidation',
         from: workflow.place,
@@ -120,6 +138,10 @@ export class StateMachineProcessorService {
 
       workflow.prevData = workflow.currData;
       workflow.currData = null;
+      workflow.hashRecord = {
+        ...(workflow?.hashRecord ?? {}),
+        ...stateMachineInfo.hashRecordUpdates
+      }
 
       this.updateWorkflowState(workflow, transitions, initialTransition);
     }
@@ -129,37 +151,36 @@ export class StateMachineProcessorService {
   }
 
   validateTransition(
-    transition: TransitionContextInterface,
-    nextPlace: string,
+    stateMachineInfo: StateMachineInfoDto,
+    historyItem: HistoryTransition,
   ) {
-    const to = Array.isArray(transition.to) ? transition.to : [transition.to];
+    const to = Array.isArray(stateMachineInfo.transitionInfo!.to) ? stateMachineInfo.transitionInfo!.to : [stateMachineInfo.transitionInfo!.to];
 
-    if (!nextPlace || ![...to, transition.from].includes(nextPlace)) {
+    if (!historyItem.to || ![...to, stateMachineInfo.transitionInfo!.from].includes(historyItem.to)) {
       throw new Error(
-        `target place "${nextPlace}" not available in transition`,
+        `target place "${historyItem.to}" not available in transition`,
       );
     }
   }
 
-  getTransitionContext(
+  getNextTransition(
     workflow: WorkflowEntity,
-    userTransitions: TransitionPayloadInterface[],
-  ): TransitionContextInterface | null {
+    stateMachineInfo: StateMachineInfoDto,
+  ): TransitionInfoInterface | null {
     let transitionPayload = {};
     let transitionMeta = {};
     let nextTransition = workflow.placeInfo?.availableTransitions.find(
       (item) => item.trigger === 'auto',
     );
 
-    if (!nextTransition && userTransitions.length) {
-      const nextPending = userTransitions.shift()!;
+    if (!nextTransition && stateMachineInfo.pendingTransition) {
       nextTransition = workflow.placeInfo?.availableTransitions.find(
-        (item) => item.name === nextPending.name,
+        (item) => item.name === stateMachineInfo.pendingTransition!.name,
       );
 
       if (nextTransition) {
-        transitionPayload = nextPending.payload;
-        transitionMeta = nextPending.meta;
+        transitionPayload = stateMachineInfo.pendingTransition.payload;
+        transitionMeta = stateMachineInfo.pendingTransition.meta;
       }
     }
 
@@ -177,103 +198,94 @@ export class StateMachineProcessorService {
   }
 
   async loopStateMachine(
-    processState: ProcessStateInterface,
-    stateMachineConfig: WorkflowStateMachineType,
-    workflowStateContext: WorkflowStateContextInterface,
+    context: ContextInterface,
+    workflow: WorkflowEntity,
+    config: WorkflowStateMachineType,
+    stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
     const { transitions, observers } =
-      this.workflowConfigService.getStateMachineFlatConfig(stateMachineConfig);
+      this.workflowConfigService.getStateMachineFlatConfig(config);
 
-    let workflow = await this.initStateMachine(
-      processState.workflow!,
+    workflow = await this.initStateMachine(
+      workflow,
       transitions,
-      workflowStateContext.invalidationReasons,
+      stateMachineInfo,
     );
 
-    const context = processState.context;
-    const data = processState.data;
-
-    const userTransitions = workflowStateContext.pendingTransition
-      ? [workflowStateContext.pendingTransition]
-      : [];
-
-    outerLoop: while (true) {
-      while (true) {
-        const transitionContext = this.getTransitionContext(
+    while (true) {
+      stateMachineInfo.setTransitionInfo(
+        this.getNextTransition(
           workflow,
-          userTransitions,
-        );
+          stateMachineInfo,
+        )
+      );
 
-        if (null === transitionContext) {
-          break;
-        }
-
-        try {
-          const matchedObservers = observers.filter(
-            (item) => item.transition === transitionContext!.transition,
-          );
-
-          let nextPlace: string | null = null;
-          let observerIndex = 0;
-          for (const observer of matchedObservers) {
-            observerIndex++;
-
-            console.log(
-              `calling observer ${observer.tool} on transition ${observer.transition}`,
-            );
-
-            const result = await this.toolExecutionService.applyTool(
-              observer,
-              workflow,
-              context,
-              {
-                transition: transitionContext.transition,
-                payload: transitionContext.payload,
-              },
-            );
-
-            if (result.workflow) {
-              workflow = result.workflow;
-            }
-
-            if (result.data?.data?.nextPlace) {
-              nextPlace = result.data?.data?.nextPlace;
-            }
-
-            if (result.data) {
-              workflow.currData = result.data;
-            }
-
-            // save immediately for multiple observers
-            // skip saving the last one here
-            if (observerIndex <= matchedObservers.length) {
-              await this.workflowService.save(workflow);
-            }
-          }
-
-          nextPlace =
-            (nextPlace ?? Array.isArray(transitionContext.to))
-              ? transitionContext.to[0]
-              : transitionContext.to;
-
-          this.validateTransition(transitionContext, nextPlace);
-
-          const historyItem: HistoryTransition = {
-            transition: transitionContext.transition,
-            from: transitionContext.from,
-            to: nextPlace,
-          };
-
-          this.updateWorkflowState(workflow, transitions, historyItem);
-          await this.workflowService.save(workflow);
-        } catch (e) {
-          console.log(e);
-          workflow.error = e.message;
-          break outerLoop;
-        }
+      if (null === stateMachineInfo.transitionInfo) {
+        break;
       }
 
-      if (!userTransitions.length) {
+      try {
+        const matchedObservers = observers.filter(
+          (item) => item.transition === stateMachineInfo.transitionInfo!.transition,
+        );
+
+        let nextPlace: string | null = null;
+        let observerIndex = 0;
+        for (const observer of matchedObservers) {
+          observerIndex++;
+
+          console.log(
+            `calling observer ${observer.tool} on transition ${observer.transition}`,
+          );
+
+          const result = await this.toolExecutionService.applyTool(
+            observer,
+            workflow,
+            context,
+            stateMachineInfo,
+          );
+
+          if (result.workflow) {
+            workflow = result.workflow;
+          }
+
+          if (result.data?.nextPlace) {
+            nextPlace = result.data?.nextPlace;
+          }
+
+          if (result.data) {
+            if (!workflow.currData) {
+              workflow.currData = {};
+            }
+
+            workflow.currData[stateMachineInfo.transitionInfo!.transition] = result.data;
+          }
+
+          // save immediately for multiple observers
+          // skip saving the last one here
+          if (observerIndex <= matchedObservers.length) {
+            await this.workflowService.save(workflow);
+          }
+        }
+
+        nextPlace =
+          nextPlace ?? (Array.isArray(stateMachineInfo.transitionInfo!.to)
+            ? stateMachineInfo.transitionInfo!.to[0]
+            : stateMachineInfo.transitionInfo!.to);
+
+        const historyItem: HistoryTransition = {
+          transition: stateMachineInfo.transitionInfo!.transition,
+          from: stateMachineInfo.transitionInfo!.from,
+          to: nextPlace,
+        };
+
+        this.validateTransition(stateMachineInfo, historyItem);
+
+        this.updateWorkflowState(workflow, transitions, historyItem);
+        await this.workflowService.save(workflow);
+      } catch (e) {
+        console.log(e);
+        workflow.error = e.message;
         break;
       }
     }

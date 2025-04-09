@@ -50,7 +50,7 @@ export class DebugImportsTool implements ToolInterface {
     }
 
     return {
-      documents,
+      data: documents,
     };
   }
 }
