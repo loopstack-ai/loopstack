@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigurationModule } from '../configuration';
-import { PersistenceModule } from '../persistence/persistence.module';
+import { PersistenceModule } from '../persistence';
 import { DiscoveryModule } from '@nestjs/core';
 import { CommonModule } from '../index';
 import {
@@ -26,6 +26,6 @@ import {
     StateMachineProcessorService,
     StateMachineConfigService,
   ],
-  exports: [],
+  exports: [WorkflowProcessorService],
 })
 export class WorkflowProcessorModule {}

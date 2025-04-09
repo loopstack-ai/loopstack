@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ProjectProcessorService } from './services';
-import { WorkflowProcessorModule } from '../workflow-processor/workflow-processor.module';
+import { WorkflowProcessorModule } from '../workflow-processor';
 import { ConfigurationModule } from '../configuration';
-import { PersistenceModule } from '../persistence/persistence.module';
+import { PersistenceModule } from '../persistence';
 import { CommonModule } from '../common';
 
 @Module({

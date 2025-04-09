@@ -11,8 +11,8 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "outDir": "./dist",
-    //"rootDir": "./src",
-    "incremental": true,
+    "rootDir": "./src",
+    "incremental": false,
     "baseUrl": "./",
     "skipLibCheck": true,
     "strictNullChecks": true,
@@ -21,9 +21,9 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@loopstack/shared": ["packages/shared/src"],
+      "@loopstack/shared": ["../shared/dist"],
     },
   },
   "include": ["./src"],
-  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"],
 }

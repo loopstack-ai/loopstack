@@ -7,7 +7,6 @@ import {
   ToolApplicationInfo,
   ToolInterface,
   ToolResult,
-  WorkflowData,
 } from '@loopstack/shared';
 import { ActionHelperService, DocumentHelperService } from '../../common';
 import { ConfigurationService } from '../../configuration';
@@ -20,7 +19,6 @@ import { WorkflowEntity } from '@loopstack/shared';
 @Tool()
 export class CreateDocumentTool implements ToolInterface {
   schema = z.object({
-    inputs: z.any(z.string()).optional(),
     template: z.string().optional(),
     update: PartialDocumentSchema.optional(),
     create: DocumentSchema.optional(),
@@ -36,13 +34,12 @@ export class CreateDocumentTool implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    data: WorkflowData | undefined,
     info: ToolApplicationInfo,
   ): Promise<ToolResult> {
     const validProps = this.schema.parse(props);
 
-    // select imports as inputs
-    let inputs = pick(data?.imports ?? {}, props.inputs);
+    // imports
+    let imports = workflow?.currData?.imports;
 
     const template = validProps.template
       ? this.loopConfigService.get<DocumentType>(
@@ -51,21 +48,17 @@ export class CreateDocumentTool implements ToolInterface {
         )
       : undefined;
 
-    console.log('create template', template);
-
     let document = this.documentHelperService.createDocumentWithSchema(
       validProps,
       template,
       {
         context,
-        inputs,
+        imports,
         info,
       },
     );
 
     this.actionHelperService.validateDocument(document);
-
-    console.log(document);
 
     return {
       documents: [document],

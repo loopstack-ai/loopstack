@@ -22,7 +22,8 @@ export class WorkflowService {
     const queryBuilder = this.workflowRepository
       .createQueryBuilder('workflow')
       .where('workflow.namespace_id = :namespaceId', { namespaceId })
-      .leftJoinAndSelect('workflow.documents', 'document');
+      .leftJoinAndSelect('workflow.documents', 'document')
+      .leftJoinAndSelect('workflow.dependencies', 'dependencies');
 
     if (name) {
       queryBuilder.andWhere('workflow.name = :name', { name });

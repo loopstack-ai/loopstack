@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigurationService, ToolRegistry } from '../../configuration';
-import { ConfigValueParserService } from '../../index';
 import {
   ContextInterface,
   ServiceConfigType,
   ToolApplicationInfo,
   ToolCallType,
   ToolResult,
-  WorkflowData,
 } from '@loopstack/shared';
-import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
-import { DocumentService } from '../../index';
+import { WorkflowEntity } from '@loopstack/shared';
+import { ConfigValueParserService, DocumentService } from '../../index';
 
 @Injectable()
 export class ToolExecutionService {
@@ -46,12 +44,11 @@ export class ToolExecutionService {
     toolCall: ToolCallType,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    data: WorkflowData | undefined,
     info: ToolApplicationInfo = {},
   ): Promise<ToolResult> {
     const callProps = this.parseCallProps(toolCall.props, {
       context,
-      data,
+      data: workflow?.currData,
     });
 
     const toolConfig = this.getToolConfig(toolCall.tool);
@@ -67,7 +64,7 @@ export class ToolExecutionService {
       throw new Error(`Tool service ${toolConfig.service} not found.`);
     }
 
-    const result = await instance.apply(props, workflow, context, data, info);
+    const result = await instance.apply(props, workflow, context, info);
 
     // create and add documents from action
     if (workflow && result.documents?.length) {

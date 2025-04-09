@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
-import { InitialRunValidator } from './validators';
-import { WorkflowOptionValidator } from './validators';
-import { PersistenceModule } from '../persistence/persistence.module';
+import {
+  InitialRunValidator,
+  WorkflowOptionValidator,
+  WorkflowDependenciesValidator,
+} from './validators';
+import { PersistenceModule } from '../persistence';
 import { CommonModule } from '../index';
 import { ConfigurationModule } from '../configuration';
 import {
@@ -32,6 +35,7 @@ import { WorkflowProcessorModule } from '../workflow-processor';
 
     InitialRunValidator,
     WorkflowOptionValidator,
+    WorkflowDependenciesValidator,
   ],
   exports: [],
 })

@@ -118,6 +118,9 @@ export class StateMachineProcessorService {
         to: 'initial',
       };
 
+      workflow.prevData = workflow.currData;
+      workflow.currData = null;
+
       this.updateWorkflowState(workflow, transitions, initialTransition);
     }
 
@@ -223,19 +226,22 @@ export class StateMachineProcessorService {
               observer,
               workflow,
               context,
-              data,
               {
                 transition: transitionContext.transition,
                 payload: transitionContext.payload,
               },
             );
 
+            if (result.workflow) {
+              workflow = result.workflow;
+            }
+
             if (result.data?.data?.nextPlace) {
               nextPlace = result.data?.data?.nextPlace;
             }
 
-            if (result.workflow) {
-              workflow = result.workflow;
+            if (result.data) {
+              workflow.currData = result.data;
             }
 
             // save immediately for multiple observers

@@ -25,7 +25,6 @@ export class AddNamespaceTool implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    data: WorkflowData | undefined,
     info: ToolApplicationInfo,
   ): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);

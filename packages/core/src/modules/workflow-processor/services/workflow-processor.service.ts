@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ToolExecutionService } from './tool-execution.service';
 import _ from 'lodash';
-import { ContextService } from '../../common/services/context.service';
-import { ConfigValueParserService } from '../../common/services/config-value-parser.service';
+import { ContextService } from '../../common';
+import { ConfigValueParserService } from '../../common';
 import { StateMachineProcessorService } from './state-machine-processor.service';
 import crypto from 'crypto';
 import { ConfigurationService } from '../../configuration';
@@ -148,28 +148,6 @@ export class WorkflowProcessorService {
     stateMachineConfig: WorkflowStateMachineType,
     processState: ProcessStateInterface,
   ) {
-    // before functions update the local context
-    if (stateMachineConfig.prepare) {
-      for (const item of stateMachineConfig.prepare) {
-        const result = await this.toolExecutionService.applyTool(
-          item,
-          processState.workflow,
-          processState.context,
-          processState.data,
-        );
-
-        // if (workflow) {
-        //   processState.workflow = workflow;
-        // }
-        if (result.context) {
-          processState.context = result.context;
-        }
-        if (result.data) {
-          processState.data = result.data;
-        }
-      }
-    }
-
     processState.workflow =
       await this.stateMachineProcessorService.processStateMachine(
         processState,

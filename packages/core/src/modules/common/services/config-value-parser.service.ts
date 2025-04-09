@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FunctionCallService } from '../index';
+import { FunctionCallService } from './function-call.service';
 
 @Injectable()
 export class ConfigValueParserService {

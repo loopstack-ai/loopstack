@@ -22,6 +22,7 @@ import {
     ActionHelperService,
     TemplateEngineService,
     DocumentHelperService,
+    ConfigValueParserService,
     ContextService,
   ],
 })

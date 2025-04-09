@@ -23,10 +23,11 @@ export class SetCustomOptionTool implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    data: WorkflowData | undefined,
     info: ToolApplicationInfo,
   ): Promise<ToolResult> {
     const options = this.schema.parse(props);
+
+    let data = workflow?.currData;
 
     const currentCustomOptions = data?.options ?? {};
     currentCustomOptions[options.key] = options.value;

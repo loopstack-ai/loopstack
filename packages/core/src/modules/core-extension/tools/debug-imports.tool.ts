@@ -23,12 +23,11 @@ export class DebugImportsTool implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    data: WorkflowData | undefined,
     info: ToolApplicationInfo,
   ): Promise<ToolResult> {
     const documents: DocumentType[] = [];
-    if (data?.imports) {
-      for (const [name, item] of Object.entries(data.imports)) {
+    if (workflow?.currData?.imports) {
+      for (const [name, item] of Object.entries(workflow?.currData?.imports)) {
         const documentData = {
           name: `debug-${name}`,
           content: JSON.stringify(item, null, 2),
