@@ -19,7 +19,7 @@ import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-in
 @Tool()
 export class CreateDocumentTool implements ToolInterface {
   schema = z.object({
-    template: z.string().optional(),
+    document: z.string().optional(),
     update: PartialDocumentSchema.optional(),
     create: DocumentSchema.optional(),
   });
@@ -40,10 +40,10 @@ export class CreateDocumentTool implements ToolInterface {
 
     let data = workflow?.currData;
 
-    const template = validProps.template
+    const template = validProps.document
       ? this.loopConfigService.get<DocumentType>(
           'documents',
-          validProps.template,
+          validProps.document,
         )
       : undefined;
 

@@ -83,7 +83,7 @@ export class WorkflowProcessorService {
       throw new Error(`Workflow ${workflowName} for factory does not exist.`);
     }
 
-    const items = this.valueParserService.parseValue(
+    const items = this.valueParserService.evalObjectLeafs(
       factory.iterator.source,
       { context },
     );
@@ -105,14 +105,14 @@ export class WorkflowProcessorService {
       localContext.index = this.incrementIndex(index, i + 1);
 
       const label = factory.iterator.label
-        ? this.valueParserService.parseValue(factory.iterator.label, {
+        ? this.valueParserService.evalObjectLeafs<string>(factory.iterator.label, {
             item,
             context: localContext,
           })
         : item.toString();
 
       const metadata = factory.iterator.meta
-        ? this.valueParserService.parseValue(factory.iterator.meta, {
+        ? this.valueParserService.evalObjectLeafs<Record<string, any>>(factory.iterator.meta, {
             item,
             context: localContext,
           })

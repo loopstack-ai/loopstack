@@ -20,7 +20,7 @@ export class WorkflowOptionValidator implements StateMachineValidatorInterface {
       const optionsHash = generateObjectFingerprint(options);
 
       console.log(
-        `Checking option invalidation: ${(hash === optionsHash).toString()}`,
+        `Checking option invalidation for ${workflow.name}: ${hash} === ${optionsHash} ==> ${(hash === optionsHash).toString()}`,
       );
 
       if (hash !== optionsHash) {

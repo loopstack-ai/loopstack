@@ -62,7 +62,7 @@ export class StateMachineProcessorService {
     config: WorkflowStateMachineType,
   ): Promise<WorkflowEntity> {
 
-    const options = config.options ? this.configValueParserService.parseObjectValues(config.options, { context }) : {};
+    const options = config.options ? this.configValueParserService.evalObjectLeafs(config.options, { context }) : {};
 
     if (!workflow) {
       throw new Error(`No workflow entry.`)
@@ -258,7 +258,10 @@ export class StateMachineProcessorService {
               workflow.currData = {};
             }
 
-            workflow.currData[stateMachineInfo.transitionInfo!.transition] = result.data;
+            workflow.currData[stateMachineInfo.transitionInfo!.transition] = {
+              ...workflow.currData[stateMachineInfo.transitionInfo!.transition],
+              ...result.data,
+            };
           }
 
           // save immediately for multiple observers

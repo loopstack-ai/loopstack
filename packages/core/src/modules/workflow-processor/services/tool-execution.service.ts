@@ -3,7 +3,6 @@ import { ConfigurationService, ToolRegistry } from '../../configuration';
 import {
   ContextInterface,
   ServiceConfigType,
-  ToolApplicationInfo,
   ToolCallType,
   ToolResult,
 } from '@loopstack/shared';
@@ -25,7 +24,7 @@ export class ToolExecutionService {
     variables: any,
   ): Record<string, any> {
     return props
-      ? this.valueParserService.parseObjectValues(props, variables)
+      ? this.valueParserService.evalObjectLeafs(props, variables)
       : {};
   }
 
@@ -47,19 +46,13 @@ export class ToolExecutionService {
     context: ContextInterface,
     info: StateMachineInfoDto,
   ): Promise<ToolResult> {
-    const callProps = this.parseCallProps(toolCall.props, {
+    const toolConfig = this.getToolConfig(toolCall.tool);
+
+    const props = this.parseCallProps(toolConfig.props, {
       context,
       data: workflow?.currData,
       info,
     });
-
-    const toolConfig = this.getToolConfig(toolCall.tool);
-
-    // merge config props will call props
-    const props = {
-      ...(toolConfig?.props ?? {}),
-      ...callProps,
-    };
 
     const instance = this.toolRegistry.getToolByName(toolConfig.service);
     if (!instance) {

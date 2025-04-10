@@ -3,7 +3,9 @@ import { FunctionCallService } from './function-call.service';
 
 @Injectable()
 export class ConfigValueParserService {
-  constructor(private functionCallService: FunctionCallService) {}
+  constructor(
+    private functionCallService: FunctionCallService,
+  ) {}
 
   parseValue(
     value: string | string[],
@@ -20,15 +22,28 @@ export class ConfigValueParserService {
     return value;
   }
 
-  parseObjectValues(
-    obj: Record<string, any>,
-    variables: Record<string, any>,
-  ): any {
-    return Object.fromEntries(
-      Object.entries(obj).map(([key, value]) => [
-        key,
-        this.parseValue(value, variables),
-      ]),
-    );
+  evalObjectLeafs<T>(obj: any, variables: any): T {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (typeof obj !== 'object') {
+      return this.functionCallService.runEval(obj, variables) as unknown as T;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) =>
+        this.evalObjectLeafs(item, variables),
+      ) as unknown as T;
+    }
+
+    const result = {} as T;
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        result[key] = this.evalObjectLeafs(obj[key], variables);
+      }
+    }
+
+    return result;
   }
 }
