@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import Ajv from 'ajv';
 import { DocumentType } from '@loopstack/shared';
 
 @Injectable()
-export class ActionHelperService {
+export class SchemaValidatorService {
+  private readonly logger = new Logger(SchemaValidatorService.name);
+
   validateDocument(data: DocumentType): void {
     if (data.schema) {
       const ajv = new Ajv({
@@ -13,7 +15,7 @@ export class ActionHelperService {
       const validate = ajv.compile(data.schema);
       const valid = validate(data.content);
       if (!valid) {
-        console.log(validate.errors);
+        this.logger.error(validate.errors);
         throw new Error(`Error validating document content.`);
       }
     }

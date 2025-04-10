@@ -28,9 +28,7 @@ export class WorkflowDependenciesValidator
 
       const dependenciesHash = createHash(ids); // create hash from contents? so we dont need to track invalidation of entities?
 
-      this.logger.debug(
-        `Comparing workflow dependency hashes: ${(hash === dependenciesHash).toString()}`,
-      );
+      this.logger.debug(`Check valid: ${(hash === dependenciesHash).toString()}`,);
 
       if (hash !== dependenciesHash) {
         return { valid: false, target: 'dependencies', hash: dependenciesHash };

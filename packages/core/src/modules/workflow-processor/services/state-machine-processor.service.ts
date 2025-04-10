@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineConfigService } from './state-machine-config.service';
 import {
   ContextInterface,
@@ -22,6 +22,8 @@ import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-in
 
 @Injectable()
 export class StateMachineProcessorService {
+  private readonly logger = new Logger(StateMachineProcessorService.name);
+
   constructor(
     private readonly workflowConfigService: StateMachineConfigService,
     private readonly workflowService: WorkflowService,
@@ -89,7 +91,7 @@ export class StateMachineProcessorService {
       return workflow!;
     }
 
-    console.log(`Processing State Machine for workflow ${workflow!.name}`);
+    this.logger.debug(`Process state machine for workflow ${workflow!.name}`);
 
     return this.loopStateMachine(
       context,
@@ -241,9 +243,7 @@ export class StateMachineProcessorService {
         for (const observer of matchedObservers) {
           observerIndex++;
 
-          console.log(
-            `calling observer ${observerIndex} (${observer.tool}) on transition ${observer.transition}`,
-          );
+          this.logger.debug(`Call observer ${observerIndex} (${observer.tool}) on transition ${observer.transition}`);
 
           const result = await this.toolExecutionService.applyTool(
             observer,
@@ -297,7 +297,7 @@ export class StateMachineProcessorService {
         this.updateWorkflowState(workflow, transitions, historyItem);
         await this.workflowService.save(workflow);
       } catch (e) {
-        console.log(e);
+        this.logger.error(e);
         workflow.error = e.message;
         break;
       }

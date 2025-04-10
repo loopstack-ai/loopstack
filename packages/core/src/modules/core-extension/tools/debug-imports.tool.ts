@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { ActionHelperService } from '../../common';
+import { SchemaValidatorService } from '../../common';
 import {
   ContextInterface,
   DocumentType,
@@ -8,7 +8,6 @@ import {
   ToolApplicationInfo,
   ToolInterface,
   ToolResult,
-  WorkflowData,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
@@ -17,7 +16,7 @@ import { WorkflowEntity } from '@loopstack/shared';
 export class DebugImportsTool implements ToolInterface {
   schema = z.object({}).optional();
 
-  constructor(private actionHelperService: ActionHelperService) {}
+  constructor(private actionHelperService: SchemaValidatorService) {}
 
   async apply(
     props: z.infer<typeof this.schema>,

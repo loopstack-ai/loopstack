@@ -184,7 +184,7 @@ export class LoadDocumentTool implements ToolInterface {
       throw new Error('Workflow is undefined');
     }
 
-    this.logger.debug(`Loading document ${info.transition}`);
+    this.logger.debug(`Load document ${info.transition}`);
 
     const validProps = this.schema.parse(props);
 

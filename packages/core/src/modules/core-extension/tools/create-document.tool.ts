@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   ContextInterface,
   DocumentSchema,
@@ -8,7 +8,7 @@ import {
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';
-import { ActionHelperService, DocumentHelperService } from '../../common';
+import { SchemaValidatorService, DocumentHelperService } from '../../common';
 import { ConfigurationService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
@@ -18,6 +18,7 @@ import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-in
 @Injectable()
 @Tool()
 export class CreateDocumentTool implements ToolInterface {
+  private readonly logger = new Logger(CreateDocumentTool.name);
   schema = z.object({
     document: z.string().optional(),
     update: PartialDocumentSchema.optional(),
@@ -25,7 +26,7 @@ export class CreateDocumentTool implements ToolInterface {
   });
 
   constructor(
-    private actionHelperService: ActionHelperService,
+    private actionHelperService: SchemaValidatorService,
     private loopConfigService: ConfigurationService,
     private documentHelperService: DocumentHelperService,
   ) {}
@@ -58,6 +59,8 @@ export class CreateDocumentTool implements ToolInterface {
     );
 
     this.actionHelperService.validateDocument(document);
+
+    this.logger.debug(`Create document "${document.name}".`);
 
     return {
       data: {

@@ -5,7 +5,7 @@ import {
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';
-import { ActionHelperService, DocumentHelperService } from '../../common';
+import { SchemaValidatorService, DocumentHelperService } from '../../common';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
 import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
@@ -20,7 +20,7 @@ export class CreateErrorTool implements ToolInterface {
   });
 
   constructor(
-    private actionHelperService: ActionHelperService,
+    private actionHelperService: SchemaValidatorService,
     private documentHelperService: DocumentHelperService,
   ) {}
 
@@ -34,7 +34,7 @@ export class CreateErrorTool implements ToolInterface {
 
     let data = workflow?.currData;
 
-    this.logger.error(`ERROR: ${validProps.message}`);
+    this.logger.error(`Create error: ${validProps.message}`);
 
     let document = this.documentHelperService.createDocumentWithSchema(
       {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import {
   ToolInterface,
@@ -8,6 +8,7 @@ import {
 
 @Injectable()
 export class ToolRegistry {
+  private readonly logger = new Logger(ToolRegistry.name);
   private tools: Map<string, ToolInterface> = new Map();
 
   constructor(
@@ -28,7 +29,7 @@ export class ToolRegistry {
       );
 
       if (options) {
-        console.log(instance.constructor.name);
+        this.logger.debug(`Register ${instance.constructor.name}`);
         this.registerTool(instance);
       }
     }

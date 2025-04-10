@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigurationService } from '../../configuration';
 import { NamespacesService, ProjectService } from '../../persistence';
 import { WorkflowProcessorService } from '../../workflow-processor';
@@ -11,6 +11,7 @@ import {
 
 @Injectable()
 export class ProjectProcessorService {
+  private readonly logger = new Logger(ProjectProcessorService.name);
   constructor(
     private loopConfigService: ConfigurationService,
     private projectService: ProjectService,
@@ -22,7 +23,8 @@ export class ProjectProcessorService {
   async processProject(
     payload: ProcessRunInterface,
   ): Promise<ContextInterface> {
-    console.log('Processing project:', payload.projectId);
+    this.logger.debug(`Processing project: ${payload.projectId}`);
+
     const project = await this.projectService.getProject(
       payload.projectId,
       payload.userId,

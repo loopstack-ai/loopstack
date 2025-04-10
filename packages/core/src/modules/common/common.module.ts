@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import {
-  ActionHelperService,
+  SchemaValidatorService,
   FunctionCallService,
   TemplateEngineService,
   DocumentHelperService,
@@ -11,7 +11,7 @@ import {
 @Module({
   providers: [
     FunctionCallService,
-    ActionHelperService,
+    SchemaValidatorService,
     TemplateEngineService,
     DocumentHelperService,
     ConfigValueParserService,
@@ -19,7 +19,7 @@ import {
   ],
   exports: [
     FunctionCallService,
-    ActionHelperService,
+    SchemaValidatorService,
     TemplateEngineService,
     DocumentHelperService,
     ConfigValueParserService,

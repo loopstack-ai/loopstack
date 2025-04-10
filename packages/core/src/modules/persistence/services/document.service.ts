@@ -80,8 +80,6 @@ export class DocumentService {
 
     queryBuilder.orderBy('workflow_index', 'DESC');
 
-    // console.log(queryBuilder.getSql(), queryBuilder.getParameters());
-
     return queryBuilder;
   }
 }

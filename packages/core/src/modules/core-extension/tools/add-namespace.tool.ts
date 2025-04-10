@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
   ContextInterface,
@@ -6,7 +6,6 @@ import {
   ToolApplicationInfo,
   ToolInterface,
   ToolResult,
-  WorkflowData,
   WorkflowEntity,
 } from '@loopstack/shared';
 import { NamespacesService } from '../../persistence';
@@ -14,6 +13,7 @@ import { NamespacesService } from '../../persistence';
 @Injectable()
 @Tool()
 export class AddNamespaceTool implements ToolInterface {
+  private readonly logger = new Logger(AddNamespaceTool.name);
   schema = z.object({
     label: z.string(),
     meta: z.any().optional(),
@@ -39,6 +39,8 @@ export class AddNamespaceTool implements ToolInterface {
       parent: context.namespace,
     });
     context.labels.push(context.namespace.name);
+
+    this.logger.debug(`Add namespace label "${context.namespace.name}".`);
 
     return {
       context,
