@@ -8,7 +8,6 @@ import {
   ToolApplicationInfo,
   ToolInterface,
   ToolResult,
-  WorkflowData,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { FunctionCallService } from '../../common';

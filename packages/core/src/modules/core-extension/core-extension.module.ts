@@ -13,6 +13,7 @@ import {
   DebugImportsTool,
   LoadDocumentTool,
   SetContextTool,
+  CreateErrorTool,
 } from './tools';
 import { WorkflowProcessorModule } from '../workflow-processor';
 
@@ -30,6 +31,7 @@ import { WorkflowProcessorModule } from '../workflow-processor';
     SetContextTool,
     AddNamespaceTool,
     LoadDocumentTool,
+    CreateErrorTool,
 
     InitialRunValidator,
     WorkflowOptionValidator,

@@ -2,9 +2,7 @@ import { Injectable } from '@nestjs/common';
 import _ from 'lodash';
 import {
   WorkflowObserverType,
-  WorkflowStateMachineType,
-  WorkflowTemplateType,
-  WorkflowTransitionType,
+  WorkflowTransitionType, StateMachineType,
 } from '@loopstack/shared';
 import { ConfigurationService } from '../../configuration';
 
@@ -13,8 +11,8 @@ export class StateMachineConfigService {
   constructor(private loopConfigService: ConfigurationService) {}
 
   getTemplateFlat(name: string) {
-    const stateMachine = this.loopConfigService.get<WorkflowTemplateType>(
-      'workflowTemplates',
+    const stateMachine = this.loopConfigService.get<StateMachineType>(
+      'stateMachineTemplates',
       name,
     );
     if (!stateMachine) {
@@ -23,40 +21,25 @@ export class StateMachineConfigService {
       );
     }
 
-    let transitions: WorkflowTransitionType[] = stateMachine.transitions ?? [];
-    let observers: WorkflowObserverType[] = stateMachine.observers ?? [];
-
-    const parentTemplate = stateMachine?.extends;
-    if (parentTemplate) {
-      const parentConfig = this.getTemplateFlat(parentTemplate);
-      transitions = _.unionBy(
-        transitions,
-        parentConfig.transitions ?? [],
-        'name',
-      );
-      observers = _.unionBy(observers, parentConfig.observers ?? [], 'name');
-    }
-
-    return {
-      name,
-      transitions,
-      observers,
-    };
+    return this.getStateMachineFlatConfig(stateMachine);
   }
 
-  getStateMachineFlatConfig(stateMachineConfig: WorkflowStateMachineType) {
+  getStateMachineFlatConfig(stateMachine: StateMachineType) {
     let transitions: WorkflowTransitionType[] =
-      stateMachineConfig.transitions ?? [];
-    let observers: WorkflowObserverType[] = stateMachineConfig.observers ?? [];
+      stateMachine.transitions ?? [];
+    let observers: WorkflowObserverType[] = stateMachine.observers ?? [];
 
-    if (stateMachineConfig.template) {
-      const stateMachine = this.getTemplateFlat(stateMachineConfig.template);
+    if (stateMachine.extends) {
+      const parentStateMachine = this.getTemplateFlat(stateMachine.extends);
       transitions = _.unionBy(
         transitions,
-        stateMachine?.transitions ?? [],
+        parentStateMachine?.transitions ?? [],
         'name',
       );
-      observers = _.unionBy(observers, stateMachine?.observers ?? [], 'name');
+      observers = [
+        ...(parentStateMachine?.observers ?? []),
+        ...observers,
+      ];
     }
 
     return {

@@ -5,7 +5,7 @@ import {
   HistoryTransition,
   TransitionInfoInterface,
   TransitionPayloadInterface,
-  WorkflowEntity,
+  WorkflowEntity, WorkflowObserverType,
   WorkflowStateHistoryDto,
   WorkflowStateMachineType,
   WorkflowStatePlaceInfoDto,
@@ -62,7 +62,7 @@ export class StateMachineProcessorService {
     config: WorkflowStateMachineType,
   ): Promise<WorkflowEntity> {
 
-    const options = config.options ? this.configValueParserService.evalObjectLeafs(config.options, { context }) : {};
+    const options = config.options ? this.configValueParserService.evalObjectLeafs<Record<string, any>>(config.options, { context }) : {};
 
     if (!workflow) {
       throw new Error(`No workflow entry.`)
@@ -203,8 +203,15 @@ export class StateMachineProcessorService {
     config: WorkflowStateMachineType,
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
-    const { transitions, observers } =
-      this.workflowConfigService.getStateMachineFlatConfig(config);
+    const flatConfig = this.workflowConfigService.getStateMachineFlatConfig(config);
+
+    const { transitions, observers } = this.configValueParserService.evalObjectLeafs<{
+      transitions: WorkflowTransitionType[],
+      observers: WorkflowObserverType[],
+    }>(flatConfig, {
+      context,
+      info: stateMachineInfo,
+    })
 
     workflow = await this.initStateMachine(
       workflow,
@@ -235,7 +242,7 @@ export class StateMachineProcessorService {
           observerIndex++;
 
           console.log(
-            `calling observer ${observer.tool} on transition ${observer.transition}`,
+            `calling observer ${observerIndex} (${observer.tool}) on transition ${observer.transition}`,
           );
 
           const result = await this.toolExecutionService.applyTool(
@@ -258,10 +265,13 @@ export class StateMachineProcessorService {
               workflow.currData = {};
             }
 
-            workflow.currData[stateMachineInfo.transitionInfo!.transition] = {
-              ...workflow.currData[stateMachineInfo.transitionInfo!.transition],
-              ...result.data,
-            };
+            const transitionName = stateMachineInfo.transitionInfo!.transition;
+            if (!workflow.currData[transitionName]) {
+              workflow.currData[transitionName] = {};
+            }
+
+            const toolName = observer.alias ?? observer.tool;
+            workflow.currData[transitionName][toolName] = result.data;
           }
 
           // save immediately for multiple observers
