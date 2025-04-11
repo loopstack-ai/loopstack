@@ -16,7 +16,7 @@ export class WorkflowOptionValidator implements StateMachineValidatorInterface {
     pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
     options: Record<string, any> | undefined,
-  ): { valid: boolean; target?: string; hash?: string; } {
+  ): { valid: boolean; target?: string; hash?: string } {
     if (options) {
       const hash = workflow.hashRecord?.['options'];
       const optionsHash = generateObjectFingerprint(options);

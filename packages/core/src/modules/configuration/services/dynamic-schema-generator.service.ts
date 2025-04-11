@@ -2,7 +2,7 @@ import { z, ZodType } from 'zod';
 import { Injectable } from '@nestjs/common';
 import { ToolRegistry } from './tool.registry';
 import { AdapterRegistry } from './adapter-registry.service';
-import { MainBaseSchema, ServiceConfigSchema } from '@loopstack/shared';
+import { MainConfigSchema, ServiceConfigSchema } from '@loopstack/shared';
 import { ServiceWithSchemaInterface } from '@loopstack/shared';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class DynamicSchemaGeneratorService {
     return z.discriminatedUnion('service', configSchemas as any);
   }
 
-  createDynamicSchema(): ReturnType<typeof MainBaseSchema.extend> {
+  createDynamicSchema(): ReturnType<typeof MainConfigSchema.extend> {
     const toolConfigSchemas = this.createDiscriminatedServiceType(
       this.toolRegistry.getEntries(),
     );
@@ -35,7 +35,7 @@ export class DynamicSchemaGeneratorService {
       this.adapterRegistry.getEntries(),
     );
 
-    return MainBaseSchema.extend({
+    return MainConfigSchema.extend({
       tools: z.array(toolConfigSchemas).optional(),
       adapters: z.array(adapterConfigSchemas).optional(),
     }).strict();

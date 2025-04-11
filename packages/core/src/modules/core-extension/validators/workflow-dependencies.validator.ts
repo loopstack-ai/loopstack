@@ -17,7 +17,7 @@ export class WorkflowDependenciesValidator
   validate(
     pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
-  ): { valid: boolean; target?: string; hash?: string; } {
+  ): { valid: boolean; target?: string; hash?: string } {
     const hash = workflow.hashRecord?.['dependencies'];
 
     if (hash) {
@@ -28,7 +28,9 @@ export class WorkflowDependenciesValidator
 
       const dependenciesHash = createHash(ids); // create hash from contents? so we dont need to track invalidation of entities?
 
-      this.logger.debug(`Check valid: ${(hash === dependenciesHash).toString()}`,);
+      this.logger.debug(
+        `Check valid: ${(hash === dependenciesHash).toString()}`,
+      );
 
       if (hash !== dependenciesHash) {
         return { valid: false, target: 'dependencies', hash: dependenciesHash };

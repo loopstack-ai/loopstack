@@ -1,28 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { FunctionCallService } from './function-call.service';
+import { ContextInterface, WorkflowData } from '@loopstack/shared';
+import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 
 @Injectable()
 export class ConfigValueParserService {
-  constructor(
-    private functionCallService: FunctionCallService,
-  ) {}
+  constructor(private functionCallService: FunctionCallService) {}
 
-  parseValue(
-    value: string | string[],
-    variables: Record<string, any>,
-  ): any | any[] {
-    if (Array.isArray(value)) {
-      return value.map((item) => this.parseValue(item, variables));
-    }
-
-    if (this.functionCallService.isFunction(value)) {
-      return this.functionCallService.runEval(value, variables);
-    }
-
-    return value;
-  }
-
-  evalObjectLeafs<T>(obj: any, variables: any): T {
+  private evalObjectLeafs<T>(obj: any, variables: any): T {
     if (obj === null || obj === undefined) {
       return obj;
     }
@@ -45,5 +30,34 @@ export class ConfigValueParserService {
     }
 
     return result;
+  }
+
+  evalWithContext<T>(obj: any, variables: { context: ContextInterface }): T {
+    return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
+  }
+
+  evalWithContextAndInfo<T extends {}>(
+    obj: any,
+    variables: { context: ContextInterface; info: StateMachineInfoDto },
+  ): T {
+    return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
+  }
+
+  evalWithContextAndItem<T extends {}>(
+    obj: any,
+    variables: { context: ContextInterface; item: string },
+  ): T {
+    return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
+  }
+
+  evalWithContextAndDataAndInfo<T extends {}>(
+    obj: any,
+    variables: {
+      context: ContextInterface;
+      data: WorkflowData | undefined | null;
+      info: StateMachineInfoDto;
+    },
+  ): T {
+    return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
 }

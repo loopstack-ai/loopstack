@@ -1,21 +1,24 @@
 import path from 'path';
 import fs from 'fs';
 import * as yaml from 'js-yaml';
+import { MainConfigType } from '@loopstack/shared';
 
-export function loadConfiguration(directoryPath: string): any[] {
-  const fullPath = path.join(process.cwd(), directoryPath);
-  const configs: any[] = [];
+export function loadConfiguration(path: string): MainConfigType[] {
+  const configs: MainConfigType[] = [];
 
   try {
-    loadConfigsRecursively(fullPath, configs);
+    loadConfigsRecursively(path, configs);
   } catch (error) {
-    console.error(`Error loading config files from ${directoryPath}:`, error);
+    console.error(`Error loading config files from ${path}:`, error);
   }
 
   return configs;
 }
 
-function loadConfigsRecursively(currentPath: string, configs: any[]): void {
+function loadConfigsRecursively(
+  currentPath: string,
+  configs: MainConfigType[],
+): void {
   const items = fs.readdirSync(currentPath);
 
   items.forEach((item) => {
@@ -23,7 +26,9 @@ function loadConfigsRecursively(currentPath: string, configs: any[]): void {
     const stats = fs.statSync(itemPath);
 
     if (stats.isFile() && item.endsWith('.yaml')) {
-      const config = yaml.load(fs.readFileSync(itemPath, 'utf8'));
+      const config = yaml.load(
+        fs.readFileSync(itemPath, 'utf8'),
+      ) as MainConfigType;
       configs.push(config);
     } else if (stats.isDirectory()) {
       loadConfigsRecursively(itemPath, configs);

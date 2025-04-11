@@ -19,15 +19,6 @@ export class ToolExecutionService {
     private documentService: DocumentService,
   ) {}
 
-  private parseCallProps(
-    props: Record<string, any> | undefined,
-    variables: any,
-  ): Record<string, any> {
-    return props
-      ? this.valueParserService.evalObjectLeafs(props, variables)
-      : {};
-  }
-
   getToolConfig(toolName: string) {
     const config = this.loopConfigService.get<ServiceConfigType>(
       'tools',
@@ -48,11 +39,14 @@ export class ToolExecutionService {
   ): Promise<ToolResult> {
     const toolConfig = this.getToolConfig(toolCall.tool);
 
-    const props = this.parseCallProps(toolConfig.props, {
-      context,
-      data: workflow?.currData,
-      info,
-    });
+    const props = this.valueParserService.evalWithContextAndDataAndInfo(
+      toolConfig.props,
+      {
+        context,
+        data: workflow?.currData,
+        info,
+      },
+    );
 
     const instance = this.toolRegistry.getToolByName(toolConfig.service);
     if (!instance) {

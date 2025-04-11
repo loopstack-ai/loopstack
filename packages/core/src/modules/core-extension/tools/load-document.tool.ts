@@ -144,7 +144,7 @@ export class LoadDocumentTool implements ToolInterface {
     workflow.hashRecord = {
       ...(workflow.hashRecord ?? {}),
       dependencies: hash,
-    }
+    };
   }
 
   /**
@@ -215,11 +215,7 @@ export class LoadDocumentTool implements ToolInterface {
       this.updateWorkflowDependenciesHash(workflow);
     }
 
-    const data = this.createImportItem(
-      props,
-      currentEntities,
-      prevImport,
-    );
+    const data = this.createImportItem(props, currentEntities, prevImport);
 
     return {
       data,

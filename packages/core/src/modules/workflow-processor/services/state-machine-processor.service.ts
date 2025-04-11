@@ -5,7 +5,8 @@ import {
   HistoryTransition,
   TransitionInfoInterface,
   TransitionPayloadInterface,
-  WorkflowEntity, WorkflowObserverType,
+  WorkflowEntity,
+  WorkflowObserverType,
   WorkflowStateHistoryDto,
   WorkflowStateMachineType,
   WorkflowStatePlaceInfoDto,
@@ -15,9 +16,7 @@ import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
 import { ConfigValueParserService } from '../../common';
-import {
-  StateMachineValidatorResultInterface
-} from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
+import { StateMachineValidatorResultInterface } from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
 import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 
 @Injectable()
@@ -50,7 +49,7 @@ export class StateMachineProcessorService {
           return {
             ...prev,
             [curr.target as string]: curr.hash,
-          }
+          };
         }
 
         return prev;
@@ -63,11 +62,13 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     config: WorkflowStateMachineType,
   ): Promise<WorkflowEntity> {
-
-    const options = config.options ? this.configValueParserService.evalObjectLeafs<Record<string, any>>(config.options, { context }) : {};
+    const options = this.configValueParserService.evalWithContext<Record<string, any>>(
+      config.options,
+      { context },
+    );
 
     if (!workflow) {
-      throw new Error(`No workflow entry.`)
+      throw new Error(`No workflow entry.`);
     }
 
     const pendingTransition =
@@ -85,7 +86,7 @@ export class StateMachineProcessorService {
       options,
       pendingTransition,
       validatorResult,
-    )
+    );
 
     if (stateMachineInfo.isStateValid) {
       return workflow!;
@@ -93,12 +94,7 @@ export class StateMachineProcessorService {
 
     this.logger.debug(`Process state machine for workflow ${workflow!.name}`);
 
-    return this.loopStateMachine(
-      context,
-      workflow,
-      config,
-      stateMachineInfo,
-    );
+    return this.loopStateMachine(context, workflow, config, stateMachineInfo);
   }
 
   updateWorkflowState(
@@ -131,7 +127,10 @@ export class StateMachineProcessorService {
     workflow.isWorking = true;
 
     // reset workflow to initial if there are invalidation reasons
-    if (workflow.place === 'initial' || Object.keys(stateMachineInfo.hashRecordUpdates).length) {
+    if (
+      workflow.place === 'initial' ||
+      Object.keys(stateMachineInfo.hashRecordUpdates).length
+    ) {
       const initialTransition: HistoryTransition = {
         transition: 'invalidation',
         from: workflow.place,
@@ -142,8 +141,8 @@ export class StateMachineProcessorService {
       workflow.currData = null;
       workflow.hashRecord = {
         ...(workflow?.hashRecord ?? {}),
-        ...stateMachineInfo.hashRecordUpdates
-      }
+        ...stateMachineInfo.hashRecordUpdates,
+      };
 
       this.updateWorkflowState(workflow, transitions, initialTransition);
     }
@@ -156,9 +155,14 @@ export class StateMachineProcessorService {
     stateMachineInfo: StateMachineInfoDto,
     historyItem: HistoryTransition,
   ) {
-    const to = Array.isArray(stateMachineInfo.transitionInfo!.to) ? stateMachineInfo.transitionInfo!.to : [stateMachineInfo.transitionInfo!.to];
+    const to = Array.isArray(stateMachineInfo.transitionInfo!.to)
+      ? stateMachineInfo.transitionInfo!.to
+      : [stateMachineInfo.transitionInfo!.to];
 
-    if (!historyItem.to || ![...to, stateMachineInfo.transitionInfo!.from].includes(historyItem.to)) {
+    if (
+      !historyItem.to ||
+      ![...to, stateMachineInfo.transitionInfo!.from].includes(historyItem.to)
+    ) {
       throw new Error(
         `target place "${historyItem.to}" not available in transition`,
       );
@@ -205,15 +209,14 @@ export class StateMachineProcessorService {
     config: WorkflowStateMachineType,
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
-    const flatConfig = this.workflowConfigService.getStateMachineFlatConfig(config);
+    const flatConfig =
+      this.workflowConfigService.getStateMachineFlatConfig(config);
 
-    const { transitions, observers } = this.configValueParserService.evalObjectLeafs<{
-      transitions: WorkflowTransitionType[],
-      observers: WorkflowObserverType[],
-    }>(flatConfig, {
-      context,
-      info: stateMachineInfo,
-    })
+    const { transitions, observers } =
+      this.configValueParserService.evalWithContextAndInfo<{
+        transitions: WorkflowTransitionType[];
+        observers: WorkflowObserverType[];
+      }>(flatConfig, { context, info: stateMachineInfo });
 
     workflow = await this.initStateMachine(
       workflow,
@@ -223,10 +226,7 @@ export class StateMachineProcessorService {
 
     while (true) {
       stateMachineInfo.setTransitionInfo(
-        this.getNextTransition(
-          workflow,
-          stateMachineInfo,
-        )
+        this.getNextTransition(workflow, stateMachineInfo),
       );
 
       if (null === stateMachineInfo.transitionInfo) {
@@ -235,7 +235,8 @@ export class StateMachineProcessorService {
 
       try {
         const matchedObservers = observers.filter(
-          (item) => item.transition === stateMachineInfo.transitionInfo!.transition,
+          (item) =>
+            item.transition === stateMachineInfo.transitionInfo!.transition,
         );
 
         let nextPlace: string | null = null;
@@ -243,7 +244,9 @@ export class StateMachineProcessorService {
         for (const observer of matchedObservers) {
           observerIndex++;
 
-          this.logger.debug(`Call observer ${observerIndex} (${observer.tool}) on transition ${observer.transition}`);
+          this.logger.debug(
+            `Call observer ${observerIndex} (${observer.tool}) on transition ${observer.transition}`,
+          );
 
           const result = await this.toolExecutionService.applyTool(
             observer,
@@ -282,7 +285,8 @@ export class StateMachineProcessorService {
         }
 
         nextPlace =
-          nextPlace ?? (Array.isArray(stateMachineInfo.transitionInfo!.to)
+          nextPlace ??
+          (Array.isArray(stateMachineInfo.transitionInfo!.to)
             ? stateMachineInfo.transitionInfo!.to[0]
             : stateMachineInfo.transitionInfo!.to);
 

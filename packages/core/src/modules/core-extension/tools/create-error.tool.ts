@@ -16,7 +16,7 @@ export class CreateErrorTool implements ToolInterface {
   private readonly logger = new Logger(CreateErrorTool.name);
   schema = z.object({
     message: z.string(),
-    errorPlace: z.string().optional()
+    errorPlace: z.string().optional(),
   });
 
   constructor(

@@ -83,7 +83,7 @@ export class WorkflowProcessorService {
       throw new Error(`Workflow ${workflowName} for factory does not exist.`);
     }
 
-    const items = this.valueParserService.evalObjectLeafs(
+    const items = this.valueParserService.evalWithContext<string[]>(
       factory.iterator.source,
       { context },
     );
@@ -105,17 +105,23 @@ export class WorkflowProcessorService {
       localContext.index = this.incrementIndex(index, i + 1);
 
       const label = factory.iterator.label
-        ? this.valueParserService.evalObjectLeafs<string>(factory.iterator.label, {
-            item,
-            context: localContext,
-          })
+        ? this.valueParserService.evalWithContextAndItem<string>(
+            factory.iterator.label,
+          {
+              context: localContext,
+              item,
+            },
+          )
         : item.toString();
 
       const metadata = factory.iterator.meta
-        ? this.valueParserService.evalObjectLeafs<Record<string, any>>(factory.iterator.meta, {
-            item,
-            context: localContext,
-          })
+        ? this.valueParserService.evalWithContextAndItem<Record<string, any>>(
+            factory.iterator.meta,
+          {
+              context: localContext,
+              item,
+            },
+          )
         : undefined;
 
       // create namespace for the group iterator and make sure the value includes a unique id,
@@ -152,10 +158,10 @@ export class WorkflowProcessorService {
     let workflow = await this.getWorkflow(config, context);
 
     workflow = await this.stateMachineProcessorService.processStateMachine(
-        context,
-        workflow,
-        config,
-      );
+      context,
+      workflow,
+      config,
+    );
 
     if (workflow.place !== 'finished') {
       this.stop = true;
