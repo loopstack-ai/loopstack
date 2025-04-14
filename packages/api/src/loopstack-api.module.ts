@@ -21,10 +21,18 @@ import { DocumentApiService } from './services/document-api.service';
 import {NamespaceController} from "./controllers/namespace.controller";
 import {NamespaceApiService} from "./services/namespace-api.service";
 import { LoopCoreModule } from '@loopstack/core';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { NullStrategy } from './strategies/null.strategy';
+import { AuthController } from './controllers/auth.controller';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthService } from './services/auth.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forFeature([
       ProjectEntity,
       WorkspaceEntity,
@@ -33,8 +41,13 @@ import { LoopCoreModule } from '@loopstack/core';
       NamespaceEntity,
     ]),
     LoopCoreModule.forRoot(),
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET ?? 'NO SECRET',
+    }),
   ],
   controllers: [
+    AuthController,
     ProjectController,
     WorkspaceController,
     ProcessorController,
@@ -43,6 +56,9 @@ import { LoopCoreModule } from '@loopstack/core';
     NamespaceController,
   ],
   providers: [
+    AuthService,
+    JwtStrategy,
+    NullStrategy,
     ProjectApiService,
     WorkspaceApiService,
     ProcessorApiService,
