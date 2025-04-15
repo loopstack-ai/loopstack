@@ -6,7 +6,6 @@ import {
   Response, HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
-import { DevAuthGuard } from '../guards/dev-auth.guard';
 import {
   ApiExtraModels, ApiInternalServerErrorResponse,
   ApiOperation,
@@ -15,6 +14,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UserDto } from '../dtos/user.dto';
+import { DevAuthGuard } from '../guards/dev-auth.guard';
 
 @ApiTags('api/v1/auth')
 @ApiExtraModels(UserDto)

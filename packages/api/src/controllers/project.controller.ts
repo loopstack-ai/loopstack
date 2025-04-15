@@ -11,7 +11,7 @@ import {
   ValidationPipe,
   Query,
   ParseIntPipe,
-  BadRequestException,
+  BadRequestException, UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -33,6 +33,7 @@ import { ProjectDto } from '../dtos/project.dto';
 import { ProjectItemDto } from '../dtos/project-item.dto';
 import { ProjectSortByDto } from '../dtos/project-sort-by.dto';
 import { ProjectFilterDto } from '../dtos/project-filter.dto';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('api/v1/projects')
 @ApiExtraModels(ProjectDto, ProjectItemDto, ProjectCreateDto, ProjectUpdateDto)
@@ -80,6 +81,7 @@ export class ProjectController {
     description: 'JSON string of ProjectFilterDto object',
   })
   @ApiPaginatedResponse(ProjectItemDto)
+  @UseGuards(JwtAuthGuard)
   async getProjects(
     @Request() req: any,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
@@ -87,8 +89,6 @@ export class ProjectController {
     @Query('filter') filterParam?: string,
     @Query('sortBy') sortByParam?: string,
   ): Promise<PaginatedDto<ProjectItemDto>> {
-    const user = req.user || null;
-
     let filter: ProjectFilterDto = {};
     if (filterParam) {
       try {
@@ -107,7 +107,7 @@ export class ProjectController {
       }
     }
 
-    const result = await this.projectService.findAll(user, filter, sortBy, {
+    const result = await this.projectService.findAll(req.user.id, filter, sortBy, {
       page,
       limit,
     });
@@ -122,12 +122,12 @@ export class ProjectController {
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   @ApiOkResponse({ type: ProjectDto })
+  @UseGuards(JwtAuthGuard)
   async getProjectById(
     @Param('id') id: string,
     @Request() req: ApiRequestType,
   ): Promise<ProjectDto> {
-    const user = req.user || null;
-    const project = await this.projectService.findOneById(id, user);
+    const project = await this.projectService.findOneById(id, req.user.id);
     return ProjectDto.create(project);
   }
 
@@ -138,12 +138,12 @@ export class ProjectController {
   @ApiOperation({ summary: 'Create a new project' })
   @ApiBody({ type: ProjectCreateDto, description: 'Project data' })
   @ApiOkResponse({ type: ProjectDto })
+  @UseGuards(JwtAuthGuard)
   async createProject(
     @Body() projectData: ProjectCreateDto,
     @Request() req: ApiRequestType,
   ): Promise<ProjectDto> {
-    const user = req.user || null;
-    const project = await this.projectService.create(projectData, user);
+    const project = await this.projectService.create(projectData, req.user.id);
     return ProjectDto.create(project);
   }
 
@@ -156,13 +156,13 @@ export class ProjectController {
   @ApiBody({ type: ProjectUpdateDto, description: 'Updated project data' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   @ApiOkResponse({ type: ProjectDto })
+  @UseGuards(JwtAuthGuard)
   async updateProject(
     @Param('id') id: string,
     @Body() projectData: ProjectUpdateDto,
     @Request() req: ApiRequestType,
   ): Promise<ProjectDto> {
-    const user = req.user || null;
-    const project = await this.projectService.update(id, projectData, user);
+    const project = await this.projectService.update(id, projectData, req.user.id);
     return ProjectDto.create(project);
   }
 
@@ -174,11 +174,11 @@ export class ProjectController {
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
   @ApiResponse({ status: 204, description: 'Project deleted successfully' })
   @ApiResponse({ status: 404, description: 'Project not found' })
+  @UseGuards(JwtAuthGuard)
   async deleteProject(
     @Param('id') id: string,
     @Request() req: ApiRequestType,
   ): Promise<void> {
-    const user = req.user || null;
-    await this.projectService.delete(id, user);
+    await this.projectService.delete(id, req.user.id);
   }
 }

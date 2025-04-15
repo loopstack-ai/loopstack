@@ -27,6 +27,7 @@ import { NullStrategy } from './strategies/null.strategy';
 import { AuthController } from './controllers/auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthService } from './services/auth.service';
+var cookieParser = require('cookie-parser');
 
 @Module({
   imports: [
@@ -96,5 +97,7 @@ export class LoopstackApiModule extends ConfigurableModuleClass {
       const documentFactory = () => SwaggerModule.createDocument(app, config);
       SwaggerModule.setup('api', app, documentFactory);
     }
+
+    app.use(cookieParser());
   }
 }
