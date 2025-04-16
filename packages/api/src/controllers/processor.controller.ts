@@ -1,11 +1,11 @@
-import { Body, Controller, Param, Post, Query, Request } from '@nestjs/common';
+import { Body, Controller, Param, Post, Query, Request, UseGuards } from '@nestjs/common';
 import {
   ApiBody,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
-  ApiTags,
+  ApiTags, ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { ProcessorApiService } from '../services/processor-api.service';
@@ -13,6 +13,7 @@ import { IsBoolean, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { RunProjectPayloadDto } from '../dtos/run-project-payload.dto';
 import { ProjectEntity } from '@loopstack/shared';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 /**
  * Query parameters for run project endpoint
@@ -72,14 +73,15 @@ export class ProcessorController {
     status: 404,
     description: 'Project not found',
   })
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
   async runProject(
     @Param('projectId') projectId: string,
     @Body() payload: RunProjectPayloadDto,
     @Request() req: ApiRequestType,
     @Query() queryParams: RunProjectQueryParams,
   ): Promise<ProjectEntity> {
-    const user = req.user || null;
-    return this.processorApiService.processProject(projectId, user, payload ?? {}, {
+    return this.processorApiService.processProject(projectId, req.user.id, payload ?? {}, {
       force: !!queryParams.force,
     });
   }

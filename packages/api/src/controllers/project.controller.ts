@@ -21,7 +21,7 @@ import {
   ApiBody,
   ApiExtraModels,
   ApiOkResponse,
-  ApiQuery,
+  ApiQuery, ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { ProjectApiService } from '../services/project-api.service';
@@ -122,6 +122,7 @@ export class ProjectController {
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   @ApiOkResponse({ type: ProjectDto })
+  @ApiUnauthorizedResponse()
   @UseGuards(JwtAuthGuard)
   async getProjectById(
     @Param('id') id: string,
@@ -138,6 +139,7 @@ export class ProjectController {
   @ApiOperation({ summary: 'Create a new project' })
   @ApiBody({ type: ProjectCreateDto, description: 'Project data' })
   @ApiOkResponse({ type: ProjectDto })
+  @ApiUnauthorizedResponse()
   @UseGuards(JwtAuthGuard)
   async createProject(
     @Body() projectData: ProjectCreateDto,
@@ -156,6 +158,7 @@ export class ProjectController {
   @ApiBody({ type: ProjectUpdateDto, description: 'Updated project data' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   @ApiOkResponse({ type: ProjectDto })
+  @ApiUnauthorizedResponse()
   @UseGuards(JwtAuthGuard)
   async updateProject(
     @Param('id') id: string,
@@ -174,6 +177,7 @@ export class ProjectController {
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
   @ApiResponse({ status: 204, description: 'Project deleted successfully' })
   @ApiResponse({ status: 404, description: 'Project not found' })
+  @ApiUnauthorizedResponse()
   @UseGuards(JwtAuthGuard)
   async deleteProject(
     @Param('id') id: string,

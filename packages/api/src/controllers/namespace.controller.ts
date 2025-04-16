@@ -7,7 +7,7 @@ import {
   ValidationPipe,
   ParseIntPipe,
   Query,
-  BadRequestException,
+  BadRequestException, UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -16,7 +16,7 @@ import {
   ApiTags,
   ApiExtraModels,
   ApiOkResponse,
-  ApiQuery,
+  ApiQuery, ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { PaginatedDto } from '../dtos/paginated.dto';
@@ -26,6 +26,7 @@ import {NamespaceItemDto} from "../dtos/namespace-item.dto";
 import {NamespaceFilterDto} from "../dtos/namespace-filter.dto";
 import {NamespaceSortByDto} from "../dtos/namespace-sort-by.dto";
 import {NamespaceApiService} from "../services/namespace-api.service";
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('api/v1/namespaces')
 @ApiExtraModels(NamespaceDto, NamespaceItemDto)
@@ -73,6 +74,8 @@ export class NamespaceController {
     description: 'JSON string of NamespaceFilterDto object',
   })
   @ApiPaginatedResponse(NamespaceItemDto)
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
   async getWorkflows(
     @Request() req: any,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
@@ -80,8 +83,6 @@ export class NamespaceController {
     @Query('filter') filterParam?: string,
     @Query('sortBy') sortByParam?: string,
   ): Promise<PaginatedDto<NamespaceItemDto>> {
-    const user = req.user || null;
-
     let filter: NamespaceFilterDto = {};
     if (filterParam) {
       try {
@@ -100,7 +101,7 @@ export class NamespaceController {
       }
     }
 
-    const result = await this.namespaceApiService.findAll(user, filter, sortBy, {
+    const result = await this.namespaceApiService.findAll(req.user.id, filter, sortBy, {
       page,
       limit,
     });
@@ -115,12 +116,13 @@ export class NamespaceController {
   @ApiParam({ name: 'id', type: String, description: 'The ID of the namespace' })
   @ApiResponse({ status: 404, description: 'Namespace not found' })
   @ApiOkResponse({ type: NamespaceDto })
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
   async getWorkflowById(
     @Param('id') id: string,
     @Request() req: ApiRequestType,
   ): Promise<NamespaceDto> {
-    const user = req.user || null;
-    const workflow = await this.namespaceApiService.findOneById(id, user);
+    const workflow = await this.namespaceApiService.findOneById(id, req.user.id);
     return NamespaceDto.create(workflow);
   }
 }

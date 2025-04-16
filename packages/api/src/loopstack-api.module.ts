@@ -27,6 +27,10 @@ import { NullStrategy } from './strategies/null.strategy';
 import { AuthController } from './controllers/auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthService } from './services/auth.service';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { WsEventEmitterService } from './services/ws-event-emitter.service';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 var cookieParser = require('cookie-parser');
 
 @Module({
@@ -41,6 +45,17 @@ var cookieParser = require('cookie-parser');
       DocumentEntity,
       NamespaceEntity,
     ]),
+    ClientsModule.register([
+      {
+        name: 'REDIS_PUB_SUB',
+        transport: Transport.REDIS,
+        options: {
+          host: process.env.REDIS_HOST ?? 'localhost',
+          port: parseInt(process.env.REDIS_PORT ?? '6379', 0),
+        },
+      },
+    ]),
+    EventEmitterModule.forRoot(),
     LoopCoreModule.forRoot(),
     PassportModule,
     JwtModule.register({
@@ -60,6 +75,7 @@ var cookieParser = require('cookie-parser');
     AuthService,
     JwtStrategy,
     NullStrategy,
+    WsEventEmitterService,
     ProjectApiService,
     WorkspaceApiService,
     ProcessorApiService,
@@ -80,7 +96,7 @@ export class LoopstackApiModule extends ConfigurableModuleClass {
         options.cors?.options ?? {
           origin: true,
           credentials: true,
-        },
+        } as CorsOptions,
       );
     }
 

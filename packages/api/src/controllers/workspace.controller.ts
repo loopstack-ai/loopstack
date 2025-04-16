@@ -11,7 +11,7 @@ import {
   ValidationPipe,
   ParseIntPipe,
   Query,
-  BadRequestException,
+  BadRequestException, UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -21,7 +21,7 @@ import {
   ApiBody,
   ApiExtraModels,
   ApiOkResponse,
-  ApiQuery,
+  ApiQuery, ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { WorkspaceApiService } from '../services/workspace-api.service';
@@ -33,6 +33,7 @@ import { WorkspaceDto } from '../dtos/workspace.dto';
 import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('api/v1/workspaces')
 @ApiExtraModels(
@@ -85,6 +86,8 @@ export class WorkspaceController {
     description: 'JSON string of WorkspaceFilterDto object',
   })
   @ApiPaginatedResponse(WorkspaceItemDto)
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
   async getWorkspaces(
     @Request() req: any,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
@@ -92,8 +95,6 @@ export class WorkspaceController {
     @Query('filter') filterParam?: string,
     @Query('sortBy') sortByParam?: string,
   ): Promise<PaginatedDto<WorkspaceItemDto>> {
-    const user = req.user || null;
-
     let filter: WorkspaceFilterDto = {};
     if (filterParam) {
       try {
@@ -112,7 +113,7 @@ export class WorkspaceController {
       }
     }
 
-    const result = await this.workspaceService.findAll(user, filter, sortBy, {
+    const result = await this.workspaceService.findAll(req.user.id, filter, sortBy, {
       page,
       limit,
     });
@@ -131,12 +132,13 @@ export class WorkspaceController {
   })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiOkResponse({ type: WorkspaceDto })
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
   async getWorkspaceById(
     @Param('id') id: string,
     @Request() req: ApiRequestType,
   ): Promise<WorkspaceDto> {
-    const user = req.user || null;
-    const workspace = await this.workspaceService.findOneById(id, user);
+    const workspace = await this.workspaceService.findOneById(id, req.user.id);
     return WorkspaceDto.create(workspace);
   }
 
@@ -147,12 +149,13 @@ export class WorkspaceController {
   @ApiOperation({ summary: 'Create a new workspace' })
   @ApiBody({ type: WorkspaceCreateDto, description: 'Workspace data' })
   @ApiOkResponse({ type: WorkspaceDto })
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
   async createWorkspace(
     @Body() workspaceData: WorkspaceCreateDto,
     @Request() req: ApiRequestType,
   ): Promise<WorkspaceDto> {
-    const user = req.user || null;
-    const workspace = await this.workspaceService.create(workspaceData, user);
+    const workspace = await this.workspaceService.create(workspaceData, req.user.id);
     return WorkspaceDto.create(workspace);
   }
 
@@ -169,16 +172,17 @@ export class WorkspaceController {
   @ApiBody({ type: WorkspaceUpdateDto, description: 'Updated workspace data' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiOkResponse({ type: WorkspaceDto })
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
   async updateWorkspace(
     @Param('id') id: string,
     @Body() workspaceData: WorkspaceUpdateDto,
     @Request() req: ApiRequestType,
   ): Promise<WorkspaceDto> {
-    const user = req.user || null;
     const workspace = await this.workspaceService.update(
       id,
       workspaceData,
-      user,
+      req.user.id,
     );
     return WorkspaceDto.create(workspace);
   }
@@ -195,11 +199,12 @@ export class WorkspaceController {
   })
   @ApiResponse({ status: 204, description: 'Workspace deleted successfully' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
   async deleteWorkspace(
     @Param('id') id: string,
     @Request() req: ApiRequestType,
   ): Promise<void> {
-    const user = req.user || null;
-    await this.workspaceService.delete(id, user);
+    await this.workspaceService.delete(id, req.user.id);
   }
 }

@@ -7,7 +7,7 @@ import {
   ValidationPipe,
   Query,
   ParseIntPipe,
-  BadRequestException,
+  BadRequestException, UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -16,7 +16,7 @@ import {
   ApiTags,
   ApiExtraModels,
   ApiOkResponse,
-  ApiQuery,
+  ApiQuery, ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { DocumentApiService } from '../services/document-api.service';
@@ -26,6 +26,7 @@ import { DocumentDto } from '../dtos/document.dto';
 import { DocumentItemDto } from '../dtos/document-item.dto';
 import { DocumentFilterDto } from '../dtos/document-filter.dto';
 import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('api/v1/documents')
 @ApiExtraModels(DocumentDto, DocumentItemDto)
@@ -73,6 +74,8 @@ export class DocumentController {
     description: 'JSON string of DocumentFilterDto object',
   })
   @ApiPaginatedResponse(DocumentItemDto)
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
   async getDocuments(
     @Request() req: any,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
@@ -80,8 +83,6 @@ export class DocumentController {
     @Query('filter') filterParam?: string,
     @Query('sortBy') sortByParam?: string,
   ): Promise<PaginatedDto<DocumentItemDto>> {
-    const user = req.user || null;
-
     let filter: DocumentFilterDto = {};
     if (filterParam) {
       try {
@@ -100,7 +101,7 @@ export class DocumentController {
       }
     }
 
-    const result = await this.documentService.findAll(user, filter, sortBy, {
+    const result = await this.documentService.findAll(req.user.id, filter, sortBy, {
       page,
       limit,
     });
@@ -115,12 +116,13 @@ export class DocumentController {
   @ApiParam({ name: 'id', type: String, description: 'The ID of the document' })
   @ApiResponse({ status: 404, description: 'Document not found' })
   @ApiOkResponse({ type: DocumentDto })
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
   async getDocumentById(
     @Param('id') id: string,
     @Request() req: ApiRequestType,
   ): Promise<DocumentDto> {
-    const user = req.user || null;
-    const document = await this.documentService.findOneById(id, user);
+    const document = await this.documentService.findOneById(id, req.user.id);
     return DocumentDto.create(document);
   }
 }
