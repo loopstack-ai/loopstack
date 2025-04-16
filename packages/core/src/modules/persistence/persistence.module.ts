@@ -14,9 +14,12 @@ import {
   WorkflowService,
   WorkspaceService,
 } from './services';
+import { WorkflowSubscriber } from './subscriber/workflow.subscriber';
+import { CommonModule } from '../common';
 
 @Module({
   imports: [
+    CommonModule,
     TypeOrmModule.forFeature([
       ProjectEntity,
       WorkflowEntity,
@@ -31,6 +34,7 @@ import {
     WorkspaceService,
     DocumentService,
     NamespacesService,
+    WorkflowSubscriber,
   ],
   exports: [
     WorkflowService,

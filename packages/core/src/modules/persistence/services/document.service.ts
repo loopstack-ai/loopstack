@@ -10,7 +10,7 @@ export class DocumentService {
   constructor(
     @InjectRepository(DocumentEntity)
     private documentRepository: Repository<DocumentEntity>,
-    private readonly workflowService: WorkflowService,
+    private workflowService: WorkflowService,
   ) {}
 
   create(
