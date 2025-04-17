@@ -57,7 +57,6 @@ export class NamespaceApiService {
         pagination.page && pagination.limit
           ? (pagination.page - 1) * pagination.limit
           : 0,
-      relations: ['workflows']
     };
 
     const [data, total] =

@@ -5,5 +5,5 @@ export class WorkflowFilterDto {
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional()
-  projectId?: string;
+  namespaceId?: string;
 }

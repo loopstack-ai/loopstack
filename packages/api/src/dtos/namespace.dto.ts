@@ -59,14 +59,6 @@ export class NamespaceDto {
   })
   parentId: string | null;
 
-  @Expose()
-  @ApiProperty({
-    description: 'List of workflows',
-    type: () => [WorkflowItemDto],
-  })
-  @Type(() => WorkflowItemDto)
-  workflows: WorkflowItemDto[];
-
   /**
    * Creates a NamespaceDto instance from a NamespaceEntity
    */

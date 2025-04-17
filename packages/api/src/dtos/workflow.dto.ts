@@ -118,6 +118,13 @@ export class WorkflowDto {
   })
   workspaceId: string;
 
+  @Expose()
+  @ApiProperty({
+    description: 'Unique identifier of the namespace this workflow belongs to',
+    example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
+  })
+  namespaceId: string;
+
   /**
    * Creates a WorkflowDto instance from a WorkflowEntity
    * @param workflow The workflow entity to transform

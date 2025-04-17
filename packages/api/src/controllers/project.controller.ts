@@ -11,7 +11,7 @@ import {
   ValidationPipe,
   Query,
   ParseIntPipe,
-  BadRequestException, UseGuards,
+  BadRequestException, UseGuards, UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiOperation,
