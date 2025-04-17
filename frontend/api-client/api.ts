@@ -26,31 +26,31 @@ import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerM
 /**
  * 
  * @export
- * @interface DocumentControllerSearchDocuments200Response
+ * @interface DocumentControllerGetDocuments200Response
  */
-export interface DocumentControllerSearchDocuments200Response {
+export interface DocumentControllerGetDocuments200Response {
     /**
      * 
      * @type {Array<DocumentItemDto>}
-     * @memberof DocumentControllerSearchDocuments200Response
+     * @memberof DocumentControllerGetDocuments200Response
      */
     'data': Array<DocumentItemDto>;
     /**
      * 
      * @type {number}
-     * @memberof DocumentControllerSearchDocuments200Response
+     * @memberof DocumentControllerGetDocuments200Response
      */
     'total': number;
     /**
      * 
      * @type {number}
-     * @memberof DocumentControllerSearchDocuments200Response
+     * @memberof DocumentControllerGetDocuments200Response
      */
     'page': number;
     /**
      * 
      * @type {number}
-     * @memberof DocumentControllerSearchDocuments200Response
+     * @memberof DocumentControllerGetDocuments200Response
      */
     'limit': number;
 }
@@ -73,35 +73,23 @@ export interface DocumentDto {
      */
     'name': string;
     /**
-     * Type of the document
-     * @type {string}
-     * @memberof DocumentDto
-     */
-    'type': string;
-    /**
      * Contents of the document
      * @type {object}
      * @memberof DocumentDto
      */
-    'contents'?: object;
+    'content': object;
     /**
-     * Indicates if document content is JSON serialized
-     * @type {boolean}
+     * The json schema for document validation
+     * @type {object}
      * @memberof DocumentDto
      */
-    'isJsonSerialized': boolean;
+    'schema': object;
     /**
      * Document metadata
      * @type {object}
      * @memberof DocumentDto
      */
-    'meta'?: object;
-    /**
-     * Document namespaces
-     * @type {object}
-     * @memberof DocumentDto
-     */
-    'namespaces': object;
+    'meta': object;
     /**
      * Indicates if the document is invalidated
      * @type {boolean}
@@ -134,16 +122,22 @@ export interface DocumentDto {
     'index': number;
     /**
      * Transition when this document was created
-     * @type {string}
+     * @type {object}
      * @memberof DocumentDto
      */
-    'transition'?: string;
+    'transition': object;
     /**
      * Place when this document was created
-     * @type {string}
+     * @type {object}
      * @memberof DocumentDto
      */
-    'place'?: string;
+    'place': object;
+    /**
+     * Tags associated with the document for categorization and filtering
+     * @type {Array<string>}
+     * @memberof DocumentDto
+     */
+    'labels': Array<string>;
     /**
      * Date when the document was created
      * @type {string}
@@ -207,23 +201,23 @@ export interface DocumentItemDto {
      */
     'name': string;
     /**
-     * Type of the document
-     * @type {string}
+     * Contents of the document
+     * @type {object}
      * @memberof DocumentItemDto
      */
-    'type': string;
+    'content': object;
+    /**
+     * The json schema for document validation
+     * @type {object}
+     * @memberof DocumentItemDto
+     */
+    'schema': object;
     /**
      * Document metadata
      * @type {object}
      * @memberof DocumentItemDto
      */
-    'meta'?: object;
-    /**
-     * Document namespaces
-     * @type {object}
-     * @memberof DocumentItemDto
-     */
-    'namespaces': object;
+    'meta': object;
     /**
      * Indicates if the document is invalidated
      * @type {boolean}
@@ -236,6 +230,36 @@ export interface DocumentItemDto {
      * @memberof DocumentItemDto
      */
     'isPendingRemoval': boolean;
+    /**
+     * Version of the document
+     * @type {number}
+     * @memberof DocumentItemDto
+     */
+    'version': number;
+    /**
+     * Index of the document
+     * @type {number}
+     * @memberof DocumentItemDto
+     */
+    'index': number;
+    /**
+     * Transition when this document was created
+     * @type {object}
+     * @memberof DocumentItemDto
+     */
+    'transition': object;
+    /**
+     * Place when this document was created
+     * @type {string}
+     * @memberof DocumentItemDto
+     */
+    'place': string | null;
+    /**
+     * Tags associated with the document for categorization and filtering
+     * @type {Array<string>}
+     * @memberof DocumentItemDto
+     */
+    'labels': Array<string>;
     /**
      * Date when the document was created
      * @type {string}
@@ -270,37 +294,6 @@ export interface DocumentItemDto {
 /**
  * 
  * @export
- * @interface DocumentQueryDto
- */
-export interface DocumentQueryDto {
-    /**
-     * 
-     * @type {DocumentFilterDto}
-     * @memberof DocumentQueryDto
-     */
-    'filter'?: DocumentFilterDto;
-    /**
-     * 
-     * @type {number}
-     * @memberof DocumentQueryDto
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof DocumentQueryDto
-     */
-    'limit'?: number;
-    /**
-     * 
-     * @type {Array<DocumentSortByDto>}
-     * @memberof DocumentQueryDto
-     */
-    'sortBy'?: Array<DocumentSortByDto>;
-}
-/**
- * 
- * @export
  * @interface DocumentSortByDto
  */
 export interface DocumentSortByDto {
@@ -321,11 +314,11 @@ export interface DocumentSortByDto {
 export const DocumentSortByDtoFieldEnum = {
     Id: 'id',
     Name: 'name',
-    Type: 'type',
-    Contents: 'contents',
-    IsJsonSerialized: 'isJsonSerialized',
+    WorkspaceId: 'workspaceId',
+    ProjectId: 'projectId',
+    Content: 'content',
+    Schema: 'schema',
     Meta: 'meta',
-    Namespaces: 'namespaces',
     IsInvalidated: 'isInvalidated',
     IsPendingRemoval: 'isPendingRemoval',
     WorkflowIndex: 'workflowIndex',
@@ -335,8 +328,7 @@ export const DocumentSortByDtoFieldEnum = {
     Place: 'place',
     CreatedAt: 'createdAt',
     UpdatedAt: 'updatedAt',
-    WorkspaceId: 'workspaceId',
-    ProjectId: 'projectId',
+    Labels: 'labels',
     WorkflowId: 'workflowId',
     CreatedBy: 'createdBy'
 } as const;
@@ -348,6 +340,177 @@ export const DocumentSortByDtoOrderEnum = {
 } as const;
 
 export type DocumentSortByDtoOrderEnum = typeof DocumentSortByDtoOrderEnum[keyof typeof DocumentSortByDtoOrderEnum];
+
+/**
+ * 
+ * @export
+ * @interface NamespaceControllerGetWorkflows200Response
+ */
+export interface NamespaceControllerGetWorkflows200Response {
+    /**
+     * 
+     * @type {Array<NamespaceItemDto>}
+     * @memberof NamespaceControllerGetWorkflows200Response
+     */
+    'data': Array<NamespaceItemDto>;
+    /**
+     * 
+     * @type {number}
+     * @memberof NamespaceControllerGetWorkflows200Response
+     */
+    'total': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof NamespaceControllerGetWorkflows200Response
+     */
+    'page': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof NamespaceControllerGetWorkflows200Response
+     */
+    'limit': number;
+}
+/**
+ * 
+ * @export
+ * @interface NamespaceDto
+ */
+export interface NamespaceDto {
+    /**
+     * Unique identifier of the namespace
+     * @type {string}
+     * @memberof NamespaceDto
+     */
+    'id': string;
+    /**
+     * Name of the namespace
+     * @type {string}
+     * @memberof NamespaceDto
+     */
+    'name': string;
+    /**
+     * The model where this namespace is used
+     * @type {string}
+     * @memberof NamespaceDto
+     */
+    'model': string;
+    /**
+     * Unique identifier of the workspace this namespace belongs to
+     * @type {string}
+     * @memberof NamespaceDto
+     */
+    'workspaceId': string;
+    /**
+     * Unique identifier of the project this namespace belongs to
+     * @type {string}
+     * @memberof NamespaceDto
+     */
+    'projectId': string;
+    /**
+     * Metadata of this namespace
+     * @type {{ [key: string]: any; }}
+     * @memberof NamespaceDto
+     */
+    'metadata': { [key: string]: any; };
+    /**
+     * Parent namespace ID
+     * @type {string}
+     * @memberof NamespaceDto
+     */
+    'parentId': string | null;
+}
+/**
+ * 
+ * @export
+ * @interface NamespaceFilterDto
+ */
+export interface NamespaceFilterDto {
+    /**
+     * 
+     * @type {string}
+     * @memberof NamespaceFilterDto
+     */
+    'workspaceId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof NamespaceFilterDto
+     */
+    'projectId'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface NamespaceItemDto
+ */
+export interface NamespaceItemDto {
+    /**
+     * Unique identifier of the namespace
+     * @type {string}
+     * @memberof NamespaceItemDto
+     */
+    'id': string;
+    /**
+     * Name of the namespace
+     * @type {string}
+     * @memberof NamespaceItemDto
+     */
+    'name': string;
+    /**
+     * Metadata of this namespace
+     * @type {{ [key: string]: any; }}
+     * @memberof NamespaceItemDto
+     */
+    'metadata': { [key: string]: any; };
+    /**
+     * Parent namespace ID
+     * @type {string}
+     * @memberof NamespaceItemDto
+     */
+    'parentId': string | null;
+}
+/**
+ * 
+ * @export
+ * @interface NamespaceSortByDto
+ */
+export interface NamespaceSortByDto {
+    /**
+     * 
+     * @type {string}
+     * @memberof NamespaceSortByDto
+     */
+    'field': NamespaceSortByDtoFieldEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof NamespaceSortByDto
+     */
+    'order': NamespaceSortByDtoOrderEnum;
+}
+
+export const NamespaceSortByDtoFieldEnum = {
+    Id: 'id',
+    Name: 'name',
+    Model: 'model',
+    WorkspaceId: 'workspaceId',
+    ProjectId: 'projectId',
+    ParentId: 'parentId',
+    Metadata: 'metadata',
+    CreatedAt: 'createdAt',
+    UpdatedAt: 'updatedAt',
+    CreatedBy: 'createdBy'
+} as const;
+
+export type NamespaceSortByDtoFieldEnum = typeof NamespaceSortByDtoFieldEnum[keyof typeof NamespaceSortByDtoFieldEnum];
+export const NamespaceSortByDtoOrderEnum = {
+    Asc: 'ASC',
+    Desc: 'DESC'
+} as const;
+
+export type NamespaceSortByDtoOrderEnum = typeof NamespaceSortByDtoOrderEnum[keyof typeof NamespaceSortByDtoOrderEnum];
 
 /**
  * 
@@ -383,31 +546,31 @@ export interface PaginatedDto {
 /**
  * 
  * @export
- * @interface ProjectControllerSearchProjects200Response
+ * @interface ProjectControllerGetProjects200Response
  */
-export interface ProjectControllerSearchProjects200Response {
+export interface ProjectControllerGetProjects200Response {
     /**
      * 
      * @type {Array<ProjectItemDto>}
-     * @memberof ProjectControllerSearchProjects200Response
+     * @memberof ProjectControllerGetProjects200Response
      */
     'data': Array<ProjectItemDto>;
     /**
      * 
      * @type {number}
-     * @memberof ProjectControllerSearchProjects200Response
+     * @memberof ProjectControllerGetProjects200Response
      */
     'total': number;
     /**
      * 
      * @type {number}
-     * @memberof ProjectControllerSearchProjects200Response
+     * @memberof ProjectControllerGetProjects200Response
      */
     'page': number;
     /**
      * 
      * @type {number}
-     * @memberof ProjectControllerSearchProjects200Response
+     * @memberof ProjectControllerGetProjects200Response
      */
     'limit': number;
 }
@@ -418,17 +581,17 @@ export interface ProjectControllerSearchProjects200Response {
  */
 export interface ProjectCreateDto {
     /**
-     * Unique identifier for the project
+     * Process model identifier for the project
      * @type {string}
      * @memberof ProjectCreateDto
      */
-    'name': string;
+    'model': string;
     /**
      * Human-readable title for the project
      * @type {string}
      * @memberof ProjectCreateDto
      */
-    'title'?: string;
+    'title': string;
     /**
      * Array of labels/tags associated with the project
      * @type {Array<string>}
@@ -455,17 +618,11 @@ export interface ProjectDto {
      */
     'id': string;
     /**
-     * System name of the project, used for identification purposes
+     * Process model identifier for the project
      * @type {string}
      * @memberof ProjectDto
      */
-    'name': string;
-    /**
-     * Namespace configurations for the project
-     * @type {object}
-     * @memberof ProjectDto
-     */
-    'namespaces': object;
+    'model': string;
     /**
      * Display title of the project
      * @type {string}
@@ -543,17 +700,11 @@ export interface ProjectItemDto {
      */
     'id': string;
     /**
-     * System name of the project, used for identification purposes
+     * Process model identifier for the project
      * @type {string}
      * @memberof ProjectItemDto
      */
-    'name': string;
-    /**
-     * Namespace configurations for the project
-     * @type {object}
-     * @memberof ProjectItemDto
-     */
-    'namespaces': object;
+    'model': string;
     /**
      * Display title of the project
      * @type {string}
@@ -602,37 +753,6 @@ export interface ProjectItemDto {
 /**
  * 
  * @export
- * @interface ProjectQueryDto
- */
-export interface ProjectQueryDto {
-    /**
-     * 
-     * @type {ProjectFilterDto}
-     * @memberof ProjectQueryDto
-     */
-    'filter'?: ProjectFilterDto;
-    /**
-     * 
-     * @type {number}
-     * @memberof ProjectQueryDto
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ProjectQueryDto
-     */
-    'limit'?: number;
-    /**
-     * 
-     * @type {Array<ProjectSortByDto>}
-     * @memberof ProjectQueryDto
-     */
-    'sortBy'?: Array<ProjectSortByDto>;
-}
-/**
- * 
- * @export
  * @interface ProjectSortByDto
  */
 export interface ProjectSortByDto {
@@ -652,11 +772,10 @@ export interface ProjectSortByDto {
 
 export const ProjectSortByDtoFieldEnum = {
     Id: 'id',
-    Name: 'name',
-    Namespaces: 'namespaces',
+    Model: 'model',
     Title: 'title',
     Labels: 'labels',
-    Order: 'order',
+    Index: 'index',
     Status: 'status',
     Context: 'context',
     CreatedAt: 'createdAt',
@@ -726,31 +845,44 @@ export interface RunProjectPayloadDto {
 /**
  * 
  * @export
- * @interface WorkflowControllerSearchWorkflows200Response
+ * @interface UserDto
  */
-export interface WorkflowControllerSearchWorkflows200Response {
+export interface UserDto {
+    /**
+     * Unique identifier for the user.
+     * @type {object}
+     * @memberof UserDto
+     */
+    'id': object;
+}
+/**
+ * 
+ * @export
+ * @interface WorkflowControllerGetWorkflows200Response
+ */
+export interface WorkflowControllerGetWorkflows200Response {
     /**
      * 
      * @type {Array<WorkflowItemDto>}
-     * @memberof WorkflowControllerSearchWorkflows200Response
+     * @memberof WorkflowControllerGetWorkflows200Response
      */
     'data': Array<WorkflowItemDto>;
     /**
      * 
      * @type {number}
-     * @memberof WorkflowControllerSearchWorkflows200Response
+     * @memberof WorkflowControllerGetWorkflows200Response
      */
     'total': number;
     /**
      * 
      * @type {number}
-     * @memberof WorkflowControllerSearchWorkflows200Response
+     * @memberof WorkflowControllerGetWorkflows200Response
      */
     'page': number;
     /**
      * 
      * @type {number}
-     * @memberof WorkflowControllerSearchWorkflows200Response
+     * @memberof WorkflowControllerGetWorkflows200Response
      */
     'limit': number;
 }
@@ -773,17 +905,23 @@ export interface WorkflowDto {
      */
     'name': string;
     /**
-     * Namespaces configuration for the workflow
-     * @type {object}
+     * Display title of the workflow
+     * @type {string}
      * @memberof WorkflowDto
      */
-    'namespaces': object;
+    'title': string;
     /**
      * Index position of the workflow in the project sequence
      * @type {number}
      * @memberof WorkflowDto
      */
     'index': number;
+    /**
+     * Tags associated with the workflow for categorization and filtering
+     * @type {Array<string>}
+     * @memberof WorkflowDto
+     */
+    'labels': Array<string>;
     /**
      * Completion percentage of the workflow (0-100)
      * @type {number}
@@ -792,16 +930,34 @@ export interface WorkflowDto {
     'progress': number;
     /**
      * Error message if workflow execution failed
-     * @type {string}
+     * @type {object}
      * @memberof WorkflowDto
      */
-    'error'?: string | null;
+    'error': object | null;
     /**
      * Indicates if the workflow is currently running
      * @type {boolean}
      * @memberof WorkflowDto
      */
     'isWorking': boolean;
+    /**
+     * Current place in the workflow state machine
+     * @type {string}
+     * @memberof WorkflowDto
+     */
+    'place': string;
+    /**
+     * Additional information about the current place in the workflow
+     * @type {object}
+     * @memberof WorkflowDto
+     */
+    'placeInfo'?: object | null;
+    /**
+     * History of state transitions within the workflow
+     * @type {object}
+     * @memberof WorkflowDto
+     */
+    'transitionHistory'?: object | null;
     /**
      * Date and time when the workflow was created
      * @type {string}
@@ -815,29 +971,17 @@ export interface WorkflowDto {
      */
     'updatedAt': string;
     /**
-     * Current state of the workflow state machine
-     * @type {WorkflowStateDto}
-     * @memberof WorkflowDto
-     */
-    'state': WorkflowStateDto;
-    /**
-     * Unique identifier of the workflow state
-     * @type {string}
-     * @memberof WorkflowDto
-     */
-    'stateId': string;
-    /**
-     * Unique identifier of the project this workflow belongs to
-     * @type {string}
-     * @memberof WorkflowDto
-     */
-    'projectId': string;
-    /**
      * Unique identifier of the workspace this workflow belongs to
      * @type {string}
      * @memberof WorkflowDto
      */
     'workspaceId': string;
+    /**
+     * Unique identifier of the namespace this workflow belongs to
+     * @type {string}
+     * @memberof WorkflowDto
+     */
+    'namespaceId': string;
 }
 /**
  * 
@@ -850,7 +994,7 @@ export interface WorkflowFilterDto {
      * @type {string}
      * @memberof WorkflowFilterDto
      */
-    'projectId'?: string;
+    'namespaceId'?: string;
 }
 /**
  * 
@@ -871,17 +1015,23 @@ export interface WorkflowItemDto {
      */
     'name': string;
     /**
-     * Namespaces configuration for the workflow item
-     * @type {object}
+     * Display title of the workflow
+     * @type {string}
      * @memberof WorkflowItemDto
      */
-    'namespaces': object;
+    'title': string;
     /**
      * Index position of the workflow item in a sequence
      * @type {number}
      * @memberof WorkflowItemDto
      */
     'index': number;
+    /**
+     * Tags associated with the workflow for categorization and filtering
+     * @type {Array<string>}
+     * @memberof WorkflowItemDto
+     */
+    'labels': Array<string>;
     /**
      * Completion percentage of the workflow item (0-100)
      * @type {number}
@@ -890,10 +1040,10 @@ export interface WorkflowItemDto {
     'progress': number;
     /**
      * Error message if workflow item execution failed
-     * @type {string}
+     * @type {object}
      * @memberof WorkflowItemDto
      */
-    'error'?: string | null;
+    'error': object | null;
     /**
      * Indicates if the workflow item is currently running
      * @type {boolean}
@@ -919,48 +1069,23 @@ export interface WorkflowItemDto {
      */
     'place': string;
     /**
-     * Unique identifier of the project this workflow item belongs to
-     * @type {string}
+     * Additional information about the current place in the workflow
+     * @type {object}
      * @memberof WorkflowItemDto
      */
-    'projectId': string;
+    'placeInfo'?: object | null;
     /**
      * Unique identifier of the workspace this workflow item belongs to
      * @type {string}
      * @memberof WorkflowItemDto
      */
     'workspaceId': string;
-}
-/**
- * 
- * @export
- * @interface WorkflowQueryDto
- */
-export interface WorkflowQueryDto {
     /**
-     * 
-     * @type {WorkflowFilterDto}
-     * @memberof WorkflowQueryDto
+     * Unique identifier of the namespace this workflow belongs to
+     * @type {string}
+     * @memberof WorkflowItemDto
      */
-    'filter'?: WorkflowFilterDto;
-    /**
-     * 
-     * @type {number}
-     * @memberof WorkflowQueryDto
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof WorkflowQueryDto
-     */
-    'limit'?: number;
-    /**
-     * 
-     * @type {Array<WorkflowSortByDto>}
-     * @memberof WorkflowQueryDto
-     */
-    'sortBy'?: Array<WorkflowSortByDto>;
+    'namespaceId': string;
 }
 /**
  * 
@@ -985,18 +1110,21 @@ export interface WorkflowSortByDto {
 export const WorkflowSortByDtoFieldEnum = {
     Id: 'id',
     Name: 'name',
-    Namespaces: 'namespaces',
+    Title: 'title',
     Index: 'index',
-    OptionsHash: 'optionsHash',
     Progress: 'progress',
     Error: 'error',
     IsWorking: 'isWorking',
     CreatedAt: 'createdAt',
     UpdatedAt: 'updatedAt',
-    StateId: 'stateId',
-    ProjectId: 'projectId',
-    WorkspaceId: 'workspaceId',
-    DependenciesHash: 'dependenciesHash',
+    Place: 'place',
+    PrevData: 'prevData',
+    CurrData: 'currData',
+    PlaceInfo: 'placeInfo',
+    History: 'history',
+    NamespaceId: 'namespaceId',
+    Labels: 'labels',
+    HashRecord: 'hashRecord',
     CreatedBy: 'createdBy'
 } as const;
 
@@ -1011,76 +1139,46 @@ export type WorkflowSortByDtoOrderEnum = typeof WorkflowSortByDtoOrderEnum[keyof
 /**
  * 
  * @export
- * @interface WorkflowStateDto
+ * @interface WorkspaceControllerGetWorkspaces200Response
  */
-export interface WorkflowStateDto {
-    /**
-     * Unique identifier for the workflow state
-     * @type {string}
-     * @memberof WorkflowStateDto
-     */
-    'id': string;
-    /**
-     * Current place in the workflow state machine
-     * @type {string}
-     * @memberof WorkflowStateDto
-     */
-    'place': string;
-    /**
-     * Additional information about the current place in the workflow
-     * @type {object}
-     * @memberof WorkflowStateDto
-     */
-    'placeInfo'?: object | null;
-    /**
-     * History of state transitions within the workflow
-     * @type {object}
-     * @memberof WorkflowStateDto
-     */
-    'transitionHistory'?: object | null;
-    /**
-     * Timestamp when the workflow state was created
-     * @type {string}
-     * @memberof WorkflowStateDto
-     */
-    'createdAt': string;
-    /**
-     * Timestamp when the workflow state was last updated
-     * @type {string}
-     * @memberof WorkflowStateDto
-     */
-    'updatedAt': string;
-}
-/**
- * 
- * @export
- * @interface WorkspaceControllerSearchWorkspaces200Response
- */
-export interface WorkspaceControllerSearchWorkspaces200Response {
+export interface WorkspaceControllerGetWorkspaces200Response {
     /**
      * 
      * @type {Array<WorkspaceItemDto>}
-     * @memberof WorkspaceControllerSearchWorkspaces200Response
+     * @memberof WorkspaceControllerGetWorkspaces200Response
      */
     'data': Array<WorkspaceItemDto>;
     /**
      * 
      * @type {number}
-     * @memberof WorkspaceControllerSearchWorkspaces200Response
+     * @memberof WorkspaceControllerGetWorkspaces200Response
      */
     'total': number;
     /**
      * 
      * @type {number}
-     * @memberof WorkspaceControllerSearchWorkspaces200Response
+     * @memberof WorkspaceControllerGetWorkspaces200Response
      */
     'page': number;
     /**
      * 
      * @type {number}
-     * @memberof WorkspaceControllerSearchWorkspaces200Response
+     * @memberof WorkspaceControllerGetWorkspaces200Response
      */
     'limit': number;
+}
+/**
+ * 
+ * @export
+ * @interface WorkspaceCreateDto
+ */
+export interface WorkspaceCreateDto {
+    /**
+     * Human-readable title for the workspace
+     * @type {string}
+     * @memberof WorkspaceCreateDto
+     */
+    'title'?: string;
 }
 /**
  * 
@@ -1094,6 +1192,12 @@ export interface WorkspaceDto {
      * @memberof WorkspaceDto
      */
     'id': string;
+    /**
+     * Display title of the workspace
+     * @type {string}
+     * @memberof WorkspaceDto
+     */
+    'title': string;
     /**
      * Indicates whether the workspace is locked for editing
      * @type {boolean}
@@ -1126,6 +1230,12 @@ export interface WorkspaceItemDto {
      */
     'id': string;
     /**
+     * Display title of the workspace
+     * @type {string}
+     * @memberof WorkspaceItemDto
+     */
+    'title': string;
+    /**
      * Timestamp when the workspace item was created
      * @type {string}
      * @memberof WorkspaceItemDto
@@ -1137,37 +1247,6 @@ export interface WorkspaceItemDto {
      * @memberof WorkspaceItemDto
      */
     'updatedAt': string;
-}
-/**
- * 
- * @export
- * @interface WorkspaceQueryDto
- */
-export interface WorkspaceQueryDto {
-    /**
-     * 
-     * @type {object}
-     * @memberof WorkspaceQueryDto
-     */
-    'filter'?: object;
-    /**
-     * 
-     * @type {number}
-     * @memberof WorkspaceQueryDto
-     */
-    'page'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof WorkspaceQueryDto
-     */
-    'limit'?: number;
-    /**
-     * 
-     * @type {Array<WorkspaceSortByDto>}
-     * @memberof WorkspaceQueryDto
-     */
-    'sortBy'?: Array<WorkspaceSortByDto>;
 }
 /**
  * 
@@ -1191,6 +1270,7 @@ export interface WorkspaceSortByDto {
 
 export const WorkspaceSortByDtoFieldEnum = {
     Id: 'id',
+    Title: 'title',
     IsLocked: 'isLocked',
     CreatedAt: 'createdAt',
     UpdatedAt: 'updatedAt',
@@ -1204,6 +1284,137 @@ export const WorkspaceSortByDtoOrderEnum = {
 } as const;
 
 export type WorkspaceSortByDtoOrderEnum = typeof WorkspaceSortByDtoOrderEnum[keyof typeof WorkspaceSortByDtoOrderEnum];
+
+/**
+ * 
+ * @export
+ * @interface WorkspaceUpdateDto
+ */
+export interface WorkspaceUpdateDto {
+    /**
+     * Human-readable title for the workspace
+     * @type {string}
+     * @memberof WorkspaceUpdateDto
+     */
+    'title'?: string;
+}
+
+/**
+ * ApiV1AuthApi - axios parameter creator
+ * @export
+ */
+export const ApiV1AuthApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Login without credentials for development environments.
+         * @summary Authenticate dev user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerLogin: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/auth/login-dev`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ApiV1AuthApi - functional programming interface
+ * @export
+ */
+export const ApiV1AuthApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ApiV1AuthApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Login without credentials for development environments.
+         * @summary Authenticate dev user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authControllerLogin(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerLogin(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ApiV1AuthApi - factory interface
+ * @export
+ */
+export const ApiV1AuthApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ApiV1AuthApiFp(configuration)
+    return {
+        /**
+         * Login without credentials for development environments.
+         * @summary Authenticate dev user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerLogin(options?: RawAxiosRequestConfig): AxiosPromise<UserDto> {
+            return localVarFp.authControllerLogin(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ApiV1AuthApi - interface
+ * @export
+ * @interface ApiV1AuthApi
+ */
+export interface ApiV1AuthApiInterface {
+    /**
+     * Login without credentials for development environments.
+     * @summary Authenticate dev user
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1AuthApiInterface
+     */
+    authControllerLogin(options?: RawAxiosRequestConfig): AxiosPromise<UserDto>;
+
+}
+
+/**
+ * ApiV1AuthApi - object-oriented interface
+ * @export
+ * @class ApiV1AuthApi
+ * @extends {BaseAPI}
+ */
+export class ApiV1AuthApi extends BaseAPI implements ApiV1AuthApiInterface {
+    /**
+     * Login without credentials for development environments.
+     * @summary Authenticate dev user
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1AuthApi
+     */
+    public authControllerLogin(options?: RawAxiosRequestConfig) {
+        return ApiV1AuthApiFp(this.configuration).authControllerLogin(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
 
 
 /**
@@ -1249,14 +1460,15 @@ export const ApiV1DocumentsApiAxiosParamCreator = function (configuration?: Conf
         /**
          * 
          * @summary Retrieve documents with filters, sorting, and pagination
-         * @param {DocumentQueryDto} documentQueryDto 
+         * @param {number} [page] Page number for pagination (starts at 1)
+         * @param {number} [limit] Number of items per page
+         * @param {string} [filter] JSON string of DocumentFilterDto object
+         * @param {string} [sortBy] JSON string array of DocumentSortByDto objects
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        documentControllerSearchDocuments: async (documentQueryDto: DocumentQueryDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'documentQueryDto' is not null or undefined
-            assertParamExists('documentControllerSearchDocuments', 'documentQueryDto', documentQueryDto)
-            const localVarPath = `/api/v1/documents/list`;
+        documentControllerGetDocuments: async (page?: number, limit?: number, filter?: string, sortBy?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/documents`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1264,18 +1476,31 @@ export const ApiV1DocumentsApiAxiosParamCreator = function (configuration?: Conf
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (sortBy !== undefined) {
+                localVarQueryParameter['sortBy'] = sortBy;
+            }
+
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(documentQueryDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1308,14 +1533,17 @@ export const ApiV1DocumentsApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Retrieve documents with filters, sorting, and pagination
-         * @param {DocumentQueryDto} documentQueryDto 
+         * @param {number} [page] Page number for pagination (starts at 1)
+         * @param {number} [limit] Number of items per page
+         * @param {string} [filter] JSON string of DocumentFilterDto object
+         * @param {string} [sortBy] JSON string array of DocumentSortByDto objects
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async documentControllerSearchDocuments(documentQueryDto: DocumentQueryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentControllerSearchDocuments200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.documentControllerSearchDocuments(documentQueryDto, options);
+        async documentControllerGetDocuments(page?: number, limit?: number, filter?: string, sortBy?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentControllerGetDocuments200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.documentControllerGetDocuments(page, limit, filter, sortBy, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1DocumentsApi.documentControllerSearchDocuments']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1DocumentsApi.documentControllerGetDocuments']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -1341,12 +1569,12 @@ export const ApiV1DocumentsApiFactory = function (configuration?: Configuration,
         /**
          * 
          * @summary Retrieve documents with filters, sorting, and pagination
-         * @param {ApiV1DocumentsApiDocumentControllerSearchDocumentsRequest} requestParameters Request parameters.
+         * @param {ApiV1DocumentsApiDocumentControllerGetDocumentsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        documentControllerSearchDocuments(requestParameters: ApiV1DocumentsApiDocumentControllerSearchDocumentsRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentControllerSearchDocuments200Response> {
-            return localVarFp.documentControllerSearchDocuments(requestParameters.documentQueryDto, options).then((request) => request(axios, basePath));
+        documentControllerGetDocuments(requestParameters: ApiV1DocumentsApiDocumentControllerGetDocumentsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<DocumentControllerGetDocuments200Response> {
+            return localVarFp.documentControllerGetDocuments(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1370,12 +1598,12 @@ export interface ApiV1DocumentsApiInterface {
     /**
      * 
      * @summary Retrieve documents with filters, sorting, and pagination
-     * @param {ApiV1DocumentsApiDocumentControllerSearchDocumentsRequest} requestParameters Request parameters.
+     * @param {ApiV1DocumentsApiDocumentControllerGetDocumentsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1DocumentsApiInterface
      */
-    documentControllerSearchDocuments(requestParameters: ApiV1DocumentsApiDocumentControllerSearchDocumentsRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentControllerSearchDocuments200Response>;
+    documentControllerGetDocuments(requestParameters?: ApiV1DocumentsApiDocumentControllerGetDocumentsRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentControllerGetDocuments200Response>;
 
 }
 
@@ -1394,17 +1622,38 @@ export interface ApiV1DocumentsApiDocumentControllerGetDocumentByIdRequest {
 }
 
 /**
- * Request parameters for documentControllerSearchDocuments operation in ApiV1DocumentsApi.
+ * Request parameters for documentControllerGetDocuments operation in ApiV1DocumentsApi.
  * @export
- * @interface ApiV1DocumentsApiDocumentControllerSearchDocumentsRequest
+ * @interface ApiV1DocumentsApiDocumentControllerGetDocumentsRequest
  */
-export interface ApiV1DocumentsApiDocumentControllerSearchDocumentsRequest {
+export interface ApiV1DocumentsApiDocumentControllerGetDocumentsRequest {
     /**
-     * 
-     * @type {DocumentQueryDto}
-     * @memberof ApiV1DocumentsApiDocumentControllerSearchDocuments
+     * Page number for pagination (starts at 1)
+     * @type {number}
+     * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
      */
-    readonly documentQueryDto: DocumentQueryDto
+    readonly page?: number
+
+    /**
+     * Number of items per page
+     * @type {number}
+     * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
+     */
+    readonly limit?: number
+
+    /**
+     * JSON string of DocumentFilterDto object
+     * @type {string}
+     * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
+     */
+    readonly filter?: string
+
+    /**
+     * JSON string array of DocumentSortByDto objects
+     * @type {string}
+     * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
+     */
+    readonly sortBy?: string
 }
 
 /**
@@ -1429,13 +1678,453 @@ export class ApiV1DocumentsApi extends BaseAPI implements ApiV1DocumentsApiInter
     /**
      * 
      * @summary Retrieve documents with filters, sorting, and pagination
-     * @param {ApiV1DocumentsApiDocumentControllerSearchDocumentsRequest} requestParameters Request parameters.
+     * @param {ApiV1DocumentsApiDocumentControllerGetDocumentsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1DocumentsApi
      */
-    public documentControllerSearchDocuments(requestParameters: ApiV1DocumentsApiDocumentControllerSearchDocumentsRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1DocumentsApiFp(this.configuration).documentControllerSearchDocuments(requestParameters.documentQueryDto, options).then((request) => request(this.axios, this.basePath));
+    public documentControllerGetDocuments(requestParameters: ApiV1DocumentsApiDocumentControllerGetDocumentsRequest = {}, options?: RawAxiosRequestConfig) {
+        return ApiV1DocumentsApiFp(this.configuration).documentControllerGetDocuments(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * ApiV1NamespacesApi - axios parameter creator
+ * @export
+ */
+export const ApiV1NamespacesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Get a namespace by ID
+         * @param {string} id The ID of the namespace
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        namespaceControllerGetWorkflowById: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('namespaceControllerGetWorkflowById', 'id', id)
+            const localVarPath = `/api/v1/namespaces/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Retrieve namespaces with filters, sorting, and pagination
+         * @param {number} [page] Page number for pagination (starts at 1)
+         * @param {number} [limit] Number of items per page
+         * @param {string} [filter] JSON string of NamespaceFilterDto object
+         * @param {string} [sortBy] JSON string array of NamespaceSortByDto objects
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        namespaceControllerGetWorkflows: async (page?: number, limit?: number, filter?: string, sortBy?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/namespaces`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (sortBy !== undefined) {
+                localVarQueryParameter['sortBy'] = sortBy;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ApiV1NamespacesApi - functional programming interface
+ * @export
+ */
+export const ApiV1NamespacesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ApiV1NamespacesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Get a namespace by ID
+         * @param {string} id The ID of the namespace
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async namespaceControllerGetWorkflowById(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<NamespaceDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.namespaceControllerGetWorkflowById(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1NamespacesApi.namespaceControllerGetWorkflowById']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Retrieve namespaces with filters, sorting, and pagination
+         * @param {number} [page] Page number for pagination (starts at 1)
+         * @param {number} [limit] Number of items per page
+         * @param {string} [filter] JSON string of NamespaceFilterDto object
+         * @param {string} [sortBy] JSON string array of NamespaceSortByDto objects
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async namespaceControllerGetWorkflows(page?: number, limit?: number, filter?: string, sortBy?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<NamespaceControllerGetWorkflows200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.namespaceControllerGetWorkflows(page, limit, filter, sortBy, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1NamespacesApi.namespaceControllerGetWorkflows']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ApiV1NamespacesApi - factory interface
+ * @export
+ */
+export const ApiV1NamespacesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ApiV1NamespacesApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Get a namespace by ID
+         * @param {ApiV1NamespacesApiNamespaceControllerGetWorkflowByIdRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        namespaceControllerGetWorkflowById(requestParameters: ApiV1NamespacesApiNamespaceControllerGetWorkflowByIdRequest, options?: RawAxiosRequestConfig): AxiosPromise<NamespaceDto> {
+            return localVarFp.namespaceControllerGetWorkflowById(requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Retrieve namespaces with filters, sorting, and pagination
+         * @param {ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        namespaceControllerGetWorkflows(requestParameters: ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<NamespaceControllerGetWorkflows200Response> {
+            return localVarFp.namespaceControllerGetWorkflows(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ApiV1NamespacesApi - interface
+ * @export
+ * @interface ApiV1NamespacesApi
+ */
+export interface ApiV1NamespacesApiInterface {
+    /**
+     * 
+     * @summary Get a namespace by ID
+     * @param {ApiV1NamespacesApiNamespaceControllerGetWorkflowByIdRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1NamespacesApiInterface
+     */
+    namespaceControllerGetWorkflowById(requestParameters: ApiV1NamespacesApiNamespaceControllerGetWorkflowByIdRequest, options?: RawAxiosRequestConfig): AxiosPromise<NamespaceDto>;
+
+    /**
+     * 
+     * @summary Retrieve namespaces with filters, sorting, and pagination
+     * @param {ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1NamespacesApiInterface
+     */
+    namespaceControllerGetWorkflows(requestParameters?: ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest, options?: RawAxiosRequestConfig): AxiosPromise<NamespaceControllerGetWorkflows200Response>;
+
+}
+
+/**
+ * Request parameters for namespaceControllerGetWorkflowById operation in ApiV1NamespacesApi.
+ * @export
+ * @interface ApiV1NamespacesApiNamespaceControllerGetWorkflowByIdRequest
+ */
+export interface ApiV1NamespacesApiNamespaceControllerGetWorkflowByIdRequest {
+    /**
+     * The ID of the namespace
+     * @type {string}
+     * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflowById
+     */
+    readonly id: string
+}
+
+/**
+ * Request parameters for namespaceControllerGetWorkflows operation in ApiV1NamespacesApi.
+ * @export
+ * @interface ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest
+ */
+export interface ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest {
+    /**
+     * Page number for pagination (starts at 1)
+     * @type {number}
+     * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
+     */
+    readonly page?: number
+
+    /**
+     * Number of items per page
+     * @type {number}
+     * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
+     */
+    readonly limit?: number
+
+    /**
+     * JSON string of NamespaceFilterDto object
+     * @type {string}
+     * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
+     */
+    readonly filter?: string
+
+    /**
+     * JSON string array of NamespaceSortByDto objects
+     * @type {string}
+     * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
+     */
+    readonly sortBy?: string
+}
+
+/**
+ * ApiV1NamespacesApi - object-oriented interface
+ * @export
+ * @class ApiV1NamespacesApi
+ * @extends {BaseAPI}
+ */
+export class ApiV1NamespacesApi extends BaseAPI implements ApiV1NamespacesApiInterface {
+    /**
+     * 
+     * @summary Get a namespace by ID
+     * @param {ApiV1NamespacesApiNamespaceControllerGetWorkflowByIdRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1NamespacesApi
+     */
+    public namespaceControllerGetWorkflowById(requestParameters: ApiV1NamespacesApiNamespaceControllerGetWorkflowByIdRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1NamespacesApiFp(this.configuration).namespaceControllerGetWorkflowById(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Retrieve namespaces with filters, sorting, and pagination
+     * @param {ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1NamespacesApi
+     */
+    public namespaceControllerGetWorkflows(requestParameters: ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest = {}, options?: RawAxiosRequestConfig) {
+        return ApiV1NamespacesApiFp(this.configuration).namespaceControllerGetWorkflows(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * ApiV1ProcessorApi - axios parameter creator
+ * @export
+ */
+export const ApiV1ProcessorApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Triggers the processing of a project with the given ID and configuration
+         * @summary Run a project
+         * @param {string} projectId The unique identifier of the project to run
+         * @param {RunProjectPayloadDto} runProjectPayloadDto Configuration and parameters for the project run
+         * @param {boolean} [force] When true, forces the project to run even if locked
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        processorControllerRunProject: async (projectId: string, runProjectPayloadDto: RunProjectPayloadDto, force?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'projectId' is not null or undefined
+            assertParamExists('processorControllerRunProject', 'projectId', projectId)
+            // verify required parameter 'runProjectPayloadDto' is not null or undefined
+            assertParamExists('processorControllerRunProject', 'runProjectPayloadDto', runProjectPayloadDto)
+            const localVarPath = `/api/v1/processor/run/{projectId}`
+                .replace(`{${"projectId"}}`, encodeURIComponent(String(projectId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (force !== undefined) {
+                localVarQueryParameter['force'] = force;
+            }
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(runProjectPayloadDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ApiV1ProcessorApi - functional programming interface
+ * @export
+ */
+export const ApiV1ProcessorApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ApiV1ProcessorApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Triggers the processing of a project with the given ID and configuration
+         * @summary Run a project
+         * @param {string} projectId The unique identifier of the project to run
+         * @param {RunProjectPayloadDto} runProjectPayloadDto Configuration and parameters for the project run
+         * @param {boolean} [force] When true, forces the project to run even if locked
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async processorControllerRunProject(projectId: string, runProjectPayloadDto: RunProjectPayloadDto, force?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.processorControllerRunProject(projectId, runProjectPayloadDto, force, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1ProcessorApi.processorControllerRunProject']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ApiV1ProcessorApi - factory interface
+ * @export
+ */
+export const ApiV1ProcessorApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ApiV1ProcessorApiFp(configuration)
+    return {
+        /**
+         * Triggers the processing of a project with the given ID and configuration
+         * @summary Run a project
+         * @param {ApiV1ProcessorApiProcessorControllerRunProjectRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        processorControllerRunProject(requestParameters: ApiV1ProcessorApiProcessorControllerRunProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.processorControllerRunProject(requestParameters.projectId, requestParameters.runProjectPayloadDto, requestParameters.force, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ApiV1ProcessorApi - interface
+ * @export
+ * @interface ApiV1ProcessorApi
+ */
+export interface ApiV1ProcessorApiInterface {
+    /**
+     * Triggers the processing of a project with the given ID and configuration
+     * @summary Run a project
+     * @param {ApiV1ProcessorApiProcessorControllerRunProjectRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1ProcessorApiInterface
+     */
+    processorControllerRunProject(requestParameters: ApiV1ProcessorApiProcessorControllerRunProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
+}
+
+/**
+ * Request parameters for processorControllerRunProject operation in ApiV1ProcessorApi.
+ * @export
+ * @interface ApiV1ProcessorApiProcessorControllerRunProjectRequest
+ */
+export interface ApiV1ProcessorApiProcessorControllerRunProjectRequest {
+    /**
+     * The unique identifier of the project to run
+     * @type {string}
+     * @memberof ApiV1ProcessorApiProcessorControllerRunProject
+     */
+    readonly projectId: string
+
+    /**
+     * Configuration and parameters for the project run
+     * @type {RunProjectPayloadDto}
+     * @memberof ApiV1ProcessorApiProcessorControllerRunProject
+     */
+    readonly runProjectPayloadDto: RunProjectPayloadDto
+
+    /**
+     * When true, forces the project to run even if locked
+     * @type {boolean}
+     * @memberof ApiV1ProcessorApiProcessorControllerRunProject
+     */
+    readonly force?: boolean
+}
+
+/**
+ * ApiV1ProcessorApi - object-oriented interface
+ * @export
+ * @class ApiV1ProcessorApi
+ * @extends {BaseAPI}
+ */
+export class ApiV1ProcessorApi extends BaseAPI implements ApiV1ProcessorApiInterface {
+    /**
+     * Triggers the processing of a project with the given ID and configuration
+     * @summary Run a project
+     * @param {ApiV1ProcessorApiProcessorControllerRunProjectRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1ProcessorApi
+     */
+    public processorControllerRunProject(requestParameters: ApiV1ProcessorApiProcessorControllerRunProjectRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1ProcessorApiFp(this.configuration).processorControllerRunProject(requestParameters.projectId, requestParameters.runProjectPayloadDto, requestParameters.force, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -1450,13 +2139,13 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
         /**
          * 
          * @summary Create a new project
-         * @param {object} body Project data
+         * @param {ProjectCreateDto} projectCreateDto Project data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerCreateProject: async (body: object, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'body' is not null or undefined
-            assertParamExists('projectControllerCreateProject', 'body', body)
+        projectControllerCreateProject: async (projectCreateDto: ProjectCreateDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'projectCreateDto' is not null or undefined
+            assertParamExists('projectControllerCreateProject', 'projectCreateDto', projectCreateDto)
             const localVarPath = `/api/v1/projects`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1476,7 +2165,7 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(projectCreateDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1554,14 +2243,15 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
         /**
          * 
          * @summary Retrieve projects with filters, sorting, and pagination
-         * @param {ProjectQueryDto} projectQueryDto 
+         * @param {number} [page] Page number for pagination (starts at 1)
+         * @param {number} [limit] Number of items per page
+         * @param {string} [filter] JSON string of ProjectFilterDto object
+         * @param {string} [sortBy] JSON string array of ProjectSortByDto objects
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerSearchProjects: async (projectQueryDto: ProjectQueryDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'projectQueryDto' is not null or undefined
-            assertParamExists('projectControllerSearchProjects', 'projectQueryDto', projectQueryDto)
-            const localVarPath = `/api/v1/projects/list`;
+        projectControllerGetProjects: async (page?: number, limit?: number, filter?: string, sortBy?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/projects`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1569,18 +2259,31 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (sortBy !== undefined) {
+                localVarQueryParameter['sortBy'] = sortBy;
+            }
+
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(projectQueryDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1591,15 +2294,15 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
          * 
          * @summary Update a project by ID
          * @param {string} id The ID of the project
-         * @param {object} body Updated project data
+         * @param {ProjectUpdateDto} projectUpdateDto Updated project data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerUpdateProject: async (id: string, body: object, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        projectControllerUpdateProject: async (id: string, projectUpdateDto: ProjectUpdateDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('projectControllerUpdateProject', 'id', id)
-            // verify required parameter 'body' is not null or undefined
-            assertParamExists('projectControllerUpdateProject', 'body', body)
+            // verify required parameter 'projectUpdateDto' is not null or undefined
+            assertParamExists('projectControllerUpdateProject', 'projectUpdateDto', projectUpdateDto)
             const localVarPath = `/api/v1/projects/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -1620,7 +2323,7 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(projectUpdateDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1640,12 +2343,12 @@ export const ApiV1ProjectsApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Create a new project
-         * @param {object} body Project data
+         * @param {ProjectCreateDto} projectCreateDto Project data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectControllerCreateProject(body: object, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerCreateProject(body, options);
+        async projectControllerCreateProject(projectCreateDto: ProjectCreateDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerCreateProject(projectCreateDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerCreateProject']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -1679,26 +2382,29 @@ export const ApiV1ProjectsApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Retrieve projects with filters, sorting, and pagination
-         * @param {ProjectQueryDto} projectQueryDto 
+         * @param {number} [page] Page number for pagination (starts at 1)
+         * @param {number} [limit] Number of items per page
+         * @param {string} [filter] JSON string of ProjectFilterDto object
+         * @param {string} [sortBy] JSON string array of ProjectSortByDto objects
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectControllerSearchProjects(projectQueryDto: ProjectQueryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectControllerSearchProjects200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerSearchProjects(projectQueryDto, options);
+        async projectControllerGetProjects(page?: number, limit?: number, filter?: string, sortBy?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectControllerGetProjects200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerGetProjects(page, limit, filter, sortBy, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerSearchProjects']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerGetProjects']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Update a project by ID
          * @param {string} id The ID of the project
-         * @param {object} body Updated project data
+         * @param {ProjectUpdateDto} projectUpdateDto Updated project data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectControllerUpdateProject(id: string, body: object, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerUpdateProject(id, body, options);
+        async projectControllerUpdateProject(id: string, projectUpdateDto: ProjectUpdateDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerUpdateProject(id, projectUpdateDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerUpdateProject']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -1721,7 +2427,7 @@ export const ApiV1ProjectsApiFactory = function (configuration?: Configuration, 
          * @throws {RequiredError}
          */
         projectControllerCreateProject(requestParameters: ApiV1ProjectsApiProjectControllerCreateProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectDto> {
-            return localVarFp.projectControllerCreateProject(requestParameters.body, options).then((request) => request(axios, basePath));
+            return localVarFp.projectControllerCreateProject(requestParameters.projectCreateDto, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1746,12 +2452,12 @@ export const ApiV1ProjectsApiFactory = function (configuration?: Configuration, 
         /**
          * 
          * @summary Retrieve projects with filters, sorting, and pagination
-         * @param {ApiV1ProjectsApiProjectControllerSearchProjectsRequest} requestParameters Request parameters.
+         * @param {ApiV1ProjectsApiProjectControllerGetProjectsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerSearchProjects(requestParameters: ApiV1ProjectsApiProjectControllerSearchProjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerSearchProjects200Response> {
-            return localVarFp.projectControllerSearchProjects(requestParameters.projectQueryDto, options).then((request) => request(axios, basePath));
+        projectControllerGetProjects(requestParameters: ApiV1ProjectsApiProjectControllerGetProjectsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerGetProjects200Response> {
+            return localVarFp.projectControllerGetProjects(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1761,7 +2467,7 @@ export const ApiV1ProjectsApiFactory = function (configuration?: Configuration, 
          * @throws {RequiredError}
          */
         projectControllerUpdateProject(requestParameters: ApiV1ProjectsApiProjectControllerUpdateProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectDto> {
-            return localVarFp.projectControllerUpdateProject(requestParameters.id, requestParameters.body, options).then((request) => request(axios, basePath));
+            return localVarFp.projectControllerUpdateProject(requestParameters.id, requestParameters.projectUpdateDto, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1805,12 +2511,12 @@ export interface ApiV1ProjectsApiInterface {
     /**
      * 
      * @summary Retrieve projects with filters, sorting, and pagination
-     * @param {ApiV1ProjectsApiProjectControllerSearchProjectsRequest} requestParameters Request parameters.
+     * @param {ApiV1ProjectsApiProjectControllerGetProjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1ProjectsApiInterface
      */
-    projectControllerSearchProjects(requestParameters: ApiV1ProjectsApiProjectControllerSearchProjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerSearchProjects200Response>;
+    projectControllerGetProjects(requestParameters?: ApiV1ProjectsApiProjectControllerGetProjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerGetProjects200Response>;
 
     /**
      * 
@@ -1832,10 +2538,10 @@ export interface ApiV1ProjectsApiInterface {
 export interface ApiV1ProjectsApiProjectControllerCreateProjectRequest {
     /**
      * Project data
-     * @type {object}
+     * @type {ProjectCreateDto}
      * @memberof ApiV1ProjectsApiProjectControllerCreateProject
      */
-    readonly body: object
+    readonly projectCreateDto: ProjectCreateDto
 }
 
 /**
@@ -1867,17 +2573,38 @@ export interface ApiV1ProjectsApiProjectControllerGetProjectByIdRequest {
 }
 
 /**
- * Request parameters for projectControllerSearchProjects operation in ApiV1ProjectsApi.
+ * Request parameters for projectControllerGetProjects operation in ApiV1ProjectsApi.
  * @export
- * @interface ApiV1ProjectsApiProjectControllerSearchProjectsRequest
+ * @interface ApiV1ProjectsApiProjectControllerGetProjectsRequest
  */
-export interface ApiV1ProjectsApiProjectControllerSearchProjectsRequest {
+export interface ApiV1ProjectsApiProjectControllerGetProjectsRequest {
     /**
-     * 
-     * @type {ProjectQueryDto}
-     * @memberof ApiV1ProjectsApiProjectControllerSearchProjects
+     * Page number for pagination (starts at 1)
+     * @type {number}
+     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
      */
-    readonly projectQueryDto: ProjectQueryDto
+    readonly page?: number
+
+    /**
+     * Number of items per page
+     * @type {number}
+     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     */
+    readonly limit?: number
+
+    /**
+     * JSON string of ProjectFilterDto object
+     * @type {string}
+     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     */
+    readonly filter?: string
+
+    /**
+     * JSON string array of ProjectSortByDto objects
+     * @type {string}
+     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     */
+    readonly sortBy?: string
 }
 
 /**
@@ -1895,10 +2622,10 @@ export interface ApiV1ProjectsApiProjectControllerUpdateProjectRequest {
 
     /**
      * Updated project data
-     * @type {object}
+     * @type {ProjectUpdateDto}
      * @memberof ApiV1ProjectsApiProjectControllerUpdateProject
      */
-    readonly body: object
+    readonly projectUpdateDto: ProjectUpdateDto
 }
 
 /**
@@ -1917,7 +2644,7 @@ export class ApiV1ProjectsApi extends BaseAPI implements ApiV1ProjectsApiInterfa
      * @memberof ApiV1ProjectsApi
      */
     public projectControllerCreateProject(requestParameters: ApiV1ProjectsApiProjectControllerCreateProjectRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ProjectsApiFp(this.configuration).projectControllerCreateProject(requestParameters.body, options).then((request) => request(this.axios, this.basePath));
+        return ApiV1ProjectsApiFp(this.configuration).projectControllerCreateProject(requestParameters.projectCreateDto, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1947,13 +2674,13 @@ export class ApiV1ProjectsApi extends BaseAPI implements ApiV1ProjectsApiInterfa
     /**
      * 
      * @summary Retrieve projects with filters, sorting, and pagination
-     * @param {ApiV1ProjectsApiProjectControllerSearchProjectsRequest} requestParameters Request parameters.
+     * @param {ApiV1ProjectsApiProjectControllerGetProjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1ProjectsApi
      */
-    public projectControllerSearchProjects(requestParameters: ApiV1ProjectsApiProjectControllerSearchProjectsRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ProjectsApiFp(this.configuration).projectControllerSearchProjects(requestParameters.projectQueryDto, options).then((request) => request(this.axios, this.basePath));
+    public projectControllerGetProjects(requestParameters: ApiV1ProjectsApiProjectControllerGetProjectsRequest = {}, options?: RawAxiosRequestConfig) {
+        return ApiV1ProjectsApiFp(this.configuration).projectControllerGetProjects(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1965,7 +2692,7 @@ export class ApiV1ProjectsApi extends BaseAPI implements ApiV1ProjectsApiInterfa
      * @memberof ApiV1ProjectsApi
      */
     public projectControllerUpdateProject(requestParameters: ApiV1ProjectsApiProjectControllerUpdateProjectRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ProjectsApiFp(this.configuration).projectControllerUpdateProject(requestParameters.id, requestParameters.body, options).then((request) => request(this.axios, this.basePath));
+        return ApiV1ProjectsApiFp(this.configuration).projectControllerUpdateProject(requestParameters.id, requestParameters.projectUpdateDto, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -1977,6 +2704,40 @@ export class ApiV1ProjectsApi extends BaseAPI implements ApiV1ProjectsApiInterfa
  */
 export const ApiV1WorkflowsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * 
+         * @summary Delete a workflow by ID
+         * @param {string} id The ID of the workflow
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        workflowControllerDeleteWorkflow: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('workflowControllerDeleteWorkflow', 'id', id)
+            const localVarPath = `/api/v1/workflows/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @summary Get a workflow by ID
@@ -2014,14 +2775,15 @@ export const ApiV1WorkflowsApiAxiosParamCreator = function (configuration?: Conf
         /**
          * 
          * @summary Retrieve workflows with filters, sorting, and pagination
-         * @param {WorkflowQueryDto} workflowQueryDto 
+         * @param {number} [page] Page number for pagination (starts at 1)
+         * @param {number} [limit] Number of items per page
+         * @param {string} [filter] JSON string of WorkflowFilterDto object
+         * @param {string} [sortBy] JSON string array of WorkflowSortByDto objects
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        workflowControllerSearchWorkflows: async (workflowQueryDto: WorkflowQueryDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'workflowQueryDto' is not null or undefined
-            assertParamExists('workflowControllerSearchWorkflows', 'workflowQueryDto', workflowQueryDto)
-            const localVarPath = `/api/v1/workflows/list`;
+        workflowControllerGetWorkflows: async (page?: number, limit?: number, filter?: string, sortBy?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/workflows`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2029,18 +2791,31 @@ export const ApiV1WorkflowsApiAxiosParamCreator = function (configuration?: Conf
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (sortBy !== undefined) {
+                localVarQueryParameter['sortBy'] = sortBy;
+            }
+
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(workflowQueryDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2059,6 +2834,19 @@ export const ApiV1WorkflowsApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Delete a workflow by ID
+         * @param {string} id The ID of the workflow
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async workflowControllerDeleteWorkflow(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.workflowControllerDeleteWorkflow(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1WorkflowsApi.workflowControllerDeleteWorkflow']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary Get a workflow by ID
          * @param {string} id The ID of the workflow
          * @param {*} [options] Override http request option.
@@ -2073,14 +2861,17 @@ export const ApiV1WorkflowsApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Retrieve workflows with filters, sorting, and pagination
-         * @param {WorkflowQueryDto} workflowQueryDto 
+         * @param {number} [page] Page number for pagination (starts at 1)
+         * @param {number} [limit] Number of items per page
+         * @param {string} [filter] JSON string of WorkflowFilterDto object
+         * @param {string} [sortBy] JSON string array of WorkflowSortByDto objects
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async workflowControllerSearchWorkflows(workflowQueryDto: WorkflowQueryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkflowControllerSearchWorkflows200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.workflowControllerSearchWorkflows(workflowQueryDto, options);
+        async workflowControllerGetWorkflows(page?: number, limit?: number, filter?: string, sortBy?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkflowControllerGetWorkflows200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.workflowControllerGetWorkflows(page, limit, filter, sortBy, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1WorkflowsApi.workflowControllerSearchWorkflows']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1WorkflowsApi.workflowControllerGetWorkflows']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -2095,6 +2886,16 @@ export const ApiV1WorkflowsApiFactory = function (configuration?: Configuration,
     return {
         /**
          * 
+         * @summary Delete a workflow by ID
+         * @param {ApiV1WorkflowsApiWorkflowControllerDeleteWorkflowRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        workflowControllerDeleteWorkflow(requestParameters: ApiV1WorkflowsApiWorkflowControllerDeleteWorkflowRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.workflowControllerDeleteWorkflow(requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary Get a workflow by ID
          * @param {ApiV1WorkflowsApiWorkflowControllerGetWorkflowByIdRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -2106,12 +2907,12 @@ export const ApiV1WorkflowsApiFactory = function (configuration?: Configuration,
         /**
          * 
          * @summary Retrieve workflows with filters, sorting, and pagination
-         * @param {ApiV1WorkflowsApiWorkflowControllerSearchWorkflowsRequest} requestParameters Request parameters.
+         * @param {ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        workflowControllerSearchWorkflows(requestParameters: ApiV1WorkflowsApiWorkflowControllerSearchWorkflowsRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkflowControllerSearchWorkflows200Response> {
-            return localVarFp.workflowControllerSearchWorkflows(requestParameters.workflowQueryDto, options).then((request) => request(axios, basePath));
+        workflowControllerGetWorkflows(requestParameters: ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<WorkflowControllerGetWorkflows200Response> {
+            return localVarFp.workflowControllerGetWorkflows(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2122,6 +2923,16 @@ export const ApiV1WorkflowsApiFactory = function (configuration?: Configuration,
  * @interface ApiV1WorkflowsApi
  */
 export interface ApiV1WorkflowsApiInterface {
+    /**
+     * 
+     * @summary Delete a workflow by ID
+     * @param {ApiV1WorkflowsApiWorkflowControllerDeleteWorkflowRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1WorkflowsApiInterface
+     */
+    workflowControllerDeleteWorkflow(requestParameters: ApiV1WorkflowsApiWorkflowControllerDeleteWorkflowRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
     /**
      * 
      * @summary Get a workflow by ID
@@ -2135,13 +2946,27 @@ export interface ApiV1WorkflowsApiInterface {
     /**
      * 
      * @summary Retrieve workflows with filters, sorting, and pagination
-     * @param {ApiV1WorkflowsApiWorkflowControllerSearchWorkflowsRequest} requestParameters Request parameters.
+     * @param {ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1WorkflowsApiInterface
      */
-    workflowControllerSearchWorkflows(requestParameters: ApiV1WorkflowsApiWorkflowControllerSearchWorkflowsRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkflowControllerSearchWorkflows200Response>;
+    workflowControllerGetWorkflows(requestParameters?: ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkflowControllerGetWorkflows200Response>;
 
+}
+
+/**
+ * Request parameters for workflowControllerDeleteWorkflow operation in ApiV1WorkflowsApi.
+ * @export
+ * @interface ApiV1WorkflowsApiWorkflowControllerDeleteWorkflowRequest
+ */
+export interface ApiV1WorkflowsApiWorkflowControllerDeleteWorkflowRequest {
+    /**
+     * The ID of the workflow
+     * @type {string}
+     * @memberof ApiV1WorkflowsApiWorkflowControllerDeleteWorkflow
+     */
+    readonly id: string
 }
 
 /**
@@ -2159,17 +2984,38 @@ export interface ApiV1WorkflowsApiWorkflowControllerGetWorkflowByIdRequest {
 }
 
 /**
- * Request parameters for workflowControllerSearchWorkflows operation in ApiV1WorkflowsApi.
+ * Request parameters for workflowControllerGetWorkflows operation in ApiV1WorkflowsApi.
  * @export
- * @interface ApiV1WorkflowsApiWorkflowControllerSearchWorkflowsRequest
+ * @interface ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest
  */
-export interface ApiV1WorkflowsApiWorkflowControllerSearchWorkflowsRequest {
+export interface ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest {
     /**
-     * 
-     * @type {WorkflowQueryDto}
-     * @memberof ApiV1WorkflowsApiWorkflowControllerSearchWorkflows
+     * Page number for pagination (starts at 1)
+     * @type {number}
+     * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
      */
-    readonly workflowQueryDto: WorkflowQueryDto
+    readonly page?: number
+
+    /**
+     * Number of items per page
+     * @type {number}
+     * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
+     */
+    readonly limit?: number
+
+    /**
+     * JSON string of WorkflowFilterDto object
+     * @type {string}
+     * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
+     */
+    readonly filter?: string
+
+    /**
+     * JSON string array of WorkflowSortByDto objects
+     * @type {string}
+     * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
+     */
+    readonly sortBy?: string
 }
 
 /**
@@ -2179,6 +3025,18 @@ export interface ApiV1WorkflowsApiWorkflowControllerSearchWorkflowsRequest {
  * @extends {BaseAPI}
  */
 export class ApiV1WorkflowsApi extends BaseAPI implements ApiV1WorkflowsApiInterface {
+    /**
+     * 
+     * @summary Delete a workflow by ID
+     * @param {ApiV1WorkflowsApiWorkflowControllerDeleteWorkflowRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1WorkflowsApi
+     */
+    public workflowControllerDeleteWorkflow(requestParameters: ApiV1WorkflowsApiWorkflowControllerDeleteWorkflowRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1WorkflowsApiFp(this.configuration).workflowControllerDeleteWorkflow(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @summary Get a workflow by ID
@@ -2194,13 +3052,13 @@ export class ApiV1WorkflowsApi extends BaseAPI implements ApiV1WorkflowsApiInter
     /**
      * 
      * @summary Retrieve workflows with filters, sorting, and pagination
-     * @param {ApiV1WorkflowsApiWorkflowControllerSearchWorkflowsRequest} requestParameters Request parameters.
+     * @param {ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1WorkflowsApi
      */
-    public workflowControllerSearchWorkflows(requestParameters: ApiV1WorkflowsApiWorkflowControllerSearchWorkflowsRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1WorkflowsApiFp(this.configuration).workflowControllerSearchWorkflows(requestParameters.workflowQueryDto, options).then((request) => request(this.axios, this.basePath));
+    public workflowControllerGetWorkflows(requestParameters: ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest = {}, options?: RawAxiosRequestConfig) {
+        return ApiV1WorkflowsApiFp(this.configuration).workflowControllerGetWorkflows(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -2215,13 +3073,13 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
         /**
          * 
          * @summary Create a new workspace
-         * @param {object} body Workspace data
+         * @param {WorkspaceCreateDto} workspaceCreateDto Workspace data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        workspaceControllerCreateWorkspace: async (body: object, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'body' is not null or undefined
-            assertParamExists('workspaceControllerCreateWorkspace', 'body', body)
+        workspaceControllerCreateWorkspace: async (workspaceCreateDto: WorkspaceCreateDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'workspaceCreateDto' is not null or undefined
+            assertParamExists('workspaceControllerCreateWorkspace', 'workspaceCreateDto', workspaceCreateDto)
             const localVarPath = `/api/v1/workspaces`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2241,7 +3099,7 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(workspaceCreateDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2319,14 +3177,15 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
         /**
          * 
          * @summary Retrieve workspaces with filters, sorting, and pagination
-         * @param {WorkspaceQueryDto} workspaceQueryDto 
+         * @param {number} [page] Page number for pagination (starts at 1)
+         * @param {number} [limit] Number of items per page
+         * @param {string} [filter] JSON string of WorkspaceFilterDto object
+         * @param {string} [sortBy] JSON string array of WorkspaceSortByDto objects
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        workspaceControllerSearchWorkspaces: async (workspaceQueryDto: WorkspaceQueryDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'workspaceQueryDto' is not null or undefined
-            assertParamExists('workspaceControllerSearchWorkspaces', 'workspaceQueryDto', workspaceQueryDto)
-            const localVarPath = `/api/v1/workspaces/list`;
+        workspaceControllerGetWorkspaces: async (page?: number, limit?: number, filter?: string, sortBy?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/workspaces`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2334,18 +3193,31 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (sortBy !== undefined) {
+                localVarQueryParameter['sortBy'] = sortBy;
+            }
+
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(workspaceQueryDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2356,15 +3228,15 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
          * 
          * @summary Update a workspace by ID
          * @param {string} id The ID of the workspace
-         * @param {object} body Updated workspace data
+         * @param {WorkspaceUpdateDto} workspaceUpdateDto Updated workspace data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        workspaceControllerUpdateWorkspace: async (id: string, body: object, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        workspaceControllerUpdateWorkspace: async (id: string, workspaceUpdateDto: WorkspaceUpdateDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('workspaceControllerUpdateWorkspace', 'id', id)
-            // verify required parameter 'body' is not null or undefined
-            assertParamExists('workspaceControllerUpdateWorkspace', 'body', body)
+            // verify required parameter 'workspaceUpdateDto' is not null or undefined
+            assertParamExists('workspaceControllerUpdateWorkspace', 'workspaceUpdateDto', workspaceUpdateDto)
             const localVarPath = `/api/v1/workspaces/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -2385,7 +3257,7 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(workspaceUpdateDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2405,12 +3277,12 @@ export const ApiV1WorkspacesApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Create a new workspace
-         * @param {object} body Workspace data
+         * @param {WorkspaceCreateDto} workspaceCreateDto Workspace data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async workspaceControllerCreateWorkspace(body: object, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerCreateWorkspace(body, options);
+        async workspaceControllerCreateWorkspace(workspaceCreateDto: WorkspaceCreateDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerCreateWorkspace(workspaceCreateDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ApiV1WorkspacesApi.workspaceControllerCreateWorkspace']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -2444,26 +3316,29 @@ export const ApiV1WorkspacesApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Retrieve workspaces with filters, sorting, and pagination
-         * @param {WorkspaceQueryDto} workspaceQueryDto 
+         * @param {number} [page] Page number for pagination (starts at 1)
+         * @param {number} [limit] Number of items per page
+         * @param {string} [filter] JSON string of WorkspaceFilterDto object
+         * @param {string} [sortBy] JSON string array of WorkspaceSortByDto objects
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async workspaceControllerSearchWorkspaces(workspaceQueryDto: WorkspaceQueryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceControllerSearchWorkspaces200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerSearchWorkspaces(workspaceQueryDto, options);
+        async workspaceControllerGetWorkspaces(page?: number, limit?: number, filter?: string, sortBy?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceControllerGetWorkspaces200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerGetWorkspaces(page, limit, filter, sortBy, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1WorkspacesApi.workspaceControllerSearchWorkspaces']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1WorkspacesApi.workspaceControllerGetWorkspaces']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Update a workspace by ID
          * @param {string} id The ID of the workspace
-         * @param {object} body Updated workspace data
+         * @param {WorkspaceUpdateDto} workspaceUpdateDto Updated workspace data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async workspaceControllerUpdateWorkspace(id: string, body: object, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerUpdateWorkspace(id, body, options);
+        async workspaceControllerUpdateWorkspace(id: string, workspaceUpdateDto: WorkspaceUpdateDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerUpdateWorkspace(id, workspaceUpdateDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ApiV1WorkspacesApi.workspaceControllerUpdateWorkspace']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -2486,7 +3361,7 @@ export const ApiV1WorkspacesApiFactory = function (configuration?: Configuration
          * @throws {RequiredError}
          */
         workspaceControllerCreateWorkspace(requestParameters: ApiV1WorkspacesApiWorkspaceControllerCreateWorkspaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkspaceDto> {
-            return localVarFp.workspaceControllerCreateWorkspace(requestParameters.body, options).then((request) => request(axios, basePath));
+            return localVarFp.workspaceControllerCreateWorkspace(requestParameters.workspaceCreateDto, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2511,12 +3386,12 @@ export const ApiV1WorkspacesApiFactory = function (configuration?: Configuration
         /**
          * 
          * @summary Retrieve workspaces with filters, sorting, and pagination
-         * @param {ApiV1WorkspacesApiWorkspaceControllerSearchWorkspacesRequest} requestParameters Request parameters.
+         * @param {ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        workspaceControllerSearchWorkspaces(requestParameters: ApiV1WorkspacesApiWorkspaceControllerSearchWorkspacesRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkspaceControllerSearchWorkspaces200Response> {
-            return localVarFp.workspaceControllerSearchWorkspaces(requestParameters.workspaceQueryDto, options).then((request) => request(axios, basePath));
+        workspaceControllerGetWorkspaces(requestParameters: ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<WorkspaceControllerGetWorkspaces200Response> {
+            return localVarFp.workspaceControllerGetWorkspaces(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2526,7 +3401,7 @@ export const ApiV1WorkspacesApiFactory = function (configuration?: Configuration
          * @throws {RequiredError}
          */
         workspaceControllerUpdateWorkspace(requestParameters: ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkspaceDto> {
-            return localVarFp.workspaceControllerUpdateWorkspace(requestParameters.id, requestParameters.body, options).then((request) => request(axios, basePath));
+            return localVarFp.workspaceControllerUpdateWorkspace(requestParameters.id, requestParameters.workspaceUpdateDto, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2570,12 +3445,12 @@ export interface ApiV1WorkspacesApiInterface {
     /**
      * 
      * @summary Retrieve workspaces with filters, sorting, and pagination
-     * @param {ApiV1WorkspacesApiWorkspaceControllerSearchWorkspacesRequest} requestParameters Request parameters.
+     * @param {ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1WorkspacesApiInterface
      */
-    workspaceControllerSearchWorkspaces(requestParameters: ApiV1WorkspacesApiWorkspaceControllerSearchWorkspacesRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkspaceControllerSearchWorkspaces200Response>;
+    workspaceControllerGetWorkspaces(requestParameters?: ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkspaceControllerGetWorkspaces200Response>;
 
     /**
      * 
@@ -2597,10 +3472,10 @@ export interface ApiV1WorkspacesApiInterface {
 export interface ApiV1WorkspacesApiWorkspaceControllerCreateWorkspaceRequest {
     /**
      * Workspace data
-     * @type {object}
+     * @type {WorkspaceCreateDto}
      * @memberof ApiV1WorkspacesApiWorkspaceControllerCreateWorkspace
      */
-    readonly body: object
+    readonly workspaceCreateDto: WorkspaceCreateDto
 }
 
 /**
@@ -2632,17 +3507,38 @@ export interface ApiV1WorkspacesApiWorkspaceControllerGetWorkspaceByIdRequest {
 }
 
 /**
- * Request parameters for workspaceControllerSearchWorkspaces operation in ApiV1WorkspacesApi.
+ * Request parameters for workspaceControllerGetWorkspaces operation in ApiV1WorkspacesApi.
  * @export
- * @interface ApiV1WorkspacesApiWorkspaceControllerSearchWorkspacesRequest
+ * @interface ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest
  */
-export interface ApiV1WorkspacesApiWorkspaceControllerSearchWorkspacesRequest {
+export interface ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest {
     /**
-     * 
-     * @type {WorkspaceQueryDto}
-     * @memberof ApiV1WorkspacesApiWorkspaceControllerSearchWorkspaces
+     * Page number for pagination (starts at 1)
+     * @type {number}
+     * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
      */
-    readonly workspaceQueryDto: WorkspaceQueryDto
+    readonly page?: number
+
+    /**
+     * Number of items per page
+     * @type {number}
+     * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
+     */
+    readonly limit?: number
+
+    /**
+     * JSON string of WorkspaceFilterDto object
+     * @type {string}
+     * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
+     */
+    readonly filter?: string
+
+    /**
+     * JSON string array of WorkspaceSortByDto objects
+     * @type {string}
+     * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
+     */
+    readonly sortBy?: string
 }
 
 /**
@@ -2660,10 +3556,10 @@ export interface ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest {
 
     /**
      * Updated workspace data
-     * @type {object}
+     * @type {WorkspaceUpdateDto}
      * @memberof ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspace
      */
-    readonly body: object
+    readonly workspaceUpdateDto: WorkspaceUpdateDto
 }
 
 /**
@@ -2682,7 +3578,7 @@ export class ApiV1WorkspacesApi extends BaseAPI implements ApiV1WorkspacesApiInt
      * @memberof ApiV1WorkspacesApi
      */
     public workspaceControllerCreateWorkspace(requestParameters: ApiV1WorkspacesApiWorkspaceControllerCreateWorkspaceRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1WorkspacesApiFp(this.configuration).workspaceControllerCreateWorkspace(requestParameters.body, options).then((request) => request(this.axios, this.basePath));
+        return ApiV1WorkspacesApiFp(this.configuration).workspaceControllerCreateWorkspace(requestParameters.workspaceCreateDto, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2712,13 +3608,13 @@ export class ApiV1WorkspacesApi extends BaseAPI implements ApiV1WorkspacesApiInt
     /**
      * 
      * @summary Retrieve workspaces with filters, sorting, and pagination
-     * @param {ApiV1WorkspacesApiWorkspaceControllerSearchWorkspacesRequest} requestParameters Request parameters.
+     * @param {ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1WorkspacesApi
      */
-    public workspaceControllerSearchWorkspaces(requestParameters: ApiV1WorkspacesApiWorkspaceControllerSearchWorkspacesRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1WorkspacesApiFp(this.configuration).workspaceControllerSearchWorkspaces(requestParameters.workspaceQueryDto, options).then((request) => request(this.axios, this.basePath));
+    public workspaceControllerGetWorkspaces(requestParameters: ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest = {}, options?: RawAxiosRequestConfig) {
+        return ApiV1WorkspacesApiFp(this.configuration).workspaceControllerGetWorkspaces(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2730,174 +3626,7 @@ export class ApiV1WorkspacesApi extends BaseAPI implements ApiV1WorkspacesApiInt
      * @memberof ApiV1WorkspacesApi
      */
     public workspaceControllerUpdateWorkspace(requestParameters: ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1WorkspacesApiFp(this.configuration).workspaceControllerUpdateWorkspace(requestParameters.id, requestParameters.body, options).then((request) => request(this.axios, this.basePath));
-    }
-}
-
-
-
-/**
- * ProjectProcessorApi - axios parameter creator
- * @export
- */
-export const ProjectProcessorApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * Triggers the processing of a project with the given ID and configuration
-         * @summary Run a project
-         * @param {string} projectId The unique identifier of the project to run
-         * @param {RunProjectPayloadDto} runProjectPayloadDto Configuration and parameters for the project run
-         * @param {boolean} [force] When true, forces the project to run even if locked
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        processorControllerRunProject: async (projectId: string, runProjectPayloadDto: RunProjectPayloadDto, force?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'projectId' is not null or undefined
-            assertParamExists('processorControllerRunProject', 'projectId', projectId)
-            // verify required parameter 'runProjectPayloadDto' is not null or undefined
-            assertParamExists('processorControllerRunProject', 'runProjectPayloadDto', runProjectPayloadDto)
-            const localVarPath = `/api/v1/processor/run/{projectId}`
-                .replace(`{${"projectId"}}`, encodeURIComponent(String(projectId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            if (force !== undefined) {
-                localVarQueryParameter['force'] = force;
-            }
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(runProjectPayloadDto, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * ProjectProcessorApi - functional programming interface
- * @export
- */
-export const ProjectProcessorApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = ProjectProcessorApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * Triggers the processing of a project with the given ID and configuration
-         * @summary Run a project
-         * @param {string} projectId The unique identifier of the project to run
-         * @param {RunProjectPayloadDto} runProjectPayloadDto Configuration and parameters for the project run
-         * @param {boolean} [force] When true, forces the project to run even if locked
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async processorControllerRunProject(projectId: string, runProjectPayloadDto: RunProjectPayloadDto, force?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.processorControllerRunProject(projectId, runProjectPayloadDto, force, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ProjectProcessorApi.processorControllerRunProject']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
-};
-
-/**
- * ProjectProcessorApi - factory interface
- * @export
- */
-export const ProjectProcessorApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = ProjectProcessorApiFp(configuration)
-    return {
-        /**
-         * Triggers the processing of a project with the given ID and configuration
-         * @summary Run a project
-         * @param {ProjectProcessorApiProcessorControllerRunProjectRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        processorControllerRunProject(requestParameters: ProjectProcessorApiProcessorControllerRunProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.processorControllerRunProject(requestParameters.projectId, requestParameters.runProjectPayloadDto, requestParameters.force, options).then((request) => request(axios, basePath));
-        },
-    };
-};
-
-/**
- * ProjectProcessorApi - interface
- * @export
- * @interface ProjectProcessorApi
- */
-export interface ProjectProcessorApiInterface {
-    /**
-     * Triggers the processing of a project with the given ID and configuration
-     * @summary Run a project
-     * @param {ProjectProcessorApiProcessorControllerRunProjectRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ProjectProcessorApiInterface
-     */
-    processorControllerRunProject(requestParameters: ProjectProcessorApiProcessorControllerRunProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
-}
-
-/**
- * Request parameters for processorControllerRunProject operation in ProjectProcessorApi.
- * @export
- * @interface ProjectProcessorApiProcessorControllerRunProjectRequest
- */
-export interface ProjectProcessorApiProcessorControllerRunProjectRequest {
-    /**
-     * The unique identifier of the project to run
-     * @type {string}
-     * @memberof ProjectProcessorApiProcessorControllerRunProject
-     */
-    readonly projectId: string
-
-    /**
-     * Configuration and parameters for the project run
-     * @type {RunProjectPayloadDto}
-     * @memberof ProjectProcessorApiProcessorControllerRunProject
-     */
-    readonly runProjectPayloadDto: RunProjectPayloadDto
-
-    /**
-     * When true, forces the project to run even if locked
-     * @type {boolean}
-     * @memberof ProjectProcessorApiProcessorControllerRunProject
-     */
-    readonly force?: boolean
-}
-
-/**
- * ProjectProcessorApi - object-oriented interface
- * @export
- * @class ProjectProcessorApi
- * @extends {BaseAPI}
- */
-export class ProjectProcessorApi extends BaseAPI implements ProjectProcessorApiInterface {
-    /**
-     * Triggers the processing of a project with the given ID and configuration
-     * @summary Run a project
-     * @param {ProjectProcessorApiProcessorControllerRunProjectRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ProjectProcessorApi
-     */
-    public processorControllerRunProject(requestParameters: ProjectProcessorApiProcessorControllerRunProjectRequest, options?: RawAxiosRequestConfig) {
-        return ProjectProcessorApiFp(this.configuration).processorControllerRunProject(requestParameters.projectId, requestParameters.runProjectPayloadDto, requestParameters.force, options).then((request) => request(this.axios, this.basePath));
+        return ApiV1WorkspacesApiFp(this.configuration).workspaceControllerUpdateWorkspace(requestParameters.id, requestParameters.workspaceUpdateDto, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
