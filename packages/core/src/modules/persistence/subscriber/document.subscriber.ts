@@ -1,9 +1,9 @@
-import { ClientMessageDto, WorkflowEntity } from '@loopstack/shared';
+import { ClientMessageDto, DocumentEntity } from '@loopstack/shared';
 import { DataSource, EntitySubscriberInterface, EventSubscriber, InsertEvent } from 'typeorm';
 import { ClientMessageService } from '../../common/services/client-message.service';
 
 @EventSubscriber()
-export class WorkflowSubscriber implements EntitySubscriberInterface<WorkflowEntity> {
+export class DocumentSubscriber implements EntitySubscriberInterface<DocumentEntity> {
 
   constructor(
     dataSource: DataSource,
@@ -13,15 +13,15 @@ export class WorkflowSubscriber implements EntitySubscriberInterface<WorkflowEnt
   }
 
   listenTo() {
-    return WorkflowEntity;
+    return DocumentEntity;
   }
 
-  afterInsert(event: InsertEvent<WorkflowEntity>) {
+  afterInsert(event: InsertEvent<DocumentEntity>) {
     this.clientMessageService.dispatch(new ClientMessageDto({
-      type: 'workflow.created',
+      type: 'document.created',
       id: event.entity.id,
       userId: event.entity.createdBy,
-      namespaceId: event.entity.namespaceId,
+      workflowId: event.entity.workflowId,
       data: event.entity,
     }));
   }

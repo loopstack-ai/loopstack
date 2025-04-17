@@ -16,6 +16,7 @@ import {
 } from './services';
 import { WorkflowSubscriber } from './subscriber/workflow.subscriber';
 import { CommonModule } from '../common';
+import { DocumentSubscriber } from './subscriber/document.subscriber';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { CommonModule } from '../common';
     DocumentService,
     NamespacesService,
     WorkflowSubscriber,
+    DocumentSubscriber,
   ],
   exports: [
     WorkflowService,
