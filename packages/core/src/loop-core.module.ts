@@ -6,7 +6,6 @@ import {
 } from './loop-core.module-definition';
 import {
   CommonModule,
-  CoreExtensionModule,
   WorkflowProcessorModule,
   PersistenceModule,
   ConfigurationModule,
@@ -29,7 +28,6 @@ export class LoopCoreModule extends ConfigurableModuleClass {
         PersistenceModule,
         WorkflowProcessorModule,
         ProjectProcessorModule,
-        CoreExtensionModule,
       ],
       providers: [MigrationsService],
       exports: [
@@ -38,7 +36,6 @@ export class LoopCoreModule extends ConfigurableModuleClass {
         PersistenceModule,
         WorkflowProcessorModule,
         ProjectProcessorModule,
-        CoreExtensionModule,
       ],
     };
   }

@@ -12,15 +12,15 @@ import {
 export class TransitionSelectorService implements ToolInterface {
   private readonly logger = new Logger(TransitionSelectorService.name);
   schema = z.object({
-    transitions: z.array(z.object({
-      place: z.string(),
-      condition: z.any().optional(),
-    })),
+    transitions: z.array(
+      z.object({
+        place: z.string(),
+        condition: z.any().optional(),
+      }),
+    ),
   });
 
-  async apply(
-    props: z.infer<typeof this.schema>,
-  ): Promise<ToolResult> {
+  async apply(props: z.infer<typeof this.schema>): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);
 
     let messages: DocumentType[] = [];

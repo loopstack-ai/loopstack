@@ -12,8 +12,8 @@ import { NamespacesService } from '../../persistence';
 
 @Injectable()
 @Tool()
-export class AddNamespaceTool implements ToolInterface {
-  private readonly logger = new Logger(AddNamespaceTool.name);
+export class AddNamespaceService implements ToolInterface {
+  private readonly logger = new Logger(AddNamespaceService.name);
   schema = z.object({
     label: z.string(),
     meta: z.any().optional(),

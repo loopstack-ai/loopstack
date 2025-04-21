@@ -13,7 +13,7 @@ import { WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
 @Tool()
-export class DebugImportsTool implements ToolInterface {
+export class DebugImportsService implements ToolInterface {
   schema = z.object({}).optional();
 
   constructor(private actionHelperService: SchemaValidatorService) {}

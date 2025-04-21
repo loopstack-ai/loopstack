@@ -4,6 +4,7 @@ import {
   DocumentSchema,
   PartialDocumentSchema,
   Tool,
+  ToolApplicationInfo,
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';
@@ -12,12 +13,11 @@ import { ConfigurationService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
-import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 
 @Injectable()
 @Tool()
-export class CreateDocumentTool implements ToolInterface {
-  private readonly logger = new Logger(CreateDocumentTool.name);
+export class CreateDocumentService implements ToolInterface {
+  private readonly logger = new Logger(CreateDocumentService.name);
   schema = z.object({
     document: z.string().optional(),
     update: PartialDocumentSchema.optional(),
@@ -34,7 +34,7 @@ export class CreateDocumentTool implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: StateMachineInfoDto,
+    info: ToolApplicationInfo,
   ): Promise<ToolResult> {
     const validProps = this.schema.parse(props);
 

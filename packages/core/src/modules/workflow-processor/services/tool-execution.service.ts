@@ -3,12 +3,12 @@ import { ConfigurationService, ToolRegistry } from '../../configuration';
 import {
   ContextInterface,
   ServiceConfigType,
+  ToolApplicationInfo,
   ToolCallType,
   ToolResult,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { ConfigValueParserService, DocumentService } from '../../index';
-import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 
 @Injectable()
 export class ToolExecutionService {
@@ -35,7 +35,7 @@ export class ToolExecutionService {
     toolCall: ToolCallType,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: StateMachineInfoDto,
+    info: ToolApplicationInfo,
   ): Promise<ToolResult> {
     const toolConfig = this.getToolConfig(toolCall.tool);
 
@@ -61,7 +61,7 @@ export class ToolExecutionService {
       for (const documentData of result.data.documents) {
         this.documentService.create(workflow as WorkflowEntity, context, {
           ...documentData,
-          transition: info.transitionInfo!.transition,
+          transition: info.transition,
         });
       }
     }

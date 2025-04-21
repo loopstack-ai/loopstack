@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { StateMachineConfigService } from './state-machine-config.service';
 import {
   ContextInterface,
   HistoryTransition,
+  ToolApplicationInfo,
   TransitionInfoInterface,
   TransitionPayloadInterface,
   WorkflowEntity,
@@ -62,10 +63,9 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     config: WorkflowStateMachineType,
   ): Promise<WorkflowEntity> {
-    const options = this.configValueParserService.evalWithContext<Record<string, any>>(
-      config.options,
-      { context },
-    );
+    const options = this.configValueParserService.evalWithContext<
+      Record<string, any>
+    >(config.options, { context });
 
     if (!workflow) {
       throw new Error(`No workflow entry.`);
@@ -252,7 +252,11 @@ export class StateMachineProcessorService {
             observer,
             workflow,
             context,
-            stateMachineInfo,
+            {
+              transition: stateMachineInfo.transitionInfo.transition,
+              payload: stateMachineInfo.transitionInfo.payload,
+              options: stateMachineInfo.options,
+            } as ToolApplicationInfo,
           );
 
           if (result.workflow) {

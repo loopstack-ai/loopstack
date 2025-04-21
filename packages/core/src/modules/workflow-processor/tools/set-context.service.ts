@@ -11,8 +11,8 @@ import { WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
 @Tool()
-export class SetContextTool implements ToolInterface {
-  private readonly logger = new Logger(SetContextTool.name);
+export class SetContextService implements ToolInterface {
+  private readonly logger = new Logger(SetContextService.name);
   schema = z.object({
     key: z.string(),
     value: z.any(),

@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { FunctionCallService } from './function-call.service';
-import { ContextInterface, WorkflowData } from '@loopstack/shared';
-import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
+import {
+  ContextInterface,
+  ToolApplicationInfo,
+  WorkflowData,
+} from '@loopstack/shared';
 
 @Injectable()
 export class ConfigValueParserService {
@@ -38,7 +41,7 @@ export class ConfigValueParserService {
 
   evalWithContextAndInfo<T extends {}>(
     obj: any,
-    variables: { context: ContextInterface; info: StateMachineInfoDto },
+    variables: { context: ContextInterface; info: ToolApplicationInfo },
   ): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
@@ -55,7 +58,7 @@ export class ConfigValueParserService {
     variables: {
       context: ContextInterface;
       data: WorkflowData | undefined | null;
-      info: StateMachineInfoDto;
+      info: ToolApplicationInfo;
     },
   ): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);

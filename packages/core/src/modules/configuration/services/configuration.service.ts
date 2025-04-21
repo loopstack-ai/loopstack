@@ -78,9 +78,17 @@ export class ConfigurationService implements OnModuleInit {
   }
 
   debug() {
-    this.logger.debug('Documents: ' + Array.from(this.registry.get('documents')?.keys()!).join(' '));
-    this.logger.debug('Workflows: ' + Array.from(this.registry.get('workflows')?.keys()!).join(' '));
-    this.logger.debug('Tools: ' + Array.from(this.registry.get('tools')?.keys()!).join(' '));
+    this.logger.debug(
+      'Documents: ' +
+        Array.from(this.registry.get('documents')?.keys()!).join(' '),
+    );
+    this.logger.debug(
+      'Workflows: ' +
+        Array.from(this.registry.get('workflows')?.keys()!).join(' '),
+    );
+    this.logger.debug(
+      'Tools: ' + Array.from(this.registry.get('tools')?.keys()!).join(' '),
+    );
   }
 
   init(configs: any[]) {

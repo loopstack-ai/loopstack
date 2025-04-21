@@ -11,9 +11,7 @@ import {
 import { ClientMessageService } from './services/client-message.service';
 
 @Module({
-  imports: [
-    EventEmitterModule.forRoot(),
-  ],
+  imports: [EventEmitterModule.forRoot()],
   providers: [
     ClientMessageService,
     FunctionCallService,

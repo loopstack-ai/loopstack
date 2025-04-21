@@ -39,8 +39,8 @@ export type LoadDocumentArgsInterface = z.infer<typeof LoadDocumentArgsSchema>;
 
 @Injectable()
 @Tool()
-export class LoadDocumentTool implements ToolInterface {
-  private readonly logger = new Logger(LoadDocumentTool.name);
+export class LoadDocumentService implements ToolInterface {
+  private readonly logger = new Logger(LoadDocumentService.name);
   schema = LoadDocumentArgsSchema;
 
   constructor(

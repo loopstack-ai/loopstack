@@ -107,7 +107,7 @@ export class WorkflowProcessorService {
       const label = factory.iterator.label
         ? this.valueParserService.evalWithContextAndItem<string>(
             factory.iterator.label,
-          {
+            {
               context: localContext,
               item,
             },
@@ -117,7 +117,7 @@ export class WorkflowProcessorService {
       const metadata = factory.iterator.meta
         ? this.valueParserService.evalWithContextAndItem<Record<string, any>>(
             factory.iterator.meta,
-          {
+            {
               context: localContext,
               item,
             },
