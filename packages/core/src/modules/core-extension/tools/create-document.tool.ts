@@ -4,7 +4,6 @@ import {
   DocumentSchema,
   PartialDocumentSchema,
   Tool,
-  ToolApplicationInfo,
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';

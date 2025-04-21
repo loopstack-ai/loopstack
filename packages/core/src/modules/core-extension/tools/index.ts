@@ -4,3 +4,4 @@ export * from './debug-imports.tool';
 export * from './load-document.tool';
 export * from './set-context.tool';
 export * from './create-error.tool';
+export * from './transition-selector.service';

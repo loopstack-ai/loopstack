@@ -27,8 +27,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/markdown-parser": "^1.0.7",
-    "@loopstack/schema-to-template": "^1.0.4",
     "@loopstack/shared": "workspace:^",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
@@ -40,17 +38,14 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "ejs": "^3.1.10",
-    "fast-json-stable-stringify": "^2.1.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
     "nest-commander": "^3.16.1",
     "openai": "^4.86.2",
     "reflect-metadata": "^0.2.2",
-    "remark-parse": "^11.0.0",
     "rxjs": "^7.8.1",
     "safe-eval": "^0.4.1",
     "typeorm": "^0.3.20",
-    "unified": "^11.0.5",
     "zod": "^3.24.2",
     "zod-to-json-schema": "^3.24.2"
   },

@@ -14,6 +14,7 @@ import {
   LoadDocumentTool,
   SetContextTool,
   CreateErrorTool,
+  TransitionSelectorService,
 } from './tools';
 import { WorkflowProcessorModule } from '../workflow-processor';
 
@@ -32,6 +33,7 @@ import { WorkflowProcessorModule } from '../workflow-processor';
     AddNamespaceTool,
     LoadDocumentTool,
     CreateErrorTool,
+    TransitionSelectorService,
 
     InitialRunValidator,
     WorkflowOptionValidator,
