@@ -1,13 +1,14 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
 import { AdapterRegistry } from './adapter-registry.service';
 import { ToolRegistry } from './tool.registry';
 import { ConfigService } from '@nestjs/config';
 import { NamedCollectionItem } from '@loopstack/shared';
-import _ from 'lodash';
 
 @Injectable()
 export class ConfigurationService implements OnModuleInit {
+  private logger = new Logger(ConfigurationService.name);
+
   registry: Map<string, Map<string, any>>;
 
   constructor(
@@ -64,12 +65,6 @@ export class ConfigurationService implements OnModuleInit {
       throw new Error(`Registry with name ${registry} not found`);
     }
 
-    if (searchKey.indexOf('.') != -1) {
-      const [name, ...path] = searchKey.split('.');
-      const configItem = config.get(name);
-      return _.get(configItem, path) as T;
-    }
-
     return config.get(searchKey) as T;
   }
 
@@ -82,6 +77,12 @@ export class ConfigurationService implements OnModuleInit {
     }
   }
 
+  debug() {
+    this.logger.debug('Documents: ' + Array.from(this.registry.get('documents')?.keys()!).join(' '));
+    this.logger.debug('Workflows: ' + Array.from(this.registry.get('workflows')?.keys()!).join(' '));
+    this.logger.debug('Tools: ' + Array.from(this.registry.get('tools')?.keys()!).join(' '));
+  }
+
   init(configs: any[]) {
     this.clear();
 
@@ -92,5 +93,7 @@ export class ConfigurationService implements OnModuleInit {
         this.createFromConfig(config);
       }
     }
+
+    // this.debug();
   }
 }
