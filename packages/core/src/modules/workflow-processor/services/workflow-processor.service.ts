@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ToolExecutionService } from './tool-execution.service';
 import _ from 'lodash';
 import { ContextService } from '../../common';
 import { ConfigValueParserService } from '../../common';
@@ -9,8 +8,6 @@ import { ConfigurationService } from '../../configuration';
 import { NamespacesService, WorkflowService } from '../../persistence';
 import {
   ContextInterface,
-  ProcessStateInterface,
-  WorkflowData,
   WorkflowEntity,
   WorkflowFactoryType,
   WorkflowPipelineType,
@@ -25,7 +22,6 @@ export class WorkflowProcessorService {
   constructor(
     private contextService: ContextService,
     private loopConfigService: ConfigurationService,
-    private toolExecutionService: ToolExecutionService,
     private valueParserService: ConfigValueParserService,
     private stateMachineProcessorService: StateMachineProcessorService,
     private workflowService: WorkflowService,
@@ -209,12 +205,6 @@ export class WorkflowProcessorService {
       title: workflowConfig.title,
       index: context.index,
     });
-  }
-
-  isStateful(workflowConfig: WorkflowType) {
-    return (
-      workflowConfig.type === 'stateMachine' || workflowConfig.type === 'tool'
-    );
   }
 
   async processChild(

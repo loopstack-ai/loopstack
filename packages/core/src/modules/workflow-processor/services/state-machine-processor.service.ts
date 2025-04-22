@@ -171,7 +171,7 @@ export class StateMachineProcessorService {
 
   getNextTransition(
     workflow: WorkflowEntity,
-    stateMachineInfo: StateMachineInfoDto,
+    pendingTransition: TransitionPayloadInterface | undefined,
   ): TransitionInfoInterface | null {
     let transitionPayload = {};
     let transitionMeta = {};
@@ -179,14 +179,14 @@ export class StateMachineProcessorService {
       (item) => item.trigger === 'auto',
     );
 
-    if (!nextTransition && stateMachineInfo.pendingTransition) {
+    if (!nextTransition && pendingTransition) {
       nextTransition = workflow.placeInfo?.availableTransitions.find(
-        (item) => item.name === stateMachineInfo.pendingTransition!.name,
+        (item) => item.name === pendingTransition.name,
       );
 
       if (nextTransition) {
-        transitionPayload = stateMachineInfo.pendingTransition.payload;
-        transitionMeta = stateMachineInfo.pendingTransition.meta;
+        transitionPayload = pendingTransition.payload;
+        transitionMeta = pendingTransition.meta;
       }
     }
 
@@ -224,9 +224,10 @@ export class StateMachineProcessorService {
       stateMachineInfo,
     );
 
+    const pendingTransition = [stateMachineInfo.pendingTransition];
     while (true) {
       stateMachineInfo.setTransitionInfo(
-        this.getNextTransition(workflow, stateMachineInfo),
+        this.getNextTransition(workflow, pendingTransition.shift()),
       );
 
       if (null === stateMachineInfo.transitionInfo) {
@@ -239,7 +240,6 @@ export class StateMachineProcessorService {
             item.transition === stateMachineInfo.transitionInfo!.transition,
         );
 
-        let nextPlace: string | null = null;
         let observerIndex = 0;
         for (const observer of matchedObservers) {
           observerIndex++;
@@ -263,10 +263,6 @@ export class StateMachineProcessorService {
             workflow = result.workflow;
           }
 
-          if (result.data?.nextPlace) {
-            nextPlace = result.data?.nextPlace;
-          }
-
           if (result.data) {
             if (!workflow.currData) {
               workflow.currData = {};
@@ -281,29 +277,23 @@ export class StateMachineProcessorService {
             workflow.currData[transitionName][toolName] = result.data;
           }
 
-          // save immediately for multiple observers
-          // skip saving the last one here
-          if (observerIndex <= matchedObservers.length) {
-            await this.workflowService.save(workflow);
-          }
+          const nextPlace =
+            result.data?.nextPlace ??
+            (Array.isArray(stateMachineInfo.transitionInfo!.to)
+              ? stateMachineInfo.transitionInfo!.to[0]
+              : stateMachineInfo.transitionInfo!.to);
+
+          const historyItem: HistoryTransition = {
+            transition: stateMachineInfo.transitionInfo!.transition,
+            from: stateMachineInfo.transitionInfo!.from,
+            to: nextPlace,
+          };
+
+          this.validateTransition(stateMachineInfo, historyItem);
+
+          this.updateWorkflowState(workflow, transitions, historyItem);
+          await this.workflowService.save(workflow);
         }
-
-        nextPlace =
-          nextPlace ??
-          (Array.isArray(stateMachineInfo.transitionInfo!.to)
-            ? stateMachineInfo.transitionInfo!.to[0]
-            : stateMachineInfo.transitionInfo!.to);
-
-        const historyItem: HistoryTransition = {
-          transition: stateMachineInfo.transitionInfo!.transition,
-          from: stateMachineInfo.transitionInfo!.from,
-          to: nextPlace,
-        };
-
-        this.validateTransition(stateMachineInfo, historyItem);
-
-        this.updateWorkflowState(workflow, transitions, historyItem);
-        await this.workflowService.save(workflow);
       } catch (e) {
         this.logger.error(e);
         workflow.error = e.message;

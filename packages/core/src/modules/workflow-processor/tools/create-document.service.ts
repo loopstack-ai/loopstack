@@ -63,7 +63,7 @@ export class CreateDocumentService implements ToolInterface {
 
     return {
       data: {
-        documents: [document],
+        document,
       },
     };
   }

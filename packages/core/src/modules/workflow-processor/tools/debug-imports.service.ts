@@ -49,7 +49,9 @@ export class DebugImportsService implements ToolInterface {
     }
 
     return {
-      data: documents,
+      data: {
+        // documents todo
+      },
     };
   }
 }

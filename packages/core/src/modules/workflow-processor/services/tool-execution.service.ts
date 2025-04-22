@@ -57,13 +57,11 @@ export class ToolExecutionService {
 
     // create and add documents from tool result
     // todo: move into actual tool?
-    if (workflow && result.data.documents?.length) {
-      for (const documentData of result.data.documents) {
-        this.documentService.create(workflow as WorkflowEntity, context, {
-          ...documentData,
-          transition: info.transition,
-        });
-      }
+    if (workflow && result.data.document) {
+      this.documentService.create(workflow as WorkflowEntity, context, {
+        ...result.data.document,
+        transition: info.transition,
+      });
     }
 
     return result;
