@@ -88,7 +88,7 @@ export class StateMachineProcessorService {
       validatorResult,
     );
 
-    if (stateMachineInfo.isStateValid) {
+    if (stateMachineInfo.isStateValid && !pendingTransition) {
       return workflow!;
     }
 
@@ -127,10 +127,7 @@ export class StateMachineProcessorService {
     workflow.isWorking = true;
 
     // reset workflow to initial if there are invalidation reasons
-    if (
-      workflow.place === 'initial' ||
-      Object.keys(stateMachineInfo.hashRecordUpdates).length
-    ) {
+    if (!stateMachineInfo.isStateValid) {
       const initialTransition: HistoryTransition = {
         transition: 'invalidation',
         from: workflow.place,

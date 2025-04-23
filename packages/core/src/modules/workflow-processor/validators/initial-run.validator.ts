@@ -15,7 +15,7 @@ export class InitialRunValidator implements StateMachineValidatorInterface {
     pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
   ): { valid: boolean; target?: string; hash?: string } {
-    const isValid = !pendingTransition && workflow.place !== 'initial';
+    const isValid = workflow.place !== 'initial';
 
     this.logger.debug(`Check valid: "${isValid.toString()}".`);
 
