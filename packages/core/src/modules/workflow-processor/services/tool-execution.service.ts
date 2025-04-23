@@ -3,7 +3,7 @@ import { ConfigurationService, ToolRegistry } from '../../configuration';
 import {
   ContextInterface,
   ServiceConfigType,
-  ToolApplicationInfo,
+  EvalContextInfo,
   ToolCallType,
   ToolResult,
 } from '@loopstack/shared';
@@ -35,7 +35,7 @@ export class ToolExecutionService {
     toolCall: ToolCallType,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: ToolApplicationInfo,
+    info: EvalContextInfo,
   ): Promise<ToolResult> {
     const toolConfig = this.getToolConfig(toolCall.tool);
 

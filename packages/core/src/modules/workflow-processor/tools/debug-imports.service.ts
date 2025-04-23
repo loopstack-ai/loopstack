@@ -5,7 +5,7 @@ import {
   ContextInterface,
   DocumentType,
   Tool,
-  ToolApplicationInfo,
+  EvalContextInfo,
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';
@@ -22,7 +22,7 @@ export class DebugImportsService implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: ToolApplicationInfo,
+    info: EvalContextInfo,
   ): Promise<ToolResult> {
     const documents: DocumentType[] = [];
     if (workflow?.currData?.imports) {

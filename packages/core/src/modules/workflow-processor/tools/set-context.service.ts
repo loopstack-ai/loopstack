@@ -3,7 +3,7 @@ import { z } from 'zod';
 import {
   ContextInterface,
   Tool,
-  ToolApplicationInfo,
+  EvalContextInfo,
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';
@@ -22,7 +22,7 @@ export class SetContextService implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: ToolApplicationInfo,
+    info: EvalContextInfo,
   ): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);
 

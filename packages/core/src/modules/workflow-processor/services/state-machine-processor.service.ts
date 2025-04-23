@@ -1,9 +1,9 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineConfigService } from './state-machine-config.service';
 import {
   ContextInterface,
   HistoryTransition,
-  ToolApplicationInfo,
+  EvalContextInfo,
   TransitionInfoInterface,
   TransitionPayloadInterface,
   WorkflowEntity,
@@ -152,16 +152,16 @@ export class StateMachineProcessorService {
   }
 
   validateTransition(
-    stateMachineInfo: StateMachineInfoDto,
+    nextTransition: TransitionInfoInterface,
     historyItem: HistoryTransition,
   ) {
-    const to = Array.isArray(stateMachineInfo.transitionInfo!.to)
-      ? stateMachineInfo.transitionInfo!.to
-      : [stateMachineInfo.transitionInfo!.to];
+    const to = Array.isArray(nextTransition.to)
+      ? nextTransition.to
+      : [nextTransition.to];
 
     if (
       !historyItem.to ||
-      ![...to, stateMachineInfo.transitionInfo!.from].includes(historyItem.to)
+      ![...to, nextTransition.from].includes(historyItem.to)
     ) {
       throw new Error(
         `target place "${historyItem.to}" not available in transition`,
@@ -212,11 +212,15 @@ export class StateMachineProcessorService {
     const flatConfig =
       this.workflowConfigService.getStateMachineFlatConfig(config);
 
+    const info = {
+      options: stateMachineInfo.options,
+    } as EvalContextInfo;
+
     const { transitions, observers } =
       this.configValueParserService.evalWithContextAndInfo<{
         transitions: WorkflowTransitionType[];
         observers: WorkflowObserverType[];
-      }>(flatConfig, { context, info: stateMachineInfo });
+      }>(flatConfig, { context, info });
 
     workflow = await this.initStateMachine(
       workflow,
@@ -224,23 +228,26 @@ export class StateMachineProcessorService {
       stateMachineInfo,
     );
 
-    const pendingTransition = [stateMachineInfo.pendingTransition];
+    const pendingTransition = [ stateMachineInfo.pendingTransition ];
     while (true) {
-      stateMachineInfo.setTransitionInfo(
-        this.getNextTransition(workflow, pendingTransition.shift()),
-      );
-
-      if (null === stateMachineInfo.transitionInfo) {
+      const nextTransition = this.getNextTransition(workflow, pendingTransition.shift());
+      if (!nextTransition) {
+        this.logger.debug('stop');
         break;
       }
+
+      this.logger.debug(`Applying next transition: ${nextTransition.transition}`);
+      info.transition = nextTransition.transition;
+      info.payload = nextTransition.payload;
 
       try {
         const matchedObservers = observers.filter(
           (item) =>
-            item.transition === stateMachineInfo.transitionInfo!.transition,
+            item.transition === nextTransition.transition,
         );
 
         let observerIndex = 0;
+        let nextPlace: string | undefined = undefined;
         for (const observer of matchedObservers) {
           observerIndex++;
 
@@ -252,48 +259,50 @@ export class StateMachineProcessorService {
             observer,
             workflow,
             context,
-            {
-              transition: stateMachineInfo.transitionInfo.transition,
-              payload: stateMachineInfo.transitionInfo.payload,
-              options: stateMachineInfo.options,
-            } as ToolApplicationInfo,
+            info,
           );
 
-          if (result.workflow) {
-            workflow = result.workflow;
-          }
-
-          if (result.data) {
-            if (!workflow.currData) {
-              workflow.currData = {};
+          if (result.workflow || result.data) {
+            if (result.workflow) {
+              workflow = result.workflow;
             }
 
-            const transitionName = stateMachineInfo.transitionInfo!.transition;
-            if (!workflow.currData[transitionName]) {
-              workflow.currData[transitionName] = {};
+            if (result.data) {
+              if (!workflow.currData) {
+                workflow.currData = {};
+              }
+
+              const transitionName = nextTransition.transition;
+              if (!workflow.currData[transitionName]) {
+                workflow.currData[transitionName] = {};
+              }
+
+              const toolName = observer.alias ?? observer.tool;
+              workflow.currData[transitionName][toolName] = result.data;
             }
 
-            const toolName = observer.alias ?? observer.tool;
-            workflow.currData[transitionName][toolName] = result.data;
+            await this.workflowService.save(workflow);
           }
 
-          const nextPlace =
-            result.data?.nextPlace ??
-            (Array.isArray(stateMachineInfo.transitionInfo!.to)
-              ? stateMachineInfo.transitionInfo!.to[0]
-              : stateMachineInfo.transitionInfo!.to);
-
-          const historyItem: HistoryTransition = {
-            transition: stateMachineInfo.transitionInfo!.transition,
-            from: stateMachineInfo.transitionInfo!.from,
-            to: nextPlace,
-          };
-
-          this.validateTransition(stateMachineInfo, historyItem);
-
-          this.updateWorkflowState(workflow, transitions, historyItem);
-          await this.workflowService.save(workflow);
+          if (result.data?.nextPlace) {
+            nextPlace = result.data.nextPlace;
+          }
         }
+
+        nextPlace = nextPlace ??
+          (Array.isArray(nextTransition.to)
+            ? nextTransition.to[0]
+            : nextTransition.to);
+
+        const historyItem: HistoryTransition = {
+          transition: nextTransition.transition,
+          from: nextTransition.from,
+          to: nextPlace,
+        };
+
+        this.validateTransition(nextTransition, historyItem);
+        this.updateWorkflowState(workflow, transitions, historyItem);
+        await this.workflowService.save(workflow);
       } catch (e) {
         this.logger.error(e);
         workflow.error = e.message;

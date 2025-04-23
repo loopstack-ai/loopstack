@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { FunctionCallService } from './function-call.service';
 import {
   ContextInterface,
-  ToolApplicationInfo,
+  EvalContextInfo,
   WorkflowData,
 } from '@loopstack/shared';
 
@@ -41,7 +41,7 @@ export class ConfigValueParserService {
 
   evalWithContextAndInfo<T extends {}>(
     obj: any,
-    variables: { context: ContextInterface; info: ToolApplicationInfo },
+    variables: { context: ContextInterface; info: EvalContextInfo },
   ): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
@@ -58,7 +58,7 @@ export class ConfigValueParserService {
     variables: {
       context: ContextInterface;
       data: WorkflowData | undefined | null;
-      info: ToolApplicationInfo;
+      info: EvalContextInfo;
     },
   ): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);

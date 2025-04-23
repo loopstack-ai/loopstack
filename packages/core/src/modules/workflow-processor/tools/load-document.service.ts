@@ -5,7 +5,7 @@ import {
   ContextInterface,
   createHash,
   Tool,
-  ToolApplicationInfo,
+  EvalContextInfo,
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';
@@ -178,7 +178,7 @@ export class LoadDocumentService implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: ToolApplicationInfo,
+    info: EvalContextInfo,
   ): Promise<ToolResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');

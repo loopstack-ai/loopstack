@@ -4,7 +4,7 @@ import {
   DocumentSchema,
   PartialDocumentSchema,
   Tool,
-  ToolApplicationInfo,
+  EvalContextInfo,
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';
@@ -34,7 +34,7 @@ export class CreateDocumentService implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: ToolApplicationInfo,
+    info: EvalContextInfo,
   ): Promise<ToolResult> {
     const validProps = this.schema.parse(props);
 
