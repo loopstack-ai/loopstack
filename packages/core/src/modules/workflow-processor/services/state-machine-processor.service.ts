@@ -228,22 +228,26 @@ export class StateMachineProcessorService {
       stateMachineInfo,
     );
 
-    const pendingTransition = [ stateMachineInfo.pendingTransition ];
+    const pendingTransition = [stateMachineInfo.pendingTransition];
     while (true) {
-      const nextTransition = this.getNextTransition(workflow, pendingTransition.shift());
+      const nextTransition = this.getNextTransition(
+        workflow,
+        pendingTransition.shift(),
+      );
       if (!nextTransition) {
         this.logger.debug('stop');
         break;
       }
 
-      this.logger.debug(`Applying next transition: ${nextTransition.transition}`);
+      this.logger.debug(
+        `Applying next transition: ${nextTransition.transition}`,
+      );
       info.transition = nextTransition.transition;
       info.payload = nextTransition.payload;
 
       try {
         const matchedObservers = observers.filter(
-          (item) =>
-            item.transition === nextTransition.transition,
+          (item) => item.transition === nextTransition.transition,
         );
 
         let observerIndex = 0;
@@ -289,7 +293,8 @@ export class StateMachineProcessorService {
           }
         }
 
-        nextPlace = nextPlace ??
+        nextPlace =
+          nextPlace ??
           (Array.isArray(nextTransition.to)
             ? nextTransition.to[0]
             : nextTransition.to);
