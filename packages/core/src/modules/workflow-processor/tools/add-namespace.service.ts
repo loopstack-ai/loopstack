@@ -7,6 +7,7 @@ import {
   ToolInterface,
   ToolResult,
   WorkflowEntity,
+  NamespacePropsSchema,
 } from '@loopstack/shared';
 import { NamespacesService } from '../../persistence';
 
@@ -14,10 +15,7 @@ import { NamespacesService } from '../../persistence';
 @Tool()
 export class AddNamespaceService implements ToolInterface {
   private readonly logger = new Logger(AddNamespaceService.name);
-  schema = z.object({
-    label: z.string(),
-    meta: z.any().optional(),
-  });
+  schema = NamespacePropsSchema;
 
   constructor(private namespacesService: NamespacesService) {}
 

@@ -7,7 +7,7 @@ import crypto from 'crypto';
 import { ConfigurationService } from '../../configuration';
 import { NamespacesService, WorkflowService } from '../../persistence';
 import {
-  ContextInterface,
+  ContextInterface, NamespacePropsType,
   WorkflowEntity,
   WorkflowFactoryType,
   WorkflowPipelineType,
@@ -44,15 +44,21 @@ export class WorkflowProcessorService {
   ): Promise<ContextInterface | undefined> {
     const sequence = _.map(sequenceConfig.items, 'name');
 
-    //create a new index level
+    // create a new index level
     const index = `${context.index}.0`;
+
+    // add a namespace when configured
+    let nsContext = this.contextService.create(context);
+    if (sequenceConfig.namespace) {
+      nsContext = await this.createNamespace(context, sequenceConfig.namespace);
+    }
 
     let lastContext: ContextInterface | undefined;
     for (let i = 0; i < sequence.length; i++) {
       const itemName = sequence[i];
 
       // create local context, so no unwanted changes are applied to the actual context to be returned
-      const localContext = this.contextService.create(context);
+      const localContext = this.contextService.create(nsContext);
       localContext.index = this.incrementIndex(index, i + 1);
 
       lastContext = await this.processChild(itemName, localContext);
@@ -65,8 +71,19 @@ export class WorkflowProcessorService {
     return lastContext;
   }
 
-  generateUniqueNamespace(value: string): string {
-    return `${value}_${crypto.randomUUID()}`;
+  async createNamespace(context: ContextInterface, props: NamespacePropsType) {
+    context.namespace = await this.namespacesService.create({
+      name: props.label ?? 'Group',
+      model: context.model,
+      projectId: context.projectId,
+      workspaceId: context.workspaceId,
+      parent: context.namespace,
+      metadata: props.meta ?? {},
+      createdBy: context.userId,
+    });
+    context.labels.push(context.namespace.name);
+
+    return context;
   }
 
   async runFactoryType(
@@ -97,7 +114,7 @@ export class WorkflowProcessorService {
       const item = items[i];
 
       // create a new context for each child
-      const localContext = this.contextService.create(context);
+      let localContext = this.contextService.create(context);
       localContext.index = this.incrementIndex(index, i + 1);
 
       const label = factory.iterator.label
@@ -123,16 +140,10 @@ export class WorkflowProcessorService {
       // create namespace for the group iterator and make sure the value includes a unique id,
       // so there is no risk of re-using the same value for different things within
       // the same workspace and project model
-      localContext.namespace = await this.namespacesService.create({
-        name: this.generateUniqueNamespace(label),
-        model: localContext.model,
-        projectId: localContext.projectId,
-        workspaceId: localContext.workspaceId,
-        parent: localContext.namespace,
-        metadata: metadata,
-        createdBy: localContext.userId,
+      localContext = await this.createNamespace(context, {
+        label,
+        meta: metadata
       });
-      localContext.labels.push(localContext.namespace.name);
 
       // since a factory always adds a namespace and thus, separates the context
       // we do not need to update the processState context
