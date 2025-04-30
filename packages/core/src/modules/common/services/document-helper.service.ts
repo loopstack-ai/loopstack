@@ -7,6 +7,7 @@ import {
 } from '@loopstack/shared';
 import { FunctionCallService } from './function-call.service';
 import { TemplateEngineService } from './template-engine.service';
+import { merge } from 'lodash';
 
 export const CreateDocumentWithSchema = z.object({
   template: z.string().optional(),
@@ -28,10 +29,7 @@ export class DocumentHelperService {
 
     if (template) {
       if (options.update) {
-        return {
-          ...template,
-          ...options.update,
-        };
+        return merge({}, template, options.update);
       }
       return template;
     }

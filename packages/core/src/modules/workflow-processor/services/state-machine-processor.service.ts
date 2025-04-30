@@ -89,7 +89,7 @@ export class StateMachineProcessorService {
     );
 
     if (stateMachineInfo.isStateValid && !pendingTransition) {
-      return workflow!;
+      return workflow;
     }
 
     this.logger.debug(`Process state machine for workflow ${workflow!.name}`);
@@ -201,11 +201,14 @@ export class StateMachineProcessorService {
   }
 
   async loopStateMachine(
-    context: ContextInterface,
+    beforeContext: ContextInterface,
     workflow: WorkflowEntity,
     config: WorkflowStateMachineType,
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
+
+    let context = beforeContext;
+
     const flatConfig =
       this.workflowConfigService.getStateMachineFlatConfig(config);
 

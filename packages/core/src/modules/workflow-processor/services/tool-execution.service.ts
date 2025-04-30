@@ -57,7 +57,7 @@ export class ToolExecutionService {
 
     // create and add documents from tool result
     // todo: move into actual tool?
-    if (workflow && result.data.document) {
+    if (workflow && result.data?.document) {
       this.documentService.create(workflow as WorkflowEntity, context, {
         ...result.data.document,
         transition: info.transition,

@@ -3,7 +3,6 @@ import _ from 'lodash';
 import { ContextService } from '../../common';
 import { ConfigValueParserService } from '../../common';
 import { StateMachineProcessorService } from './state-machine-processor.service';
-import crypto from 'crypto';
 import { ConfigurationService } from '../../configuration';
 import { NamespacesService, WorkflowService } from '../../persistence';
 import {
@@ -48,20 +47,17 @@ export class WorkflowProcessorService {
     const index = `${context.index}.0`;
 
     // add a namespace when configured
-    let nsContext = this.contextService.create(context);
+    let lastContext = this.contextService.create(context);
     if (sequenceConfig.namespace) {
-      nsContext = await this.createNamespace(context, sequenceConfig.namespace);
+      lastContext = await this.createNamespace(context, sequenceConfig.namespace);
     }
 
-    let lastContext: ContextInterface | undefined;
     for (let i = 0; i < sequence.length; i++) {
       const itemName = sequence[i];
 
-      // create local context, so no unwanted changes are applied to the actual context to be returned
-      const localContext = this.contextService.create(nsContext);
-      localContext.index = this.incrementIndex(index, i + 1);
+      lastContext.index = this.incrementIndex(index, i + 1);
 
-      lastContext = await this.processChild(itemName, localContext);
+      lastContext = await this.processChild(itemName, lastContext);
 
       if (this.stop) {
         break;
@@ -72,7 +68,8 @@ export class WorkflowProcessorService {
   }
 
   async createNamespace(context: ContextInterface, props: NamespacePropsType) {
-    context.namespace = await this.namespacesService.create({
+    let clone = this.contextService.create(context);
+    clone.namespace = await this.namespacesService.create({
       name: props.label ?? 'Group',
       model: context.model,
       projectId: context.projectId,
@@ -81,9 +78,9 @@ export class WorkflowProcessorService {
       metadata: props.meta ?? {},
       createdBy: context.userId,
     });
-    context.labels.push(context.namespace.name);
+    clone.labels.push(clone.namespace.name);
 
-    return context;
+    return clone;
   }
 
   async runFactoryType(
@@ -162,16 +159,24 @@ export class WorkflowProcessorService {
     context: ContextInterface,
   ) {
     // create or load state if needed
-    let workflow = await this.getWorkflow(config, context);
+    const currentWorkflow = await this.getWorkflow(config, context);
 
-    workflow = await this.stateMachineProcessorService.processStateMachine(
+    const workflow = await this.stateMachineProcessorService.processStateMachine(
       context,
-      workflow,
+      currentWorkflow,
       config,
     );
 
     if (workflow.place !== 'finished') {
       this.stop = true;
+    } else {
+      // update the context if changed in workflow
+      if (workflow.contextUpdate) {
+        context.custom = {
+          ...context.custom,
+          ...workflow.contextUpdate,
+        }
+      }
     }
 
     return context;

@@ -26,11 +26,20 @@ export class SetContextService implements ToolInterface {
   ): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);
 
-    context[validOptions.key] = validOptions.value;
+    if (!workflow) {
+      return {}
+    }
 
-    this.logger.debug(`Set context key "${validOptions.key}".`);
+    if (!workflow.contextUpdate) {
+      workflow.contextUpdate = {};
+    }
+
+    workflow!.contextUpdate[validOptions.key] = validOptions.value;
+
+    this.logger.debug(`Set context update key "${validOptions.key}".`);
+
     return {
-      context,
+      workflow,
     };
   }
 }

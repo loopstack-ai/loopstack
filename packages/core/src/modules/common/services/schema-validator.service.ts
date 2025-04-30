@@ -15,6 +15,7 @@ export class SchemaValidatorService {
       const validate = ajv.compile(data.schema);
       const valid = validate(data.content);
       if (!valid) {
+        this.logger.error(data.content);
         this.logger.error(validate.errors);
         throw new Error(`Error validating document content.`);
       }
