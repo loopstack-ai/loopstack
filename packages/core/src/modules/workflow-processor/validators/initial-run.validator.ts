@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   StateMachineValidator,
   StateMachineValidatorInterface,
-  TransitionPayloadInterface,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
@@ -12,7 +11,6 @@ export class InitialRunValidator implements StateMachineValidatorInterface {
   private readonly logger = new Logger(InitialRunValidator.name);
 
   validate(
-    pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
   ): { valid: boolean; target?: string; hash?: string } {
     const isValid = workflow.place !== 'initial';

@@ -33,14 +33,13 @@ export class StateMachineProcessorService {
   ) {}
 
   canSkipRun(
-    pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
     options: Record<string, any> | undefined,
   ): StateMachineValidatorResultInterface {
     const validationResults = this.stateMachineValidatorRegistry
       .getValidators()
       .map((validator) =>
-        validator.validate(pendingTransition, workflow, options),
+        validator.validate(workflow, options),
       );
 
     return {
@@ -70,17 +69,15 @@ export class StateMachineProcessorService {
     if (!workflow) {
       throw new Error(`No workflow entry.`);
     }
-
-    const pendingTransition =
-      context.transition?.workflowId === workflow.id
-        ? context.transition
-        : undefined;
-
     const validatorResult = this.canSkipRun(
-      pendingTransition,
       workflow,
       options,
     );
+
+    const pendingTransition =
+      (validatorResult.valid && context.transition?.workflowId === workflow.id)
+        ? context.transition
+        : undefined;
 
     const stateMachineInfo = new StateMachineInfoDto(
       options,

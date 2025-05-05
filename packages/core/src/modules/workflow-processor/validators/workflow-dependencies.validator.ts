@@ -4,7 +4,6 @@ import {
   StateMachineValidator,
   StateMachineValidatorInterface,
 } from '@loopstack/shared';
-import { TransitionPayloadInterface } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
@@ -15,7 +14,6 @@ export class WorkflowDependenciesValidator
   private readonly logger = new Logger(WorkflowDependenciesValidator.name);
 
   validate(
-    pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
   ): { valid: boolean; target?: string; hash?: string } {
     const hash = workflow.hashRecord?.['dependencies'];

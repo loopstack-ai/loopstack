@@ -4,7 +4,6 @@ import {
   StateMachineValidator,
   StateMachineValidatorInterface,
 } from '@loopstack/shared';
-import { TransitionPayloadInterface } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
@@ -13,7 +12,6 @@ export class WorkflowOptionValidator implements StateMachineValidatorInterface {
   private readonly logger = new Logger(WorkflowOptionValidator.name);
 
   validate(
-    pendingTransition: TransitionPayloadInterface | undefined,
     workflow: WorkflowEntity,
     options: Record<string, any> | undefined,
   ): { valid: boolean; target?: string; hash?: string } {

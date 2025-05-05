@@ -133,10 +133,6 @@ export class LoadDocumentService implements ToolInterface {
    * updates the workflow's dependencies hash
    */
   updateWorkflowDependenciesHash(workflow: WorkflowEntity): void {
-    if (!workflow) {
-      throw new Error('Workflow is undefined');
-    }
-
     const deps = workflow.dependencies ?? [];
     const newIds = deps.map((item) => item.id).sort();
 
