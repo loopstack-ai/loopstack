@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
-  DocumentType,
   Tool,
   ToolInterface,
   ToolResult,
@@ -23,7 +22,6 @@ export class TransitionSelectorService implements ToolInterface {
   async apply(props: z.infer<typeof this.schema>): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);
 
-    let messages: DocumentType[] = [];
     let nextPlace: string | undefined;
     for (const option of validOptions.transitions) {
       if (undefined === option.condition || option.condition) {
@@ -34,7 +32,6 @@ export class TransitionSelectorService implements ToolInterface {
 
     return {
       data: {
-        documents: messages,
         nextPlace,
       },
     };

@@ -13,6 +13,7 @@ import { ConfigurationService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
+import { DocumentService } from '../../persistence';
 
 @Injectable()
 @Tool()
@@ -27,6 +28,7 @@ export class CreateDocumentService implements ToolInterface {
   constructor(
     private actionHelperService: SchemaValidatorService,
     private loopConfigService: ConfigurationService,
+    private documentService: DocumentService,
     private documentHelperService: DocumentHelperService,
   ) {}
 
@@ -36,9 +38,13 @@ export class CreateDocumentService implements ToolInterface {
     context: ContextInterface,
     info: EvalContextInfo,
   ): Promise<ToolResult> {
+    if (!workflow) {
+      return {}
+    }
+
     const validProps = this.schema.parse(props);
 
-    let data = workflow?.currData;
+    let data = workflow.currData;
 
     const template = validProps.document
       ? this.loopConfigService.get<DocumentType>(
@@ -47,7 +53,7 @@ export class CreateDocumentService implements ToolInterface {
         )
       : undefined;
 
-    let document = this.documentHelperService.createDocumentWithSchema(
+    let documentPrototype = this.documentHelperService.createDocumentWithSchema(
       validProps,
       template,
       {
@@ -56,10 +62,11 @@ export class CreateDocumentService implements ToolInterface {
         info,
       },
     );
+    this.actionHelperService.validateDocument(documentPrototype);
 
-    this.actionHelperService.validateDocument(document);
+    this.logger.debug(`Create document "${documentPrototype.name}".`);
 
-    this.logger.debug(`Create document "${document.name}".`);
+    const document = this.documentService.create(workflow, context, info, documentPrototype);
 
     return {
       data: {

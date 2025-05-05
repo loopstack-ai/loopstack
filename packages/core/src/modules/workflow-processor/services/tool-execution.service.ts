@@ -53,17 +53,6 @@ export class ToolExecutionService {
       throw new Error(`Tool service ${toolConfig.service} not found.`);
     }
 
-    const result = await instance.apply(props, workflow, context, info);
-
-    // create and add documents from tool result
-    // todo: move into actual tool?
-    if (workflow && result.data?.document) {
-      this.documentService.create(workflow as WorkflowEntity, context, {
-        ...result.data.document,
-        transition: info.transition,
-      });
-    }
-
-    return result;
+    return instance.apply(props, workflow, context, info);
   }
 }
