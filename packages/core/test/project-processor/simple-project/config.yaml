@@ -1,0 +1,22 @@
+workspaces:
+  - name: test_workspace
+projects:
+  - name: test
+    entrypoint: test_workflow
+    workspace: test_workspace
+tools:
+  - name: Debug
+    service: DebugService
+    props:
+      message: 'test message'
+workflows:
+  - name: test_workflow
+    type: stateMachine
+    transitions:
+      - name: first
+        from: 'initial'
+        to: 'finished'
+        trigger: auto
+    observers:
+      - transition: first
+        tool: Debug

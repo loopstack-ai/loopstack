@@ -14,4 +14,8 @@ export class WorkspaceService {
       relations,
     });
   }
+
+  getRepository() {
+    return this.workspaceRepository;
+  }
 }

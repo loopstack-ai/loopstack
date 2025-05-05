@@ -21,4 +21,8 @@ export class ProjectService {
       relations,
     });
   }
+
+  getRepository() {
+    return this.projectRepository;
+  }
 }

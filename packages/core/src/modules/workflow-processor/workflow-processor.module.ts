@@ -18,7 +18,7 @@ import {
 import {
   AddNamespaceService,
   CreateDocumentService,
-  DebugImportsService,
+  DebugImportsService, DebugService,
   LoadDocumentService,
   SetContextService,
   ToolCallService,
@@ -38,6 +38,7 @@ import {
     ToolCallService,
     CreateDocumentService,
     DebugImportsService,
+    DebugService,
     SetContextService,
     AddNamespaceService,
     LoadDocumentService,

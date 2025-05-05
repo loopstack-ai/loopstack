@@ -18,7 +18,7 @@ export class ConfigurationService implements OnModuleInit {
 
     private mainSchemaGenerator: DynamicSchemaGeneratorService,
   ) {
-    this.registry = new Map();
+    this.clear();
   }
 
   onModuleInit() {
@@ -26,8 +26,21 @@ export class ConfigurationService implements OnModuleInit {
     this.init(configs);
   }
 
+  createDefaultConfig() {
+    return new Map(
+      Object.entries({
+        workspaces: new Map(),
+        projects: new Map(),
+        workflows: new Map(),
+        documents: new Map(),
+        tools: new Map(),
+        adapters: new Map(),
+      })
+    );
+  };
+
   clear() {
-    this.registry = new Map();
+    this.registry = this.createDefaultConfig();
   }
 
   updateConfig(key: string, data: NamedCollectionItem[]) {

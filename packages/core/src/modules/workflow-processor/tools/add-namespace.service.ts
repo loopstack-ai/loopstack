@@ -25,9 +25,12 @@ export class AddNamespaceService implements ToolInterface {
     context: ContextInterface,
     info: EvalContextInfo,
   ): Promise<ToolResult> {
-    const validOptions = this.schema.parse(props);
+    if (!workflow) {
+      return {}
+    }
 
-    context.namespace = await this.namespacesService.create({
+    const validOptions = this.schema.parse(props);
+    const namespace = await this.namespacesService.create({
       name: validOptions.label,
       model: context.model,
       projectId: context.projectId,
@@ -36,12 +39,24 @@ export class AddNamespaceService implements ToolInterface {
       createdBy: context.userId,
       parent: context.namespace,
     });
-    context.labels.push(context.namespace.name);
 
-    this.logger.debug(`Add namespace label "${context.namespace.name}".`);
+    if (!workflow.contextUpdate) {
+      workflow.contextUpdate = {};
+    }
+
+    const contextLabels = context.labels
+    const workflowLabels = workflow.contextUpdate.labels ?? [];
+
+    workflow!.contextUpdate.labels = [
+      ...contextLabels,
+      ...workflowLabels,
+      namespace.name,
+    ];
+
+    this.logger.debug(`Add namespace label "${namespace.name}".`);
 
     return {
-      context,
+      workflow,
     };
   }
 }
