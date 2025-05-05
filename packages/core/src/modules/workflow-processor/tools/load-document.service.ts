@@ -3,7 +3,6 @@ import _ from 'lodash';
 import {
   ContextImportInterface,
   ContextInterface,
-  createHash,
   Tool,
   EvalContextInfo,
   ToolInterface,
@@ -12,7 +11,7 @@ import {
 import { z } from 'zod';
 import { FunctionCallService } from '../../common';
 import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
-import { DocumentService } from '../../persistence';
+import { DocumentService, WorkflowService } from '../../persistence';
 
 const LoadDocumentArgsSchema = z.object({
   where: z.object({
@@ -45,6 +44,7 @@ export class LoadDocumentService implements ToolInterface {
 
   constructor(
     private documentService: DocumentService,
+    private workflowService: WorkflowService,
     private functionCallService: FunctionCallService,
   ) {}
 
@@ -133,10 +133,7 @@ export class LoadDocumentService implements ToolInterface {
    * updates the workflow's dependencies hash
    */
   updateWorkflowDependenciesHash(workflow: WorkflowEntity): void {
-    const deps = workflow.dependencies ?? [];
-    const newIds = deps.map((item) => item.id).sort();
-
-    const hash = newIds.length ? createHash(newIds) : null;
+    const hash = this.workflowService.createDependenciesHash(workflow);
     workflow.hashRecord = {
       ...(workflow.hashRecord ?? {}),
       dependencies: hash,
@@ -207,7 +204,12 @@ export class LoadDocumentService implements ToolInterface {
         );
       }
 
-      workflow.dependencies.push(...currentEntities);
+      const existingDependencyIds = workflow.dependencies.map(dep => dep.id);
+      const newDependencies = currentEntities.filter(entity =>
+        !existingDependencyIds.includes(entity.id)
+      );
+      workflow.dependencies.push(...newDependencies);
+
       this.updateWorkflowDependenciesHash(workflow);
     }
 

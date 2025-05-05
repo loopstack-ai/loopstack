@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
+import { createHash, DocumentEntity, WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
 export class WorkflowService {
@@ -82,5 +82,15 @@ export class WorkflowService {
     }
 
     workflow.documents.push(document);
+  }
+
+  createDependenciesHash(workflow: WorkflowEntity) {
+    const items = workflow.dependencies ?? [];
+    const ids = items
+      .filter((item) => !item.isInvalidated)
+      .map((item) => item.id)
+      .sort();
+
+    return createHash(ids);
   }
 }
