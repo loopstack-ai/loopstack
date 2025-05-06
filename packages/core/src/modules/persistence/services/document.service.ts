@@ -26,7 +26,7 @@ export class DocumentService {
       workflowIndex: workflow!.index,
       place: workflow!.place,
       labels: workflow!.labels,
-      workflow: workflow,
+      workflow: { id: workflow.id } as WorkflowEntity,
       workspaceId: context.workspaceId,
       projectId: context.projectId,
     });
