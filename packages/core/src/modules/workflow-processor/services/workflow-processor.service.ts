@@ -217,6 +217,7 @@ export class WorkflowProcessorService {
       createdBy: context.userId,
       labels: context.labels,
       namespace: context.namespace ?? undefined,
+      projectId: context.projectId,
       name: workflowConfig.name,
       title: workflowConfig.title,
       index: context.index,
