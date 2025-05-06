@@ -977,6 +977,12 @@ export interface WorkflowDto {
      */
     'workspaceId': string;
     /**
+     * Unique identifier of the project this workflow belongs to
+     * @type {string}
+     * @memberof WorkflowDto
+     */
+    'projectId': string;
+    /**
      * Unique identifier of the namespace this workflow belongs to
      * @type {string}
      * @memberof WorkflowDto
@@ -995,6 +1001,12 @@ export interface WorkflowFilterDto {
      * @memberof WorkflowFilterDto
      */
     'namespaceId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof WorkflowFilterDto
+     */
+    'projectId'?: string;
 }
 /**
  * 
@@ -1081,6 +1093,12 @@ export interface WorkflowItemDto {
      */
     'workspaceId': string;
     /**
+     * Unique identifier of the project this workflow belongs to
+     * @type {string}
+     * @memberof WorkflowItemDto
+     */
+    'projectId': string;
+    /**
      * Unique identifier of the namespace this workflow belongs to
      * @type {string}
      * @memberof WorkflowItemDto
@@ -1120,9 +1138,11 @@ export const WorkflowSortByDtoFieldEnum = {
     Place: 'place',
     PrevData: 'prevData',
     CurrData: 'currData',
+    ContextUpdate: 'contextUpdate',
     PlaceInfo: 'placeInfo',
     History: 'history',
     NamespaceId: 'namespaceId',
+    ProjectId: 'projectId',
     Labels: 'labels',
     HashRecord: 'hashRecord',
     CreatedBy: 'createdBy'
