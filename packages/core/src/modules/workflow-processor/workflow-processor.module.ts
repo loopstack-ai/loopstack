@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigurationModule } from '../configuration';
 import { PersistenceModule } from '../persistence';
 import { DiscoveryModule } from '@nestjs/core';
-import { CommonModule } from '../index';
+import { CommonModule } from '../common';
+import { NamespaceProcessorService, ProjectProcessorService } from './services';
+
 import {
   InitialRunValidator,
   WorkflowDependenciesValidator,
@@ -43,6 +45,8 @@ import {
     AddNamespaceService,
     LoadDocumentService,
     TransitionSelectorService,
+    NamespaceProcessorService,
+    ProjectProcessorService,
 
     InitialRunValidator,
     WorkflowDependenciesValidator,
@@ -52,6 +56,9 @@ import {
     StateMachineProcessorService,
     StateMachineConfigService,
   ],
-  exports: [WorkflowProcessorService],
+  exports: [
+    ProjectProcessorService,
+    WorkflowProcessorService,
+  ],
 })
 export class WorkflowProcessorModule {}

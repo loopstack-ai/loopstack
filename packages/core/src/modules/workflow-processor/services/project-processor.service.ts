@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigurationService } from '../../configuration';
 import { NamespacesService, ProjectService } from '../../persistence';
-import { WorkflowProcessorService } from '../../workflow-processor';
+import { WorkflowProcessorService } from './workflow-processor.service';
 import { ContextService } from '../../common';
 import {
   ContextInterface,

@@ -1,21 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import _ from 'lodash';
 import { ContextService } from '../../common';
 import { ConfigValueParserService } from '../../common';
 import { StateMachineProcessorService } from './state-machine-processor.service';
 import { ConfigurationService } from '../../configuration';
-import { NamespacesService, WorkflowService } from '../../persistence';
+import { WorkflowService } from '../../persistence';
 import {
-  ContextInterface, NamespacePropsType,
+  ContextInterface,
   WorkflowEntity,
   WorkflowFactoryType,
   WorkflowPipelineType,
   WorkflowStateMachineType,
   WorkflowType,
 } from '@loopstack/shared';
+import { NamespaceProcessorService } from './namespace-processor.service';
 
 @Injectable()
 export class WorkflowProcessorService {
+  private readonly logger = new Logger(WorkflowProcessorService.name);
   stop: boolean = false;
 
   constructor(
@@ -24,7 +26,7 @@ export class WorkflowProcessorService {
     private valueParserService: ConfigValueParserService,
     private stateMachineProcessorService: StateMachineProcessorService,
     private workflowService: WorkflowService,
-    private namespacesService: NamespacesService,
+    private namespaceProcessorService: NamespaceProcessorService,
   ) {}
 
   workflowExists(name: string): boolean {
@@ -60,22 +62,6 @@ export class WorkflowProcessorService {
     return lastContext;
   }
 
-  async createNamespace(context: ContextInterface, props: NamespacePropsType): Promise<ContextInterface> {
-    let clone = this.contextService.create(context);
-    clone.namespace = await this.namespacesService.create({
-      name: props.label ?? 'Group',
-      model: context.model,
-      projectId: context.projectId,
-      workspaceId: context.workspaceId,
-      parent: context.namespace,
-      metadata: props.meta ?? {},
-      createdBy: context.userId,
-    });
-    clone.labels.push(clone.namespace.name);
-
-    return clone;
-  }
-
   async prepareAllContexts(context: ContextInterface, factory: WorkflowFactoryType, items: string[]): Promise<ContextInterface[]> {
     //create a new index level
     const index = `${context.index}.0`;
@@ -107,7 +93,7 @@ export class WorkflowProcessorService {
         : undefined;
 
       // create a new namespace for each child
-      const localContext = await this.createNamespace(context, {
+      const localContext = await this.namespaceProcessorService.createNamespace(context, {
         label,
         meta: metadata,
       });
@@ -118,15 +104,6 @@ export class WorkflowProcessorService {
     }
 
     return contexts;
-  }
-
-  async cleanupNamespace(parentContext: ContextInterface, validContexts: ContextInterface[]) {
-    const newChildNamespaceIds = validContexts.map((item) => item.namespace.id);
-    const originalChildNamespaces = await this.namespacesService.getChildNamespaces(parentContext.namespace.id);
-    const danglingNamespaces = originalChildNamespaces.filter((item) => !newChildNamespaceIds.includes(item.id));
-    if (danglingNamespaces.length) {
-      await this.namespacesService.delete(danglingNamespaces);
-    }
   }
 
   async runFactoryType(
@@ -153,7 +130,7 @@ export class WorkflowProcessorService {
     const preparedChildContexts = await this.prepareAllContexts(context, factory, items);
 
     // cleanup old namespaces
-    await this.cleanupNamespace(context, preparedChildContexts);
+    await this.namespaceProcessorService.cleanupNamespace(context, preparedChildContexts);
 
     // process the child elements sequential
     for (const childContext of preparedChildContexts) {
@@ -200,7 +177,7 @@ export class WorkflowProcessorService {
     context: ContextInterface,
   ): Promise<ContextInterface | undefined> {
     if (workflowConfig.namespace) {
-      context = await this.createNamespace(context, workflowConfig.namespace);
+      context = await this.namespaceProcessorService.createNamespace(context, workflowConfig.namespace);
     }
 
     switch (workflowConfig.type) {

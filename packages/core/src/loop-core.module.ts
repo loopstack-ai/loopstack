@@ -9,7 +9,6 @@ import {
   WorkflowProcessorModule,
   PersistenceModule,
   ConfigurationModule,
-  ProjectProcessorModule,
 } from './modules';
 import { MigrationsService } from './services/migrations.service';
 
@@ -27,7 +26,6 @@ export class LoopCoreModule extends ConfigurableModuleClass {
         ConfigurationModule,
         PersistenceModule,
         WorkflowProcessorModule,
-        ProjectProcessorModule,
       ],
       providers: [MigrationsService],
       exports: [
@@ -35,7 +33,6 @@ export class LoopCoreModule extends ConfigurableModuleClass {
         ConfigurationModule,
         PersistenceModule,
         WorkflowProcessorModule,
-        ProjectProcessorModule,
       ],
     };
   }
