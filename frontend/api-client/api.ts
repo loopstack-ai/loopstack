@@ -546,6 +546,31 @@ export interface PaginatedDto {
 /**
  * 
  * @export
+ * @interface ProjectConfigDto
+ */
+export interface ProjectConfigDto {
+    /**
+     * The name of the project type
+     * @type {string}
+     * @memberof ProjectConfigDto
+     */
+    'name': string;
+    /**
+     * The title of the project type
+     * @type {string}
+     * @memberof ProjectConfigDto
+     */
+    'title'?: string;
+    /**
+     * The workspace type for this project
+     * @type {string}
+     * @memberof ProjectConfigDto
+     */
+    'workspace': string;
+}
+/**
+ * 
+ * @export
  * @interface ProjectControllerGetProjects200Response
  */
 export interface ProjectControllerGetProjects200Response {
@@ -1159,6 +1184,25 @@ export type WorkflowSortByDtoOrderEnum = typeof WorkflowSortByDtoOrderEnum[keyof
 /**
  * 
  * @export
+ * @interface WorkspaceConfigDto
+ */
+export interface WorkspaceConfigDto {
+    /**
+     * The name of the workspace type
+     * @type {string}
+     * @memberof WorkspaceConfigDto
+     */
+    'name': string;
+    /**
+     * The title of the workspace type
+     * @type {string}
+     * @memberof WorkspaceConfigDto
+     */
+    'title'?: string;
+}
+/**
+ * 
+ * @export
  * @interface WorkspaceControllerGetWorkspaces200Response
  */
 export interface WorkspaceControllerGetWorkspaces200Response {
@@ -1199,6 +1243,12 @@ export interface WorkspaceCreateDto {
      * @memberof WorkspaceCreateDto
      */
     'title'?: string;
+    /**
+     * The type of the workspace
+     * @type {string}
+     * @memberof WorkspaceCreateDto
+     */
+    'type': string;
 }
 /**
  * 
@@ -1218,6 +1268,12 @@ export interface WorkspaceDto {
      * @memberof WorkspaceDto
      */
     'title': string;
+    /**
+     * The type of the workspace
+     * @type {string}
+     * @memberof WorkspaceDto
+     */
+    'type': string;
     /**
      * Indicates whether the workspace is locked for editing
      * @type {boolean}
@@ -1256,6 +1312,12 @@ export interface WorkspaceItemDto {
      */
     'title': string;
     /**
+     * The type of the workspace
+     * @type {string}
+     * @memberof WorkspaceItemDto
+     */
+    'type': string;
+    /**
      * Timestamp when the workspace item was created
      * @type {string}
      * @memberof WorkspaceItemDto
@@ -1291,6 +1353,7 @@ export interface WorkspaceSortByDto {
 export const WorkspaceSortByDtoFieldEnum = {
     Id: 'id',
     Title: 'title',
+    Type: 'type',
     IsLocked: 'isLocked',
     CreatedAt: 'createdAt',
     UpdatedAt: 'updatedAt',
@@ -1432,6 +1495,217 @@ export class ApiV1AuthApi extends BaseAPI implements ApiV1AuthApiInterface {
      */
     public authControllerLogin(options?: RawAxiosRequestConfig) {
         return ApiV1AuthApiFp(this.configuration).authControllerLogin(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * ApiV1ConfigApi - axios parameter creator
+ * @export
+ */
+export const ApiV1ConfigApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Get all models available for this workspace
+         * @param {string} workspaceName The name of the workspace type
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        configControllerGetProjectTypesByWorkspace: async (workspaceName: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'workspaceName' is not null or undefined
+            assertParamExists('configControllerGetProjectTypesByWorkspace', 'workspaceName', workspaceName)
+            const localVarPath = `/api/v1/config/workspaces/{workspaceName}/projects`
+                .replace(`{${"workspaceName"}}`, encodeURIComponent(String(workspaceName)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get all models available for this workspace
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        configControllerGetWorkspaceTypes: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/config/workspaces`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ApiV1ConfigApi - functional programming interface
+ * @export
+ */
+export const ApiV1ConfigApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ApiV1ConfigApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Get all models available for this workspace
+         * @param {string} workspaceName The name of the workspace type
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async configControllerGetProjectTypesByWorkspace(workspaceName: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ProjectConfigDto>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.configControllerGetProjectTypesByWorkspace(workspaceName, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1ConfigApi.configControllerGetProjectTypesByWorkspace']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get all models available for this workspace
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async configControllerGetWorkspaceTypes(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<WorkspaceConfigDto>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.configControllerGetWorkspaceTypes(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1ConfigApi.configControllerGetWorkspaceTypes']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ApiV1ConfigApi - factory interface
+ * @export
+ */
+export const ApiV1ConfigApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ApiV1ConfigApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Get all models available for this workspace
+         * @param {ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        configControllerGetProjectTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<ProjectConfigDto>> {
+            return localVarFp.configControllerGetProjectTypesByWorkspace(requestParameters.workspaceName, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get all models available for this workspace
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        configControllerGetWorkspaceTypes(options?: RawAxiosRequestConfig): AxiosPromise<Array<WorkspaceConfigDto>> {
+            return localVarFp.configControllerGetWorkspaceTypes(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ApiV1ConfigApi - interface
+ * @export
+ * @interface ApiV1ConfigApi
+ */
+export interface ApiV1ConfigApiInterface {
+    /**
+     * 
+     * @summary Get all models available for this workspace
+     * @param {ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1ConfigApiInterface
+     */
+    configControllerGetProjectTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<ProjectConfigDto>>;
+
+    /**
+     * 
+     * @summary Get all models available for this workspace
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1ConfigApiInterface
+     */
+    configControllerGetWorkspaceTypes(options?: RawAxiosRequestConfig): AxiosPromise<Array<WorkspaceConfigDto>>;
+
+}
+
+/**
+ * Request parameters for configControllerGetProjectTypesByWorkspace operation in ApiV1ConfigApi.
+ * @export
+ * @interface ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest
+ */
+export interface ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest {
+    /**
+     * The name of the workspace type
+     * @type {string}
+     * @memberof ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspace
+     */
+    readonly workspaceName: string
+}
+
+/**
+ * ApiV1ConfigApi - object-oriented interface
+ * @export
+ * @class ApiV1ConfigApi
+ * @extends {BaseAPI}
+ */
+export class ApiV1ConfigApi extends BaseAPI implements ApiV1ConfigApiInterface {
+    /**
+     * 
+     * @summary Get all models available for this workspace
+     * @param {ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1ConfigApi
+     */
+    public configControllerGetProjectTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1ConfigApiFp(this.configuration).configControllerGetProjectTypesByWorkspace(requestParameters.workspaceName, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get all models available for this workspace
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1ConfigApi
+     */
+    public configControllerGetWorkspaceTypes(options?: RawAxiosRequestConfig) {
+        return ApiV1ConfigApiFp(this.configuration).configControllerGetWorkspaceTypes(options).then((request) => request(this.axios, this.basePath));
     }
 }
 
