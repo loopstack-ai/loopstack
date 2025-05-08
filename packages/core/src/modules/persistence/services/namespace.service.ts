@@ -120,4 +120,17 @@ export class NamespacesService {
 
     return namespace;
   }
+
+  async getChildNamespaces(parentId: string): Promise<NamespaceEntity[]> {
+    return this.namespaceRepository
+      .createQueryBuilder('namespace')
+      .select('namespace.id')
+      .where('namespace.parentId = :parentId', { parentId })
+      .getMany();
+  }
+
+  async delete(entities: NamespaceEntity[]) {
+    await this.namespaceRepository.remove(entities);
+  }
+
 }

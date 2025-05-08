@@ -48,7 +48,7 @@ export class ConfigValueParserService {
 
   evalWithContextAndItem<T extends {}>(
     obj: any,
-    variables: { context: ContextInterface; item: string },
+    variables: { context: ContextInterface; item: string, index: number },
   ): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
