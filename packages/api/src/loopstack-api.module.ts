@@ -20,7 +20,7 @@ import { WorkflowApiService } from './services/workflow-api.service';
 import { DocumentApiService } from './services/document-api.service';
 import {NamespaceController} from "./controllers/namespace.controller";
 import {NamespaceApiService} from "./services/namespace-api.service";
-import { LoopCoreModule } from '@loopstack/core';
+import { ConfigurationModule, LoopCoreModule } from '@loopstack/core';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { NullStrategy } from './strategies/null.strategy';
@@ -31,6 +31,7 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 import { WsEventEmitterService } from './services/ws-event-emitter.service';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ConfigController } from './controllers/config.controller';
 var cookieParser = require('cookie-parser');
 
 @Module({
@@ -70,6 +71,7 @@ var cookieParser = require('cookie-parser');
     WorkflowController,
     DocumentController,
     NamespaceController,
+    ConfigController,
   ],
   providers: [
     AuthService,

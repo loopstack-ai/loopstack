@@ -23,6 +23,13 @@ export class WorkspaceDto {
   })
   title: string;
 
+  @Expose()
+  @ApiProperty({
+    description: 'The type of the workspace',
+    example: 'my-workflow-type',
+  })
+  type: string;
+
   /**
    * Indicates whether the workspace is locked for editing
    */

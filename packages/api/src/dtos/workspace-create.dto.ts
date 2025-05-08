@@ -1,5 +1,5 @@
 import { IsString, MaxLength } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class WorkspaceCreateDto {
   /**
@@ -13,4 +13,12 @@ export class WorkspaceCreateDto {
     example: 'My Awesome Workspace',
   })
   title: string;
+
+  @IsString()
+  @MaxLength(200, { message: 'Workspace type must not exceed 200 characters' })
+  @ApiProperty({
+    description: 'The type of the workspace',
+    example: 'my-workflow-type',
+  })
+  type: string;
 }
