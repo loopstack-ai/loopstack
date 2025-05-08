@@ -72,6 +72,11 @@ export class ConfigurationService implements OnModuleInit {
     return config.has(name);
   }
 
+  getAll<T>(registry: string): T[] {
+    const itemMap = this.registry.get(registry);
+    return Array.from(itemMap?.values() ?? []);
+  }
+
   get<T>(registry: string, searchKey: string): T | undefined {
     const config = this.registry.get(registry);
     if (!config) {
