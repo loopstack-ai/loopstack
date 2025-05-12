@@ -37,7 +37,7 @@ export class ProjectApiService {
   }> {
     const defaultLimit = this.configService.get<number>(
       'PROJECT_DEFAULT_LIMIT',
-      10,
+      100,
     );
     const defaultSortBy = this.configService.get<ProjectSortByDto[]>(
       'PROJECT_DEFAULT_SORT_BY',

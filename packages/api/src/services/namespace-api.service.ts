@@ -33,7 +33,7 @@ export class NamespaceApiService {
   }> {
     const defaultLimit = this.configService.get<number>(
       'NAMESPACE_DEFAULT_LIMIT',
-      10,
+      100,
     );
     const defaultSortBy = this.configService.get<NamespaceSortByDto[]>(
       'NAMESPACE_DEFAULT_SORT_BY',

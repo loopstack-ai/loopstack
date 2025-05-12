@@ -35,7 +35,7 @@ export class WorkspaceApiService {
   }> {
     const defaultLimit = this.configService.get<number>(
       'WORKSPACE_DEFAULT_LIMIT',
-      10,
+      100,
     );
     const defaultSortBy = this.configService.get<WorkspaceSortByDto[]>(
       'WORKSPACE_DEFAULT_SORT_BY',

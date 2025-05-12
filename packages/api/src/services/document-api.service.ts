@@ -33,7 +33,7 @@ export class DocumentApiService {
   }> {
     const defaultLimit = this.configService.get<number>(
       'DOCUMENT_DEFAULT_LIMIT',
-      10,
+      100,
     );
     const defaultSortBy = this.configService.get<DocumentSortByDto[]>(
       'DOCUMENT_DEFAULT_SORT_BY',

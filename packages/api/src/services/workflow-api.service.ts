@@ -33,7 +33,7 @@ export class WorkflowApiService {
   }> {
     const defaultLimit = this.configService.get<number>(
       'WORKFLOW_DEFAULT_LIMIT',
-      10,
+      100,
     );
     const defaultSortBy = this.configService.get<WorkflowSortByDto[]>(
       'WORKFLOW_DEFAULT_SORT_BY',
