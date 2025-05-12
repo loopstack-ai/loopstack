@@ -66,10 +66,14 @@ export class CreateDocumentService implements ToolInterface {
 
     this.logger.debug(`Create document "${documentPrototype.name}".`);
 
-    this.documentService.create(workflow, context, info, documentPrototype);
+    const document = this.documentService.create(workflow, context, info, documentPrototype);
 
     return {
+      workflow,
       commitDirect: true,
+      data: {
+        document,
+      },
     }
   }
 }

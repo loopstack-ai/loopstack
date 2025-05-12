@@ -216,6 +216,7 @@ export class LoadDocumentService implements ToolInterface {
     const data = this.createImportItem(props, currentEntities, prevImport);
 
     return {
+      workflow,
       data,
     };
   }

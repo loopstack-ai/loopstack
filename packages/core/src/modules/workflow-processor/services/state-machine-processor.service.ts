@@ -11,7 +11,7 @@ import {
   WorkflowStateHistoryDto,
   WorkflowStateMachineType,
   WorkflowStatePlaceInfoDto,
-  WorkflowTransitionType,
+  WorkflowTransitionType, ToolResult,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
@@ -197,8 +197,12 @@ export class StateMachineProcessorService {
     };
   }
 
-  addTransitionData(workflow: WorkflowEntity, transition: string, tool: string, data: any) {
-    if (data) {
+  addTransitionData(workflow: WorkflowEntity, transition: string, tool: string, result: ToolResult | undefined) {
+    if (result?.workflow) {
+      workflow = result?.workflow;
+    }
+
+    if (result?.data) {
       if (!workflow.currData) {
         workflow.currData = {};
       }
@@ -207,11 +211,13 @@ export class StateMachineProcessorService {
         workflow.currData[transition] = {};
       }
 
-      workflow.currData[transition][tool] = data;
+      workflow.currData[transition][tool] = result.data;
     }
+
+    return workflow;
   }
 
-  async commitWorkflowTransition(
+  commitWorkflowTransition(
     workflow: WorkflowEntity,
     nextPlace: string | undefined,
     nextTransition: TransitionInfoInterface,
@@ -231,7 +237,6 @@ export class StateMachineProcessorService {
 
     this.validateTransition(nextTransition, historyItem);
     this.updateWorkflowState(workflow, transitions, historyItem);
-    await this.workflowService.save(workflow);
   }
 
   async loopStateMachine(
@@ -302,11 +307,11 @@ export class StateMachineProcessorService {
           );
 
           // add the response data to workflow
-          this.addTransitionData(
+          workflow = this.addTransitionData(
             workflow,
             nextTransition.transition,
             observer.alias ?? observer.tool,
-            result?.data
+            result
           );
 
           // save workflow directly for immediate ui updates
@@ -320,12 +325,14 @@ export class StateMachineProcessorService {
           }
         }
 
-        await this.commitWorkflowTransition(
+        this.commitWorkflowTransition(
           workflow,
           nextPlace,
           nextTransition,
           transitions,
         );
+
+        await this.workflowService.save(workflow);
       }
     } catch (e) {
       this.logger.error(e);

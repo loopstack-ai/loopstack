@@ -30,8 +30,12 @@ export class SetContextService implements ToolInterface {
       workflow.contextUpdate = {};
     }
 
-    workflow!.contextUpdate[validOptions.key] = validOptions.value;
+    workflow.contextUpdate[validOptions.key] = validOptions.value;
 
     this.logger.debug(`Set context update key "${validOptions.key}".`);
+
+    return {
+      workflow,
+    }
   }
 }

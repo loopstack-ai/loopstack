@@ -35,9 +35,10 @@ export class DocumentService {
     return document;
   }
 
-  async update(workflow: WorkflowEntity, entity: DocumentEntity) {
+  update(workflow: WorkflowEntity, entity: DocumentEntity): DocumentEntity {
     const document = this.documentRepository.create(entity);
     this.workflowService.updateDocumentReference(workflow, document);
+    return document;
   }
 
   createDocumentsQuery(

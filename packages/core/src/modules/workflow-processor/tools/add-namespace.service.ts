@@ -53,5 +53,9 @@ export class AddNamespaceService implements ToolInterface {
     ];
 
     this.logger.debug(`Add namespace label "${namespace.name}".`);
+
+    return {
+      workflow,
+    }
   }
 }

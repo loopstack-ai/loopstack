@@ -35,17 +35,21 @@ export class UpdateDocumentService implements ToolInterface {
 
     const validProps = this.schema.parse(props);
 
-    const document = workflow.documents.find((item) => item.id === validProps.id);
+    let document = workflow.documents.find((item) => item.id === validProps.id);
     if (!document) {
       throw new Error(`Document with ID ${validProps.id} not found.`);
     }
 
     this.logger.debug(`Update document "${document.name}".`);
 
-    await this.documentService.update(workflow, merge(document, validProps.update));
+    document = this.documentService.update(workflow, merge(document, validProps.update));
 
     return {
+      workflow,
       commitDirect: true,
+      data: {
+        document
+      }
     }
   }
 }
