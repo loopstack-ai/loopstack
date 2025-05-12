@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Ajv from 'ajv';
-import { DocumentType } from '@loopstack/shared';
+import { DocumentEntity, DocumentType } from '@loopstack/shared';
 
 @Injectable()
 export class SchemaValidatorService {
   private readonly logger = new Logger(SchemaValidatorService.name);
 
-  validateDocument(data: DocumentType): void {
+  validateDocument(data: Partial<DocumentEntity>): void {
     if (data.schema) {
       const ajv = new Ajv({
         strict: false,

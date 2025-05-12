@@ -22,18 +22,16 @@ export class TransitionSelectorService implements ToolInterface {
   async apply(props: z.infer<typeof this.schema>): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);
 
-    let nextPlace: string | undefined;
+    let place: string | undefined;
     for (const option of validOptions.transitions) {
       if (undefined === option.condition || option.condition) {
-        nextPlace = option.place;
+        place = option.place;
         break;
       }
     }
 
     return {
-      data: {
-        nextPlace,
-      },
+      place,
     };
   }
 }

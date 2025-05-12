@@ -3,11 +3,10 @@ import { z } from 'zod';
 import { SchemaValidatorService } from '../../common';
 import {
   ContextInterface,
-  DocumentType,
   Tool,
   EvalContextInfo,
   ToolInterface,
-  ToolResult,
+  ToolResult, DocumentEntity,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
@@ -24,7 +23,7 @@ export class DebugImportsService implements ToolInterface {
     context: ContextInterface,
     info: EvalContextInfo,
   ): Promise<ToolResult> {
-    const documents: DocumentType[] = [];
+    const documents: (Partial<DocumentEntity>)[] = [];
     if (workflow?.currData?.imports) {
       for (const [name, item] of Object.entries(workflow?.currData?.imports)) {
         const documentData = {
@@ -40,7 +39,7 @@ export class DebugImportsService implements ToolInterface {
             mimeType: 'text/plain',
             hideAtPlaces: ['finished'],
           },
-        } as DocumentType;
+        } as Partial<DocumentEntity>;
 
         this.actionHelperService.validateDocument(documentData);
 
@@ -49,9 +48,7 @@ export class DebugImportsService implements ToolInterface {
     }
 
     return {
-      data: {
-        // documents todo
-      },
-    };
+      commitDirect: true,
+    }
   }
 }

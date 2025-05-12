@@ -197,6 +197,43 @@ export class StateMachineProcessorService {
     };
   }
 
+  addTransitionData(workflow: WorkflowEntity, transition: string, tool: string, data: any) {
+    if (data) {
+      if (!workflow.currData) {
+        workflow.currData = {};
+      }
+
+      if (!workflow.currData[transition]) {
+        workflow.currData[transition] = {};
+      }
+
+      workflow.currData[transition][tool] = data;
+    }
+  }
+
+  async commitWorkflowTransition(
+    workflow: WorkflowEntity,
+    nextPlace: string | undefined,
+    nextTransition: TransitionInfoInterface,
+    transitions: WorkflowTransitionType[],
+  ) {
+    const place =
+      nextPlace ??
+      (Array.isArray(nextTransition.to)
+        ? nextTransition.to[0]
+        : nextTransition.to);
+
+    const historyItem: HistoryTransition = {
+      transition: nextTransition.transition,
+      from: nextTransition.from,
+      to: place,
+    };
+
+    this.validateTransition(nextTransition, historyItem);
+    this.updateWorkflowState(workflow, transitions, historyItem);
+    await this.workflowService.save(workflow);
+  }
+
   async loopStateMachine(
     beforeContext: ContextInterface,
     workflow: WorkflowEntity,
@@ -225,24 +262,25 @@ export class StateMachineProcessorService {
       stateMachineInfo,
     );
 
-    const pendingTransition = [stateMachineInfo.pendingTransition];
-    while (true) {
-      const nextTransition = this.getNextTransition(
-        workflow,
-        pendingTransition.shift(),
-      );
-      if (!nextTransition) {
-        this.logger.debug('stop');
-        break;
-      }
+    try {
+      const pendingTransition = [stateMachineInfo.pendingTransition];
+      while (true) {
+        const nextTransition = this.getNextTransition(
+          workflow,
+          pendingTransition.shift(),
+        );
+        if (!nextTransition) {
+          this.logger.debug('stop');
+          break;
+        }
 
-      this.logger.debug(
-        `Applying next transition: ${nextTransition.transition}`,
-      );
-      info.transition = nextTransition.transition;
-      info.payload = nextTransition.payload;
+        this.logger.debug(
+          `Applying next transition: ${nextTransition.transition}`,
+        );
+        info.transition = nextTransition.transition;
+        info.payload = nextTransition.payload;
 
-      try {
+
         const matchedObservers = observers.filter(
           (item) => item.transition === nextTransition.transition,
         );
@@ -263,53 +301,35 @@ export class StateMachineProcessorService {
             info,
           );
 
-          if (result.workflow || result.data) {
-            if (result.workflow) {
-              workflow = result.workflow;
-            }
+          // add the response data to workflow
+          this.addTransitionData(
+            workflow,
+            nextTransition.transition,
+            observer.alias ?? observer.tool,
+            result?.data
+          );
 
-            if (result.data) {
-              if (!workflow.currData) {
-                workflow.currData = {};
-              }
-
-              const transitionName = nextTransition.transition;
-              if (!workflow.currData[transitionName]) {
-                workflow.currData[transitionName] = {};
-              }
-
-              const toolName = observer.alias ?? observer.tool;
-              workflow.currData[transitionName][toolName] = result.data;
-            }
-
+          // save workflow directly for immediate ui updates
+          if (result?.commitDirect) {
             await this.workflowService.save(workflow);
           }
 
-          if (result.data?.nextPlace) {
-            nextPlace = result.data.nextPlace;
+          // set the next place, if specified
+          if (result?.place) {
+            nextPlace = result?.place;
           }
         }
 
-        nextPlace =
-          nextPlace ??
-          (Array.isArray(nextTransition.to)
-            ? nextTransition.to[0]
-            : nextTransition.to);
-
-        const historyItem: HistoryTransition = {
-          transition: nextTransition.transition,
-          from: nextTransition.from,
-          to: nextPlace,
-        };
-
-        this.validateTransition(nextTransition, historyItem);
-        this.updateWorkflowState(workflow, transitions, historyItem);
-        await this.workflowService.save(workflow);
-      } catch (e) {
-        this.logger.error(e);
-        workflow.error = e.message;
-        break;
+        await this.commitWorkflowTransition(
+          workflow,
+          nextPlace,
+          nextTransition,
+          transitions,
+        );
       }
+    } catch (e) {
+      this.logger.error(e);
+      workflow.error = e.message;
     }
 
     workflow.isWorking = false;

@@ -73,6 +73,15 @@ export class WorkflowService {
     return this.workflowRepository.save(entity as WorkflowEntity);
   }
 
+  updateDocumentReference(workflow: WorkflowEntity, document: DocumentEntity) {
+    const index = workflow.documents.findIndex((item) => item.id === document.id);
+    if (-1 !== index) {
+      workflow.documents[index] = document;
+    } else {
+      workflow.documents.push(document);
+    }
+  }
+
   addDocument(workflow: WorkflowEntity, document: DocumentEntity) {
     // invalidate previous versions of the same document
     for (const doc of workflow.documents) {
@@ -81,7 +90,7 @@ export class WorkflowService {
       }
     }
 
-    workflow.documents.push(document);
+    this.updateDocumentReference(workflow, document);
   }
 
   createDependenciesHash(workflow: WorkflowEntity) {

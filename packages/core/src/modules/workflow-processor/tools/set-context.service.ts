@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
-  ContextInterface,
   Tool,
-  EvalContextInfo,
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';
@@ -21,8 +19,6 @@ export class SetContextService implements ToolInterface {
   async apply(
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
-    context: ContextInterface,
-    info: EvalContextInfo,
   ): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);
 
@@ -37,9 +33,5 @@ export class SetContextService implements ToolInterface {
     workflow!.contextUpdate[validOptions.key] = validOptions.value;
 
     this.logger.debug(`Set context update key "${validOptions.key}".`);
-
-    return {
-      workflow,
-    };
   }
 }

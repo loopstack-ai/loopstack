@@ -19,6 +19,5 @@ export class DebugService implements ToolInterface {
     props: z.infer<typeof this.schema>,
   ): Promise<ToolResult> {
     this.logger.log(props?.message ?? 'no message');
-    return {};
   }
 }

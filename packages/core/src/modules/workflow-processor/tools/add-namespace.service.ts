@@ -23,7 +23,6 @@ export class AddNamespaceService implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: EvalContextInfo,
   ): Promise<ToolResult> {
     if (!workflow) {
       return {}
@@ -47,16 +46,12 @@ export class AddNamespaceService implements ToolInterface {
     const contextLabels = context.labels
     const workflowLabels = workflow.contextUpdate.labels ?? [];
 
-    workflow!.contextUpdate.labels = [
+    workflow.contextUpdate.labels = [
       ...contextLabels,
       ...workflowLabels,
       namespace.name,
     ];
 
     this.logger.debug(`Add namespace label "${namespace.name}".`);
-
-    return {
-      workflow,
-    };
   }
 }

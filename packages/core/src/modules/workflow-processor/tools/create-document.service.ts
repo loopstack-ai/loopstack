@@ -6,7 +6,7 @@ import {
   Tool,
   EvalContextInfo,
   ToolInterface,
-  ToolResult,
+  ToolResult, DocumentEntity,
 } from '@loopstack/shared';
 import { SchemaValidatorService, DocumentHelperService } from '../../common';
 import { ConfigurationService } from '../../configuration';
@@ -61,17 +61,15 @@ export class CreateDocumentService implements ToolInterface {
         data,
         info,
       },
-    );
+    ) as Partial<DocumentEntity>;
     this.actionHelperService.validateDocument(documentPrototype);
 
     this.logger.debug(`Create document "${documentPrototype.name}".`);
 
-    const document = this.documentService.create(workflow, context, info, documentPrototype);
+    this.documentService.create(workflow, context, info, documentPrototype);
 
     return {
-      data: {
-        document,
-      },
-    };
+      commitDirect: true,
+    }
   }
 }

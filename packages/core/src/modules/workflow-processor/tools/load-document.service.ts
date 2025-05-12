@@ -217,7 +217,6 @@ export class LoadDocumentService implements ToolInterface {
 
     return {
       data,
-      workflow,
     };
   }
 }

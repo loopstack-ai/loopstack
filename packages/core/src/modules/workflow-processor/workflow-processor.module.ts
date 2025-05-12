@@ -24,7 +24,7 @@ import {
   LoadDocumentService,
   SetContextService,
   ToolCallService,
-  TransitionSelectorService,
+  TransitionSelectorService, UpdateDocumentService,
 } from './tools';
 
 @Module({
@@ -47,6 +47,7 @@ import {
     TransitionSelectorService,
     NamespaceProcessorService,
     ProjectProcessorService,
+    UpdateDocumentService,
 
     InitialRunValidator,
     WorkflowDependenciesValidator,
