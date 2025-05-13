@@ -133,11 +133,17 @@ export interface DocumentDto {
      */
     'place': object;
     /**
-     * Tags associated with the document for categorization and filtering
+     * Labels associated with the document\'s namespace
      * @type {Array<string>}
      * @memberof DocumentDto
      */
     'labels': Array<string>;
+    /**
+     * Tags associated with the document for categorization and filtering
+     * @type {Array<string>}
+     * @memberof DocumentDto
+     */
+    'tags': Array<string>;
     /**
      * Date when the document was created
      * @type {string}
@@ -255,11 +261,17 @@ export interface DocumentItemDto {
      */
     'place': string | null;
     /**
-     * Tags associated with the document for categorization and filtering
+     * Labels associated with the document\'s namespace
      * @type {Array<string>}
      * @memberof DocumentItemDto
      */
     'labels': Array<string>;
+    /**
+     * Tags associated with the document for categorization and filtering
+     * @type {Array<string>}
+     * @memberof DocumentItemDto
+     */
+    'tags': Array<string>;
     /**
      * Date when the document was created
      * @type {string}
@@ -318,6 +330,7 @@ export const DocumentSortByDtoFieldEnum = {
     ProjectId: 'projectId',
     Content: 'content',
     Schema: 'schema',
+    Tags: 'tags',
     Meta: 'meta',
     IsInvalidated: 'isInvalidated',
     IsPendingRemoval: 'isPendingRemoval',
