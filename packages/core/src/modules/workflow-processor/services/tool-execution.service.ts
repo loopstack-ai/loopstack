@@ -48,11 +48,13 @@ export class ToolExecutionService {
       },
     );
 
+    const data = toolConfig.data;
+
     const instance = this.toolRegistry.getToolByName(toolConfig.service);
     if (!instance) {
       throw new Error(`Tool service ${toolConfig.service} not found.`);
     }
 
-    return instance.apply(props, workflow, context, info);
+    return instance.apply(props, data, workflow, context, info);
   }
 }

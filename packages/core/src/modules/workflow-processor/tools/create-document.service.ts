@@ -19,8 +19,12 @@ import { DocumentService } from '../../persistence';
 @Tool()
 export class CreateDocumentService implements ToolInterface {
   private readonly logger = new Logger(CreateDocumentService.name);
-  schema = z.object({
-    document: z.string().optional(),
+
+  schema =  z.object({
+    document: z.string(),
+  }).optional();
+
+  dataSchema = z.object({
     update: PartialDocumentSchema.optional(),
     create: DocumentSchema.optional(),
   });
@@ -34,6 +38,7 @@ export class CreateDocumentService implements ToolInterface {
 
   async apply(
     props: z.infer<typeof this.schema>,
+    data: z.infer<typeof this.dataSchema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     info: EvalContextInfo,
@@ -43,22 +48,21 @@ export class CreateDocumentService implements ToolInterface {
     }
 
     const validProps = this.schema.parse(props);
+    const validData = this.dataSchema.parse(data);
 
-    let data = workflow.currData;
-
-    const template = validProps.document
+    const template = validProps?.document
       ? this.loopConfigService.get<DocumentType>(
           'documents',
-          validProps.document,
+        validProps.document,
         )
       : undefined;
 
     let documentPrototype = this.documentHelperService.createDocumentWithSchema(
-      validProps,
+      validData,
       template,
       {
         context,
-        data,
+        data: workflow.currData,
         info,
       },
     ) as Partial<DocumentEntity>;

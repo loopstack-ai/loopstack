@@ -170,6 +170,7 @@ export class LoadDocumentService implements ToolInterface {
    */
   async apply(
     props: z.infer<typeof this.schema>,
+    data: any,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     info: EvalContextInfo,
@@ -214,11 +215,11 @@ export class LoadDocumentService implements ToolInterface {
       this.updateWorkflowDependenciesHash(workflow);
     }
 
-    const data = this.createImportItem(props, currentEntities, prevImport);
+    const importItem = this.createImportItem(props, currentEntities, prevImport);
 
     return {
       workflow,
-      data,
+      data: importItem,
     };
   }
 }

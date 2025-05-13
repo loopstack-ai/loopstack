@@ -10,7 +10,6 @@ import { TemplateEngineService } from './template-engine.service';
 import { merge, omit } from 'lodash';
 
 export const CreateDocumentWithSchema = z.object({
-  template: z.string().optional(),
   update: PartialDocumentSchema?.optional(),
   create: DocumentSchema?.optional(),
 });
@@ -45,11 +44,9 @@ export class DocumentHelperService {
     }
 
     if (typeof obj !== 'object') {
-      const result = this.functionCallService.runEval(obj, variables);
-      return this.templateEngineService.parseValue(
-        result,
-        variables,
-      ) as unknown as T;
+      return this.functionCallService.isFunction(obj)
+        ? this.functionCallService.runEval(obj, variables)
+        : this.templateEngineService.parseValue(obj, variables) as unknown as T;
     }
 
     if (Array.isArray(obj)) {
@@ -74,12 +71,7 @@ export class DocumentHelperService {
     context: any,
   ): DocumentType {
     const prototype = this.prepare(options, template);
-
-    // do not re-evaluate the content since it could include ejs syntax as output
-    const excludingContent = omit(prototype, ['content']);
-    const document = this.evalObjectLeafs(excludingContent, context);
-    document.content = prototype.content ?? null;
-
+    const document = this.evalObjectLeafs(prototype, context);
     return document as DocumentType;
   }
 }

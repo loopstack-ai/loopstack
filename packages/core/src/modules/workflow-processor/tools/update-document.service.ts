@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  ContextInterface,
   PartialDocumentSchema,
   Tool,
-  EvalContextInfo,
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';
@@ -16,7 +14,10 @@ import { merge } from 'lodash';
 @Tool()
 export class UpdateDocumentService implements ToolInterface {
   private readonly logger = new Logger(UpdateDocumentService.name);
-  schema = z.object({
+
+  schema = z.undefined();
+
+  dataSchema = z.object({
     id: z.string(),
     update: PartialDocumentSchema.optional(),
   });
@@ -27,22 +28,23 @@ export class UpdateDocumentService implements ToolInterface {
 
   async apply(
     props: z.infer<typeof this.schema>,
+    data: z.infer<typeof this.dataSchema>,
     workflow: WorkflowEntity | undefined,
   ): Promise<ToolResult> {
     if (!workflow) {
       return {}
     }
 
-    const validProps = this.schema.parse(props);
+    const validData = this.dataSchema.parse(data);
 
-    let document = workflow.documents.find((item) => item.id === validProps.id);
+    let document = workflow.documents.find((item) => item.id === validData.id);
     if (!document) {
-      throw new Error(`Document with ID ${validProps.id} not found.`);
+      throw new Error(`Document with ID ${validData.id} not found.`);
     }
 
     this.logger.debug(`Update document "${document.name}".`);
 
-    document = this.documentService.update(workflow, merge(document, validProps.update));
+    document = this.documentService.update(workflow, merge(document, validData.update));
 
     return {
       workflow,

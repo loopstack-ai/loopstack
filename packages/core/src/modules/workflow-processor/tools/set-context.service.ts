@@ -18,6 +18,7 @@ export class SetContextService implements ToolInterface {
 
   async apply(
     props: z.infer<typeof this.schema>,
+    data: any,
     workflow: WorkflowEntity | undefined,
   ): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);
