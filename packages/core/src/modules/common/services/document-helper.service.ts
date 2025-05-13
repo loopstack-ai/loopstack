@@ -7,7 +7,7 @@ import {
 } from '@loopstack/shared';
 import { FunctionCallService } from './function-call.service';
 import { TemplateEngineService } from './template-engine.service';
-import { merge } from 'lodash';
+import { merge, omit } from 'lodash';
 
 export const CreateDocumentWithSchema = z.object({
   template: z.string().optional(),
@@ -74,6 +74,12 @@ export class DocumentHelperService {
     context: any,
   ): DocumentType {
     const prototype = this.prepare(options, template);
-    return this.evalObjectLeafs(prototype, context);
+
+    // do not re-evaluate the content since it could include ejs syntax as output
+    const excludingContent = omit(prototype, ['content']);
+    const document = this.evalObjectLeafs(excludingContent, context);
+    document.content = prototype.content ?? null;
+
+    return document as DocumentType;
   }
 }

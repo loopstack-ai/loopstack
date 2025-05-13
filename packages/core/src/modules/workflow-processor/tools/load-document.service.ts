@@ -16,8 +16,9 @@ import { DocumentService, WorkflowService } from '../../persistence';
 const LoadDocumentArgsSchema = z.object({
   where: z.object({
     name: z.string(),
+    tags: z.union([z.string().optional(), z.array(z.string()).optional()]),
   }),
-  labels: z.union([z.string(), z.array(z.string()).optional()]),
+  labels: z.union([z.string().optional(), z.array(z.string()).optional()]),
   map: z.string().optional(),
   filter: z.string().optional(),
   sort: z.boolean().optional(),

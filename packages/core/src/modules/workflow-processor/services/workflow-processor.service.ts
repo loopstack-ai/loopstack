@@ -36,7 +36,7 @@ export class WorkflowProcessorService {
   createIndex(ltreeIndex: string, increment: number = 1): string {
     const parts = ltreeIndex.split('.').map(Number);
     parts[parts.length - 1] += increment;
-    return parts.join('.');
+    return parts.map(part => part.toString().padStart(4, '0')).join('.');
   }
 
   async runSequenceType(
