@@ -11,14 +11,10 @@ import {
 import { z } from 'zod';
 import { FunctionCallService } from '../../common';
 import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
-import { DocumentService, WorkflowService } from '../../persistence';
+import { DocumentService, WhereCondition, WorkflowService } from '../../persistence';
 
 const LoadDocumentArgsSchema = z.object({
-  where: z.object({
-    name: z.string(),
-    tags: z.union([z.string().optional(), z.array(z.string()).optional()]),
-  }),
-  labels: z.union([z.string().optional(), z.array(z.string()).optional()]),
+  where: WhereCondition,
   map: z.string().optional(),
   filter: z.string().optional(),
   sort: z.boolean().optional(),
@@ -111,7 +107,6 @@ export class LoadDocumentService implements ToolInterface {
       props.where,
       {
         isGlobal: !!props.global,
-        labels: props.labels as string[],
         ltWorkflowIndex: workflow.index,
       },
     );
@@ -155,6 +150,7 @@ export class LoadDocumentService implements ToolInterface {
     const curr = options.many ? currentDocuments : currentDocuments[0];
     return {
       ids: currentEntities.map((entity) => entity.id),
+      tags: currentEntities.map((entity) => entity.tags),
       prev: prevImport?.curr,
       curr: curr,
       isNew: !prevImport,
@@ -178,7 +174,6 @@ export class LoadDocumentService implements ToolInterface {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }
-
     this.logger.debug(`Load document ${info.transition}`);
 
     const validProps = this.schema.parse(props);
