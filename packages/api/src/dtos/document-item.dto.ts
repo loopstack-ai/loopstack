@@ -122,10 +122,20 @@ export class DocumentItemDto {
     type: 'array',
     items: { type: 'string' },
     description:
-        'Tags associated with the document for categorization and filtering',
+      'Labels associated with the document\'s namespace',
     example: ['frontend', 'featureXY'],
   })
   labels: string[];
+
+  @Expose()
+  @ApiProperty({
+    type: 'array',
+    items: { type: 'string' },
+    description:
+      'Tags associated with the document for categorization and filtering',
+    example: ['tag1', 'tag2'],
+  })
+  tags: string[];
 
   /**
    * Date when the document was created
