@@ -5,18 +5,25 @@ import {
   EvalContextInfo,
   WorkflowData,
 } from '@loopstack/shared';
+import { get, transform } from 'lodash';
+import { TemplateEngineService } from './template-engine.service';
 
 @Injectable()
-export class ConfigValueParserService {
-  constructor(private functionCallService: FunctionCallService) {}
+export class ValueParserService {
+  constructor(
+    private functionCallService: FunctionCallService,
+    private templateEngineService: TemplateEngineService,
+  ) {}
 
-  private evalObjectLeafs<T>(obj: any, variables: any): T {
+  evalObjectLeafs<T>(obj: T, variables: any): T {
     if (obj === null || obj === undefined) {
       return obj;
     }
 
     if (typeof obj !== 'object') {
-      return this.functionCallService.runEval(obj, variables) as unknown as T;
+      return this.functionCallService.isFunction(obj)
+        ? this.functionCallService.runEval(obj, variables)
+        : this.templateEngineService.parseValue(obj, variables) as unknown as T;
     }
 
     if (Array.isArray(obj)) {
@@ -33,6 +40,14 @@ export class ConfigValueParserService {
     }
 
     return result;
+  }
+
+  prepareAliasVariables(aliasReference: Record<string, any>, dataSource: Record<string, any>): Record<string, any> {
+    return aliasReference
+      ? transform(aliasReference, (result: Record<string, any>, path: string[], key: string) => {
+        result[key] = get(dataSource, path);
+      }, {})
+      : {};
   }
 
   evalWithContext<T>(obj: any, variables: { context: ContextInterface }): T {
@@ -59,6 +74,7 @@ export class ConfigValueParserService {
       context: ContextInterface;
       data: WorkflowData | undefined | null;
       info: EvalContextInfo;
+      tool: Record<string, any>;
     },
   ): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);

@@ -15,9 +15,7 @@ import { merge } from 'lodash';
 export class UpdateDocumentService implements ToolInterface {
   private readonly logger = new Logger(UpdateDocumentService.name);
 
-  schema = z.undefined();
-
-  dataSchema = z.object({
+  schema = z.object({
     id: z.string(),
     update: PartialDocumentSchema.optional(),
   });
@@ -28,14 +26,14 @@ export class UpdateDocumentService implements ToolInterface {
 
   async apply(
     props: z.infer<typeof this.schema>,
-    data: z.infer<typeof this.dataSchema>,
+    data: any,
     workflow: WorkflowEntity | undefined,
   ): Promise<ToolResult> {
     if (!workflow) {
       return {}
     }
 
-    const validData = this.dataSchema.parse(data);
+    const validData = this.schema.parse(props);
 
     let document = workflow.documents.find((item) => item.id === validData.id);
     if (!document) {
@@ -49,9 +47,7 @@ export class UpdateDocumentService implements ToolInterface {
     return {
       workflow,
       commitDirect: true,
-      data: {
-        document
-      }
+      data: document
     }
   }
 }

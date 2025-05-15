@@ -8,15 +8,14 @@ import {
   ToolResult,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
-import { ConfigValueParserService, DocumentService } from '../../index';
+import { ValueParserService } from '../../index';
 
 @Injectable()
 export class ToolExecutionService {
   constructor(
     private loopConfigService: ConfigurationService,
-    private valueParserService: ConfigValueParserService,
+    private valueParserService: ValueParserService,
     private toolRegistry: ToolRegistry,
-    private documentService: DocumentService,
   ) {}
 
   getToolConfig(toolName: string) {
@@ -39,11 +38,15 @@ export class ToolExecutionService {
   ): Promise<ToolResult> {
     const toolConfig = this.getToolConfig(toolCall.tool);
 
+    // replace the alias values with actual data
+    const aliasDataObject = (workflow?.aliasData && workflow.currData) ? this.valueParserService.prepareAliasVariables(workflow.aliasData, workflow.currData) : {};
+
     const props = this.valueParserService.evalWithContextAndDataAndInfo(
       toolConfig.props,
       {
         context,
         data: workflow?.currData,
+        tool: aliasDataObject,
         info,
       },
     );

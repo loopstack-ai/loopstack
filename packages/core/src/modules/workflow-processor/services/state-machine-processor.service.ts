@@ -16,7 +16,7 @@ import {
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
-import { ConfigValueParserService } from '../../common';
+import { ValueParserService } from '../../common';
 import { StateMachineValidatorResultInterface } from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
 import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 
@@ -29,7 +29,7 @@ export class StateMachineProcessorService {
     private readonly workflowService: WorkflowService,
     private readonly toolExecutionService: ToolExecutionService,
     private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry,
-    private readonly configValueParserService: ConfigValueParserService,
+    private readonly configValueParserService: ValueParserService,
   ) {}
 
   canSkipRun(
@@ -197,7 +197,7 @@ export class StateMachineProcessorService {
     };
   }
 
-  addTransitionData(workflow: WorkflowEntity, transition: string, tool: string, result: ToolResult | undefined) {
+  addTransitionData(workflow: WorkflowEntity, transition: string, tool: string, alias: string | undefined, result: ToolResult | undefined) {
     if (result?.workflow) {
       workflow = result?.workflow;
     }
@@ -212,6 +212,14 @@ export class StateMachineProcessorService {
       }
 
       workflow.currData[transition][tool] = result.data;
+    }
+
+    if (alias) {
+      const currAlias = workflow.aliasData ?? {};
+      workflow.aliasData = {
+        ...currAlias,
+        [alias]: [transition, tool],
+      };
     }
 
     return workflow;
@@ -310,8 +318,9 @@ export class StateMachineProcessorService {
           workflow = this.addTransitionData(
             workflow,
             nextTransition.transition,
-            observer.alias ?? observer.tool,
-            result
+            observer.tool,
+            observer.alias,
+            result,
           );
 
           // save workflow directly for immediate ui updates

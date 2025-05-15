@@ -5,7 +5,7 @@ import {
   FunctionCallService,
   TemplateEngineService,
   DocumentHelperService,
-  ConfigValueParserService,
+  ValueParserService,
   ContextService,
 } from './services';
 import { ClientMessageService } from './services/client-message.service';
@@ -18,7 +18,7 @@ import { ClientMessageService } from './services/client-message.service';
     SchemaValidatorService,
     TemplateEngineService,
     DocumentHelperService,
-    ConfigValueParserService,
+    ValueParserService,
     ContextService,
   ],
   exports: [
@@ -27,7 +27,7 @@ import { ClientMessageService } from './services/client-message.service';
     SchemaValidatorService,
     TemplateEngineService,
     DocumentHelperService,
-    ConfigValueParserService,
+    ValueParserService,
     ContextService,
   ],
 })

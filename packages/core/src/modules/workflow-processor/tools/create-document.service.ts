@@ -27,7 +27,7 @@ export class CreateDocumentService implements ToolInterface {
   dataSchema = z.object({
     update: PartialDocumentSchema.optional(),
     create: DocumentSchema.optional(),
-  });
+  }).optional();
 
   constructor(
     private actionHelperService: SchemaValidatorService,
@@ -57,12 +57,15 @@ export class CreateDocumentService implements ToolInterface {
         )
       : undefined;
 
+    const aliasDataObject = (workflow?.aliasData && workflow.currData) ? this.documentHelperService.prepareAliasVariables(workflow.aliasData, workflow.currData) : {};
+
     let documentPrototype = this.documentHelperService.createDocumentWithSchema(
-      validData,
+      validData ?? {},
       template,
       {
         context,
         data: workflow.currData,
+        tool: aliasDataObject,
         info,
       },
     ) as Partial<DocumentEntity>;
@@ -75,9 +78,7 @@ export class CreateDocumentService implements ToolInterface {
     return {
       workflow,
       commitDirect: true,
-      data: {
-        document,
-      },
+      data: document,
     }
   }
 }

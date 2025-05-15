@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import _ from 'lodash';
 import { ContextService } from '../../common';
-import { ConfigValueParserService } from '../../common';
+import { ValueParserService } from '../../common';
 import { StateMachineProcessorService } from './state-machine-processor.service';
 import { ConfigurationService } from '../../configuration';
 import { WorkflowService } from '../../persistence';
@@ -23,7 +23,7 @@ export class WorkflowProcessorService {
   constructor(
     private contextService: ContextService,
     private loopConfigService: ConfigurationService,
-    private valueParserService: ConfigValueParserService,
+    private valueParserService: ValueParserService,
     private stateMachineProcessorService: StateMachineProcessorService,
     private workflowService: WorkflowService,
     private namespaceProcessorService: NamespaceProcessorService,

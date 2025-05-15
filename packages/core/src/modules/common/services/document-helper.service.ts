@@ -5,9 +5,8 @@ import {
   DocumentType,
   PartialDocumentSchema,
 } from '@loopstack/shared';
-import { FunctionCallService } from './function-call.service';
-import { TemplateEngineService } from './template-engine.service';
-import { merge, omit } from 'lodash';
+import { merge } from 'lodash';
+import { ValueParserService } from './value-parser.service';
 
 export const CreateDocumentWithSchema = z.object({
   update: PartialDocumentSchema?.optional(),
@@ -17,8 +16,7 @@ export const CreateDocumentWithSchema = z.object({
 @Injectable()
 export class DocumentHelperService {
   constructor(
-    private functionCallService: FunctionCallService,
-    private templateEngineService: TemplateEngineService,
+    private valueParserService: ValueParserService,
   ) {}
 
   prepare(options: z.infer<typeof CreateDocumentWithSchema>, template: any) {
@@ -38,31 +36,8 @@ export class DocumentHelperService {
     );
   }
 
-  evalObjectLeafs<T>(obj: T, variables: any): T {
-    if (obj === null || obj === undefined) {
-      return obj;
-    }
-
-    if (typeof obj !== 'object') {
-      return this.functionCallService.isFunction(obj)
-        ? this.functionCallService.runEval(obj, variables)
-        : this.templateEngineService.parseValue(obj, variables) as unknown as T;
-    }
-
-    if (Array.isArray(obj)) {
-      return obj.map((item) =>
-        this.evalObjectLeafs(item, variables),
-      ) as unknown as T;
-    }
-
-    const result = {} as T;
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        result[key] = this.evalObjectLeafs(obj[key], variables);
-      }
-    }
-
-    return result;
+  prepareAliasVariables(aliasReference: Record<string, any>, dataSource: Record<string, any>): Record<string, any> {
+    return this.valueParserService.prepareAliasVariables(aliasReference, dataSource);
   }
 
   createDocumentWithSchema(
@@ -71,7 +46,7 @@ export class DocumentHelperService {
     context: any,
   ): DocumentType {
     const prototype = this.prepare(options, template);
-    const document = this.evalObjectLeafs(prototype, context);
+    const document = this.valueParserService.evalObjectLeafs(prototype, context);
     return document as DocumentType;
   }
 }
