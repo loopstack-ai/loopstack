@@ -20,7 +20,6 @@ export class AddNamespaceService implements ToolInterface {
 
   async apply(
     props: z.infer<typeof this.schema>,
-    data: any,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
   ): Promise<ToolResult> {

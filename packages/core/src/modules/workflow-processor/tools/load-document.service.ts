@@ -166,7 +166,6 @@ export class LoadDocumentService implements ToolInterface {
    */
   async apply(
     props: z.infer<typeof this.schema>,
-    data: any,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     info: EvalContextInfo,
