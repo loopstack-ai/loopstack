@@ -147,14 +147,14 @@ export class LoadDocumentService implements ToolInterface {
   ): ContextImportInterface {
     const currentDocuments = this.applyModifiers(options, currentEntities);
 
-    const curr = options.many ? currentDocuments : currentDocuments[0];
+    const content = options.many ? currentDocuments : currentDocuments[0];
     return {
       ids: currentEntities.map((entity) => entity.id),
       tags: currentEntities.map((entity) => entity.tags),
-      prev: prevImport?.curr,
-      curr: curr,
+      previousContent: prevImport?.content,
+      content: content,
       isNew: !prevImport,
-      isChanged: !!prevImport && !_.isEqual(prevImport.curr, curr),
+      isChanged: !!prevImport && !_.isEqual(prevImport.content, content),
       options,
     };
   }
