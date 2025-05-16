@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
   SchemaValidatorService,
-  FunctionCallService,
+  ExpressionEvaluatorService,
   TemplateEngineService,
   DocumentHelperService,
   ValueParserService,
@@ -14,7 +14,7 @@ import { ClientMessageService } from './services/client-message.service';
   imports: [EventEmitterModule.forRoot()],
   providers: [
     ClientMessageService,
-    FunctionCallService,
+    ExpressionEvaluatorService,
     SchemaValidatorService,
     TemplateEngineService,
     DocumentHelperService,
@@ -23,7 +23,7 @@ import { ClientMessageService } from './services/client-message.service';
   ],
   exports: [
     ClientMessageService,
-    FunctionCallService,
+    ExpressionEvaluatorService,
     SchemaValidatorService,
     TemplateEngineService,
     DocumentHelperService,

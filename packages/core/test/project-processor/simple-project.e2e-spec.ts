@@ -1,6 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { loadConfiguration, ProjectProcessorService, ProjectService, WorkspaceService } from '../../src';
+import {
+  loadConfiguration,
+  ProjectProcessorService,
+  ProjectService,
+  WorkspaceService,
+} from '../../src';
 import { getConnectionToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { TestModule } from '../test.module';
@@ -31,7 +36,9 @@ describe('Simple Project E2E Test', () => {
     dataSource = moduleRef.get(getConnectionToken());
     await app.init();
 
-    processorService = moduleRef.get<ProjectProcessorService>(ProjectProcessorService);
+    processorService = moduleRef.get<ProjectProcessorService>(
+      ProjectProcessorService,
+    );
     projectService = moduleRef.get<ProjectService>(ProjectService);
     workspaceService = moduleRef.get<WorkspaceService>(WorkspaceService);
     context = {};
@@ -49,10 +56,10 @@ describe('Simple Project E2E Test', () => {
     context.workspace = workspace;
   });
 
-  afterEach(async  () => {
+  afterEach(async () => {
     await projectService.getRepository().clear();
     jest.clearAllMocks();
-  })
+  });
 
   afterAll(async () => {
     await dataSource.dropDatabase();
@@ -67,8 +74,10 @@ describe('Simple Project E2E Test', () => {
       processorService.processProject({
         userId,
         projectId,
-      })
-    ).rejects.toThrow('project "991f8235-e42b-4b4f-838c-ef1629507693" not found.');
+      }),
+    ).rejects.toThrow(
+      'project "991f8235-e42b-4b4f-838c-ef1629507693" not found.',
+    );
   });
 
   it('should run the project if found', async () => {
@@ -91,8 +100,7 @@ describe('Simple Project E2E Test', () => {
 
     expect(res).toBeDefined();
     expect(loggerSpy).toHaveBeenCalledWith(
-      expect.stringContaining('test message')
+      expect.stringContaining('test message'),
     );
   });
-
 });

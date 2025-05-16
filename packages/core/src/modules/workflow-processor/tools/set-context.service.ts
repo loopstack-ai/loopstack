@@ -1,16 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  Tool,
-  ToolInterface,
-  ToolResult,
-} from '@loopstack/shared';
+import { Tool, ToolInterface, ToolResult } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
 @Tool()
 export class SetContextService implements ToolInterface {
   private readonly logger = new Logger(SetContextService.name);
+
+  configSchema = z.object({
+    key: z.string(),
+    value: z.any(),
+  });
+
   schema = z.object({
     key: z.string(),
     value: z.any(),
@@ -23,7 +25,7 @@ export class SetContextService implements ToolInterface {
     const validOptions = this.schema.parse(props);
 
     if (!workflow) {
-      return {}
+      return {};
     }
 
     if (!workflow.contextUpdate) {
@@ -36,6 +38,6 @@ export class SetContextService implements ToolInterface {
 
     return {
       workflow,
-    }
+    };
   }
 }

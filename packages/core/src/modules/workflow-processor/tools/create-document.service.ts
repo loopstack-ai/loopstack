@@ -4,11 +4,17 @@ import {
   DocumentSchema,
   PartialDocumentSchema,
   Tool,
-  EvalContextInfo,
+  WorkflowRunContext,
   ToolInterface,
-  ToolResult, DocumentEntity,
+  ToolResult,
+  DocumentEntity,
+  DocumentConfigSchema,
 } from '@loopstack/shared';
-import { SchemaValidatorService, DocumentHelperService, ValueParserService } from '../../common';
+import {
+  SchemaValidatorService,
+  DocumentHelperService,
+  ValueParserService,
+} from '../../common';
 import { ConfigurationService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
@@ -20,8 +26,13 @@ import { merge } from 'lodash';
 @Tool()
 export class CreateDocumentService implements ToolInterface {
   private readonly logger = new Logger(CreateDocumentService.name);
+  configSchema = z.object({
+    document: z.string().optional(),
+    update: DocumentConfigSchema.partial().optional(),
+    create: DocumentConfigSchema.optional(),
+  });
 
-  schema =  z.object({
+  schema = z.object({
     document: z.string().optional(),
     update: PartialDocumentSchema.optional(),
     create: DocumentSchema.optional(),
@@ -39,48 +50,64 @@ export class CreateDocumentService implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: EvalContextInfo,
+    workflowContext: WorkflowRunContext,
   ): Promise<ToolResult> {
     if (!workflow) {
-      return {}
+      return {};
     }
 
     const validProps = this.schema.parse(props);
 
-    const template = validProps?.document
+    let template = validProps?.document
       ? this.loopConfigService.get<DocumentType>(
           'documents',
-        validProps.document,
+          validProps.document,
         )
       : undefined;
 
-    let documentData = validProps?.create;
-    if (template && validProps?.update) {
-      const aliasDataObject = (workflow?.aliasData && workflow.currData) ? this.documentHelperService.prepareAliasVariables(workflow.aliasData, workflow.currData) : {};
-      const templateEval = this.valueParserService.evalObjectLeafs(template, {
+    if (template) {
+      const aliasDataObject =
+        workflow?.aliasData && workflow.currData
+          ? this.documentHelperService.prepareAliasVariables(
+              workflow.aliasData,
+              workflow.currData,
+            )
+          : {};
+      template = this.valueParserService.evalObjectLeafs(template, {
         context,
         data: workflow.currData,
         tool: aliasDataObject,
-        info,
+        workflow: workflowContext,
       });
-
-      documentData = merge({}, templateEval, validProps?.update);
     }
+
+    const documentData = merge(
+      {},
+      template,
+      validProps?.create ?? validProps?.update,
+    );
 
     if (!documentData) {
       throw new Error(`No document data provided.`);
     }
 
-    this.actionHelperService.validateDocument(documentData as Partial<DocumentEntity>);
+    this.actionHelperService.validateDocument(
+      documentData as Partial<DocumentEntity>,
+    );
 
     this.logger.debug(`Create document "${documentData.name}".`);
 
-    const document = this.documentService.create(workflow, context, info, documentData as Partial<DocumentEntity>);
+    const document = this.documentService.create(
+      workflow,
+      context,
+      workflowContext,
+      documentData as Partial<DocumentEntity>,
+    );
 
     return {
       workflow,
       commitDirect: true,
       data: document,
-    }
+    };
   }
 }

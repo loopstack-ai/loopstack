@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { FunctionCallService } from './function-call.service';
+import { ExpressionEvaluatorService } from './expression-evaluator.service';
 import {
   ContextInterface,
-  EvalContextInfo,
+  WorkflowRunContext,
   WorkflowData,
 } from '@loopstack/shared';
 import { get, transform } from 'lodash';
@@ -11,7 +11,7 @@ import { TemplateEngineService } from './template-engine.service';
 @Injectable()
 export class ValueParserService {
   constructor(
-    private functionCallService: FunctionCallService,
+    private expressionEvaluatorService: ExpressionEvaluatorService,
     private templateEngineService: TemplateEngineService,
   ) {}
 
@@ -21,9 +21,9 @@ export class ValueParserService {
     }
 
     if (typeof obj !== 'object') {
-      return this.functionCallService.isFunction(obj)
-        ? this.functionCallService.runEval(obj, variables)
-        : this.templateEngineService.parseValue(obj, variables) as unknown as T;
+      return this.expressionEvaluatorService.isExpression(obj)
+        ? this.expressionEvaluatorService.evaluate(obj, variables)
+        : (this.templateEngineService.evaluate(obj, variables) as unknown as T);
     }
 
     if (Array.isArray(obj)) {
@@ -42,11 +42,18 @@ export class ValueParserService {
     return result;
   }
 
-  prepareAliasVariables(aliasReference: Record<string, any>, dataSource: Record<string, any>): Record<string, any> {
+  prepareAliasVariables(
+    aliasReference: Record<string, any>,
+    dataSource: Record<string, any>,
+  ): Record<string, any> {
     return aliasReference
-      ? transform(aliasReference, (result: Record<string, any>, path: string[], key: string) => {
-        result[key] = get(dataSource, path);
-      }, {})
+      ? transform(
+          aliasReference,
+          (result: Record<string, any>, path: string[], key: string) => {
+            result[key] = get(dataSource, path);
+          },
+          {},
+        )
       : {};
   }
 
@@ -56,14 +63,14 @@ export class ValueParserService {
 
   evalWithContextAndInfo<T extends {}>(
     obj: any,
-    variables: { context: ContextInterface; info: EvalContextInfo },
+    variables: { context: ContextInterface; workflow: WorkflowRunContext },
   ): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
 
   evalWithContextAndItem<T extends {}>(
     obj: any,
-    variables: { context: ContextInterface; item: string, index: number },
+    variables: { context: ContextInterface; item: string; index: number },
   ): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
@@ -73,7 +80,7 @@ export class ValueParserService {
     variables: {
       context: ContextInterface;
       data: WorkflowData | undefined | null;
-      info: EvalContextInfo;
+      workflow: WorkflowRunContext;
       tool: Record<string, any>;
     },
   ): T {

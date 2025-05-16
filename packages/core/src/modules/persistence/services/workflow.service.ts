@@ -74,7 +74,9 @@ export class WorkflowService {
   }
 
   updateDocumentReference(workflow: WorkflowEntity, document: DocumentEntity) {
-    const index = workflow.documents.findIndex((item) => item.id === document.id);
+    const index = workflow.documents.findIndex(
+      (item) => item.id === document.id,
+    );
     if (-1 !== index) {
       workflow.documents[index] = document;
     } else {

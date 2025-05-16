@@ -4,15 +4,17 @@ import { SchemaValidatorService } from '../../common';
 import {
   ContextInterface,
   Tool,
-  EvalContextInfo,
+  WorkflowRunContext,
   ToolInterface,
-  ToolResult, DocumentEntity,
+  ToolResult,
+  DocumentEntity,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
 @Tool()
 export class DebugImportsService implements ToolInterface {
+  configSchema = z.object({}).optional();
   schema = z.object({}).optional();
 
   constructor(private actionHelperService: SchemaValidatorService) {}
@@ -20,10 +22,8 @@ export class DebugImportsService implements ToolInterface {
   async apply(
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
-    context: ContextInterface,
-    info: EvalContextInfo,
   ): Promise<ToolResult> {
-    const documents: (Partial<DocumentEntity>)[] = [];
+    const documents: Partial<DocumentEntity>[] = [];
     if (workflow?.currData?.imports) {
       for (const [name, item] of Object.entries(workflow?.currData?.imports)) {
         const documentData = {
@@ -49,6 +49,6 @@ export class DebugImportsService implements ToolInterface {
 
     return {
       commitDirect: true,
-    }
+    };
   }
 }

@@ -4,6 +4,7 @@ import { AdapterRegistry } from './adapter-registry.service';
 import { ToolRegistry } from './tool.registry';
 import { ConfigService } from '@nestjs/config';
 import { NamedCollectionItem } from '@loopstack/shared';
+import { z } from 'zod';
 
 @Injectable()
 export class ConfigurationService implements OnModuleInit {
@@ -35,9 +36,9 @@ export class ConfigurationService implements OnModuleInit {
         documents: new Map(),
         tools: new Map(),
         adapters: new Map(),
-      })
+      }),
     );
-  };
+  }
 
   clear() {
     this.registry = this.createDefaultConfig();
@@ -87,11 +88,35 @@ export class ConfigurationService implements OnModuleInit {
   }
 
   createFromConfig(data: any): any {
-    const config = this.mainSchemaGenerator.getSchema().parse(data);
+    try {
+      const config = this.mainSchemaGenerator.getSchema().parse(data);
+      const keys = Object.keys(config);
+      for (const key of keys) {
+        this.updateConfig(key, config[key]);
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Enhanced error output that includes the invalid values
+        const enhancedErrors = error.errors.map((err) => {
+          // Get the path to the invalid value
+          const path = err.path;
 
-    const keys = Object.keys(config);
-    for (const key of keys) {
-      this.updateConfig(key, config[key]);
+          // Extract the invalid value from your original data using the path
+          const invalidValue = path.reduce(
+            (obj, key) =>
+              obj && typeof obj === 'object' ? obj[key] : undefined,
+            data,
+          );
+
+          return {
+            ...err,
+            invalidValue, // Add the actual value that failed
+          };
+        });
+
+        console.log(JSON.stringify(enhancedErrors, null, 2));
+      }
+      throw error;
     }
   }
 

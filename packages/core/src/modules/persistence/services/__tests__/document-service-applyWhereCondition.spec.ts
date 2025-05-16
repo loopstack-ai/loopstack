@@ -63,201 +63,206 @@ describe('DocumentService - applyWhereCondition', () => {
 
     // Check that expected calls were made
     expect(mockQueryBuilder.andWhere.mock.calls).toEqual(
-      expectedCalls.filter(call => call.method === 'andWhere').map(call => call.args)
+      expectedCalls
+        .filter((call) => call.method === 'andWhere')
+        .map((call) => call.args),
     );
 
     expect(mockQueryBuilder.orWhere.mock.calls).toEqual(
-      expectedCalls.filter(call => call.method === 'orWhere').map(call => call.args)
+      expectedCalls
+        .filter((call) => call.method === 'orWhere')
+        .map((call) => call.args),
     );
   }
 
   // Begin tests
   describe('Simple conditions', () => {
     it('should handle direct value comparison', () => {
-      testWhereCondition(
-        { name: 'test-document' },
-        [{
+      testWhereCondition({ name: 'test-document' }, [
+        {
           method: 'andWhere',
-          args: [`name = :param0`, { param0: 'test-document' }]
-        }]
-      );
+          args: [`name = :param0`, { param0: 'test-document' }],
+        },
+      ]);
     });
 
     it('should handle multiple direct value comparisons', () => {
       testWhereCondition(
         {
           name: 'test-document',
-          status: 'active'
+          status: 'active',
         },
         [
           {
             method: 'andWhere',
-            args: [`name = :param0`, { param0: 'test-document' }]
+            args: [`name = :param0`, { param0: 'test-document' }],
           },
           {
             method: 'andWhere',
-            args: [`status = :param1`, { param1: 'active' }]
-          }
-        ]
+            args: [`status = :param1`, { param1: 'active' }],
+          },
+        ],
       );
     });
-
   });
 
   describe('NULL operators', () => {
     it('should handle isNull: true', () => {
-      testWhereCondition(
-        { type: { isNull: true } },
-        [{ method: 'andWhere', args: [`type IS NULL`] }]
-      );
+      testWhereCondition({ type: { isNull: true } }, [
+        { method: 'andWhere', args: [`type IS NULL`] },
+      ]);
     });
 
     it('should handle isNull: false', () => {
-      testWhereCondition(
-        { type: { isNull: false } },
-        [{ method: 'andWhere', args: [`type IS NOT NULL`] }]
-      );
+      testWhereCondition({ type: { isNull: false } }, [
+        { method: 'andWhere', args: [`type IS NOT NULL`] },
+      ]);
     });
   });
 
   describe('EXISTS operators', () => {
     it('should handle exists: true', () => {
-      testWhereCondition(
-        { metadata: { exists: true } },
-        [{ method: 'andWhere', args: [`metadata IS NOT NULL`] }]
-      );
+      testWhereCondition({ metadata: { exists: true } }, [
+        { method: 'andWhere', args: [`metadata IS NOT NULL`] },
+      ]);
     });
 
     it('should handle exists: false', () => {
-      testWhereCondition(
-        { metadata: { exists: false } },
-        [{ method: 'andWhere', args: [`metadata IS NULL`] }]
-      );
+      testWhereCondition({ metadata: { exists: false } }, [
+        { method: 'andWhere', args: [`metadata IS NULL`] },
+      ]);
     });
   });
 
   describe('Comparison operators', () => {
     it('should handle eq operator', () => {
-      testWhereCondition(
-        { priority: { eq: 5 } },
-        [{ method: 'andWhere', args: [`priority = :param0`, { param0: 5 }] }]
-      );
+      testWhereCondition({ priority: { eq: 5 } }, [
+        { method: 'andWhere', args: [`priority = :param0`, { param0: 5 }] },
+      ]);
     });
 
     it('should handle ne operator', () => {
-      testWhereCondition(
-        { priority: { ne: 5 } },
-        [{ method: 'andWhere', args: [`priority != :param0`, { param0: 5 }] }]
-      );
+      testWhereCondition({ priority: { ne: 5 } }, [
+        { method: 'andWhere', args: [`priority != :param0`, { param0: 5 }] },
+      ]);
     });
 
     it('should handle gt operator', () => {
-      testWhereCondition(
-        { createdAt: { gt: '2023-01-01' } },
-        [{ method: 'andWhere', args: [`createdAt > :param0`, { param0: '2023-01-01' }] }]
-      );
+      testWhereCondition({ createdAt: { gt: '2023-01-01' } }, [
+        {
+          method: 'andWhere',
+          args: [`createdAt > :param0`, { param0: '2023-01-01' }],
+        },
+      ]);
     });
 
     it('should handle gte operator', () => {
-      testWhereCondition(
-        { createdAt: { gte: '2023-01-01' } },
-        [{ method: 'andWhere', args: [`createdAt >= :param0`, { param0: '2023-01-01' }] }]
-      );
+      testWhereCondition({ createdAt: { gte: '2023-01-01' } }, [
+        {
+          method: 'andWhere',
+          args: [`createdAt >= :param0`, { param0: '2023-01-01' }],
+        },
+      ]);
     });
 
     it('should handle lt operator', () => {
-      testWhereCondition(
-        { priority: { lt: 10 } },
-        [{ method: 'andWhere', args: [`priority < :param0`, { param0: 10 }] }]
-      );
+      testWhereCondition({ priority: { lt: 10 } }, [
+        { method: 'andWhere', args: [`priority < :param0`, { param0: 10 }] },
+      ]);
     });
 
     it('should handle lte operator', () => {
-      testWhereCondition(
-        { priority: { lte: 10 } },
-        [{ method: 'andWhere', args: [`priority <= :param0`, { param0: 10 }] }]
-      );
+      testWhereCondition({ priority: { lte: 10 } }, [
+        { method: 'andWhere', args: [`priority <= :param0`, { param0: 10 }] },
+      ]);
     });
 
     it('should handle like operator', () => {
-      testWhereCondition(
-        { name: { like: '%document%' } },
-        [{ method: 'andWhere', args: [`name LIKE :param0`, { param0: '%document%' }] }]
-      );
+      testWhereCondition({ name: { like: '%document%' } }, [
+        {
+          method: 'andWhere',
+          args: [`name LIKE :param0`, { param0: '%document%' }],
+        },
+      ]);
     });
 
     it('should handle ilike operator (Postgres specific)', () => {
-      testWhereCondition(
-        { name: { ilike: '%document%' } },
-        [{ method: 'andWhere', args: [`name ILIKE :param0`, { param0: '%document%' }] }]
-      );
+      testWhereCondition({ name: { ilike: '%document%' } }, [
+        {
+          method: 'andWhere',
+          args: [`name ILIKE :param0`, { param0: '%document%' }],
+        },
+      ]);
     });
 
     it('should handle between operator', () => {
       testWhereCondition(
         { createdAt: { between: ['2023-01-01', '2023-12-31'] } },
-        [{
-          method: 'andWhere',
-          args: [
-            `createdAt BETWEEN :param0 AND :param1`,
-            { param0: '2023-01-01', param1: '2023-12-31' }
-          ]
-        }]
+        [
+          {
+            method: 'andWhere',
+            args: [
+              `createdAt BETWEEN :param0 AND :param1`,
+              { param0: '2023-01-01', param1: '2023-12-31' },
+            ],
+          },
+        ],
       );
     });
   });
 
   describe('Array operators', () => {
     it('should handle in operator', () => {
-      testWhereCondition(
-        { status: { in: ['active', 'pending'] } },
-        [{
+      testWhereCondition({ status: { in: ['active', 'pending'] } }, [
+        {
           method: 'andWhere',
-          args: [`status IN (:...param0)`, { param0: ['active', 'pending'] }]
-        }]
-      );
+          args: [`status IN (:...param0)`, { param0: ['active', 'pending'] }],
+        },
+      ]);
     });
 
     it('should handle notIn operator', () => {
-      testWhereCondition(
-        { status: { notIn: ['deleted', 'archived'] } },
-        [{
+      testWhereCondition({ status: { notIn: ['deleted', 'archived'] } }, [
+        {
           method: 'andWhere',
-          args: [`status NOT IN (:...param0)`, { param0: ['deleted', 'archived'] }]
-        }]
-      );
+          args: [
+            `status NOT IN (:...param0)`,
+            { param0: ['deleted', 'archived'] },
+          ],
+        },
+      ]);
     });
 
     it('should handle any operator (Postgres array contains)', () => {
-      testWhereCondition(
-        { tags: { any: ['important', 'urgent'] } },
-        [{
+      testWhereCondition({ tags: { any: ['important', 'urgent'] } }, [
+        {
           method: 'andWhere',
-          args: [`tags = ANY(:param0)`, { param0: ['important', 'urgent'] }]
-        }]
-      );
+          args: [`tags = ANY(:param0)`, { param0: ['important', 'urgent'] }],
+        },
+      ]);
     });
 
     it('should handle all operator (Postgres array contains all)', () => {
-      testWhereCondition(
-        { requiredTags: { all: ['verified', 'reviewed'] } },
-        [{
+      testWhereCondition({ requiredTags: { all: ['verified', 'reviewed'] } }, [
+        {
           method: 'andWhere',
-          args: [`requiredTags = ALL(:param0)`, { param0: ['verified', 'reviewed'] }]
-        }]
-      );
+          args: [
+            `requiredTags = ALL(:param0)`,
+            { param0: ['verified', 'reviewed'] },
+          ],
+        },
+      ]);
     });
   });
 
   describe('NOT operator', () => {
     it('should handle simple not operator', () => {
-      testWhereCondition(
-        { category: { not: 'category1' } },
-        [{
+      testWhereCondition({ category: { not: 'category1' } }, [
+        {
           method: 'andWhere',
-          args: [`category != :param0`, { param0: 'category1' }]
-        }]
-      );
+          args: [`category != :param0`, { param0: 'category1' }],
+        },
+      ]);
     });
 
     it('should handle complex not operator', () => {
@@ -270,18 +275,18 @@ describe('DocumentService - applyWhereCondition', () => {
           // Verify that inside the brackets, a NOT condition was created
           expect(mockQueryBuilder.where).toHaveBeenCalledWith(
             expect.stringContaining('NOT'),
-            expect.any(Object)
+            expect.any(Object),
           );
         }
         return mockQueryBuilder;
       });
 
       service.applyWhereCondition(mockQueryBuilder, {
-        status: { not: { in: ['deleted', 'archived'] } }
+        status: { not: { in: ['deleted', 'archived'] } },
       });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        expect.any(Brackets)
+        expect.any(Brackets),
       );
     });
   });
@@ -289,11 +294,13 @@ describe('DocumentService - applyWhereCondition', () => {
   describe('RAW SQL operator', () => {
     it('should handle raw SQL statements', () => {
       testWhereCondition(
-        { custom: { raw: "created_at::date = CURRENT_DATE" } },
-        [{
-          method: 'andWhere',
-          args: ["created_at::date = CURRENT_DATE"]
-        }]
+        { custom: { raw: 'created_at::date = CURRENT_DATE' } },
+        [
+          {
+            method: 'andWhere',
+            args: ['created_at::date = CURRENT_DATE'],
+          },
+        ],
       );
     });
   });
@@ -311,14 +318,11 @@ describe('DocumentService - applyWhereCondition', () => {
       });
 
       service.applyWhereCondition(mockQueryBuilder, {
-        and: [
-          { status: 'active' },
-          { priority: { gt: 5 } }
-        ]
+        and: [{ status: 'active' }, { priority: { gt: 5 } }],
       });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        expect.any(Brackets)
+        expect.any(Brackets),
       );
       // We expect two andWhere calls inside the brackets
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledTimes(3); // 1 for brackets, 2 for conditions
@@ -335,14 +339,11 @@ describe('DocumentService - applyWhereCondition', () => {
       });
 
       service.applyWhereCondition(mockQueryBuilder, {
-        or: [
-          { status: 'active' },
-          { status: 'pending' }
-        ]
+        or: [{ status: 'active' }, { status: 'pending' }],
       });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        expect.any(Brackets)
+        expect.any(Brackets),
       );
       // Inside OR brackets, the first is a where and the second is an orWhere
       expect(mockQueryBuilder.where).toHaveBeenCalled();
@@ -364,12 +365,12 @@ describe('DocumentService - applyWhereCondition', () => {
       service.applyWhereCondition(mockQueryBuilder, {
         brackets: {
           status: 'active',
-          priority: { gt: 5 }
-        }
+          priority: { gt: 5 },
+        },
       });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        expect.any(Brackets)
+        expect.any(Brackets),
       );
     });
   });
@@ -405,15 +406,12 @@ describe('DocumentService - applyWhereCondition', () => {
               and: [
                 { priority: { gt: 5 } },
                 {
-                  or: [
-                    { category: 'urgent' },
-                    { assignee: 'admin' }
-                  ]
-                }
-              ]
-            }
-          }
-        ]
+                  or: [{ category: 'urgent' }, { assignee: 'admin' }],
+                },
+              ],
+            },
+          },
+        ],
       });
 
       // We expect multiple bracket operations for this complex query
@@ -423,35 +421,38 @@ describe('DocumentService - applyWhereCondition', () => {
     it('should handle your YAML example correctly', () => {
       // Test the example from the requirement
       const yamlExample = {
-        name: "automator/step/output-schema.document",
+        name: 'automator/step/output-schema.document',
         tags: {
-          in: ["tag1", "tag2"]
+          in: ['tag1', 'tag2'],
         },
         category: {
-          not: "category1"
+          not: 'category1',
         },
         type: {
-          isNull: true
-        }
+          isNull: true,
+        },
       };
 
       const expectedCalls = [
         {
           method: 'andWhere',
-          args: [`name = :param0`, { param0: "automator/step/output-schema.document" }]
+          args: [
+            `name = :param0`,
+            { param0: 'automator/step/output-schema.document' },
+          ],
         },
         {
           method: 'andWhere',
-          args: [`tags IN (:...param1)`, { param1: ["tag1", "tag2"] }]
+          args: [`tags IN (:...param1)`, { param1: ['tag1', 'tag2'] }],
         },
         {
           method: 'andWhere',
-          args: [`category != :param2`, { param2: "category1" }]
+          args: [`category != :param2`, { param2: 'category1' }],
         },
         {
           method: 'andWhere',
-          args: [`type IS NULL`]
-        }
+          args: [`type IS NULL`],
+        },
       ];
 
       testWhereCondition(yamlExample, expectedCalls);
@@ -462,16 +463,15 @@ describe('DocumentService - applyWhereCondition', () => {
     it('should handle contains operator (find documents with all specified labels)', () => {
       const queryLabels = ['important', 'urgent', 'review'];
 
-      testWhereCondition(
-        { labels: { contains: queryLabels } },
-        [{
+      testWhereCondition({ labels: { contains: queryLabels } }, [
+        {
           method: 'andWhere',
           args: [
             `labels @> ARRAY[:...param0]::varchar[]`,
-            { param0: queryLabels }
-          ]
-        }]
-      );
+            { param0: queryLabels },
+          ],
+        },
+      ]);
     });
 
     it('should handle combination of contains with other conditions', () => {
@@ -480,24 +480,21 @@ describe('DocumentService - applyWhereCondition', () => {
       testWhereCondition(
         {
           status: 'active',
-          labels: { contains: queryLabels }
+          labels: { contains: queryLabels },
         },
         [
           {
             method: 'andWhere',
-            args: [
-              `status = :param0`,
-              { param0: 'active' }
-            ]
+            args: [`status = :param0`, { param0: 'active' }],
           },
           {
             method: 'andWhere',
             args: [
               `labels @> ARRAY[:...param1]::varchar[]`,
-              { param1: queryLabels }
-            ]
-          }
-        ]
+              { param1: queryLabels },
+            ],
+          },
+        ],
       );
     });
   });
@@ -506,16 +503,15 @@ describe('DocumentService - applyWhereCondition', () => {
     it('should handle containsAnyOf operator (find documents with any specified label)', () => {
       const queryLabels = ['important', 'urgent', 'review'];
 
-      testWhereCondition(
-        { labels: { containsAnyOf: queryLabels } },
-        [{
+      testWhereCondition({ labels: { containsAnyOf: queryLabels } }, [
+        {
           method: 'andWhere',
           args: [
             `labels && ARRAY[:...param0]::varchar[]`,
-            { param0: queryLabels }
-          ]
-        }]
-      );
+            { param0: queryLabels },
+          ],
+        },
+      ]);
     });
 
     it('should handle combination of containsAnyOf with other conditions', () => {
@@ -524,25 +520,22 @@ describe('DocumentService - applyWhereCondition', () => {
       testWhereCondition(
         {
           status: 'active',
-          labels: { containsAnyOf: queryLabels }
+          labels: { containsAnyOf: queryLabels },
         },
         [
           {
             method: 'andWhere',
-            args: [
-              `status = :param0`,
-              { param0: 'active' }
-            ]
+            args: [`status = :param0`, { param0: 'active' }],
           },
           {
             method: 'andWhere',
             args: [
               `labels && ARRAY[:...param1]::varchar[]`,
-              { param1: queryLabels }
-            ]
-          }
-        ]
+              { param1: queryLabels },
+            ],
+          },
+        ],
       );
     });
   });
-})
+});

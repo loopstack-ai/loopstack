@@ -15,9 +15,7 @@ export const CreateDocumentWithSchema = z.object({
 
 @Injectable()
 export class DocumentHelperService {
-  constructor(
-    private valueParserService: ValueParserService,
-  ) {}
+  constructor(private valueParserService: ValueParserService) {}
 
   prepare(options: z.infer<typeof CreateDocumentWithSchema>, template: any) {
     if (options.create) {
@@ -36,8 +34,14 @@ export class DocumentHelperService {
     );
   }
 
-  prepareAliasVariables(aliasReference: Record<string, any>, dataSource: Record<string, any>): Record<string, any> {
-    return this.valueParserService.prepareAliasVariables(aliasReference, dataSource);
+  prepareAliasVariables(
+    aliasReference: Record<string, any>,
+    dataSource: Record<string, any>,
+  ): Record<string, any> {
+    return this.valueParserService.prepareAliasVariables(
+      aliasReference,
+      dataSource,
+    );
   }
 
   createDocumentWithSchema(
@@ -46,7 +50,10 @@ export class DocumentHelperService {
     context: any,
   ): DocumentType {
     const prototype = this.prepare(options, template);
-    const document = this.valueParserService.evalObjectLeafs(prototype, context);
+    const document = this.valueParserService.evalObjectLeafs(
+      prototype,
+      context,
+    );
     return document as DocumentType;
   }
 }

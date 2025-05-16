@@ -4,14 +4,18 @@ import {
   ContextImportInterface,
   ContextInterface,
   Tool,
-  EvalContextInfo,
+  WorkflowRunContext,
   ToolInterface,
   ToolResult,
 } from '@loopstack/shared';
 import { z } from 'zod';
-import { FunctionCallService } from '../../common';
+import { ExpressionEvaluatorService } from '../../common';
 import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
-import { DocumentService, WhereCondition, WorkflowService } from '../../persistence';
+import {
+  DocumentService,
+  WhereCondition,
+  WorkflowService,
+} from '../../persistence';
 
 const LoadDocumentArgsSchema = z.object({
   where: WhereCondition,
@@ -37,12 +41,13 @@ export type LoadDocumentArgsInterface = z.infer<typeof LoadDocumentArgsSchema>;
 @Tool()
 export class LoadDocumentService implements ToolInterface {
   private readonly logger = new Logger(LoadDocumentService.name);
-  schema = LoadDocumentArgsSchema;
+  configSchema = LoadDocumentArgsSchema;
+  schema = LoadDocumentArgsSchema; //todo remove the expressions
 
   constructor(
     private documentService: DocumentService,
     private workflowService: WorkflowService,
-    private functionCallService: FunctionCallService,
+    private functionCallService: ExpressionEvaluatorService,
   ) {}
 
   /**
@@ -51,7 +56,7 @@ export class LoadDocumentService implements ToolInterface {
   applyFilters(props: z.infer<typeof this.schema>, items: DocumentEntity[]) {
     if (props.filter) {
       return items.filter((item) =>
-        this.functionCallService.runEval(props.filter!, { item }),
+        this.functionCallService.evaluate(props.filter!, { item }),
       );
     }
 
@@ -66,11 +71,11 @@ export class LoadDocumentService implements ToolInterface {
     props: z.infer<typeof this.schema>,
     entities: DocumentEntity[],
   ) {
-    const defaultMapFunction = '{ entity.content }';
+    const defaultMapFunction = '${{ entity.content }}';
     const mapFunc = props.map ?? defaultMapFunction;
 
     let documents = entities.map((entity) =>
-      this.functionCallService.runEval(mapFunc, { entity }),
+      this.functionCallService.evaluate(mapFunc, { entity }),
     );
 
     if (props.flat) {
@@ -168,12 +173,12 @@ export class LoadDocumentService implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: EvalContextInfo,
+    workflowContext: WorkflowRunContext,
   ): Promise<ToolResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }
-    this.logger.debug(`Load document ${info.transition}`);
+    this.logger.debug(`Load document ${workflowContext.transition}`);
 
     const validProps = this.schema.parse(props);
 
@@ -186,7 +191,7 @@ export class LoadDocumentService implements ToolInterface {
     );
 
     const prevImport: ContextImportInterface | undefined =
-      workflow.prevData?.imports?.[info.transition!];
+      workflow.prevData?.imports?.[workflowContext.transition!];
 
     // update workflow dependencies, if applicable
     if (!validProps.ignoreChanges) {
@@ -200,16 +205,22 @@ export class LoadDocumentService implements ToolInterface {
         );
       }
 
-      const existingDependencyIds = workflow.dependencies.map(dep => dep.id);
-      const newDependencies = currentEntities.filter(entity =>
-        !existingDependencyIds.includes(entity.id)
+      const existingDependencyIds = workflow.dependencies.map((dep) => dep.id);
+      const newDependencies = currentEntities.filter(
+        (entity) => !existingDependencyIds.includes(entity.id),
       );
       workflow.dependencies.push(...newDependencies);
 
       this.updateWorkflowDependenciesHash(workflow);
     }
 
-    const importItem = this.createImportItem(props, currentEntities, prevImport);
+    const importItem = this.createImportItem(
+      props,
+      currentEntities,
+      prevImport,
+    );
+
+    console.log(importItem)
 
     return {
       workflow,

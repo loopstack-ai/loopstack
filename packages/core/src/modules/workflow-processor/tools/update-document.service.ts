@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  DocumentConfigSchema,
+  NonExpressionString,
   PartialDocumentSchema,
   Tool,
   ToolInterface,
@@ -9,27 +11,31 @@ import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
 import { DocumentService } from '../../persistence';
 import { merge } from 'lodash';
+import { StringExpression } from '@loopstack/shared/dist/schemas/expression-type.schema';
 
 @Injectable()
 @Tool()
 export class UpdateDocumentService implements ToolInterface {
   private readonly logger = new Logger(UpdateDocumentService.name);
 
+  configSchema = z.object({
+    id: StringExpression,
+    update: DocumentConfigSchema.partial().optional(),
+  });
+
   schema = z.object({
-    id: z.string(),
+    id: NonExpressionString,
     update: PartialDocumentSchema.optional(),
   });
 
-  constructor(
-    private documentService: DocumentService,
-  ) {}
+  constructor(private documentService: DocumentService) {}
 
   async apply(
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
   ): Promise<ToolResult> {
     if (!workflow) {
-      return {}
+      return {};
     }
 
     const validData = this.schema.parse(props);
@@ -41,12 +47,15 @@ export class UpdateDocumentService implements ToolInterface {
 
     this.logger.debug(`Update document "${document.name}".`);
 
-    document = this.documentService.update(workflow, merge(document, validData.update));
+    document = this.documentService.update(
+      workflow,
+      merge(document, validData.update),
+    );
 
     return {
       workflow,
       commitDirect: true,
-      data: document
-    }
+      data: document,
+    };
   }
 }

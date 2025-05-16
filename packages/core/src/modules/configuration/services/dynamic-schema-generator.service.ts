@@ -20,7 +20,7 @@ export class DynamicSchemaGeneratorService {
     const configSchemas = entries.map(([name, service]) =>
       ServiceConfigSchema.extend({
         service: z.literal(name),
-        props: service.schema,
+        props: service.configSchema,
       }),
     );
 

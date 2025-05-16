@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { z } from 'zod';
+import { boolean, z } from 'zod';
 import {
+  NonExpressionString,
+  ObjectExpression,
   Tool,
   ToolInterface,
   ToolResult,
@@ -10,11 +12,21 @@ import {
 @Tool()
 export class TransitionSelectorService implements ToolInterface {
   private readonly logger = new Logger(TransitionSelectorService.name);
+
+  configSchema = z.object({
+    transitions: z.array(
+      z.object({
+        place: NonExpressionString,
+        condition: ObjectExpression.optional(),
+      }),
+    ),
+  });
+
   schema = z.object({
     transitions: z.array(
       z.object({
-        place: z.string(),
-        condition: z.any().optional(),
+        place: NonExpressionString,
+        condition: z.union([z.boolean(), z.undefined()]),
       }),
     ),
   });

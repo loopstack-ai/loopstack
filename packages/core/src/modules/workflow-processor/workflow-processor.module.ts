@@ -3,8 +3,6 @@ import { ConfigurationModule } from '../configuration';
 import { PersistenceModule } from '../persistence';
 import { DiscoveryModule } from '@nestjs/core';
 import { CommonModule } from '../common';
-import { NamespaceProcessorService, ProjectProcessorService } from './services';
-
 import {
   InitialRunValidator,
   WorkflowDependenciesValidator,
@@ -15,16 +13,21 @@ import {
   StateMachineProcessorService,
   StateMachineValidatorRegistry,
   ToolExecutionService,
+  NamespaceProcessorService,
+  ProjectProcessorService,
   WorkflowProcessorService,
+  ToolSchemaValidatorService,
 } from './services';
 import {
   AddNamespaceService,
   CreateDocumentService,
-  DebugImportsService, DebugService,
+  DebugImportsService,
+  DebugService,
   LoadDocumentService,
   SetContextService,
   ToolCallService,
-  TransitionSelectorService, UpdateDocumentService,
+  TransitionSelectorService,
+  UpdateDocumentService,
 } from './tools';
 
 @Module({
@@ -37,6 +40,7 @@ import {
   providers: [
     WorkflowProcessorService,
     ToolExecutionService,
+    ToolSchemaValidatorService,
     ToolCallService,
     CreateDocumentService,
     DebugImportsService,
@@ -57,9 +61,6 @@ import {
     StateMachineProcessorService,
     StateMachineConfigService,
   ],
-  exports: [
-    ProjectProcessorService,
-    WorkflowProcessorService,
-  ],
+  exports: [ProjectProcessorService, WorkflowProcessorService],
 })
 export class WorkflowProcessorModule {}

@@ -3,7 +3,7 @@ import { StateMachineConfigService } from './state-machine-config.service';
 import {
   ContextInterface,
   HistoryTransition,
-  EvalContextInfo,
+  WorkflowRunContext,
   TransitionInfoInterface,
   TransitionPayloadInterface,
   WorkflowEntity,
@@ -11,7 +11,8 @@ import {
   WorkflowStateHistoryDto,
   WorkflowStateMachineType,
   WorkflowStatePlaceInfoDto,
-  WorkflowTransitionType, ToolResult,
+  WorkflowTransitionType,
+  ToolResult,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
@@ -38,9 +39,7 @@ export class StateMachineProcessorService {
   ): StateMachineValidatorResultInterface {
     const validationResults = this.stateMachineValidatorRegistry
       .getValidators()
-      .map((validator) =>
-        validator.validate(workflow, options),
-      );
+      .map((validator) => validator.validate(workflow, options));
 
     return {
       valid: validationResults.every((item) => item.valid),
@@ -69,13 +68,10 @@ export class StateMachineProcessorService {
     if (!workflow) {
       throw new Error(`No workflow entry.`);
     }
-    const validatorResult = this.canSkipRun(
-      workflow,
-      options,
-    );
+    const validatorResult = this.canSkipRun(workflow, options);
 
     const pendingTransition =
-      (validatorResult.valid && context.transition?.workflowId === workflow.id)
+      validatorResult.valid && context.transition?.workflowId === workflow.id
         ? context.transition
         : undefined;
 
@@ -197,7 +193,13 @@ export class StateMachineProcessorService {
     };
   }
 
-  addTransitionData(workflow: WorkflowEntity, transition: string, tool: string, alias: string | undefined, result: ToolResult | undefined) {
+  addTransitionData(
+    workflow: WorkflowEntity,
+    transition: string,
+    tool: string,
+    alias: string | undefined,
+    result: ToolResult | undefined,
+  ) {
     if (result?.workflow) {
       workflow = result?.workflow;
     }
@@ -253,21 +255,20 @@ export class StateMachineProcessorService {
     config: WorkflowStateMachineType,
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
-
     let context = beforeContext;
 
     const flatConfig =
       this.workflowConfigService.getStateMachineFlatConfig(config);
 
-    const info = {
+    const workflowContext = {
       options: stateMachineInfo.options,
-    } as EvalContextInfo;
+    } as WorkflowRunContext;
 
     const { transitions, observers } =
       this.configValueParserService.evalWithContextAndInfo<{
         transitions: WorkflowTransitionType[];
         observers: WorkflowObserverType[];
-      }>(flatConfig, { context, info });
+      }>(flatConfig, { context, workflow: workflowContext });
 
     workflow = await this.initStateMachine(
       workflow,
@@ -290,9 +291,8 @@ export class StateMachineProcessorService {
         this.logger.debug(
           `Applying next transition: ${nextTransition.transition}`,
         );
-        info.transition = nextTransition.transition;
-        info.payload = nextTransition.payload;
-
+        workflowContext.transition = nextTransition.transition;
+        workflowContext.payload = nextTransition.payload;
 
         const matchedObservers = observers.filter(
           (item) => item.transition === nextTransition.transition,
@@ -311,7 +311,7 @@ export class StateMachineProcessorService {
             observer,
             workflow,
             context,
-            info,
+            workflowContext,
           );
 
           // add the response data to workflow

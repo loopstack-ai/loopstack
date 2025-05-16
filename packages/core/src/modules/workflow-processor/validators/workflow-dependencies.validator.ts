@@ -15,13 +15,16 @@ export class WorkflowDependenciesValidator
 
   constructor(private workflowService: WorkflowService) {}
 
-  validate(
-    workflow: WorkflowEntity,
-  ): { valid: boolean; target?: string; hash?: string } {
+  validate(workflow: WorkflowEntity): {
+    valid: boolean;
+    target?: string;
+    hash?: string;
+  } {
     const hash = workflow.hashRecord?.['dependencies'];
 
     if (hash) {
-      const dependenciesHash = this.workflowService.createDependenciesHash(workflow);
+      const dependenciesHash =
+        this.workflowService.createDependenciesHash(workflow);
 
       this.logger.debug(
         `Check valid: ${(hash === dependenciesHash).toString()}`,

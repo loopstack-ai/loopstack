@@ -3,7 +3,7 @@ import { z } from 'zod';
 import {
   ContextInterface,
   Tool,
-  EvalContextInfo,
+  WorkflowRunContext,
   ToolInterface,
   ToolResult,
   WorkflowEntity,
@@ -14,6 +14,11 @@ import { ToolExecutionService } from '../index';
 @Tool()
 export class ToolCallService implements ToolInterface {
   private readonly logger = new Logger(ToolCallService.name);
+  configSchema = z.object({
+    tool: z.string(),
+    options: z.any().optional(),
+  });
+
   schema = z.object({
     tool: z.string(),
     options: z.any().optional(),
@@ -25,7 +30,7 @@ export class ToolCallService implements ToolInterface {
     props: z.infer<typeof this.schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: EvalContextInfo,
+    workflowContext: WorkflowRunContext,
   ): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);
 
@@ -36,9 +41,9 @@ export class ToolCallService implements ToolInterface {
       workflow,
       context,
       {
-        ...info,
+        ...workflowContext,
         options: {
-          ...info.options,
+          ...workflowContext.options,
           ...validOptions.options,
         },
       },

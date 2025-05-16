@@ -1,29 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FunctionCallService } from '../function-call.service';
+import { ExpressionEvaluatorService } from '../expression-evaluator.service';
 
 describe('FunctionCallService', () => {
-  let service: FunctionCallService;
+  let service: ExpressionEvaluatorService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [FunctionCallService],
+      providers: [ExpressionEvaluatorService],
     }).compile();
 
-    service = module.get<FunctionCallService>(FunctionCallService);
+    service = module.get<ExpressionEvaluatorService>(
+      ExpressionEvaluatorService,
+    );
   });
 
   describe('isFunction', () => {
     it('should return true for a valid function string', () => {
-      expect(service.isFunction('{ return value }')).toBe(true);
-      expect(service.isFunction('{return value}')).toBe(true);
-      expect(service.isFunction('  { return value }  ')).toBe(true);
+      expect(service.isExpression('{ return value }')).toBe(true);
+      expect(service.isExpression('{return value}')).toBe(true);
+      expect(service.isExpression('  { return value }  ')).toBe(true);
     });
 
     it('should return false for non-function strings', () => {
-      expect(service.isFunction('return value')).toBe(false);
-      expect(service.isFunction('{ return value')).toBe(false);
-      expect(service.isFunction('return value }')).toBe(false);
-      expect(service.isFunction('')).toBe(false);
+      expect(service.isExpression('return value')).toBe(false);
+      expect(service.isExpression('{ return value')).toBe(false);
+      expect(service.isExpression('return value }')).toBe(false);
+      expect(service.isExpression('')).toBe(false);
     });
   });
 
@@ -55,13 +57,13 @@ describe('FunctionCallService', () => {
 
   describe('runEval', () => {
     it('should return the input string if it is not a function', () => {
-      const result = service.runEval('simple string', {});
+      const result = service.evaluate('simple string', {});
       expect(result).toBe('simple string');
     });
 
     it('should evaluate a simple function with context variables', () => {
       const variables = { value: 5 };
-      const result = service.runEval('{ value + 10 }', variables);
+      const result = service.evaluate('{ value + 10 }', variables);
       expect(result).toBe(15);
     });
 
@@ -70,7 +72,7 @@ describe('FunctionCallService', () => {
         context: { value: 5 },
         args: { a: 10, b: 20 },
       };
-      const result = service.runEval(
+      const result = service.evaluate(
         '{ context.value + args.a + args.b }',
         variables,
       );
@@ -82,7 +84,7 @@ describe('FunctionCallService', () => {
         data: { user: { profile: { name: 'John' } } },
       };
 
-      const result = service.runEval(
+      const result = service.evaluate(
         '{ _.get(data, "user.profile.name", "") }',
         variables,
       );
@@ -91,7 +93,7 @@ describe('FunctionCallService', () => {
 
     it('should handle conditional logic in functions', () => {
       const variables = { a: 5, b: 10 };
-      const result = service.runEval(
+      const result = service.evaluate(
         '{ a > b ? "a is greater" : "b is greater" }',
         variables,
       );
@@ -103,7 +105,7 @@ describe('FunctionCallService', () => {
         items: [1, 2, 3, 4, 5],
       };
 
-      const result = service.runEval('{ _.sum(items) }', variables);
+      const result = service.evaluate('{ _.sum(items) }', variables);
       expect(result).toBe(15);
     });
 
@@ -115,7 +117,7 @@ describe('FunctionCallService', () => {
                 : "b is greater" 
             }`;
 
-      const result = service.runEval(functionBody, variables);
+      const result = service.evaluate(functionBody, variables);
       expect(result).toBe('b is greater');
     });
 
@@ -133,7 +135,7 @@ describe('FunctionCallService', () => {
         },
       };
 
-      const result = service.runEval(
+      const result = service.evaluate(
         '{ _.get(config, "features.advanced.options.timeout") }',
         variables,
       );
@@ -142,7 +144,7 @@ describe('FunctionCallService', () => {
 
     it('should throw an error for invalid JavaScript in the function body', () => {
       expect(() => {
-        service.runEval('{ invalid javascript code }', {});
+        service.evaluate('{ invalid javascript code }', {});
       }).toThrow();
     });
 
@@ -150,7 +152,7 @@ describe('FunctionCallService', () => {
       // This test verifies that the safeEval is actually "safe"
       // and doesn't allow access to sensitive globals
       expect(() => {
-        service.runEval('{ process }', {});
+        service.evaluate('{ process }', {});
       }).toThrow();
     });
   });

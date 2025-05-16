@@ -36,7 +36,7 @@ export class WorkflowProcessorService {
   createIndex(ltreeIndex: string, increment: number = 1): string {
     const parts = ltreeIndex.split('.').map(Number);
     parts[parts.length - 1] += increment;
-    return parts.map(part => part.toString().padStart(4, '0')).join('.');
+    return parts.map((part) => part.toString().padStart(4, '0')).join('.');
   }
 
   async runSequenceType(
@@ -62,7 +62,11 @@ export class WorkflowProcessorService {
     return lastContext;
   }
 
-  async prepareAllContexts(context: ContextInterface, factory: WorkflowFactoryType, items: string[]): Promise<ContextInterface[]> {
+  async prepareAllContexts(
+    context: ContextInterface,
+    factory: WorkflowFactoryType,
+    items: string[],
+  ): Promise<ContextInterface[]> {
     //create a new index level
     const index = `${context.index}.0`;
 
@@ -72,31 +76,34 @@ export class WorkflowProcessorService {
 
       const label = factory.iterator.label
         ? this.valueParserService.evalWithContextAndItem<string>(
-          factory.iterator.label,
-          {
-            context,
-            item,
-            index: i + 1,
-          },
-        )
+            factory.iterator.label,
+            {
+              context,
+              item,
+              index: i + 1,
+            },
+          )
         : item.toString();
 
       const metadata = factory.iterator.meta
         ? this.valueParserService.evalWithContextAndItem<Record<string, any>>(
-          factory.iterator.meta,
-          {
-            context,
-            item,
-            index: i + 1,
-          },
-        )
+            factory.iterator.meta,
+            {
+              context,
+              item,
+              index: i + 1,
+            },
+          )
         : undefined;
 
       // create a new namespace for each child
-      const localContext = await this.namespaceProcessorService.createNamespace(context, {
-        label,
-        meta: metadata,
-      });
+      const localContext = await this.namespaceProcessorService.createNamespace(
+        context,
+        {
+          label,
+          meta: metadata,
+        },
+      );
 
       // set the new index
       localContext.index = this.createIndex(index, i + 1);
@@ -127,10 +134,17 @@ export class WorkflowProcessorService {
     }
 
     // create or load all context / namespaces
-    const preparedChildContexts = await this.prepareAllContexts(context, factory, items);
+    const preparedChildContexts = await this.prepareAllContexts(
+      context,
+      factory,
+      items,
+    );
 
     // cleanup old namespaces
-    await this.namespaceProcessorService.cleanupNamespace(context, preparedChildContexts);
+    await this.namespaceProcessorService.cleanupNamespace(
+      context,
+      preparedChildContexts,
+    );
 
     // process the child elements sequential
     for (const childContext of preparedChildContexts) {
@@ -151,11 +165,12 @@ export class WorkflowProcessorService {
     // create or load state if needed
     const currentWorkflow = await this.getWorkflow(config, context);
 
-    const workflow = await this.stateMachineProcessorService.processStateMachine(
-      context,
-      currentWorkflow,
-      config,
-    );
+    const workflow =
+      await this.stateMachineProcessorService.processStateMachine(
+        context,
+        currentWorkflow,
+        config,
+      );
 
     if (workflow.place !== 'finished') {
       this.stop = true;
@@ -165,7 +180,7 @@ export class WorkflowProcessorService {
         context.custom = {
           ...context.custom,
           ...workflow.contextUpdate,
-        }
+        };
       }
     }
 
@@ -177,7 +192,10 @@ export class WorkflowProcessorService {
     context: ContextInterface,
   ): Promise<ContextInterface | undefined> {
     if (workflowConfig.namespace) {
-      context = await this.namespaceProcessorService.createNamespace(context, workflowConfig.namespace);
+      context = await this.namespaceProcessorService.createNamespace(
+        context,
+        workflowConfig.namespace,
+      );
     }
 
     switch (workflowConfig.type) {

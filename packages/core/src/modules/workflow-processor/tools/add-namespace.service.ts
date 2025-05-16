@@ -7,6 +7,7 @@ import {
   ToolResult,
   WorkflowEntity,
   NamespacePropsSchema,
+  StringExpression,
 } from '@loopstack/shared';
 import { NamespacesService } from '../../persistence';
 
@@ -14,6 +15,12 @@ import { NamespacesService } from '../../persistence';
 @Tool()
 export class AddNamespaceService implements ToolInterface {
   private readonly logger = new Logger(AddNamespaceService.name);
+
+  configSchema = z.object({
+    label: z.union([z.string(), StringExpression]),
+    meta: z.any().optional(),
+  });
+
   schema = NamespacePropsSchema;
 
   constructor(private namespacesService: NamespacesService) {}
@@ -24,7 +31,7 @@ export class AddNamespaceService implements ToolInterface {
     context: ContextInterface,
   ): Promise<ToolResult> {
     if (!workflow) {
-      return {}
+      return {};
     }
 
     const validOptions = this.schema.parse(props);
@@ -42,7 +49,7 @@ export class AddNamespaceService implements ToolInterface {
       workflow.contextUpdate = {};
     }
 
-    const contextLabels = context.labels
+    const contextLabels = context.labels;
     const workflowLabels = workflow.contextUpdate.labels ?? [];
 
     workflow.contextUpdate.labels = [
@@ -55,6 +62,6 @@ export class AddNamespaceService implements ToolInterface {
 
     return {
       workflow,
-    }
+    };
   }
 }

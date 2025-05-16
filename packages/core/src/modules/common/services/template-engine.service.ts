@@ -11,7 +11,7 @@ export class TemplateEngineService {
     return ejs.render(template, variables);
   }
 
-  parseValue(value: any, variables: Record<string, any>) {
+  evaluate(value: any, variables: Record<string, any>) {
     return this.isTemplate(value) ? this.render(value, variables) : value;
   }
 }

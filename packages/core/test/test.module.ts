@@ -5,14 +5,13 @@ import { LoopCoreModule } from '../src';
 
 @Module({})
 export class TestModule {
-  static forRoot(options: {
-    configs?: any;
-    mockServices?: any[];
-  } = {}): DynamicModule {
-    const {
-      configs = {},
-      mockServices = [],
-    } = options;
+  static forRoot(
+    options: {
+      configs?: any;
+      mockServices?: any[];
+    } = {},
+  ): DynamicModule {
+    const { configs = {}, mockServices = [] } = options;
 
     const providers = [...mockServices];
 

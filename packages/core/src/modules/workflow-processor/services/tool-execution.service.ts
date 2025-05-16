@@ -1,21 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigurationService, ToolRegistry } from '../../configuration';
 import {
   ContextInterface,
   ServiceConfigType,
-  EvalContextInfo,
+  WorkflowRunContext,
   ToolCallType,
   ToolResult,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { ValueParserService } from '../../index';
+import { ToolSchemaValidatorService } from './tool-schema-validator.service';
 
 @Injectable()
 export class ToolExecutionService {
+  private logger = new Logger(ToolExecutionService.name);
+
   constructor(
     private loopConfigService: ConfigurationService,
     private valueParserService: ValueParserService,
     private toolRegistry: ToolRegistry,
+    private toolSchemaValidatorService: ToolSchemaValidatorService,
   ) {}
 
   getToolConfig(toolName: string) {
@@ -34,12 +38,18 @@ export class ToolExecutionService {
     toolCall: ToolCallType,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    info: EvalContextInfo,
+    workflowContext: WorkflowRunContext,
   ): Promise<ToolResult> {
     const toolConfig = this.getToolConfig(toolCall.tool);
 
     // replace the alias values with actual data
-    const aliasDataObject = (workflow?.aliasData && workflow.currData) ? this.valueParserService.prepareAliasVariables(workflow.aliasData, workflow.currData) : {};
+    const aliasDataObject =
+      workflow?.aliasData && workflow.currData
+        ? this.valueParserService.prepareAliasVariables(
+            workflow.aliasData,
+            workflow.currData,
+          )
+        : {};
 
     const props = this.valueParserService.evalWithContextAndDataAndInfo(
       toolConfig.props,
@@ -47,7 +57,7 @@ export class ToolExecutionService {
         context,
         data: workflow?.currData,
         tool: aliasDataObject,
-        info,
+        workflow: workflowContext,
       },
     );
 
@@ -56,6 +66,10 @@ export class ToolExecutionService {
       throw new Error(`Tool service ${toolConfig.service} not found.`);
     }
 
-    return instance.apply(props, workflow, context, info);
+    const validProps = this.toolSchemaValidatorService.validateProps(
+      instance,
+      props,
+    );
+    return instance.apply(validProps, workflow, context, workflowContext);
   }
 }

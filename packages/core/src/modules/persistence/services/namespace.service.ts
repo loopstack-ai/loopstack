@@ -132,5 +132,4 @@ export class NamespacesService {
   async delete(entities: NamespaceEntity[]) {
     await this.namespaceRepository.remove(entities);
   }
-
 }

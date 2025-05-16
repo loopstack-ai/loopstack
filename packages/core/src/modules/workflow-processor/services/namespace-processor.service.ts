@@ -15,8 +15,11 @@ export class NamespaceProcessorService {
     private namespacesService: NamespacesService,
   ) {}
 
-  async createNamespace(context: ContextInterface, props: NamespacePropsType): Promise<ContextInterface> {
-    let clone =  this.contextService.create(context);
+  async createNamespace(
+    context: ContextInterface,
+    props: NamespacePropsType,
+  ): Promise<ContextInterface> {
+    let clone = this.contextService.create(context);
     clone.namespace = await this.namespacesService.create({
       name: props.label ?? 'Group',
       model: context.model,
@@ -31,13 +34,23 @@ export class NamespaceProcessorService {
     return clone;
   }
 
-  async cleanupNamespace(parentContext: ContextInterface, validContexts: ContextInterface[]) {
+  async cleanupNamespace(
+    parentContext: ContextInterface,
+    validContexts: ContextInterface[],
+  ) {
     const newChildNamespaceIds = validContexts.map((item) => item.namespace.id);
-    const originalChildNamespaces = await this.namespacesService.getChildNamespaces(parentContext.namespace.id);
-    const danglingNamespaces = originalChildNamespaces.filter((item) => !newChildNamespaceIds.includes(item.id));
+    const originalChildNamespaces =
+      await this.namespacesService.getChildNamespaces(
+        parentContext.namespace.id,
+      );
+    const danglingNamespaces = originalChildNamespaces.filter(
+      (item) => !newChildNamespaceIds.includes(item.id),
+    );
     if (danglingNamespaces.length) {
       await this.namespacesService.delete(danglingNamespaces);
-      this.logger.debug(`Removed ${danglingNamespaces.length} dangling namespaces.`);
+      this.logger.debug(
+        `Removed ${danglingNamespaces.length} dangling namespaces.`,
+      );
     }
   }
 }
