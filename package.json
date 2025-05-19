@@ -11,6 +11,12 @@
   },
   "license": "MIT",
   "scripts": {
-    "watch:all": "pnpm --parallel -r run watch"
+    "setup": "git submodule update --init --recursive && pnpm install",
+    "watch:all": "pnpm --parallel -r run watch",
+    "start:dev": "pnpm --parallel -r run start:dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "infra:up": "docker compose up --build",
+    "infra:down": "docker compose down"
   }
 }
