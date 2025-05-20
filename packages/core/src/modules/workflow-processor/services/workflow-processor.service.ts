@@ -43,16 +43,26 @@ export class WorkflowProcessorService {
     sequenceConfig: WorkflowPipelineType,
     context: ContextInterface,
   ): Promise<ContextInterface | undefined> {
-    const sequence = _.map(sequenceConfig.items, 'name');
+    const sequence = sequenceConfig.items;
 
     // create a new index level
     const index = `${context.index}.0`;
 
     let lastContext = this.contextService.create(context);
     for (let i = 0; i < sequence.length; i++) {
-      const itemName = sequence[i];
+      const item = sequence[i];
+
+      const evaluatedItem = this.valueParserService.evalWithContext<{ name: string, condition?: boolean }>(
+        item,
+        { context: lastContext },
+      );
+
+      if (evaluatedItem.condition === false) {
+        continue;
+      }
+
       lastContext.index = this.createIndex(index, i + 1);
-      lastContext = await this.processChild(itemName, lastContext);
+      lastContext = await this.processChild(item.name, lastContext);
 
       if (this.stop) {
         break;

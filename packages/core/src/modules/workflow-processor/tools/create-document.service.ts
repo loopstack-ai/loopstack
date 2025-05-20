@@ -84,7 +84,7 @@ export class CreateDocumentService implements ToolInterface {
     const documentData = merge(
       {},
       template,
-      validProps?.create ?? validProps?.update,
+      validProps?.create ?? validProps?.update ?? {},
     );
 
     if (!documentData) {
