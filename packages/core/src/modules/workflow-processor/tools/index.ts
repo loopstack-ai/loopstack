@@ -7,3 +7,4 @@ export * from './load-document.service';
 export * from './set-context.service';
 export * from './transition-selector.service';
 export * from './update-document.service';
+export * from './batch-create-documents.service';

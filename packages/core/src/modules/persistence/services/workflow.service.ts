@@ -92,7 +92,7 @@ export class WorkflowService {
       }
     }
 
-    this.updateDocumentReference(workflow, document);
+    workflow.documents.push(document);
   }
 
   createDependenciesHash(workflow: WorkflowEntity) {

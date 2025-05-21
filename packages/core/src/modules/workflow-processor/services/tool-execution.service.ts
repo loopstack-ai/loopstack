@@ -5,7 +5,7 @@ import {
   ServiceConfigType,
   WorkflowRunContext,
   ToolCallType,
-  ToolResult,
+  ToolResult, SnippetConfigType,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { ValueParserService } from '../../index';
@@ -51,9 +51,15 @@ export class ToolExecutionService {
           )
         : {};
 
+    const snippets: Record<string, string> = this.loopConfigService.getAll<SnippetConfigType>('snippets').reduce((obj, snippet) => {
+      obj[snippet.name] = snippet.value;
+      return obj;
+    }, {});
+
     const props = this.valueParserService.evalWithContextAndDataAndInfo(
       toolConfig.props,
       {
+        snippets,
         context,
         data: workflow?.currData,
         tool: aliasDataObject,

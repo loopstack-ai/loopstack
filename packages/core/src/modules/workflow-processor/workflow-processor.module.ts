@@ -20,6 +20,7 @@ import {
 } from './services';
 import {
   AddNamespaceService,
+  BatchCreateDocumentsService,
   CreateDocumentService,
   DebugImportsService,
   DebugService,
@@ -43,6 +44,7 @@ import {
     ToolSchemaValidatorService,
     ToolCallService,
     CreateDocumentService,
+    BatchCreateDocumentsService,
     DebugImportsService,
     DebugService,
     SetContextService,
