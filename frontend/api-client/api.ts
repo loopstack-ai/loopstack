@@ -1176,6 +1176,7 @@ export const WorkflowSortByDtoFieldEnum = {
     Place: 'place',
     PrevData: 'prevData',
     CurrData: 'currData',
+    AliasData: 'aliasData',
     ContextUpdate: 'contextUpdate',
     PlaceInfo: 'placeInfo',
     History: 'history',
@@ -2549,15 +2550,17 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
         },
         /**
          * 
-         * @summary Retrieve projects with filters, sorting, and pagination
+         * @summary Retrieve projects with filters, sorting, pagination, and search
          * @param {number} [page] Page number for pagination (starts at 1)
          * @param {number} [limit] Number of items per page
          * @param {string} [filter] JSON string of ProjectFilterDto object
          * @param {string} [sortBy] JSON string array of ProjectSortByDto objects
+         * @param {string} [search] Search term to filter workspaces by title or other searchable fields
+         * @param {string} [searchColumns] JSON string array of columns to search in (defaults to title and type if not specified)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerGetProjects: async (page?: number, limit?: number, filter?: string, sortBy?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        projectControllerGetProjects: async (page?: number, limit?: number, filter?: string, sortBy?: string, search?: string, searchColumns?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/projects`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2584,6 +2587,14 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
 
             if (sortBy !== undefined) {
                 localVarQueryParameter['sortBy'] = sortBy;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (searchColumns !== undefined) {
+                localVarQueryParameter['searchColumns'] = searchColumns;
             }
 
 
@@ -2688,16 +2699,18 @@ export const ApiV1ProjectsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary Retrieve projects with filters, sorting, and pagination
+         * @summary Retrieve projects with filters, sorting, pagination, and search
          * @param {number} [page] Page number for pagination (starts at 1)
          * @param {number} [limit] Number of items per page
          * @param {string} [filter] JSON string of ProjectFilterDto object
          * @param {string} [sortBy] JSON string array of ProjectSortByDto objects
+         * @param {string} [search] Search term to filter workspaces by title or other searchable fields
+         * @param {string} [searchColumns] JSON string array of columns to search in (defaults to title and type if not specified)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectControllerGetProjects(page?: number, limit?: number, filter?: string, sortBy?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectControllerGetProjects200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerGetProjects(page, limit, filter, sortBy, options);
+        async projectControllerGetProjects(page?: number, limit?: number, filter?: string, sortBy?: string, search?: string, searchColumns?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectControllerGetProjects200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerGetProjects(page, limit, filter, sortBy, search, searchColumns, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerGetProjects']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -2758,13 +2771,13 @@ export const ApiV1ProjectsApiFactory = function (configuration?: Configuration, 
         },
         /**
          * 
-         * @summary Retrieve projects with filters, sorting, and pagination
+         * @summary Retrieve projects with filters, sorting, pagination, and search
          * @param {ApiV1ProjectsApiProjectControllerGetProjectsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         projectControllerGetProjects(requestParameters: ApiV1ProjectsApiProjectControllerGetProjectsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerGetProjects200Response> {
-            return localVarFp.projectControllerGetProjects(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(axios, basePath));
+            return localVarFp.projectControllerGetProjects(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, requestParameters.search, requestParameters.searchColumns, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2817,7 +2830,7 @@ export interface ApiV1ProjectsApiInterface {
 
     /**
      * 
-     * @summary Retrieve projects with filters, sorting, and pagination
+     * @summary Retrieve projects with filters, sorting, pagination, and search
      * @param {ApiV1ProjectsApiProjectControllerGetProjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2912,6 +2925,20 @@ export interface ApiV1ProjectsApiProjectControllerGetProjectsRequest {
      * @memberof ApiV1ProjectsApiProjectControllerGetProjects
      */
     readonly sortBy?: string
+
+    /**
+     * Search term to filter workspaces by title or other searchable fields
+     * @type {string}
+     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     */
+    readonly search?: string
+
+    /**
+     * JSON string array of columns to search in (defaults to title and type if not specified)
+     * @type {string}
+     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     */
+    readonly searchColumns?: string
 }
 
 /**
@@ -2980,14 +3007,14 @@ export class ApiV1ProjectsApi extends BaseAPI implements ApiV1ProjectsApiInterfa
 
     /**
      * 
-     * @summary Retrieve projects with filters, sorting, and pagination
+     * @summary Retrieve projects with filters, sorting, pagination, and search
      * @param {ApiV1ProjectsApiProjectControllerGetProjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1ProjectsApi
      */
     public projectControllerGetProjects(requestParameters: ApiV1ProjectsApiProjectControllerGetProjectsRequest = {}, options?: RawAxiosRequestConfig) {
-        return ApiV1ProjectsApiFp(this.configuration).projectControllerGetProjects(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(this.axios, this.basePath));
+        return ApiV1ProjectsApiFp(this.configuration).projectControllerGetProjects(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, requestParameters.search, requestParameters.searchColumns, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3483,15 +3510,17 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
         },
         /**
          * 
-         * @summary Retrieve workspaces with filters, sorting, and pagination
+         * @summary Retrieve workspaces with filters, sorting, pagination, and search
          * @param {number} [page] Page number for pagination (starts at 1)
          * @param {number} [limit] Number of items per page
          * @param {string} [filter] JSON string of WorkspaceFilterDto object
          * @param {string} [sortBy] JSON string array of WorkspaceSortByDto objects
+         * @param {string} [search] Search term to filter workspaces by title or other searchable fields
+         * @param {string} [searchColumns] JSON string array of columns to search in (defaults to title and type if not specified)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        workspaceControllerGetWorkspaces: async (page?: number, limit?: number, filter?: string, sortBy?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        workspaceControllerGetWorkspaces: async (page?: number, limit?: number, filter?: string, sortBy?: string, search?: string, searchColumns?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/workspaces`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3518,6 +3547,14 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
 
             if (sortBy !== undefined) {
                 localVarQueryParameter['sortBy'] = sortBy;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (searchColumns !== undefined) {
+                localVarQueryParameter['searchColumns'] = searchColumns;
             }
 
 
@@ -3622,16 +3659,18 @@ export const ApiV1WorkspacesApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary Retrieve workspaces with filters, sorting, and pagination
+         * @summary Retrieve workspaces with filters, sorting, pagination, and search
          * @param {number} [page] Page number for pagination (starts at 1)
          * @param {number} [limit] Number of items per page
          * @param {string} [filter] JSON string of WorkspaceFilterDto object
          * @param {string} [sortBy] JSON string array of WorkspaceSortByDto objects
+         * @param {string} [search] Search term to filter workspaces by title or other searchable fields
+         * @param {string} [searchColumns] JSON string array of columns to search in (defaults to title and type if not specified)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async workspaceControllerGetWorkspaces(page?: number, limit?: number, filter?: string, sortBy?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceControllerGetWorkspaces200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerGetWorkspaces(page, limit, filter, sortBy, options);
+        async workspaceControllerGetWorkspaces(page?: number, limit?: number, filter?: string, sortBy?: string, search?: string, searchColumns?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceControllerGetWorkspaces200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerGetWorkspaces(page, limit, filter, sortBy, search, searchColumns, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ApiV1WorkspacesApi.workspaceControllerGetWorkspaces']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3692,13 +3731,13 @@ export const ApiV1WorkspacesApiFactory = function (configuration?: Configuration
         },
         /**
          * 
-         * @summary Retrieve workspaces with filters, sorting, and pagination
+         * @summary Retrieve workspaces with filters, sorting, pagination, and search
          * @param {ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         workspaceControllerGetWorkspaces(requestParameters: ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<WorkspaceControllerGetWorkspaces200Response> {
-            return localVarFp.workspaceControllerGetWorkspaces(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(axios, basePath));
+            return localVarFp.workspaceControllerGetWorkspaces(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, requestParameters.search, requestParameters.searchColumns, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3751,7 +3790,7 @@ export interface ApiV1WorkspacesApiInterface {
 
     /**
      * 
-     * @summary Retrieve workspaces with filters, sorting, and pagination
+     * @summary Retrieve workspaces with filters, sorting, pagination, and search
      * @param {ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3846,6 +3885,20 @@ export interface ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest {
      * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
      */
     readonly sortBy?: string
+
+    /**
+     * Search term to filter workspaces by title or other searchable fields
+     * @type {string}
+     * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
+     */
+    readonly search?: string
+
+    /**
+     * JSON string array of columns to search in (defaults to title and type if not specified)
+     * @type {string}
+     * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
+     */
+    readonly searchColumns?: string
 }
 
 /**
@@ -3914,14 +3967,14 @@ export class ApiV1WorkspacesApi extends BaseAPI implements ApiV1WorkspacesApiInt
 
     /**
      * 
-     * @summary Retrieve workspaces with filters, sorting, and pagination
+     * @summary Retrieve workspaces with filters, sorting, pagination, and search
      * @param {ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1WorkspacesApi
      */
     public workspaceControllerGetWorkspaces(requestParameters: ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest = {}, options?: RawAxiosRequestConfig) {
-        return ApiV1WorkspacesApiFp(this.configuration).workspaceControllerGetWorkspaces(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, options).then((request) => request(this.axios, this.basePath));
+        return ApiV1WorkspacesApiFp(this.configuration).workspaceControllerGetWorkspaces(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, requestParameters.search, requestParameters.searchColumns, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
