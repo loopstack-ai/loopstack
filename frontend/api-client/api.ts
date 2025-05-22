@@ -584,6 +584,57 @@ export interface ProjectConfigDto {
 /**
  * 
  * @export
+ * @interface ProjectControllerBatchDeleteProjects200Response
+ */
+export interface ProjectControllerBatchDeleteProjects200Response {
+    /**
+     * Successfully deleted project IDs
+     * @type {Array<string>}
+     * @memberof ProjectControllerBatchDeleteProjects200Response
+     */
+    'deleted'?: Array<string>;
+    /**
+     * Failed deletions with error details
+     * @type {Array<ProjectControllerBatchDeleteProjects200ResponseFailedInner>}
+     * @memberof ProjectControllerBatchDeleteProjects200Response
+     */
+    'failed'?: Array<ProjectControllerBatchDeleteProjects200ResponseFailedInner>;
+}
+/**
+ * 
+ * @export
+ * @interface ProjectControllerBatchDeleteProjects200ResponseFailedInner
+ */
+export interface ProjectControllerBatchDeleteProjects200ResponseFailedInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof ProjectControllerBatchDeleteProjects200ResponseFailedInner
+     */
+    'id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ProjectControllerBatchDeleteProjects200ResponseFailedInner
+     */
+    'error'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface ProjectControllerBatchDeleteProjectsRequest
+ */
+export interface ProjectControllerBatchDeleteProjectsRequest {
+    /**
+     * Array of project IDs to delete
+     * @type {Array<string>}
+     * @memberof ProjectControllerBatchDeleteProjectsRequest
+     */
+    'ids': Array<string>;
+}
+/**
+ * 
+ * @export
  * @interface ProjectControllerGetProjects200Response
  */
 export interface ProjectControllerGetProjects200Response {
@@ -1213,6 +1264,38 @@ export interface WorkspaceConfigDto {
      * @memberof WorkspaceConfigDto
      */
     'title'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface WorkspaceControllerBatchDeleteWorkspaces200Response
+ */
+export interface WorkspaceControllerBatchDeleteWorkspaces200Response {
+    /**
+     * Successfully deleted workspace IDs
+     * @type {Array<string>}
+     * @memberof WorkspaceControllerBatchDeleteWorkspaces200Response
+     */
+    'deleted'?: Array<string>;
+    /**
+     * Failed deletions with error details
+     * @type {Array<ProjectControllerBatchDeleteProjects200ResponseFailedInner>}
+     * @memberof WorkspaceControllerBatchDeleteWorkspaces200Response
+     */
+    'failed'?: Array<ProjectControllerBatchDeleteProjects200ResponseFailedInner>;
+}
+/**
+ * 
+ * @export
+ * @interface WorkspaceControllerBatchDeleteWorkspacesRequest
+ */
+export interface WorkspaceControllerBatchDeleteWorkspacesRequest {
+    /**
+     * Array of workspace IDs to delete
+     * @type {Array<string>}
+     * @memberof WorkspaceControllerBatchDeleteWorkspacesRequest
+     */
+    'ids': Array<string>;
 }
 /**
  * 
@@ -2446,6 +2529,42 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
     return {
         /**
          * 
+         * @summary Delete multiple projects by IDs
+         * @param {ProjectControllerBatchDeleteProjectsRequest} projectControllerBatchDeleteProjectsRequest Array of project IDs to delete
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectControllerBatchDeleteProjects: async (projectControllerBatchDeleteProjectsRequest: ProjectControllerBatchDeleteProjectsRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'projectControllerBatchDeleteProjectsRequest' is not null or undefined
+            assertParamExists('projectControllerBatchDeleteProjects', 'projectControllerBatchDeleteProjectsRequest', projectControllerBatchDeleteProjectsRequest)
+            const localVarPath = `/api/v1/projects/batch`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(projectControllerBatchDeleteProjectsRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Create a new project
          * @param {ProjectCreateDto} projectCreateDto Project data
          * @param {*} [options] Override http request option.
@@ -2490,7 +2609,7 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
         projectControllerDeleteProject: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('projectControllerDeleteProject', 'id', id)
-            const localVarPath = `/api/v1/projects/{id}`
+            const localVarPath = `/api/v1/projects/id/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2660,6 +2779,19 @@ export const ApiV1ProjectsApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Delete multiple projects by IDs
+         * @param {ProjectControllerBatchDeleteProjectsRequest} projectControllerBatchDeleteProjectsRequest Array of project IDs to delete
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async projectControllerBatchDeleteProjects(projectControllerBatchDeleteProjectsRequest: ProjectControllerBatchDeleteProjectsRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectControllerBatchDeleteProjects200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerBatchDeleteProjects(projectControllerBatchDeleteProjectsRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerBatchDeleteProjects']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary Create a new project
          * @param {ProjectCreateDto} projectCreateDto Project data
          * @param {*} [options] Override http request option.
@@ -2741,6 +2873,16 @@ export const ApiV1ProjectsApiFactory = function (configuration?: Configuration, 
     return {
         /**
          * 
+         * @summary Delete multiple projects by IDs
+         * @param {ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectControllerBatchDeleteProjects(requestParameters: ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerBatchDeleteProjects200Response> {
+            return localVarFp.projectControllerBatchDeleteProjects(requestParameters.projectControllerBatchDeleteProjectsRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary Create a new project
          * @param {ApiV1ProjectsApiProjectControllerCreateProjectRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -2800,6 +2942,16 @@ export const ApiV1ProjectsApiFactory = function (configuration?: Configuration, 
 export interface ApiV1ProjectsApiInterface {
     /**
      * 
+     * @summary Delete multiple projects by IDs
+     * @param {ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1ProjectsApiInterface
+     */
+    projectControllerBatchDeleteProjects(requestParameters: ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerBatchDeleteProjects200Response>;
+
+    /**
+     * 
      * @summary Create a new project
      * @param {ApiV1ProjectsApiProjectControllerCreateProjectRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -2848,6 +3000,20 @@ export interface ApiV1ProjectsApiInterface {
      */
     projectControllerUpdateProject(requestParameters: ApiV1ProjectsApiProjectControllerUpdateProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectDto>;
 
+}
+
+/**
+ * Request parameters for projectControllerBatchDeleteProjects operation in ApiV1ProjectsApi.
+ * @export
+ * @interface ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest
+ */
+export interface ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest {
+    /**
+     * Array of project IDs to delete
+     * @type {ProjectControllerBatchDeleteProjectsRequest}
+     * @memberof ApiV1ProjectsApiProjectControllerBatchDeleteProjects
+     */
+    readonly projectControllerBatchDeleteProjectsRequest: ProjectControllerBatchDeleteProjectsRequest
 }
 
 /**
@@ -2969,6 +3135,18 @@ export interface ApiV1ProjectsApiProjectControllerUpdateProjectRequest {
  * @extends {BaseAPI}
  */
 export class ApiV1ProjectsApi extends BaseAPI implements ApiV1ProjectsApiInterface {
+    /**
+     * 
+     * @summary Delete multiple projects by IDs
+     * @param {ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1ProjectsApi
+     */
+    public projectControllerBatchDeleteProjects(requestParameters: ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1ProjectsApiFp(this.configuration).projectControllerBatchDeleteProjects(requestParameters.projectControllerBatchDeleteProjectsRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @summary Create a new project
@@ -3406,6 +3584,42 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
     return {
         /**
          * 
+         * @summary Delete multiple workspaces by IDs
+         * @param {WorkspaceControllerBatchDeleteWorkspacesRequest} workspaceControllerBatchDeleteWorkspacesRequest Array of workspace IDs to delete
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        workspaceControllerBatchDeleteWorkspaces: async (workspaceControllerBatchDeleteWorkspacesRequest: WorkspaceControllerBatchDeleteWorkspacesRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'workspaceControllerBatchDeleteWorkspacesRequest' is not null or undefined
+            assertParamExists('workspaceControllerBatchDeleteWorkspaces', 'workspaceControllerBatchDeleteWorkspacesRequest', workspaceControllerBatchDeleteWorkspacesRequest)
+            const localVarPath = `/api/v1/workspaces/batch`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(workspaceControllerBatchDeleteWorkspacesRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Create a new workspace
          * @param {WorkspaceCreateDto} workspaceCreateDto Workspace data
          * @param {*} [options] Override http request option.
@@ -3450,7 +3664,7 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
         workspaceControllerDeleteWorkspace: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('workspaceControllerDeleteWorkspace', 'id', id)
-            const localVarPath = `/api/v1/workspaces/{id}`
+            const localVarPath = `/api/v1/workspaces/id/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3620,6 +3834,19 @@ export const ApiV1WorkspacesApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Delete multiple workspaces by IDs
+         * @param {WorkspaceControllerBatchDeleteWorkspacesRequest} workspaceControllerBatchDeleteWorkspacesRequest Array of workspace IDs to delete
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async workspaceControllerBatchDeleteWorkspaces(workspaceControllerBatchDeleteWorkspacesRequest: WorkspaceControllerBatchDeleteWorkspacesRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceControllerBatchDeleteWorkspaces200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerBatchDeleteWorkspaces(workspaceControllerBatchDeleteWorkspacesRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1WorkspacesApi.workspaceControllerBatchDeleteWorkspaces']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary Create a new workspace
          * @param {WorkspaceCreateDto} workspaceCreateDto Workspace data
          * @param {*} [options] Override http request option.
@@ -3701,6 +3928,16 @@ export const ApiV1WorkspacesApiFactory = function (configuration?: Configuration
     return {
         /**
          * 
+         * @summary Delete multiple workspaces by IDs
+         * @param {ApiV1WorkspacesApiWorkspaceControllerBatchDeleteWorkspacesRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        workspaceControllerBatchDeleteWorkspaces(requestParameters: ApiV1WorkspacesApiWorkspaceControllerBatchDeleteWorkspacesRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkspaceControllerBatchDeleteWorkspaces200Response> {
+            return localVarFp.workspaceControllerBatchDeleteWorkspaces(requestParameters.workspaceControllerBatchDeleteWorkspacesRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary Create a new workspace
          * @param {ApiV1WorkspacesApiWorkspaceControllerCreateWorkspaceRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -3760,6 +3997,16 @@ export const ApiV1WorkspacesApiFactory = function (configuration?: Configuration
 export interface ApiV1WorkspacesApiInterface {
     /**
      * 
+     * @summary Delete multiple workspaces by IDs
+     * @param {ApiV1WorkspacesApiWorkspaceControllerBatchDeleteWorkspacesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1WorkspacesApiInterface
+     */
+    workspaceControllerBatchDeleteWorkspaces(requestParameters: ApiV1WorkspacesApiWorkspaceControllerBatchDeleteWorkspacesRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkspaceControllerBatchDeleteWorkspaces200Response>;
+
+    /**
+     * 
      * @summary Create a new workspace
      * @param {ApiV1WorkspacesApiWorkspaceControllerCreateWorkspaceRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -3808,6 +4055,20 @@ export interface ApiV1WorkspacesApiInterface {
      */
     workspaceControllerUpdateWorkspace(requestParameters: ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<WorkspaceDto>;
 
+}
+
+/**
+ * Request parameters for workspaceControllerBatchDeleteWorkspaces operation in ApiV1WorkspacesApi.
+ * @export
+ * @interface ApiV1WorkspacesApiWorkspaceControllerBatchDeleteWorkspacesRequest
+ */
+export interface ApiV1WorkspacesApiWorkspaceControllerBatchDeleteWorkspacesRequest {
+    /**
+     * Array of workspace IDs to delete
+     * @type {WorkspaceControllerBatchDeleteWorkspacesRequest}
+     * @memberof ApiV1WorkspacesApiWorkspaceControllerBatchDeleteWorkspaces
+     */
+    readonly workspaceControllerBatchDeleteWorkspacesRequest: WorkspaceControllerBatchDeleteWorkspacesRequest
 }
 
 /**
@@ -3929,6 +4190,18 @@ export interface ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest {
  * @extends {BaseAPI}
  */
 export class ApiV1WorkspacesApi extends BaseAPI implements ApiV1WorkspacesApiInterface {
+    /**
+     * 
+     * @summary Delete multiple workspaces by IDs
+     * @param {ApiV1WorkspacesApiWorkspaceControllerBatchDeleteWorkspacesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1WorkspacesApi
+     */
+    public workspaceControllerBatchDeleteWorkspaces(requestParameters: ApiV1WorkspacesApiWorkspaceControllerBatchDeleteWorkspacesRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1WorkspacesApiFp(this.configuration).workspaceControllerBatchDeleteWorkspaces(requestParameters.workspaceControllerBatchDeleteWorkspacesRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @summary Create a new workspace
