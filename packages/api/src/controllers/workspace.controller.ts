@@ -34,6 +34,7 @@ import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { WorkspaceEntity } from '@loopstack/shared';
 
 @ApiTags('api/v1/workspaces')
 @ApiExtraModels(
@@ -52,7 +53,7 @@ export class WorkspaceController {
    */
   @Get()
   @ApiOperation({
-    summary: 'Retrieve workspaces with filters, sorting, and pagination',
+    summary: 'Retrieve workspaces with filters, sorting, pagination, and search',
   })
   @ApiExtraModels(WorkspaceFilterDto, WorkspaceSortByDto)
   @ApiQuery({
@@ -85,6 +86,21 @@ export class WorkspaceController {
     },
     description: 'JSON string of WorkspaceFilterDto object',
   })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search term to filter workspaces by title or other searchable fields',
+  })
+  @ApiQuery({
+    name: 'searchColumns',
+    required: false,
+    schema: {
+      type: 'string',
+      example: '["title","description"]',
+    },
+    description: 'JSON string array of columns to search in (defaults to title and type if not specified)',
+  })
   @ApiPaginatedResponse(WorkspaceItemDto)
   @ApiUnauthorizedResponse()
   @UseGuards(JwtAuthGuard)
@@ -94,6 +110,8 @@ export class WorkspaceController {
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('filter') filterParam?: string,
     @Query('sortBy') sortByParam?: string,
+    @Query('search') search?: string,
+    @Query('searchColumns') searchColumnsParam?: string,
   ): Promise<PaginatedDto<WorkspaceItemDto>> {
     let filter: WorkspaceFilterDto = {};
     if (filterParam) {
@@ -113,9 +131,21 @@ export class WorkspaceController {
       }
     }
 
+    let searchColumns: (keyof WorkspaceEntity)[] = [];
+    if (searchColumnsParam) {
+      try {
+        searchColumns = JSON.parse(searchColumnsParam) as (keyof WorkspaceEntity)[];
+      } catch (e) {
+        throw new BadRequestException('Invalid searchColumns format');
+      }
+    }
+
     const result = await this.workspaceService.findAll(req.user.id, filter, sortBy, {
       page,
       limit,
+    }, {
+      query: search,
+      columns: searchColumns,
     });
     return PaginatedDto.create(WorkspaceItemDto, result);
   }

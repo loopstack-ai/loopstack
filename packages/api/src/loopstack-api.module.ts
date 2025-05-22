@@ -20,7 +20,7 @@ import { WorkflowApiService } from './services/workflow-api.service';
 import { DocumentApiService } from './services/document-api.service';
 import {NamespaceController} from "./controllers/namespace.controller";
 import {NamespaceApiService} from "./services/namespace-api.service";
-import { ConfigurationModule, LoopCoreModule } from '@loopstack/core';
+import { LoopCoreModule } from '@loopstack/core';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { NullStrategy } from './strategies/null.strategy';

@@ -27,6 +27,10 @@ export class WorkspaceApiService {
       page: number | undefined;
       limit: number | undefined;
     },
+    search?: {
+      query: string | undefined;
+      columns: (keyof WorkspaceEntity)[];
+    },
   ): Promise<{
     data: WorkspaceEntity[];
     total: number;
@@ -42,27 +46,43 @@ export class WorkspaceApiService {
       [],
     );
 
-    const findOptions: FindManyOptions<WorkspaceEntity> = {
-      where: {
-        createdBy: user === null ? IsNull() : user,
-        ...filter,
-      },
-      order: (sortBy ?? defaultSortBy).reduce(
-        (acc, sort) => {
-          acc[sort.field] = sort.order;
-          return acc;
-        },
-        {} as Record<string, 'ASC' | 'DESC'>,
-      ),
-      take: pagination.limit ?? defaultLimit,
-      skip:
-        pagination.page && pagination.limit
-          ? (pagination.page - 1) * pagination.limit
-          : 0,
-    };
+    const queryBuilder = this.workspaceRepository.createQueryBuilder('workspace');
 
-    const [data, total] =
-      await this.workspaceRepository.findAndCount(findOptions);
+    queryBuilder.where({
+      createdBy: user === null ? IsNull() : user,
+      ...filter,
+    });
+
+    if (search?.query && search.columns?.length > 0) {
+      const searchConditions = search.columns.map(column =>
+        `workspace.${String(column)} ILIKE :searchQuery`
+      );
+
+      queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
+        searchQuery: `%${search.query}%`,
+      });
+    }
+
+    const orderBy = (sortBy ?? defaultSortBy).reduce(
+      (acc, sort) => {
+        acc[`workspace.${sort.field}`] = sort.order;
+        return acc;
+      },
+      {} as Record<string, 'ASC' | 'DESC'>,
+    );
+
+    if (Object.keys(orderBy).length > 0) {
+      queryBuilder.orderBy(orderBy);
+    }
+
+    queryBuilder.take(pagination.limit ?? defaultLimit);
+    queryBuilder.skip(
+      pagination.page && pagination.limit
+        ? pagination.page * pagination.limit
+        : 0
+    );
+
+    const [data, total] = await queryBuilder.getManyAndCount();
 
     return {
       data,
