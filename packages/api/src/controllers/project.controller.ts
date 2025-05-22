@@ -202,7 +202,7 @@ export class ProjectController {
   /**
    * Deletes a project by its ID.
    */
-  @Delete(':id')
+  @Delete('id/:id')
   @ApiOperation({ summary: 'Delete a project by ID' })
   @ApiParam({ name: 'id', type: String, description: 'The ID of the project' })
   @ApiResponse({ status: 204, description: 'Project deleted successfully' })
@@ -214,5 +214,62 @@ export class ProjectController {
     @Request() req: ApiRequestType,
   ): Promise<void> {
     await this.projectService.delete(id, req.user.id);
+  }
+
+  /**
+   * Deletes multiple projects by their IDs.
+   */
+  @Delete('batch')
+  @ApiOperation({ summary: 'Delete multiple projects by IDs' })
+  @ApiBody({
+    description: 'Array of project IDs to delete',
+    schema: {
+      type: 'object',
+      properties: {
+        ids: {
+          type: 'array',
+          items: {
+            type: 'string'
+          },
+          description: 'Array of project IDs to delete',
+          example: ['project-1', 'project-2', 'project-3']
+        }
+      },
+      required: ['ids']
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Batch delete completed',
+    schema: {
+      type: 'object',
+      properties: {
+        deleted: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Successfully deleted project IDs'
+        },
+        failed: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              error: { type: 'string' }
+            }
+          },
+          description: 'Failed deletions with error details'
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
+  async batchDeleteProjects(
+    @Body() batchDeleteDto: { ids: string[] },
+    @Request() req: ApiRequestType,
+  ): Promise<{ deleted: string[]; failed: Array<{ id: string; error: string }> }> {
+    return await this.projectService.batchDelete(batchDeleteDto.ids, req.user.id);
   }
 }

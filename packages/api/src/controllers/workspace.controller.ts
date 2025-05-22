@@ -220,7 +220,7 @@ export class WorkspaceController {
   /**
    * Deletes a workspace by its ID.
    */
-  @Delete(':id')
+  @Delete('id/:id')
   @ApiOperation({ summary: 'Delete a workspace by ID' })
   @ApiParam({
     name: 'id',
@@ -236,5 +236,63 @@ export class WorkspaceController {
     @Request() req: ApiRequestType,
   ): Promise<void> {
     await this.workspaceService.delete(id, req.user.id);
+  }
+
+
+  /**
+   * Deletes multiple workspaces by their IDs.
+   */
+  @Delete('batch')
+  @ApiOperation({ summary: 'Delete multiple workspaces by IDs' })
+  @ApiBody({
+    description: 'Array of workspace IDs to delete',
+    schema: {
+      type: 'object',
+      properties: {
+        ids: {
+          type: 'array',
+          items: {
+            type: 'string'
+          },
+          description: 'Array of workspace IDs to delete',
+          example: ['project-1', 'project-2', 'project-3']
+        }
+      },
+      required: ['ids']
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Batch delete completed',
+    schema: {
+      type: 'object',
+      properties: {
+        deleted: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Successfully deleted workspace IDs'
+        },
+        failed: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              error: { type: 'string' }
+            }
+          },
+          description: 'Failed deletions with error details'
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  @ApiUnauthorizedResponse()
+  @UseGuards(JwtAuthGuard)
+  async batchDeleteWorkspaces(
+    @Body() batchDeleteDto: { ids: string[] },
+    @Request() req: ApiRequestType,
+  ): Promise<{ deleted: string[]; failed: Array<{ id: string; error: string }> }> {
+    return await this.workspaceService.batchDelete(batchDeleteDto.ids, req.user.id);
   }
 }

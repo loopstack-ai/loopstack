@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { IsNull, FindManyOptions, Repository } from 'typeorm';
+import { IsNull, Repository, In } from 'typeorm';
 import { ProjectCreateDto } from '../dtos/project-create.dto';
 import { ProjectUpdateDto } from '../dtos/project-update.dto';
 import { ConfigService } from '@nestjs/config';
@@ -175,5 +175,82 @@ export class ProjectApiService {
       throw new NotFoundException(`Project with ID ${id} not found`);
 
     await this.projectRepository.delete(id);
+  }
+
+  async batchDelete(
+    ids: string[],
+    user: string | null,
+  ): Promise<{ deleted: string[]; failed: Array<{ id: string; error: string }> }> {
+    const deleted: string[] = [];
+    const failed: Array<{ id: string; error: string }> = [];
+
+    if (!ids || ids.length === 0) {
+      return { deleted, failed };
+    }
+
+    const existingProjects = await this.projectRepository.find({
+      where: {
+        id: In(ids),
+        createdBy: user === null ? IsNull() : user,
+      },
+      select: ['id'],
+    });
+
+    const existingProjectIds = existingProjects.map(project => project.id);
+    const notFoundIds = ids.filter(id => !existingProjectIds.includes(id));
+
+    notFoundIds.forEach(id => {
+      failed.push({
+        id,
+        error: 'Project not found or access denied'
+      });
+    });
+
+    if (existingProjectIds.length === 0) {
+      return { deleted, failed };
+    }
+
+    try {
+      const deleteResult = await this.projectRepository.delete({
+        id: In(existingProjectIds),
+        createdBy: user === null ? IsNull() : user,
+      });
+
+      // Check if all expected deletions occurred
+      if (deleteResult.affected === existingProjectIds.length) {
+        deleted.push(...existingProjectIds);
+      } else {
+        // Handle partial deletion - this is rare but can happen
+        // We need to check which ones were actually deleted
+        const remainingProjects = await this.projectRepository.find({
+          where: {
+            id: In(existingProjectIds),
+            createdBy: user === null ? IsNull() : user,
+          },
+          select: ['id'],
+        });
+
+        const remainingIds = remainingProjects.map(project => project.id);
+        const actuallyDeleted = existingProjectIds.filter(id => !remainingIds.includes(id));
+        const failedToDelete = existingProjectIds.filter(id => remainingIds.includes(id));
+
+        deleted.push(...actuallyDeleted);
+        failedToDelete.forEach(id => {
+          failed.push({
+            id,
+            error: 'Deletion failed - project may be in use or protected'
+          });
+        });
+      }
+    } catch (error) {
+      existingProjectIds.forEach(id => {
+        failed.push({
+          id,
+          error: `Database error: ${error.message}`
+        });
+      });
+    }
+
+    return { deleted, failed };
   }
 }
