@@ -7,7 +7,6 @@ import {
   TransitionInfoInterface,
   TransitionPayloadInterface,
   WorkflowEntity,
-  WorkflowObserverType,
   WorkflowStateHistoryDto,
   WorkflowStateMachineType,
   WorkflowStatePlaceInfoDto,
@@ -92,7 +91,6 @@ export class StateMachineProcessorService {
 
   updateWorkflowState(
     workflow: WorkflowEntity,
-    transitions: WorkflowTransitionType[],
     historyItem: HistoryTransition,
   ): void {
     workflow.place = historyItem.to;
@@ -100,7 +98,12 @@ export class StateMachineProcessorService {
       ...(workflow.history?.history ?? []),
       historyItem,
     ]);
+  }
 
+  updateWorkflowAvailableTransitions(
+    workflow: WorkflowEntity,
+    transitions: WorkflowTransitionType[],
+  ): void {
     workflow.placeInfo = new WorkflowStatePlaceInfoDto(
       transitions.filter(
         (item) =>
@@ -114,7 +117,6 @@ export class StateMachineProcessorService {
 
   async initStateMachine(
     workflow: WorkflowEntity,
-    transitions: WorkflowTransitionType[],
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
     workflow.isWorking = true;
@@ -134,10 +136,9 @@ export class StateMachineProcessorService {
         ...stateMachineInfo.hashRecordUpdates,
       };
 
-      this.updateWorkflowState(workflow, transitions, initialTransition);
+      this.updateWorkflowState(workflow, initialTransition);
     }
 
-    await this.workflowService.save(workflow);
     return workflow;
   }
 
@@ -165,11 +166,9 @@ export class StateMachineProcessorService {
   ): TransitionInfoInterface | null {
     let transitionPayload = null;
     let transitionMeta = {};
-    let nextTransition = workflow.placeInfo?.availableTransitions.find(
-      (item) => item.trigger === 'auto',
-    );
+    let nextTransition: WorkflowTransitionType | undefined;
 
-    if (!nextTransition && pendingTransition) {
+    if (pendingTransition) {
       nextTransition = workflow.placeInfo?.availableTransitions.find(
         (item) => item.name === pendingTransition.name,
       );
@@ -178,6 +177,12 @@ export class StateMachineProcessorService {
         transitionPayload = pendingTransition.payload;
         transitionMeta = pendingTransition.meta;
       }
+    }
+
+    if (!nextTransition) {
+      nextTransition = workflow.placeInfo?.availableTransitions.find(
+        (item) => item.trigger === 'auto',
+      );
     }
 
     if (!nextTransition) {
@@ -231,7 +236,6 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     nextPlace: string | undefined,
     nextTransition: TransitionInfoInterface,
-    transitions: WorkflowTransitionType[],
   ) {
     const place =
       nextPlace ??
@@ -246,7 +250,7 @@ export class StateMachineProcessorService {
     };
 
     this.validateTransition(nextTransition, historyItem);
-    this.updateWorkflowState(workflow, transitions, historyItem);
+    this.updateWorkflowState(workflow, historyItem);
   }
 
   async loopStateMachine(
@@ -256,6 +260,10 @@ export class StateMachineProcessorService {
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
     let context = beforeContext;
+    workflow = await this.initStateMachine(
+      workflow,
+      stateMachineInfo,
+    );
 
     const flatConfig =
       this.workflowConfigService.getStateMachineFlatConfig(config);
@@ -264,17 +272,13 @@ export class StateMachineProcessorService {
       options: stateMachineInfo.options,
     } as WorkflowRunContext;
 
-    const { transitions, observers } =
-      this.configValueParserService.evalWithContextAndInfo<{
-        transitions: WorkflowTransitionType[];
-        observers: WorkflowObserverType[];
-      }>(flatConfig, { context, workflow: workflowContext });
+    workflowContext.history = workflow.history?.history.map((item) => item.transition) ?? [];
+    const evaluatedTransitions =
+      this.configValueParserService.evalWithContextAndInfo<WorkflowTransitionType[]>(flatConfig.transitions, { context, workflow: workflowContext });
 
-    workflow = await this.initStateMachine(
-      workflow,
-      transitions,
-      stateMachineInfo,
-    );
+    this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions)
+
+    await this.workflowService.save(workflow);
 
     try {
       const pendingTransition = [stateMachineInfo.pendingTransition];
@@ -294,9 +298,9 @@ export class StateMachineProcessorService {
         workflowContext.transition = nextTransition.transition;
         workflowContext.payload = nextTransition.payload;
 
-        const matchedObservers = observers.filter(
+        const matchedObservers = flatConfig.observers?.filter(
           (item) => item.transition === nextTransition.transition,
-        );
+        ) ?? [];
 
         let observerIndex = 0;
         let nextPlace: string | undefined = undefined;
@@ -338,8 +342,14 @@ export class StateMachineProcessorService {
           workflow,
           nextPlace,
           nextTransition,
-          transitions,
         );
+
+        workflowContext.history = workflow.history?.history.map((item) => item.transition) ?? [];
+        console.log('history', workflowContext.history)
+        const evaluatedTransitions =
+          this.configValueParserService.evalWithContextAndInfo<WorkflowTransitionType[]>(flatConfig.transitions, { context, workflow: workflowContext });
+
+        this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions)
 
         await this.workflowService.save(workflow);
       }

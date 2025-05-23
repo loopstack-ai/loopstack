@@ -25,7 +25,7 @@ export class StateMachineConfigService {
     return this.getStateMachineFlatConfig(stateMachine);
   }
 
-  getStateMachineFlatConfig(stateMachine: StateMachineType) {
+  getStateMachineFlatConfig(stateMachine: StateMachineType): StateMachineType {
     let transitions: WorkflowTransitionType[] = stateMachine.transitions ?? [];
     let observers: WorkflowObserverType[] = stateMachine.observers ?? [];
 
@@ -40,6 +40,7 @@ export class StateMachineConfigService {
     }
 
     return {
+      ...stateMachine,
       transitions,
       observers,
     };
