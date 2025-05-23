@@ -52,6 +52,8 @@ export class WorkflowProcessorService {
     for (let i = 0; i < sequence.length; i++) {
       const item = sequence[i];
 
+      this.logger.debug(`Processing Sequence Item ${item.name}`);
+
       const evaluatedItem = this.valueParserService.evalWithContext<{ name: string, condition?: boolean }>(
         item,
         { context: lastContext },

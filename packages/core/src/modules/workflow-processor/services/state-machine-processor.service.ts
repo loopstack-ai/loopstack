@@ -163,7 +163,7 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     pendingTransition: TransitionPayloadInterface | undefined,
   ): TransitionInfoInterface | null {
-    let transitionPayload = {};
+    let transitionPayload = null;
     let transitionMeta = {};
     let nextTransition = workflow.placeInfo?.availableTransitions.find(
       (item) => item.trigger === 'auto',
