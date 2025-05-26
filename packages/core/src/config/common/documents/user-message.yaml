@@ -1,0 +1,13 @@
+documents:
+  - name: Core/UserMessage
+    tags:
+      - message
+    schema:
+      type: object
+      ui:
+        widget: chat-message
+    meta:
+      invalidate: false
+    content:
+      role: user
+      content: ""

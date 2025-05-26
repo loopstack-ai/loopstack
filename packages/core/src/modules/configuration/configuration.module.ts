@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AdapterRegistry, ConfigurationService } from './services';
+import { AdapterRegistry, ConfigProviderRegistry, ConfigurationService } from './services';
 import { JsonSchemaGeneratorService } from './services/json-schema-generator.service';
 import { ToolRegistry } from './services';
 import { GenerateSchemasCommand } from './commands/generate-schemas.command';
@@ -15,6 +15,7 @@ import { DiscoveryModule } from '@nestjs/core';
     AdapterRegistry,
     GenerateSchemasCommand,
     DynamicSchemaGeneratorService,
+    ConfigProviderRegistry,
   ],
   exports: [ConfigurationService, ToolRegistry, AdapterRegistry],
 })

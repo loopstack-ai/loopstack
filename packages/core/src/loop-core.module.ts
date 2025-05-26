@@ -11,6 +11,7 @@ import {
   ConfigurationModule,
 } from './modules';
 import { MigrationsService } from './services/migrations.service';
+import { ConfigProviderService } from './config-provider.service';
 
 @Module({})
 export class LoopCoreModule extends ConfigurableModuleClass {
@@ -20,14 +21,19 @@ export class LoopCoreModule extends ConfigurableModuleClass {
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,
-          load: [() => options ?? {}],
+          load: [() => ({
+            configs: options?.configs ?? {},
+          })],
         }),
         CommonModule,
         ConfigurationModule,
         PersistenceModule,
         WorkflowProcessorModule,
       ],
-      providers: [MigrationsService],
+      providers: [
+        MigrationsService,
+        ConfigProviderService,
+      ],
       exports: [
         CommonModule,
         ConfigurationModule,

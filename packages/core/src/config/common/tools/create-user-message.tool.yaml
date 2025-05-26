@@ -1,0 +1,9 @@
+tools:
+  - name: Core/CreateUserMessage
+    service: CreateDocumentService
+    props:
+      document: Core/UserMessage
+      update:
+        content:
+          role: user
+          content: ${ workflow.options.message }

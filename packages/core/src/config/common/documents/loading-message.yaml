@@ -1,0 +1,10 @@
+documents:
+  - name: Core/LoadingMessage
+    schema:
+      type: object
+      ui:
+        widget: chat-message
+    content:
+      role: assistant
+      content: "Generating answer..."
+      animation: loading

@@ -1,0 +1,39 @@
+tools:
+  - name: Core/UserInputTemplate/CreateInputForm
+    service: CreateDocumentService
+    props:
+      document: ${ workflow.options.document }
+  - name: Core/UserInputTemplate/CreateUserResponse
+    service: CreateDocumentService
+    props:
+      document: ${ workflow.options.document }
+      update:
+        content: ${{ workflow.payload }}
+stateMachineTemplates:
+  - name: Core/UserInputTemplate
+    transitions:
+      - name: start
+        from: initial
+        to: started
+        trigger: auto
+      - name: request-form
+        from: started
+        to: waiting-for-user
+        trigger: auto
+      - name: response
+        from: waiting-for-user
+        to: received
+        trigger: manual
+      - name: finish
+        from: received
+        to: finished
+        trigger: auto
+      - name: unlock
+        from: finished
+        to: waiting-for-user
+        trigger: manual
+    observers:
+      - transition: request-form
+        tool: Core/UserInputTemplate/CreateInputForm
+      - transition: response
+        tool: Core/UserInputTemplate/CreateUserResponse

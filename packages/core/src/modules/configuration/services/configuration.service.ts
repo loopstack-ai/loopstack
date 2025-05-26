@@ -5,6 +5,7 @@ import { ToolRegistry } from './tool.registry';
 import { ConfigService } from '@nestjs/config';
 import { NamedCollectionItem } from '@loopstack/shared';
 import { z } from 'zod';
+import { ConfigProviderRegistry } from './config-provider.registry';
 
 @Injectable()
 export class ConfigurationService implements OnModuleInit {
@@ -16,15 +17,30 @@ export class ConfigurationService implements OnModuleInit {
     private configService: ConfigService,
     private adapterRegistry: AdapterRegistry,
     private toolRegistry: ToolRegistry,
-
+    private configProviderRegistry: ConfigProviderRegistry,
     private mainSchemaGenerator: DynamicSchemaGeneratorService,
-  ) {
-    this.clear();
-  }
+  ) {}
 
   onModuleInit() {
-    const configs = this.configService.get('configs');
-    this.init(configs);
+    this.clear();
+
+    this.configProviderRegistry.initialize();
+    this.adapterRegistry.initialize();
+    this.toolRegistry.initialize();
+
+    const appConfigs = this.configService.get('configs') ?? [];
+    const moduleConfigs = this.configProviderRegistry.getConfigs();
+
+    const configs = [
+      ...appConfigs,
+      ...moduleConfigs,
+    ]
+
+    if (configs) {
+      for (const config of configs) {
+        this.createFromConfig(config);
+      }
+    }
   }
 
   createDefaultConfig() {
@@ -118,33 +134,5 @@ export class ConfigurationService implements OnModuleInit {
       }
       throw error;
     }
-  }
-
-  debug() {
-    this.logger.debug(
-      'Documents: ' +
-        Array.from(this.registry.get('documents')?.keys()!).join(' '),
-    );
-    this.logger.debug(
-      'Workflows: ' +
-        Array.from(this.registry.get('workflows')?.keys()!).join(' '),
-    );
-    this.logger.debug(
-      'Tools: ' + Array.from(this.registry.get('tools')?.keys()!).join(' '),
-    );
-  }
-
-  init(configs: any[]) {
-    this.clear();
-
-    this.adapterRegistry.initialize();
-    this.toolRegistry.initialize();
-    if (configs) {
-      for (const config of configs) {
-        this.createFromConfig(config);
-      }
-    }
-
-    // this.debug();
   }
 }

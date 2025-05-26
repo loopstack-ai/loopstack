@@ -1,0 +1,13 @@
+documents:
+  - name: Core/AssistantMessage
+    tags:
+      - message
+    schema:
+      type: object
+      ui:
+        widget: chat-message
+    meta:
+      invalidate: false
+    content:
+      role: assistant
+      content: ""

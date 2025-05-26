@@ -1,0 +1,9 @@
+tools:
+  - name: Core/CreateErrorMessage
+    service: CreateDocumentService
+    props:
+      document: Core/AssistantMessage
+      update:
+        content:
+          role: assistant
+          content: ${ workflow.options.message }
