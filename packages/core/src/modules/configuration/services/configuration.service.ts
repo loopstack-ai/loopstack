@@ -22,6 +22,11 @@ export class ConfigurationService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
+    const installTemplates =  this.configService.get('installTemplates');
+    if (!installTemplates) {
+      return;
+    }
+
     this.clear();
 
     this.configProviderRegistry.initialize();

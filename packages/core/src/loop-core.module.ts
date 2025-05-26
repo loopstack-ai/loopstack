@@ -22,6 +22,7 @@ export class LoopCoreModule extends ConfigurableModuleClass {
         ConfigModule.forRoot({
           isGlobal: true,
           load: [() => ({
+            installTemplates: undefined === options?.installTemplates ? true : options.installTemplates,
             configs: options?.configs ?? {},
           })],
         }),
