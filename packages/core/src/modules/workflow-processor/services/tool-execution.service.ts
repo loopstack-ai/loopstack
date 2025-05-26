@@ -43,7 +43,7 @@ export class ToolExecutionService {
     const toolConfig = this.getToolConfig(toolCall.tool);
 
     // replace the alias values with actual data
-    const aliasDataObject =
+    const aliasVariables =
       workflow?.aliasData && workflow.currData
         ? this.valueParserService.prepareAliasVariables(
             workflow.aliasData,
@@ -63,10 +63,10 @@ export class ToolExecutionService {
     const props = this.valueParserService.evalWithContextAndDataAndInfo(
       toolConfig.props,
       {
+        ...aliasVariables,
         useSnippet,
         context,
         data: workflow?.currData,
-        tool: aliasDataObject,
         workflow: workflowContext,
       },
     );

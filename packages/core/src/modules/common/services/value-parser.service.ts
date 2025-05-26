@@ -50,7 +50,8 @@ export class ValueParserService {
       ? transform(
           aliasReference,
           (result: Record<string, any>, path: string[], key: string) => {
-            result[key] = get(dataSource, path);
+            const document = get(dataSource, path);
+            result[key] = document?.content;
           },
           {},
         )
@@ -77,13 +78,7 @@ export class ValueParserService {
 
   evalWithContextAndDataAndInfo<T extends {}>(
     obj: any,
-    variables: {
-      useSnippet?: (name: string, variables: any) => string;
-      context: ContextInterface;
-      data: WorkflowData | undefined | null;
-      workflow: WorkflowRunContext;
-      tool: Record<string, any>;
-    },
+    variables: any,
   ): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }

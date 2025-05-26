@@ -67,17 +67,18 @@ export class BatchCreateDocumentsService implements ToolInterface {
         )
       : undefined;
 
-    const aliasDataObject =
+    const aliasVariables =
       workflow?.aliasData && workflow.currData
         ? this.documentHelperService.prepareAliasVariables(
             workflow.aliasData,
             workflow.currData,
           )
         : {};
+
     template = this.valueParserService.evalObjectLeafs(template, {
+      ...aliasVariables,
       context,
       data: workflow.currData,
-      tool: aliasDataObject,
       workflow: workflowContext,
     });
 

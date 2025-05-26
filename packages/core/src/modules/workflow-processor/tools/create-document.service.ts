@@ -66,7 +66,7 @@ export class CreateDocumentService implements ToolInterface {
       : undefined;
 
     if (template) {
-      const aliasDataObject =
+      const aliasVariables =
         workflow?.aliasData && workflow.currData
           ? this.documentHelperService.prepareAliasVariables(
               workflow.aliasData,
@@ -74,9 +74,9 @@ export class CreateDocumentService implements ToolInterface {
             )
           : {};
       template = this.valueParserService.evalObjectLeafs(template, {
+        ...aliasVariables,
         context,
         data: workflow.currData,
-        tool: aliasDataObject,
         workflow: workflowContext,
       });
     }
