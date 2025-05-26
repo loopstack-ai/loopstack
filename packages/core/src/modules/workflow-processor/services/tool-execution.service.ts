@@ -51,15 +51,19 @@ export class ToolExecutionService {
           )
         : {};
 
-    const snippets: Record<string, string> = this.loopConfigService.getAll<SnippetConfigType>('snippets').reduce((obj, snippet) => {
-      obj[snippet.name] = snippet.value;
-      return obj;
-    }, {});
+    const useSnippet = (name: string, variables: any): string => {
+      const snippet = this.loopConfigService.get<SnippetConfigType>('snippets', name);
+      if (!snippet) {
+        return '';
+      }
+
+      return this.valueParserService.evalWithContextAndDataAndInfo(snippet.value, variables);
+    }
 
     const props = this.valueParserService.evalWithContextAndDataAndInfo(
       toolConfig.props,
       {
-        snippets,
+        useSnippet,
         context,
         data: workflow?.currData,
         tool: aliasDataObject,

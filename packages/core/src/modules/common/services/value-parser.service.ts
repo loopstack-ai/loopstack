@@ -78,7 +78,7 @@ export class ValueParserService {
   evalWithContextAndDataAndInfo<T extends {}>(
     obj: any,
     variables: {
-      snippets: Record<string, string>;
+      useSnippet?: (name: string, variables: any) => string;
       context: ContextInterface;
       data: WorkflowData | undefined | null;
       workflow: WorkflowRunContext;
