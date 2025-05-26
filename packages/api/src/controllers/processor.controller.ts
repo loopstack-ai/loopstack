@@ -75,13 +75,13 @@ export class ProcessorController {
   })
   @ApiUnauthorizedResponse()
   @UseGuards(JwtAuthGuard)
-  async runProject(
+  runProject(
     @Param('projectId') projectId: string,
     @Body() payload: RunProjectPayloadDto,
     @Request() req: ApiRequestType,
     @Query() queryParams: RunProjectQueryParams,
-  ): Promise<ProjectEntity> {
-    return this.processorApiService.processProject(projectId, req.user.id, payload ?? {}, {
+  ): void {
+    this.processorApiService.processProject(projectId, req.user.id, payload ?? {}, {
       force: !!queryParams.force,
     });
   }
