@@ -8,7 +8,7 @@ tools:
     props:
       document: ${ workflow.options.document }
       update:
-        content: ${{ workflow.payload }}
+        content: ${ workflow.payload }
 stateMachineTemplates:
   - name: Core/UserInputTemplate
     transitions:

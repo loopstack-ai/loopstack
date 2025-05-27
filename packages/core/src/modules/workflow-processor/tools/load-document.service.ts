@@ -71,7 +71,7 @@ export class LoadDocumentService implements ToolInterface {
     props: z.infer<typeof this.schema>,
     entities: DocumentEntity[],
   ) {
-    const defaultMapFunction = '${{ entity.content }}';
+    const defaultMapFunction = '${ entity.content }';
     const mapFunc = props.map ?? defaultMapFunction;
 
     let documents = entities.map((entity) =>
@@ -219,8 +219,6 @@ export class LoadDocumentService implements ToolInterface {
       currentEntities,
       prevImport,
     );
-
-    console.log(importItem)
 
     return {
       workflow,

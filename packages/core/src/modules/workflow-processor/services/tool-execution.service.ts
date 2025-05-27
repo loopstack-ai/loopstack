@@ -4,12 +4,13 @@ import {
   ContextInterface,
   ServiceConfigType,
   WorkflowRunContext,
-  ToolResult, SnippetConfigType,
+  ToolResult,
+  SnippetConfigType,
+  ToolCallType,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { ValueParserService } from '../../index';
 import { ToolSchemaValidatorService } from './tool-schema-validator.service';
-import { ToolCallType } from '@loopstack/shared/dist/schemas/tool-call.schema';
 
 @Injectable()
 export class ToolExecutionService {
@@ -52,13 +53,19 @@ export class ToolExecutionService {
         : {};
 
     const useSnippet = (name: string, variables: any): string => {
-      const snippet = this.loopConfigService.get<SnippetConfigType>('snippets', name);
+      const snippet = this.loopConfigService.get<SnippetConfigType>(
+        'snippets',
+        name,
+      );
       if (!snippet) {
         return '';
       }
 
-      return this.valueParserService.evalWithContextAndDataAndInfo(snippet.value, variables);
-    }
+      return this.valueParserService.evalWithContextAndDataAndInfo(
+        snippet.value,
+        variables,
+      );
+    };
 
     const props = this.valueParserService.evalWithContextAndDataAndInfo(
       toolConfig.props,

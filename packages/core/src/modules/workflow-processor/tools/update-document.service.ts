@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
 import { DocumentService } from '../../persistence';
 import { merge } from 'lodash';
-import { StringExpression } from '@loopstack/shared/dist/schemas/expression-type.schema';
+import { ExpressionString } from '@loopstack/shared/dist/schemas/expression-type.schema';
 
 @Injectable()
 @Tool()
@@ -19,7 +19,7 @@ export class UpdateDocumentService implements ToolInterface {
   private readonly logger = new Logger(UpdateDocumentService.name);
 
   configSchema = z.object({
-    id: StringExpression,
+    id: ExpressionString,
     update: DocumentConfigSchema.partial().optional(),
   });
 

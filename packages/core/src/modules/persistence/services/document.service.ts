@@ -10,8 +10,7 @@ import {
   DocumentEntity,
   WorkflowRunContext,
   NonExpressionString,
-  ObjectExpression,
-  StringExpression,
+  ExpressionString,
   WorkflowEntity,
 } from '@loopstack/shared';
 import { WorkflowService } from './workflow.service';
@@ -47,7 +46,7 @@ const ArrayContainmentOperator = z.object({
 
 const ArrayContainmentAnyOfOperator = z.object({
   containsAnyOf: z
-    .union([z.array(NonExpressionString), ObjectExpression])
+    .union([z.array(NonExpressionString), ExpressionString])
     .optional(),
 });
 
@@ -77,8 +76,8 @@ const RawOperator = z.object({
 const PropertyCondition = z.union([
   NonExpressionString,
   z.array(NonExpressionString),
-  z.array(StringExpression),
-  StringExpression,
+  z.array(ExpressionString),
+  ExpressionString,
   NullOperator,
   ComparisonOperator,
   ArrayOperator,

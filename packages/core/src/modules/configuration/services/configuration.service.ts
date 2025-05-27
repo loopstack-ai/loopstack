@@ -22,7 +22,7 @@ export class ConfigurationService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    const installTemplates =  this.configService.get('installTemplates');
+    const installTemplates = this.configService.get('installTemplates');
     if (!installTemplates) {
       return;
     }
@@ -36,10 +36,7 @@ export class ConfigurationService implements OnModuleInit {
     const appConfigs = this.configService.get('configs') ?? [];
     const moduleConfigs = this.configProviderRegistry.getConfigs();
 
-    const configs = [
-      ...appConfigs,
-      ...moduleConfigs,
-    ]
+    const configs = [...appConfigs, ...moduleConfigs];
 
     if (configs) {
       for (const config of configs) {

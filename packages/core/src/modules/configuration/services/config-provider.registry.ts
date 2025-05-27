@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import {
-  MainConfigType, CONFIG_PROVIDER_DECORATOR, ConfigProviderInterface, AdapterInterface,
+  MainConfigType,
+  CONFIG_PROVIDER_DECORATOR,
+  ConfigProviderInterface,
+  AdapterInterface,
 } from '@loopstack/shared';
 
 @Injectable()
@@ -27,7 +30,7 @@ export class ConfigProviderRegistry {
       );
 
       if (isConfigProvider) {
-        this.registerModuleConfig(instance)
+        this.registerModuleConfig(instance);
       }
     }
   }
@@ -35,12 +38,14 @@ export class ConfigProviderRegistry {
   private registerModuleConfig(instance: ConfigProviderInterface) {
     const moduleConfigs = instance.getConfig();
 
-    this.logger.debug(`Including configs from ${Object.keys(moduleConfigs).join(', ')}`);
+    this.logger.debug(
+      `Including configs from ${Object.keys(moduleConfigs).join(', ')}`,
+    );
 
     this.configs = {
       ...this.configs,
-      ...moduleConfigs
-    }
+      ...moduleConfigs,
+    };
   }
 
   getConfigs(): MainConfigType[] {

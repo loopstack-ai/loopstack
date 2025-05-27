@@ -259,10 +259,7 @@ export class StateMachineProcessorService {
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
     let context = beforeContext;
-    workflow = await this.initStateMachine(
-      workflow,
-      stateMachineInfo,
-    );
+    workflow = await this.initStateMachine(workflow, stateMachineInfo);
 
     const flatConfig =
       this.workflowConfigService.getStateMachineFlatConfig(config);
@@ -271,11 +268,14 @@ export class StateMachineProcessorService {
       options: stateMachineInfo.options,
     } as WorkflowRunContext;
 
-    workflowContext.history = workflow.history?.history.map((item) => item.transition) ?? [];
+    workflowContext.history =
+      workflow.history?.history.map((item) => item.transition) ?? [];
     const evaluatedTransitions =
-      this.configValueParserService.evalWithContextAndInfo<WorkflowTransitionType[]>(flatConfig.transitions, { context, workflow: workflowContext });
+      this.configValueParserService.evalWithContextAndInfo<
+        WorkflowTransitionType[]
+      >(flatConfig.transitions, { context, workflow: workflowContext });
 
-    this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions)
+    this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions);
 
     await this.workflowService.save(workflow);
 
@@ -297,9 +297,10 @@ export class StateMachineProcessorService {
         workflowContext.transition = nextTransition.transition;
         workflowContext.payload = nextTransition.payload;
 
-        const handlers = flatConfig.handlers?.filter(
-          (item) => item.onTransition === nextTransition.transition,
-        ) ?? [];
+        const handlers =
+          flatConfig.handlers?.filter(
+            (item) => item.onTransition === nextTransition.transition,
+          ) ?? [];
 
         let observerIndex = 0;
         let nextPlace: string | undefined = undefined;
@@ -337,17 +338,16 @@ export class StateMachineProcessorService {
           }
         }
 
-        this.commitWorkflowTransition(
-          workflow,
-          nextPlace,
-          nextTransition,
-        );
+        this.commitWorkflowTransition(workflow, nextPlace, nextTransition);
 
-        workflowContext.history = workflow.history?.history.map((item) => item.transition) ?? [];
+        workflowContext.history =
+          workflow.history?.history.map((item) => item.transition) ?? [];
         const evaluatedTransitions =
-          this.configValueParserService.evalWithContextAndInfo<WorkflowTransitionType[]>(flatConfig.transitions, { context, workflow: workflowContext });
+          this.configValueParserService.evalWithContextAndInfo<
+            WorkflowTransitionType[]
+          >(flatConfig.transitions, { context, workflow: workflowContext });
 
-        this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions)
+        this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions);
 
         await this.workflowService.save(workflow);
       }

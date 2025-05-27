@@ -21,20 +21,22 @@ export class LoopCoreModule extends ConfigurableModuleClass {
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,
-          load: [() => ({
-            installTemplates: undefined === options?.installTemplates ? true : options.installTemplates,
-            configs: options?.configs ?? {},
-          })],
+          load: [
+            () => ({
+              installTemplates:
+                undefined === options?.installTemplates
+                  ? true
+                  : options.installTemplates,
+              configs: options?.configs ?? {},
+            }),
+          ],
         }),
         CommonModule,
         ConfigurationModule,
         PersistenceModule,
         WorkflowProcessorModule,
       ],
-      providers: [
-        MigrationsService,
-        ConfigProviderService,
-      ],
+      providers: [MigrationsService, ConfigProviderService],
       exports: [
         CommonModule,
         ConfigurationModule,

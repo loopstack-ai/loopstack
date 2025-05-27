@@ -6,7 +6,8 @@ import {
   ToolInterface,
   ToolResult,
   DocumentEntity,
-  StringExpression, NonExpressionString, ObjectExpression,
+  ExpressionString,
+  NonExpressionString,
 } from '@loopstack/shared';
 import {
   SchemaValidatorService,
@@ -26,14 +27,8 @@ export class BatchCreateDocumentsService implements ToolInterface {
   private readonly logger = new Logger(BatchCreateDocumentsService.name);
   configSchema = z.object({
     document: z.string(),
-    namePrefix: z.union([
-      StringExpression,
-      NonExpressionString,
-    ]).optional(),
-    items: z.union([
-      ObjectExpression,
-      z.array(z.any())
-    ]),
+    namePrefix: z.union([ExpressionString, NonExpressionString]).optional(),
+    items: z.union([ExpressionString, z.array(z.any())]),
   });
 
   schema = z.object({
@@ -61,10 +56,7 @@ export class BatchCreateDocumentsService implements ToolInterface {
     }
 
     let template = props?.document
-      ? this.loopConfigService.get<DocumentType>(
-          'documents',
-        props.document,
-        )
+      ? this.loopConfigService.get<DocumentType>('documents', props.document)
       : undefined;
 
     const aliasVariables =
@@ -84,14 +76,10 @@ export class BatchCreateDocumentsService implements ToolInterface {
 
     const documents: DocumentEntity[] = [];
     for (let index = 0; index < props.items.length; index++) {
-      const documentData = merge(
-        {},
-        template,
-        {
-          name: (props.namePrefix ?? template?.name ?? 'item') + `-${index + 1}`,
-          content: props.items[index]
-        },
-      );
+      const documentData = merge({}, template, {
+        name: (props.namePrefix ?? template?.name ?? 'item') + `-${index + 1}`,
+        content: props.items[index],
+      });
 
       if (!documentData) {
         throw new Error(`No document data provided.`);
@@ -103,12 +91,14 @@ export class BatchCreateDocumentsService implements ToolInterface {
 
       this.logger.debug(`Create document "${documentData.name}".`);
 
-      documents.push(this.documentService.create(
-        workflow,
-        context,
-        workflowContext,
-        documentData as Partial<DocumentEntity>,
-      ));
+      documents.push(
+        this.documentService.create(
+          workflow,
+          context,
+          workflowContext,
+          documentData as Partial<DocumentEntity>,
+        ),
+      );
     }
 
     return {

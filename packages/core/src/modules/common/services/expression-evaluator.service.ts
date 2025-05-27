@@ -22,15 +22,9 @@ export class ExpressionEvaluatorService {
 
     const content = this.extractGetContents(value);
 
-    // if there double ${{ }} is uses, convert the result
-    const isObjectOutput = content.startsWith('{') && content.endsWith('}');
-    const innerContent = content.replace(/^{/, '').replace(/}$/, '').trim();
-
-    const processString = isObjectOutput
-      ? `<%- JSON.stringify(${innerContent}) %>`
-      : `<%- ${innerContent} %>`;
+    const processString = `<%- JSON.stringify(${content}) %>`;
     let result: string = ejs.render(processString, variables);
 
-    return isObjectOutput ? JSON.parse(result) : result;
+    return JSON.parse(result);
   }
 }

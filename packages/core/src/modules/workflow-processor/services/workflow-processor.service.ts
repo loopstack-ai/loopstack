@@ -54,10 +54,10 @@ export class WorkflowProcessorService {
 
       this.logger.debug(`Processing Sequence Item ${item.name}`);
 
-      const evaluatedItem = this.valueParserService.evalWithContext<{ name: string, condition?: boolean }>(
-        item,
-        { context: lastContext },
-      );
+      const evaluatedItem = this.valueParserService.evalWithContext<{
+        name: string;
+        condition?: boolean;
+      }>(item, { context: lastContext });
 
       if (evaluatedItem.condition === false) {
         continue;

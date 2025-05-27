@@ -7,7 +7,7 @@ import {
   ToolResult,
   WorkflowEntity,
   NamespacePropsSchema,
-  StringExpression,
+  ExpressionString,
 } from '@loopstack/shared';
 import { NamespacesService } from '../../persistence';
 
@@ -17,7 +17,7 @@ export class AddNamespaceService implements ToolInterface {
   private readonly logger = new Logger(AddNamespaceService.name);
 
   configSchema = z.object({
-    label: z.union([z.string(), StringExpression]),
+    label: z.union([z.string(), ExpressionString]),
     meta: z.any().optional(),
   });
 
