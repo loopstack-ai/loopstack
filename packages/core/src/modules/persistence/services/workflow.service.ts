@@ -57,7 +57,7 @@ export class WorkflowService {
   async create(data: Partial<WorkflowEntity>): Promise<WorkflowEntity> {
     const dto = this.workflowRepository.create({
       ...data,
-      place: 'initial',
+      place: 'start',
     } as WorkflowEntity);
     const entity = await this.workflowRepository.save(dto);
 

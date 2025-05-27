@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import _ from 'lodash';
 import {
-  WorkflowObserverType,
+  StateMachineHandlerType,
   WorkflowTransitionType,
   StateMachineType,
 } from '@loopstack/shared';
@@ -27,7 +27,7 @@ export class StateMachineConfigService {
 
   getStateMachineFlatConfig(stateMachine: StateMachineType): StateMachineType {
     let transitions: WorkflowTransitionType[] = stateMachine.transitions ?? [];
-    let observers: WorkflowObserverType[] = stateMachine.observers ?? [];
+    let handlers: StateMachineHandlerType[] = stateMachine.handlers ?? [];
 
     if (stateMachine.extends) {
       const parentStateMachine = this.getTemplateFlat(stateMachine.extends);
@@ -36,13 +36,13 @@ export class StateMachineConfigService {
         parentStateMachine?.transitions ?? [],
         'name',
       );
-      observers = [...(parentStateMachine?.observers ?? []), ...observers];
+      handlers = [...(parentStateMachine?.handlers ?? []), ...handlers];
     }
 
     return {
       ...stateMachine,
       transitions,
-      observers,
+      handlers: handlers,
     };
   }
 }

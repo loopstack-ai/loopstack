@@ -4,12 +4,12 @@ import {
   ContextInterface,
   ServiceConfigType,
   WorkflowRunContext,
-  ToolCallType,
   ToolResult, SnippetConfigType,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { ValueParserService } from '../../index';
 import { ToolSchemaValidatorService } from './tool-schema-validator.service';
+import { ToolCallType } from '@loopstack/shared/dist/schemas/tool-call.schema';
 
 @Injectable()
 export class ToolExecutionService {
@@ -35,12 +35,12 @@ export class ToolExecutionService {
   }
 
   async applyTool(
-    toolCall: ToolCallType,
+    handler: ToolCallType,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     workflowContext: WorkflowRunContext,
   ): Promise<ToolResult> {
-    const toolConfig = this.getToolConfig(toolCall.tool);
+    const toolConfig = this.getToolConfig(handler.call);
 
     // replace the alias values with actual data
     const aliasVariables =

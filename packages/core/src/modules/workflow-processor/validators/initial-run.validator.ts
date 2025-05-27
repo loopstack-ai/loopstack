@@ -15,12 +15,12 @@ export class InitialRunValidator implements StateMachineValidatorInterface {
     target?: string;
     hash?: string;
   } {
-    const isValid = workflow.place !== 'initial';
+    const isValid = workflow.place !== 'start';
 
     this.logger.debug(`Check valid: "${isValid.toString()}".`);
 
     if (!isValid) {
-      return { valid: false, target: 'initial' };
+      return { valid: false, target: 'start' };
     }
 
     return { valid: true };

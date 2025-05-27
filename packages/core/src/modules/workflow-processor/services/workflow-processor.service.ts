@@ -184,7 +184,7 @@ export class WorkflowProcessorService {
         config,
       );
 
-    if (workflow.place !== 'finished') {
+    if (workflow.place !== 'complete') {
       this.stop = true;
     } else {
       // update the context if changed in workflow

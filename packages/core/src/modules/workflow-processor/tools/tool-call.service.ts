@@ -36,7 +36,7 @@ export class ToolCallService implements ToolInterface {
 
     return this.toolExecutionService.applyTool(
       {
-        tool: validOptions.tool,
+        call: validOptions.tool,
       },
       workflow,
       context,

@@ -13,27 +13,27 @@ stateMachineTemplates:
   - name: Core/UserInputTemplate
     transitions:
       - name: start
-        from: initial
+        from: start
         to: started
-        trigger: auto
+        when: onEntry
       - name: request-form
         from: started
         to: waiting-for-user
-        trigger: auto
+        when: onEntry
       - name: response
         from: waiting-for-user
         to: received
-        trigger: manual
+        when: manual
       - name: finish
         from: received
-        to: finished
-        trigger: auto
+        to: complete
+        when: onEntry
       - name: unlock
-        from: finished
+        from: complete
         to: waiting-for-user
-        trigger: manual
-    observers:
-      - transition: request-form
-        tool: Core/UserInputTemplate/CreateInputForm
-      - transition: response
-        tool: Core/UserInputTemplate/CreateUserResponse
+        when: manual
+    handlers:
+      - onTransition: request-form
+        call: Core/UserInputTemplate/CreateInputForm
+      - onTransition: response
+        call: Core/UserInputTemplate/CreateUserResponse

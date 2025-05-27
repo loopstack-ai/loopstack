@@ -37,7 +37,7 @@ export class DebugImportsService implements ToolInterface {
           },
           meta: {
             mimeType: 'text/plain',
-            hideAtPlaces: ['finished'],
+            hideAtPlaces: ['complete'],
           },
         } as Partial<DocumentEntity>;
 

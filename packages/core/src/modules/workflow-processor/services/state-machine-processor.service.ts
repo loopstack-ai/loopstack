@@ -121,12 +121,12 @@ export class StateMachineProcessorService {
   ): Promise<WorkflowEntity> {
     workflow.isWorking = true;
 
-    // reset workflow to initial if there are invalidation reasons
+    // reset workflow to "start" if there are invalidation reasons
     if (!stateMachineInfo.isStateValid) {
       const initialTransition: HistoryTransition = {
         transition: 'invalidation',
         from: workflow.place,
-        to: 'initial',
+        to: 'start',
       };
 
       workflow.prevData = workflow.currData;
@@ -178,10 +178,9 @@ export class StateMachineProcessorService {
         transitionMeta = pendingTransition.meta;
       }
     }
-
     if (!nextTransition) {
       nextTransition = workflow.placeInfo?.availableTransitions.find(
-        (item) => item.trigger === 'auto',
+        (item) => item.when === 'onEntry',
       );
     }
 
@@ -298,21 +297,21 @@ export class StateMachineProcessorService {
         workflowContext.transition = nextTransition.transition;
         workflowContext.payload = nextTransition.payload;
 
-        const matchedObservers = flatConfig.observers?.filter(
-          (item) => item.transition === nextTransition.transition,
+        const handlers = flatConfig.handlers?.filter(
+          (item) => item.onTransition === nextTransition.transition,
         ) ?? [];
 
         let observerIndex = 0;
         let nextPlace: string | undefined = undefined;
-        for (const observer of matchedObservers) {
+        for (const handler of handlers) {
           observerIndex++;
 
           this.logger.debug(
-            `Call observer ${observerIndex} (${observer.tool}) on transition ${observer.transition}`,
+            `Call handler ${observerIndex} (${handler.call}) on transition ${handler.onTransition}`,
           );
 
           const result = await this.toolExecutionService.applyTool(
-            observer,
+            handler,
             workflow,
             context,
             workflowContext,
@@ -321,9 +320,9 @@ export class StateMachineProcessorService {
           // add the response data to workflow
           workflow = this.addTransitionData(
             workflow,
-            nextTransition.transition,
-            observer.tool,
-            observer.alias,
+            handler.onTransition,
+            handler.call,
+            handler.provideAs,
             result,
           );
 
@@ -345,7 +344,6 @@ export class StateMachineProcessorService {
         );
 
         workflowContext.history = workflow.history?.history.map((item) => item.transition) ?? [];
-        console.log('history', workflowContext.history)
         const evaluatedTransitions =
           this.configValueParserService.evalWithContextAndInfo<WorkflowTransitionType[]>(flatConfig.transitions, { context, workflow: workflowContext });
 
