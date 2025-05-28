@@ -85,6 +85,12 @@ export interface DocumentDto {
      */
     'schema': object;
     /**
+     * The ui config for interface rendering
+     * @type {object}
+     * @memberof DocumentDto
+     */
+    'ui': object;
+    /**
      * Document metadata
      * @type {object}
      * @memberof DocumentDto
@@ -219,6 +225,12 @@ export interface DocumentItemDto {
      */
     'schema': object;
     /**
+     * The ui config for interface rendering
+     * @type {object}
+     * @memberof DocumentItemDto
+     */
+    'ui': object;
+    /**
      * Document metadata
      * @type {object}
      * @memberof DocumentItemDto
@@ -330,6 +342,7 @@ export const DocumentSortByDtoFieldEnum = {
     ProjectId: 'projectId',
     Content: 'content',
     Schema: 'schema',
+    Ui: 'ui',
     Tags: 'tags',
     Meta: 'meta',
     IsInvalidated: 'isInvalidated',
