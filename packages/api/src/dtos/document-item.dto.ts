@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { DocumentMetaDto } from './document-meta.dto';
 import { DocumentContentDto } from './document-content.dto';
 import { DocumentEntity, JSONSchemaConfigType } from '@loopstack/shared';
+import { UISchemaType } from '@loopstack/shared/dist/schemas/ui.schema';
 
 /**
  * Data Transfer Object for Document Item entities
@@ -44,6 +45,12 @@ export class DocumentItemDto {
     description: 'The json schema for document validation',
   })
   schema: JSONSchemaConfigType;
+
+  @Expose()
+  @ApiProperty({
+    description: 'The ui config for interface rendering',
+  })
+  ui: UISchemaType;
 
   /**
    * Document metadata
