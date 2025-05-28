@@ -3,10 +3,10 @@ documents:
     tags:
       - message
       - internal
+    ui:
+      widget: chat-message
     schema:
       type: object
-      ui:
-        widget: chat-message
     meta:
       invalidate: false
     content:

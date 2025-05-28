@@ -2,10 +2,10 @@ documents:
   - name: Core/AssistantMessage
     tags:
       - message
+    ui:
+      widget: chat-message
     schema:
       type: object
-      ui:
-        widget: chat-message
     meta:
       invalidate: false
     content:

@@ -1,9 +1,9 @@
 documents:
   - name: Core/InfoMessage
+    ui:
+      widget: chat-message
     schema:
       type: object
-      ui:
-        widget: chat-message
     content:
       role: user
       content: ""

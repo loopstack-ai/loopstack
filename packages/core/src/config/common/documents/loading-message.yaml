@@ -1,9 +1,9 @@
 documents:
   - name: Core/LoadingMessage
+    ui:
+      widget: chat-message
     schema:
       type: object
-      ui:
-        widget: chat-message
     content:
       role: assistant
       content: "Generating answer..."

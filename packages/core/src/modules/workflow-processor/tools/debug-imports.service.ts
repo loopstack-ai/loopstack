@@ -29,11 +29,11 @@ export class DebugImportsService implements ToolInterface {
         const documentData = {
           name: `debug-${name}`,
           content: JSON.stringify(item, null, 2),
+          ui: {
+            widget: 'debug',
+          },
           schema: {
             type: 'string',
-            ui: {
-              widget: 'debug',
-            },
           },
           meta: {
             mimeType: 'text/plain',
