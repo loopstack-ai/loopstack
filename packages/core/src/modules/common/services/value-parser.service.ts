@@ -76,7 +76,7 @@ export class ValueParserService {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
 
-  evalWithContextAndDataAndInfo<T extends {}>(obj: any, variables: any): T {
+  evalWithContextVariables<T extends {}>(obj: any, variables: any): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
 }

@@ -43,7 +43,7 @@ export class WorkflowProcessorService {
     sequenceConfig: WorkflowPipelineType,
     context: ContextInterface,
   ): Promise<ContextInterface | undefined> {
-    const sequence = sequenceConfig.items;
+    const sequence = sequenceConfig.sequence;
 
     // create a new index level
     const index = `${context.index}.0`;
@@ -52,7 +52,9 @@ export class WorkflowProcessorService {
     for (let i = 0; i < sequence.length; i++) {
       const item = sequence[i];
 
-      this.logger.debug(`Processing Sequence Item ${item.name}`);
+      const workflowName = typeof item === 'object' ? item.name : item;
+
+      this.logger.debug(`Processing Sequence Item ${workflowName}`);
 
       const evaluatedItem = this.valueParserService.evalWithContext<{
         name: string;
@@ -64,7 +66,7 @@ export class WorkflowProcessorService {
       }
 
       lastContext.index = this.createIndex(index, i + 1);
-      lastContext = await this.processChild(item.name, lastContext);
+      lastContext = await this.processChild(workflowName, lastContext);
 
       if (this.stop) {
         break;

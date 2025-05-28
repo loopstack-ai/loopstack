@@ -52,7 +52,7 @@ export class ToolExecutionService {
           )
         : {};
 
-    const useSnippet = (name: string, variables: any): string => {
+    const useTemplate = (name: string, variables: any): string => {
       const snippet = this.loopConfigService.get<SnippetConfigType>(
         'snippets',
         name,
@@ -61,17 +61,17 @@ export class ToolExecutionService {
         return '';
       }
 
-      return this.valueParserService.evalWithContextAndDataAndInfo(
+      return this.valueParserService.evalWithContextVariables(
         snippet.value,
         variables,
       );
     };
 
-    const props = this.valueParserService.evalWithContextAndDataAndInfo(
+    const props = this.valueParserService.evalWithContextVariables(
       toolConfig.props,
       {
         ...aliasVariables,
-        useSnippet,
+        useTemplate,
         context,
         data: workflow?.currData,
         workflow: workflowContext,
