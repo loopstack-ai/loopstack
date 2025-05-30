@@ -1,16 +1,5 @@
-tools:
-  - name: Core/UserInputTemplate/CreateInputForm
-    service: CreateDocumentService
-    props:
-      document: ${ workflow.options.document }
-  - name: Core/UserInputTemplate/CreateUserResponse
-    service: CreateDocumentService
-    props:
-      document: ${ workflow.options.document }
-      update:
-        content: ${ workflow.payload }
 stateMachineTemplates:
-  - name: Core/UserInputTemplate
+  - name: core/userInputTemplate
     transitions:
       - name: start
         from: start
@@ -34,6 +23,6 @@ stateMachineTemplates:
         when: manual
     handlers:
       - onTransition: request-form
-        call: Core/UserInputTemplate/CreateInputForm
+        call: core/createTemplateDocument
       - onTransition: response
-        call: Core/UserInputTemplate/CreateUserResponse
+        call: core/createTemplateDocumentUserUpdate

@@ -1,8 +1,8 @@
 tools:
-  - name: Core/CreateUserMessage
+  - name: core/createUserMessage
     service: CreateDocumentService
     props:
-      document: Core/UserMessage
+      document: core/userMessage
       update:
         content:
           role: user

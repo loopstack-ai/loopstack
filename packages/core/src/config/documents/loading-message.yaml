@@ -1,13 +1,10 @@
 documents:
-  - name: Core/AssistantMessage
-    tags:
-      - message
+  - name: core/loadingMessage
     ui:
       widget: chat-message
     schema:
       type: object
-    meta:
-      invalidate: false
     content:
       role: assistant
-      content: ""
+      content: "Generating answer..."
+      animation: loading

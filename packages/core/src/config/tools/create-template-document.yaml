@@ -1,0 +1,5 @@
+tools:
+  - name: core/createTemplateDocument
+    service: CreateDocumentService
+    props:
+      document: ${ workflow.options.document }

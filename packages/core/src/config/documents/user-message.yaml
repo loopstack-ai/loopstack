@@ -1,5 +1,5 @@
 documents:
-  - name: Core/UserMessage
+  - name: core/userMessage
     tags:
       - message
     ui:
