@@ -1,8 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import * as yaml from 'js-yaml';
-import { MainConfigType } from '@loopstack/shared';
-import { ConfigSourceInterface } from '../modules';
+import { ConfigSourceInterface, MainConfigType } from '@loopstack/shared';
 
 export function loadConfiguration(path: string): ConfigSourceInterface[] {
   const configs: ConfigSourceInterface[] = [];
