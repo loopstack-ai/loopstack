@@ -33,7 +33,7 @@ const LoadDocumentArgsSchema = z.object({
   ignoreChanges: z.boolean().optional(),
   global: z.boolean().optional(),
   optional: z.boolean().optional(),
-});
+}).strict();
 
 export type LoadDocumentArgsInterface = z.infer<typeof LoadDocumentArgsSchema>;
 

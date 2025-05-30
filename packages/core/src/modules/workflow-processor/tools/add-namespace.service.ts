@@ -19,9 +19,9 @@ export class AddNamespaceService implements ToolInterface {
   configSchema = z.object({
     label: z.union([z.string(), ExpressionString]),
     meta: z.any().optional(),
-  });
+  }).strict();
 
-  schema = NamespacePropsSchema;
+  schema = NamespacePropsSchema.strict();
 
   constructor(private namespacesService: NamespacesService) {}
 

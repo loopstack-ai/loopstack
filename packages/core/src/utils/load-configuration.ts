@@ -2,9 +2,10 @@ import path from 'path';
 import fs from 'fs';
 import * as yaml from 'js-yaml';
 import { MainConfigType } from '@loopstack/shared';
+import { ConfigSourceInterface } from '../modules';
 
-export function loadConfiguration(path: string): MainConfigType[] {
-  const configs: MainConfigType[] = [];
+export function loadConfiguration(path: string): ConfigSourceInterface[] {
+  const configs: ConfigSourceInterface[] = [];
 
   try {
     loadConfigsRecursively(path, configs);
@@ -17,7 +18,7 @@ export function loadConfiguration(path: string): MainConfigType[] {
 
 function loadConfigsRecursively(
   currentPath: string,
-  configs: MainConfigType[],
+  configs: ConfigSourceInterface[],
 ): void {
   const items = fs.readdirSync(currentPath);
 
@@ -29,7 +30,10 @@ function loadConfigsRecursively(
       const config = yaml.load(
         fs.readFileSync(itemPath, 'utf8'),
       ) as MainConfigType;
-      configs.push(config);
+      configs.push({
+        path: itemPath,
+        config
+      });
     } else if (stats.isDirectory()) {
       loadConfigsRecursively(itemPath, configs);
     }

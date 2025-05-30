@@ -1,7 +1,6 @@
 import {
   ConfigProvider,
-  ConfigProviderInterface,
-  MainConfigType,
+  ConfigProviderInterface, ConfigSourceInterface,
 } from '@loopstack/shared';
 import { loadConfiguration } from './utils';
 import { Injectable } from '@nestjs/common';
@@ -10,8 +9,8 @@ import path from 'path';
 @Injectable()
 @ConfigProvider()
 export class ConfigProviderService implements ConfigProviderInterface {
-  getConfig(): Record<string, MainConfigType[]> {
+  getConfig(): Record<string, ConfigSourceInterface[]> {
     const configPath = path.join(__dirname, 'config');
-    return { [configPath]: loadConfiguration(configPath) };
+    return { ['core']: loadConfiguration(configPath) };
   }
 }

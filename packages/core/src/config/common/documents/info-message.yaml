@@ -5,5 +5,5 @@ documents:
     schema:
       type: object
     content:
-      role: user
+      role: info
       content: ""

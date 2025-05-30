@@ -3,9 +3,9 @@ import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.servic
 import { AdapterRegistry } from './adapter-registry.service';
 import { ToolRegistry } from './tool.registry';
 import { ConfigService } from '@nestjs/config';
-import { NamedCollectionItem } from '@loopstack/shared';
-import { z } from 'zod';
+import { ConfigSourceInterface, MainConfigType, NamedCollectionItem, StateMachineHandlerType } from '@loopstack/shared';
 import { ConfigProviderRegistry } from './config-provider.registry';
+import { z } from 'zod';
 
 @Injectable()
 export class ConfigurationService implements OnModuleInit {
@@ -33,16 +33,28 @@ export class ConfigurationService implements OnModuleInit {
     this.adapterRegistry.initialize();
     this.toolRegistry.initialize();
 
-    const appConfigs = this.configService.get('configs') ?? [];
+    const appConfigs = this.configService.get<ConfigSourceInterface[]>('configs') ?? [];
     const moduleConfigs = this.configProviderRegistry.getConfigs();
 
-    const configs = [...appConfigs, ...moduleConfigs];
+    const configs = [
+      ...appConfigs,
+      ...moduleConfigs,
+    ];
 
-    if (configs) {
-      for (const config of configs) {
-        this.createFromConfig(config);
-      }
+    if (!configs) {
+      return
     }
+
+    // parse configs and make basic schema validations
+    for (const config of configs) {
+      this.createFromConfig(config);
+    }
+
+    // validate each config file separately, so we can trace potential source of errors
+    for (const config of configs) {
+      this.validate(config);
+    }
+
   }
 
   createDefaultConfig() {
@@ -105,36 +117,154 @@ export class ConfigurationService implements OnModuleInit {
     return config.get(searchKey) as T;
   }
 
-  createFromConfig(data: any): any {
+  createFromConfig(source: ConfigSourceInterface): any {
     try {
-      const config = this.mainSchemaGenerator.getSchema().parse(data);
-      const keys = Object.keys(config);
-      for (const key of keys) {
-        this.updateConfig(key, config[key]);
-      }
+      const config: MainConfigType = this.mainSchemaGenerator.getSchema().parse(source.config);
+      Object.entries(config).forEach(([key, value]) => {
+        this.updateConfig(key, value);
+      });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        // Enhanced error output that includes the invalid values
-        const enhancedErrors = error.errors.map((err) => {
-          // Get the path to the invalid value
-          const path = err.path;
-
-          // Extract the invalid value from your original data using the path
-          const invalidValue = path.reduce(
-            (obj, key) =>
-              obj && typeof obj === 'object' ? obj[key] : undefined,
-            data,
-          );
-
-          return {
-            ...err,
-            invalidValue, // Add the actual value that failed
-          };
-        });
-
-        console.log(JSON.stringify(enhancedErrors, null, 2));
-      }
-      throw error;
+      this.handleConfigError(error, source.path);
     }
+  }
+
+  private createProjectEntrypointValidation(): z.ZodEffects<any, any, any> {
+    return z.any().refine(
+      (data: MainConfigType): boolean => {
+        if (!data.projects) {
+          return true;
+        }
+        return data.projects.every(project =>
+          undefined !== this.get('workflows', project.entrypoint)
+        );
+      },
+      (data: MainConfigType) => {
+        const invalidIndex = data.projects?.findIndex(project =>
+          undefined === this.get('workspaces', project.workspace)
+        ) ?? -1;
+
+        return {
+          message: `project references non-existent workflow.`,
+          path: ["projects", invalidIndex, "entrypoint"]
+        };
+      }
+    );
+  }
+
+  private createProjectWorkspaceValidation(): z.ZodEffects<any, any, any> {
+    return z.any().refine(
+      (data: MainConfigType): boolean => {
+        if (!data.projects) {
+          return true;
+        }
+        return data.projects.every(project =>
+          undefined !== this.get('workspaces', project.workspace)
+        );
+      },
+      (data: MainConfigType) => {
+        const invalidIndex = data.projects?.findIndex(project =>
+          undefined === this.get('workspaces', project.workspace)
+        ) ?? -1;
+
+        return {
+          message: `project references non-existent workspace.`,
+          path: ["projects", invalidIndex, "workspace"]
+        };
+      }
+    );
+  }
+
+  private createWorkflowToolCallValidation(): z.ZodEffects<any, any, any> {
+    return z.any().refine(
+      (data: MainConfigType): boolean => {
+        if (!data.workflows) {
+          return true;
+        }
+
+        const toolCalls: string[] = data.workflows.map((wf) => wf.type === 'stateMachine' ? wf.handlers?.map((h) => h.call) : [])
+          .flat()
+          .filter((toolName) => undefined !== toolName);
+
+        return toolCalls.every(toolName =>
+          undefined !== this.get('tools', toolName)
+        );
+      },
+      (data: MainConfigType) => {
+        const items = data.workflows?.map(wf =>
+          wf.type === 'stateMachine' && wf.handlers?.find((h) => undefined === this.get('tools', h.call))
+        ) ?? [];
+
+        const errorItem = items.flat().filter((i) => undefined !== i).shift() as StateMachineHandlerType;
+        return {
+          message: `workflow handler references non-existent tool "${errorItem.call}".`,
+          path: ["workflows", "handlers"]
+        };
+      }
+    );
+  }
+
+  private createWorkflowTemplateToolCallValidation(): z.ZodEffects<any, any, any> {
+    return z.any().refine(
+      (data: MainConfigType): boolean => {
+        if (!data.stateMachineTemplates) {
+          return true;
+        }
+
+        const templateIndex = data.stateMachineTemplates.findIndex(wf =>
+          wf.handlers && wf.handlers.find((handler) => !this.has('tools', handler.call))
+        );
+
+        return templateIndex === -1;
+      },
+      (data: MainConfigType) => {
+        const templateIndex = data.stateMachineTemplates!.findIndex(wf =>
+          wf.handlers && wf.handlers.find((handler) => !this.has('tools', handler.call))
+        );
+
+        const handlerIndex = data.stateMachineTemplates![templateIndex].handlers!.findIndex((handler) => !this.has('tools', handler.call));
+        const wrongToolName = data.stateMachineTemplates![templateIndex].handlers![handlerIndex].call;
+
+        return {
+          message: `state machine template handler references non-existent tool "${wrongToolName}".`,
+          path: ["stateMachineTemplates", templateIndex, "handlers", handlerIndex, 'call']
+        };
+      }
+    );
+  }
+
+  validate(source: ConfigSourceInterface): any {
+    try {
+      this.mainSchemaGenerator.getSchema()
+        .and(this.createProjectEntrypointValidation())
+        .and(this.createProjectWorkspaceValidation())
+        .and(this.createWorkflowToolCallValidation())
+        .and(this.createWorkflowTemplateToolCallValidation())
+        // todo add more validations
+        //   - state machine handler transition names
+        //   - state machine template (extends) names
+        //   - document names
+        .parse(source.config);
+    } catch (error) {
+      this.handleConfigError(error, source.path);
+    }
+  }
+
+  private handleConfigError(error: unknown, sourcePath: string): never {
+    if (error instanceof z.ZodError) {
+      error.errors.forEach(validationError => {
+        this.logger.error(
+          `Validation error: ${validationError.message}`
+        );
+
+        this.logger.debug(validationError);
+      });
+
+      throw new Error(
+        `Configuration validation failed. Found ${error.errors.length} validation error(s) in file ${sourcePath}`
+      );
+    }
+
+    this.logger.error('Unexpected error during configuration parsing:', error);
+    throw new Error(`Unexpected configuration error in file: ${sourcePath}`);
   }
 }

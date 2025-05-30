@@ -1,9 +1,9 @@
 import { ConfigurableModuleBuilder } from '@nestjs/common';
-import { MainConfigType } from '@loopstack/shared';
+import { ConfigSourceInterface } from './modules';
 
 export interface LoopCoreModuleOptions {
   installTemplates?: boolean;
-  configs?: MainConfigType[];
+  configs?: ConfigSourceInterface[];
 }
 
 export const { ConfigurableModuleClass, MODULE_OPTIONS_TOKEN } =

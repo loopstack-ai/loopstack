@@ -30,13 +30,13 @@ export class CreateDocumentService implements ToolInterface {
     document: z.string().optional(),
     update: DocumentConfigSchema.partial().optional(),
     create: DocumentConfigSchema.optional(),
-  });
+  }).strict();
 
   schema = z.object({
     document: z.string().optional(),
     update: PartialDocumentSchema.optional(),
     create: DocumentSchema.optional(),
-  });
+  }).strict();
 
   constructor(
     private actionHelperService: SchemaValidatorService,

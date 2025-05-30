@@ -11,12 +11,12 @@ export class SetContextService implements ToolInterface {
   configSchema = z.object({
     key: z.string(),
     value: z.any(),
-  });
+  }).strict();
 
   schema = z.object({
     key: z.string(),
     value: z.any(),
-  });
+  }).strict();
 
   async apply(
     props: z.infer<typeof this.schema>,

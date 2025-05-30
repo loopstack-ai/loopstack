@@ -1,16 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import {
-  MainConfigType,
   CONFIG_PROVIDER_DECORATOR,
-  ConfigProviderInterface,
-  AdapterInterface,
+  ConfigProviderInterface, ConfigSourceInterface,
 } from '@loopstack/shared';
 
 @Injectable()
 export class ConfigProviderRegistry {
   private readonly logger = new Logger(ConfigProviderRegistry.name);
-  private configs: Record<string, MainConfigType[]> = {};
+  private configs: Record<string, ConfigSourceInterface[]> = {};
 
   constructor(
     private readonly discoveryService: DiscoveryService,
@@ -48,7 +46,7 @@ export class ConfigProviderRegistry {
     };
   }
 
-  getConfigs(): MainConfigType[] {
+  getConfigs(): ConfigSourceInterface[] {
     return Array.from(Object.values(this.configs)).flat();
   }
 }

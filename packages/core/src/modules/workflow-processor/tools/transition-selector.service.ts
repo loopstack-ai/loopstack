@@ -20,7 +20,7 @@ export class TransitionSelectorService implements ToolInterface {
         condition: ExpressionString.optional(),
       }),
     ),
-  });
+  }).strict();
 
   schema = z.object({
     transitions: z.array(
@@ -29,7 +29,7 @@ export class TransitionSelectorService implements ToolInterface {
         condition: z.union([z.boolean(), z.undefined()]),
       }),
     ),
-  });
+  }).strict();
 
   async apply(props: z.infer<typeof this.schema>): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);

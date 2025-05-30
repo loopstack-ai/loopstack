@@ -22,9 +22,15 @@ export class ExpressionEvaluatorService {
 
     const content = this.extractGetContents(value);
 
-    const processString = `<%- JSON.stringify(${content}) %>`;
-    let result: string = ejs.render(processString, variables);
+    // handle undefined values separately when serializing
+    const stringify = (value: any) => undefined === value ? 'undefined' : JSON.stringify(value);
+    const processString = `<%- stringify(${content}) %>`;
 
-    return JSON.parse(result);
+    let result: string = ejs.render(processString, {
+      ...variables,
+      stringify,
+    });
+
+    return 'undefined' === result ? undefined : JSON.parse(result);
   }
 }

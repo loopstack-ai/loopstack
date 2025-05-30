@@ -17,12 +17,12 @@ export class ToolCallService implements ToolInterface {
   configSchema = z.object({
     tool: z.string(),
     options: z.any().optional(),
-  });
+  }).strict();
 
   schema = z.object({
     tool: z.string(),
     options: z.any().optional(),
-  });
+  }).strict();
 
   constructor(private toolExecutionService: ToolExecutionService) {}
 

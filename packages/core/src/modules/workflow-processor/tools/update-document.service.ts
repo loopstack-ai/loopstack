@@ -21,12 +21,12 @@ export class UpdateDocumentService implements ToolInterface {
   configSchema = z.object({
     id: ExpressionString,
     update: DocumentConfigSchema.partial().optional(),
-  });
+  }).strict();
 
   schema = z.object({
     id: NonExpressionString,
     update: PartialDocumentSchema.optional(),
-  });
+  }).strict();
 
   constructor(private documentService: DocumentService) {}
 

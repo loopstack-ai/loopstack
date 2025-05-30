@@ -27,7 +27,7 @@ export class LoopCoreModule extends ConfigurableModuleClass {
                 undefined === options?.installTemplates
                   ? true
                   : options.installTemplates,
-              configs: options?.configs ?? {},
+              configs: options?.configs ?? [],
             }),
           ],
         }),
