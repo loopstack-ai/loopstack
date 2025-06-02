@@ -16,9 +16,6 @@
 [submodule "frontend/api-client"]
 	path = frontend/api-client
 	url = git@github.com:loopstack-ai/api-client.git
-[submodule "frontend/api-client-generator"]
-	path = frontend/api-client-generator
-	url = git@github.com:loopstack-ai/api-client-generator.git
 [submodule "frontend/app-react"]
 	path = frontend/app-react
 	url = git@github.com:loopstack-ai/app-react.git
