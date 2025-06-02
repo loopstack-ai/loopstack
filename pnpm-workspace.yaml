@@ -5,3 +5,4 @@ packages:
   - "frontend/*"
   - "installer/*"
   - "templates/*"
+  - "generators/*"
