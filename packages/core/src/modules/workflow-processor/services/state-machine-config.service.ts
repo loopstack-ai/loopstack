@@ -11,7 +11,7 @@ import { ConfigurationService } from '../../configuration';
 export class StateMachineConfigService {
   constructor(private loopConfigService: ConfigurationService) {}
 
-  getTemplateFlat(name: string) {
+  getTemplate(name: string) {
     const stateMachine = this.loopConfigService.get<StateMachineType>(
       'workflowTemplates',
       name,
@@ -22,15 +22,15 @@ export class StateMachineConfigService {
       );
     }
 
-    return this.getStateMachineFlatConfig(stateMachine);
+    return this.getConfig(stateMachine);
   }
 
-  getStateMachineFlatConfig(stateMachine: StateMachineType): StateMachineType {
+  getConfig(stateMachine: StateMachineType): StateMachineType {
     let transitions: WorkflowTransitionType[] = stateMachine.transitions ?? [];
     let handlers: StateMachineHandlerType[] = stateMachine.handlers ?? [];
 
     if (stateMachine.extends) {
-      const parentStateMachine = this.getTemplateFlat(stateMachine.extends);
+      const parentStateMachine = this.getTemplate(stateMachine.extends);
       transitions = _.unionBy(
         transitions,
         parentStateMachine?.transitions ?? [],

@@ -261,8 +261,8 @@ export class StateMachineProcessorService {
     let context = beforeContext;
     workflow = await this.initStateMachine(workflow, stateMachineInfo);
 
-    const flatConfig =
-      this.workflowConfigService.getStateMachineFlatConfig(config);
+    const workflowConfig =
+      this.workflowConfigService.getConfig(config);
 
     const workflowContext = {
       options: stateMachineInfo.options,
@@ -270,10 +270,11 @@ export class StateMachineProcessorService {
 
     workflowContext.history =
       workflow.history?.history.map((item) => item.transition) ?? [];
+
     const evaluatedTransitions =
       this.configValueParserService.evalWithContextAndInfo<
         WorkflowTransitionType[]
-      >(flatConfig.transitions, { context, workflow: workflowContext });
+      >(workflowConfig.transitions, { context, workflow: workflowContext });
 
     this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions);
 
@@ -298,7 +299,7 @@ export class StateMachineProcessorService {
         workflowContext.payload = nextTransition.payload;
 
         const handlers =
-          flatConfig.handlers?.filter(
+          workflowConfig.handlers?.filter(
             (item) => item.onTransition === nextTransition.transition,
           ) ?? [];
 
@@ -345,7 +346,7 @@ export class StateMachineProcessorService {
         const evaluatedTransitions =
           this.configValueParserService.evalWithContextAndInfo<
             WorkflowTransitionType[]
-          >(flatConfig.transitions, { context, workflow: workflowContext });
+          >(workflowConfig.transitions, { context, workflow: workflowContext });
 
         this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions);
 
