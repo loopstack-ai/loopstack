@@ -1,6 +1,7 @@
 {
   "name": "@loopstack/app-template",
   "version": "0.0.1",
+  "private": true,
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -17,10 +18,10 @@
     "generate:schemas": "ts-node src/cli.ts -- generate-schemas"
   },
   "dependencies": {
-    "@loopstack/api": "^1.0",
-    "@loopstack/core": "^1.0",
-    "@loopstack/llm": "^1.0",
-    "@loopstack/shared": "^1.0",
+    "@loopstack/api": "^1.0.0",
+    "@loopstack/core": "^1.0.0",
+    "@loopstack/llm": "^1.0.0",
+    "@loopstack/shared": "^1.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
