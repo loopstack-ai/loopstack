@@ -2,7 +2,7 @@
   "name": "loopstack",
   "displayName": "Loopstack AI Workflow Automation Framework",
   "description": "A monorepo to maintain loopstack core module and demo applications",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "index.js",
   "author": {
     "name": "Jakob Klippel",
