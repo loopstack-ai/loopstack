@@ -1,4 +1,4 @@
-stateMachineTemplates:
+workflowTemplates:
   - name: core/userInputTemplate
     transitions:
       - name: start

@@ -13,7 +13,7 @@ export class StateMachineConfigService {
 
   getTemplateFlat(name: string) {
     const stateMachine = this.loopConfigService.get<StateMachineType>(
-      'stateMachineTemplates',
+      'workflowTemplates',
       name,
     );
     if (!stateMachine) {
@@ -37,12 +37,19 @@ export class StateMachineConfigService {
         'name',
       );
       handlers = [...(parentStateMachine?.handlers ?? []), ...handlers];
+
+      return {
+        ...parentStateMachine,
+        ...stateMachine,
+        transitions,
+        handlers,
+      }
     }
 
     return {
       ...stateMachine,
       transitions,
-      handlers: handlers,
+      handlers,
     };
   }
 }

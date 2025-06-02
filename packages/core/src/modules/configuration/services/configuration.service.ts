@@ -206,27 +206,32 @@ export class ConfigurationService implements OnModuleInit {
   private createWorkflowTemplateToolCallValidation(): z.ZodEffects<any, any, any> {
     return z.any().refine(
       (data: MainConfigType): boolean => {
-        if (!data.stateMachineTemplates) {
+        if (!data.workflowTemplates) {
           return true;
         }
 
-        const templateIndex = data.stateMachineTemplates.findIndex(wf =>
+        const stateMachineWorkflows = data.workflowTemplates.filter((wf) => wf.type === 'stateMachine');
+
+        const templateIndex = stateMachineWorkflows.findIndex(wf =>
           wf.handlers && wf.handlers.find((handler) => !this.has('tools', handler.call))
         );
 
         return templateIndex === -1;
       },
       (data: MainConfigType) => {
-        const templateIndex = data.stateMachineTemplates!.findIndex(wf =>
+
+        const stateMachineWorkflows = data.workflowTemplates!.filter((wf) => wf.type === 'stateMachine');
+
+        const templateIndex = stateMachineWorkflows.findIndex(wf =>
           wf.handlers && wf.handlers.find((handler) => !this.has('tools', handler.call))
         );
 
-        const handlerIndex = data.stateMachineTemplates![templateIndex].handlers!.findIndex((handler) => !this.has('tools', handler.call));
-        const wrongToolName = data.stateMachineTemplates![templateIndex].handlers![handlerIndex].call;
+        const handlerIndex = stateMachineWorkflows[templateIndex].handlers!.findIndex((handler) => !this.has('tools', handler.call));
+        const wrongToolName = stateMachineWorkflows[templateIndex].handlers![handlerIndex].call;
 
         return {
           message: `state machine template handler references non-existent tool "${wrongToolName}".`,
-          path: ["stateMachineTemplates", templateIndex, "handlers", handlerIndex, 'call']
+          path: ["workflowTemplates", templateIndex, "handlers", handlerIndex, 'call']
         };
       }
     );
