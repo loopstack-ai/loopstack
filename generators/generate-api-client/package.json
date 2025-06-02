@@ -7,6 +7,7 @@
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
+  "private": true,
   "scripts": {
     "generate": "openapi-generator-cli generate -i http://localhost:3000/api-json -g typescript-axios -o ../../frontend/api-client -c openapi-generator-config.json"
   },
