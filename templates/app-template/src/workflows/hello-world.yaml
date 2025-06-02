@@ -1,0 +1,26 @@
+tools:
+  - name: sayHelloWorld
+    service: CreateDocumentService
+    props:
+      create:
+        name: helloWorldDocument
+        schema:
+          type: string
+        content: "Hello World"
+
+workflows:
+  - name: helloWorldWorkflow
+    type: tool
+    sequence:
+      - call: sayHelloWorld
+
+projects:
+  - name: helloWorld
+    title: "Hello World Example"
+    workspace: default
+    entrypoint: helloWorldWorkflow
+
+workspaces:
+  - name: default
+    title: "Default"
+
