@@ -22,8 +22,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/core": "workspace:^",
-    "@loopstack/shared": "workspace:^",
+    "@loopstack/core": "workspace:^0.0.2",
+    "@loopstack/shared": "workspace:^0.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
