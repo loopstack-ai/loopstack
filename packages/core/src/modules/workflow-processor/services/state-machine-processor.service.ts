@@ -180,7 +180,7 @@ export class StateMachineProcessorService {
     }
     if (!nextTransition) {
       nextTransition = workflow.placeInfo?.availableTransitions.find(
-        (item) => item.when === 'onEntry',
+        (item) => undefined === item.when || item.when === 'onEntry',
       );
     }
 
