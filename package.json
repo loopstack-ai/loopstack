@@ -1,13 +1,12 @@
 {
-  "name": "loopstack-monorepo",
-  "displayName": "Loopstack Monorepo",
+  "name": "loopstack",
+  "displayName": "Loopstack AI Workflow Automation Framework",
   "description": "A monorepo to maintain loopstack core module and demo applications",
   "version": "1.0.0",
   "main": "index.js",
   "author": {
     "name": "Jakob Klippel",
-    "email": "jakob@loopstack.ai",
-    "url": "https://www.linkedin.com/in/jakob-klippel-414a30261/"
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
   "license": "MIT",
   "scripts": {
@@ -17,6 +16,12 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "infra:up": "docker compose up --build",
-    "infra:down": "docker compose down"
+    "infra:down": "docker compose down",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.4"
   }
 }

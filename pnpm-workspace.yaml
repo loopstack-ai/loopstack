@@ -3,3 +3,5 @@ packages:
   - "packages/*"
   - "libs/*"
   - "frontend/*"
+  - "installer/*"
+  - "templates/*"

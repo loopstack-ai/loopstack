@@ -25,9 +25,6 @@
 [submodule "frontend/websocket"]
 	path = frontend/websocket
 	url = git@github.com:loopstack-ai/websocket.git
-[submodule "apps/demo"]
-	path = apps/demo
-	url = git@github.com:loopstack-ai/demo.git
 [submodule "packages/llm"]
 	path = packages/llm
 	url = git@github.com:loopstack-ai/llm.git
