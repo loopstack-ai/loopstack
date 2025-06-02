@@ -1,0 +1,16 @@
+{
+  "name": "@loopstack/api-client-generator",
+  "displayName": "Loopstack Api Client Generator",
+  "version": "0.0.1",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "scripts": {
+    "generate": "openapi-generator-cli generate -i http://localhost:3000/api-json -g typescript-axios -o ../../frontend/api-client -c openapi-generator-config.json"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.16.3"
+  }
+}
