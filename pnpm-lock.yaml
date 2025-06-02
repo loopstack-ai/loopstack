@@ -12,7 +12,7 @@ importers:
         specifier: ^2.29.4
         version: 2.29.4
 
-  apps/demo:
+  apps/demo2:
     dependencies:
       '@loopstack/api':
         specifier: workspace:^
@@ -133,7 +133,7 @@ importers:
         specifier: ^8.20.0
         version: 8.32.1(eslint@9.27.0)(typescript@5.8.3)
 
-  apps/lead-follow-up:
+  apps/lead-follow-up-2:
     dependencies:
       '@loopstack/api':
         specifier: workspace:^
@@ -269,12 +269,6 @@ importers:
       typescript:
         specifier: ^4.0 || ^5.0
         version: 5.8.3
-
-  frontend/api-client-generator:
-    devDependencies:
-      '@openapitools/openapi-generator-cli':
-        specifier: ^2.16.3
-        version: 2.20.2(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(@nestjs/websockets@11.1.1)(class-transformer@0.5.1)(class-validator@0.14.2)
 
   frontend/app-react:
     dependencies:
@@ -523,6 +517,12 @@ importers:
       typescript-eslint:
         specifier: ^8.20.0
         version: 8.32.1(eslint@9.27.0)(typescript@5.8.3)
+
+  generators/api-client-generator:
+    devDependencies:
+      '@openapitools/openapi-generator-cli':
+        specifier: ^2.16.3
+        version: 2.20.2(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(@nestjs/websockets@11.1.1)(class-transformer@0.5.1)(class-validator@0.14.2)
 
   installer/create-loopstack-app:
     dependencies:
@@ -1038,6 +1038,18 @@ importers:
 
   templates/app-template:
     dependencies:
+      '@loopstack/api':
+        specifier: ^0.0.1
+        version: 0.0.1(@nestjs/websockets@11.1.1)(babel-plugin-macros@3.1.0)(cache-manager@6.4.3)(ioredis@5.6.1)(passport@0.7.0)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
+      '@loopstack/core':
+        specifier: ^0.0.1
+        version: 0.0.1(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
+      '@loopstack/llm':
+        specifier: ^0.0.1
+        version: 0.0.1(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(class-transformer@0.5.1)(class-validator@0.14.2)(ioredis@5.6.1)(keyv@5.3.3)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
+      '@loopstack/shared':
+        specifier: ^0.0.1
+        version: 0.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -2074,6 +2086,15 @@ packages:
   '@keyv/serialize@1.0.3':
     resolution: {integrity: sha512-qnEovoOp5Np2JDGonIDL6Ayihw0RhnRh6vxPuHo4RDn1UOzwEo4AeIfpL6UGIrsceWrCMiVPgwRjbHu4vYFc3g==}
 
+  '@loopstack/api@0.0.1':
+    resolution: {integrity: sha512-KB11636AeUhQHc+jkaY0GyOihqwLXvRb0a1TsFMMlCtCG/QjD4yCjSg4hra+O4vi02WB6OTdsq7fF3vfSuJ22Q==}
+
+  '@loopstack/core@0.0.1':
+    resolution: {integrity: sha512-kB/OiRluxHtZGr6bLhzyN6tMIZYoXCKWrp47V+jwrriAclddloCCU8Q612VqDRXurZrSWIEBZ4Uto92FYad4lQ==}
+
+  '@loopstack/llm@0.0.1':
+    resolution: {integrity: sha512-dDheGYwvTMeCCo4sLD/ODHKRQOfEpHhjOCIGMfikdc8/v3t0mDPwFD/c2AGbdVJEwaWFN/EWNk8Wcoltvpffvw==}
+
   '@loopstack/markdown-parser@1.0.9':
     resolution: {integrity: sha512-nWQwh8fBOTN8euSC2Q+riCnpcPs+SQ/CLfYYSQ3eZITTCVq1+S18nf58CMYInOnDmHp9Cwm5ClD3l/I3n5xAAQ==}
     engines: {node: '>=14.16'}
@@ -2081,6 +2102,12 @@ packages:
   '@loopstack/schema-to-template@1.0.4':
     resolution: {integrity: sha512-5ksGloVtswu5gTSxYP5mqSP8zC8B8+b8kpsWWE+IpZFaKKbv4e2QsV8E6GwFVQLPU7UcLZNrIwtkXSZpsehfbA==}
     engines: {node: '>=14.16'}
+
+  '@loopstack/shared@0.0.1':
+    resolution: {integrity: sha512-eSK3nG0vXXd5+w9OPgMRZFB2orJbPEfXZwHPoLYNntumofuTBaaffa/c7Onkr+v/MXaUCMIw2rkgVyolrjzl4w==}
+
+  '@loopstack/shared@1.0.1':
+    resolution: {integrity: sha512-oaNDpJRFfR3Q2ZrPGIHpjugwR3cv4ptXknfD4UsFygLkyDgxjgqctsqNHyPTZq/tNH+m3qzsQoBF4s6RuUM0Qw==}
 
   '@lukeed/csprng@1.1.0':
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
@@ -8034,6 +8061,158 @@ snapshots:
     dependencies:
       buffer: 6.0.3
 
+  '@loopstack/api@0.0.1(@nestjs/websockets@11.1.1)(babel-plugin-macros@3.1.0)(cache-manager@6.4.3)(ioredis@5.6.1)(passport@0.7.0)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))':
+    dependencies:
+      '@loopstack/core': link:packages/core
+      '@loopstack/shared': link:packages/shared
+      '@nestjs/common': 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/config': 4.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@nestjs/core': 11.1.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(@nestjs/websockets@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/event-emitter': 3.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)
+      '@nestjs/jwt': 11.0.0(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))
+      '@nestjs/microservices': 11.1.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(@nestjs/websockets@11.1.1)(cache-manager@6.4.3)(ioredis@5.6.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/passport': 11.0.5(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(passport@0.7.0)
+      '@nestjs/platform-express': 11.1.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)
+      '@nestjs/swagger': 11.2.0(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)
+      '@nestjs/typeorm': 11.0.0(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3)))
+      class-transformer: 0.5.1
+      class-validator: 0.14.2
+      cookie-parser: 1.4.7
+      lodash: 4.17.21
+      passport-custom: 1.1.1
+      passport-jwt: 4.0.1
+      reflect-metadata: 0.2.2
+      rxjs: 7.8.2
+      typeorm: 0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
+    transitivePeerDependencies:
+      - '@fastify/static'
+      - '@google-cloud/spanner'
+      - '@grpc/grpc-js'
+      - '@nestjs/websockets'
+      - '@sap/hana-client'
+      - amqp-connection-manager
+      - amqplib
+      - babel-plugin-macros
+      - better-sqlite3
+      - cache-manager
+      - hdb-pool
+      - ioredis
+      - kafkajs
+      - mongodb
+      - mqtt
+      - mssql
+      - mysql2
+      - nats
+      - oracledb
+      - passport
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - sql.js
+      - sqlite3
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
+
+  '@loopstack/core@0.0.1(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)':
+    dependencies:
+      '@loopstack/shared': link:packages/shared
+      '@nestjs/common': 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/config': 4.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@nestjs/core': 11.1.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(@nestjs/websockets@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/event-emitter': 3.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)
+      '@nestjs/platform-express': 11.1.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)
+      '@nestjs/typeorm': 11.0.0(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3)))
+      ajv: 8.17.1
+      class-transformer: 0.5.1
+      class-validator: 0.14.2
+      ejs: 3.1.10
+      js-yaml: 4.1.0
+      lodash: 4.17.21
+      nest-commander: 3.17.0(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(@types/inquirer@8.2.11)(typescript@5.8.3)
+      openai: 4.102.0(zod@3.25.20)
+      reflect-metadata: 0.2.2
+      rxjs: 7.8.2
+      typeorm: 0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
+      zod: 3.25.20
+      zod-to-json-schema: 3.24.5(zod@3.25.20)
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@nestjs/microservices'
+      - '@nestjs/websockets'
+      - '@sap/hana-client'
+      - '@types/inquirer'
+      - babel-plugin-macros
+      - better-sqlite3
+      - encoding
+      - hdb-pool
+      - ioredis
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - sql.js
+      - sqlite3
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
+      - typescript
+      - ws
+
+  '@loopstack/llm@0.0.1(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(class-transformer@0.5.1)(class-validator@0.14.2)(ioredis@5.6.1)(keyv@5.3.3)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)':
+    dependencies:
+      '@keyv/redis': 4.4.0(keyv@5.3.3)
+      '@loopstack/core': 0.0.1(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
+      '@loopstack/markdown-parser': 1.0.9
+      '@loopstack/schema-to-template': 1.0.4
+      '@loopstack/shared': 1.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
+      '@nestjs/cache-manager': 3.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(cache-manager@6.4.3)(keyv@5.3.3)(rxjs@7.8.2)
+      '@nestjs/common': 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/config': 4.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@nestjs/core': 11.1.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(@nestjs/websockets@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/platform-express': 11.1.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)
+      cache-manager: 6.4.3
+      cache-manager-redis-store: 3.0.1
+      lodash: 4.17.21
+      openai: 4.102.0(zod@3.25.20)
+      rxjs: 7.8.2
+      zod: 3.25.20
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@nestjs/microservices'
+      - '@nestjs/websockets'
+      - '@sap/hana-client'
+      - '@types/inquirer'
+      - babel-plugin-macros
+      - better-sqlite3
+      - class-transformer
+      - class-validator
+      - encoding
+      - hdb-pool
+      - ioredis
+      - keyv
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - reflect-metadata
+      - sql.js
+      - sqlite3
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
+      - typescript
+      - ws
+
   '@loopstack/markdown-parser@1.0.9':
     dependencies:
       '@types/lodash-es': 4.17.12
@@ -8047,6 +8226,70 @@ snapshots:
       - supports-color
 
   '@loopstack/schema-to-template@1.0.4': {}
+
+  '@loopstack/shared@0.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))':
+    dependencies:
+      '@nestjs/typeorm': 11.0.0(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3)))
+      fast-json-stable-stringify: 2.1.0
+      murmurhash: 2.0.1
+      reflect-metadata: 0.2.2
+      typeorm: 0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
+      zod: 3.25.20
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@nestjs/common'
+      - '@nestjs/core'
+      - '@sap/hana-client'
+      - babel-plugin-macros
+      - better-sqlite3
+      - hdb-pool
+      - ioredis
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - rxjs
+      - sql.js
+      - sqlite3
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
+
+  '@loopstack/shared@1.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))':
+    dependencies:
+      '@nestjs/typeorm': 11.0.0(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3)))
+      fast-json-stable-stringify: 2.1.0
+      murmurhash: 2.0.1
+      reflect-metadata: 0.2.2
+      typeorm: 0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
+      zod: 3.25.20
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@nestjs/common'
+      - '@nestjs/core'
+      - '@sap/hana-client'
+      - babel-plugin-macros
+      - better-sqlite3
+      - hdb-pool
+      - ioredis
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - rxjs
+      - sql.js
+      - sqlite3
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
 
   '@lukeed/csprng@1.1.0': {}
 
