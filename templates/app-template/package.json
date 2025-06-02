@@ -18,10 +18,10 @@
     "generate:schemas": "ts-node src/cli.ts -- generate-schemas"
   },
   "dependencies": {
-    "@loopstack/api": "^1.0.0",
-    "@loopstack/core": "^1.0.0",
-    "@loopstack/llm": "^1.0.0",
-    "@loopstack/shared": "^1.0.0",
+    "@loopstack/api": "^0.0.1",
+    "@loopstack/core": "^0.0.1",
+    "@loopstack/llm": "^0.0.1",
+    "@loopstack/shared": "^0.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
