@@ -28,3 +28,6 @@
 [submodule "packages/llm"]
 	path = packages/llm
 	url = git@github.com:loopstack-ai/llm.git
+[submodule "templates/app-template"]
+	path = templates/app-template
+	url = git@github.com:loopstack-ai/app-template.git
