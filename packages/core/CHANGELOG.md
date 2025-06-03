@@ -1,5 +1,13 @@
 # @loopstack/core
 
+## 0.0.4
+
+### Patch Changes
+
+- Bugixes for various issues bootstrapping the application via installer
+- Updated dependencies
+  - @loopstack/shared@0.0.3
+
 ## 0.0.3
 
 ### Patch Changes
