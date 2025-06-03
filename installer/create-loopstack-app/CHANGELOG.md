@@ -1,0 +1,7 @@
+# create-loopstack-app
+
+## 0.0.4
+
+### Patch Changes
+
+- Adds docker compose in app template and creates .env file on install
