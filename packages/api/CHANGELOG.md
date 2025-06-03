@@ -1,5 +1,14 @@
 # @loopstack/api
 
+## 0.0.5
+
+### Patch Changes
+
+- Implements tool call sequence workflow type
+- Updated dependencies
+  - @loopstack/core@0.0.5
+  - @loopstack/shared@0.0.4
+
 ## 0.0.4
 
 ### Patch Changes
