@@ -27,6 +27,33 @@ services:
     networks:
       - monorepo-network
 
+  websocket-server:
+    image: jakobklippel/loopstack-websocket-server:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - APP_PORT=3001
+      - CORS_ORIGIN=localhost
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    networks:
+      - monorepo-network
+
+  react-app:
+    image: jakobklippel/loopstack-react-app:latest
+    ports:
+      - "3080:3000"
+    depends_on:
+      - websocket-server
+    restart: unless-stopped
+    networks:
+      - monorepo-network
+
 networks:
   monorepo-network:
     driver: bridge
@@ -36,4 +63,3 @@ volumes:
     driver: local
   redis-data:
     driver: local
-  pnpm-store:
