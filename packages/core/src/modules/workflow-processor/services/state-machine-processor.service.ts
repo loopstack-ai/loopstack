@@ -197,40 +197,6 @@ export class StateMachineProcessorService {
     };
   }
 
-  addTransitionData(
-    workflow: WorkflowEntity,
-    transition: string,
-    tool: string,
-    alias: string | undefined,
-    result: ToolResult | undefined,
-  ) {
-    if (result?.workflow) {
-      workflow = result?.workflow;
-    }
-
-    if (result?.data) {
-      if (!workflow.currData) {
-        workflow.currData = {};
-      }
-
-      if (!workflow.currData[transition]) {
-        workflow.currData[transition] = {};
-      }
-
-      workflow.currData[transition][tool] = result.data;
-    }
-
-    if (alias) {
-      const currAlias = workflow.aliasData ?? {};
-      workflow.aliasData = {
-        ...currAlias,
-        [alias]: [transition, tool],
-      };
-    }
-
-    return workflow;
-  }
-
   commitWorkflowTransition(
     workflow: WorkflowEntity,
     nextPlace: string | undefined,
@@ -261,8 +227,7 @@ export class StateMachineProcessorService {
     let context = beforeContext;
     workflow = await this.initStateMachine(workflow, stateMachineInfo);
 
-    const workflowConfig =
-      this.workflowConfigService.getConfig(config);
+    const workflowConfig = this.workflowConfigService.getConfig(config);
 
     const workflowContext = {
       options: stateMachineInfo.options,
@@ -320,7 +285,7 @@ export class StateMachineProcessorService {
           );
 
           // add the response data to workflow
-          workflow = this.addTransitionData(
+          workflow = this.toolExecutionService.commitToolCallResult(
             workflow,
             handler.onTransition,
             handler.call,

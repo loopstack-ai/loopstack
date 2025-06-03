@@ -16,10 +16,12 @@ import { NamespacesService } from '../../persistence';
 export class AddNamespaceService implements ToolInterface {
   private readonly logger = new Logger(AddNamespaceService.name);
 
-  configSchema = z.object({
-    label: z.union([z.string(), ExpressionString]),
-    meta: z.any().optional(),
-  }).strict();
+  configSchema = z
+    .object({
+      label: z.union([z.string(), ExpressionString]),
+      meta: z.any().optional(),
+    })
+    .strict();
 
   schema = NamespacePropsSchema.strict();
 

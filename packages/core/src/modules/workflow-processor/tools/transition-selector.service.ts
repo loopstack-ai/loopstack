@@ -13,23 +13,27 @@ import {
 export class TransitionSelectorService implements ToolInterface {
   private readonly logger = new Logger(TransitionSelectorService.name);
 
-  configSchema = z.object({
-    transitions: z.array(
-      z.object({
-        place: NonExpressionString,
-        condition: ExpressionString.optional(),
-      }),
-    ),
-  }).strict();
+  configSchema = z
+    .object({
+      transitions: z.array(
+        z.object({
+          place: NonExpressionString,
+          condition: ExpressionString.optional(),
+        }),
+      ),
+    })
+    .strict();
 
-  schema = z.object({
-    transitions: z.array(
-      z.object({
-        place: NonExpressionString,
-        condition: z.union([z.boolean(), z.undefined()]),
-      }),
-    ),
-  }).strict();
+  schema = z
+    .object({
+      transitions: z.array(
+        z.object({
+          place: NonExpressionString,
+          condition: z.union([z.boolean(), z.undefined()]),
+        }),
+      ),
+    })
+    .strict();
 
   async apply(props: z.infer<typeof this.schema>): Promise<ToolResult> {
     const validOptions = this.schema.parse(props);

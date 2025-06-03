@@ -2,7 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import {
   CONFIG_PROVIDER_DECORATOR,
-  ConfigProviderInterface, ConfigSourceInterface,
+  ConfigProviderInterface,
+  ConfigSourceInterface,
 } from '@loopstack/shared';
 
 @Injectable()

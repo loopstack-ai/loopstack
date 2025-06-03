@@ -10,12 +10,16 @@ export class DebugService implements ToolInterface {
   configSchema = z
     .object({
       message: z.string().optional(),
-    }).strict().optional();
+    })
+    .strict()
+    .optional();
 
   schema = z
     .object({
       message: z.string().optional(),
-    }).strict().optional();
+    })
+    .strict()
+    .optional();
 
   async apply(props: z.infer<typeof this.schema>): Promise<ToolResult> {
     this.logger.log(props?.message ?? 'no message');

@@ -25,17 +25,21 @@ import { merge } from 'lodash';
 @Tool()
 export class BatchCreateDocumentsService implements ToolInterface {
   private readonly logger = new Logger(BatchCreateDocumentsService.name);
-  configSchema = z.object({
-    document: z.string(),
-    namePrefix: z.union([ExpressionString, NonExpressionString]).optional(),
-    items: z.union([ExpressionString, z.array(z.any())]),
-  }).strict();
+  configSchema = z
+    .object({
+      document: z.string(),
+      namePrefix: z.union([ExpressionString, NonExpressionString]).optional(),
+      items: z.union([ExpressionString, z.array(z.any())]),
+    })
+    .strict();
 
-  schema = z.object({
-    document: z.string(),
-    namePrefix: NonExpressionString.optional(),
-    items: z.array(z.any()),
-  }).strict();
+  schema = z
+    .object({
+      document: z.string(),
+      namePrefix: NonExpressionString.optional(),
+      items: z.array(z.any()),
+    })
+    .strict();
 
   constructor(
     private actionHelperService: SchemaValidatorService,

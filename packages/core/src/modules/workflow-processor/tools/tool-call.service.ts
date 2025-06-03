@@ -14,15 +14,19 @@ import { ToolExecutionService } from '../index';
 @Tool()
 export class ToolCallService implements ToolInterface {
   private readonly logger = new Logger(ToolCallService.name);
-  configSchema = z.object({
-    tool: z.string(),
-    options: z.any().optional(),
-  }).strict();
+  configSchema = z
+    .object({
+      tool: z.string(),
+      options: z.any().optional(),
+    })
+    .strict();
 
-  schema = z.object({
-    tool: z.string(),
-    options: z.any().optional(),
-  }).strict();
+  schema = z
+    .object({
+      tool: z.string(),
+      options: z.any().optional(),
+    })
+    .strict();
 
   constructor(private toolExecutionService: ToolExecutionService) {}
 

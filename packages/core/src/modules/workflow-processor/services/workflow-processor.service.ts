@@ -11,9 +11,11 @@ import {
   WorkflowFactoryType,
   WorkflowPipelineType,
   WorkflowStateMachineType,
+  WorkflowToolType,
   WorkflowType,
 } from '@loopstack/shared';
 import { NamespaceProcessorService } from './namespace-processor.service';
+import { ToolExecutionService } from './tool-execution.service';
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -27,6 +29,7 @@ export class WorkflowProcessorService {
     private stateMachineProcessorService: StateMachineProcessorService,
     private workflowService: WorkflowService,
     private namespaceProcessorService: NamespaceProcessorService,
+    private toolExecutionService: ToolExecutionService,
   ) {}
 
   workflowExists(name: string): boolean {
@@ -37,6 +40,46 @@ export class WorkflowProcessorService {
     const parts = ltreeIndex.split('.').map(Number);
     parts[parts.length - 1] += increment;
     return parts.map((part) => part.toString().padStart(4, '0')).join('.');
+  }
+
+  async runToolType(
+    config: WorkflowToolType,
+    context: ContextInterface,
+  ): Promise<ContextInterface | undefined> {
+    const sequence = config.sequence;
+    if (!sequence) {
+      return context;
+    }
+
+    let workflow = await this.getWorkflow(config, context);
+
+    let lastContext = this.contextService.create(context);
+    for (let i = 0; i < sequence.length; i++) {
+      const handler = sequence[i];
+      const result = await this.toolExecutionService.applyTool(
+        handler,
+        workflow,
+        context,
+        { options: {} },
+      );
+
+      // add the response data to workflow
+      workflow = this.toolExecutionService.commitToolCallResult(
+        workflow,
+        'default',
+        handler.call,
+        handler.provideAs,
+        result,
+      );
+
+      // save workflow directly for immediate ui updates
+      if (result?.commitDirect) {
+        await this.workflowService.save(workflow);
+      }
+    }
+
+    await this.workflowService.save(workflow);
+    return lastContext;
   }
 
   async runSequenceType(
@@ -213,6 +256,8 @@ export class WorkflowProcessorService {
     }
 
     switch (workflowConfig.type) {
+      case 'tool':
+        return this.runToolType(workflowConfig, context);
       case 'pipeline':
         return this.runSequenceType(workflowConfig, context);
       case 'factory':
@@ -220,8 +265,6 @@ export class WorkflowProcessorService {
       case 'stateMachine':
         return this.runStateMachineType(workflowConfig, context);
     }
-
-    throw new Error('Unknown workflow type');
   }
 
   async getWorkflow(
@@ -245,7 +288,7 @@ export class WorkflowProcessorService {
       namespace: context.namespace ?? undefined,
       projectId: context.projectId,
       name: workflowConfig.name,
-      title: workflowConfig.title,
+      title: workflowConfig.title ?? workflowConfig.name,
       index: context.index,
     });
   }

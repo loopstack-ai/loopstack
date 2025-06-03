@@ -43,7 +43,7 @@ export class StateMachineConfigService {
         ...stateMachine,
         transitions,
         handlers,
-      }
+      };
     }
 
     return {

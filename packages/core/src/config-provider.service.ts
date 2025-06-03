@@ -1,6 +1,7 @@
 import {
   ConfigProvider,
-  ConfigProviderInterface, ConfigSourceInterface,
+  ConfigProviderInterface,
+  ConfigSourceInterface,
 } from '@loopstack/shared';
 import { loadConfiguration } from './utils';
 import { Injectable } from '@nestjs/common';

@@ -26,17 +26,21 @@ import { merge } from 'lodash';
 @Tool()
 export class CreateDocumentService implements ToolInterface {
   private readonly logger = new Logger(CreateDocumentService.name);
-  configSchema = z.object({
-    document: z.string().optional(),
-    update: DocumentConfigSchema.partial().optional(),
-    create: DocumentConfigSchema.optional(),
-  }).strict();
+  configSchema = z
+    .object({
+      document: z.string().optional(),
+      update: DocumentConfigSchema.partial().optional(),
+      create: DocumentConfigSchema.optional(),
+    })
+    .strict();
 
-  schema = z.object({
-    document: z.string().optional(),
-    update: PartialDocumentSchema.optional(),
-    create: DocumentSchema.optional(),
-  }).strict();
+  schema = z
+    .object({
+      document: z.string().optional(),
+      update: PartialDocumentSchema.optional(),
+      create: DocumentSchema.optional(),
+    })
+    .strict();
 
   constructor(
     private actionHelperService: SchemaValidatorService,

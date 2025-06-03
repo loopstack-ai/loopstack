@@ -89,4 +89,38 @@ export class ToolExecutionService {
     );
     return instance.apply(validProps, workflow, context, workflowContext);
   }
+
+  commitToolCallResult(
+    workflow: WorkflowEntity,
+    transition: string,
+    tool: string,
+    alias: string | undefined,
+    result: ToolResult | undefined,
+  ) {
+    if (result?.workflow) {
+      workflow = result?.workflow;
+    }
+
+    if (result?.data) {
+      if (!workflow.currData) {
+        workflow.currData = {};
+      }
+
+      if (!workflow.currData[transition]) {
+        workflow.currData[transition] = {};
+      }
+
+      workflow.currData[transition][tool] = result.data;
+    }
+
+    if (alias) {
+      const currAlias = workflow.aliasData ?? {};
+      workflow.aliasData = {
+        ...currAlias,
+        [alias]: [transition, tool],
+      };
+    }
+
+    return workflow;
+  }
 }

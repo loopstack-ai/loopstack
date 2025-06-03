@@ -17,23 +17,25 @@ import {
   WorkflowService,
 } from '../../persistence';
 
-const LoadDocumentArgsSchema = z.object({
-  where: WhereCondition,
-  map: z.string().optional(),
-  filter: z.string().optional(),
-  sort: z.boolean().optional(),
-  sortBy: z
-    .object({
-      iteratees: z.array(z.string()),
-      orders: z.array(z.enum(['asc', 'desc'])),
-    })
-    .optional(),
-  many: z.boolean().optional(),
-  flat: z.boolean().optional(),
-  ignoreChanges: z.boolean().optional(),
-  global: z.boolean().optional(),
-  optional: z.boolean().optional(),
-}).strict();
+const LoadDocumentArgsSchema = z
+  .object({
+    where: WhereCondition,
+    map: z.string().optional(),
+    filter: z.string().optional(),
+    sort: z.boolean().optional(),
+    sortBy: z
+      .object({
+        iteratees: z.array(z.string()),
+        orders: z.array(z.enum(['asc', 'desc'])),
+      })
+      .optional(),
+    many: z.boolean().optional(),
+    flat: z.boolean().optional(),
+    ignoreChanges: z.boolean().optional(),
+    global: z.boolean().optional(),
+    optional: z.boolean().optional(),
+  })
+  .strict();
 
 export type LoadDocumentArgsInterface = z.infer<typeof LoadDocumentArgsSchema>;
 

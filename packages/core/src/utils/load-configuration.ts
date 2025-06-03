@@ -31,7 +31,7 @@ function loadConfigsRecursively(
       ) as MainConfigType;
       configs.push({
         path: itemPath,
-        config
+        config,
       });
     } else if (stats.isDirectory()) {
       loadConfigsRecursively(itemPath, configs);

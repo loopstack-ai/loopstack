@@ -18,15 +18,19 @@ import { ExpressionString } from '@loopstack/shared/dist/schemas/expression-type
 export class UpdateDocumentService implements ToolInterface {
   private readonly logger = new Logger(UpdateDocumentService.name);
 
-  configSchema = z.object({
-    id: ExpressionString,
-    update: DocumentConfigSchema.partial().optional(),
-  }).strict();
+  configSchema = z
+    .object({
+      id: ExpressionString,
+      update: DocumentConfigSchema.partial().optional(),
+    })
+    .strict();
 
-  schema = z.object({
-    id: NonExpressionString,
-    update: PartialDocumentSchema.optional(),
-  }).strict();
+  schema = z
+    .object({
+      id: NonExpressionString,
+      update: PartialDocumentSchema.optional(),
+    })
+    .strict();
 
   constructor(private documentService: DocumentService) {}
 

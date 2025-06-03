@@ -8,15 +8,19 @@ import { WorkflowEntity } from '@loopstack/shared';
 export class SetContextService implements ToolInterface {
   private readonly logger = new Logger(SetContextService.name);
 
-  configSchema = z.object({
-    key: z.string(),
-    value: z.any(),
-  }).strict();
+  configSchema = z
+    .object({
+      key: z.string(),
+      value: z.any(),
+    })
+    .strict();
 
-  schema = z.object({
-    key: z.string(),
-    value: z.any(),
-  }).strict();
+  schema = z
+    .object({
+      key: z.string(),
+      value: z.any(),
+    })
+    .strict();
 
   async apply(
     props: z.infer<typeof this.schema>,

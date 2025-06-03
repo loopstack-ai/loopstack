@@ -3,7 +3,12 @@ import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.servic
 import { AdapterRegistry } from './adapter-registry.service';
 import { ToolRegistry } from './tool.registry';
 import { ConfigService } from '@nestjs/config';
-import { ConfigSourceInterface, MainConfigType, NamedCollectionItem, StateMachineHandlerType } from '@loopstack/shared';
+import {
+  ConfigSourceInterface,
+  MainConfigType,
+  NamedCollectionItem,
+  StateMachineHandlerType,
+} from '@loopstack/shared';
 import { ConfigProviderRegistry } from './config-provider.registry';
 import { z } from 'zod';
 
@@ -33,16 +38,14 @@ export class ConfigurationService implements OnModuleInit {
     this.adapterRegistry.initialize();
     this.toolRegistry.initialize();
 
-    const appConfigs = this.configService.get<ConfigSourceInterface[]>('configs') ?? [];
+    const appConfigs =
+      this.configService.get<ConfigSourceInterface[]>('configs') ?? [];
     const moduleConfigs = this.configProviderRegistry.getConfigs();
 
-    const configs = [
-      ...appConfigs,
-      ...moduleConfigs,
-    ];
+    const configs = [...appConfigs, ...moduleConfigs];
 
     if (!configs) {
-      return
+      return;
     }
 
     // parse configs and make basic schema validations
@@ -54,7 +57,6 @@ export class ConfigurationService implements OnModuleInit {
     for (const config of configs) {
       this.validate(config);
     }
-
   }
 
   createDefaultConfig() {
@@ -119,7 +121,9 @@ export class ConfigurationService implements OnModuleInit {
 
   createFromConfig(source: ConfigSourceInterface): any {
     try {
-      const config: MainConfigType = this.mainSchemaGenerator.getSchema().parse(source.config);
+      const config: MainConfigType = this.mainSchemaGenerator
+        .getSchema()
+        .parse(source.config);
       Object.entries(config).forEach(([key, value]) => {
         this.updateConfig(key, value);
       });
@@ -134,20 +138,22 @@ export class ConfigurationService implements OnModuleInit {
         if (!data.projects) {
           return true;
         }
-        return data.projects.every(project =>
-          undefined !== this.get('workflows', project.entrypoint)
+        return data.projects.every(
+          (project) => undefined !== this.get('workflows', project.entrypoint),
         );
       },
       (data: MainConfigType) => {
-        const invalidIndex = data.projects?.findIndex(project =>
-          undefined === this.get('workspaces', project.workspace)
-        ) ?? -1;
+        const invalidIndex =
+          data.projects?.findIndex(
+            (project) =>
+              undefined === this.get('workspaces', project.workspace),
+          ) ?? -1;
 
         return {
           message: `project references non-existent workflow.`,
-          path: ["projects", invalidIndex, "entrypoint"]
+          path: ['projects', invalidIndex, 'entrypoint'],
         };
-      }
+      },
     );
   }
 
@@ -157,20 +163,22 @@ export class ConfigurationService implements OnModuleInit {
         if (!data.projects) {
           return true;
         }
-        return data.projects.every(project =>
-          undefined !== this.get('workspaces', project.workspace)
+        return data.projects.every(
+          (project) => undefined !== this.get('workspaces', project.workspace),
         );
       },
       (data: MainConfigType) => {
-        const invalidIndex = data.projects?.findIndex(project =>
-          undefined === this.get('workspaces', project.workspace)
-        ) ?? -1;
+        const invalidIndex =
+          data.projects?.findIndex(
+            (project) =>
+              undefined === this.get('workspaces', project.workspace),
+          ) ?? -1;
 
         return {
           message: `project references non-existent workspace.`,
-          path: ["projects", invalidIndex, "workspace"]
+          path: ['projects', invalidIndex, 'workspace'],
         };
-      }
+      },
     );
   }
 
@@ -181,65 +189,95 @@ export class ConfigurationService implements OnModuleInit {
           return true;
         }
 
-        const toolCalls: string[] = data.workflows.map((wf) => wf.type === 'stateMachine' ? wf.handlers?.map((h) => h.call) : [])
+        const toolCalls: string[] = data.workflows
+          .map((wf) =>
+            wf.type === 'stateMachine' ? wf.handlers?.map((h) => h.call) : [],
+          )
           .flat()
           .filter((toolName) => undefined !== toolName);
 
-        return toolCalls.every(toolName =>
-          undefined !== this.get('tools', toolName)
+        return toolCalls.every(
+          (toolName) => undefined !== this.get('tools', toolName),
         );
       },
       (data: MainConfigType) => {
-        const items = data.workflows?.map(wf =>
-          wf.type === 'stateMachine' && wf.handlers?.find((h) => undefined === this.get('tools', h.call))
-        ) ?? [];
+        const items =
+          data.workflows?.map(
+            (wf) =>
+              wf.type === 'stateMachine' &&
+              wf.handlers?.find((h) => undefined === this.get('tools', h.call)),
+          ) ?? [];
 
-        const errorItem = items.flat().filter((i) => undefined !== i).shift() as StateMachineHandlerType;
+        const errorItem = items
+          .flat()
+          .filter((i) => undefined !== i)
+          .shift() as StateMachineHandlerType;
         return {
           message: `workflow handler references non-existent tool "${errorItem.call}".`,
-          path: ["workflows", "handlers"]
+          path: ['workflows', 'handlers'],
         };
-      }
+      },
     );
   }
 
-  private createWorkflowTemplateToolCallValidation(): z.ZodEffects<any, any, any> {
+  private createWorkflowTemplateToolCallValidation(): z.ZodEffects<
+    any,
+    any,
+    any
+  > {
     return z.any().refine(
       (data: MainConfigType): boolean => {
         if (!data.workflowTemplates) {
           return true;
         }
 
-        const stateMachineWorkflows = data.workflowTemplates.filter((wf) => wf.type === 'stateMachine');
+        const stateMachineWorkflows = data.workflowTemplates.filter(
+          (wf) => wf.type === 'stateMachine',
+        );
 
-        const templateIndex = stateMachineWorkflows.findIndex(wf =>
-          wf.handlers && wf.handlers.find((handler) => !this.has('tools', handler.call))
+        const templateIndex = stateMachineWorkflows.findIndex(
+          (wf) =>
+            wf.handlers &&
+            wf.handlers.find((handler) => !this.has('tools', handler.call)),
         );
 
         return templateIndex === -1;
       },
       (data: MainConfigType) => {
-
-        const stateMachineWorkflows = data.workflowTemplates!.filter((wf) => wf.type === 'stateMachine');
-
-        const templateIndex = stateMachineWorkflows.findIndex(wf =>
-          wf.handlers && wf.handlers.find((handler) => !this.has('tools', handler.call))
+        const stateMachineWorkflows = data.workflowTemplates!.filter(
+          (wf) => wf.type === 'stateMachine',
         );
 
-        const handlerIndex = stateMachineWorkflows[templateIndex].handlers!.findIndex((handler) => !this.has('tools', handler.call));
-        const wrongToolName = stateMachineWorkflows[templateIndex].handlers![handlerIndex].call;
+        const templateIndex = stateMachineWorkflows.findIndex(
+          (wf) =>
+            wf.handlers &&
+            wf.handlers.find((handler) => !this.has('tools', handler.call)),
+        );
+
+        const handlerIndex = stateMachineWorkflows[
+          templateIndex
+        ].handlers!.findIndex((handler) => !this.has('tools', handler.call));
+        const wrongToolName =
+          stateMachineWorkflows[templateIndex].handlers![handlerIndex].call;
 
         return {
           message: `state machine template handler references non-existent tool "${wrongToolName}".`,
-          path: ["workflowTemplates", templateIndex, "handlers", handlerIndex, 'call']
+          path: [
+            'workflowTemplates',
+            templateIndex,
+            'handlers',
+            handlerIndex,
+            'call',
+          ],
         };
-      }
+      },
     );
   }
 
   validate(source: ConfigSourceInterface): any {
     try {
-      this.mainSchemaGenerator.getSchema()
+      this.mainSchemaGenerator
+        .getSchema()
         .and(this.createProjectEntrypointValidation())
         .and(this.createProjectWorkspaceValidation())
         .and(this.createWorkflowToolCallValidation())
@@ -256,16 +294,14 @@ export class ConfigurationService implements OnModuleInit {
 
   private handleConfigError(error: unknown, sourcePath: string): never {
     if (error instanceof z.ZodError) {
-      error.errors.forEach(validationError => {
-        this.logger.error(
-          `Validation error: ${validationError.message}`
-        );
+      error.errors.forEach((validationError) => {
+        this.logger.error(`Validation error: ${validationError.message}`);
 
         this.logger.debug(validationError);
       });
 
       throw new Error(
-        `Configuration validation failed. Found ${error.errors.length} validation error(s) in file ${sourcePath}`
+        `Configuration validation failed. Found ${error.errors.length} validation error(s) in file ${sourcePath}`,
       );
     }
 
