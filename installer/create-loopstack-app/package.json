@@ -1,6 +1,6 @@
 {
   "name": "create-loopstack-app",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A CLI tool to scaffold a new Loopstack (NestJS-based) application",
   "author": {
     "name": "Jakob Klippel",
@@ -23,7 +23,7 @@
     "prepare": "pnpm run build"
   },
   "dependencies": {
-    "inquirer": "^9.2.7"
+    "inquirer": "^9.3.7"
   },
   "engines": {
     "node": ">=14"

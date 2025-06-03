@@ -527,7 +527,7 @@ importers:
   installer/create-loopstack-app:
     dependencies:
       inquirer:
-        specifier: ^9.2.7
+        specifier: ^9.3.7
         version: 9.3.7
     devDependencies:
       '@types/node':
@@ -1894,8 +1894,8 @@ packages:
       '@types/node':
         optional: true
 
-  '@inquirer/figures@1.0.11':
-    resolution: {integrity: sha512-eOg92lvrn/aRUqbxRyvpEWnrvRuTYRifixHkYVpJiygTgVSBIHDqLh0SrMQXkafvULg3ck11V7xvR+zcgvpHFw==}
+  '@inquirer/figures@1.0.12':
+    resolution: {integrity: sha512-MJttijd8rMFcKJC8NYmprWr6hD3r9Gd9qUC0XwPNwoEPWSMVJwA2MlXxF+nhZZNMY+HXsWa+o7KY2emWYIn0jQ==}
     engines: {node: '>=18'}
 
   '@inquirer/input@4.1.10':
@@ -7720,7 +7720,7 @@ snapshots:
   '@inquirer/checkbox@4.1.6(@types/node@22.15.21)':
     dependencies:
       '@inquirer/core': 10.1.11(@types/node@22.15.21)
-      '@inquirer/figures': 1.0.11
+      '@inquirer/figures': 1.0.12
       '@inquirer/type': 3.0.6(@types/node@22.15.21)
       ansi-escapes: 4.3.2
       yoctocolors-cjs: 2.1.2
@@ -7736,7 +7736,7 @@ snapshots:
 
   '@inquirer/core@10.1.11(@types/node@22.15.21)':
     dependencies:
-      '@inquirer/figures': 1.0.11
+      '@inquirer/figures': 1.0.12
       '@inquirer/type': 3.0.6(@types/node@22.15.21)
       ansi-escapes: 4.3.2
       cli-width: 4.1.0
@@ -7763,7 +7763,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.15.21
 
-  '@inquirer/figures@1.0.11': {}
+  '@inquirer/figures@1.0.12': {}
 
   '@inquirer/input@4.1.10(@types/node@22.15.21)':
     dependencies:
@@ -7828,7 +7828,7 @@ snapshots:
   '@inquirer/search@3.0.13(@types/node@22.15.21)':
     dependencies:
       '@inquirer/core': 10.1.11(@types/node@22.15.21)
-      '@inquirer/figures': 1.0.11
+      '@inquirer/figures': 1.0.12
       '@inquirer/type': 3.0.6(@types/node@22.15.21)
       yoctocolors-cjs: 2.1.2
     optionalDependencies:
@@ -7837,7 +7837,7 @@ snapshots:
   '@inquirer/select@4.2.1(@types/node@22.15.21)':
     dependencies:
       '@inquirer/core': 10.1.11(@types/node@22.15.21)
-      '@inquirer/figures': 1.0.11
+      '@inquirer/figures': 1.0.12
       '@inquirer/type': 3.0.6(@types/node@22.15.21)
       ansi-escapes: 4.3.2
       yoctocolors-cjs: 2.1.2
@@ -11057,7 +11057,7 @@ snapshots:
 
   inquirer@9.3.7:
     dependencies:
-      '@inquirer/figures': 1.0.11
+      '@inquirer/figures': 1.0.12
       ansi-escapes: 4.3.2
       cli-width: 4.1.0
       external-editor: 3.1.0
