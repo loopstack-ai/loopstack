@@ -2,15 +2,15 @@
 
 ### 1. Create a changeset
 ```shell
-pnpm changeset
+changeset
 ```
 
 ### 2. Update versions when ready
 ```shell
-pnpm changeset version
+changeset version
 ```
 
 ### 3. Publish
 ```shell
-pnpm changeset publish
+changeset publish
 ```
