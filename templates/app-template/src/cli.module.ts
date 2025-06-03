@@ -2,13 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoopCoreModule } from '@loopstack/core';
 import { LlmModule } from '@loopstack/llm';
-import { FindDormantConversationTool } from './tools/find-dormant-conversation.tool';
-import { ConversationEvaluationService } from './services/conversation-evaluation.service';
-import { EmailHistoryService } from './services/email-history.service';
-import { EmailEntity } from './entities/email.entity';
-import { ConversationEvaluationEntity } from './entities/conversation-evaluation.entity';
-import { UpdateConversationEvaluationTool } from './tools/update-conversation-evaluation.tool';
-import { SendEmailTool } from './tools/send-email.tool';
 
 @Module({
   imports: [
@@ -26,14 +19,7 @@ import { SendEmailTool } from './tools/send-email.tool';
       installTemplates: true,
     }),
     LlmModule,
-    TypeOrmModule.forFeature([EmailEntity, ConversationEvaluationEntity]),
   ],
-  providers: [
-    ConversationEvaluationService,
-    EmailHistoryService,
-    FindDormantConversationTool,
-    UpdateConversationEvaluationTool,
-    SendEmailTool,
-  ],
+  providers: [],
 })
 export class CliModule {}
