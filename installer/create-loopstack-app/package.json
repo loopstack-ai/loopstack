@@ -10,7 +10,6 @@
   "bin": {
     "create-loopstack-app": "./dist/index.js"
   },
-  "private": true,
   "keywords": [
     "cli",
     "nestjs",
@@ -21,12 +20,16 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "prepare": "npm run build"
+    "prepare": "pnpm run build"
   },
   "dependencies": {
     "inquirer": "^9.2.7"
   },
   "engines": {
     "node": ">=14"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "typescript": "^5.8.3"
   }
 }
