@@ -1,6 +1,6 @@
 {
-  "name": "@loopstack/create-loopstack-app",
-  "version": "1.0.0",
+  "name": "create-loopstack-app",
+  "version": "0.0.2",
   "description": "A CLI tool to scaffold a new Loopstack (NestJS-based) application",
   "bin": {
     "create-loopstack-app": "./index.js"

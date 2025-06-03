@@ -12,10 +12,9 @@ if (!appName) {
 
 console.log(`📦 Creating a new LoopStack project in ${appName}...`);
 
-const repo = "https://github.com/your-org/loopstack-template.git"; // Replace with your actual template repo
+const repo = "https://github.com/loopstack-ai/app-template.git";
 execSync(`git clone ${repo} ${appName}`, { stdio: "inherit" });
 
-// Update package.json name
 const packageJsonPath = path.join(process.cwd(), appName, "package.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 packageJson.name = appName;
