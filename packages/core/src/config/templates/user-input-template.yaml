@@ -1,5 +1,6 @@
 workflowTemplates:
   - name: core/userInputTemplate
+    type: stateMachine
     transitions:
       - name: start
         from: start

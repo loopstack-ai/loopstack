@@ -13,13 +13,13 @@ import { DiscoveryModule } from '@nestjs/core';
 @Module({
   imports: [DiscoveryModule],
   providers: [
-    ConfigurationService,
-    JsonSchemaGeneratorService,
     ToolRegistry,
     AdapterRegistry,
+    ConfigProviderRegistry,
+    ConfigurationService,
+    JsonSchemaGeneratorService,
     GenerateSchemasCommand,
     DynamicSchemaGeneratorService,
-    ConfigProviderRegistry,
   ],
   exports: [ConfigurationService, ToolRegistry, AdapterRegistry],
 })

@@ -38,8 +38,8 @@ export class LoopCoreModule extends ConfigurableModuleClass {
       ],
       providers: [MigrationsService, ConfigProviderService],
       exports: [
-        CommonModule,
         ConfigurationModule,
+        CommonModule,
         PersistenceModule,
         WorkflowProcessorModule,
       ],
