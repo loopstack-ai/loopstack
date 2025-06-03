@@ -13,13 +13,19 @@ if (!appName) {
 
 console.log(`📦 Creating LoopStack app: ${appName}`);
 
+// clone starter template
 const repo = "https://github.com/loopstack-ai/app-template.git";
 execSync(`git clone ${repo} ${appName}`, { stdio: "inherit" });
 
+// update package json
 const packageJsonPath = path.join(process.cwd(), appName, "package.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 packageJson.name = appName;
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+
+// create .env
+const envPath = path.join(process.cwd(), appName, ".env");
+fs.writeFileSync(envPath, "ENABLE_NULL_USER=1\n");
 
 console.log("📦 Installing dependencies...");
 process.chdir(appName);
