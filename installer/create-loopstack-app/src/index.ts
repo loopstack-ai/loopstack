@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-const { execSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
+
+import { execSync } from "child_process";
+import * as fs from "fs";
+import * as path from "path";
 
 const appName = process.argv[2];
 
@@ -10,7 +11,7 @@ if (!appName) {
   process.exit(1);
 }
 
-console.log(`📦 Creating a new LoopStack project in ${appName}...`);
+console.log(`📦 Creating LoopStack app: ${appName}`);
 
 const repo = "https://github.com/loopstack-ai/app-template.git";
 execSync(`git clone ${repo} ${appName}`, { stdio: "inherit" });

@@ -2,8 +2,13 @@
   "name": "create-loopstack-app",
   "version": "0.0.2",
   "description": "A CLI tool to scaffold a new Loopstack (NestJS-based) application",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
   "bin": {
-    "create-loopstack-app": "./index.js"
+    "create-loopstack-app": "./dist/index.js"
   },
   "private": true,
   "keywords": [
@@ -13,11 +18,11 @@
     "starter",
     "loopstack"
   ],
-  "author": {
-    "name": "Jakob Klippel",
-    "url": "https://www.linkedin.com/in/jakob-klippel/"
-  },
   "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
   "dependencies": {
     "inquirer": "^9.2.7"
   },

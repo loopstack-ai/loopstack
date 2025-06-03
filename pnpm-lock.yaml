@@ -15,16 +15,16 @@ importers:
   apps/demo2:
     dependencies:
       '@loopstack/api':
-        specifier: workspace:^
+        specifier: workspace:^0.0.3
         version: link:../../packages/api
       '@loopstack/core':
-        specifier: workspace:^
+        specifier: workspace:^0.0.3
         version: link:../../packages/core
       '@loopstack/llm':
-        specifier: workspace:^
+        specifier: workspace:^0.0.3
         version: link:../../packages/llm
       '@loopstack/shared':
-        specifier: workspace:^
+        specifier: workspace:^0.0.2
         version: link:../../packages/shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -136,16 +136,16 @@ importers:
   apps/lead-follow-up-2:
     dependencies:
       '@loopstack/api':
-        specifier: workspace:^
+        specifier: workspace:^0.0.3
         version: link:../../packages/api
       '@loopstack/core':
-        specifier: workspace:^
+        specifier: workspace:^0.0.3
         version: link:../../packages/core
       '@loopstack/llm':
-        specifier: workspace:^
+        specifier: workspace:^0.0.3
         version: link:../../packages/llm
       '@loopstack/shared':
-        specifier: workspace:^
+        specifier: workspace:^0.0.2
         version: link:../../packages/shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -282,10 +282,10 @@ importers:
         specifier: ^5.1.1
         version: 5.2.5
       '@loopstack/api-client':
-        specifier: workspace:^
+        specifier: workspace:^0.0.2
         version: link:../api-client
       '@loopstack/shared':
-        specifier: workspace:^
+        specifier: workspace:^0.0.2
         version: link:../../packages/shared
       '@mui/icons-material':
         specifier: ^6.4.6
@@ -518,7 +518,7 @@ importers:
         specifier: ^8.20.0
         version: 8.32.1(eslint@9.27.0)(typescript@5.8.3)
 
-  generators/api-client-generator:
+  generators/generate-api-client:
     devDependencies:
       '@openapitools/openapi-generator-cli':
         specifier: ^2.16.3
@@ -529,6 +529,10 @@ importers:
       inquirer:
         specifier: ^9.2.7
         version: 9.3.7
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.29
+        version: 22.15.29
 
   libs/markdown-parser:
     dependencies:
@@ -591,10 +595,10 @@ importers:
   packages/api:
     dependencies:
       '@loopstack/core':
-        specifier: workspace:^
+        specifier: workspace:^0.0.3
         version: link:../core
       '@loopstack/shared':
-        specifier: workspace:^
+        specifier: workspace:^0.0.2
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -736,7 +740,7 @@ importers:
   packages/core:
     dependencies:
       '@loopstack/shared':
-        specifier: workspace:^
+        specifier: workspace:^0.0.2
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -887,7 +891,7 @@ importers:
         specifier: ^4.3.2
         version: 4.4.0(keyv@5.3.3)
       '@loopstack/core':
-        specifier: workspace:^
+        specifier: workspace:^0.0.3
         version: link:../core
       '@loopstack/markdown-parser':
         specifier: ^1.0.9
@@ -896,7 +900,7 @@ importers:
         specifier: ^1.0.4
         version: 1.0.4
       '@loopstack/shared':
-        specifier: workspace:^
+        specifier: workspace:^0.0.2
         version: link:../shared
       '@nestjs/cache-manager':
         specifier: ^3.0.0
@@ -1039,17 +1043,17 @@ importers:
   templates/app-template:
     dependencies:
       '@loopstack/api':
-        specifier: ^0.0.1
-        version: 0.0.1(@nestjs/websockets@11.1.1)(babel-plugin-macros@3.1.0)(cache-manager@6.4.3)(ioredis@5.6.1)(passport@0.7.0)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
+        specifier: ^0.0.3
+        version: 0.0.3(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(cache-manager@6.4.3)(ioredis@5.6.1)(passport@0.7.0)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
       '@loopstack/core':
-        specifier: ^0.0.1
-        version: 0.0.1(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
+        specifier: ^0.0.3
+        version: 0.0.3(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
       '@loopstack/llm':
-        specifier: ^0.0.1
-        version: 0.0.1(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(class-transformer@0.5.1)(class-validator@0.14.2)(ioredis@5.6.1)(keyv@5.3.3)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
+        specifier: ^0.0.3
+        version: 0.0.3(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(class-transformer@0.5.1)(class-validator@0.14.2)(ioredis@5.6.1)(keyv@5.3.3)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
       '@loopstack/shared':
-        specifier: ^0.0.1
-        version: 0.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
+        specifier: ^0.0.2
+        version: 0.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -2086,14 +2090,14 @@ packages:
   '@keyv/serialize@1.0.3':
     resolution: {integrity: sha512-qnEovoOp5Np2JDGonIDL6Ayihw0RhnRh6vxPuHo4RDn1UOzwEo4AeIfpL6UGIrsceWrCMiVPgwRjbHu4vYFc3g==}
 
-  '@loopstack/api@0.0.1':
-    resolution: {integrity: sha512-KB11636AeUhQHc+jkaY0GyOihqwLXvRb0a1TsFMMlCtCG/QjD4yCjSg4hra+O4vi02WB6OTdsq7fF3vfSuJ22Q==}
+  '@loopstack/api@0.0.3':
+    resolution: {integrity: sha512-sQrPNlMt5ssBJ2sHvLmItf462UbErX3/0o/X1sAAMRDaNTmKmGAd7tq/7kJeevroK/Dz8+UJSWF97V90iYZmwQ==}
 
-  '@loopstack/core@0.0.1':
-    resolution: {integrity: sha512-kB/OiRluxHtZGr6bLhzyN6tMIZYoXCKWrp47V+jwrriAclddloCCU8Q612VqDRXurZrSWIEBZ4Uto92FYad4lQ==}
+  '@loopstack/core@0.0.3':
+    resolution: {integrity: sha512-e8nk7kNYA7eUKklpBy0M/Ihk7v84H0Xq06/pVmV7QcAisKDcM0bYxLcn1LMqZ3+Y0myeMnKoYgr3y9a0u3OpiQ==}
 
-  '@loopstack/llm@0.0.1':
-    resolution: {integrity: sha512-dDheGYwvTMeCCo4sLD/ODHKRQOfEpHhjOCIGMfikdc8/v3t0mDPwFD/c2AGbdVJEwaWFN/EWNk8Wcoltvpffvw==}
+  '@loopstack/llm@0.0.3':
+    resolution: {integrity: sha512-1Hd0pjaKLIW2phixTQooKlxhR+kd4WVC81QTlyKocaGOo5IfdNX8RDINnxhDbRbHfPNGIV3d2pnKuJ/dfuFkbw==}
 
   '@loopstack/markdown-parser@1.0.9':
     resolution: {integrity: sha512-nWQwh8fBOTN8euSC2Q+riCnpcPs+SQ/CLfYYSQ3eZITTCVq1+S18nf58CMYInOnDmHp9Cwm5ClD3l/I3n5xAAQ==}
@@ -2103,11 +2107,8 @@ packages:
     resolution: {integrity: sha512-5ksGloVtswu5gTSxYP5mqSP8zC8B8+b8kpsWWE+IpZFaKKbv4e2QsV8E6GwFVQLPU7UcLZNrIwtkXSZpsehfbA==}
     engines: {node: '>=14.16'}
 
-  '@loopstack/shared@0.0.1':
-    resolution: {integrity: sha512-eSK3nG0vXXd5+w9OPgMRZFB2orJbPEfXZwHPoLYNntumofuTBaaffa/c7Onkr+v/MXaUCMIw2rkgVyolrjzl4w==}
-
-  '@loopstack/shared@1.0.1':
-    resolution: {integrity: sha512-oaNDpJRFfR3Q2ZrPGIHpjugwR3cv4ptXknfD4UsFygLkyDgxjgqctsqNHyPTZq/tNH+m3qzsQoBF4s6RuUM0Qw==}
+  '@loopstack/shared@0.0.2':
+    resolution: {integrity: sha512-c3jYEWfWJPDSoVHPJ4UYLdcII6wpBXzOxmur84UfI9xB8Pc4OSVZ2SoVwCaeciCZjsS6OEwY6o1IFkPT0pVnoQ==}
 
   '@lukeed/csprng@1.1.0':
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
@@ -3052,6 +3053,9 @@ packages:
 
   '@types/node@22.15.21':
     resolution: {integrity: sha512-EV/37Td6c+MgKAbkcLG6vqZ2zEYHD7bvSrzqqs2RIhbA6w3x+Dqz8MZM3sP6kGTeLrdoOgKZe+Xja7tUB2DNkQ==}
+
+  '@types/node@22.15.29':
+    resolution: {integrity: sha512-LNdjOkUDlU1RZb8e1kOIUpN1qQUlzGkEtbVNo53vbrwDg5om6oduhm4SiUaPW5ASTXhAiP0jInWG8Qx9fVlOeQ==}
 
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
@@ -8061,10 +8065,10 @@ snapshots:
     dependencies:
       buffer: 6.0.3
 
-  '@loopstack/api@0.0.1(@nestjs/websockets@11.1.1)(babel-plugin-macros@3.1.0)(cache-manager@6.4.3)(ioredis@5.6.1)(passport@0.7.0)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))':
+  '@loopstack/api@0.0.3(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(cache-manager@6.4.3)(ioredis@5.6.1)(passport@0.7.0)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)':
     dependencies:
-      '@loopstack/core': link:packages/core
-      '@loopstack/shared': link:packages/shared
+      '@loopstack/core': 0.0.3(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
+      '@loopstack/shared': 0.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
       '@nestjs/common': 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/config': 4.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
       '@nestjs/core': 11.1.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(@nestjs/websockets@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -8090,11 +8094,13 @@ snapshots:
       - '@grpc/grpc-js'
       - '@nestjs/websockets'
       - '@sap/hana-client'
+      - '@types/inquirer'
       - amqp-connection-manager
       - amqplib
       - babel-plugin-macros
       - better-sqlite3
       - cache-manager
+      - encoding
       - hdb-pool
       - ioredis
       - kafkajs
@@ -8114,10 +8120,12 @@ snapshots:
       - supports-color
       - ts-node
       - typeorm-aurora-data-api-driver
+      - typescript
+      - ws
 
-  '@loopstack/core@0.0.1(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)':
+  '@loopstack/core@0.0.3(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)':
     dependencies:
-      '@loopstack/shared': link:packages/shared
+      '@loopstack/shared': 0.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
       '@nestjs/common': 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/config': 4.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
       '@nestjs/core': 11.1.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(@nestjs/websockets@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -8164,13 +8172,13 @@ snapshots:
       - typescript
       - ws
 
-  '@loopstack/llm@0.0.1(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(class-transformer@0.5.1)(class-validator@0.14.2)(ioredis@5.6.1)(keyv@5.3.3)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)':
+  '@loopstack/llm@0.0.3(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(class-transformer@0.5.1)(class-validator@0.14.2)(ioredis@5.6.1)(keyv@5.3.3)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)':
     dependencies:
       '@keyv/redis': 4.4.0(keyv@5.3.3)
-      '@loopstack/core': 0.0.1(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
+      '@loopstack/core': 0.0.3(@nestjs/microservices@11.1.1)(@nestjs/websockets@11.1.1)(@types/inquirer@8.2.11)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))(typescript@5.8.3)
       '@loopstack/markdown-parser': 1.0.9
       '@loopstack/schema-to-template': 1.0.4
-      '@loopstack/shared': 1.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
+      '@loopstack/shared': 0.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
       '@nestjs/cache-manager': 3.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(cache-manager@6.4.3)(keyv@5.3.3)(rxjs@7.8.2)
       '@nestjs/common': 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/config': 4.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
@@ -8227,39 +8235,7 @@ snapshots:
 
   '@loopstack/schema-to-template@1.0.4': {}
 
-  '@loopstack/shared@0.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))':
-    dependencies:
-      '@nestjs/typeorm': 11.0.0(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3)))
-      fast-json-stable-stringify: 2.1.0
-      murmurhash: 2.0.1
-      reflect-metadata: 0.2.2
-      typeorm: 0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))
-      zod: 3.25.20
-    transitivePeerDependencies:
-      - '@google-cloud/spanner'
-      - '@nestjs/common'
-      - '@nestjs/core'
-      - '@sap/hana-client'
-      - babel-plugin-macros
-      - better-sqlite3
-      - hdb-pool
-      - ioredis
-      - mongodb
-      - mssql
-      - mysql2
-      - oracledb
-      - pg
-      - pg-native
-      - pg-query-stream
-      - redis
-      - rxjs
-      - sql.js
-      - sqlite3
-      - supports-color
-      - ts-node
-      - typeorm-aurora-data-api-driver
-
-  '@loopstack/shared@1.0.1(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))':
+  '@loopstack/shared@0.0.2(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(rxjs@7.8.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3))':
     dependencies:
       '@nestjs/typeorm': 11.0.0(@nestjs/common@11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.24(babel-plugin-macros@3.1.0)(ioredis@5.6.1)(pg@8.16.0)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@swc/core@1.11.29)(@types/node@22.15.21)(typescript@5.8.3)))
       fast-json-stable-stringify: 2.1.0
@@ -9178,6 +9154,10 @@ snapshots:
       undici-types: 6.19.8
 
   '@types/node@22.15.21':
+    dependencies:
+      undici-types: 6.21.0
+
+  '@types/node@22.15.29':
     dependencies:
       undici-types: 6.21.0
 
