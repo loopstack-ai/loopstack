@@ -9,6 +9,7 @@ tools:
 
 workflows:
   - name: helloWorldWorkflow
+    title: "Hello World Workflow"
     type: tool
     sequence:
       - call: sayHelloWorld
