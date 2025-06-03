@@ -1,5 +1,11 @@
 # @loopstack/app-template
 
+## 0.0.6
+
+### Patch Changes
+
+- Adds docker compose in app template and creates .env file on install
+
 ## 0.0.5
 
 ### Patch Changes
