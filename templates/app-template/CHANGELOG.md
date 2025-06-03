@@ -1,5 +1,11 @@
 # @loopstack/app-template
 
+## 0.0.5
+
+### Patch Changes
+
+- Fixes start:dev command
+
 ## 0.0.4
 
 ### Patch Changes
