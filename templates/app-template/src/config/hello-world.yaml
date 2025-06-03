@@ -2,11 +2,10 @@ tools:
   - name: sayHelloWorld
     service: CreateDocumentService
     props:
-      create:
-        name: helloWorldDocument
-        schema:
-          type: string
-        content: "Hello World"
+      document: core/assistantMessage
+      update:
+        content:
+          content: "Hello World"
 
 workflows:
   - name: helloWorldWorkflow
