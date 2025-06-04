@@ -30,12 +30,12 @@ services:
   websocket-server:
     image: jakobklippel/loopstack-websocket-server:latest
     ports:
-      - "3001:3000"
+      - "8001:8001"
     environment:
       - NODE_ENV=development
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - APP_PORT=3001
+      - APP_PORT=8001
       - CORS_ORIGIN=localhost
     depends_on:
       - redis
@@ -47,7 +47,7 @@ services:
   react-app:
     image: jakobklippel/loopstack-react-app:latest
     ports:
-      - "3080:3000"
+      - "3000:3000"
     depends_on:
       - websocket-server
     restart: unless-stopped
