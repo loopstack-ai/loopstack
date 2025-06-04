@@ -44,7 +44,7 @@ export class UpdateDocumentService implements ToolInterface {
     workflow: WorkflowEntity | undefined,
   ): Promise<ToolResult> {
     if (!workflow) {
-      return {};
+      throw new Error('Workflow is undefined');
     }
 
     let document = workflow.documents.find((item) => item.id === props.id);
@@ -60,8 +60,9 @@ export class UpdateDocumentService implements ToolInterface {
     );
 
     return {
+      success: true,
+      persist: true,
       workflow,
-      commitDirect: true,
       data: document,
     };
   }

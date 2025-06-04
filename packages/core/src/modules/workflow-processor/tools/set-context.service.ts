@@ -32,7 +32,7 @@ export class SetContextService implements ToolInterface {
     workflow: WorkflowEntity | undefined,
   ): Promise<ToolResult> {
     if (!workflow) {
-      return {};
+      throw new Error('Workflow is undefined');
     }
 
     if (!workflow.contextUpdate) {
@@ -44,6 +44,7 @@ export class SetContextService implements ToolInterface {
     this.logger.debug(`Set context update key "${props.key}".`);
 
     return {
+      success: true,
       workflow,
     };
   }

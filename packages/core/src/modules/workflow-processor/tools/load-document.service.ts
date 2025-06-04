@@ -224,6 +224,7 @@ export class LoadDocumentService implements ToolInterface {
     );
 
     return {
+      success: true,
       workflow,
       data: importItem,
     };

@@ -62,7 +62,7 @@ export class BatchCreateDocumentsService implements ToolInterface {
     workflowContext: WorkflowRunContext,
   ): Promise<ToolResult> {
     if (!workflow) {
-      return {};
+      throw new Error('Workflow is undefined');
     }
 
     let template = props?.document
@@ -112,8 +112,9 @@ export class BatchCreateDocumentsService implements ToolInterface {
     }
 
     return {
+      success: true,
       workflow,
-      commitDirect: true,
+      persist: true,
       data: documents,
     };
   }

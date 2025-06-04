@@ -50,6 +50,7 @@ export class TransitionSelectorService implements ToolInterface {
     }
 
     return {
+      success: true,
       place,
     };
   }

@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import _ from 'lodash';
 import { ContextService } from '../../common';
 import { ValueParserService } from '../../common';
 import { StateMachineProcessorService } from './state-machine-processor.service';
@@ -73,7 +72,7 @@ export class WorkflowProcessorService {
       );
 
       // save workflow directly for immediate ui updates
-      if (result?.commitDirect) {
+      if (result?.persist) {
         await this.workflowService.save(workflow);
       }
     }

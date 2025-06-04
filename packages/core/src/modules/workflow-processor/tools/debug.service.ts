@@ -19,7 +19,7 @@ const schema = z
 @Injectable()
 @Tool({
   name: 'debug',
-  description: 'Create a debug message',
+  description: 'Log a message',
   config,
   schema,
 })

@@ -38,7 +38,7 @@ export class AddNamespaceService implements ToolInterface {
     context: ContextInterface,
   ): Promise<ToolResult> {
     if (!workflow) {
-      return {};
+      throw new Error('Workflow is undefined');
     }
     const namespace = await this.namespacesService.create({
       name: props.label,
@@ -66,6 +66,7 @@ export class AddNamespaceService implements ToolInterface {
     this.logger.debug(`Add namespace label "${namespace.name}".`);
 
     return {
+      success: true,
       workflow,
     };
   }

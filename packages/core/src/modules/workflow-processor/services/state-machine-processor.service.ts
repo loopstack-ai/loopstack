@@ -294,7 +294,7 @@ export class StateMachineProcessorService {
           );
 
           // save workflow directly for immediate ui updates
-          if (result?.commitDirect) {
+          if (result?.persist) {
             await this.workflowService.save(workflow);
           }
 
