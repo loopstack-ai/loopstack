@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-v0.1.0--alpha-orange)](https://github.com/loopstack-ai/loopstack/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Discord](https://img.shields.io/badge/discord-join%20community-7289da)](https://discord.gg/loopstack)
+[![Discord](https://img.shields.io/badge/discord-join%20community-7289da)](https://discord.gg/wuXpv76p)
 
 A developer-first, open-source framework for reliable AI workflow automation that eliminates the complexity of building, testing, and deploying AI-powered applications.
 
@@ -244,7 +244,7 @@ describe('Document Processor Workflow E2E', () => {
 ### Getting Help
 
 - 📖 **Documentation**: [https://loopstack.ai/docs](https://loopstack.ai/docs)
-- 💬 **Discord Community**: [https://discord.gg/loopstack](https://discord.gg/loopstack)
+- 💬 **Discord Community**: [https://discord.gg/loopstack](https://discord.gg/wuXpv76p)
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/loopstack-ai/loopstack/issues)
 - 📧 **Support Email**: support@loopstack.ai
 
@@ -255,7 +255,7 @@ We're actively preparing Loopstack for full open-source contribution! While we f
 - 🐛 [Reporting bugs and issues](https://github.com/loopstack-ai/loopstack/issues)
 - 💡 [Suggesting features and improvements](https://github.com/loopstack-ai/loopstack/discussions)
 - 📖 Improving documentation
-- 💬 Joining our [Discord community](https://discord.gg/loopstack) to share feedback
+- 💬 Joining our [Discord community](https://discord.gg/wuXpv76p) to share feedback
 
 **Coming soon**: Full source code access, contribution guidelines, and developer onboarding docs.
 
