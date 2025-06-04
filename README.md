@@ -78,7 +78,7 @@ Your application is now running at:
 - API: http://localhost:8000
 - Websocket: http://localhost:8001
 - Studio: http://localhost:3000
-- API Documentation: http://localhost:8000/api/docs
+- API Documentation: http://localhost:8000/api
 
 ## Tech Stack
 
