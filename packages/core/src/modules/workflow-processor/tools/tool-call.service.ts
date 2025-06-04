@@ -10,37 +10,41 @@ import {
 } from '@loopstack/shared';
 import { ToolExecutionService } from '../index';
 
+const config = z
+  .object({
+    tool: z.string(),
+    options: z.any().optional(),
+  })
+  .strict();
+
+const schema = z
+  .object({
+    tool: z.string(),
+    options: z.any().optional(),
+  })
+  .strict();
+
 @Injectable()
-@Tool()
+@Tool({
+  name: 'toolCall',
+  description: 'Call another tool',
+  config,
+  schema,
+})
 export class ToolCallService implements ToolInterface {
   private readonly logger = new Logger(ToolCallService.name);
-  configSchema = z
-    .object({
-      tool: z.string(),
-      options: z.any().optional(),
-    })
-    .strict();
-
-  schema = z
-    .object({
-      tool: z.string(),
-      options: z.any().optional(),
-    })
-    .strict();
 
   constructor(private toolExecutionService: ToolExecutionService) {}
 
   async apply(
-    props: z.infer<typeof this.schema>,
+    props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     workflowContext: WorkflowRunContext,
   ): Promise<ToolResult> {
-    const validOptions = this.schema.parse(props);
-
     return this.toolExecutionService.applyTool(
       {
-        call: validOptions.tool,
+        call: props.tool,
       },
       workflow,
       context,
@@ -48,7 +52,7 @@ export class ToolCallService implements ToolInterface {
         ...workflowContext,
         options: {
           ...workflowContext.options,
-          ...validOptions.options,
+          ...props.options,
         },
       },
     );

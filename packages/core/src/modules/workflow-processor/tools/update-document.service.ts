@@ -13,47 +13,50 @@ import { DocumentService } from '../../persistence';
 import { merge } from 'lodash';
 import { ExpressionString } from '@loopstack/shared/dist/schemas/expression-type.schema';
 
+const config = z
+  .object({
+    id: ExpressionString,
+    update: DocumentConfigSchema.partial().optional(),
+  })
+  .strict();
+
+const schema = z
+  .object({
+    id: NonExpressionString,
+    update: PartialDocumentSchema.optional(),
+  })
+  .strict();
+
 @Injectable()
-@Tool()
+@Tool({
+  name: 'updateDocument',
+  description: 'Update an existing document',
+  config,
+  schema,
+})
 export class UpdateDocumentService implements ToolInterface {
   private readonly logger = new Logger(UpdateDocumentService.name);
-
-  configSchema = z
-    .object({
-      id: ExpressionString,
-      update: DocumentConfigSchema.partial().optional(),
-    })
-    .strict();
-
-  schema = z
-    .object({
-      id: NonExpressionString,
-      update: PartialDocumentSchema.optional(),
-    })
-    .strict();
 
   constructor(private documentService: DocumentService) {}
 
   async apply(
-    props: z.infer<typeof this.schema>,
+    props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
   ): Promise<ToolResult> {
     if (!workflow) {
       return {};
     }
 
-    const validData = this.schema.parse(props);
-
-    let document = workflow.documents.find((item) => item.id === validData.id);
+    let document = workflow.documents.find((item) => item.id === props.id);
     if (!document) {
-      throw new Error(`Document with ID ${validData.id} not found.`);
+      throw new Error(`Document with ID ${props.id} not found.`);
     }
 
     this.logger.debug(`Update document "${document.name}".`);
 
     document = this.documentService.update(
       workflow,
-      merge(document, validData.update),
+      merge(document, props.update),
     );
 
     return {

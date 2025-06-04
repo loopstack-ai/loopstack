@@ -1,14 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import {
   AdapterInterface,
+  AdapterOptionsInterface,
   LOOP_ADAPTER_DECORATOR,
-  ServiceWithSchemaInterface,
 } from '@loopstack/shared';
 
 @Injectable()
 export class AdapterRegistry {
-  private adapters: Map<string, AdapterInterface> = new Map();
+  private readonly logger = new Logger(AdapterRegistry.name);
+  private adapters: Map<string, { options: AdapterOptionsInterface; instance: AdapterInterface }> = new Map();
 
   constructor(
     private readonly discoveryService: DiscoveryService,
@@ -22,32 +23,36 @@ export class AdapterRegistry {
       const instance = provider.instance;
       if (!instance || !instance.constructor) continue;
 
-      const options = this.reflector.get<boolean>(
+      const options: AdapterOptionsInterface = this.reflector.get(
         LOOP_ADAPTER_DECORATOR,
         instance.constructor,
       );
 
       if (options) {
-        this.registerAdapter(instance);
+        this.logger.debug(`Register Adapter ${instance.constructor.name} as ${options.name}`);
+        this.registerAdapter(options, instance);
       }
     }
   }
 
-  getAdapterByName(name: string): AdapterInterface | undefined {
-    return this.adapters.get(name);
-  }
-
-  private registerAdapter(instance: AdapterInterface) {
-    const name = instance.constructor.name;
-
-    if (this.adapters.has(name)) {
-      throw new Error(`Duplicate adapter registration: "${name}"`);
+  getAdapterByName(name: string): { options: AdapterOptionsInterface; instance: AdapterInterface } {
+    const adapter = this.adapters.get(name);
+    if (!adapter) {
+      throw new Error(`Adapter ${name} not found.`);
     }
 
-    this.adapters.set(name, instance);
+    return adapter;
   }
 
-  getEntries(): Array<[string, ServiceWithSchemaInterface]> {
-    return Array.from(this.adapters.entries());
+  private registerAdapter(options: AdapterOptionsInterface, instance: AdapterInterface) {
+    if (this.adapters.has(options.name)) {
+      throw new Error(`Duplicate adapter registration: "${options.name}"`);
+    }
+
+    this.adapters.set(options.name, { options, instance });
+  }
+
+  getEntries(): Array<{ options: AdapterOptionsInterface; instance: AdapterInterface }> {
+    return Array.from(this.adapters.values());
   }
 }

@@ -11,38 +11,41 @@ import {
 } from '@loopstack/shared';
 import { NamespacesService } from '../../persistence';
 
+const config = z
+  .object({
+    label: z.union([z.string(), ExpressionString]),
+    meta: z.any().optional(),
+  })
+  .strict();
+
+const schema = NamespacePropsSchema.strict();
+
 @Injectable()
-@Tool()
+@Tool({
+  name: 'addNamespace',
+  description: 'Add a namespace to the context object',
+  config,
+  schema,
+})
 export class AddNamespaceService implements ToolInterface {
   private readonly logger = new Logger(AddNamespaceService.name);
-
-  configSchema = z
-    .object({
-      label: z.union([z.string(), ExpressionString]),
-      meta: z.any().optional(),
-    })
-    .strict();
-
-  schema = NamespacePropsSchema.strict();
 
   constructor(private namespacesService: NamespacesService) {}
 
   async apply(
-    props: z.infer<typeof this.schema>,
+    props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
   ): Promise<ToolResult> {
     if (!workflow) {
       return {};
     }
-
-    const validOptions = this.schema.parse(props);
     const namespace = await this.namespacesService.create({
-      name: validOptions.label,
+      name: props.label,
       model: context.model,
       projectId: context.projectId,
       workspaceId: context.workspaceId,
-      metadata: validOptions.meta,
+      metadata: props.meta,
       createdBy: context.userId,
       parent: context.namespace,
     });

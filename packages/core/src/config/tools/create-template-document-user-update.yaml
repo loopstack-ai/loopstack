@@ -1,6 +1,6 @@
 tools:
   - name: core/createTemplateDocumentUserUpdate
-    service: CreateDocumentService
+    service: createDocument
     props:
       document: ${ workflow.options.document }
       update:

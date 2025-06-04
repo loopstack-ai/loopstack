@@ -1,15 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ToolInterface } from '@loopstack/shared';
-import { z } from 'zod';
+import { z, ZodSchema } from 'zod';
 
 @Injectable()
 export class ToolSchemaValidatorService {
   private logger = new Logger(ToolSchemaValidatorService.name);
 
-  validateProps(instance: ToolInterface, props: any) {
-    if (instance.schema) {
+  validateProps(schema: ZodSchema | undefined, props: any) {
+    if (schema) {
       try {
-        return instance.schema.parse(props);
+        return schema.parse(props);
       } catch (error) {
         if (error instanceof z.ZodError) {
           const enhancedErrors = error.errors.map((err) => {

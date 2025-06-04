@@ -1,6 +1,6 @@
 tools:
   - name: core/createChatMessage
-    service: ToolCallService
+    service: toolCall
     props:
       tool: core/createUserMessage
       options:

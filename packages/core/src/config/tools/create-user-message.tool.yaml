@@ -1,6 +1,6 @@
 tools:
   - name: core/createUserMessage
-    service: CreateDocumentService
+    service: createDocument
     props:
       document: core/userMessage
       update:

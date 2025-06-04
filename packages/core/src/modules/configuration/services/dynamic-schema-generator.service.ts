@@ -2,9 +2,7 @@ import { z, ZodType } from 'zod';
 import { Injectable } from '@nestjs/common';
 import { ToolRegistry } from './tool.registry';
 import { AdapterRegistry } from './adapter-registry.service';
-import { MainConfigSchema, ServiceConfigSchema } from '@loopstack/shared';
-import { ServiceWithSchemaInterface } from '@loopstack/shared';
-import { get } from 'lodash';
+import { MainConfigSchema, ServiceConfigSchema, ToolOptionsInterface } from '@loopstack/shared';
 
 @Injectable()
 export class DynamicSchemaGeneratorService {
@@ -59,13 +57,11 @@ export class DynamicSchemaGeneratorService {
     return similarity >= 0.7 ? mostSimilar : null;
   }
 
-  createDiscriminatedServiceType<
-    T extends Record<string, ServiceWithSchemaInterface>,
-  >(entries: Array<[string, ServiceWithSchemaInterface]>) {
-    const configSchemas = entries.map(([name, service]) =>
+  createDiscriminatedServiceType(items: ToolOptionsInterface[]) {
+    const configSchemas = items.map((options) =>
       ServiceConfigSchema.extend({
-        service: z.literal(name),
-        props: service.configSchema,
+        service: z.literal(options.name),
+        props: options.config ?? z.any(),
       }),
     );
 
@@ -95,10 +91,10 @@ export class DynamicSchemaGeneratorService {
 
   createDynamicSchema(): ReturnType<typeof MainConfigSchema.extend> {
     const toolConfigSchemas = this.createDiscriminatedServiceType(
-      this.toolRegistry.getEntries(),
+      this.toolRegistry.getEntries().map((tool) => tool.options),
     );
     const adapterConfigSchemas = this.createDiscriminatedServiceType(
-      this.adapterRegistry.getEntries(),
+      this.adapterRegistry.getEntries().map((adapter) => adapter.options),
     );
 
     return MainConfigSchema.extend({

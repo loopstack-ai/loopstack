@@ -22,25 +22,27 @@ import { WorkflowEntity } from '@loopstack/shared';
 import { DocumentService } from '../../persistence';
 import { merge } from 'lodash';
 
+const schema = z.object({
+  document: z.string().optional(),
+  update: PartialDocumentSchema.optional(),
+  create: DocumentSchema.optional(),
+}).strict();
+
+const config = z.object({
+    document: z.string().optional(),
+    update: DocumentConfigSchema.partial().optional(),
+    create: DocumentConfigSchema.optional(),
+  }).strict();
+
 @Injectable()
-@Tool()
+@Tool({
+  name: 'createDocument',
+  description: 'Create a document',
+  config,
+  schema,
+})
 export class CreateDocumentService implements ToolInterface {
   private readonly logger = new Logger(CreateDocumentService.name);
-  configSchema = z
-    .object({
-      document: z.string().optional(),
-      update: DocumentConfigSchema.partial().optional(),
-      create: DocumentConfigSchema.optional(),
-    })
-    .strict();
-
-  schema = z
-    .object({
-      document: z.string().optional(),
-      update: PartialDocumentSchema.optional(),
-      create: DocumentSchema.optional(),
-    })
-    .strict();
 
   constructor(
     private actionHelperService: SchemaValidatorService,
@@ -51,7 +53,7 @@ export class CreateDocumentService implements ToolInterface {
   ) {}
 
   async apply(
-    props: z.infer<typeof this.schema>,
+    props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     workflowContext: WorkflowRunContext,
@@ -60,12 +62,10 @@ export class CreateDocumentService implements ToolInterface {
       return {};
     }
 
-    const validProps = this.schema.parse(props);
-
-    let template = validProps?.document
+    let template = props?.document
       ? this.loopConfigService.get<DocumentType>(
           'documents',
-          validProps.document,
+          props.document,
         )
       : undefined;
 
@@ -88,7 +88,7 @@ export class CreateDocumentService implements ToolInterface {
     const documentData = merge(
       {},
       template,
-      validProps?.create ?? validProps?.update ?? {},
+      props?.create ?? props?.update ?? {},
     );
 
     if (!documentData) {

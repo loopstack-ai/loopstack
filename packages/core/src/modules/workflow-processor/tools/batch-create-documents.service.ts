@@ -21,25 +21,31 @@ import { WorkflowEntity } from '@loopstack/shared';
 import { DocumentService } from '../../persistence';
 import { merge } from 'lodash';
 
+const config = z
+  .object({
+    document: z.string(),
+    namePrefix: z.union([ExpressionString, NonExpressionString]).optional(),
+    items: z.union([ExpressionString, z.array(z.any())]),
+  })
+  .strict();
+
+const schema = z
+  .object({
+    document: z.string(),
+    namePrefix: NonExpressionString.optional(),
+    items: z.array(z.any()),
+  })
+  .strict();
+
 @Injectable()
-@Tool()
+@Tool({
+  name: 'batchCreateDocuments',
+  description: 'Batch create multiple documents',
+  config,
+  schema,
+})
 export class BatchCreateDocumentsService implements ToolInterface {
   private readonly logger = new Logger(BatchCreateDocumentsService.name);
-  configSchema = z
-    .object({
-      document: z.string(),
-      namePrefix: z.union([ExpressionString, NonExpressionString]).optional(),
-      items: z.union([ExpressionString, z.array(z.any())]),
-    })
-    .strict();
-
-  schema = z
-    .object({
-      document: z.string(),
-      namePrefix: NonExpressionString.optional(),
-      items: z.array(z.any()),
-    })
-    .strict();
 
   constructor(
     private actionHelperService: SchemaValidatorService,
@@ -50,7 +56,7 @@ export class BatchCreateDocumentsService implements ToolInterface {
   ) {}
 
   async apply(
-    props: z.infer<typeof this.schema>,
+    props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     workflowContext: WorkflowRunContext,

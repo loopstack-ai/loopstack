@@ -78,13 +78,9 @@ export class ToolExecutionService {
       },
     );
 
-    const instance = this.toolRegistry.getToolByName(toolConfig.service);
-    if (!instance) {
-      throw new Error(`Tool service ${toolConfig.service} not found.`);
-    }
-
+    const { options, instance } = this.toolRegistry.getToolByName(toolConfig.service);
     const validProps = this.toolSchemaValidatorService.validateProps(
-      instance,
+      options.schema,
       props,
     );
     return instance.apply(validProps, workflow, context, workflowContext);

@@ -3,31 +3,34 @@ import { z } from 'zod';
 import { Tool, ToolInterface, ToolResult } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
+const config = z
+  .object({
+    key: z.string(),
+    value: z.any(),
+  })
+  .strict();
+
+const schema = z
+  .object({
+    key: z.string(),
+    value: z.any(),
+  })
+  .strict();
+
 @Injectable()
-@Tool()
+@Tool({
+  name: 'setContext',
+  description: 'Set a context property value',
+  config,
+  schema,
+})
 export class SetContextService implements ToolInterface {
   private readonly logger = new Logger(SetContextService.name);
 
-  configSchema = z
-    .object({
-      key: z.string(),
-      value: z.any(),
-    })
-    .strict();
-
-  schema = z
-    .object({
-      key: z.string(),
-      value: z.any(),
-    })
-    .strict();
-
   async apply(
-    props: z.infer<typeof this.schema>,
+    props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
   ): Promise<ToolResult> {
-    const validOptions = this.schema.parse(props);
-
     if (!workflow) {
       return {};
     }
@@ -36,9 +39,9 @@ export class SetContextService implements ToolInterface {
       workflow.contextUpdate = {};
     }
 
-    workflow.contextUpdate[validOptions.key] = validOptions.value;
+    workflow.contextUpdate[props.key] = props.value;
 
-    this.logger.debug(`Set context update key "${validOptions.key}".`);
+    this.logger.debug(`Set context update key "${props.key}".`);
 
     return {
       workflow,

@@ -17,7 +17,7 @@ import {
   WorkflowService,
 } from '../../persistence';
 
-const LoadDocumentArgsSchema = z
+const config = z
   .object({
     where: WhereCondition,
     map: z.string().optional(),
@@ -37,14 +37,17 @@ const LoadDocumentArgsSchema = z
   })
   .strict();
 
-export type LoadDocumentArgsInterface = z.infer<typeof LoadDocumentArgsSchema>;
+const schema = config;  //todo create dedicated schema
 
 @Injectable()
-@Tool()
+@Tool({
+  name: 'loadDocument',
+  description: 'Load a document from the database',
+  config,
+  schema,
+})
 export class LoadDocumentService implements ToolInterface {
   private readonly logger = new Logger(LoadDocumentService.name);
-  configSchema = LoadDocumentArgsSchema;
-  schema = LoadDocumentArgsSchema; //todo remove the expressions
 
   constructor(
     private documentService: DocumentService,
@@ -55,7 +58,7 @@ export class LoadDocumentService implements ToolInterface {
   /**
    * filters items using defined functions
    */
-  applyFilters(props: z.infer<typeof this.schema>, items: DocumentEntity[]) {
+  applyFilters(props: z.infer<typeof schema>, items: DocumentEntity[]) {
     if (props.filter) {
       return items.filter((item) =>
         this.functionCallService.evaluate(props.filter!, { item }),
@@ -70,7 +73,7 @@ export class LoadDocumentService implements ToolInterface {
    * uses defined functions for mapping
    */
   applyModifiers(
-    props: z.infer<typeof this.schema>,
+    props: z.infer<typeof schema>,
     entities: DocumentEntity[],
   ) {
     const defaultMapFunction = '${ entity.content }';
@@ -103,7 +106,7 @@ export class LoadDocumentService implements ToolInterface {
    * retrieves and filters entities from database
    */
   async getDocumentsByQuery(
-    props: z.infer<typeof this.schema>,
+    props: z.infer<typeof schema>,
     projectId: string,
     workspaceId: string,
     workflow: WorkflowEntity,
@@ -148,7 +151,7 @@ export class LoadDocumentService implements ToolInterface {
    * adds flags for new and changed content
    */
   createImportItem(
-    options: LoadDocumentArgsInterface,
+    options: z.infer<typeof schema>,
     currentEntities: DocumentEntity[],
     prevImport: ContextImportInterface | undefined,
   ): ContextImportInterface {
@@ -172,7 +175,7 @@ export class LoadDocumentService implements ToolInterface {
    * and updates workflow dependencies, if applicable
    */
   async apply(
-    props: z.infer<typeof this.schema>,
+    props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     workflowContext: WorkflowRunContext,
@@ -182,11 +185,9 @@ export class LoadDocumentService implements ToolInterface {
     }
     this.logger.debug(`Load document ${workflowContext.transition}`);
 
-    const validProps = this.schema.parse(props);
-
     // load and filter entities based on options from database
     const currentEntities = await this.getDocumentsByQuery(
-      validProps,
+      props,
       context.projectId,
       context.workspaceId,
       workflow,
@@ -196,7 +197,7 @@ export class LoadDocumentService implements ToolInterface {
       workflow.prevData?.imports?.[workflowContext.transition!];
 
     // update workflow dependencies, if applicable
-    if (!validProps.ignoreChanges) {
+    if (!props.ignoreChanges) {
       if (!workflow.dependencies) {
         workflow.dependencies = [];
       }
