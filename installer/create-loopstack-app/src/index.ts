@@ -4,7 +4,7 @@ import { execSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
-const appName = process.argv[2];
+const appName: string | undefined = process.argv[2];
 
 if (!appName) {
   console.error("❌ Please provide a project name.");
@@ -18,8 +18,8 @@ const repo = "https://github.com/loopstack-ai/app-template.git";
 execSync(`git clone ${repo} ${appName}`, { stdio: "inherit" });
 
 // update package json
-const packageJsonPath = path.join(process.cwd(), appName, "package.json");
-const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+const packageJsonPath: string = path.join(process.cwd(), appName, "package.json");
+const packageJson: any = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 packageJson.name = appName;
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
