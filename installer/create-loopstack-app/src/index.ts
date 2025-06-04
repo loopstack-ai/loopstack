@@ -23,10 +23,6 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 packageJson.name = appName;
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
-// create .env
-const envPath = path.join(process.cwd(), appName, ".env");
-fs.writeFileSync(envPath, "ENABLE_NULL_USER=1\n");
-
 console.log("📦 Installing dependencies...");
 process.chdir(appName);
 execSync("npm install", { stdio: "inherit" });
