@@ -80,6 +80,17 @@ Your application is now running at:
 - Studio: http://localhost:3000
 - API Documentation: http://localhost:8000/api
 
+### Optional: enable schema validation in your IDE
+
+For yaml file validation in your IDE, generate and link your custom JSON schema.
+```
+npm run generate:schemas
+```
+
+Then, configure your IDE to use your custom schema for YAML validation: `./src/generated/main.schema.json`
+
+Remember, to re-generate the schema when you add tools or modify their input schemas.
+
 ## Tech Stack
 
 - Backend: Node.js / NestJS
@@ -96,9 +107,9 @@ For detailed documentation, visit https://loopstack.ai/docs
 ### Building custom workflows and tools
 
 ```yaml
-#./src/config/my-summarizer.yaml
+#./src/config/example-summarizer.yaml
 workflows:
-  - name: helloWorldWorkflow
+  - name: summarizeWorkflow
     type: stateMachine
     transitions:
       - name: loadDocument
@@ -106,17 +117,29 @@ workflows:
         to: documentLoaded
       - name: summarizeContent
         from: documentLoaded
-        to: finished
+        to: summarized
+      - name: createReport
+        from: summarized
+        to: complete
     handlers:
       - onTransition: loadDocument
-        call: helloWorldDocumentLoader
+        execute: loadDocumentToolCall
         provideAs: CONTENT
       - onTransition: summarizeContent
-        call: documentSummarizerPrompt
-tools:
-  - name: documentSummarizerPrompt
-    service: SimplePromptService
-    props:
+        execute: summarizeContentToolCall
+        provideAs: RESULT
+      - onTransition: createReport
+        execute: createReportToolCall
+
+toolCalls:
+  - name: loadDocumentToolCall
+    tool: loadDocument
+    arguments:
+      where:
+        name: myDocument
+  - name: summarizeContentToolCall
+    tool: prompt
+    arguments:
       adapter: gpt-4o-adapter
       messages:
         - role: system
@@ -129,6 +152,39 @@ tools:
             <%= CONTENT %>
 
             Focus on key insights, important details, and actionable items.
+  - name: createReportToolCall
+    tool: createDocument
+    arguments:
+      create:
+        name: myReport
+        content: |
+          This is my report:
+
+          <%= RESPONSE %>
+
+projects:
+  - name: myProject
+    title: "Summary Example"
+    workspace: default
+    entrypoint: summarizeWorkflow
+```
+
+### Use templates
+```yaml
+#./src/config/example-summarizer-with-template-use.yaml
+workflows:
+  - name: summarizeWorkflow
+    type: stateMachine
+    extends: summarizerTemplate
+    options:
+      input: myDocument
+      output: myReport
+
+projects:
+  - name: myProject
+    title: "Summary Example"
+    workspace: default
+    entrypoint: summarizeWorkflow
 ```
 
 ### Building custom tools
@@ -137,35 +193,22 @@ tools:
 // ./src/tools/pdf-extractor.tool.ts
 import { Injectable } from '@nestjs/common';
 import { ToolResult, ToolInterface, Tool } from '@loopstack/shared';
+import { z } from 'zod';
 import * as pdfParse from 'pdf-parse';
 
-interface PdfExtractorInput {
-  filePath: string;
-  extractImages?: boolean;
-}
-
-interface PdfExtractorOutput {
-  text: string;
-  pageCount: number;
-  metadata: any;
-}
+const schema = z.object({
+  filePath: z.string(),
+});
 
 @Injectable()
 @Tool({
   name: 'pdfExtractor',
   description: 'Extract text content from PDF files',
-  inputSchema: {
-    type: 'object',
-    properties: {
-      filePath: { type: 'string' },
-      extractImages: { type: 'boolean', default: false }
-    },
-    required: ['filePath']
-  }
+  schema,
 })
 export class PdfExtractorTool implements ToolInterface {
 
-  async apply(input: PdfExtractorInput): Promise<ToolResult<PdfExtractorOutput>> {
+  async apply(props: z.infer<typeof schema>): Promise<ToolResult> {
     try {
       const buffer = await this.readFile(input.filePath);
       const data = await pdfParse(buffer);
@@ -188,11 +231,10 @@ export class PdfExtractorTool implements ToolInterface {
 
   private async readFile(filePath: string): Promise<Buffer> {
     // File reading implementation
-    throw new Error('Implementation needed');
+    throw new Error('Not implemented.');
   }
 }
 ```
-
 
 ### Write Test for your code and workflows
 
