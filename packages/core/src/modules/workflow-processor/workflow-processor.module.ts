@@ -61,6 +61,6 @@ import {
     StateMachineProcessorService,
     StateMachineConfigService,
   ],
-  exports: [ProjectProcessorService, WorkflowProcessorService],
+  exports: [ProjectProcessorService, WorkflowProcessorService, ToolExecutionService],
 })
 export class WorkflowProcessorModule {}

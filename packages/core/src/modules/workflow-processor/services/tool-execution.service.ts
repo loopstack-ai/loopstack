@@ -17,14 +17,14 @@ export class ToolExecutionService {
   private logger = new Logger(ToolExecutionService.name);
 
   constructor(
-    private loopConfigService: ConfigurationService,
+    private configurationService: ConfigurationService,
     private valueParserService: ValueParserService,
     private toolRegistry: ToolRegistry,
     private toolSchemaValidatorService: ToolSchemaValidatorService,
   ) {}
 
   getToolConfig(toolName: string) {
-    const config = this.loopConfigService.get<ServiceConfigType>(
+    const config = this.configurationService.get<ServiceConfigType>(
       'tools',
       toolName,
     );
@@ -33,6 +33,19 @@ export class ToolExecutionService {
     }
 
     return config;
+  }
+
+  async executeTool(name: string, args: any, workflow: WorkflowEntity | undefined, context: ContextInterface, workflowContext: WorkflowRunContext): Promise<ToolResult> {
+    const { options, instance } = this.toolRegistry.getToolByName(name);
+
+    const validProps = this.toolSchemaValidatorService.validateProps(
+      options.schema,
+      args,
+    );
+
+    this.logger.debug(`Calling tool ${name}`);
+
+    return instance.apply(validProps, workflow, context, workflowContext);
   }
 
   async applyTool(
@@ -53,7 +66,7 @@ export class ToolExecutionService {
         : {};
 
     const useTemplate = (name: string, variables: any): string => {
-      const snippet = this.loopConfigService.get<SnippetConfigType>(
+      const snippet = this.configurationService.get<SnippetConfigType>(
         'snippets',
         name,
       );
@@ -75,15 +88,11 @@ export class ToolExecutionService {
         context,
         data: workflow?.currData,
         workflow: workflowContext,
+        arguments: handler.args
       },
     );
 
-    const { options, instance } = this.toolRegistry.getToolByName(toolConfig.service);
-    const validProps = this.toolSchemaValidatorService.validateProps(
-      options.schema,
-      props,
-    );
-    return instance.apply(validProps, workflow, context, workflowContext);
+    return this.executeTool(toolConfig.service, props, workflow, context, workflowContext);
   }
 
   commitToolCallResult(

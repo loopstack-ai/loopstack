@@ -5,6 +5,7 @@ import {
   LOOP_TOOL_DECORATOR,
   ToolOptionsInterface,
 } from '@loopstack/shared';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 @Injectable()
 export class ToolRegistry {
@@ -42,6 +43,15 @@ export class ToolRegistry {
     }
 
     return tool;
+  }
+
+  getToolSchema(options: ToolOptionsInterface): any {
+    if (!options.schema) {
+      throw new Error('Tool has no schema.');
+    }
+
+    const schema = zodToJsonSchema(options.schema, "toolSchema");
+    return schema.definitions?.['toolSchema'];
   }
 
   private registerTool(options: ToolOptionsInterface, instance: ToolInterface) {
