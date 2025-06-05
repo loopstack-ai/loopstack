@@ -44,7 +44,7 @@ export class ToolCallService implements ToolInterface {
   ): Promise<ToolResult> {
     return this.toolExecutionService.applyTool(
       {
-        call: props.tool,
+        tool: props.tool,
       },
       workflow,
       context,

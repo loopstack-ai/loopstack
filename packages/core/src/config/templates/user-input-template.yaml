@@ -10,10 +10,14 @@ workflowTemplates:
         from: started
         to: waiting-for-user
         when: onEntry
+        call:
+          - tool: core/createTemplateDocument
       - name: response
         from: waiting-for-user
         to: received
         when: manual
+        call:
+          - tool: core/createTemplateDocumentUserUpdate
       - name: finish
         from: received
         to: complete
@@ -22,8 +26,3 @@ workflowTemplates:
         from: complete
         to: waiting-for-user
         when: manual
-    handlers:
-      - onTransition: request-form
-        call: core/createTemplateDocument
-      - onTransition: response
-        call: core/createTemplateDocumentUserUpdate

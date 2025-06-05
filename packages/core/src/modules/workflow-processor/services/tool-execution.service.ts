@@ -54,7 +54,7 @@ export class ToolExecutionService {
     context: ContextInterface,
     workflowContext: WorkflowRunContext,
   ): Promise<ToolResult> {
-    const toolConfig = this.getToolConfig(handler.call);
+    const toolConfig = this.getToolConfig(handler.tool);
 
     // replace the alias values with actual data
     const aliasVariables =
@@ -88,7 +88,7 @@ export class ToolExecutionService {
         context,
         data: workflow?.currData,
         workflow: workflowContext,
-        arguments: handler.args
+        arguments: handler.arguments
       },
     );
 

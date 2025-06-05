@@ -27,7 +27,6 @@ export class StateMachineConfigService {
 
   getConfig(stateMachine: StateMachineType): StateMachineType {
     let transitions: WorkflowTransitionType[] = stateMachine.transitions ?? [];
-    let handlers: StateMachineHandlerType[] = stateMachine.handlers ?? [];
 
     if (stateMachine.extends) {
       const parentStateMachine = this.getTemplate(stateMachine.extends);
@@ -36,20 +35,17 @@ export class StateMachineConfigService {
         parentStateMachine?.transitions ?? [],
         'name',
       );
-      handlers = [...(parentStateMachine?.handlers ?? []), ...handlers];
 
       return {
         ...parentStateMachine,
         ...stateMachine,
         transitions,
-        handlers,
       };
     }
 
     return {
       ...stateMachine,
       transitions,
-      handlers,
     };
   }
 }

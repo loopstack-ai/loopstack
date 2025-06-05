@@ -66,8 +66,8 @@ export class WorkflowProcessorService {
       workflow = this.toolExecutionService.commitToolCallResult(
         workflow,
         'default',
-        handler.call,
-        handler.provideAs,
+        handler.tool,
+        handler.exportAs,
         result,
       );
 

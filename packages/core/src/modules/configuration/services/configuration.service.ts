@@ -188,9 +188,9 @@ export class ConfigurationService implements OnModuleInit {
 
         const toolCalls: string[] = data.workflows
           .map((wf) =>
-            wf.type === 'stateMachine' ? wf.handlers?.map((h) => h.call) : [],
+            wf.type === 'stateMachine' ? wf.transitions?.map((h) => h.call?.map((call) => call.tool)) : [],
           )
-          .flat()
+          .flat(2)
           .filter((toolName) => undefined !== toolName);
 
         return toolCalls.every(
@@ -198,19 +198,17 @@ export class ConfigurationService implements OnModuleInit {
         );
       },
       (data: MainConfigType) => {
-        const items =
-          data.workflows?.map(
-            (wf) =>
-              wf.type === 'stateMachine' &&
-              wf.handlers?.find((h) => undefined === this.get('tools', h.call)),
-          ) ?? [];
+        const toolCalls: string[] = data.workflows!.map((wf) =>
+            wf.type === 'stateMachine' ? wf.transitions?.map((h) => h.call?.map((call) => call.tool)) : [],
+          )
+          .flat(2)
+          .filter((toolName) => undefined !== toolName);
 
-        const errorItem = items
-          .flat()
-          .filter((i) => undefined !== i)
-          .shift() as StateMachineHandlerType;
+        const errorItem = toolCalls
+          .find((toolName) => undefined === this.get('tools', toolName)) as unknown as StateMachineHandlerType;
+
         return {
-          message: `workflow handler references non-existent tool "${errorItem.call}".`,
+          message: `workflow handler references non-existent tool "${errorItem.tool}".`,
           path: ['workflows', 'handlers'],
         };
       },
@@ -234,8 +232,8 @@ export class ConfigurationService implements OnModuleInit {
 
         const templateIndex = stateMachineWorkflows.findIndex(
           (wf) =>
-            wf.handlers &&
-            wf.handlers.find((handler) => !this.has('tools', handler.call)),
+            wf.transitions &&
+            wf.transitions.find((t) => t.call?.find((call) => !this.has('tools', call.tool))),
         );
 
         return templateIndex === -1;
@@ -247,23 +245,24 @@ export class ConfigurationService implements OnModuleInit {
 
         const templateIndex = stateMachineWorkflows.findIndex(
           (wf) =>
-            wf.handlers &&
-            wf.handlers.find((handler) => !this.has('tools', handler.call)),
+            wf.transitions &&
+            wf.transitions.find((t) => t.call?.find((call) => !this.has('tools', call.tool))),
         );
 
-        const handlerIndex = stateMachineWorkflows[
+        const transitionIndex = stateMachineWorkflows[
           templateIndex
-        ].handlers!.findIndex((handler) => !this.has('tools', handler.call));
+        ].transitions!.findIndex((t) => t.call?.find((call) => !this.has('tools', call.tool)));
+
         const wrongToolName =
-          stateMachineWorkflows[templateIndex].handlers![handlerIndex].call;
+          stateMachineWorkflows[templateIndex].transitions![transitionIndex].call?.find((call) => !this.has('tools', call.tool));
 
         return {
-          message: `state machine template handler references non-existent tool "${wrongToolName}".`,
+          message: `state machine template transition references non-existent tool "${wrongToolName}".`,
           path: [
             'workflowTemplates',
             templateIndex,
-            'handlers',
-            handlerIndex,
+            'transitions',
+            transitionIndex,
             'call',
           ],
         };

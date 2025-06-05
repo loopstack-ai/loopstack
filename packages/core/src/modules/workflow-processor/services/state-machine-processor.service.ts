@@ -11,7 +11,6 @@ import {
   WorkflowStateMachineType,
   WorkflowStatePlaceInfoDto,
   WorkflowTransitionType,
-  ToolResult,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
@@ -108,8 +107,8 @@ export class StateMachineProcessorService {
       transitions.filter(
         (item) =>
           // (
-          item.from.includes('*') ||
-          (workflow.place && item.from.includes(workflow.place)),
+          item.from?.includes('*') ||
+          (workflow.place && item.from?.includes(workflow.place)),
         // ) && (!item.condition || item.condition?.(workflowState)),
       ),
     );
@@ -184,7 +183,7 @@ export class StateMachineProcessorService {
       );
     }
 
-    if (!nextTransition) {
+    if (!nextTransition || !nextTransition.to) {
       return null;
     }
 
@@ -194,6 +193,7 @@ export class StateMachineProcessorService {
       to: nextTransition.to,
       payload: transitionPayload,
       meta: transitionMeta,
+      toolCalls: nextTransition.call ?? []
     };
   }
 
@@ -263,22 +263,19 @@ export class StateMachineProcessorService {
         workflowContext.transition = nextTransition.transition;
         workflowContext.payload = nextTransition.payload;
 
-        const handlers =
-          workflowConfig.handlers?.filter(
-            (item) => item.onTransition === nextTransition.transition,
-          ) ?? [];
+        const toolCalls = nextTransition.toolCalls;
 
-        let observerIndex = 0;
+        let index = 0;
         let nextPlace: string | undefined = undefined;
-        for (const handler of handlers) {
-          observerIndex++;
+        for (const toolCall of toolCalls) {
+          index++;
 
           this.logger.debug(
-            `Call handler ${observerIndex} (${handler.call}) on transition ${handler.onTransition}`,
+            `Call tool ${index} (${toolCall.tool}) on transition ${workflowContext.transition}`,
           );
 
           const result = await this.toolExecutionService.applyTool(
-            handler,
+            toolCall,
             workflow,
             context,
             workflowContext,
@@ -287,9 +284,9 @@ export class StateMachineProcessorService {
           // add the response data to workflow
           workflow = this.toolExecutionService.commitToolCallResult(
             workflow,
-            handler.onTransition,
-            handler.call,
-            handler.provideAs,
+            workflowContext.transition,
+            toolCall.tool,
+            toolCall.exportAs,
             result,
           );
 
