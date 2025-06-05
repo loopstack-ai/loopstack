@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigurationService, ToolRegistry } from '../../configuration';
 import {
   ContextInterface,
-  ServiceConfigType,
+  ToolConfigType,
   WorkflowRunContext,
   ToolResult,
   SnippetConfigType,
@@ -24,7 +24,7 @@ export class ToolExecutionService {
   ) {}
 
   getToolConfig(toolName: string) {
-    const config = this.configurationService.get<ServiceConfigType>(
+    const config = this.configurationService.get<ToolConfigType>(
       'tools',
       toolName,
     );
@@ -35,17 +35,17 @@ export class ToolExecutionService {
     return config;
   }
 
-  async executeTool(name: string, args: any, workflow: WorkflowEntity | undefined, context: ContextInterface, workflowContext: WorkflowRunContext): Promise<ToolResult> {
+  async executeTool(name: string, args: any, workflow?: WorkflowEntity, context?: ContextInterface, workflowContext?: WorkflowRunContext): Promise<ToolResult> {
     const { options, instance } = this.toolRegistry.getToolByName(name);
 
-    const validProps = this.toolSchemaValidatorService.validateProps(
+    const parsedArgs = this.toolSchemaValidatorService.validateProps(
       options.schema,
       args,
     );
 
     this.logger.debug(`Calling tool ${name}`);
 
-    return instance.apply(validProps, workflow, context, workflowContext);
+    return instance.apply(parsedArgs, workflow, context, workflowContext);
   }
 
   async applyTool(
@@ -80,8 +80,8 @@ export class ToolExecutionService {
       );
     };
 
-    const props = this.valueParserService.evalWithContextVariables(
-      toolConfig.props,
+    const args = this.valueParserService.evalWithContextVariables(
+      toolConfig.execute.arguments,
       {
         ...aliasVariables,
         useTemplate,
@@ -92,7 +92,7 @@ export class ToolExecutionService {
       },
     );
 
-    return this.executeTool(toolConfig.service, props, workflow, context, workflowContext);
+    return this.executeTool(toolConfig.execute.service, args, workflow, context, workflowContext);
   }
 
   commitToolCallResult(

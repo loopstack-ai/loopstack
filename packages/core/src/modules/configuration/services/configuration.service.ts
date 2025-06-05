@@ -1,6 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
-import { AdapterRegistry } from './adapter-registry.service';
 import { ToolRegistry } from './tool.registry';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -20,7 +19,6 @@ export class ConfigurationService implements OnModuleInit {
 
   constructor(
     private configService: ConfigService,
-    private adapterRegistry: AdapterRegistry,
     private toolRegistry: ToolRegistry,
     private configProviderRegistry: ConfigProviderRegistry,
     private mainSchemaGenerator: DynamicSchemaGeneratorService,
@@ -35,7 +33,6 @@ export class ConfigurationService implements OnModuleInit {
     this.clear();
 
     this.configProviderRegistry.initialize();
-    this.adapterRegistry.initialize();
     this.toolRegistry.initialize();
 
     const appConfigs =

@@ -1,7 +1,8 @@
 tools:
   - name: core/createChatMessage
-    service: toolCall
-    props:
-      tool: core/createUserMessage
-      options:
-        message: ${ workflow.payload.message }
+    execute:
+      service: toolCall
+      arguments:
+        tool: core/createUserMessage
+        options:
+          message: ${ workflow.payload.message }

@@ -4,15 +4,15 @@ import { Tool, ToolInterface, ToolResult } from '@loopstack/shared';
 
 const config = z
   .object({
-    message: z.string().optional(),
-    response: z.string().optional(),
+    input: z.string().optional(),
+    output: z.string().optional(),
   })
   .strict();
 
 const schema = z
   .object({
-    message: z.string().optional(),
-    response: z.string().optional(),
+    input: z.string().optional(),
+    output: z.string().optional(),
   })
   .strict();
 
@@ -28,13 +28,13 @@ export class DebugService implements ToolInterface {
 
   async apply(props: z.infer<typeof schema>): Promise<ToolResult> {
 
-    const message = props?.message ?? 'no message'
+    const message = props?.input ?? 'no message'
 
     this.logger.debug(message);
 
     return {
       success: true,
-      data: { content: props?.response }
+      data: { content: props?.output }
     }
   }
 }

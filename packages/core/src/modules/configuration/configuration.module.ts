@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import {
-  AdapterRegistry,
   ConfigProviderRegistry,
   ConfigurationService,
 } from './services';
@@ -14,13 +13,12 @@ import { DiscoveryModule } from '@nestjs/core';
   imports: [DiscoveryModule],
   providers: [
     ToolRegistry,
-    AdapterRegistry,
     ConfigProviderRegistry,
     ConfigurationService,
     JsonSchemaGeneratorService,
     GenerateSchemasCommand,
     DynamicSchemaGeneratorService,
   ],
-  exports: [ConfigurationService, ToolRegistry, AdapterRegistry],
+  exports: [ConfigurationService, ToolRegistry],
 })
 export class ConfigurationModule {}
