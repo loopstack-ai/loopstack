@@ -22,10 +22,6 @@ export class ProjectCreateDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100, { message: 'Project name must not exceed 100 characters' })
-  @Matches(/^[a-zA-Z0-9-_]+$/, {
-    message:
-      'Project name can only contain alphanumeric characters, hyphens, and underscores',
-  })
   @ApiProperty({
     description: 'Process model identifier for the project',
     example: 'my-project',
