@@ -1,5 +1,5 @@
 documents:
-  - name: core/internalMessage
+  - name: core_internalMessage
     tags:
       - message
       - internal

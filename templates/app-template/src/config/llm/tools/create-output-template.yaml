@@ -1,5 +1,5 @@
 tools:
-  - name: llm/createOutputTemplate
+  - name: llm_createOutputTemplate
     execute:
       service: createLlmOutputTemplate
       arguments:

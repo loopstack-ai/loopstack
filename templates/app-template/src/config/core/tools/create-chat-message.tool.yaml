@@ -1,8 +1,8 @@
 tools:
-  - name: core/createChatMessage
+  - name: core_createChatMessage
     execute:
       service: toolCall
       arguments:
-        tool: core/createUserMessage
+        tool: core_createUserMessage
         options:
           message: ${ workflow.payload.message }

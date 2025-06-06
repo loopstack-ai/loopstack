@@ -1,9 +1,9 @@
 tools:
-  - name: core/createAssistantMessage
+  - name: core_createAssistantMessage
     execute:
       service: createDocument
       arguments:
-        document: core/assistantMessage
+        document: core_assistantMessage
         update:
           content:
             role: assistant

@@ -1,5 +1,5 @@
 workflowTemplates:
-  - name: llm/structuredResponseReasonOutputReflectionTemplate
+  - name: llm_structuredResponseReasonOutputReflectionTemplate
     type: stateMachine
     transitions:
       - name: prepare
@@ -31,7 +31,7 @@ workflowTemplates:
         to: output-template-created
         when: onEntry
         call:
-          - tool: llm/createOutputTemplate
+          - tool: llm_createOutputTemplate
             exportAs: OUTPUT_TEMPLATE
 
       - name: create-messages
@@ -46,8 +46,8 @@ workflowTemplates:
           - error
         when: onEntry
         call:
-          - tool: llm/showLoadingMessage
-          - tool: llm/executePrompt
+          - tool: llm_showLoadingMessage
+          - tool: llm_executePrompt
             exportAs: PROMPT_RESULT
 
       - name: add-prompt-message
@@ -55,14 +55,14 @@ workflowTemplates:
         to: prompt-message-added
         when: onEntry
         call:
-          - tool: llm/addPromptResponseMessage
+          - tool: llm_addPromptResponseMessage
 
       - name: extract-tags
         from: prompt-message-added
         to: tags-extracted
         when: onEntry
         call:
-          - tool: llm/extractResponseTags
+          - tool: llm_extractResponseTags
             exportAs: TAGS
 
       - name: ParseResponse
@@ -70,7 +70,7 @@ workflowTemplates:
         to: response-parsed
         when: onEntry
         call:
-          - tool: llm/parseResponseOutputSection
+          - tool: llm_parseResponseOutputSection
             exportAs: PARSED_RESPONSE
 
       - name: create-document
@@ -78,7 +78,7 @@ workflowTemplates:
         to: document-created
         when: onEntry
         call:
-          - tool: llm/createDocumentFromParsedResponse
+          - tool: llm_createDocumentFromParsedResponse
             exportAs: DOCUMENT_DRAFT
 
       - name: chat
@@ -86,7 +86,7 @@ workflowTemplates:
         to: messages-prepared
         when: manual
         call:
-          - tool: core/createChatMessage
+          - tool: core_createChatMessage
             exportAs: CHAT_MESSAGE
 
       - name: confirm
@@ -95,7 +95,7 @@ workflowTemplates:
         when: |
           ${ (workflow.options.autoConfirm && !workflow.history.includes('unlock')) ? 'onEntry' : 'manual' }
         call:
-          - tool: llm/confirmDocument
+          - tool: llm_confirmDocument
             exportAs: CONFIRMED_DOCUMENT
 
       - name: finish

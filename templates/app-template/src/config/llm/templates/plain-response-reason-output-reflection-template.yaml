@@ -1,5 +1,5 @@
 workflowTemplates:
-  - name: llm/plainResponseReasonOutputReflectionTemplate
+  - name: llm_plainResponseReasonOutputReflectionTemplate
     type: stateMachine
     transitions:
       - name: prepare
@@ -33,32 +33,32 @@ workflowTemplates:
           - error
         when: onEntry
         call:
-          - tool: llm/showLoadingMessage
+          - tool: llm_showLoadingMessage
       - name: add-prompt-message
         from: prompt-executed
         to: prompt-message-added
         when: onEntry
         call:
-          - tool: llm/addPromptResponseMessage
+          - tool: llm_addPromptResponseMessage
       - name: extract-tags
         from: prompt-message-added
         to: tags-extracted
         when: onEntry
         call:
-          - tool: llm/extractResponseTags
+          - tool: llm_extractResponseTags
             exportAs: TAGS
       - name: create-document
         from: tags-extracted
         to: document-created
         when: onEntry
         call:
-          - tool: llm/createDocumentFromOutput
+          - tool: llm_createDocumentFromOutput
       - name: chat
         from: messages-prepared
         to: started
         when: manual
         call:
-          - tool: core/createChatMessage
+          - tool: core_createChatMessage
             exportAs: CHAT_MESSAGE
       - name: confirm
         from: document-created
@@ -70,7 +70,7 @@ workflowTemplates:
         to: complete
         when: onEntry
         call:
-          - tool: llm/confirmDocument
+          - tool: llm_confirmDocument
       - name: unlock
         from: complete
         to: document-created

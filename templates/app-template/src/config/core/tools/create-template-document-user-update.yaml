@@ -1,5 +1,5 @@
 tools:
-  - name: core/createTemplateDocumentUserUpdate
+  - name: core_createTemplateDocumentUserUpdate
     execute:
       service: createDocument
       arguments:

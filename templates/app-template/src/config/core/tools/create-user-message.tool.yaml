@@ -1,9 +1,9 @@
 tools:
-  - name: core/createUserMessage
+  - name: core_createUserMessage
     execute:
       service: createDocument
       arguments:
-        document: core/userMessage
+        document: core_userMessage
         update:
           content:
             role: user

@@ -1,5 +1,5 @@
 tools:
-  - name: llm/extractResponseTags
+  - name: llm_extractResponseTags
     execute:
       service: extractLlmResponseTags
       arguments:

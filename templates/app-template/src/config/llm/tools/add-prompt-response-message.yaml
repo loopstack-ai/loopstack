@@ -1,9 +1,9 @@
 tools:
-  - name: llm/addPromptResponseMessage
+  - name: llm_addPromptResponseMessage
     execute:
       service: createDocument
       arguments:
-        document: core/internalMessage
+        document: core_internalMessage
         update:
           meta:
             data:

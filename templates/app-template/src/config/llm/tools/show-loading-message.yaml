@@ -1,9 +1,9 @@
 tools:
-  - name: llm/showLoadingMessage
+  - name: llm_showLoadingMessage
     execute:
       service: createDocument
       arguments:
-        document: core/loadingMessage
+        document: core_loadingMessage
         update:
           meta:
             hideAtPlaces:

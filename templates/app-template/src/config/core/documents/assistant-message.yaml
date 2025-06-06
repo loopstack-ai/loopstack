@@ -1,5 +1,5 @@
 documents:
-  - name: core/assistantMessage
+  - name: core_assistantMessage
     tags:
       - message
     ui:

@@ -1,5 +1,5 @@
 documents:
-  - name: core/loadingMessage
+  - name: core_loadingMessage
     ui:
       widget: chat-message
     schema:

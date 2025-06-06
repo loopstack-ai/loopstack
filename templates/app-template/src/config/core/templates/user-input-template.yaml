@@ -1,5 +1,5 @@
 workflowTemplates:
-  - name: core/userInputTemplate
+  - name: core_userInputTemplate
     type: stateMachine
     transitions:
       - name: start
@@ -11,13 +11,13 @@ workflowTemplates:
         to: waiting-for-user
         when: onEntry
         call:
-          - tool: core/createTemplateDocument
+          - tool: core_createTemplateDocument
       - name: response
         from: waiting-for-user
         to: received
         when: manual
         call:
-          - tool: core/createTemplateDocumentUserUpdate
+          - tool: core_createTemplateDocumentUserUpdate
       - name: finish
         from: received
         to: complete

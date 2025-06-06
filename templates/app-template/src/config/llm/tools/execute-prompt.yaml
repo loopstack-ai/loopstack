@@ -1,5 +1,5 @@
 tools:
-  - name: llm/executePrompt
+  - name: llm_executePrompt
     execute:
       service: prompt
       arguments:

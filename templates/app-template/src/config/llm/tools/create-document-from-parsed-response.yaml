@@ -1,5 +1,5 @@
 tools:
-  - name: llm/createDocumentFromParsedResponse
+  - name: llm_createDocumentFromParsedResponse
     execute:
       service: createDocument
       arguments:

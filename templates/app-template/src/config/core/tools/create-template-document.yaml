@@ -1,5 +1,5 @@
 tools:
-  - name: core/createTemplateDocument
+  - name: core_createTemplateDocument
     execute:
       service: createDocument
       arguments:

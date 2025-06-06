@@ -1,5 +1,5 @@
 tools:
-  - name: llm/parseResponseOutputSection
+  - name: llm_parseResponseOutputSection
     execute:
       service: parseDocumentMarkdownOutput
       arguments:

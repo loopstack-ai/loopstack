@@ -1,8 +1,8 @@
 tools:
-  - name: llm/createAssistantReasoningMessage
+  - name: llm_createAssistantReasoningMessage
     execute:
       service: toolCall
       arguments:
-        tool: core/createAssistantMessage
+        tool: core_createAssistantMessage
         options:
           message: ${ TAGS['Reasoning'] }

@@ -1,5 +1,6 @@
 tools:
   - name: sayHelloWorld
+
     service: createDocument
     props:
       document: core/assistantMessage

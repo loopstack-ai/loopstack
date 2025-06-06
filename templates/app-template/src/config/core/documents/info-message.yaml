@@ -1,5 +1,5 @@
 documents:
-  - name: core/infoMessage
+  - name: core_infoMessage
     ui:
       widget: chat-message
     schema:
