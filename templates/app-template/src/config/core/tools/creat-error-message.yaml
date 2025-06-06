@@ -1,0 +1,10 @@
+tools:
+  - name: core/createErrorMessage
+    execute:
+      service: createDocument
+      arguments:
+        document: core/assistantMessage
+        update:
+          content:
+            role: assistant
+            content: ${ workflow.options.message }

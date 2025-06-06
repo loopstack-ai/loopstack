@@ -1,0 +1,14 @@
+tools:
+  - name: llm/createDocumentFromParsedResponse
+    execute:
+      service: createDocument
+      arguments:
+        document: ${ workflow.options.document }
+        update:
+          meta:
+            enableTransitions:
+              - confirm
+              - chat
+            enableAtPlaces:
+              - document-created
+          content: ${ PARSED_RESPONSE }

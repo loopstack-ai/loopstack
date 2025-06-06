@@ -1,0 +1,13 @@
+tools:
+  - name: llm/addPromptResponseMessage
+    execute:
+      service: createDocument
+      arguments:
+        document: core/internalMessage
+        update:
+          meta:
+            data:
+              prompt: ${ PROMPT_RESULT }
+          content:
+            role: assistant
+            content: ${ PROMPT_RESULT.response.data }

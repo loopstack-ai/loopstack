@@ -1,0 +1,15 @@
+tools:
+  - name: llm/createDocumentFromOutput
+    execute:
+      service: createDocument
+      arguments:
+        document: ${ workflow.options.document }
+        update:
+          meta:
+            enableTransitions:
+              - confirm
+              - chat
+            enableAtPlaces:
+              - document-created
+            mimeType: ${ workflow.options.mimeType ?? 'text/markdown' }
+          content: ${ TAGS['Output'] }

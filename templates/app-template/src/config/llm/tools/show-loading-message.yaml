@@ -1,0 +1,21 @@
+tools:
+  - name: llm/showLoadingMessage
+    execute:
+      service: createDocument
+      arguments:
+        document: core/loadingMessage
+        update:
+          meta:
+            hideAtPlaces:
+              - start
+              - prepared
+              - starting
+              - skipping
+              - started
+              - output-template-created
+              - prompt-executed
+              - response-parsed
+              - response-accessed
+              - document-created
+              - confirmed
+              - complete

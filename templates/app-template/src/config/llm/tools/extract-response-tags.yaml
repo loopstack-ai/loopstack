@@ -1,0 +1,9 @@
+tools:
+  - name: llm/extractResponseTags
+    execute:
+      service: extractLlmResponseTags
+      arguments:
+        tags:
+          - Reasoning
+          - Output
+        response: ${ PROMPT_RESULT.response.data }

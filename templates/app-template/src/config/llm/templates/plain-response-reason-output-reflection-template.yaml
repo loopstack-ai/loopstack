@@ -1,0 +1,77 @@
+workflowTemplates:
+  - name: llm/plainResponseReasonOutputReflectionTemplate
+    type: stateMachine
+    transitions:
+      - name: prepare
+        from: start
+        to:
+          - prepared
+          - error
+        when: onEntry
+      - name: start-conditional
+        from: prepared
+        to:
+          - starting
+          - skipping
+        when: onEntry
+      - name: start
+        from: starting
+        to: started
+        when: onEntry
+      - name: skip
+        from: skipping
+        to: complete
+        when: onEntry
+      - name: create-messages
+        from: started
+        to: messages-prepared
+        when: onEntry
+      - name: execute-prompt
+        from: messages-prepared
+        to:
+          - prompt-executed
+          - error
+        when: onEntry
+        call:
+          - tool: llm/showLoadingMessage
+      - name: add-prompt-message
+        from: prompt-executed
+        to: prompt-message-added
+        when: onEntry
+        call:
+          - tool: llm/addPromptResponseMessage
+      - name: extract-tags
+        from: prompt-message-added
+        to: tags-extracted
+        when: onEntry
+        call:
+          - tool: llm/extractResponseTags
+            exportAs: TAGS
+      - name: create-document
+        from: tags-extracted
+        to: document-created
+        when: onEntry
+        call:
+          - tool: llm/createDocumentFromOutput
+      - name: chat
+        from: messages-prepared
+        to: started
+        when: manual
+        call:
+          - tool: core/createChatMessage
+            exportAs: CHAT_MESSAGE
+      - name: confirm
+        from: document-created
+        to: confirmed
+        when: |
+          ${ workflow.options.autoConfirm ? 'onEntry' : 'manual' }
+      - name: finish
+        from: confirmed
+        to: complete
+        when: onEntry
+        call:
+          - tool: llm/confirmDocument
+      - name: unlock
+        from: complete
+        to: document-created
+        when: manual

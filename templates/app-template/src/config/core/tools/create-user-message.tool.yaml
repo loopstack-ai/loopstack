@@ -1,0 +1,10 @@
+tools:
+  - name: core/createUserMessage
+    execute:
+      service: createDocument
+      arguments:
+        document: core/userMessage
+        update:
+          content:
+            role: user
+            content: ${ workflow.options.message }

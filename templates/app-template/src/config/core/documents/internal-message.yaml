@@ -1,0 +1,14 @@
+documents:
+  - name: core/internalMessage
+    tags:
+      - message
+      - internal
+    ui:
+      widget: chat-message
+    schema:
+      type: object
+    meta:
+      invalidate: false
+    content:
+      role: user
+      content: ""

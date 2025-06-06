@@ -1,0 +1,7 @@
+tools:
+  - name: llm/parseResponseOutputSection
+    execute:
+      service: parseDocumentMarkdownOutput
+      arguments:
+        document: ${ workflow.options.document }
+        response: ${ TAGS['Output'] }
