@@ -3,9 +3,9 @@ import {
   DocumentConfigSchema,
   NonExpressionString,
   PartialDocumentSchema,
-  Tool,
-  ToolInterface,
-  ToolResult,
+  Service,
+  ServiceInterface,
+  ServiceCallResult,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
@@ -28,13 +28,11 @@ const schema = z
   .strict();
 
 @Injectable()
-@Tool({
-  name: 'updateDocument',
-  description: 'Update an existing document',
+@Service({
   config,
   schema,
 })
-export class UpdateDocumentService implements ToolInterface {
+export class UpdateDocumentService implements ServiceInterface {
   private readonly logger = new Logger(UpdateDocumentService.name);
 
   constructor(private documentService: DocumentService) {}
@@ -42,7 +40,7 @@ export class UpdateDocumentService implements ToolInterface {
   async apply(
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
-  ): Promise<ToolResult> {
+  ): Promise<ServiceCallResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }

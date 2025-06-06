@@ -3,9 +3,9 @@ import { z } from 'zod';
 import {
   ExpressionString,
   NonExpressionString,
-  Tool,
-  ToolInterface,
-  ToolResult,
+  Service,
+  ServiceInterface,
+  ServiceCallResult,
 } from '@loopstack/shared';
 
 const config = z
@@ -31,16 +31,14 @@ const schema = z
   .strict();
 
 @Injectable()
-@Tool({
-  name: 'setTargetPlace',
-  description: 'Set the target place of a transition',
+@Service({
   config,
   schema,
 })
-export class TransitionSelectorService implements ToolInterface {
+export class TransitionSelectorService implements ServiceInterface {
   private readonly logger = new Logger(TransitionSelectorService.name);
 
-  async apply(props: z.infer<typeof schema>): Promise<ToolResult> {
+  async apply(props: z.infer<typeof schema>): Promise<ServiceCallResult> {
     let place: string | undefined;
     for (const option of props.transitions) {
       if (undefined === option.condition || option.condition) {

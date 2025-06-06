@@ -16,7 +16,7 @@ import {
   NamespaceProcessorService,
   ProjectProcessorService,
   WorkflowProcessorService,
-  ToolSchemaValidatorService,
+  ToolSchemaValidatorService, TemplateExpressionEvaluatorService,
 } from './services';
 import {
   AddNamespaceService,
@@ -24,11 +24,10 @@ import {
   CreateDocumentService,
   DebugService,
   LoadDocumentService,
-  SetContextService,
-  ToolCallService,
+  SetContextService, SetTargetPlaceService,
   TransitionSelectorService,
   UpdateDocumentService,
-} from './tools';
+} from './tool-services';
 
 @Module({
   imports: [
@@ -41,7 +40,6 @@ import {
     WorkflowProcessorService,
     ToolExecutionService,
     ToolSchemaValidatorService,
-    ToolCallService,
     CreateDocumentService,
     BatchCreateDocumentsService,
     DebugService,
@@ -52,6 +50,8 @@ import {
     NamespaceProcessorService,
     ProjectProcessorService,
     UpdateDocumentService,
+    TemplateExpressionEvaluatorService,
+    SetTargetPlaceService,
 
     InitialRunValidator,
     WorkflowDependenciesValidator,
@@ -61,6 +61,6 @@ import {
     StateMachineProcessorService,
     StateMachineConfigService,
   ],
-  exports: [ProjectProcessorService, WorkflowProcessorService, ToolExecutionService],
+  exports: [ProjectProcessorService, WorkflowProcessorService, ToolExecutionService, TemplateExpressionEvaluatorService],
 })
 export class WorkflowProcessorModule {}

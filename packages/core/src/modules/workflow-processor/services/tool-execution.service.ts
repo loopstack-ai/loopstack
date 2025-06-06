@@ -1,16 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigurationService, ToolRegistry } from '../../configuration';
+import { ConfigurationService, ServiceRegistry } from '../../configuration';
 import {
   ContextInterface,
   ToolConfigType,
-  WorkflowRunContext,
-  ToolResult,
-  SnippetConfigType,
-  ToolCallType,
+  ServiceCallResult,
+  ToolCallType, TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
-import { ValueParserService } from '../../index';
 import { ToolSchemaValidatorService } from './tool-schema-validator.service';
+import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 
 @Injectable()
 export class ToolExecutionService {
@@ -18,9 +16,9 @@ export class ToolExecutionService {
 
   constructor(
     private configurationService: ConfigurationService,
-    private valueParserService: ValueParserService,
-    private toolRegistry: ToolRegistry,
+    private serviceRegistry: ServiceRegistry,
     private toolSchemaValidatorService: ToolSchemaValidatorService,
+    private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
   ) {}
 
   getToolConfig(toolName: string) {
@@ -35,8 +33,8 @@ export class ToolExecutionService {
     return config;
   }
 
-  async executeTool(name: string, args: any, workflow?: WorkflowEntity, context?: ContextInterface, workflowContext?: WorkflowRunContext): Promise<ToolResult> {
-    const { options, instance } = this.toolRegistry.getToolByName(name);
+  async executeTool(name: string, args: any, workflow?: WorkflowEntity, context?: ContextInterface, meta?: TransitionMetadataInterface): Promise<ServiceCallResult> {
+    const { options, instance } = this.serviceRegistry.getServiceByName(name);
 
     const parsedArgs = this.toolSchemaValidatorService.validateProps(
       options.schema,
@@ -45,54 +43,26 @@ export class ToolExecutionService {
 
     this.logger.debug(`Calling tool ${name}`);
 
-    return instance.apply(parsedArgs, workflow, context, workflowContext);
+    return instance.apply(parsedArgs, workflow, context, meta);
   }
 
   async applyTool(
     handler: ToolCallType,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    workflowContext: WorkflowRunContext,
-  ): Promise<ToolResult> {
+    meta: TransitionMetadataInterface,
+  ): Promise<ServiceCallResult> {
     const toolConfig = this.getToolConfig(handler.tool);
 
-    // replace the alias values with actual data
-    const aliasVariables =
-      workflow?.aliasData && workflow.currData
-        ? this.valueParserService.prepareAliasVariables(
-            workflow.aliasData,
-            workflow.currData,
-          )
-        : {};
-
-    const useTemplate = (name: string, variables: any): string => {
-      const snippet = this.configurationService.get<SnippetConfigType>(
-        'snippets',
-        name,
-      );
-      if (!snippet) {
-        return '';
-      }
-
-      return this.valueParserService.evalWithContextVariables(
-        snippet.value,
-        variables,
-      );
-    };
-
-    const args = this.valueParserService.evalWithContextVariables(
+    const args = this.templateExpressionEvaluatorService.evaluate(
       toolConfig.execute.arguments,
-      {
-        ...aliasVariables,
-        useTemplate,
-        context,
-        data: workflow?.currData,
-        workflow: workflowContext,
-        arguments: handler.arguments
-      },
-    );
+      handler.arguments,
+      context,
+      workflow,
+      meta,
+    )
 
-    return this.executeTool(toolConfig.execute.service, args, workflow, context, workflowContext);
+    return this.executeTool(toolConfig.execute.service, args, workflow, context, meta);
   }
 
   commitToolCallResult(
@@ -100,7 +70,7 @@ export class ToolExecutionService {
     transition: string,
     tool: string,
     alias: string | undefined,
-    result: ToolResult | undefined,
+    result: ServiceCallResult | undefined,
   ) {
     if (result?.workflow) {
       workflow = result?.workflow;

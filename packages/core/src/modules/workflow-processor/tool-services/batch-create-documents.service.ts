@@ -1,18 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   ContextInterface,
-  Tool,
-  WorkflowRunContext,
-  ToolInterface,
-  ToolResult,
+  Service,
+  ServiceInterface,
+  ServiceCallResult,
   DocumentEntity,
   ExpressionString,
-  NonExpressionString,
+  NonExpressionString, TransitionMetadataInterface,
 } from '@loopstack/shared';
 import {
   SchemaValidatorService,
-  DocumentHelperService,
-  ValueParserService,
 } from '../../common';
 import { ConfigurationService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
@@ -20,6 +17,7 @@ import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
 import { DocumentService } from '../../persistence';
 import { merge } from 'lodash';
+import { TemplateExpressionEvaluatorService } from '../services';
 
 const config = z
   .object({
@@ -38,56 +36,47 @@ const schema = z
   .strict();
 
 @Injectable()
-@Tool({
-  name: 'batchCreateDocuments',
-  description: 'Batch create multiple documents',
+@Service({
   config,
   schema,
 })
-export class BatchCreateDocumentsService implements ToolInterface {
+export class BatchCreateDocumentsService implements ServiceInterface {
   private readonly logger = new Logger(BatchCreateDocumentsService.name);
 
   constructor(
     private actionHelperService: SchemaValidatorService,
     private loopConfigService: ConfigurationService,
     private documentService: DocumentService,
-    private documentHelperService: DocumentHelperService,
-    private valueParserService: ValueParserService,
+    private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
   ) {}
 
   async apply(
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    workflowContext: WorkflowRunContext,
-  ): Promise<ToolResult> {
+    meta: TransitionMetadataInterface,
+  ): Promise<ServiceCallResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }
 
-    let template = props?.document
-      ? this.loopConfigService.get<DocumentType>('documents', props.document)
-      : undefined;
+    const template = this.loopConfigService.get<DocumentType>('documents', props.document);
+    if (!template) {
+      throw new Error(`Document template ${props.document} not found.`)
+    }
 
-    const aliasVariables =
-      workflow?.aliasData && workflow.currData
-        ? this.documentHelperService.prepareAliasVariables(
-            workflow.aliasData,
-            workflow.currData,
-          )
-        : {};
-
-    template = this.valueParserService.evalObjectLeafs(template, {
-      ...aliasVariables,
+    const evaluatedTemplate = this.templateExpressionEvaluatorService.evaluate<DocumentType>(
+      template,
+      {},
       context,
-      data: workflow.currData,
-      workflow: workflowContext,
-    });
+      workflow,
+      meta,
+    );
 
     const documents: DocumentEntity[] = [];
     for (let index = 0; index < props.items.length; index++) {
-      const documentData = merge({}, template, {
-        name: (props.namePrefix ?? template?.name ?? 'item') + `-${index + 1}`,
+      const documentData = merge({}, evaluatedTemplate, {
+        name: (props.namePrefix ?? evaluatedTemplate.name) + `-${index + 1}`,
         content: props.items[index],
       });
 
@@ -105,7 +94,7 @@ export class BatchCreateDocumentsService implements ToolInterface {
         this.documentService.create(
           workflow,
           context,
-          workflowContext,
+          meta,
           documentData as Partial<DocumentEntity>,
         ),
       );

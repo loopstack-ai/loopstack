@@ -1,14 +1,14 @@
 import { z, ZodType } from 'zod';
 import { Injectable } from '@nestjs/common';
-import { ToolRegistry } from './tool.registry';
-import { MainConfigSchema, ToolConfigSchema, ToolOptionsInterface } from '@loopstack/shared';
+import { ServiceRegistry } from './service-registry.service';
+import { MainConfigSchema, ToolConfigSchema, ServiceInterface, ServiceOptionsInterface } from '@loopstack/shared';
 
 @Injectable()
 export class DynamicSchemaGeneratorService {
   private schema: ZodType;
 
   constructor(
-    private readonly toolRegistry: ToolRegistry,
+    private readonly serviceRegistry: ServiceRegistry,
   ) {}
 
   // Simple Levenshtein distance function
@@ -55,11 +55,11 @@ export class DynamicSchemaGeneratorService {
     return similarity >= 0.7 ? mostSimilar : null;
   }
 
-  createDiscriminatedServiceType(items: ToolOptionsInterface[]) {
-    const configSchemas = items.map((options) =>
+  createDiscriminatedServiceType(items: Array<{ options: ServiceOptionsInterface; instance: ServiceInterface }>) {
+    const configSchemas = items.map((item) =>
       z.object({
-        service: z.literal(options.name),
-        arguments: options.config ?? z.any(),
+        service: z.literal(item.instance.constructor.name),
+        arguments: item.options.config ?? z.any(),
       }),
     );
 
@@ -89,7 +89,7 @@ export class DynamicSchemaGeneratorService {
 
   createDynamicSchema(): ReturnType<typeof MainConfigSchema.extend> {
     const serviceExecutionSchemas = this.createDiscriminatedServiceType(
-      this.toolRegistry.getEntries().map((tool) => tool.options),
+      this.serviceRegistry.getEntries(),
     );
 
     const toolConfigSchema = ToolConfigSchema.extend({

@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
   ContextInterface,
-  Tool,
-  ToolInterface,
-  ToolResult,
+  Service,
+  ServiceInterface,
+  ServiceCallResult,
   WorkflowEntity,
   NamespacePropsSchema,
   ExpressionString,
@@ -21,13 +21,11 @@ const config = z
 const schema = NamespacePropsSchema.strict();
 
 @Injectable()
-@Tool({
-  name: 'addNamespace',
-  description: 'Add a namespace to the context object',
+@Service({
   config,
   schema,
 })
-export class AddNamespaceService implements ToolInterface {
+export class AddNamespaceService implements ServiceInterface {
   private readonly logger = new Logger(AddNamespaceService.name);
 
   constructor(private namespacesService: NamespacesService) {}
@@ -36,7 +34,7 @@ export class AddNamespaceService implements ToolInterface {
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-  ): Promise<ToolResult> {
+  ): Promise<ServiceCallResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }

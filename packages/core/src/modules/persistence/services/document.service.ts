@@ -8,10 +8,9 @@ import {
 } from 'typeorm';
 import {
   DocumentEntity,
-  WorkflowRunContext,
   NonExpressionString,
   ExpressionString,
-  WorkflowEntity,
+  WorkflowEntity, TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { WorkflowService } from './workflow.service';
 import { ContextInterface } from '@loopstack/shared';
@@ -106,12 +105,12 @@ export class DocumentService {
   create(
     workflow: WorkflowEntity,
     context: ContextInterface,
-    workflowContext: WorkflowRunContext,
+    meta: TransitionMetadataInterface,
     data: Partial<DocumentEntity>,
   ): DocumentEntity {
     const document = this.documentRepository.create({
       ...data,
-      transition: workflowContext.transition,
+      transition: meta.transition,
       index: workflow!.documents?.length ?? 0,
       workflowIndex: workflow!.index,
       place: workflow!.place,

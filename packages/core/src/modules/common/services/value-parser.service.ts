@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ExpressionEvaluatorService } from './expression-evaluator.service';
 import {
   ContextInterface,
-  WorkflowRunContext,
-  WorkflowData,
 } from '@loopstack/shared';
 import { get, transform } from 'lodash';
 import { TemplateEngineService } from './template-engine.service';
@@ -61,14 +59,6 @@ export class ValueParserService {
   evalWithContext<T>(obj: any, variables: { context: ContextInterface }): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
-
-  evalWithContextAndInfo<T extends {}>(
-    obj: any,
-    variables: { context: ContextInterface; workflow: WorkflowRunContext },
-  ): T {
-    return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
-  }
-
   evalWithContextAndItem<T extends {}>(
     obj: any,
     variables: { context: ContextInterface; item: string; index: number },
@@ -76,7 +66,7 @@ export class ValueParserService {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
 
-  evalWithContextVariables<T extends {}>(obj: any, variables: any): T {
+  evalWithContextVariables<T>(obj: any, variables: any): T {
     return obj ? this.evalObjectLeafs<T>(obj, variables) : ({} as any);
   }
 }

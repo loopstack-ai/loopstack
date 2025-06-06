@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Tool, ToolInterface, ToolResult } from '@loopstack/shared';
+import { Service, ServiceInterface, ServiceCallResult } from '@loopstack/shared';
 
 const config = z
   .object({
@@ -17,16 +17,14 @@ const schema = z
   .strict();
 
 @Injectable()
-@Tool({
-  name: 'debug',
-  description: 'Log a message',
+@Service({
   config,
   schema,
 })
-export class DebugService implements ToolInterface {
+export class DebugService implements ServiceInterface {
   private readonly logger = new Logger(DebugService.name);
 
-  async apply(props: z.infer<typeof schema>): Promise<ToolResult> {
+  async apply(props: z.infer<typeof schema>): Promise<ServiceCallResult> {
 
     const message = props?.input ?? 'no message'
 

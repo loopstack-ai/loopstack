@@ -5,7 +5,7 @@ import { StateMachineProcessorService } from './state-machine-processor.service'
 import { ConfigurationService } from '../../configuration';
 import { WorkflowService } from '../../persistence';
 import {
-  ContextInterface,
+  ContextInterface, TransitionMetadataInterface,
   WorkflowEntity,
   WorkflowFactoryType,
   WorkflowPipelineType,
@@ -55,11 +55,19 @@ export class WorkflowProcessorService {
     let lastContext = this.contextService.create(context);
     for (let i = 0; i < sequence.length; i++) {
       const handler = sequence[i];
+
+      // dummy metadata for tool execution without workflow
+      const meta: TransitionMetadataInterface = {
+        transition: 'tool',
+        history: [],
+        payload: null,
+      }
+
       const result = await this.toolExecutionService.applyTool(
         handler,
         workflow,
         context,
-        { options: {} },
+        meta,
       );
 
       // add the response data to workflow

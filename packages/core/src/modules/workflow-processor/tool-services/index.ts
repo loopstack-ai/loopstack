@@ -1,4 +1,3 @@
-export * from './tool-call.service';
 export * from './add-namespace.service';
 export * from './create-document.service';
 export * from './debug.service';
@@ -7,3 +6,4 @@ export * from './set-context.service';
 export * from './transition-selector.service';
 export * from './update-document.service';
 export * from './batch-create-documents.service';
+export * from './set-target-place.service';

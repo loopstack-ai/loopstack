@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Tool, ToolInterface, ToolResult } from '@loopstack/shared';
+import { Service, ServiceInterface, ServiceCallResult } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
 const config = z
@@ -18,19 +18,17 @@ const schema = z
   .strict();
 
 @Injectable()
-@Tool({
-  name: 'setContext',
-  description: 'Set a context property value',
+@Service({
   config,
   schema,
 })
-export class SetContextService implements ToolInterface {
+export class SetContextService implements ServiceInterface {
   private readonly logger = new Logger(SetContextService.name);
 
   async apply(
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
-  ): Promise<ToolResult> {
+  ): Promise<ServiceCallResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }

@@ -3,10 +3,9 @@ import _ from 'lodash';
 import {
   ContextImportInterface,
   ContextInterface,
-  Tool,
-  WorkflowRunContext,
-  ToolInterface,
-  ToolResult,
+  Service,
+  ServiceInterface,
+  ServiceCallResult, TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { ExpressionEvaluatorService } from '../../common';
@@ -40,13 +39,11 @@ const config = z
 const schema = config;  //todo create dedicated schema
 
 @Injectable()
-@Tool({
-  name: 'loadDocument',
-  description: 'Load a document from the database',
+@Service({
   config,
   schema,
 })
-export class LoadDocumentService implements ToolInterface {
+export class LoadDocumentService implements ServiceInterface {
   private readonly logger = new Logger(LoadDocumentService.name);
 
   constructor(
@@ -178,12 +175,12 @@ export class LoadDocumentService implements ToolInterface {
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    workflowContext: WorkflowRunContext,
-  ): Promise<ToolResult> {
+    meta: TransitionMetadataInterface,
+  ): Promise<ServiceCallResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }
-    this.logger.debug(`Load document ${workflowContext.transition}`);
+    this.logger.debug(`Load document ${meta.transition}`);
 
     // load and filter entities based on options from database
     const currentEntities = await this.getDocumentsByQuery(
@@ -194,7 +191,7 @@ export class LoadDocumentService implements ToolInterface {
     );
 
     const prevImport: ContextImportInterface | undefined =
-      workflow.prevData?.imports?.[workflowContext.transition!];
+      workflow.prevData?.imports?.[meta.transition!];
 
     // update workflow dependencies, if applicable
     if (!props.ignoreChanges) {
