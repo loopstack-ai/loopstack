@@ -9,6 +9,7 @@ import {
 import { WorkflowEntity } from '@loopstack/shared';
 import { ToolSchemaValidatorService } from './tool-schema-validator.service';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
+import { SchemaValidatorService } from '../../common';
 
 @Injectable()
 export class ToolExecutionService {
@@ -19,6 +20,7 @@ export class ToolExecutionService {
     private serviceRegistry: ServiceRegistry,
     private toolSchemaValidatorService: ToolSchemaValidatorService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
+    private schemaValidatorService: SchemaValidatorService
   ) {}
 
   getToolConfig(toolName: string) {
@@ -33,7 +35,7 @@ export class ToolExecutionService {
     return config;
   }
 
-  async executeTool(name: string, args: any, workflow?: WorkflowEntity, context?: ContextInterface, meta?: TransitionMetadataInterface): Promise<ServiceCallResult> {
+  async callService(name: string, args: any, workflow?: WorkflowEntity, context?: ContextInterface, meta?: TransitionMetadataInterface): Promise<ServiceCallResult> {
     const { options, instance } = this.serviceRegistry.getServiceByName(name);
 
     const parsedArgs = this.toolSchemaValidatorService.validateProps(
@@ -41,7 +43,7 @@ export class ToolExecutionService {
       args,
     );
 
-    this.logger.debug(`Calling tool ${name}`);
+    this.logger.debug(`Calling service ${name}`);
 
     return instance.apply(parsedArgs, workflow, context, meta);
   }
@@ -54,6 +56,12 @@ export class ToolExecutionService {
   ): Promise<ServiceCallResult> {
     const toolConfig = this.getToolConfig(handler.tool);
 
+    // validate the tool call arguments
+    if (toolConfig.parameters) {
+      this.schemaValidatorService.validate(handler.arguments, toolConfig.parameters);
+    }
+
+    // parse service execution arguments
     const args = this.templateExpressionEvaluatorService.evaluate(
       toolConfig.execute.arguments,
       handler.arguments,
@@ -62,10 +70,11 @@ export class ToolExecutionService {
       meta,
     )
 
-    return this.executeTool(toolConfig.execute.service, args, workflow, context, meta);
+    // call the service
+    return this.callService(toolConfig.execute.service, args, workflow, context, meta);
   }
 
-  commitToolCallResult(
+  commitServiceCallResult(
     workflow: WorkflowEntity,
     transition: string,
     tool: string,

@@ -71,7 +71,7 @@ export class WorkflowProcessorService {
       );
 
       // add the response data to workflow
-      workflow = this.toolExecutionService.commitToolCallResult(
+      workflow = this.toolExecutionService.commitServiceCallResult(
         workflow,
         'default',
         handler.tool,

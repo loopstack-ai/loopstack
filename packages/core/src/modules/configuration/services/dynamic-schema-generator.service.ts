@@ -67,10 +67,10 @@ export class DynamicSchemaGeneratorService {
       errorMap: (issue, ctx) => {
         if (issue.code === 'invalid_union_discriminator') {
           const invalidValue = ctx.data.service;
-          const suggestion = this.findMostSimilar(
+          const suggestion = invalidValue ? this.findMostSimilar(
             invalidValue,
             issue.options as string[],
-          );
+          ) : undefined;
 
           if (suggestion) {
             return {

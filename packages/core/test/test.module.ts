@@ -30,7 +30,6 @@ export class TestModule {
           database: 'e2e_test',
           autoLoadEntities: true,
           synchronize: true,
-          dropSchema: true,
         }),
         LoopCoreModule.forRoot({
           configs,

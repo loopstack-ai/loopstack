@@ -21,14 +21,12 @@ const schema = z
   config,
   schema,
 })
-export class DebugService implements ServiceInterface {
-  private readonly logger = new Logger(DebugService.name);
+export class MockService implements ServiceInterface {
+  private readonly logger = new Logger(MockService.name);
 
   async apply(props: z.infer<typeof schema>): Promise<ServiceCallResult> {
 
-    const message = props?.input ?? 'no message'
-
-    this.logger.debug(message);
+    this.logger.debug(`Received mock input ${props?.input}`);
 
     return {
       success: true,

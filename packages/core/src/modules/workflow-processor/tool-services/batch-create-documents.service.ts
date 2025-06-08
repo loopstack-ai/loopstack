@@ -22,7 +22,8 @@ import { TemplateExpressionEvaluatorService } from '../services';
 const config = z
   .object({
     document: z.string(),
-    namePrefix: z.union([ExpressionString, NonExpressionString]).optional(),
+    name: z.union([ExpressionString, NonExpressionString]).optional(),
+    addSuffix: z.union([ExpressionString, z.boolean()]).optional(),
     items: z.union([ExpressionString, z.array(z.any())]),
   })
   .strict();
@@ -30,7 +31,8 @@ const config = z
 const schema = z
   .object({
     document: z.string(),
-    namePrefix: NonExpressionString.optional(),
+    name: NonExpressionString.optional(),
+    addSuffix: z.boolean().optional(),
     items: z.array(z.any()),
   })
   .strict();
@@ -76,7 +78,7 @@ export class BatchCreateDocumentsService implements ServiceInterface {
     const documents: DocumentEntity[] = [];
     for (let index = 0; index < props.items.length; index++) {
       const documentData = merge({}, evaluatedTemplate, {
-        name: (props.namePrefix ?? evaluatedTemplate.name) + `-${index + 1}`,
+        name: (props.name ?? evaluatedTemplate.name) + (props.addSuffix ? `-${index + 1}` : ''),
         content: props.items[index],
       });
 
