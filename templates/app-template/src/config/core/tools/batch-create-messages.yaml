@@ -1,0 +1,15 @@
+tools:
+  - name: core_batchCreateMessages
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+      required:
+        - items
+      additionalItems: false
+    execute:
+      service: BatchCreateDocumentsService
+      arguments:
+        document: core_message
+        items: ${ arguments.items }

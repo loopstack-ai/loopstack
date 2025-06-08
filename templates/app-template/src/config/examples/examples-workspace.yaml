@@ -1,0 +1,4 @@
+workspaces:
+  - name: examples
+    title: Example Workspace
+

@@ -1,8 +1,10 @@
 tools:
   - name: core_createChatMessage
     execute:
-      service: toolCall
+      service: CreateDocumentService
       arguments:
-        tool: core_createUserMessage
-        options:
-          message: ${ workflow.payload.message }
+        document: core_message
+        update:
+          content:
+            role: user
+            content: ${ metadata.payload.message }

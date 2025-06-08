@@ -1,8 +1,10 @@
 tools:
   - name: llm_createAssistantReasoningMessage
     execute:
-      service: toolCall
+      service: CreateDocumentService
       arguments:
-        tool: core_createAssistantMessage
-        options:
-          message: ${ TAGS['Reasoning'] }
+        document: core_message
+        update:
+          content:
+            role: assistant
+            content: ${ TAGS['Reasoning'] }

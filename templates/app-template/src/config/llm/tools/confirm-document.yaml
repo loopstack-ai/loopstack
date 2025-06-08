@@ -1,7 +1,7 @@
 tools:
   - name: llm_confirmDocument
     execute:
-      service: createDocument
+      service: CreateDocumentService
       arguments:
         document: ${ workflow.options.document }
         update:
@@ -11,4 +11,4 @@ tools:
               - chat
             enableAtPlaces:
               - document-created
-          content: ${ workflow.payload ?? DOCUMENT_DRAFT }
+          content: ${ metadata.payload ?? DOCUMENT_DRAFT }

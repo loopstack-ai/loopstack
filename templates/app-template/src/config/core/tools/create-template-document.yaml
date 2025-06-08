@@ -1,6 +1,6 @@
 tools:
   - name: core_createTemplateDocument
     execute:
-      service: createDocument
+      service: CreateDocumentService
       arguments:
         document: ${ workflow.options.document }

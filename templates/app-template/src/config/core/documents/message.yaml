@@ -1,5 +1,5 @@
 documents:
-  - name: core_userMessage
+  - name: core_message
     tags:
       - message
     ui:
@@ -8,6 +8,3 @@ documents:
       type: object
     meta:
       invalidate: false
-    content:
-      role: user
-      content: ""

@@ -1,0 +1,15 @@
+tools:
+  - name: core_switchTarget
+    description: "Sets the target place for a transition to a defined value."
+    parameters:
+      type: object
+      properties:
+        target:
+          type: string
+      required:
+        - target
+      additionalItems: false
+    execute:
+      service: SetTargetPlaceService
+      arguments:
+        target: ${ arguments.target }

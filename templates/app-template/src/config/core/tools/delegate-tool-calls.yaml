@@ -1,0 +1,14 @@
+tools:
+  - name: core_delegateToolCalls
+    parameters:
+      type: object
+      properties:
+        toolCalls:
+          type: array
+      required:
+        - toolCalls
+      additionalItems: false
+    execute:
+      service: DelegateToolCallsService
+      arguments:
+        toolCalls: ${ arguments.toolCalls }

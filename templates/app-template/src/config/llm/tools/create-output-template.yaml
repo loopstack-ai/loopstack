@@ -1,6 +1,6 @@
 tools:
   - name: llm_createOutputTemplate
     execute:
-      service: createLlmOutputTemplate
+      service: CreateOutputTemplateService
       arguments:
         document: ${ workflow.options.document }

@@ -1,10 +1,18 @@
 tools:
   - name: core_createUserMessage
+    parameters:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+      additionalItems: false
     execute:
-      service: createDocument
+      service: CreateDocumentService
       arguments:
-        document: core_userMessage
+        document: core_message
         update:
           content:
             role: user
-            content: ${ workflow.options.message }
+            content: ${ arguments.message }

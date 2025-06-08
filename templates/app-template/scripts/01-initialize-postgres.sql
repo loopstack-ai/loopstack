@@ -11,3 +11,6 @@ DO $$
         RAISE NOTICE '- Timezone set to UTC';
         RAISE NOTICE '- ltree extension installed';
     END $$;
+
+-- create e2e test database
+CREATE DATABASE e2e_test;

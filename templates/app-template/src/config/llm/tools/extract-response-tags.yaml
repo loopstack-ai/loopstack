@@ -1,7 +1,7 @@
 tools:
   - name: llm_extractResponseTags
     execute:
-      service: extractLlmResponseTags
+      service: ExtractResponseTagsService
       arguments:
         tags:
           - Reasoning

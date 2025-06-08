@@ -1,0 +1,20 @@
+workflows:
+  - name: examples_toolCallSequence_workflow
+    title: "Example Workflow"
+    type: tool
+    sequence:
+      - tool: core_createAssistantMessage
+        arguments:
+          message: "Hello World!"
+
+      - tool: core_createUserMessage
+        arguments:
+          message: "Hi Assistant!"
+
+projects:
+  - name: examples_toolCallSequence
+    title: "Tool Call Sequence Example"
+    description: "This workflow demonstrates how to execute a simple sequence of tool calls in a workflow."
+    workspace: examples
+    entrypoint: examples_toolCallSequence_workflow
+

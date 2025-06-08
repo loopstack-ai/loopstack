@@ -1,7 +1,7 @@
 tools:
   - name: llm_createDocumentFromOutput
     execute:
-      service: createDocument
+      service: CreateDocumentService
       arguments:
         document: ${ workflow.options.document }
         update:

@@ -1,7 +1,7 @@
 tools:
   - name: llm_executePrompt
     execute:
-      service: prompt
+      service: ExecutePromptMessagesService
       arguments:
         llm:
           envApiKey: OPENAI_KEY

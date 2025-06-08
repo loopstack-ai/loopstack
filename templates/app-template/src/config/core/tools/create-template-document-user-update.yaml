@@ -1,8 +1,8 @@
 tools:
   - name: core_createTemplateDocumentUserUpdate
     execute:
-      service: createDocument
+      service: CreateDocumentService
       arguments:
         document: ${ workflow.options.document }
         update:
-          content: ${ workflow.payload }
+          content: ${ metadata.payload }
