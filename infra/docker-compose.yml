@@ -38,4 +38,3 @@ volumes:
     driver: local
   redis-data:
     driver: local
-  pnpm-store:
