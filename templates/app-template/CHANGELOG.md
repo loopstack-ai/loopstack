@@ -1,5 +1,19 @@
 # @loopstack/app-template
 
+## 0.1.0
+
+### Minor Changes
+
+- Rework various config schemas and their underlying functionality
+
+### Patch Changes
+
+- Updated dependencies
+  - @loopstack/api@0.1.0
+  - @loopstack/core@0.1.0
+  - @loopstack/llm@0.1.0
+  - @loopstack/shared@0.1.0
+
 ## 0.0.6
 
 ### Patch Changes
