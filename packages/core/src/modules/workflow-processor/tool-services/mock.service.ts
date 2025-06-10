@@ -6,6 +6,7 @@ const config = z
   .object({
     input: z.string().optional(),
     output: z.string().optional(),
+    error: z.string().optional(),
   })
   .strict();
 
@@ -13,6 +14,7 @@ const schema = z
   .object({
     input: z.string().optional(),
     output: z.string().optional(),
+    error: z.string().optional(),
   })
   .strict();
 
@@ -26,11 +28,17 @@ export class MockService implements ServiceInterface {
 
   async apply(props: z.infer<typeof schema>): Promise<ServiceCallResult> {
 
-    this.logger.debug(`Received mock input ${props?.input}`);
+    if (props.input) {
+      this.logger.debug(`Received mock input ${props.input}`);
+    }
+
+    if (props.error) {
+      throw new Error(props.error);
+    }
 
     return {
       success: true,
-      data: { content: props?.output }
+      data: { content: props.output }
     }
   }
 }

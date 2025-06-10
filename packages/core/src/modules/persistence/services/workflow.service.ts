@@ -46,8 +46,16 @@ export class WorkflowService {
   findById(id: string): Promise<WorkflowEntity | null> {
     return this.workflowRepository.findOne({
       where: { id },
-      relations: ['documents'],
+      relations: ['documents', 'dependencies'],
     });
+  }
+
+  async reload(id: string): Promise<WorkflowEntity> {
+    const originalWorkflow = await this.findById(id);
+    if (!originalWorkflow) {
+      throw new Error(`Cant restore original workflow.`)
+    }
+    return originalWorkflow;
   }
 
   async remove(entity) {

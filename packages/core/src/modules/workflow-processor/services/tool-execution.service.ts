@@ -74,6 +74,23 @@ export class ToolExecutionService {
     return this.callService(toolConfig.execute.service, args, workflow, context, meta);
   }
 
+  addWorkflowTransitionData(
+    workflow: WorkflowEntity,
+    transition: string,
+    target: string,
+    data: any,
+  ) {
+    if (!workflow.currData) {
+      workflow.currData = {};
+    }
+
+    if (!workflow.currData[transition]) {
+      workflow.currData[transition] = {};
+    }
+
+    workflow.currData[transition][target] = data;
+  }
+
   commitServiceCallResult(
     workflow: WorkflowEntity,
     transition: string,
@@ -86,15 +103,7 @@ export class ToolExecutionService {
     }
 
     if (result?.data) {
-      if (!workflow.currData) {
-        workflow.currData = {};
-      }
-
-      if (!workflow.currData[transition]) {
-        workflow.currData[transition] = {};
-      }
-
-      workflow.currData[transition][tool] = result.data;
+      this.addWorkflowTransitionData(workflow, transition, tool, result.data);
     }
 
     if (alias) {

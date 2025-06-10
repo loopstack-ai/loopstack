@@ -185,6 +185,7 @@ export class StateMachineProcessorService {
       transition: nextTransition.name,
       from: workflow.place,
       to: nextTransition.to,
+      onError: nextTransition.onError,
     };
   }
 
@@ -217,16 +218,11 @@ export class StateMachineProcessorService {
   ): Promise<WorkflowEntity> {
     let context = beforeContext;
     workflow = await this.initStateMachine(workflow, stateMachineInfo);
-    // await this.workflowService.save(workflow); // todo: check. probably do not need to save here
 
     const workflowConfig = this.workflowConfigService.getConfig(config);
     if (!workflowConfig.transitions) {
       throw new Error(`Workflow ${workflow.name} does not have any transitions.`);
     }
-
-    // const workflowContext = {
-    //   options: stateMachineInfo.options,
-    // } as WorkflowRunContext;
 
     try {
       const pendingTransition = [stateMachineInfo.pendingTransition];
@@ -275,58 +271,77 @@ export class StateMachineProcessorService {
           .find((transition) => transition.name === meta.transition)?.call;
 
         let nextPlace: string | undefined = undefined;
-        if (toolCalls) {
-          let index = 0;
+        try {
+          if (toolCalls) {
+            let index = 0;
 
-          for (const toolCall of toolCalls) {
-            index++;
+            for (const toolCall of toolCalls) {
+              index++;
 
-            this.logger.debug(
-              `Call tool ${index} (${toolCall.tool}) on transition ${meta.transition}`,
-            );
+              this.logger.debug(
+                `Call tool ${index} (${toolCall.tool}) on transition ${meta.transition}`,
+              );
 
-            // evaluate tool call config late in the execution for up-to-date arguments
-            const evaluatedToolCall = this.templateExpressionEvaluatorService.evaluate<ToolCallType>(
-              toolCall,
-              stateMachineInfo.options,
-              context,
-              workflow,
-              meta,
-            )
+              // evaluate tool call config late in the execution for up-to-date arguments
+              const evaluatedToolCall = this.templateExpressionEvaluatorService.evaluate<ToolCallType>(
+                toolCall,
+                stateMachineInfo.options,
+                context,
+                workflow,
+                meta,
+              )
 
-            // apply the tool
-            const result = await this.toolExecutionService.applyTool(
-              evaluatedToolCall,
-              workflow,
-              context,
-              meta,
-            );
+              // apply the tool
+              const result = await this.toolExecutionService.applyTool(
+                evaluatedToolCall,
+                workflow,
+                context,
+                meta,
+              );
 
-            // add the response data to workflow
-            workflow = this.toolExecutionService.commitServiceCallResult(
-              workflow,
-              meta.transition,
-              toolCall.tool,
-              toolCall.exportAs,
-              result,
-            );
+              // add the response data to workflow
+              workflow = this.toolExecutionService.commitServiceCallResult(
+                workflow,
+                meta.transition,
+                toolCall.tool,
+                toolCall.exportAs,
+                result,
+              );
 
-            // save workflow directly for immediate ui updates
-            if (result?.persist) {
-              await this.workflowService.save(workflow);
-            }
-
-            // set the next place, if specified
-            if (result?.place) {
-              nextPlace = result?.place;
+              // set the next place, if specified
+              if (result?.place) {
+                nextPlace = result?.place;
+              }
             }
           }
+        } catch(e) {
+          // re-throw error if errors are not handled gracefully
+          if (!nextTransition.onError) {
+            throw e;
+          }
+
+          // roll back to original workflow so no changes are committed
+          workflow = await this.workflowService.reload(workflow.id);
+
+          // transition to error place
+          nextPlace = nextTransition.onError;
+          this.toolExecutionService.addWorkflowTransitionData(
+            workflow,
+            meta.transition,
+            'error',
+            e.message,
+          );
         }
 
+        // apply the transition to next place
         this.commitWorkflowTransition(workflow, nextPlace, nextTransition);
       }
+
     } catch (e) {
       this.logger.error(e);
+
+      // roll back to original workflow so no changes are committed
+      workflow = await this.workflowService.reload(workflow.id);
       workflow.error = e.message;
     }
 

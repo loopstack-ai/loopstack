@@ -2,9 +2,9 @@ import { Command, CommandRunner } from 'nest-commander';
 import { JsonSchemaGeneratorService } from '../services/json-schema-generator.service';
 import { Logger } from '@nestjs/common';
 
-@Command({ name: 'generate-schemas', description: 'Generate json schema' })
-export class GenerateSchemasCommand extends CommandRunner {
-  private readonly logger = new Logger(GenerateSchemasCommand.name);
+@Command({ name: 'generate-schema', description: 'Generate json schema' })
+export class GenerateSchemaCommand extends CommandRunner {
+  private readonly logger = new Logger(GenerateSchemaCommand.name);
   constructor(
     private readonly jsonSchemaGeneratorService: JsonSchemaGeneratorService,
   ) {
