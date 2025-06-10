@@ -9,7 +9,7 @@
   },
   "private": true,
   "scripts": {
-    "generate": "openapi-generator-cli generate -i http://localhost:3000/api-json -g typescript-axios -o ../../frontend/api-client -c openapi-generator-config.json"
+    "generate": "openapi-generator-cli generate -i http://localhost:8000/api-json -g typescript-axios -o ../../frontend/api-client -c openapi-generator-config.json"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.16.3"
