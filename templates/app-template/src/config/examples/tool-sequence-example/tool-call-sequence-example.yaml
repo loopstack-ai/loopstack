@@ -11,7 +11,7 @@ workflows:
         arguments:
           message: "Hi Assistant!"
 
-projects:
+pipelines:
   - name: examples_toolCallSequence
     title: "Tool Call Sequence Example"
     description: "This workflow demonstrates how to execute a simple sequence of tool calls in a workflow."

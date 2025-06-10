@@ -100,7 +100,7 @@ tools:
         tools:
           - examples_toolCallAgent_getUserName
 
-projects:
+pipelines:
   - name: examples_toolCallAgent
     title: "Tool Call Agent Example"
     workspace: examples

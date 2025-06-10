@@ -5,8 +5,8 @@ import { DataSource } from 'typeorm';
 import {
   DocumentService,
   loadConfiguration,
-  ProjectProcessorService,
-  ProjectService,
+  PipelineProcessorService,
+  PipelineService,
   WorkspaceService,
 } from '@loopstack/core';
 import { TestModule } from './test.module';
@@ -14,8 +14,8 @@ import { TestModule } from './test.module';
 export interface TestSetup {
   app: INestApplication;
   dataSource: DataSource;
-  processorService: ProjectProcessorService;
-  projectService: ProjectService;
+  processorService: PipelineProcessorService;
+  projectService: PipelineService;
   workspaceService: WorkspaceService;
   documentService: DocumentService;
   context: any;
@@ -47,8 +47,8 @@ export async function createPipelineTestSetup(options: {
   const services = {
     app,
     dataSource,
-    processorService: moduleRef.get<ProjectProcessorService>(ProjectProcessorService),
-    projectService: moduleRef.get<ProjectService>(ProjectService),
+    processorService: moduleRef.get<PipelineProcessorService>(PipelineProcessorService),
+    projectService: moduleRef.get<PipelineService>(PipelineService),
     workspaceService: moduleRef.get<WorkspaceService>(WorkspaceService),
     documentService: moduleRef.get<DocumentService>(DocumentService),
   };
