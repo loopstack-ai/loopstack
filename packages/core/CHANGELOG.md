@@ -1,5 +1,16 @@
 # @loopstack/core
 
+## 0.1.0
+
+### Minor Changes
+
+- Rework various config schemas and their underlying functionality
+
+### Patch Changes
+
+- Updated dependencies
+  - @loopstack/shared@0.1.0
+
 ## 0.0.5
 
 ### Patch Changes
