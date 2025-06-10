@@ -15,6 +15,7 @@
     "dev": "pnpm --parallel -r run dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
+    "docker:push": "pnpm -r run docker:push",
     "infra:up": "docker compose up --build",
     "infra:down": "docker compose down",
     "changeset": "changeset",
