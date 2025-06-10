@@ -3,22 +3,22 @@ import _ from 'lodash';
 import {
   ContextInterface,
   ProcessRunInterface,
-  ProjectEntity,
+  PipelineEntity,
 } from '@loopstack/shared';
 
 @Injectable()
 export class ContextService {
   createRootContext(
-    project: ProjectEntity,
+    pipeline: PipelineEntity,
     additional: Partial<ContextInterface>,
   ): ContextInterface {
     return {
-      model: project.model,
-      userId: project.createdBy,
-      projectId: project.id,
-      workspaceId: project.workspaceId,
-      labels: project.labels,
-      index: project.index,
+      model: pipeline.model,
+      userId: pipeline.createdBy,
+      pipelineId: pipeline.id,
+      workspaceId: pipeline.workspaceId,
+      labels: pipeline.labels,
+      index: pipeline.index,
       ...additional,
     } as ContextInterface;
   }

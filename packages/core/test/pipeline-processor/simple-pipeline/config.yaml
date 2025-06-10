@@ -1,14 +1,15 @@
 workspaces:
   - name: test_workspace
-projects:
+pipelines:
   - name: test
     entrypoint: test_workflow
     workspace: test_workspace
 tools:
-  - name: Debug
-    service: DebugService
-    props:
-      message: 'test message'
+  - name: debug
+    execute:
+      service: DebugService
+      arguments:
+        input: 'test message'
 workflows:
   - name: test_workflow
     type: stateMachine
@@ -16,7 +17,5 @@ workflows:
       - name: first
         from: 'initial'
         to: 'finished'
-        trigger: auto
-    observers:
-      - transition: first
-        tool: Debug
+        call:
+          - tool: debug

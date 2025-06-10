@@ -1,19 +1,19 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { ProjectEntity } from '@loopstack/shared';
+import { PipelineEntity } from '@loopstack/shared';
 
-export class ProjectService {
+export class PipelineService {
   constructor(
-    @InjectRepository(ProjectEntity)
-    private projectRepository: Repository<ProjectEntity>,
+    @InjectRepository(PipelineEntity)
+    private entityRepository: Repository<PipelineEntity>,
   ) {}
 
-  getProject(
+  getPipeline(
     id: string,
     userId: string | null,
     relations: string[] = ['workspace', 'namespaces'],
   ) {
-    return this.projectRepository.findOne({
+    return this.entityRepository.findOne({
       where: {
         id,
         createdBy: null === userId ? IsNull() : userId,
@@ -23,6 +23,6 @@ export class ProjectService {
   }
 
   getRepository() {
-    return this.projectRepository;
+    return this.entityRepository;
   }
 }

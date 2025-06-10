@@ -117,7 +117,7 @@ export class DocumentService {
       labels: workflow!.labels,
       workflow: { id: workflow.id } as WorkflowEntity,
       workspaceId: context.workspaceId,
-      projectId: context.projectId,
+      pipelineId: context.pipelineId,
     });
 
     this.workflowService.addDocument(workflow, document);
@@ -131,7 +131,7 @@ export class DocumentService {
   }
 
   createDocumentsQuery(
-    projectId: string,
+    pipelineId: string,
     workspaceId: string,
     where?: z.infer<typeof WhereCondition>,
     options?: {
@@ -156,9 +156,9 @@ export class DocumentService {
     queryBuilder.andWhere('is_invalidated = false');
 
     if (!options?.isGlobal) {
-      // ofc needs to be from same project
-      queryBuilder.andWhere('project_id = :projectId', {
-        projectId,
+      // ofc needs to be from same pipeline
+      queryBuilder.andWhere('pipeline_id = :pipelineId', {
+        pipelineId: pipelineId,
       });
     } else {
       queryBuilder.andWhere('workspace_id = :workspaceId', {

@@ -30,7 +30,7 @@ export class WorkflowSubscriber
         id: event.entity.id,
         userId: event.entity.createdBy,
         namespaceId: event.entity.namespaceId,
-        projectId: event.entity.projectId,
+        pipelineId: event.entity.pipelineId,
         data: event.entity,
       }),
     );
@@ -43,7 +43,7 @@ export class WorkflowSubscriber
         id: event.databaseEntity.id,
         userId: event.databaseEntity.createdBy,
         namespaceId: event.databaseEntity.namespaceId,
-        projectId: event.databaseEntity.projectId,
+        pipelineId: event.databaseEntity.pipelineId,
         data: event.entity
           ? {
               ...event.databaseEntity,

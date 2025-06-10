@@ -5,7 +5,7 @@ import { INestApplication } from '@nestjs/common';
 import {
   DocumentEntity,
   NamespaceEntity,
-  ProjectEntity,
+  PipelineEntity,
   WorkflowEntity,
   WorkspaceEntity,
 } from '@loopstack/shared';
@@ -14,7 +14,7 @@ export interface TestSetup {
   moduleRef: TestingModule;
   app: INestApplication;
   dataSource: DataSource;
-  projectRepo: Repository<ProjectEntity>;
+  pipelineRepo: Repository<PipelineEntity>;
   workflowRepo: Repository<WorkflowEntity>;
   workspaceRepo: Repository<WorkspaceEntity>;
   namespaceRepo: Repository<NamespaceEntity>;
@@ -66,7 +66,7 @@ export async function setupTestEnvironment(
         password: 'admin',
         database: databaseName,
         entities: [
-          ProjectEntity,
+          PipelineEntity,
           WorkspaceEntity,
           NamespaceEntity,
           DocumentEntity,
@@ -75,7 +75,7 @@ export async function setupTestEnvironment(
         synchronize: true,
       }),
       TypeOrmModule.forFeature([
-        ProjectEntity,
+        PipelineEntity,
         WorkspaceEntity,
         NamespaceEntity,
         DocumentEntity,
@@ -89,8 +89,8 @@ export async function setupTestEnvironment(
   await app.init();
 
   const dataSource = moduleRef.get<DataSource>(DataSource);
-  const projectRepo = moduleRef.get<Repository<ProjectEntity>>(
-    getRepositoryToken(ProjectEntity),
+  const pipelineRepo = moduleRef.get<Repository<PipelineEntity>>(
+    getRepositoryToken(PipelineEntity),
   );
   const workflowRepo = moduleRef.get<Repository<WorkflowEntity>>(
     getRepositoryToken(WorkflowEntity),
@@ -109,7 +109,7 @@ export async function setupTestEnvironment(
     moduleRef,
     app,
     dataSource,
-    projectRepo,
+    pipelineRepo: pipelineRepo,
     workflowRepo,
     workspaceRepo,
     namespaceRepo,
@@ -131,7 +131,7 @@ export async function setupTestEnvironment(
 export async function clearDatabase(dataSource: DataSource) {
   await dataSource.query('TRUNCATE "document" CASCADE');
   await dataSource.query('TRUNCATE "namespace" CASCADE');
-  await dataSource.query('TRUNCATE "project" CASCADE');
+  await dataSource.query('TRUNCATE "pipeline" CASCADE');
   await dataSource.query('TRUNCATE "workflow" CASCADE');
   await dataSource.query('TRUNCATE "workflow_document" CASCADE');
   await dataSource.query('TRUNCATE "workspace" CASCADE');

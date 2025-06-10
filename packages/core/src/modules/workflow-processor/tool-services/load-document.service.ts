@@ -104,12 +104,12 @@ export class LoadDocumentService implements ServiceInterface {
    */
   async getDocumentsByQuery(
     props: z.infer<typeof schema>,
-    projectId: string,
+    pipelineId: string,
     workspaceId: string,
     workflow: WorkflowEntity,
   ): Promise<DocumentEntity[]> {
     const query = this.documentService.createDocumentsQuery(
-      projectId,
+      pipelineId,
       workspaceId,
       props.where,
       {
@@ -185,7 +185,7 @@ export class LoadDocumentService implements ServiceInterface {
     // load and filter entities based on options from database
     const currentEntities = await this.getDocumentsByQuery(
       props,
-      context.projectId,
+      context.pipelineId,
       context.workspaceId,
       workflow,
     );

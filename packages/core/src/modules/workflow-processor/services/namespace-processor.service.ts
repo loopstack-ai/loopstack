@@ -23,7 +23,7 @@ export class NamespaceProcessorService {
     clone.namespace = await this.namespacesService.create({
       name: props.label ?? 'Group',
       model: context.model,
-      projectId: context.projectId,
+      pipelineId: context.pipelineId,
       workspaceId: context.workspaceId,
       parent: context.namespace,
       metadata: props.meta ?? {},

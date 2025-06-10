@@ -2,22 +2,22 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import {
   loadConfiguration,
-  ProjectProcessorService,
-  ProjectService,
+  PipelineProcessorService,
+  PipelineService,
   WorkspaceService,
 } from '../../src';
 import { getConnectionToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { TestModule } from '../test.module';
-import { ProjectStatus } from '@loopstack/shared';
+import { PipelineStatus } from '@loopstack/shared';
 import { afterEach } from 'node:test';
 import { Logger } from '@nestjs/common';
 
-describe('Simple Project E2E Test', () => {
+describe('Simple Pipeline E2E Test', () => {
   let app: INestApplication;
   let dataSource: DataSource;
-  let processorService: ProjectProcessorService;
-  let projectService: ProjectService;
+  let processorService: PipelineProcessorService;
+  let pipelineService: PipelineService;
   let workspaceService: WorkspaceService;
   let context: any;
   let loggerSpy: jest.SpyInstance;
@@ -26,7 +26,7 @@ describe('Simple Project E2E Test', () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
       imports: [
         TestModule.forRoot({
-          configs: loadConfiguration(__dirname + '/simple-project'),
+          configs: loadConfiguration(__dirname + '/simple-pipeline'),
           mockServices: [],
         }),
       ],
@@ -36,10 +36,10 @@ describe('Simple Project E2E Test', () => {
     dataSource = moduleRef.get(getConnectionToken());
     await app.init();
 
-    processorService = moduleRef.get<ProjectProcessorService>(
-      ProjectProcessorService,
+    processorService = moduleRef.get<PipelineProcessorService>(
+      PipelineProcessorService,
     );
-    projectService = moduleRef.get<ProjectService>(ProjectService);
+    pipelineService = moduleRef.get<PipelineService>(PipelineService);
     workspaceService = moduleRef.get<WorkspaceService>(WorkspaceService);
     context = {};
   });
@@ -57,7 +57,7 @@ describe('Simple Project E2E Test', () => {
   });
 
   afterEach(async () => {
-    await projectService.getRepository().clear();
+    await pipelineService.getRepository().clear();
     jest.clearAllMocks();
   });
 
@@ -71,9 +71,9 @@ describe('Simple Project E2E Test', () => {
     const projectId = '991f8235-e42b-4b4f-838c-ef1629507693';
 
     await expect(
-      processorService.processProject({
+      processorService.processPipeline({
         userId,
-        projectId,
+        pipelineId: projectId,
       }),
     ).rejects.toThrow(
       'project "991f8235-e42b-4b4f-838c-ef1629507693" not found.',
@@ -83,19 +83,19 @@ describe('Simple Project E2E Test', () => {
   it('should run the project if found', async () => {
     const userId = null;
 
-    const project = projectService.getRepository().create({
+    const project = pipelineService.getRepository().create({
       id: '991f8235-e42b-4b4f-838c-ef1629507693',
       model: 'test',
       title: '',
-      status: ProjectStatus.New,
+      status: PipelineStatus.New,
       workspace: context.workspace,
       createdBy: null,
     });
-    await projectService.getRepository().save(project);
+    await pipelineService.getRepository().save(project);
 
-    const res = await processorService.processProject({
+    const res = await processorService.processPipeline({
       userId,
-      projectId: project.id,
+      pipelineId: project.id,
     });
 
     expect(res).toBeDefined();

@@ -14,7 +14,7 @@ import {
   StateMachineValidatorRegistry,
   ToolExecutionService,
   NamespaceProcessorService,
-  ProjectProcessorService,
+  PipelineProcessorService,
   WorkflowProcessorService,
   ToolSchemaValidatorService, TemplateExpressionEvaluatorService,
 } from './services';
@@ -48,7 +48,7 @@ import {
     LoadDocumentService,
     TransitionSelectorService,
     NamespaceProcessorService,
-    ProjectProcessorService,
+    PipelineProcessorService,
     UpdateDocumentService,
     TemplateExpressionEvaluatorService,
     SetTargetPlaceService,
@@ -61,6 +61,6 @@ import {
     StateMachineProcessorService,
     StateMachineConfigService,
   ],
-  exports: [ProjectProcessorService, WorkflowProcessorService, ToolExecutionService, TemplateExpressionEvaluatorService],
+  exports: [PipelineProcessorService, WorkflowProcessorService, ToolExecutionService, TemplateExpressionEvaluatorService],
 })
 export class WorkflowProcessorModule {}

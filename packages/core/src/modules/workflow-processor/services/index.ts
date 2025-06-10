@@ -4,6 +4,6 @@ export * from './state-machine-validator.registry';
 export * from './tool-execution.service';
 export * from './workflow-processor.service';
 export * from './namespace-processor.service';
-export * from './project-processor.service';
+export * from './pipeline-processor.service';
 export * from './tool-schema-validator.service';
 export * from './template-expression-evaluator.service';

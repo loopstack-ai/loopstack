@@ -3,14 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   DocumentEntity,
   NamespaceEntity,
-  ProjectEntity,
+  PipelineEntity,
   WorkflowEntity,
   WorkspaceEntity,
 } from '@loopstack/shared';
 import {
   DocumentService,
   NamespacesService,
-  ProjectService,
+  PipelineService,
   WorkflowService,
   WorkspaceService,
 } from './services';
@@ -22,7 +22,7 @@ import { DocumentSubscriber } from './subscriber/document.subscriber';
   imports: [
     CommonModule,
     TypeOrmModule.forFeature([
-      ProjectEntity,
+      PipelineEntity,
       WorkflowEntity,
       DocumentEntity,
       WorkspaceEntity,
@@ -31,7 +31,7 @@ import { DocumentSubscriber } from './subscriber/document.subscriber';
   ],
   providers: [
     WorkflowService,
-    ProjectService,
+    PipelineService,
     WorkspaceService,
     DocumentService,
     NamespacesService,
@@ -40,7 +40,7 @@ import { DocumentSubscriber } from './subscriber/document.subscriber';
   ],
   exports: [
     WorkflowService,
-    ProjectService,
+    PipelineService,
     WorkspaceService,
     DocumentService,
     NamespacesService,

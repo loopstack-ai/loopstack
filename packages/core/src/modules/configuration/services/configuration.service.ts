@@ -60,7 +60,7 @@ export class ConfigurationService implements OnModuleInit {
     return new Map(
       Object.entries({
         workspaces: new Map(),
-        projects: new Map(),
+        pipelines: new Map(),
         workflows: new Map(),
         documents: new Map(),
         tools: new Map(),
@@ -129,51 +129,51 @@ export class ConfigurationService implements OnModuleInit {
     }
   }
 
-  private createProjectEntrypointValidation(): z.ZodEffects<any, any, any> {
+  private createPipelineEntrypointValidation(): z.ZodEffects<any, any, any> {
     return z.any().refine(
       (data: MainConfigType): boolean => {
-        if (!data.projects) {
+        if (!data.pipelines) {
           return true;
         }
-        return data.projects.every(
-          (project) => undefined !== this.get('workflows', project.entrypoint),
+        return data.pipelines.every(
+          (pipeline) => undefined !== this.get('workflows', pipeline.entrypoint),
         );
       },
       (data: MainConfigType) => {
         const invalidIndex =
-          data.projects?.findIndex(
-            (project) =>
-              undefined === this.get('workspaces', project.workspace),
+          data.pipelines?.findIndex(
+            (pipeline) =>
+              undefined === this.get('workspaces', pipeline.workspace),
           ) ?? -1;
 
         return {
-          message: `project references non-existent workflow.`,
-          path: ['projects', invalidIndex, 'entrypoint'],
+          message: `pipeline references non-existent workflow.`,
+          path: ['pipelines', invalidIndex, 'entrypoint'],
         };
       },
     );
   }
 
-  private createProjectWorkspaceValidation(): z.ZodEffects<any, any, any> {
+  private createPipelineWorkspaceValidation(): z.ZodEffects<any, any, any> {
     return z.any().refine(
       (data: MainConfigType): boolean => {
-        if (!data.projects) {
+        if (!data.pipelines) {
           return true;
         }
-        return data.projects.every(
-          (project) => undefined !== this.get('workspaces', project.workspace),
+        return data.pipelines.every(
+          (pipeline) => undefined !== this.get('workspaces', pipeline.workspace),
         );
       },
       (data: MainConfigType) => {
         const invalidIndex =
-          data.projects?.findIndex(
-            (project) =>
-              undefined === this.get('workspaces', project.workspace),
+          data.pipelines?.findIndex(
+            (pipeline) =>
+              undefined === this.get('workspaces', pipeline.workspace),
           ) ?? -1;
 
         return {
-          message: `project references non-existent workspace.`,
-          path: ['projects', invalidIndex, 'workspace'],
+          message: `pipeline references non-existent workspace.`,
+          path: ['pipelines', invalidIndex, 'workspace'],
         };
       },
     );
@@ -274,8 +274,8 @@ export class ConfigurationService implements OnModuleInit {
     try {
       this.mainSchemaGenerator
         .getSchema()
-        .and(this.createProjectEntrypointValidation())
-        .and(this.createProjectWorkspaceValidation())
+        .and(this.createPipelineEntrypointValidation())
+        .and(this.createPipelineWorkspaceValidation())
         .and(this.createWorkflowToolCallValidation())
         .and(this.createWorkflowTemplateToolCallValidation())
         // todo add more validations

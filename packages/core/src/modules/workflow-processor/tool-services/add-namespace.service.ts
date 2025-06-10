@@ -41,7 +41,7 @@ export class AddNamespaceService implements ServiceInterface {
     const namespace = await this.namespacesService.create({
       name: props.label,
       model: context.model,
-      projectId: context.projectId,
+      pipelineId: context.pipelineId,
       workspaceId: context.workspaceId,
       metadata: props.meta,
       createdBy: context.userId,

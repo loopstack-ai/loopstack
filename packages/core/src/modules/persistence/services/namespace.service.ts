@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NamespaceEntity, ProjectEntity } from '@loopstack/shared';
+import { NamespaceEntity, PipelineEntity } from '@loopstack/shared';
 import { NamespaceCreateInterface } from '@loopstack/shared';
 
 @Injectable()
@@ -59,16 +59,16 @@ export class NamespacesService {
     return namespaces.filter((item) => !idsToRemove.has(item.id));
   }
 
-  async createRootNamespace(project: ProjectEntity): Promise<NamespaceEntity> {
+  async createRootNamespace(pipeline: PipelineEntity): Promise<NamespaceEntity> {
     return this.create({
-      name: project.model,
-      model: project.model,
-      projectId: project.id,
-      workspaceId: project.workspaceId,
+      name: pipeline.model,
+      model: pipeline.model,
+      pipelineId: pipeline.id,
+      workspaceId: pipeline.workspaceId,
       metadata: {
-        title: project.title,
+        title: pipeline.title,
       },
-      createdBy: project.createdBy,
+      createdBy: pipeline.createdBy,
       parent: null,
     });
   }
@@ -84,7 +84,7 @@ export class NamespacesService {
       where: {
         name: createNamespaceDto.name,
         model: createNamespaceDto.model,
-        projectId: createNamespaceDto.projectId,
+        pipelineId: createNamespaceDto.pipelineId,
       },
       relations: ['workflows'],
     });
@@ -111,7 +111,7 @@ export class NamespacesService {
         model: createNamespaceDto.model,
         parent: (createNamespaceDto.parent as NamespaceEntity) ?? undefined,
         workspaceId: createNamespaceDto.workspaceId,
-        projectId: createNamespaceDto.projectId,
+        pipelineId: createNamespaceDto.pipelineId,
         metadata: createNamespaceDto.metadata,
       });
 
