@@ -46,7 +46,6 @@ workflowTemplates:
           - error
         when: onEntry
         call:
-          - tool: llm_showLoadingMessage
           - tool: llm_executePrompt
             exportAs: PROMPT_RESULT
 

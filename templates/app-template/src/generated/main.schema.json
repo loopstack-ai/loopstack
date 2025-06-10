@@ -288,6 +288,9 @@
                           "items": {
                             "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/2/properties/sequence/items"
                           }
+                        },
+                        "onError": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -986,6 +989,9 @@
                             "type": "string"
                           },
                           "output": {
+                            "type": "string"
+                          },
+                          "error": {
                             "type": "string"
                           }
                         },

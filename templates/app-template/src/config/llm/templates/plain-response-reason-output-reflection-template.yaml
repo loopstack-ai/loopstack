@@ -32,8 +32,6 @@ workflowTemplates:
           - prompt-executed
           - error
         when: onEntry
-        call:
-          - tool: llm_showLoadingMessage
       - name: add-prompt-message
         from: prompt-executed
         to: prompt-message-added

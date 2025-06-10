@@ -15,13 +15,13 @@ export interface TestSetup {
   app: INestApplication;
   dataSource: DataSource;
   processorService: PipelineProcessorService;
-  projectService: PipelineService;
+  pipelineService: PipelineService;
   workspaceService: WorkspaceService;
   documentService: DocumentService;
   context: any;
   cleanup: () => Promise<void>;
   teardown: () => Promise<void>;
-  setupWorkspaceAndProject: (workspaceType?: string, projectModel?: string) => Promise<void>;
+  setupWorkspaceAndPipeline: (workspaceType?: string, projectModel?: string) => Promise<void>;
 }
 
 export async function createPipelineTestSetup(options: {
@@ -32,7 +32,7 @@ export async function createPipelineTestSetup(options: {
     imports: [
       TestModule.forRoot({
         configs: loadConfiguration(
-          options.configPath || __dirname + '/../src/config'
+          options.configPath || __dirname + '/../../src/config'
         ),
         mockServices: options.mockServices || [],
       }),
@@ -48,23 +48,23 @@ export async function createPipelineTestSetup(options: {
     app,
     dataSource,
     processorService: moduleRef.get<PipelineProcessorService>(PipelineProcessorService),
-    projectService: moduleRef.get<PipelineService>(PipelineService),
+    pipelineService: moduleRef.get<PipelineService>(PipelineService),
     workspaceService: moduleRef.get<WorkspaceService>(WorkspaceService),
     documentService: moduleRef.get<DocumentService>(DocumentService),
   };
 
   let context: any = {};
 
-  const setupWorkspaceAndProject = async (
+  const setupWorkspaceAndPipeline = async (
     workspaceType: string,
-    projectModel: string,
+    pipelineModel: string,
   ) => {
     if (!workspaceType) {
       throw new Error('workspaceType required.');
     }
 
-    if (!projectModel) {
-      throw new Error('projectModel required.');
+    if (!pipelineModel) {
+      throw new Error('pipelineModel required.');
     }
 
     // Create test workspace
@@ -74,13 +74,13 @@ export async function createPipelineTestSetup(options: {
     });
     context.workspace = await services.workspaceService.getRepository().save(workspace);
 
-    // Create test project
-    const project = services.projectService.getRepository().create({
-      model: projectModel,
+    // Create test pipeline
+    const pipeline = services.pipelineService.getRepository().create({
+      model: pipelineModel,
       workspace: context.workspace,
       createdBy: null,
     });
-    context.project = await services.projectService.getRepository().save(project);
+    context.pipeline = await services.pipelineService.getRepository().save(pipeline);
   };
 
   const cleanup = async () => {
@@ -97,7 +97,7 @@ export async function createPipelineTestSetup(options: {
   return {
     ...services,
     context,
-    setupWorkspaceAndProject,
+    setupWorkspaceAndPipeline,
     cleanup,
     teardown,
   };

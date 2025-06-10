@@ -1,6 +1,6 @@
 import { createPipelineTestSetup } from './utils/create-pipeline-test-setup';
 
-describe('Tool Sequence Example', () => {
+describe('Error Handling Example', () => {
   let testSetup: any;
 
   beforeAll(async () => {
@@ -8,7 +8,7 @@ describe('Tool Sequence Example', () => {
   });
 
   beforeEach(async () => {
-    await testSetup.setupWorkspaceAndPipeline('examples', 'examples_toolCallSequence');
+    await testSetup.setupWorkspaceAndPipeline('examples', 'examples_errorHandling');
   });
 
   afterEach(async () => {
@@ -19,13 +19,13 @@ describe('Tool Sequence Example', () => {
     await testSetup.teardown();
   });
 
-  it('should call tools', async () => {
+  it('should handle error gracefully', async () => {
     const result = await testSetup.processorService.processPipeline({
       userId: null,
       pipelineId: testSetup.context.pipeline.id,
     });
 
-    expect(result.model).toEqual('examples_toolCallSequence');
+    expect(result.model).toEqual('examples_errorHandling');
 
     const messages = await testSetup.documentService.createDocumentsQuery(
       testSetup.context.pipeline.id,
@@ -35,6 +35,7 @@ describe('Tool Sequence Example', () => {
       }
     ).getMany();
 
-    expect(messages.length).toEqual(2);
+    expect(messages[0].content.role).toEqual('error');
+    expect(messages[0].content.content).toContain('error');
   });
 });

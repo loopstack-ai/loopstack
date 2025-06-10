@@ -1,0 +1,45 @@
+workflows:
+  - name: examples_errorHandling_workflow
+    type: stateMachine
+    transitions:
+
+      - name: doSomethingWrong
+        from: start
+        to:
+          - successful
+          - error
+        call:
+          - tool: examples_errorHandling_throwError
+        onError: error
+
+      - name: showErrorMessage
+        from: error
+        to: errorHandledGracefully
+        call:
+          - tool: core_createMessage
+            arguments:
+              content:
+                role: error
+                content: ${ data['doSomethingWrong']['error'] }
+
+      - name: retry
+        from: errorHandledGracefully
+        to: start
+        when: manual
+
+      - name: finish
+        from: successful
+        to: complete
+
+tools:
+  - name: examples_errorHandling_throwError
+    execute:
+      service: MockService
+      arguments:
+        error: "This is a mocked error."
+
+pipelines:
+  - name: examples_errorHandling
+    title: "Error Handling Example"
+    workspace: examples
+    entrypoint: examples_errorHandling_workflow
