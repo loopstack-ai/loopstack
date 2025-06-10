@@ -1,30 +1,30 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { IsNull, Repository, In } from 'typeorm';
-import { ProjectCreateDto } from '../dtos/project-create.dto';
-import { ProjectUpdateDto } from '../dtos/project-update.dto';
+import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
+import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
 import { ConfigService } from '@nestjs/config';
-import { ProjectSortByDto } from '../dtos/project-sort-by.dto';
+import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProjectFilterDto } from '../dtos/project-filter.dto';
-import { ProjectEntity, WorkspaceEntity } from '@loopstack/shared';
+import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
+import { PipelineEntity, WorkspaceEntity } from '@loopstack/shared';
 
 @Injectable()
-export class ProjectApiService {
+export class PipelineApiService {
   constructor(
     @InjectRepository(WorkspaceEntity)
     private workspaceRepository: Repository<WorkspaceEntity>,
-    @InjectRepository(ProjectEntity)
-    private projectRepository: Repository<ProjectEntity>,
+    @InjectRepository(PipelineEntity)
+    private pipelineRepository: Repository<PipelineEntity>,
     private configService: ConfigService,
   ) {}
 
   /**
-   * find all projects for the user with optional filters, sorting, and pagination.
+   * find all pipelines for the user with optional filters, sorting, and pagination.
    */
   async findAll(
     user: string | null,
-    filter: ProjectFilterDto,
-    sortBy: ProjectSortByDto[],
+    filter: PipelineFilterDto,
+    sortBy: PipelineSortByDto[],
     pagination: {
       page: number | undefined;
       limit: number | undefined;
@@ -34,21 +34,21 @@ export class ProjectApiService {
       columns: (keyof WorkspaceEntity)[];
     },
   ): Promise<{
-    data: ProjectEntity[];
+    data: PipelineEntity[];
     total: number;
     page: number;
     limit: number;
   }> {
     const defaultLimit = this.configService.get<number>(
-      'PROJECT_DEFAULT_LIMIT',
+      'PIPELINE_DEFAULT_LIMIT',
       100,
     );
-    const defaultSortBy = this.configService.get<ProjectSortByDto[]>(
-      'PROJECT_DEFAULT_SORT_BY',
+    const defaultSortBy = this.configService.get<PipelineSortByDto[]>(
+      'PIPELINE_DEFAULT_SORT_BY',
       [],
     );
 
-    const queryBuilder = this.projectRepository.createQueryBuilder('project');
+    const queryBuilder = this.pipelineRepository.createQueryBuilder('pipeline');
 
     queryBuilder.where({
       createdBy: user === null ? IsNull() : user,
@@ -57,7 +57,7 @@ export class ProjectApiService {
 
     if (search?.query && search.columns?.length > 0) {
       const searchConditions = search.columns.map(column =>
-        `project.${String(column)} ILIKE :searchQuery`
+        `pipeline.${String(column)} ILIKE :searchQuery`
       );
 
       queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
@@ -67,7 +67,7 @@ export class ProjectApiService {
 
     const orderBy = (sortBy ?? defaultSortBy).reduce(
       (acc, sort) => {
-        acc[`project.${sort.field}`] = sort.order;
+        acc[`pipeline.${sort.field}`] = sort.order;
         return acc;
       },
       {} as Record<string, 'ASC' | 'DESC'>,
@@ -95,86 +95,86 @@ export class ProjectApiService {
   }
 
   /**
-   * Finds a project by ID.
+   * Finds a pipeline by ID.
    */
-  async findOneById(id: string, user: string | null): Promise<ProjectEntity> {
-    const project = await this.projectRepository.findOne({
+  async findOneById(id: string, user: string | null): Promise<PipelineEntity> {
+    const pipeline = await this.pipelineRepository.findOne({
       where: {
         id,
         createdBy: user === null ? IsNull() : user,
       },
     });
 
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${id} not found`);
+    if (!pipeline) {
+      throw new NotFoundException(`Pipeline with ID ${id} not found`);
     }
-    return project;
+    return pipeline;
   }
 
   /**
-   * Creates a new project.
+   * Creates a new pipeline.
    */
   async create(
-    projectData: ProjectCreateDto,
+    pipelineData: PipelineCreateDto,
     user: string | null,
-  ): Promise<ProjectEntity> {
+  ): Promise<PipelineEntity> {
     const workspace = await this.workspaceRepository.findOne({
       where: {
-        id: projectData.workspaceId,
+        id: pipelineData.workspaceId,
         createdBy: user === null ? IsNull() : user,
       },
     });
     if (!workspace) {
       throw new NotFoundException(
-        `Workspace with id ${projectData.workspaceId} not found.`,
+        `Workspace with id ${pipelineData.workspaceId} not found.`,
       );
     }
 
-    const project = this.projectRepository.create({
-      ...projectData,
+    const pipeline = this.pipelineRepository.create({
+      ...pipelineData,
       createdBy: user,
       workspace,
     });
-    return await this.projectRepository.save(project);
+    return await this.pipelineRepository.save(pipeline);
   }
 
   /**
-   * Updates an existing project by ID.
+   * Updates an existing pipeline by ID.
    */
   async update(
     id: string,
-    projectData: ProjectUpdateDto,
+    pipelineData: PipelineUpdateDto,
     user: string | null,
-  ): Promise<ProjectEntity> {
-    const project = await this.projectRepository.findOne({
+  ): Promise<PipelineEntity> {
+    const pipeline = await this.pipelineRepository.findOne({
       where: {
         id,
         createdBy: user === null ? IsNull() : user,
       },
     });
 
-    if (!project)
-      throw new NotFoundException(`Project with ID ${id} not found`);
+    if (!pipeline)
+      throw new NotFoundException(`Pipeline with ID ${id} not found`);
 
-    Object.assign(project, projectData);
-    return await this.projectRepository.save(project);
+    Object.assign(pipeline, pipelineData);
+    return await this.pipelineRepository.save(pipeline);
   }
 
   /**
-   * Deletes a project by ID (hard delete).
+   * Deletes a pipeline by ID (hard delete).
    */
   async delete(id: string, user: string | null): Promise<void> {
-    const project = await this.projectRepository.findOne({
+    const pipeline = await this.pipelineRepository.findOne({
       where: {
         id,
         createdBy: user === null ? IsNull() : user,
       },
     });
 
-    if (!project)
-      throw new NotFoundException(`Project with ID ${id} not found`);
+    if (!pipeline)
+      throw new NotFoundException(`Pipeline with ID ${id} not found`);
 
-    await this.projectRepository.delete(id);
+    await this.pipelineRepository.delete(id);
   }
 
   async batchDelete(
@@ -188,7 +188,7 @@ export class ProjectApiService {
       return { deleted, failed };
     }
 
-    const existingProjects = await this.projectRepository.find({
+    const existingPipelines = await this.pipelineRepository.find({
       where: {
         id: In(ids),
         createdBy: user === null ? IsNull() : user,
@@ -196,54 +196,54 @@ export class ProjectApiService {
       select: ['id'],
     });
 
-    const existingProjectIds = existingProjects.map(project => project.id);
-    const notFoundIds = ids.filter(id => !existingProjectIds.includes(id));
+    const existingPipelineIds = existingPipelines.map(pipeline => pipeline.id);
+    const notFoundIds = ids.filter(id => !existingPipelineIds.includes(id));
 
     notFoundIds.forEach(id => {
       failed.push({
         id,
-        error: 'Project not found or access denied'
+        error: 'Pipeline not found or access denied'
       });
     });
 
-    if (existingProjectIds.length === 0) {
+    if (existingPipelineIds.length === 0) {
       return { deleted, failed };
     }
 
     try {
-      const deleteResult = await this.projectRepository.delete({
-        id: In(existingProjectIds),
+      const deleteResult = await this.pipelineRepository.delete({
+        id: In(existingPipelineIds),
         createdBy: user === null ? IsNull() : user,
       });
 
       // Check if all expected deletions occurred
-      if (deleteResult.affected === existingProjectIds.length) {
-        deleted.push(...existingProjectIds);
+      if (deleteResult.affected === existingPipelineIds.length) {
+        deleted.push(...existingPipelineIds);
       } else {
         // Handle partial deletion - this is rare but can happen
         // We need to check which ones were actually deleted
-        const remainingProjects = await this.projectRepository.find({
+        const remainingPipelines = await this.pipelineRepository.find({
           where: {
-            id: In(existingProjectIds),
+            id: In(existingPipelineIds),
             createdBy: user === null ? IsNull() : user,
           },
           select: ['id'],
         });
 
-        const remainingIds = remainingProjects.map(project => project.id);
-        const actuallyDeleted = existingProjectIds.filter(id => !remainingIds.includes(id));
-        const failedToDelete = existingProjectIds.filter(id => remainingIds.includes(id));
+        const remainingIds = remainingPipelines.map(pipeline => pipeline.id);
+        const actuallyDeleted = existingPipelineIds.filter(id => !remainingIds.includes(id));
+        const failedToDelete = existingPipelineIds.filter(id => remainingIds.includes(id));
 
         deleted.push(...actuallyDeleted);
         failedToDelete.forEach(id => {
           failed.push({
             id,
-            error: 'Deletion failed - project may be in use or protected'
+            error: 'Deletion failed - pipeline may be in use or protected'
           });
         });
       }
     } catch (error) {
-      existingProjectIds.forEach(id => {
+      existingPipelineIds.forEach(id => {
         failed.push({
           id,
           error: `Database error: ${error.message}`

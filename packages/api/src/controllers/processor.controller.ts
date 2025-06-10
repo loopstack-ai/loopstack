@@ -11,14 +11,13 @@ import { ApiRequestType } from '../interfaces/api-request.type';
 import { ProcessorApiService } from '../services/processor-api.service';
 import { IsBoolean, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
-import { RunProjectPayloadDto } from '../dtos/run-project-payload.dto';
-import { ProjectEntity } from '@loopstack/shared';
+import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 /**
- * Query parameters for run project endpoint
+ * Query parameters for run pipeline endpoint
  */
-export class RunProjectQueryParams {
+export class RunPipelineQueryParams {
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
@@ -26,7 +25,7 @@ export class RunProjectQueryParams {
 }
 
 /**
- * Controller handling project processor operations
+ * Controller handling pipeline processor operations
  */
 @ApiTags('api/v1/processor')
 @Controller('api/v1/processor')
@@ -34,18 +33,18 @@ export class ProcessorController {
   constructor(private readonly processorApiService: ProcessorApiService) {}
 
   /**
-   * Executes a project processing task
+   * Executes a pipeline processing task
    */
-  @Post('run/:projectId')
+  @Post('run/:pipelineId')
   @ApiOperation({
-    summary: 'Run a project',
+    summary: 'Run a pipeline',
     description:
-      'Triggers the processing of a project with the given ID and configuration',
+      'Triggers the processing of a pipeline with the given ID and configuration',
   })
   @ApiParam({
-    name: 'projectId',
+    name: 'pipelineId',
     type: String,
-    description: 'The unique identifier of the project to run',
+    description: 'The unique identifier of the pipeline to run',
     required: true,
     example: '507f1f77bcf86cd799439011',
   })
@@ -53,17 +52,17 @@ export class ProcessorController {
     name: 'force',
     type: Boolean,
     required: false,
-    description: 'When true, forces the project to run even if locked',
+    description: 'When true, forces the pipeline to run even if locked',
     example: false,
   })
   @ApiBody({
-    type: RunProjectPayloadDto,
-    description: 'Configuration and parameters for the project run',
+    type: RunPipelinePayloadDto,
+    description: 'Configuration and parameters for the pipeline run',
     required: true,
   })
   @ApiResponse({
     status: 200,
-    description: 'Project successfully started processing',
+    description: 'Pipeline successfully started processing',
   })
   @ApiResponse({
     status: 400,
@@ -71,17 +70,17 @@ export class ProcessorController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Project not found',
+    description: 'Pipeline not found',
   })
   @ApiUnauthorizedResponse()
   @UseGuards(JwtAuthGuard)
-  runProject(
-    @Param('projectId') projectId: string,
-    @Body() payload: RunProjectPayloadDto,
+  runPipeline(
+    @Param('pipelineId') pipelineId: string,
+    @Body() payload: RunPipelinePayloadDto,
     @Request() req: ApiRequestType,
-    @Query() queryParams: RunProjectQueryParams,
+    @Query() queryParams: RunPipelineQueryParams,
   ): void {
-    this.processorApiService.processProject(projectId, req.user.id, payload ?? {}, {
+    this.processorApiService.processPipeline(pipelineId, req.user.id, payload ?? {}, {
       force: !!queryParams.force,
     });
   }

@@ -255,7 +255,7 @@ export class WorkspaceController {
             type: 'string'
           },
           description: 'Array of workspace IDs to delete',
-          example: ['project-1', 'project-2', 'project-3']
+          example: ['pipeline-1', 'pipeline-2', 'pipeline-3']
         }
       },
       required: ['ids']

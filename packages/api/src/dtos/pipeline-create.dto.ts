@@ -12,36 +12,36 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 /**
- * Data Transfer Object for creating a new project
+ * Data Transfer Object for creating a new pipeline
  */
-export class ProjectCreateDto {
+export class PipelineCreateDto {
   /**
-   * Unique identifier for the project
-   * @example "my-project"
+   * Unique identifier for the pipeline
+   * @example "my-pipeline"
    */
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100, { message: 'Project name must not exceed 100 characters' })
+  @MaxLength(100, { message: 'Pipeline name must not exceed 100 characters' })
   @ApiProperty({
-    description: 'Process model identifier for the project',
-    example: 'my-project',
+    description: 'Process model identifier for the pipeline',
+    example: 'my-pipeline',
   })
   model: string;
 
   /**
-   * Human-readable title for the project
-   * @example "My Awesome Project"
+   * Human-readable title for the pipeline
+   * @example "My Awesome Pipeline"
    */
   @IsString()
-  @MaxLength(200, { message: 'Project title must not exceed 200 characters' })
+  @MaxLength(200, { message: 'Pipeline title must not exceed 200 characters' })
   @ApiProperty({
-    description: 'Human-readable title for the project',
-    example: 'My Awesome Project',
+    description: 'Human-readable title for the pipeline',
+    example: 'My Awesome Pipeline',
   })
   title: string;
 
   /**
-   * Array of labels/tags associated with the project
+   * Array of labels/tags associated with the pipeline
    * @example ["frontend", "react", "typescript"]
    */
   @ValidateIf((o) => o.labels !== undefined)
@@ -50,7 +50,7 @@ export class ProjectCreateDto {
   @IsString({ each: true, message: 'Each label must be a string' })
   @Type(() => String)
   @ApiPropertyOptional({
-    description: 'Array of labels/tags associated with the project',
+    description: 'Array of labels/tags associated with the pipeline',
     type: 'array',
     items: { type: 'string' },
     example: ['frontend', 'customer-facing', 'high-priority'],
@@ -58,13 +58,13 @@ export class ProjectCreateDto {
   labels?: string[];
 
   /**
-   * UUID of the workspace the project belongs to
+   * UUID of the workspace the pipeline belongs to
    * @example "123e4567-e89b-12d3-a456-426614174000"
    */
   @IsUUID('4', { message: 'Workspace ID must be a valid UUID v4' })
   @IsNotEmpty({ message: 'Workspace ID is required' })
   @ApiProperty({
-    description: 'UUID of the workspace the project belongs to',
+    description: 'UUID of the workspace the pipeline belongs to',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   workspaceId: string;

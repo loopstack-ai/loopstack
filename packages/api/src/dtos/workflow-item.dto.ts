@@ -113,10 +113,10 @@ export class WorkflowItemDto {
 
   @Expose()
   @ApiProperty({
-    description: 'Unique identifier of the project this workflow belongs to',
+    description: 'Unique identifier of the pipeline this workflow belongs to',
     example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
   })
-  projectId: string;
+  pipelineId: string;
 
   @Expose()
   @ApiProperty({

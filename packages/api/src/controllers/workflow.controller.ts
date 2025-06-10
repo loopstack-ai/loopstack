@@ -69,7 +69,7 @@ export class WorkflowController {
     required: false,
     schema: {
       type: 'string',
-      example: '{"projectId":"123e4567-e89b-12d3-a456-426614174000"}',
+      example: '{"pipelineId":"123e4567-e89b-12d3-a456-426614174000"}',
     },
     description: 'JSON string of WorkflowFilterDto object',
   })

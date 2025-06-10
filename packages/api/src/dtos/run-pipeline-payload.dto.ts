@@ -3,9 +3,9 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import {TransitionPayloadInterface} from "@loopstack/shared";
 
 /**
- * DTO for project run payload
+ * DTO for pipeline run payload
  */
-export class RunProjectPayloadDto {
+export class RunPipelinePayloadDto {
   @IsOptional()
   @ApiPropertyOptional()
   transition?: TransitionPayloadInterface;

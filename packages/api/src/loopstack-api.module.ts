@@ -1,7 +1,7 @@
 import { INestApplication, Module } from '@nestjs/common';
 import { ConfigurableModuleClass } from './loop-api.module-definition';
-import { ProjectController } from './controllers/project.controller';
-import { ProjectApiService } from './services/project-api.service';
+import { PipelineController } from './controllers/pipeline.controller';
+import { PipelineApiService } from './services/pipeline-api.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkspaceController } from './controllers/workspace.controller';
@@ -9,7 +9,7 @@ import { WorkspaceApiService } from './services/workspace-api.service';
 import { ProcessorApiService } from './services/processor-api.service';
 import {
   DocumentEntity,
-  NamespaceEntity, ProjectEntity, WorkflowEntity, WorkspaceEntity,
+  NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity,
 } from '@loopstack/shared';
 import { ProcessorController } from './controllers/processor.controller';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -40,7 +40,7 @@ var cookieParser = require('cookie-parser');
       isGlobal: true,
     }),
     TypeOrmModule.forFeature([
-      ProjectEntity,
+      PipelineEntity,
       WorkspaceEntity,
       WorkflowEntity,
       DocumentEntity,
@@ -65,7 +65,7 @@ var cookieParser = require('cookie-parser');
   ],
   controllers: [
     AuthController,
-    ProjectController,
+    PipelineController,
     WorkspaceController,
     ProcessorController,
     WorkflowController,
@@ -78,14 +78,14 @@ var cookieParser = require('cookie-parser');
     JwtStrategy,
     NullStrategy,
     WsEventEmitterService,
-    ProjectApiService,
+    PipelineApiService,
     WorkspaceApiService,
     ProcessorApiService,
     WorkflowApiService,
     DocumentApiService,
     NamespaceApiService,
   ],
-  exports: [ProjectApiService, WorkspaceApiService, ProcessorApiService],
+  exports: [PipelineApiService, WorkspaceApiService, ProcessorApiService],
 })
 export class LoopstackApiModule extends ConfigurableModuleClass {
   static setup(

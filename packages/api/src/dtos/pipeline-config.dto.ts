@@ -1,24 +1,24 @@
 import { Expose } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class ProjectConfigDto {
+export class PipelineConfigDto {
   @Expose()
   @ApiProperty({
-    description: 'The name of the project type',
+    description: 'The name of the pipeline type',
     example: 'my-model',
   })
   name: string;
 
   @Expose()
   @ApiPropertyOptional({
-    description: 'The title of the project type',
-    example: 'My Project',
+    description: 'The title of the pipeline type',
+    example: 'My Pipeline',
   })
   title: string;
 
   @Expose()
   @ApiProperty({
-    description: 'The workspace type for this project',
+    description: 'The workspace type for this pipeline',
     example: 'my-workspace',
   })
   workspace: string;

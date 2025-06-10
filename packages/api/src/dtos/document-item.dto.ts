@@ -177,14 +177,14 @@ export class DocumentItemDto {
   workspaceId: string;
 
   /**
-   * ID of the project the document belongs to
+   * ID of the pipeline the document belongs to
    */
   @Expose()
   @ApiProperty({
-    description: 'ID of the project the document belongs to',
-    example: 'project-456',
+    description: 'ID of the pipeline the document belongs to',
+    example: 'pipeline-456',
   })
-  projectId: string;
+  pipelineId: string;
 
   /**
    * ID of the workflow the document belongs to

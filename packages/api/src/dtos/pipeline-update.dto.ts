@@ -10,25 +10,25 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 /**
- * Data Transfer Object for updating an existing project
+ * Data Transfer Object for updating an existing pipeline
  */
-export class ProjectUpdateDto {
+export class PipelineUpdateDto {
   /**
-   * Human-readable title for the project
-   * @example "My Updated Project"
+   * Human-readable title for the pipeline
+   * @example "My Updated Pipeline"
    */
   @ValidateIf((o) => o.title !== undefined)
   @IsString()
   @IsOptional()
-  @MaxLength(200, { message: 'Project title must not exceed 200 characters' })
+  @MaxLength(200, { message: 'Pipeline title must not exceed 200 characters' })
   @ApiPropertyOptional({
-    description: 'Human-readable title for the project',
-    example: 'My Updated Project',
+    description: 'Human-readable title for the pipeline',
+    example: 'My Updated Pipeline',
   })
   title?: string;
 
   /**
-   * Array of labels/tags associated with the project
+   * Array of labels/tags associated with the pipeline
    * @example ["frontend", "react", "typescript"]
    */
   @ValidateIf((o) => o.labels !== undefined)
@@ -38,7 +38,7 @@ export class ProjectUpdateDto {
   @IsOptional()
   @Type(() => String)
   @ApiPropertyOptional({
-    description: 'Array of labels/tags associated with the project',
+    description: 'Array of labels/tags associated with the pipeline',
     type: 'array',
     items: { type: 'string' },
     example: ['frontend', 'customer-facing', 'high-priority'],

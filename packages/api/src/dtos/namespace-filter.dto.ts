@@ -10,5 +10,5 @@ export class NamespaceFilterDto {
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional()
-  projectId?: string;
+  pipelineId?: string;
 }

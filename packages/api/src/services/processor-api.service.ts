@@ -5,59 +5,59 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { ProjectProcessorService } from '@loopstack/core';
-import { RunProjectPayloadDto } from '../dtos/run-project-payload.dto';
-import { ProjectEntity, WorkspaceEntity } from '@loopstack/shared';
+import { PipelineProcessorService } from '@loopstack/core';
+import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
+import { PipelineEntity, WorkspaceEntity } from '@loopstack/shared';
 
 @Injectable()
 export class ProcessorApiService {
   constructor(
-    @InjectRepository(ProjectEntity)
-    private projectRepository: Repository<ProjectEntity>,
+    @InjectRepository(PipelineEntity)
+    private pipelineEntityRepository: Repository<PipelineEntity>,
     @InjectRepository(WorkspaceEntity)
     private workspaceRepository: Repository<WorkspaceEntity>,
-    private processorService: ProjectProcessorService,
+    private processorService: PipelineProcessorService,
   ) {}
 
-  async processProject(
-    projectId: string,
+  async processPipeline(
+    pipelineId: string,
     user: string | null,
-    payload: RunProjectPayloadDto,
+    payload: RunPipelinePayloadDto,
     options?: {
       force?: boolean;
     },
   ): Promise<any> {
-    const project = await this.projectRepository.findOne({
+    const pipeline = await this.pipelineEntityRepository.findOne({
       where: {
-        id: projectId,
+        id: pipelineId,
         createdBy: user === null ? IsNull() : user,
       },
       relations: ['workspace'],
     });
 
-    if (!project) {
-      throw new NotFoundException(`Project with id ${projectId} not found.`);
+    if (!pipeline) {
+      throw new NotFoundException(`Pipeline with id ${pipelineId} not found.`);
     }
 
-    if (project.workspace.isLocked && !options?.force) {
+    if (pipeline.workspace.isLocked && !options?.force) {
       throw new ConflictException(
-        `Project with id ${projectId} is locked by another process. User force = true to override.`,
+        `Pipeline with id ${pipelineId} is locked by another process. User force = true to override.`,
       );
     }
 
-    project.workspace.isLocked = true;
-    await this.workspaceRepository.save(project.workspace);
+    pipeline.workspace.isLocked = true;
+    await this.workspaceRepository.save(pipeline.workspace);
 
-    const context = await this.processorService.processProject(
+    const context = await this.processorService.processPipeline(
       {
         userId: user,
-        projectId: project.id,
+        pipelineId: pipeline.id,
         transition: payload.transition
       },
     );
 
-    project.workspace.isLocked = false;
-    await this.workspaceRepository.save(project.workspace);
+    pipeline.workspace.isLocked = false;
+    await this.workspaceRepository.save(pipeline.workspace);
 
     return context;
   }

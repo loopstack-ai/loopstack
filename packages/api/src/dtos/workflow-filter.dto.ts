@@ -10,5 +10,5 @@ export class WorkflowFilterDto {
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional()
-  projectId?: string;
+  pipelineId?: string;
 }
