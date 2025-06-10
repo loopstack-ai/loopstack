@@ -169,11 +169,11 @@ export interface DocumentDto {
      */
     'workspaceId': string;
     /**
-     * ID of the project the document belongs to
+     * ID of the pipeline the document belongs to
      * @type {string}
      * @memberof DocumentDto
      */
-    'projectId': string;
+    'pipelineId': string;
     /**
      * ID of the workflow the document belongs to
      * @type {string}
@@ -303,11 +303,11 @@ export interface DocumentItemDto {
      */
     'workspaceId': string;
     /**
-     * ID of the project the document belongs to
+     * ID of the pipeline the document belongs to
      * @type {string}
      * @memberof DocumentItemDto
      */
-    'projectId': string;
+    'pipelineId': string;
     /**
      * ID of the workflow the document belongs to
      * @type {string}
@@ -339,7 +339,7 @@ export const DocumentSortByDtoFieldEnum = {
     Id: 'id',
     Name: 'name',
     WorkspaceId: 'workspaceId',
-    ProjectId: 'projectId',
+    PipelineId: 'pipelineId',
     Content: 'content',
     Schema: 'schema',
     Ui: 'ui',
@@ -429,11 +429,11 @@ export interface NamespaceDto {
      */
     'workspaceId': string;
     /**
-     * Unique identifier of the project this namespace belongs to
+     * Unique identifier of the pipeline this namespace belongs to
      * @type {string}
      * @memberof NamespaceDto
      */
-    'projectId': string;
+    'pipelineId': string;
     /**
      * Metadata of this namespace
      * @type {{ [key: string]: any; }}
@@ -464,7 +464,7 @@ export interface NamespaceFilterDto {
      * @type {string}
      * @memberof NamespaceFilterDto
      */
-    'projectId'?: string;
+    'pipelineId'?: string;
 }
 /**
  * 
@@ -522,7 +522,7 @@ export const NamespaceSortByDtoFieldEnum = {
     Name: 'name',
     Model: 'model',
     WorkspaceId: 'workspaceId',
-    ProjectId: 'projectId',
+    PipelineId: 'pipelineId',
     ParentId: 'parentId',
     Metadata: 'metadata',
     CreatedAt: 'createdAt',
@@ -572,205 +572,205 @@ export interface PaginatedDto {
 /**
  * 
  * @export
- * @interface ProjectConfigDto
+ * @interface PipelineConfigDto
  */
-export interface ProjectConfigDto {
+export interface PipelineConfigDto {
     /**
-     * The name of the project type
+     * The name of the pipeline type
      * @type {string}
-     * @memberof ProjectConfigDto
+     * @memberof PipelineConfigDto
      */
     'name': string;
     /**
-     * The title of the project type
+     * The title of the pipeline type
      * @type {string}
-     * @memberof ProjectConfigDto
+     * @memberof PipelineConfigDto
      */
     'title'?: string;
     /**
-     * The workspace type for this project
+     * The workspace type for this pipeline
      * @type {string}
-     * @memberof ProjectConfigDto
+     * @memberof PipelineConfigDto
      */
     'workspace': string;
 }
 /**
  * 
  * @export
- * @interface ProjectControllerBatchDeleteProjects200Response
+ * @interface PipelineControllerBatchDeletePipelines200Response
  */
-export interface ProjectControllerBatchDeleteProjects200Response {
+export interface PipelineControllerBatchDeletePipelines200Response {
     /**
-     * Successfully deleted project IDs
+     * Successfully deleted pipeline IDs
      * @type {Array<string>}
-     * @memberof ProjectControllerBatchDeleteProjects200Response
+     * @memberof PipelineControllerBatchDeletePipelines200Response
      */
     'deleted'?: Array<string>;
     /**
      * Failed deletions with error details
-     * @type {Array<ProjectControllerBatchDeleteProjects200ResponseFailedInner>}
-     * @memberof ProjectControllerBatchDeleteProjects200Response
+     * @type {Array<PipelineControllerBatchDeletePipelines200ResponseFailedInner>}
+     * @memberof PipelineControllerBatchDeletePipelines200Response
      */
-    'failed'?: Array<ProjectControllerBatchDeleteProjects200ResponseFailedInner>;
+    'failed'?: Array<PipelineControllerBatchDeletePipelines200ResponseFailedInner>;
 }
 /**
  * 
  * @export
- * @interface ProjectControllerBatchDeleteProjects200ResponseFailedInner
+ * @interface PipelineControllerBatchDeletePipelines200ResponseFailedInner
  */
-export interface ProjectControllerBatchDeleteProjects200ResponseFailedInner {
+export interface PipelineControllerBatchDeletePipelines200ResponseFailedInner {
     /**
      * 
      * @type {string}
-     * @memberof ProjectControllerBatchDeleteProjects200ResponseFailedInner
+     * @memberof PipelineControllerBatchDeletePipelines200ResponseFailedInner
      */
     'id'?: string;
     /**
      * 
      * @type {string}
-     * @memberof ProjectControllerBatchDeleteProjects200ResponseFailedInner
+     * @memberof PipelineControllerBatchDeletePipelines200ResponseFailedInner
      */
     'error'?: string;
 }
 /**
  * 
  * @export
- * @interface ProjectControllerBatchDeleteProjectsRequest
+ * @interface PipelineControllerBatchDeletePipelinesRequest
  */
-export interface ProjectControllerBatchDeleteProjectsRequest {
+export interface PipelineControllerBatchDeletePipelinesRequest {
     /**
-     * Array of project IDs to delete
+     * Array of pipeline IDs to delete
      * @type {Array<string>}
-     * @memberof ProjectControllerBatchDeleteProjectsRequest
+     * @memberof PipelineControllerBatchDeletePipelinesRequest
      */
     'ids': Array<string>;
 }
 /**
  * 
  * @export
- * @interface ProjectControllerGetProjects200Response
+ * @interface PipelineControllerGetPipelines200Response
  */
-export interface ProjectControllerGetProjects200Response {
+export interface PipelineControllerGetPipelines200Response {
     /**
      * 
-     * @type {Array<ProjectItemDto>}
-     * @memberof ProjectControllerGetProjects200Response
+     * @type {Array<PipelineItemDto>}
+     * @memberof PipelineControllerGetPipelines200Response
      */
-    'data': Array<ProjectItemDto>;
+    'data': Array<PipelineItemDto>;
     /**
      * 
      * @type {number}
-     * @memberof ProjectControllerGetProjects200Response
+     * @memberof PipelineControllerGetPipelines200Response
      */
     'total': number;
     /**
      * 
      * @type {number}
-     * @memberof ProjectControllerGetProjects200Response
+     * @memberof PipelineControllerGetPipelines200Response
      */
     'page': number;
     /**
      * 
      * @type {number}
-     * @memberof ProjectControllerGetProjects200Response
+     * @memberof PipelineControllerGetPipelines200Response
      */
     'limit': number;
 }
 /**
  * 
  * @export
- * @interface ProjectCreateDto
+ * @interface PipelineCreateDto
  */
-export interface ProjectCreateDto {
+export interface PipelineCreateDto {
     /**
-     * Process model identifier for the project
+     * Process model identifier for the pipeline
      * @type {string}
-     * @memberof ProjectCreateDto
+     * @memberof PipelineCreateDto
      */
     'model': string;
     /**
-     * Human-readable title for the project
+     * Human-readable title for the pipeline
      * @type {string}
-     * @memberof ProjectCreateDto
+     * @memberof PipelineCreateDto
      */
     'title': string;
     /**
-     * Array of labels/tags associated with the project
+     * Array of labels/tags associated with the pipeline
      * @type {Array<string>}
-     * @memberof ProjectCreateDto
+     * @memberof PipelineCreateDto
      */
     'labels'?: Array<string>;
     /**
-     * UUID of the workspace the project belongs to
+     * UUID of the workspace the pipeline belongs to
      * @type {string}
-     * @memberof ProjectCreateDto
+     * @memberof PipelineCreateDto
      */
     'workspaceId': string;
 }
 /**
  * 
  * @export
- * @interface ProjectDto
+ * @interface PipelineDto
  */
-export interface ProjectDto {
+export interface PipelineDto {
     /**
-     * Unique identifier of the project
+     * Unique identifier of the pipeline
      * @type {string}
-     * @memberof ProjectDto
+     * @memberof PipelineDto
      */
     'id': string;
     /**
-     * Process model identifier for the project
+     * Process model identifier for the pipeline
      * @type {string}
-     * @memberof ProjectDto
+     * @memberof PipelineDto
      */
     'model': string;
     /**
-     * Display title of the project
+     * Display title of the pipeline
      * @type {string}
-     * @memberof ProjectDto
+     * @memberof PipelineDto
      */
     'title': string;
     /**
-     * Tags associated with the project for categorization and filtering
+     * Tags associated with the pipeline for categorization and filtering
      * @type {Array<string>}
-     * @memberof ProjectDto
+     * @memberof PipelineDto
      */
     'labels': Array<string>;
     /**
-     * Order position of the project in listings
+     * Order position of the pipeline in listings
      * @type {number}
-     * @memberof ProjectDto
+     * @memberof PipelineDto
      */
     'order': number;
     /**
-     * Current status of the project
-     * @type {ProjectStatus}
-     * @memberof ProjectDto
+     * Current status of the pipeline
+     * @type {PipelineStatus}
+     * @memberof PipelineDto
      */
-    'status': ProjectStatus;
+    'status': PipelineStatus;
     /**
-     * Contextual information available to the project
+     * Contextual information available to the pipeline
      * @type {object}
-     * @memberof ProjectDto
+     * @memberof PipelineDto
      */
     'context': object;
     /**
-     * Timestamp when the project was created
+     * Timestamp when the pipeline was created
      * @type {string}
-     * @memberof ProjectDto
+     * @memberof PipelineDto
      */
     'createdAt': string;
     /**
-     * Timestamp when the project was last updated
+     * Timestamp when the pipeline was last updated
      * @type {string}
-     * @memberof ProjectDto
+     * @memberof PipelineDto
      */
     'updatedAt': string;
     /**
-     * Identifier of the workspace that contains this project
+     * Identifier of the workspace that contains this pipeline
      * @type {string}
-     * @memberof ProjectDto
+     * @memberof PipelineDto
      */
     'workspaceId': string;
 }
@@ -779,74 +779,74 @@ export interface ProjectDto {
 /**
  * 
  * @export
- * @interface ProjectFilterDto
+ * @interface PipelineFilterDto
  */
-export interface ProjectFilterDto {
+export interface PipelineFilterDto {
     /**
      * 
      * @type {string}
-     * @memberof ProjectFilterDto
+     * @memberof PipelineFilterDto
      */
     'workspaceId'?: string;
 }
 /**
  * 
  * @export
- * @interface ProjectItemDto
+ * @interface PipelineItemDto
  */
-export interface ProjectItemDto {
+export interface PipelineItemDto {
     /**
-     * Unique identifier of the project
+     * Unique identifier of the pipeline
      * @type {string}
-     * @memberof ProjectItemDto
+     * @memberof PipelineItemDto
      */
     'id': string;
     /**
-     * Process model identifier for the project
+     * Process model identifier for the pipeline
      * @type {string}
-     * @memberof ProjectItemDto
+     * @memberof PipelineItemDto
      */
     'model': string;
     /**
-     * Display title of the project
+     * Display title of the pipeline
      * @type {string}
-     * @memberof ProjectItemDto
+     * @memberof PipelineItemDto
      */
     'title': string;
     /**
-     * Tags associated with the project for categorization and filtering
+     * Tags associated with the pipeline for categorization and filtering
      * @type {Array<string>}
-     * @memberof ProjectItemDto
+     * @memberof PipelineItemDto
      */
     'labels': Array<string>;
     /**
-     * Order position of the project in listings
+     * Order position of the pipeline in listings
      * @type {number}
-     * @memberof ProjectItemDto
+     * @memberof PipelineItemDto
      */
     'order': number;
     /**
-     * Current status of the project
-     * @type {ProjectStatus}
-     * @memberof ProjectItemDto
+     * Current status of the pipeline
+     * @type {PipelineStatus}
+     * @memberof PipelineItemDto
      */
-    'status': ProjectStatus;
+    'status': PipelineStatus;
     /**
-     * Timestamp when the project was created
+     * Timestamp when the pipeline was created
      * @type {string}
-     * @memberof ProjectItemDto
+     * @memberof PipelineItemDto
      */
     'createdAt': string;
     /**
-     * Timestamp when the project was last updated
+     * Timestamp when the pipeline was last updated
      * @type {string}
-     * @memberof ProjectItemDto
+     * @memberof PipelineItemDto
      */
     'updatedAt': string;
     /**
-     * Identifier of the workspace that contains this project
+     * Identifier of the workspace that contains this pipeline
      * @type {string}
-     * @memberof ProjectItemDto
+     * @memberof PipelineItemDto
      */
     'workspaceId': string;
 }
@@ -855,24 +855,24 @@ export interface ProjectItemDto {
 /**
  * 
  * @export
- * @interface ProjectSortByDto
+ * @interface PipelineSortByDto
  */
-export interface ProjectSortByDto {
+export interface PipelineSortByDto {
     /**
      * 
      * @type {string}
-     * @memberof ProjectSortByDto
+     * @memberof PipelineSortByDto
      */
-    'field': ProjectSortByDtoFieldEnum;
+    'field': PipelineSortByDtoFieldEnum;
     /**
      * 
      * @type {string}
-     * @memberof ProjectSortByDto
+     * @memberof PipelineSortByDto
      */
-    'order': ProjectSortByDtoOrderEnum;
+    'order': PipelineSortByDtoOrderEnum;
 }
 
-export const ProjectSortByDtoFieldEnum = {
+export const PipelineSortByDtoFieldEnum = {
     Id: 'id',
     Model: 'model',
     Title: 'title',
@@ -886,21 +886,21 @@ export const ProjectSortByDtoFieldEnum = {
     CreatedBy: 'createdBy'
 } as const;
 
-export type ProjectSortByDtoFieldEnum = typeof ProjectSortByDtoFieldEnum[keyof typeof ProjectSortByDtoFieldEnum];
-export const ProjectSortByDtoOrderEnum = {
+export type PipelineSortByDtoFieldEnum = typeof PipelineSortByDtoFieldEnum[keyof typeof PipelineSortByDtoFieldEnum];
+export const PipelineSortByDtoOrderEnum = {
     Asc: 'ASC',
     Desc: 'DESC'
 } as const;
 
-export type ProjectSortByDtoOrderEnum = typeof ProjectSortByDtoOrderEnum[keyof typeof ProjectSortByDtoOrderEnum];
+export type PipelineSortByDtoOrderEnum = typeof PipelineSortByDtoOrderEnum[keyof typeof PipelineSortByDtoOrderEnum];
 
 /**
- * Current status of the project
+ * Current status of the pipeline
  * @export
  * @enum {string}
  */
 
-export const ProjectStatus = {
+export const PipelineStatus = {
     New: 'new',
     Active: 'active',
     InProgress: 'in_progress',
@@ -909,38 +909,38 @@ export const ProjectStatus = {
     Finished: 'finished'
 } as const;
 
-export type ProjectStatus = typeof ProjectStatus[keyof typeof ProjectStatus];
+export type PipelineStatus = typeof PipelineStatus[keyof typeof PipelineStatus];
 
 
 /**
  * 
  * @export
- * @interface ProjectUpdateDto
+ * @interface PipelineUpdateDto
  */
-export interface ProjectUpdateDto {
+export interface PipelineUpdateDto {
     /**
-     * Human-readable title for the project
+     * Human-readable title for the pipeline
      * @type {string}
-     * @memberof ProjectUpdateDto
+     * @memberof PipelineUpdateDto
      */
     'title'?: string;
     /**
-     * Array of labels/tags associated with the project
+     * Array of labels/tags associated with the pipeline
      * @type {Array<string>}
-     * @memberof ProjectUpdateDto
+     * @memberof PipelineUpdateDto
      */
     'labels'?: Array<string>;
 }
 /**
  * 
  * @export
- * @interface RunProjectPayloadDto
+ * @interface RunPipelinePayloadDto
  */
-export interface RunProjectPayloadDto {
+export interface RunPipelinePayloadDto {
     /**
      * 
      * @type {object}
-     * @memberof RunProjectPayloadDto
+     * @memberof RunPipelinePayloadDto
      */
     'transition'?: object;
 }
@@ -1013,7 +1013,7 @@ export interface WorkflowDto {
      */
     'title': string;
     /**
-     * Index position of the workflow in the project sequence
+     * Index position of the workflow in the pipeline sequence
      * @type {number}
      * @memberof WorkflowDto
      */
@@ -1079,11 +1079,11 @@ export interface WorkflowDto {
      */
     'workspaceId': string;
     /**
-     * Unique identifier of the project this workflow belongs to
+     * Unique identifier of the pipeline this workflow belongs to
      * @type {string}
      * @memberof WorkflowDto
      */
-    'projectId': string;
+    'pipelineId': string;
     /**
      * Unique identifier of the namespace this workflow belongs to
      * @type {string}
@@ -1108,7 +1108,7 @@ export interface WorkflowFilterDto {
      * @type {string}
      * @memberof WorkflowFilterDto
      */
-    'projectId'?: string;
+    'pipelineId'?: string;
 }
 /**
  * 
@@ -1195,11 +1195,11 @@ export interface WorkflowItemDto {
      */
     'workspaceId': string;
     /**
-     * Unique identifier of the project this workflow belongs to
+     * Unique identifier of the pipeline this workflow belongs to
      * @type {string}
      * @memberof WorkflowItemDto
      */
-    'projectId': string;
+    'pipelineId': string;
     /**
      * Unique identifier of the namespace this workflow belongs to
      * @type {string}
@@ -1245,7 +1245,7 @@ export const WorkflowSortByDtoFieldEnum = {
     PlaceInfo: 'placeInfo',
     History: 'history',
     NamespaceId: 'namespaceId',
-    ProjectId: 'projectId',
+    PipelineId: 'pipelineId',
     Labels: 'labels',
     HashRecord: 'hashRecord',
     CreatedBy: 'createdBy'
@@ -1292,10 +1292,10 @@ export interface WorkspaceControllerBatchDeleteWorkspaces200Response {
     'deleted'?: Array<string>;
     /**
      * Failed deletions with error details
-     * @type {Array<ProjectControllerBatchDeleteProjects200ResponseFailedInner>}
+     * @type {Array<PipelineControllerBatchDeletePipelines200ResponseFailedInner>}
      * @memberof WorkspaceControllerBatchDeleteWorkspaces200Response
      */
-    'failed'?: Array<ProjectControllerBatchDeleteProjects200ResponseFailedInner>;
+    'failed'?: Array<PipelineControllerBatchDeletePipelines200ResponseFailedInner>;
 }
 /**
  * 
@@ -1618,15 +1618,15 @@ export const ApiV1ConfigApiAxiosParamCreator = function (configuration?: Configu
     return {
         /**
          * 
-         * @summary Get all models available for this workspace
+         * @summary Get all pipeline types available for this workspace
          * @param {string} workspaceName The name of the workspace type
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        configControllerGetProjectTypesByWorkspace: async (workspaceName: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        configControllerGetPipelineTypesByWorkspace: async (workspaceName: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'workspaceName' is not null or undefined
-            assertParamExists('configControllerGetProjectTypesByWorkspace', 'workspaceName', workspaceName)
-            const localVarPath = `/api/v1/config/workspaces/{workspaceName}/projects`
+            assertParamExists('configControllerGetPipelineTypesByWorkspace', 'workspaceName', workspaceName)
+            const localVarPath = `/api/v1/config/workspaces/{workspaceName}/pipelines`
                 .replace(`{${"workspaceName"}}`, encodeURIComponent(String(workspaceName)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1692,15 +1692,15 @@ export const ApiV1ConfigApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @summary Get all models available for this workspace
+         * @summary Get all pipeline types available for this workspace
          * @param {string} workspaceName The name of the workspace type
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async configControllerGetProjectTypesByWorkspace(workspaceName: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ProjectConfigDto>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.configControllerGetProjectTypesByWorkspace(workspaceName, options);
+        async configControllerGetPipelineTypesByWorkspace(workspaceName: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<PipelineConfigDto>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.configControllerGetPipelineTypesByWorkspace(workspaceName, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1ConfigApi.configControllerGetProjectTypesByWorkspace']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1ConfigApi.configControllerGetPipelineTypesByWorkspace']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -1727,13 +1727,13 @@ export const ApiV1ConfigApiFactory = function (configuration?: Configuration, ba
     return {
         /**
          * 
-         * @summary Get all models available for this workspace
-         * @param {ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest} requestParameters Request parameters.
+         * @summary Get all pipeline types available for this workspace
+         * @param {ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        configControllerGetProjectTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<ProjectConfigDto>> {
-            return localVarFp.configControllerGetProjectTypesByWorkspace(requestParameters.workspaceName, options).then((request) => request(axios, basePath));
+        configControllerGetPipelineTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<PipelineConfigDto>> {
+            return localVarFp.configControllerGetPipelineTypesByWorkspace(requestParameters.workspaceName, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1755,13 +1755,13 @@ export const ApiV1ConfigApiFactory = function (configuration?: Configuration, ba
 export interface ApiV1ConfigApiInterface {
     /**
      * 
-     * @summary Get all models available for this workspace
-     * @param {ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest} requestParameters Request parameters.
+     * @summary Get all pipeline types available for this workspace
+     * @param {ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1ConfigApiInterface
      */
-    configControllerGetProjectTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<ProjectConfigDto>>;
+    configControllerGetPipelineTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<PipelineConfigDto>>;
 
     /**
      * 
@@ -1775,15 +1775,15 @@ export interface ApiV1ConfigApiInterface {
 }
 
 /**
- * Request parameters for configControllerGetProjectTypesByWorkspace operation in ApiV1ConfigApi.
+ * Request parameters for configControllerGetPipelineTypesByWorkspace operation in ApiV1ConfigApi.
  * @export
- * @interface ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest
+ * @interface ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest
  */
-export interface ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest {
+export interface ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest {
     /**
      * The name of the workspace type
      * @type {string}
-     * @memberof ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspace
+     * @memberof ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspace
      */
     readonly workspaceName: string
 }
@@ -1797,14 +1797,14 @@ export interface ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest
 export class ApiV1ConfigApi extends BaseAPI implements ApiV1ConfigApiInterface {
     /**
      * 
-     * @summary Get all models available for this workspace
-     * @param {ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest} requestParameters Request parameters.
+     * @summary Get all pipeline types available for this workspace
+     * @param {ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ApiV1ConfigApi
      */
-    public configControllerGetProjectTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetProjectTypesByWorkspaceRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ConfigApiFp(this.configuration).configControllerGetProjectTypesByWorkspace(requestParameters.workspaceName, options).then((request) => request(this.axios, this.basePath));
+    public configControllerGetPipelineTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1ConfigApiFp(this.configuration).configControllerGetPipelineTypesByWorkspace(requestParameters.workspaceName, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2368,189 +2368,22 @@ export class ApiV1NamespacesApi extends BaseAPI implements ApiV1NamespacesApiInt
 
 
 /**
- * ApiV1ProcessorApi - axios parameter creator
+ * ApiV1PipelinesApi - axios parameter creator
  * @export
  */
-export const ApiV1ProcessorApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * Triggers the processing of a project with the given ID and configuration
-         * @summary Run a project
-         * @param {string} projectId The unique identifier of the project to run
-         * @param {RunProjectPayloadDto} runProjectPayloadDto Configuration and parameters for the project run
-         * @param {boolean} [force] When true, forces the project to run even if locked
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        processorControllerRunProject: async (projectId: string, runProjectPayloadDto: RunProjectPayloadDto, force?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'projectId' is not null or undefined
-            assertParamExists('processorControllerRunProject', 'projectId', projectId)
-            // verify required parameter 'runProjectPayloadDto' is not null or undefined
-            assertParamExists('processorControllerRunProject', 'runProjectPayloadDto', runProjectPayloadDto)
-            const localVarPath = `/api/v1/processor/run/{projectId}`
-                .replace(`{${"projectId"}}`, encodeURIComponent(String(projectId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            if (force !== undefined) {
-                localVarQueryParameter['force'] = force;
-            }
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(runProjectPayloadDto, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * ApiV1ProcessorApi - functional programming interface
- * @export
- */
-export const ApiV1ProcessorApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = ApiV1ProcessorApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * Triggers the processing of a project with the given ID and configuration
-         * @summary Run a project
-         * @param {string} projectId The unique identifier of the project to run
-         * @param {RunProjectPayloadDto} runProjectPayloadDto Configuration and parameters for the project run
-         * @param {boolean} [force] When true, forces the project to run even if locked
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async processorControllerRunProject(projectId: string, runProjectPayloadDto: RunProjectPayloadDto, force?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.processorControllerRunProject(projectId, runProjectPayloadDto, force, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1ProcessorApi.processorControllerRunProject']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
-};
-
-/**
- * ApiV1ProcessorApi - factory interface
- * @export
- */
-export const ApiV1ProcessorApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = ApiV1ProcessorApiFp(configuration)
-    return {
-        /**
-         * Triggers the processing of a project with the given ID and configuration
-         * @summary Run a project
-         * @param {ApiV1ProcessorApiProcessorControllerRunProjectRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        processorControllerRunProject(requestParameters: ApiV1ProcessorApiProcessorControllerRunProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.processorControllerRunProject(requestParameters.projectId, requestParameters.runProjectPayloadDto, requestParameters.force, options).then((request) => request(axios, basePath));
-        },
-    };
-};
-
-/**
- * ApiV1ProcessorApi - interface
- * @export
- * @interface ApiV1ProcessorApi
- */
-export interface ApiV1ProcessorApiInterface {
-    /**
-     * Triggers the processing of a project with the given ID and configuration
-     * @summary Run a project
-     * @param {ApiV1ProcessorApiProcessorControllerRunProjectRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1ProcessorApiInterface
-     */
-    processorControllerRunProject(requestParameters: ApiV1ProcessorApiProcessorControllerRunProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
-}
-
-/**
- * Request parameters for processorControllerRunProject operation in ApiV1ProcessorApi.
- * @export
- * @interface ApiV1ProcessorApiProcessorControllerRunProjectRequest
- */
-export interface ApiV1ProcessorApiProcessorControllerRunProjectRequest {
-    /**
-     * The unique identifier of the project to run
-     * @type {string}
-     * @memberof ApiV1ProcessorApiProcessorControllerRunProject
-     */
-    readonly projectId: string
-
-    /**
-     * Configuration and parameters for the project run
-     * @type {RunProjectPayloadDto}
-     * @memberof ApiV1ProcessorApiProcessorControllerRunProject
-     */
-    readonly runProjectPayloadDto: RunProjectPayloadDto
-
-    /**
-     * When true, forces the project to run even if locked
-     * @type {boolean}
-     * @memberof ApiV1ProcessorApiProcessorControllerRunProject
-     */
-    readonly force?: boolean
-}
-
-/**
- * ApiV1ProcessorApi - object-oriented interface
- * @export
- * @class ApiV1ProcessorApi
- * @extends {BaseAPI}
- */
-export class ApiV1ProcessorApi extends BaseAPI implements ApiV1ProcessorApiInterface {
-    /**
-     * Triggers the processing of a project with the given ID and configuration
-     * @summary Run a project
-     * @param {ApiV1ProcessorApiProcessorControllerRunProjectRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1ProcessorApi
-     */
-    public processorControllerRunProject(requestParameters: ApiV1ProcessorApiProcessorControllerRunProjectRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ProcessorApiFp(this.configuration).processorControllerRunProject(requestParameters.projectId, requestParameters.runProjectPayloadDto, requestParameters.force, options).then((request) => request(this.axios, this.basePath));
-    }
-}
-
-
-
-/**
- * ApiV1ProjectsApi - axios parameter creator
- * @export
- */
-export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Configuration) {
+export const ApiV1PipelinesApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * 
-         * @summary Delete multiple projects by IDs
-         * @param {ProjectControllerBatchDeleteProjectsRequest} projectControllerBatchDeleteProjectsRequest Array of project IDs to delete
+         * @summary Delete multiple pipelines by IDs
+         * @param {PipelineControllerBatchDeletePipelinesRequest} pipelineControllerBatchDeletePipelinesRequest Array of pipeline IDs to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerBatchDeleteProjects: async (projectControllerBatchDeleteProjectsRequest: ProjectControllerBatchDeleteProjectsRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'projectControllerBatchDeleteProjectsRequest' is not null or undefined
-            assertParamExists('projectControllerBatchDeleteProjects', 'projectControllerBatchDeleteProjectsRequest', projectControllerBatchDeleteProjectsRequest)
-            const localVarPath = `/api/v1/projects/batch`;
+        pipelineControllerBatchDeletePipelines: async (pipelineControllerBatchDeletePipelinesRequest: PipelineControllerBatchDeletePipelinesRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'pipelineControllerBatchDeletePipelinesRequest' is not null or undefined
+            assertParamExists('pipelineControllerBatchDeletePipelines', 'pipelineControllerBatchDeletePipelinesRequest', pipelineControllerBatchDeletePipelinesRequest)
+            const localVarPath = `/api/v1/pipelines/batch`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2569,7 +2402,7 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(projectControllerBatchDeleteProjectsRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(pipelineControllerBatchDeletePipelinesRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2578,15 +2411,15 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
         },
         /**
          * 
-         * @summary Create a new project
-         * @param {ProjectCreateDto} projectCreateDto Project data
+         * @summary Create a new pipeline
+         * @param {PipelineCreateDto} pipelineCreateDto Pipeline data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerCreateProject: async (projectCreateDto: ProjectCreateDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'projectCreateDto' is not null or undefined
-            assertParamExists('projectControllerCreateProject', 'projectCreateDto', projectCreateDto)
-            const localVarPath = `/api/v1/projects`;
+        pipelineControllerCreatePipeline: async (pipelineCreateDto: PipelineCreateDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'pipelineCreateDto' is not null or undefined
+            assertParamExists('pipelineControllerCreatePipeline', 'pipelineCreateDto', pipelineCreateDto)
+            const localVarPath = `/api/v1/pipelines`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2605,7 +2438,7 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(projectCreateDto, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(pipelineCreateDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2614,15 +2447,15 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
         },
         /**
          * 
-         * @summary Delete a project by ID
-         * @param {string} id The ID of the project
+         * @summary Delete a pipeline by ID
+         * @param {string} id The ID of the pipeline
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerDeleteProject: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        pipelineControllerDeletePipeline: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('projectControllerDeleteProject', 'id', id)
-            const localVarPath = `/api/v1/projects/id/{id}`
+            assertParamExists('pipelineControllerDeletePipeline', 'id', id)
+            const localVarPath = `/api/v1/pipelines/id/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2648,15 +2481,15 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
         },
         /**
          * 
-         * @summary Get a project by ID
-         * @param {string} id The ID of the project
+         * @summary Get a pipeline by ID
+         * @param {string} id The ID of the pipeline
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerGetProjectById: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        pipelineControllerGetPipelineById: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('projectControllerGetProjectById', 'id', id)
-            const localVarPath = `/api/v1/projects/{id}`
+            assertParamExists('pipelineControllerGetPipelineById', 'id', id)
+            const localVarPath = `/api/v1/pipelines/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2682,18 +2515,18 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
         },
         /**
          * 
-         * @summary Retrieve projects with filters, sorting, pagination, and search
+         * @summary Retrieve pipelines with filters, sorting, pagination, and search
          * @param {number} [page] Page number for pagination (starts at 1)
          * @param {number} [limit] Number of items per page
-         * @param {string} [filter] JSON string of ProjectFilterDto object
-         * @param {string} [sortBy] JSON string array of ProjectSortByDto objects
+         * @param {string} [filter] JSON string of PipelineFilterDto object
+         * @param {string} [sortBy] JSON string array of PipelineSortByDto objects
          * @param {string} [search] Search term to filter workspaces by title or other searchable fields
          * @param {string} [searchColumns] JSON string array of columns to search in (defaults to title and type if not specified)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerGetProjects: async (page?: number, limit?: number, filter?: string, sortBy?: string, search?: string, searchColumns?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/projects`;
+        pipelineControllerGetPipelines: async (page?: number, limit?: number, filter?: string, sortBy?: string, search?: string, searchColumns?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/pipelines`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2742,18 +2575,18 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
         },
         /**
          * 
-         * @summary Update a project by ID
-         * @param {string} id The ID of the project
-         * @param {ProjectUpdateDto} projectUpdateDto Updated project data
+         * @summary Update a pipeline by ID
+         * @param {string} id The ID of the pipeline
+         * @param {PipelineUpdateDto} pipelineUpdateDto Updated pipeline data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerUpdateProject: async (id: string, projectUpdateDto: ProjectUpdateDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        pipelineControllerUpdatePipeline: async (id: string, pipelineUpdateDto: PipelineUpdateDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('projectControllerUpdateProject', 'id', id)
-            // verify required parameter 'projectUpdateDto' is not null or undefined
-            assertParamExists('projectControllerUpdateProject', 'projectUpdateDto', projectUpdateDto)
-            const localVarPath = `/api/v1/projects/{id}`
+            assertParamExists('pipelineControllerUpdatePipeline', 'id', id)
+            // verify required parameter 'pipelineUpdateDto' is not null or undefined
+            assertParamExists('pipelineControllerUpdatePipeline', 'pipelineUpdateDto', pipelineUpdateDto)
+            const localVarPath = `/api/v1/pipelines/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2773,7 +2606,7 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(projectUpdateDto, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(pipelineUpdateDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2784,440 +2617,607 @@ export const ApiV1ProjectsApiAxiosParamCreator = function (configuration?: Confi
 };
 
 /**
- * ApiV1ProjectsApi - functional programming interface
+ * ApiV1PipelinesApi - functional programming interface
  * @export
  */
-export const ApiV1ProjectsApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = ApiV1ProjectsApiAxiosParamCreator(configuration)
+export const ApiV1PipelinesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ApiV1PipelinesApiAxiosParamCreator(configuration)
     return {
         /**
          * 
-         * @summary Delete multiple projects by IDs
-         * @param {ProjectControllerBatchDeleteProjectsRequest} projectControllerBatchDeleteProjectsRequest Array of project IDs to delete
+         * @summary Delete multiple pipelines by IDs
+         * @param {PipelineControllerBatchDeletePipelinesRequest} pipelineControllerBatchDeletePipelinesRequest Array of pipeline IDs to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectControllerBatchDeleteProjects(projectControllerBatchDeleteProjectsRequest: ProjectControllerBatchDeleteProjectsRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectControllerBatchDeleteProjects200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerBatchDeleteProjects(projectControllerBatchDeleteProjectsRequest, options);
+        async pipelineControllerBatchDeletePipelines(pipelineControllerBatchDeletePipelinesRequest: PipelineControllerBatchDeletePipelinesRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PipelineControllerBatchDeletePipelines200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pipelineControllerBatchDeletePipelines(pipelineControllerBatchDeletePipelinesRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerBatchDeleteProjects']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1PipelinesApi.pipelineControllerBatchDeletePipelines']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @summary Create a new project
-         * @param {ProjectCreateDto} projectCreateDto Project data
+         * @summary Create a new pipeline
+         * @param {PipelineCreateDto} pipelineCreateDto Pipeline data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectControllerCreateProject(projectCreateDto: ProjectCreateDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerCreateProject(projectCreateDto, options);
+        async pipelineControllerCreatePipeline(pipelineCreateDto: PipelineCreateDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PipelineDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pipelineControllerCreatePipeline(pipelineCreateDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerCreateProject']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1PipelinesApi.pipelineControllerCreatePipeline']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @summary Delete a project by ID
-         * @param {string} id The ID of the project
+         * @summary Delete a pipeline by ID
+         * @param {string} id The ID of the pipeline
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectControllerDeleteProject(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerDeleteProject(id, options);
+        async pipelineControllerDeletePipeline(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pipelineControllerDeletePipeline(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerDeleteProject']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1PipelinesApi.pipelineControllerDeletePipeline']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @summary Get a project by ID
-         * @param {string} id The ID of the project
+         * @summary Get a pipeline by ID
+         * @param {string} id The ID of the pipeline
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectControllerGetProjectById(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerGetProjectById(id, options);
+        async pipelineControllerGetPipelineById(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PipelineDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pipelineControllerGetPipelineById(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerGetProjectById']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1PipelinesApi.pipelineControllerGetPipelineById']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @summary Retrieve projects with filters, sorting, pagination, and search
+         * @summary Retrieve pipelines with filters, sorting, pagination, and search
          * @param {number} [page] Page number for pagination (starts at 1)
          * @param {number} [limit] Number of items per page
-         * @param {string} [filter] JSON string of ProjectFilterDto object
-         * @param {string} [sortBy] JSON string array of ProjectSortByDto objects
+         * @param {string} [filter] JSON string of PipelineFilterDto object
+         * @param {string} [sortBy] JSON string array of PipelineSortByDto objects
          * @param {string} [search] Search term to filter workspaces by title or other searchable fields
          * @param {string} [searchColumns] JSON string array of columns to search in (defaults to title and type if not specified)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectControllerGetProjects(page?: number, limit?: number, filter?: string, sortBy?: string, search?: string, searchColumns?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectControllerGetProjects200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerGetProjects(page, limit, filter, sortBy, search, searchColumns, options);
+        async pipelineControllerGetPipelines(page?: number, limit?: number, filter?: string, sortBy?: string, search?: string, searchColumns?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PipelineControllerGetPipelines200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pipelineControllerGetPipelines(page, limit, filter, sortBy, search, searchColumns, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerGetProjects']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1PipelinesApi.pipelineControllerGetPipelines']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @summary Update a project by ID
-         * @param {string} id The ID of the project
-         * @param {ProjectUpdateDto} projectUpdateDto Updated project data
+         * @summary Update a pipeline by ID
+         * @param {string} id The ID of the pipeline
+         * @param {PipelineUpdateDto} pipelineUpdateDto Updated pipeline data
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectControllerUpdateProject(id: string, projectUpdateDto: ProjectUpdateDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectControllerUpdateProject(id, projectUpdateDto, options);
+        async pipelineControllerUpdatePipeline(id: string, pipelineUpdateDto: PipelineUpdateDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PipelineDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pipelineControllerUpdatePipeline(id, pipelineUpdateDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1ProjectsApi.projectControllerUpdateProject']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1PipelinesApi.pipelineControllerUpdatePipeline']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
- * ApiV1ProjectsApi - factory interface
+ * ApiV1PipelinesApi - factory interface
  * @export
  */
-export const ApiV1ProjectsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = ApiV1ProjectsApiFp(configuration)
+export const ApiV1PipelinesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ApiV1PipelinesApiFp(configuration)
     return {
         /**
          * 
-         * @summary Delete multiple projects by IDs
-         * @param {ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest} requestParameters Request parameters.
+         * @summary Delete multiple pipelines by IDs
+         * @param {ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerBatchDeleteProjects(requestParameters: ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerBatchDeleteProjects200Response> {
-            return localVarFp.projectControllerBatchDeleteProjects(requestParameters.projectControllerBatchDeleteProjectsRequest, options).then((request) => request(axios, basePath));
+        pipelineControllerBatchDeletePipelines(requestParameters: ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest, options?: RawAxiosRequestConfig): AxiosPromise<PipelineControllerBatchDeletePipelines200Response> {
+            return localVarFp.pipelineControllerBatchDeletePipelines(requestParameters.pipelineControllerBatchDeletePipelinesRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Create a new project
-         * @param {ApiV1ProjectsApiProjectControllerCreateProjectRequest} requestParameters Request parameters.
+         * @summary Create a new pipeline
+         * @param {ApiV1PipelinesApiPipelineControllerCreatePipelineRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerCreateProject(requestParameters: ApiV1ProjectsApiProjectControllerCreateProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectDto> {
-            return localVarFp.projectControllerCreateProject(requestParameters.projectCreateDto, options).then((request) => request(axios, basePath));
+        pipelineControllerCreatePipeline(requestParameters: ApiV1PipelinesApiPipelineControllerCreatePipelineRequest, options?: RawAxiosRequestConfig): AxiosPromise<PipelineDto> {
+            return localVarFp.pipelineControllerCreatePipeline(requestParameters.pipelineCreateDto, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Delete a project by ID
-         * @param {ApiV1ProjectsApiProjectControllerDeleteProjectRequest} requestParameters Request parameters.
+         * @summary Delete a pipeline by ID
+         * @param {ApiV1PipelinesApiPipelineControllerDeletePipelineRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerDeleteProject(requestParameters: ApiV1ProjectsApiProjectControllerDeleteProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.projectControllerDeleteProject(requestParameters.id, options).then((request) => request(axios, basePath));
+        pipelineControllerDeletePipeline(requestParameters: ApiV1PipelinesApiPipelineControllerDeletePipelineRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.pipelineControllerDeletePipeline(requestParameters.id, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Get a project by ID
-         * @param {ApiV1ProjectsApiProjectControllerGetProjectByIdRequest} requestParameters Request parameters.
+         * @summary Get a pipeline by ID
+         * @param {ApiV1PipelinesApiPipelineControllerGetPipelineByIdRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerGetProjectById(requestParameters: ApiV1ProjectsApiProjectControllerGetProjectByIdRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectDto> {
-            return localVarFp.projectControllerGetProjectById(requestParameters.id, options).then((request) => request(axios, basePath));
+        pipelineControllerGetPipelineById(requestParameters: ApiV1PipelinesApiPipelineControllerGetPipelineByIdRequest, options?: RawAxiosRequestConfig): AxiosPromise<PipelineDto> {
+            return localVarFp.pipelineControllerGetPipelineById(requestParameters.id, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Retrieve projects with filters, sorting, pagination, and search
-         * @param {ApiV1ProjectsApiProjectControllerGetProjectsRequest} requestParameters Request parameters.
+         * @summary Retrieve pipelines with filters, sorting, pagination, and search
+         * @param {ApiV1PipelinesApiPipelineControllerGetPipelinesRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerGetProjects(requestParameters: ApiV1ProjectsApiProjectControllerGetProjectsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerGetProjects200Response> {
-            return localVarFp.projectControllerGetProjects(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, requestParameters.search, requestParameters.searchColumns, options).then((request) => request(axios, basePath));
+        pipelineControllerGetPipelines(requestParameters: ApiV1PipelinesApiPipelineControllerGetPipelinesRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<PipelineControllerGetPipelines200Response> {
+            return localVarFp.pipelineControllerGetPipelines(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, requestParameters.search, requestParameters.searchColumns, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Update a project by ID
-         * @param {ApiV1ProjectsApiProjectControllerUpdateProjectRequest} requestParameters Request parameters.
+         * @summary Update a pipeline by ID
+         * @param {ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectControllerUpdateProject(requestParameters: ApiV1ProjectsApiProjectControllerUpdateProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectDto> {
-            return localVarFp.projectControllerUpdateProject(requestParameters.id, requestParameters.projectUpdateDto, options).then((request) => request(axios, basePath));
+        pipelineControllerUpdatePipeline(requestParameters: ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest, options?: RawAxiosRequestConfig): AxiosPromise<PipelineDto> {
+            return localVarFp.pipelineControllerUpdatePipeline(requestParameters.id, requestParameters.pipelineUpdateDto, options).then((request) => request(axios, basePath));
         },
     };
 };
 
 /**
- * ApiV1ProjectsApi - interface
+ * ApiV1PipelinesApi - interface
  * @export
- * @interface ApiV1ProjectsApi
+ * @interface ApiV1PipelinesApi
  */
-export interface ApiV1ProjectsApiInterface {
+export interface ApiV1PipelinesApiInterface {
     /**
      * 
-     * @summary Delete multiple projects by IDs
-     * @param {ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest} requestParameters Request parameters.
+     * @summary Delete multiple pipelines by IDs
+     * @param {ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApiInterface
+     * @memberof ApiV1PipelinesApiInterface
      */
-    projectControllerBatchDeleteProjects(requestParameters: ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerBatchDeleteProjects200Response>;
+    pipelineControllerBatchDeletePipelines(requestParameters: ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest, options?: RawAxiosRequestConfig): AxiosPromise<PipelineControllerBatchDeletePipelines200Response>;
 
     /**
      * 
-     * @summary Create a new project
-     * @param {ApiV1ProjectsApiProjectControllerCreateProjectRequest} requestParameters Request parameters.
+     * @summary Create a new pipeline
+     * @param {ApiV1PipelinesApiPipelineControllerCreatePipelineRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApiInterface
+     * @memberof ApiV1PipelinesApiInterface
      */
-    projectControllerCreateProject(requestParameters: ApiV1ProjectsApiProjectControllerCreateProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectDto>;
+    pipelineControllerCreatePipeline(requestParameters: ApiV1PipelinesApiPipelineControllerCreatePipelineRequest, options?: RawAxiosRequestConfig): AxiosPromise<PipelineDto>;
 
     /**
      * 
-     * @summary Delete a project by ID
-     * @param {ApiV1ProjectsApiProjectControllerDeleteProjectRequest} requestParameters Request parameters.
+     * @summary Delete a pipeline by ID
+     * @param {ApiV1PipelinesApiPipelineControllerDeletePipelineRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApiInterface
+     * @memberof ApiV1PipelinesApiInterface
      */
-    projectControllerDeleteProject(requestParameters: ApiV1ProjectsApiProjectControllerDeleteProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    pipelineControllerDeletePipeline(requestParameters: ApiV1PipelinesApiPipelineControllerDeletePipelineRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
      * 
-     * @summary Get a project by ID
-     * @param {ApiV1ProjectsApiProjectControllerGetProjectByIdRequest} requestParameters Request parameters.
+     * @summary Get a pipeline by ID
+     * @param {ApiV1PipelinesApiPipelineControllerGetPipelineByIdRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApiInterface
+     * @memberof ApiV1PipelinesApiInterface
      */
-    projectControllerGetProjectById(requestParameters: ApiV1ProjectsApiProjectControllerGetProjectByIdRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectDto>;
+    pipelineControllerGetPipelineById(requestParameters: ApiV1PipelinesApiPipelineControllerGetPipelineByIdRequest, options?: RawAxiosRequestConfig): AxiosPromise<PipelineDto>;
 
     /**
      * 
-     * @summary Retrieve projects with filters, sorting, pagination, and search
-     * @param {ApiV1ProjectsApiProjectControllerGetProjectsRequest} requestParameters Request parameters.
+     * @summary Retrieve pipelines with filters, sorting, pagination, and search
+     * @param {ApiV1PipelinesApiPipelineControllerGetPipelinesRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApiInterface
+     * @memberof ApiV1PipelinesApiInterface
      */
-    projectControllerGetProjects(requestParameters?: ApiV1ProjectsApiProjectControllerGetProjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectControllerGetProjects200Response>;
+    pipelineControllerGetPipelines(requestParameters?: ApiV1PipelinesApiPipelineControllerGetPipelinesRequest, options?: RawAxiosRequestConfig): AxiosPromise<PipelineControllerGetPipelines200Response>;
 
     /**
      * 
-     * @summary Update a project by ID
-     * @param {ApiV1ProjectsApiProjectControllerUpdateProjectRequest} requestParameters Request parameters.
+     * @summary Update a pipeline by ID
+     * @param {ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApiInterface
+     * @memberof ApiV1PipelinesApiInterface
      */
-    projectControllerUpdateProject(requestParameters: ApiV1ProjectsApiProjectControllerUpdateProjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectDto>;
+    pipelineControllerUpdatePipeline(requestParameters: ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest, options?: RawAxiosRequestConfig): AxiosPromise<PipelineDto>;
 
 }
 
 /**
- * Request parameters for projectControllerBatchDeleteProjects operation in ApiV1ProjectsApi.
+ * Request parameters for pipelineControllerBatchDeletePipelines operation in ApiV1PipelinesApi.
  * @export
- * @interface ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest
+ * @interface ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest
  */
-export interface ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest {
+export interface ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest {
     /**
-     * Array of project IDs to delete
-     * @type {ProjectControllerBatchDeleteProjectsRequest}
-     * @memberof ApiV1ProjectsApiProjectControllerBatchDeleteProjects
+     * Array of pipeline IDs to delete
+     * @type {PipelineControllerBatchDeletePipelinesRequest}
+     * @memberof ApiV1PipelinesApiPipelineControllerBatchDeletePipelines
      */
-    readonly projectControllerBatchDeleteProjectsRequest: ProjectControllerBatchDeleteProjectsRequest
+    readonly pipelineControllerBatchDeletePipelinesRequest: PipelineControllerBatchDeletePipelinesRequest
 }
 
 /**
- * Request parameters for projectControllerCreateProject operation in ApiV1ProjectsApi.
+ * Request parameters for pipelineControllerCreatePipeline operation in ApiV1PipelinesApi.
  * @export
- * @interface ApiV1ProjectsApiProjectControllerCreateProjectRequest
+ * @interface ApiV1PipelinesApiPipelineControllerCreatePipelineRequest
  */
-export interface ApiV1ProjectsApiProjectControllerCreateProjectRequest {
+export interface ApiV1PipelinesApiPipelineControllerCreatePipelineRequest {
     /**
-     * Project data
-     * @type {ProjectCreateDto}
-     * @memberof ApiV1ProjectsApiProjectControllerCreateProject
+     * Pipeline data
+     * @type {PipelineCreateDto}
+     * @memberof ApiV1PipelinesApiPipelineControllerCreatePipeline
      */
-    readonly projectCreateDto: ProjectCreateDto
+    readonly pipelineCreateDto: PipelineCreateDto
 }
 
 /**
- * Request parameters for projectControllerDeleteProject operation in ApiV1ProjectsApi.
+ * Request parameters for pipelineControllerDeletePipeline operation in ApiV1PipelinesApi.
  * @export
- * @interface ApiV1ProjectsApiProjectControllerDeleteProjectRequest
+ * @interface ApiV1PipelinesApiPipelineControllerDeletePipelineRequest
  */
-export interface ApiV1ProjectsApiProjectControllerDeleteProjectRequest {
+export interface ApiV1PipelinesApiPipelineControllerDeletePipelineRequest {
     /**
-     * The ID of the project
+     * The ID of the pipeline
      * @type {string}
-     * @memberof ApiV1ProjectsApiProjectControllerDeleteProject
+     * @memberof ApiV1PipelinesApiPipelineControllerDeletePipeline
      */
     readonly id: string
 }
 
 /**
- * Request parameters for projectControllerGetProjectById operation in ApiV1ProjectsApi.
+ * Request parameters for pipelineControllerGetPipelineById operation in ApiV1PipelinesApi.
  * @export
- * @interface ApiV1ProjectsApiProjectControllerGetProjectByIdRequest
+ * @interface ApiV1PipelinesApiPipelineControllerGetPipelineByIdRequest
  */
-export interface ApiV1ProjectsApiProjectControllerGetProjectByIdRequest {
+export interface ApiV1PipelinesApiPipelineControllerGetPipelineByIdRequest {
     /**
-     * The ID of the project
+     * The ID of the pipeline
      * @type {string}
-     * @memberof ApiV1ProjectsApiProjectControllerGetProjectById
+     * @memberof ApiV1PipelinesApiPipelineControllerGetPipelineById
      */
     readonly id: string
 }
 
 /**
- * Request parameters for projectControllerGetProjects operation in ApiV1ProjectsApi.
+ * Request parameters for pipelineControllerGetPipelines operation in ApiV1PipelinesApi.
  * @export
- * @interface ApiV1ProjectsApiProjectControllerGetProjectsRequest
+ * @interface ApiV1PipelinesApiPipelineControllerGetPipelinesRequest
  */
-export interface ApiV1ProjectsApiProjectControllerGetProjectsRequest {
+export interface ApiV1PipelinesApiPipelineControllerGetPipelinesRequest {
     /**
      * Page number for pagination (starts at 1)
      * @type {number}
-     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
      */
     readonly page?: number
 
     /**
      * Number of items per page
      * @type {number}
-     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
      */
     readonly limit?: number
 
     /**
-     * JSON string of ProjectFilterDto object
+     * JSON string of PipelineFilterDto object
      * @type {string}
-     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
      */
     readonly filter?: string
 
     /**
-     * JSON string array of ProjectSortByDto objects
+     * JSON string array of PipelineSortByDto objects
      * @type {string}
-     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
      */
     readonly sortBy?: string
 
     /**
      * Search term to filter workspaces by title or other searchable fields
      * @type {string}
-     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
      */
     readonly search?: string
 
     /**
      * JSON string array of columns to search in (defaults to title and type if not specified)
      * @type {string}
-     * @memberof ApiV1ProjectsApiProjectControllerGetProjects
+     * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
      */
     readonly searchColumns?: string
 }
 
 /**
- * Request parameters for projectControllerUpdateProject operation in ApiV1ProjectsApi.
+ * Request parameters for pipelineControllerUpdatePipeline operation in ApiV1PipelinesApi.
  * @export
- * @interface ApiV1ProjectsApiProjectControllerUpdateProjectRequest
+ * @interface ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest
  */
-export interface ApiV1ProjectsApiProjectControllerUpdateProjectRequest {
+export interface ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest {
     /**
-     * The ID of the project
+     * The ID of the pipeline
      * @type {string}
-     * @memberof ApiV1ProjectsApiProjectControllerUpdateProject
+     * @memberof ApiV1PipelinesApiPipelineControllerUpdatePipeline
      */
     readonly id: string
 
     /**
-     * Updated project data
-     * @type {ProjectUpdateDto}
-     * @memberof ApiV1ProjectsApiProjectControllerUpdateProject
+     * Updated pipeline data
+     * @type {PipelineUpdateDto}
+     * @memberof ApiV1PipelinesApiPipelineControllerUpdatePipeline
      */
-    readonly projectUpdateDto: ProjectUpdateDto
+    readonly pipelineUpdateDto: PipelineUpdateDto
 }
 
 /**
- * ApiV1ProjectsApi - object-oriented interface
+ * ApiV1PipelinesApi - object-oriented interface
  * @export
- * @class ApiV1ProjectsApi
+ * @class ApiV1PipelinesApi
  * @extends {BaseAPI}
  */
-export class ApiV1ProjectsApi extends BaseAPI implements ApiV1ProjectsApiInterface {
+export class ApiV1PipelinesApi extends BaseAPI implements ApiV1PipelinesApiInterface {
     /**
      * 
-     * @summary Delete multiple projects by IDs
-     * @param {ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest} requestParameters Request parameters.
+     * @summary Delete multiple pipelines by IDs
+     * @param {ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApi
+     * @memberof ApiV1PipelinesApi
      */
-    public projectControllerBatchDeleteProjects(requestParameters: ApiV1ProjectsApiProjectControllerBatchDeleteProjectsRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ProjectsApiFp(this.configuration).projectControllerBatchDeleteProjects(requestParameters.projectControllerBatchDeleteProjectsRequest, options).then((request) => request(this.axios, this.basePath));
+    public pipelineControllerBatchDeletePipelines(requestParameters: ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1PipelinesApiFp(this.configuration).pipelineControllerBatchDeletePipelines(requestParameters.pipelineControllerBatchDeletePipelinesRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Create a new project
-     * @param {ApiV1ProjectsApiProjectControllerCreateProjectRequest} requestParameters Request parameters.
+     * @summary Create a new pipeline
+     * @param {ApiV1PipelinesApiPipelineControllerCreatePipelineRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApi
+     * @memberof ApiV1PipelinesApi
      */
-    public projectControllerCreateProject(requestParameters: ApiV1ProjectsApiProjectControllerCreateProjectRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ProjectsApiFp(this.configuration).projectControllerCreateProject(requestParameters.projectCreateDto, options).then((request) => request(this.axios, this.basePath));
+    public pipelineControllerCreatePipeline(requestParameters: ApiV1PipelinesApiPipelineControllerCreatePipelineRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1PipelinesApiFp(this.configuration).pipelineControllerCreatePipeline(requestParameters.pipelineCreateDto, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Delete a project by ID
-     * @param {ApiV1ProjectsApiProjectControllerDeleteProjectRequest} requestParameters Request parameters.
+     * @summary Delete a pipeline by ID
+     * @param {ApiV1PipelinesApiPipelineControllerDeletePipelineRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApi
+     * @memberof ApiV1PipelinesApi
      */
-    public projectControllerDeleteProject(requestParameters: ApiV1ProjectsApiProjectControllerDeleteProjectRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ProjectsApiFp(this.configuration).projectControllerDeleteProject(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    public pipelineControllerDeletePipeline(requestParameters: ApiV1PipelinesApiPipelineControllerDeletePipelineRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1PipelinesApiFp(this.configuration).pipelineControllerDeletePipeline(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Get a project by ID
-     * @param {ApiV1ProjectsApiProjectControllerGetProjectByIdRequest} requestParameters Request parameters.
+     * @summary Get a pipeline by ID
+     * @param {ApiV1PipelinesApiPipelineControllerGetPipelineByIdRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApi
+     * @memberof ApiV1PipelinesApi
      */
-    public projectControllerGetProjectById(requestParameters: ApiV1ProjectsApiProjectControllerGetProjectByIdRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ProjectsApiFp(this.configuration).projectControllerGetProjectById(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    public pipelineControllerGetPipelineById(requestParameters: ApiV1PipelinesApiPipelineControllerGetPipelineByIdRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1PipelinesApiFp(this.configuration).pipelineControllerGetPipelineById(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Retrieve projects with filters, sorting, pagination, and search
-     * @param {ApiV1ProjectsApiProjectControllerGetProjectsRequest} requestParameters Request parameters.
+     * @summary Retrieve pipelines with filters, sorting, pagination, and search
+     * @param {ApiV1PipelinesApiPipelineControllerGetPipelinesRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApi
+     * @memberof ApiV1PipelinesApi
      */
-    public projectControllerGetProjects(requestParameters: ApiV1ProjectsApiProjectControllerGetProjectsRequest = {}, options?: RawAxiosRequestConfig) {
-        return ApiV1ProjectsApiFp(this.configuration).projectControllerGetProjects(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, requestParameters.search, requestParameters.searchColumns, options).then((request) => request(this.axios, this.basePath));
+    public pipelineControllerGetPipelines(requestParameters: ApiV1PipelinesApiPipelineControllerGetPipelinesRequest = {}, options?: RawAxiosRequestConfig) {
+        return ApiV1PipelinesApiFp(this.configuration).pipelineControllerGetPipelines(requestParameters.page, requestParameters.limit, requestParameters.filter, requestParameters.sortBy, requestParameters.search, requestParameters.searchColumns, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Update a project by ID
-     * @param {ApiV1ProjectsApiProjectControllerUpdateProjectRequest} requestParameters Request parameters.
+     * @summary Update a pipeline by ID
+     * @param {ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof ApiV1ProjectsApi
+     * @memberof ApiV1PipelinesApi
      */
-    public projectControllerUpdateProject(requestParameters: ApiV1ProjectsApiProjectControllerUpdateProjectRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ProjectsApiFp(this.configuration).projectControllerUpdateProject(requestParameters.id, requestParameters.projectUpdateDto, options).then((request) => request(this.axios, this.basePath));
+    public pipelineControllerUpdatePipeline(requestParameters: ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1PipelinesApiFp(this.configuration).pipelineControllerUpdatePipeline(requestParameters.id, requestParameters.pipelineUpdateDto, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * ApiV1ProcessorApi - axios parameter creator
+ * @export
+ */
+export const ApiV1ProcessorApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Triggers the processing of a pipeline with the given ID and configuration
+         * @summary Run a pipeline
+         * @param {string} pipelineId The unique identifier of the pipeline to run
+         * @param {RunPipelinePayloadDto} runPipelinePayloadDto Configuration and parameters for the pipeline run
+         * @param {boolean} [force] When true, forces the pipeline to run even if locked
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        processorControllerRunPipeline: async (pipelineId: string, runPipelinePayloadDto: RunPipelinePayloadDto, force?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'pipelineId' is not null or undefined
+            assertParamExists('processorControllerRunPipeline', 'pipelineId', pipelineId)
+            // verify required parameter 'runPipelinePayloadDto' is not null or undefined
+            assertParamExists('processorControllerRunPipeline', 'runPipelinePayloadDto', runPipelinePayloadDto)
+            const localVarPath = `/api/v1/processor/run/{pipelineId}`
+                .replace(`{${"pipelineId"}}`, encodeURIComponent(String(pipelineId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (force !== undefined) {
+                localVarQueryParameter['force'] = force;
+            }
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(runPipelinePayloadDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ApiV1ProcessorApi - functional programming interface
+ * @export
+ */
+export const ApiV1ProcessorApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ApiV1ProcessorApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Triggers the processing of a pipeline with the given ID and configuration
+         * @summary Run a pipeline
+         * @param {string} pipelineId The unique identifier of the pipeline to run
+         * @param {RunPipelinePayloadDto} runPipelinePayloadDto Configuration and parameters for the pipeline run
+         * @param {boolean} [force] When true, forces the pipeline to run even if locked
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async processorControllerRunPipeline(pipelineId: string, runPipelinePayloadDto: RunPipelinePayloadDto, force?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.processorControllerRunPipeline(pipelineId, runPipelinePayloadDto, force, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1ProcessorApi.processorControllerRunPipeline']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ApiV1ProcessorApi - factory interface
+ * @export
+ */
+export const ApiV1ProcessorApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ApiV1ProcessorApiFp(configuration)
+    return {
+        /**
+         * Triggers the processing of a pipeline with the given ID and configuration
+         * @summary Run a pipeline
+         * @param {ApiV1ProcessorApiProcessorControllerRunPipelineRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        processorControllerRunPipeline(requestParameters: ApiV1ProcessorApiProcessorControllerRunPipelineRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.processorControllerRunPipeline(requestParameters.pipelineId, requestParameters.runPipelinePayloadDto, requestParameters.force, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ApiV1ProcessorApi - interface
+ * @export
+ * @interface ApiV1ProcessorApi
+ */
+export interface ApiV1ProcessorApiInterface {
+    /**
+     * Triggers the processing of a pipeline with the given ID and configuration
+     * @summary Run a pipeline
+     * @param {ApiV1ProcessorApiProcessorControllerRunPipelineRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1ProcessorApiInterface
+     */
+    processorControllerRunPipeline(requestParameters: ApiV1ProcessorApiProcessorControllerRunPipelineRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
+}
+
+/**
+ * Request parameters for processorControllerRunPipeline operation in ApiV1ProcessorApi.
+ * @export
+ * @interface ApiV1ProcessorApiProcessorControllerRunPipelineRequest
+ */
+export interface ApiV1ProcessorApiProcessorControllerRunPipelineRequest {
+    /**
+     * The unique identifier of the pipeline to run
+     * @type {string}
+     * @memberof ApiV1ProcessorApiProcessorControllerRunPipeline
+     */
+    readonly pipelineId: string
+
+    /**
+     * Configuration and parameters for the pipeline run
+     * @type {RunPipelinePayloadDto}
+     * @memberof ApiV1ProcessorApiProcessorControllerRunPipeline
+     */
+    readonly runPipelinePayloadDto: RunPipelinePayloadDto
+
+    /**
+     * When true, forces the pipeline to run even if locked
+     * @type {boolean}
+     * @memberof ApiV1ProcessorApiProcessorControllerRunPipeline
+     */
+    readonly force?: boolean
+}
+
+/**
+ * ApiV1ProcessorApi - object-oriented interface
+ * @export
+ * @class ApiV1ProcessorApi
+ * @extends {BaseAPI}
+ */
+export class ApiV1ProcessorApi extends BaseAPI implements ApiV1ProcessorApiInterface {
+    /**
+     * Triggers the processing of a pipeline with the given ID and configuration
+     * @summary Run a pipeline
+     * @param {ApiV1ProcessorApiProcessorControllerRunPipelineRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1ProcessorApi
+     */
+    public processorControllerRunPipeline(requestParameters: ApiV1ProcessorApiProcessorControllerRunPipelineRequest, options?: RawAxiosRequestConfig) {
+        return ApiV1ProcessorApiFp(this.configuration).processorControllerRunPipeline(requestParameters.pipelineId, requestParameters.runPipelinePayloadDto, requestParameters.force, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
