@@ -1,6 +1,6 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { WorkflowEntity, WorkflowStateHistoryDto, WorkflowStatePlaceInfoDto } from '@loopstack/shared';
+import { UISchemaType, WorkflowEntity, WorkflowStateHistoryDto, WorkflowStatePlaceInfoDto } from '@loopstack/shared';
 
 /**
  * Data Transfer Object representing a workflow
@@ -94,6 +94,15 @@ export class WorkflowDto {
     nullable: true,
   })
   transitionHistory: WorkflowStateHistoryDto | null;
+
+  @Expose()
+  @ApiPropertyOptional({
+    type: 'object',
+    additionalProperties: true,
+    description: 'Ui schema config for the workflow',
+    nullable: true,
+  })
+  ui: UISchemaType | null;
 
   @Expose()
   @ApiProperty({
