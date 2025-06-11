@@ -228,11 +228,13 @@ export class StateMachineProcessorService {
       const pendingTransition = [stateMachineInfo.pendingTransition];
       while (true) {
 
+        const nextPending = pendingTransition.shift();
+
         const meta: TransitionMetadataInterface = {
           history: workflow.history?.history.map((item) => item.transition) ?? [],
 
           // add the pending transition in the first iteration only
-          payload: pendingTransition.shift()?.payload ?? null,
+          payload: nextPending?.payload ?? null,
         }
 
         // exclude call property from transitions eval because this should be only evaluated when called for correct arguments
@@ -250,7 +252,7 @@ export class StateMachineProcessorService {
 
         const nextTransition = this.getNextTransition(
           workflow,
-          pendingTransition.shift(),
+          nextPending,
         );
         if (!nextTransition) {
           this.logger.debug('stop');

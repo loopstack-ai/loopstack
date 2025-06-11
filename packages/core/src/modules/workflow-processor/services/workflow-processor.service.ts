@@ -296,6 +296,7 @@ export class WorkflowProcessorService {
       pipelineId: context.pipelineId,
       name: workflowConfig.name,
       title: workflowConfig.title ?? workflowConfig.name,
+      ui: workflowConfig.ui ?? null,
       index: context.index,
     });
   }
