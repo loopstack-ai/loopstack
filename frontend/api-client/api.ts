@@ -1061,6 +1061,12 @@ export interface WorkflowDto {
      */
     'transitionHistory'?: object | null;
     /**
+     * Ui schema config for the workflow
+     * @type {{ [key: string]: any; }}
+     * @memberof WorkflowDto
+     */
+    'ui'?: { [key: string]: any; } | null;
+    /**
      * Date and time when the workflow was created
      * @type {string}
      * @memberof WorkflowDto
@@ -1244,6 +1250,7 @@ export const WorkflowSortByDtoFieldEnum = {
     ContextUpdate: 'contextUpdate',
     PlaceInfo: 'placeInfo',
     History: 'history',
+    Ui: 'ui',
     NamespaceId: 'namespaceId',
     PipelineId: 'pipelineId',
     Labels: 'labels',
