@@ -1,0 +1,50 @@
+workflows:
+  - name: examples_llmCompletion_workflow
+    type: stateMachine
+    transitions:
+
+      - name: makeCompletionRequest
+        from: start
+        to: responseReceived
+        call:
+          - tool: examples_llmCompletion_createProfessionalEmail
+            arguments:
+              user_input: |
+                hey john, can you send me those reports by tomorrow? thanks
+            exportAs: PROMPT_RESULT
+
+      - name: addResponseMessage
+        from: responseReceived
+        to: complete
+        call:
+          - tool: core_createMessage
+            arguments:
+              content: ${ PROMPT_RESULT.response.data }
+
+tools:
+  - name: examples_llmCompletion_createProfessionalEmail
+    execute:
+      service: LlmCompletionService
+      arguments:
+        llm:
+          envApiKey: OPENAI_KEY
+          model: gpt-4o
+        messages:
+          - role: system
+            content: |
+              You are a professional email writer. Transform the following casual message into a polished, professional email format.
+
+              Casual Message: <%= arguments.user_input %>
+              
+              Please rewrite this as a professional email including:
+                - Appropriate subject line
+                - Professional greeting
+                - Clear, courteous body text
+                - Professional closing
+              
+              Professional Email:
+pipelines:
+  - name: examples_llmCompletion
+    title: "Llm Completion Example"
+    workspace: examples
+    entrypoint: examples_llmCompletion_workflow

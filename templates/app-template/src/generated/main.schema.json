@@ -1557,7 +1557,7 @@
                     "properties": {
                       "service": {
                         "type": "string",
-                        "const": "ExecuteAdHocPromptService"
+                        "const": "LlmCompletionService"
                       },
                       "arguments": {
                         "type": "object",
