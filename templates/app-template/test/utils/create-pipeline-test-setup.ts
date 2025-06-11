@@ -6,7 +6,7 @@ import {
   DocumentService,
   loadConfiguration,
   PipelineProcessorService,
-  PipelineService,
+  PipelineService, WorkflowService,
   WorkspaceService,
 } from '@loopstack/core';
 import { TestModule } from './test.module';
@@ -16,6 +16,7 @@ export interface TestSetup {
   dataSource: DataSource;
   processorService: PipelineProcessorService;
   pipelineService: PipelineService;
+  workflowService: WorkflowService;
   workspaceService: WorkspaceService;
   documentService: DocumentService;
   context: any;
@@ -51,6 +52,7 @@ export async function createPipelineTestSetup(options: {
     pipelineService: moduleRef.get<PipelineService>(PipelineService),
     workspaceService: moduleRef.get<WorkspaceService>(WorkspaceService),
     documentService: moduleRef.get<DocumentService>(DocumentService),
+    workflowService: moduleRef.get<WorkflowService>(WorkflowService),
   };
 
   let context: any = {};

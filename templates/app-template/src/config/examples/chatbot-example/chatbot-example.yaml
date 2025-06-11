@@ -1,0 +1,57 @@
+workflows:
+  - name: examples_chatBot_workflow
+    type: stateMachine
+    ui:
+      buttons:
+        - widget: chat
+          label: Chat
+          transition: addUserMessage
+          enabledWhen:
+            - waitingForUser
+    transitions:
+
+      - name: initialize
+        from: start
+        to: waitingForUser
+
+      - name: addUserMessage
+        from: waitingForUser
+        to: userMessageAdded
+        when: manual
+        call:
+          - tool: core_createMessage
+            arguments:
+              content:
+                role: user
+                content: ${ metadata.payload }
+
+      - name: createLlmResponse
+        from: userMessageAdded
+        to: llmResponseReceived
+        call:
+          - tool: examples_chatBot_promptLlm
+            exportAs: PROMPT_RESULT
+
+      - name: addAssistantMessage
+        from: llmResponseReceived
+        to: waitingForUser
+        call:
+          - tool: core_createMessage
+            arguments:
+              content: ${ PROMPT_RESULT.response.data }
+
+tools:
+  - name: examples_chatBot_promptLlm
+    execute:
+      service: ExecutePromptMessagesService
+      arguments:
+        llm:
+          envApiKey: OPENAI_KEY
+          model: gpt-4o
+        messagesSearchTag: message
+
+pipelines:
+  - name: examples_chatBot
+    title: "Chatbot Example"
+    workspace: examples
+    entrypoint: examples_chatBot_workflow

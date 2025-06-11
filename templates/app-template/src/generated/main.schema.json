@@ -84,6 +84,153 @@
                     ],
                     "additionalProperties": false
                   },
+                  "ui": {
+                    "type": "object",
+                    "properties": {
+                      "widget": {
+                        "type": "string"
+                      },
+                      "index": {
+                        "type": "number"
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "descriptions": {
+                        "type": "string"
+                      },
+                      "placeholder": {
+                        "type": "string"
+                      },
+                      "rows": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0
+                      },
+                      "inline": {
+                        "type": "boolean"
+                      },
+                      "inputType": {
+                        "type": "string"
+                      },
+                      "emptyValue": {},
+                      "help": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "enumOptions": {
+                        "anyOf": [
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "type": "string"
+                                },
+                                "value": {}
+                              },
+                              "required": [
+                                "label"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "titleFormat": {
+                        "type": "string"
+                      },
+                      "addable": {
+                        "type": "boolean"
+                      },
+                      "removable": {
+                        "type": "boolean"
+                      },
+                      "movable": {
+                        "type": "boolean"
+                      },
+                      "accept": {
+                        "type": "string"
+                      },
+                      "multiple": {
+                        "type": "boolean"
+                      },
+                      "hidden": {
+                        "type": "boolean"
+                      },
+                      "disabled": {
+                        "type": "boolean"
+                      },
+                      "readonly": {
+                        "type": "boolean"
+                      },
+                      "order": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "buttons": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "transition": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "type": "number"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "props": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            },
+                            "widget": {
+                              "type": "string"
+                            },
+                            "enabledWhen": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "transition"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "items": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
+                            }
+                          }
+                        ]
+                      },
+                      "properties": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "type": {
                     "type": "string",
                     "const": "pipeline"
@@ -137,6 +284,9 @@
                   "namespace": {
                     "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/namespace"
                   },
+                  "ui": {
+                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
+                  },
                   "type": {
                     "type": "string",
                     "const": "factory"
@@ -187,6 +337,9 @@
                   "namespace": {
                     "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/namespace"
                   },
+                  "ui": {
+                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
+                  },
                   "type": {
                     "type": "string",
                     "const": "tool"
@@ -231,6 +384,9 @@
                   },
                   "namespace": {
                     "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/namespace"
+                  },
+                  "ui": {
+                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
                   },
                   "extends": {
                     "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
@@ -548,145 +704,7 @@
                 "additionalProperties": false
               },
               "ui": {
-                "type": "object",
-                "properties": {
-                  "widget": {
-                    "type": "string"
-                  },
-                  "index": {
-                    "type": "number"
-                  },
-                  "label": {
-                    "type": "string"
-                  },
-                  "descriptions": {
-                    "type": "string"
-                  },
-                  "placeholder": {
-                    "type": "string"
-                  },
-                  "rows": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0
-                  },
-                  "inline": {
-                    "type": "boolean"
-                  },
-                  "inputType": {
-                    "type": "string"
-                  },
-                  "emptyValue": {},
-                  "help": {
-                    "type": "string"
-                  },
-                  "title": {
-                    "type": "string"
-                  },
-                  "enumOptions": {
-                    "anyOf": [
-                      {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "label": {
-                              "type": "string"
-                            },
-                            "value": {}
-                          },
-                          "required": [
-                            "label"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      {
-                        "type": "string"
-                      }
-                    ]
-                  },
-                  "titleFormat": {
-                    "type": "string"
-                  },
-                  "addable": {
-                    "type": "boolean"
-                  },
-                  "removable": {
-                    "type": "boolean"
-                  },
-                  "movable": {
-                    "type": "boolean"
-                  },
-                  "accept": {
-                    "type": "string"
-                  },
-                  "multiple": {
-                    "type": "boolean"
-                  },
-                  "hidden": {
-                    "type": "boolean"
-                  },
-                  "disabled": {
-                    "type": "boolean"
-                  },
-                  "readonly": {
-                    "type": "boolean"
-                  },
-                  "order": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "buttons": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "transition": {
-                          "type": "string"
-                        },
-                        "position": {
-                          "type": "number"
-                        },
-                        "label": {
-                          "type": "string"
-                        },
-                        "props": {
-                          "type": "object",
-                          "additionalProperties": {}
-                        },
-                        "widget": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "transition"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "items": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/MainSchema/properties/documents/items/properties/ui"
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/definitions/MainSchema/properties/documents/items/properties/ui"
-                        }
-                      }
-                    ]
-                  },
-                  "properties": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "$ref": "#/definitions/MainSchema/properties/documents/items/properties/ui"
-                    }
-                  }
-                },
-                "additionalProperties": false
+                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
               },
               "tags": {
                 "type": "array",
@@ -814,7 +832,7 @@
                                 "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
                               },
                               "ui": {
-                                "$ref": "#/definitions/MainSchema/properties/documents/items/properties/ui"
+                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
                               },
                               "tags": {
                                 "anyOf": [
