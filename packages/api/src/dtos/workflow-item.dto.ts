@@ -56,8 +56,9 @@ export class WorkflowItemDto {
   progress: number;
 
   @Expose()
-  @ApiProperty({
-    description: 'Error message if workflow item execution failed',
+  @ApiPropertyOptional({
+    type: 'string',
+    description: 'Error message if workflow execution failed',
     example: 'Failed to connect to external service',
     nullable: true,
   })
