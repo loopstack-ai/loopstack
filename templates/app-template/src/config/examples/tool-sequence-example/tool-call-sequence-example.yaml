@@ -1,6 +1,6 @@
 workflows:
   - name: examples_toolCallSequence_workflow
-    title: "Example Workflow"
+    title: "Tool Call Sequence"
     type: tool
     sequence:
       - tool: core_createChatMessage

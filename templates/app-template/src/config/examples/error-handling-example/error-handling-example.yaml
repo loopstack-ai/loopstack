@@ -1,5 +1,6 @@
 workflows:
   - name: examples_errorHandling_workflow
+    title: "Error Handling"
     type: stateMachine
     transitions:
 

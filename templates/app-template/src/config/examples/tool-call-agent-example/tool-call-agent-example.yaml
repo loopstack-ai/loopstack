@@ -1,5 +1,6 @@
 workflows:
   - name: examples_toolCallAgent_workflow
+    title: "Tool Call Agent"
     type: stateMachine
     transitions:
 

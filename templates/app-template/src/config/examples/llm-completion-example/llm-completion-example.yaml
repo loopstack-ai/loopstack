@@ -1,5 +1,6 @@
 workflows:
   - name: examples_llmCompletion_workflow
+    title: "LLM Completion"
     type: stateMachine
     transitions:
 

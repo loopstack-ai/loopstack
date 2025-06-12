@@ -1,5 +1,6 @@
 workflows:
   - name: examples_chatBot_workflow
+    title: "Chatbot"
     type: stateMachine
     ui:
       buttons:
