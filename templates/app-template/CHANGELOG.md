@@ -1,5 +1,16 @@
 # @loopstack/app-template
 
+## 0.1.3
+
+### Patch Changes
+
+- Improve error handling, improve app frontend
+- Updated dependencies
+  - @loopstack/api@0.1.2
+  - @loopstack/core@0.1.2
+  - @loopstack/llm@0.1.2
+  - @loopstack/shared@0.1.2
+
 ## 0.1.2
 
 ### Patch Changes
