@@ -3,13 +3,15 @@ workflows:
     title: "Example Workflow"
     type: tool
     sequence:
-      - tool: core_createAssistantMessage
+      - tool: core_createChatMessage
         arguments:
-          message: "Hello World!"
+          role: assistant
+          content: "Hello World!"
 
-      - tool: core_createUserMessage
+      - tool: core_createChatMessage
         arguments:
-          message: "Hi Assistant!"
+          role: user
+          content: "Hi Assistant!"
 
 pipelines:
   - name: examples_toolCallSequence

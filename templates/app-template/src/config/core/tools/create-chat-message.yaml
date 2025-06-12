@@ -1,0 +1,33 @@
+tools:
+  - name: core_createChatMessage
+    parameters:
+      type: object
+      properties:
+        content:
+          type: ['string', 'null']
+        role:
+          type: string
+        tool_calls:
+          type: ['array', 'null']
+        tool_call_id:
+          type: ['string', 'null']
+        meta:
+          type: object
+          properties:
+            level:
+              type: string
+            invalidate:
+              type: boolean
+      additionalItems: false
+    execute:
+      service: CreateDocumentService
+      arguments:
+        document: core_chatMessage
+        update:
+          content:
+            role: ${ arguments.role }
+            content: ${ arguments.content }
+            tool_calls: ${ arguments.tool_calls }
+          meta:
+            level: ${ arguments.meta?.level }
+            invalidate: ${ arguments.meta?.invalidate }

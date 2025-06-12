@@ -19,11 +19,10 @@ workflows:
         to: userMessageAdded
         when: manual
         call:
-          - tool: core_createMessage
+          - tool: core_createChatMessage
             arguments:
-              content:
-                role: user
-                content: ${ metadata.payload }
+              role: user
+              content: ${ metadata.payload }
 
       - name: createLlmResponse
         from: userMessageAdded
@@ -36,9 +35,10 @@ workflows:
         from: llmResponseReceived
         to: waitingForUser
         call:
-          - tool: core_createMessage
+          - tool: core_createChatMessage
             arguments:
-              content: ${ PROMPT_RESULT.response.data }
+              role: ${ PROMPT_RESULT.response.data.role }
+              content: ${ PROMPT_RESULT.response.data.content }
 
 tools:
   - name: examples_chatBot_promptLlm

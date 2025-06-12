@@ -1,0 +1,14 @@
+documents:
+  - name: core_errorMessage
+    tags:
+      - error
+    ui:
+      widget: error-message
+    schema:
+      type: object
+      properties: 
+        message:
+          type: string
+    meta:
+      invalidate: false
+      level: error

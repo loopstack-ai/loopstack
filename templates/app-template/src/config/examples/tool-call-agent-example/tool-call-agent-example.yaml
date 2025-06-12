@@ -7,26 +7,24 @@ workflows:
         from: start
         to: systemPromptCreated
         call:
-          - tool: core_createMessage
+          - tool: core_createChatMessage
             arguments:
-              content:
-                role: system
-                content: |
-                  You are a helpful assistant.
-                  Call the user by his name when you interact.
-                  Use tools to find the user's name
-                  User ID: 12345
+              role: system
+              content: |
+                You are a helpful assistant.
+                Call the user by his name when you interact.
+                Use tools to find the user's name
+                User ID: 12345
 
       - name: mockUserMessage
         from: systemPromptCreated
         to: messageReceived
         call:
-          - tool: core_createMessage
+          - tool: core_createChatMessage
             arguments:
-              content:
-                role: user
-                content: |
-                  Say hello.
+              role: user
+              content: |
+                Say hello.
 
       - name: promptLlm
         from: messageReceived
@@ -39,9 +37,11 @@ workflows:
         from: promptExecuted
         to: responseReceived
         call:
-          - tool: core_createMessage
+          - tool: core_createChatMessage
             arguments:
-              content: ${ PROMPT_RESULT.response.data }
+              role: ${ PROMPT_RESULT.response.data.role }
+              content: ${ PROMPT_RESULT.response.data.content }
+              tool_calls: ${ PROMPT_RESULT.response.data.tool_calls }
 
       - name: checkForToolCalls
         from: responseReceived

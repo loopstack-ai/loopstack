@@ -733,6 +733,15 @@
                   "invalidate": {
                     "type": "boolean"
                   },
+                  "level": {
+                    "type": "string",
+                    "enum": [
+                      "debug",
+                      "info",
+                      "warning",
+                      "error"
+                    ]
+                  },
                   "enableTransitions": {
                     "type": "array",
                     "items": {
@@ -867,6 +876,29 @@
                                       },
                                       {
                                         "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                      }
+                                    ]
+                                  },
+                                  "level": {
+                                    "anyOf": [
+                                      {
+                                        "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "const": "debug"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "const": "info"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "const": "warning"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "const": "error"
                                       }
                                     ]
                                   },

@@ -3,7 +3,7 @@ tools:
     execute:
       service: CreateDocumentService
       arguments:
-        document: core_message
+        document: core_chatMessage
         update:
           content:
             role: assistant

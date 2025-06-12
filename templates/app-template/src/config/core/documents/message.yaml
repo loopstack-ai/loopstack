@@ -1,10 +1,18 @@
 documents:
-  - name: core_message
+  - name: core_chatMessage
     tags:
       - message
     ui:
       widget: chat-message
     schema:
       type: object
+      properties: 
+        role:
+          type: string
+        content:
+          type: ['string', 'null']
+        tool_calls:
+          type: ['array', 'null']
     meta:
       invalidate: false
+      level: info

@@ -1,0 +1,8 @@
+tools:
+  - name: core_createDocument
+    execute:
+      service: CreateDocumentService
+      arguments:
+        document: ${ arguments.document }
+        update:
+          content: ${ arguments.content }

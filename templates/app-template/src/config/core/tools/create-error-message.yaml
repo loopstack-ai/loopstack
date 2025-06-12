@@ -1,5 +1,5 @@
 tools:
-  - name: core_createUserMessage
+  - name: core_createErrorMessage
     parameters:
       type: object
       properties:
@@ -11,8 +11,7 @@ tools:
     execute:
       service: CreateDocumentService
       arguments:
-        document: core_message
+        document: core_errorMessage
         update:
           content:
-            role: user
-            content: ${ arguments.message }
+            message: ${ arguments.message }

@@ -5,11 +5,33 @@ tools:
       properties:
         items:
           type: array
+          items:
+            type: object
+            properties:
+              content:
+                type: object
+                properties:
+                  content:
+                    type: ['string', 'null']
+                  role:
+                    type: string
+                  tool_call_id:
+                    type: ['string', 'null']
+                  meta:
+                    type: object
+                    properties:
+                      level:
+                        type: string
+                      invalidate:
+                        type: boolean
+            required:
+              - content
+            additionalItems: false
       required:
         - items
       additionalItems: false
     execute:
       service: BatchCreateDocumentsService
       arguments:
-        document: core_message
+        document: core_chatMessage
         items: ${ arguments.items }

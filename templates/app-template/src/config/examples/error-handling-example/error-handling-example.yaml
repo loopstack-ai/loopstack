@@ -16,11 +16,9 @@ workflows:
         from: error
         to: errorHandledGracefully
         call:
-          - tool: core_createMessage
+          - tool: core_createErrorMessage
             arguments:
-              content:
-                role: error
-                content: ${ data['doSomethingWrong']['error'] }
+              message: ${ data['doSomethingWrong']['error'] }
 
       - name: retry
         from: errorHandledGracefully

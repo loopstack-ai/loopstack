@@ -31,11 +31,10 @@ describe('Error Handling Example', () => {
       testSetup.context.pipeline.id,
       testSetup.context.workspace.id,
       {
-        name: "core_message"
+        name: "core_errorMessage"
       }
     ).getMany();
 
-    expect(messages[0].content.role).toEqual('error');
-    expect(messages[0].content.content).toContain('error');
+    expect(messages[0].content.message).toContain('error');
   });
 });

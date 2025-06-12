@@ -11,13 +11,18 @@ workflowTemplates:
         to: waiting-for-user
         when: onEntry
         call:
-          - tool: core_createTemplateDocument
+          - tool: core_createDocument
+            arguments:
+              document: ${ workflow.options.document }
       - name: response
         from: waiting-for-user
         to: received
         when: manual
         call:
-          - tool: core_createTemplateDocumentUserUpdate
+          - tool: core_createDocument
+            arguments:
+              document: ${ workflow.options.document }
+              content: ${ metadata.payload }
       - name: finish
         from: received
         to: complete

@@ -46,7 +46,7 @@ describe('Llm Completion Example', () => {
       testSetup.context.pipeline.id,
       testSetup.context.workspace.id,
       {
-        name: "core_message"
+        name: "core_chatMessage"
       }
     ).getMany();
 

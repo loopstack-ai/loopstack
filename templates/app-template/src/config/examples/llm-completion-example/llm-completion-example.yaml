@@ -17,9 +17,10 @@ workflows:
         from: responseReceived
         to: complete
         call:
-          - tool: core_createMessage
+          - tool: core_createChatMessage
             arguments:
-              content: ${ PROMPT_RESULT.response.data }
+              role: ${ PROMPT_RESULT.response.data.role }
+              content: ${ PROMPT_RESULT.response.data.content }
 
 tools:
   - name: examples_llmCompletion_createProfessionalEmail

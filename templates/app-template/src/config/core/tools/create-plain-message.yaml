@@ -1,18 +1,20 @@
 tools:
-  - name: core_createAssistantMessage
+  - name: core_createPlainMessage
     parameters:
       type: object
       properties:
-        message:
+        content:
+          type: string
+        title:
           type: string
       required:
-        - message
+        - content
       additionalItems: false
     execute:
       service: CreateDocumentService
       arguments:
-        document: core_message
+        document: core_plainMessage
         update:
           content:
-            role: assistant
-            content: ${ arguments.message }
+            title: ${ arguments.title }
+            content: ${ arguments.content }

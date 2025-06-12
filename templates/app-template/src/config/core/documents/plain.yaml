@@ -1,0 +1,17 @@
+documents:
+  - name: core_plainMessage
+    ui:
+      widget: plain-message
+    schema:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+    meta:
+      level: info
+      invalidate: false
+    content:
+      title: "Text"
+      content: ""
