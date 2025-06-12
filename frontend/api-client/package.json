@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/api-client",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "OpenAPI client for @loopstack/api-client",
   "author": "OpenAPI-Generator Contributors",
   "repository": {
