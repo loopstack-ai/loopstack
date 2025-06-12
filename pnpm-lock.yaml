@@ -282,10 +282,10 @@ importers:
         specifier: ^5.2.5
         version: 5.2.6
       '@loopstack/api-client':
-        specifier: ^0.1.0
+        specifier: ^0.0.4
         version: link:../api-client
       '@loopstack/shared':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../../packages/shared
       '@mui/icons-material':
         specifier: ^7.1.1
@@ -397,7 +397,7 @@ importers:
   frontend/websocket:
     dependencies:
       '@loopstack/shared':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../../packages/shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -598,10 +598,10 @@ importers:
   packages/api:
     dependencies:
       '@loopstack/core':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../core
       '@loopstack/shared':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -743,7 +743,7 @@ importers:
   packages/core:
     dependencies:
       '@loopstack/shared':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -894,7 +894,7 @@ importers:
         specifier: ^4.3.2
         version: 4.4.0(keyv@5.3.4)
       '@loopstack/core':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../core
       '@loopstack/markdown-parser':
         specifier: ^1.1.2
@@ -903,7 +903,7 @@ importers:
         specifier: ^1.1.0
         version: link:../../libs/schema-to-template
       '@loopstack/shared':
-        specifier: workspace:^0.1.0
+        specifier: workspace:^0.1.1
         version: link:../shared
       '@nestjs/cache-manager':
         specifier: ^3.0.0
@@ -1049,16 +1049,16 @@ importers:
   templates/app-template:
     dependencies:
       '@loopstack/api':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../../packages/api
       '@loopstack/core':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../../packages/core
       '@loopstack/llm':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../../packages/llm
       '@loopstack/shared':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../../packages/shared
       '@nestjs/common':
         specifier: ^11.0.1

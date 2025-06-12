@@ -2,7 +2,7 @@
   "npmName": "@loopstack/api-client",
   "supportsES6": true,
   "withInterfaces": true,
-  "npmVersion": "0.0.2",
+  "npmVersion": "0.0.4",
   "typescriptThreePlus": true,
   "useSingleRequestParameter": true
 }
