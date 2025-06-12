@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.0.5
+
+### Patch Changes
+
+- Improve error handling, improve app frontend
+
 ## 0.0.3
 
 ### Patch Changes
