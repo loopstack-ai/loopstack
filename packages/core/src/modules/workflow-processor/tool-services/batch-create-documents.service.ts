@@ -77,13 +77,13 @@ export class BatchCreateDocumentsService implements ServiceInterface {
 
     const documents: DocumentEntity[] = [];
     for (let index = 0; index < props.items.length; index++) {
-      const documentData = merge({}, evaluatedTemplate, {
-        name: (props.name ?? evaluatedTemplate.name) + (props.addSuffix ? `-${index + 1}` : ''),
-        content: props.items[index],
-      });
-
+      const documentData = merge({}, evaluatedTemplate, props.items[index]);
       if (!documentData) {
         throw new Error(`No document data provided.`);
+      }
+
+      if (props.addSuffix) {
+        documentData.name += `-${index + 1}`;
       }
 
       this.actionHelperService.validateDocument(
