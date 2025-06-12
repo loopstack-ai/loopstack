@@ -1,5 +1,14 @@
 # @loopstack/api
 
+## 0.1.1
+
+### Patch Changes
+
+- Various example workflow configurations added. Bugfixes.
+- Updated dependencies
+  - @loopstack/core@0.1.1
+  - @loopstack/shared@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes
