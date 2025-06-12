@@ -1032,10 +1032,10 @@ export interface WorkflowDto {
     'progress': number;
     /**
      * Error message if workflow execution failed
-     * @type {object}
+     * @type {string}
      * @memberof WorkflowDto
      */
-    'error': object | null;
+    'error'?: string | null;
     /**
      * Indicates if the workflow is currently running
      * @type {boolean}
@@ -1159,11 +1159,11 @@ export interface WorkflowItemDto {
      */
     'progress': number;
     /**
-     * Error message if workflow item execution failed
-     * @type {object}
+     * Error message if workflow execution failed
+     * @type {string}
      * @memberof WorkflowItemDto
      */
-    'error': object | null;
+    'error'?: string | null;
     /**
      * Indicates if the workflow item is currently running
      * @type {boolean}
