@@ -6,9 +6,6 @@ tools:
         document: ${ workflow.options.document }
         update:
           meta:
-            enableTransitions:
-              - confirm
-              - chat
             enableAtPlaces:
               - document-created
           content: ${ PARSED_RESPONSE }

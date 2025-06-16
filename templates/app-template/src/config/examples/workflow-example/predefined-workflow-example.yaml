@@ -14,9 +14,6 @@ documents:
           label: "Submit"
     content:
       text: ""
-    meta:
-      enableTransitions:
-        - addUserInput
 
 workflows:
   - name: examples_predefinedWorkflow_workflow

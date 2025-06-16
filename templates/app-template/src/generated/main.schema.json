@@ -742,12 +742,6 @@
                       "error"
                     ]
                   },
-                  "enableTransitions": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                    }
-                  },
                   "enableAtPlaces": {
                     "type": "array",
                     "items": {
@@ -901,12 +895,6 @@
                                         "const": "error"
                                       }
                                     ]
-                                  },
-                                  "enableTransitions": {
-                                    "type": "array",
-                                    "items": {
-                                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                    }
                                   },
                                   "enableAtPlaces": {
                                     "type": "array",
