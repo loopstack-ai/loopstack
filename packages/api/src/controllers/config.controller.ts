@@ -42,7 +42,7 @@ export class ConfigController {
   @UseGuards(JwtAuthGuard)
   getPipelineTypesByWorkspace(@Param('workspaceName') workspaceName: string,): PipelineConfigDto[] {
     const pipelineTypes = this.configService.getAll<PipelineType>('pipelines');
-    const filtered = pipelineTypes.filter((pipeline) => pipeline.workspace === workspaceName);
+    const filtered = pipelineTypes.filter((pipeline) => pipeline.isRoot && pipeline.workspace === workspaceName);
 
     return plainToInstance(PipelineConfigDto, filtered, {
       excludeExtraneousValues: true,

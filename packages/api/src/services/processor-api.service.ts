@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { PipelineProcessorService } from '@loopstack/core';
 import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
 import { PipelineEntity, WorkspaceEntity } from '@loopstack/shared';
+import { RootProcessorService } from '@loopstack/core/dist/modules/workflow-processor/services/root-processor.service';
 
 @Injectable()
 export class ProcessorApiService {
@@ -16,7 +16,7 @@ export class ProcessorApiService {
     private pipelineEntityRepository: Repository<PipelineEntity>,
     @InjectRepository(WorkspaceEntity)
     private workspaceRepository: Repository<WorkspaceEntity>,
-    private processorService: PipelineProcessorService,
+    private rootProcessorService: RootProcessorService,
   ) {}
 
   async processPipeline(
@@ -48,17 +48,14 @@ export class ProcessorApiService {
     pipeline.workspace.isLocked = true;
     await this.workspaceRepository.save(pipeline.workspace);
 
-    const context = await this.processorService.processPipeline(
-      {
-        userId: user,
-        pipelineId: pipeline.id,
-        transition: payload.transition
-      },
+    const finalContext = await this.rootProcessorService.processRootPipeline(
+      pipeline,
+      payload,
     );
 
     pipeline.workspace.isLocked = false;
     await this.workspaceRepository.save(pipeline.workspace);
 
-    return context;
+    return finalContext;
   }
 }
