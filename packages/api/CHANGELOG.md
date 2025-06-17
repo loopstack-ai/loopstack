@@ -1,5 +1,17 @@
 # @loopstack/api
 
+## 0.2.0
+
+### Minor Changes
+
+- Rework of Pipeline and Workflow processing including improvements for configuration schemas
+
+### Patch Changes
+
+- Updated dependencies
+  - @loopstack/core@0.2.0
+  - @loopstack/shared@0.2.0
+
 ## 0.1.2
 
 ### Patch Changes
