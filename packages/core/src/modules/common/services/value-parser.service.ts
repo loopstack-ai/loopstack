@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ExpressionEvaluatorService } from './expression-evaluator.service';
-import {
-  ContextInterface,
-} from '@loopstack/shared';
+import { ContextInterface } from '@loopstack/shared';
 import { get, transform } from 'lodash';
 import { TemplateEngineService } from './template-engine.service';
 

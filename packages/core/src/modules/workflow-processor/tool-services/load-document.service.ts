@@ -5,7 +5,8 @@ import {
   ContextInterface,
   Service,
   ServiceInterface,
-  ServiceCallResult, TransitionMetadataInterface,
+  ServiceCallResult,
+  TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { ExpressionEvaluatorService } from '../../common';
@@ -36,7 +37,7 @@ const config = z
   })
   .strict();
 
-const schema = config;  //todo create dedicated schema
+const schema = config; //todo create dedicated schema
 
 @Injectable()
 @Service({
@@ -69,10 +70,7 @@ export class LoadDocumentService implements ServiceInterface {
    * modify items by mapping, flattening and sorting entities
    * uses defined functions for mapping
    */
-  applyModifiers(
-    props: z.infer<typeof schema>,
-    entities: DocumentEntity[],
-  ) {
+  applyModifiers(props: z.infer<typeof schema>, entities: DocumentEntity[]) {
     const defaultMapFunction = '${ entity.content }';
     const mapFunc = props.map ?? defaultMapFunction;
 
@@ -175,12 +173,12 @@ export class LoadDocumentService implements ServiceInterface {
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    meta: TransitionMetadataInterface,
+    transitionData: TransitionMetadataInterface,
   ): Promise<ServiceCallResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }
-    this.logger.debug(`Load document ${meta.transition}`);
+    this.logger.debug(`Load document ${transitionData.transition}`);
 
     // load and filter entities based on options from database
     const currentEntities = await this.getDocumentsByQuery(
@@ -191,7 +189,7 @@ export class LoadDocumentService implements ServiceInterface {
     );
 
     const prevImport: ContextImportInterface | undefined =
-      workflow.prevData?.imports?.[meta.transition!];
+      workflow.prevData?.imports?.[transitionData.transition!];
 
     // update workflow dependencies, if applicable
     if (!props.ignoreChanges) {

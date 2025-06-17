@@ -7,3 +7,5 @@ export * from './namespace-processor.service';
 export * from './pipeline-processor.service';
 export * from './tool-schema-validator.service';
 export * from './template-expression-evaluator.service';
+export * from './workflow-state.service';
+export * from './root-processor.service';

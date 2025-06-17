@@ -4,7 +4,8 @@ import {
   ContextInterface,
   ToolConfigType,
   ServiceCallResult,
-  ToolCallType, TransitionMetadataInterface,
+  ToolCallType,
+  TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { ToolSchemaValidatorService } from './tool-schema-validator.service';
@@ -20,7 +21,7 @@ export class ToolExecutionService {
     private serviceRegistry: ServiceRegistry,
     private toolSchemaValidatorService: ToolSchemaValidatorService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private schemaValidatorService: SchemaValidatorService
+    private schemaValidatorService: SchemaValidatorService,
   ) {}
 
   getToolConfig(toolName: string) {
@@ -35,7 +36,13 @@ export class ToolExecutionService {
     return config;
   }
 
-  async callService(name: string, args: any, workflow?: WorkflowEntity, context?: ContextInterface, meta?: TransitionMetadataInterface): Promise<ServiceCallResult> {
+  async callService(
+    name: string,
+    args: any,
+    workflow?: WorkflowEntity,
+    context?: ContextInterface,
+    transitionData?: TransitionMetadataInterface,
+  ): Promise<ServiceCallResult> {
     const { options, instance } = this.serviceRegistry.getServiceByName(name);
 
     const parsedArgs = this.toolSchemaValidatorService.validateProps(
@@ -45,20 +52,23 @@ export class ToolExecutionService {
 
     this.logger.debug(`Calling service ${name}`);
 
-    return instance.apply(parsedArgs, workflow, context, meta);
+    return instance.apply(parsedArgs, workflow, context, transitionData);
   }
 
   async applyTool(
     handler: ToolCallType,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    meta: TransitionMetadataInterface,
+    transitionData: TransitionMetadataInterface,
   ): Promise<ServiceCallResult> {
     const toolConfig = this.getToolConfig(handler.tool);
 
     // validate the tool call arguments
     if (toolConfig.parameters) {
-      this.schemaValidatorService.validate(handler.arguments, toolConfig.parameters);
+      this.schemaValidatorService.validate(
+        handler.arguments,
+        toolConfig.parameters,
+      );
     }
 
     // parse service execution arguments
@@ -67,11 +77,17 @@ export class ToolExecutionService {
       handler.arguments,
       context,
       workflow,
-      meta,
-    )
+      transitionData,
+    );
 
     // call the service
-    return this.callService(toolConfig.execute.service, args, workflow, context, meta);
+    return this.callService(
+      toolConfig.execute.service,
+      args,
+      workflow,
+      context,
+      transitionData,
+    );
   }
 
   addWorkflowTransitionData(

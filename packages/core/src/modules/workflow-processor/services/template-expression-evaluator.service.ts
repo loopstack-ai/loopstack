@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
   ContextInterface,
-  SnippetConfigType, TransitionMetadataInterface,
+  SnippetConfigType,
+  TransitionMetadataInterface,
   WorkflowEntity,
 } from '@loopstack/shared';
 import { ValueParserService } from '../../common';
@@ -9,7 +10,6 @@ import { ConfigurationService } from '../../configuration';
 
 @Injectable()
 export class TemplateExpressionEvaluatorService {
-
   constructor(
     private configurationService: ConfigurationService,
     private valueParserService: ValueParserService,
@@ -20,15 +20,15 @@ export class TemplateExpressionEvaluatorService {
     args: any,
     context: ContextInterface,
     workflow: WorkflowEntity | undefined,
-    meta: TransitionMetadataInterface,
+    transitionData: TransitionMetadataInterface,
   ): T {
     // replace the alias values with actual data
     const aliasVariables =
       workflow?.aliasData && workflow.currData
         ? this.valueParserService.prepareAliasVariables(
-          workflow.aliasData,
-          workflow.currData,
-        )
+            workflow.aliasData,
+            workflow.currData,
+          )
         : {};
 
     const useTemplate = (name: string, variables: any): string => {
@@ -46,16 +46,13 @@ export class TemplateExpressionEvaluatorService {
       );
     };
 
-    return this.valueParserService.evalWithContextVariables<T>(
-      subject,
-      {
-        ...aliasVariables,
-        useTemplate,
-        context,
-        data: workflow?.currData,
-        metadata: meta,
-        arguments: args
-      },
-    );
+    return this.valueParserService.evalWithContextVariables<T>(subject, {
+      ...aliasVariables,
+      useTemplate,
+      context,
+      data: workflow?.currData,
+      transition: transitionData,
+      arguments: args,
+    });
   }
 }

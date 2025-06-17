@@ -6,7 +6,9 @@ import {
   NonExpressionString,
   Service,
   ServiceInterface,
-  ServiceCallResult, TransitionMetadataInterface, WorkflowEntity,
+  ServiceCallResult,
+  TransitionMetadataInterface,
+  WorkflowEntity,
 } from '@loopstack/shared';
 
 const config = z
@@ -33,17 +35,17 @@ export class SetTargetPlaceService implements ServiceInterface {
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity,
     context: ContextInterface,
-    meta: TransitionMetadataInterface,
+    transitionData: TransitionMetadataInterface,
   ): Promise<ServiceCallResult> {
-
-    if (!meta.transition) {
-      throw new Error('No transition available.')
+    if (!transitionData.transition) {
+      throw new Error('No transition available.');
     }
 
     if (
-      (Array.isArray(meta.to) && !meta.to.includes(props.target))
-        || (!Array.isArray(meta.to) && meta.to !== props.target)
-      ) {
+      (Array.isArray(transitionData.to) &&
+        !transitionData.to.includes(props.target)) ||
+      (!Array.isArray(transitionData.to) && transitionData.to !== props.target)
+    ) {
       throw new Error(`Transition to ${props.target} not allowed.`);
     }
 

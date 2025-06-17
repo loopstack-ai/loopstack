@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
-import {
-  ConfigProviderRegistry,
-  ConfigurationService,
-} from './services';
+import { ConfigProviderRegistry, ConfigurationService } from './services';
 import { JsonSchemaGeneratorService } from './services/json-schema-generator.service';
 import { ServiceRegistry } from './services';
 import { GenerateSchemaCommand } from './commands/generate-schema.command';

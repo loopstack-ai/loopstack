@@ -16,7 +16,10 @@ import {
   NamespaceProcessorService,
   PipelineProcessorService,
   WorkflowProcessorService,
-  ToolSchemaValidatorService, TemplateExpressionEvaluatorService,
+  ToolSchemaValidatorService,
+  TemplateExpressionEvaluatorService,
+  WorkflowStateService,
+  RootProcessorService,
 } from './services';
 import {
   AddNamespaceService,
@@ -24,7 +27,8 @@ import {
   CreateDocumentService,
   MockService,
   LoadDocumentService,
-  SetContextService, SetTargetPlaceService,
+  SetContextService,
+  SetTargetPlaceService,
   TransitionSelectorService,
   UpdateDocumentService,
 } from './tool-services';
@@ -37,6 +41,8 @@ import {
     PersistenceModule,
   ],
   providers: [
+    RootProcessorService,
+    WorkflowStateService,
     WorkflowProcessorService,
     ToolExecutionService,
     ToolSchemaValidatorService,
@@ -61,6 +67,10 @@ import {
     StateMachineProcessorService,
     StateMachineConfigService,
   ],
-  exports: [PipelineProcessorService, WorkflowProcessorService, ToolExecutionService, TemplateExpressionEvaluatorService],
+  exports: [
+    RootProcessorService,
+    ToolExecutionService,
+    TemplateExpressionEvaluatorService,
+  ],
 })
 export class WorkflowProcessorModule {}

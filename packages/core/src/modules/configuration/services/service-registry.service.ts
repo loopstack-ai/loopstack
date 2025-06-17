@@ -10,7 +10,10 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 @Injectable()
 export class ServiceRegistry {
   private readonly logger = new Logger(ServiceRegistry.name);
-  private services: Map<string, { options: ServiceOptionsInterface; instance: ServiceInterface }> = new Map();
+  private services: Map<
+    string,
+    { options: ServiceOptionsInterface; instance: ServiceInterface }
+  > = new Map();
 
   constructor(
     private readonly discoveryService: DiscoveryService,
@@ -36,7 +39,10 @@ export class ServiceRegistry {
     }
   }
 
-  getServiceByName(name: string): { options: ServiceOptionsInterface; instance: ServiceInterface } {
+  getServiceByName(name: string): {
+    options: ServiceOptionsInterface;
+    instance: ServiceInterface;
+  } {
     const service = this.services.get(name);
     if (!service) {
       throw new Error(`Service ${name} not found.`);
@@ -50,11 +56,14 @@ export class ServiceRegistry {
       throw new Error('Service has no schema.');
     }
 
-    const schema = zodToJsonSchema(options.schema, "serviceSchema");
+    const schema = zodToJsonSchema(options.schema, 'serviceSchema');
     return schema.definitions?.['serviceSchema'];
   }
 
-  private registerService(options: ServiceOptionsInterface, instance: ServiceInterface) {
+  private registerService(
+    options: ServiceOptionsInterface,
+    instance: ServiceInterface,
+  ) {
     const name = instance.constructor.name;
 
     if (this.services.has(name)) {
@@ -64,7 +73,10 @@ export class ServiceRegistry {
     this.services.set(name, { options, instance });
   }
 
-  getEntries(): Array<{ options: ServiceOptionsInterface; instance: ServiceInterface }> {
+  getEntries(): Array<{
+    options: ServiceOptionsInterface;
+    instance: ServiceInterface;
+  }> {
     return Array.from(this.services.values());
   }
 }

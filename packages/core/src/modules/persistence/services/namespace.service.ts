@@ -59,7 +59,9 @@ export class NamespacesService {
     return namespaces.filter((item) => !idsToRemove.has(item.id));
   }
 
-  async createRootNamespace(pipeline: PipelineEntity): Promise<NamespaceEntity> {
+  async createRootNamespace(
+    pipeline: PipelineEntity,
+  ): Promise<NamespaceEntity> {
     return this.create({
       name: pipeline.model,
       model: pipeline.model,

@@ -7,9 +7,11 @@ import {
   TransitionPayloadInterface,
   WorkflowEntity,
   WorkflowStateHistoryDto,
-  WorkflowStateMachineType,
   WorkflowStatePlaceInfoDto,
-  WorkflowTransitionType, TransitionMetadataInterface, ToolCallType,
+  WorkflowTransitionType,
+  TransitionMetadataInterface,
+  ToolCallType,
+  WorkflowType,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
@@ -59,7 +61,7 @@ export class StateMachineProcessorService {
   async processStateMachine(
     context: ContextInterface,
     workflow: WorkflowEntity,
-    config: WorkflowStateMachineType,
+    config: WorkflowType,
   ): Promise<WorkflowEntity> {
     const options = this.configValueParserService.evalWithContext<
       Record<string, any>
@@ -213,7 +215,7 @@ export class StateMachineProcessorService {
   async loopStateMachine(
     beforeContext: ContextInterface,
     workflow: WorkflowEntity,
-    config: WorkflowStateMachineType,
+    config: WorkflowType,
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
     let context = beforeContext;
@@ -221,39 +223,43 @@ export class StateMachineProcessorService {
 
     const workflowConfig = this.workflowConfigService.getConfig(config);
     if (!workflowConfig.transitions) {
-      throw new Error(`Workflow ${workflow.name} does not have any transitions.`);
+      throw new Error(
+        `Workflow ${workflow.name} does not have any transitions.`,
+      );
     }
 
     try {
       const pendingTransition = [stateMachineInfo.pendingTransition];
       while (true) {
-
         const nextPending = pendingTransition.shift();
 
-        const meta: TransitionMetadataInterface = {
-          history: workflow.history?.history.map((item) => item.transition) ?? [],
+        const transitionData: TransitionMetadataInterface = {
+          history:
+            workflow.history?.history.map((item) => item.transition) ?? [],
 
           // add the pending transition in the first iteration only
           payload: nextPending?.payload ?? null,
-        }
+        };
 
         // exclude call property from transitions eval because this should be only evaluated when called for correct arguments
-        const transitionsWithoutCallProperty = workflowConfig.transitions.map((transition) => omit(transition, ['call']));
-        const evaluatedTransitions = this.templateExpressionEvaluatorService.evaluate<WorkflowTransitionType[]>(
-          transitionsWithoutCallProperty,
-          stateMachineInfo.options,
-          context,
-          workflow,
-          meta,
-        )
+        const transitionsWithoutCallProperty = workflowConfig.transitions.map(
+          (transition) => omit(transition, ['call']),
+        );
+        const evaluatedTransitions =
+          this.templateExpressionEvaluatorService.evaluate<
+            WorkflowTransitionType[]
+          >(
+            transitionsWithoutCallProperty,
+            stateMachineInfo.options,
+            context,
+            workflow,
+            transitionData,
+          );
 
         this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions);
         await this.workflowService.save(workflow);
 
-        const nextTransition = this.getNextTransition(
-          workflow,
-          nextPending,
-        );
+        const nextTransition = this.getNextTransition(workflow, nextPending);
         if (!nextTransition) {
           this.logger.debug('stop');
           break;
@@ -264,13 +270,14 @@ export class StateMachineProcessorService {
         );
 
         // update the metadata object with actual transition
-        meta.transition = nextTransition.transition;
-        meta.from = nextTransition.from;
-        meta.to = nextTransition.to;
+        transitionData.transition = nextTransition.transition;
+        transitionData.from = nextTransition.from;
+        transitionData.to = nextTransition.to;
 
         // get tool calls for transition
-        const toolCalls = workflowConfig.transitions
-          .find((transition) => transition.name === meta.transition)?.call;
+        const toolCalls = workflowConfig.transitions.find(
+          (transition) => transition.name === transitionData.transition,
+        )?.call;
 
         let nextPlace: string | undefined = undefined;
         try {
@@ -281,30 +288,31 @@ export class StateMachineProcessorService {
               index++;
 
               this.logger.debug(
-                `Call tool ${index} (${toolCall.tool}) on transition ${meta.transition}`,
+                `Call tool ${index} (${toolCall.tool}) on transition ${transitionData.transition}`,
               );
 
               // evaluate tool call config late in the execution for up-to-date arguments
-              const evaluatedToolCall = this.templateExpressionEvaluatorService.evaluate<ToolCallType>(
-                toolCall,
-                stateMachineInfo.options,
-                context,
-                workflow,
-                meta,
-              )
+              const evaluatedToolCall =
+                this.templateExpressionEvaluatorService.evaluate<ToolCallType>(
+                  toolCall,
+                  stateMachineInfo.options,
+                  context,
+                  workflow,
+                  transitionData,
+                );
 
               // apply the tool
               const result = await this.toolExecutionService.applyTool(
                 evaluatedToolCall,
                 workflow,
                 context,
-                meta,
+                transitionData,
               );
 
               // add the response data to workflow
               workflow = this.toolExecutionService.commitServiceCallResult(
                 workflow,
-                meta.transition,
+                transitionData.transition,
                 toolCall.tool,
                 toolCall.exportAs,
                 result,
@@ -316,7 +324,7 @@ export class StateMachineProcessorService {
               }
             }
           }
-        } catch(e) {
+        } catch (e) {
           // re-throw error if errors are not handled gracefully
           if (!nextTransition.onError) {
             throw e;
@@ -329,7 +337,7 @@ export class StateMachineProcessorService {
           nextPlace = nextTransition.onError;
           this.toolExecutionService.addWorkflowTransitionData(
             workflow,
-            meta.transition,
+            transitionData.transition,
             'error',
             e.message,
           );
@@ -338,7 +346,6 @@ export class StateMachineProcessorService {
         // apply the transition to next place
         this.commitWorkflowTransition(workflow, nextPlace, nextTransition);
       }
-
     } catch (e) {
       this.logger.error(e);
 

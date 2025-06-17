@@ -1,15 +1,18 @@
 import { z, ZodType } from 'zod';
 import { Injectable } from '@nestjs/common';
 import { ServiceRegistry } from './service-registry.service';
-import { MainConfigSchema, ToolConfigSchema, ServiceInterface, ServiceOptionsInterface } from '@loopstack/shared';
+import {
+  MainConfigSchema,
+  ToolConfigSchema,
+  ServiceInterface,
+  ServiceOptionsInterface,
+} from '@loopstack/shared';
 
 @Injectable()
 export class DynamicSchemaGeneratorService {
   private schema: ZodType;
 
-  constructor(
-    private readonly serviceRegistry: ServiceRegistry,
-  ) {}
+  constructor(private readonly serviceRegistry: ServiceRegistry) {}
 
   // Simple Levenshtein distance function
   levenshteinDistance(str1: string, str2: string): number {
@@ -55,7 +58,12 @@ export class DynamicSchemaGeneratorService {
     return similarity >= 0.7 ? mostSimilar : null;
   }
 
-  createDiscriminatedServiceType(items: Array<{ options: ServiceOptionsInterface; instance: ServiceInterface }>) {
+  createDiscriminatedServiceType(
+    items: Array<{
+      options: ServiceOptionsInterface;
+      instance: ServiceInterface;
+    }>,
+  ) {
     const configSchemas = items.map((item) =>
       z.object({
         service: z.literal(item.instance.constructor.name),
@@ -67,10 +75,9 @@ export class DynamicSchemaGeneratorService {
       errorMap: (issue, ctx) => {
         if (issue.code === 'invalid_union_discriminator') {
           const invalidValue = ctx.data.service;
-          const suggestion = invalidValue ? this.findMostSimilar(
-            invalidValue,
-            issue.options as string[],
-          ) : undefined;
+          const suggestion = invalidValue
+            ? this.findMostSimilar(invalidValue, issue.options as string[])
+            : undefined;
 
           if (suggestion) {
             return {
@@ -94,7 +101,7 @@ export class DynamicSchemaGeneratorService {
 
     const toolConfigSchema = ToolConfigSchema.extend({
       execute: serviceExecutionSchemas,
-    })
+    });
 
     return MainConfigSchema.extend({
       tools: z.array(toolConfigSchema).optional(),

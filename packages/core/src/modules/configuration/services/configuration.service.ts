@@ -129,31 +129,6 @@ export class ConfigurationService implements OnModuleInit {
     }
   }
 
-  private createPipelineEntrypointValidation(): z.ZodEffects<any, any, any> {
-    return z.any().refine(
-      (data: MainConfigType): boolean => {
-        if (!data.pipelines) {
-          return true;
-        }
-        return data.pipelines.every(
-          (pipeline) => undefined !== this.get('workflows', pipeline.entrypoint),
-        );
-      },
-      (data: MainConfigType) => {
-        const invalidIndex =
-          data.pipelines?.findIndex(
-            (pipeline) =>
-              undefined === this.get('workspaces', pipeline.workspace),
-          ) ?? -1;
-
-        return {
-          message: `pipeline references non-existent workflow.`,
-          path: ['pipelines', invalidIndex, 'entrypoint'],
-        };
-      },
-    );
-  }
-
   private createPipelineWorkspaceValidation(): z.ZodEffects<any, any, any> {
     return z.any().refine(
       (data: MainConfigType): boolean => {
@@ -161,7 +136,8 @@ export class ConfigurationService implements OnModuleInit {
           return true;
         }
         return data.pipelines.every(
-          (pipeline) => undefined !== this.get('workspaces', pipeline.workspace),
+          (pipeline) =>
+            undefined !== this.get('workspaces', pipeline.workspace),
         );
       },
       (data: MainConfigType) => {
@@ -188,7 +164,9 @@ export class ConfigurationService implements OnModuleInit {
 
         const toolCalls: string[] = data.workflows
           .map((wf) =>
-            wf.type === 'stateMachine' ? wf.transitions?.map((h) => h.call?.map((call) => call.tool)) : [],
+            wf.type === 'stateMachine'
+              ? wf.transitions?.map((h) => h.call?.map((call) => call.tool))
+              : [],
           )
           .flat(2)
           .filter((toolName) => undefined !== toolName);
@@ -198,14 +176,18 @@ export class ConfigurationService implements OnModuleInit {
         );
       },
       (data: MainConfigType) => {
-        const toolCalls: string[] = data.workflows!.map((wf) =>
-            wf.type === 'stateMachine' ? wf.transitions?.map((h) => h.call?.map((call) => call.tool)) : [],
+        const toolCalls: string[] = data
+          .workflows!.map((wf) =>
+            wf.type === 'stateMachine'
+              ? wf.transitions?.map((h) => h.call?.map((call) => call.tool))
+              : [],
           )
           .flat(2)
           .filter((toolName) => undefined !== toolName);
 
-        const errorItem = toolCalls
-          .find((toolName) => undefined === this.get('tools', toolName)) as unknown as StateMachineHandlerType;
+        const errorItem = toolCalls.find(
+          (toolName) => undefined === this.get('tools', toolName),
+        ) as unknown as StateMachineHandlerType;
 
         return {
           message: `workflow handler references non-existent tool "${errorItem.tool}".`,
@@ -233,7 +215,9 @@ export class ConfigurationService implements OnModuleInit {
         const templateIndex = stateMachineWorkflows.findIndex(
           (wf) =>
             wf.transitions &&
-            wf.transitions.find((t) => t.call?.find((call) => !this.has('tools', call.tool))),
+            wf.transitions.find((t) =>
+              t.call?.find((call) => !this.has('tools', call.tool)),
+            ),
         );
 
         return templateIndex === -1;
@@ -246,15 +230,20 @@ export class ConfigurationService implements OnModuleInit {
         const templateIndex = stateMachineWorkflows.findIndex(
           (wf) =>
             wf.transitions &&
-            wf.transitions.find((t) => t.call?.find((call) => !this.has('tools', call.tool))),
+            wf.transitions.find((t) =>
+              t.call?.find((call) => !this.has('tools', call.tool)),
+            ),
         );
 
         const transitionIndex = stateMachineWorkflows[
           templateIndex
-        ].transitions!.findIndex((t) => t.call?.find((call) => !this.has('tools', call.tool)));
+        ].transitions!.findIndex((t) =>
+          t.call?.find((call) => !this.has('tools', call.tool)),
+        );
 
-        const wrongToolName =
-          stateMachineWorkflows[templateIndex].transitions![transitionIndex].call?.find((call) => !this.has('tools', call.tool));
+        const wrongToolName = stateMachineWorkflows[templateIndex].transitions![
+          transitionIndex
+        ].call?.find((call) => !this.has('tools', call.tool));
 
         return {
           message: `state machine template transition references non-existent tool "${wrongToolName}".`,
@@ -274,7 +263,6 @@ export class ConfigurationService implements OnModuleInit {
     try {
       this.mainSchemaGenerator
         .getSchema()
-        .and(this.createPipelineEntrypointValidation())
         .and(this.createPipelineWorkspaceValidation())
         .and(this.createWorkflowToolCallValidation())
         .and(this.createWorkflowTemplateToolCallValidation())

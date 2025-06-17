@@ -7,11 +7,10 @@ import {
   ServiceInterface,
   ServiceCallResult,
   DocumentEntity,
-  DocumentConfigSchema, TransitionMetadataInterface,
+  DocumentConfigSchema,
+  TransitionMetadataInterface,
 } from '@loopstack/shared';
-import {
-  SchemaValidatorService,
-} from '../../common';
+import { SchemaValidatorService } from '../../common';
 import { ConfigurationService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
@@ -20,17 +19,21 @@ import { DocumentService } from '../../persistence';
 import { merge } from 'lodash';
 import { TemplateExpressionEvaluatorService } from '../services';
 
-const schema = z.object({
-  document: z.string().optional(),
-  update: PartialDocumentSchema.optional(),
-  create: DocumentSchema.optional(),
-}).strict();
+const schema = z
+  .object({
+    document: z.string().optional(),
+    update: PartialDocumentSchema.optional(),
+    create: DocumentSchema.optional(),
+  })
+  .strict();
 
-const config = z.object({
+const config = z
+  .object({
     document: z.string().optional(),
     update: DocumentConfigSchema.partial().optional(),
     create: DocumentConfigSchema.optional(),
-  }).strict();
+  })
+  .strict();
 
 @Injectable()
 @Service({
@@ -47,14 +50,22 @@ export class CreateDocumentService implements ServiceInterface {
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
   ) {}
 
-  getDocumentTemplate(props: z.infer<typeof schema>, workflow: WorkflowEntity, context: ContextInterface, meta: TransitionMetadataInterface) {
+  getDocumentTemplate(
+    props: z.infer<typeof schema>,
+    workflow: WorkflowEntity,
+    context: ContextInterface,
+    transitionData: TransitionMetadataInterface,
+  ) {
     if (!props?.document) {
       return {};
     }
 
-    const template = this.loopConfigService.get<DocumentType>('documents', props.document);
+    const template = this.loopConfigService.get<DocumentType>(
+      'documents',
+      props.document,
+    );
     if (!template) {
-      throw new Error(`Document template ${props.document} not found.`)
+      throw new Error(`Document template ${props.document} not found.`);
     }
 
     return this.templateExpressionEvaluatorService.evaluate<DocumentType>(
@@ -62,7 +73,7 @@ export class CreateDocumentService implements ServiceInterface {
       {},
       context,
       workflow,
-      meta,
+      transitionData,
     );
   }
 
@@ -76,12 +87,14 @@ export class CreateDocumentService implements ServiceInterface {
       throw new Error('Workflow is undefined');
     }
 
-    const template: Partial<DocumentEntity> = this.getDocumentTemplate(props, workflow, context, meta);
-
-    const documentData = merge(
-      template,
-      props?.create ?? props?.update ?? {},
+    const template: Partial<DocumentEntity> = this.getDocumentTemplate(
+      props,
+      workflow,
+      context,
+      meta,
     );
+
+    const documentData = merge(template, props?.create ?? props?.update ?? {});
 
     if (!documentData) {
       throw new Error(`No document data provided.`);

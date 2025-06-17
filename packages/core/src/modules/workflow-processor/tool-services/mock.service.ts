@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Service, ServiceInterface, ServiceCallResult } from '@loopstack/shared';
+import {
+  Service,
+  ServiceInterface,
+  ServiceCallResult,
+} from '@loopstack/shared';
 
 const config = z
   .object({
@@ -27,7 +31,6 @@ export class MockService implements ServiceInterface {
   private readonly logger = new Logger(MockService.name);
 
   async apply(props: z.infer<typeof schema>): Promise<ServiceCallResult> {
-
     if (props.input) {
       this.logger.debug(`Received mock input ${props.input}`);
     }
@@ -38,7 +41,7 @@ export class MockService implements ServiceInterface {
 
     return {
       success: true,
-      data: { content: props.output }
-    }
+      data: { content: props.output },
+    };
   }
 }

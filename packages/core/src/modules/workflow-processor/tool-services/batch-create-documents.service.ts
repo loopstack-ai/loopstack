@@ -6,11 +6,10 @@ import {
   ServiceCallResult,
   DocumentEntity,
   ExpressionString,
-  NonExpressionString, TransitionMetadataInterface,
+  NonExpressionString,
+  TransitionMetadataInterface,
 } from '@loopstack/shared';
-import {
-  SchemaValidatorService,
-} from '../../common';
+import { SchemaValidatorService } from '../../common';
 import { ConfigurationService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
@@ -56,24 +55,28 @@ export class BatchCreateDocumentsService implements ServiceInterface {
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-    meta: TransitionMetadataInterface,
+    transitionData: TransitionMetadataInterface,
   ): Promise<ServiceCallResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }
 
-    const template = this.loopConfigService.get<DocumentType>('documents', props.document);
+    const template = this.loopConfigService.get<DocumentType>(
+      'documents',
+      props.document,
+    );
     if (!template) {
-      throw new Error(`Document template ${props.document} not found.`)
+      throw new Error(`Document template ${props.document} not found.`);
     }
 
-    const evaluatedTemplate = this.templateExpressionEvaluatorService.evaluate<DocumentType>(
-      template,
-      {},
-      context,
-      workflow,
-      meta,
-    );
+    const evaluatedTemplate =
+      this.templateExpressionEvaluatorService.evaluate<DocumentType>(
+        template,
+        {},
+        context,
+        workflow,
+        transitionData,
+      );
 
     const documents: DocumentEntity[] = [];
     for (let index = 0; index < props.items.length; index++) {
@@ -96,7 +99,7 @@ export class BatchCreateDocumentsService implements ServiceInterface {
         this.documentService.create(
           workflow,
           context,
-          meta,
+          transitionData,
           documentData as Partial<DocumentEntity>,
         ),
       );

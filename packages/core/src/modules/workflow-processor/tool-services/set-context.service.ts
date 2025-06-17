@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Service, ServiceInterface, ServiceCallResult } from '@loopstack/shared';
+import {
+  Service,
+  ServiceInterface,
+  ServiceCallResult,
+} from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
 const config = z

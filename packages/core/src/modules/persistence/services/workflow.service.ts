@@ -53,7 +53,7 @@ export class WorkflowService {
   async reload(id: string): Promise<WorkflowEntity> {
     const originalWorkflow = await this.findById(id);
     if (!originalWorkflow) {
-      throw new Error(`Cant restore original workflow.`)
+      throw new Error(`Cant restore original workflow.`);
     }
     return originalWorkflow;
   }
