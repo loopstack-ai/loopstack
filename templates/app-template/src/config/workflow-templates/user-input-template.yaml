@@ -22,12 +22,12 @@ workflowTemplates:
           - tool: core_createDocument
             arguments:
               document: ${ workflow.options.document }
-              content: ${ metadata.payload }
+              content: ${ transition.payload }
       - name: finish
         from: received
-        to: complete
+        to: end
         when: onEntry
       - name: unlock
-        from: complete
+        from: end
         to: waiting-for-user
         when: manual

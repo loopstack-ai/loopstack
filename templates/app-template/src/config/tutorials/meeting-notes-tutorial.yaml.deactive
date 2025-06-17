@@ -1,0 +1,100 @@
+workspaces:
+  - name: tutorials
+    title: Tutorials Workspace
+
+documents:
+  - name: tutorials_meetingNotes_userInput
+    schema:                                 # the json schema of the document
+      type: object
+      properties:
+        text:
+          type: string
+    ui:                                     # definitions how to display the form in the frontend
+      properties:
+        text:
+          widget: textarea
+      buttons:
+        - transition: addUserInput          # add a submit button, triggering the addUserInput transition of the workflow
+          label: "Submit"
+    content:
+      text: |                               # initialize the document with demo input
+        budget: need 2 cut costs sarah said
+        hire new person?? --> marketing
+        vendor pricing - follow up needed by anna
+        mike's project delayed again. deadline moved - when??? next month maybe
+        client wants faster delivery but budget tight. can we do it?
+
+workflows:
+  - name: tutorials_meetingNotes_workflow
+    title: "Meeting Notes Summarizer"
+    type: stateMachine
+    transitions:
+
+      - name: requestUserInput              # display the form
+        from: start
+        to: waitingForUser                  # transition to a waiting step after adding the form
+        call:
+          - tool: core_createDocument       # create the new (empty) document displayed in the frontend
+            arguments:
+              document: tutorials_meetingNotes_userInput
+
+      - name: addUserInput
+        from: waitingForUser
+        to: userInputAdded
+        when: manual                        # define the transition as "manual", so the workflow stops here and waits for user input
+        call:
+          - tool: core_createDocument       # when the user submits, we (re-)create the same document including the user input
+            arguments:
+              document: tutorials_meetingNotes_userInput
+              content: ${ transition.payload }    # add the user request payload
+            exportAs: USER_INPUT                # make the document available for subsequent transitions
+
+      - name: processMeetingNotes
+        from: userInputAdded                    # transition from the userInputAdded place
+        to: meetingNotesSummarized
+        call:
+          - tool: tutorials_meetingNotes_createSummary
+            arguments:
+              raw_notes: ${ USER_INPUT.text }   # use the user input document ("text" property)
+            exportAs: SUMMARY_RESULT
+
+      - name: addSummaryMessage
+        from: meetingNotesSummarized
+        to: end
+        call:
+          - tool: core_createChatMessage
+            arguments:
+              role: ${ SUMMARY_RESULT.response.data.role }          # add the response message to chat
+              content: ${ SUMMARY_RESULT.response.data.content }
+
+tools:
+  - name: tutorials_meetingNotes_createSummary
+    execute:
+      service: LlmCompletionService
+      arguments:
+        llm:
+          envApiKey: OPENAI_KEY                         # define the key to be used (environment variable)
+          model: gpt-4o                                 # define the model
+        messages:
+          - role: system                                # add a system message including the input text
+            content: |
+              You are a meeting notes summarizer. Transform these raw notes into a clear summary.
+
+              Raw Notes: <%= arguments.raw_notes %>
+              
+              Create a summary with:
+              
+              **Decisions:**
+              - What was decided
+              
+              **Action Items:**
+              - Who needs to do what
+
+pipelines:
+  - name: tutorials_meetingNotes
+    title: "Meeting Notes Summarizer"
+    workspace: tutorials
+    isRoot: true
+    type: sequence
+    sequence:
+      - workflow: tutorials_meetingNotes_workflow

@@ -20,7 +20,7 @@ workflowTemplates:
         when: onEntry
       - name: skip
         from: skipping
-        to: complete
+        to: end
         when: onEntry
       - name: create-messages
         from: started
@@ -65,11 +65,11 @@ workflowTemplates:
           ${ workflow.options.autoConfirm ? 'onEntry' : 'manual' }
       - name: finish
         from: confirmed
-        to: complete
+        to: end
         when: onEntry
         call:
           - tool: llm_confirmDocument
       - name: unlock
-        from: complete
+        from: end
         to: document-created
         when: manual

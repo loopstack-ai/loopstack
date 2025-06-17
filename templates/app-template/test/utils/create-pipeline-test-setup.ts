@@ -6,15 +6,17 @@ import {
   DocumentService,
   loadConfiguration,
   PipelineProcessorService,
-  PipelineService, WorkflowService,
+  PipelineService,
+  WorkflowService,
   WorkspaceService,
 } from '@loopstack/core';
 import { TestModule } from './test.module';
+import { RootProcessorService } from '@loopstack/core/dist/modules/workflow-processor/services/root-processor.service';
 
 export interface TestSetup {
   app: INestApplication;
   dataSource: DataSource;
-  processorService: PipelineProcessorService;
+  rootProcessorService: RootProcessorService;
   pipelineService: PipelineService;
   workflowService: WorkflowService;
   workspaceService: WorkspaceService;
@@ -22,18 +24,23 @@ export interface TestSetup {
   context: any;
   cleanup: () => Promise<void>;
   teardown: () => Promise<void>;
-  setupWorkspaceAndPipeline: (workspaceType?: string, projectModel?: string) => Promise<void>;
+  setupWorkspaceAndPipeline: (
+    workspaceType?: string,
+    projectModel?: string,
+  ) => Promise<void>;
 }
 
-export async function createPipelineTestSetup(options: {
-  configPath?: string;
-  mockServices?: any[];
-} = {}): Promise<TestSetup> {
+export async function createPipelineTestSetup(
+  options: {
+    configPath?: string;
+    mockServices?: any[];
+  } = {},
+): Promise<TestSetup> {
   const moduleRef: TestingModule = await Test.createTestingModule({
     imports: [
       TestModule.forRoot({
         configs: loadConfiguration(
-          options.configPath || __dirname + '/../../src/config'
+          options.configPath || __dirname + '/../../src/config',
         ),
         mockServices: options.mockServices || [],
       }),
@@ -48,7 +55,8 @@ export async function createPipelineTestSetup(options: {
   const services = {
     app,
     dataSource,
-    processorService: moduleRef.get<PipelineProcessorService>(PipelineProcessorService),
+    rootProcessorService:
+      moduleRef.get<RootProcessorService>(RootProcessorService),
     pipelineService: moduleRef.get<PipelineService>(PipelineService),
     workspaceService: moduleRef.get<WorkspaceService>(WorkspaceService),
     documentService: moduleRef.get<DocumentService>(DocumentService),
@@ -74,7 +82,9 @@ export async function createPipelineTestSetup(options: {
       type: workspaceType,
       createdBy: null,
     });
-    context.workspace = await services.workspaceService.getRepository().save(workspace);
+    context.workspace = await services.workspaceService
+      .getRepository()
+      .save(workspace);
 
     // Create test pipeline
     const pipeline = services.pipelineService.getRepository().create({
@@ -82,7 +92,9 @@ export async function createPipelineTestSetup(options: {
       workspace: context.workspace,
       createdBy: null,
     });
-    context.pipeline = await services.pipelineService.getRepository().save(pipeline);
+    context.pipeline = await services.pipelineService
+      .getRepository()
+      .save(pipeline);
   };
 
   const cleanup = async () => {

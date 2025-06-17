@@ -23,7 +23,7 @@ workflowTemplates:
 
       - name: skip
         from: skipping
-        to: complete
+        to: end
         when: onEntry
 
       - name: CreateOutputTemplate
@@ -99,9 +99,9 @@ workflowTemplates:
 
       - name: finish
         from: confirmed
-        to: complete
+        to: end
         when: onEntry
       - name: unlock
-        from: complete
+        from: end
         to: document-created
         when: manual

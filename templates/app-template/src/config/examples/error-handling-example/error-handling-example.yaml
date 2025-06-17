@@ -28,7 +28,7 @@ workflows:
 
       - name: finish
         from: successful
-        to: complete
+        to: end
 
 tools:
   - name: examples_errorHandling_throwError
@@ -41,4 +41,8 @@ pipelines:
   - name: examples_errorHandling
     title: "Error Handling Example"
     workspace: examples
-    entrypoint: examples_errorHandling_workflow
+    isRoot: true
+    type: sequence
+    sequence:
+      - workflow: examples_errorHandling_workflow
+

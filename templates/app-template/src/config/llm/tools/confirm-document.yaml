@@ -8,4 +8,4 @@ tools:
           meta:
             enableAtPlaces:
               - document-created
-          content: ${ metadata.payload ?? DOCUMENT_DRAFT }
+          content: ${ transition.payload ?? DOCUMENT_DRAFT }

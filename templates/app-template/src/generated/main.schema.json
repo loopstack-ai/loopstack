@@ -29,35 +29,6 @@
         "pipelines": {
           "type": "array",
           "items": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-              },
-              "title": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-              },
-              "description": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-              },
-              "workspace": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-              },
-              "entrypoint": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-              }
-            },
-            "required": [
-              "name",
-              "workspace",
-              "entrypoint"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "workflows": {
-          "type": "array",
-          "items": {
             "anyOf": [
               {
                 "type": "object",
@@ -70,6 +41,12 @@
                   },
                   "description": {
                     "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                  },
+                  "workspace": {
+                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                  },
+                  "isRoot": {
+                    "type": "boolean"
                   },
                   "namespace": {
                     "type": "object",
@@ -84,227 +61,56 @@
                     ],
                     "additionalProperties": false
                   },
-                  "ui": {
-                    "type": "object",
-                    "properties": {
-                      "widget": {
-                        "type": "string"
-                      },
-                      "index": {
-                        "type": "number"
-                      },
-                      "label": {
-                        "type": "string"
-                      },
-                      "descriptions": {
-                        "type": "string"
-                      },
-                      "placeholder": {
-                        "type": "string"
-                      },
-                      "rows": {
-                        "type": "integer",
-                        "exclusiveMinimum": 0
-                      },
-                      "inline": {
-                        "type": "boolean"
-                      },
-                      "inputType": {
-                        "type": "string"
-                      },
-                      "emptyValue": {},
-                      "help": {
-                        "type": "string"
-                      },
-                      "title": {
-                        "type": "string"
-                      },
-                      "enumOptions": {
-                        "anyOf": [
-                          {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "label": {
-                                  "type": "string"
-                                },
-                                "value": {}
-                              },
-                              "required": [
-                                "label"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
-                          {
-                            "type": "string"
-                          }
-                        ]
-                      },
-                      "titleFormat": {
-                        "type": "string"
-                      },
-                      "addable": {
-                        "type": "boolean"
-                      },
-                      "removable": {
-                        "type": "boolean"
-                      },
-                      "movable": {
-                        "type": "boolean"
-                      },
-                      "accept": {
-                        "type": "string"
-                      },
-                      "multiple": {
-                        "type": "boolean"
-                      },
-                      "hidden": {
-                        "type": "boolean"
-                      },
-                      "disabled": {
-                        "type": "boolean"
-                      },
-                      "readonly": {
-                        "type": "boolean"
-                      },
-                      "order": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "buttons": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "transition": {
-                              "type": "string"
-                            },
-                            "position": {
-                              "type": "number"
-                            },
-                            "label": {
-                              "type": "string"
-                            },
-                            "props": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            },
-                            "widget": {
-                              "type": "string"
-                            },
-                            "enabledWhen": {
-                              "type": "array",
-                              "items": {
-                                "type": "string"
-                              }
-                            }
-                          },
-                          "required": [
-                            "transition"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      "items": {
-                        "anyOf": [
-                          {
-                            "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
-                          },
-                          {
-                            "type": "array",
-                            "items": {
-                              "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
-                            }
-                          }
-                        ]
-                      },
-                      "properties": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
-                        }
-                      }
-                    },
-                    "additionalProperties": false
-                  },
-                  "type": {
-                    "type": "string",
-                    "const": "pipeline"
-                  },
-                  "sequence": {
-                    "type": "array",
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                            },
-                            "condition": {
-                              "type": "string",
-                              "pattern": "^(?:\\||>)?(?:[-+])?\\s*\\$\\{([\\s\\S]*?)\\}\\s*$"
-                            }
-                          },
-                          "required": [
-                            "name"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                        }
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "name",
-                  "type",
-                  "sequence"
-                ],
-                "additionalProperties": false
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                  },
-                  "title": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/title"
-                  },
-                  "description": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/description"
-                  },
-                  "namespace": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/namespace"
-                  },
-                  "ui": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
-                  },
                   "type": {
                     "type": "string",
                     "const": "factory"
                   },
-                  "workflow": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                  "factory": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "workflow": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          },
+                          "condition": {
+                            "type": "string",
+                            "pattern": "^(?:\\||>)?(?:[-+])?\\s*\\$\\{([\\s\\S]*?)\\}\\s*$"
+                          }
+                        },
+                        "required": [
+                          "workflow"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "pipeline": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          },
+                          "condition": {
+                            "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                          }
+                        },
+                        "required": [
+                          "pipeline"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "iterator": {
                     "type": "object",
                     "properties": {
                       "source": {
-                        "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                        "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                       },
                       "label": {
-                        "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                        "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                       },
                       "meta": {
-                        "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                        "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                       }
                     },
                     "required": [
@@ -315,9 +121,11 @@
                 },
                 "required": [
                   "name",
+                  "workspace",
+                  "isRoot",
                   "namespace",
                   "type",
-                  "workflow",
+                  "factory",
                   "iterator"
                 ],
                 "additionalProperties": false
@@ -329,154 +137,307 @@
                     "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                   },
                   "title": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/title"
+                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/title"
                   },
                   "description": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/description"
+                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/description"
+                  },
+                  "workspace": {
+                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                  },
+                  "isRoot": {
+                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/isRoot"
                   },
                   "namespace": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/namespace"
-                  },
-                  "ui": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
+                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/namespace"
                   },
                   "type": {
                     "type": "string",
-                    "const": "tool"
+                    "const": "sequence"
                   },
                   "sequence": {
                     "type": "array",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "tool": {
-                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                        },
-                        "arguments": {},
-                        "exportAs": {
-                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                        }
-                      },
-                      "required": [
-                        "tool"
-                      ],
-                      "additionalProperties": false
+                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory"
                     }
                   }
                 },
                 "required": [
                   "name",
-                  "type"
-                ],
-                "additionalProperties": false
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                  },
-                  "title": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/title"
-                  },
-                  "description": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/description"
-                  },
-                  "namespace": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/namespace"
-                  },
-                  "ui": {
-                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
-                  },
-                  "extends": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                  },
-                  "transitions": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                        },
-                        "from": {
-                          "anyOf": [
-                            {
-                              "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                            },
-                            {
-                              "type": "array",
-                              "items": {
-                                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                              }
-                            }
-                          ]
-                        },
-                        "to": {
-                          "anyOf": [
-                            {
-                              "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                            },
-                            {
-                              "type": "array",
-                              "items": {
-                                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                              }
-                            }
-                          ]
-                        },
-                        "when": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "enum": [
-                                "manual",
-                                "onEntry"
-                              ]
-                            },
-                            {
-                              "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
-                            }
-                          ]
-                        },
-                        "call": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/2/properties/sequence/items"
-                          }
-                        },
-                        "onError": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "name"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "type": {
-                    "type": "string",
-                    "const": "stateMachine"
-                  },
-                  "options": {},
-                  "meta": {
-                    "type": "object",
-                    "properties": {
-                      "title": {
-                        "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                },
-                "required": [
-                  "name",
-                  "type"
+                  "workspace",
+                  "isRoot",
+                  "type",
+                  "sequence"
                 ],
                 "additionalProperties": false
               }
             ]
+          }
+        },
+        "workflows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+              },
+              "title": {
+                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+              },
+              "description": {
+                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+              },
+              "namespace": {
+                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/namespace"
+              },
+              "ui": {
+                "type": "object",
+                "properties": {
+                  "widget": {
+                    "type": "string"
+                  },
+                  "index": {
+                    "type": "number"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "descriptions": {
+                    "type": "string"
+                  },
+                  "placeholder": {
+                    "type": "string"
+                  },
+                  "rows": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  },
+                  "inline": {
+                    "type": "boolean"
+                  },
+                  "inputType": {
+                    "type": "string"
+                  },
+                  "emptyValue": {},
+                  "help": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "enumOptions": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string"
+                            },
+                            "value": {}
+                          },
+                          "required": [
+                            "label"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "titleFormat": {
+                    "type": "string"
+                  },
+                  "addable": {
+                    "type": "boolean"
+                  },
+                  "removable": {
+                    "type": "boolean"
+                  },
+                  "movable": {
+                    "type": "boolean"
+                  },
+                  "accept": {
+                    "type": "string"
+                  },
+                  "multiple": {
+                    "type": "boolean"
+                  },
+                  "hidden": {
+                    "type": "boolean"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "readonly": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "buttons": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "transition": {
+                          "type": "string"
+                        },
+                        "position": {
+                          "type": "number"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "props": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "widget": {
+                          "type": "string"
+                        },
+                        "enabledWhen": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "transition"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "items": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/ui"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/ui"
+                        }
+                      }
+                    ]
+                  },
+                  "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/ui"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "extends": {
+                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+              },
+              "transitions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                    },
+                    "from": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          }
+                        }
+                      ]
+                    },
+                    "to": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          }
+                        }
+                      ]
+                    },
+                    "when": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "manual",
+                            "onEntry"
+                          ]
+                        },
+                        {
+                          "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                        }
+                      ]
+                    },
+                    "call": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tool": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          },
+                          "arguments": {},
+                          "exportAs": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          }
+                        },
+                        "required": [
+                          "tool"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "onError": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "type": {
+                "type": "string",
+                "const": "stateMachine"
+              },
+              "options": {},
+              "meta": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "name",
+              "type"
+            ],
+            "additionalProperties": false
           }
         },
         "workflowTemplates": {
@@ -704,7 +665,7 @@
                 "additionalProperties": false
               },
               "ui": {
-                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
+                "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/ui"
               },
               "tags": {
                 "type": "array",
@@ -823,7 +784,7 @@
                                     "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                                   },
                                   {
-                                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                   }
                                 ]
                               },
@@ -835,7 +796,7 @@
                                 "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
                               },
                               "ui": {
-                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/ui"
+                                "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/ui"
                               },
                               "tags": {
                                 "anyOf": [
@@ -846,7 +807,7 @@
                                     }
                                   },
                                   {
-                                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                   }
                                 ]
                               },
@@ -859,7 +820,7 @@
                                         "$ref": "#/definitions/MainSchema/properties/documents/items/properties/meta/properties/mimeType"
                                       },
                                       {
-                                        "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                        "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                       }
                                     ]
                                   },
@@ -869,14 +830,14 @@
                                         "type": "boolean"
                                       },
                                       {
-                                        "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                        "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                       }
                                     ]
                                   },
                                   "level": {
                                     "anyOf": [
                                       {
-                                        "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                        "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                       },
                                       {
                                         "type": "string",
@@ -972,7 +933,7 @@
                           "name": {
                             "anyOf": [
                               {
-                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               },
                               {
                                 "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
@@ -982,7 +943,7 @@
                           "addSuffix": {
                             "anyOf": [
                               {
-                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               },
                               {
                                 "type": "boolean"
@@ -992,7 +953,7 @@
                           "items": {
                             "anyOf": [
                               {
-                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               },
                               {
                                 "type": "array"
@@ -1085,7 +1046,7 @@
                                 "type": "string"
                               },
                               {
-                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               }
                             ]
                           },
@@ -1131,11 +1092,11 @@
                                     {
                                       "type": "array",
                                       "items": {
-                                        "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                        "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                       }
                                     },
                                     {
-                                      "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                     },
                                     {
                                       "type": "object",
@@ -1215,7 +1176,7 @@
                                               }
                                             },
                                             {
-                                              "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                              "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                             }
                                           ]
                                         }
@@ -1378,7 +1339,7 @@
                                   "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                                 },
                                 "condition": {
-                                  "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                  "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                 }
                               },
                               "required": [
@@ -1411,7 +1372,7 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                            "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                           },
                           "update": {
                             "type": "object",
@@ -1464,7 +1425,7 @@
                         "type": "object",
                         "properties": {
                           "target": {
-                            "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                            "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                           }
                         },
                         "required": [
@@ -1495,7 +1456,7 @@
                                 "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                               },
                               {
-                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               }
                             ]
                           }
@@ -1528,7 +1489,7 @@
                                 "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                               },
                               {
-                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               }
                             ]
                           },
@@ -1538,7 +1499,7 @@
                                 "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                               },
                               {
-                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               }
                             ]
                           }
@@ -1573,7 +1534,7 @@
                                 "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                               },
                               {
-                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               }
                             ]
                           }
@@ -1606,7 +1567,7 @@
                               "model": {
                                 "anyOf": [
                                   {
-                                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                   },
                                   {
                                     "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
@@ -1639,7 +1600,7 @@
                                 "role": {
                                   "anyOf": [
                                     {
-                                      "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                     },
                                     {
                                       "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
@@ -1649,7 +1610,7 @@
                                 "content": {
                                   "anyOf": [
                                     {
-                                      "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                     },
                                     {
                                       "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
@@ -1693,7 +1654,7 @@
                               "model": {
                                 "anyOf": [
                                   {
-                                    "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                   },
                                   {
                                     "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
@@ -1721,7 +1682,7 @@
                           "messagesSearchTag": {
                             "anyOf": [
                               {
-                                "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               },
                               {
                                 "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
@@ -1755,7 +1716,7 @@
                         "type": "object",
                         "properties": {
                           "toolCalls": {
-                            "$ref": "#/definitions/MainSchema/properties/workflows/items/anyOf/0/properties/sequence/items/anyOf/0/properties/condition"
+                            "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                           }
                         },
                         "required": [

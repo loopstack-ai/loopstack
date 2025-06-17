@@ -5,7 +5,10 @@ export interface MockServiceInterface extends ServiceInterface {
   apply: jest.MockedFunction<ServiceInterface['apply']>;
 }
 
-export function mockServiceInRegistry(serviceRegistry: ServiceRegistry, serviceName: string): MockServiceInterface {
+export function mockServiceInRegistry(
+  serviceRegistry: ServiceRegistry,
+  serviceName: string,
+): MockServiceInterface {
   const mockInstance: MockServiceInterface = {
     apply: jest.fn(),
   };

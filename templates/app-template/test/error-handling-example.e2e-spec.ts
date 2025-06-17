@@ -8,7 +8,10 @@ describe('Error Handling Example', () => {
   });
 
   beforeEach(async () => {
-    await testSetup.setupWorkspaceAndPipeline('examples', 'examples_errorHandling');
+    await testSetup.setupWorkspaceAndPipeline(
+      'examples',
+      'examples_errorHandling',
+    );
   });
 
   afterEach(async () => {
@@ -20,20 +23,22 @@ describe('Error Handling Example', () => {
   });
 
   it('should handle error gracefully', async () => {
-    const result = await testSetup.processorService.processPipeline({
-      userId: null,
-      pipelineId: testSetup.context.pipeline.id,
-    });
+    const result = await testSetup.rootProcessorService.processRootPipeline(
+      testSetup.context.pipeline,
+      {},
+    );
 
     expect(result.model).toEqual('examples_errorHandling');
 
-    const messages = await testSetup.documentService.createDocumentsQuery(
-      testSetup.context.pipeline.id,
-      testSetup.context.workspace.id,
-      {
-        name: "core_errorMessage"
-      }
-    ).getMany();
+    const messages = await testSetup.documentService
+      .createDocumentsQuery(
+        testSetup.context.pipeline.id,
+        testSetup.context.workspace.id,
+        {
+          name: 'core_errorMessage',
+        },
+      )
+      .getMany();
 
     expect(messages[0].content.message).toContain('error');
   });

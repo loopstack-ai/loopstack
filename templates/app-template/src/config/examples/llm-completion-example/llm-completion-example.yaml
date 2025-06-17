@@ -16,7 +16,7 @@ workflows:
 
       - name: addResponseMessage
         from: responseReceived
-        to: complete
+        to: end
         call:
           - tool: core_createChatMessage
             arguments:
@@ -49,4 +49,7 @@ pipelines:
   - name: examples_llmCompletion
     title: "Llm Completion Example"
     workspace: examples
-    entrypoint: examples_llmCompletion_workflow
+    isRoot: true
+    type: sequence
+    sequence:
+      - workflow: examples_llmCompletion_workflow

@@ -48,12 +48,12 @@ workflows:
         from: responseReceived
         to:
           - toolCallsReceived
-          - complete
+          - end
         call:
           - tool: core_switchTarget
             arguments:
               target: |
-                ${ PROMPT_RESULT.response.data['tool_calls']?.length > 0 ? 'toolCallsReceived' : 'complete' }
+                ${ PROMPT_RESULT.response.data['tool_calls']?.length > 0 ? 'toolCallsReceived' : 'end' }
 
       - name: callTools
         from: toolCallsReceived
@@ -105,4 +105,7 @@ pipelines:
   - name: examples_toolCallAgent
     title: "Tool Call Agent Example"
     workspace: examples
-    entrypoint: examples_toolCallAgent_workflow
+    isRoot: true
+    type: sequence
+    sequence:
+      - workflow: examples_toolCallAgent_workflow

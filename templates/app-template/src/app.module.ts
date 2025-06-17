@@ -22,7 +22,6 @@ import { LlmModule } from '@loopstack/llm';
     LoopstackApiModule,
     LlmModule,
   ],
-  providers: [
-  ],
+  providers: [],
 })
 export class AppModule {}

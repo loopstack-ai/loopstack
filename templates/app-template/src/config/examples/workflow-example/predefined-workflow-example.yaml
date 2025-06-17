@@ -43,7 +43,7 @@ workflows:
           - tool: core_createDocument
             arguments:
               document: examples_predefinedWorkflow_userInputDocument
-              content: ${ metadata.payload }
+              content: ${ transition.payload }
             exportAs: USER_INPUT_DOCUMENT
 
       - name: analyse
@@ -132,4 +132,7 @@ pipelines:
   - name: examples_predefinedWorkflow
     title: "Predefined Workflow Example"
     workspace: examples
-    entrypoint: examples_predefinedWorkflow_workflow
+    isRoot: true
+    type: sequence
+    sequence:
+      - workflow: examples_predefinedWorkflow_workflow

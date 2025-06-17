@@ -23,7 +23,7 @@ workflows:
           - tool: core_createChatMessage
             arguments:
               role: user
-              content: ${ metadata.payload }
+              content: ${ transition.payload }
 
       - name: createLlmResponse
         from: userMessageAdded
@@ -55,4 +55,7 @@ pipelines:
   - name: examples_chatBot
     title: "Chatbot Example"
     workspace: examples
-    entrypoint: examples_chatBot_workflow
+    isRoot: true
+    type: sequence
+    sequence:
+      - workflow: examples_chatBot_workflow
