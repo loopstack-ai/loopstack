@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/app-template",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -18,10 +18,10 @@
     "generate:schema": "ts-node src/cli.ts -- generate-schema"
   },
   "dependencies": {
-    "@loopstack/api": "^0.1.2",
-    "@loopstack/core": "^0.1.2",
-    "@loopstack/llm": "^0.1.2",
-    "@loopstack/shared": "^0.1.2",
+    "@loopstack/api": "^0.2.0",
+    "@loopstack/core": "^0.2.0",
+    "@loopstack/llm": "^0.2.0",
+    "@loopstack/shared": "^0.2.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",

@@ -1,5 +1,19 @@
 # @loopstack/app-template
 
+## 0.2.0
+
+### Minor Changes
+
+- Rework of Pipeline and Workflow processing including improvements for configuration schemas
+
+### Patch Changes
+
+- Updated dependencies
+  - @loopstack/api@0.2.0
+  - @loopstack/core@0.2.0
+  - @loopstack/llm@0.2.0
+  - @loopstack/shared@0.2.0
+
 ## 0.1.3
 
 ### Patch Changes
