@@ -1,5 +1,11 @@
 # create-loopstack-app
 
+## 0.2.0
+
+### Minor Changes
+
+- Rework of Pipeline and Workflow processing including improvements for configuration schemas
+
 ## 0.1.1
 
 ### Patch Changes
