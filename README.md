@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-v0.1--alpha-orange)](https://github.com/loopstack-ai/loopstack/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Discord](https://img.shields.io/badge/discord-join%20community-7289da)](https://discord.gg/wuXpv76p)
+[![Discord](https://img.shields.io/badge/discord-join%20community-7289da)](https://discord.gg/svAHrkxKZg)
 
 A developer-first, open-source framework for reliable AI workflow automation that eliminates the complexity of building, testing, and deploying AI-powered applications.
 
@@ -124,7 +124,7 @@ workflows:
 
       - name: addResponseMessage
         from: responseReceived
-        to: complete
+        to: end
         call:
           - tool: core_createChatMessage
             arguments:
@@ -157,7 +157,10 @@ pipelines:
   - name: examples_llmCompletion
     title: "Llm Completion Example"
     workspace: examples
-    entrypoint: examples_llmCompletion_workflow
+    isRoot: true
+    type: sequence
+    sequence:
+      - workflow: examples_llmCompletion_workflow
 ```
 
 ### Building custom services to invoke with tools
@@ -199,91 +202,10 @@ export class PdfExtractorTool implements ServiceInterface {
 }
 ```
 
-### Write Test for your code and workflows
-
-```typescript
-// ./test/llm-completion-example.e2e-spec.ts
-
-import { createPipelineTestSetup } from './utils/create-pipeline-test-setup';
-import { ServiceRegistry } from '@loopstack/core';
-import { mockServiceInRegistry, MockServiceInterface } from './utils/mock-service-registry';
-import { createMockPromptResponse } from './utils/create-mock-llm-response';
-
-describe('Llm Completion Example', () => {
-  let testSetup: any;
-  let serviceRegistry: ServiceRegistry;
-  let mockService: MockServiceInterface;
-
-  beforeAll(async () => {
-    testSetup = await createPipelineTestSetup();
-    serviceRegistry = testSetup.app.get(ServiceRegistry);
-  });
-
-  beforeEach(async () => {
-    await testSetup.setupWorkspaceAndPipeline('examples', 'examples_llmCompletion');
-    jest.clearAllMocks();
-    mockService = mockServiceInRegistry(serviceRegistry, 'LlmCompletionService');
-  });
-
-  afterEach(async () => {
-    await testSetup.cleanup();
-  });
-
-  afterAll(async () => {
-    await testSetup.teardown();
-  });
-
-  it('should request the completion and output the response', async () => {
-
-    // Mock llm response
-    const completionResponse = createMockPromptResponse('Subject: Request for Reports by Tomorrow\\n\\nDear John,\\n\\nI hope this message finds you well. I am writing to kindly request if you could send me the reports by tomorrow. Your assistance in this matter would be greatly appreciated.\\n\\nThank you in advance for your cooperation.\\n\\nBest regards,\\n\\n[Your Name]');
-
-    mockService.apply
-      .mockResolvedValueOnce({ success: true, data: { content: completionResponse } });
-
-    const result = await testSetup.processorService.processPipeline({
-      userId: null,
-      pipelineId: testSetup.context.pipeline.id,
-    });
-
-    expect(result.model).toEqual('examples_llmCompletion');
-
-    const messages = await testSetup.documentService.createDocumentsQuery(
-      testSetup.context.pipeline.id,
-      testSetup.context.workspace.id,
-      {
-        name: "core_chatMessage"
-      }
-    ).getMany();
-
-    // Verify LLM completion was called with user input
-    expect(mockService.apply).toHaveBeenCalledWith(
-      expect.objectContaining({
-        messages: expect.arrayContaining([
-          expect.objectContaining({
-            role: 'system',
-            content: expect.stringContaining('hey john')
-          })
-        ])
-      }),
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-    );
-
-    // Verify message is created
-    const lastMessage = messages[messages.length - 1]?.content;
-    expect(lastMessage.role).toEqual('assistant');
-    expect(lastMessage.content).toContain('Request for Reports by Tomorrow');
-
-  });
-});
-```
-
 ## Getting Help
 
 - 📖 **Documentation**: [https://loopstack.ai/docs](https://loopstack.ai/docs)
-- 💬 **Discord Community**: [https://discord.gg/loopstack](https://discord.gg/wuXpv76p)
+- 💬 **Discord Community**: [https://discord.gg/loopstack](https://discord.gg/svAHrkxKZg)
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/loopstack-ai/loopstack/issues)
 
 ## Contributing
@@ -293,7 +215,7 @@ We're actively preparing Loopstack for full open-source contribution! While we f
 - 🐛 [Reporting bugs and issues](https://github.com/loopstack-ai/loopstack/issues)
 - 💡 [Suggesting features and improvements](https://github.com/loopstack-ai/loopstack/discussions)
 - 📖 Improving documentation
-- 💬 Joining our [Discord community](https://discord.gg/wuXpv76p) to share feedback
+- 💬 Joining our [Discord community](https://discord.gg/svAHrkxKZg) to share feedback
 
 **Coming soon**: Full source code access, contribution guidelines, and developer onboarding docs.
 
