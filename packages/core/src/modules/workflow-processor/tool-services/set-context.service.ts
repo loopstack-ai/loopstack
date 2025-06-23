@@ -6,6 +6,7 @@ import {
   ServiceCallResult,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
+import { WorkflowContextService } from '../services';
 
 const config = z
   .object({
@@ -29,6 +30,8 @@ const schema = z
 export class SetContextService implements ServiceInterface {
   private readonly logger = new Logger(SetContextService.name);
 
+  constructor(private readonly workflowContextService: WorkflowContextService) {}
+
   async apply(
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
@@ -37,11 +40,7 @@ export class SetContextService implements ServiceInterface {
       throw new Error('Workflow is undefined');
     }
 
-    if (!workflow.contextUpdate) {
-      workflow.contextUpdate = {};
-    }
-
-    workflow.contextUpdate[props.key] = props.value;
+    workflow = this.workflowContextService.setWorkflowContextUpdate(workflow, props.key, props.value);
 
     this.logger.debug(`Set context update key "${props.key}".`);
 

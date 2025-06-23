@@ -19,7 +19,7 @@ import {
   ToolSchemaValidatorService,
   TemplateExpressionEvaluatorService,
   WorkflowStateService,
-  RootProcessorService,
+  RootProcessorService, WorkflowContextService,
 } from './services';
 import {
   AddNamespaceService,
@@ -58,6 +58,7 @@ import {
     UpdateDocumentService,
     TemplateExpressionEvaluatorService,
     SetTargetPlaceService,
+    WorkflowContextService,
 
     InitialRunValidator,
     WorkflowDependenciesValidator,

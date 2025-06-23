@@ -30,10 +30,10 @@ export class WorkflowProcessorService {
       context.stop = true;
     } else {
       // update the context if changed in workflow
-      if (workflow.contextUpdate) {
-        context.custom = {
-          ...context.custom,
-          ...workflow.contextUpdate,
+      if (workflow.contextVariables) {
+        context.variables = {
+          ...context.variables,
+          ...workflow.contextVariables,
         };
       }
     }

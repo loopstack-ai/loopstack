@@ -9,3 +9,4 @@ export * from './tool-schema-validator.service';
 export * from './template-expression-evaluator.service';
 export * from './workflow-state.service';
 export * from './root-processor.service';
+export * from './workflow-context.service';

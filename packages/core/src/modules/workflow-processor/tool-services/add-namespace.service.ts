@@ -48,14 +48,14 @@ export class AddNamespaceService implements ServiceInterface {
       parent: context.namespace,
     });
 
-    if (!workflow.contextUpdate) {
-      workflow.contextUpdate = {};
+    if (!workflow.contextVariables) {
+      workflow.contextVariables = {};
     }
 
     const contextLabels = context.labels;
-    const workflowLabels = workflow.contextUpdate.labels ?? [];
+    const workflowLabels = workflow.contextVariables.labels ?? [];
 
-    workflow.contextUpdate.labels = [
+    workflow.contextVariables.labels = [
       ...contextLabels,
       ...workflowLabels,
       namespace.name,

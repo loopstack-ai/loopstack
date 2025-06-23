@@ -313,8 +313,7 @@ export class StateMachineProcessorService {
               workflow = this.toolExecutionService.commitServiceCallResult(
                 workflow,
                 transitionData.transition,
-                toolCall.tool,
-                toolCall.exportAs,
+                toolCall,
                 result,
               );
 

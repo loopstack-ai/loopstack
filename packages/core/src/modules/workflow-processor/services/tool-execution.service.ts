@@ -11,6 +11,7 @@ import { WorkflowEntity } from '@loopstack/shared';
 import { ToolSchemaValidatorService } from './tool-schema-validator.service';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { SchemaValidatorService } from '../../common';
+import { WorkflowContextService } from './workflow-context.service';
 
 @Injectable()
 export class ToolExecutionService {
@@ -22,6 +23,7 @@ export class ToolExecutionService {
     private toolSchemaValidatorService: ToolSchemaValidatorService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private schemaValidatorService: SchemaValidatorService,
+    private workflowContextService: WorkflowContextService,
   ) {}
 
   getToolConfig(toolName: string) {
@@ -110,24 +112,29 @@ export class ToolExecutionService {
   commitServiceCallResult(
     workflow: WorkflowEntity,
     transition: string,
-    tool: string,
-    alias: string | undefined,
+    toolCall: ToolCallType,
     result: ServiceCallResult | undefined,
   ) {
+    if (!result?.data) {
+      return workflow;
+    }
+
     if (result?.workflow) {
       workflow = result?.workflow;
     }
 
-    if (result?.data) {
-      this.addWorkflowTransitionData(workflow, transition, tool, result.data);
-    }
+    this.addWorkflowTransitionData(workflow, transition, toolCall.tool, result.data);
 
-    if (alias) {
+    if (toolCall.exportVariable) {
       const currAlias = workflow.aliasData ?? {};
       workflow.aliasData = {
         ...currAlias,
-        [alias]: [transition, tool],
+        [toolCall.exportVariable]: [transition, toolCall.tool],
       };
+    }
+
+    if (toolCall.exportContext) {
+      workflow = this.workflowContextService.setWorkflowContextUpdate(workflow, toolCall.exportContext, result.data);
     }
 
     return workflow;
