@@ -42,12 +42,6 @@
                   "description": {
                     "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                   },
-                  "workspace": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                  },
-                  "isRoot": {
-                    "type": "boolean"
-                  },
                   "namespace": {
                     "type": "object",
                     "properties": {
@@ -121,8 +115,6 @@
                 },
                 "required": [
                   "name",
-                  "workspace",
-                  "isRoot",
                   "namespace",
                   "type",
                   "factory",
@@ -142,12 +134,6 @@
                   "description": {
                     "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/description"
                   },
-                  "workspace": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                  },
-                  "isRoot": {
-                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/isRoot"
-                  },
                   "namespace": {
                     "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/namespace"
                   },
@@ -164,10 +150,42 @@
                 },
                 "required": [
                   "name",
-                  "workspace",
-                  "isRoot",
                   "type",
                   "sequence"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                  },
+                  "title": {
+                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/title"
+                  },
+                  "description": {
+                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/description"
+                  },
+                  "namespace": {
+                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/1/properties/namespace"
+                  },
+                  "type": {
+                    "type": "string",
+                    "const": "root"
+                  },
+                  "sequence": {
+                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/1/properties/sequence"
+                  },
+                  "workspace": {
+                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                  }
+                },
+                "required": [
+                  "name",
+                  "type",
+                  "sequence",
+                  "workspace"
                 ],
                 "additionalProperties": false
               }

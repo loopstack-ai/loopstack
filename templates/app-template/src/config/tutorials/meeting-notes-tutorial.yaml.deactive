@@ -94,7 +94,6 @@ pipelines:
   - name: tutorials_meetingNotes
     title: "Meeting Notes Summarizer"
     workspace: tutorials
-    isRoot: true
-    type: sequence
+    type: root
     sequence:
       - workflow: tutorials_meetingNotes_workflow

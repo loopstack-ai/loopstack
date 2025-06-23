@@ -41,8 +41,7 @@ pipelines:
   - name: examples_errorHandling
     title: "Error Handling Example"
     workspace: examples
-    isRoot: true
-    type: sequence
+    type: root
     sequence:
       - workflow: examples_errorHandling_workflow
 

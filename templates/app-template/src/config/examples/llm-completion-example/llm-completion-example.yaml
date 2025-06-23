@@ -49,7 +49,6 @@ pipelines:
   - name: examples_llmCompletion
     title: "Llm Completion Example"
     workspace: examples
-    isRoot: true
-    type: sequence
+    type: root
     sequence:
       - workflow: examples_llmCompletion_workflow

@@ -132,7 +132,6 @@ pipelines:
   - name: examples_predefinedWorkflow
     title: "Predefined Workflow Example"
     workspace: examples
-    isRoot: true
-    type: sequence
+    type: root
     sequence:
       - workflow: examples_predefinedWorkflow_workflow
