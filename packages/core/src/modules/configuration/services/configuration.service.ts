@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   ConfigSourceInterface,
   MainConfigType,
-  NamedCollectionItem,
+  NamedCollectionItem, PipelineType,
   StateMachineHandlerType,
 } from '@loopstack/shared';
 import { ConfigProviderRegistry } from './config-provider.registry';
@@ -136,15 +136,15 @@ export class ConfigurationService implements OnModuleInit {
           return true;
         }
         return data.pipelines.every(
-          (pipeline) =>
-            undefined !== this.get('workspaces', pipeline.workspace),
+          (pipeline: PipelineType) =>
+            pipeline.hasOwnProperty('workspace') && undefined !== this.get('workspaces', pipeline['workspace']),
         );
       },
       (data: MainConfigType) => {
         const invalidIndex =
           data.pipelines?.findIndex(
             (pipeline) =>
-              undefined === this.get('workspaces', pipeline.workspace),
+              pipeline.hasOwnProperty('workspace') && undefined !== this.get('workspaces', pipeline['workspace']),
           ) ?? -1;
 
         return {

@@ -170,10 +170,11 @@ export class PipelineProcessorService {
       );
     }
 
-    let updatedContext: ContextInterface;
+    let updatedContext: ContextInterface | undefined = undefined;
     switch (pipelineConfig.type) {
+      case 'root':
       case 'sequence':
-        updatedContext = await this.runSequenceType(pipelineConfig, context);
+        updatedContext = await this.runSequenceType(pipelineConfig as PipelineSequenceType, context);
         break;
       case 'factory':
         updatedContext = await this.runFactoryType(pipelineConfig, context);
