@@ -47,7 +47,7 @@ workflows:
             arguments:
               document: tutorials_meetingNotes_userInput
               content: ${ transition.payload }    # add the user request payload
-            exportAs: USER_INPUT                # make the document available for subsequent transitions
+            exportVariable: USER_INPUT                # make the document available for subsequent transitions
 
       - name: processMeetingNotes
         from: userInputAdded                    # transition from the userInputAdded place
@@ -56,7 +56,7 @@ workflows:
           - tool: tutorials_meetingNotes_createSummary
             arguments:
               raw_notes: ${ USER_INPUT.text }   # use the user input document ("text" property)
-            exportAs: SUMMARY_RESULT
+            exportVariable: SUMMARY_RESULT
 
       - name: addSummaryMessage
         from: meetingNotesSummarized

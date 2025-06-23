@@ -32,7 +32,7 @@ workflows:
         to: promptExecuted
         call:
           - tool: examples_toolCallAgent_promptLlm
-            exportAs: PROMPT_RESULT
+            exportVariable: PROMPT_RESULT
 
       - name: addPromptResponseMessage
         from: promptExecuted
@@ -62,7 +62,7 @@ workflows:
           - tool: core_delegateToolCalls
             arguments:
               toolCalls: ${ PROMPT_RESULT.response.data['tool_calls'] }
-            exportAs: TOOL_RESPONSES
+            exportVariable: TOOL_RESPONSES
 
       - name: addToolResponses
         from: toolsCalled

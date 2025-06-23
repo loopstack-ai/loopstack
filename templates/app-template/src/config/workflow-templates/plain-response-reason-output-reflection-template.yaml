@@ -44,7 +44,7 @@ workflowTemplates:
         when: onEntry
         call:
           - tool: llm_extractResponseTags
-            exportAs: TAGS
+            exportVariable: TAGS
       - name: create-document
         from: tags-extracted
         to: document-created
@@ -57,7 +57,7 @@ workflowTemplates:
         when: manual
         call:
           - tool: core_createChatMessage
-            exportAs: CHAT_MESSAGE
+            exportVariable: CHAT_MESSAGE
       - name: confirm
         from: document-created
         to: confirmed

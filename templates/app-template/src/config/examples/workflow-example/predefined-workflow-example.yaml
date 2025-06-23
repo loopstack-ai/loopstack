@@ -44,14 +44,14 @@ workflows:
             arguments:
               document: examples_predefinedWorkflow_userInputDocument
               content: ${ transition.payload }
-            exportAs: USER_INPUT_DOCUMENT
+            exportVariable: USER_INPUT_DOCUMENT
 
       - name: analyse
         from: userInputAdded
         to: inputAnalysed
         call:
           - tool: examples_predefinedWorkflow_analyseText
-            exportAs: ANALYSIS
+            exportVariable: ANALYSIS
 
       - name: addAnalysis
         from: inputAnalysed
@@ -67,7 +67,7 @@ workflows:
         to: improved
         call:
           - tool: examples_predefinedWorkflow_improveText
-            exportAs: IMPROVED_TEXT
+            exportVariable: IMPROVED_TEXT
 
       - name: addImprovedText
         from: improved

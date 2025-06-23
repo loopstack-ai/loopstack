@@ -12,7 +12,7 @@ workflows:
             arguments:
               user_input: |
                 hey john, can you send me those reports by tomorrow? thanks
-            exportAs: PROMPT_RESULT
+            exportVariable: PROMPT_RESULT
 
       - name: addResponseMessage
         from: responseReceived

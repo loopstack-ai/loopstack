@@ -32,7 +32,7 @@ workflowTemplates:
         when: onEntry
         call:
           - tool: llm_createOutputTemplate
-            exportAs: OUTPUT_TEMPLATE
+            exportVariable: OUTPUT_TEMPLATE
 
       - name: create-messages
         from: output-template-created
@@ -47,7 +47,7 @@ workflowTemplates:
         when: onEntry
         call:
           - tool: llm_executePrompt
-            exportAs: PROMPT_RESULT
+            exportVariable: PROMPT_RESULT
 
       - name: add-prompt-message
         from: prompt-executed
@@ -62,7 +62,7 @@ workflowTemplates:
         when: onEntry
         call:
           - tool: llm_extractResponseTags
-            exportAs: TAGS
+            exportVariable: TAGS
 
       - name: ParseResponse
         from: tags-extracted
@@ -70,7 +70,7 @@ workflowTemplates:
         when: onEntry
         call:
           - tool: llm_parseResponseOutputSection
-            exportAs: PARSED_RESPONSE
+            exportVariable: PARSED_RESPONSE
 
       - name: create-document
         from: response-parsed
@@ -78,7 +78,7 @@ workflowTemplates:
         when: onEntry
         call:
           - tool: llm_createDocumentFromParsedResponse
-            exportAs: DOCUMENT_DRAFT
+            exportVariable: DOCUMENT_DRAFT
 
       - name: chat
         from: document-created
@@ -86,7 +86,7 @@ workflowTemplates:
         when: manual
         call:
           - tool: core_createChatMessage
-            exportAs: CHAT_MESSAGE
+            exportVariable: CHAT_MESSAGE
 
       - name: confirm
         from: document-created
@@ -95,7 +95,7 @@ workflowTemplates:
           ${ (workflow.options.autoConfirm && !workflow.history.includes('unlock')) ? 'onEntry' : 'manual' }
         call:
           - tool: llm_confirmDocument
-            exportAs: CONFIRMED_DOCUMENT
+            exportVariable: CONFIRMED_DOCUMENT
 
       - name: finish
         from: confirmed

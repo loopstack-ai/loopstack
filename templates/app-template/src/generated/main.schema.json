@@ -416,7 +416,10 @@
                             "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                           },
                           "arguments": {},
-                          "exportAs": {
+                          "exportVariable": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          },
+                          "exportContext": {
                             "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                           }
                         },

@@ -30,7 +30,7 @@ workflows:
         to: llmResponseReceived
         call:
           - tool: examples_chatBot_promptLlm
-            exportAs: PROMPT_RESULT
+            exportVariable: PROMPT_RESULT
 
       - name: addAssistantMessage
         from: llmResponseReceived
