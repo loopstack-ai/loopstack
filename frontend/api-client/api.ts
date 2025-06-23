@@ -901,12 +901,12 @@ export type PipelineSortByDtoOrderEnum = typeof PipelineSortByDtoOrderEnum[keyof
  */
 
 export const PipelineStatus = {
-    New: 'new',
-    Active: 'active',
-    InProgress: 'in_progress',
-    Done: 'done',
-    Error: 'error',
-    Finished: 'finished'
+    Pending: 'pending',
+    Running: 'running',
+    Paused: 'paused',
+    Completed: 'completed',
+    Failed: 'failed',
+    Canceled: 'canceled'
 } as const;
 
 export type PipelineStatus = typeof PipelineStatus[keyof typeof PipelineStatus];
@@ -1037,11 +1037,11 @@ export interface WorkflowDto {
      */
     'error'?: string | null;
     /**
-     * Indicates if the workflow is currently running
-     * @type {boolean}
+     * Current status of the workflow
+     * @type {WorkflowState}
      * @memberof WorkflowDto
      */
-    'isWorking': boolean;
+    'status': WorkflowState;
     /**
      * Current place in the workflow state machine
      * @type {string}
@@ -1097,6 +1097,8 @@ export interface WorkflowDto {
      */
     'namespaceId': string;
 }
+
+
 /**
  * 
  * @export
@@ -1165,11 +1167,11 @@ export interface WorkflowItemDto {
      */
     'error'?: string | null;
     /**
-     * Indicates if the workflow item is currently running
-     * @type {boolean}
+     * Current status of the workflow
+     * @type {WorkflowState}
      * @memberof WorkflowItemDto
      */
-    'isWorking': boolean;
+    'status': WorkflowState;
     /**
      * Date and time when the workflow item was created
      * @type {string}
@@ -1213,6 +1215,8 @@ export interface WorkflowItemDto {
      */
     'namespaceId': string;
 }
+
+
 /**
  * 
  * @export
@@ -1239,15 +1243,15 @@ export const WorkflowSortByDtoFieldEnum = {
     Title: 'title',
     Index: 'index',
     Progress: 'progress',
+    Status: 'status',
     Error: 'error',
-    IsWorking: 'isWorking',
     CreatedAt: 'createdAt',
     UpdatedAt: 'updatedAt',
     Place: 'place',
     PrevData: 'prevData',
     CurrData: 'currData',
     AliasData: 'aliasData',
-    ContextUpdate: 'contextUpdate',
+    ContextVariables: 'contextVariables',
     PlaceInfo: 'placeInfo',
     History: 'history',
     Ui: 'ui',
@@ -1265,6 +1269,24 @@ export const WorkflowSortByDtoOrderEnum = {
 } as const;
 
 export type WorkflowSortByDtoOrderEnum = typeof WorkflowSortByDtoOrderEnum[keyof typeof WorkflowSortByDtoOrderEnum];
+
+/**
+ * Current status of the workflow
+ * @export
+ * @enum {string}
+ */
+
+export const WorkflowState = {
+    Pending: 'pending',
+    Running: 'running',
+    Waiting: 'waiting',
+    Completed: 'completed',
+    Failed: 'failed',
+    Canceled: 'canceled'
+} as const;
+
+export type WorkflowState = typeof WorkflowState[keyof typeof WorkflowState];
+
 
 /**
  * 
