@@ -144,23 +144,39 @@ export class PipelineProcessorService {
       preparedChildContexts,
     );
 
-    // process the child elements sequential
-    for (const childContext of preparedChildContexts) {
-      const tmpContext = await this.processPipelineItem(
+    let results: ContextInterface[] = [];
+    if (config.parallel) {
+
+      // process the child elements parallel
+      const allItems = preparedChildContexts.map((childContext) => this.processPipelineItem(
         config.factory,
         childContext,
-      );
+      ));
 
-      if (tmpContext.error) {
-        context.error = true;
-        context.stop = true;
-        break;
-      }
+      results = await Promise.all(allItems);
+    } else {
 
-      if (tmpContext.stop) {
-        context.stop = true;
-        break;
+      // process the child elements sequential
+      for (const childContext of preparedChildContexts) {
+        const resultContext = await this.processPipelineItem(
+          config.factory,
+          childContext,
+        );
+
+        results.push(resultContext);
+
+        if (resultContext.error || resultContext.stop) {
+          break;
+        }
       }
+    }
+
+    if (results.some((childContext) => childContext.stop)) {
+      context.stop = true;
+    }
+
+    if (results.some((childContext) => childContext.error)) {
+      context.error = true;
     }
 
     return context;
