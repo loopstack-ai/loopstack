@@ -1,6 +1,6 @@
 import { Exclude, Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { PipelineEntity, PipelineStatus } from '@loopstack/shared';
+import { PipelineEntity, PipelineState } from '@loopstack/shared';
 import { PipelineContextDto } from './pipeline-context.dto';
 
 /**
@@ -47,11 +47,11 @@ export class PipelineDto {
 
   @Expose()
   @ApiProperty({
-    enum: PipelineStatus,
+    enum: PipelineState,
     enumName: 'PipelineStatus',
     description: 'Current status of the pipeline',
   })
-  status: PipelineStatus;
+  status: PipelineState;
 
   @Expose()
   @ApiProperty({

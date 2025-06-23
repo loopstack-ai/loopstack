@@ -1,6 +1,6 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { WorkflowEntity, WorkflowStatePlaceInfoDto } from '@loopstack/shared';
+import { PipelineState, WorkflowEntity, WorkflowState, WorkflowStatePlaceInfoDto } from '@loopstack/shared';
 
 /**
  * Data Transfer Object representing a workflow item
@@ -66,11 +66,11 @@ export class WorkflowItemDto {
 
   @Expose()
   @ApiProperty({
-    description: 'Indicates if the workflow item is currently running',
-    example: true,
-    type: Boolean,
+    enum: WorkflowState,
+    enumName: 'WorkflowState',
+    description: 'Current status of the workflow',
   })
-  isWorking: boolean;
+  status: PipelineState;
 
   @Expose()
   @ApiProperty({
