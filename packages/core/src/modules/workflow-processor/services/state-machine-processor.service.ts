@@ -3,21 +3,24 @@ import { StateMachineConfigService } from './state-machine-config.service';
 import {
   ContextInterface,
   HistoryTransition,
+  ToolCallType,
   TransitionInfoInterface,
+  TransitionMetadataInterface,
   TransitionPayloadInterface,
   WorkflowEntity,
+  WorkflowState,
   WorkflowStateHistoryDto,
   WorkflowStatePlaceInfoDto,
   WorkflowTransitionType,
-  TransitionMetadataInterface,
-  ToolCallType,
   WorkflowType,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
 import { ValueParserService } from '../../common';
-import { StateMachineValidatorResultInterface } from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
+import {
+  StateMachineValidatorResultInterface,
+} from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
 import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { omit } from 'lodash';
@@ -120,7 +123,7 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
-    workflow.isWorking = true;
+    workflow.status = WorkflowState.Running;
 
     // reset workflow to "start" if there are invalidation reasons
     if (!stateMachineInfo.isStateValid) {
@@ -353,7 +356,14 @@ export class StateMachineProcessorService {
       workflow.error = e.message;
     }
 
-    workflow.isWorking = false;
+    if (workflow.error) {
+      workflow.status = WorkflowState.Failed;
+    } else if (workflow.place === 'end') {
+      workflow.status = WorkflowState.Completed;
+    } else {
+      workflow.status = WorkflowState.Waiting;
+    }
+
     await this.workflowService.save(workflow);
 
     return workflow;

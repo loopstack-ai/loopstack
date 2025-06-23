@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineProcessorService } from './state-machine-processor.service';
-import { ContextInterface, WorkflowType } from '@loopstack/shared';
+import { ContextInterface, WorkflowState, WorkflowType } from '@loopstack/shared';
 import { WorkflowStateService } from './workflow-state.service';
 
 @Injectable()
@@ -26,7 +26,11 @@ export class WorkflowProcessorService {
         config,
       );
 
-    if (workflow.place !== 'end') {
+    if (workflow.status === WorkflowState.Failed) {
+      context.error = true;
+    }
+
+    if (context.error || workflow.place !== 'end') {
       context.stop = true;
     } else {
       // update the context if changed in workflow

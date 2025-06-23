@@ -150,6 +150,13 @@ export class PipelineProcessorService {
         config.factory,
         childContext,
       );
+
+      if (tmpContext.error) {
+        context.error = true;
+        context.stop = true;
+        break;
+      }
+
       if (tmpContext.stop) {
         context.stop = true;
         break;
@@ -187,6 +194,14 @@ export class PipelineProcessorService {
       updatedContext.namespace.id === context.namespace.id
     ) {
       return updatedContext;
+    }
+
+    if (updatedContext?.error) {
+      context.error = true;
+    }
+
+    if (updatedContext?.stop) {
+      context.stop = true;
     }
 
     return context;
