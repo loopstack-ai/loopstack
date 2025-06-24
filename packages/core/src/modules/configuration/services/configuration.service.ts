@@ -137,14 +137,14 @@ export class ConfigurationService implements OnModuleInit {
         }
         return data.pipelines.every(
           (pipeline: PipelineType) =>
-            pipeline.hasOwnProperty('workspace') && undefined !== this.get('workspaces', pipeline['workspace']),
+            !pipeline.hasOwnProperty('workspace') || undefined !== this.get('workspaces', pipeline['workspace']),
         );
       },
       (data: MainConfigType) => {
         const invalidIndex =
           data.pipelines?.findIndex(
             (pipeline) =>
-              pipeline.hasOwnProperty('workspace') && undefined !== this.get('workspaces', pipeline['workspace']),
+              !pipeline.hasOwnProperty('workspace') || undefined !== this.get('workspaces', pipeline['workspace']),
           ) ?? -1;
 
         return {

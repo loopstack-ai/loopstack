@@ -8,16 +8,16 @@ import {
 
 const config = z
   .object({
-    input: z.string().optional(),
-    output: z.string().optional(),
+    input: z.any().optional(),
+    output: z.any().optional(),
     error: z.string().optional(),
   })
   .strict();
 
 const schema = z
   .object({
-    input: z.string().optional(),
-    output: z.string().optional(),
+    input: z.any().optional(),
+    output: z.any().optional(),
     error: z.string().optional(),
   })
   .strict();

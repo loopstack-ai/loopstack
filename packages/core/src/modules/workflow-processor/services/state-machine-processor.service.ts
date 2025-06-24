@@ -320,6 +320,14 @@ export class StateMachineProcessorService {
                 result,
               );
 
+              // update the context for subsequent tool calls
+              if (workflow.contextVariables) {
+                context.variables = {
+                  ...context.variables,
+                  ...workflow.contextVariables,
+                };
+              }
+
               // set the next place, if specified
               if (result?.place) {
                 nextPlace = result?.place;

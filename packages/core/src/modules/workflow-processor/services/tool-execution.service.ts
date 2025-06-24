@@ -134,7 +134,7 @@ export class ToolExecutionService {
     }
 
     if (toolCall.exportContext) {
-      workflow = this.workflowContextService.setWorkflowContextUpdate(workflow, toolCall.exportContext, result.data);
+      workflow = this.workflowContextService.setWorkflowContextUpdate(workflow, toolCall.exportContext, result.data.content);
     }
 
     return workflow;

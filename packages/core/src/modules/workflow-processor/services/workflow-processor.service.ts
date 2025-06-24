@@ -33,7 +33,7 @@ export class WorkflowProcessorService {
     if (context.error || workflow.place !== 'end') {
       context.stop = true;
     } else {
-      // update the context if changed in workflow
+      // update the context if changed in workflow (required for completed/loaded workflows)
       if (workflow.contextVariables) {
         context.variables = {
           ...context.variables,

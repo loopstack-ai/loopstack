@@ -108,6 +108,9 @@ export class PipelineProcessorService {
         },
       );
 
+      // add the current item to context
+      localContext.item = item;
+
       // set the new index
       localContext.index = this.createIndex(index, i + 1);
       contexts.push(localContext);
