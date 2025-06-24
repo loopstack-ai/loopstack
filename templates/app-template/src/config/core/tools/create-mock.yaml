@@ -1,0 +1,14 @@
+tools:
+  - name: core_createMock
+    description: "Create a mock response for debugging and testing."
+    parameters:
+      type: object
+      required:
+        - input
+        - output
+    execute:
+      service: MockService
+      arguments:
+        input: ${ arguments.input }
+        output: ${ arguments.output }
+        error: ${ arguments.error }

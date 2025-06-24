@@ -94,6 +94,9 @@
                       }
                     ]
                   },
+                  "parallel": {
+                    "type": "boolean"
+                  },
                   "iterator": {
                     "type": "object",
                     "properties": {
@@ -1005,12 +1008,8 @@
                       "arguments": {
                         "type": "object",
                         "properties": {
-                          "input": {
-                            "type": "string"
-                          },
-                          "output": {
-                            "type": "string"
-                          },
+                          "input": {},
+                          "output": {},
                           "error": {
                             "type": "string"
                           }

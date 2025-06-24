@@ -1,0 +1,84 @@
+pipelines:
+  - name: example_errorHandling
+    title: "Error Handling: API Lookup with Manual Recovery"
+    type: root
+    workspace: examples
+    sequence:
+      - workflow: example_errorHandling_workflow
+
+workflows:
+  - name: example_errorHandling_workflow
+    type: stateMachine
+    transitions:
+      - name: callAPI               # Step 1: Attempt to call external API
+        from: start
+        to:
+          - apiSuccess
+          - apiFailed
+        onError: apiFailed          # Go here if an error occurs
+        call:
+          - tool: core_createMock
+            arguments:
+              input: 'weather for San Francisco'
+              error: 'API service unavailable: 503 Service Temporarily Unavailable'  # Throw an error for demonstration
+            exportVariable: API_RESULT
+
+          - tool: core_createChatMessage   # This tool call will not execute, since an error occurred before
+            arguments:
+              role: 'assistant'
+              content: 'Weather data retrieved: <%= API_RESULT %>'
+
+      # Success path
+      - name: displayResult         # Normal completion when API succeeds
+        from: apiSuccess
+        to: end
+        call:
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: '✅ API lookup completed successfully!'
+
+      # Error handling path
+      - name: handleAPIError        # Handle API failure
+        from: apiFailed
+        to: waitingForRetry
+        call:
+          - tool: core_createErrorMessage
+            arguments:
+              message: ${ data.callAPI.error }
+
+          - tool: core_createDocument
+            arguments:
+              document: example_errorHandling_retryForm
+              content:
+                message: "API call failed. Click 'Retry' to attempt the request again."
+                timestamp: ${ new Date().toISOString() }
+
+      # Manual recovery transition
+      - name: retryAPICall          # User can manually retry the API call
+        from: waitingForRetry
+        to: start                   # Return to start to retry the original API call
+        when: manual                # Wait for user interaction
+
+documents:
+  - name: example_errorHandling_retryForm
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+        timestamp:
+          type: string
+    ui:
+      properties:
+        message:
+          title: "Status"
+          readonly: true
+        timestamp:
+          title: "Error Time"
+          readonly: true
+      buttons:
+        - transition: retryAPICall
+          label: "Retry"
+          enabledWhen:
+            - waitingForRetry

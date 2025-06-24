@@ -1,0 +1,139 @@
+pipelines:
+  - name: example_factoryPipeline
+    title: "Pipeline Factory: Batch Article Processing"
+    type: root
+    workspace: examples
+    sequence:
+      - workflow: example_factoryPipeline_setupTopics        # Step 1: Setup topic list
+      - pipeline: example_factoryPipeline_batchProcessor     # Step 2: Process topics in parallel
+
+  - name: example_factoryPipeline_batchProcessor
+    title: "Batch Article Processor"
+    type: factory
+    parallel: true                                           # Run all instances in parallel. Defaults to false.
+    factory:
+      workflow: example_factoryPipeline_processArticle       # Template workflow to execute
+    iterator:
+      source: ${ context.variables.TOPIC_LIST }              # Array of topics to process
+      label: ${ item.topic }                                 # Property to use for label. Defaults to ${ item }
+    namespace:
+      label: Articles                                        # Namespace for organization
+
+workflows:
+  - name: example_factoryPipeline_setupTopics
+    title: "Setup Topics"
+    type: stateMachine
+    transitions:
+      - name: createTopicList
+        from: start
+        to: topicsReady
+        call:
+          - tool: core_createMock
+            arguments:
+              input: 'Generate topic list for batch processing'
+              output: |
+                [
+                  {"topic": "AI in Healthcare", "category": "technology" },
+                  {"topic": "Sustainable Energy", "category": "environment" },
+                  {"topic": "Quantum Computing", "category": "technology" },
+                  {"topic": "Mental Health Apps", "category": "health" }
+                ]
+            exportContext: TOPIC_LIST_JSON
+
+      - name: parseTopicList
+        from: topicsReady
+        to: listParsed
+        call:
+          - tool: core_createMock
+            arguments:
+              input: ${ context.variables.TOPIC_LIST_JSON }
+              output: ${ JSON.parse(context.variables.TOPIC_LIST_JSON) }
+            exportContext: TOPIC_LIST   # Array available to factory pipeline
+
+      - name: displayTopics
+        from: listParsed
+        to: end
+        call:
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: |
+                📝 **Batch Processing Started**
+                
+                Processing <%= context.variables.TOPIC_LIST.length %> topics in parallel:
+                <%= context.variables.TOPIC_LIST.map(topic => `• ${topic.topic} (${topic.category})`).join('\n') %>
+
+  - name: example_factoryPipeline_processArticle
+    title: "Generate Article"
+    type: stateMachine
+    transitions:
+      - name: researchTopic
+        from: start
+        to: researched
+        call:
+          - tool: core_createMock
+            arguments:
+              input: 'Research topic: <%= context.item.topic %>'           # Access current item
+              output: 'Research completed for "<%= context.item.topic %>". Key insights: emerging trends, market analysis, expert opinions.'
+            exportVariable: RESEARCH_DATA
+
+      - name: generateContent
+        from: researched
+        to: contentGenerated
+        call:
+          - tool: core_createMock
+            arguments:
+              input: |
+                Topic: ${ context.item.topic }
+                Category: ${ context.item.category }
+                Research: ${ RESEARCH_DATA }
+              output: |
+                This article explores the fascinating world of <%= context.item.topic %>...
+            exportVariable: ARTICLE_CONTENT
+
+      - name: createDocument
+        from: contentGenerated
+        to: documentCreated
+        call:
+          - tool: core_createDocument
+            arguments:
+              document: example_factoryPipeline_article
+              content:
+                topic: ${ context.item.topic }
+                category: ${ context.item.category }
+                article: ${ ARTICLE_CONTENT }
+                processed_at: ${ new Date().toISOString() }
+
+      - name: displayResult
+        from: documentCreated
+        to: end
+        call:
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: |
+                ✅ <%=context.item.topic %> Article Completed
+
+documents:
+  - name: example_factoryPipeline_article
+    schema:
+      type: object
+      properties:
+        topic:
+          type: string
+        category:
+          type: string
+        article:
+          type: string
+        processed_at:
+          type: string
+    ui:
+      order:
+        - topic
+        - category
+        - article
+        - processed_at
+      properties:
+        article:
+          widget: textarea-expand
+

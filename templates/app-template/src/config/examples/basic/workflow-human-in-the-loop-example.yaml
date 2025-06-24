@@ -1,0 +1,149 @@
+pipelines:
+  - name: example_humanInTheLoop
+    title: "Human-in-the-Loop: Content Creation with Approval"
+    type: root
+    workspace: examples
+    sequence:
+      - workflow: example_humanInTheLoop_workflow
+
+workflows:
+  - name: example_humanInTheLoop_workflow
+    type: stateMachine
+    transitions:
+      - name: generateDraft         # Step 1: Generate initial content draft
+        from: start
+        to: draftCreated
+        call:
+          - tool: core_createMock
+            arguments:
+              input: 'blog post about renewable energy'
+              output: |
+                # The Future of Renewable Energy
+
+                Renewable energy sources are becoming increasingly important as we work toward a sustainable future. Solar and wind power have seen dramatic cost reductions, making them competitive with traditional fossil fuels.
+
+                Key benefits include:
+                - Reduced carbon emissions
+                - Energy independence
+                - Long-term cost savings
+
+                The transition to renewable energy represents one of the most significant opportunities of our time.
+            exportVariable: DRAFT_CONTENT
+
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: 'Draft content has been generated and is ready for your review.'
+
+      - name: presentForApproval    # Step 2: Present draft to user for approval
+        from: draftCreated
+        to: waitingForApproval
+        call:
+          - tool: core_createDocument
+            arguments:
+              document: example_humanInTheLoop_approvalForm
+              content:
+                draft_content: ${ DRAFT_CONTENT }
+                approved: false
+                feedback: ""
+
+      - name: processApproval       # Step 3: Handle user's approval decision
+        from: waitingForApproval
+        to:
+          - approved
+          - needsRevision
+        when: manual                # Wait for user interaction
+        call:
+          - tool: core_createMock
+            arguments:
+              input: ${ transition.payload }
+              output: ${ transition.payload.approved }
+            exportVariable: USER_DECISION
+
+          - tool: core_switchTarget
+            arguments:
+              target: |
+                ${ USER_DECISION === true ? 'approved' : 'needsRevision' }
+
+      # Approval path
+      - name: finalizeContent       # Handle approved content
+        from: approved
+        to: end
+        call:
+          - tool: core_createMock
+            arguments:
+              input: ${ DRAFT_CONTENT }
+              output: 'Content published successfully to blog.example.com'
+            exportVariable: PUBLISH_RESULT
+
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: |
+                ✅ Content approved and published!
+                
+                <%= PUBLISH_RESULT %>
+
+      # Revision path
+      - name: handleRevision        # Handle revision requests
+        from: needsRevision
+        to: draftCreated            # Return to draft creation for revision
+        call:
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: '📝 Revision requested. Generating updated draft with your feedback...'
+
+          - tool: core_createMock
+            arguments:
+              input: ${ DRAFT_CONTENT }
+              output: |
+                # The Future of Renewable Energy (Revised)
+
+                Renewable energy sources are rapidly transforming our global energy landscape. Solar and wind power have experienced unprecedented cost reductions, making them not just environmentally responsible but economically superior to traditional fossil fuels.
+
+                Key benefits include:
+                - Significant reduction in carbon emissions
+                - Enhanced energy independence and security
+                - Substantial long-term cost savings
+                - Job creation in emerging green industries
+
+                The transition to renewable energy represents the most transformative opportunity of our generation, offering both environmental and economic advantages.
+            exportVariable: DRAFT_CONTENT
+
+documents:
+  - name: example_humanInTheLoop_approvalForm
+    schema:
+      type: object
+      properties:
+        draft_content:
+          type: string
+        approved:
+          type: boolean
+        feedback:
+          type: string
+      required:
+        - draft_content
+        - approved
+    ui:
+      properties:
+        draft_content:
+          widget: textarea-expand
+          title: "Draft Content"
+          readonly: true
+        approved:
+          widget: switch
+          title: "Approve"
+        feedback:
+          widget: textarea
+          title: "Feedback (optional)"
+          placeholder: "Provide feedback for revisions..."
+      order:
+        - draft_content
+        - feedback
+        - approved
+      buttons:
+        - transition: processApproval
+          label: "Submit Decision"
+          enabledWhen:
+            - waitingForApproval

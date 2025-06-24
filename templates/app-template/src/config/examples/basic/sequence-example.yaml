@@ -1,0 +1,76 @@
+pipelines:
+  - name: example_sequencePipeline
+    title: "Pipeline Sequence: Blog Creation Pipeline"
+    type: root
+    workspace: examples
+    sequence:
+      - workflow: example_sequencePipeline_researchTopic      # Step 1: Research
+      - workflow: example_sequencePipeline_writeContent       # Step 2: Write content
+      - workflow: example_sequencePipeline_publishContent     # Step 3: Publish
+
+workflows:
+  - name: example_sequencePipeline_researchTopic
+    title: 'Research'
+    type: stateMachine
+    transitions:
+      - name: researchTopic
+        from: start
+        to: researchDone
+        call:
+          - tool: core_createMock   # A mock tool call returning the research result
+            arguments:
+              input: 'AI trends 2025'
+              output: 'Key AI trends include: agentic AI systems, reasoning models, and AI-powered robotics.'
+            exportContext: RESEARCH_RESULT
+      - name: addChatMessage
+        from: researchDone
+        to: end
+        call:
+          - tool: core_createChatMessage    # Display the results in the chat
+            arguments:
+              role: 'assistant'
+              content: ${ context.variables.RESEARCH_RESULT }
+
+  - name: example_sequencePipeline_writeContent
+    title: "Write Content"
+    type: stateMachine
+    transitions:
+      - name: writeContent
+        from: start
+        to: contentDone
+        call:
+          - tool: core_createMock   # A mock tool call returning the created content
+            arguments:
+              input: ${ context.variables.RESEARCH_RESULT }
+              output: '# Top AI Trends in 2025: The AI revolution continues to accelerate. Here are the key trends defining this year...'
+            exportContext: CREATED_CONTENT
+      - name: addChatMessage
+        from: contentDone
+        to: end
+        call:
+          - tool: core_createChatMessage    # Display the content in the chat
+            arguments:
+              role: 'assistant'
+              content: ${ context.variables.CREATED_CONTENT }
+
+  - name: example_sequencePipeline_publishContent
+    title: "Publish"
+    type: stateMachine
+    transitions:
+      - name: publishContent
+        from: start
+        to: published
+        call:
+          - tool: core_createMock   # A mock tool call returning a success message
+            arguments:
+              input: ${ context.variables.CREATED_CONTENT }
+              output: 'Blog post "Top AI Trends in 2025" published successfully to blog.example.com'
+            exportVariable: SUCCESS_MESSAGE
+      - name: addChatMessage
+        from: published
+        to: end
+        call:
+          - tool: core_createChatMessage    # Display the success message in the chat
+            arguments:
+              role: 'assistant'
+              content: ${ SUCCESS_MESSAGE }

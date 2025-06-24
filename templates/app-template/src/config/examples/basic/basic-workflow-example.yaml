@@ -1,0 +1,60 @@
+pipelines:
+  - name: example_dataProcessing
+    title: "Basic Workflow: Data Processing"
+    type: root
+    workspace: examples
+    sequence:
+      - workflow: example_dataProcessing_workflow
+
+workflows:
+  - name: example_dataProcessing_workflow
+    type: stateMachine
+    transitions:
+      - name: extractData           # Step 1: Extract raw data
+        from: start
+        to: dataExtracted
+        call:
+          - tool: core_createMock
+            arguments:
+              input: 'customer_records.csv'
+              output: 'John Doe,john@example.com,Premium,2024-01-15'
+            exportVariable: RAW_DATA
+
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: ${ RAW_DATA }
+
+      - name: transformData         # Step 2: Transform the data
+        from: dataExtracted
+        to: dataTransformed
+        call:
+          - tool: core_createMock
+            arguments:
+              input: ${ RAW_DATA }
+              output:
+                name: "John Doe"
+                email: "john@example.com"
+                tier: "Premium"
+                signup_date: "2024-01-15"
+            exportVariable: STRUCTURED_DATA
+
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: ${ JSON.stringify(STRUCTURED_DATA, null, 2) }
+
+      - name: validateData          # Step 3: Validate the result
+        from: dataTransformed
+        to: end
+        call:
+          - tool: core_createMock
+            arguments:
+              input: ${ STRUCTURED_DATA }
+              output: true
+            exportVariable: VALIDATION_RESULT
+
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: 'Data processing complete: <%= VALIDATION_RESULT === true ? "Validation passed." : "Validation failed." %>'
