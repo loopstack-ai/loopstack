@@ -1,0 +1,124 @@
+pipelines:
+  - name: example_workflowExtension
+    title: "Workflow Extension: Report Generation with Summary"
+    type: root
+    workspace: examples
+    sequence:
+      - workflow: example_workflowExtension_fullReportGeneration
+
+workflows:
+  - name: example_workflowExtension_baseReportGeneration
+    title: "Base Report Generation Workflow"
+    type: stateMachine
+    parameters:
+      type: object
+      properties:
+        topic:
+          type: string
+          minLength: 1
+          description: "The topic or subject for the report"
+        report_type:
+          type: string
+          enum: ["quarterly", "annual", "project", "analysis"]
+          default: "analysis"
+          description: "Type of report to generate"
+        audience:
+          type: string
+          enum: ["executives", "managers", "technical", "general"]
+          default: "general"
+          description: "Target audience for the report"
+      required:
+        - topic
+    transitions:
+      - name: generateReport
+        from: start
+        to: reportGenerated
+        call:
+          - tool: core_createMock
+            arguments:
+              input: |
+                You are a professional report writer. Create a comprehensive <%= arguments.report_type %> report 
+                for a <%= arguments.audience %> audience. The report should be well-structured with clear sections, 
+                data analysis, and actionable insights.
+                
+                Generate a detailed report about: <%= arguments.topic %>
+              output: |
+                # Renewable Energy Market Trends - Q4 2024 Executive Report
+
+                ## Executive Overview
+                The renewable energy sector has demonstrated unprecedented growth in 2024, with solar and wind technologies leading market expansion. Global renewable capacity increased by 15% year-over-year, driven by favorable policy frameworks and declining technology costs.
+      
+                ## Key Market Developments
+                - Solar photovoltaic installations grew by 22% globally
+                - Offshore wind capacity expanded by 18% in key markets
+                - Energy storage deployment increased by 35%
+                - Grid modernization investments reached $180 billion
+                - Cost competitiveness improved with solar LCOE decreasing by 8%
+                - Wind LCOE decreased by 6% while battery storage costs fell by 15%
+            exportVariable: REPORT_CONTENT
+
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: ${ REPORT_CONTENT }
+
+      - name: completeReport
+        from: reportGenerated
+        to: end
+        call:
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: '📊 Report generation completed!'
+
+  - name: example_workflowExtension_fullReportGeneration
+    title: "Report Generation with Executive Summary"
+    type: stateMachine
+    extends: example_workflowExtension_baseReportGeneration
+    arguments:
+      topic: "renewable energy market trends in 2024"
+      report_type: "quarterly"
+      audience: "executives"
+    transitions:
+      # Override the completion transition to add summary generation
+      - name: completeReport
+        from: reportGenerated
+        to: summaryGenerated
+        call:
+          - tool: core_createMock
+            arguments:
+              input: |
+                You are an expert at creating executive summaries. Create a concise, 
+                high-level summary that captures the key findings, insights, and 
+                recommendations from the full report. Focus on actionable information 
+                for executive decision-making.
+                
+                Create an executive summary for this report:
+                <%= REPORT_CONTENT %>
+              output: |
+                ## Executive Summary
+
+                **Growth Overview:** The renewable energy sector achieved exceptional 15% capacity expansion in 2024, with solar and wind technologies driving market leadership through improved cost competitiveness and supportive policy frameworks.
+
+                **Market Highlights:** Solar installations surged 22% globally while offshore wind expanded 18%. Energy storage deployment accelerated by 35%, supported by $180 billion in grid modernization investments and significant cost reductions across all technologies.
+            exportVariable: EXECUTIVE_SUMMARY
+
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: ${ EXECUTIVE_SUMMARY }
+
+      # Add final completion transition
+      - name: finalizeSummaryReport
+        from: summaryGenerated
+        to: end
+        call:
+          - tool: core_createChatMessage
+            arguments:
+              role: 'assistant'
+              content: |
+                📋 Complete report with executive summary finished!
+
+                **Topic**: <%= arguments.topic %>
+                **Full Report:** <%= REPORT_CONTENT.length %> characters
+                **Executive Summary:** <%= EXECUTIVE_SUMMARY.length %> characters

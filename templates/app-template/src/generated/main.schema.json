@@ -359,130 +359,11 @@
                 },
                 "additionalProperties": false
               },
-              "extends": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-              },
-              "transitions": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                    },
-                    "from": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                        },
-                        {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                          }
-                        }
-                      ]
-                    },
-                    "to": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                        },
-                        {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                          }
-                        }
-                      ]
-                    },
-                    "when": {
-                      "anyOf": [
-                        {
-                          "type": "string",
-                          "enum": [
-                            "manual",
-                            "onEntry"
-                          ]
-                        },
-                        {
-                          "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                        }
-                      ]
-                    },
-                    "call": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "tool": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                          },
-                          "arguments": {},
-                          "exportVariable": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                          },
-                          "exportContext": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                          }
-                        },
-                        "required": [
-                          "tool"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "onError": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "name"
-                  ],
-                  "additionalProperties": false
-                }
-              },
               "type": {
                 "type": "string",
                 "const": "stateMachine"
               },
-              "options": {},
-              "meta": {
-                "type": "object",
-                "properties": {
-                  "title": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "required": [
-              "name",
-              "type"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "workflowTemplates": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/MainSchema/properties/workflows/items"
-          }
-        },
-        "documents": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-              },
-              "description": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-              },
-              "content": {},
-              "schema": {
+              "parameters": {
                 "type": "object",
                 "properties": {
                   "type": {
@@ -566,12 +447,12 @@
                   "items": {
                     "anyOf": [
                       {
-                        "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                        "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                       },
                       {
                         "type": "array",
                         "items": {
-                          "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                          "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                         }
                       }
                     ]
@@ -582,7 +463,7 @@
                         "type": "boolean"
                       },
                       {
-                        "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                        "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                       }
                     ]
                   },
@@ -598,18 +479,18 @@
                     "type": "boolean"
                   },
                   "contains": {
-                    "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                    "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                   },
                   "properties": {
                     "type": "object",
                     "additionalProperties": {
-                      "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                      "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                     }
                   },
                   "patternProperties": {
                     "type": "object",
                     "additionalProperties": {
-                      "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                      "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                     }
                   },
                   "additionalProperties": {
@@ -618,7 +499,7 @@
                         "type": "boolean"
                       },
                       {
-                        "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                        "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                       }
                     ]
                   },
@@ -629,7 +510,7 @@
                     }
                   },
                   "propertyNames": {
-                    "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                    "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                   },
                   "minProperties": {
                     "type": "integer",
@@ -642,32 +523,32 @@
                   "allOf": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                      "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                     }
                   },
                   "anyOf": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                      "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                     }
                   },
                   "oneOf": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                      "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                     }
                   },
                   "not": {
-                    "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                    "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                   },
                   "if": {
-                    "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                    "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                   },
                   "then": {
-                    "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                    "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                   },
                   "else": {
-                    "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                    "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                   },
                   "enum": {
                     "type": "array"
@@ -676,7 +557,7 @@
                   "definitions": {
                     "type": "object",
                     "additionalProperties": {
-                      "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                      "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                     }
                   },
                   "$ref": {
@@ -687,6 +568,113 @@
                   "type"
                 ],
                 "additionalProperties": false
+              },
+              "extends": {
+                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+              },
+              "arguments": {},
+              "transitions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                    },
+                    "from": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          }
+                        }
+                      ]
+                    },
+                    "to": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          }
+                        }
+                      ]
+                    },
+                    "when": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "manual",
+                            "onEntry"
+                          ]
+                        },
+                        {
+                          "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                        }
+                      ]
+                    },
+                    "call": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tool": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          },
+                          "arguments": {},
+                          "exportVariable": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          },
+                          "exportContext": {
+                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          }
+                        },
+                        "required": [
+                          "tool"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "onError": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "name",
+              "type"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+              },
+              "description": {
+                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+              },
+              "content": {},
+              "schema": {
+                "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
               },
               "ui": {
                 "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/ui"
@@ -782,7 +770,7 @@
                 "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
               },
               "parameters": {
-                "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
               },
               "execute": {
                 "anyOf": [
@@ -817,7 +805,7 @@
                               },
                               "content": {},
                               "schema": {
-                                "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                                "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                               },
                               "ui": {
                                 "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/ui"
@@ -913,7 +901,7 @@
                                 "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/0/properties/arguments/properties/update/properties/content"
                               },
                               "schema": {
-                                "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                                "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                               },
                               "ui": {
                                 "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/0/properties/arguments/properties/update/properties/ui"
@@ -1407,7 +1395,7 @@
                                 "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/0/properties/arguments/properties/update/properties/content"
                               },
                               "schema": {
-                                "$ref": "#/definitions/MainSchema/properties/documents/items/properties/schema"
+                                "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                               },
                               "ui": {
                                 "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/0/properties/arguments/properties/update/properties/ui"

@@ -1,4 +1,4 @@
-workflowTemplates:
+workflows:
   - name: llm_plainResponseReasonOutputReflectionTemplate
     type: stateMachine
     transitions:
