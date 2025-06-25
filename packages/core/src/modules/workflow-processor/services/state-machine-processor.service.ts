@@ -40,11 +40,11 @@ export class StateMachineProcessorService {
 
   canSkipRun(
     workflow: WorkflowEntity,
-    options: Record<string, any> | undefined,
+    args: Record<string, any> | undefined,
   ): StateMachineValidatorResultInterface {
     const validationResults = this.stateMachineValidatorRegistry
       .getValidators()
-      .map((validator) => validator.validate(workflow, options));
+      .map((validator) => validator.validate(workflow, args));
 
     return {
       valid: validationResults.every((item) => item.valid),
@@ -66,14 +66,14 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     config: WorkflowType,
   ): Promise<WorkflowEntity> {
-    const options = this.configValueParserService.evalWithContext<
+    const args = this.configValueParserService.evalWithContext<
       Record<string, any>
-    >(config.options, { context });
+    >(config.arguments, { context });
 
     if (!workflow) {
       throw new Error(`No workflow entry.`);
     }
-    const validatorResult = this.canSkipRun(workflow, options);
+    const validatorResult = this.canSkipRun(workflow, args);
 
     const pendingTransition =
       validatorResult.valid && context.transition?.workflowId === workflow.id
@@ -81,7 +81,7 @@ export class StateMachineProcessorService {
         : undefined;
 
     const stateMachineInfo = new StateMachineInfoDto(
-      options,
+      args,
       pendingTransition,
       validatorResult,
     );

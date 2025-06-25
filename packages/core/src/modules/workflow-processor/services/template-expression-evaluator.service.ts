@@ -53,6 +53,7 @@ export class TemplateExpressionEvaluatorService {
       data: workflow?.currData,
       transition: transitionData,
       arguments: args,
+      workflow,
     });
   }
 }

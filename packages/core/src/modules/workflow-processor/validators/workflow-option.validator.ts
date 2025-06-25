@@ -13,11 +13,11 @@ export class WorkflowOptionValidator implements StateMachineValidatorInterface {
 
   validate(
     workflow: WorkflowEntity,
-    options: Record<string, any> | undefined,
+    args: Record<string, any> | undefined,
   ): { valid: boolean; target?: string; hash?: string } {
-    if (options) {
+    if (args) {
       const hash = workflow.hashRecord?.['options'];
-      const optionsHash = generateObjectFingerprint(options);
+      const optionsHash = generateObjectFingerprint(args);
 
       this.logger.debug(`Check valid: "${(hash === optionsHash).toString()}".`);
 

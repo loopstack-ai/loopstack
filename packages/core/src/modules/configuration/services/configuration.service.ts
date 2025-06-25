@@ -197,75 +197,12 @@ export class ConfigurationService implements OnModuleInit {
     );
   }
 
-  private createWorkflowTemplateToolCallValidation(): z.ZodEffects<
-    any,
-    any,
-    any
-  > {
-    return z.any().refine(
-      (data: MainConfigType): boolean => {
-        if (!data.workflowTemplates) {
-          return true;
-        }
-
-        const stateMachineWorkflows = data.workflowTemplates.filter(
-          (wf) => wf.type === 'stateMachine',
-        );
-
-        const templateIndex = stateMachineWorkflows.findIndex(
-          (wf) =>
-            wf.transitions &&
-            wf.transitions.find((t) =>
-              t.call?.find((call) => !this.has('tools', call.tool)),
-            ),
-        );
-
-        return templateIndex === -1;
-      },
-      (data: MainConfigType) => {
-        const stateMachineWorkflows = data.workflowTemplates!.filter(
-          (wf) => wf.type === 'stateMachine',
-        );
-
-        const templateIndex = stateMachineWorkflows.findIndex(
-          (wf) =>
-            wf.transitions &&
-            wf.transitions.find((t) =>
-              t.call?.find((call) => !this.has('tools', call.tool)),
-            ),
-        );
-
-        const transitionIndex = stateMachineWorkflows[
-          templateIndex
-        ].transitions!.findIndex((t) =>
-          t.call?.find((call) => !this.has('tools', call.tool)),
-        );
-
-        const wrongToolName = stateMachineWorkflows[templateIndex].transitions![
-          transitionIndex
-        ].call?.find((call) => !this.has('tools', call.tool));
-
-        return {
-          message: `state machine template transition references non-existent tool "${wrongToolName}".`,
-          path: [
-            'workflowTemplates',
-            templateIndex,
-            'transitions',
-            transitionIndex,
-            'call',
-          ],
-        };
-      },
-    );
-  }
-
   validate(source: ConfigSourceInterface): any {
     try {
       this.mainSchemaGenerator
         .getSchema()
         .and(this.createPipelineWorkspaceValidation())
         .and(this.createWorkflowToolCallValidation())
-        .and(this.createWorkflowTemplateToolCallValidation())
         // todo add more validations
         //   - state machine handler transition names
         //   - state machine template (extends) names
