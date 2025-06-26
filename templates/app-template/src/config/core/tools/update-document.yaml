@@ -1,0 +1,16 @@
+tools:
+  - name: core_updateDocument
+    parameters:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
+        - content
+    execute:
+      service: UpdateDocumentService
+      arguments:
+        id: ${ arguments.id }
+        update:
+          content: ${ arguments.content }

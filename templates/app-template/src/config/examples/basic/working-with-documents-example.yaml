@@ -1,0 +1,136 @@
+documents:
+  - name: customer_profile
+    description: "Customer information and preferences"
+    schema:
+      type: object
+      properties:
+        name:
+          title: "Name"
+          type: string
+        email:
+          title: "Email"
+          type: string
+          format: email
+        status:
+          title: "Status"
+          type: string
+          enum: ["prospect", "active", "inactive"]
+        metadata:
+          title: "Metadata"
+          type: object
+          properties:
+            source:
+              title: "Source"
+              type: string
+      required:
+        - name
+        - email
+        - status
+    content:
+      status: "prospect"
+      metadata:
+        source: "unknown"
+    ui:
+      order:
+        - name
+        - email
+        - status
+        - metadata
+
+pipelines:
+  - name: example_documentCreation
+    title: "Document Creation Example: Customer Management"
+    type: root
+    workspace: examples
+    sequence:
+      - workflow: example_documentCreation_createProfile
+      - workflow: example_documentCreation_updateProfileData
+
+workflows:
+  - name: example_documentCreation_createProfile
+    title: "Create Customer Profile"
+    type: stateMachine
+    transitions:
+
+      # Create the initial document
+      - name: createInitialProfile
+        from: start
+        to: profileCreated
+        call:
+          - tool: core_createDocument
+            arguments:
+              document: customer_profile        # Reference to document template
+              content:                          # Content object to merge with template
+                name: "John Smith"
+                email: "john.smith@example.com" # Override template default
+                metadata:
+                  source: "website_signup"
+            exportVariable: CREATED_PROFILE     # Store document reference
+
+      # Update a document from the same workflow
+      - name: updateStatus
+        from: profileCreated
+        to: profileUpdated
+        call:
+          - tool: core_loadDocument
+            arguments:
+              where:
+                name: customer_profile
+            exportVariable: LOADED_PROFILE
+          - tool: core_updateDocument
+            arguments:
+              id: ${ LOADED_PROFILE.id }    # Use ID from loaded document
+              content:
+                status: "active"            # Update status
+            exportVariable: UPDATED_PROFILE
+
+      - name: logCreation
+        from: profileUpdated
+        to: end
+        call:
+          - tool: core_createChatMessage
+            arguments:
+              role: assistant
+              content: |
+                ✅ Customer profile created successfully!
+
+                **Profile Details:**
+                - Name: ${ UPDATED_PROFILE.content.name }
+                - Email: ${ UPDATED_PROFILE.content.email }
+                - Status: ${ UPDATED_PROFILE.content.status }
+
+  - name: example_documentCreation_updateProfileData
+    title: "Update Customer Profile"
+    type: stateMachine
+    transitions:
+
+      # We cannot update a document from another workflow
+      # So we create a new document instead of updating it
+      - name: updateProfileData
+        from: start
+        to: profileUpdated
+        call:
+          - tool: core_loadDocument
+            arguments:
+              where:
+                name: customer_profile
+            exportVariable: LOADED_PROFILE
+          - tool: core_createDocument
+            arguments:
+              document: customer_profile
+              content: |
+                ${ { ...LOADED_PROFILE.content, status: 'inactive' } }
+            exportVariable: UPDATED_PROFILE
+
+      - name: logUpdate
+        from: profileUpdated
+        to: end
+        call:
+          - tool: core_createChatMessage
+            arguments:
+              role: assistant
+              content: |
+                ✅ Customer profile updated successfully!
+
+                **Updated Information:**
+                - Status: ${ UPDATED_PROFILE.content.status }

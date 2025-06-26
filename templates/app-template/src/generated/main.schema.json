@@ -1085,235 +1085,269 @@
                           "where": {
                             "anyOf": [
                               {
-                                "type": "object",
-                                "additionalProperties": {
-                                  "anyOf": [
-                                    {
-                                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                    },
-                                    {
-                                      "type": "array",
-                                      "items": {
-                                        "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                      }
-                                    },
-                                    {
-                                      "type": "array",
-                                      "items": {
-                                        "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                                      }
-                                    },
-                                    {
-                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "isNull": {
-                                          "type": "boolean"
-                                        }
-                                      },
-                                      "required": [
-                                        "isNull"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "eq": {},
-                                        "ne": {},
-                                        "gt": {},
-                                        "gte": {},
-                                        "lt": {},
-                                        "lte": {},
-                                        "like": {
-                                          "type": "string"
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
                                         },
-                                        "ilike": {
-                                          "type": "string"
-                                        },
-                                        "between": {
+                                        {
                                           "type": "array",
-                                          "minItems": 2,
-                                          "maxItems": 2,
-                                          "items": [
-                                            {},
-                                            {}
-                                          ]
-                                        }
-                                      },
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "in": {
-                                          "type": "array"
+                                          "items": {
+                                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                                          }
                                         },
-                                        "notIn": {
-                                          "type": "array"
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                                          }
                                         },
-                                        "any": {
-                                          "type": "array"
+                                        {
+                                          "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                         },
-                                        "all": {
-                                          "type": "array"
-                                        }
-                                      },
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "contains": {
-                                          "type": "array"
-                                        }
-                                      },
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "containsAnyOf": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "isNull": {
+                                              "type": "boolean"
                                             }
-                                          ]
+                                          },
+                                          "required": [
+                                            "isNull"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "eq": {},
+                                            "ne": {},
+                                            "gt": {},
+                                            "gte": {},
+                                            "lt": {},
+                                            "lte": {},
+                                            "like": {
+                                              "type": "string"
+                                            },
+                                            "ilike": {
+                                              "type": "string"
+                                            },
+                                            "between": {
+                                              "type": "array",
+                                              "minItems": 2,
+                                              "maxItems": 2,
+                                              "items": [
+                                                {},
+                                                {}
+                                              ]
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "in": {
+                                              "type": "array"
+                                            },
+                                            "notIn": {
+                                              "type": "array"
+                                            },
+                                            "any": {
+                                              "type": "array"
+                                            },
+                                            "all": {
+                                              "type": "array"
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "contains": {
+                                              "type": "array"
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "containsAnyOf": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "exists": {
+                                              "type": "boolean"
+                                            }
+                                          },
+                                          "required": [
+                                            "exists"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "not": {
+                                              "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/5/properties/arguments/properties/where/anyOf/0"
+                                            }
+                                          },
+                                          "required": [
+                                            "not"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "brackets": {
+                                              "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/5/properties/arguments/properties/where/anyOf/0/anyOf/0/additionalProperties/anyOf/10/properties/not"
+                                            }
+                                          },
+                                          "required": [
+                                            "brackets"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "raw": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "required": [
+                                            "raw"
+                                          ],
+                                          "additionalProperties": false
                                         }
-                                      },
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "exists": {
-                                          "type": "boolean"
-                                        }
-                                      },
-                                      "required": [
-                                        "exists"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "not": {
-                                          "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/5/properties/arguments/properties/where"
-                                        }
-                                      },
-                                      "required": [
-                                        "not"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "brackets": {
-                                          "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/5/properties/arguments/properties/where/anyOf/0/additionalProperties/anyOf/10/properties/not"
-                                        }
-                                      },
-                                      "required": [
-                                        "brackets"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "raw": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      "required": [
-                                        "raw"
-                                      ],
-                                      "additionalProperties": false
-                                    }
-                                  ]
-                                }
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "and": {
-                                    "type": "array",
-                                    "items": {
-                                      "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/5/properties/arguments/properties/where/anyOf/0/additionalProperties/anyOf/10/properties/not"
+                                      ]
                                     }
                                   },
-                                  "or": {
-                                    "type": "array",
-                                    "items": {
-                                      "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/5/properties/arguments/properties/where/anyOf/0/additionalProperties/anyOf/10/properties/not"
-                                    }
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "and": {
+                                        "type": "array",
+                                        "items": {
+                                          "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/5/properties/arguments/properties/where/anyOf/0/anyOf/0/additionalProperties/anyOf/10/properties/not"
+                                        }
+                                      },
+                                      "or": {
+                                        "type": "array",
+                                        "items": {
+                                          "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/5/properties/arguments/properties/where/anyOf/0/anyOf/0/additionalProperties/anyOf/10/properties/not"
+                                        }
+                                      }
+                                    },
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/5/properties/arguments/properties/where/anyOf/0/anyOf/0/additionalProperties/anyOf/11"
                                   }
-                                },
-                                "additionalProperties": false
+                                ]
                               },
                               {
-                                "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/anyOf/5/properties/arguments/properties/where/anyOf/0/additionalProperties/anyOf/11"
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               }
                             ]
                           },
-                          "map": {
-                            "type": "string"
-                          },
-                          "filter": {
-                            "type": "string"
-                          },
-                          "sort": {
-                            "type": "boolean"
-                          },
-                          "sortBy": {
-                            "type": "object",
-                            "properties": {
-                              "iteratees": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              "orders": {
-                                "type": "array",
-                                "items": {
+                          "orderBy": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "additionalProperties": {
                                   "type": "string",
                                   "enum": [
-                                    "asc",
-                                    "desc"
+                                    "ASC",
+                                    "DESC"
                                   ]
                                 }
+                              },
+                              {
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                               }
-                            },
-                            "required": [
-                              "iteratees",
-                              "orders"
-                            ],
-                            "additionalProperties": false
+                            ]
                           },
-                          "many": {
-                            "type": "boolean"
+                          "getMany": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                              }
+                            ]
                           },
-                          "flat": {
-                            "type": "boolean"
+                          "take": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                              }
+                            ]
                           },
-                          "ignoreChanges": {
-                            "type": "boolean"
+                          "skip": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                              }
+                            ]
+                          },
+                          "isDependency": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                              }
+                            ]
                           },
                           "global": {
-                            "type": "boolean"
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                              }
+                            ]
                           },
-                          "optional": {
-                            "type": "boolean"
+                          "strictMode": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                              }
+                            ]
                           }
                         },
                         "required": [

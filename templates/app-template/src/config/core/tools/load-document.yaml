@@ -1,0 +1,33 @@
+tools:
+  - name: core_loadDocument
+    parameters:
+      type: object
+      properties:
+        where:
+          type: object
+        orderBy:
+          type: object
+        getMany:
+          type: boolean
+        take:
+          type: number
+        skip:
+          type: number
+        isDependency:
+          type: boolean
+        global:
+          type: boolean
+        strictMode:
+          type: boolean
+      required:
+        - where
+    execute:
+      service: LoadDocumentService
+      arguments:
+        where: ${ arguments.where }
+        orderBy: ${ arguments.orderBy }
+        getMany: ${ !!arguments.getMany }
+        take: ${ arguments.take }
+        isDependency: ${ arguments.isDependency }
+        global: ${ arguments.global }
+        strictMode: ${ arguments.strictMode }
