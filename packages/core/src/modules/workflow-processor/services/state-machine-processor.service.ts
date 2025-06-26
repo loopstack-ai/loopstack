@@ -17,7 +17,7 @@ import {
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
-import { ValueParserService } from '../../common';
+import { TemplateService } from '../../common';
 import {
   StateMachineValidatorResultInterface,
 } from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
@@ -34,7 +34,7 @@ export class StateMachineProcessorService {
     private readonly workflowService: WorkflowService,
     private readonly toolExecutionService: ToolExecutionService,
     private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry,
-    private readonly configValueParserService: ValueParserService,
+    private readonly templateService: TemplateService,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
   ) {}
 
@@ -66,7 +66,7 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     config: WorkflowType,
   ): Promise<WorkflowEntity> {
-    const args = this.configValueParserService.evalWithContext<
+    const args = this.templateService.evaluateDeep<
       Record<string, any>
     >(config.arguments, { context });
 

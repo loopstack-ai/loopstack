@@ -115,15 +115,11 @@ export class ToolExecutionService {
     toolCall: ToolCallType,
     result: ServiceCallResult | undefined,
   ) {
-    if (!result?.data) {
-      return workflow;
-    }
-
     if (result?.workflow) {
       workflow = result?.workflow;
     }
 
-    this.addWorkflowTransitionData(workflow, transition, toolCall.tool, result.data);
+    this.addWorkflowTransitionData(workflow, transition, toolCall.tool, result?.data);
 
     if (toolCall.exportVariable) {
       const currAlias = workflow.aliasData ?? {};
@@ -134,7 +130,7 @@ export class ToolExecutionService {
     }
 
     if (toolCall.exportContext) {
-      workflow = this.workflowContextService.setWorkflowContextUpdate(workflow, toolCall.exportContext, result.data.content);
+      workflow = this.workflowContextService.setWorkflowContextUpdate(workflow, toolCall.exportContext, result?.data);
     }
 
     return workflow;

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  Brackets,
+  Brackets, FindOptionsOrder, OrderByCondition,
   Repository,
   SelectQueryBuilder,
   WhereExpressionBuilder,
@@ -136,11 +136,27 @@ export class DocumentService {
     workspaceId: string,
     where?: z.infer<typeof WhereCondition>,
     options?: {
+      take?: number;
+      skip?: number;
+      orderBy?: FindOptionsOrder<any>;
+      isValidOnly?: boolean;
       isGlobal?: boolean;
       ltWorkflowIndex?: string;
     },
   ): SelectQueryBuilder<DocumentEntity> {
     const queryBuilder = this.documentRepository.createQueryBuilder();
+
+    if (!options?.isGlobal) {
+      // from same root pipeline
+      queryBuilder.where('pipeline_id = :pipelineId', {
+        pipelineId: pipelineId,
+      });
+    } else {
+      // from same root workspace
+      queryBuilder.where('workspace_id = :workspaceId', {
+        workspaceId,
+      });
+    }
 
     if (where) {
       this.applyWhereCondition(queryBuilder, where);
@@ -153,21 +169,21 @@ export class DocumentService {
       );
     }
 
-    // we dont want invalidate items
-    queryBuilder.andWhere('is_invalidated = false');
-
-    if (!options?.isGlobal) {
-      // ofc needs to be from same pipeline
-      queryBuilder.andWhere('pipeline_id = :pipelineId', {
-        pipelineId: pipelineId,
-      });
-    } else {
-      queryBuilder.andWhere('workspace_id = :workspaceId', {
-        workspaceId,
-      });
+    if (undefined !== options?.isValidOnly) {
+      queryBuilder.andWhere('is_invalidated = :isInvalidated', { isInvalidated: !options.isValidOnly });
     }
 
-    queryBuilder.orderBy('workflow_index', 'DESC');
+    if (options?.orderBy) {
+      queryBuilder.orderBy(options.orderBy as OrderByCondition);
+    }
+
+    if (undefined !== options?.take) {
+      queryBuilder.limit(options.take);
+    }
+
+    if (undefined !== options?.skip) {
+      queryBuilder.skip(options.skip);
+    }
 
     return queryBuilder;
   }

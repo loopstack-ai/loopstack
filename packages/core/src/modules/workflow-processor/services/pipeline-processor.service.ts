@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigurationService } from '../../configuration';
-import { ContextService, ValueParserService } from '../../common';
+import { ContextService, TemplateService } from '../../common';
 import {
   ContextInterface,
   PipelineType,
@@ -19,7 +19,7 @@ export class PipelineProcessorService {
     private loopConfigService: ConfigurationService,
     private namespaceProcessorService: NamespaceProcessorService,
     private contextService: ContextService,
-    private valueParserService: ValueParserService,
+    private templateService: TemplateService,
     private workflowProcessor: WorkflowProcessorService,
   ) {}
 
@@ -41,7 +41,7 @@ export class PipelineProcessorService {
     let lastContext = this.contextService.create(context);
     for (let i = 0; i < sequence.length; i++) {
       const item: PipelineItemType = sequence[i];
-      const evaluatedItem = this.valueParserService.evalWithContext<{
+      const evaluatedItem = this.templateService.evaluateDeep<{
         name: string;
         condition?: boolean;
       }>(item, { context: lastContext });
@@ -78,7 +78,7 @@ export class PipelineProcessorService {
       const item = items[i];
 
       const label = factory.iterator.label
-        ? this.valueParserService.evalWithContextAndItem<string>(
+        ? this.templateService.evaluate(
             factory.iterator.label,
             {
               context,
@@ -89,7 +89,7 @@ export class PipelineProcessorService {
         : item.toString();
 
       const metadata = factory.iterator.meta
-        ? this.valueParserService.evalWithContextAndItem<Record<string, any>>(
+        ? this.templateService.evaluateDeep<Record<string, any>>(
             factory.iterator.meta,
             {
               context,
@@ -123,7 +123,7 @@ export class PipelineProcessorService {
     config: PipelineFactoryType,
     context: ContextInterface,
   ): Promise<ContextInterface> {
-    const items = this.valueParserService.evalWithContext<string[]>(
+    const items = this.templateService.evaluateDeep<string[]>(
       config.iterator.source,
       { context },
     );

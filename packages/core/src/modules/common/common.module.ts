@@ -2,11 +2,8 @@ import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
   SchemaValidatorService,
-  ExpressionEvaluatorService,
-  TemplateEngineService,
-  DocumentHelperService,
-  ValueParserService,
   ContextService,
+  TemplateService, StringParser, ObjectExpressionHandler, TemplateExpressionHandler, EjsTemplateHandler,
 } from './services';
 import { ClientMessageService } from './services/client-message.service';
 
@@ -14,21 +11,19 @@ import { ClientMessageService } from './services/client-message.service';
   imports: [EventEmitterModule.forRoot()],
   providers: [
     ClientMessageService,
-    ExpressionEvaluatorService,
     SchemaValidatorService,
-    TemplateEngineService,
-    DocumentHelperService,
-    ValueParserService,
     ContextService,
+    TemplateService,
+    StringParser,
+    ObjectExpressionHandler,
+    TemplateExpressionHandler,
+    EjsTemplateHandler,
   ],
   exports: [
     ClientMessageService,
-    ExpressionEvaluatorService,
     SchemaValidatorService,
-    TemplateEngineService,
-    DocumentHelperService,
-    ValueParserService,
     ContextService,
+    TemplateService,
   ],
 })
 export class CommonModule {}

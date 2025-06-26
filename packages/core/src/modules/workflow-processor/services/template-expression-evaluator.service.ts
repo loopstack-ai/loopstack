@@ -5,15 +5,31 @@ import {
   TransitionMetadataInterface,
   WorkflowEntity,
 } from '@loopstack/shared';
-import { ValueParserService } from '../../common';
+import { TemplateService } from '../../common';
 import { ConfigurationService } from '../../configuration';
+import { get, transform } from 'lodash';
 
 @Injectable()
 export class TemplateExpressionEvaluatorService {
   constructor(
     private configurationService: ConfigurationService,
-    private valueParserService: ValueParserService,
+    private templateService: TemplateService,
   ) {}
+
+  prepareAliasVariables(
+    aliasReference: Record<string, any>,
+    dataSource: Record<string, any>,
+  ): Record<string, any> {
+    return aliasReference
+      ? transform(
+        aliasReference,
+        (result: Record<string, any>, path: string[], key: string) => {
+          result[key] = get(dataSource, path);
+        },
+        {},
+      )
+      : {};
+  }
 
   evaluate<T>(
     subject: any,
@@ -25,7 +41,7 @@ export class TemplateExpressionEvaluatorService {
     // replace the alias values with actual data
     const aliasVariables =
       workflow?.aliasData && workflow.currData
-        ? this.valueParserService.prepareAliasVariables(
+        ? this.prepareAliasVariables(
             workflow.aliasData,
             workflow.currData,
           )
@@ -40,13 +56,13 @@ export class TemplateExpressionEvaluatorService {
         return '';
       }
 
-      return this.valueParserService.evalWithContextVariables(
+      return this.templateService.evaluateDeep(
         snippet.value,
         variables,
       );
     };
 
-    return this.valueParserService.evalWithContextVariables<T>(subject, {
+    return this.templateService.evaluateDeep<T>(subject, {
       ...aliasVariables,
       useTemplate,
       context,

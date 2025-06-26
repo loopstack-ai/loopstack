@@ -32,7 +32,8 @@ export class MockService implements ServiceInterface {
 
   async apply(props: z.infer<typeof schema>): Promise<ServiceCallResult> {
     if (props.input) {
-      this.logger.debug(`Received mock input ${props.input}`);
+      this.logger.debug(`Received mock input:`);
+      this.logger.debug(props.input);
     }
 
     if (props.error) {
@@ -41,7 +42,7 @@ export class MockService implements ServiceInterface {
 
     return {
       success: true,
-      data: { content: props.output },
+      data: props.output,
     };
   }
 }

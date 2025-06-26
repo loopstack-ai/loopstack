@@ -1,15 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import _ from 'lodash';
 import {
   ContextImportInterface,
   ContextInterface,
   Service,
   ServiceInterface,
   ServiceCallResult,
-  TransitionMetadataInterface,
+  TransitionMetadataInterface, ExpressionString,
 } from '@loopstack/shared';
 import { z } from 'zod';
-import { ExpressionEvaluatorService } from '../../common';
 import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
 import {
   DocumentService,
@@ -19,25 +17,68 @@ import {
 
 const config = z
   .object({
-    where: WhereCondition,
-    map: z.string().optional(),
-    filter: z.string().optional(),
-    sort: z.boolean().optional(),
-    sortBy: z
-      .object({
-        iteratees: z.array(z.string()),
-        orders: z.array(z.enum(['asc', 'desc'])),
-      })
-      .optional(),
-    many: z.boolean().optional(),
-    flat: z.boolean().optional(),
-    ignoreChanges: z.boolean().optional(),
-    global: z.boolean().optional(),
-    optional: z.boolean().optional(),
+    where: z.union([
+      WhereCondition,
+      ExpressionString,
+    ]),
+    orderBy: z.union([
+      z.record(
+        z.string(),
+        z.union([
+          z.literal('ASC'),
+          z.literal('DESC'),
+        ])
+      ),
+      ExpressionString,
+    ]).optional(),
+    getMany: z.union([
+      z.boolean(),
+      ExpressionString,
+    ]).optional(),
+    take: z.union([
+      z.number(),
+      ExpressionString,
+    ]).optional(),
+    skip: z.union([
+      z.number(),
+      ExpressionString,
+    ]).optional(),
+    isDependency: z.union([
+      z.boolean(),
+      ExpressionString,
+    ]).optional(),
+    global: z.union([
+      z.boolean(),
+      ExpressionString,
+    ]).optional(),
+    strictMode: z.union([
+      z.boolean(),
+      ExpressionString,
+    ]).optional(),
   })
   .strict();
 
-const schema = config; //todo create dedicated schema
+const schema = z
+  .object({
+    where: WhereCondition,
+    orderBy: z.record(
+      z.string(),
+      z.union([
+        z.literal('ASC'),
+        z.literal('DESC'),
+      ])
+    ).default({
+      workflow_index: 'DESC'
+    }),
+    getMany: z.boolean().optional().default(false),
+    take: z.number().default(100),
+    skip: z.number().default(0),
+
+    isDependency: z.boolean().default(true),
+    global: z.boolean().default(false),
+    strictMode: z.boolean().default(true),
+  })
+  .strict();
 
 @Injectable()
 @Service({
@@ -50,67 +91,26 @@ export class LoadDocumentService implements ServiceInterface {
   constructor(
     private documentService: DocumentService,
     private workflowService: WorkflowService,
-    private functionCallService: ExpressionEvaluatorService,
   ) {}
 
   /**
-   * filters items using defined functions
-   */
-  applyFilters(props: z.infer<typeof schema>, items: DocumentEntity[]) {
-    if (props.filter) {
-      return items.filter((item) =>
-        this.functionCallService.evaluate(props.filter!, { item }),
-      );
-    }
-
-    return items;
-  }
-
-  /**
-   * modify items by mapping, flattening and sorting entities
-   * uses defined functions for mapping
-   */
-  applyModifiers(props: z.infer<typeof schema>, entities: DocumentEntity[]) {
-    const defaultMapFunction = '${ entity.content }';
-    const mapFunc = props.map ?? defaultMapFunction;
-
-    let documents = entities.map((entity) =>
-      this.functionCallService.evaluate(mapFunc, { entity }),
-    );
-
-    if (props.flat) {
-      documents = documents.flat();
-    }
-
-    if (props.sortBy) {
-      documents = _.orderBy(
-        documents,
-        props.sortBy.iteratees,
-        props.sortBy.orders,
-      );
-    }
-
-    if (props.sort) {
-      documents = documents.sort();
-    }
-
-    return documents;
-  }
-
-  /**
-   * retrieves and filters entities from database
+   * retrieve from database
    */
   async getDocumentsByQuery(
     props: z.infer<typeof schema>,
     pipelineId: string,
     workspaceId: string,
     workflow: WorkflowEntity,
-  ): Promise<DocumentEntity[]> {
+  ): Promise<DocumentEntity[] | DocumentEntity | null> {
     const query = this.documentService.createDocumentsQuery(
       pipelineId,
       workspaceId,
       props.where,
       {
+        take: props.getMany ? props.take : undefined,
+        skip: props.getMany ? props.skip : undefined,
+        orderBy: props.orderBy,
+        isValidOnly: true,
         isGlobal: !!props.global,
         ltWorkflowIndex: workflow.index,
       },
@@ -119,15 +119,15 @@ export class LoadDocumentService implements ServiceInterface {
     this.logger.debug(query.getQuery());
     this.logger.debug(query.getParameters());
 
-    const entities = props.many
+    const result = props.getMany
       ? await query.getMany()
-      : [await query.getOne()].filter((d) => !!d);
+      : await query.getOne();
 
-    if (!entities.length && !props.optional) {
+    if (!result && props.strictMode) {
       throw new Error(`Document(s) not found.`);
     }
 
-    return this.applyFilters(props, entities);
+    return result;
   }
 
   /**
@@ -141,27 +141,30 @@ export class LoadDocumentService implements ServiceInterface {
     };
   }
 
-  /**
-   * create an import item including previous and current document content
-   * adds flags for new and changed content
-   */
-  createImportItem(
-    options: z.infer<typeof schema>,
-    currentEntities: DocumentEntity[],
-    prevImport: ContextImportInterface | undefined,
-  ): ContextImportInterface {
-    const currentDocuments = this.applyModifiers(options, currentEntities);
+  trackDependencies(workflow: WorkflowEntity, transitionData: TransitionMetadataInterface, result: DocumentEntity[] | DocumentEntity) {
+    const prevImport: ContextImportInterface | undefined =
+      workflow.prevData?.imports?.[transitionData.transition!];
 
-    const content = options.many ? currentDocuments : currentDocuments[0];
-    return {
-      ids: currentEntities.map((entity) => entity.id),
-      tags: currentEntities.map((entity) => entity.tags),
-      previousContent: prevImport?.content,
-      content: content,
-      isNew: !prevImport,
-      isChanged: !!prevImport && !_.isEqual(prevImport.content, content),
-      options,
-    };
+    if (!workflow.dependencies) {
+      workflow.dependencies = [];
+    }
+
+    if (prevImport) {
+      workflow.dependencies = workflow.dependencies.filter(
+        (dep) => !prevImport?.ids.includes(dep.id),
+      );
+    }
+
+    const existingDependencyIds = workflow.dependencies.map((dep) => dep.id);
+    const dependencyList = Array.isArray(result) ? result : [result];
+    const newDependencies = dependencyList.filter(
+      (entity) => !existingDependencyIds.includes(entity.id),
+    );
+
+    if (newDependencies.length) {
+      workflow.dependencies.push(...newDependencies);
+      this.updateWorkflowDependenciesHash(workflow);
+    }
   }
 
   /**
@@ -181,47 +184,22 @@ export class LoadDocumentService implements ServiceInterface {
     this.logger.debug(`Load document ${transitionData.transition}`);
 
     // load and filter entities based on options from database
-    const currentEntities = await this.getDocumentsByQuery(
+    const result = await this.getDocumentsByQuery(
       props,
       context.pipelineId,
       context.workspaceId,
       workflow,
     );
 
-    const prevImport: ContextImportInterface | undefined =
-      workflow.prevData?.imports?.[transitionData.transition!];
-
-    // update workflow dependencies, if applicable
-    if (!props.ignoreChanges) {
-      if (!workflow.dependencies) {
-        workflow.dependencies = [];
-      }
-
-      if (prevImport) {
-        workflow.dependencies = workflow.dependencies.filter(
-          (dep) => !prevImport?.ids.includes(dep.id),
-        );
-      }
-
-      const existingDependencyIds = workflow.dependencies.map((dep) => dep.id);
-      const newDependencies = currentEntities.filter(
-        (entity) => !existingDependencyIds.includes(entity.id),
-      );
-      workflow.dependencies.push(...newDependencies);
-
-      this.updateWorkflowDependenciesHash(workflow);
+    // update workflow dependencies
+    if (result && props.isDependency) {
+      this.trackDependencies(workflow, transitionData, result);
     }
-
-    const importItem = this.createImportItem(
-      props,
-      currentEntities,
-      prevImport,
-    );
 
     return {
       success: true,
       workflow,
-      data: importItem,
+      data: result,
     };
   }
 }
