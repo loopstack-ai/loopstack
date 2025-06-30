@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   DocumentConfigSchema,
-  NonExpressionString,
   PartialDocumentSchema,
   Service,
   ServiceInterface,
@@ -22,7 +21,7 @@ const config = z
 
 const schema = z
   .object({
-    id: NonExpressionString,
+    id: z.string(),
     update: PartialDocumentSchema.optional(),
   })
   .strict();

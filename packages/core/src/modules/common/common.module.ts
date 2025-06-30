@@ -3,7 +3,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
   SchemaValidatorService,
   ContextService,
-  TemplateService, StringParser, ObjectExpressionHandler, TemplateExpressionHandler, EjsTemplateHandler,
+  TemplateService, ObjectExpressionHandler, TemplateExpressionHandler, ExpressionEvaluatorService,
 } from './services';
 import { ClientMessageService } from './services/client-message.service';
 
@@ -14,10 +14,9 @@ import { ClientMessageService } from './services/client-message.service';
     SchemaValidatorService,
     ContextService,
     TemplateService,
-    StringParser,
     ObjectExpressionHandler,
     TemplateExpressionHandler,
-    EjsTemplateHandler,
+    ExpressionEvaluatorService,
   ],
   exports: [
     ClientMessageService,

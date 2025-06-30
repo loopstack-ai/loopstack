@@ -8,7 +8,6 @@ import {
 } from 'typeorm';
 import {
   DocumentEntity,
-  NonExpressionString,
   ExpressionString,
   WorkflowEntity,
   TransitionMetadataInterface,
@@ -46,7 +45,7 @@ const ArrayContainmentOperator = z.object({
 
 const ArrayContainmentAnyOfOperator = z.object({
   containsAnyOf: z
-    .union([z.array(NonExpressionString), ExpressionString])
+    .string()
     .optional(),
 });
 
@@ -74,8 +73,8 @@ const RawOperator = z.object({
 });
 
 const PropertyCondition = z.union([
-  NonExpressionString,
-  z.array(NonExpressionString),
+  z.string(),
+  z.array(z.string()),
   z.array(ExpressionString),
   ExpressionString,
   NullOperator,

@@ -6,7 +6,6 @@ import {
   ServiceCallResult,
   DocumentEntity,
   ExpressionString,
-  NonExpressionString,
   TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { SchemaValidatorService } from '../../common';
@@ -21,7 +20,7 @@ import { TemplateExpressionEvaluatorService } from '../services';
 const config = z
   .object({
     document: z.string(),
-    name: z.union([ExpressionString, NonExpressionString]).optional(),
+    name: z.string().optional(),
     addSuffix: z.union([ExpressionString, z.boolean()]).optional(),
     items: z.union([ExpressionString, z.array(z.any())]),
   })
@@ -30,7 +29,7 @@ const config = z
 const schema = z
   .object({
     document: z.string(),
-    name: NonExpressionString.optional(),
+    name: z.string().optional(),
     addSuffix: z.boolean().optional(),
     items: z.array(z.any()),
   })

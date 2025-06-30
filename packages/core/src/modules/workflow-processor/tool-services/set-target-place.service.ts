@@ -3,7 +3,6 @@ import { z } from 'zod';
 import {
   ContextInterface,
   ExpressionString,
-  NonExpressionString,
   Service,
   ServiceInterface,
   ServiceCallResult,
@@ -19,7 +18,7 @@ const config = z
 
 const schema = z
   .object({
-    target: NonExpressionString,
+    target: z.string(),
   })
   .strict();
 

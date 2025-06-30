@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
   ExpressionString,
-  NonExpressionString,
   Service,
   ServiceInterface,
   ServiceCallResult,
@@ -12,7 +11,7 @@ const config = z
   .object({
     transitions: z.array(
       z.object({
-        place: NonExpressionString,
+        place: z.string(),
         condition: ExpressionString.optional(),
       }),
     ),
@@ -23,7 +22,7 @@ const schema = z
   .object({
     transitions: z.array(
       z.object({
-        place: NonExpressionString,
+        place: z.string(),
         condition: z.union([z.boolean(), z.undefined()]),
       }),
     ),

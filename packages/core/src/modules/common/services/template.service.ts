@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ObjectExpressionHandler } from './expression-handler/object-expression.handler';
 import { TemplateExpressionHandler } from './expression-handler/template-expression.handler';
-import { EjsTemplateHandler } from './expression-handler/ejs-template.handler';
 
 export interface TemplateDetector {
   canHandle(value: any): boolean;
@@ -18,11 +17,9 @@ export class TemplateService {
   constructor(
     private objectExpressionHandler: ObjectExpressionHandler,
     private templateExpressionHandler: TemplateExpressionHandler,
-    private ejsTemplateHandler: EjsTemplateHandler,
   ) {
     this.handlers = Object.freeze([
       this.objectExpressionHandler,      // Most specific: complete ${} expressions
-      this.ejsTemplateHandler,           // EJS templates with <% %>
       this.templateExpressionHandler,    // Mixed content with ${} expressions
     ]);
   }
