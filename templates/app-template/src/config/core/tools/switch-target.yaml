@@ -12,4 +12,4 @@ tools:
     execute:
       service: SetTargetPlaceService
       arguments:
-        target: ${ arguments.target }
+        target: ${{ arguments.target }}

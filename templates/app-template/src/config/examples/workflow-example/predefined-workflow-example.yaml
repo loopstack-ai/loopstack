@@ -43,7 +43,7 @@ workflows:
           - tool: core_createDocument
             arguments:
               document: examples_predefinedWorkflow_userInputDocument
-              content: ${ transition.payload }
+              content: ${{ transition.payload }}
             exportVariable: USER_INPUT_DOCUMENT
 
       - name: analyse
@@ -60,7 +60,7 @@ workflows:
           - tool: core_createPlainMessage
             arguments:
               title: "Analysis"
-              content: ${ ANALYSIS.response.data.content }
+              content: ${{ ANALYSIS.response.data.content }}
 
       - name: improve
         from: analysisAdded
@@ -76,7 +76,7 @@ workflows:
           - tool: core_createPlainMessage
             arguments:
               title: "Improved Text"
-              content: ${ IMPROVED_TEXT.response.data.content }
+              content: ${{ IMPROVED_TEXT.response.data.content }}
 
 tools:
   - name: examples_predefinedWorkflow_analyseText
@@ -99,7 +99,7 @@ tools:
           - role: user
             content: |
               Please analyze this text: 
-              <%= USER_INPUT_DOCUMENT.text %>
+              ${{ USER_INPUT_DOCUMENT.text }}
 
   - name: examples_predefinedWorkflow_improveText
     execute:
@@ -121,10 +121,10 @@ tools:
           - role: user
             content: |
               Original text:
-              <%= USER_INPUT_DOCUMENT.text %>
+              ${{ USER_INPUT_DOCUMENT.text }}
 
               Analysis and recommendations:
-              <%= ANALYSIS.response.data %>
+              ${{ ANALYSIS.response.data }}
                 
               Please provide an improved version of the original text based on this analysis.
 

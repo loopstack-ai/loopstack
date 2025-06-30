@@ -25,9 +25,9 @@ tools:
         document: core_chatMessage
         update:
           content:
-            role: ${ arguments.role }
-            content: ${ arguments.content }
-            tool_calls: ${ arguments.tool_calls }
+            role: ${{ arguments.role }}
+            content: ${{ arguments.content }}
+            tool_calls: ${{ arguments.tool_calls }}
           meta:
-            level: ${ arguments.meta?.level }
-            invalidate: ${ arguments.meta?.invalidate }
+            level: ${{ arguments.meta?.level }}
+            invalidate: ${{ arguments.meta?.invalidate }}

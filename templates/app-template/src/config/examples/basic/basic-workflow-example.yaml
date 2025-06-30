@@ -23,7 +23,7 @@ workflows:
           - tool: core_createChatMessage
             arguments:
               role: 'assistant'
-              content: ${ RAW_DATA }
+              content: ${{ RAW_DATA }}
 
       - name: transformData         # Step 2: Transform the data
         from: dataExtracted
@@ -31,7 +31,7 @@ workflows:
         call:
           - tool: core_createMock
             arguments:
-              input: ${ RAW_DATA }
+              input: ${{ RAW_DATA }}
               output:
                 name: "John Doe"
                 email: "john@example.com"
@@ -42,7 +42,7 @@ workflows:
           - tool: core_createChatMessage
             arguments:
               role: 'assistant'
-              content: ${ JSON.stringify(STRUCTURED_DATA, null, 2) }
+              content: ${{ JSON.stringify(STRUCTURED_DATA, null, 2) }}
 
       - name: validateData          # Step 3: Validate the result
         from: dataTransformed
@@ -50,11 +50,11 @@ workflows:
         call:
           - tool: core_createMock
             arguments:
-              input: ${ STRUCTURED_DATA }
+              input: ${{ STRUCTURED_DATA }}
               output: true
             exportVariable: VALIDATION_RESULT
 
           - tool: core_createChatMessage
             arguments:
               role: 'assistant'
-              content: 'Data processing complete: <%= VALIDATION_RESULT === true ? "Validation passed." : "Validation failed." %>'
+              content: 'Data processing complete: ${{ VALIDATION_RESULT === true ? "Validation passed." : "Validation failed." }}'

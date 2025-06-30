@@ -24,10 +24,10 @@ tools:
     execute:
       service: LoadDocumentService
       arguments:
-        where: ${ arguments.where }
-        orderBy: ${ arguments.orderBy }
-        getMany: ${ !!arguments.getMany }
-        take: ${ arguments.take }
-        isDependency: ${ arguments.isDependency }
-        global: ${ arguments.global }
-        strictMode: ${ arguments.strictMode }
+        where: ${{ arguments.where }}
+        orderBy: ${{ arguments.orderBy }}
+        getMany: ${{ !!arguments.getMany }}
+        take: ${{ arguments.take }}
+        isDependency: ${{ arguments.isDependency }}
+        global: ${{ arguments.global }}
+        strictMode: ${{ arguments.strictMode }}

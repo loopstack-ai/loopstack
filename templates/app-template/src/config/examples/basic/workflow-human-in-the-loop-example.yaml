@@ -43,7 +43,7 @@ workflows:
             arguments:
               document: example_humanInTheLoop_approvalForm
               content:
-                draft_content: ${ DRAFT_CONTENT }
+                draft_content: ${{ DRAFT_CONTENT }}
                 approved: false
                 feedback: ""
 
@@ -56,14 +56,14 @@ workflows:
         call:
           - tool: core_createMock
             arguments:
-              input: ${ transition.payload }
-              output: ${ transition.payload.approved }
+              input: ${{ transition.payload }}
+              output: ${{ transition.payload.approved }}
             exportVariable: USER_DECISION
 
           - tool: core_switchTarget
             arguments:
               target: |
-                ${ USER_DECISION === true ? 'approved' : 'needsRevision' }
+                ${{ USER_DECISION === true ? 'approved' : 'needsRevision' }}
 
       # Approval path
       - name: finalizeContent       # Handle approved content
@@ -72,7 +72,7 @@ workflows:
         call:
           - tool: core_createMock
             arguments:
-              input: ${ DRAFT_CONTENT }
+              input: ${{ DRAFT_CONTENT }}
               output: 'Content published successfully to blog.example.com'
             exportVariable: PUBLISH_RESULT
 
@@ -82,7 +82,7 @@ workflows:
               content: |
                 ✅ Content approved and published!
                 
-                <%= PUBLISH_RESULT %>
+                ${{ PUBLISH_RESULT }}
 
       # Revision path
       - name: handleRevision        # Handle revision requests
@@ -96,7 +96,7 @@ workflows:
 
           - tool: core_createMock
             arguments:
-              input: ${ DRAFT_CONTENT }
+              input: ${{ DRAFT_CONTENT }}
               output: |
                 # The Future of Renewable Energy (Revised)
 

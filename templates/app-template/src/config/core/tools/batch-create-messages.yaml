@@ -34,4 +34,4 @@ tools:
       service: BatchCreateDocumentsService
       arguments:
         document: core_chatMessage
-        items: ${ arguments.items }
+        items: ${{ arguments.items }}

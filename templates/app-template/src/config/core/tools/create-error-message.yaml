@@ -14,4 +14,4 @@ tools:
         document: core_errorMessage
         update:
           content:
-            message: ${ arguments.message }
+            message: ${{ arguments.message }}

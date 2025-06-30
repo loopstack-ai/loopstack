@@ -11,6 +11,6 @@ tools:
     execute:
       service: UpdateDocumentService
       arguments:
-        id: ${ arguments.id }
+        id: ${{ arguments.id }}
         update:
-          content: ${ arguments.content }
+          content: ${{ arguments.content }}

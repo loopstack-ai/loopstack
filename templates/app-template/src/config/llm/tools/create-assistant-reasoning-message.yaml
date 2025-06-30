@@ -7,4 +7,4 @@ tools:
         update:
           content:
             role: assistant
-            content: ${ TAGS['Reasoning'] }
+            content: ${{ TAGS['Reasoning'] }}

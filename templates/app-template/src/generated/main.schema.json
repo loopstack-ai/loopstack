@@ -10,14 +10,13 @@
             "type": "object",
             "properties": {
               "name": {
-                "type": "string",
-                "pattern": "^(?![\\s\\S]*\\$\\{(?:\\{|[^{]))[\\s\\S]*$"
+                "type": "string"
               },
               "title": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               },
               "description": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               }
             },
             "required": [
@@ -34,13 +33,13 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                    "type": "string"
                   },
                   "title": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                    "type": "string"
                   },
                   "description": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                    "type": "string"
                   },
                   "namespace": {
                     "type": "object",
@@ -65,11 +64,11 @@
                         "type": "object",
                         "properties": {
                           "workflow": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                            "type": "string"
                           },
                           "condition": {
                             "type": "string",
-                            "pattern": "^(?:\\||>)?(?:[-+])?\\s*\\$\\{([\\s\\S]*?)\\}\\s*$"
+                            "pattern": "^(?:\\||>)?(?:[-+])?\\s*\\$\\{\\{([\\s\\S]*?)\\}\\}\\s*$"
                           }
                         },
                         "required": [
@@ -81,7 +80,7 @@
                         "type": "object",
                         "properties": {
                           "pipeline": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                            "type": "string"
                           },
                           "condition": {
                             "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
@@ -129,7 +128,7 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/name"
                   },
                   "title": {
                     "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/title"
@@ -162,7 +161,7 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/name"
                   },
                   "title": {
                     "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/title"
@@ -181,7 +180,7 @@
                     "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/1/properties/sequence"
                   },
                   "workspace": {
-                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -201,13 +200,13 @@
             "type": "object",
             "properties": {
               "name": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               },
               "title": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               },
               "description": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               },
               "namespace": {
                 "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/namespace"
@@ -570,7 +569,7 @@
                 "additionalProperties": false
               },
               "extends": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               },
               "arguments": {},
               "transitions": {
@@ -579,17 +578,17 @@
                   "type": "object",
                   "properties": {
                     "name": {
-                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                      "type": "string"
                     },
                     "from": {
                       "anyOf": [
                         {
-                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          "type": "string"
                         },
                         {
                           "type": "array",
                           "items": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                            "type": "string"
                           }
                         }
                       ]
@@ -597,12 +596,12 @@
                     "to": {
                       "anyOf": [
                         {
-                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                          "type": "string"
                         },
                         {
                           "type": "array",
                           "items": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                            "type": "string"
                           }
                         }
                       ]
@@ -627,14 +626,14 @@
                         "type": "object",
                         "properties": {
                           "tool": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                            "type": "string"
                           },
                           "arguments": {},
                           "exportVariable": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                            "type": "string"
                           },
                           "exportContext": {
-                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                            "type": "string"
                           }
                         },
                         "required": [
@@ -667,10 +666,10 @@
             "type": "object",
             "properties": {
               "name": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               },
               "description": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               },
               "content": {},
               "schema": {
@@ -682,7 +681,7 @@
               "tags": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                  "type": "string"
                 }
               },
               "meta": {
@@ -718,13 +717,13 @@
                   "enableAtPlaces": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                      "type": "string"
                     }
                   },
                   "hideAtPlaces": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                      "type": "string"
                     }
                   },
                   "data": {}
@@ -745,10 +744,10 @@
             "type": "object",
             "properties": {
               "name": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               },
               "value": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               }
             },
             "required": [
@@ -764,10 +763,10 @@
             "type": "object",
             "properties": {
               "name": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               },
               "description": {
-                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                "type": "string"
               },
               "parameters": {
                 "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
@@ -791,17 +790,10 @@
                             "type": "object",
                             "properties": {
                               "name": {
-                                "anyOf": [
-                                  {
-                                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                  },
-                                  {
-                                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                                  }
-                                ]
+                                "type": "string"
                               },
                               "description": {
-                                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                                "type": "string"
                               },
                               "content": {},
                               "schema": {
@@ -811,17 +803,7 @@
                                 "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/ui"
                               },
                               "tags": {
-                                "anyOf": [
-                                  {
-                                    "type": "array",
-                                    "items": {
-                                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                    }
-                                  },
-                                  {
-                                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                                  }
-                                ]
+                                "type": "string"
                               },
                               "meta": {
                                 "type": "object",
@@ -872,13 +854,13 @@
                                   "enableAtPlaces": {
                                     "type": "array",
                                     "items": {
-                                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                                      "type": "string"
                                     }
                                   },
                                   "hideAtPlaces": {
                                     "type": "array",
                                     "items": {
-                                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                                      "type": "string"
                                     }
                                   },
                                   "data": {}
@@ -943,14 +925,7 @@
                             "type": "string"
                           },
                           "name": {
-                            "anyOf": [
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                              },
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                              }
-                            ]
+                            "type": "string"
                           },
                           "addSuffix": {
                             "anyOf": [
@@ -1091,12 +1066,12 @@
                                     "additionalProperties": {
                                       "anyOf": [
                                         {
-                                          "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                                          "type": "string"
                                         },
                                         {
                                           "type": "array",
                                           "items": {
-                                            "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                                            "type": "string"
                                           }
                                         },
                                         {
@@ -1178,17 +1153,7 @@
                                           "type": "object",
                                           "properties": {
                                             "containsAnyOf": {
-                                              "anyOf": [
-                                                {
-                                                  "type": "array",
-                                                  "items": {
-                                                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                                  }
-                                                },
-                                                {
-                                                  "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                                                }
-                                              ]
+                                              "type": "string"
                                             }
                                           },
                                           "additionalProperties": false
@@ -1378,7 +1343,7 @@
                               "type": "object",
                               "properties": {
                                 "place": {
-                                  "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                                  "type": "string"
                                 },
                                 "condition": {
                                   "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
@@ -1493,14 +1458,7 @@
                         "type": "object",
                         "properties": {
                           "document": {
-                            "anyOf": [
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                              },
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                              }
-                            ]
+                            "type": "string"
                           }
                         },
                         "required": [
@@ -1526,24 +1484,10 @@
                         "type": "object",
                         "properties": {
                           "document": {
-                            "anyOf": [
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                              },
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                              }
-                            ]
+                            "type": "string"
                           },
                           "response": {
-                            "anyOf": [
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                              },
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                              }
-                            ]
+                            "type": "string"
                           }
                         },
                         "required": [
@@ -1571,14 +1515,7 @@
                         "properties": {
                           "tags": {},
                           "response": {
-                            "anyOf": [
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                              },
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                              }
-                            ]
+                            "type": "string"
                           }
                         },
                         "required": [
@@ -1607,14 +1544,7 @@
                             "type": "object",
                             "properties": {
                               "model": {
-                                "anyOf": [
-                                  {
-                                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                                  },
-                                  {
-                                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                  }
-                                ]
+                                "type": "string"
                               },
                               "envApiKey": {
                                 "type": "string"
@@ -1640,24 +1570,10 @@
                               "type": "object",
                               "properties": {
                                 "role": {
-                                  "anyOf": [
-                                    {
-                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                                    },
-                                    {
-                                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                    }
-                                  ]
+                                  "type": "string"
                                 },
                                 "content": {
-                                  "anyOf": [
-                                    {
-                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                                    },
-                                    {
-                                      "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                    }
-                                  ]
+                                  "type": "string"
                                 }
                               },
                               "required": [
@@ -1694,14 +1610,7 @@
                             "type": "object",
                             "properties": {
                               "model": {
-                                "anyOf": [
-                                  {
-                                    "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                                  },
-                                  {
-                                    "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                                  }
-                                ]
+                                "type": "string"
                               },
                               "envApiKey": {
                                 "type": "string"
@@ -1722,19 +1631,12 @@
                             "additionalProperties": false
                           },
                           "messagesSearchTag": {
-                            "anyOf": [
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
-                              },
-                              {
-                                "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
-                              }
-                            ]
+                            "type": "string"
                           },
                           "tools": {
                             "type": "array",
                             "items": {
-                              "$ref": "#/definitions/MainSchema/properties/workspaces/items/properties/name"
+                              "type": "string"
                             }
                           }
                         },

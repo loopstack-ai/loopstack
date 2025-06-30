@@ -14,8 +14,8 @@ pipelines:
     factory:
       workflow: example_factoryPipeline_processArticle       # Template workflow to execute
     iterator:
-      source: ${ context.variables.TOPIC_LIST }              # Array of topics to process
-      label: ${ item.topic }                                 # Property to use for label. Defaults to ${ item }
+      source: ${{ context.variables.TOPIC_LIST }}              # Array of topics to process
+      label: ${{ item.topic }}                                 # Property to use for label. Defaults to ${{ item }}
     namespace:
       label: Articles                                        # Namespace for organization
 
@@ -46,8 +46,8 @@ workflows:
         call:
           - tool: core_createMock
             arguments:
-              input: ${ context.variables.TOPIC_LIST_JSON }
-              output: ${ JSON.parse(context.variables.TOPIC_LIST_JSON) }
+              input: ${{ context.variables.TOPIC_LIST_JSON }}
+              output: ${{ JSON.parse(context.variables.TOPIC_LIST_JSON) }}
             exportContext: TOPIC_LIST   # Array available to factory pipeline
 
       - name: displayTopics
@@ -60,8 +60,8 @@ workflows:
               content: |
                 📝 **Batch Processing Started**
                 
-                Processing <%= context.variables.TOPIC_LIST.length %> topics in parallel:
-                <%= context.variables.TOPIC_LIST.map(topic => `• ${topic.topic} (${topic.category})`).join('\n') %>
+                Processing ${{ context.variables.TOPIC_LIST.length }} topics in parallel:
+                ${{ context.variables.TOPIC_LIST.map(topic => `• ${topic.topic} (${topic.category})`).join('\n') }}
 
   - name: example_factoryPipeline_processArticle
     title: "Generate Article"
@@ -73,8 +73,8 @@ workflows:
         call:
           - tool: core_createMock
             arguments:
-              input: 'Research topic: <%= context.item.topic %>'           # Access current item
-              output: 'Research completed for "<%= context.item.topic %>". Key insights: emerging trends, market analysis, expert opinions.'
+              input: 'Research topic: ${{ context.item.topic }}'           # Access current item
+              output: 'Research completed for "${{ context.item.topic }}". Key insights: emerging trends, market analysis, expert opinions.'
             exportVariable: RESEARCH_DATA
 
       - name: generateContent
@@ -84,11 +84,11 @@ workflows:
           - tool: core_createMock
             arguments:
               input: |
-                Topic: ${ context.item.topic }
-                Category: ${ context.item.category }
-                Research: ${ RESEARCH_DATA }
+                Topic: ${{ context.item.topic }}
+                Category: ${{ context.item.category }}
+                Research: ${{ RESEARCH_DATA }}
               output: |
-                This article explores the fascinating world of <%= context.item.topic %>...
+                This article explores the fascinating world of ${{ context.item.topic }}...
             exportVariable: ARTICLE_CONTENT
 
       - name: createDocument
@@ -99,10 +99,10 @@ workflows:
             arguments:
               document: example_factoryPipeline_article
               content:
-                topic: ${ context.item.topic }
-                category: ${ context.item.category }
-                article: ${ ARTICLE_CONTENT }
-                processed_at: ${ new Date().toISOString() }
+                topic: ${{ context.item.topic }}
+                category: ${{ context.item.category }}
+                article: ${{ ARTICLE_CONTENT }}
+                processed_at: ${{ new Date().toISOString() }}
 
       - name: displayResult
         from: documentCreated
@@ -112,7 +112,7 @@ workflows:
             arguments:
               role: 'assistant'
               content: |
-                ✅ <%=context.item.topic %> Article Completed
+                ✅ ${{context.item.topic }} Article Completed
 
 documents:
   - name: example_factoryPipeline_article

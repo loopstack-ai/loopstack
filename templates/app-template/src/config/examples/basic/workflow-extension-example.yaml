@@ -37,11 +37,11 @@ workflows:
           - tool: core_createMock
             arguments:
               input: |
-                You are a professional report writer. Create a comprehensive <%= arguments.report_type %> report 
-                for a <%= arguments.audience %> audience. The report should be well-structured with clear sections, 
+                You are a professional report writer. Create a comprehensive ${{ arguments.report_type }} report 
+                for a ${{ arguments.audience }} audience. The report should be well-structured with clear sections, 
                 data analysis, and actionable insights.
                 
-                Generate a detailed report about: <%= arguments.topic %>
+                Generate a detailed report about: ${{ arguments.topic }}
               output: |
                 # Renewable Energy Market Trends - Q4 2024 Executive Report
 
@@ -60,7 +60,7 @@ workflows:
           - tool: core_createChatMessage
             arguments:
               role: 'assistant'
-              content: ${ REPORT_CONTENT }
+              content: ${{ REPORT_CONTENT }}
 
       - name: completeReport
         from: reportGenerated
@@ -94,7 +94,7 @@ workflows:
                 for executive decision-making.
                 
                 Create an executive summary for this report:
-                <%= REPORT_CONTENT %>
+                ${{ REPORT_CONTENT }}
               output: |
                 ## Executive Summary
 
@@ -106,7 +106,7 @@ workflows:
           - tool: core_createChatMessage
             arguments:
               role: 'assistant'
-              content: ${ EXECUTIVE_SUMMARY }
+              content: ${{ EXECUTIVE_SUMMARY }}
 
       # Add final completion transition
       - name: finalizeSummaryReport
@@ -119,6 +119,6 @@ workflows:
               content: |
                 📋 Complete report with executive summary finished!
 
-                **Topic**: <%= arguments.topic %>
-                **Full Report:** <%= REPORT_CONTENT.length %> characters
-                **Executive Summary:** <%= EXECUTIVE_SUMMARY.length %> characters
+                **Topic**: ${{ arguments.topic }}
+                **Full Report:** ${{ REPORT_CONTENT.length }} characters
+                **Executive Summary:** ${{ EXECUTIVE_SUMMARY.length }} characters

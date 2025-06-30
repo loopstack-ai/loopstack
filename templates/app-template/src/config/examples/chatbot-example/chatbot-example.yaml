@@ -23,7 +23,7 @@ workflows:
           - tool: core_createChatMessage
             arguments:
               role: user
-              content: ${ transition.payload }
+              content: ${{ transition.payload }}
 
       - name: createLlmResponse
         from: userMessageAdded
@@ -38,8 +38,8 @@ workflows:
         call:
           - tool: core_createChatMessage
             arguments:
-              role: ${ PROMPT_RESULT.response.data.role }
-              content: ${ PROMPT_RESULT.response.data.content }
+              role: ${{ PROMPT_RESULT.response.data.role }}
+              content: ${{ PROMPT_RESULT.response.data.content }}
 
 tools:
   - name: examples_chatBot_promptLlm

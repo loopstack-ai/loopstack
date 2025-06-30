@@ -16,5 +16,5 @@ tools:
         document: core_plainMessage
         update:
           content:
-            title: ${ arguments.title }
-            content: ${ arguments.content }
+            title: ${{ arguments.title }}
+            content: ${{ arguments.content }}

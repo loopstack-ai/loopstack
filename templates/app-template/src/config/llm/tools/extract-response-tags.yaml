@@ -6,4 +6,4 @@ tools:
         tags:
           - Reasoning
           - Output
-        response: ${ PROMPT_RESULT.response.data }
+        response: ${{ PROMPT_RESULT.response.data }}

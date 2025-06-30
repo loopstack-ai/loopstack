@@ -92,7 +92,7 @@ workflows:
         from: document-created
         to: confirmed
         when: |
-          ${ (workflow.options.autoConfirm && !workflow.history.includes('unlock')) ? 'onEntry' : 'manual' }
+          ${{ (workflow.options.autoConfirm && !workflow.history.includes('unlock')) ? 'onEntry' : 'manual' }}
         call:
           - tool: llm_confirmDocument
             exportVariable: CONFIRMED_DOCUMENT

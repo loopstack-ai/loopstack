@@ -79,7 +79,7 @@ workflows:
             exportVariable: LOADED_PROFILE
           - tool: core_updateDocument
             arguments:
-              id: ${ LOADED_PROFILE.id }    # Use ID from loaded document
+              id: ${{ LOADED_PROFILE.id }}    # Use ID from loaded document
               content:
                 status: "active"            # Update status
             exportVariable: UPDATED_PROFILE
@@ -95,9 +95,9 @@ workflows:
                 ✅ Customer profile created successfully!
 
                 **Profile Details:**
-                - Name: ${ UPDATED_PROFILE.content.name }
-                - Email: ${ UPDATED_PROFILE.content.email }
-                - Status: ${ UPDATED_PROFILE.content.status }
+                - Name: ${{ UPDATED_PROFILE.content.name }}
+                - Email: ${{ UPDATED_PROFILE.content.email }}
+                - Status: ${{ UPDATED_PROFILE.content.status }}
 
   - name: example_documentCreation_updateProfileData
     title: "Update Customer Profile"
@@ -119,7 +119,7 @@ workflows:
             arguments:
               document: customer_profile
               content: |
-                ${ { ...LOADED_PROFILE.content, status: 'inactive' } }
+                ${{ { ...LOADED_PROFILE.content, status: 'inactive' } }}
             exportVariable: UPDATED_PROFILE
 
       - name: logUpdate
@@ -133,4 +133,4 @@ workflows:
                 ✅ Customer profile updated successfully!
 
                 **Updated Information:**
-                - Status: ${ UPDATED_PROFILE.content.status }
+                - Status: ${{ UPDATED_PROFILE.content.status }}

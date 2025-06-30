@@ -3,6 +3,6 @@ tools:
     execute:
       service: CreateDocumentService
       arguments:
-        document: ${ arguments.document }
+        document: ${{ arguments.document }}
         update:
-          content: ${ arguments.content }
+          content: ${{ arguments.content }}

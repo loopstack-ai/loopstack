@@ -9,6 +9,6 @@ tools:
     execute:
       service: MockService
       arguments:
-        input: ${ arguments.input }
-        output: ${ arguments.output }
-        error: ${ arguments.error }
+        input: ${{ arguments.input }}
+        output: ${{ arguments.output }}
+        error: ${{ arguments.error }}

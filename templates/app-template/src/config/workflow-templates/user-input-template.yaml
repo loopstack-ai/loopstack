@@ -13,7 +13,7 @@ workflows:
         call:
           - tool: core_createDocument
             arguments:
-              document: ${ workflow.options.document }
+              document: ${{ workflow.options.document }}
       - name: response
         from: waiting-for-user
         to: received
@@ -21,8 +21,8 @@ workflows:
         call:
           - tool: core_createDocument
             arguments:
-              document: ${ workflow.options.document }
-              content: ${ transition.payload }
+              document: ${{ workflow.options.document }}
+              content: ${{ transition.payload }}
       - name: finish
         from: received
         to: end

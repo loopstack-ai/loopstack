@@ -46,7 +46,7 @@ workflows:
           - tool: core_createDocument       # when the user submits, we (re-)create the same document including the user input
             arguments:
               document: tutorials_meetingNotes_userInput
-              content: ${ transition.payload }    # add the user request payload
+              content: ${{ transition.payload }}    # add the user request payload
             exportVariable: USER_INPUT                # make the document available for subsequent transitions
 
       - name: processMeetingNotes
@@ -55,7 +55,7 @@ workflows:
         call:
           - tool: tutorials_meetingNotes_createSummary
             arguments:
-              raw_notes: ${ USER_INPUT.text }   # use the user input document ("text" property)
+              raw_notes: ${{ USER_INPUT.text }}   # use the user input document ("text" property)
             exportVariable: SUMMARY_RESULT
 
       - name: addSummaryMessage
@@ -64,8 +64,8 @@ workflows:
         call:
           - tool: core_createChatMessage
             arguments:
-              role: ${ SUMMARY_RESULT.response.data.role }          # add the response message to chat
-              content: ${ SUMMARY_RESULT.response.data.content }
+              role: ${{ SUMMARY_RESULT.response.data.role }}          # add the response message to chat
+              content: ${{ SUMMARY_RESULT.response.data.content }}
 
 tools:
   - name: tutorials_meetingNotes_createSummary
@@ -80,7 +80,7 @@ tools:
             content: |
               You are a meeting notes summarizer. Transform these raw notes into a clear summary.
 
-              Raw Notes: <%= arguments.raw_notes %>
+              Raw Notes: ${{ arguments.raw_notes }}
               
               Create a summary with:
               

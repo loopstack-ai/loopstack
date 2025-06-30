@@ -40,9 +40,9 @@ workflows:
         call:
           - tool: core_createChatMessage
             arguments:
-              role: ${ PROMPT_RESULT.response.data.role }
-              content: ${ PROMPT_RESULT.response.data.content }
-              tool_calls: ${ PROMPT_RESULT.response.data.tool_calls }
+              role: ${{ PROMPT_RESULT.response.data.role }}
+              content: ${{ PROMPT_RESULT.response.data.content }}
+              tool_calls: ${{ PROMPT_RESULT.response.data.tool_calls }}
 
       - name: checkForToolCalls
         from: responseReceived
@@ -53,7 +53,7 @@ workflows:
           - tool: core_switchTarget
             arguments:
               target: |
-                ${ PROMPT_RESULT.response.data['tool_calls']?.length > 0 ? 'toolCallsReceived' : 'end' }
+                ${{ PROMPT_RESULT.response.data['tool_calls']?.length > 0 ? 'toolCallsReceived' : 'end' }}
 
       - name: callTools
         from: toolCallsReceived
@@ -61,7 +61,7 @@ workflows:
         call:
           - tool: core_delegateToolCalls
             arguments:
-              toolCalls: ${ PROMPT_RESULT.response.data['tool_calls'] }
+              toolCalls: ${{ PROMPT_RESULT.response.data['tool_calls'] }}
             exportVariable: TOOL_RESPONSES
 
       - name: addToolResponses
@@ -70,7 +70,7 @@ workflows:
         call:
           - tool: core_batchCreateMessages
             arguments:
-              items: ${ TOOL_RESPONSES }
+              items: ${{ TOOL_RESPONSES }}
 
 tools:
   - name: examples_toolCallAgent_getUserName
@@ -87,7 +87,7 @@ tools:
       service: MockService
       arguments:
         input: |
-          ${ `User ID: ${arguments.userId}` }
+          ${{ `User ID: ${{arguments.userId}}` }}
         output: "The Username is Jakob"
 
   - name: examples_toolCallAgent_promptLlm
