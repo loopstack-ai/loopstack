@@ -6,9 +6,14 @@ import {
   TemplateService, ObjectExpressionHandler, TemplateExpressionHandler, ExpressionEvaluatorService,
 } from './services';
 import { ClientMessageService } from './services/client-message.service';
+import { SecureTemplateProcessor } from './services/expression-handler/secure-template-processor.service';
+import { ConfigurationModule } from '../configuration';
 
 @Module({
-  imports: [EventEmitterModule.forRoot()],
+  imports: [
+    ConfigurationModule,
+    EventEmitterModule.forRoot(),
+  ],
   providers: [
     ClientMessageService,
     SchemaValidatorService,
@@ -17,6 +22,7 @@ import { ClientMessageService } from './services/client-message.service';
     ObjectExpressionHandler,
     TemplateExpressionHandler,
     ExpressionEvaluatorService,
+    SecureTemplateProcessor,
   ],
   exports: [
     ClientMessageService,

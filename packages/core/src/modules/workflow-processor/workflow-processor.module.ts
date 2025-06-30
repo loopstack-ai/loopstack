@@ -16,10 +16,10 @@ import {
   NamespaceProcessorService,
   PipelineProcessorService,
   WorkflowProcessorService,
-  ToolSchemaValidatorService,
   TemplateExpressionEvaluatorService,
   WorkflowStateService,
   RootProcessorService, WorkflowContextService,
+  ServiceExecutionService,
 } from './services';
 import {
   AddNamespaceService,
@@ -45,7 +45,6 @@ import {
     WorkflowStateService,
     WorkflowProcessorService,
     ToolExecutionService,
-    ToolSchemaValidatorService,
     CreateDocumentService,
     BatchCreateDocumentsService,
     MockService,
@@ -59,6 +58,7 @@ import {
     TemplateExpressionEvaluatorService,
     SetTargetPlaceService,
     WorkflowContextService,
+    ServiceExecutionService,
 
     InitialRunValidator,
     WorkflowDependenciesValidator,

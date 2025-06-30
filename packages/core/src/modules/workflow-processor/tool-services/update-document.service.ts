@@ -22,7 +22,13 @@ const config = z
 const schema = z
   .object({
     id: z.string(),
-    update: PartialDocumentSchema.optional(),
+    update: z.object({
+      content: z.any(),
+      tags: z.array(
+        z.string()
+      ).optional(),
+      meta: z.any(),
+    }).optional(),
   })
   .strict();
 

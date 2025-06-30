@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { TemplateDetector, TemplateProcessor } from '../template.service';
 import { ExpressionEvaluatorService } from '../expression-evaluator.service';
+import { SecureTemplateProcessor } from './secure-template-processor.service';
 
 @Injectable()
 export class TemplateExpressionHandler implements TemplateDetector, TemplateProcessor {
 
   constructor(
-    private expressionEvaluatorService: ExpressionEvaluatorService,
+    private secureTemplateProcessor: SecureTemplateProcessor,
   ) {}
 
   canHandle(value: any): boolean {
@@ -17,7 +18,7 @@ export class TemplateExpressionHandler implements TemplateDetector, TemplateProc
     }
   }
 
-  process(value: string, variables: Record<string, any>): string {
-    return this.expressionEvaluatorService.render(value, variables);
+  process(value: string, path: string, variables: Record<string, any>): string {
+    return this.secureTemplateProcessor.render(value, variables);
   }
 }

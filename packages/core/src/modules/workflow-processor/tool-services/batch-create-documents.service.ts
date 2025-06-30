@@ -69,7 +69,7 @@ export class BatchCreateDocumentsService implements ServiceInterface {
     }
 
     const evaluatedTemplate =
-      this.templateExpressionEvaluatorService.evaluate<DocumentType>(
+      this.templateExpressionEvaluatorService.parse<DocumentType>(
         template,
         {},
         context,

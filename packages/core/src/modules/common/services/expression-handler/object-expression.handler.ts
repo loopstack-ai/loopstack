@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { TemplateDetector, TemplateProcessor } from '../template.service';
 import { ExpressionEvaluatorService } from '../expression-evaluator.service';
+import { SecureTemplateProcessor } from './secure-template-processor.service';
 
 @Injectable()
 export class ObjectExpressionHandler implements TemplateDetector, TemplateProcessor {
 
   constructor(
     private expressionEvaluatorService: ExpressionEvaluatorService,
+    private secureTemplateProcessor: SecureTemplateProcessor,
   ) {}
 
   canHandle(value: any): boolean {
@@ -18,16 +20,18 @@ export class ObjectExpressionHandler implements TemplateDetector, TemplateProces
     }
   }
 
-  process(value: string, variables: Record<string, any>): any {
+  process(value: string, path: string | null, variables: Record<string, any>, secure: boolean): any {
     const trimmed = value.trim();
-    const expression = trimmed.replace(/^\$\{\{/, '').replace(/}}$/, '').trim();
-    const evalExpression = `{{stringify (${expression})}}`;
-    const result = this.expressionEvaluatorService.render(evalExpression, variables);
+    const expression = trimmed.replace(/^\$\{\{/, '{{');
+    // const evalExpression = `{{stringify (${expression})}}`;
+    // const result = this.expressionEvaluatorService.render(evalExpression, path, variables);
 
-    if (result === undefined || result === null || result === '') {
-      return result;
-    }
+    return this.secureTemplateProcessor.parse(expression, path, variables, secure)
 
-    return JSON.parse(result);
+    // if (result === undefined || result === null || result === '') {
+    //   return result;
+    // }
+    //
+    // return JSON.parse(result);
   }
 }

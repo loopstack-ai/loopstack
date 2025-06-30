@@ -3,13 +3,14 @@ import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.servic
 import { ServiceRegistry } from './service-registry.service';
 import { ConfigService } from '@nestjs/config';
 import {
-  ConfigSourceInterface,
+  ConfigSourceInterface, DocumentType,
   MainConfigType,
   NamedCollectionItem, PipelineType,
-  StateMachineHandlerType,
+  StateMachineHandlerType, ToolConfigType,
 } from '@loopstack/shared';
 import { ConfigProviderRegistry } from './config-provider.registry';
 import { z } from 'zod';
+import { SchemaRegistry } from './schema-registry.service';
 
 @Injectable()
 export class ConfigurationService implements OnModuleInit {
@@ -22,6 +23,7 @@ export class ConfigurationService implements OnModuleInit {
     private serviceRegistry: ServiceRegistry,
     private configProviderRegistry: ConfigProviderRegistry,
     private mainSchemaGenerator: DynamicSchemaGeneratorService,
+    private schemaRegistry: SchemaRegistry,
   ) {}
 
   onModuleInit() {
@@ -54,6 +56,22 @@ export class ConfigurationService implements OnModuleInit {
     for (const config of configs) {
       this.validate(config);
     }
+
+    // register tools arguments schemas
+    for (const tool of this.getAll<ToolConfigType>('tools')) {
+      if (tool.parameters) {
+        this.schemaRegistry.addSchema('tools.arguments', tool.name, tool.parameters);
+      }
+    }// register documents content schemas
+    for (const document of this.getAll<DocumentType>('documents')) {
+      if (document.schema) {
+        this.schemaRegistry.addSchema('documents.content', document.name, document.schema);
+      }
+    }
+
+    this.logger.debug(`Registered schemas:`);
+    this.logger.debug(this.schemaRegistry.getRegisteredNames());
+
   }
 
   createDefaultConfig() {

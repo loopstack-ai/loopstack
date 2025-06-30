@@ -3,8 +3,9 @@ import { z } from 'zod';
 import {
   Service,
   ServiceInterface,
-  ServiceCallResult,
+  ServiceCallResult, DocumentType, WorkflowEntity, ContextInterface, TransitionMetadataInterface,
 } from '@loopstack/shared';
+import { TemplateExpressionEvaluatorService } from '../services';
 
 const config = z
   .object({
@@ -30,19 +31,62 @@ const schema = z
 export class MockService implements ServiceInterface {
   private readonly logger = new Logger(MockService.name);
 
-  async apply(props: z.infer<typeof schema>): Promise<ServiceCallResult> {
+  constructor(private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService) {}
+
+  async apply(
+    props: z.infer<typeof schema>,
+    workflow: WorkflowEntity,
+    context: ContextInterface,
+    transitionData: TransitionMetadataInterface,
+    parentArguments: any,
+  ): Promise<ServiceCallResult> {
     if (props.input) {
+
+      const input = this.templateExpressionEvaluatorService.parse<DocumentType>(
+        props.input,
+        parentArguments,
+        context,
+        workflow,
+        transitionData,
+        'mock',
+        false,
+      );
+
       this.logger.debug(`Received mock input:`);
       this.logger.debug(props.input);
+      this.logger.debug(parentArguments);
+      this.logger.debug(input);
     }
 
+    const output = props.output ? this.templateExpressionEvaluatorService.parse<DocumentType>(
+      props.output,
+      parentArguments,
+      context,
+      workflow,
+      transitionData,
+      'mock',
+      false,
+    ) : null;
+
+
     if (props.error) {
-      throw new Error(props.error);
+
+      const error = this.templateExpressionEvaluatorService.parse<string>(
+        props.error,
+        parentArguments,
+        context,
+        workflow,
+        transitionData,
+        'mock',
+        false,
+      );
+
+      throw new Error(error);
     }
 
     return {
       success: true,
-      data: props.output,
+      data: output,
     };
   }
 }

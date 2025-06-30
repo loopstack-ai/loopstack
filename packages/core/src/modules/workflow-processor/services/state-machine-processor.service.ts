@@ -2,8 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineConfigService } from './state-machine-config.service';
 import {
   ContextInterface,
-  HistoryTransition,
-  ToolCallType,
+  HistoryTransition, ServiceCallResult, ToolCallType,
   TransitionInfoInterface,
   TransitionMetadataInterface,
   TransitionPayloadInterface,
@@ -24,6 +23,7 @@ import {
 import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { omit } from 'lodash';
+import { WorkflowContextService } from './workflow-context.service';
 
 @Injectable()
 export class StateMachineProcessorService {
@@ -36,6 +36,7 @@ export class StateMachineProcessorService {
     private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry,
     private readonly templateService: TemplateService,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
+    private readonly workflowContextService: WorkflowContextService,
   ) {}
 
   canSkipRun(
@@ -215,6 +216,50 @@ export class StateMachineProcessorService {
     this.updateWorkflowState(workflow, historyItem);
   }
 
+  addWorkflowTransitionData(
+    workflow: WorkflowEntity,
+    transition: string,
+    target: string,
+    data: any,
+  ) {
+    if (!workflow.currData) {
+      workflow.currData = {};
+    }
+
+    if (!workflow.currData[transition]) {
+      workflow.currData[transition] = {};
+    }
+
+    workflow.currData[transition][target] = data;
+  }
+
+  commitToolCallResult(
+    workflow: WorkflowEntity,
+    transition: string,
+    toolCall: ToolCallType,
+    result: ServiceCallResult | undefined,
+  ) {
+    if (result?.workflow) {
+      workflow = result?.workflow;
+    }
+
+    this.addWorkflowTransitionData(workflow, transition, toolCall.tool, result?.data);
+
+    if (toolCall.exportVariable) {
+      const currAlias = workflow.aliasData ?? {};
+      workflow.aliasData = {
+        ...currAlias,
+        [toolCall.exportVariable]: [transition, toolCall.tool],
+      };
+    }
+
+    if (toolCall.exportContext) {
+      workflow = this.workflowContextService.setWorkflowContextUpdate(workflow, toolCall.exportContext, result?.data);
+    }
+
+    return workflow;
+  }
+
   async loopStateMachine(
     beforeContext: ContextInterface,
     workflow: WorkflowEntity,
@@ -249,7 +294,7 @@ export class StateMachineProcessorService {
           (transition) => omit(transition, ['call']),
         );
         const evaluatedTransitions =
-          this.templateExpressionEvaluatorService.evaluate<
+          this.templateExpressionEvaluatorService.parse<
             WorkflowTransitionType[]
           >(
             transitionsWithoutCallProperty,
@@ -294,26 +339,17 @@ export class StateMachineProcessorService {
                 `Call tool ${index} (${toolCall.tool}) on transition ${transitionData.transition}`,
               );
 
-              // evaluate tool call config late in the execution for up-to-date arguments
-              const evaluatedToolCall =
-                this.templateExpressionEvaluatorService.evaluate<ToolCallType>(
-                  toolCall,
-                  stateMachineInfo.options,
-                  context,
-                  workflow,
-                  transitionData,
-                );
-
               // apply the tool
               const result = await this.toolExecutionService.applyTool(
-                evaluatedToolCall,
+                toolCall,
+                stateMachineInfo.options,
                 workflow,
                 context,
                 transitionData,
               );
 
               // add the response data to workflow
-              workflow = this.toolExecutionService.commitServiceCallResult(
+              workflow = this.commitToolCallResult(
                 workflow,
                 transitionData.transition,
                 toolCall,
@@ -345,7 +381,7 @@ export class StateMachineProcessorService {
 
           // transition to error place
           nextPlace = nextTransition.onError;
-          this.toolExecutionService.addWorkflowTransitionData(
+          this.addWorkflowTransitionData(
             workflow,
             transitionData.transition,
             'error',

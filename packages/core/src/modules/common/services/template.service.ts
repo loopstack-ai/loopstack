@@ -7,7 +7,7 @@ export interface TemplateDetector {
 }
 
 export interface TemplateProcessor {
-  process(value: any, variables: Record<string, any>): any;
+  process(value: any, path: string | null, variables: Record<string, any>, secure: boolean): any;
 }
 
 @Injectable()
@@ -28,9 +28,11 @@ export class TemplateService {
    * Evaluates a value using the appropriate template handler
    * @param value The value to evaluate
    * @param variables The variables to use in template evaluation
+   * @param path
+   * @param secure
    * @returns The processed value or the original value if no handler can process it
    */
-  evaluate(value: any, variables: Record<string, any>): any {
+  evaluate(value: any, variables: Record<string, any>, path: string | null = null, secure: boolean = true): any {
     // Early return for non-processable values
     if (value == null || typeof value !== 'string') {
       return value;
@@ -38,7 +40,7 @@ export class TemplateService {
 
     for (const handler of this.handlers) {
       if (handler.canHandle(value)) {
-        return handler.process(value, variables);
+        return handler.process(value, path, variables, secure);
       }
     }
 
@@ -48,27 +50,33 @@ export class TemplateService {
   /**
    * Recursively evaluates template expressions in objects and arrays
    * @param obj The object/array to process
+   * @param path
    * @param variables The variables to use in template evaluation
+   * @param secure
    * @returns The processed object/array
    */
-  evaluateDeep<T = any>(obj: any, variables: Record<string, any>): T {
+  evaluateDeep<T = any>(obj: any, variables: Record<string, any>, path: string | null = null, secure: boolean = true): T {
     if (obj == null) {
       return obj;
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.evaluateDeep(item, variables)) as T;
+      const arrayPath = path === null ? null : `${path}[]`;
+      return obj.map(item => {
+        return this.evaluateDeep(item, variables, arrayPath, secure);
+      }) as T;
     }
 
     if (typeof obj === 'object') {
       const result: Record<string, any> = {};
       for (const [key, value] of Object.entries(obj)) {
-        result[key] = this.evaluateDeep(value, variables);
+        const objectPath = path === null ? null : `${path}.${key}`;
+        result[key] = this.evaluateDeep(value, variables, objectPath, secure);
       }
       return result as T;
     }
 
-    return this.evaluate(obj, variables) as T;
+    return this.evaluate(obj, variables, path, secure) as T;
   }
 
   /**

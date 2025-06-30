@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigurationService, ServiceRegistry } from '../../configuration';
+import { ConfigurationService } from '../../configuration';
 import {
   ContextInterface,
   ToolConfigType,
@@ -8,10 +8,8 @@ import {
   TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
-import { ToolSchemaValidatorService } from './tool-schema-validator.service';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
-import { SchemaValidatorService } from '../../common';
-import { WorkflowContextService } from './workflow-context.service';
+import { ServiceExecutionService } from './service-execution.service';
 
 @Injectable()
 export class ToolExecutionService {
@@ -19,11 +17,8 @@ export class ToolExecutionService {
 
   constructor(
     private configurationService: ConfigurationService,
-    private serviceRegistry: ServiceRegistry,
-    private toolSchemaValidatorService: ToolSchemaValidatorService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private schemaValidatorService: SchemaValidatorService,
-    private workflowContextService: WorkflowContextService,
+    private serviceExecutionService: ServiceExecutionService,
   ) {}
 
   getToolConfig(toolName: string) {
@@ -38,101 +33,37 @@ export class ToolExecutionService {
     return config;
   }
 
-  async callService(
-    name: string,
-    args: any,
-    workflow?: WorkflowEntity,
-    context?: ContextInterface,
-    transitionData?: TransitionMetadataInterface,
-  ): Promise<ServiceCallResult> {
-    const { options, instance } = this.serviceRegistry.getServiceByName(name);
-
-    const parsedArgs = this.toolSchemaValidatorService.validateProps(
-      options.schema,
-      args,
-    );
-
-    this.logger.debug(`Calling service ${name}`);
-
-    return instance.apply(parsedArgs, workflow, context, transitionData);
-  }
-
   async applyTool(
-    handler: ToolCallType,
+    toolCall: ToolCallType,
+    parentArguments: any,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     transitionData: TransitionMetadataInterface,
   ): Promise<ServiceCallResult> {
-    const toolConfig = this.getToolConfig(handler.tool);
 
-    // validate the tool call arguments
-    if (toolConfig.parameters) {
-      this.schemaValidatorService.validate(
-        handler.arguments,
-        toolConfig.parameters,
-      );
-    }
+    this.logger.debug(`Tool ${toolCall.tool} called with arguments`, toolCall.arguments);
+    this.logger.debug(`Parent Arguments:`, parentArguments);
 
-    // parse service execution arguments
-    const args = this.templateExpressionEvaluatorService.evaluate(
-      toolConfig.execute.arguments,
-      handler.arguments,
-      context,
-      workflow,
-      transitionData,
-    );
+    const toolConfig = this.getToolConfig(toolCall.tool);
 
-    // call the service
-    return this.callService(
-      toolConfig.execute.service,
-      args,
+    const toolCallArgumentsSchemaPath = toolConfig.parameters ? `tools.arguments.${toolConfig.name}` : null;
+
+    const toolCallArguments = toolCall.arguments ?
+      this.templateExpressionEvaluatorService.parse<ToolCallType>(
+        toolCall.arguments,
+        parentArguments,
+        context,
+        workflow,
+        transitionData,
+        toolCallArgumentsSchemaPath,
+      ) : {};
+
+    return this.serviceExecutionService.callService(
+      toolConfig.execute,
+      toolCallArguments,
       workflow,
       context,
       transitionData,
     );
-  }
-
-  addWorkflowTransitionData(
-    workflow: WorkflowEntity,
-    transition: string,
-    target: string,
-    data: any,
-  ) {
-    if (!workflow.currData) {
-      workflow.currData = {};
-    }
-
-    if (!workflow.currData[transition]) {
-      workflow.currData[transition] = {};
-    }
-
-    workflow.currData[transition][target] = data;
-  }
-
-  commitServiceCallResult(
-    workflow: WorkflowEntity,
-    transition: string,
-    toolCall: ToolCallType,
-    result: ServiceCallResult | undefined,
-  ) {
-    if (result?.workflow) {
-      workflow = result?.workflow;
-    }
-
-    this.addWorkflowTransitionData(workflow, transition, toolCall.tool, result?.data);
-
-    if (toolCall.exportVariable) {
-      const currAlias = workflow.aliasData ?? {};
-      workflow.aliasData = {
-        ...currAlias,
-        [toolCall.exportVariable]: [transition, toolCall.tool],
-      };
-    }
-
-    if (toolCall.exportContext) {
-      workflow = this.workflowContextService.setWorkflowContextUpdate(workflow, toolCall.exportContext, result?.data);
-    }
-
-    return workflow;
   }
 }
