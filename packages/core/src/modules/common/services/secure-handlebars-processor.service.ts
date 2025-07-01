@@ -153,8 +153,20 @@ export class SecureHandlebarsProcessor implements OnModuleInit {
       const result = this.render(`{{${expression}}}`, variables);
       return !!result;
 
+    } else if (schema instanceof z.ZodNumber) {
+      const result = this.render(`{{${expression}}}`, variables);
+      return Number(result);
+
       // parse object types or in unsecure context where target type is unknown
-    } else if (!secure || schema instanceof z.ZodObject || schema instanceof z.ZodArray || schema instanceof z.ZodUnion || schema instanceof z.ZodAny) {
+    } else if (!secure
+      || schema instanceof z.ZodObject
+      || schema instanceof z.ZodArray
+      || schema instanceof z.ZodUnion
+      || schema instanceof z.ZodAny
+      || schema instanceof z.ZodRecord
+      || schema instanceof z.ZodEnum
+    ) {
+
       // create a wrapper handlebars expression to safe-stringify the template expression
       // by validating and parsing based on schema (path)
       const wrappedExpression = `{{jsonStringify (value ${expression}) "${path}" "${secure ? '' : 'unsecure'}"}}`;
@@ -212,7 +224,7 @@ export class SecureHandlebarsProcessor implements OnModuleInit {
       return value.map(item => this.deepSanitize(item, depth + 1));
     }
 
-    if (type === 'object' && value.constructor === Object) {
+    if (type === 'object') {
       const sanitized: Record<string, any> = {};
       for (const [key, val] of Object.entries(value)) {
         const sanitizedValue = this.deepSanitize(val, depth + 1);

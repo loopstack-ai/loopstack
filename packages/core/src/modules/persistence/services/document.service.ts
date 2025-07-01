@@ -89,7 +89,11 @@ const PropertyCondition = z.union([
 ]);
 
 export const WhereCondition = z.union([
-  z.record(z.string(), PropertyCondition),
+  // z.record(z.string(), PropertyCondition),
+  // todo: explicitly define where properties:
+  z.object({
+    name: PropertyCondition
+  }),
   LogicalOperator,
   BracketOperator,
 ]);

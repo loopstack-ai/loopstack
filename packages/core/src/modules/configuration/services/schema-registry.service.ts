@@ -74,6 +74,22 @@ export class SchemaRegistry {
       const arrayItemPath = `${currentPath}[]`;
       const itemSchema = unwrappedSchema.element;
       this.registerZodPropertyPaths(rootName, itemSchema, arrayItemPath);
+    } else if (unwrappedSchema instanceof z.ZodUnion) {
+      const unionOptions = unwrappedSchema.options;
+
+      // if the union items are objects we need to add their properties
+      // to the list of property schema paths
+      for (let i = 0; i < unionOptions.length; i++) {
+        const optionSchema = unionOptions[i];
+        const unwrappedUnionOptionSchema = this.unwrapZodSchema(optionSchema);
+        if (unwrappedUnionOptionSchema instanceof z.ZodObject) {
+          const shape = unwrappedUnionOptionSchema.shape;
+          for (const [propName, propSchema] of Object.entries(shape)) {
+            const unionOptionPropPath = currentPath ? `${currentPath}.${propName}` : propName;
+            this.registerZodPropertyPaths(rootName, propSchema as z.ZodType, unionOptionPropPath);
+          }
+        }
+      }
     }
   }
 

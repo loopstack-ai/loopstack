@@ -120,8 +120,9 @@ export class UpdateDocumentService implements ServiceInterface {
     const documentContentSchemaPath = `custom.documents.content.${document.name}`;
 
     // evaluate and parse document content using document schema
+    // merge with previous content for partial object updates
     const parsedDocumentContent = undefined !== props.update?.content ? this.templateExpressionEvaluatorService.parse<DocumentType>(
-      props.update.content,
+      typeof props.update.content === 'object' ? merge({}, document.content, props.update.content) : props.update.content,
       {
         arguments: parentArguments,
         context,
