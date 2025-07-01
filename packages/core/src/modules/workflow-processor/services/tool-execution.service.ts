@@ -46,16 +46,20 @@ export class ToolExecutionService {
 
     const toolConfig = this.getToolConfig(toolCall.tool);
 
-    const toolCallArgumentsSchemaPath = toolConfig.parameters ? `tools.arguments.${toolConfig.name}` : null;
+    const toolCallArgumentsSchemaPath = toolConfig.parameters ? `custom.tools.arguments.${toolConfig.name}` : null;
 
     const toolCallArguments = toolCall.arguments ?
       this.templateExpressionEvaluatorService.parse<ToolCallType>(
         toolCall.arguments,
-        parentArguments,
-        context,
-        workflow,
-        transitionData,
-        toolCallArgumentsSchemaPath,
+        {
+          arguments: parentArguments,
+          context,
+          workflow,
+          transition: transitionData
+        },
+        {
+          schemaPath: toolCallArgumentsSchemaPath,
+        },
       ) : {};
 
     return this.serviceExecutionService.callService(

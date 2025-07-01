@@ -44,12 +44,16 @@ export class MockService implements ServiceInterface {
 
       const input = this.templateExpressionEvaluatorService.parse<DocumentType>(
         props.input,
-        parentArguments,
-        context,
-        workflow,
-        transitionData,
-        'mock',
-        false,
+        {
+          arguments: parentArguments,
+          context,
+          workflow,
+          transition: transitionData
+        },
+        {
+          schemaPath: 'mock',
+          omitSchemaValidation: true,
+        },
       );
 
       this.logger.debug(`Received mock input:`);
@@ -60,25 +64,35 @@ export class MockService implements ServiceInterface {
 
     const output = props.output ? this.templateExpressionEvaluatorService.parse<DocumentType>(
       props.output,
-      parentArguments,
-      context,
-      workflow,
-      transitionData,
-      'mock',
-      false,
+      {
+        arguments: parentArguments,
+        context,
+        workflow,
+        transition: transitionData
+      },
+      {
+        schemaPath: 'mock',
+        omitSchemaValidation: true,
+      },
     ) : null;
 
+    this.logger.debug('output11');
+    this.logger.debug(JSON.stringify(output, null, 2));
 
     if (props.error) {
 
       const error = this.templateExpressionEvaluatorService.parse<string>(
         props.error,
-        parentArguments,
-        context,
-        workflow,
-        transitionData,
-        'mock',
-        false,
+        {
+          arguments: parentArguments,
+          context,
+          workflow,
+          transition: transitionData
+        },
+        {
+          schemaPath: 'mock',
+          omitSchemaValidation: true,
+        },
       );
 
       throw new Error(error);

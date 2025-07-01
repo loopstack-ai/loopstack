@@ -67,9 +67,20 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     config: WorkflowType,
   ): Promise<WorkflowEntity> {
-    const args = this.templateService.evaluateDeep<
+
+    const args = this.templateExpressionEvaluatorService.parse<
       Record<string, any>
-    >(config.arguments, { context });
+    >(
+      config.arguments,
+      { context },
+      {
+        schemaPath: 'config.workflows[].arguments',
+        omitSchemaValidation: true,
+        omitAliasVariables: true,
+        omitUseTemplates: true,
+        omitWorkflowData: true,
+      }
+    )
 
     if (!workflow) {
       throw new Error(`No workflow entry.`);
@@ -289,7 +300,8 @@ export class StateMachineProcessorService {
           payload: nextPending?.payload ?? null,
         };
 
-        // exclude call property from transitions eval because this should be only evaluated when called for correct arguments
+        // exclude call property from transitions eval because this should be only
+        // evaluated when called, so it received actual arguments
         const transitionsWithoutCallProperty = workflowConfig.transitions.map(
           (transition) => omit(transition, ['call']),
         );
@@ -298,10 +310,15 @@ export class StateMachineProcessorService {
             WorkflowTransitionType[]
           >(
             transitionsWithoutCallProperty,
-            stateMachineInfo.options,
-            context,
-            workflow,
-            transitionData,
+            {
+              arguments: stateMachineInfo.options,
+              context,
+              workflow,
+              transition: transitionData
+            },
+            {
+              schemaPath: `config.workflows[].transitions`,
+            }
           );
 
         this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions);

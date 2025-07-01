@@ -12,80 +12,69 @@ export class SchemaRegistry {
     return new Function('z', `return ${zodSchemaString}`)(z);
   }
 
-  /**
-   * Add a schema with security validation
-   */
-  public addSchema(prefix: string, name: string, jsonSchema: any): void {
-    const key = `${prefix}.${name}`;
-
-    this.validateSecureSchema(jsonSchema);
+  public addZodSchema(key: string, schema: z.ZodType): void {
+    // const unwrappedSchema = this.unwrapZodSchema(schema);
 
     try {
-
-      const zodSchema = this.createZod(jsonSchema);
-      this.zodSchemas.set(key, zodSchema);
-
-      // Auto-register property paths for object schemas
-      if (jsonSchema.type === 'object') {
-        this.registerPropertyPaths(prefix, name, jsonSchema);
-      }
+      // this.zodSchemas.set(key, unwrappedSchema);
+      // if (unwrappedSchema instanceof z.ZodObject) {
+        this.registerZodPropertyPaths(key, schema);
+      // }
     } catch (error) {
       throw new Error(`Failed to process schema '${key}': ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  /**
-   * Register individual property paths from an object schema
-   */
-  private registerPropertyPaths(prefix: string, rootName: string, jsonSchema: any, currentPath: string = ''): void {
-    if (jsonSchema.type !== 'object' || !jsonSchema.properties) {
-      return;
-    }
-
-    for (const [propName, propSchema] of Object.entries(jsonSchema.properties)) {
-      const fullPath = currentPath ? `${currentPath}.${propName}` : propName;
-      const schemaKey = `${prefix}.${rootName}.${fullPath}`;
-
-      // Every property must have a type declared
-      if (!(propSchema as any).type) {
-        continue;
-        // throw new Error(`Property '${fullPath}' in schema '${prefix}.${rootName}' must have a type declared`);
-      }
-
-      const propertyZodSchema = this.createZod(propSchema);
-
-      this.zodSchemas.set(schemaKey, propertyZodSchema);
-
-      // Recursively register nested object properties
-      if ((propSchema as any).type === 'object') {
-        this.registerPropertyPaths(prefix, rootName, propSchema as any, fullPath);
-      }
-
-      // Handle array items that are objects
-      if ((propSchema as any).type === 'array' && (propSchema as any).items) {
-        const itemsSchema = (propSchema as any).items;
-        if (!itemsSchema.type) {
-          throw new Error(`Array items in property '${fullPath}' must have a type declared`);
-        }
-
-        const arrayItemPath = `${fullPath}[]`;
-        const arrayItemKey = `${prefix}.${rootName}.${arrayItemPath}`;
-
-        const itemZodSchema = this.createZod(itemsSchema);
-        this.zodSchemas.set(arrayItemKey, itemZodSchema);
-
-        if ((propSchema as any).items.type === 'object') {
-          this.registerPropertyPaths(prefix, rootName, itemsSchema, arrayItemPath);
-        }
-      }
+  public addJSONSchema(key: string, jsonSchema: any): void {
+    this.validateSecureSchema(jsonSchema);
+    try {
+      const zodSchema = this.createZod(jsonSchema);
+      this.addZodSchema(key, zodSchema);
+    } catch (error) {
+      throw new Error(`Failed to create zod schema for '${key}': ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   /**
-   * Get all registered schema keys (for debugging)
+   * Unwrap a Zod schema by removing all wrapper types (optional, nullable, default, etc.)
    */
-  public getRegisteredSchemas(): string[] {
-    return Array.from(this.zodSchemas.keys()).sort();
+  private unwrapZodSchema(schema: z.ZodType): z.ZodType {
+    if (schema instanceof z.ZodOptional) {
+      return this.unwrapZodSchema(schema.unwrap());
+    }
+    if (schema instanceof z.ZodNullable) {
+      return this.unwrapZodSchema(schema.unwrap());
+    }
+    if (schema instanceof z.ZodDefault) {
+      return this.unwrapZodSchema(schema.removeDefault());
+    }
+    if (schema instanceof z.ZodEffects) {
+      return this.unwrapZodSchema(schema.innerType());
+    }
+    return schema;
+  }
+
+  /**
+   * Register individual property paths from a Zod schema
+   */
+  private registerZodPropertyPaths(rootName: string, zodSchema: z.ZodType, currentPath: string = ''): void {
+    const unwrappedSchema = this.unwrapZodSchema(zodSchema);
+
+    const schemaKey = currentPath ? `${rootName}.${currentPath}` : rootName;
+    this.zodSchemas.set(schemaKey, unwrappedSchema);
+
+    if (unwrappedSchema instanceof z.ZodObject) {
+      const shape = unwrappedSchema.shape;
+
+      for (const [propName, propSchema] of Object.entries(shape)) {
+        const fullPath = currentPath ? `${currentPath}.${propName}` : propName;
+        this.registerZodPropertyPaths(rootName, propSchema as z.ZodType, fullPath);
+      }
+    } else if (unwrappedSchema instanceof z.ZodArray) {
+      const arrayItemPath = `${currentPath}[]`;
+      const itemSchema = unwrappedSchema.element;
+      this.registerZodPropertyPaths(rootName, itemSchema, arrayItemPath);
+    }
   }
 
   /**

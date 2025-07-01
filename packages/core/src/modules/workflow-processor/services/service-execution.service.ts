@@ -29,17 +29,21 @@ export class ServiceExecutionService {
     this.logger.debug(`Parent Arguments:`, parentArguments);
 
     // get the service argument schema
-    const serviceCallArgumentsSchemaPath = `services.arguments.${serviceCall.service}`;
+    const serviceCallArgumentsSchemaPath = `custom.services.arguments.${serviceCall.service}`;
 
     // parse service execution arguments
-    const serviceCallArguments = serviceCall.arguments ? this.templateExpressionEvaluatorService.parse(
+    const serviceCallArguments = this.templateExpressionEvaluatorService.parse(
       serviceCall.arguments,
-      parentArguments,
-      context,
-      workflow,
-      transitionData,
-      serviceCallArgumentsSchemaPath,
-    ) : {};
+      {
+        arguments: parentArguments,
+        context,
+        workflow,
+        transition: transitionData
+      },
+      {
+        schemaPath: serviceCallArgumentsSchemaPath,
+      }
+    );
 
     this.logger.debug(`Calling service ${serviceCall.service}`);
 

@@ -3,14 +3,15 @@ import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.servic
 import { ServiceRegistry } from './service-registry.service';
 import { ConfigService } from '@nestjs/config';
 import {
-  ConfigSourceInterface, DocumentType,
+  ConfigSourceInterface, DocumentType, MainConfigSchema,
   MainConfigType,
   NamedCollectionItem, PipelineType,
-  StateMachineHandlerType, ToolConfigType,
+  StateMachineHandlerType, ToolConfigType, WorkflowTransitionSchema,
 } from '@loopstack/shared';
 import { ConfigProviderRegistry } from './config-provider.registry';
 import { z } from 'zod';
 import { SchemaRegistry } from './schema-registry.service';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 @Injectable()
 export class ConfigurationService implements OnModuleInit {
@@ -57,15 +58,20 @@ export class ConfigurationService implements OnModuleInit {
       this.validate(config);
     }
 
+    // add main schema
+    this.schemaRegistry.addZodSchema('config', MainConfigSchema)
+
     // register tools arguments schemas
     for (const tool of this.getAll<ToolConfigType>('tools')) {
       if (tool.parameters) {
-        this.schemaRegistry.addSchema('tools.arguments', tool.name, tool.parameters);
+        this.schemaRegistry.addJSONSchema(`custom.tools.arguments.${tool.name}`, tool.parameters);
       }
-    }// register documents content schemas
+    }
+
+    // register documents content schemas
     for (const document of this.getAll<DocumentType>('documents')) {
       if (document.schema) {
-        this.schemaRegistry.addSchema('documents.content', document.name, document.schema);
+        this.schemaRegistry.addJSONSchema(`custom.documents.content.${document.name}`, document.schema);
       }
     }
 

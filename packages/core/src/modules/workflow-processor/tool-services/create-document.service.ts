@@ -120,23 +120,32 @@ export class CreateDocumentService implements ServiceInterface {
     // create the document skeleton without content property
     const documentSkeleton = this.templateExpressionEvaluatorService.parse<DocumentType>(
       omit(mergedTemplateData, ['content']),
-      parentArguments,
-      context,
-      workflow,
-      meta,
+      {
+        arguments: parentArguments,
+        context,
+        workflow,
+        transition: meta
+      },
+      {
+        schemaPath: `config.documents[]`,
+      },
     );
 
     // get the document content schema registry key
-    const documentContentSchemaPath = undefined === props.document ? null : `documents.content.${props.document}`;
+    const documentContentSchemaPath = undefined === props.document ? null : `custom.documents.content.${props.document}`;
 
     // evaluate and parse document content using document schema
     const parsedDocumentContent = this.templateExpressionEvaluatorService.parse<DocumentType>(
       mergedTemplateData.content,
-      parentArguments,
-      context,
-      workflow,
-      meta,
-      documentContentSchemaPath,
+      {
+        arguments: parentArguments,
+        context,
+        workflow,
+        transition: meta
+      },
+      {
+        schemaPath: documentContentSchemaPath,
+      },
     );
 
     // merge document skeleton with content data
@@ -163,8 +172,8 @@ export class CreateDocumentService implements ServiceInterface {
 
     return {
       success: true,
-      workflow,
       persist: true,
+      workflow,
       data: document,
     };
   }

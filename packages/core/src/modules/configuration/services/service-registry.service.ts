@@ -75,16 +75,7 @@ export class ServiceRegistry {
     this.services.set(name, { options, instance });
 
     if (options.schema) {
-      if (options.JSONSchema) {
-        this.schemaRegistry.addSchema('services.arguments', name, options.JSONSchema);
-      } else {
-        const jsonSchema  = zodToJsonSchema(options.schema as any, {
-          name: 'schema',
-          target: 'jsonSchema7',
-        });
-        // console.log(JSON.stringify(jsonSchema.definitions?.['schema'], null, 2))
-        this.schemaRegistry.addSchema('services.arguments', name, jsonSchema.definitions?.['schema']);
-      }
+      this.schemaRegistry.addZodSchema(`custom.services.arguments.${name}`, options.schema);
     }
   }
 

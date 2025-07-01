@@ -11,6 +11,7 @@ import {
 } from '@loopstack/shared';
 import { NamespaceProcessorService } from './namespace-processor.service';
 import { WorkflowProcessorService } from './workflow-processor.service';
+import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 
 @Injectable()
 export class PipelineProcessorService {
@@ -19,7 +20,7 @@ export class PipelineProcessorService {
     private loopConfigService: ConfigurationService,
     private namespaceProcessorService: NamespaceProcessorService,
     private contextService: ContextService,
-    private templateService: TemplateService,
+    private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private workflowProcessor: WorkflowProcessorService,
   ) {}
 
@@ -41,10 +42,22 @@ export class PipelineProcessorService {
     let lastContext = this.contextService.create(context);
     for (let i = 0; i < sequence.length; i++) {
       const item: PipelineItemType = sequence[i];
-      const evaluatedItem = this.templateService.evaluateDeep<{
+      const evaluatedItem = this.templateExpressionEvaluatorService.parse<{
         name: string;
         condition?: boolean;
-      }>(item, { context: lastContext });
+      }>(
+        item,
+        {
+          context: lastContext
+        },
+        {
+          schemaPath: 'config.pipelines[].sequence[]',
+          omitSchemaValidation: true,
+          omitAliasVariables: true,
+          omitUseTemplates: true,
+          omitWorkflowData: true,
+        }
+      )
 
       if (evaluatedItem.condition === false) {
         continue;
@@ -77,27 +90,27 @@ export class PipelineProcessorService {
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
 
-      const label = factory.iterator.label
-        ? this.templateService.evaluate(
-            factory.iterator.label,
-            {
-              context,
-              item,
-              index: i + 1,
-            },
-          )
-        : item.toString();
+      const parsedIterator = this.templateExpressionEvaluatorService.parse<{
+        label: string;
+        meta: any;
+      }>(
+        factory.iterator,
+        {
+          context,
+          item,
+          index: i + 1,
+        },
+        {
+          schemaPath: 'config.pipelines[].iterator',
+          omitSchemaValidation: true,
+          omitAliasVariables: true,
+          omitUseTemplates: true,
+          omitWorkflowData: true,
+        }
+      );
 
-      const metadata = factory.iterator.meta
-        ? this.templateService.evaluateDeep<Record<string, any>>(
-            factory.iterator.meta,
-            {
-              context,
-              item,
-              index: i + 1,
-            },
-          )
-        : undefined;
+      const label = parsedIterator.label ?? item.toString();
+      const metadata = parsedIterator.meta;
 
       // create a new namespace for each child
       const localContext = await this.namespaceProcessorService.createNamespace(
@@ -123,9 +136,17 @@ export class PipelineProcessorService {
     config: PipelineFactoryType,
     context: ContextInterface,
   ): Promise<ContextInterface> {
-    const items = this.templateService.evaluateDeep<string[]>(
+
+    const items = this.templateExpressionEvaluatorService.parse<string[]>(
       config.iterator.source,
       { context },
+      {
+        schemaPath: 'config.pipelines[].iterator.source',
+        omitSchemaValidation: true,
+        omitAliasVariables: true,
+        omitUseTemplates: true,
+        omitWorkflowData: true,
+      }
     );
 
     if (!Array.isArray(items)) {

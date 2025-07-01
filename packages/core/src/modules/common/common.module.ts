@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
-  SchemaValidatorService,
   ContextService,
-  TemplateService, ObjectExpressionHandler, TemplateExpressionHandler, ExpressionEvaluatorService,
+  TemplateService,
+  ObjectExpressionHandler,
+  TemplateExpressionHandler,
+  SecureHandlebarsProcessor,
+  DateFormatterHandlebarsHelperService,
+  JsonStringifyHandlebarsHelperService, ValueHandlebarsHelperService,
 } from './services';
 import { ClientMessageService } from './services/client-message.service';
-import { SecureTemplateProcessor } from './services/expression-handler/secure-template-processor.service';
 import { ConfigurationModule } from '../configuration';
 
 @Module({
@@ -16,17 +19,17 @@ import { ConfigurationModule } from '../configuration';
   ],
   providers: [
     ClientMessageService,
-    SchemaValidatorService,
     ContextService,
     TemplateService,
     ObjectExpressionHandler,
     TemplateExpressionHandler,
-    ExpressionEvaluatorService,
-    SecureTemplateProcessor,
+    SecureHandlebarsProcessor,
+    DateFormatterHandlebarsHelperService,
+    JsonStringifyHandlebarsHelperService,
+    ValueHandlebarsHelperService,
   ],
   exports: [
     ClientMessageService,
-    SchemaValidatorService,
     ContextService,
     TemplateService,
   ],
