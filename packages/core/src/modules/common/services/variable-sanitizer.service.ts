@@ -7,11 +7,13 @@ export class VariableSanitizerService {
 
   public sanitizeVariables(
     variables: Record<string, any>,
-    depth: number = 0
+    depth: number = 0,
   ): Record<string, any> {
     // Prevent infinite recursion
     if (depth > this.MAX_SANITIZATION_DEPTH) {
-      this.logger.warn(`Sanitization depth limit reached: ${this.MAX_SANITIZATION_DEPTH}`);
+      this.logger.warn(
+        `Sanitization depth limit reached: ${this.MAX_SANITIZATION_DEPTH}`,
+      );
       return {};
     }
 
@@ -30,8 +32,10 @@ export class VariableSanitizerService {
 
   private shouldSkipProperty(key: string, value: any): boolean {
     // Skip dangerous property names
-    if (key.startsWith('__') ||
-      ['prototype', 'constructor', '__proto__'].includes(key)) {
+    if (
+      key.startsWith('__') ||
+      ['prototype', 'constructor', '__proto__'].includes(key)
+    ) {
       return true;
     }
 
@@ -83,8 +87,8 @@ export class VariableSanitizerService {
 
   private sanitizeArray(arr: any[], depth: number): any[] {
     return arr
-      .filter(item => typeof item !== 'function' && typeof item !== 'symbol')
-      .map(item => this.sanitizeValue(item, depth));
+      .filter((item) => typeof item !== 'function' && typeof item !== 'symbol')
+      .map((item) => this.sanitizeValue(item, depth));
   }
 
   private isPlainObject(obj: any): boolean {
@@ -98,5 +102,4 @@ export class VariableSanitizerService {
     // const proto = Object.getPrototypeOf(obj);
     // return proto === null || proto === Object.prototype;
   }
-
 }

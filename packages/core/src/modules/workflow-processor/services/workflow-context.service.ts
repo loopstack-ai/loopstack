@@ -3,7 +3,6 @@ import { WorkflowEntity } from '@loopstack/shared';
 
 @Injectable()
 export class WorkflowContextService {
-
   setWorkflowContextUpdate(
     workflow: WorkflowEntity,
     key: string,
@@ -16,5 +15,4 @@ export class WorkflowContextService {
     workflow.contextVariables[key] = value;
     return workflow;
   }
-
 }

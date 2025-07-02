@@ -25,32 +25,46 @@ export class ServiceExecutionService {
     context: ContextInterface,
     transitionData: TransitionMetadataInterface,
   ): Promise<ServiceCallResult> {
-    this.logger.debug(`Service ${serviceCall.service} called with arguments`, serviceCall.arguments);
+    this.logger.debug(
+      `Service ${serviceCall.service} called with arguments`,
+      serviceCall.arguments,
+    );
     this.logger.debug(`Parent Arguments:`, parentArguments);
 
-    const { instance, options } = this.serviceRegistry.getServiceByName(serviceCall.service);
+    const { instance, options } = this.serviceRegistry.getServiceByName(
+      serviceCall.service,
+    );
 
-    const hasArguments = serviceCall.arguments && Object.keys(serviceCall.arguments).length;
+    const hasArguments =
+      serviceCall.arguments && Object.keys(serviceCall.arguments).length;
     if (!options.schema && hasArguments) {
       throw Error(`Service called with arguments but no schema defined.`);
     }
 
     // parse service execution arguments
-    const serviceCallArguments = hasArguments ? this.templateExpressionEvaluatorService.parse<any>(
-      serviceCall.arguments,
-      {
-        arguments: parentArguments,
-        context,
-        workflow,
-        transition: transitionData
-      },
-      {
-        schema: options.schema,
-      }
-    ) : {};
+    const serviceCallArguments = hasArguments
+      ? this.templateExpressionEvaluatorService.parse<any>(
+          serviceCall.arguments,
+          {
+            arguments: parentArguments,
+            context,
+            workflow,
+            transition: transitionData,
+          },
+          {
+            schema: options.schema,
+          },
+        )
+      : {};
 
     this.logger.debug(`Calling service ${serviceCall.service}`);
 
-    return instance.apply(serviceCallArguments, workflow, context, transitionData, parentArguments);
+    return instance.apply(
+      serviceCallArguments,
+      workflow,
+      context,
+      transitionData,
+      parentArguments,
+    );
   }
 }

@@ -14,16 +14,20 @@ import { WorkflowProcessorService } from './workflow-processor.service';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { z } from 'zod';
 
-const SequenceItemSchema = z.object({
-  workflow: z.string().optional(),
-  pipeline: z.string().optional(),
-  condition: z.boolean().optional(),
-}).strict()
+const SequenceItemSchema = z
+  .object({
+    workflow: z.string().optional(),
+    pipeline: z.string().optional(),
+    condition: z.boolean().optional(),
+  })
+  .strict();
 
-const FactoryIteratorItemSchema = z.object({
-  label: z.string(),
-  meta: z.any(), //todo
-}).strict()
+const FactoryIteratorItemSchema = z
+  .object({
+    label: z.string(),
+    meta: z.any(), //todo
+  })
+  .strict();
 
 const FactoryIteratorSourceSchema = z.array(z.record(z.string(), z.any()));
 
@@ -62,15 +66,15 @@ export class PipelineProcessorService {
       }>(
         item,
         {
-          context: lastContext
+          context: lastContext,
         },
         {
           schema: SequenceItemSchema,
           omitAliasVariables: true,
           omitUseTemplates: true,
           omitWorkflowData: true,
-        }
-      )
+        },
+      );
 
       if (evaluatedItem.condition === false) {
         continue;
@@ -121,7 +125,7 @@ export class PipelineProcessorService {
           omitAliasVariables: true,
           omitUseTemplates: true,
           omitWorkflowData: true,
-        }
+        },
       );
 
       const label = parsedIterator.label ?? item;
@@ -151,7 +155,6 @@ export class PipelineProcessorService {
     config: PipelineFactoryType,
     context: ContextInterface,
   ): Promise<ContextInterface> {
-
     const items = this.templateExpressionEvaluatorService.parse<string[]>(
       config.iterator.source,
       { context },
@@ -160,7 +163,7 @@ export class PipelineProcessorService {
         omitAliasVariables: true,
         omitUseTemplates: true,
         omitWorkflowData: true,
-      }
+      },
     );
 
     // create or load all context / namespaces
@@ -178,16 +181,13 @@ export class PipelineProcessorService {
 
     let results: ContextInterface[] = [];
     if (config.parallel) {
-
       // process the child elements parallel
-      const allItems = preparedChildContexts.map((childContext) => this.processPipelineItem(
-        config.factory,
-        childContext,
-      ));
+      const allItems = preparedChildContexts.map((childContext) =>
+        this.processPipelineItem(config.factory, childContext),
+      );
 
       results = await Promise.all(allItems);
     } else {
-
       // process the child elements sequential
       for (const childContext of preparedChildContexts) {
         const resultContext = await this.processPipelineItem(
@@ -229,7 +229,10 @@ export class PipelineProcessorService {
     switch (pipelineConfig.type) {
       case 'root':
       case 'sequence':
-        updatedContext = await this.runSequenceType(pipelineConfig as PipelineSequenceType, context);
+        updatedContext = await this.runSequenceType(
+          pipelineConfig as PipelineSequenceType,
+          context,
+        );
         break;
       case 'factory':
         updatedContext = await this.runFactoryType(pipelineConfig, context);

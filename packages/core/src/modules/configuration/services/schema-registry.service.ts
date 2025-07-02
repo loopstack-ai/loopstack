@@ -18,10 +18,12 @@ export class SchemaRegistry {
     try {
       // this.zodSchemas.set(key, unwrappedSchema);
       // if (unwrappedSchema instanceof z.ZodObject) {
-        this.registerZodPropertyPaths(key, schema);
+      this.registerZodPropertyPaths(key, schema);
       // }
     } catch (error) {
-      throw new Error(`Failed to process schema '${key}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to process schema '${key}': ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -31,7 +33,9 @@ export class SchemaRegistry {
       const zodSchema = this.createZod(jsonSchema);
       this.addZodSchema(key, zodSchema);
     } catch (error) {
-      throw new Error(`Failed to create zod schema for '${key}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to create zod schema for '${key}': ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 
@@ -57,7 +61,11 @@ export class SchemaRegistry {
   /**
    * Register individual property paths from a Zod schema
    */
-  private registerZodPropertyPaths(rootName: string, zodSchema: z.ZodType, currentPath: string = ''): void {
+  private registerZodPropertyPaths(
+    rootName: string,
+    zodSchema: z.ZodType,
+    currentPath: string = '',
+  ): void {
     const unwrappedSchema = this.unwrapZodSchema(zodSchema);
 
     const schemaKey = currentPath ? `${rootName}.${currentPath}` : rootName;
@@ -68,7 +76,11 @@ export class SchemaRegistry {
 
       for (const [propName, propSchema] of Object.entries(shape)) {
         const fullPath = currentPath ? `${currentPath}.${propName}` : propName;
-        this.registerZodPropertyPaths(rootName, propSchema as z.ZodType, fullPath);
+        this.registerZodPropertyPaths(
+          rootName,
+          propSchema as z.ZodType,
+          fullPath,
+        );
       }
     } else if (unwrappedSchema instanceof z.ZodArray) {
       const arrayItemPath = `${currentPath}[]`;
@@ -85,8 +97,14 @@ export class SchemaRegistry {
         if (unwrappedUnionOptionSchema instanceof z.ZodObject) {
           const shape = unwrappedUnionOptionSchema.shape;
           for (const [propName, propSchema] of Object.entries(shape)) {
-            const unionOptionPropPath = currentPath ? `${currentPath}.${propName}` : propName;
-            this.registerZodPropertyPaths(rootName, propSchema as z.ZodType, unionOptionPropPath);
+            const unionOptionPropPath = currentPath
+              ? `${currentPath}.${propName}`
+              : propName;
+            this.registerZodPropertyPaths(
+              rootName,
+              propSchema as z.ZodType,
+              unionOptionPropPath,
+            );
           }
         }
       }
@@ -170,9 +188,14 @@ export class SchemaRegistry {
    */
   private isDangerousPropertyName(key: string): boolean {
     const dangerous = [
-      '__proto__', 'constructor', 'prototype',
-      '__defineGetter__', '__defineSetter__',
-      'hasOwnProperty', 'toString', 'valueOf'
+      '__proto__',
+      'constructor',
+      'prototype',
+      '__defineGetter__',
+      '__defineSetter__',
+      'hasOwnProperty',
+      'toString',
+      'valueOf',
     ];
     return dangerous.includes(key) || key.startsWith('__');
   }

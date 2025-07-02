@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import _ from 'lodash';
 import {
   WorkflowTransitionType,
-  StateMachineType, UISchemaType,
+  StateMachineType,
+  UISchemaType,
 } from '@loopstack/shared';
 import { ConfigurationService } from '../../configuration';
 import { JSONSchemaType } from 'ajv';
@@ -64,7 +65,7 @@ export class StateMachineConfigService {
       transitions,
       arguments: args,
       parameters,
-      ui
+      ui,
     };
   }
 }

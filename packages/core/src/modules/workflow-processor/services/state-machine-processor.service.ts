@@ -2,7 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineConfigService } from './state-machine-config.service';
 import {
   ContextInterface,
-  HistoryTransition, ServiceCallResult, ToolCallType,
+  HistoryTransition,
+  ServiceCallResult,
+  ToolCallType,
   TransitionInfoInterface,
   TransitionMetadataInterface,
   TransitionPayloadInterface,
@@ -17,9 +19,7 @@ import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
 import { TemplateService } from '../../common';
-import {
-  StateMachineValidatorResultInterface,
-} from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
+import { StateMachineValidatorResultInterface } from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
 import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { omit } from 'lodash';
@@ -27,13 +27,16 @@ import { WorkflowContextService } from './workflow-context.service';
 import { z } from 'zod';
 
 const TransitionValidationsSchema = z.array(
-  z.object({
-    name: z.string(),
-    from: z.union([z.string(), z.array(z.string())]).optional(),
-    to: z.union([z.string(), z.array(z.string())]).optional(),
-    when: z.enum(["manual", "onEntry"]).optional(),
-    onError: z.string().optional(),
-}).strict());
+  z
+    .object({
+      name: z.string(),
+      from: z.union([z.string(), z.array(z.string())]).optional(),
+      to: z.union([z.string(), z.array(z.string())]).optional(),
+      when: z.enum(['manual', 'onEntry']).optional(),
+      onError: z.string().optional(),
+    })
+    .strict(),
+);
 
 @Injectable()
 export class StateMachineProcessorService {
@@ -77,7 +80,6 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     config: WorkflowType,
   ): Promise<WorkflowEntity> {
-
     const args = this.templateExpressionEvaluatorService.parse<
       Record<string, any>
     >(
@@ -88,7 +90,7 @@ export class StateMachineProcessorService {
         omitAliasVariables: true,
         omitUseTemplates: true,
         omitWorkflowData: true,
-      }
+      },
     );
 
     if (!workflow) {
@@ -263,7 +265,12 @@ export class StateMachineProcessorService {
       workflow = result?.workflow;
     }
 
-    this.addWorkflowTransitionData(workflow, transition, toolCall.tool, result?.data);
+    this.addWorkflowTransitionData(
+      workflow,
+      transition,
+      toolCall.tool,
+      result?.data,
+    );
 
     if (toolCall.exportVariable) {
       const currAlias = workflow.aliasData ?? {};
@@ -274,7 +281,11 @@ export class StateMachineProcessorService {
     }
 
     if (toolCall.exportContext) {
-      workflow = this.workflowContextService.setWorkflowContextUpdate(workflow, toolCall.exportContext, result?.data);
+      workflow = this.workflowContextService.setWorkflowContextUpdate(
+        workflow,
+        toolCall.exportContext,
+        result?.data,
+      );
     }
 
     return workflow;
@@ -323,11 +334,11 @@ export class StateMachineProcessorService {
               arguments: stateMachineInfo.options,
               context,
               workflow,
-              transition: transitionData
+              transition: transitionData,
             },
             {
               schema: TransitionValidationsSchema,
-            }
+            },
           );
 
         this.updateWorkflowAvailableTransitions(workflow, evaluatedTransitions);

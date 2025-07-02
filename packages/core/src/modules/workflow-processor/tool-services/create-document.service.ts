@@ -5,7 +5,10 @@ import {
   ServiceInterface,
   ServiceCallResult,
   DocumentEntity,
-  TransitionMetadataInterface, ExpressionString, MimeTypeSchema, DocumentSchema,
+  TransitionMetadataInterface,
+  ExpressionString,
+  MimeTypeSchema,
+  DocumentSchema,
 } from '@loopstack/shared';
 import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
@@ -18,55 +21,57 @@ import { TemplateExpressionEvaluatorService } from '../services';
 const schema = z
   .object({
     document: z.string(),
-    update: z.object({
-      content: z.any(),
-      tags: z.array(
-        z.string()
-      ).optional(),
-      meta: z.object({
-        mimeType: MimeTypeSchema.optional(),
-        invalidate: z.boolean().optional(),
-        level: z.union([
-          z.literal('debug'),
-          z.literal('info'),
-          z.literal('warning'),
-          z.literal('error'),
-        ]).optional(),
-        enableAtPlaces: z.array(z.string()).optional(),
-        hideAtPlaces: z.array(z.string()).optional(),
-      }).optional(),
-    }).optional(),
+    update: z
+      .object({
+        content: z.any(),
+        tags: z.array(z.string()).optional(),
+        meta: z
+          .object({
+            mimeType: MimeTypeSchema.optional(),
+            invalidate: z.boolean().optional(),
+            level: z
+              .union([
+                z.literal('debug'),
+                z.literal('info'),
+                z.literal('warning'),
+                z.literal('error'),
+              ])
+              .optional(),
+            enableAtPlaces: z.array(z.string()).optional(),
+            hideAtPlaces: z.array(z.string()).optional(),
+          })
+          .optional(),
+      })
+      .optional(),
   })
   .strict();
 
 const config = z
   .object({
     document: z.string(),
-    update: z.object({
-      content: z.any(),
-      tags: z.array(
-        z.string()
-      ).optional(),
-      meta: z.object({
-        mimeType: z.union([
-          MimeTypeSchema,
-          ExpressionString,
-        ]).optional(),
-        invalidate: z.union([
-          z.boolean(),
-          ExpressionString,
-        ]).optional(),
-        level: z.union([
-          ExpressionString,
-          z.literal('debug'),
-          z.literal('info'),
-          z.literal('warning'),
-          z.literal('error'),
-        ]).optional(),
-        enableAtPlaces: z.array(z.string()).optional(),
-        hideAtPlaces: z.array(z.string()).optional(),
-      }).optional(),
-    }).optional(),
+    update: z
+      .object({
+        content: z.any(),
+        tags: z.array(z.string()).optional(),
+        meta: z
+          .object({
+            mimeType: z.union([MimeTypeSchema, ExpressionString]).optional(),
+            invalidate: z.union([z.boolean(), ExpressionString]).optional(),
+            level: z
+              .union([
+                ExpressionString,
+                z.literal('debug'),
+                z.literal('info'),
+                z.literal('warning'),
+                z.literal('error'),
+              ])
+              .optional(),
+            enableAtPlaces: z.array(z.string()).optional(),
+            hideAtPlaces: z.array(z.string()).optional(),
+          })
+          .optional(),
+      })
+      .optional(),
   })
   .strict();
 
@@ -110,51 +115,54 @@ export class CreateDocumentService implements ServiceInterface {
     }
 
     // get the document template
-    const template: DocumentType = this.getDocumentTemplate(
-      props,
-    );
+    const template: DocumentType = this.getDocumentTemplate(props);
 
     // merge the custom properties
     const mergedTemplateData = merge(template, props.update ?? {});
 
     // create the document skeleton without content property
-    const documentSkeleton = this.templateExpressionEvaluatorService.parse<DocumentType>(
-      omit(mergedTemplateData, ['content']),
-      {
-        arguments: parentArguments,
-        context,
-        workflow,
-        transition: meta
-      },
-      {
-        schema: DocumentSchema,
-      },
-    );
+    const documentSkeleton =
+      this.templateExpressionEvaluatorService.parse<DocumentType>(
+        omit(mergedTemplateData, ['content']),
+        {
+          arguments: parentArguments,
+          context,
+          workflow,
+          transition: meta,
+        },
+        {
+          schema: DocumentSchema,
+        },
+      );
 
-    const zodSchema = this.schemaRegistry.getDocumentContentSchema(props.document);
+    const zodSchema = this.schemaRegistry.getDocumentContentSchema(
+      props.document,
+    );
     if (!zodSchema && mergedTemplateData.content) {
       throw Error(`Document creates with content no schema defined.`);
     }
 
     // evaluate and parse document content using document schema
-    const parsedDocumentContent = mergedTemplateData.content ? this.templateExpressionEvaluatorService.parse<DocumentType>(
-      mergedTemplateData.content,
-      {
-        arguments: parentArguments,
-        context,
-        workflow,
-        transition: meta
-      },
-      {
-        schema: zodSchema,
-      },
-    ) : null;
+    const parsedDocumentContent = mergedTemplateData.content
+      ? this.templateExpressionEvaluatorService.parse<DocumentType>(
+          mergedTemplateData.content,
+          {
+            arguments: parentArguments,
+            context,
+            workflow,
+            transition: meta,
+          },
+          {
+            schema: zodSchema,
+          },
+        )
+      : null;
 
     // merge document skeleton with content data
     const documentData = {
       ...documentSkeleton,
       content: parsedDocumentContent,
-    }
+    };
 
     // create the document entity
     const document = this.documentService.create(

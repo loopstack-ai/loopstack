@@ -7,20 +7,22 @@ export interface TemplateDetector {
 }
 
 export interface TemplateProcessor {
-  process(value: any, variables: Record<string, any>): any;
+  process(value: string, variables: Record<string, any>): any;
 }
 
 @Injectable()
 export class TemplateService {
-  private readonly handlers: ReadonlyArray<TemplateDetector & TemplateProcessor>;
+  private readonly handlers: ReadonlyArray<
+    TemplateDetector & TemplateProcessor
+  >;
 
   constructor(
     private objectExpressionHandler: ObjectExpressionHandler,
     private templateExpressionHandler: TemplateExpressionHandler,
   ) {
     this.handlers = Object.freeze([
-      this.objectExpressionHandler,      // ${{ }} expressions for arguments and schema validated types
-      this.templateExpressionHandler,    // {{ }} expressions for templates and string result
+      this.objectExpressionHandler, // ${{ }} expressions for arguments and schema validated types
+      this.templateExpressionHandler, // {{ }} expressions for templates and string result
     ]);
   }
 
@@ -53,7 +55,7 @@ export class TemplateService {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => {
+      return obj.map((item) => {
         return this.evaluateDeep(item, variables);
       }) as T;
     }

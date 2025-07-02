@@ -5,7 +5,8 @@ import {
   Service,
   ServiceInterface,
   ServiceCallResult,
-  TransitionMetadataInterface, ExpressionString,
+  TransitionMetadataInterface,
+  ExpressionString,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
@@ -17,59 +18,30 @@ import {
 
 const config = z
   .object({
-    where: z.union([
-      WhereCondition,
-      ExpressionString,
-    ]),
-    orderBy: z.union([
-      z.record(
-        z.string(),
-        z.union([
-          z.literal('ASC'),
-          z.literal('DESC'),
-        ])
-      ),
-      ExpressionString,
-    ]).optional(),
-    getMany: z.union([
-      z.boolean(),
-      ExpressionString,
-    ]).optional(),
-    take: z.union([
-      z.number(),
-      ExpressionString,
-    ]).optional(),
-    skip: z.union([
-      z.number(),
-      ExpressionString,
-    ]).optional(),
-    isDependency: z.union([
-      z.boolean(),
-      ExpressionString,
-    ]).optional(),
-    isGlobal: z.union([
-      z.boolean(),
-      ExpressionString,
-    ]).optional(),
-    strictMode: z.union([
-      z.boolean(),
-      ExpressionString,
-    ]).optional(),
+    where: z.union([WhereCondition, ExpressionString]),
+    orderBy: z
+      .union([
+        z.record(z.string(), z.union([z.literal('ASC'), z.literal('DESC')])),
+        ExpressionString,
+      ])
+      .optional(),
+    getMany: z.union([z.boolean(), ExpressionString]).optional(),
+    take: z.union([z.number(), ExpressionString]).optional(),
+    skip: z.union([z.number(), ExpressionString]).optional(),
+    isDependency: z.union([z.boolean(), ExpressionString]).optional(),
+    isGlobal: z.union([z.boolean(), ExpressionString]).optional(),
+    strictMode: z.union([z.boolean(), ExpressionString]).optional(),
   })
   .strict();
 
 const schema = z
   .object({
     where: WhereCondition,
-    orderBy: z.record(
-      z.string(),
-      z.union([
-        z.literal('ASC'),
-        z.literal('DESC'),
-      ])
-    ).default({
-      workflow_index: 'DESC'
-    }),
+    orderBy: z
+      .record(z.string(), z.union([z.literal('ASC'), z.literal('DESC')]))
+      .default({
+        workflow_index: 'DESC',
+      }),
     getMany: z.boolean().optional().default(false),
     take: z.number().default(100),
     skip: z.number().default(0),
@@ -119,9 +91,7 @@ export class LoadDocumentService implements ServiceInterface {
     this.logger.debug(query.getQuery());
     this.logger.debug(query.getParameters());
 
-    const result = props.getMany
-      ? await query.getMany()
-      : await query.getOne();
+    const result = props.getMany ? await query.getMany() : await query.getOne();
 
     if (!result && props.strictMode) {
       throw new Error(`Document(s) not found.`);
@@ -141,7 +111,11 @@ export class LoadDocumentService implements ServiceInterface {
     };
   }
 
-  trackDependencies(workflow: WorkflowEntity, transitionData: TransitionMetadataInterface, result: DocumentEntity[] | DocumentEntity) {
+  trackDependencies(
+    workflow: WorkflowEntity,
+    transitionData: TransitionMetadataInterface,
+    result: DocumentEntity[] | DocumentEntity,
+  ) {
     const prevImport: ContextImportInterface | undefined =
       workflow.prevData?.imports?.[transitionData.transition!];
 

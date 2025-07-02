@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineProcessorService } from './state-machine-processor.service';
-import { ContextInterface, WorkflowState, WorkflowType } from '@loopstack/shared';
+import {
+  ContextInterface,
+  WorkflowState,
+  WorkflowType,
+} from '@loopstack/shared';
 import { WorkflowStateService } from './workflow-state.service';
 
 @Injectable()

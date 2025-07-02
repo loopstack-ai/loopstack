@@ -6,7 +6,8 @@ import {
   ServiceCallResult,
   DocumentEntity,
   ExpressionString,
-  TransitionMetadataInterface, DocumentSchema,
+  TransitionMetadataInterface,
+  DocumentSchema,
 } from '@loopstack/shared';
 import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
@@ -72,9 +73,7 @@ export class BatchCreateDocumentsService implements ServiceInterface {
     }
 
     // get the document template
-    const template: DocumentType = this.getDocumentTemplate(
-      props.document,
-    );
+    const template: DocumentType = this.getDocumentTemplate(props.document);
 
     const documentSkeleton =
       this.templateExpressionEvaluatorService.parse<DocumentType>(
@@ -83,14 +82,16 @@ export class BatchCreateDocumentsService implements ServiceInterface {
           arguments: parentArguments,
           context,
           workflow,
-          transition: transitionData
+          transition: transitionData,
         },
         {
           schema: DocumentSchema,
         },
       );
 
-    const zodSchema = this.schemaRegistry.getDocumentContentSchema(props.document);
+    const zodSchema = this.schemaRegistry.getDocumentContentSchema(
+      props.document,
+    );
 
     const documents: DocumentEntity[] = [];
     for (let index = 0; index < props.items.length; index++) {
@@ -100,24 +101,26 @@ export class BatchCreateDocumentsService implements ServiceInterface {
       }
 
       // evaluate and parse document content using document schema
-      const parsedDocumentContent = itemDocumentData.content ? this.templateExpressionEvaluatorService.parse<DocumentType>(
-        itemDocumentData.content,
-        {
-          arguments: parentArguments,
-          context,
-          workflow,
-          transition: transitionData
-        },
-        {
-          schema: zodSchema,
-        },
-      ) : null;
+      const parsedDocumentContent = itemDocumentData.content
+        ? this.templateExpressionEvaluatorService.parse<DocumentType>(
+            itemDocumentData.content,
+            {
+              arguments: parentArguments,
+              context,
+              workflow,
+              transition: transitionData,
+            },
+            {
+              schema: zodSchema,
+            },
+          )
+        : null;
 
       // merge document skeleton with content data
       const documentData = {
         ...itemDocumentData,
         content: parsedDocumentContent,
-      }
+      };
 
       documents.push(
         this.documentService.create(
@@ -125,7 +128,7 @@ export class BatchCreateDocumentsService implements ServiceInterface {
           context,
           transitionData,
           documentData as Partial<DocumentEntity>,
-        )
+        ),
       );
 
       this.logger.debug(`Created document "${documentData.name}".`);

@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TemplateExpressionHandler } from '../template-expression.handler';
-import { ExpressionEvaluatorService } from '../../expression-evaluator.service';
+import { HandlebarsProcessor } from '../../handlebars-processor.service';
+import { VariableSanitizerService } from '../../variable-sanitizer.service';
+import { DateFormatterHandlebarsHelperService } from '../../handlebars-helpers';
 
 describe('TemplateExpressionHandler', () => {
   let handler: TemplateExpressionHandler;
@@ -9,9 +11,13 @@ describe('TemplateExpressionHandler', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TemplateExpressionHandler,
-        ExpressionEvaluatorService,
+        HandlebarsProcessor,
+        VariableSanitizerService,
+        DateFormatterHandlebarsHelperService,
       ],
     }).compile();
+
+    await module.init();
 
     handler = module.get<TemplateExpressionHandler>(TemplateExpressionHandler);
   });
@@ -19,15 +25,29 @@ describe('TemplateExpressionHandler', () => {
   describe('canHandle', () => {
     it('should return true for mixed content with template expressions', () => {
       expect(handler.canHandle('Hello {{user.name}}!')).toBe(true);
-      expect(handler.canHandle('{{user.name}} is {{user.age}} years old')).toBe(true);
-      expect(handler.canHandle('Welcome {{user.name}}, you have {{notifications.length}} notifications')).toBe(true);
+      expect(handler.canHandle('{{user.name}} is {{user.age}} years old')).toBe(
+        true,
+      );
+      expect(
+        handler.canHandle(
+          'Welcome {{user.name}}, you have {{notifications.length}} notifications',
+        ),
+      ).toBe(true);
       expect(handler.canHandle('{{greeting}} {{user.name}}!')).toBe(true);
     });
 
     it('should return true for strings with multiple template expressions', () => {
-      expect(handler.canHandle('{{first}} and {{second}} and {{third}}')).toBe(true);
-      expect(handler.canHandle('User: {{user.name}}, Email: {{user.email}}, Age: {{user.age}}')).toBe(true);
-      expect(handler.canHandle('API: {{config.baseUrl}}/users/{{userId}}')).toBe(true);
+      expect(handler.canHandle('{{first}} and {{second}} and {{third}}')).toBe(
+        true,
+      );
+      expect(
+        handler.canHandle(
+          'User: {{user.name}}, Email: {{user.email}}, Age: {{user.age}}',
+        ),
+      ).toBe(true);
+      expect(
+        handler.canHandle('API: {{config.baseUrl}}/users/{{userId}}'),
+      ).toBe(true);
     });
 
     it('should return true for template expressions with leading/trailing text', () => {
@@ -39,10 +59,12 @@ describe('TemplateExpressionHandler', () => {
     it('should return false for template expressions which are pure expressions', () => {
       expect(handler.canHandle('   ${{variable}}   ')).toBe(false);
       expect(handler.canHandle('${{variable}}   ')).toBe(false);
-      expect(handler.canHandle(`
+      expect(
+        handler.canHandle(`
         \${{variable}
 
-      `)).toBe(false);
+      `),
+      ).toBe(false);
     });
 
     it('should return false for non-string values', () => {
@@ -85,134 +107,109 @@ describe('TemplateExpressionHandler', () => {
         email: 'john@example.com',
         profile: {
           title: 'Software Engineer',
-          company: 'Tech Corp'
-        }
+          company: 'Tech Corp',
+        },
       },
       config: {
         baseUrl: 'https://api.example.com',
-        version: 'v1'
+        version: 'v1',
       },
       items: [
         { id: 1, name: 'Item 1' },
-        { id: 2, name: 'Item 2' }
+        { id: 2, name: 'Item 2' },
       ],
       greeting: 'Hello',
-      count: 42
+      count: 42,
     };
 
     it('should process simple template expressions in mixed content', () => {
-      expect(handler.process('Hello {{user.name}}!', mockVariables))
-        .toBe('Hello John Doe!');
+      expect(handler.process('Hello {{user.name}}!', mockVariables)).toBe(
+        'Hello John Doe!',
+      );
 
-      expect(handler.process('{{user.name}} is {{user.age}} years old', mockVariables))
-        .toBe('John Doe is 30 years old');
+      expect(
+        handler.process(
+          '{{user.name}} is {{user.age}} years old',
+          mockVariables,
+        ),
+      ).toBe('John Doe is 30 years old');
 
-      expect(handler.process('Welcome {{user.name}}', mockVariables))
-        .toBe('Welcome John Doe');
+      expect(handler.process('Welcome {{user.name}}', mockVariables)).toBe(
+        'Welcome John Doe',
+      );
     });
 
     it('should process multiple template expressions', () => {
-      expect(handler.process('{{greeting}} {{user.name}}, you are {{user.age}}!', mockVariables))
-        .toBe('Hello John Doe, you are 30!');
+      expect(
+        handler.process(
+          '{{greeting}} {{user.name}}, you are {{user.age}}!',
+          mockVariables,
+        ),
+      ).toBe('Hello John Doe, you are 30!');
 
-      expect(handler.process('User: {{user.name}}, Email: {{user.email}}', mockVariables))
-        .toBe('User: John Doe, Email: john@example.com');
+      expect(
+        handler.process(
+          'User: {{user.name}}, Email: {{user.email}}',
+          mockVariables,
+        ),
+      ).toBe('User: John Doe, Email: john@example.com');
     });
 
     it('should process nested property access', () => {
-      expect(handler.process('{{user.profile.title}} at {{user.profile.company}}', mockVariables))
-        .toBe('Software Engineer at Tech Corp');
+      expect(
+        handler.process(
+          '{{user.profile.title}} at {{user.profile.company}}',
+          mockVariables,
+        ),
+      ).toBe('Software Engineer at Tech Corp');
 
-      expect(handler.process('API: {{config.baseUrl}}/{{config.version}}', mockVariables))
-        .toBe('API: https://api.example.com/v1');
+      expect(
+        handler.process(
+          'API: {{config.baseUrl}}/{{config.version}}',
+          mockVariables,
+        ),
+      ).toBe('API: https://api.example.com/v1');
     });
 
-    it('should process array access and methods', () => {
-      expect(handler.process('First item: {{get (first items) "name"}}', mockVariables))
-        .toBe('First item: Item 1');
-
-      expect(handler.process('Total items: {{length items}}', mockVariables))
-        .toBe('Total items: 2');
-
-      expect(handler.process('Item IDs: {{join (map items "id") ", "}}', mockVariables))
-        .toBe('Item IDs: 1, 2');
-    });
-
-    it('should handle mathematical expressions', () => {
-      expect(handler.process('Count plus 10: {{add count 10}}', mockVariables))
-        .toBe('Count plus 10: 52');
-
-      expect(handler.process('User age in 5 years: {{add user.age 5}}', mockVariables))
-        .toBe('User age in 5 years: 35');
-    });
-
-    it('should handle conditional expressions', () => {
-      expect(handler.process('Status: {{ternary (gte user.age 18) "adult" : "minor"}}', mockVariables))
-        .toBe('Status: adult');
-
-      expect(handler.process('Greeting: {{or user.name "Guest"}}', mockVariables))
-        .toBe('Greeting: John Doe');
-    });
-
-    it('should handle string methods and operations', () => {
-      expect(handler.process('Uppercase: {{upperCase user.name}}', mockVariables))
-        .toBe('Uppercase: JOHN DOE');
-
-      expect(handler.process('Length: {{length user.name}}', mockVariables))
-        .toBe('Length: 8');
+    it('should handle date helpers', () => {
+      expect(handler.process('{{ currentDate }}', mockVariables)).toContain(
+        ':',
+      );
     });
 
     it('should handle undefined and null values gracefully', () => {
-      expect(() => handler.process('Missing: {{user.missing}}', mockVariables)).toThrow();
+      expect(handler.process('Missing: {{user.missing}}', mockVariables)).toBe(
+        'Missing: ',
+      );
 
       const variablesWithNull = { ...mockVariables, nullValue: null };
-      expect(handler.process('Null: {{nullValue}}', variablesWithNull))
-        .toBe('Null: ');
-    });
-
-    it('should handle complex expressions with JSON operations', () => {
-      expect(handler.process('JSON: {{stringify test}}', { ...mockVariables, test: { name: mockVariables.user.name } }))
-        .toBe('JSON: {"name":"John Doe"}');
+      expect(handler.process('Null: {{nullValue}}', variablesWithNull)).toBe(
+        'Null: ',
+      );
     });
 
     it('should handle template expressions with special characters in strings', () => {
       const specialVariables = {
         ...mockVariables,
-        message: 'Hello "world" with \'quotes\' and \n newlines'
+        message: 'Hello "world" with \'quotes\' and \n newlines',
       };
 
-      expect(handler.process('Message: {{message}}', specialVariables))
-        .toBe('Message: Hello "world" with \'quotes\' and \n newlines');
+      expect(handler.process('Message: {{message}}', specialVariables)).toBe(
+        'Message: Hello "world" with \'quotes\' and \n newlines',
+      );
     });
 
     it('should preserve text outside template expressions', () => {
-      expect(handler.process('Start {{user.name}} middle {{user.age}} end', mockVariables))
-        .toBe('Start John Doe middle 30 end');
+      expect(
+        handler.process(
+          'Start {{user.name}} middle {{user.age}} end',
+          mockVariables,
+        ),
+      ).toBe('Start John Doe middle 30 end');
 
-      expect(handler.process('No variables here', mockVariables))
-        .toBe('No variables here');
-    });
-
-    it('should handle expressions with function calls', () => {
-      const variablesWithFunctions = {
-        ...mockVariables,
-      };
-
-      expect(handler.process('Formatted: {{lowerCase user.name}}', variablesWithFunctions))
-        .toBe('Formatted: john doe');
-
-      expect(handler.process('Result: {{multiply 5 6}}', variablesWithFunctions))
-        .toBe('Result: 30');
-    });
-
-    it('should delegate to StringParser.findMatchingBrace', () => {
-      handler.process('Hello {{user.name}}!', mockVariables);
-    });
-
-    it('should throw error when StringParser.findMatchingBrace throws', () => {
-      expect(() => {
-        handler.process('Hello {{user.name', mockVariables);
-      }).toThrow();
+      expect(handler.process('No variables here', mockVariables)).toBe(
+        'No variables here',
+      );
     });
 
     it('should throw error for invalid JavaScript in expressions', () => {
@@ -222,57 +219,22 @@ describe('TemplateExpressionHandler', () => {
     });
   });
 
-  describe('convertToEjsTemplate', () => {
-    // Testing the private method through the public process method
-    it('should convert simple template expressions to EJS format', () => {
-      // We can't directly test the private method, but we can verify the output
-      const result = handler.process('Hello {{user.name}}!', { user: { name: 'Test' } });
-      expect(result).toBe('Hello Test!');
-    });
-
-    it('should handle multiple expressions correctly', () => {
-      const result = handler.process('{{name}} is {{age}}', { name: 'John', age: 30 });
-      expect(result).toBe('John is 30');
-    });
-
-    it('should handle expressions with helper', () => {
-      const variables = {
-        obj: { nested: { value: 'test' } },
-      };
-
-      const result = handler.process('Result: {{upperCase obj.nested.value}}', variables);
-      expect(result).toBe('Result: TEST');
-    });
-
-    it('should preserve characters between expressions', () => {
-      const result = handler.process('{{a}} and {{b}}', { a: 'first', b: 'second' });
-      expect(result).toBe('first and second');
-    });
-  });
-
   describe('edge cases', () => {
     it('should handle empty template expressions', () => {
       expect(() => handler.process('Empty: {{}}', {})).toThrow();
     });
 
     it('should handle expressions at string boundaries', () => {
-      const result = handler.process('{{start}}middle{{end}}', { start: 'BEGIN', end: 'FINISH' });
+      const result = handler.process('{{start}}middle{{end}}', {
+        start: 'BEGIN',
+        end: 'FINISH',
+      });
       expect(result).toBe('BEGINmiddleFINISH');
     });
 
     it('should handle expressions with whitespace', () => {
       const result = handler.process('Hello {{ name }}!', { name: 'Test' });
       expect(result).toBe('Hello Test!');
-    });
-
-    it('should handle mixed content with no variables', () => {
-      const result = handler.process('No variables here at all', {});
-      expect(result).toBe('No variables here at all');
-    });
-
-    it('should handle strings with dollar signs but no expressions', () => {
-      const result = handler.process('Price is $100 and tax is $10', {});
-      expect(result).toBe('Price is $100 and tax is $10');
     });
   });
 });

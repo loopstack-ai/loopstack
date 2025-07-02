@@ -3,7 +3,6 @@ import { format, formatDistanceToNow, isValid, parseISO } from 'date-fns';
 
 @Injectable()
 export class DateFormatterHandlebarsHelperService {
-
   private readonly MAX_FORMAT_LENGTH = 100;
   private readonly ALLOWED_FORMAT_CHARS = /^[YMDHmsaAEepdT\s\-\/:.,'"]+$/;
 
@@ -58,7 +57,7 @@ export class DateFormatterHandlebarsHelperService {
 
       const now = new Date();
 
-      console.log(now)
+      console.log(now);
       if (!formatString) {
         return now.toISOString();
       }
@@ -69,12 +68,12 @@ export class DateFormatterHandlebarsHelperService {
 
       // Common presets
       const presets: Record<string, string> = {
-        'iso': 'yyyy-MM-dd',
-        'short': 'M/d/yyyy',
-        'long': 'EEEE, MMMM d, yyyy',
-        'time': 'h:mm a',
-        'datetime': 'M/d/yyyy h:mm a',
-        'timestamp': 'T'
+        iso: 'yyyy-MM-dd',
+        short: 'M/d/yyyy',
+        long: 'EEEE, MMMM d, yyyy',
+        time: 'h:mm a',
+        datetime: 'M/d/yyyy h:mm a',
+        timestamp: 'T',
       };
 
       const pattern = presets[formatString.toLowerCase()] || formatString;

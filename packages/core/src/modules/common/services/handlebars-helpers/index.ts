@@ -1,1 +1,1 @@
-export * from './date-formatter-handlebars-helper.service'
+export * from './date-formatter-handlebars-helper.service';

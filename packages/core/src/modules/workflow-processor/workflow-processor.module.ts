@@ -18,7 +18,8 @@ import {
   WorkflowProcessorService,
   TemplateExpressionEvaluatorService,
   WorkflowStateService,
-  RootProcessorService, WorkflowContextService,
+  RootProcessorService,
+  WorkflowContextService,
   ServiceExecutionService,
 } from './services';
 import {

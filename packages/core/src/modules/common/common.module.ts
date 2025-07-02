@@ -13,10 +13,7 @@ import { ClientMessageService } from './services/client-message.service';
 import { ConfigurationModule } from '../configuration';
 
 @Module({
-  imports: [
-    ConfigurationModule,
-    EventEmitterModule.forRoot(),
-  ],
+  imports: [ConfigurationModule, EventEmitterModule.forRoot()],
   providers: [
     ClientMessageService,
     ContextService,
@@ -27,10 +24,6 @@ import { ConfigurationModule } from '../configuration';
     DateFormatterHandlebarsHelperService,
     VariableSanitizerService,
   ],
-  exports: [
-    ClientMessageService,
-    ContextService,
-    TemplateService,
-  ],
+  exports: [ClientMessageService, ContextService, TemplateService],
 })
 export class CommonModule {}

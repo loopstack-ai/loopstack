@@ -3,7 +3,11 @@ import { z } from 'zod';
 import {
   Service,
   ServiceInterface,
-  ServiceCallResult, DocumentType, WorkflowEntity, ContextInterface, TransitionMetadataInterface,
+  ServiceCallResult,
+  DocumentType,
+  WorkflowEntity,
+  ContextInterface,
+  TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { TemplateExpressionEvaluatorService } from '../services';
 
@@ -31,7 +35,9 @@ const schema = z
 export class MockService implements ServiceInterface {
   private readonly logger = new Logger(MockService.name);
 
-  constructor(private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService) {}
+  constructor(
+    private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
+  ) {}
 
   async apply(
     props: z.infer<typeof schema>,
@@ -41,14 +47,13 @@ export class MockService implements ServiceInterface {
     parentArguments: any,
   ): Promise<ServiceCallResult> {
     if (props.input) {
-
       const input = this.templateExpressionEvaluatorService.parse<DocumentType>(
         props.input,
         {
           arguments: parentArguments,
           context,
           workflow,
-          transition: transitionData
+          transition: transitionData,
         },
       );
 
@@ -58,25 +63,26 @@ export class MockService implements ServiceInterface {
       this.logger.debug(input);
     }
 
-    const output = props.output ? this.templateExpressionEvaluatorService.parse<DocumentType>(
-      props.output,
-      {
-        arguments: parentArguments,
-        context,
-        workflow,
-        transition: transitionData
-      },
-    ) : null;
+    const output = props.output
+      ? this.templateExpressionEvaluatorService.parse<DocumentType>(
+          props.output,
+          {
+            arguments: parentArguments,
+            context,
+            workflow,
+            transition: transitionData,
+          },
+        )
+      : null;
 
     if (props.error) {
-
       const error = this.templateExpressionEvaluatorService.parse<string>(
         props.error,
         {
           arguments: parentArguments,
           context,
           workflow,
-          transition: transitionData
+          transition: transitionData,
         },
       );
 

@@ -2,7 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   Service,
   ServiceInterface,
-  ServiceCallResult, MimeTypeSchema, ContextInterface, TransitionMetadataInterface, DocumentType, DocumentSchema,
+  ServiceCallResult,
+  MimeTypeSchema,
+  ContextInterface,
+  TransitionMetadataInterface,
+  DocumentType,
+  DocumentSchema,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
@@ -15,55 +20,57 @@ import { SchemaRegistry } from '../../configuration';
 const config = z
   .object({
     id: ExpressionString,
-    update: z.object({
-      content: z.any(),
-      tags: z.array(
-        z.string()
-      ).optional(),
-      meta: z.object({
-        mimeType: MimeTypeSchema.optional(),
-        invalidate: z.boolean().optional(),
-        level: z.union([
-          z.literal('debug'),
-          z.literal('info'),
-          z.literal('warning'),
-          z.literal('error'),
-        ]).optional(),
-        enableAtPlaces: z.array(z.string()).optional(),
-        hideAtPlaces: z.array(z.string()).optional(),
-      }).optional(),
-    }).optional(),
+    update: z
+      .object({
+        content: z.any(),
+        tags: z.array(z.string()).optional(),
+        meta: z
+          .object({
+            mimeType: MimeTypeSchema.optional(),
+            invalidate: z.boolean().optional(),
+            level: z
+              .union([
+                z.literal('debug'),
+                z.literal('info'),
+                z.literal('warning'),
+                z.literal('error'),
+              ])
+              .optional(),
+            enableAtPlaces: z.array(z.string()).optional(),
+            hideAtPlaces: z.array(z.string()).optional(),
+          })
+          .optional(),
+      })
+      .optional(),
   })
   .strict();
 
 const schema = z
   .object({
     id: z.string(),
-    update: z.object({
-      content: z.any(),
-      tags: z.array(
-        z.string()
-      ).optional(),
-      meta: z.object({
-        mimeType: z.union([
-          MimeTypeSchema,
-          ExpressionString,
-        ]).optional(),
-        invalidate: z.union([
-          z.boolean(),
-          ExpressionString,
-        ]).optional(),
-        level: z.union([
-          ExpressionString,
-          z.literal('debug'),
-          z.literal('info'),
-          z.literal('warning'),
-          z.literal('error'),
-        ]).optional(),
-        enableAtPlaces: z.array(z.string()).optional(),
-        hideAtPlaces: z.array(z.string()).optional(),
-      }).optional(),
-    }).optional(),
+    update: z
+      .object({
+        content: z.any(),
+        tags: z.array(z.string()).optional(),
+        meta: z
+          .object({
+            mimeType: z.union([MimeTypeSchema, ExpressionString]).optional(),
+            invalidate: z.union([z.boolean(), ExpressionString]).optional(),
+            level: z
+              .union([
+                ExpressionString,
+                z.literal('debug'),
+                z.literal('info'),
+                z.literal('warning'),
+                z.literal('error'),
+              ])
+              .optional(),
+            enableAtPlaces: z.array(z.string()).optional(),
+            hideAtPlaces: z.array(z.string()).optional(),
+          })
+          .optional(),
+      })
+      .optional(),
   })
   .strict();
 
@@ -102,52 +109,57 @@ export class UpdateDocumentService implements ServiceInterface {
     // create the document skeleton without content property
     let updateSkeleton: any = omit(props.update ?? {}, ['content']);
     if (!isEmpty(updateSkeleton)) {
-      updateSkeleton = this.templateExpressionEvaluatorService.parse<DocumentType>(
-        updateSkeleton,
-        {
-          arguments: parentArguments,
-          context,
-          workflow,
-          transition: meta
-        },
-        {
-          schema: DocumentSchema,
-        },
-      );
+      updateSkeleton =
+        this.templateExpressionEvaluatorService.parse<DocumentType>(
+          updateSkeleton,
+          {
+            arguments: parentArguments,
+            context,
+            workflow,
+            transition: meta,
+          },
+          {
+            schema: DocumentSchema,
+          },
+        );
     }
 
-    const content = typeof props.update?.content === 'object' ? merge({}, document.content, props.update.content) : props.update?.content;
-    const zodSchema = this.schemaRegistry.getDocumentContentSchema(document.name);
+    const content =
+      typeof props.update?.content === 'object'
+        ? merge({}, document.content, props.update.content)
+        : props.update?.content;
+    const zodSchema = this.schemaRegistry.getDocumentContentSchema(
+      document.name,
+    );
     if (!zodSchema && content) {
       throw Error(`Document updates with content no schema defined.`);
     }
 
     // evaluate and parse document content using document schema
     // merge with previous content for partial object updates
-    const parsedDocumentContent = content ? this.templateExpressionEvaluatorService.parse<DocumentType>(
-      content,
-      {
-        arguments: parentArguments,
-        context,
-        workflow,
-        transition: meta
-      },
-      {
-        schema: zodSchema,
-      },
-    ) : document.content;
+    const parsedDocumentContent = content
+      ? this.templateExpressionEvaluatorService.parse<DocumentType>(
+          content,
+          {
+            arguments: parentArguments,
+            context,
+            workflow,
+            transition: meta,
+          },
+          {
+            schema: zodSchema,
+          },
+        )
+      : document.content;
 
     // merge document skeleton with content data
     const documentData = {
       ...document,
       ...updateSkeleton,
       content: parsedDocumentContent,
-    }
+    };
 
-    document = this.documentService.update(
-      workflow,
-      documentData,
-    );
+    document = this.documentService.update(workflow, documentData);
 
     return {
       success: true,

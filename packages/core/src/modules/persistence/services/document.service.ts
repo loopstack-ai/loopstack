@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  Brackets, FindOptionsOrder, OrderByCondition,
+  Brackets,
+  FindOptionsOrder,
+  OrderByCondition,
   Repository,
   SelectQueryBuilder,
   WhereExpressionBuilder,
@@ -44,9 +46,7 @@ const ArrayContainmentOperator = z.object({
 });
 
 const ArrayContainmentAnyOfOperator = z.object({
-  containsAnyOf: z
-    .string()
-    .optional(),
+  containsAnyOf: z.string().optional(),
 });
 
 const ExistsOperator = z.object({
@@ -92,7 +92,7 @@ export const WhereCondition = z.union([
   // z.record(z.string(), PropertyCondition),
   // todo: explicitly define where properties:
   z.object({
-    name: PropertyCondition
+    name: PropertyCondition,
   }),
   LogicalOperator,
   BracketOperator,
@@ -173,7 +173,9 @@ export class DocumentService {
     }
 
     if (undefined !== options?.isValidOnly) {
-      queryBuilder.andWhere('is_invalidated = :isInvalidated', { isInvalidated: !options.isValidOnly });
+      queryBuilder.andWhere('is_invalidated = :isInvalidated', {
+        isInvalidated: !options.isValidOnly,
+      });
     }
 
     if (options?.orderBy) {

@@ -59,12 +59,12 @@ export class TemplateExpressionEvaluatorService {
   ): Record<string, any> {
     return aliasReference
       ? transform(
-        aliasReference,
-        (result: Record<string, any>, path: string[], key: string) => {
-          result[key] = get(dataSource, path);
-        },
-        {},
-      )
+          aliasReference,
+          (result: Record<string, any>, path: string[], key: string) => {
+            result[key] = get(dataSource, path);
+          },
+          {},
+        )
       : {};
   }
 
@@ -73,7 +73,7 @@ export class TemplateExpressionEvaluatorService {
    */
   private getAliasVariables(
     variables: TemplateVariables,
-    options: Pick<ParseOptions, 'omitAliasVariables'>
+    options: Pick<ParseOptions, 'omitAliasVariables'>,
   ): Record<string, any> {
     if (options.omitAliasVariables) {
       return {};
@@ -90,7 +90,9 @@ export class TemplateExpressionEvaluatorService {
   /**
    * Creates template helper functions
    */
-  private getTemplateHelper(options: Pick<ParseOptions, 'omitUseTemplates'>): Record<string, any> {
+  private getTemplateHelper(
+    options: Pick<ParseOptions, 'omitUseTemplates'>,
+  ): Record<string, any> {
     if (options.omitUseTemplates) {
       return {};
     }
@@ -117,7 +119,7 @@ export class TemplateExpressionEvaluatorService {
    */
   private getWorkflowData(
     variables: TemplateVariables,
-    options: Pick<ParseOptions, 'omitWorkflowData'>
+    options: Pick<ParseOptions, 'omitWorkflowData'>,
   ): Record<string, any> {
     if (options.omitWorkflowData) {
       return {};
@@ -125,7 +127,7 @@ export class TemplateExpressionEvaluatorService {
 
     if (!variables.workflow) {
       throw new WorkflowValidationError(
-        'Workflow is required when omitWorkflowData is false. Either provide a workflow or set omitWorkflowData to true.'
+        'Workflow is required when omitWorkflowData is false. Either provide a workflow or set omitWorkflowData to true.',
       );
     }
 
@@ -137,7 +139,7 @@ export class TemplateExpressionEvaluatorService {
    */
   private buildTemplateVariables(
     variables: TemplateVariables,
-    options: ParseOptions
+    options: ParseOptions,
   ): Record<string, any> {
     return {
       ...this.getAliasVariables(variables, options),
@@ -155,7 +157,7 @@ export class TemplateExpressionEvaluatorService {
       return schema.parse(result);
     } catch (error) {
       throw new SchemaValidationError(
-        `Schema validation failed': ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Schema validation failed': ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }
@@ -166,20 +168,28 @@ export class TemplateExpressionEvaluatorService {
   parse<T>(
     subject: any,
     variables: TemplateVariables,
-    options?: ParseOptions
+    options?: ParseOptions,
   ): T {
-    if (subject == null || (typeof subject !== 'object' && typeof subject !== 'string')) {
+    if (
+      subject == null ||
+      (typeof subject !== 'object' && typeof subject !== 'string')
+    ) {
       return subject;
     }
 
     const mergedOptions = { ...DEFAULT_PARSE_OPTIONS, ...options };
-    const templateVariables = this.buildTemplateVariables(variables, mergedOptions);
+    const templateVariables = this.buildTemplateVariables(
+      variables,
+      mergedOptions,
+    );
 
     const result = this.templateService.evaluateDeep<T>(
       subject,
       templateVariables,
     );
 
-    return options?.schema ? this.validateResult<T>(result, options.schema) : result;
+    return options?.schema
+      ? this.validateResult<T>(result, options.schema)
+      : result;
   }
 }

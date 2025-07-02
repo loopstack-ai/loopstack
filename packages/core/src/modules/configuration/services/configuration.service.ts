@@ -3,10 +3,15 @@ import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.servic
 import { ServiceRegistry } from './service-registry.service';
 import { ConfigService } from '@nestjs/config';
 import {
-  ConfigSourceInterface, DocumentType, MainConfigSchema,
+  ConfigSourceInterface,
+  DocumentType,
+  MainConfigSchema,
   MainConfigType,
-  NamedCollectionItem, PipelineType,
-  StateMachineHandlerType, ToolConfigType, WorkflowTransitionSchema,
+  NamedCollectionItem,
+  PipelineType,
+  StateMachineHandlerType,
+  ToolConfigType,
+  WorkflowTransitionSchema,
 } from '@loopstack/shared';
 import { ConfigProviderRegistry } from './config-provider.registry';
 import { z } from 'zod';
@@ -59,25 +64,30 @@ export class ConfigurationService implements OnModuleInit {
     }
 
     // add main schema
-    this.schemaRegistry.addZodSchema('config', MainConfigSchema)
+    this.schemaRegistry.addZodSchema('config', MainConfigSchema);
 
     // register tools arguments schemas
     for (const tool of this.getAll<ToolConfigType>('tools')) {
       if (tool.parameters) {
-        this.schemaRegistry.addJSONSchema(`custom.tools.arguments.${tool.name}`, tool.parameters);
+        this.schemaRegistry.addJSONSchema(
+          `custom.tools.arguments.${tool.name}`,
+          tool.parameters,
+        );
       }
     }
 
     // register documents content schemas
     for (const document of this.getAll<DocumentType>('documents')) {
       if (document.schema) {
-        this.schemaRegistry.addJSONSchema(`custom.documents.content.${document.name}`, document.schema);
+        this.schemaRegistry.addJSONSchema(
+          `custom.documents.content.${document.name}`,
+          document.schema,
+        );
       }
     }
 
     this.logger.debug(`Registered schemas:`);
     this.logger.debug(this.schemaRegistry.getRegisteredNames());
-
   }
 
   createDefaultConfig() {
@@ -161,14 +171,16 @@ export class ConfigurationService implements OnModuleInit {
         }
         return data.pipelines.every(
           (pipeline: PipelineType) =>
-            !pipeline.hasOwnProperty('workspace') || undefined !== this.get('workspaces', pipeline['workspace']),
+            !pipeline.hasOwnProperty('workspace') ||
+            undefined !== this.get('workspaces', pipeline['workspace']),
         );
       },
       (data: MainConfigType) => {
         const invalidIndex =
           data.pipelines?.findIndex(
             (pipeline) =>
-              !pipeline.hasOwnProperty('workspace') || undefined !== this.get('workspaces', pipeline['workspace']),
+              !pipeline.hasOwnProperty('workspace') ||
+              undefined !== this.get('workspaces', pipeline['workspace']),
           ) ?? -1;
 
         return {

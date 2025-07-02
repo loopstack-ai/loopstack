@@ -13,7 +13,10 @@ export class RootProcessorService {
     private namespacesService: NamespacesService,
   ) {}
 
-  async processRootPipeline(pipeline: PipelineEntity, payload: any): Promise<ContextInterface> {
+  async processRootPipeline(
+    pipeline: PipelineEntity,
+    payload: any,
+  ): Promise<ContextInterface> {
     const namespace =
       await this.namespacesService.createRootNamespace(pipeline);
 

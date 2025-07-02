@@ -41,31 +41,37 @@ export class ToolExecutionService {
     context: ContextInterface,
     transitionData: TransitionMetadataInterface,
   ): Promise<ServiceCallResult> {
-
-    this.logger.debug(`Tool ${toolCall.tool} called with arguments`, toolCall.arguments);
+    this.logger.debug(
+      `Tool ${toolCall.tool} called with arguments`,
+      toolCall.arguments,
+    );
     this.logger.debug(`Parent Arguments:`, parentArguments);
 
     const toolConfig = this.getToolConfig(toolCall.tool);
 
-    const zodSchema = this.schemaRegistry.getToolArgumentsSchema(toolConfig.name);
-    const hasArguments = toolCall.arguments && Object.keys(toolCall.arguments).length;
+    const zodSchema = this.schemaRegistry.getToolArgumentsSchema(
+      toolConfig.name,
+    );
+    const hasArguments =
+      toolCall.arguments && Object.keys(toolCall.arguments).length;
     if (!zodSchema && hasArguments) {
       throw Error(`Tool called with arguments but no schema defined.`);
     }
 
-    const toolCallArguments = hasArguments ?
-      this.templateExpressionEvaluatorService.parse<ToolCallType>(
-        toolCall.arguments,
-        {
-          arguments: parentArguments,
-          context,
-          workflow,
-          transition: transitionData
-        },
-        {
-          schema: zodSchema,
-        },
-      ) : {};
+    const toolCallArguments = hasArguments
+      ? this.templateExpressionEvaluatorService.parse<ToolCallType>(
+          toolCall.arguments,
+          {
+            arguments: parentArguments,
+            context,
+            workflow,
+            transition: transitionData,
+          },
+          {
+            schema: zodSchema,
+          },
+        )
+      : {};
 
     return this.serviceExecutionService.callService(
       toolConfig.execute,

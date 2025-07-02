@@ -10,7 +10,9 @@ interface ProcessingContext {
 }
 
 @Injectable()
-export class TemplateExpressionHandler implements TemplateDetector, TemplateProcessor {
+export class TemplateExpressionHandler
+  implements TemplateDetector, TemplateProcessor
+{
   private readonly logger = new Logger(TemplateExpressionHandler.name);
 
   private static readonly MAX_TEMPLATE_SIZE = 50000;
@@ -20,33 +22,39 @@ export class TemplateExpressionHandler implements TemplateDetector, TemplateProc
     private readonly variableSanitizerService: VariableSanitizerService,
   ) {}
 
-  canHandle(value: string): boolean {
-    return value.includes('{{')
-      && value.includes('}}')
-      && !value.trim().startsWith('${{');
+  canHandle(value: any): boolean {
+    return (
+      typeof value === 'string' &&
+      value.includes('{{') &&
+      value.includes('}}') &&
+      !value.trim().startsWith('${{')
+    );
   }
 
   process(content: string, variables: Record<string, any>): any {
-
     try {
       const context: ProcessingContext = {
         variables,
-        depth: 0
+        depth: 0,
       };
 
       if (content.length > TemplateExpressionHandler.MAX_TEMPLATE_SIZE) {
         throw new TemplateExpressionError(
           'Template too large',
-          'EVALUATION_ERROR'
+          'EVALUATION_ERROR',
         );
       }
 
-      const sanitizedVariables = this.variableSanitizerService.sanitizeVariables(context.variables);
+      const sanitizedVariables =
+        this.variableSanitizerService.sanitizeVariables(context.variables);
       return this.handlebarsProcessor.render(content, sanitizedVariables);
     } catch (error) {
-      this.logger.error(`Failed to process template expression: ${error.message}`, {
-        expression: content,
-      });
+      this.logger.error(
+        `Failed to process template expression: ${error.message}`,
+        {
+          expression: content,
+        },
+      );
 
       if (error instanceof TemplateExpressionError) {
         throw error;
@@ -54,7 +62,7 @@ export class TemplateExpressionHandler implements TemplateDetector, TemplateProc
 
       throw new TemplateExpressionError(
         'Template expression evaluation failed',
-        'EVALUATION_ERROR'
+        'EVALUATION_ERROR',
       );
     }
   }

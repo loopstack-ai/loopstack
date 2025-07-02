@@ -8,30 +8,30 @@ export class HandlebarsProcessor implements OnModuleInit {
 
   private allowedHelpers = {
     // Block helper: {{#if condition}}...{{/if}} - safe boolean evaluation
-    'if': true,
+    if: true,
 
     // Used with if/unless: {{#if}}...{{else}}...{{/if}} - safe alternative branch
-    'else': true,
+    else: true,
 
     // Block helper: {{#unless condition}}...{{/unless}} - safe negated conditional
-    'unless': true,
+    unless: true,
 
     // Block helper: {{#each items}}{{this}}{{/each}} - safe iteration, no property traversal
-    'each': true,
+    each: true,
 
     // DISABLED: {{#with object}}{{property}}{{/with}} - can access dangerous object properties
     // Risk: {{#with constructor}}{{prototype}}{{/with}} could access prototype chain
-    'with': false,
+    with: false,
 
     // DISABLED: {{lookup object key}} - dynamic property access vulnerability
     // Risk: {{lookup this "constructor"}} or {{lookup (lookup this "constructor") "prototype"}}
     // Allows arbitrary object property traversal including prototype pollution
-    'lookup': false,
+    lookup: false,
 
     // CUSTOM HELPERS
-    'currentDate': true,
-    'formatDate': true,
-    'timeAgo': true,
+    currentDate: true,
+    formatDate: true,
+    timeAgo: true,
   };
 
   private options = {
@@ -84,9 +84,18 @@ export class HandlebarsProcessor implements OnModuleInit {
 
   onModuleInit() {
     this.handlebars = Handlebars.create();
-    this.handlebars.registerHelper('currentDate', this.dateFormatterHandlebarsHelperService.getCurrentDateHelper());
-    this.handlebars.registerHelper('formatDate', this.dateFormatterHandlebarsHelperService.getFormatDateHelper());
-    this.handlebars.registerHelper('timeAgo', this.dateFormatterHandlebarsHelperService.getTimeAgoHelper());
+    this.handlebars.registerHelper(
+      'currentDate',
+      this.dateFormatterHandlebarsHelperService.getCurrentDateHelper(),
+    );
+    this.handlebars.registerHelper(
+      'formatDate',
+      this.dateFormatterHandlebarsHelperService.getFormatDateHelper(),
+    );
+    this.handlebars.registerHelper(
+      'timeAgo',
+      this.dateFormatterHandlebarsHelperService.getTimeAgoHelper(),
+    );
   }
 
   public render(content: string, variables: Record<string, any>): string {

@@ -30,7 +30,9 @@ const schema = z
 export class SetContextService implements ServiceInterface {
   private readonly logger = new Logger(SetContextService.name);
 
-  constructor(private readonly workflowContextService: WorkflowContextService) {}
+  constructor(
+    private readonly workflowContextService: WorkflowContextService,
+  ) {}
 
   async apply(
     props: z.infer<typeof schema>,
@@ -40,7 +42,11 @@ export class SetContextService implements ServiceInterface {
       throw new Error('Workflow is undefined');
     }
 
-    workflow = this.workflowContextService.setWorkflowContextUpdate(workflow, props.key, props.value);
+    workflow = this.workflowContextService.setWorkflowContextUpdate(
+      workflow,
+      props.key,
+      props.value,
+    );
 
     this.logger.debug(`Set context update key "${props.key}".`);
 
