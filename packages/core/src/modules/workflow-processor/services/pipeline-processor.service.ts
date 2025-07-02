@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigurationService } from '../../configuration';
-import { ContextService, TemplateService } from '../../common';
+import { ContextService } from '../../common';
 import {
   ContextInterface,
   PipelineType,
@@ -12,6 +12,20 @@ import {
 import { NamespaceProcessorService } from './namespace-processor.service';
 import { WorkflowProcessorService } from './workflow-processor.service';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
+import { z } from 'zod';
+
+const SequenceItemSchema = z.object({
+  workflow: z.string().optional(),
+  pipeline: z.string().optional(),
+  condition: z.boolean().optional(),
+}).strict()
+
+const FactoryIteratorItemSchema = z.object({
+  label: z.string(),
+  meta: z.any(), //todo
+}).strict()
+
+const FactoryIteratorSourceSchema = z.array(z.record(z.string(), z.any()));
 
 @Injectable()
 export class PipelineProcessorService {
@@ -51,8 +65,7 @@ export class PipelineProcessorService {
           context: lastContext
         },
         {
-          schemaPath: 'config.pipelines[].sequence[]',
-          omitSchemaValidation: true,
+          schema: SequenceItemSchema,
           omitAliasVariables: true,
           omitUseTemplates: true,
           omitWorkflowData: true,
@@ -94,22 +107,24 @@ export class PipelineProcessorService {
         label: string;
         meta: any;
       }>(
-        factory.iterator,
+        {
+          label: factory.iterator.label,
+          meta: factory.iterator.meta,
+        },
         {
           context,
           item,
           index: i + 1,
         },
         {
-          schemaPath: 'config.pipelines[].iterator',
-          omitSchemaValidation: true,
+          schema: FactoryIteratorItemSchema,
           omitAliasVariables: true,
           omitUseTemplates: true,
           omitWorkflowData: true,
         }
       );
 
-      const label = parsedIterator.label ?? item.toString();
+      const label = parsedIterator.label ?? item;
       const metadata = parsedIterator.meta;
 
       // create a new namespace for each child
@@ -141,19 +156,12 @@ export class PipelineProcessorService {
       config.iterator.source,
       { context },
       {
-        schemaPath: 'config.pipelines[].iterator.source',
-        omitSchemaValidation: true,
+        schema: FactoryIteratorSourceSchema,
         omitAliasVariables: true,
         omitUseTemplates: true,
         omitWorkflowData: true,
       }
     );
-
-    if (!Array.isArray(items)) {
-      throw new Error(
-        `Iterator values in ${config.iterator.source} must be array, got ${typeof items}`,
-      );
-    }
 
     // create or load all context / namespaces
     const preparedChildContexts = await this.prepareAllContexts(

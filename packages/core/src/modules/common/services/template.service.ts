@@ -7,7 +7,7 @@ export interface TemplateDetector {
 }
 
 export interface TemplateProcessor {
-  process(value: any, path: string | null, variables: Record<string, any>, secure: boolean): any;
+  process(value: any, variables: Record<string, any>): any;
 }
 
 @Injectable()
@@ -27,7 +27,7 @@ export class TemplateService {
   /**
    * Evaluates a value using the appropriate template handler
    */
-  private evaluate(value: any, variables: Record<string, any>, path: string | null = null, secure: boolean = true): any {
+  evaluate(value: any, variables: Record<string, any>): any {
     // only handle string values
     if (value == null || typeof value !== 'string') {
       return value;
@@ -36,7 +36,7 @@ export class TemplateService {
     // select the appropriate handler
     for (const handler of this.handlers) {
       if (handler.canHandle(value)) {
-        return handler.process(value, path, variables, secure);
+        return handler.process(value, variables);
       }
     }
 
@@ -47,27 +47,25 @@ export class TemplateService {
   /**
    * Recursively evaluates template expressions in objects and arrays
    */
-  evaluateDeep<T = any>(obj: any, variables: Record<string, any>, path: string | null = null, secure: boolean = true): T {
+  evaluateDeep<T = any>(obj: any, variables: Record<string, any>): T {
     if (obj == null) {
       return obj;
     }
 
     if (Array.isArray(obj)) {
-      const arrayPath = path === null ? null : `${path}[]`;
       return obj.map(item => {
-        return this.evaluateDeep(item, variables, arrayPath, secure);
+        return this.evaluateDeep(item, variables);
       }) as T;
     }
 
     if (typeof obj === 'object') {
       const result: Record<string, any> = {};
       for (const [key, value] of Object.entries(obj)) {
-        const objectPath = path === null ? null : `${path}.${key}`;
-        result[key] = this.evaluateDeep(value, variables, objectPath, secure);
+        result[key] = this.evaluateDeep(value, variables);
       }
       return result as T;
     }
 
-    return this.evaluate(obj, variables, path, secure) as T;
+    return this.evaluate(obj, variables) as T;
   }
 }

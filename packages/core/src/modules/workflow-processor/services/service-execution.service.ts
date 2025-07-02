@@ -28,11 +28,15 @@ export class ServiceExecutionService {
     this.logger.debug(`Service ${serviceCall.service} called with arguments`, serviceCall.arguments);
     this.logger.debug(`Parent Arguments:`, parentArguments);
 
-    // get the service argument schema
-    const serviceCallArgumentsSchemaPath = `custom.services.arguments.${serviceCall.service}`;
+    const { instance, options } = this.serviceRegistry.getServiceByName(serviceCall.service);
+
+    const hasArguments = serviceCall.arguments && Object.keys(serviceCall.arguments).length;
+    if (!options.schema && hasArguments) {
+      throw Error(`Service called with arguments but no schema defined.`);
+    }
 
     // parse service execution arguments
-    const serviceCallArguments = this.templateExpressionEvaluatorService.parse(
+    const serviceCallArguments = hasArguments ? this.templateExpressionEvaluatorService.parse<any>(
       serviceCall.arguments,
       {
         arguments: parentArguments,
@@ -41,14 +45,12 @@ export class ServiceExecutionService {
         transition: transitionData
       },
       {
-        schemaPath: serviceCallArgumentsSchemaPath,
+        schema: options.schema,
       }
-    );
+    ) : {};
 
     this.logger.debug(`Calling service ${serviceCall.service}`);
 
-    // execute the service method
-    const { instance } = this.serviceRegistry.getServiceByName(serviceCall.service);
     return instance.apply(serviceCallArguments, workflow, context, transitionData, parentArguments);
   }
 }

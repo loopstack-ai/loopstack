@@ -5,7 +5,7 @@ import {
   ServiceInterface,
   ServiceCallResult,
   DocumentEntity,
-  TransitionMetadataInterface, ExpressionString, MimeTypeSchema,
+  TransitionMetadataInterface, ExpressionString, MimeTypeSchema, DocumentSchema,
 } from '@loopstack/shared';
 import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
@@ -127,15 +127,17 @@ export class CreateDocumentService implements ServiceInterface {
         transition: meta
       },
       {
-        schemaPath: `config.documents[]`,
+        schema: DocumentSchema,
       },
     );
 
-    // get the document content schema registry key
-    const documentContentSchemaPath = undefined === props.document ? null : `custom.documents.content.${props.document}`;
+    const zodSchema = this.schemaRegistry.getDocumentContentSchema(props.document);
+    if (!zodSchema && mergedTemplateData.content) {
+      throw Error(`Document creates with content no schema defined.`);
+    }
 
     // evaluate and parse document content using document schema
-    const parsedDocumentContent = this.templateExpressionEvaluatorService.parse<DocumentType>(
+    const parsedDocumentContent = mergedTemplateData.content ? this.templateExpressionEvaluatorService.parse<DocumentType>(
       mergedTemplateData.content,
       {
         arguments: parentArguments,
@@ -144,20 +146,14 @@ export class CreateDocumentService implements ServiceInterface {
         transition: meta
       },
       {
-        schemaPath: documentContentSchemaPath,
+        schema: zodSchema,
       },
-    );
+    ) : null;
 
     // merge document skeleton with content data
     const documentData = {
       ...documentSkeleton,
       content: parsedDocumentContent,
-    }
-
-    // validate the (complete) content using document schema
-    if (documentContentSchemaPath) {
-      const zodSchema = this.schemaRegistry.getZodSchema(documentContentSchemaPath);
-      zodSchema!.parse(documentData.content);
     }
 
     // create the document entity

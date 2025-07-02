@@ -50,10 +50,6 @@ export class MockService implements ServiceInterface {
           workflow,
           transition: transitionData
         },
-        {
-          schemaPath: 'mock',
-          omitSchemaValidation: true,
-        },
       );
 
       this.logger.debug(`Received mock input:`);
@@ -70,14 +66,7 @@ export class MockService implements ServiceInterface {
         workflow,
         transition: transitionData
       },
-      {
-        schemaPath: 'mock',
-        omitSchemaValidation: true,
-      },
     ) : null;
-
-    this.logger.debug('output11');
-    this.logger.debug(JSON.stringify(output, null, 2));
 
     if (props.error) {
 
@@ -88,10 +77,6 @@ export class MockService implements ServiceInterface {
           context,
           workflow,
           transition: transitionData
-        },
-        {
-          schemaPath: 'mock',
-          omitSchemaValidation: true,
         },
       );
 

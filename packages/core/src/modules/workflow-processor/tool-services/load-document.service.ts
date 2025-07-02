@@ -47,7 +47,7 @@ const config = z
       z.boolean(),
       ExpressionString,
     ]).optional(),
-    global: z.union([
+    isGlobal: z.union([
       z.boolean(),
       ExpressionString,
     ]).optional(),
@@ -75,7 +75,7 @@ const schema = z
     skip: z.number().default(0),
 
     isDependency: z.boolean().default(true),
-    global: z.boolean().default(false),
+    isGlobal: z.boolean().default(false),
     strictMode: z.boolean().default(true),
   })
   .strict();
@@ -111,7 +111,7 @@ export class LoadDocumentService implements ServiceInterface {
         skip: props.getMany ? props.skip : undefined,
         orderBy: props.orderBy,
         isValidOnly: true,
-        isGlobal: !!props.global,
+        isGlobal: !!props.isGlobal,
         ltWorkflowIndex: workflow.index,
       },
     );

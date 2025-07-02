@@ -6,8 +6,9 @@ import {
   WorkflowEntity,
 } from '@loopstack/shared';
 import { TemplateService } from '../../common';
-import { ConfigurationService, SchemaRegistry } from '../../configuration';
+import { ConfigurationService } from '../../configuration';
 import { get, transform } from 'lodash';
+import { z } from 'zod';
 
 class WorkflowValidationError extends Error {
   constructor(message: string) {
@@ -24,8 +25,7 @@ class SchemaValidationError extends Error {
 }
 
 interface ParseOptions {
-  schemaPath: string | null;
-  omitSchemaValidation?: boolean;
+  schema?: z.ZodType;
   omitAliasVariables?: boolean;
   omitWorkflowData?: boolean;
   omitUseTemplates?: boolean;
@@ -41,7 +41,6 @@ type TemplateVariables = {
 const SNIPPETS_CONFIG_KEY = 'snippets';
 
 const DEFAULT_PARSE_OPTIONS: Partial<ParseOptions> = {
-  omitSchemaValidation: false,
   omitAliasVariables: false,
   omitWorkflowData: false,
   omitUseTemplates: false,
@@ -52,7 +51,6 @@ export class TemplateExpressionEvaluatorService {
   constructor(
     private configurationService: ConfigurationService,
     private templateService: TemplateService,
-    private schemaRegistry: SchemaRegistry,
   ) {}
 
   private prepareAliasVariables(
@@ -72,9 +70,6 @@ export class TemplateExpressionEvaluatorService {
 
   /**
    * Gets alias variables from workflow data
-   * @param variables - Template variables containing workflow data
-   * @param options - Options controlling alias variable inclusion
-   * @returns Object containing alias variables or empty object
    */
   private getAliasVariables(
     variables: TemplateVariables,
@@ -94,8 +89,6 @@ export class TemplateExpressionEvaluatorService {
 
   /**
    * Creates template helper functions
-   * @param options - Options controlling template helper inclusion
-   * @returns Object containing template helpers or empty object
    */
   private getTemplateHelper(options: Pick<ParseOptions, 'omitUseTemplates'>): Record<string, any> {
     if (options.omitUseTemplates) {
@@ -113,18 +106,14 @@ export class TemplateExpressionEvaluatorService {
           return '';
         }
 
-        // todo: make this secure using schema
-        return this.templateService.evaluateDeep(snippet.value, variables, null, false);
+        const result = this.templateService.evaluate(snippet.value, variables);
+        return z.string().parse(result);
       },
     };
   }
 
   /**
    * Extracts workflow data for template evaluation
-   * @param variables - Template variables containing workflow data
-   * @param options - Options controlling workflow data inclusion
-   * @returns Object containing workflow data or empty object
-   * @throws {WorkflowValidationError} When workflow is required but not provided
    */
   private getWorkflowData(
     variables: TemplateVariables,
@@ -145,9 +134,6 @@ export class TemplateExpressionEvaluatorService {
 
   /**
    * Builds the complete template variables object by merging all sources
-   * @param variables - Base template variables
-   * @param options - Parse options controlling variable inclusion
-   * @returns Combined template variables object
    */
   private buildTemplateVariables(
     variables: TemplateVariables,
@@ -163,47 +149,24 @@ export class TemplateExpressionEvaluatorService {
 
   /**
    * Validates the parsed result using Zod schema
-   * @param result - The result to validate
-   * @param options - Parse options containing schema information
-   * @returns Validated result
-   * @throws {SchemaValidationError} When schema validation fails
    */
-  private validateResult<T>(result: T, options: ParseOptions): T {
-    if (options.omitSchemaValidation) {
-      return result;
-    }
-
-    if (!options.schemaPath) {
-      throw new SchemaValidationError('Schema path is required when validation is enabled');
-    }
-
-    const zodSchema = this.schemaRegistry.getZodSchema(options.schemaPath);
-    if (!zodSchema) {
-      throw new SchemaValidationError(`Schema not found at path: ${options.schemaPath}`);
-    }
-
+  private validateResult<T>(result: T, schema: z.ZodType): T {
     try {
-      return zodSchema.parse(result);
+      return schema.parse(result);
     } catch (error) {
       throw new SchemaValidationError(
-        `Schema validation failed for path '${options.schemaPath}': ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Schema validation failed': ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
 
   /**
    * Parses and evaluates template expressions with workflow context and validation
-   * @param subject - The template subject to evaluate
-   * @param variables - Variables available for template evaluation
-   * @param options - Configuration options for parsing and validation
-   * @returns Parsed and validated result
-   * @throws {WorkflowValidationError} When workflow validation fails
-   * @throws {SchemaValidationError} When schema validation fails
    */
   parse<T>(
     subject: any,
     variables: TemplateVariables,
-    options: ParseOptions
+    options?: ParseOptions
   ): T {
     if (subject == null || (typeof subject !== 'object' && typeof subject !== 'string')) {
       return subject;
@@ -215,10 +178,8 @@ export class TemplateExpressionEvaluatorService {
     const result = this.templateService.evaluateDeep<T>(
       subject,
       templateVariables,
-      mergedOptions.schemaPath,
-      !mergedOptions.omitSchemaValidation
     );
 
-    return this.validateResult<T>(result, mergedOptions);
+    return options?.schema ? this.validateResult<T>(result, options.schema) : result;
   }
 }

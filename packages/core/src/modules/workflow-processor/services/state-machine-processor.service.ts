@@ -24,6 +24,16 @@ import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-in
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { omit } from 'lodash';
 import { WorkflowContextService } from './workflow-context.service';
+import { z } from 'zod';
+
+const TransitionValidationsSchema = z.array(
+  z.object({
+    name: z.string(),
+    from: z.union([z.string(), z.array(z.string())]).optional(),
+    to: z.union([z.string(), z.array(z.string())]).optional(),
+    when: z.enum(["manual", "onEntry"]).optional(),
+    onError: z.string().optional(),
+}).strict());
 
 @Injectable()
 export class StateMachineProcessorService {
@@ -74,13 +84,12 @@ export class StateMachineProcessorService {
       config.arguments,
       { context },
       {
-        schemaPath: 'config.workflows[].arguments',
-        omitSchemaValidation: true,
+        schema: undefined, // todo: define workflow parameters to validate/parse arguments
         omitAliasVariables: true,
         omitUseTemplates: true,
         omitWorkflowData: true,
       }
-    )
+    );
 
     if (!workflow) {
       throw new Error(`No workflow entry.`);
@@ -317,7 +326,7 @@ export class StateMachineProcessorService {
               transition: transitionData
             },
             {
-              schemaPath: `config.workflows[].transitions`,
+              schema: TransitionValidationsSchema,
             }
           );
 

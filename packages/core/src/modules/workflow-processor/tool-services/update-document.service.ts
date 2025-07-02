@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   Service,
   ServiceInterface,
-  ServiceCallResult, MimeTypeSchema, ContextInterface, TransitionMetadataInterface, DocumentType,
+  ServiceCallResult, MimeTypeSchema, ContextInterface, TransitionMetadataInterface, DocumentType, DocumentSchema,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
@@ -111,18 +111,21 @@ export class UpdateDocumentService implements ServiceInterface {
           transition: meta
         },
         {
-          schemaPath: `config.documents[]`,
+          schema: DocumentSchema,
         },
       );
     }
 
-    // get the document content schema registry key
-    const documentContentSchemaPath = `custom.documents.content.${document.name}`;
+    const content = typeof props.update?.content === 'object' ? merge({}, document.content, props.update.content) : props.update?.content;
+    const zodSchema = this.schemaRegistry.getDocumentContentSchema(document.name);
+    if (!zodSchema && content) {
+      throw Error(`Document updates with content no schema defined.`);
+    }
 
     // evaluate and parse document content using document schema
     // merge with previous content for partial object updates
-    const parsedDocumentContent = undefined !== props.update?.content ? this.templateExpressionEvaluatorService.parse<DocumentType>(
-      typeof props.update.content === 'object' ? merge({}, document.content, props.update.content) : props.update.content,
+    const parsedDocumentContent = content ? this.templateExpressionEvaluatorService.parse<DocumentType>(
+      content,
       {
         arguments: parentArguments,
         context,
@@ -130,7 +133,7 @@ export class UpdateDocumentService implements ServiceInterface {
         transition: meta
       },
       {
-        schemaPath: documentContentSchemaPath,
+        schema: zodSchema,
       },
     ) : document.content;
 
@@ -139,12 +142,6 @@ export class UpdateDocumentService implements ServiceInterface {
       ...document,
       ...updateSkeleton,
       content: parsedDocumentContent,
-    }
-
-    // validate the (complete) content using document schema
-    if (documentContentSchemaPath) {
-      const zodSchema = this.schemaRegistry.getZodSchema(documentContentSchemaPath);
-      zodSchema!.parse(documentData.content);
     }
 
     document = this.documentService.update(

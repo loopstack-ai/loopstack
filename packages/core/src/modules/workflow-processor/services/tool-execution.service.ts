@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigurationService } from '../../configuration';
+import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import {
   ContextInterface,
   ToolConfigType,
@@ -19,6 +19,7 @@ export class ToolExecutionService {
     private configurationService: ConfigurationService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private serviceExecutionService: ServiceExecutionService,
+    private schemaRegistry: SchemaRegistry,
   ) {}
 
   getToolConfig(toolName: string) {
@@ -46,9 +47,13 @@ export class ToolExecutionService {
 
     const toolConfig = this.getToolConfig(toolCall.tool);
 
-    const toolCallArgumentsSchemaPath = toolConfig.parameters ? `custom.tools.arguments.${toolConfig.name}` : null;
+    const zodSchema = this.schemaRegistry.getToolArgumentsSchema(toolConfig.name);
+    const hasArguments = toolCall.arguments && Object.keys(toolCall.arguments).length;
+    if (!zodSchema && hasArguments) {
+      throw Error(`Tool called with arguments but no schema defined.`);
+    }
 
-    const toolCallArguments = toolCall.arguments ?
+    const toolCallArguments = hasArguments ?
       this.templateExpressionEvaluatorService.parse<ToolCallType>(
         toolCall.arguments,
         {
@@ -58,7 +63,7 @@ export class ToolExecutionService {
           transition: transitionData
         },
         {
-          schemaPath: toolCallArgumentsSchemaPath,
+          schema: zodSchema,
         },
       ) : {};
 

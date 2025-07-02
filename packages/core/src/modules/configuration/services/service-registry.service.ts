@@ -6,7 +6,6 @@ import {
   ServiceOptionsInterface,
 } from '@loopstack/shared';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { SchemaRegistry } from './schema-registry.service';
 
 @Injectable()
 export class ServiceRegistry {
@@ -19,7 +18,6 @@ export class ServiceRegistry {
   constructor(
     private readonly discoveryService: DiscoveryService,
     private readonly reflector: Reflector,
-    private readonly schemaRegistry: SchemaRegistry,
   ) {}
 
   initialize() {
@@ -73,10 +71,6 @@ export class ServiceRegistry {
     }
 
     this.services.set(name, { options, instance });
-
-    if (options.schema) {
-      this.schemaRegistry.addZodSchema(`custom.services.arguments.${name}`, options.schema);
-    }
   }
 
   getEntries(): Array<{
