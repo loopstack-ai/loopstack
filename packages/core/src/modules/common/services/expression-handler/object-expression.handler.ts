@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TemplateDetector, TemplateProcessor } from '../template.service';
 import { get } from 'lodash';
-import { SchemaRegistry } from '../../../configuration';
 import { VariableSanitizerService } from '../variable-sanitizer.service';
 import { ObjectExpressionError } from '../../errors/object-expression.error';
 
@@ -47,7 +46,6 @@ export class ObjectExpressionHandler
   private readonly VALID_SEGMENT_PATTERN = /^[a-zA-Z0-9_-]+(\[\d+\])?$/;
 
   constructor(
-    private readonly schemaRegistry: SchemaRegistry,
     private readonly variableSanitizerService: VariableSanitizerService,
   ) {}
 

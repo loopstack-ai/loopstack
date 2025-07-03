@@ -4,7 +4,7 @@ import { format, formatDistanceToNow, isValid, parseISO } from 'date-fns';
 @Injectable()
 export class DateFormatterHandlebarsHelperService {
   private readonly MAX_FORMAT_LENGTH = 100;
-  private readonly ALLOWED_FORMAT_CHARS = /^[YMDHmsaAEepdT\s\-\/:.,'"]+$/;
+  private readonly ALLOWED_FORMAT_CHARS = /^[YyMmDdHhSsaAEepdT\s\-\/:.,'"]+$/;
 
   private validateFormatString(formatString: string): boolean {
     if (!formatString) return true;
@@ -58,6 +58,7 @@ export class DateFormatterHandlebarsHelperService {
       const now = new Date();
 
       console.log(now);
+      console.log(formatString);
       if (!formatString) {
         return now.toISOString();
       }
@@ -85,7 +86,7 @@ export class DateFormatterHandlebarsHelperService {
       try {
         return format(now, pattern);
       } catch (error) {
-        throw new Error(`Error Formatting Date`);
+        throw new Error(`Error Formatting Date: "${pattern}"`);
       }
     };
   }
@@ -113,7 +114,8 @@ export class DateFormatterHandlebarsHelperService {
       try {
         return format(dateObj, formatString);
       } catch (error) {
-        throw new Error(`Error Formatting Date`);
+        console.log(dateObj)
+        throw new Error(`Error Formatting Date "${formatString}"`);
       }
     };
   }

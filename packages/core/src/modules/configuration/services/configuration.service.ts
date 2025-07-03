@@ -4,19 +4,18 @@ import { ServiceRegistry } from './service-registry.service';
 import { ConfigService } from '@nestjs/config';
 import {
   ConfigSourceInterface,
-  DocumentType,
+  DocumentType, JSONSchemaConfigType,
   MainConfigSchema,
   MainConfigType,
   NamedCollectionItem,
   PipelineType,
   StateMachineHandlerType,
   ToolConfigType,
-  WorkflowTransitionSchema,
 } from '@loopstack/shared';
 import { ConfigProviderRegistry } from './config-provider.registry';
 import { z } from 'zod';
 import { SchemaRegistry } from './schema-registry.service';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { JSONSchemaType } from 'ajv';
 
 @Injectable()
 export class ConfigurationService implements OnModuleInit {
@@ -63,31 +62,22 @@ export class ConfigurationService implements OnModuleInit {
       this.validate(config);
     }
 
-    // add main schema
-    this.schemaRegistry.addZodSchema('config', MainConfigSchema);
-
-    // register tools arguments schemas
+    // register custom schemas
     for (const tool of this.getAll<ToolConfigType>('tools')) {
-      if (tool.parameters) {
-        this.schemaRegistry.addJSONSchema(
-          `custom.tools.arguments.${tool.name}`,
-          tool.parameters,
-        );
-      }
+      this.registerCustomSchema(`custom.tools.arguments.${tool.name}`, tool.parameters);
     }
 
-    // register documents content schemas
     for (const document of this.getAll<DocumentType>('documents')) {
-      if (document.schema) {
-        this.schemaRegistry.addJSONSchema(
-          `custom.documents.content.${document.name}`,
-          document.schema,
-        );
-      }
+      this.registerCustomSchema(`custom.documents.content.${document.name}`, document.schema);
     }
 
-    this.logger.debug(`Registered schemas:`);
-    this.logger.debug(this.schemaRegistry.getRegisteredNames());
+    this.logger.debug(`Registered ${this.schemaRegistry.getSize()} custom schemas.`);
+  }
+
+  registerCustomSchema(key: string, schema: JSONSchemaConfigType) {
+    if (schema) {
+      this.schemaRegistry.addJSONSchema(key, schema);
+    }
   }
 
   createDefaultConfig() {
