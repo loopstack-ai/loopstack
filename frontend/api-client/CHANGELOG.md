@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.1.0
+
+### Minor Changes
+
+- Improved Document Handling, Template Expressions and added Config Includes
+
 ## 0.0.5
 
 ### Patch Changes
