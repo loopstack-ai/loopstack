@@ -7,7 +7,7 @@ export function loadConfiguration(path: string): ConfigSourceInterface[] {
   const configs: ConfigSourceInterface[] = [];
 
   try {
-    loadConfigsRecursively(path, configs);
+    loadConfigsRecursively(path, path, configs);
   } catch (error) {
     console.error(`Error loading config files from ${path}:`, error);
   }
@@ -16,6 +16,7 @@ export function loadConfiguration(path: string): ConfigSourceInterface[] {
 }
 
 function loadConfigsRecursively(
+  rootPath: string,
   currentPath: string,
   configs: ConfigSourceInterface[],
 ): void {
@@ -29,12 +30,15 @@ function loadConfigsRecursively(
       const config = yaml.load(
         fs.readFileSync(itemPath, 'utf8'),
       ) as MainConfigType;
+
+      const relativePath = path.relative(rootPath, itemPath);
       configs.push({
         path: itemPath,
+        relativePath,
         config,
       });
     } else if (stats.isDirectory()) {
-      loadConfigsRecursively(itemPath, configs);
+      loadConfigsRecursively(rootPath, itemPath, configs);
     }
   });
 }

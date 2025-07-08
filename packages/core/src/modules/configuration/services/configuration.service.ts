@@ -4,24 +4,23 @@ import { ServiceRegistry } from './service-registry.service';
 import { ConfigService } from '@nestjs/config';
 import {
   ConfigSourceInterface,
-  DocumentType, JSONSchemaConfigType,
-  MainConfigSchema,
+  DocumentType,
+  JSONSchemaConfigType,
   MainConfigType,
-  NamedCollectionItem,
-  PipelineType,
-  StateMachineHandlerType,
+  ConfigElement,
   ToolConfigType,
 } from '@loopstack/shared';
 import { ConfigProviderRegistry } from './config-provider.registry';
 import { z } from 'zod';
 import { SchemaRegistry } from './schema-registry.service';
-import { JSONSchemaType } from 'ajv';
+
+type ConfigElementMap = Map<string, ConfigElement<any>>;
 
 @Injectable()
 export class ConfigurationService implements OnModuleInit {
   private logger = new Logger(ConfigurationService.name);
 
-  registry: Map<string, Map<string, any>>;
+  registry: Map<string, Map<string, ConfigElement<any>>>;
 
   constructor(
     private configService: ConfigService,
@@ -46,41 +45,108 @@ export class ConfigurationService implements OnModuleInit {
       this.configService.get<ConfigSourceInterface[]>('configs') ?? [];
     const moduleConfigs = this.configProviderRegistry.getConfigs();
 
-    const configs = [...appConfigs, ...moduleConfigs];
-
-    if (!configs) {
+    const configSources: ConfigSourceInterface[] = [
+      ...appConfigs,
+      ...moduleConfigs,
+    ];
+    if (!configSources.length) {
       return;
     }
 
-    // parse configs and make basic schema validations
-    for (const config of configs) {
-      this.createFromConfig(config);
+    // validate each config file separately, so we can trace potential source of errors
+    for (const config of configSources) {
+      this.validate(config);
     }
 
-    // validate each config file separately, so we can trace potential source of errors
-    for (const config of configs) {
-      this.validate(config);
+    // build a config file lookup table
+    const configSourcesElements: Map<
+      string,
+      {
+        path: string;
+        items: ConfigElementMap;
+        include: string[];
+      }
+    > = new Map([]);
+
+    for (const config of configSources) {
+      const { include, items } = this.createFromConfig(config);
+      const itemsMap: ConfigElementMap = new Map(
+        items.map((element) => [element.name, element]),
+      );
+
+      configSourcesElements.set(config.relativePath, {
+        path: config.relativePath,
+        items: itemsMap,
+        include,
+      });
+    }
+
+    // process imports for each file:
+    const flatConfigElementMap: Map<string, ConfigElement<any>> = new Map([]);
+    for (const file of Array.from(configSourcesElements.values())) {
+      const { items, include } = file;
+
+      const importMap = new Map<string, string>([]);
+
+      // add imports to the importMap
+      for (const includePath of include) {
+        const importSource = configSourcesElements.get(includePath);
+        if (importSource) {
+          for (const importSourceElement of Array.from(
+            importSource.items.values(),
+          )) {
+            importMap.set(importSourceElement.name, importSourceElement.path);
+          }
+        }
+      }
+
+      // add own items to the importMap
+      for (const item of items.values()) {
+        importMap.set(item.name, item.path);
+      }
+
+      // add the import map to each item
+      // and add them to the global list of elements
+      for (const item of items.values()) {
+        item.importMap = importMap;
+        flatConfigElementMap.set(`${item.path}:${item.name}`, item);
+      }
+    }
+
+    // register the elements
+    for (const [globalName, configElement] of Array.from(
+      flatConfigElementMap.entries(),
+    )) {
+      this.registerConfig(globalName, configElement);
     }
 
     // register custom schemas
     for (const tool of this.getAll<ToolConfigType>('tools')) {
-      this.registerCustomSchema(`custom.tools.arguments.${tool.name}`, tool.parameters);
+      this.registerCustomSchema(
+        `${tool.name}.arguments`,
+        tool.config.parameters,
+      );
     }
 
     for (const document of this.getAll<DocumentType>('documents')) {
-      this.registerCustomSchema(`custom.documents.content.${document.name}`, document.schema);
+      this.registerCustomSchema(
+        `${document.name}.content`,
+        document.config.schema,
+      );
     }
 
-    this.logger.debug(`Registered ${this.schemaRegistry.getSize()} custom schemas.`);
+    this.logger.debug(
+      `Registered ${this.schemaRegistry.getSize()} custom schemas.`,
+    );
   }
 
-  registerCustomSchema(key: string, schema: JSONSchemaConfigType) {
+  private registerCustomSchema(key: string, schema: JSONSchemaConfigType) {
     if (schema) {
       this.schemaRegistry.addJSONSchema(key, schema);
     }
   }
 
-  createDefaultConfig() {
+  private createDefaultConfig() {
     return new Map(
       Object.entries({
         workspaces: new Map(),
@@ -93,28 +159,27 @@ export class ConfigurationService implements OnModuleInit {
     );
   }
 
-  clear() {
+  private clear() {
     this.registry = this.createDefaultConfig();
   }
 
-  updateConfig(key: string, data: NamedCollectionItem[]) {
-    if (!data || !Array.isArray(data)) {
-      return;
+  private registerConfig(
+    globalName: string,
+    configElement: ConfigElement<any>,
+  ) {
+    const type = configElement.type;
+
+    if (!this.registry.has(type)) {
+      this.registry.set(type, new Map());
     }
 
-    if (!this.registry.has(key)) {
-      this.registry.set(key, new Map());
+    const config = this.registry.get(type)!;
+
+    if (config.has(globalName)) {
+      throw new Error(`item with name "${globalName}" already exists.`);
     }
 
-    const config = this.registry.get(key)!;
-
-    for (const item of data) {
-      if (config.has(item.name)) {
-        throw new Error(`item with name "${item.name}" already exists.`);
-      }
-
-      config.set(item.name, item);
-    }
+    config.set(globalName, configElement);
   }
 
   has(registry: string, name: string): boolean {
@@ -126,114 +191,82 @@ export class ConfigurationService implements OnModuleInit {
     return config.has(name);
   }
 
-  getAll<T>(registry: string): T[] {
+  getAll<T>(registry: string): ConfigElement<T>[] {
     const itemMap = this.registry.get(registry);
     return Array.from(itemMap?.values() ?? []);
   }
 
-  get<T>(registry: string, searchKey: string): T | undefined {
+  get<T>(registry: string, searchKey: string): ConfigElement<T> | undefined {
     const config = this.registry.get(registry);
     if (!config) {
       throw new Error(`Registry with name ${registry} not found`);
     }
 
-    return config.get(searchKey) as T;
+    return config.get(searchKey) as ConfigElement<T>;
   }
 
-  createFromConfig(source: ConfigSourceInterface): any {
+  resolveConfig<T>(
+    type: string,
+    name: string,
+    includes: Map<string, string>,
+  ): ConfigElement<T> {
+    const resolvedName = this.resolveConfigName(name, includes);
+    const configElement = this.get<T>(type, resolvedName);
+
+    if (!configElement) {
+      throw new Error(`Config for ${resolvedName} not found.`);
+    }
+
+    return configElement;
+  }
+
+  private resolveConfigName(name: string, includes: Map<string, string>) {
+    const resolvedPath = includes.get(name);
+    if (resolvedPath) {
+      return `${resolvedPath}:${name}`;
+    }
+
+    return name;
+  }
+
+  private createFromConfig(source: ConfigSourceInterface): {
+    include: string[];
+    items: ConfigElement<any>[];
+  } {
     try {
       const config: MainConfigType = this.mainSchemaGenerator
         .getSchema()
         .parse(source.config);
-      Object.entries(config).forEach(([key, value]) => {
-        this.updateConfig(key, value);
-      });
+
+      const { include, ...cleanConfig } = config;
+
+      const items = Object.entries(cleanConfig)
+        .map(([key, data]) => {
+          return data.map(
+            (item: any) =>
+              ({
+                name: item.name,
+                path: source.relativePath,
+                type: key,
+                importMap: new Map(),
+                config: item,
+              }) as ConfigElement<any>,
+          );
+        })
+        .flat();
+
+      return {
+        items,
+        include: include ?? [],
+      };
     } catch (error) {
       this.handleConfigError(error, source.path);
     }
   }
 
-  private createPipelineWorkspaceValidation(): z.ZodEffects<any, any, any> {
-    return z.any().refine(
-      (data: MainConfigType): boolean => {
-        if (!data.pipelines) {
-          return true;
-        }
-        return data.pipelines.every(
-          (pipeline: PipelineType) =>
-            !pipeline.hasOwnProperty('workspace') ||
-            undefined !== this.get('workspaces', pipeline['workspace']),
-        );
-      },
-      (data: MainConfigType) => {
-        const invalidIndex =
-          data.pipelines?.findIndex(
-            (pipeline) =>
-              !pipeline.hasOwnProperty('workspace') ||
-              undefined !== this.get('workspaces', pipeline['workspace']),
-          ) ?? -1;
-
-        return {
-          message: `pipeline references non-existent workspace.`,
-          path: ['pipelines', invalidIndex, 'workspace'],
-        };
-      },
-    );
-  }
-
-  private createWorkflowToolCallValidation(): z.ZodEffects<any, any, any> {
-    return z.any().refine(
-      (data: MainConfigType): boolean => {
-        if (!data.workflows) {
-          return true;
-        }
-
-        const toolCalls: string[] = data.workflows
-          .map((wf) =>
-            wf.type === 'stateMachine'
-              ? wf.transitions?.map((h) => h.call?.map((call) => call.tool))
-              : [],
-          )
-          .flat(2)
-          .filter((toolName) => undefined !== toolName);
-
-        return toolCalls.every(
-          (toolName) => undefined !== this.get('tools', toolName),
-        );
-      },
-      (data: MainConfigType) => {
-        const toolCalls: string[] = data
-          .workflows!.map((wf) =>
-            wf.type === 'stateMachine'
-              ? wf.transitions?.map((h) => h.call?.map((call) => call.tool))
-              : [],
-          )
-          .flat(2)
-          .filter((toolName) => undefined !== toolName);
-
-        const errorItem = toolCalls.find(
-          (toolName) => undefined === this.get('tools', toolName),
-        ) as unknown as StateMachineHandlerType;
-
-        return {
-          message: `workflow handler references non-existent tool "${errorItem.tool}".`,
-          path: ['workflows', 'handlers'],
-        };
-      },
-    );
-  }
-
-  validate(source: ConfigSourceInterface): any {
+  private validate(source: ConfigSourceInterface): any {
     try {
-      this.mainSchemaGenerator
-        .getSchema()
-        .and(this.createPipelineWorkspaceValidation())
-        .and(this.createWorkflowToolCallValidation())
-        // todo add more validations
-        //   - state machine handler transition names
-        //   - state machine template (extends) names
-        //   - document names
-        .parse(source.config);
+      this.mainSchemaGenerator.getSchema().parse(source.config);
     } catch (error) {
       this.handleConfigError(error, source.path);
     }

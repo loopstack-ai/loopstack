@@ -128,8 +128,8 @@ export class UpdateDocumentService implements ServiceInterface {
       typeof props.update?.content === 'object'
         ? merge({}, document.content, props.update.content)
         : props.update?.content;
-    const zodSchema = this.schemaRegistry.getDocumentContentSchema(
-      document.name,
+    const zodSchema = this.schemaRegistry.getZodSchema(
+      `${document.name}.content`,
     );
     if (!zodSchema && content) {
       throw Error(`Document updates with content no schema defined.`);

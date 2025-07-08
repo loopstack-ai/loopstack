@@ -24,7 +24,7 @@ export class ObjectExpressionHandler
   private readonly DEFAULT_MAX_DEPTH = 10;
   private readonly DEFAULT_MAX_LENGTH = 1000;
 
-  private readonly EXPRESSION_PATTERN = /^\$\{\{(.+)\}\}$/;
+  private readonly EXPRESSION_PATTERN = /^\$\{(.+)\}$/;
 
   private readonly DANGEROUS_PATTERNS = [
     /^__/, // Properties starting with double underscore

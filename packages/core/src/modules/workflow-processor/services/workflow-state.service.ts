@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WorkflowService } from '../../persistence';
 import {
+  ConfigElement,
   ContextInterface,
   WorkflowEntity,
   WorkflowType,
@@ -13,12 +14,12 @@ export class WorkflowStateService {
   constructor(private workflowService: WorkflowService) {}
 
   async getWorkflowState(
-    workflowConfig: WorkflowType,
+    configElement: ConfigElement<WorkflowType>,
     context: ContextInterface,
   ): Promise<WorkflowEntity> {
     const workflow = await this.workflowService
       .createFindQuery(context.namespace?.id, {
-        name: workflowConfig.name,
+        name: configElement.name,
         labels: context.labels,
       })
       .getOne();
@@ -32,9 +33,9 @@ export class WorkflowStateService {
       labels: context.labels,
       namespace: context.namespace ?? undefined,
       pipelineId: context.pipelineId,
-      name: workflowConfig.name,
-      title: workflowConfig.title ?? workflowConfig.name,
-      ui: workflowConfig.ui ?? null,
+      name: configElement.name,
+      title: configElement.config.title ?? configElement.name,
+      ui: configElement.config.ui ?? null,
       index: context.index,
     });
   }

@@ -6,10 +6,12 @@ import {
   ServiceCallResult,
   ToolCallType,
   TransitionMetadataInterface,
+  ConfigElement,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { ServiceExecutionService } from './service-execution.service';
+import { ContextService } from '../../common';
 
 @Injectable()
 export class ToolExecutionService {
@@ -20,19 +22,8 @@ export class ToolExecutionService {
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private serviceExecutionService: ServiceExecutionService,
     private schemaRegistry: SchemaRegistry,
+    private contextService: ContextService,
   ) {}
-
-  getToolConfig(toolName: string) {
-    const config = this.configurationService.get<ToolConfigType>(
-      'tools',
-      toolName,
-    );
-    if (!config) {
-      throw new Error(`Tool config with name ${toolName} not found.`);
-    }
-
-    return config;
-  }
 
   async applyTool(
     toolCall: ToolCallType,
@@ -47,11 +38,19 @@ export class ToolExecutionService {
     );
     this.logger.debug(`Parent Arguments:`, parentArguments);
 
-    const toolConfig = this.getToolConfig(toolCall.tool);
+    const configElement =
+      this.configurationService.resolveConfig<ToolConfigType>(
+        'tools',
+        toolCall.tool,
+        context.includes,
+      );
 
-    const zodSchema = this.schemaRegistry.getToolArgumentsSchema(
-      toolConfig.name,
+    this.contextService.addIncludes(context, configElement.importMap);
+
+    const zodSchema = this.schemaRegistry.getZodSchema(
+      `${configElement.name}.arguments`,
     );
+
     const hasArguments =
       toolCall.arguments && Object.keys(toolCall.arguments).length;
     if (!zodSchema && hasArguments) {
@@ -74,7 +73,7 @@ export class ToolExecutionService {
       : {};
 
     return this.serviceExecutionService.callService(
-      toolConfig.execute,
+      configElement.config.execute,
       toolCallArguments,
       workflow,
       context,

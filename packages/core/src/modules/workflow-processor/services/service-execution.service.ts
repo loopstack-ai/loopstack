@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ServiceRegistry } from '../../configuration';
 import {
+  ConfigElement,
   ContextInterface,
   ServiceCallResult,
   TransitionMetadataInterface,

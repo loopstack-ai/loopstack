@@ -4,6 +4,7 @@ import {
   WorkflowTransitionType,
   StateMachineType,
   UISchemaType,
+  ConfigElement,
 } from '@loopstack/shared';
 import { ConfigurationService } from '../../configuration';
 import { JSONSchemaType } from 'ajv';
@@ -12,60 +13,61 @@ import { JSONSchemaType } from 'ajv';
 export class StateMachineConfigService {
   constructor(private loopConfigService: ConfigurationService) {}
 
-  private getWorkflowConfig(name: string) {
-    const stateMachine = this.loopConfigService.get<StateMachineType>(
-      'workflows',
-      name,
-    );
-
-    if (!stateMachine) {
-      throw new Error(
-        `State machine template with name ${name} does not exist.`,
-      );
-    }
-
-    if (stateMachine.type !== 'stateMachine') {
-      throw new Error(
-        `State machines can only extend other workflows of type "stateMachine"`,
-      );
-    }
-
-    return this.getConfig(stateMachine);
-  }
-
-  public getConfig(stateMachine: StateMachineType): StateMachineType {
-    let transitions: WorkflowTransitionType[] = stateMachine.transitions ?? [];
-    let args: Record<string, any> = stateMachine.arguments ?? {};
-    let parameters: JSONSchemaType<any> = stateMachine.parameters ?? {
+  public getConfig(
+    configElement: ConfigElement<StateMachineType>,
+  ): ConfigElement<StateMachineType> {
+    let transitions: WorkflowTransitionType[] =
+      configElement.config.transitions ?? [];
+    let args: Record<string, any> = configElement.config.arguments ?? {};
+    let parameters: JSONSchemaType<any> = configElement.config.parameters ?? {
       type: 'object',
     };
-    let ui: UISchemaType = stateMachine.ui ?? {};
+    let ui: UISchemaType = configElement.config.ui ?? {};
 
-    if (!stateMachine.extends) {
+    if (!configElement.config.extends) {
       return {
-        ...stateMachine,
-        transitions,
-        arguments: args,
-        parameters,
+        ...configElement,
+        config: {
+          ...configElement.config,
+          transitions,
+          arguments: args,
+          parameters,
+        },
       };
     }
 
-    const parentStateMachine = this.getWorkflowConfig(stateMachine.extends);
+    const parentStateMachine = this.getConfig(
+      this.loopConfigService.resolveConfig<StateMachineType>(
+        'workflows',
+        configElement.config.extends,
+        configElement.importMap,
+      ),
+    );
+
     transitions = _.unionBy(
       transitions,
-      parentStateMachine?.transitions ?? [],
+      parentStateMachine?.config.transitions ?? [],
       'name',
     );
-    args = _.merge(args, parentStateMachine.arguments);
-    parameters = _.merge(parameters, parentStateMachine.parameters);
-    ui = _.merge(ui, parentStateMachine.ui);
+    args = _.merge(args, parentStateMachine.config.arguments);
+    parameters = _.merge(parameters, parentStateMachine.config.parameters);
+    ui = _.merge(ui, parentStateMachine.config.ui);
+
+    const mergedImportMap = new Map([
+      ...parentStateMachine.importMap,
+      ...configElement.importMap,
+    ]);
 
     return {
-      ...stateMachine,
-      transitions,
-      arguments: args,
-      parameters,
-      ui,
+      ...configElement,
+      importMap: mergedImportMap,
+      config: {
+        ...configElement.config,
+        transitions,
+        arguments: args,
+        parameters,
+        ui,
+      },
     };
   }
 }

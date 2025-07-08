@@ -8,6 +8,7 @@ import {
   ExpressionString,
   TransitionMetadataInterface,
   DocumentSchema,
+  ConfigElement,
 } from '@loopstack/shared';
 import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
@@ -48,19 +49,6 @@ export class BatchCreateDocumentsService implements ServiceInterface {
     private schemaRegistry: SchemaRegistry,
   ) {}
 
-  getDocumentTemplate(document: string): DocumentType {
-    const template = this.loopConfigService.get<DocumentType>(
-      'documents',
-      document,
-    );
-
-    if (!template) {
-      throw new Error(`Document template ${document} not found.`);
-    }
-
-    return template;
-  }
-
   async apply(
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
@@ -73,11 +61,15 @@ export class BatchCreateDocumentsService implements ServiceInterface {
     }
 
     // get the document template
-    const template: DocumentType = this.getDocumentTemplate(props.document);
+    const template = this.loopConfigService.resolveConfig<DocumentType>(
+      'documents',
+      props.document,
+      context.includes,
+    );
 
     const documentSkeleton =
       this.templateExpressionEvaluatorService.parse<DocumentType>(
-        omit(template, ['content']),
+        omit(template.config, ['content']),
         {
           arguments: parentArguments,
           context,
@@ -89,8 +81,8 @@ export class BatchCreateDocumentsService implements ServiceInterface {
         },
       );
 
-    const zodSchema = this.schemaRegistry.getDocumentContentSchema(
-      props.document,
+    const zodSchema = this.schemaRegistry.getZodSchema(
+      `${template.name}.content`,
     );
 
     const documents: DocumentEntity[] = [];

@@ -19,11 +19,16 @@ export class ContextService {
       workspaceId: pipeline.workspaceId,
       labels: pipeline.labels,
       index: pipeline.index,
+      includes: new Map(),
       ...additional,
     } as ContextInterface;
   }
 
   create(payload: ProcessRunInterface | ContextInterface): ContextInterface {
     return _.cloneDeep(payload) as ContextInterface;
+  }
+
+  addIncludes(context: ContextInterface, includes: Map<string, string>) {
+    context.includes = new Map([...context.includes, ...includes]);
   }
 }

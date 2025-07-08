@@ -27,14 +27,6 @@ export class SchemaRegistry {
     return this.zodSchemas.get(path);
   }
 
-  public getToolArgumentsSchema(toolName: string) {
-    return this.getZodSchema(`custom.tools.arguments.${toolName}`);
-  }
-
-  public getDocumentContentSchema(documentName: string) {
-    return this.getZodSchema(`custom.documents.content.${documentName}`);
-  }
-
   public getSize() {
     return this.zodSchemas.size;
   }

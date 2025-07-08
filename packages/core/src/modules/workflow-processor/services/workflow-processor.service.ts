@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineProcessorService } from './state-machine-processor.service';
 import {
   ContextInterface,
+  ConfigElement,
   WorkflowState,
   WorkflowType,
 } from '@loopstack/shared';
@@ -16,10 +17,13 @@ export class WorkflowProcessorService {
     private stateMachineProcessorService: StateMachineProcessorService,
   ) {}
 
-  async runStateMachineType(config: WorkflowType, context: ContextInterface) {
+  async runStateMachineType(
+    configElement: ConfigElement<WorkflowType>,
+    context: ContextInterface,
+  ) {
     // create or load state if needed
     const currentWorkflow = await this.workflowConfigService.getWorkflowState(
-      config,
+      configElement,
       context,
     );
 
@@ -27,7 +31,7 @@ export class WorkflowProcessorService {
       await this.stateMachineProcessorService.processStateMachine(
         context,
         currentWorkflow,
-        config,
+        configElement,
       );
 
     if (workflow.status === WorkflowState.Failed) {

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineConfigService } from './state-machine-config.service';
 import {
+  ConfigElement,
   ContextInterface,
   HistoryTransition,
   ServiceCallResult,
@@ -18,7 +19,7 @@ import {
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
-import { TemplateService } from '../../common';
+import { ContextService } from '../../common';
 import { StateMachineValidatorResultInterface } from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
 import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
@@ -47,7 +48,7 @@ export class StateMachineProcessorService {
     private readonly workflowService: WorkflowService,
     private readonly toolExecutionService: ToolExecutionService,
     private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry,
-    private readonly templateService: TemplateService,
+    private readonly contextService: ContextService,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private readonly workflowContextService: WorkflowContextService,
   ) {}
@@ -78,12 +79,12 @@ export class StateMachineProcessorService {
   async processStateMachine(
     context: ContextInterface,
     workflow: WorkflowEntity,
-    config: WorkflowType,
+    configElement: ConfigElement<WorkflowType>,
   ): Promise<WorkflowEntity> {
     const args = this.templateExpressionEvaluatorService.parse<
       Record<string, any>
     >(
-      config.arguments,
+      configElement.config.arguments,
       { context },
       {
         schema: undefined, // todo: define workflow parameters to validate/parse arguments
@@ -115,7 +116,12 @@ export class StateMachineProcessorService {
 
     this.logger.debug(`Process state machine for workflow ${workflow!.name}`);
 
-    return this.loopStateMachine(context, workflow, config, stateMachineInfo);
+    return this.loopStateMachine(
+      context,
+      workflow,
+      configElement,
+      stateMachineInfo,
+    );
   }
 
   updateWorkflowState(
@@ -294,18 +300,21 @@ export class StateMachineProcessorService {
   async loopStateMachine(
     beforeContext: ContextInterface,
     workflow: WorkflowEntity,
-    config: WorkflowType,
+    configElement: ConfigElement<WorkflowType>,
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
     let context = beforeContext;
     workflow = await this.initStateMachine(workflow, stateMachineInfo);
 
-    const workflowConfig = this.workflowConfigService.getConfig(config);
-    if (!workflowConfig.transitions) {
+    const mergedConfigElement =
+      this.workflowConfigService.getConfig(configElement);
+    if (!mergedConfigElement.config.transitions) {
       throw new Error(
         `Workflow ${workflow.name} does not have any transitions.`,
       );
     }
+
+    this.contextService.addIncludes(context, configElement.importMap);
 
     try {
       const pendingTransition = [stateMachineInfo.pendingTransition];
@@ -322,9 +331,10 @@ export class StateMachineProcessorService {
 
         // exclude call property from transitions eval because this should be only
         // evaluated when called, so it received actual arguments
-        const transitionsWithoutCallProperty = workflowConfig.transitions.map(
-          (transition) => omit(transition, ['call']),
-        );
+        const transitionsWithoutCallProperty =
+          mergedConfigElement.config.transitions.map((transition) =>
+            omit(transition, ['call']),
+          );
         const evaluatedTransitions =
           this.templateExpressionEvaluatorService.parse<
             WorkflowTransitionType[]
@@ -360,7 +370,7 @@ export class StateMachineProcessorService {
         transitionData.to = nextTransition.to;
 
         // get tool calls for transition
-        const toolCalls = workflowConfig.transitions.find(
+        const toolCalls = mergedConfigElement.config.transitions.find(
           (transition) => transition.name === transitionData.transition,
         )?.call;
 

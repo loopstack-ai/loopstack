@@ -108,7 +108,10 @@ export class TemplateExpressionEvaluatorService {
           return '';
         }
 
-        const result = this.templateService.evaluate(snippet.value, variables);
+        const result = this.templateService.evaluate(
+          snippet.config.value,
+          variables,
+        );
         return z.string().parse(result);
       },
     };

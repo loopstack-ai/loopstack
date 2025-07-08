@@ -8,6 +8,7 @@ import {
   PipelineFactoryType,
   PipelineItemType,
   WorkflowType,
+  ConfigElement,
 } from '@loopstack/shared';
 import { NamespaceProcessorService } from './namespace-processor.service';
 import { WorkflowProcessorService } from './workflow-processor.service';
@@ -49,10 +50,10 @@ export class PipelineProcessorService {
   }
 
   async runSequenceType(
-    sequenceConfig: PipelineSequenceType,
+    configElement: ConfigElement<PipelineSequenceType>,
     context: ContextInterface,
   ): Promise<ContextInterface> {
-    const sequence: PipelineItemType[] = sequenceConfig.sequence;
+    const sequence: PipelineItemType[] = configElement.config.sequence;
 
     // create a new index level
     const index = `${context.index}.0`;
@@ -81,7 +82,11 @@ export class PipelineProcessorService {
       }
 
       lastContext.index = this.createIndex(index, i + 1);
-      lastContext = await this.processPipelineItem(item, lastContext);
+      lastContext = await this.processPipelineItem(
+        item,
+        lastContext,
+        configElement,
+      );
 
       if (lastContext.stop) {
         break;
@@ -152,11 +157,11 @@ export class PipelineProcessorService {
   }
 
   async runFactoryType(
-    config: PipelineFactoryType,
+    configElement: ConfigElement<PipelineFactoryType>,
     context: ContextInterface,
   ): Promise<ContextInterface> {
     const items = this.templateExpressionEvaluatorService.parse<string[]>(
-      config.iterator.source,
+      configElement.config.iterator.source,
       { context },
       {
         schema: FactoryIteratorSourceSchema,
@@ -169,7 +174,7 @@ export class PipelineProcessorService {
     // create or load all context / namespaces
     const preparedChildContexts = await this.prepareAllContexts(
       context,
-      config,
+      configElement.config,
       items,
     );
 
@@ -180,10 +185,14 @@ export class PipelineProcessorService {
     );
 
     let results: ContextInterface[] = [];
-    if (config.parallel) {
+    if (configElement.config.parallel) {
       // process the child elements parallel
       const allItems = preparedChildContexts.map((childContext) =>
-        this.processPipelineItem(config.factory, childContext),
+        this.processPipelineItem(
+          configElement.config.factory,
+          childContext,
+          configElement,
+        ),
       );
 
       results = await Promise.all(allItems);
@@ -191,8 +200,9 @@ export class PipelineProcessorService {
       // process the child elements sequential
       for (const childContext of preparedChildContexts) {
         const resultContext = await this.processPipelineItem(
-          config.factory,
+          configElement.config.factory,
           childContext,
+          configElement,
         );
 
         results.push(resultContext);
@@ -215,27 +225,30 @@ export class PipelineProcessorService {
   }
 
   async runPipelineType(
-    pipelineConfig: PipelineType,
+    configElement: ConfigElement<PipelineType>,
     context: ContextInterface,
   ): Promise<ContextInterface> {
-    if (pipelineConfig.namespace) {
+    if (configElement.config.namespace) {
       context = await this.namespaceProcessorService.createNamespace(
         context,
-        pipelineConfig.namespace,
+        configElement.config.namespace,
       );
     }
 
     let updatedContext: ContextInterface | undefined = undefined;
-    switch (pipelineConfig.type) {
+    switch (configElement.config.type) {
       case 'root':
       case 'sequence':
         updatedContext = await this.runSequenceType(
-          pipelineConfig as PipelineSequenceType,
+          configElement as ConfigElement<PipelineSequenceType>,
           context,
         );
         break;
       case 'factory':
-        updatedContext = await this.runFactoryType(pipelineConfig, context);
+        updatedContext = await this.runFactoryType(
+          configElement as ConfigElement<PipelineFactoryType>,
+          context,
+        );
         break;
     }
 
@@ -261,37 +274,29 @@ export class PipelineProcessorService {
   async processPipelineItem(
     item: PipelineItemType,
     context: ContextInterface,
+    parentConfig?: ConfigElement<any>,
   ): Promise<ContextInterface> {
     const type = ['tool', 'pipeline', 'workflow'].find((key) => key in item);
     if (!type) {
-      console.log(item);
       throw new Error('Unknown pipeline item type.');
     }
 
     const itemName = item[type];
+    const configElement = this.loopConfigService.resolveConfig<
+      WorkflowType | PipelineType
+    >(`${type}s`, itemName, context.includes);
 
-    this.logger.debug(`Processing item: ${itemName}`);
-
-    if (!this.configExists(type, itemName)) {
-      throw new Error(
-        `Workflow ${itemName} for factory type ${type} does not exist.`,
-      );
-    }
-
-    const config = this.loopConfigService.get<any>(`${type}s`, itemName);
-
-    if (!config) {
-      throw new Error(
-        `Pipeline config "${itemName}" for type ${type} not found.`,
-      );
-    }
+    this.contextService.addIncludes(context, configElement.importMap);
 
     switch (type) {
       case 'pipeline':
-        return this.runPipelineType(config as PipelineType, context);
+        return this.runPipelineType(
+          configElement as ConfigElement<PipelineType>,
+          context,
+        );
       case 'workflow':
         return this.workflowProcessor.runStateMachineType(
-          config as WorkflowType,
+          configElement as ConfigElement<WorkflowType>,
           context,
         );
     }

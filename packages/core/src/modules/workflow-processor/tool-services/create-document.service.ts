@@ -9,6 +9,7 @@ import {
   ExpressionString,
   MimeTypeSchema,
   DocumentSchema,
+  ToolConfigType,
 } from '@loopstack/shared';
 import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
@@ -90,19 +91,6 @@ export class CreateDocumentService implements ServiceInterface {
     private schemaRegistry: SchemaRegistry,
   ) {}
 
-  getDocumentTemplate(props: z.infer<typeof schema>): DocumentType {
-    const template = this.loopConfigService.get<DocumentType>(
-      'documents',
-      props.document,
-    );
-
-    if (!template) {
-      throw new Error(`Document template ${props.document} not found.`);
-    }
-
-    return template;
-  }
-
   async apply(
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
@@ -115,10 +103,14 @@ export class CreateDocumentService implements ServiceInterface {
     }
 
     // get the document template
-    const template: DocumentType = this.getDocumentTemplate(props);
+    const template = this.loopConfigService.resolveConfig<ToolConfigType>(
+      'documents',
+      props.document,
+      context.includes,
+    );
 
     // merge the custom properties
-    const mergedTemplateData = merge(template, props.update ?? {});
+    const mergedTemplateData = merge(template.config, props.update ?? {});
 
     // create the document skeleton without content property
     const documentSkeleton =
@@ -135,8 +127,8 @@ export class CreateDocumentService implements ServiceInterface {
         },
       );
 
-    const zodSchema = this.schemaRegistry.getDocumentContentSchema(
-      props.document,
+    const zodSchema = this.schemaRegistry.getZodSchema(
+      `${template.name}.content`,
     );
     if (!zodSchema && mergedTemplateData.content) {
       throw Error(`Document creates with content no schema defined.`);

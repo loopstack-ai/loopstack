@@ -57,8 +57,6 @@ export class DateFormatterHandlebarsHelperService {
 
       const now = new Date();
 
-      console.log(now);
-      console.log(formatString);
       if (!formatString) {
         return now.toISOString();
       }
@@ -114,7 +112,6 @@ export class DateFormatterHandlebarsHelperService {
       try {
         return format(dateObj, formatString);
       } catch (error) {
-        console.log(dateObj)
         throw new Error(`Error Formatting Date "${formatString}"`);
       }
     };
