@@ -1,5 +1,9 @@
+# File Includes
+include:
+  - core/documents/error.yaml
+
 tools:
-  - name: core_createErrorMessage
+  - name: create_error_message
     parameters:
       type: object
       properties:
@@ -7,11 +11,11 @@ tools:
           type: string
       required:
         - message
-      additionalItems: false
+      additionalProperties: false
     execute:
       service: CreateDocumentService
       arguments:
-        document: core_errorMessage
+        document: error_message
         update:
           content:
-            message: ${{ arguments.message }}
+            message: ${ arguments.message }

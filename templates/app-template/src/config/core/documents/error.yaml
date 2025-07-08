@@ -1,5 +1,5 @@
 documents:
-  - name: core_errorMessage
+  - name: error_message
     tags:
       - error
     ui:
@@ -9,6 +9,7 @@ documents:
       properties: 
         message:
           type: string
+      additionalProperties: false
     meta:
       invalidate: false
       level: error

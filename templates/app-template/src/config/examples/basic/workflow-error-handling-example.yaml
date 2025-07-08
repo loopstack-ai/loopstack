@@ -1,67 +1,73 @@
+include:
+  - core/tools/create-mock.yaml
+  - core/tools/create-chat-message.yaml
+  - core/tools/create-error-message.yaml
+  - core/tools/create-document.yaml
+
 pipelines:
-  - name: example_errorHandling
-    title: "Error Handling: API Lookup with Manual Recovery"
+  - name: error_handling_example
+    title: "Example 5: Error Handling"
     type: root
     workspace: examples
     sequence:
-      - workflow: example_errorHandling_workflow
+      - workflow: failing_workflow
 
 workflows:
-  - name: example_errorHandling_workflow
+  - name: failing_workflow
     type: stateMachine
     transitions:
-      - name: callAPI               # Step 1: Attempt to call external API
+      - name: call_api               # Step 1: Attempt to call external API
         from: start
         to:
-          - apiSuccess
-          - apiFailed
-        onError: apiFailed          # Go here if an error occurs
+          - api_success
+          - api_failed
+        onError: api_failed          # Go here if an error occurs
         call:
-          - tool: core_createMock
+          - tool: create_mock
             arguments:
               input: 'weather for San Francisco'
               error: 'API service unavailable: 503 Service Temporarily Unavailable'  # Throw an error for demonstration
             exportVariable: API_RESULT
 
-          - tool: core_createChatMessage   # This tool call will not execute, since an error occurred before
+          - tool: create_chat_message   # This tool call will not execute, since an error occurred before
             arguments:
               role: 'assistant'
-              content: 'Weather data retrieved: ${{ API_RESULT }}'
+              content: 'Weather data retrieved: {{ API_RESULT }}'
 
       # Success path
-      - name: displayResult         # Normal completion when API succeeds
-        from: apiSuccess
+      - name: display_result         # Normal completion when API succeeds
+        from: api_success
         to: end
         call:
-          - tool: core_createChatMessage
+          - tool: create_chat_message
             arguments:
               role: 'assistant'
               content: '✅ API lookup completed successfully!'
 
       # Error handling path
-      - name: handleAPIError        # Handle API failure
-        from: apiFailed
-        to: waitingForRetry
+      - name: handle_api_error        # Handle API failure
+        from: api_failed
+        to: waiting_for_retry
         call:
-          - tool: core_createErrorMessage
+          - tool: create_error_message
             arguments:
-              message: ${{ data.callAPI.error }}
+              message: ${ data.call_api.error }     # Access error from previous transition: data.<transition>.error
 
-          - tool: core_createDocument
+          - tool: create_document
             arguments:
-              document: example_errorHandling_retryForm
+              document: retry_form
               content:
                 message: "API call failed. Click 'Retry' to attempt the request again."
-                timestamp: ${{ new Date().toISOString() }}
+                timestamp: "{{ currentDate }}"
 
       # Manual recovery transition
-      - name: retryAPICall          # User can manually retry the API call
-        from: waitingForRetry
+      - name: retry_api_call          # User can manually retry the API call
+        from: waiting_for_retry
         to: start                   # Return to start to retry the original API call
         when: manual                # Wait for user interaction
 
 documents:
-  - name: example_errorHandling_retryForm
+  - name: retry_form
     schema:
       type: object
       properties:
@@ -78,7 +84,7 @@ documents:
           title: "Error Time"
           readonly: true
       buttons:
-        - transition: retryAPICall
+        - transition: retry_api_call
           label: "Retry"
           enabledWhen:
-            - waitingForRetry
+            - waiting_for_retry

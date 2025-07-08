@@ -1,76 +1,82 @@
+include:
+  - core/tools/create-mock.yaml
+  - core/tools/create-chat-message.yaml
+
 pipelines:
-  - name: example_sequencePipeline
-    title: "Pipeline Sequence: Blog Creation Pipeline"
+  - name: sequence_example
+    title: "Example 1: Pipeline Sequence"
     type: root
     workspace: examples
     sequence:
-      - workflow: example_sequencePipeline_researchTopic      # Step 1: Research
-      - workflow: example_sequencePipeline_writeContent       # Step 2: Write content
-      - workflow: example_sequencePipeline_publishContent     # Step 3: Publish
+      - workflow: research_topic      # Step 1: Research
+      - workflow: write_content       # Step 2: Write content
+      - workflow: publish_content     # Step 3: Publish
 
 workflows:
-  - name: example_sequencePipeline_researchTopic
+  - name: research_topic
     title: 'Research'
     type: stateMachine
     transitions:
-      - name: researchTopic
+      - name: research_topic
         from: start
-        to: researchDone
+        to: research_finished
         call:
-          - tool: core_createMock   # A mock tool call returning the research result
+          - tool: create_mock   # A mock tool call returning the research result
             arguments:
               input: 'AI trends 2025'
               output: 'Key AI trends include: agentic AI systems, reasoning models, and AI-powered robotics.'
             exportContext: RESEARCH_RESULT
-      - name: addChatMessage
-        from: researchDone
+      - name: show_results
+        from: research_finished
         to: end
         call:
-          - tool: core_createChatMessage    # Display the results in the chat
+          - tool: create_chat_message    # Display the results in the chat
             arguments:
               role: 'assistant'
-              content: ${{ context.variables.RESEARCH_RESULT }}
+              content: ${ context.variables.RESEARCH_RESULT }
 
-  - name: example_sequencePipeline_writeContent
+  - name: write_content
     title: "Write Content"
     type: stateMachine
     transitions:
-      - name: writeContent
+      - name: write_content
         from: start
-        to: contentDone
+        to: content_created
         call:
-          - tool: core_createMock   # A mock tool call returning the created content
+          - tool: create_mock   # A mock tool call returning the created content
             arguments:
-              input: ${{ context.variables.RESEARCH_RESULT }}
-              output: '# Top AI Trends in 2025: The AI revolution continues to accelerate. Here are the key trends defining this year...'
+              input: ${ context.variables.RESEARCH_RESULT }
+              output: |
+                # Top AI Trends in 2025 
+                Here are the key trends defining this year...
             exportContext: CREATED_CONTENT
-      - name: addChatMessage
-        from: contentDone
+      - name: show_results
+        from: content_created
         to: end
         call:
-          - tool: core_createChatMessage    # Display the content in the chat
+          - tool: create_chat_message    # Display the content in the chat
             arguments:
               role: 'assistant'
-              content: ${{ context.variables.CREATED_CONTENT }}
+              content: ${ context.variables.CREATED_CONTENT }
 
-  - name: example_sequencePipeline_publishContent
+  - name: publish_content
     title: "Publish"
     type: stateMachine
     transitions:
-      - name: publishContent
+      - name: publish_content
         from: start
         to: published
         call:
-          - tool: core_createMock   # A mock tool call returning a success message
+          - tool: create_mock   # A mock tool call returning a success message
             arguments:
-              input: ${{ context.variables.CREATED_CONTENT }}
+              input: ${ context.variables.CREATED_CONTENT }
               output: 'Blog post "Top AI Trends in 2025" published successfully to blog.example.com'
             exportVariable: SUCCESS_MESSAGE
-      - name: addChatMessage
+      - name: show_results
         from: published
         to: end
         call:
-          - tool: core_createChatMessage    # Display the success message in the chat
+          - tool: create_chat_message    # Display the success message in the chat
             arguments:
               role: 'assistant'
-              content: ${{ SUCCESS_MESSAGE }}
+              content: ${ SUCCESS_MESSAGE }

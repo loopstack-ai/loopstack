@@ -1,5 +1,5 @@
 tools:
-  - name: core_switchTarget
+  - name: switch_target
     description: "Sets the target place for a transition to a defined value."
     parameters:
       type: object
@@ -8,8 +8,8 @@ tools:
           type: string
       required:
         - target
-      additionalItems: false
+      additionalProperties: false
     execute:
       service: SetTargetPlaceService
       arguments:
-        target: ${{ arguments.target }}
+        target: ${ arguments.target }

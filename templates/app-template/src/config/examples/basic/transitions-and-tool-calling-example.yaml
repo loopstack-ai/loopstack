@@ -1,0 +1,65 @@
+include:
+  - core/tools/create-mock.yaml
+  - core/tools/create-chat-message.yaml
+
+pipelines:
+  - name: transitions_tool_example
+    title: "Example 3: Transitions and Tool Calling"
+    type: root
+    workspace: examples
+    sequence:
+      - workflow: process_data
+
+workflows:
+  - name: process_data
+    type: stateMachine
+    transitions:
+      - name: extract_data           # Step 1: Extract raw data
+        from: start
+        to: data_extracted
+        call:
+          - tool: create_mock
+            arguments:
+              input: 'customer_records.csv'
+              output: 'John Doe,john@example.com,Premium,2024-01-15'
+            exportVariable: RAW_DATA
+
+          - tool: create_chat_message
+            arguments:
+              role: 'assistant'
+              content: ${ RAW_DATA }
+
+      - name: transform_data         # Step 2: Transform the data
+        from: data_extracted
+        to: data_transformed
+        call:
+          - tool: create_mock
+            arguments:
+              input: ${ RAW_DATA }
+              output:
+                name: "John Doe"
+                email: "john@example.com"
+                tier: "Premium"
+                signup_date: "2024-01-15"
+            exportVariable: STRUCTURED_DATA
+
+          - tool: create_chat_message
+            arguments:
+              role: 'assistant'
+              content: |
+                Transformed Entry Name: {{ STRUCTURED_DATA.name }}
+
+      - name: validate_data          # Step 3: Validate the result
+        from: data_transformed
+        to: end
+        call:
+          - tool: create_mock
+            arguments:
+              input: ${ STRUCTURED_DATA }
+              output: true
+            exportVariable: VALIDATION_RESULT
+
+          - tool: create_chat_message
+            arguments:
+              role: 'assistant'
+              content: 'Data processing complete: {{#if VALIDATION_RESULT}}Validation passed.{{else}}Validation failed.{{/if}}'

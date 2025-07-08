@@ -1,16 +1,19 @@
 tools:
-  - name: core_updateDocument
+  - name: update_document
     parameters:
       type: object
       properties:
         id:
           type: string
+        content:
+          type: any
       required:
         - id
         - content
+      additionalProperties: false
     execute:
       service: UpdateDocumentService
       arguments:
-        id: ${{ arguments.id }}
+        id: ${ arguments.id }
         update:
-          content: ${{ arguments.content }}
+          content: ${ arguments.content }

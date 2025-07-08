@@ -1,12 +1,10 @@
 tools:
-  - name: create_document
+  - name: create_response
     parameters:
       type: object
       properties:
         document:
           type: string
-        content:
-          type: any
       required:
         - document
       additionalProperties: false
@@ -15,4 +13,4 @@ tools:
       arguments:
         document: ${ arguments.document }
         update:
-          content: ${ arguments.content }
+          content: ${ transition.payload }

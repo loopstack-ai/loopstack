@@ -1,3 +1,9 @@
+include:
+  - core/tools/create-chat-message.yaml
+  - core/tools/create-document.yaml
+  - core/tools/update-document.yaml
+  - core/tools/load-document.yaml
+
 documents:
   - name: customer_profile
     description: "Customer information and preferences"
@@ -38,26 +44,26 @@ documents:
         - metadata
 
 pipelines:
-  - name: example_documentCreation
-    title: "Document Creation Example: Customer Management"
+  - name: documents_example
+    title: "Example 6: Working with Documents"
     type: root
     workspace: examples
     sequence:
-      - workflow: example_documentCreation_createProfile
-      - workflow: example_documentCreation_updateProfileData
+      - workflow: create_profile
+      - workflow: update_profile
 
 workflows:
-  - name: example_documentCreation_createProfile
+  - name: create_profile
     title: "Create Customer Profile"
     type: stateMachine
     transitions:
 
       # Create the initial document
-      - name: createInitialProfile
+      - name: create_initial_profile
         from: start
-        to: profileCreated
+        to: profile_created
         call:
-          - tool: core_createDocument
+          - tool: create_document
             arguments:
               document: customer_profile        # Reference to document template
               content:                          # Content object to merge with template
@@ -68,69 +74,73 @@ workflows:
             exportVariable: CREATED_PROFILE     # Store document reference
 
       # Update a document from the same workflow
-      - name: updateStatus
-        from: profileCreated
-        to: profileUpdated
+      - name: update_status
+        from: profile_created
+        to: profile_updated
         call:
-          - tool: core_loadDocument
+          - tool: load_document
             arguments:
               where:
                 name: customer_profile
             exportVariable: LOADED_PROFILE
-          - tool: core_updateDocument
+          - tool: update_document
             arguments:
-              id: ${{ LOADED_PROFILE.id }}    # Use ID from loaded document
+              id: ${ LOADED_PROFILE.id }    # Use ID from loaded document
               content:
                 status: "active"            # Update status
             exportVariable: UPDATED_PROFILE
 
-      - name: logCreation
-        from: profileUpdated
+      - name: log_result
+        from: profile_updated
         to: end
         call:
-          - tool: core_createChatMessage
+          - tool: create_chat_message
             arguments:
               role: assistant
               content: |
                 ✅ Customer profile created successfully!
 
                 **Profile Details:**
-                - Name: ${{ UPDATED_PROFILE.content.name }}
-                - Email: ${{ UPDATED_PROFILE.content.email }}
-                - Status: ${{ UPDATED_PROFILE.content.status }}
+                - Name: {{ UPDATED_PROFILE.content.name }}
+                - Email: {{ UPDATED_PROFILE.content.email }}
+                - Status: {{ UPDATED_PROFILE.content.status }}
 
-  - name: example_documentCreation_updateProfileData
+  - name: update_profile
     title: "Update Customer Profile"
     type: stateMachine
     transitions:
 
       # We cannot update a document from another workflow
       # So we create a new document instead of updating it
-      - name: updateProfileData
+      - name: update_profile
         from: start
-        to: profileUpdated
+        to: profile_updated
         call:
-          - tool: core_loadDocument
+          - tool: load_document
             arguments:
               where:
                 name: customer_profile
             exportVariable: LOADED_PROFILE
-          - tool: core_createDocument
+          - tool: create_document
             arguments:
               document: customer_profile
-              content: |
-                ${{ { ...LOADED_PROFILE.content, status: 'inactive' } }}
+              content:    # Content object to merge with template
+                name: ${ LOADED_PROFILE.content.name }
+                email: ${ LOADED_PROFILE.content.email }
+                metadata:
+                  source: ${ LOADED_PROFILE.content.metadata.source }
+                status: 'inactive'
             exportVariable: UPDATED_PROFILE
 
-      - name: logUpdate
-        from: profileUpdated
+      - name: log_result
+        from: profile_updated
         to: end
         call:
-          - tool: core_createChatMessage
+          - tool: create_chat_message
             arguments:
               role: assistant
               content: |
                 ✅ Customer profile updated successfully!
 
                 **Updated Information:**
-                - Status: ${{ UPDATED_PROFILE.content.status }}
+                - Status: {{ UPDATED_PROFILE.content.status }}

@@ -5,7 +5,7 @@ snippets:
       any reasoning and thoughts to prepare your answer (optional)
       </Reasoning>
       <Output>
-      ${{ OUTPUT_TEMPLATE }}
+      ${ OUTPUT_TEMPLATE }
       </Output>
       <Reflection>
       Any additional information (optional)

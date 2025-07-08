@@ -1,121 +1,109 @@
+include:
+  - core/tools/create-mock.yaml
+  - core/tools/create-chat-message.yaml
+  - core/tools/create-document.yaml
+
 pipelines:
-  - name: example_factoryPipeline
-    title: "Pipeline Factory: Batch Article Processing"
+  - name: factory_example
+    title: "Example 2: Pipeline Factory"
     type: root
     workspace: examples
     sequence:
-      - workflow: example_factoryPipeline_setupTopics        # Step 1: Setup topic list
-      - pipeline: example_factoryPipeline_batchProcessor     # Step 2: Process topics in parallel
+      - workflow: create_topics_workflow             # Step 1: Setup topic list
+      - pipeline: article_processor_pipeline         # Step 2: Process topics in parallel
 
-  - name: example_factoryPipeline_batchProcessor
+  - name: article_processor_pipeline
     title: "Batch Article Processor"
     type: factory
-    parallel: true                                           # Run all instances in parallel. Defaults to false.
+    parallel: true                                   # Run all instances in parallel. Defaults to false.
     factory:
-      workflow: example_factoryPipeline_processArticle       # Template workflow to execute
+      workflow: generate_article_workflow            # Template workflow to execute
     iterator:
-      source: ${{ context.variables.TOPIC_LIST }}              # Array of topics to process
-      label: ${{ item.topic }}                                 # Property to use for label. Defaults to ${{ item }}
+      source: ${ context.variables.TOPIC_LIST }    # Array of topics to process
+      label: ${ item.topic }                       # Property to use for label. Defaults to ${ item }
     namespace:
-      label: Articles                                        # Namespace for organization
+      label: Articles                                # Namespace for organization
 
 workflows:
-  - name: example_factoryPipeline_setupTopics
+  - name: create_topics_workflow
     title: "Setup Topics"
     type: stateMachine
     transitions:
-      - name: createTopicList
+      - name: mock_topic_list
         from: start
-        to: topicsReady
+        to: topics_ready
         call:
-          - tool: core_createMock
+          - tool: create_mock
             arguments:
               input: 'Generate topic list for batch processing'
-              output: |
-                [
-                  {"topic": "AI in Healthcare", "category": "technology" },
-                  {"topic": "Sustainable Energy", "category": "environment" },
-                  {"topic": "Quantum Computing", "category": "technology" },
-                  {"topic": "Mental Health Apps", "category": "health" }
-                ]
-            exportContext: TOPIC_LIST_JSON
+              output:
+                - topic: "AI in Healthcare"
+                  category: "technology"
+                - topic: "Sustainable Energy"
+                  category: "environment"
+                - topic: "Quantum Computing"
+                  category: "technology"
+                - topic: "Mental Health Apps"
+                  category: "health"
+            exportContext: TOPIC_LIST
 
-      - name: parseTopicList
-        from: topicsReady
-        to: listParsed
-        call:
-          - tool: core_createMock
-            arguments:
-              input: ${{ context.variables.TOPIC_LIST_JSON }}
-              output: ${{ JSON.parse(context.variables.TOPIC_LIST_JSON) }}
-            exportContext: TOPIC_LIST   # Array available to factory pipeline
-
-      - name: displayTopics
-        from: listParsed
+      - name: display_topics
+        from: topics_ready
         to: end
         call:
-          - tool: core_createChatMessage
+          - tool: create_chat_message
             arguments:
               role: 'assistant'
               content: |
                 📝 **Batch Processing Started**
                 
-                Processing ${{ context.variables.TOPIC_LIST.length }} topics in parallel:
-                ${{ context.variables.TOPIC_LIST.map(topic => `• ${topic.topic} (${topic.category})`).join('\n') }}
+                Processing {{ context.variables.TOPIC_LIST.length }} topics in parallel:
+                {{#each context.variables.TOPIC_LIST}}
+                - {{ this.topic }} ({{ this.category }})
+                {{/each}}
 
-  - name: example_factoryPipeline_processArticle
+  - name: generate_article_workflow
     title: "Generate Article"
     type: stateMachine
     transitions:
-      - name: researchTopic
+      - name: generate_content
         from: start
-        to: researched
+        to: content_generated
         call:
-          - tool: core_createMock
-            arguments:
-              input: 'Research topic: ${{ context.item.topic }}'           # Access current item
-              output: 'Research completed for "${{ context.item.topic }}". Key insights: emerging trends, market analysis, expert opinions.'
-            exportVariable: RESEARCH_DATA
-
-      - name: generateContent
-        from: researched
-        to: contentGenerated
-        call:
-          - tool: core_createMock
+          - tool: create_mock
             arguments:
               input: |
-                Topic: ${{ context.item.topic }}
-                Category: ${{ context.item.category }}
-                Research: ${{ RESEARCH_DATA }}
+                Topic: {{ context.item.topic }}
+                Category: {{ context.item.category }}
               output: |
-                This article explores the fascinating world of ${{ context.item.topic }}...
+                This article explores the fascinating world of {{ context.item.topic }}...
             exportVariable: ARTICLE_CONTENT
 
-      - name: createDocument
-        from: contentGenerated
-        to: documentCreated
+      - name: create_article
+        from: content_generated
+        to: article_created
         call:
-          - tool: core_createDocument
+          - tool: create_document
             arguments:
-              document: example_factoryPipeline_article
+              document: article_document
               content:
-                topic: ${{ context.item.topic }}
-                category: ${{ context.item.category }}
-                article: ${{ ARTICLE_CONTENT }}
-                processed_at: ${{ new Date().toISOString() }}
+                topic: ${ context.item.topic }
+                category: ${ context.item.category }
+                article: ${ ARTICLE_CONTENT }
+                processed_at: "{{ currentDate }}"
 
-      - name: displayResult
-        from: documentCreated
+      - name: display_result
+        from: article_created
         to: end
         call:
-          - tool: core_createChatMessage
+          - tool: create_chat_message
             arguments:
               role: 'assistant'
               content: |
-                ✅ ${{context.item.topic }} Article Completed
+                ✅ {{ context.item.topic }} Article Completed
 
 documents:
-  - name: example_factoryPipeline_article
+  - name: article_document
     schema:
       type: object
       properties:

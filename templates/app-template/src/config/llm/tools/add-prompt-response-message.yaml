@@ -7,7 +7,7 @@ tools:
         update:
           meta:
             data:
-              prompt: ${{ PROMPT_RESULT }}
+              prompt: ${ PROMPT_RESULT }
           content:
             role: assistant
-            content: ${{ PROMPT_RESULT.response.data }}
+            content: ${ PROMPT_RESULT.response.data }

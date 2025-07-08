@@ -1,5 +1,5 @@
 tools:
-  - name: core_createPlainMessage
+  - name: create_plain_message
     parameters:
       type: object
       properties:
@@ -9,12 +9,12 @@ tools:
           type: string
       required:
         - content
-      additionalItems: false
+      additionalProperties: false
     execute:
       service: CreateDocumentService
       arguments:
-        document: core_plainMessage
+        document: plain_message
         update:
           content:
-            title: ${{ arguments.title }}
-            content: ${{ arguments.content }}
+            title: ${ arguments.title }
+            content: ${ arguments.content }

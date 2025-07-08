@@ -1,20 +1,26 @@
+include:
+  - core/tools/create-mock.yaml
+  - core/tools/create-chat-message.yaml
+  - core/tools/create-document.yaml
+  - core/tools/switch-target.yaml
+
 pipelines:
-  - name: example_humanInTheLoop
-    title: "Human-in-the-Loop: Content Creation with Approval"
+  - name: human_in_the_loop_example
+    title: "Example 7: Human-in-the-Loop Workflow"
     type: root
     workspace: examples
     sequence:
-      - workflow: example_humanInTheLoop_workflow
+      - workflow: blog_post_review
 
 workflows:
-  - name: example_humanInTheLoop_workflow
+  - name: blog_post_review
     type: stateMachine
     transitions:
-      - name: generateDraft         # Step 1: Generate initial content draft
+      - name: create_draft         # Step 1: Generate initial content draft
         from: start
-        to: draftCreated
+        to: draft_created
         call:
-          - tool: core_createMock
+          - tool: create_mock
             arguments:
               input: 'blog post about renewable energy'
               output: |
@@ -30,73 +36,72 @@ workflows:
                 The transition to renewable energy represents one of the most significant opportunities of our time.
             exportVariable: DRAFT_CONTENT
 
-          - tool: core_createChatMessage
+          - tool: create_chat_message
             arguments:
               role: 'assistant'
               content: 'Draft content has been generated and is ready for your review.'
 
-      - name: presentForApproval    # Step 2: Present draft to user for approval
-        from: draftCreated
-        to: waitingForApproval
+      - name: show_approval_form    # Step 2: Present draft to user for approval
+        from: draft_created
+        to: waiting_for_approval
         call:
-          - tool: core_createDocument
+          - tool: create_document
             arguments:
-              document: example_humanInTheLoop_approvalForm
+              document: approval_form
               content:
-                draft_content: ${{ DRAFT_CONTENT }}
+                draft_content: ${ DRAFT_CONTENT }
                 approved: false
                 feedback: ""
 
-      - name: processApproval       # Step 3: Handle user's approval decision
-        from: waitingForApproval
+      - name: process_approval       # Step 3: Handle user's approval decision
+        from: waiting_for_approval
         to:
           - approved
-          - needsRevision
+          - needs_revision
         when: manual                # Wait for user interaction
         call:
-          - tool: core_createMock
+          - tool: create_mock
             arguments:
-              input: ${{ transition.payload }}
-              output: ${{ transition.payload.approved }}
+              input: ${ transition.payload }
+              output: ${ transition.payload.approved }
             exportVariable: USER_DECISION
 
-          - tool: core_switchTarget
+          - tool: switch_target
             arguments:
-              target: |
-                ${{ USER_DECISION === true ? 'approved' : 'needsRevision' }}
+              target: "{{#if USER_DECISION}}approved{{else}}needs_revision{{/if}}"
 
       # Approval path
-      - name: finalizeContent       # Handle approved content
+      - name: finalize_content       # Handle approved content
         from: approved
         to: end
         call:
-          - tool: core_createMock
+          - tool: create_mock
             arguments:
-              input: ${{ DRAFT_CONTENT }}
+              input: ${ DRAFT_CONTENT }}
               output: 'Content published successfully to blog.example.com'
             exportVariable: PUBLISH_RESULT
 
-          - tool: core_createChatMessage
+          - tool: create_chat_message
             arguments:
               role: 'assistant'
               content: |
                 ✅ Content approved and published!
                 
-                ${{ PUBLISH_RESULT }}
+                {{ PUBLISH_RESULT }}
 
       # Revision path
-      - name: handleRevision        # Handle revision requests
-        from: needsRevision
-        to: draftCreated            # Return to draft creation for revision
+      - name: handle_revision        # Handle revision requests
+        from: needs_revision
+        to: draft_created            # Return to draft creation for revision
         call:
-          - tool: core_createChatMessage
+          - tool: create_chat_message
             arguments:
               role: 'assistant'
               content: '📝 Revision requested. Generating updated draft with your feedback...'
 
-          - tool: core_createMock
+          - tool: create_mock
             arguments:
-              input: ${{ DRAFT_CONTENT }}
+              input: ${ DRAFT_CONTENT }}
               output: |
                 # The Future of Renewable Energy (Revised)
 
@@ -112,7 +117,7 @@ workflows:
             exportVariable: DRAFT_CONTENT
 
 documents:
-  - name: example_humanInTheLoop_approvalForm
+  - name: approval_form
     schema:
       type: object
       properties:
@@ -143,7 +148,7 @@ documents:
         - feedback
         - approved
       buttons:
-        - transition: processApproval
+        - transition: process_approval
           label: "Submit Decision"
           enabledWhen:
-            - waitingForApproval
+            - waiting_for_approval

@@ -1,12 +1,14 @@
 tools:
-  - name: core_loadDocument
+  - name: load_document
     parameters:
       type: object
       properties:
         where:
           type: object
+          # todo
         orderBy:
           type: object
+          # todo
         getMany:
           type: boolean
         take:
@@ -21,13 +23,14 @@ tools:
           type: boolean
       required:
         - where
+      additionalProperties: false
     execute:
       service: LoadDocumentService
       arguments:
-        where: ${{ arguments.where }}
-        orderBy: ${{ arguments.orderBy }}
-        getMany: ${{ !!arguments.getMany }}
-        take: ${{ arguments.take }}
-        isDependency: ${{ arguments.isDependency }}
-        global: ${{ arguments.global }}
-        strictMode: ${{ arguments.strictMode }}
+        where: ${ arguments.where }
+        orderBy: ${ arguments.orderBy }
+        getMany: ${ arguments.getMany }
+        take: ${ arguments.take }
+        isDependency: ${ arguments.isDependency }
+        isGlobal: ${ arguments.isGlobal }
+        strictMode: ${ arguments.strictMode }

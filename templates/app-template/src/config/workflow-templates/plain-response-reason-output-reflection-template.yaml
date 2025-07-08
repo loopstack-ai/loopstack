@@ -62,7 +62,7 @@ workflows:
         from: document-created
         to: confirmed
         when: |
-          ${{ workflow.options.autoConfirm ? 'onEntry' : 'manual' }}
+          ${ workflow.options.autoConfirm ? 'onEntry' : 'manual' }
       - name: finish
         from: confirmed
         to: end

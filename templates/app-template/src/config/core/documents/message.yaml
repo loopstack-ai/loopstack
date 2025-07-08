@@ -1,5 +1,5 @@
 documents:
-  - name: core_chatMessage
+  - name: message
     tags:
       - message
     ui:
@@ -10,9 +10,10 @@ documents:
         role:
           type: string
         content:
-          type: ['string', 'null']
+          type: 'string'
         tool_calls:
-          type: ['array', 'null']
+          type: 'array'
+      additionalProperties: false
     meta:
       invalidate: false
       level: info

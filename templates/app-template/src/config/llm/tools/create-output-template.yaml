@@ -3,4 +3,4 @@ tools:
     execute:
       service: CreateOutputTemplateService
       arguments:
-        document: ${{ workflow.options.document }}
+        document: ${ workflow.options.document }

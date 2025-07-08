@@ -3,5 +3,5 @@ tools:
     execute:
       service: ParseResponseService
       arguments:
-        document: ${{ workflow.options.document }}
-        response: ${{ TAGS['Output'] }}
+        document: ${ workflow.options.document }
+        response: ${ TAGS['Output'] }

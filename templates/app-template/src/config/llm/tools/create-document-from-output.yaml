@@ -3,10 +3,10 @@ tools:
     execute:
       service: CreateDocumentService
       arguments:
-        document: ${{ workflow.options.document }}
+        document: ${ workflow.options.document }
         update:
           meta:
             enableAtPlaces:
               - document-created
-            mimeType: ${{ workflow.options.mimeType ?? 'text/markdown' }}
-          content: ${{ TAGS['Output'] }}
+            mimeType: ${ workflow.options.mimeType ?? 'text/markdown' }
+          content: ${ TAGS['Output'] }

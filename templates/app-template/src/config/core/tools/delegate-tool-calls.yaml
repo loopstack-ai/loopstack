@@ -1,5 +1,5 @@
 tools:
-  - name: core_delegateToolCalls
+  - name: delegate_tool_calls
     parameters:
       type: object
       properties:
@@ -7,8 +7,8 @@ tools:
           type: array
       required:
         - toolCalls
-      additionalItems: false
+      additionalProperties: false
     execute:
       service: DelegateToolCallsService
       arguments:
-        toolCalls: ${{ arguments.toolCalls }}
+        toolCalls: ${ arguments.toolCalls }

@@ -3,9 +3,9 @@ tools:
     execute:
       service: CreateDocumentService
       arguments:
-        document: ${{ workflow.options.document }}
+        document: ${ workflow.options.document }
         update:
           meta:
             enableAtPlaces:
               - document-created
-          content: ${{ transition.payload ?? DOCUMENT_DRAFT }}
+          content: ${ transition.payload ?? DOCUMENT_DRAFT }

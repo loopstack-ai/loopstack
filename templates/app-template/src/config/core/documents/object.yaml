@@ -9,6 +9,7 @@ documents:
           type: string
         content:
           type: object
+      additionalProperties: false
     meta:
       level: info
       invalidate: true

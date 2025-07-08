@@ -1,16 +1,25 @@
+# File Includes
+include:
+  - core/documents/message.yaml
+
+# Tool Definitions
 tools:
-  - name: core_createChatMessage
+
+  # Create Message Tool
+  - name: create_chat_message
+
+    # Input Arguments Validation JSON Schema
     parameters:
       type: object
       properties:
         content:
-          type: ['string', 'null']
+          type: string
         role:
           type: string
         tool_calls:
-          type: ['array', 'null']
+          type: array
         tool_call_id:
-          type: ['string', 'null']
+          type: string
         meta:
           type: object
           properties:
@@ -18,16 +27,27 @@ tools:
               type: string
             invalidate:
               type: boolean
-      additionalItems: false
+          additionalProperties: false
+      additionalProperties: false
+
+    # Service Execution
     execute:
+
+      # Service Name
       service: CreateDocumentService
+
+      # Service Call Arguments
       arguments:
-        document: core_chatMessage
+
+        # Document Template
+        document: message
+
+        # Update Properties
         update:
           content:
-            role: ${{ arguments.role }}
-            content: ${{ arguments.content }}
-            tool_calls: ${{ arguments.tool_calls }}
+            role: ${ arguments.role }
+            content: ${ arguments.content }
+            tool_calls: ${ arguments.tool_calls }
           meta:
-            level: ${{ arguments.meta?.level }}
-            invalidate: ${{ arguments.meta?.invalidate }}
+            level: ${ arguments.meta.level }
+            invalidate: ${ arguments.meta.invalidate }

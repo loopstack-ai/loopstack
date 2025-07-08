@@ -19,7 +19,7 @@ workflows:
         call:
           - tool: core_createErrorMessage
             arguments:
-              message: ${{ data['doSomethingWrong']['error'] }}
+              message: ${ data['doSomethingWrong']['error'] }}
 
       - name: retry
         from: errorHandledGracefully
