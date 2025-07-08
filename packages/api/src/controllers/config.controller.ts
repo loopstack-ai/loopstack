@@ -13,6 +13,7 @@ import { plainToInstance } from 'class-transformer';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
 import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { sortBy } from 'lodash';
 
 @ApiTags('api/v1/config')
 @ApiExtraModels(WorkspaceConfigDto, PipelineConfigDto)
@@ -42,9 +43,16 @@ export class ConfigController {
   @UseGuards(JwtAuthGuard)
   getPipelineTypesByWorkspace(@Param('workspaceName') workspaceName: string,): PipelineConfigDto[] {
     const pipelineTypes = this.configService.getAll<PipelineType>('pipelines');
-    const filtered = pipelineTypes.filter((pipeline) => pipeline.type === 'root' && pipeline.workspace === workspaceName);
+    const filtered = pipelineTypes
+      .filter((pipeline) => pipeline.config.type === 'root' && pipeline.config.workspace === workspaceName)
+      .map((pipeline) => ({
+        ...pipeline.config,
+        name: `${pipeline.path}:${pipeline.name}`,
+      }));
 
-    return plainToInstance(PipelineConfigDto, filtered, {
+    const sorted = sortBy(filtered, 'title')
+
+    return plainToInstance(PipelineConfigDto, sorted, {
       excludeExtraneousValues: true,
     });
   }
