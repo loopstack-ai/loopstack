@@ -1,5 +1,17 @@
 # @loopstack/api
 
+## 0.3.0
+
+### Minor Changes
+
+- Improved Document Handling, Template Expressions and added Config Includes
+
+### Patch Changes
+
+- Updated dependencies
+  - @loopstack/core@0.3.0
+  - @loopstack/shared@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
