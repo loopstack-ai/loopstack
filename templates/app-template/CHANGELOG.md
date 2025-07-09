@@ -1,5 +1,16 @@
 # @loopstack/app-template
 
+## 0.3.1
+
+### Patch Changes
+
+- Bugfixes, Added Template Expression Helpers
+- Updated dependencies
+  - @loopstack/api@0.3.1
+  - @loopstack/core@0.3.1
+  - @loopstack/llm@0.3.1
+  - @loopstack/shared@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes
