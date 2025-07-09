@@ -68,7 +68,7 @@ workflows:
 
           - tool: switch_target
             arguments:
-              target: "{{#if USER_DECISION}}approved{{else}}needs_revision{{/if}}"
+              target: "{{#if (eq USER_DECISION true)}}approved{{else}}needs_revision{{/if}}"
 
       # Approval path
       - name: finalize_content       # Handle approved content
@@ -77,7 +77,7 @@ workflows:
         call:
           - tool: create_mock
             arguments:
-              input: ${ DRAFT_CONTENT }}
+              input: ${ DRAFT_CONTENT }
               output: 'Content published successfully to blog.example.com'
             exportVariable: PUBLISH_RESULT
 
@@ -101,7 +101,7 @@ workflows:
 
           - tool: create_mock
             arguments:
-              input: ${ DRAFT_CONTENT }}
+              input: ${ DRAFT_CONTENT }
               output: |
                 # The Future of Renewable Energy (Revised)
 

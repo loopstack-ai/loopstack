@@ -16,11 +16,11 @@ tools:
                 type: object
                 properties:
                   content:
-                    type: 'string'
+                    type: string
                   role:
                     type: string
                   tool_call_id:
-                    type: 'string'
+                    type: string
                   meta:
                     type: object
                     properties:

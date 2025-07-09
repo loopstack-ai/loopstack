@@ -8,7 +8,7 @@ include:
 pipelines:
   - name: meeting_notes_tutorial
     title: "Tutorial 1: Meeting Notes Summarizer"
-    workspace: tutorials
+    workspace: examples
     type: root
     sequence:
       - workflow: meeting_notes_summarizer

@@ -1,5 +1,11 @@
+include:
+  - core/tools/create-chat-message.yaml
+  - core/tools/create-plain-message.yaml
+  - core/tools/create-document.yaml
+  - core/tools/create-mock.yaml
+
 documents:
-  - name: examples_predefinedWorkflow_userInputDocument
+  - name: user_input_form
     schema:
       type: object
       properties:
@@ -10,76 +16,82 @@ documents:
         text:
           widget: textarea
       buttons:
-        - transition: addUserInput
+        - transition: add_user_input
           label: "Submit"
     content:
       text: ""
 
 workflows:
-  - name: examples_predefinedWorkflow_workflow
+  - name: predefined_workflow_workflow
     title: "Analyse and Improve Text"
     type: stateMachine
     transitions:
 
-      - name: requestUserInput
+      - name: request_user_input
         from: start
-        to: waitingForUser
+        to: waiting_for_user
         call:
-          - tool: core_createChatMessage
+          - tool: create_chat_message
             arguments:
               role: assistant
               content: "This simple workflow example takes user-provided text, analyzes it for issues, and then improves it based on the analysis."
-          - tool: core_createDocument
+          - tool: create_document
             arguments:
-              document: examples_predefinedWorkflow_userInputDocument
+              document: user_input_form
               content:
                 text: "Me and my friend goes to the store yesterday we buy some stuff for the party but we forgot to get drinks so we had to went back again it was really annoying."
 
-      - name: addUserInput
-        from: waitingForUser
-        to: userInputAdded
+      - name: add_user_input
+        from: waiting_for_user
+        to: user_input_added
         when: manual
         call:
-          - tool: core_createDocument
+          - tool: create_document
             arguments:
-              document: examples_predefinedWorkflow_userInputDocument
+              document: user_input_form
               content: ${ transition.payload }
             exportVariable: USER_INPUT_DOCUMENT
 
       - name: analyse
-        from: userInputAdded
-        to: inputAnalysed
+        from: user_input_added
+        to: input_analysed
         call:
-          - tool: examples_predefinedWorkflow_analyseText
+          - tool: analyse_text
             exportVariable: ANALYSIS
 
-      - name: addAnalysis
-        from: inputAnalysed
-        to: analysisAdded
+      - name: add_analysis
+        from: input_analysed
+        to: analysis_added
         call:
-          - tool: core_createPlainMessage
+          - tool: create_mock
+            arguments:
+              input: ${ ANALYSIS.response.data }
+          - tool: create_plain_message
             arguments:
               title: "Analysis"
-              content: ${ ANALYSIS.response.data.content }}
+              content: ${ ANALYSIS.response.data.content }
 
       - name: improve
-        from: analysisAdded
+        from: analysis_added
         to: improved
         call:
-          - tool: examples_predefinedWorkflow_improveText
+          - tool: improve_text
             exportVariable: IMPROVED_TEXT
 
-      - name: addImprovedText
+      - name: add_improved_text
         from: improved
-        to: improvedTextAdded
+        to: improved_text_added
         call:
-          - tool: core_createPlainMessage
+          - tool: create_mock
+            arguments:
+              input: ${ ANALYSIS.response.data }
+          - tool: create_plain_message
             arguments:
               title: "Improved Text"
-              content: ${ IMPROVED_TEXT.response.data.content }}
+              content: ${ IMPROVED_TEXT.response.data.content }
 
 tools:
-  - name: examples_predefinedWorkflow_analyseText
+  - name: analyse_text
     execute:
       service: LlmCompletionService
       arguments:
@@ -99,9 +111,9 @@ tools:
           - role: user
             content: |
               Please analyze this text: 
-              ${ USER_INPUT_DOCUMENT.text }}
+              {{ USER_INPUT_DOCUMENT.content.text }}
 
-  - name: examples_predefinedWorkflow_improveText
+  - name: improve_text
     execute:
       service: LlmCompletionService
       arguments:
@@ -121,17 +133,17 @@ tools:
           - role: user
             content: |
               Original text:
-              ${ USER_INPUT_DOCUMENT.text }}
+              {{ USER_INPUT_DOCUMENT.content.text }}
 
               Analysis and recommendations:
-              ${ ANALYSIS.response.data }}
+              {{ ANALYSIS.response.data }}
                 
               Please provide an improved version of the original text based on this analysis.
 
 pipelines:
-  - name: examples_predefinedWorkflow
-    title: "Predefined Workflow Example"
+  - name: predefined_workflow_example
+    title: "LLM Example 3: Predefined Workflow"
     workspace: examples
     type: root
     sequence:
-      - workflow: examples_predefinedWorkflow_workflow
+      - workflow: predefined_workflow_workflow

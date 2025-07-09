@@ -10,9 +10,11 @@ documents:
         role:
           type: string
         content:
-          type: 'string'
+          type: [ "string", "null" ]
         tool_calls:
-          type: 'array'
+          type: array
+        tool_call_id:
+          type: [ "string", "null" ]
       additionalProperties: false
     meta:
       invalidate: false

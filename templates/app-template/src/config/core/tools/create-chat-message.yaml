@@ -13,7 +13,7 @@ tools:
       type: object
       properties:
         content:
-          type: string
+          type: [ "string", "null" ]
         role:
           type: string
         tool_calls:

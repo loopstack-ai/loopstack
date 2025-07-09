@@ -1,9 +1,0 @@
-tools:
-  - name: llm_extractResponseTags
-    execute:
-      service: ExtractResponseTagsService
-      arguments:
-        tags:
-          - Reasoning
-          - Output
-        response: ${ PROMPT_RESULT.response.data }

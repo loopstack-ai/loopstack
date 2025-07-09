@@ -1,9 +1,0 @@
-tools:
-  - name: llm_executePrompt
-    execute:
-      service: ExecutePromptMessagesService
-      arguments:
-        llm:
-          envApiKey: OPENAI_KEY
-          model: gpt-4o
-        messagesSearchTag: message

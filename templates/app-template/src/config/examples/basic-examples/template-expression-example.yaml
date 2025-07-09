@@ -1,0 +1,372 @@
+include:
+  - core/tools/create-mock.yaml
+  - core/tools/create-document.yaml
+
+documents:
+  - name: template_expressions_output
+    schema:
+      type: object
+      properties:
+        # Default Handlebars Syntax - Basic Variable Output
+        simpleVariable:
+          type: string
+        nestedProperty:
+          type: string
+        arrayAccess:
+          type: string
+
+        # Default Handlebars Syntax - Block Helpers
+        if:
+          type: string
+        ifElse:
+          type: string
+        unless:
+          type: string
+        each:
+          type: string
+        eachWithElse:
+          type: string
+
+        # Equality Operators
+        eq:
+          type: string
+        ne:
+          type: string
+        looseEq:
+          type: string
+        looseNe:
+          type: string
+
+        # Comparison Operators
+        gt:
+          type: string
+        gte:
+          type: string
+        lt:
+          type: string
+        lte:
+          type: string
+
+        # Logical Operators
+        and:
+          type: string
+        or:
+          type: string
+        not:
+          type: string
+
+        # String Operations
+        contains:
+          type: string
+        startsWith:
+          type: string
+        endsWith:
+          type: string
+        regexTest:
+          type: string
+        regexTestWithFlags:
+          type: string
+
+        # Array and Object Operations
+        inArray:
+          type: string
+        inObject:
+          type: string
+        length:
+          type: string
+        isEmpty:
+          type: string
+
+        # Type Checking
+        typeOf:
+          type: string
+        isNull:
+          type: string
+        isUndefined:
+          type: string
+        isNumber:
+          type: string
+        isString:
+          type: string
+        isBoolean:
+          type: string
+        isArray:
+          type: string
+        isObject:
+          type: string
+
+        # Mathematical Operations
+        add:
+          type: string
+        subtract:
+          type: string
+        multiply:
+          type: string
+        divide:
+          type: string
+        modulo:
+          type: string
+
+        # Utility Helpers
+        default:
+          type: string
+
+        # Date and Time Tools - Current Date
+        currentDate:
+          type: string
+        currentDateWithFormat:
+          type: string
+        currentDateWithTime:
+          type: string
+
+        # Date and Time Tools - Date Formatting
+        formatDate:
+          type: string
+        formatDateWithFormat:
+          type: string
+
+        # Date and Time Tools - Time Ago
+        timeAgo:
+          type: string
+        timeAgoForComments:
+          type: string
+        timeAgoForEvents:
+          type: string
+      additionalProperties: false
+    ui:
+      order:
+        - simpleVariable
+        - nestedProperty
+        - arrayAccess
+        - if
+        - ifElse
+        - unless
+        - each
+        - eachWithElse
+        - eq
+        - ne
+        - looseEq
+        - looseNe
+        - gt
+        - gte
+        - lt
+        - lte
+        - and
+        - or
+        - not
+        - contains
+        - startsWith
+        - endsWith
+        - regexTest
+        - regexTestWithFlags
+        - inArray
+        - inObject
+        - length
+        - isEmpty
+        - typeOf
+        - isNull
+        - isUndefined
+        - isNumber
+        - isString
+        - isBoolean
+        - isArray
+        - isObject
+        - add
+        - subtract
+        - multiply
+        - divide
+        - modulo
+        - default
+        - currentDate
+        - currentDateWithFormat
+        - currentDateWithTime
+        - formatDate
+        - formatDateWithFormat
+        - timeAgo
+        - timeAgoForComments
+        - timeAgoForEvents
+    content:
+      # Default Handlebars Syntax - Basic Variable Output
+      simpleVariable: "{{TEST_OBJECT.name}}"
+      nestedProperty: "{{TEST_OBJECT.profile.email}}"
+      arrayAccess: "{{TEST_OBJECT.items.[0]}}"
+
+      # Default Handlebars Syntax - Block Helpers
+      if: "{{#if TEST_OBJECT.isActive}}Welcome back!{{/if}}"
+      ifElse: "{{#if TEST_OBJECT.isAdmin}}Admin Panel{{else}}User Panel{{/if}}"
+      unless: "{{#unless TEST_OBJECT.isBlocked}}Access granted{{/unless}}"
+      each: "{{#each TEST_OBJECT.users}}<li>{{this.name}}</li>{{/each}}"
+      eachWithElse: "{{#each TEST_OBJECT.items}}{{this}}{{else}}No items{{/each}}"
+
+      # Equality Operators
+      eq: "{{#if (eq TEST_OBJECT.role \"admin\")}}Admin{{/if}}"
+      ne: "{{#if (ne TEST_OBJECT.status \"inactive\")}}active{{/if}}"
+      looseEq: "{{#if (looseEq TEST_OBJECT.count \"5\")}}Five{{/if}}"
+      looseNe: "{{#if (looseNe TEST_OBJECT.value null)}}Has value{{/if}}"
+
+      # Comparison Operators
+      gt: "{{#if (gt TEST_OBJECT.age 18)}}Adult{{/if}}"
+      gte: "{{#if (gte TEST_OBJECT.score 90)}}Perfect!{{/if}}"
+      lt: "{{#if (lt TEST_OBJECT.cold 32)}}Freezing{{/if}}"
+      lte: "{{#if (lte TEST_OBJECT.age 30)}}Young adult{{/if}}"
+
+      # Logical Operators
+      and: "{{#if (and TEST_OBJECT.isActive TEST_OBJECT.isVerified)}}Verified user{{/if}}"
+      or: "{{#if (or TEST_OBJECT.isPremium TEST_OBJECT.isTrial)}}Premium features{{/if}}"
+      not: "{{#if (not TEST_OBJECT.isBlocked)}}Welcome{{/if}}"
+
+      # String Operations
+      contains: "{{#if (contains TEST_OBJECT.email \"@company.com\")}}Employee{{/if}}"
+      startsWith: "{{#if (startsWith TEST_OBJECT.doctor \"Dr.\")}}Doctor{{/if}}"
+      endsWith: "{{#if (endsWith TEST_OBJECT.file.name \".pdf\")}}PDF file{{/if}}"
+      regexTest: "{{#if (regexTest TEST_OBJECT.phone \"^\\+1\")}}US number{{/if}}"
+      regexTestWithFlags: "{{#if (regexTest TEST_OBJECT.email \"^[A-Z]+@\" \"i\")}}Valid email{{/if}}"
+
+      # Array and Object Operations
+      inArray: "{{#if (in TEST_OBJECT.role TEST_OBJECT.validRoles)}}Valid role{{/if}}"
+      inObject: "{{#if (in \"email\" TEST_OBJECT)}}Has email{{/if}}"
+      length: "Total: {{length TEST_OBJECT.items}}"
+      isEmpty: "{{#if (isEmpty TEST_OBJECT.empty)}}No tags{{/if}}"
+
+      # Type Checking
+      typeOf: "Type: {{typeOf TEST_OBJECT.value}}"
+      isNull: "{{#if (isNull TEST_OBJECT.deletedAt)}}Active{{/if}}"
+      isUndefined: "{{#if (isUndefined TEST_OBJECT.tempData)}}No temp data{{/if}}"
+      isNumber: "{{#if (isNumber TEST_OBJECT.age)}}Age: {{TEST_OBJECT.age}}{{/if}}"
+      isString: "{{#if (isString TEST_OBJECT.bio)}}{{TEST_OBJECT.bio}}{{/if}}"
+      isBoolean: "{{#if (isBoolean TEST_OBJECT.flag)}}Boolean value{{/if}}"
+      isArray: "{{#if (isArray TEST_OBJECT.items)}}List of items{{/if}}"
+      isObject: "{{#if (isObject TEST_OBJECT)}}User object{{/if}}"
+
+      # Mathematical Operations
+      add: "Total: ${{add TEST_OBJECT.price TEST_OBJECT.tax TEST_OBJECT.shipping}}"
+      subtract: "Discount: ${{subtract TEST_OBJECT.original TEST_OBJECT.sale}}"
+      multiply: "Tax: ${{multiply TEST_OBJECT.price 0.08}}"
+      divide: "Average: {{divide TEST_OBJECT.total TEST_OBJECT.count}}"
+      modulo: "Remainder: {{modulo 17 5}}"
+
+      # Utility Helpers
+      default: "Name: {{default TEST_OBJECT.displayName TEST_OBJECT.username}}"
+
+      # Date and Time Tools - Current Date
+      currentDate: "Today: {{currentDate}}"
+      currentDateWithFormat: "{{currentDate \"yyyy-MM-dd\"}}"
+      currentDateWithTime: "{{currentDate \"yyyy-MM-dd h:mm\"}}"
+
+      # Date and Time Tools - Date Formatting
+      formatDate: "Created: {{formatDate TEST_OBJECT.createdAt}}"
+      formatDateWithFormat: "{{formatDate TEST_OBJECT.event.date \"yyyy-MM-dd\"}}"
+
+      # Date and Time Tools - Time Ago
+      timeAgo: "Last seen: {{timeAgo TEST_OBJECT.lastLoginAt}}"
+      timeAgoForComments: "Posted {{timeAgo TEST_OBJECT.comment.createdAt}}"
+      timeAgoForEvents: "Event ended {{timeAgo TEST_OBJECT.event.endDate}}"
+
+pipelines:
+  - name: template_expression_example
+    title: "Example 0: Template Expressions"
+    type: root
+    workspace: examples
+    sequence:
+      - workflow: template_expressions_workflow
+
+workflows:
+  - name: template_expressions_workflow
+    title: 'Template Expressions'
+    type: stateMachine
+    transitions:
+      - name: create_object
+        from: start
+        to: object_created
+        call:
+          - tool: create_mock
+            arguments:
+              output:
+                name: "John"
+                doctor: "Dr. John Doe"
+                role: "admin"
+                age: 25
+                email: "john@company.com"
+                phone: "+1234567890"
+                status: "active"
+                isActive: true
+                isAdmin: true
+                isVerified: true
+                isPremium: false
+                isTrial: true
+                isBlocked: false
+                hasPermission: true
+                isStaff: false
+                points: 1250
+                score: 95
+                count: "5"
+                temperature: 75
+                cold: 20
+                bio: "Software engineer with 5 years of experience"
+                displayName: null
+                username: "johndoe"
+                deletedAt: null
+                tags: [ "developer", "featured", "premium" ]
+                empty: []
+                preferences:
+                  theme: "dark"
+                  notifications: true
+                profile:
+                  email: "john@company.com"
+                  avatar: "avatar.jpg"
+                createdAt: "2024-01-15T10:30:00Z"
+                lastLoginAt: "2024-07-08T14:22:00Z"
+                lastActiveAt: "2024-07-09T09:15:00Z"
+                validRoles: [ "admin", "moderator", "user" ]
+                items: [ "item1", "item2", "item3" ]
+                users:
+                  - name: "John"
+                    email: "john@example.com"
+                  - name: "Jane"
+                    email: "jane@example.com"
+                userSettings:
+                  theme: "dark"
+                  language: "en"
+                  notifications: true
+                products:
+                  - name: "Laptop"
+                    price: 999.99
+                    discount: 0.1
+                    tags: [ "electronics", "featured" ]
+                  - name: "Mouse"
+                    price: 25.99
+                    discount: 0
+                    tags: [ "electronics", "accessories" ]
+                file:
+                  name: "document.pdf"
+                document:
+                  filename: "report.pdf"
+                event:
+                  date: "2024-12-25T18:00:00Z"
+                  startDate: "2024-12-25T18:00:00Z"
+                  endDate: "2024-12-25T22:00:00Z"
+                meeting:
+                  start: "2024-07-09T14:00:00Z"
+                article:
+                  published: "2024-07-01T12:00:00Z"
+                comment:
+                  createdAt: "2024-07-09T08:30:00Z"
+                price: 100
+                tax: 8.50
+                shipping: 15.00
+                original: 150
+                sale: 120
+                length: 10
+                width: 8
+                total: 500
+                flag: true
+                value: "test"
+                number: 42
+            exportVariable: TEST_OBJECT
+      - name: render_text
+        from: object_created
+        to: end
+        call:
+          - tool: create_document
+            arguments:
+              document: template_expressions_output

@@ -1,3 +1,7 @@
+# File Includes
+include:
+  - core/documents/plain.yaml
+
 tools:
   - name: create_plain_message
     parameters:
