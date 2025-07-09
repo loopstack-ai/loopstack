@@ -5,9 +5,9 @@ import {
   TemplateService,
   ObjectExpressionHandler,
   TemplateExpressionHandler,
-  DateFormatterHandlebarsHelperService,
+  DateFormatterHelperService,
   VariableSanitizerService,
-  HandlebarsProcessor,
+  HandlebarsProcessor, OperatorsHelperService,
 } from './services';
 import { ClientMessageService } from './services/client-message.service';
 import { ConfigurationModule } from '../configuration';
@@ -21,7 +21,8 @@ import { ConfigurationModule } from '../configuration';
     ObjectExpressionHandler,
     TemplateExpressionHandler,
     HandlebarsProcessor,
-    DateFormatterHandlebarsHelperService,
+    DateFormatterHelperService,
+    OperatorsHelperService,
     VariableSanitizerService,
   ],
   exports: [ClientMessageService, ContextService, TemplateService],

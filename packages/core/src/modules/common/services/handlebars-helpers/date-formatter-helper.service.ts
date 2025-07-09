@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { format, formatDistanceToNow, isValid, parseISO } from 'date-fns';
 
 @Injectable()
-export class DateFormatterHandlebarsHelperService {
+export class DateFormatterHelperService {
   private readonly MAX_FORMAT_LENGTH = 100;
   private readonly ALLOWED_FORMAT_CHARS = /^[YyMmDdHhSsaAEepdT\s\-\/:.,'"]+$/;
 

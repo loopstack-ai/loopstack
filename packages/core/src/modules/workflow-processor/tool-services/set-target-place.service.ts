@@ -12,7 +12,7 @@ import {
 
 const config = z
   .object({
-    target: ExpressionString,
+    target: z.string(),
   })
   .strict();
 
@@ -40,17 +40,18 @@ export class SetTargetPlaceService implements ServiceInterface {
       throw new Error('No transition available.');
     }
 
+    const target = props.target.trim();
     if (
       (Array.isArray(transitionData.to) &&
-        !transitionData.to.includes(props.target)) ||
-      (!Array.isArray(transitionData.to) && transitionData.to !== props.target)
+        !transitionData.to.includes(target)) ||
+      (!Array.isArray(transitionData.to) && transitionData.to !== target)
     ) {
-      throw new Error(`Transition to ${props.target} not allowed.`);
+      throw new Error(`Transition to ${target} not allowed.`);
     }
 
     return {
       success: true,
-      place: props.target,
+      place: target,
     };
   }
 }

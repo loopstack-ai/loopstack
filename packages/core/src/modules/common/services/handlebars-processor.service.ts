@@ -1,6 +1,6 @@
 import Handlebars from 'handlebars';
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { DateFormatterHandlebarsHelperService } from './handlebars-helpers';
+import { DateFormatterHelperService, OperatorsHelperService } from './handlebars-helpers';
 
 @Injectable()
 export class HandlebarsProcessor implements OnModuleInit {
@@ -19,6 +19,9 @@ export class HandlebarsProcessor implements OnModuleInit {
     // Block helper: {{#each items}}{{this}}{{/each}} - safe iteration, no property traversal
     each: true,
 
+    // Log helper
+    log: true,
+
     // DISABLED: {{#with object}}{{property}}{{/with}} - can access dangerous object properties
     // Risk: {{#with constructor}}{{prototype}}{{/with}} could access prototype chain
     with: false,
@@ -32,6 +35,54 @@ export class HandlebarsProcessor implements OnModuleInit {
     currentDate: true,
     formatDate: true,
     timeAgo: true,
+
+    // EQUALITY OPERATORS - safe value comparison with sanitization
+    eq: true,    // {{#if (eq user.role "admin")}} - strict equality (===)
+    ne: true,    // {{#if (ne status "active")}} - strict inequality (!==)
+    looseEq: true,    // {{#if (looseEq value "5")}} - loose equality (==)
+    looseNe: true,    // {{#if (looseNe value "5")}} - loose inequality (!=)
+
+    // COMPARISON OPERATORS - safe numeric comparison with type validation
+    gt: true,    // {{#if (gt user.age 18)}} - greater than
+    gte: true,   // {{#if (gte score 100)}} - greater than or equal
+    lt: true,    // {{#if (lt price 50)}} - less than
+    lte: true,   // {{#if (lte quantity 10)}} - less than or equal
+
+    // LOGICAL OPERATORS - safe boolean logic with argument validation
+    and: true,   // {{#if (and user.isActive user.isVerified)}} - logical AND
+    or: true,    // {{#if (or user.isPremium user.isTrial)}} - logical OR
+    not: true,   // {{#if (not user.isBlocked)}} - logical NOT
+
+    // STRING OPERATORS - safe string manipulation with sanitization
+    contains: true,    // {{#if (contains user.email "@company.com")}} - string contains
+    startsWith: true,  // {{#if (startsWith user.name "Dr.")}} - string starts with
+    endsWith: true,    // {{#if (endsWith file.name ".pdf")}} - string ends with
+    regexTest: true,   // {{#if (regexTest phone "^\\+1")}} - regex test with flag validation
+
+    // ARRAY/OBJECT OPERATORS - safe collection operations without prototype access
+    in: true,          // {{#if (in user.role validRoles)}} - value in array/object
+    length: true,      // {{length items}} - get length of string/array/object
+    isEmpty: true,     // {{#if (isEmpty user.tags)}} - check if empty
+
+    // TYPE CHECKING OPERATORS - safe runtime type validation
+    typeOf: true,      // {{typeOf value}} - get type as string
+    isNull: true,      // {{#if (isNull value)}} - check if null
+    isUndefined: true, // {{#if (isUndefined value)}} - check if undefined
+    isNumber: true,    // {{#if (isNumber user.age)}} - check if number
+    isString: true,    // {{#if (isString user.name)}} - check if string
+    isBoolean: true,   // {{#if (isBoolean flag)}} - check if boolean
+    isArray: true,     // {{#if (isArray items)}} - check if array
+    isObject: true,    // {{#if (isObject user)}} - check if object (not array/null)
+
+    // MATHEMATICAL OPERATORS - safe arithmetic with overflow/underflow protection
+    add: true,         // {{add price tax shipping}} - addition with multiple args
+    subtract: true,    // {{subtract original discount}} - subtraction
+    multiply: true,    // {{multiply price 0.08}} - multiplication
+    divide: true,      // {{divide total count}} - division with zero-division protection
+    modulo: true,      // {{modulo number 10}} - modulo with zero-division protection
+
+    // UTILITY OPERATORS - safe fallback and default value handling
+    default: true,     // {{default user.displayName user.username}} - fallback value
   };
 
   private options = {
@@ -79,23 +130,72 @@ export class HandlebarsProcessor implements OnModuleInit {
   private static readonly MAX_TEMPLATE_SIZE = 50000;
 
   constructor(
-    private readonly dateFormatterHandlebarsHelperService: DateFormatterHandlebarsHelperService,
+    private readonly dateFormatterHelperService: DateFormatterHelperService,
+    private readonly operatorsHelperService: OperatorsHelperService,
   ) {}
 
   onModuleInit() {
     this.handlebars = Handlebars.create();
     this.handlebars.registerHelper(
       'currentDate',
-      this.dateFormatterHandlebarsHelperService.getCurrentDateHelper(),
+      this.dateFormatterHelperService.getCurrentDateHelper(),
     );
     this.handlebars.registerHelper(
       'formatDate',
-      this.dateFormatterHandlebarsHelperService.getFormatDateHelper(),
+      this.dateFormatterHelperService.getFormatDateHelper(),
     );
     this.handlebars.registerHelper(
       'timeAgo',
-      this.dateFormatterHandlebarsHelperService.getTimeAgoHelper(),
+      this.dateFormatterHelperService.getTimeAgoHelper(),
     );
+
+    // Equality operators
+    this.handlebars.registerHelper('eq', this.operatorsHelperService.getEqualsHelper());
+    this.handlebars.registerHelper('ne', this.operatorsHelperService.getNotEqualsHelper());
+    this.handlebars.registerHelper('looseEq', this.operatorsHelperService.getLooseEqualsHelper());
+    this.handlebars.registerHelper('looseNe', this.operatorsHelperService.getLooseNotEqualsHelper());
+
+    // Comparison operators
+    this.handlebars.registerHelper('gt', this.operatorsHelperService.getGreaterThanHelper());
+    this.handlebars.registerHelper('gte', this.operatorsHelperService.getGreaterThanOrEqualHelper());
+    this.handlebars.registerHelper('lt', this.operatorsHelperService.getLessThanHelper());
+    this.handlebars.registerHelper('lte', this.operatorsHelperService.getLessThanOrEqualHelper());
+
+    // Logical operators
+    this.handlebars.registerHelper('and', this.operatorsHelperService.getAndHelper());
+    this.handlebars.registerHelper('or', this.operatorsHelperService.getOrHelper());
+    this.handlebars.registerHelper('not', this.operatorsHelperService.getNotHelper());
+
+    // String operators
+    this.handlebars.registerHelper('contains', this.operatorsHelperService.getContainsHelper());
+    this.handlebars.registerHelper('startsWith', this.operatorsHelperService.getStartsWithHelper());
+    this.handlebars.registerHelper('endsWith', this.operatorsHelperService.getEndsWithHelper());
+    this.handlebars.registerHelper('regexTest', this.operatorsHelperService.getRegexTestHelper());
+
+    // Array/Object operators
+    this.handlebars.registerHelper('in', this.operatorsHelperService.getInHelper());
+    this.handlebars.registerHelper('length', this.operatorsHelperService.getLengthHelper());
+    this.handlebars.registerHelper('isEmpty', this.operatorsHelperService.getIsEmptyHelper());
+
+    // Type checking operators
+    this.handlebars.registerHelper('typeOf', this.operatorsHelperService.getTypeOfHelper());
+    this.handlebars.registerHelper('isNull', this.operatorsHelperService.getIsNullHelper());
+    this.handlebars.registerHelper('isUndefined', this.operatorsHelperService.getIsUndefinedHelper());
+    this.handlebars.registerHelper('isNumber', this.operatorsHelperService.getIsNumberHelper());
+    this.handlebars.registerHelper('isString', this.operatorsHelperService.getIsStringHelper());
+    this.handlebars.registerHelper('isBoolean', this.operatorsHelperService.getIsBooleanHelper());
+    this.handlebars.registerHelper('isArray', this.operatorsHelperService.getIsArrayHelper());
+    this.handlebars.registerHelper('isObject', this.operatorsHelperService.getIsObjectHelper());
+
+    // Mathematical operators
+    this.handlebars.registerHelper('add', this.operatorsHelperService.getAddHelper());
+    this.handlebars.registerHelper('subtract', this.operatorsHelperService.getSubtractHelper());
+    this.handlebars.registerHelper('multiply', this.operatorsHelperService.getMultiplyHelper());
+    this.handlebars.registerHelper('divide', this.operatorsHelperService.getDivideHelper());
+    this.handlebars.registerHelper('modulo', this.operatorsHelperService.getModuloHelper());
+
+    // Utility operators
+    this.handlebars.registerHelper('default', this.operatorsHelperService.getDefaultHelper());
   }
 
   public render(content: string, variables: Record<string, any>): string {

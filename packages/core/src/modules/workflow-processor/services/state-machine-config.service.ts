@@ -49,9 +49,9 @@ export class StateMachineConfigService {
       parentStateMachine?.config.transitions ?? [],
       'name',
     );
-    args = _.merge(args, parentStateMachine.config.arguments);
-    parameters = _.merge(parameters, parentStateMachine.config.parameters);
-    ui = _.merge(ui, parentStateMachine.config.ui);
+    args = _.merge({}, args, parentStateMachine.config.arguments);
+    parameters = _.merge({}, parameters, parentStateMachine.config.parameters);
+    ui = _.merge({}, ui, parentStateMachine.config.ui);
 
     const mergedImportMap = new Map([
       ...parentStateMachine.importMap,

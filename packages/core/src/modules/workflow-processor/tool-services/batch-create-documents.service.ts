@@ -8,7 +8,6 @@ import {
   ExpressionString,
   TransitionMetadataInterface,
   DocumentSchema,
-  ConfigElement,
 } from '@loopstack/shared';
 import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';

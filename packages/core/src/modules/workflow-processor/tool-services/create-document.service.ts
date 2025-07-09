@@ -110,7 +110,7 @@ export class CreateDocumentService implements ServiceInterface {
     );
 
     // merge the custom properties
-    const mergedTemplateData = merge(template.config, props.update ?? {});
+    const mergedTemplateData = merge({}, template.config, props.update ?? {});
 
     // create the document skeleton without content property
     const documentSkeleton =
