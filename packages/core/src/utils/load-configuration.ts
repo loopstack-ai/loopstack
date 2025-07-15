@@ -31,7 +31,7 @@ function loadConfigsRecursively(
         fs.readFileSync(itemPath, 'utf8'),
       ) as MainConfigType;
 
-      const relativePath = path.relative(rootPath, itemPath);
+      const relativePath = path.relative(rootPath, itemPath).replace(/\\/g, '/');
       configs.push({
         path: itemPath,
         relativePath,

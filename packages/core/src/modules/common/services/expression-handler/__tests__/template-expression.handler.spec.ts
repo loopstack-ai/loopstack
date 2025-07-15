@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TemplateExpressionHandler } from '../template-expression.handler';
 import { HandlebarsProcessor } from '../../handlebars-processor.service';
 import { VariableSanitizerService } from '../../variable-sanitizer.service';
-import { DateFormatterHelperService } from '../../handlebars-helpers';
+import { DateFormatterHelperService, OperatorsHelperService } from '../../handlebars-helpers';
 
 describe('TemplateExpressionHandler', () => {
   let handler: TemplateExpressionHandler;
@@ -14,6 +14,7 @@ describe('TemplateExpressionHandler', () => {
         HandlebarsProcessor,
         VariableSanitizerService,
         DateFormatterHelperService,
+        OperatorsHelperService,
       ],
     }).compile();
 

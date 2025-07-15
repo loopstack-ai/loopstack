@@ -17,11 +17,11 @@ export class TemplateService {
   >;
 
   constructor(
-    private objectExpressionHandler: ObjectExpressionHandler,
     private templateExpressionHandler: TemplateExpressionHandler,
+    private objectExpressionHandler: ObjectExpressionHandler,
   ) {
     this.handlers = Object.freeze([
-      this.objectExpressionHandler, // ${{ }} expressions for arguments and schema validated types
+      this.objectExpressionHandler, // ${ } expressions for arguments and schema validated types
       this.templateExpressionHandler, // {{ }} expressions for templates and string result
     ]);
   }

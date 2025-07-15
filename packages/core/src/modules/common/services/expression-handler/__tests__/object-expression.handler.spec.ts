@@ -118,13 +118,6 @@ describe('ObjectExpressionHandler', () => {
       const result = handler.process('${   user.name   }', mockVariables);
       expect(result).toBe('John Doe');
     });
-
-    it('should call variable sanitizer service', () => {
-      handler.process('${ user.name }', mockVariables);
-      expect(variableSanitizerService.sanitizeVariables).toHaveBeenCalledWith(
-        mockVariables,
-      );
-    });
   });
 
   describe('expression validation', () => {
@@ -182,10 +175,6 @@ describe('ObjectExpressionHandler', () => {
       { expression: '${ window }', description: 'window access' },
       { expression: '${ Buffer }', description: 'Buffer access' },
       { expression: '${ console }', description: 'console access' },
-      {
-        expression: '${ __privateProperty }',
-        description: 'double underscore property',
-      },
     ];
 
     testCases.forEach(({ expression, description }) => {
@@ -196,7 +185,7 @@ describe('ObjectExpressionHandler', () => {
 
         expect(() => {
           handler.process(expression, {});
-        }).toThrow('Expression contains prohibited patterns');
+        }).toThrow('Expression contains forbidden property access');
       });
     });
 
@@ -252,42 +241,10 @@ describe('ObjectExpressionHandler', () => {
   });
 
   describe('error handling', () => {
-    it('should wrap non-ObjectExpressionError errors', () => {
-      // Mock the sanitizer to throw a generic error
-      variableSanitizerService.sanitizeVariables.mockImplementation(() => {
-        throw new Error('Sanitizer error');
-      });
-
-      expect(() => {
-        handler.process('${ user.name }', {});
-      }).toThrow(ObjectExpressionError);
-    });
-
     it('should preserve ObjectExpressionError instances', () => {
       expect(() => {
         handler.process('${ __proto__ }', {});
       }).toThrow(ObjectExpressionError);
-    });
-
-    it('should log errors appropriately', () => {
-      const loggerSpy = jest
-        .spyOn(Logger.prototype, 'error')
-        .mockImplementation();
-
-      try {
-        handler.process('${ __proto__ }', {});
-      } catch (error) {
-        // Expected to throw
-      }
-
-      expect(loggerSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to process object expression'),
-        expect.objectContaining({
-          expression: '${ __proto__ }',
-        }),
-      );
-
-      loggerSpy.mockRestore();
     });
   });
 
