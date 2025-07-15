@@ -1,0 +1,11 @@
+tools:
+  - name: create_template
+    parameters:
+      type: object
+      properties:
+        document:
+          type: string
+    execute:
+      service: CreateOutputTemplateService
+      arguments:
+        document: ${ arguments.document }

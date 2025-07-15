@@ -1,0 +1,24 @@
+# File Includes
+include:
+  - core/documents/markdown.yaml
+
+tools:
+  - name: create_markdown_message
+    parameters:
+      type: object
+      properties:
+        markdown:
+          type: string
+        title:
+          type: string
+      required:
+        - markdown
+      additionalProperties: false
+    execute:
+      service: CreateDocumentService
+      arguments:
+        document: markdown_message
+        update:
+          content:
+            title: ${ arguments.title }
+            markdown: ${ arguments.markdown }

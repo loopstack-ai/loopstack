@@ -1,0 +1,14 @@
+tools:
+  - name: parse_template_response
+    parameters:
+      type: object
+      properties:
+        document:
+          type: string
+        response:
+          type: string
+    execute:
+      service: ParseResponseService
+      arguments:
+        document: ${ arguments.document }
+        response: ${ arguments.response }

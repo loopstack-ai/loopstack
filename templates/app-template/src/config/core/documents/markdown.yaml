@@ -1,0 +1,18 @@
+documents:
+  - name: markdown_message
+    ui:
+      widget: markdown-message
+    schema:
+      type: object
+      properties:
+        title:
+          type: string
+        markdown:
+          type: string
+      additionalProperties: false
+    meta:
+      level: info
+      invalidate: false
+    content:
+      title: "Markdown"
+      markdown: ""

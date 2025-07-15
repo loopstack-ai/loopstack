@@ -1,0 +1,16 @@
+tools:
+  - name: extract_tags
+    parameters:
+      type: object
+      properties:
+        source:
+          type: any
+        tags:
+          type: array
+          items:
+            type: string
+    execute:
+      service: ExtractResponseTagsService
+      arguments:
+        tags: ${ arguments.tags }
+        response: ${ arguments.source }
