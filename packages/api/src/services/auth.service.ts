@@ -4,9 +4,7 @@ import { UserDto } from '../dtos/user.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly jwtService: JwtService) {}
 
   async login(user: { id: string | null }, response: any): Promise<UserDto> {
     const payload = { id: user.id };

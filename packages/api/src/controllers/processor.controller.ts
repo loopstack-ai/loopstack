@@ -1,11 +1,20 @@
-import { Body, Controller, Param, Post, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBody,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
-  ApiTags, ApiUnauthorizedResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { ProcessorApiService } from '../services/processor-api.service';
@@ -80,8 +89,13 @@ export class ProcessorController {
     @Request() req: ApiRequestType,
     @Query() queryParams: RunPipelineQueryParams,
   ): void {
-    this.processorApiService.processPipeline(pipelineId, req.user.id, payload ?? {}, {
-      force: !!queryParams.force,
-    });
+    this.processorApiService.processPipeline(
+      pipelineId,
+      req.user.id,
+      payload ?? {},
+      {
+        force: !!queryParams.force,
+      },
+    );
   }
 }

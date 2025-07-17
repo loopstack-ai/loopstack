@@ -11,7 +11,9 @@ import {
   ValidationPipe,
   Query,
   ParseIntPipe,
-  BadRequestException, UseGuards, UnauthorizedException,
+  BadRequestException,
+  UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -21,7 +23,8 @@ import {
   ApiBody,
   ApiExtraModels,
   ApiOkResponse,
-  ApiQuery, ApiUnauthorizedResponse,
+  ApiQuery,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { PipelineApiService } from '../services/pipeline-api.service';
@@ -37,7 +40,12 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { WorkspaceEntity } from '@loopstack/shared';
 
 @ApiTags('api/v1/pipelines')
-@ApiExtraModels(PipelineDto, PipelineItemDto, PipelineCreateDto, PipelineUpdateDto)
+@ApiExtraModels(
+  PipelineDto,
+  PipelineItemDto,
+  PipelineCreateDto,
+  PipelineUpdateDto,
+)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @Controller('api/v1/pipelines')
 export class PipelineController {
@@ -85,7 +93,8 @@ export class PipelineController {
     name: 'search',
     required: false,
     type: String,
-    description: 'Search term to filter workspaces by title or other searchable fields',
+    description:
+      'Search term to filter workspaces by title or other searchable fields',
   })
   @ApiQuery({
     name: 'searchColumns',
@@ -94,7 +103,8 @@ export class PipelineController {
       type: 'string',
       example: '["title","description"]',
     },
-    description: 'JSON string array of columns to search in (defaults to title and type if not specified)',
+    description:
+      'JSON string array of columns to search in (defaults to title and type if not specified)',
   })
   @ApiPaginatedResponse(PipelineItemDto)
   @UseGuards(JwtAuthGuard)
@@ -128,19 +138,27 @@ export class PipelineController {
     let searchColumns: (keyof WorkspaceEntity)[] = [];
     if (searchColumnsParam) {
       try {
-        searchColumns = JSON.parse(searchColumnsParam) as (keyof WorkspaceEntity)[];
+        searchColumns = JSON.parse(
+          searchColumnsParam,
+        ) as (keyof WorkspaceEntity)[];
       } catch (e) {
         throw new BadRequestException('Invalid searchColumns format');
       }
     }
 
-    const result = await this.pipelineApiService.findAll(req.user.id, filter, sortBy, {
-      page,
-      limit,
-    }, {
-      query: search,
-      columns: searchColumns,
-    });
+    const result = await this.pipelineApiService.findAll(
+      req.user.id,
+      filter,
+      sortBy,
+      {
+        page,
+        limit,
+      },
+      {
+        query: search,
+        columns: searchColumns,
+      },
+    );
     return PaginatedDto.create(PipelineItemDto, result);
   }
 
@@ -175,7 +193,10 @@ export class PipelineController {
     @Body() pipelineCreateDto: PipelineCreateDto,
     @Request() req: ApiRequestType,
   ): Promise<PipelineDto> {
-    const pipeline = await this.pipelineApiService.create(pipelineCreateDto, req.user.id);
+    const pipeline = await this.pipelineApiService.create(
+      pipelineCreateDto,
+      req.user.id,
+    );
     return PipelineDto.create(pipeline);
   }
 
@@ -195,7 +216,11 @@ export class PipelineController {
     @Body() pipelineUpdateDto: PipelineUpdateDto,
     @Request() req: ApiRequestType,
   ): Promise<PipelineDto> {
-    const pipeline = await this.pipelineApiService.update(id, pipelineUpdateDto, req.user.id);
+    const pipeline = await this.pipelineApiService.update(
+      id,
+      pipelineUpdateDto,
+      req.user.id,
+    );
     return PipelineDto.create(pipeline);
   }
 
@@ -229,14 +254,14 @@ export class PipelineController {
         ids: {
           type: 'array',
           items: {
-            type: 'string'
+            type: 'string',
           },
           description: 'Array of pipeline IDs to delete',
-          example: ['pipeline-1', 'pipeline-2', 'pipeline-3']
-        }
+          example: ['pipeline-1', 'pipeline-2', 'pipeline-3'],
+        },
       },
-      required: ['ids']
-    }
+      required: ['ids'],
+    },
   })
   @ApiResponse({
     status: 200,
@@ -247,7 +272,7 @@ export class PipelineController {
         deleted: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Successfully deleted pipeline IDs'
+          description: 'Successfully deleted pipeline IDs',
         },
         failed: {
           type: 'array',
@@ -255,13 +280,13 @@ export class PipelineController {
             type: 'object',
             properties: {
               id: { type: 'string' },
-              error: { type: 'string' }
-            }
+              error: { type: 'string' },
+            },
           },
-          description: 'Failed deletions with error details'
-        }
-      }
-    }
+          description: 'Failed deletions with error details',
+        },
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Invalid request body' })
   @ApiUnauthorizedResponse()
@@ -269,7 +294,13 @@ export class PipelineController {
   async batchDeletePipelines(
     @Body() batchDeleteDto: { ids: string[] },
     @Request() req: ApiRequestType,
-  ): Promise<{ deleted: string[]; failed: Array<{ id: string; error: string }> }> {
-    return await this.pipelineApiService.batchDelete(batchDeleteDto.ids, req.user.id);
+  ): Promise<{
+    deleted: string[];
+    failed: Array<{ id: string; error: string }>;
+  }> {
+    return await this.pipelineApiService.batchDelete(
+      batchDeleteDto.ids,
+      req.user.id,
+    );
   }
 }

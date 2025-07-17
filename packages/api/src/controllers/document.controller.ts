@@ -7,7 +7,8 @@ import {
   ValidationPipe,
   Query,
   ParseIntPipe,
-  BadRequestException, UseGuards,
+  BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -16,7 +17,8 @@ import {
   ApiTags,
   ApiExtraModels,
   ApiOkResponse,
-  ApiQuery, ApiUnauthorizedResponse,
+  ApiQuery,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { DocumentApiService } from '../services/document-api.service';
@@ -101,10 +103,15 @@ export class DocumentController {
       }
     }
 
-    const result = await this.documentService.findAll(req.user.id, filter, sortBy, {
-      page,
-      limit,
-    });
+    const result = await this.documentService.findAll(
+      req.user.id,
+      filter,
+      sortBy,
+      {
+        page,
+        limit,
+      },
+    );
     return PaginatedDto.create(DocumentItemDto, result);
   }
 

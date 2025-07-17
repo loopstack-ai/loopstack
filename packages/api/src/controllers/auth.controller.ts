@@ -3,11 +3,13 @@ import {
   Post,
   UseGuards,
   Request,
-  Response, HttpStatus,
+  Response,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import {
-  ApiExtraModels, ApiInternalServerErrorResponse,
+  ApiExtraModels,
+  ApiInternalServerErrorResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -41,7 +43,7 @@ export class AuthController {
   })
   async login(
     @Request() req: { user: UserDto },
-    @Response({ passthrough: true }) res: UserDto
+    @Response({ passthrough: true }) res: UserDto,
   ): Promise<UserDto> {
     return this.authService.login(req.user, res);
   }

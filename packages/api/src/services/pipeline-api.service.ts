@@ -56,8 +56,8 @@ export class PipelineApiService {
     });
 
     if (search?.query && search.columns?.length > 0) {
-      const searchConditions = search.columns.map(column =>
-        `pipeline.${String(column)} ILIKE :searchQuery`
+      const searchConditions = search.columns.map(
+        (column) => `pipeline.${String(column)} ILIKE :searchQuery`,
       );
 
       queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
@@ -81,7 +81,7 @@ export class PipelineApiService {
     queryBuilder.skip(
       pagination.page && pagination.limit
         ? pagination.page * pagination.limit
-        : 0
+        : 0,
     );
 
     const [data, total] = await queryBuilder.getManyAndCount();
@@ -180,7 +180,10 @@ export class PipelineApiService {
   async batchDelete(
     ids: string[],
     user: string | null,
-  ): Promise<{ deleted: string[]; failed: Array<{ id: string; error: string }> }> {
+  ): Promise<{
+    deleted: string[];
+    failed: Array<{ id: string; error: string }>;
+  }> {
     const deleted: string[] = [];
     const failed: Array<{ id: string; error: string }> = [];
 
@@ -196,13 +199,15 @@ export class PipelineApiService {
       select: ['id'],
     });
 
-    const existingPipelineIds = existingPipelines.map(pipeline => pipeline.id);
-    const notFoundIds = ids.filter(id => !existingPipelineIds.includes(id));
+    const existingPipelineIds = existingPipelines.map(
+      (pipeline) => pipeline.id,
+    );
+    const notFoundIds = ids.filter((id) => !existingPipelineIds.includes(id));
 
-    notFoundIds.forEach(id => {
+    notFoundIds.forEach((id) => {
       failed.push({
         id,
-        error: 'Pipeline not found or access denied'
+        error: 'Pipeline not found or access denied',
       });
     });
 
@@ -230,23 +235,27 @@ export class PipelineApiService {
           select: ['id'],
         });
 
-        const remainingIds = remainingPipelines.map(pipeline => pipeline.id);
-        const actuallyDeleted = existingPipelineIds.filter(id => !remainingIds.includes(id));
-        const failedToDelete = existingPipelineIds.filter(id => remainingIds.includes(id));
+        const remainingIds = remainingPipelines.map((pipeline) => pipeline.id);
+        const actuallyDeleted = existingPipelineIds.filter(
+          (id) => !remainingIds.includes(id),
+        );
+        const failedToDelete = existingPipelineIds.filter((id) =>
+          remainingIds.includes(id),
+        );
 
         deleted.push(...actuallyDeleted);
-        failedToDelete.forEach(id => {
+        failedToDelete.forEach((id) => {
           failed.push({
             id,
-            error: 'Deletion failed - pipeline may be in use or protected'
+            error: 'Deletion failed - pipeline may be in use or protected',
           });
         });
       }
     } catch (error) {
-      existingPipelineIds.forEach(id => {
+      existingPipelineIds.forEach((id) => {
         failed.push({
           id,
-          error: `Database error: ${error.message}`
+          error: `Database error: ${error.message}`,
         });
       });
     }

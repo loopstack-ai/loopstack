@@ -46,7 +46,8 @@ export class WorkspaceApiService {
       [],
     );
 
-    const queryBuilder = this.workspaceRepository.createQueryBuilder('workspace');
+    const queryBuilder =
+      this.workspaceRepository.createQueryBuilder('workspace');
 
     queryBuilder.where({
       createdBy: user === null ? IsNull() : user,
@@ -54,8 +55,8 @@ export class WorkspaceApiService {
     });
 
     if (search?.query && search.columns?.length > 0) {
-      const searchConditions = search.columns.map(column =>
-        `workspace.${String(column)} ILIKE :searchQuery`
+      const searchConditions = search.columns.map(
+        (column) => `workspace.${String(column)} ILIKE :searchQuery`,
       );
 
       queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
@@ -79,7 +80,7 @@ export class WorkspaceApiService {
     queryBuilder.skip(
       pagination.page && pagination.limit
         ? pagination.page * pagination.limit
-        : 0
+        : 0,
     );
 
     const [data, total] = await queryBuilder.getManyAndCount();
@@ -165,7 +166,10 @@ export class WorkspaceApiService {
   async batchDelete(
     ids: string[],
     user: string | null,
-  ): Promise<{ deleted: string[]; failed: Array<{ id: string; error: string }> }> {
+  ): Promise<{
+    deleted: string[];
+    failed: Array<{ id: string; error: string }>;
+  }> {
     const deleted: string[] = [];
     const failed: Array<{ id: string; error: string }> = [];
 
@@ -181,13 +185,13 @@ export class WorkspaceApiService {
       select: ['id'],
     });
 
-    const existingIds = existingPipelines.map(pipeline => pipeline.id);
-    const notFoundIds = ids.filter(id => !existingIds.includes(id));
+    const existingIds = existingPipelines.map((pipeline) => pipeline.id);
+    const notFoundIds = ids.filter((id) => !existingIds.includes(id));
 
-    notFoundIds.forEach(id => {
+    notFoundIds.forEach((id) => {
       failed.push({
         id,
-        error: 'Workspace not found or access denied'
+        error: 'Workspace not found or access denied',
       });
     });
 
@@ -215,23 +219,27 @@ export class WorkspaceApiService {
           select: ['id'],
         });
 
-        const remainingIds = remainingPipelines.map(pipeline => pipeline.id);
-        const actuallyDeleted = existingIds.filter(id => !remainingIds.includes(id));
-        const failedToDelete = existingIds.filter(id => remainingIds.includes(id));
+        const remainingIds = remainingPipelines.map((pipeline) => pipeline.id);
+        const actuallyDeleted = existingIds.filter(
+          (id) => !remainingIds.includes(id),
+        );
+        const failedToDelete = existingIds.filter((id) =>
+          remainingIds.includes(id),
+        );
 
         deleted.push(...actuallyDeleted);
-        failedToDelete.forEach(id => {
+        failedToDelete.forEach((id) => {
           failed.push({
             id,
-            error: 'Deletion failed - pipeline may be in use or protected'
+            error: 'Deletion failed - pipeline may be in use or protected',
           });
         });
       }
     } catch (error) {
-      existingIds.forEach(id => {
+      existingIds.forEach((id) => {
         failed.push({
           id,
-          error: `Database error: ${error.message}`
+          error: `Database error: ${error.message}`,
         });
       });
     }

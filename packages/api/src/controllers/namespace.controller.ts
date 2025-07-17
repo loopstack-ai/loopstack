@@ -7,7 +7,8 @@ import {
   ValidationPipe,
   ParseIntPipe,
   Query,
-  BadRequestException, UseGuards,
+  BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -16,16 +17,17 @@ import {
   ApiTags,
   ApiExtraModels,
   ApiOkResponse,
-  ApiQuery, ApiUnauthorizedResponse,
+  ApiQuery,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { PaginatedDto } from '../dtos/paginated.dto';
 import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
-import {NamespaceDto} from "../dtos/namespace.dto";
-import {NamespaceItemDto} from "../dtos/namespace-item.dto";
-import {NamespaceFilterDto} from "../dtos/namespace-filter.dto";
-import {NamespaceSortByDto} from "../dtos/namespace-sort-by.dto";
-import {NamespaceApiService} from "../services/namespace-api.service";
+import { NamespaceDto } from '../dtos/namespace.dto';
+import { NamespaceItemDto } from '../dtos/namespace-item.dto';
+import { NamespaceFilterDto } from '../dtos/namespace-filter.dto';
+import { NamespaceSortByDto } from '../dtos/namespace-sort-by.dto';
+import { NamespaceApiService } from '../services/namespace-api.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('api/v1/namespaces')
@@ -101,10 +103,15 @@ export class NamespaceController {
       }
     }
 
-    const result = await this.namespaceApiService.findAll(req.user.id, filter, sortBy, {
-      page,
-      limit,
-    });
+    const result = await this.namespaceApiService.findAll(
+      req.user.id,
+      filter,
+      sortBy,
+      {
+        page,
+        limit,
+      },
+    );
     return PaginatedDto.create(NamespaceItemDto, result);
   }
 
@@ -113,7 +120,11 @@ export class NamespaceController {
    */
   @Get(':id')
   @ApiOperation({ summary: 'Get a namespace by ID' })
-  @ApiParam({ name: 'id', type: String, description: 'The ID of the namespace' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'The ID of the namespace',
+  })
   @ApiResponse({ status: 404, description: 'Namespace not found' })
   @ApiOkResponse({ type: NamespaceDto })
   @ApiUnauthorizedResponse()
@@ -122,7 +133,10 @@ export class NamespaceController {
     @Param('id') id: string,
     @Request() req: ApiRequestType,
   ): Promise<NamespaceDto> {
-    const workflow = await this.namespaceApiService.findOneById(id, req.user.id);
+    const workflow = await this.namespaceApiService.findOneById(
+      id,
+      req.user.id,
+    );
     return NamespaceDto.create(workflow);
   }
 }

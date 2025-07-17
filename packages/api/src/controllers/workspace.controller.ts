@@ -11,7 +11,8 @@ import {
   ValidationPipe,
   ParseIntPipe,
   Query,
-  BadRequestException, UseGuards,
+  BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -21,7 +22,8 @@ import {
   ApiBody,
   ApiExtraModels,
   ApiOkResponse,
-  ApiQuery, ApiUnauthorizedResponse,
+  ApiQuery,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { WorkspaceApiService } from '../services/workspace-api.service';
@@ -53,7 +55,8 @@ export class WorkspaceController {
    */
   @Get()
   @ApiOperation({
-    summary: 'Retrieve workspaces with filters, sorting, pagination, and search',
+    summary:
+      'Retrieve workspaces with filters, sorting, pagination, and search',
   })
   @ApiExtraModels(WorkspaceFilterDto, WorkspaceSortByDto)
   @ApiQuery({
@@ -90,7 +93,8 @@ export class WorkspaceController {
     name: 'search',
     required: false,
     type: String,
-    description: 'Search term to filter workspaces by title or other searchable fields',
+    description:
+      'Search term to filter workspaces by title or other searchable fields',
   })
   @ApiQuery({
     name: 'searchColumns',
@@ -99,7 +103,8 @@ export class WorkspaceController {
       type: 'string',
       example: '["title","description"]',
     },
-    description: 'JSON string array of columns to search in (defaults to title and type if not specified)',
+    description:
+      'JSON string array of columns to search in (defaults to title and type if not specified)',
   })
   @ApiPaginatedResponse(WorkspaceItemDto)
   @ApiUnauthorizedResponse()
@@ -134,19 +139,27 @@ export class WorkspaceController {
     let searchColumns: (keyof WorkspaceEntity)[] = [];
     if (searchColumnsParam) {
       try {
-        searchColumns = JSON.parse(searchColumnsParam) as (keyof WorkspaceEntity)[];
+        searchColumns = JSON.parse(
+          searchColumnsParam,
+        ) as (keyof WorkspaceEntity)[];
       } catch (e) {
         throw new BadRequestException('Invalid searchColumns format');
       }
     }
 
-    const result = await this.workspaceService.findAll(req.user.id, filter, sortBy, {
-      page,
-      limit,
-    }, {
-      query: search,
-      columns: searchColumns,
-    });
+    const result = await this.workspaceService.findAll(
+      req.user.id,
+      filter,
+      sortBy,
+      {
+        page,
+        limit,
+      },
+      {
+        query: search,
+        columns: searchColumns,
+      },
+    );
     return PaginatedDto.create(WorkspaceItemDto, result);
   }
 
@@ -185,7 +198,10 @@ export class WorkspaceController {
     @Body() workspaceData: WorkspaceCreateDto,
     @Request() req: ApiRequestType,
   ): Promise<WorkspaceDto> {
-    const workspace = await this.workspaceService.create(workspaceData, req.user.id);
+    const workspace = await this.workspaceService.create(
+      workspaceData,
+      req.user.id,
+    );
     return WorkspaceDto.create(workspace);
   }
 
@@ -238,7 +254,6 @@ export class WorkspaceController {
     await this.workspaceService.delete(id, req.user.id);
   }
 
-
   /**
    * Deletes multiple workspaces by their IDs.
    */
@@ -252,14 +267,14 @@ export class WorkspaceController {
         ids: {
           type: 'array',
           items: {
-            type: 'string'
+            type: 'string',
           },
           description: 'Array of workspace IDs to delete',
-          example: ['pipeline-1', 'pipeline-2', 'pipeline-3']
-        }
+          example: ['pipeline-1', 'pipeline-2', 'pipeline-3'],
+        },
       },
-      required: ['ids']
-    }
+      required: ['ids'],
+    },
   })
   @ApiResponse({
     status: 200,
@@ -270,7 +285,7 @@ export class WorkspaceController {
         deleted: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Successfully deleted workspace IDs'
+          description: 'Successfully deleted workspace IDs',
         },
         failed: {
           type: 'array',
@@ -278,13 +293,13 @@ export class WorkspaceController {
             type: 'object',
             properties: {
               id: { type: 'string' },
-              error: { type: 'string' }
-            }
+              error: { type: 'string' },
+            },
           },
-          description: 'Failed deletions with error details'
-        }
-      }
-    }
+          description: 'Failed deletions with error details',
+        },
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Invalid request body' })
   @ApiUnauthorizedResponse()
@@ -292,7 +307,13 @@ export class WorkspaceController {
   async batchDeleteWorkspaces(
     @Body() batchDeleteDto: { ids: string[] },
     @Request() req: ApiRequestType,
-  ): Promise<{ deleted: string[]; failed: Array<{ id: string; error: string }> }> {
-    return await this.workspaceService.batchDelete(batchDeleteDto.ids, req.user.id);
+  ): Promise<{
+    deleted: string[];
+    failed: Array<{ id: string; error: string }>;
+  }> {
+    return await this.workspaceService.batchDelete(
+      batchDeleteDto.ids,
+      req.user.id,
+    );
   }
 }

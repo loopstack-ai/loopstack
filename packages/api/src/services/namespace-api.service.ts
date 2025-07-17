@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import {IsNull, FindManyOptions, Repository } from 'typeorm';
+import { IsNull, FindManyOptions, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import {NamespaceFilterDto} from "../dtos/namespace-filter.dto";
-import {NamespaceSortByDto} from "../dtos/namespace-sort-by.dto";
+import { NamespaceFilterDto } from '../dtos/namespace-filter.dto';
+import { NamespaceSortByDto } from '../dtos/namespace-sort-by.dto';
 import { NamespaceEntity } from '@loopstack/shared';
 
 @Injectable()
@@ -79,7 +79,7 @@ export class NamespaceApiService {
         id,
         createdBy: user === null ? IsNull() : user,
       },
-      relations: ['workflows', 'children']
+      relations: ['workflows', 'children'],
     });
 
     if (!namespace) {

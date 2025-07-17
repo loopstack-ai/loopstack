@@ -1,8 +1,16 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
-import { PipelineEntity, PipelineState, WorkspaceEntity } from '@loopstack/shared';
+import {
+  PipelineEntity,
+  PipelineState,
+  WorkspaceEntity,
+} from '@loopstack/shared';
 import { RootProcessorService } from '@loopstack/core/dist/modules/workflow-processor/services/root-processor.service';
 
 @Injectable()
@@ -52,7 +60,11 @@ export class ProcessorApiService {
       payload,
     );
 
-    pipeline.status = finalContext.error ? PipelineState.Failed : (finalContext.stop ? PipelineState.Paused : PipelineState.Completed);
+    pipeline.status = finalContext.error
+      ? PipelineState.Failed
+      : finalContext.stop
+        ? PipelineState.Paused
+        : PipelineState.Completed;
     await this.pipelineEntityRepository.save(pipeline);
 
     pipeline.workspace.isLocked = false;

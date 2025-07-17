@@ -7,7 +7,9 @@ import {
   ValidationPipe,
   ParseIntPipe,
   Query,
-  BadRequestException, Delete, UseGuards,
+  BadRequestException,
+  Delete,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -16,7 +18,8 @@ import {
   ApiTags,
   ApiExtraModels,
   ApiOkResponse,
-  ApiQuery, ApiUnauthorizedResponse,
+  ApiQuery,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ApiRequestType } from '../interfaces/api-request.type';
 import { WorkflowApiService } from '../services/workflow-api.service';
@@ -101,10 +104,15 @@ export class WorkflowController {
       }
     }
 
-    const result = await this.workflowService.findAll(req.user.id, filter, sortBy, {
-      page,
-      limit,
-    });
+    const result = await this.workflowService.findAll(
+      req.user.id,
+      filter,
+      sortBy,
+      {
+        page,
+        limit,
+      },
+    );
     return PaginatedDto.create(WorkflowItemDto, result);
   }
 

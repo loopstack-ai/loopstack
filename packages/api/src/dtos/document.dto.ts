@@ -135,8 +135,7 @@ export class DocumentDto<T = unknown> {
   @ApiProperty({
     type: 'array',
     items: { type: 'string' },
-    description:
-        'Labels associated with the document\'s namespace',
+    description: "Labels associated with the document's namespace",
     example: ['frontend', 'featureXY'],
   })
   labels: string[];

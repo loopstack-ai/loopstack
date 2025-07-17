@@ -3,7 +3,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   PipelineState,
   UISchemaType,
-  WorkflowEntity, WorkflowState,
+  WorkflowEntity,
+  WorkflowState,
   WorkflowStateHistoryDto,
   WorkflowStatePlaceInfoDto,
 } from '@loopstack/shared';
@@ -46,7 +47,7 @@ export class WorkflowDto {
     type: 'array',
     items: { type: 'string' },
     description:
-        'Tags associated with the workflow for categorization and filtering',
+      'Tags associated with the workflow for categorization and filtering',
     example: ['frontend', 'featureXY'],
   })
   labels: string[];

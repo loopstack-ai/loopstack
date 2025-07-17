@@ -9,7 +9,10 @@ import { WorkspaceApiService } from './services/workspace-api.service';
 import { ProcessorApiService } from './services/processor-api.service';
 import {
   DocumentEntity,
-  NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity,
+  NamespaceEntity,
+  PipelineEntity,
+  WorkflowEntity,
+  WorkspaceEntity,
 } from '@loopstack/shared';
 import { ProcessorController } from './controllers/processor.controller';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -18,8 +21,8 @@ import { WorkflowController } from './controllers/workflow.controller';
 import { DocumentController } from './controllers/document.controller';
 import { WorkflowApiService } from './services/workflow-api.service';
 import { DocumentApiService } from './services/document-api.service';
-import {NamespaceController} from "./controllers/namespace.controller";
-import {NamespaceApiService} from "./services/namespace-api.service";
+import { NamespaceController } from './controllers/namespace.controller';
+import { NamespaceApiService } from './services/namespace-api.service';
 import { LoopCoreModule } from '@loopstack/core';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
@@ -95,10 +98,11 @@ export class LoopstackApiModule extends ConfigurableModuleClass {
     const corsEnabled = options.cors?.enabled ?? true;
     if (corsEnabled) {
       app.enableCors(
-        options.cors?.options ?? {
-          origin: true,
-          credentials: true,
-        } as CorsOptions,
+        options.cors?.options ??
+          ({
+            origin: true,
+            credentials: true,
+          } as CorsOptions),
       );
     }
 

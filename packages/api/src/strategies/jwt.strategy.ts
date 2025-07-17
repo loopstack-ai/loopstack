@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
 
     if (!process.env.JWT_SECRET) {
-      this.logger.warn('No JWT Secret defined.')
+      this.logger.warn('No JWT Secret defined.');
     }
   }
 

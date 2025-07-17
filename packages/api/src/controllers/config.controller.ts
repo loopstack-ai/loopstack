@@ -6,7 +6,14 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Controller, Get, Param, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { PipelineType, WorkspaceType } from '@loopstack/shared';
 import { ConfigurationService } from '@loopstack/core';
 import { plainToInstance } from 'class-transformer';
@@ -20,7 +27,6 @@ import { sortBy } from 'lodash';
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @Controller('api/v1/config')
 export class ConfigController {
-
   constructor(private configService: ConfigurationService) {}
 
   @Get('workspaces')
@@ -36,21 +42,33 @@ export class ConfigController {
   }
 
   @Get('workspaces/:workspaceName/pipelines')
-  @ApiOperation({ summary: 'Get all pipeline types available for this workspace' })
-  @ApiParam({ name: 'workspaceName', type: String, description: 'The name of the workspace type' })
+  @ApiOperation({
+    summary: 'Get all pipeline types available for this workspace',
+  })
+  @ApiParam({
+    name: 'workspaceName',
+    type: String,
+    description: 'The name of the workspace type',
+  })
   @ApiOkResponse({ type: PipelineConfigDto, isArray: true })
   @ApiUnauthorizedResponse()
   @UseGuards(JwtAuthGuard)
-  getPipelineTypesByWorkspace(@Param('workspaceName') workspaceName: string,): PipelineConfigDto[] {
+  getPipelineTypesByWorkspace(
+    @Param('workspaceName') workspaceName: string,
+  ): PipelineConfigDto[] {
     const pipelineTypes = this.configService.getAll<PipelineType>('pipelines');
     const filtered = pipelineTypes
-      .filter((pipeline) => pipeline.config.type === 'root' && pipeline.config.workspace === workspaceName)
+      .filter(
+        (pipeline) =>
+          pipeline.config.type === 'root' &&
+          pipeline.config.workspace === workspaceName,
+      )
       .map((pipeline) => ({
         ...pipeline.config,
         name: `${pipeline.path}:${pipeline.name}`,
       }));
 
-    const sorted = sortBy(filtered, 'title')
+    const sorted = sortBy(filtered, 'title');
 
     return plainToInstance(PipelineConfigDto, sorted, {
       excludeExtraneousValues: true,
