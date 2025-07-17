@@ -12,7 +12,7 @@ tools:
           type: 'string'
       additionalProperties: false
     execute:
-      service: MockService
+      handler: MockHandler
       arguments:
         input: ${ arguments.input }
         output: ${ arguments.output }

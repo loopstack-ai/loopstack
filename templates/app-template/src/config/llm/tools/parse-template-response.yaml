@@ -8,7 +8,7 @@ tools:
         response:
           type: string
     execute:
-      service: ParseResponseService
+      handler: ParseResponseHandler
       arguments:
         document: ${ arguments.document }
         response: ${ arguments.response }

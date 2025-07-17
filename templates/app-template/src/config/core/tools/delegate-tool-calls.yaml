@@ -9,6 +9,6 @@ tools:
         - toolCalls
       additionalProperties: false
     execute:
-      service: DelegateToolCallsService
+      handler: DelegateToolCallsHandler
       arguments:
         toolCalls: ${ arguments.toolCalls }

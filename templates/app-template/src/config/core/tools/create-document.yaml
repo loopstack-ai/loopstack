@@ -11,7 +11,7 @@ tools:
         - document
       additionalProperties: false
     execute:
-      service: CreateDocumentService
+      handler: CreateDocumentHandler
       arguments:
         document: ${ arguments.document }
         update:

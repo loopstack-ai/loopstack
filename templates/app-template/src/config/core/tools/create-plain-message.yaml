@@ -15,7 +15,7 @@ tools:
         - content
       additionalProperties: false
     execute:
-      service: CreateDocumentService
+      handler: CreateDocumentHandler
       arguments:
         document: plain_message
         update:

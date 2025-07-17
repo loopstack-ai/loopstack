@@ -1,5 +1,5 @@
 import { createPipelineTestSetup } from './utils/create-pipeline-test-setup';
-import { ServiceRegistry } from '@loopstack/core';
+import { HandlerRegistry } from '@loopstack/core';
 import {
   mockServiceInRegistry,
   MockServiceInterface,
@@ -8,12 +8,12 @@ import { createMockPromptResponse } from './utils/create-mock-llm-response';
 
 describe('Tool Call Agent Example', () => {
   let testSetup: any;
-  let serviceRegistry: ServiceRegistry;
+  let serviceRegistry: HandlerRegistry;
   let mockService: MockServiceInterface;
 
   beforeAll(async () => {
     testSetup = await createPipelineTestSetup();
-    serviceRegistry = testSetup.app.get(ServiceRegistry);
+    serviceRegistry = testSetup.app.get(HandlerRegistry);
   });
 
   beforeEach(async () => {

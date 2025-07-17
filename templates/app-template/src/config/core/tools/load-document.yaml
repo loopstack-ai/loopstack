@@ -25,7 +25,7 @@ tools:
         - where
       additionalProperties: false
     execute:
-      service: LoadDocumentService
+      handler: LoadDocumentHandler
       arguments:
         where: ${ arguments.where }
         orderBy: ${ arguments.orderBy }

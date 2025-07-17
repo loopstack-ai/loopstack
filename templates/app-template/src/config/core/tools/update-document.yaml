@@ -12,7 +12,7 @@ tools:
         - content
       additionalProperties: false
     execute:
-      service: UpdateDocumentService
+      handler: UpdateDocumentHandler
       arguments:
         id: ${ arguments.id }
         update:

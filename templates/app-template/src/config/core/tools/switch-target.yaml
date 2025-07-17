@@ -10,6 +10,6 @@ tools:
         - target
       additionalProperties: false
     execute:
-      service: SetTargetPlaceService
+      handler: SetTargetPlaceHandler
       arguments:
         target: ${ arguments.target }

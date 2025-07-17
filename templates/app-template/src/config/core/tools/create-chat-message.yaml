@@ -34,7 +34,7 @@ tools:
     execute:
 
       # Service Name
-      service: CreateDocumentService
+      handler: CreateDocumentHandler
 
       # Service Call Arguments
       arguments:

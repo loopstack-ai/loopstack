@@ -10,7 +10,7 @@ tools:
           items:
             type: string
     execute:
-      service: ExtractResponseTagsService
+      handler: ExtractResponseTagsHandler
       arguments:
         tags: ${ arguments.tags }
         response: ${ arguments.source }

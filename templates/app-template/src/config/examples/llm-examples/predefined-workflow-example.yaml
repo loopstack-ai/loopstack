@@ -93,7 +93,7 @@ workflows:
 tools:
   - name: analyse_text
     execute:
-      service: LlmCompletionService
+      handler: LlmCompletionHandler
       arguments:
         llm:
           envApiKey: OPENAI_KEY
@@ -115,7 +115,7 @@ tools:
 
   - name: improve_text
     execute:
-      service: LlmCompletionService
+      handler: LlmCompletionHandler
       arguments:
         llm:
           envApiKey: OPENAI_KEY

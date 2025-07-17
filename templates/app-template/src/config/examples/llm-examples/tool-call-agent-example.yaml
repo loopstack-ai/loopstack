@@ -89,14 +89,14 @@ tools:
       required:
         - userId
     execute:
-      service: MockService
+      handler: MockHandler
       arguments:
         input: "User ID: {{ arguments.userId }}"
         output: "The Username is Jakob"
 
   - name: prompt_with_tools
     execute:
-      service: ExecutePromptMessagesService
+      handler: ExecutePromptMessagesHandler
       arguments:
         llm:
           envApiKey: OPENAI_KEY

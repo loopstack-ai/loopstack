@@ -47,7 +47,7 @@ workflows:
 tools:
   - name: chatbot_llm_tool
     execute:
-      service: ExecutePromptMessagesService
+      handler: ExecutePromptMessagesHandler
       arguments:
         llm:
           envApiKey: OPENAI_KEY

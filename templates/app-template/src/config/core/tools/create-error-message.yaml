@@ -13,7 +13,7 @@ tools:
         - message
       additionalProperties: false
     execute:
-      service: CreateDocumentService
+      handler: CreateDocumentHandler
       arguments:
         document: error_message
         update:

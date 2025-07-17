@@ -6,6 +6,6 @@ tools:
         document:
           type: string
     execute:
-      service: CreateOutputTemplateService
+      handler: CreateOutputTemplateHandler
       arguments:
         document: ${ arguments.document }

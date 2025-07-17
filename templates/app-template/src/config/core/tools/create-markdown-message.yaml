@@ -15,7 +15,7 @@ tools:
         - markdown
       additionalProperties: false
     execute:
-      service: CreateDocumentService
+      handler: CreateDocumentHandler
       arguments:
         document: markdown_message
         update:
