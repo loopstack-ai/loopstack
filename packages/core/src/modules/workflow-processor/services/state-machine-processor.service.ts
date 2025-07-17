@@ -4,7 +4,7 @@ import {
   ConfigElement,
   ContextInterface,
   HistoryTransition,
-  ServiceCallResult,
+  HandlerCallResult,
   ToolCallType,
   TransitionInfoInterface,
   TransitionMetadataInterface,
@@ -265,7 +265,7 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     transition: string,
     toolCall: ToolCallType,
-    result: ServiceCallResult | undefined,
+    result: HandlerCallResult | undefined,
   ) {
     if (result?.workflow) {
       workflow = result?.workflow;

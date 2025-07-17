@@ -55,11 +55,12 @@ export class ObjectExpressionHandler
     maxMemoryMB: 128,
     timeoutMs: 5000,
     maxDataSize: 1024 * 1024, // 1MB
-    maxObjectDepth: 10
+    maxObjectDepth: 10,
   };
 
   private readonly EXPRESSION_PATTERN = /^\$\{(.+)\}$/;
-  private readonly FUNCTION_PATTERN = /^([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*(.*?)\s*\)$/;
+  private readonly FUNCTION_PATTERN =
+    /^([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*(.*?)\s*\)$/;
   private readonly VALID_SEGMENT_PATTERN = /^[a-zA-Z0-9_-]+(\[\d+\])?$/;
 
   // Security: Prevent prototype pollution
@@ -84,7 +85,7 @@ export class ObjectExpressionHandler
     'import',
     'require',
     'function',
-    'eval'
+    'eval',
   ]);
 
   private readonly functions = new Map<string, ExpressionFunction>();
@@ -111,16 +112,19 @@ export class ObjectExpressionHandler
 
       return this.processExpression(content, context);
     } catch (error) {
-      this.logger.error(`Failed to process object expression: ${error.message}`);
+      this.logger.error(
+        `Failed to process object expression: ${error.message}`,
+      );
 
       // Enhanced error logging only in error cases
       this.logger.debug('Expression processing failed', {
         expression: content.substring(0, 100),
         errorType: error.constructor.name,
-        errorCode: error instanceof ObjectExpressionError ? error.code : 'UNKNOWN',
+        errorCode:
+          error instanceof ObjectExpressionError ? error.code : 'UNKNOWN',
         variableKeys: Object.keys(variables).slice(0, 10), // Show first 10 variable keys
         expressionLength: content.length,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       if (error instanceof ObjectExpressionError) {
@@ -148,7 +152,7 @@ export class ObjectExpressionHandler
     if (!match || !match[1]) {
       this.logger.debug('Expression format validation failed', {
         content: trimmed.substring(0, 50),
-        patternUsed: this.EXPRESSION_PATTERN.source
+        patternUsed: this.EXPRESSION_PATTERN.source,
       });
       throw new ObjectExpressionError(
         'Invalid expression format',
@@ -159,7 +163,7 @@ export class ObjectExpressionHandler
     const expression = match[1].trim();
     if (!expression) {
       this.logger.debug('Empty expression detected', {
-        originalContent: trimmed
+        originalContent: trimmed,
       });
       throw new ObjectExpressionError(
         'Empty expression not allowed',
@@ -183,7 +187,7 @@ export class ObjectExpressionHandler
       this.logger.debug('Expression length exceeded', {
         expressionLength: expression.length,
         maxLength,
-        expressionPrefix: expression.substring(0, 50)
+        expressionPrefix: expression.substring(0, 50),
       });
       throw new ObjectExpressionError(
         `Expression too long (max: ${maxLength} characters)`,
@@ -199,7 +203,7 @@ export class ObjectExpressionHandler
         this.logger.debug('Expression depth exceeded', {
           segmentCount: segments.length,
           maxDepth,
-          segments: segments.slice(0, 5) // Show first 5 segments
+          segments: segments.slice(0, 5), // Show first 5 segments
         });
         throw new ObjectExpressionError(
           `Expression depth too high (max: ${maxDepth} levels)`,
@@ -211,12 +215,15 @@ export class ObjectExpressionHandler
     }
   }
 
-  private evaluateExpression(expression: string, variables: Record<string, any>): any {
+  private evaluateExpression(
+    expression: string,
+    variables: Record<string, any>,
+  ): any {
     const resourceMonitor: ResourceMonitor = {
       iterations: 0,
       startTime: Date.now(),
       memoryBaseline: process.memoryUsage().heapUsed,
-      operationMemory: 0
+      operationMemory: 0,
     };
 
     // Check timeout before starting
@@ -225,7 +232,11 @@ export class ObjectExpressionHandler
     try {
       // Check if it's a function call
       if (this.isFunctionCall(expression)) {
-        return this.evaluateFunctionCall(expression, variables, resourceMonitor);
+        return this.evaluateFunctionCall(
+          expression,
+          variables,
+          resourceMonitor,
+        );
       }
 
       // Simple property access - safe to do in main process
@@ -235,7 +246,7 @@ export class ObjectExpressionHandler
         expression: expression.substring(0, 100),
         errorMessage: error.message,
         iterations: resourceMonitor.iterations,
-        timeElapsed: Date.now() - resourceMonitor.startTime
+        timeElapsed: Date.now() - resourceMonitor.startTime,
       });
       throw new ObjectExpressionError(
         'Failed to evaluate expression',
@@ -244,12 +255,16 @@ export class ObjectExpressionHandler
     }
   }
 
-  private evaluateFunctionCall(expression: string, variables: Record<string, any>, resourceMonitor: ResourceMonitor): any {
+  private evaluateFunctionCall(
+    expression: string,
+    variables: Record<string, any>,
+    resourceMonitor: ResourceMonitor,
+  ): any {
     const functionCall = this.parseFunctionCall(expression);
     const func = this.functions.get(functionCall.name)!;
 
     // Resolve arguments in main process
-    const resolvedArgs = functionCall.args.map(arg => {
+    const resolvedArgs = functionCall.args.map((arg) => {
       if (this.isPropertyAccess(arg)) {
         // Simple property access - no VM needed
         this.checkResourceLimits(resourceMonitor);
@@ -262,13 +277,18 @@ export class ObjectExpressionHandler
 
     // Execute function in main process with resource monitoring
     this.checkResourceLimits(resourceMonitor);
-    return this.wrapFunctionWithLimits(func, resourceMonitor)(resolvedArgs, variables);
+    return this.wrapFunctionWithLimits(func, resourceMonitor)(
+      resolvedArgs,
+      variables,
+    );
   }
 
   private parseLiteral(arg: string): string {
     // Remove surrounding quotes (single or double)
-    if ((arg.startsWith('"') && arg.endsWith('"')) ||
-      (arg.startsWith("'") && arg.endsWith("'"))) {
+    if (
+      (arg.startsWith('"') && arg.endsWith('"')) ||
+      (arg.startsWith("'") && arg.endsWith("'"))
+    ) {
       return arg.slice(1, -1);
     }
     // Return as-is if no quotes
@@ -277,7 +297,7 @@ export class ObjectExpressionHandler
 
   private wrapFunctionWithLimits(
     func: ExpressionFunction,
-    resourceMonitor: ResourceMonitor
+    resourceMonitor: ResourceMonitor,
   ): (args: any[], variables: Record<string, any>) => any {
     return (args: any[], variables: Record<string, any>) => {
       // Validate argument count
@@ -285,7 +305,7 @@ export class ObjectExpressionHandler
         this.logger.debug('Function argument count insufficient', {
           functionName: func.name,
           providedArgs: args.length,
-          minArgs: func.minArgs
+          minArgs: func.minArgs,
         });
         throw new ObjectExpressionError(
           `Function ${func.name} requires at least ${func.minArgs} arguments`,
@@ -297,7 +317,7 @@ export class ObjectExpressionHandler
         this.logger.debug('Function argument count exceeded', {
           functionName: func.name,
           providedArgs: args.length,
-          maxArgs: func.maxArgs
+          maxArgs: func.maxArgs,
         });
         throw new ObjectExpressionError(
           `Function ${func.name} accepts at most ${func.maxArgs} arguments`,
@@ -319,9 +339,12 @@ export class ObjectExpressionHandler
       this.logger.debug('Resource timeout exceeded', {
         timeElapsed,
         timeoutMs: this.RESOURCE_LIMITS.timeoutMs,
-        iterations: resourceMonitor.iterations
+        iterations: resourceMonitor.iterations,
       });
-      throw new ObjectExpressionError('Resource timeout exceeded', 'TIMEOUT_EXCEEDED');
+      throw new ObjectExpressionError(
+        'Resource timeout exceeded',
+        'TIMEOUT_EXCEEDED',
+      );
     }
 
     // Check iterations
@@ -330,23 +353,30 @@ export class ObjectExpressionHandler
       this.logger.debug('Iteration limit exceeded', {
         iterations: resourceMonitor.iterations,
         maxIterations: this.RESOURCE_LIMITS.maxIterations,
-        timeElapsed
+        timeElapsed,
       });
-      throw new ObjectExpressionError('Iteration limit exceeded', 'ITERATION_LIMIT_EXCEEDED');
+      throw new ObjectExpressionError(
+        'Iteration limit exceeded',
+        'ITERATION_LIMIT_EXCEEDED',
+      );
     }
 
     // More precise memory monitoring - track operation-specific memory
     const currentMemory = process.memoryUsage().heapUsed;
-    const memoryDiff = (currentMemory - resourceMonitor.memoryBaseline) / 1024 / 1024; // MB
+    const memoryDiff =
+      (currentMemory - resourceMonitor.memoryBaseline) / 1024 / 1024; // MB
 
     if (memoryDiff > this.RESOURCE_LIMITS.maxMemoryMB) {
       this.logger.debug('Memory limit exceeded', {
         memoryDiff: memoryDiff.toFixed(2),
         maxMemoryMB: this.RESOURCE_LIMITS.maxMemoryMB,
         iterations: resourceMonitor.iterations,
-        timeElapsed
+        timeElapsed,
       });
-      throw new ObjectExpressionError('Memory limit exceeded', 'MEMORY_LIMIT_EXCEEDED');
+      throw new ObjectExpressionError(
+        'Memory limit exceeded',
+        'MEMORY_LIMIT_EXCEEDED',
+      );
     }
   }
 
@@ -366,7 +396,7 @@ export class ObjectExpressionHandler
     if (!this.functions.has(functionCall.name)) {
       this.logger.debug('Unknown function called', {
         functionName: functionCall.name,
-        availableFunctions: Array.from(this.functions.keys())
+        availableFunctions: Array.from(this.functions.keys()),
       });
       throw new ObjectExpressionError(
         `Unknown function: ${functionCall.name}`,
@@ -382,7 +412,7 @@ export class ObjectExpressionHandler
         functionName: functionCall.name,
         providedArgs: functionCall.args.length,
         minArgs: func.minArgs,
-        args: functionCall.args
+        args: functionCall.args,
       });
       throw new ObjectExpressionError(
         `Function ${functionCall.name} requires at least ${func.minArgs} arguments`,
@@ -395,7 +425,7 @@ export class ObjectExpressionHandler
         functionName: functionCall.name,
         providedArgs: functionCall.args.length,
         maxArgs: func.maxArgs,
-        args: functionCall.args
+        args: functionCall.args,
       });
       throw new ObjectExpressionError(
         `Function ${functionCall.name} accepts at most ${func.maxArgs} arguments`,
@@ -417,7 +447,7 @@ export class ObjectExpressionHandler
     if (!match) {
       this.logger.debug('Function call parsing failed', {
         expression: expression.substring(0, 100),
-        patternUsed: this.FUNCTION_PATTERN.source
+        patternUsed: this.FUNCTION_PATTERN.source,
       });
       throw new ObjectExpressionError(
         'Invalid function call format',
@@ -430,7 +460,10 @@ export class ObjectExpressionHandler
 
     // Parse arguments (simple comma-separated for now)
     const args = argsString
-      ? argsString.split(',').map(arg => arg.trim()).filter(arg => arg)
+      ? argsString
+          .split(',')
+          .map((arg) => arg.trim())
+          .filter((arg) => arg)
       : [];
 
     return { name, args };
@@ -452,7 +485,7 @@ export class ObjectExpressionHandler
         this.logger.debug('Forbidden property access attempt', {
           segment,
           allSegments: segments,
-          forbiddenProperties: Array.from(this.FORBIDDEN_PROPERTIES)
+          forbiddenProperties: Array.from(this.FORBIDDEN_PROPERTIES),
         });
         throw new ObjectExpressionError(
           'Expression contains forbidden property access',
@@ -464,7 +497,7 @@ export class ObjectExpressionHandler
         this.logger.debug('Invalid segment detected', {
           segment,
           allSegments: segments,
-          patternUsed: this.VALID_SEGMENT_PATTERN.source
+          patternUsed: this.VALID_SEGMENT_PATTERN.source,
         });
         throw new ObjectExpressionError(
           'Expression contains invalid characters or format',
@@ -485,7 +518,7 @@ export class ObjectExpressionHandler
           }
           this.logger.debug('concat function type error', {
             argType: typeof arg,
-            argValue: String(arg).substring(0, 50)
+            argValue: String(arg).substring(0, 50),
           });
           throw new ObjectExpressionError(
             'concat() function only accepts strings',
@@ -506,7 +539,7 @@ export class ObjectExpressionHandler
         if (!Array.isArray(array)) {
           this.logger.debug('flatMap function type error - not array', {
             argType: typeof array,
-            argValue: String(array).substring(0, 50)
+            argValue: String(array).substring(0, 50),
           });
           throw new ObjectExpressionError(
             'flatMap() function first argument must be an array',
@@ -515,10 +548,13 @@ export class ObjectExpressionHandler
         }
 
         if (typeof propertyPath !== 'string') {
-          this.logger.debug('flatMap function type error - property path not string', {
-            propertyPathType: typeof propertyPath,
-            propertyPath: String(propertyPath)
-          });
+          this.logger.debug(
+            'flatMap function type error - property path not string',
+            {
+              propertyPathType: typeof propertyPath,
+              propertyPath: String(propertyPath),
+            },
+          );
           throw new ObjectExpressionError(
             'flatMap() function second argument must be a property path string',
             'INVALID_ARGUMENT_TYPE',
@@ -529,7 +565,7 @@ export class ObjectExpressionHandler
         if (array.length > this.RESOURCE_LIMITS.maxIterations) {
           this.logger.debug('flatMap array too large', {
             arrayLength: array.length,
-            maxIterations: this.RESOURCE_LIMITS.maxIterations
+            maxIterations: this.RESOURCE_LIMITS.maxIterations,
           });
           throw new ObjectExpressionError(
             `Array too large for flatMap (max: ${this.RESOURCE_LIMITS.maxIterations})`,
@@ -546,7 +582,7 @@ export class ObjectExpressionHandler
             this.logger.debug('flatMap iteration limit exceeded', {
               iterations,
               maxIterations: this.RESOURCE_LIMITS.maxIterations,
-              resultLength: result.length
+              resultLength: result.length,
             });
             throw new ObjectExpressionError(
               'Iteration limit exceeded in flatMap',
@@ -562,7 +598,7 @@ export class ObjectExpressionHandler
                 if (result.length >= this.RESOURCE_LIMITS.maxIterations) {
                   this.logger.debug('flatMap result too large', {
                     resultLength: result.length,
-                    maxIterations: this.RESOURCE_LIMITS.maxIterations
+                    maxIterations: this.RESOURCE_LIMITS.maxIterations,
                   });
                   throw new ObjectExpressionError(
                     'Result array too large in flatMap',
@@ -575,7 +611,7 @@ export class ObjectExpressionHandler
               if (result.length >= this.RESOURCE_LIMITS.maxIterations) {
                 this.logger.debug('flatMap result too large', {
                   resultLength: result.length,
-                  maxIterations: this.RESOURCE_LIMITS.maxIterations
+                  maxIterations: this.RESOURCE_LIMITS.maxIterations,
                 });
                 throw new ObjectExpressionError(
                   'Result array too large in flatMap',
@@ -604,7 +640,7 @@ export class ObjectExpressionHandler
         this.logger.debug('length function type error', {
           argType: typeof value,
           isArray: Array.isArray(value),
-          argValue: String(value).substring(0, 50)
+          argValue: String(value).substring(0, 50),
         });
         throw new ObjectExpressionError(
           'length() function only accepts arrays or strings',
@@ -623,7 +659,7 @@ export class ObjectExpressionHandler
         if (!Array.isArray(array)) {
           this.logger.debug('first function type error', {
             argType: typeof array,
-            argValue: String(array).substring(0, 50)
+            argValue: String(array).substring(0, 50),
           });
           throw new ObjectExpressionError(
             'first() function only accepts arrays',
@@ -644,7 +680,7 @@ export class ObjectExpressionHandler
         if (!Array.isArray(array)) {
           this.logger.debug('last function type error', {
             argType: typeof array,
-            argValue: String(array).substring(0, 50)
+            argValue: String(array).substring(0, 50),
           });
           throw new ObjectExpressionError(
             'last() function only accepts arrays',
@@ -655,6 +691,167 @@ export class ObjectExpressionHandler
       },
       minArgs: 1,
       maxArgs: 1,
+    });
+
+    // Merge function - merges two objects with second overriding first
+    this.registerFunction({
+      name: 'merge',
+      handler: (args: any[]) => {
+        const obj1 = args[0];
+        const obj2 = args[1];
+
+        if (typeof obj1 !== 'object' || obj1 === null || Array.isArray(obj1)) {
+          this.logger.debug(
+            'merge function type error - first arg not object',
+            {
+              argType: typeof obj1,
+              argValue: String(obj1).substring(0, 50),
+            },
+          );
+          throw new ObjectExpressionError(
+            'merge() function first argument must be an object',
+            'INVALID_ARGUMENT_TYPE',
+          );
+        }
+
+        if (typeof obj2 !== 'object' || obj2 === null || Array.isArray(obj2)) {
+          this.logger.debug(
+            'merge function type error - second arg not object',
+            {
+              argType: typeof obj2,
+              argValue: String(obj2).substring(0, 50),
+            },
+          );
+          throw new ObjectExpressionError(
+            'merge() function second argument must be an object',
+            'INVALID_ARGUMENT_TYPE',
+          );
+        }
+
+        // Check combined object size limits
+        const combinedKeys = new Set([
+          ...Object.keys(obj1),
+          ...Object.keys(obj2),
+        ]);
+        if (combinedKeys.size > this.RESOURCE_LIMITS.maxIterations) {
+          this.logger.debug('merge result too large', {
+            combinedKeyCount: combinedKeys.size,
+            maxIterations: this.RESOURCE_LIMITS.maxIterations,
+          });
+          throw new ObjectExpressionError(
+            `Merged object too large (max keys: ${this.RESOURCE_LIMITS.maxIterations})`,
+            'OBJECT_TOO_LARGE',
+          );
+        }
+
+        return { ...obj1, ...obj2 };
+      },
+      minArgs: 2,
+      maxArgs: 2,
+    });
+
+    // MergeWith function - merges a common object to all items in an array
+    this.registerFunction({
+      name: 'mergeWith',
+      handler: (args: any[]) => {
+        const array = args[0];
+        const commonObject = args[1];
+
+        if (!Array.isArray(array)) {
+          this.logger.debug('mergeWith function type error - not array', {
+            argType: typeof array,
+            argValue: String(array).substring(0, 50),
+          });
+          throw new ObjectExpressionError(
+            'mergeWith() function first argument must be an array',
+            'INVALID_ARGUMENT_TYPE',
+          );
+        }
+
+        if (
+          typeof commonObject !== 'object' ||
+          commonObject === null ||
+          Array.isArray(commonObject)
+        ) {
+          this.logger.debug(
+            'mergeWith function type error - common object not object',
+            {
+              argType: typeof commonObject,
+              argValue: String(commonObject).substring(0, 50),
+            },
+          );
+          throw new ObjectExpressionError(
+            'mergeWith() function second argument must be an object',
+            'INVALID_ARGUMENT_TYPE',
+          );
+        }
+
+        // Enforce array size limits
+        if (array.length > this.RESOURCE_LIMITS.maxIterations) {
+          this.logger.debug('mergeWith array too large', {
+            arrayLength: array.length,
+            maxIterations: this.RESOURCE_LIMITS.maxIterations,
+          });
+          throw new ObjectExpressionError(
+            `Array too large for mergeWith (max: ${this.RESOURCE_LIMITS.maxIterations})`,
+            'ARRAY_TOO_LARGE',
+          );
+        }
+
+        const result: any[] = [];
+        let iterations = 0;
+
+        for (const item of array) {
+          // Check iteration limit
+          if (++iterations > this.RESOURCE_LIMITS.maxIterations) {
+            this.logger.debug('mergeWith iteration limit exceeded', {
+              iterations,
+              maxIterations: this.RESOURCE_LIMITS.maxIterations,
+            });
+            throw new ObjectExpressionError(
+              'Iteration limit exceeded in mergeWith',
+              'ITERATION_LIMIT_EXCEEDED',
+            );
+          }
+
+          if (
+            typeof item === 'object' &&
+            item !== null &&
+            !Array.isArray(item)
+          ) {
+            // Check merged object size
+            const combinedKeys = new Set([
+              ...Object.keys(item),
+              ...Object.keys(commonObject),
+            ]);
+            if (combinedKeys.size > this.RESOURCE_LIMITS.maxIterations) {
+              this.logger.debug('mergeWith merged item too large', {
+                combinedKeyCount: combinedKeys.size,
+                maxIterations: this.RESOURCE_LIMITS.maxIterations,
+                itemIndex: iterations - 1,
+              });
+              throw new ObjectExpressionError(
+                'Merged item too large in mergeWith',
+                'OBJECT_TOO_LARGE',
+              );
+            }
+
+            result.push({ ...item, ...commonObject });
+          } else {
+            this.logger.debug('mergeWith skipping non-object item', {
+              itemType: typeof item,
+              itemValue: String(item).substring(0, 50),
+              itemIndex: iterations - 1,
+            });
+            // Skip non-object items or add them as-is depending on your requirements
+            result.push(item);
+          }
+        }
+
+        return result;
+      },
+      minArgs: 2,
+      maxArgs: 2,
     });
   }
 

@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import {
   ContextInterface,
-  Service,
-  ServiceInterface,
-  ServiceCallResult,
+  Handler,
+  HandlerInterface,
+  HandlerCallResult,
   DocumentEntity,
   TransitionMetadataInterface,
   ExpressionString,
@@ -76,13 +76,12 @@ const config = z
   })
   .strict();
 
-@Injectable()
-@Service({
+@Handler({
   config,
   schema,
 })
-export class CreateDocumentService implements ServiceInterface {
-  private readonly logger = new Logger(CreateDocumentService.name);
+export class CreateDocumentHandler implements HandlerInterface {
+  private readonly logger = new Logger(CreateDocumentHandler.name);
 
   constructor(
     private loopConfigService: ConfigurationService,
@@ -97,7 +96,7 @@ export class CreateDocumentService implements ServiceInterface {
     context: ContextInterface,
     meta: TransitionMetadataInterface,
     parentArguments: any,
-  ): Promise<ServiceCallResult> {
+  ): Promise<HandlerCallResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }

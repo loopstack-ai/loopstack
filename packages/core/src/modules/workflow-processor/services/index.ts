@@ -9,4 +9,4 @@ export * from './template-expression-evaluator.service';
 export * from './workflow-state.service';
 export * from './root-processor.service';
 export * from './workflow-context.service';
-export * from './service-execution.service';
+export * from './handler-execution.service';

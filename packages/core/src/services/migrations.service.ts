@@ -30,7 +30,7 @@ export class MigrationsService implements OnModuleInit {
 
         try {
           await queryRunner.manager.query(`
-            CREATE TABLE IF NOT EXISTS migrations (
+            CREATE TABLE IF NOT EXISTS core_migrations (
               id SERIAL PRIMARY KEY,
               name VARCHAR(255) NOT NULL UNIQUE,
               timestamp BIGINT NOT NULL,
@@ -39,12 +39,12 @@ export class MigrationsService implements OnModuleInit {
           `);
 
           const existingMigration = await queryRunner.manager
-            .query(`SELECT * FROM migrations WHERE name = $1`, [name])
+            .query(`SELECT * FROM core_migrations WHERE name = $1`, [name])
             .catch(() => null);
 
           if (!existingMigration && existingMigration !== null) {
             await queryRunner.manager.query(`
-              CREATE TABLE IF NOT EXISTS migrations (
+              CREATE TABLE IF NOT EXISTS core_migrations (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL UNIQUE,
                 timestamp BIGINT NOT NULL,
@@ -57,7 +57,7 @@ export class MigrationsService implements OnModuleInit {
             await migration.up(queryRunner);
 
             await queryRunner.manager.query(
-              `INSERT INTO migrations (name, timestamp) VALUES ($1, $2)`,
+              `INSERT INTO core_migrations (name, timestamp) VALUES ($1, $2)`,
               [name, Date.now()],
             );
 

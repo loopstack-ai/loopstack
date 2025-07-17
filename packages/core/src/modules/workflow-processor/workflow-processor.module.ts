@@ -20,19 +20,19 @@ import {
   WorkflowStateService,
   RootProcessorService,
   WorkflowContextService,
-  ServiceExecutionService,
+  HandlerExecutionService,
 } from './services';
 import {
-  AddNamespaceService,
-  BatchCreateDocumentsService,
-  CreateDocumentService,
-  MockService,
-  LoadDocumentService,
-  SetContextService,
-  SetTargetPlaceService,
-  TransitionSelectorService,
-  UpdateDocumentService,
-} from './tool-services';
+  AddNamespaceHandler,
+  BatchCreateDocumentsHandler,
+  CreateDocumentHandler,
+  LoadDocumentHandler,
+  MockHandler,
+  SetContextHandler,
+  SetTargetPlaceHandler,
+  TransitionSelectorHandler,
+  UpdateDocumentHandler,
+} from './handlers';
 
 @Module({
   imports: [
@@ -46,28 +46,28 @@ import {
     WorkflowStateService,
     WorkflowProcessorService,
     ToolExecutionService,
-    CreateDocumentService,
-    BatchCreateDocumentsService,
-    MockService,
-    SetContextService,
-    AddNamespaceService,
-    LoadDocumentService,
-    TransitionSelectorService,
     NamespaceProcessorService,
     PipelineProcessorService,
-    UpdateDocumentService,
     TemplateExpressionEvaluatorService,
-    SetTargetPlaceService,
     WorkflowContextService,
-    ServiceExecutionService,
-
+    HandlerExecutionService,
     InitialRunValidator,
     WorkflowDependenciesValidator,
     WorkflowOptionValidator,
-
     StateMachineValidatorRegistry,
     StateMachineProcessorService,
     StateMachineConfigService,
+
+    // Tool Handlers
+    CreateDocumentHandler,
+    BatchCreateDocumentsHandler,
+    MockHandler,
+    SetContextHandler,
+    AddNamespaceHandler,
+    LoadDocumentHandler,
+    TransitionSelectorHandler,
+    UpdateDocumentHandler,
+    SetTargetPlaceHandler,
   ],
   exports: [
     RootProcessorService,

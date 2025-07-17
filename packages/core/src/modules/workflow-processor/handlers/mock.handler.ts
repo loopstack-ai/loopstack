@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
-  Service,
-  ServiceInterface,
-  ServiceCallResult,
+  Handler,
+  HandlerInterface,
+  HandlerCallResult,
   DocumentType,
   WorkflowEntity,
   ContextInterface,
@@ -27,13 +27,12 @@ const schema = z
   })
   .strict();
 
-@Injectable()
-@Service({
+@Handler({
   config,
   schema,
 })
-export class MockService implements ServiceInterface {
-  private readonly logger = new Logger(MockService.name);
+export class MockHandler implements HandlerInterface {
+  private readonly logger = new Logger(MockHandler.name);
 
   constructor(
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
@@ -45,7 +44,7 @@ export class MockService implements ServiceInterface {
     context: ContextInterface,
     transitionData: TransitionMetadataInterface,
     parentArguments: any,
-  ): Promise<ServiceCallResult> {
+  ): Promise<HandlerCallResult> {
     if (props.input) {
       const input = this.templateExpressionEvaluatorService.parse<DocumentType>(
         props.input,

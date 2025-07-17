@@ -5,7 +5,6 @@ import {
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 
-@Injectable()
 @StateMachineValidator({ priority: 0 })
 export class InitialRunValidator implements StateMachineValidatorInterface {
   private readonly logger = new Logger(InitialRunValidator.name);

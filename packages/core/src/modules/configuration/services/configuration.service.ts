@@ -1,6 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
-import { ServiceRegistry } from './service-registry.service';
 import { ConfigService } from '@nestjs/config';
 import {
   ConfigSourceInterface,
@@ -13,6 +12,7 @@ import {
 import { ConfigProviderRegistry } from './config-provider.registry';
 import { z } from 'zod';
 import { SchemaRegistry } from './schema-registry.service';
+import { HandlerRegistry } from './handler-registry.service';
 
 type ConfigElementMap = Map<string, ConfigElement<any>>;
 
@@ -24,7 +24,7 @@ export class ConfigurationService implements OnModuleInit {
 
   constructor(
     private configService: ConfigService,
-    private serviceRegistry: ServiceRegistry,
+    private handlerRegistry: HandlerRegistry,
     private configProviderRegistry: ConfigProviderRegistry,
     private mainSchemaGenerator: DynamicSchemaGeneratorService,
     private schemaRegistry: SchemaRegistry,
@@ -39,7 +39,7 @@ export class ConfigurationService implements OnModuleInit {
     this.clear();
 
     this.configProviderRegistry.initialize();
-    this.serviceRegistry.initialize();
+    this.handlerRegistry.initialize();
 
     const appConfigs =
       this.configService.get<ConfigSourceInterface[]>('configs') ?? [];

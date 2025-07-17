@@ -67,7 +67,7 @@ export class OperatorsHelperService {
       if (values.length === 0) {
         throw new Error('AND helper requires at least one argument');
       }
-      return values.every(val => this.safeTruthy(val));
+      return values.every((val) => this.safeTruthy(val));
     };
   }
 
@@ -77,7 +77,7 @@ export class OperatorsHelperService {
       if (values.length === 0) {
         throw new Error('OR helper requires at least one argument');
       }
-      return values.some(val => this.safeTruthy(val));
+      return values.some((val) => this.safeTruthy(val));
     };
   }
 
@@ -97,10 +97,14 @@ export class OperatorsHelperService {
     return (...args: any[]): boolean => {
       const values = args.slice(0, -1);
       if (values.length !== 2) {
-        throw new Error('CONTAINS helper requires exactly two arguments (haystack, needle)');
+        throw new Error(
+          'CONTAINS helper requires exactly two arguments (haystack, needle)',
+        );
       }
       const [haystack, needle] = values;
-      return this.safeStringOperation(haystack, needle, (h, n) => h.includes(n));
+      return this.safeStringOperation(haystack, needle, (h, n) =>
+        h.includes(n),
+      );
     };
   }
 
@@ -108,7 +112,9 @@ export class OperatorsHelperService {
     return (...args: any[]): boolean => {
       const values = args.slice(0, -1);
       if (values.length !== 2) {
-        throw new Error('STARTS_WITH helper requires exactly two arguments (string, prefix)');
+        throw new Error(
+          'STARTS_WITH helper requires exactly two arguments (string, prefix)',
+        );
       }
       const [str, prefix] = values;
       return this.safeStringOperation(str, prefix, (s, p) => s.startsWith(p));
@@ -119,7 +125,9 @@ export class OperatorsHelperService {
     return (...args: any[]): boolean => {
       const values = args.slice(0, -1);
       if (values.length !== 2) {
-        throw new Error('ENDS_WITH helper requires exactly two arguments (string, suffix)');
+        throw new Error(
+          'ENDS_WITH helper requires exactly two arguments (string, suffix)',
+        );
       }
       const [str, suffix] = values;
       return this.safeStringOperation(str, suffix, (s, p) => s.endsWith(p));
@@ -130,7 +138,9 @@ export class OperatorsHelperService {
     return (...args: any[]): boolean => {
       const values = args.slice(0, -1);
       if (values.length < 2 || values.length > 3) {
-        throw new Error('REGEX_TEST helper requires 2 or 3 arguments (string, pattern, [flags])');
+        throw new Error(
+          'REGEX_TEST helper requires 2 or 3 arguments (string, pattern, [flags])',
+        );
       }
       const [str, pattern, flags] = values;
 
@@ -140,7 +150,9 @@ export class OperatorsHelperService {
 
       // Validate regex flags
       if (safeFlags && !/^[gimuy]*$/.test(safeFlags)) {
-        throw new Error(`Invalid regex flags: ${safeFlags}. Only g, i, m, u, y are allowed.`);
+        throw new Error(
+          `Invalid regex flags: ${safeFlags}. Only g, i, m, u, y are allowed.`,
+        );
       }
 
       const regex = new RegExp(safePattern, safeFlags);
@@ -153,7 +165,9 @@ export class OperatorsHelperService {
     return (...args: any[]): boolean => {
       const values = args.slice(0, -1);
       if (values.length !== 2) {
-        throw new Error('IN helper requires exactly two arguments (needle, haystack)');
+        throw new Error(
+          'IN helper requires exactly two arguments (needle, haystack)',
+        );
       }
       const [needle, haystack] = values;
 
@@ -297,7 +311,9 @@ export class OperatorsHelperService {
         throw new Error('IS_OBJECT helper requires exactly one argument');
       }
       const [value] = values;
-      return typeof value === 'object' && value !== null && !Array.isArray(value);
+      return (
+        typeof value === 'object' && value !== null && !Array.isArray(value)
+      );
     };
   }
 
@@ -316,7 +332,9 @@ export class OperatorsHelperService {
     return (...args: any[]): number => {
       const values = args.slice(0, -1);
       if (values.length !== 2) {
-        throw new Error('SUBTRACT helper requires exactly two arguments (left, right)');
+        throw new Error(
+          'SUBTRACT helper requires exactly two arguments (left, right)',
+        );
       }
       const [left, right] = values;
       return this.safeNumber(left) - this.safeNumber(right);
@@ -327,7 +345,9 @@ export class OperatorsHelperService {
     return (...args: any[]): number => {
       const values = args.slice(0, -1);
       if (values.length !== 2) {
-        throw new Error('MULTIPLY helper requires exactly two arguments (left, right)');
+        throw new Error(
+          'MULTIPLY helper requires exactly two arguments (left, right)',
+        );
       }
       const [left, right] = values;
       return this.safeNumber(left) * this.safeNumber(right);
@@ -338,7 +358,9 @@ export class OperatorsHelperService {
     return (...args: any[]): number => {
       const values = args.slice(0, -1);
       if (values.length !== 2) {
-        throw new Error('DIVIDE helper requires exactly two arguments (left, right)');
+        throw new Error(
+          'DIVIDE helper requires exactly two arguments (left, right)',
+        );
       }
       const [left, right] = values;
       const rightNum = this.safeNumber(right);
@@ -353,7 +375,9 @@ export class OperatorsHelperService {
     return (...args: any[]): number => {
       const values = args.slice(0, -1);
       if (values.length !== 2) {
-        throw new Error('MODULO helper requires exactly two arguments (left, right)');
+        throw new Error(
+          'MODULO helper requires exactly two arguments (left, right)',
+        );
       }
       const [left, right] = values;
       const rightNum = this.safeNumber(right);
@@ -369,7 +393,9 @@ export class OperatorsHelperService {
     return (...args: any[]): any => {
       const values = args.slice(0, -1);
       if (values.length !== 2) {
-        throw new Error('DEFAULT helper requires exactly two arguments (value, defaultValue)');
+        throw new Error(
+          'DEFAULT helper requires exactly two arguments (value, defaultValue)',
+        );
       }
       const [value, defaultValue] = values;
       return this.safeTruthy(value) ? value : defaultValue;
@@ -377,19 +403,31 @@ export class OperatorsHelperService {
   }
 
   // Private security and utility methods
-  private safeCompare(left: any, right: any, compareFn: (a: any, b: any) => boolean): boolean {
+  private safeCompare(
+    left: any,
+    right: any,
+    compareFn: (a: any, b: any) => boolean,
+  ): boolean {
     const safeLeft = this.sanitizeValue(left);
     const safeRight = this.sanitizeValue(right);
     return compareFn(safeLeft, safeRight);
   }
 
-  private safeNumericCompare(left: any, right: any, compareFn: (a: number, b: number) => boolean): boolean {
+  private safeNumericCompare(
+    left: any,
+    right: any,
+    compareFn: (a: number, b: number) => boolean,
+  ): boolean {
     const leftNum = this.safeNumber(left);
     const rightNum = this.safeNumber(right);
     return compareFn(leftNum, rightNum);
   }
 
-  private safeStringOperation(str: any, other: any, operation: (s: string, o: string) => boolean): boolean {
+  private safeStringOperation(
+    str: any,
+    other: any,
+    operation: (s: string, o: string) => boolean,
+  ): boolean {
     const safeStr = this.sanitizeString(str);
     const safeOther = this.sanitizeString(other);
     return operation(safeStr, safeOther);
@@ -409,7 +447,11 @@ export class OperatorsHelperService {
       // Remove dangerous properties
       const sanitized = Array.isArray(value) ? [] : {};
       for (const key in value) {
-        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        if (
+          key === '__proto__' ||
+          key === 'constructor' ||
+          key === 'prototype'
+        ) {
           throw new Error(`Dangerous property access attempt: ${key}`);
         }
         if (Object.prototype.hasOwnProperty.call(value, key)) {

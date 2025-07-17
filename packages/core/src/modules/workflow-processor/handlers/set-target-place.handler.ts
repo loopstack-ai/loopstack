@@ -1,11 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
   ContextInterface,
-  ExpressionString,
-  Service,
-  ServiceInterface,
-  ServiceCallResult,
+  Handler,
+  HandlerInterface,
+  HandlerCallResult,
   TransitionMetadataInterface,
   WorkflowEntity,
 } from '@loopstack/shared';
@@ -22,20 +21,19 @@ const schema = z
   })
   .strict();
 
-@Injectable()
-@Service({
+@Handler({
   config,
   schema,
 })
-export class SetTargetPlaceService implements ServiceInterface {
-  private readonly logger = new Logger(SetTargetPlaceService.name);
+export class SetTargetPlaceHandler implements HandlerInterface {
+  private readonly logger = new Logger(SetTargetPlaceHandler.name);
 
   async apply(
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity,
     context: ContextInterface,
     transitionData: TransitionMetadataInterface,
-  ): Promise<ServiceCallResult> {
+  ): Promise<HandlerCallResult> {
     if (!transitionData.transition) {
       throw new Error('No transition available.');
     }

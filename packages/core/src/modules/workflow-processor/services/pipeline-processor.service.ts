@@ -8,7 +8,9 @@ import {
   PipelineFactoryType,
   PipelineItemType,
   WorkflowType,
-  ConfigElement, NamespacePropsSchema, NamespacePropsType,
+  ConfigElement,
+  NamespacePropsSchema,
+  NamespacePropsType,
 } from '@loopstack/shared';
 import { NamespaceProcessorService } from './namespace-processor.service';
 import { WorkflowProcessorService } from './workflow-processor.service';
@@ -27,12 +29,12 @@ const FactoryIteratorItemSchema = z
   .object({
     label: z.string().optional(),
     meta: z.any(), //todo
-  }).strict();
+  })
+  .strict();
 
-const FactoryIteratorSourceSchema = z.array(z.union([
-  z.record(z.string(), z.any()),
-  z.string(),
-]));
+const FactoryIteratorSourceSchema = z.array(
+  z.union([z.record(z.string(), z.any()), z.string()]),
+);
 
 @Injectable()
 export class PipelineProcessorService {
@@ -231,17 +233,17 @@ export class PipelineProcessorService {
     context: ContextInterface,
   ): Promise<ContextInterface> {
     if (configElement.config.namespace) {
-
-      const namespaceConfig = this.templateExpressionEvaluatorService.parse<NamespacePropsType>(
-        configElement.config.namespace,
-        { context },
-        {
-          schema: NamespacePropsSchema,
-          omitAliasVariables: true,
-          omitUseTemplates: true,
-          omitWorkflowData: true,
-        },
-      );
+      const namespaceConfig =
+        this.templateExpressionEvaluatorService.parse<NamespacePropsType>(
+          configElement.config.namespace,
+          { context },
+          {
+            schema: NamespacePropsSchema,
+            omitAliasVariables: true,
+            omitUseTemplates: true,
+            omitWorkflowData: true,
+          },
+        );
 
       context = await this.namespaceProcessorService.createNamespace(
         context,

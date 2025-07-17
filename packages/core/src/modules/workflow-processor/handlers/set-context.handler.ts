@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
-  Service,
-  ServiceInterface,
-  ServiceCallResult,
+  Handler,
+  HandlerInterface,
+  HandlerCallResult,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { WorkflowContextService } from '../services';
@@ -22,13 +22,12 @@ const schema = z
   })
   .strict();
 
-@Injectable()
-@Service({
+@Handler({
   config,
   schema,
 })
-export class SetContextService implements ServiceInterface {
-  private readonly logger = new Logger(SetContextService.name);
+export class SetContextHandler implements HandlerInterface {
+  private readonly logger = new Logger(SetContextHandler.name);
 
   constructor(
     private readonly workflowContextService: WorkflowContextService,
@@ -37,7 +36,7 @@ export class SetContextService implements ServiceInterface {
   async apply(
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
-  ): Promise<ServiceCallResult> {
+  ): Promise<HandlerCallResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }

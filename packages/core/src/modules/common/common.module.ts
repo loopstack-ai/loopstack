@@ -7,7 +7,8 @@ import {
   TemplateExpressionHandler,
   DateFormatterHelperService,
   VariableSanitizerService,
-  HandlebarsProcessor, OperatorsHelperService,
+  HandlebarsProcessor,
+  OperatorsHelperService,
 } from './services';
 import { ClientMessageService } from './services/client-message.service';
 import { ConfigurationModule } from '../configuration';

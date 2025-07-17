@@ -1,51 +1,50 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ServiceRegistry } from '../../configuration';
+import { HandlerRegistry } from '../../configuration';
 import {
-  ConfigElement,
   ContextInterface,
-  ServiceCallResult,
+  HandlerCallResult,
   TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
-import { ServiceCallType } from '@loopstack/shared/dist/schemas/service-call.schema';
+import { HandlerCallType } from '@loopstack/shared/dist/schemas/handler-call.schema';
 
 @Injectable()
-export class ServiceExecutionService {
-  private logger = new Logger(ServiceExecutionService.name);
+export class HandlerExecutionService {
+  private logger = new Logger(HandlerExecutionService.name);
 
   constructor(
-    private serviceRegistry: ServiceRegistry,
+    private handlerRegistry: HandlerRegistry,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
   ) {}
 
-  async callService(
-    serviceCall: ServiceCallType,
+  async callHandler(
+    handlerCall: HandlerCallType,
     parentArguments: any,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     transitionData: TransitionMetadataInterface,
-  ): Promise<ServiceCallResult> {
+  ): Promise<HandlerCallResult> {
     this.logger.debug(
-      `Service ${serviceCall.service} called with arguments`,
-      serviceCall.arguments,
+      `Handler ${handlerCall.handler} called with arguments`,
+      handlerCall.arguments,
     );
     this.logger.debug(`Parent Arguments:`, parentArguments);
 
-    const { instance, options } = this.serviceRegistry.getServiceByName(
-      serviceCall.service,
+    const { instance, options } = this.handlerRegistry.getHandlerByName(
+      handlerCall.handler,
     );
 
     const hasArguments =
-      serviceCall.arguments && Object.keys(serviceCall.arguments).length;
+      handlerCall.arguments && Object.keys(handlerCall.arguments).length;
     if (!options.schema && hasArguments) {
-      throw Error(`Service called with arguments but no schema defined.`);
+      throw Error(`Handler called with arguments but no schema defined.`);
     }
 
-    // parse service execution arguments
-    const serviceCallArguments = hasArguments
+    // parse handler execution arguments
+    const handlerCallArguments = hasArguments
       ? this.templateExpressionEvaluatorService.parse<any>(
-          serviceCall.arguments,
+          handlerCall.arguments,
           {
             arguments: parentArguments,
             context,
@@ -58,10 +57,10 @@ export class ServiceExecutionService {
         )
       : {};
 
-    this.logger.debug(`Calling service ${serviceCall.service}`);
+    this.logger.debug(`Calling handler ${handlerCall.handler}`);
 
     return instance.apply(
-      serviceCallArguments,
+      handlerCallArguments,
       workflow,
       context,
       transitionData,

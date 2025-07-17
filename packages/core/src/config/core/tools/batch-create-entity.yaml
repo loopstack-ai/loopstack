@@ -1,0 +1,16 @@
+tools:
+  - name: batch_create_entity
+    parameters:
+      type: object
+      properties:
+        entity:
+          type: string
+        items:
+          type: array
+          items:
+            type: any
+    execute:
+      handler: CreateEntityHandler
+      arguments:
+        entity: ${ arguments.entity }
+        items: ${ arguments.items }

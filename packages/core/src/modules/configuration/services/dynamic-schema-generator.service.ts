@@ -1,18 +1,18 @@
 import { z, ZodType } from 'zod';
 import { Injectable } from '@nestjs/common';
-import { ServiceRegistry } from './service-registry.service';
 import {
   MainConfigSchema,
   ToolConfigSchema,
-  ServiceInterface,
-  ServiceOptionsInterface,
+  HandlerInterface,
+  HandlerOptionsInterface,
 } from '@loopstack/shared';
+import { HandlerRegistry } from './handler-registry.service';
 
 @Injectable()
 export class DynamicSchemaGeneratorService {
   private schema: ZodType;
 
-  constructor(private readonly serviceRegistry: ServiceRegistry) {}
+  constructor(private readonly handlerRegistry: HandlerRegistry) {}
 
   // Simple Levenshtein distance function
   levenshteinDistance(str1: string, str2: string): number {
@@ -58,34 +58,34 @@ export class DynamicSchemaGeneratorService {
     return similarity >= 0.7 ? mostSimilar : null;
   }
 
-  createDiscriminatedServiceType(
+  createDiscriminatedHandlerType(
     items: Array<{
-      options: ServiceOptionsInterface;
-      instance: ServiceInterface;
+      options: HandlerOptionsInterface;
+      instance: HandlerInterface;
     }>,
   ) {
     const configSchemas = items.map((item) =>
       z.object({
-        service: z.literal(item.instance.constructor.name),
+        handler: z.literal(item.instance.constructor.name),
         arguments: item.options.config ?? z.any(),
       }),
     );
 
-    return z.discriminatedUnion('service', configSchemas as any, {
+    return z.discriminatedUnion('handler', configSchemas as any, {
       errorMap: (issue, ctx) => {
         if (issue.code === 'invalid_union_discriminator') {
-          const invalidValue = ctx.data.service;
+          const invalidValue = ctx.data.handler;
           const suggestion = invalidValue
             ? this.findMostSimilar(invalidValue, issue.options as string[])
             : undefined;
 
           if (suggestion) {
             return {
-              message: `The service "${invalidValue}" you defined does not exist. Did you mean "${suggestion}"?`,
+              message: `The handler "${invalidValue}" you defined does not exist. Did you mean "${suggestion}"?`,
             };
           } else {
             return {
-              message: `The service "${invalidValue}" you defined does not exist. Should be one of: ${issue.options.join(' | ')}`,
+              message: `The handler "${invalidValue}" you defined does not exist. Should be one of: ${issue.options.join(' | ')}`,
             };
           }
         }
@@ -95,12 +95,12 @@ export class DynamicSchemaGeneratorService {
   }
 
   createDynamicSchema(): ReturnType<typeof MainConfigSchema.extend> {
-    const serviceExecutionSchemas = this.createDiscriminatedServiceType(
-      this.serviceRegistry.getEntries(),
+    const handlerExecutionSchemas = this.createDiscriminatedHandlerType(
+      this.handlerRegistry.getEntries(),
     );
 
     const toolConfigSchema = ToolConfigSchema.extend({
-      execute: serviceExecutionSchemas,
+      execute: handlerExecutionSchemas,
     });
 
     return MainConfigSchema.extend({

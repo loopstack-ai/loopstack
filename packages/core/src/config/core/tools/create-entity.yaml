@@ -1,0 +1,14 @@
+tools:
+  - name: create_entity
+    parameters:
+      type: object
+      properties:
+        entity:
+          type: string
+        data:
+          type: any
+    execute:
+      handler: CreateEntityHandler
+      arguments:
+        entity: ${ arguments.entity }
+        data: ${ arguments.data }

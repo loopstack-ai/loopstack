@@ -6,7 +6,6 @@ import {
 import { WorkflowEntity } from '@loopstack/shared';
 import { WorkflowService } from '../../persistence';
 
-@Injectable()
 @StateMachineValidator({ priority: 200 })
 export class WorkflowDependenciesValidator
   implements StateMachineValidatorInterface

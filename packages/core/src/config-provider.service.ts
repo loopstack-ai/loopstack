@@ -4,10 +4,8 @@ import {
   ConfigSourceInterface,
 } from '@loopstack/shared';
 import { loadConfiguration } from './utils';
-import { Injectable } from '@nestjs/common';
 import path from 'path';
 
-@Injectable()
 @ConfigProvider()
 export class ConfigProviderService implements ConfigProviderInterface {
   getConfig(): Record<string, ConfigSourceInterface[]> {

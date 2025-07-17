@@ -9,6 +9,7 @@ import {
 } from '@loopstack/shared';
 import {
   DocumentService,
+  DynamicRepositoryService,
   NamespacesService,
   PipelineService,
   WorkflowService,
@@ -17,6 +18,8 @@ import {
 import { WorkflowSubscriber } from './subscriber/workflow.subscriber';
 import { CommonModule } from '../common';
 import { DocumentSubscriber } from './subscriber/document.subscriber';
+import { DataSource } from 'typeorm';
+import { CreateEntityHandler } from './handlers/create-entity.handler';
 
 @Module({
   imports: [
@@ -37,6 +40,18 @@ import { DocumentSubscriber } from './subscriber/document.subscriber';
     NamespacesService,
     WorkflowSubscriber,
     DocumentSubscriber,
+    {
+      provide: DynamicRepositoryService,
+      useFactory: (dataSource) => {
+        return new DynamicRepositoryService(dataSource, {
+          blacklist: [],
+        });
+      },
+      inject: [DataSource],
+    },
+
+    // Tool Handlers
+    CreateEntityHandler,
   ],
   exports: [
     WorkflowService,

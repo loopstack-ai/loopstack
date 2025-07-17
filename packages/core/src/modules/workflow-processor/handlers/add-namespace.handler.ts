@@ -1,10 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
   ContextInterface,
-  Service,
-  ServiceInterface,
-  ServiceCallResult,
+  Handler,
+  HandlerInterface,
+  HandlerCallResult,
   WorkflowEntity,
   NamespacePropsSchema,
   ExpressionString,
@@ -20,13 +20,12 @@ const config = z
 
 const schema = NamespacePropsSchema.strict();
 
-@Injectable()
-@Service({
+@Handler({
   config,
   schema,
 })
-export class AddNamespaceService implements ServiceInterface {
-  private readonly logger = new Logger(AddNamespaceService.name);
+export class AddNamespaceHandler implements HandlerInterface {
+  private readonly logger = new Logger(AddNamespaceHandler.name);
 
   constructor(private namespacesService: NamespacesService) {}
 
@@ -34,7 +33,7 @@ export class AddNamespaceService implements ServiceInterface {
     props: z.infer<typeof schema>,
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
-  ): Promise<ServiceCallResult> {
+  ): Promise<HandlerCallResult> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }

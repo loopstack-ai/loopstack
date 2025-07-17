@@ -259,9 +259,7 @@ describe('ObjectExpressionHandler', () => {
       };
 
       expect(handler.process('${ nullValue }', variables)).toBeNull();
-      expect(
-        handler.process('${ undefinedValue }', variables),
-      ).toBeUndefined();
+      expect(handler.process('${ undefinedValue }', variables)).toBeUndefined();
       expect(handler.process('${ nested.nullValue }', variables)).toBeNull();
     });
 

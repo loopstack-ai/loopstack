@@ -1,10 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
   ExpressionString,
-  Service,
-  ServiceInterface,
-  ServiceCallResult,
+  Handler,
+  HandlerInterface,
+  HandlerCallResult,
 } from '@loopstack/shared';
 
 const config = z
@@ -29,15 +29,14 @@ const schema = z
   })
   .strict();
 
-@Injectable()
-@Service({
+@Handler({
   config,
   schema,
 })
-export class TransitionSelectorService implements ServiceInterface {
-  private readonly logger = new Logger(TransitionSelectorService.name);
+export class TransitionSelectorHandler implements HandlerInterface {
+  private readonly logger = new Logger(TransitionSelectorHandler.name);
 
-  async apply(props: z.infer<typeof schema>): Promise<ServiceCallResult> {
+  async apply(props: z.infer<typeof schema>): Promise<HandlerCallResult> {
     let place: string | undefined;
     for (const option of props.transitions) {
       if (undefined === option.condition || option.condition) {

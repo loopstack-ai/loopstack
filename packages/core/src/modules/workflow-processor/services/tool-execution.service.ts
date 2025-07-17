@@ -3,14 +3,14 @@ import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import {
   ContextInterface,
   ToolConfigType,
-  ServiceCallResult,
+  HandlerCallResult,
   ToolCallType,
   TransitionMetadataInterface,
   ConfigElement,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
-import { ServiceExecutionService } from './service-execution.service';
+import { HandlerExecutionService } from './handler-execution.service';
 import { ContextService } from '../../common';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class ToolExecutionService {
   constructor(
     private configurationService: ConfigurationService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private serviceExecutionService: ServiceExecutionService,
+    private serviceExecutionService: HandlerExecutionService,
     private schemaRegistry: SchemaRegistry,
     private contextService: ContextService,
   ) {}
@@ -31,7 +31,7 @@ export class ToolExecutionService {
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     transitionData: TransitionMetadataInterface,
-  ): Promise<ServiceCallResult> {
+  ): Promise<HandlerCallResult> {
     this.logger.debug(
       `Tool ${toolCall.tool} called with arguments`,
       toolCall.arguments,
@@ -72,7 +72,7 @@ export class ToolExecutionService {
         )
       : {};
 
-    return this.serviceExecutionService.callService(
+    return this.serviceExecutionService.callHandler(
       configElement.config.execute,
       toolCallArguments,
       workflow,
