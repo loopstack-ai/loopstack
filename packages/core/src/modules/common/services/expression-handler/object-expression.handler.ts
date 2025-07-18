@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TemplateDetector, TemplateProcessor } from '../template.service';
-import { get } from 'lodash';
+import { difference, get, map } from 'lodash';
 import { ObjectExpressionError } from '../../errors/object-expression.error';
 
 interface ValidationOptions {
@@ -525,6 +525,32 @@ export class ObjectExpressionHandler
             'INVALID_ARGUMENT_TYPE',
           );
         }, '');
+      },
+      minArgs: 2,
+    });
+
+    this.registerFunction({
+      name: 'map',
+      handler: (args: any[]) => {
+        const array = args[0];
+        const propertyPath = args[1];
+        return map(array, propertyPath);
+      },
+      minArgs: 2,
+    });
+
+    this.registerFunction({
+      name: 'difference',
+      handler: (args: any[]) => {
+        return difference(args[0], args[1]);
+      },
+      minArgs: 2,
+    });
+
+    this.registerFunction({
+      name: 'or',
+      handler: (args: any[]) => {
+        return !!args[0] || !!args[1];
       },
       minArgs: 2,
     });

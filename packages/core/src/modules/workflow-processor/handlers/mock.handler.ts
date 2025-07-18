@@ -56,9 +56,6 @@ export class MockHandler implements HandlerInterface {
         },
       );
 
-      this.logger.debug(`Received mock input:`);
-      this.logger.debug(props.input);
-      this.logger.debug(parentArguments);
       this.logger.debug(input);
     }
 

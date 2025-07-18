@@ -247,7 +247,7 @@ export class StateMachineProcessorService {
   addWorkflowTransitionData(
     workflow: WorkflowEntity,
     transition: string,
-    target: string,
+    index: string,
     data: any,
   ) {
     if (!workflow.currData) {
@@ -258,15 +258,17 @@ export class StateMachineProcessorService {
       workflow.currData[transition] = {};
     }
 
-    workflow.currData[transition][target] = data;
+    workflow.currData[transition][index] = data;
   }
 
   commitToolCallResult(
     workflow: WorkflowEntity,
     transition: string,
+    index: string,
     toolCall: ToolCallType,
     result: HandlerCallResult | undefined,
   ) {
+
     if (result?.workflow) {
       workflow = result?.workflow;
     }
@@ -274,7 +276,7 @@ export class StateMachineProcessorService {
     this.addWorkflowTransitionData(
       workflow,
       transition,
-      toolCall.tool,
+      index,
       result?.data,
     );
 
@@ -282,7 +284,7 @@ export class StateMachineProcessorService {
       const currAlias = workflow.aliasData ?? {};
       workflow.aliasData = {
         ...currAlias,
-        [toolCall.exportVariable]: [transition, toolCall.tool],
+        [toolCall.exportVariable]: [transition, index],
       };
     }
 
@@ -399,6 +401,7 @@ export class StateMachineProcessorService {
               workflow = this.commitToolCallResult(
                 workflow,
                 transitionData.transition,
+                `call-${index}`,
                 toolCall,
                 result,
               );

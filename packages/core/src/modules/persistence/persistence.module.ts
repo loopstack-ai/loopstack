@@ -20,6 +20,7 @@ import { CommonModule } from '../common';
 import { DocumentSubscriber } from './subscriber/document.subscriber';
 import { DataSource } from 'typeorm';
 import { CreateEntityHandler } from './handlers/create-entity.handler';
+import { SqlQueryHandler } from './handlers/sql-query.handler';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { CreateEntityHandler } from './handlers/create-entity.handler';
 
     // Tool Handlers
     CreateEntityHandler,
+    SqlQueryHandler,
   ],
   exports: [
     WorkflowService,

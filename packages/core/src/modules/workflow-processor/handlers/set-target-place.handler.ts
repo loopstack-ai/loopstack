@@ -47,6 +47,8 @@ export class SetTargetPlaceHandler implements HandlerInterface {
       throw new Error(`Transition to ${target} not allowed.`);
     }
 
+    this.logger.debug(`Setting transition to: ${target}`);
+
     return {
       success: true,
       place: target,
