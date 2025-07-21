@@ -1,5 +1,16 @@
 # @loopstack/app-template
 
+## 0.3.2
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @loopstack/api@0.3.2
+  - @loopstack/core@0.3.2
+  - @loopstack/llm@0.3.2
+  - @loopstack/shared@0.3.2
+
 ## 0.3.1
 
 ### Patch Changes
