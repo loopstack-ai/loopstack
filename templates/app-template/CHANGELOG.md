@@ -1,5 +1,16 @@
 # @loopstack/app-template
 
+## 0.3.3
+
+### Patch Changes
+
+- Fixed shared module version in llm module
+- Updated dependencies
+  - @loopstack/api@0.3.3
+  - @loopstack/core@0.3.3
+  - @loopstack/llm@0.3.3
+  - @loopstack/shared@0.3.3
+
 ## 0.3.2
 
 ### Patch Changes
