@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.3.1
+
+### Patch Changes
+
+- Fixed shared module version in llm module
+
 ## 0.1.0
 
 ### Minor Changes
