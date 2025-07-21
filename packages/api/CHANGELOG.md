@@ -1,5 +1,14 @@
 # @loopstack/api
 
+## 0.3.2
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @loopstack/core@0.3.2
+  - @loopstack/shared@0.3.2
+
 ## 0.3.1
 
 ### Patch Changes
