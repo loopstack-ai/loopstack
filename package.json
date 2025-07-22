@@ -8,7 +8,6 @@
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "license": "MIT",
   "scripts": {
     "setup": "git submodule update --init --recursive && pnpm install",
     "watch:all": "pnpm --parallel -r run watch",

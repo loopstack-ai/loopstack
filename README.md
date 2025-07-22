@@ -1,7 +1,6 @@
 # Loopstack AI
 
 [![Version](https://img.shields.io/badge/version-v0.1--alpha-orange)](https://github.com/loopstack-ai/loopstack/releases)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Discord](https://img.shields.io/badge/discord-join%20community-7289da)](https://discord.gg/svAHrkxKZg)
 
 A developer-first, open-source framework for reliable AI workflow automation that eliminates the complexity of building, testing, and deploying AI-powered applications.
@@ -101,107 +100,6 @@ Remember, to re-generate the schema when you add tools or modify their input sch
 
 For detailed documentation, visit https://loopstack.ai/docs
 
-### Building custom workflows and tools
-
-```yaml
-#./src/config/examples/llm-completion-example/llm-completion-example.yaml
-
-workflows:
-  - name: examples_llmCompletion_workflow
-    title: "LLM Completion"
-    type: stateMachine
-    transitions:
-
-      - name: makeCompletionRequest
-        from: start
-        to: responseReceived
-        call:
-          - tool: examples_llmCompletion_createProfessionalEmail
-            arguments:
-              user_input: |
-                hey john, can you send me those reports by tomorrow? thanks
-            exportAs: PROMPT_RESULT
-
-      - name: addResponseMessage
-        from: responseReceived
-        to: end
-        call:
-          - tool: core_createChatMessage
-            arguments:
-              role: ${ PROMPT_RESULT.response.data.role }
-              content: ${ PROMPT_RESULT.response.data.content }
-
-tools:
-  - name: examples_llmCompletion_createProfessionalEmail
-    execute:
-      service: LlmCompletionService
-      arguments:
-        llm:
-          envApiKey: OPENAI_KEY
-          model: gpt-4o
-        messages:
-          - role: system
-            content: |
-              You are a professional email writer. Transform the following casual message into a polished, professional email format.
-
-              Casual Message: <%= arguments.user_input %>
-
-              Please rewrite this as a professional email including:
-                - Appropriate subject line
-                - Professional greeting
-                - Clear, courteous body text
-                - Professional closing
-
-              Professional Email:
-pipelines:
-  - name: examples_llmCompletion
-    title: "Llm Completion Example"
-    workspace: examples
-    isRoot: true
-    type: sequence
-    sequence:
-      - workflow: examples_llmCompletion_workflow
-```
-
-### Building custom services to invoke with tools
-
-```typescript
-// ./src/services/pdf-extractor.service.ts
-
-import { Injectable } from '@nestjs/common';
-import { Service, ServiceCallResult, ServiceInterface } from '@loopstack/shared';
-import { z } from 'zod';
-import * as pdfParse from 'pdf-parse';
-
-const schema = z.object({
-  filePath: z.string(),
-});
-
-@Injectable()
-@Service({ schema })
-export class PdfExtractorTool implements ServiceInterface {
-
-  async apply(props: z.infer<typeof schema>): Promise<ServiceCallResult> {
-      const buffer = await this.readFile(input.filePath);
-      const data = await pdfParse(buffer);
-    
-      return {
-        success: true,
-        data: {
-          text: data.text,
-          pageCount: data.numpages,
-          metadata: data.info
-        }
-      };
-  }
-
-  private async readFile(filePath: string): Promise<Buffer> {
-    // File reading implementation
-    throw new Error('Not implemented.');
-  }
-}
-```
-
 ## Getting Help
 
 - 📖 **Documentation**: [https://loopstack.ai/docs](https://loopstack.ai/docs)
@@ -218,11 +116,6 @@ We're actively preparing Loopstack for full open-source contribution! While we f
 - 💬 Joining our [Discord community](https://discord.gg/svAHrkxKZg) to share feedback
 
 **Coming soon**: Full source code access, contribution guidelines, and developer onboarding docs.
-
-[→ Follow our progress](https://github.com/loopstack-ai/loopstack)
-
-## License
-MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
