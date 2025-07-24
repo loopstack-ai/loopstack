@@ -24,6 +24,7 @@ export class HandlerExecutionService {
     workflow: WorkflowEntity | undefined,
     context: ContextInterface,
     transitionData: TransitionMetadataInterface,
+    templateVariables: Record<string, any>,
   ): Promise<HandlerCallResult> {
     this.logger.debug(
       `Handler ${handlerCall.handler} called with arguments`,
@@ -46,6 +47,7 @@ export class HandlerExecutionService {
       ? this.templateExpressionEvaluatorService.parse<any>(
           handlerCall.arguments,
           {
+            ...templateVariables,
             arguments: parentArguments,
             context,
             workflow,

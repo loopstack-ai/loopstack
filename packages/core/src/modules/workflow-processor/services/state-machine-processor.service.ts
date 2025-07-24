@@ -280,11 +280,11 @@ export class StateMachineProcessorService {
       result?.data,
     );
 
-    if (toolCall.exportVariable) {
+    if (toolCall.as) {
       const currAlias = workflow.aliasData ?? {};
       workflow.aliasData = {
         ...currAlias,
-        [toolCall.exportVariable]: [transition, index],
+        [toolCall.as]: [transition, index],
       };
     }
 
@@ -316,7 +316,7 @@ export class StateMachineProcessorService {
       );
     }
 
-    this.contextService.addIncludes(context, configElement.importMap);
+    this.contextService.addIncludes(context, mergedConfigElement.importMap);
 
     try {
       const pendingTransition = [stateMachineInfo.pendingTransition];
@@ -395,6 +395,7 @@ export class StateMachineProcessorService {
                 workflow,
                 context,
                 transitionData,
+                {}
               );
 
               // add the response data to workflow

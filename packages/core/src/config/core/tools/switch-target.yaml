@@ -1,0 +1,15 @@
+tools:
+  - name: switch_target
+    description: "Sets the target place for a transition to a defined value."
+    parameters:
+      type: object
+      properties:
+        target:
+          type: string
+      required:
+        - target
+      additionalProperties: false
+    execute:
+      - handler: SetTargetPlaceHandler
+        arguments:
+          target: ${ arguments.target }

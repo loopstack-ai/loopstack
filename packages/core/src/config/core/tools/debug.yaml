@@ -1,0 +1,12 @@
+tools:
+  - name: debug
+    parameters:
+      type: object
+      properties:
+        value:
+          type: 'any'
+      additionalProperties: false
+    execute:
+      - handler: MockHandler
+        arguments:
+          input: ${ arguments.value }

@@ -48,7 +48,8 @@ export class ConfigurationService implements OnModuleInit {
     const configSources: ConfigSourceInterface[] = [
       ...appConfigs,
       ...moduleConfigs,
-    ];
+    ].filter((config) => !!config.config);
+
     if (!configSources.length) {
       return;
     }

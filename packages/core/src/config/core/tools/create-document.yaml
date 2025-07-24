@@ -1,0 +1,18 @@
+tools:
+  - name: create_document
+    parameters:
+      type: object
+      properties:
+        document:
+          type: string
+        content:
+          type: any
+      required:
+        - document
+      additionalProperties: false
+    execute:
+      - handler: CreateDocumentHandler
+        arguments:
+          document: ${ arguments.document }
+          update:
+            content: ${ arguments.content }

@@ -19,8 +19,8 @@ tools:
         - query
       additionalProperties: false
     execute:
-      handler: SqlQueryHandler
-      arguments:
-        entity: ${ arguments.entity }
-        query: ${ arguments.query }
-        parameters: ${ arguments.parameters }
+      - handler: SqlQueryHandler
+        arguments:
+          entity: ${ arguments.entity }
+          query: ${ arguments.query }
+          parameters: ${ arguments.parameters }

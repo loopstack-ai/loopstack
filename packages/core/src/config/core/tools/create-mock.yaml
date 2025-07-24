@@ -1,0 +1,19 @@
+tools:
+  - name: create_mock
+    description: "Create a mock response for debugging and testing."
+    parameters:
+      type: object
+      properties:
+        input:
+          type: 'any'
+        output:
+          type: 'any'
+        error:
+          type: 'string'
+      additionalProperties: false
+    execute:
+      - handler: MockHandler
+        arguments:
+          input: ${ arguments.input }
+          output: ${ arguments.output }
+          error: ${ arguments.error }

@@ -1,0 +1,18 @@
+documents:
+  - name: core_objectMessage
+    ui:
+      widget: object-message
+    schema:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: object
+      additionalProperties: false
+    meta:
+      level: info
+      invalidate: true
+    content:
+      title: "Object"
+      content: {}

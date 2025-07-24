@@ -8,7 +8,7 @@ tools:
         data:
           type: any
     execute:
-      handler: CreateEntityHandler
-      arguments:
-        entity: ${ arguments.entity }
-        data: ${ arguments.data }
+      - handler: CreateEntityHandler
+        arguments:
+          entity: ${ arguments.entity }
+          data: ${ arguments.data }
