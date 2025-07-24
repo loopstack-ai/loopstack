@@ -1,5 +1,16 @@
 # @loopstack/app-template
 
+## 0.4.1
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @loopstack/api@0.4.1
+  - @loopstack/core@0.4.1
+  - @loopstack/llm@0.4.1
+  - @loopstack/shared@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes
