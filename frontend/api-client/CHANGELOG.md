@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.4.0
+
+### Minor Changes
+
+- Allow execution of multiple tools and handlers in one tool config
+
 ## 0.3.1
 
 ### Patch Changes
