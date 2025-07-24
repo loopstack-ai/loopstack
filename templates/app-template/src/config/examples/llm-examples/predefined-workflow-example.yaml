@@ -50,14 +50,14 @@ workflows:
             arguments:
               document: user_input_form
               content: ${ transition.payload }
-            exportVariable: USER_INPUT_DOCUMENT
+            as: USER_INPUT_DOCUMENT
 
       - name: analyse
         from: user_input_added
         to: input_analysed
         call:
           - tool: analyse_text
-            exportVariable: ANALYSIS
+            as: ANALYSIS
 
       - name: add_analysis
         from: input_analysed
@@ -76,7 +76,7 @@ workflows:
         to: improved
         call:
           - tool: improve_text
-            exportVariable: IMPROVED_TEXT
+            as: IMPROVED_TEXT
 
       - name: add_improved_text
         from: improved
@@ -93,52 +93,52 @@ workflows:
 tools:
   - name: analyse_text
     execute:
-      handler: LlmCompletionHandler
-      arguments:
-        llm:
-          envApiKey: OPENAI_KEY
-          model: gpt-4o
-        messages:
-          - role: system
-            content: |
-              You are a content analyst. Analyze the provided text and identify:
-              1. Grammar and spelling issues
-              2. Clarity problems
-              3. Tone inconsistencies
-              4. Structural improvements needed
-              
-              Provide your analysis in a structured format with specific recommendations.
-          - role: user
-            content: |
-              Please analyze this text: 
-              {{ USER_INPUT_DOCUMENT.content.text }}
+      - handler: ChatCompletionsHandler
+        arguments:
+          llm:
+            envApiKey: OPENAI_KEY
+            model: gpt-4o
+          messages:
+            - role: system
+              content: |
+                You are a content analyst. Analyze the provided text and identify:
+                1. Grammar and spelling issues
+                2. Clarity problems
+                3. Tone inconsistencies
+                4. Structural improvements needed
+                
+                Provide your analysis in a structured format with specific recommendations.
+            - role: user
+              content: |
+                Please analyze this text: 
+                {{ USER_INPUT_DOCUMENT.content.text }}
 
   - name: improve_text
     execute:
-      handler: LlmCompletionHandler
-      arguments:
-        llm:
-          envApiKey: OPENAI_KEY
-          model: gpt-4o
-        messages:
-          - role: system
-            content: |
-              You are a professional editor. Based on the analysis provided, improve the original text by:
-              1. Fixing grammar and spelling errors
-              2. Enhancing clarity and readability
-              3. Maintaining the original meaning and intent
-              4. Improving overall structure and flow
-              
-              Return only the improved version of the text.
-          - role: user
-            content: |
-              Original text:
-              {{ USER_INPUT_DOCUMENT.content.text }}
-
-              Analysis and recommendations:
-              {{ ANALYSIS.response.data }}
+      - handler: ChatCompletionsHandler
+        arguments:
+          llm:
+            envApiKey: OPENAI_KEY
+            model: gpt-4o
+          messages:
+            - role: system
+              content: |
+                You are a professional editor. Based on the analysis provided, improve the original text by:
+                1. Fixing grammar and spelling errors
+                2. Enhancing clarity and readability
+                3. Maintaining the original meaning and intent
+                4. Improving overall structure and flow
                 
-              Please provide an improved version of the original text based on this analysis.
+                Return only the improved version of the text.
+            - role: user
+              content: |
+                Original text:
+                {{ USER_INPUT_DOCUMENT.content.text }}
+  
+                Analysis and recommendations:
+                {{ ANALYSIS.response.data }}
+                  
+                Please provide an improved version of the original text based on this analysis.
 
 pipelines:
   - name: predefined_workflow_example

@@ -59,7 +59,7 @@ workflows:
                 - Grid modernization investments reached $180 billion
                 - Cost competitiveness improved with solar LCOE decreasing by 8%
                 - Wind LCOE decreased by 6% while battery storage costs fell by 15%
-            exportVariable: REPORT_CONTENT
+            as: REPORT_CONTENT
 
           - tool: create_chat_message
             arguments:
@@ -105,7 +105,7 @@ workflows:
                 **Growth Overview:** The renewable energy sector achieved exceptional 15% capacity expansion in 2024, with solar and wind technologies driving market leadership through improved cost competitiveness and supportive policy frameworks.
 
                 **Market Highlights:** Solar installations surged 22% globally while offshore wind expanded 18%. Energy storage deployment accelerated by 35%, supported by $180 billion in grid modernization investments and significant cost reductions across all technologies.
-            exportVariable: EXECUTIVE_SUMMARY
+            as: EXECUTIVE_SUMMARY
 
           - tool: create_chat_message
             arguments:

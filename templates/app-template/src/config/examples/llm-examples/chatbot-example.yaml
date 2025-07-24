@@ -33,7 +33,7 @@ workflows:
         to: llm_response_received
         call:
           - tool: chatbot_llm_tool
-            exportVariable: PROMPT_RESULT
+            as: PROMPT_RESULT
 
       - name: add_assistant_message
         from: llm_response_received
@@ -47,12 +47,12 @@ workflows:
 tools:
   - name: chatbot_llm_tool
     execute:
-      handler: ExecutePromptMessagesHandler
-      arguments:
-        llm:
-          envApiKey: OPENAI_KEY
-          model: gpt-4o
-        messagesSearchTag: message
+      - handler: ChatCompletionsHandler
+        arguments:
+          llm:
+            envApiKey: OPENAI_KEY
+            model: gpt-4o
+          messagesSearchTag: message
 
 pipelines:
   - name: chatbot_example

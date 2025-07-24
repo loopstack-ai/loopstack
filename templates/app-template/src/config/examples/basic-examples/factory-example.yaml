@@ -77,7 +77,7 @@ workflows:
                 Category: {{ context.item.category }}
               output: |
                 This article explores the fascinating world of {{ context.item.topic }}...
-            exportVariable: ARTICLE_CONTENT
+            as: ARTICLE_CONTENT
 
       - name: create_article
         from: content_generated

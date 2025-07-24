@@ -22,7 +22,7 @@ workflows:
             arguments:
               input: 'customer_records.csv'
               output: 'John Doe,john@example.com,Premium,2024-01-15'
-            exportVariable: RAW_DATA
+            as: RAW_DATA
 
           - tool: create_chat_message
             arguments:
@@ -41,7 +41,7 @@ workflows:
                 email: "john@example.com"
                 tier: "Premium"
                 signup_date: "2024-01-15"
-            exportVariable: STRUCTURED_DATA
+            as: STRUCTURED_DATA
 
           - tool: create_chat_message
             arguments:
@@ -57,7 +57,7 @@ workflows:
             arguments:
               input: ${ STRUCTURED_DATA }
               output: true
-            exportVariable: VALIDATION_RESULT
+            as: VALIDATION_RESULT
 
           - tool: create_chat_message
             arguments:

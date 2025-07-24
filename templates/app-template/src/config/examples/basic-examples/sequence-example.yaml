@@ -71,7 +71,7 @@ workflows:
             arguments:
               input: ${ context.variables.CREATED_CONTENT }
               output: 'Blog post "Top AI Trends in 2025" published successfully to blog.example.com'
-            exportVariable: SUCCESS_MESSAGE
+            as: SUCCESS_MESSAGE
       - name: show_results
         from: published
         to: end

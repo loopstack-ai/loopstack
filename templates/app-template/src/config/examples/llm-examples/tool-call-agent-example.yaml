@@ -38,7 +38,7 @@ workflows:
         to: prompt_executed
         call:
           - tool: prompt_with_tools
-            exportVariable: PROMPT_RESULT
+            as: PROMPT_RESULT
 
       - name: add_prompt_response_message
         from: prompt_executed
@@ -67,7 +67,7 @@ workflows:
           - tool: delegate_tool_calls
             arguments:
               toolCalls: ${ PROMPT_RESULT.response.data.tool_calls }
-            exportVariable: TOOL_RESPONSES
+            as: TOOL_RESPONSES
 
       - name: add_tool_responses
         from: tools_called
@@ -89,21 +89,21 @@ tools:
       required:
         - userId
     execute:
-      handler: MockHandler
-      arguments:
-        input: "User ID: {{ arguments.userId }}"
-        output: "The Username is Jakob"
+      - handler: MockHandler
+        arguments:
+          input: "User ID: {{ arguments.userId }}"
+          output: "The Username is Jakob"
 
   - name: prompt_with_tools
     execute:
-      handler: ExecutePromptMessagesHandler
-      arguments:
-        llm:
-          envApiKey: OPENAI_KEY
-          model: gpt-4o
-        messagesSearchTag: message
-        tools:
-          - get_user_name
+      - handler: ChatCompletionsHandler
+        arguments:
+          llm:
+            envApiKey: OPENAI_KEY
+            model: gpt-4o
+          messagesSearchTag: message
+          tools:
+            - get_user_name
 
 pipelines:
   - name: agent_example

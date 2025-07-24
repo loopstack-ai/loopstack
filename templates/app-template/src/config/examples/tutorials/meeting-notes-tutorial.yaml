@@ -38,7 +38,7 @@ workflows:
           - tool: create_response
             arguments:
               document: meeting_notes
-            exportVariable: USER_INPUT
+            as: USER_INPUT
 
       # Third transition: Process the notes and create summary
       - name: process_meeting_notes
@@ -48,7 +48,7 @@ workflows:
           - tool: llm_create_notes_summary
             arguments:
               raw_notes: ${ USER_INPUT.content.text }
-            exportVariable: SUMMARY_RESULT
+            as: SUMMARY_RESULT
 
           - tool: create_chat_message
             arguments:
@@ -67,25 +67,25 @@ tools:
         - raw_notes
       additionalProperties: false
     execute:
-      handler: LlmCompletionHandler
-      arguments:
-        llm:
-          envApiKey: OPENAI_KEY
-          model: gpt-4o
-        messages:
-          - role: system
-            content: |
-              You are a meeting notes summarizer. Transform these raw notes into a clear summary.
-              
-              Raw Notes: {{ arguments.raw_notes }}
-              
-              Create a summary with:
-              
-              **Decisions:**
-              - What was decided
-              
-              **Action Items:**
-              - Who needs to do what
+      - handler: ChatCompletionsHandler
+        arguments:
+          llm:
+            envApiKey: OPENAI_KEY
+            model: gpt-4o
+          messages:
+            - role: system
+              content: |
+                You are a meeting notes summarizer. Transform these raw notes into a clear summary.
+                
+                Raw Notes: {{ arguments.raw_notes }}
+                
+                Create a summary with:
+                
+                **Decisions:**
+                - What was decided
+                
+                **Action Items:**
+                - Who needs to do what
 
 # Define the document structure and UI
 documents:

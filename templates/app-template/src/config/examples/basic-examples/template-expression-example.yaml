@@ -362,7 +362,7 @@ workflows:
                 flag: true
                 value: "test"
                 number: 42
-            exportVariable: TEST_OBJECT
+            as: TEST_OBJECT
       - name: render_text
         from: object_created
         to: end

@@ -27,7 +27,7 @@ workflows:
             arguments:
               input: 'weather for San Francisco'
               error: 'API service unavailable: 503 Service Temporarily Unavailable'  # Throw an error for demonstration
-            exportVariable: API_RESULT
+            as: API_RESULT
 
           - tool: create_chat_message   # This tool call will not execute, since an error occurred before
             arguments:
