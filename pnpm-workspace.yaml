@@ -4,6 +4,7 @@ packages:
   - "packages/integrations/*"
   - "libs/*"
   - "frontend/*"
+  - "!frontend/website"
   - "installer/*"
   - "templates/*"
   - "generators/*"
