@@ -1,5 +1,17 @@
 # @loopstack/api
 
+## 0.4.0
+
+### Minor Changes
+
+- Allow execution of multiple tools and handlers in one tool config
+
+### Patch Changes
+
+- Updated dependencies
+  - @loopstack/core@0.4.0
+  - @loopstack/shared@0.4.0
+
 ## 0.3.3
 
 ### Patch Changes
