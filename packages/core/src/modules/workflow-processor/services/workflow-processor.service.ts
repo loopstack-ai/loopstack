@@ -7,23 +7,33 @@ import {
   WorkflowType,
 } from '@loopstack/shared';
 import { WorkflowStateService } from './workflow-state.service';
+import { StateMachineConfigService } from './state-machine-config.service';
+import { ContextService } from '../../common';
 
 @Injectable()
 export class WorkflowProcessorService {
   private readonly logger = new Logger(WorkflowProcessorService.name);
 
   constructor(
-    private workflowConfigService: WorkflowStateService,
-    private stateMachineProcessorService: StateMachineProcessorService,
+    private readonly stateMachineConfigService: StateMachineConfigService,
+    private readonly contextService: ContextService,
+    private readonly workflowStateService: WorkflowStateService,
+    private readonly stateMachineProcessorService: StateMachineProcessorService,
   ) {}
 
   async runStateMachineType(
     configElement: ConfigElement<WorkflowType>,
     context: ContextInterface,
   ) {
+
+    const mergedConfigElement =
+      this.stateMachineConfigService.getConfig(configElement);
+
+    this.contextService.addIncludes(context, mergedConfigElement.importMap);
+
     // create or load state if needed
-    const currentWorkflow = await this.workflowConfigService.getWorkflowState(
-      configElement,
+    const currentWorkflow = await this.workflowStateService.getWorkflowState(
+      mergedConfigElement,
       context,
     );
 
@@ -31,7 +41,7 @@ export class WorkflowProcessorService {
       await this.stateMachineProcessorService.processStateMachine(
         context,
         currentWorkflow,
-        configElement,
+        mergedConfigElement,
       );
 
     if (workflow.status === WorkflowState.Failed) {

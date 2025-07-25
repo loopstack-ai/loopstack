@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { StateMachineConfigService } from './state-machine-config.service';
 import {
   ConfigElement,
   ContextInterface,
@@ -19,7 +18,6 @@ import {
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
-import { ContextService } from '../../common';
 import { StateMachineValidatorResultInterface } from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
 import { StateMachineInfoDto } from '@loopstack/shared/dist/dto/state-machine-info.dto';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
@@ -44,11 +42,9 @@ export class StateMachineProcessorService {
   private readonly logger = new Logger(StateMachineProcessorService.name);
 
   constructor(
-    private readonly workflowConfigService: StateMachineConfigService,
     private readonly workflowService: WorkflowService,
     private readonly toolExecutionService: ToolExecutionService,
     private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry,
-    private readonly contextService: ContextService,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private readonly workflowContextService: WorkflowContextService,
   ) {}
@@ -308,15 +304,11 @@ export class StateMachineProcessorService {
     let context = beforeContext;
     workflow = await this.initStateMachine(workflow, stateMachineInfo);
 
-    const mergedConfigElement =
-      this.workflowConfigService.getConfig(configElement);
-    if (!mergedConfigElement.config.transitions) {
+    if (!configElement.config.transitions) {
       throw new Error(
         `Workflow ${workflow.name} does not have any transitions.`,
       );
     }
-
-    this.contextService.addIncludes(context, mergedConfigElement.importMap);
 
     try {
       const pendingTransition = [stateMachineInfo.pendingTransition];
@@ -334,7 +326,7 @@ export class StateMachineProcessorService {
         // exclude call property from transitions eval because this should be only
         // evaluated when called, so it received actual arguments
         const transitionsWithoutCallProperty =
-          mergedConfigElement.config.transitions.map((transition) =>
+          configElement.config.transitions.map((transition) =>
             omit(transition, ['call']),
           );
         const evaluatedTransitions =
@@ -372,7 +364,7 @@ export class StateMachineProcessorService {
         transitionData.to = nextTransition.to;
 
         // get tool calls for transition
-        const toolCalls = mergedConfigElement.config.transitions.find(
+        const toolCalls = configElement.config.transitions.find(
           (transition) => transition.name === transitionData.transition,
         )?.call;
 
