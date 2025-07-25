@@ -29,6 +29,7 @@ services:
 
   websocket-server:
     image: jakobklippel/loopstack-websocket-server:latest
+    pull_policy: always
     ports:
       - "8001:8001"
     environment:
@@ -46,6 +47,7 @@ services:
 
   react-app:
     image: jakobklippel/loopstack-react-app:latest
+    pull_policy: always
     ports:
       - "3000:3000"
     depends_on:

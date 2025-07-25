@@ -14,7 +14,7 @@ export function mockServiceInRegistry(
   };
 
   const existingService = serviceRegistry.getHandlerByName(serviceName);
-  serviceRegistry['services'].set(serviceName, {
+  serviceRegistry['handlers'].set(serviceName, {
     options: existingService.options,
     instance: mockInstance,
   });
