@@ -1,5 +1,14 @@
 # @loopstack/api
 
+## 0.4.2
+
+### Patch Changes
+
+- Fix bug were extended workspace config would not be mearged for UI config
+- Updated dependencies
+  - @loopstack/core@0.4.2
+  - @loopstack/shared@0.4.2
+
 ## 0.4.1
 
 ### Patch Changes
