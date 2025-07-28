@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -7,17 +7,18 @@ import {
   JSONSchemaConfigType,
   MainConfigType,
   ConfigElement,
-  ToolConfigType,
+  ToolConfigType, TaskInitializationEvent,
 } from '@loopstack/shared';
 import { ConfigProviderRegistry } from './config-provider.registry';
 import { z } from 'zod';
 import { SchemaRegistry } from './schema-registry.service';
 import { HandlerRegistry } from './handler-registry.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 type ConfigElementMap = Map<string, ConfigElement<any>>;
 
 @Injectable()
-export class ConfigurationService implements OnModuleInit {
+export class ConfigurationService implements OnApplicationBootstrap {
   private logger = new Logger(ConfigurationService.name);
 
   registry: Map<string, Map<string, ConfigElement<any>>>;
@@ -28,9 +29,10 @@ export class ConfigurationService implements OnModuleInit {
     private configProviderRegistry: ConfigProviderRegistry,
     private mainSchemaGenerator: DynamicSchemaGeneratorService,
     private schemaRegistry: SchemaRegistry,
+    private eventEmitter: EventEmitter2,
   ) {}
 
-  onModuleInit() {
+  onApplicationBootstrap() {
     const installTemplates = this.configService.get('installTemplates');
     if (!installTemplates) {
       return;
@@ -139,6 +141,27 @@ export class ConfigurationService implements OnModuleInit {
     this.logger.debug(
       `Registered ${this.schemaRegistry.getSize()} custom schemas.`,
     );
+
+    const tasksInitPayload: TaskInitializationEvent = {
+      tasks: [{
+        id: 'test',
+        metadata: {
+          workspaceId: 'test',
+          rootPipelineId: 'test',
+          name: 'test',
+          type: 'delayed',
+          payload: {
+            test: 'is a payload'
+          }
+        },
+        options: {
+          repeat: {
+            every: 5000
+          },
+        }
+      }]
+    };
+    this.eventEmitter.emit('tasks.initialize', tasksInitPayload)
   }
 
   private registerCustomSchema(key: string, schema: JSONSchemaConfigType) {
