@@ -302,7 +302,7 @@ export class PipelineProcessorService {
       WorkflowType | PipelineType
     >(`${type}s`, itemName, context.includes);
 
-    this.contextService.addIncludes(context, configElement.importMap);
+    this.contextService.addIncludes(context, configElement.includes);
 
     switch (type) {
       case 'pipeline':

@@ -10,26 +10,21 @@ export class TaskSchedulerService {
   constructor(@InjectQueue('task-queue') private readonly taskQueue: Queue) {}
 
   async addTask(startupTask: ScheduledTask): Promise<Job | null> {
-    const job = await this.taskQueue.add(
-      'process-task',
-      startupTask,
-      {
-        jobId: startupTask.id,
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 2000,
-        },
-        ...(startupTask.task.schedule ?? {}),
+    const job = await this.taskQueue.add('process-task', startupTask, {
+      jobId: startupTask.id,
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000,
       },
-    );
+      ...(startupTask.task.schedule ?? {}),
+    });
 
     this.logger.debug(`Task ${startupTask.id} added successfully`);
     return job;
   }
 
   async clearAllTasks(): Promise<void> {
-
     await this.taskQueue.drain(true);
     await this.taskQueue.clean(0, 1000, 'active');
     await this.taskQueue.clean(0, 1000, 'waiting');

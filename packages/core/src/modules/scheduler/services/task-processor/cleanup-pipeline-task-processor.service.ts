@@ -1,23 +1,43 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CleanupPipelineTask, PipelineEntity } from '@loopstack/shared';
+import {
+  CleanupPipelineTask,
+  PipelineEntity,
+  PipelineRootType,
+} from '@loopstack/shared';
 import { SelectQueryBuilder } from 'typeorm';
 import { PipelineService } from '../../../persistence';
+import { ConfigElementMetadata } from '@loopstack/shared/dist/schemas/config-element.schema';
+import { ConfigurationService } from '../../../configuration';
 
 @Injectable()
 export class CleanupPipelineTaskProcessorService {
-  private readonly logger = new Logger(CleanupPipelineTaskProcessorService.name);
+  private readonly logger = new Logger(
+    CleanupPipelineTaskProcessorService.name,
+  );
 
-  constructor(private readonly pipelineService: PipelineService) {}
+  constructor(
+    private readonly configurationService: ConfigurationService,
+    private readonly pipelineService: PipelineService,
+  ) {}
 
-  public async process(task: CleanupPipelineTask) {
-
+  public async process(
+    task: CleanupPipelineTask,
+    metadata: ConfigElementMetadata,
+  ) {
     const { payload } = task;
+    const pipelineConfig =
+      this.configurationService.resolveConfig<PipelineRootType>(
+        'pipelines',
+        task.payload.pipeline,
+        metadata.includes,
+      );
+    const pipelineName = `${pipelineConfig.path}:${pipelineConfig.name}`;
 
     this.logger.debug(
-      `Starting pipeline cleanup for pipeline: ${payload.pipeline}, status: ${payload.status}, user: ${task.user}`,
+      `Starting pipeline cleanup for pipeline: ${pipelineName}`,
     );
 
-    let queryBuilder = this.createBaseQuery(payload, task.user);
+    let queryBuilder = this.createBaseQuery(pipelineName, payload, task.user);
 
     const totalFound = await queryBuilder.getCount();
     if (totalFound === 0) {
@@ -35,13 +55,17 @@ export class CleanupPipelineTaskProcessorService {
 
     const pipelinesToDelete = await queryBuilder.getMany();
     if (pipelinesToDelete.length === 0) {
-      this.logger.debug('No pipelines to delete after applying keep/limit filters');
+      this.logger.debug(
+        'No pipelines to delete after applying keep/limit filters',
+      );
       return;
     }
 
-    const pipelineIds = pipelinesToDelete.map(p => p.id);
+    const pipelineIds = pipelinesToDelete.map((p) => p.id);
 
-    const deleteResult = await this.pipelineService.getRepository().delete(pipelineIds);
+    const deleteResult = await this.pipelineService
+      .getRepository()
+      .delete(pipelineIds);
     const deletedCount = deleteResult.affected || 0;
 
     this.logger.log(
@@ -52,10 +76,15 @@ export class CleanupPipelineTaskProcessorService {
   /**
    * Create the base query with common filters
    */
-  private createBaseQuery(payload: CleanupPipelineTask['payload'], user: string | null): SelectQueryBuilder<PipelineEntity> {
-    let queryBuilder = this.pipelineService.getRepository()
+  private createBaseQuery(
+    name: string,
+    payload: CleanupPipelineTask['payload'],
+    user: string | null,
+  ): SelectQueryBuilder<PipelineEntity> {
+    let queryBuilder = this.pipelineService
+      .getRepository()
       .createQueryBuilder('pipeline')
-      .where('pipeline.model = :pipeline', { pipeline: payload.pipeline });
+      .where('pipeline.model = :pipeline', { pipeline: name });
 
     if (null === user) {
       queryBuilder.andWhere('pipeline.created_by IS NULL');
@@ -64,11 +93,15 @@ export class CleanupPipelineTaskProcessorService {
     }
 
     if (payload.status) {
-      queryBuilder.andWhere('pipeline.status = :status', { status: payload.status });
+      queryBuilder.andWhere('pipeline.status = :status', {
+        status: payload.status,
+      });
     }
 
     if (payload.olderThan) {
-      queryBuilder.andWhere(`pipeline.created_at < NOW() - INTERVAL '${payload.olderThan}'`);
+      queryBuilder.andWhere(
+        `pipeline.created_at < NOW() - INTERVAL '${payload.olderThan}'`,
+      );
     }
 
     queryBuilder.orderBy('pipeline.updated_at', 'DESC');

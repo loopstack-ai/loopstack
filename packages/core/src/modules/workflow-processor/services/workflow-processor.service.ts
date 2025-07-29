@@ -28,7 +28,7 @@ export class WorkflowProcessorService {
     const mergedConfigElement =
       this.stateMachineConfigService.getConfig(configElement);
 
-    this.contextService.addIncludes(context, mergedConfigElement.importMap);
+    this.contextService.addIncludes(context, mergedConfigElement.includes);
 
     // create or load state if needed
     const currentWorkflow = await this.workflowStateService.getWorkflowState(

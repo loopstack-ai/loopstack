@@ -40,7 +40,7 @@ export class StateMachineConfigService {
       this.loopConfigService.resolveConfig<StateMachineType>(
         'workflows',
         configElement.config.extends,
-        configElement.importMap,
+        configElement.includes,
       ),
     );
 
@@ -53,14 +53,14 @@ export class StateMachineConfigService {
     parameters = _.merge({}, parameters, parentStateMachine.config.parameters);
     ui = _.merge({}, ui, parentStateMachine.config.ui);
 
-    const mergedImportMap = new Map([
-      ...parentStateMachine.importMap,
-      ...configElement.importMap,
-    ]);
+    const mergedImportMap = Array.from(new Map([
+      ...parentStateMachine.includes,
+      ...configElement.includes,
+    ]).entries());
 
     return {
       ...configElement,
-      importMap: mergedImportMap,
+      includes: mergedImportMap,
       config: {
         ...configElement.config,
         transitions,

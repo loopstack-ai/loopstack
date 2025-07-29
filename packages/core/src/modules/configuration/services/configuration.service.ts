@@ -104,14 +104,14 @@ export class ConfigurationService implements OnApplicationBootstrap {
       }
 
       // add own items to the importMap
-      for (const item of items.values()) {
+      for (const item of Array.from(items.values())) {
         importMap.set(item.name, item.path);
       }
 
       // add the import map to each item
       // and add them to the global list of elements
-      for (const item of items.values()) {
-        item.importMap = importMap;
+      for (const item of Array.from(items.values())) {
+        item.includes = Array.from(importMap.entries());
         flatConfigElementMap.set(`${item.path}:${item.name}`, item);
       }
     }
@@ -213,9 +213,10 @@ export class ConfigurationService implements OnApplicationBootstrap {
   resolveConfig<T>(
     type: string,
     name: string,
-    includes: Map<string, string>,
+    includes: [string, string][],
   ): ConfigElement<T> {
-    const resolvedName = this.resolveConfigName(name, includes);
+    const includesMap: Map<string, string> = new Map(includes);
+    const resolvedName = this.resolveConfigName(name, includesMap);
     const configElement = this.get<T>(type, resolvedName);
 
     if (!configElement) {
@@ -253,7 +254,7 @@ export class ConfigurationService implements OnApplicationBootstrap {
                 name: item.name,
                 path: source.relativePath,
                 type: key,
-                importMap: new Map(),
+                includes: [],
                 config: item,
               }) as ConfigElement<any>,
           );

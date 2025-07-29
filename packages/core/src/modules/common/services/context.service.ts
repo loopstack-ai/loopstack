@@ -29,6 +29,6 @@ export class ContextService {
   }
 
   addIncludes(context: ContextInterface, includes: Map<string, string>) {
-    context.includes = new Map([...context.includes, ...includes]);
+    context.includes = Array.from(new Map([...context.includes, ...includes]).entries());
   }
 }

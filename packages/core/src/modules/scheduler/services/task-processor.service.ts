@@ -34,21 +34,28 @@ export class TaskProcessorService extends WorkerHost {
   }
 
   async process(job: Job<ScheduledTask>) {
-    const { id, task } = job.data;
+    const { id, task, metadata } = job.data;
     this.logger.debug(`Processing task ${id}`);
 
     try {
       await job.updateProgress(0);
 
-      switch(task.type) {
+      switch (task.type) {
         case 'run_pipeline':
-          await this.runPipelineTaskProcessorService.process(task);
+          await this.runPipelineTaskProcessorService.process(task, metadata);
           break;
         case 'cleanup_pipeline':
-          await this.cleanupPipelineTaskProcessorService.process(task);
+          await this.cleanupPipelineTaskProcessorService.process(
+            task,
+            metadata,
+          );
           break;
         case 'create_workspace':
-          await this.createWorkspaceTaskProcessorService.process(task);
+          await this.createWorkspaceTaskProcessorService.process(
+            task,
+            metadata,
+          );
+          break;
       }
 
       await job.updateProgress(100);

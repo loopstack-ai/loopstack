@@ -24,13 +24,12 @@ export class TaskInitializationService {
     return this.configurationService.getAll<StartupTask>('startup');
   }
 
-  private createTask(
-    task: ConfigElement<StartupTask>,
-  ): ScheduledTask {
+  private createTask(task: ConfigElement<StartupTask>): ScheduledTask {
     try {
       return ScheduledTaskSchema.parse({
         id: `${task.path}:${task.name}`,
         task: task.config,
+        metadata: task,
       });
     } catch (error) {
       if (error instanceof ZodError) {

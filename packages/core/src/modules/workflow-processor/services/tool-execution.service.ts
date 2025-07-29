@@ -73,7 +73,7 @@ export class ToolExecutionService {
         context.includes,
       );
 
-    this.contextService.addIncludes(context, configElement.importMap);
+    this.contextService.addIncludes(context, configElement.includes);
 
     const zodSchema = this.schemaRegistry.getZodSchema(`${toolName}.arguments`);
 

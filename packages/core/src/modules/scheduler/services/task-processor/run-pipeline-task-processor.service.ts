@@ -1,8 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CreatePipelineService, RootProcessorService } from '../../../workflow-processor';
-import { PipelineRootType} from '@loopstack/shared';
+import {
+  CreatePipelineService,
+  RootProcessorService,
+} from '../../../workflow-processor';
+import {
+  PipelineRootType,
+} from '@loopstack/shared';
 import { RunPipelineTask } from '@loopstack/shared/dist/schemas/startup.schema';
 import { ConfigurationService } from '../../../configuration';
+import { ConfigElementMetadata } from '@loopstack/shared/dist/schemas/config-element.schema';
 
 @Injectable()
 export class RunPipelineTaskProcessorService {
@@ -14,9 +20,13 @@ export class RunPipelineTaskProcessorService {
     private readonly rootProcessorService: RootProcessorService,
   ) {}
 
-  public async process(task: RunPipelineTask) {
-
-    const pipelineConfig = this.configurationService.get<PipelineRootType>('pipelines', task.payload.pipeline);
+  public async process(task: RunPipelineTask, metadata: ConfigElementMetadata) {
+    const pipelineConfig =
+      this.configurationService.resolveConfig<PipelineRootType>(
+        'pipelines',
+        task.payload.pipeline,
+        metadata.includes,
+      );
     if (pipelineConfig?.config?.type !== 'root') {
       throw new Error(`Can't execute a non root pipeline`);
     }
