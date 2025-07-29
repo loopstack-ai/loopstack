@@ -10,7 +10,7 @@ export class TaskSchedulerService {
   constructor(@InjectQueue('task-queue') private readonly taskQueue: Queue) {}
 
   async addTask(startupTask: ScheduledTask): Promise<Job | null> {
-    const job = await this.taskQueue.add('process-task', startupTask, {
+    const job = await this.taskQueue.add(startupTask.task.name, startupTask, {
       jobId: startupTask.id,
       attempts: 3,
       backoff: {

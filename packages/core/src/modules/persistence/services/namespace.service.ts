@@ -11,54 +11,6 @@ export class NamespacesService {
     private namespaceRepository: Repository<NamespaceEntity>,
   ) {}
 
-  /**
-   * Find namespace IDs by name, model, and workspaceId
-   */
-  async findNamespaceIdsByAttributes(
-    name: string,
-    model: string,
-    workspaceId: string,
-  ): Promise<string[]> {
-    const namespaces = await this.namespaceRepository.find({
-      where: {
-        name,
-        model,
-        workspaceId,
-      },
-      select: ['id'],
-    });
-
-    return namespaces.map((namespace) => namespace.id);
-  }
-
-  /**
-   * Removes multiple namespaces and all their descendant namespaces from the provided array.
-   */
-  omitNamespacesByNames(
-    names: string[],
-    namespaces: NamespaceEntity[],
-  ): NamespaceEntity[] {
-    const idsToRemove = new Set<string>();
-
-    // Recursive function to collect a namespace's ID and all its descendant IDs
-    const collectDescendantIds = (id: string) => {
-      idsToRemove.add(id);
-      const children = namespaces.filter((item) => item.parentId === id);
-      for (const child of children) {
-        collectDescendantIds(child.id);
-      }
-    };
-
-    for (const name of names) {
-      const namespace = namespaces.find((item) => item.name === name);
-      if (namespace) {
-        collectDescendantIds(namespace.id);
-      }
-    }
-
-    return namespaces.filter((item) => !idsToRemove.has(item.id));
-  }
-
   async createRootNamespace(
     pipeline: PipelineEntity,
   ): Promise<NamespaceEntity> {
@@ -113,7 +65,7 @@ export class NamespacesService {
         model: createNamespaceDto.model,
         parent: (createNamespaceDto.parent as NamespaceEntity) ?? undefined,
         workspaceId: createNamespaceDto.workspaceId,
-        pipelineId: createNamespaceDto.pipelineId,
+        pipeline: { id: createNamespaceDto.pipelineId } as PipelineEntity,
         metadata: createNamespaceDto.metadata,
       });
 

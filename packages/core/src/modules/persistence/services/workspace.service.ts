@@ -23,11 +23,6 @@ export class WorkspaceService {
     });
   }
 
-  async lockWorkspace(workspace: WorkspaceEntity, lock: boolean) {
-    workspace.isLocked = lock;
-    await this.workspaceRepository.save(workspace);
-  }
-
   async create(data: Partial<WorkspaceEntity>, user: string | null) {
     const workspace = this.workspaceRepository.create({
       ...data,

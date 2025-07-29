@@ -6,6 +6,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { RunPipelineTaskProcessorService } from './task-processor/run-pipeline-task-processor.service';
 import { CleanupPipelineTaskProcessorService } from './task-processor/cleanup-pipeline-task-processor.service';
 import { CreateWorkspaceTaskProcessorService } from './task-processor/create-workspace-task-processor.service';
+import { CreateRunPipelineTaskProcessorService } from './task-processor/create-run-pipeline-task-processor.service';
 
 @Processor('task-queue', {
   concurrency: 1, // One job at a time
@@ -16,6 +17,7 @@ export class TaskProcessorService extends WorkerHost {
 
   constructor(
     private readonly runPipelineTaskProcessorService: RunPipelineTaskProcessorService,
+    private readonly createRunPipelineTaskProcessorService: CreateRunPipelineTaskProcessorService,
     private readonly cleanupPipelineTaskProcessorService: CleanupPipelineTaskProcessorService,
     private readonly createWorkspaceTaskProcessorService: CreateWorkspaceTaskProcessorService,
   ) {
@@ -42,7 +44,10 @@ export class TaskProcessorService extends WorkerHost {
 
       switch (task.type) {
         case 'run_pipeline':
-          await this.runPipelineTaskProcessorService.process(task, metadata);
+          await this.runPipelineTaskProcessorService.process(task);
+          break;
+        case 'create_run_pipeline':
+          await this.createRunPipelineTaskProcessorService.process(task, metadata);
           break;
         case 'cleanup_pipeline':
           await this.cleanupPipelineTaskProcessorService.process(

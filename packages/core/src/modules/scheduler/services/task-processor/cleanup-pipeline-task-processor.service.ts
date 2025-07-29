@@ -22,14 +22,14 @@ export class CleanupPipelineTaskProcessorService {
 
   public async process(
     task: CleanupPipelineTask,
-    metadata: ConfigElementMetadata,
+    metadata?: ConfigElementMetadata,
   ) {
     const { payload } = task;
     const pipelineConfig =
       this.configurationService.resolveConfig<PipelineRootType>(
         'pipelines',
         task.payload.pipeline,
-        metadata.includes,
+        metadata?.includes ?? [],
       );
     const pipelineName = `${pipelineConfig.path}:${pipelineConfig.name}`;
 

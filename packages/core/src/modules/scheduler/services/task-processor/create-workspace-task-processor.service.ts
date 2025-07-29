@@ -18,13 +18,13 @@ export class CreateWorkspaceTaskProcessorService {
 
   public async process(
     task: CreateWorkspaceTask,
-    metadata: ConfigElementMetadata,
+    metadata?: ConfigElementMetadata,
   ) {
     const workspaceConfig =
       this.configurationService.resolveConfig<PipelineRootType>(
         'workspaces',
         task.payload.workspace,
-        metadata.includes,
+        metadata?.includes ?? [],
       );
     if (!workspaceConfig) {
       throw new Error(`Workspace not found.`);

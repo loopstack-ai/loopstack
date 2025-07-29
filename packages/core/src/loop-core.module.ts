@@ -12,7 +12,7 @@ import {
 } from './modules';
 import { MigrationsService } from './services/migrations.service';
 import { ConfigProviderService } from './config-provider.service';
-import { SchedulerModule } from './modules/scheduler/scheduler.module';
+import { SchedulerModule } from './modules/scheduler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({})
@@ -48,6 +48,7 @@ export class LoopCoreModule extends ConfigurableModuleClass {
         CommonModule,
         PersistenceModule,
         WorkflowProcessorModule,
+        SchedulerModule,
       ],
     };
   }
