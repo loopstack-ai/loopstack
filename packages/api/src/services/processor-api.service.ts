@@ -8,8 +8,6 @@ import { IsNull, Repository } from 'typeorm';
 import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
 import {
   PipelineEntity,
-  PipelineState,
-  WorkspaceEntity,
 } from '@loopstack/shared';
 import { RootProcessorService } from '@loopstack/core/dist/modules/workflow-processor/services/root-processor.service';
 
@@ -18,8 +16,6 @@ export class ProcessorApiService {
   constructor(
     @InjectRepository(PipelineEntity)
     private pipelineEntityRepository: Repository<PipelineEntity>,
-    @InjectRepository(WorkspaceEntity)
-    private workspaceRepository: Repository<WorkspaceEntity>,
     private rootProcessorService: RootProcessorService,
   ) {}
 
@@ -49,27 +45,6 @@ export class ProcessorApiService {
       );
     }
 
-    pipeline.status = PipelineState.Running;
-    await this.pipelineEntityRepository.save(pipeline);
-
-    pipeline.workspace.isLocked = true;
-    await this.workspaceRepository.save(pipeline.workspace);
-
-    const finalContext = await this.rootProcessorService.processRootPipeline(
-      pipeline,
-      payload,
-    );
-
-    pipeline.status = finalContext.error
-      ? PipelineState.Failed
-      : finalContext.stop
-        ? PipelineState.Paused
-        : PipelineState.Completed;
-    await this.pipelineEntityRepository.save(pipeline);
-
-    pipeline.workspace.isLocked = false;
-    await this.workspaceRepository.save(pipeline.workspace);
-
-    return finalContext;
+    return this.rootProcessorService.runPipeline(pipeline, payload, options);
   }
 }

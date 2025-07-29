@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { IsNull, Repository, In } from 'typeorm';
 import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
 import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
@@ -7,15 +7,15 @@ import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
 import { PipelineEntity, WorkspaceEntity } from '@loopstack/shared';
+import { CreatePipelineService } from '@loopstack/core';
 
 @Injectable()
 export class PipelineApiService {
   constructor(
-    @InjectRepository(WorkspaceEntity)
-    private workspaceRepository: Repository<WorkspaceEntity>,
     @InjectRepository(PipelineEntity)
     private pipelineRepository: Repository<PipelineEntity>,
     private configService: ConfigService,
+    private readonly createPipelineService: CreatePipelineService,
   ) {}
 
   /**
@@ -118,24 +118,15 @@ export class PipelineApiService {
     pipelineData: PipelineCreateDto,
     user: string | null,
   ): Promise<PipelineEntity> {
-    const workspace = await this.workspaceRepository.findOne({
-      where: {
+    try {
+      return this.createPipelineService.create({
         id: pipelineData.workspaceId,
-        createdBy: user === null ? IsNull() : user,
-      },
-    });
-    if (!workspace) {
-      throw new NotFoundException(
-        `Workspace with id ${pipelineData.workspaceId} not found.`,
+      }, pipelineData, user);
+    } catch(e) {
+      throw new BadRequestException(
+        `Pipeline installation failed.`,
       );
     }
-
-    const pipeline = this.pipelineRepository.create({
-      ...pipelineData,
-      createdBy: user,
-      workspace,
-    });
-    return await this.pipelineRepository.save(pipeline);
   }
 
   /**
