@@ -6,7 +6,6 @@ import { ContextInterface, NamespacePropsType } from '@loopstack/shared';
 @Injectable()
 export class NamespaceProcessorService {
   private readonly logger = new Logger(NamespaceProcessorService.name);
-  stop: boolean = false;
 
   constructor(
     @Inject(forwardRef(() => ContextService))

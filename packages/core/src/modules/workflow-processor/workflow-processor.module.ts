@@ -33,6 +33,7 @@ import {
   TransitionSelectorHandler,
   UpdateDocumentHandler,
 } from './handlers';
+import { CreatePipelineService } from './services';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import {
     StateMachineValidatorRegistry,
     StateMachineProcessorService,
     StateMachineConfigService,
+    CreatePipelineService,
 
     // Tool Handlers
     CreateDocumentHandler,
@@ -73,6 +75,7 @@ import {
     RootProcessorService,
     ToolExecutionService,
     TemplateExpressionEvaluatorService,
+    CreatePipelineService,
   ],
 })
 export class WorkflowProcessorModule {}

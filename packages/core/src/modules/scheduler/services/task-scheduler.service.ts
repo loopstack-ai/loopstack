@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue, Job } from 'bullmq';
-import { ScheduledPipelineTask } from '@loopstack/shared';
+import { ScheduledTask } from '@loopstack/shared';
 
 @Injectable()
 export class TaskSchedulerService {
@@ -9,31 +9,33 @@ export class TaskSchedulerService {
 
   constructor(@InjectQueue('task-queue') private readonly taskQueue: Queue) {}
 
-  async addTask(task: ScheduledPipelineTask): Promise<Job | null> {
-    const { id, metadata, options = {} } = task;
+  async addTask(startupTask: ScheduledTask): Promise<Job | null> {
     const job = await this.taskQueue.add(
       'process-task',
+      startupTask,
       {
-        id,
-        metadata,
-      },
-      {
-        jobId: id,
+        jobId: startupTask.id,
         attempts: 3,
         backoff: {
           type: 'exponential',
           delay: 2000,
         },
-        ...options,
+        ...(startupTask.task.schedule ?? {}),
       },
     );
 
-    this.logger.debug(`Task ${id} added successfully`);
-
+    this.logger.debug(`Task ${startupTask.id} added successfully`);
     return job;
   }
 
   async clearAllTasks(): Promise<void> {
+
+    await this.taskQueue.drain(true);
+    await this.taskQueue.clean(0, 1000, 'active');
+    await this.taskQueue.clean(0, 1000, 'waiting');
+    await this.taskQueue.clean(0, 1000, 'completed');
+    await this.taskQueue.clean(0, 1000, 'failed');
+
     await this.taskQueue.obliterate();
   }
 }

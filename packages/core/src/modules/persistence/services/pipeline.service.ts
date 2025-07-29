@@ -1,6 +1,10 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { PipelineEntity } from '@loopstack/shared';
+import {
+  PipelineEntity,
+  PipelineState,
+  WorkspaceEntity,
+} from '@loopstack/shared';
 
 export class PipelineService {
   constructor(
@@ -20,6 +24,24 @@ export class PipelineService {
       },
       relations,
     });
+  }
+
+  async createPipeline(
+    options: Partial<PipelineEntity>,
+    workspace: WorkspaceEntity,
+    user: string | null,
+  ) {
+    const pipeline = this.entityRepository.create({
+      ...options,
+      createdBy: user,
+      workspace,
+    });
+    return await this.entityRepository.save(pipeline);
+  }
+
+  async setPipelineStatus(pipeline: PipelineEntity, status: PipelineState) {
+    pipeline.status = status;
+    await this.entityRepository.save(pipeline);
   }
 
   getRepository() {

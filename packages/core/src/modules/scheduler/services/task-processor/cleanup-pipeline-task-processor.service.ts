@@ -1,0 +1,78 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { CleanupPipelineTask, PipelineEntity } from '@loopstack/shared';
+import { SelectQueryBuilder } from 'typeorm';
+import { PipelineService } from '../../../persistence';
+
+@Injectable()
+export class CleanupPipelineTaskProcessorService {
+  private readonly logger = new Logger(CleanupPipelineTaskProcessorService.name);
+
+  constructor(private readonly pipelineService: PipelineService) {}
+
+  public async process(task: CleanupPipelineTask) {
+
+    const { payload } = task;
+
+    this.logger.debug(
+      `Starting pipeline cleanup for pipeline: ${payload.pipeline}, status: ${payload.status}, user: ${task.user}`,
+    );
+
+    let queryBuilder = this.createBaseQuery(payload, task.user);
+
+    const totalFound = await queryBuilder.getCount();
+    if (totalFound === 0) {
+      this.logger.debug('No pipelines found matching cleanup criteria');
+      return;
+    }
+
+    if (payload.skip && payload.skip > 0) {
+      queryBuilder.skip(payload.skip);
+    }
+
+    if (payload.limit && payload.limit > 0) {
+      queryBuilder.limit(payload.limit);
+    }
+
+    const pipelinesToDelete = await queryBuilder.getMany();
+    if (pipelinesToDelete.length === 0) {
+      this.logger.debug('No pipelines to delete after applying keep/limit filters');
+      return;
+    }
+
+    const pipelineIds = pipelinesToDelete.map(p => p.id);
+
+    const deleteResult = await this.pipelineService.getRepository().delete(pipelineIds);
+    const deletedCount = deleteResult.affected || 0;
+
+    this.logger.log(
+      `Pipeline cleanup completed. Deleted: ${deletedCount}, Total found: ${totalFound}`,
+    );
+  }
+
+  /**
+   * Create the base query with common filters
+   */
+  private createBaseQuery(payload: CleanupPipelineTask['payload'], user: string | null): SelectQueryBuilder<PipelineEntity> {
+    let queryBuilder = this.pipelineService.getRepository()
+      .createQueryBuilder('pipeline')
+      .where('pipeline.model = :pipeline', { pipeline: payload.pipeline });
+
+    if (null === user) {
+      queryBuilder.andWhere('pipeline.created_by IS NULL');
+    } else {
+      queryBuilder.andWhere('pipeline.created_by = :user', { user });
+    }
+
+    if (payload.status) {
+      queryBuilder.andWhere('pipeline.status = :status', { status: payload.status });
+    }
+
+    if (payload.olderThan) {
+      queryBuilder.andWhere(`pipeline.created_at < NOW() - INTERVAL '${payload.olderThan}'`);
+    }
+
+    queryBuilder.orderBy('pipeline.updated_at', 'DESC');
+
+    return queryBuilder;
+  }
+}

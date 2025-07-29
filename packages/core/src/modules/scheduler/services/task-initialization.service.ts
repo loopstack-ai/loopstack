@@ -1,47 +1,36 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { ZodError } from 'zod';
 import { TaskSchedulerService } from './task-scheduler.service';
 import {
   ConfigElement,
-  ScheduledPipelineTask,
-  ScheduledPipelineTaskSchema,
-  PipelineRootType,
-  PipelineType,
+  ScheduledTask,
+  ScheduledTaskSchema,
 } from '@loopstack/shared';
 import { ConfigurationService } from '../../configuration';
+import { StartupTask } from '@loopstack/shared/dist/schemas/startup.schema';
 
 @Injectable()
 export class TaskInitializationService {
   private readonly logger = new Logger(TaskInitializationService.name);
 
   constructor(
+    private readonly eventEmitter: EventEmitter2,
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly configurationService: ConfigurationService,
   ) {}
 
-  private getScheduledRootPipelines(): ConfigElement<PipelineRootType>[] {
-    const pipelines =
-      this.configurationService.getAll<PipelineType>('pipelines');
-    return pipelines.filter(
-      (pipeline) => pipeline.config.type === 'root' && pipeline.config.schedule,
-    ) as ConfigElement<PipelineRootType>[];
+  private getStartupTasks(): ConfigElement<StartupTask>[] {
+    return this.configurationService.getAll<StartupTask>('startup');
   }
 
   private createTask(
-    pipeline: ConfigElement<PipelineRootType>,
-  ): ScheduledPipelineTask {
+    task: ConfigElement<StartupTask>,
+  ): ScheduledTask {
     try {
-      return ScheduledPipelineTaskSchema.parse({
-        id: `${pipeline.path}:${pipeline.name}`,
-        metadata: {
-          workspaceName: pipeline.config.workspace,
-          pipelineName: pipeline.name,
-          payload: {
-            initializedAt: new Date(),
-          },
-        },
-        options: pipeline.config.schedule,
+      return ScheduledTaskSchema.parse({
+        id: `${task.path}:${task.name}`,
+        task: task.config,
       });
     } catch (error) {
       if (error instanceof ZodError) {
@@ -59,9 +48,9 @@ export class TaskInitializationService {
     await this.taskSchedulerService.clearAllTasks();
   }
 
-  private async installTasks(pipelines: ConfigElement<PipelineRootType>[]) {
-    for (const pipeline of pipelines) {
-      const task = this.createTask(pipeline);
+  private async installTasks(tasks: ConfigElement<StartupTask>[]) {
+    for (const taskConfig of tasks) {
+      const task = this.createTask(taskConfig);
       const job = await this.taskSchedulerService.addTask(task);
       if (job) {
         this.logger.debug(`Successfully installed task: ${task.id}`);
@@ -73,16 +62,17 @@ export class TaskInitializationService {
 
   @OnEvent('configuration.initialized')
   async handleTaskInitialization() {
-    const pipelines = this.getScheduledRootPipelines();
+    const startupTasks = this.getStartupTasks();
     this.logger.log(
-      `Initializing task schedule for ${pipelines.length} pipelines`,
+      `Initializing task schedule for ${startupTasks.length} startup tasks`,
     );
 
     try {
       await this.clearPendingTasks();
-      await this.installTasks(pipelines);
+      await this.installTasks(startupTasks);
 
       this.logger.debug(`Task initialization completed.`);
+      this.eventEmitter.emit('tasks.initialized');
     } catch (error) {
       this.logger.error('Task initialization failed:', error);
     }

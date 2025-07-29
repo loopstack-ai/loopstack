@@ -1,25 +1,55 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { ScheduledPipelineTask } from '@loopstack/shared';
+import { ScheduledTask } from '@loopstack/shared';
+import { OnEvent } from '@nestjs/event-emitter';
+import { RunPipelineTaskProcessorService } from './task-processor/run-pipeline-task-processor.service';
+import { CleanupPipelineTaskProcessorService } from './task-processor/cleanup-pipeline-task-processor.service';
+import { CreateWorkspaceTaskProcessorService } from './task-processor/create-workspace-task-processor.service';
 
 @Processor('task-queue', {
   concurrency: 1, // One job at a time
+  autorun: false, // Start after tasks are initialized
 })
 export class TaskProcessorService extends WorkerHost {
   private readonly logger = new Logger(TaskProcessorService.name);
 
-  async process(job: Job<ScheduledPipelineTask>) {
-    const { id, metadata, options } = job.data;
+  constructor(
+    private readonly runPipelineTaskProcessorService: RunPipelineTaskProcessorService,
+    private readonly cleanupPipelineTaskProcessorService: CleanupPipelineTaskProcessorService,
+    private readonly createWorkspaceTaskProcessorService: CreateWorkspaceTaskProcessorService,
+  ) {
+    super();
+  }
+
+  @OnEvent('tasks.initialized')
+  async handleStartWorker() {
+    try {
+      this.logger.debug('Starting worker');
+      await this.worker.run();
+    } catch (error) {
+      this.logger.error('Failed to start worker:', error);
+      throw error;
+    }
+  }
+
+  async process(job: Job<ScheduledTask>) {
+    const { id, task } = job.data;
     this.logger.debug(`Processing task ${id}`);
 
     try {
       await job.updateProgress(0);
 
-      // Your task processing logic here
-      // This is where you'd implement the actual work based on metadata.type
-
-      // todo: call workflowProcessorService
+      switch(task.type) {
+        case 'run_pipeline':
+          await this.runPipelineTaskProcessorService.process(task);
+          break;
+        case 'cleanup_pipeline':
+          await this.cleanupPipelineTaskProcessorService.process(task);
+          break;
+        case 'create_workspace':
+          await this.createWorkspaceTaskProcessorService.process(task);
+      }
 
       await job.updateProgress(100);
 
