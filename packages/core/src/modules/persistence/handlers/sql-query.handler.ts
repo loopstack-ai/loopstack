@@ -2,7 +2,8 @@ import { Logger } from '@nestjs/common';
 import {
   Handler,
   HandlerInterface,
-  HandlerCallResult, ExpressionString,
+  HandlerCallResult,
+  ExpressionString,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
@@ -12,10 +13,7 @@ const config = z
   .object({
     entity: z.string(),
     query: z.string(),
-    parameters: z.union([
-      ExpressionString,
-      z.array(z.any())
-    ]).optional()
+    parameters: z.union([ExpressionString, z.array(z.any())]).optional(),
   })
   .strict();
 
@@ -43,7 +41,9 @@ export class SqlQueryHandler implements HandlerInterface {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }
-    this.logger.debug(`Executing sql query using repository for ${props.entity}`);
+    this.logger.debug(
+      `Executing sql query using repository for ${props.entity}`,
+    );
 
     const repository = this.dynamicRepositoryService.getRepository(
       props.entity,

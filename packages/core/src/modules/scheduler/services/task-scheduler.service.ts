@@ -1,22 +1,16 @@
-
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
-import { Queue, Job, JobsOptions } from 'bullmq';
-import { TaskMetadata } from '@loopstack/shared';
+import { Queue, Job } from 'bullmq';
+import { ScheduledPipelineTask } from '@loopstack/shared';
 
 @Injectable()
 export class TaskSchedulerService {
   private readonly logger = new Logger(TaskSchedulerService.name);
 
-  constructor(
-    @InjectQueue('task-queue') private readonly taskQueue: Queue,
-  ) {}
+  constructor(@InjectQueue('task-queue') private readonly taskQueue: Queue) {}
 
-  async addTask(
-    id: string,
-    metadata: TaskMetadata,
-    options: JobsOptions = {},
-  ): Promise<Job | null> {
+  async addTask(task: ScheduledPipelineTask): Promise<Job | null> {
+    const { id, metadata, options = {} } = task;
     const job = await this.taskQueue.add(
       'process-task',
       {

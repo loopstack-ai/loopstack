@@ -25,7 +25,6 @@ export class WorkflowProcessorService {
     configElement: ConfigElement<WorkflowType>,
     context: ContextInterface,
   ) {
-
     const mergedConfigElement =
       this.stateMachineConfigService.getConfig(configElement);
 

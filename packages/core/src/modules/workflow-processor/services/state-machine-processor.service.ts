@@ -264,17 +264,11 @@ export class StateMachineProcessorService {
     toolCall: ToolCallType,
     result: HandlerCallResult | undefined,
   ) {
-
     if (result?.workflow) {
       workflow = result?.workflow;
     }
 
-    this.addWorkflowTransitionData(
-      workflow,
-      transition,
-      index,
-      result?.data,
-    );
+    this.addWorkflowTransitionData(workflow, transition, index, result?.data);
 
     if (toolCall.as) {
       const currAlias = workflow.aliasData ?? {};
@@ -387,7 +381,7 @@ export class StateMachineProcessorService {
                 workflow,
                 context,
                 transitionData,
-                {}
+                {},
               );
 
               // add the response data to workflow

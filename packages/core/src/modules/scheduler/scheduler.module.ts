@@ -4,6 +4,7 @@ import { TaskSchedulerService } from './services/task-scheduler.service';
 import { TaskProcessorService } from './services/task-processor.service';
 import { WorkflowProcessorModule } from '../workflow-processor';
 import { TaskInitializationService } from './services/task-initialization.service';
+import { ConfigurationModule } from '../configuration';
 
 @Module({
   imports: [
@@ -26,9 +27,14 @@ import { TaskInitializationService } from './services/task-initialization.servic
         },
       },
     }),
+    ConfigurationModule,
     WorkflowProcessorModule,
   ],
-  providers: [TaskSchedulerService, TaskProcessorService, TaskInitializationService],
+  providers: [
+    TaskSchedulerService,
+    TaskProcessorService,
+    TaskInitializationService,
+  ],
   exports: [TaskSchedulerService],
 })
 export class SchedulerModule {}

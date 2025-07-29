@@ -1,19 +1,17 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { TaskMetadata } from '@loopstack/shared';
+import { ScheduledPipelineTask } from '@loopstack/shared';
 
 @Processor('task-queue', {
-  concurrency: 1 // One job at a time
+  concurrency: 1, // One job at a time
 })
 export class TaskProcessorService extends WorkerHost {
   private readonly logger = new Logger(TaskProcessorService.name);
 
-  async process(job: Job<{ id: string; metadata: TaskMetadata }>) {
-    const { id, metadata } = job.data;
-
-    console.log(id)
-    this.logger.debug(`Processing task ${id} of type ${metadata.type}`);
+  async process(job: Job<ScheduledPipelineTask>) {
+    const { id, metadata, options } = job.data;
+    this.logger.debug(`Processing task ${id}`);
 
     try {
       await job.updateProgress(0);

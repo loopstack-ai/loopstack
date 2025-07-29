@@ -7,7 +7,7 @@ import {
   JSONSchemaConfigType,
   MainConfigType,
   ConfigElement,
-  ToolConfigType, TaskInitializationEvent,
+  ToolConfigType,
 } from '@loopstack/shared';
 import { ConfigProviderRegistry } from './config-provider.registry';
 import { z } from 'zod';
@@ -142,26 +142,7 @@ export class ConfigurationService implements OnApplicationBootstrap {
       `Registered ${this.schemaRegistry.getSize()} custom schemas.`,
     );
 
-    const tasksInitPayload: TaskInitializationEvent = {
-      tasks: [{
-        id: 'test',
-        metadata: {
-          workspaceId: 'test',
-          rootPipelineId: 'test',
-          name: 'test',
-          type: 'delayed',
-          payload: {
-            test: 'is a payload'
-          }
-        },
-        options: {
-          repeat: {
-            every: 5000
-          },
-        }
-      }]
-    };
-    this.eventEmitter.emit('tasks.initialize', tasksInitPayload)
+    this.eventEmitter.emit('configuration.initialized');
   }
 
   private registerCustomSchema(key: string, schema: JSONSchemaConfigType) {

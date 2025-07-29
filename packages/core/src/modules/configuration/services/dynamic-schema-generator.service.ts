@@ -4,7 +4,8 @@ import {
   MainConfigSchema,
   ToolConfigSchema,
   HandlerInterface,
-  HandlerOptionsInterface, ToolCallSchema,
+  HandlerOptionsInterface,
+  ToolCallSchema,
 } from '@loopstack/shared';
 import { HandlerRegistry } from './handler-registry.service';
 import { HandlerCallSchema } from '@loopstack/shared/dist/schemas/handler-call.schema';
@@ -101,12 +102,7 @@ export class DynamicSchemaGeneratorService {
     );
 
     const toolConfigSchema = ToolConfigSchema.extend({
-      execute: z.array(
-        z.union([
-          handlerExecutionSchemas,
-          ToolCallSchema,
-        ]),
-      ),
+      execute: z.array(z.union([handlerExecutionSchemas, ToolCallSchema])),
     });
 
     return MainConfigSchema.extend({

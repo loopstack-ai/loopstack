@@ -26,11 +26,15 @@ export class ToolExecutionService {
     private contextService: ContextService,
   ) {}
 
-  isHandlerCallType(execute: HandlerCallType | ToolCallType): execute is HandlerCallType {
+  isHandlerCallType(
+    execute: HandlerCallType | ToolCallType,
+  ): execute is HandlerCallType {
     return 'handler' in execute;
   }
 
-  isToolCallType(execute: HandlerCallType | ToolCallType): execute is ToolCallType {
+  isToolCallType(
+    execute: HandlerCallType | ToolCallType,
+  ): execute is ToolCallType {
     return 'tool' in execute;
   }
 
@@ -71,9 +75,7 @@ export class ToolExecutionService {
 
     this.contextService.addIncludes(context, configElement.importMap);
 
-    const zodSchema = this.schemaRegistry.getZodSchema(
-      `${toolName}.arguments`,
-    );
+    const zodSchema = this.schemaRegistry.getZodSchema(`${toolName}.arguments`);
 
     const hasArguments =
       toolCall.arguments && Object.keys(toolCall.arguments).length;
@@ -98,7 +100,8 @@ export class ToolExecutionService {
       : {};
 
     let result: any;
-    const executeItems: Array<HandlerCallType | ToolCallType> = configElement.config.execute;
+    const executeItems: Array<HandlerCallType | ToolCallType> =
+      configElement.config.execute;
 
     const extraVariables: Record<string, any> = {};
     for (const execute of executeItems) {
