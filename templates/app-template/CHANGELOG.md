@@ -1,5 +1,20 @@
 # @loopstack/app-template
 
+## 0.5.0
+
+### Minor Changes
+
+- Add AuthModule to framework, Enable Startup Tasks/Schedules, Run Processes via BullMQ, Various Bugfixes
+
+### Patch Changes
+
+- Updated dependencies
+  - @loopstack/auth@0.5.0
+  - @loopstack/api@0.5.0
+  - @loopstack/core@0.5.0
+  - @loopstack/llm@0.5.0
+  - @loopstack/shared@0.5.0
+
 ## 0.4.2
 
 ### Patch Changes
