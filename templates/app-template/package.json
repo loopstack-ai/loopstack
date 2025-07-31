@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@loopstack/api": "^0.4.2",
+    "@loopstack/auth": "^0.4.2",
     "@loopstack/core": "^0.4.2",
     "@loopstack/llm": "^0.4.2",
     "@loopstack/shared": "^0.4.2",
