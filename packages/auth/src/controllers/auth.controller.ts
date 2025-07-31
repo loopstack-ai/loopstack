@@ -3,14 +3,16 @@ import { AuthService, OAuthService } from '../services';
 import { LocalAuthGuard, GoogleAuthGuard, DevAuthGuard } from '../guards';
 import {
   AuthResponseDto,
-  CurrentUser, DevLoginDto,
+  CurrentUser,
   LinkProviderDto,
   LoginDto,
   Public,
   RegisterDto,
   UserResponseDto,
 } from '@loopstack/shared';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('api/v1/auth')
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(
