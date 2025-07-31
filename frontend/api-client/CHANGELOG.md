@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.5.0
+
+### Minor Changes
+
+- Add AuthModule to framework, Enable Startup Tasks/Schedules, Run Processes via BullMQ, Various Bugfixes
+
 ## 0.4.0
 
 ### Minor Changes
