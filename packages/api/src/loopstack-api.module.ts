@@ -27,7 +27,6 @@ import { LoopCoreModule } from '@loopstack/core';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { NullStrategy } from './strategies/null.strategy';
-import { AuthController } from './controllers/auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthService } from './services/auth.service';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
@@ -67,7 +66,6 @@ var cookieParser = require('cookie-parser');
     }),
   ],
   controllers: [
-    AuthController,
     PipelineController,
     WorkspaceController,
     ProcessorController,
