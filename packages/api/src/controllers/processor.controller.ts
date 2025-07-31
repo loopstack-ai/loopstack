@@ -3,9 +3,6 @@ import {
   Controller,
   Param,
   Post,
-  Query,
-  Request,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -16,22 +13,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ApiRequestType } from '../interfaces/api-request.type';
 import { ProcessorApiService } from '../services/processor-api.service';
-import { IsBoolean, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
 import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-
-/**
- * Query parameters for run pipeline endpoint
- */
-export class RunPipelineQueryParams {
-  @IsOptional()
-  @IsBoolean()
-  @Type(() => Boolean)
-  force?: boolean;
-}
+import { CurrentUser, CurrentUserInterface } from '@loopstack/shared';
 
 /**
  * Controller handling pipeline processor operations
@@ -82,20 +66,15 @@ export class ProcessorController {
     description: 'Pipeline not found',
   })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   runPipeline(
     @Param('pipelineId') pipelineId: string,
     @Body() payload: RunPipelinePayloadDto,
-    @Request() req: ApiRequestType,
-    @Query() queryParams: RunPipelineQueryParams,
+    @CurrentUser() user: CurrentUserInterface,
   ): void {
     this.processorApiService.processPipeline(
       pipelineId,
-      req.user.id,
+      user.userId,
       payload ?? {},
-      {
-        force: !!queryParams.force,
-      },
     );
   }
 }

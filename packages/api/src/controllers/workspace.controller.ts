@@ -6,13 +6,11 @@ import {
   Delete,
   Body,
   Param,
-  Request,
   UsePipes,
   ValidationPipe,
   ParseIntPipe,
   Query,
   BadRequestException,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -25,7 +23,6 @@ import {
   ApiQuery,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ApiRequestType } from '../interfaces/api-request.type';
 import { WorkspaceApiService } from '../services/workspace-api.service';
 import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
@@ -35,8 +32,7 @@ import { WorkspaceDto } from '../dtos/workspace.dto';
 import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { WorkspaceEntity } from '@loopstack/shared';
+import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/shared';
 
 @ApiTags('api/v1/workspaces')
 @ApiExtraModels(
@@ -108,9 +104,8 @@ export class WorkspaceController {
   })
   @ApiPaginatedResponse(WorkspaceItemDto)
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async getWorkspaces(
-    @Request() req: any,
+    @CurrentUser() user: CurrentUserInterface,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('filter') filterParam?: string,
@@ -118,6 +113,8 @@ export class WorkspaceController {
     @Query('search') search?: string,
     @Query('searchColumns') searchColumnsParam?: string,
   ): Promise<PaginatedDto<WorkspaceItemDto>> {
+    console.log(user)
+
     let filter: WorkspaceFilterDto = {};
     if (filterParam) {
       try {
@@ -148,7 +145,7 @@ export class WorkspaceController {
     }
 
     const result = await this.workspaceService.findAll(
-      req.user.id,
+      user.userId,
       filter,
       sortBy,
       {
@@ -176,12 +173,11 @@ export class WorkspaceController {
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiOkResponse({ type: WorkspaceDto })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async getWorkspaceById(
     @Param('id') id: string,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkspaceDto> {
-    const workspace = await this.workspaceService.findOneById(id, req.user.id);
+    const workspace = await this.workspaceService.findOneById(id, user.userId);
     return WorkspaceDto.create(workspace);
   }
 
@@ -193,14 +189,13 @@ export class WorkspaceController {
   @ApiBody({ type: WorkspaceCreateDto, description: 'Workspace data' })
   @ApiOkResponse({ type: WorkspaceDto })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async createWorkspace(
     @Body() workspaceData: WorkspaceCreateDto,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkspaceDto> {
     const workspace = await this.workspaceService.create(
       workspaceData,
-      req.user.id,
+      user.userId,
     );
     return WorkspaceDto.create(workspace);
   }
@@ -219,16 +214,15 @@ export class WorkspaceController {
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiOkResponse({ type: WorkspaceDto })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async updateWorkspace(
     @Param('id') id: string,
     @Body() workspaceData: WorkspaceUpdateDto,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkspaceDto> {
     const workspace = await this.workspaceService.update(
       id,
       workspaceData,
-      req.user.id,
+      user.userId,
     );
     return WorkspaceDto.create(workspace);
   }
@@ -246,12 +240,11 @@ export class WorkspaceController {
   @ApiResponse({ status: 204, description: 'Workspace deleted successfully' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async deleteWorkspace(
     @Param('id') id: string,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<void> {
-    await this.workspaceService.delete(id, req.user.id);
+    await this.workspaceService.delete(id, user.userId);
   }
 
   /**
@@ -303,17 +296,16 @@ export class WorkspaceController {
   })
   @ApiResponse({ status: 400, description: 'Invalid request body' })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async batchDeleteWorkspaces(
     @Body() batchDeleteDto: { ids: string[] },
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<{
     deleted: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
     return await this.workspaceService.batchDelete(
       batchDeleteDto.ids,
-      req.user.id,
+      user.userId,
     );
   }
 }

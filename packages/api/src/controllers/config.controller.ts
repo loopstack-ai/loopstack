@@ -10,7 +10,6 @@ import {
   Controller,
   Get,
   Param,
-  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -19,7 +18,6 @@ import { ConfigurationService } from '@loopstack/core';
 import { plainToInstance } from 'class-transformer';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
 import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { sortBy } from 'lodash';
 
 @ApiTags('api/v1/config')
@@ -33,7 +31,6 @@ export class ConfigController {
   @ApiOperation({ summary: 'Get all models available for this workspace' })
   @ApiOkResponse({ type: WorkspaceConfigDto, isArray: true })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   getWorkspaceTypes(): WorkspaceConfigDto[] {
     const workspaces = this.configService.getAll<WorkspaceType>('workspaces');
     return plainToInstance(WorkspaceConfigDto, workspaces, {
@@ -52,7 +49,6 @@ export class ConfigController {
   })
   @ApiOkResponse({ type: PipelineConfigDto, isArray: true })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   getPipelineTypesByWorkspace(
     @Param('workspaceName') workspaceName: string,
   ): PipelineConfigDto[] {

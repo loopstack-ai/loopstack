@@ -12,8 +12,6 @@ import {
   Query,
   ParseIntPipe,
   BadRequestException,
-  UseGuards,
-  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -26,7 +24,6 @@ import {
   ApiQuery,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ApiRequestType } from '../interfaces/api-request.type';
 import { PipelineApiService } from '../services/pipeline-api.service';
 import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
 import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
@@ -36,8 +33,7 @@ import { PipelineDto } from '../dtos/pipeline.dto';
 import { PipelineItemDto } from '../dtos/pipeline-item.dto';
 import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
 import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { WorkspaceEntity } from '@loopstack/shared';
+import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/shared';
 
 @ApiTags('api/v1/pipelines')
 @ApiExtraModels(
@@ -107,9 +103,8 @@ export class PipelineController {
       'JSON string array of columns to search in (defaults to title and type if not specified)',
   })
   @ApiPaginatedResponse(PipelineItemDto)
-  @UseGuards(JwtAuthGuard)
   async getPipelines(
-    @Request() req: any,
+    @CurrentUser() user: CurrentUserInterface,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('filter') filterParam?: string,
@@ -147,7 +142,7 @@ export class PipelineController {
     }
 
     const result = await this.pipelineApiService.findAll(
-      req.user.id,
+      user.userId,
       filter,
       sortBy,
       {
@@ -171,12 +166,11 @@ export class PipelineController {
   @ApiResponse({ status: 404, description: 'Pipeline not found' })
   @ApiOkResponse({ type: PipelineDto })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async getPipelineById(
     @Param('id') id: string,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<PipelineDto> {
-    const pipeline = await this.pipelineApiService.findOneById(id, req.user.id);
+    const pipeline = await this.pipelineApiService.findOneById(id, user.userId);
     return PipelineDto.create(pipeline);
   }
 
@@ -188,14 +182,13 @@ export class PipelineController {
   @ApiBody({ type: PipelineCreateDto, description: 'Pipeline data' })
   @ApiOkResponse({ type: PipelineDto })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async createPipeline(
     @Body() pipelineCreateDto: PipelineCreateDto,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<PipelineDto> {
     const pipeline = await this.pipelineApiService.create(
       pipelineCreateDto,
-      req.user.id,
+      user.userId,
     );
     return PipelineDto.create(pipeline);
   }
@@ -210,16 +203,15 @@ export class PipelineController {
   @ApiResponse({ status: 404, description: 'Pipeline not found' })
   @ApiOkResponse({ type: PipelineDto })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async updatePipeline(
     @Param('id') id: string,
     @Body() pipelineUpdateDto: PipelineUpdateDto,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<PipelineDto> {
     const pipeline = await this.pipelineApiService.update(
       id,
       pipelineUpdateDto,
-      req.user.id,
+      user.userId,
     );
     return PipelineDto.create(pipeline);
   }
@@ -233,12 +225,11 @@ export class PipelineController {
   @ApiResponse({ status: 204, description: 'Pipeline deleted successfully' })
   @ApiResponse({ status: 404, description: 'Pipeline not found' })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async deletePipeline(
     @Param('id') id: string,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<void> {
-    await this.pipelineApiService.delete(id, req.user.id);
+    await this.pipelineApiService.delete(id, user.userId);
   }
 
   /**
@@ -290,17 +281,16 @@ export class PipelineController {
   })
   @ApiResponse({ status: 400, description: 'Invalid request body' })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async batchDeletePipelines(
     @Body() batchDeleteDto: { ids: string[] },
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<{
     deleted: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
     return await this.pipelineApiService.batchDelete(
       batchDeleteDto.ids,
-      req.user.id,
+      user.userId,
     );
   }
 }

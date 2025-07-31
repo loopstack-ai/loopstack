@@ -1,4 +1,4 @@
-import { INestApplication, Module } from '@nestjs/common';
+import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
 import { ConfigurableModuleClass } from './loop-api.module-definition';
 import { PipelineController } from './controllers/pipeline.controller';
 import { PipelineApiService } from './services/pipeline-api.service';
@@ -119,6 +119,12 @@ export class LoopstackApiModule extends ConfigurableModuleClass {
       const documentFactory = () => SwaggerModule.createDocument(app, config);
       SwaggerModule.setup('api', app, documentFactory);
     }
+
+    // todo: what does/change
+    app.useGlobalPipes(new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }));
 
     app.use(cookieParser());
   }

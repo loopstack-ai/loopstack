@@ -2,13 +2,11 @@ import {
   Controller,
   Get,
   Param,
-  Request,
   UsePipes,
   ValidationPipe,
   Query,
   ParseIntPipe,
   BadRequestException,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -20,7 +18,6 @@ import {
   ApiQuery,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ApiRequestType } from '../interfaces/api-request.type';
 import { DocumentApiService } from '../services/document-api.service';
 import { PaginatedDto } from '../dtos/paginated.dto';
 import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
@@ -28,7 +25,7 @@ import { DocumentDto } from '../dtos/document.dto';
 import { DocumentItemDto } from '../dtos/document-item.dto';
 import { DocumentFilterDto } from '../dtos/document-filter.dto';
 import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/shared';
 
 @ApiTags('api/v1/documents')
 @ApiExtraModels(DocumentDto, DocumentItemDto)
@@ -77,9 +74,8 @@ export class DocumentController {
   })
   @ApiPaginatedResponse(DocumentItemDto)
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async getDocuments(
-    @Request() req: any,
+    @CurrentUser() user: CurrentUserInterface,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('filter') filterParam?: string,
@@ -104,7 +100,7 @@ export class DocumentController {
     }
 
     const result = await this.documentService.findAll(
-      req.user.id,
+      user.userId,
       filter,
       sortBy,
       {
@@ -124,12 +120,11 @@ export class DocumentController {
   @ApiResponse({ status: 404, description: 'Document not found' })
   @ApiOkResponse({ type: DocumentDto })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async getDocumentById(
     @Param('id') id: string,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<DocumentDto> {
-    const document = await this.documentService.findOneById(id, req.user.id);
+    const document = await this.documentService.findOneById(id, user.userId);
     return DocumentDto.create(document);
   }
 }

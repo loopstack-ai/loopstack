@@ -9,7 +9,6 @@ import {
   Query,
   BadRequestException,
   Delete,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -21,7 +20,6 @@ import {
   ApiQuery,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ApiRequestType } from '../interfaces/api-request.type';
 import { WorkflowApiService } from '../services/workflow-api.service';
 import { PaginatedDto } from '../dtos/paginated.dto';
 import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
@@ -29,7 +27,7 @@ import { WorkflowDto } from '../dtos/workflow.dto';
 import { WorkflowItemDto } from '../dtos/workflow-item.dto';
 import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/shared';
 
 @ApiTags('api/v1/workflows')
 @ApiExtraModels(WorkflowDto, WorkflowItemDto)
@@ -78,9 +76,8 @@ export class WorkflowController {
   })
   @ApiPaginatedResponse(WorkflowItemDto)
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async getWorkflows(
-    @Request() req: any,
+    @CurrentUser() user: CurrentUserInterface,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('filter') filterParam?: string,
@@ -105,7 +102,7 @@ export class WorkflowController {
     }
 
     const result = await this.workflowService.findAll(
-      req.user.id,
+      user.userId,
       filter,
       sortBy,
       {
@@ -125,12 +122,11 @@ export class WorkflowController {
   @ApiResponse({ status: 404, description: 'Workflow not found' })
   @ApiOkResponse({ type: WorkflowDto })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async getWorkflowById(
     @Param('id') id: string,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkflowDto> {
-    const workflow = await this.workflowService.findOneById(id, req.user.id);
+    const workflow = await this.workflowService.findOneById(id, user.userId);
     return WorkflowDto.create(workflow);
   }
 
@@ -143,11 +139,10 @@ export class WorkflowController {
   @ApiResponse({ status: 204, description: 'Workflow deleted successfully' })
   @ApiResponse({ status: 404, description: 'Workflow not found' })
   @ApiUnauthorizedResponse()
-  @UseGuards(JwtAuthGuard)
   async deleteWorkflow(
     @Param('id') id: string,
-    @Request() req: ApiRequestType,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<void> {
-    await this.workflowService.delete(id, req.user.id);
+    await this.workflowService.delete(id, user.userId);
   }
 }
