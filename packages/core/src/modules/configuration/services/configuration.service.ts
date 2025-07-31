@@ -248,7 +248,7 @@ export class ConfigurationService implements OnApplicationBootstrap {
 
       const items = Object.entries(cleanConfig)
         .map(([key, data]) => {
-          return data.map(
+          return (data as any).map(
             (item: any) =>
               ({
                 name: item.name,
