@@ -4,10 +4,10 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class PipelineConfigDto {
   @Expose()
   @ApiProperty({
-    description: 'The name of the pipeline type',
-    example: 'my-model',
+    description: 'The config Key of the pipeline',
+    example: 'file.yaml:my-model',
   })
-  name: string;
+  configKey: string;
 
   @Expose()
   @ApiPropertyOptional({

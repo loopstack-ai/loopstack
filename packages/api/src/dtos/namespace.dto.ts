@@ -23,13 +23,6 @@ export class NamespaceDto {
 
   @Expose()
   @ApiProperty({
-    description: 'The model where this namespace is used',
-    example: 'model-123',
-  })
-  model: string;
-
-  @Expose()
-  @ApiProperty({
     description: 'Unique identifier of the workspace this namespace belongs to',
     example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
   })

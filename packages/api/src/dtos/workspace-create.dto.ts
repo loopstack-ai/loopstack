@@ -15,10 +15,10 @@ export class WorkspaceCreateDto {
   title: string;
 
   @IsString()
-  @MaxLength(200, { message: 'Workspace type must not exceed 200 characters' })
+  @MaxLength(200, { message: 'Workspace config key must not exceed 200 characters' })
   @ApiProperty({
-    description: 'The type of the workspace',
-    example: 'my-workflow-type',
+    description: 'The config key of the workspace',
+    example: 'file.yaml:my-workflow-type',
   })
-  type: string;
+  configKey: string;
 }

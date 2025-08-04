@@ -13,7 +13,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { PipelineType, WorkspaceType } from '@loopstack/shared';
+import { ConfigElement, PipelineRootType, PipelineType, WorkspaceType } from '@loopstack/shared';
 import { ConfigurationService } from '@loopstack/core';
 import { plainToInstance } from 'class-transformer';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
@@ -33,35 +33,55 @@ export class ConfigController {
   @ApiUnauthorizedResponse()
   getWorkspaceTypes(): WorkspaceConfigDto[] {
     const workspaces = this.configService.getAll<WorkspaceType>('workspaces');
-    return plainToInstance(WorkspaceConfigDto, workspaces, {
+
+    const resolvedConfigs = workspaces
+      .map((workspace: ConfigElement<WorkspaceType>) => {
+        const configElement = this.configService.resolveConfig<WorkspaceType>(
+          'workspaces',
+          workspace.name,
+          workspace.includes,
+        );
+
+        return {
+          configKey: configElement.key,
+          title: configElement.config.title ?? configElement.config.name,
+        }
+      });
+
+    return plainToInstance(WorkspaceConfigDto, resolvedConfigs, {
       excludeExtraneousValues: true,
     });
   }
 
-  @Get('workspaces/:workspaceName/pipelines')
+  @Get('workspaces/:workspaceConfigKey/pipelines')
   @ApiOperation({
     summary: 'Get all pipeline types available for this workspace',
   })
   @ApiParam({
-    name: 'workspaceName',
+    name: 'workspaceConfigKey',
     type: String,
-    description: 'The name of the workspace type',
+    description: 'The config key of the workspace type',
   })
   @ApiOkResponse({ type: PipelineConfigDto, isArray: true })
   @ApiUnauthorizedResponse()
   getPipelineTypesByWorkspace(
-    @Param('workspaceName') workspaceName: string,
+    @Param('workspaceConfigKey') workspaceConfigKey: string,
   ): PipelineConfigDto[] {
     const pipelineTypes = this.configService.getAll<PipelineType>('pipelines');
     const filtered = pipelineTypes
-      .filter(
-        (pipeline) =>
-          pipeline.config.type === 'root' &&
-          pipeline.config.workspace === workspaceName,
-      )
-      .map((pipeline) => ({
-        ...pipeline.config,
-        name: `${pipeline.path}:${pipeline.name}`,
+      .filter((pipeline) => pipeline.config.type === 'root')
+      .filter((pipeline: ConfigElement<PipelineRootType>) => {
+        const workspaceConfig = this.configService.resolveConfig<WorkspaceType>(
+          'workspaces',
+          pipeline.config.workspace,
+          pipeline.includes,
+        );
+
+        return workspaceConfig.key === workspaceConfigKey;
+      }).map((pipeline: ConfigElement<PipelineRootType>) => ({
+        configKey: pipeline.key,
+        title: pipeline.config.title,
+        workspace: pipeline.config.workspace,
       }));
 
     const sorted = sortBy(filtered, 'title');

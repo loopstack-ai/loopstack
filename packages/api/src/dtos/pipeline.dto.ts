@@ -14,12 +14,15 @@ export class PipelineDto {
   })
   id: string;
 
+  /**
+   * Config Key of the pipeline
+   */
   @Expose()
   @ApiProperty({
-    description: 'Process model identifier for the pipeline',
-    example: 'customer-process',
+    description: 'Config key of the pipeline',
+    example: 'file.yaml:my-pipeline',
   })
-  model: string;
+  configKey: string;
 
   @Expose()
   @ApiProperty({

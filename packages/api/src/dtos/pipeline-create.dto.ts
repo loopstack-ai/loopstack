@@ -17,16 +17,16 @@ import { Type } from 'class-transformer';
 export class PipelineCreateDto {
   /**
    * Unique identifier for the pipeline
-   * @example "my-pipeline"
+   * @example "file.yaml:my-pipeline"
    */
   @IsString()
   @IsNotEmpty()
   @MaxLength(100, { message: 'Pipeline name must not exceed 100 characters' })
   @ApiProperty({
-    description: 'Process model identifier for the pipeline',
-    example: 'my-pipeline',
+    description: 'Process config key identifier for the pipeline',
+    example: 'file.yaml:my-pipeline',
   })
-  model: string;
+  configKey: string;
 
   /**
    * Human-readable title for the pipeline

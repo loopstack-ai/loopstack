@@ -18,12 +18,15 @@ export class WorkflowItemDto {
   })
   id: string;
 
+  /**
+   * Config Key of the workflow
+   */
   @Expose()
   @ApiProperty({
-    description: 'Name of the workflow item',
-    example: 'Data Processing Workflow',
+    description: 'Config key of the workflow',
+    example: 'file.yaml:my-workflow',
   })
-  name: string;
+  configKey: string;
 
   @Expose()
   @ApiProperty({

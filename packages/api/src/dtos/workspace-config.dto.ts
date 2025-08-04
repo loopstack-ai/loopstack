@@ -2,12 +2,15 @@ import { Expose } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class WorkspaceConfigDto {
+  /**
+   * Config Key of the workspace
+   */
   @Expose()
   @ApiProperty({
-    description: 'The name of the workspace type',
-    example: 'my-workspace-type',
+    description: 'Config key of the workspace',
+    example: 'file.yaml:my-workspace',
   })
-  name: string;
+  configKey: string;
 
   @Expose()
   @ApiPropertyOptional({

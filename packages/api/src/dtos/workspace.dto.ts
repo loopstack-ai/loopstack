@@ -16,19 +16,22 @@ export class WorkspaceDto {
   })
   id: string;
 
+  /**
+   * Config Key of the workspace
+   */
+  @Expose()
+  @ApiProperty({
+    description: 'Config key of the workspace',
+    example: 'file.yaml:my-workspace',
+  })
+  configKey: string;
+
   @Expose()
   @ApiProperty({
     description: 'Display title of the workspace',
     example: 'Customer Portal',
   })
   title: string;
-
-  @Expose()
-  @ApiProperty({
-    description: 'The type of the workspace',
-    example: 'my-workflow-type',
-  })
-  type: string;
 
   /**
    * Indicates whether the workspace is locked for editing

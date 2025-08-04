@@ -31,6 +31,16 @@ export class DocumentItemDto {
   name: string;
 
   /**
+   * Config Key of the document
+   */
+  @Expose()
+  @ApiProperty({
+    description: 'Config key of the document',
+    example: 'file.yaml:my-document',
+  })
+  configKey: string;
+
+  /**
    * Contents of the document
    */
   @Expose()
