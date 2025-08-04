@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.6.0
+
+### Minor Changes
+
+- Refactor to use config keys consistently
+
 ## 0.5.0
 
 ### Minor Changes
