@@ -128,7 +128,7 @@ export class UpdateDocumentHandler implements HandlerInterface {
         ? merge({}, document.content, props.update.content)
         : props.update?.content;
     const zodSchema = this.schemaRegistry.getZodSchema(
-      `${document.name}.content`,
+      `${document.configKey}.content`,
     );
     if (!zodSchema && content) {
       throw Error(`Document updates with content no schema defined.`);

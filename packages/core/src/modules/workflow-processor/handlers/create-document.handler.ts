@@ -127,7 +127,7 @@ export class CreateDocumentHandler implements HandlerInterface {
       );
 
     const zodSchema = this.schemaRegistry.getZodSchema(
-      `${template.name}.content`,
+      `${template.key}.content`,
     );
     if (!zodSchema && mergedTemplateData.content) {
       throw Error(`Document creates with content no schema defined.`);
@@ -153,6 +153,7 @@ export class CreateDocumentHandler implements HandlerInterface {
     const documentData = {
       ...documentSkeleton,
       content: parsedDocumentContent,
+      configKey: template.key,
     };
 
     // create the document entity

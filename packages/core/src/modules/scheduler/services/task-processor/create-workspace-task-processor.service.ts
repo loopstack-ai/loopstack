@@ -33,7 +33,7 @@ export class CreateWorkspaceTaskProcessorService {
     const user: string | null = null; //todo: on behalf of user X
 
     const existing = await this.workspaceService.getWorkspace({
-      type: workspaceConfig.config.name,
+      configKey: workspaceConfig.key,
       createdBy: null === user ? IsNull() : user,
     });
 
@@ -44,7 +44,7 @@ export class CreateWorkspaceTaskProcessorService {
 
     const workspace = await this.workspaceService.create(
       {
-        type: workspaceConfig.config.name,
+        configKey: workspaceConfig.key,
       },
       user,
     );

@@ -110,7 +110,7 @@ export class StateMachineProcessorService {
       return workflow;
     }
 
-    this.logger.debug(`Process state machine for workflow ${workflow!.name}`);
+    this.logger.debug(`Process state machine for workflow ${workflow!.configKey}`);
 
     return this.loopStateMachine(
       context,
@@ -300,7 +300,7 @@ export class StateMachineProcessorService {
 
     if (!configElement.config.transitions) {
       throw new Error(
-        `Workflow ${workflow.name} does not have any transitions.`,
+        `Workflow ${workflow.configKey} does not have any transitions.`,
       );
     }
 

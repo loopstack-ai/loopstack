@@ -75,7 +75,7 @@ export class ToolExecutionService {
 
     this.contextService.addIncludes(context, configElement.includes);
 
-    const zodSchema = this.schemaRegistry.getZodSchema(`${toolName}.arguments`);
+    const zodSchema = this.schemaRegistry.getZodSchema(`${configElement.key}.arguments`);
 
     const hasArguments =
       toolCall.arguments && Object.keys(toolCall.arguments).length;

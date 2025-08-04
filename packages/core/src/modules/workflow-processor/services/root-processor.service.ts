@@ -25,6 +25,7 @@ export class RootProcessorService {
   private async processRootPipeline(
     pipeline: PipelineEntity,
     payload: any,
+    variables?: Record<string, any>,
   ): Promise<ContextInterface> {
     const namespace =
       await this.namespacesService.createRootNamespace(pipeline);
@@ -35,11 +36,14 @@ export class RootProcessorService {
       transition: payload.transition,
       stop: false,
       error: false,
+      variables: variables ?? {},
     });
+
+    this.logger.debug(`Running Root Pipeline: ${pipeline.configKey}`);
 
     return this.processorService.processPipelineItem(
       {
-        pipeline: pipeline.model,
+        pipeline: pipeline.configKey,
       },
       context,
     );
@@ -48,12 +52,13 @@ export class RootProcessorService {
   async runPipeline(
     pipeline: PipelineEntity,
     payload: any,
+    variables?: Record<string, any>,
   ): Promise<ContextInterface> {
     await this.pipelineService.setPipelineStatus(
       pipeline,
       PipelineState.Running,
     );
-    const context = await this.processRootPipeline(pipeline, payload);
+    const context = await this.processRootPipeline(pipeline, payload, variables);
 
     const status = context.error
       ? PipelineState.Failed

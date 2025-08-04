@@ -21,7 +21,6 @@ export class NamespaceProcessorService {
     let clone = this.contextService.create(context);
     clone.namespace = await this.namespacesService.create({
       name: props.label ?? 'Group',
-      model: context.model,
       pipelineId: context.pipelineId,
       workspaceId: context.workspaceId,
       parent: context.namespace,

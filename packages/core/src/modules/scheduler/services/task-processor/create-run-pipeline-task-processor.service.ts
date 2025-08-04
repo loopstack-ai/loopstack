@@ -5,7 +5,7 @@ import {
 } from '../../../workflow-processor';
 import {
   CreateRunPipelineTask,
-  PipelineRootType,
+  PipelineRootType, WorkspaceType,
 } from '@loopstack/shared';
 import { ConfigurationService } from '../../../configuration';
 import { ConfigElementMetadata } from '@loopstack/shared/dist/schemas/config-element.schema';
@@ -31,13 +31,23 @@ export class CreateRunPipelineTaskProcessorService {
       throw new Error(`Can't execute a non root pipeline`);
     }
 
+    const workspaceConfig =
+      this.configurationService.resolveConfig<WorkspaceType>(
+        'workspaces',
+        pipelineConfig.config.workspace,
+        metadata?.includes ?? [],
+      );
+    if (!workspaceConfig) {
+      throw new Error(`Can't resolve workspace ${pipelineConfig.config.workspace}`);
+    }
+
     const pipeline = await this.createPipelineService.create(
       {
-        type: pipelineConfig.config.workspace,
+        configKey: workspaceConfig.key,
       },
       {
-        model: `${pipelineConfig.path}:${pipelineConfig.name}`,
-        title: `Scheduled Task (${pipelineConfig.name})`,
+        configKey: pipelineConfig.key,
+        title: `${task.title ?? task.name} (scheduled)`,
       },
       null, //todo: on behalf of user X
     );
@@ -49,6 +59,7 @@ export class CreateRunPipelineTaskProcessorService {
     await this.rootProcessorService.runPipeline(
       pipeline,
       task.payload,
+      task.variables
     );
   }
 }

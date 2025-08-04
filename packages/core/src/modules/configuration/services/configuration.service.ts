@@ -112,7 +112,7 @@ export class ConfigurationService implements OnApplicationBootstrap {
       // and add them to the global list of elements
       for (const item of Array.from(items.values())) {
         item.includes = Array.from(importMap.entries());
-        flatConfigElementMap.set(`${item.path}:${item.name}`, item);
+        flatConfigElementMap.set(item.key, item);
       }
     }
 
@@ -126,14 +126,14 @@ export class ConfigurationService implements OnApplicationBootstrap {
     // register custom schemas
     for (const tool of this.getAll<ToolConfigType>('tools')) {
       this.registerCustomSchema(
-        `${tool.name}.arguments`,
+        `${tool.key}.arguments`,
         tool.config.parameters,
       );
     }
 
     for (const document of this.getAll<DocumentType>('documents')) {
       this.registerCustomSchema(
-        `${document.name}.content`,
+        `${document.key}.content`,
         document.config.schema,
       );
     }
@@ -226,7 +226,7 @@ export class ConfigurationService implements OnApplicationBootstrap {
     return configElement;
   }
 
-  private resolveConfigName(name: string, includes: Map<string, string>) {
+  resolveConfigName(name: string, includes: Map<string, string>) {
     const resolvedPath = includes.get(name);
     if (resolvedPath) {
       return `${resolvedPath}:${name}`;
@@ -251,6 +251,7 @@ export class ConfigurationService implements OnApplicationBootstrap {
           return (data as any).map(
             (item: any) =>
               ({
+                key: `${source.relativePath}:${item.name}`,
                 name: item.name,
                 path: source.relativePath,
                 type: key,

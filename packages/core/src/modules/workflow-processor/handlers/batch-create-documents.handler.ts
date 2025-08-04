@@ -80,7 +80,7 @@ export class BatchCreateDocumentsHandler implements HandlerInterface {
       );
 
     const zodSchema = this.schemaRegistry.getZodSchema(
-      `${template.name}.content`,
+      `${template.key}.content`,
     );
 
     const documents: DocumentEntity[] = [];
@@ -110,6 +110,7 @@ export class BatchCreateDocumentsHandler implements HandlerInterface {
       const documentData = {
         ...itemDocumentData,
         content: parsedDocumentContent,
+        configKey: template.key,
       };
 
       documents.push(

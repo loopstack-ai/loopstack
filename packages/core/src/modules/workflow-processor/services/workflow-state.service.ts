@@ -19,7 +19,7 @@ export class WorkflowStateService {
   ): Promise<WorkflowEntity> {
     const workflow = await this.workflowService
       .createFindQuery(context.namespace?.id, {
-        name: configElement.name,
+        configKey: configElement.key,
         labels: context.labels,
       })
       .getOne();
@@ -33,7 +33,7 @@ export class WorkflowStateService {
       labels: context.labels,
       namespace: context.namespace ?? undefined,
       pipelineId: context.pipelineId,
-      name: configElement.name,
+      configKey: configElement.key,
       title: configElement.config.title ?? configElement.name,
       ui: configElement.config.ui ?? null,
       index: context.index,

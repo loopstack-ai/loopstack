@@ -57,7 +57,12 @@ export class PipelineProcessorService {
     configElement: ConfigElement<PipelineSequenceType>,
     context: ContextInterface,
   ): Promise<ContextInterface> {
+
+    this.logger.debug(`Running Sequence: ${configElement.name}`);
+
     const sequence: PipelineItemType[] = configElement.config.sequence;
+
+    this.logger.debug(`Processing sequence with ${sequence.length} items.`)
 
     // create a new index level
     const index = `${context.index}.0`;
@@ -82,6 +87,7 @@ export class PipelineProcessorService {
       );
 
       if (evaluatedItem.condition === false) {
+        this.logger.debug(`Skipping execution due to condition: ${configElement.name}`);
         continue;
       }
 
@@ -89,14 +95,15 @@ export class PipelineProcessorService {
       lastContext = await this.processPipelineItem(
         item,
         lastContext,
-        configElement,
       );
 
       if (lastContext.stop) {
+        this.logger.debug(`Stopping sequence due to stop sign.`)
         break;
       }
     }
 
+    this.logger.debug(`Processed all sequence items.`)
     return lastContext;
   }
 
@@ -164,6 +171,9 @@ export class PipelineProcessorService {
     configElement: ConfigElement<PipelineFactoryType>,
     context: ContextInterface,
   ): Promise<ContextInterface> {
+
+    this.logger.debug(`Running Factory: ${configElement.name}`);
+
     const items = this.templateExpressionEvaluatorService.parse<string[]>(
       configElement.config.iterator.source,
       { context },
@@ -195,18 +205,17 @@ export class PipelineProcessorService {
         this.processPipelineItem(
           configElement.config.factory,
           childContext,
-          configElement,
         ),
       );
 
       results = await Promise.all(allItems);
+      this.logger.debug(`Processed all parallel factory items.`)
     } else {
       // process the child elements sequential
       for (const childContext of preparedChildContexts) {
         const resultContext = await this.processPipelineItem(
           configElement.config.factory,
           childContext,
-          configElement,
         );
 
         results.push(resultContext);
@@ -215,13 +224,17 @@ export class PipelineProcessorService {
           break;
         }
       }
+
+      this.logger.debug(`Processed all sequential factory items.`)
     }
 
     if (results.some((childContext) => childContext.stop)) {
+      this.logger.debug('Stop promoted after factory')
       context.stop = true;
     }
 
     if (results.some((childContext) => childContext.error)) {
+      this.logger.debug('Error promoted after factory')
       context.error = true;
     }
 
@@ -273,14 +286,17 @@ export class PipelineProcessorService {
       updatedContext &&
       updatedContext.namespace.id === context.namespace.id
     ) {
+      this.logger.debug(`Updating context within same namespace.`)
       return updatedContext;
     }
 
     if (updatedContext?.error) {
+      this.logger.debug(`Promoting error after pipeline run.`)
       context.error = true;
     }
 
     if (updatedContext?.stop) {
+      this.logger.debug(`Promoting stop after pipeline run.`)
       context.stop = true;
     }
 
@@ -290,7 +306,6 @@ export class PipelineProcessorService {
   async processPipelineItem(
     item: PipelineItemType,
     context: ContextInterface,
-    parentConfig?: ConfigElement<any>,
   ): Promise<ContextInterface> {
     const type = ['tool', 'pipeline', 'workflow'].find((key) => key in item);
     if (!type) {
@@ -298,6 +313,9 @@ export class PipelineProcessorService {
     }
 
     const itemName = item[type];
+
+    this.logger.debug(`Processing pipeline item: ${itemName}`);
+
     const configElement = this.loopConfigService.resolveConfig<
       WorkflowType | PipelineType
     >(`${type}s`, itemName, context.includes);

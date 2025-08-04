@@ -26,11 +26,7 @@ export class HandlerExecutionService {
     transitionData: TransitionMetadataInterface,
     templateVariables: Record<string, any>,
   ): Promise<HandlerCallResult> {
-    this.logger.debug(
-      `Handler ${handlerCall.handler} called with arguments`,
-      handlerCall.arguments,
-    );
-    this.logger.debug(`Parent Arguments:`, parentArguments);
+    this.logger.debug(`Handler ${handlerCall.handler} called with arguments`);
 
     const { instance, options } = this.handlerRegistry.getHandlerByName(
       handlerCall.handler,

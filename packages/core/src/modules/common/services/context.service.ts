@@ -13,7 +13,6 @@ export class ContextService {
     additional: Partial<ContextInterface>,
   ): ContextInterface {
     return {
-      model: pipeline.model,
       userId: pipeline.createdBy,
       pipelineId: pipeline.id,
       workspaceId: pipeline.workspaceId,

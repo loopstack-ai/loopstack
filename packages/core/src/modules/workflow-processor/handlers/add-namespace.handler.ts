@@ -39,7 +39,6 @@ export class AddNamespaceHandler implements HandlerInterface {
     }
     const namespace = await this.namespacesService.create({
       name: props.label,
-      model: context.model,
       pipelineId: context.pipelineId,
       workspaceId: context.workspaceId,
       metadata: props.meta,

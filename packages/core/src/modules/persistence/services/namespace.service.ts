@@ -15,8 +15,7 @@ export class NamespacesService {
     pipeline: PipelineEntity,
   ): Promise<NamespaceEntity> {
     return this.create({
-      name: pipeline.model,
-      model: pipeline.model,
+      name: 'Root',
       pipelineId: pipeline.id,
       workspaceId: pipeline.workspaceId,
       metadata: {
@@ -37,7 +36,6 @@ export class NamespacesService {
     let namespace = await this.namespaceRepository.findOne({
       where: {
         name: createNamespaceDto.name,
-        model: createNamespaceDto.model,
         pipelineId: createNamespaceDto.pipelineId,
       },
       relations: ['workflows'],
@@ -62,7 +60,6 @@ export class NamespacesService {
       // Create a new namespace
       namespace = this.namespaceRepository.create({
         name: createNamespaceDto.name,
-        model: createNamespaceDto.model,
         parent: (createNamespaceDto.parent as NamespaceEntity) ?? undefined,
         workspaceId: createNamespaceDto.workspaceId,
         pipeline: { id: createNamespaceDto.pipelineId } as PipelineEntity,
