@@ -1,5 +1,17 @@
 # @loopstack/api
 
+## 0.6.0
+
+### Minor Changes
+
+- Refactor to use config keys consistently
+
+### Patch Changes
+
+- Updated dependencies
+  - @loopstack/core@0.6.0
+  - @loopstack/shared@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes
