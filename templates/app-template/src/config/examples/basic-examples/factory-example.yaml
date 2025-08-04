@@ -2,6 +2,7 @@ include:
   - core/tools/create-mock.yaml
   - core/tools/create-chat-message.yaml
   - core/tools/create-document.yaml
+  - examples/examples-workspace.yaml
 
 pipelines:
   - name: factory_example

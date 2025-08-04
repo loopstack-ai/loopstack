@@ -1,5 +1,6 @@
 include:
   - core/tools/create-chat-message.yaml
+  - examples/examples-workspace.yaml
 
 workflows:
   - name: chatbot_workflow

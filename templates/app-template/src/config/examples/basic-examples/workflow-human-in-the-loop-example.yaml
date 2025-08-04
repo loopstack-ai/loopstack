@@ -3,6 +3,7 @@ include:
   - core/tools/create-chat-message.yaml
   - core/tools/create-document.yaml
   - core/tools/switch-target.yaml
+  - examples/examples-workspace.yaml
 
 pipelines:
   - name: human_in_the_loop_example

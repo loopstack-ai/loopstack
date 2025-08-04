@@ -1,6 +1,7 @@
 include:
   - core/tools/create-mock.yaml
   - core/tools/create-document.yaml
+  - examples/examples-workspace.yaml
 
 documents:
   - name: template_expressions_output

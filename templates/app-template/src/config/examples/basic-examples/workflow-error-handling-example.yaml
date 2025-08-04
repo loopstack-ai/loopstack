@@ -3,6 +3,7 @@ include:
   - core/tools/create-chat-message.yaml
   - core/tools/create-error-message.yaml
   - core/tools/create-document.yaml
+  - examples/examples-workspace.yaml
 
 pipelines:
   - name: error_handling_example

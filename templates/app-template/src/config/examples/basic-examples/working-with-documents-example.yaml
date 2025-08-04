@@ -3,6 +3,7 @@ include:
   - core/tools/create-document.yaml
   - core/tools/update-document.yaml
   - core/tools/load-document.yaml
+  - examples/examples-workspace.yaml
 
 documents:
   - name: customer_profile

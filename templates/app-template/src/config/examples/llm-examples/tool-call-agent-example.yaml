@@ -3,6 +3,7 @@ include:
   - core/tools/batch-create-messages.yaml
   - core/tools/switch-target.yaml
   - core/tools/delegate-tool-calls.yaml
+  - examples/examples-workspace.yaml
 
 workflows:
   - name: agent_workflow

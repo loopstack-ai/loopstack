@@ -3,6 +3,7 @@ include:
   - core/tools/create-plain-message.yaml
   - core/tools/create-document.yaml
   - core/tools/create-mock.yaml
+  - examples/examples-workspace.yaml
 
 documents:
   - name: user_input_form

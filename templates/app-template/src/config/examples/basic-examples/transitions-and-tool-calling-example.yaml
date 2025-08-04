@@ -1,6 +1,7 @@
 include:
   - core/tools/create-mock.yaml
   - core/tools/create-chat-message.yaml
+  - examples/examples-workspace.yaml
 
 pipelines:
   - name: transitions_tool_example

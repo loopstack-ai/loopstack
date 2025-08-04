@@ -3,6 +3,7 @@ include:
   - core/tools/create-chat-message.yaml
   - core/tools/create-response.yaml
   - core/tools/create-document.yaml
+  - examples/examples-workspace.yaml
 
 # Create a minimal root pipeline which executes the custom workflow
 pipelines:
