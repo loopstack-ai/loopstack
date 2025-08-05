@@ -7,6 +7,8 @@ tools:
           type: string
         content:
           type: any
+        ui:
+          type: any
       required:
         - document
       additionalProperties: false
@@ -16,3 +18,4 @@ tools:
           document: ${ arguments.document }
           update:
             content: ${ arguments.content }
+            ui: ${ arguments.ui }

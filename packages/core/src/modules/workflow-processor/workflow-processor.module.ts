@@ -27,11 +27,12 @@ import {
   BatchCreateDocumentsHandler,
   CreateDocumentHandler,
   LoadDocumentHandler,
-  MockHandler,
+  MockHandler, ResetErrorHandler,
   SetContextHandler,
   SetTargetPlaceHandler,
   TransitionSelectorHandler,
   UpdateDocumentHandler,
+  ValidateHandler,
 } from './handlers';
 import { CreatePipelineService } from './services';
 
@@ -70,6 +71,8 @@ import { CreatePipelineService } from './services';
     TransitionSelectorHandler,
     UpdateDocumentHandler,
     SetTargetPlaceHandler,
+    ValidateHandler,
+    ResetErrorHandler,
   ],
   exports: [
     RootProcessorService,

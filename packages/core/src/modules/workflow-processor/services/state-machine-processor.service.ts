@@ -135,11 +135,15 @@ export class StateMachineProcessorService {
     workflow: WorkflowEntity,
     transitions: WorkflowTransitionType[],
   ): void {
+
+    this.logger.debug(`Updating Available Transitions for Place "${workflow.place}"`);
+
     workflow.placeInfo = new WorkflowStatePlaceInfoDto(
       transitions.filter(
         (item) =>
           item.from?.includes('*') ||
-          (workflow.place && item.from?.includes(workflow.place)),
+          (typeof item.from === 'string' && item.from === workflow.place) ||
+          (Array.isArray(item.from) && item.from.includes(workflow.place)),
       ),
     );
   }
@@ -194,6 +198,8 @@ export class StateMachineProcessorService {
     pendingTransition: TransitionPayloadInterface | undefined,
   ): TransitionInfoInterface | null {
     let nextTransition: WorkflowTransitionType | undefined;
+
+    this.logger.debug(`Available Transitions: ${workflow.placeInfo?.availableTransitions.map((t) => t.name).join(', ')}`)
 
     if (pendingTransition) {
       nextTransition = workflow.placeInfo?.availableTransitions.find(
@@ -307,7 +313,12 @@ export class StateMachineProcessorService {
     try {
       const pendingTransition = [stateMachineInfo.pendingTransition];
       while (true) {
+
+        this.logger.debug('------------ NEXT TRANSITION')
+
         const nextPending = pendingTransition.shift();
+
+        this.logger.debug(`next pending transition: ${nextPending?.name ?? 'none'}`);
 
         const transitionData: TransitionMetadataInterface = {
           history:

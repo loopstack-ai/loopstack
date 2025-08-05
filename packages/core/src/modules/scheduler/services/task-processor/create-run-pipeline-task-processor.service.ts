@@ -35,7 +35,7 @@ export class CreateRunPipelineTaskProcessorService {
       this.configurationService.resolveConfig<WorkspaceType>(
         'workspaces',
         pipelineConfig.config.workspace,
-        metadata?.includes ?? [],
+        pipelineConfig.includes ?? [],
       );
     if (!workspaceConfig) {
       throw new Error(`Can't resolve workspace ${pipelineConfig.config.workspace}`);

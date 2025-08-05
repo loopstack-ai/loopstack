@@ -7,3 +7,5 @@ export * from './transition-selector.handler';
 export * from './update-document.handler';
 export * from './batch-create-documents.handler';
 export * from './set-target-place.handler';
+export * from './validate.handler';
+export * from './reset-error.handler';

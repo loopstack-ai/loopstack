@@ -9,7 +9,7 @@ import {
   ExpressionString,
   MimeTypeSchema,
   DocumentSchema,
-  ToolConfigType,
+  ToolConfigType, UISchema,
 } from '@loopstack/shared';
 import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
@@ -25,6 +25,7 @@ const schema = z
     update: z
       .object({
         content: z.any(),
+        ui: UISchema.optional(),
         tags: z.array(z.string()).optional(),
         meta: z
           .object({
@@ -53,6 +54,10 @@ const config = z
     update: z
       .object({
         content: z.any(),
+        ui: z.union([
+          UISchema,
+          ExpressionString,
+        ]).optional(),
         tags: z.array(z.string()).optional(),
         meta: z
           .object({
@@ -102,15 +107,18 @@ export class CreateDocumentHandler implements HandlerInterface {
     }
 
     // get the document template
-    const template = this.loopConfigService.resolveConfig<ToolConfigType>(
+    const template = this.loopConfigService.resolveConfig<DocumentType>(
       'documents',
       props.document,
       context.includes,
     );
 
+    console.log('props.update', props.update)
+
     // merge the custom properties
     const mergedTemplateData = merge({}, template.config, props.update ?? {});
 
+    console.log('mergedTemplateData', mergedTemplateData.ui)
     // create the document skeleton without content property
     const documentSkeleton =
       this.templateExpressionEvaluatorService.parse<DocumentType>(
@@ -155,6 +163,8 @@ export class CreateDocumentHandler implements HandlerInterface {
       content: parsedDocumentContent,
       configKey: template.key,
     };
+
+    console.log('documentData', documentData.ui)
 
     // create the document entity
     const document = this.documentService.create(

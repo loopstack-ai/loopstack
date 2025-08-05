@@ -69,11 +69,11 @@ export class TaskInitializationService {
     try {
       await this.clearPendingTasks();
       await this.installTasks(startupTasks);
-
       this.logger.debug(`Task initialization completed.`);
-      this.eventEmitter.emit('tasks.initialized');
     } catch (error) {
       this.logger.error('Task initialization failed:', error);
+    } finally {
+      this.eventEmitter.emit('tasks.initialized');
     }
   }
 }

@@ -1,0 +1,18 @@
+tools:
+  - name: validate
+    parameters:
+      type: object
+      properties:
+        source:
+          type: any
+        schema:
+          type: any
+      required:
+        - source
+        - schema
+      additionalProperties: false
+    execute:
+      - handler: ValidateHandler
+        arguments:
+          source: ${ arguments.source }
+          schema: ${ arguments.schema }
