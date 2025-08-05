@@ -21,6 +21,7 @@ import { APP_GUARD } from '@nestjs/core';
     }),
     LoopCoreModule.forRoot({
       configs: loadConfiguration(__dirname + '/config'),
+      runStartupTasks: process.env.ENABLE_STARTUP_TASKS === 'true',
     }),
     AuthModule.forRoot(authConfig),
     LoopstackApiModule,

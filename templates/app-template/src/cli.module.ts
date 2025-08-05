@@ -16,7 +16,7 @@ import { LlmModule } from '@loopstack/llm';
       synchronize: true,
     }),
     LoopCoreModule.forRoot({
-      installTemplates: true,
+      runStartupTasks: false
     }),
     LlmModule,
   ],
