@@ -33,11 +33,6 @@ export class ConfigurationService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
-    const installTemplates = this.configService.get('installTemplates');
-    if (!installTemplates) {
-      return;
-    }
-
     this.clear();
 
     this.configProviderRegistry.initialize();

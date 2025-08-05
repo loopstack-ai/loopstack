@@ -2,7 +2,7 @@ import { ConfigurableModuleBuilder } from '@nestjs/common';
 import { ConfigSourceInterface } from '@loopstack/shared';
 
 export interface LoopCoreModuleOptions {
-  installTemplates?: boolean;
+  runStartupTasks?: boolean;
   configs?: ConfigSourceInterface[];
 }
 

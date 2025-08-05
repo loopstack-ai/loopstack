@@ -26,10 +26,10 @@ export class LoopCoreModule extends ConfigurableModuleClass {
           isGlobal: true,
           load: [
             () => ({
-              installTemplates:
-                undefined === options?.installTemplates
+              runStartupTasks:
+                undefined === options?.runStartupTasks
                   ? true
-                  : options.installTemplates,
+                  : options.runStartupTasks,
               configs: options?.configs ?? [],
             }),
           ],

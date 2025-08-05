@@ -9,6 +9,7 @@ import {
 } from '@loopstack/shared';
 import { ConfigurationService } from '../../configuration';
 import { StartupTask } from '@loopstack/shared/dist/schemas/startup.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TaskInitializationService {
@@ -16,6 +17,7 @@ export class TaskInitializationService {
 
   constructor(
     private readonly eventEmitter: EventEmitter2,
+    private readonly configService: ConfigService,
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly configurationService: ConfigurationService,
   ) {}
@@ -59,8 +61,17 @@ export class TaskInitializationService {
     }
   }
 
+  private isEnabled(): boolean {
+    return this.configService.get<boolean>('runStartupTasks', true);
+  }
+
   @OnEvent('configuration.initialized')
   async handleTaskInitialization() {
+    if (!this.isEnabled()) {
+      this.eventEmitter.emit('tasks.initialized');
+      return;
+    }
+
     const startupTasks = this.getStartupTasks();
     this.logger.log(
       `Initializing task schedule for ${startupTasks.length} startup tasks`,
