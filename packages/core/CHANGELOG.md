@@ -1,5 +1,17 @@
 # @loopstack/core
 
+## 0.7.0
+
+### Minor Changes
+
+- feat: add validation handlers and error results for documents
+
+### Patch Changes
+
+- Fix: create workspace with preconfigured title in task
+- Updated dependencies
+  - @loopstack/shared@0.7.0
+
 ## 0.6.1
 
 ### Patch Changes
