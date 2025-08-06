@@ -1,5 +1,14 @@
 # @loopstack/api
 
+## 0.7.1
+
+### Patch Changes
+
+- Remove shared module peerDependencies
+- Updated dependencies
+  - @loopstack/core@0.7.1
+  - @loopstack/shared@0.7.1
+
 ## 0.7.0
 
 ### Minor Changes
