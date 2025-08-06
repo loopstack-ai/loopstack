@@ -1,5 +1,14 @@
 # @loopstack/app-template
 
+## 0.7.2
+
+### Patch Changes
+
+- set cookie domain and cors origin for auth api and websocket
+- Updated dependencies
+  - @loopstack/api@0.7.2
+  - @loopstack/auth@0.7.2
+
 ## 0.7.1
 
 ### Patch Changes
