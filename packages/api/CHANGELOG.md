@@ -1,5 +1,19 @@
 # @loopstack/api
 
+## 0.7.0
+
+### Minor Changes
+
+- feat: add validation handlers and error results for documents
+
+### Patch Changes
+
+- add Redis IP family configuration
+- Updated dependencies
+- Updated dependencies
+  - @loopstack/core@0.7.0
+  - @loopstack/shared@0.7.0
+
 ## 0.6.1
 
 ### Patch Changes
