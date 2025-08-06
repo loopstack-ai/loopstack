@@ -1,5 +1,17 @@
 # @loopstack/app-template
 
+## 0.6.1
+
+### Patch Changes
+
+- Added core tools and improvements
+- Updated dependencies
+  - @loopstack/api@0.6.1
+  - @loopstack/auth@0.6.1
+  - @loopstack/core@0.6.1
+  - @loopstack/llm@0.6.1
+  - @loopstack/shared@0.6.1
+
 ## 0.6.0
 
 ### Minor Changes
