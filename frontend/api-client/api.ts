@@ -91,6 +91,12 @@ export interface DocumentDto {
      */
     'schema': object;
     /**
+     * The zod validation error or null
+     * @type {object}
+     * @memberof DocumentDto
+     */
+    'validationError': object;
+    /**
      * The ui config for interface rendering
      * @type {object}
      * @memberof DocumentDto
@@ -237,6 +243,12 @@ export interface DocumentItemDto {
      */
     'schema': object;
     /**
+     * The zod validation error or null
+     * @type {object}
+     * @memberof DocumentItemDto
+     */
+    'validationError': object;
+    /**
      * The ui config for interface rendering
      * @type {object}
      * @memberof DocumentItemDto
@@ -355,6 +367,7 @@ export const DocumentSortByDtoFieldEnum = {
     PipelineId: 'pipelineId',
     Content: 'content',
     Schema: 'schema',
+    ValidationError: 'validationError',
     Ui: 'ui',
     Tags: 'tags',
     Meta: 'meta',
