@@ -45,6 +45,7 @@ export class CreateWorkspaceTaskProcessorService {
     const workspace = await this.workspaceService.create(
       {
         configKey: workspaceConfig.key,
+        title: workspaceConfig.config.title ?? workspaceConfig.name,
       },
       user,
     );
