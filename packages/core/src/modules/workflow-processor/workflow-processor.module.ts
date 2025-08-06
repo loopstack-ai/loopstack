@@ -31,7 +31,7 @@ import {
   SetContextHandler,
   SetTargetPlaceHandler,
   TransitionSelectorHandler,
-  UpdateDocumentHandler,
+  UpdateDocumentHandler, ValidateDocumentHandler,
   ValidateHandler,
 } from './handlers';
 import { CreatePipelineService } from './services';
@@ -73,6 +73,7 @@ import { CreatePipelineService } from './services';
     SetTargetPlaceHandler,
     ValidateHandler,
     ResetErrorHandler,
+    ValidateDocumentHandler,
   ],
   exports: [
     RootProcessorService,

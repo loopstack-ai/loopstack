@@ -7,7 +7,7 @@ export class SchemaRegistry {
   private logger = new Logger(SchemaRegistry.name);
   private zodSchemas: Map<string, z.ZodSchema> = new Map();
 
-  private createZod(jsonSchema: any): z.ZodType {
+  public createZod(jsonSchema: any): z.ZodType {
     const zodSchemaString = jsonSchemaToZod(jsonSchema);
     return new Function('z', `return ${zodSchemaString}`)(z);
   }
@@ -23,7 +23,7 @@ export class SchemaRegistry {
     }
   }
 
-  public getZodSchema(path: string): z.ZodSchema | undefined {
+  public getZodSchema(path: string): z.ZodType | undefined {
     return this.zodSchemas.get(path);
   }
 

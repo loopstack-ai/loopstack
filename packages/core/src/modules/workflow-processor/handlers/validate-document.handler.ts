@@ -4,20 +4,16 @@ import {
   HandlerInterface,
   HandlerCallResult,
   ExpressionString,
-  JSONSchemaType,
+  WorkflowEntity, ContextInterface,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { jsonSchemaToZod } from 'json-schema-to-zod';
 
 const config = z
   .object({
-    source: z.union([
+    documentId: z.union([
       ExpressionString,
-      z.any(),
-    ]),
-    schema: z.union([
-      ExpressionString,
-      JSONSchemaType,
+      z.string(),
     ]),
     message: z.union([
       ExpressionString,
@@ -28,8 +24,7 @@ const config = z
 
 const schema = z
   .object({
-    source: z.any(),
-    schema: JSONSchemaType,
+    documentId: z.string(),
     message: z.string().optional(),
   })
   .strict();
@@ -38,8 +33,8 @@ const schema = z
   config,
   schema,
 })
-export class ValidateHandler implements HandlerInterface {
-  private readonly logger = new Logger(ValidateHandler.name);
+export class ValidateDocumentHandler implements HandlerInterface {
+  private readonly logger = new Logger(ValidateDocumentHandler.name);
 
   private createZod(jsonSchema: any): z.ZodType {
     const zodSchemaString = jsonSchemaToZod(jsonSchema);
@@ -48,16 +43,25 @@ export class ValidateHandler implements HandlerInterface {
 
   async apply(
     props: z.infer<typeof schema>,
+    workflow: WorkflowEntity | undefined,
+    context: ContextInterface,
   ): Promise<HandlerCallResult> {
+    if (!workflow) {
+      throw new Error('Workflow is undefined');
+    }
 
-    const zodSchema = this.createZod(props.schema);
+    let document = workflow.documents.find((item) => item.id === props.documentId);
+    if (!document) {
+      throw new Error(`Document with ID ${props.documentId} not found.`);
+    }
+
+    const zodSchema = this.createZod(document.schema);
     if (!zodSchema) {
       throw Error(`No schema defined.`);
     }
 
-    // allow throw error
     try {
-      const result = zodSchema.parse(props.source);
+      const result = zodSchema.parse(document.schema);
 
       return {
         success: true,

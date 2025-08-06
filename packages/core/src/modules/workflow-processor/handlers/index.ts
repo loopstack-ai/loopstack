@@ -9,3 +9,4 @@ export * from './batch-create-documents.handler';
 export * from './set-target-place.handler';
 export * from './validate.handler';
 export * from './reset-error.handler';
+export * from './validate-document.handler';

@@ -9,20 +9,7 @@ import { TemplateService } from '../../common';
 import { ConfigurationService } from '../../configuration';
 import { get, transform } from 'lodash';
 import { z } from 'zod';
-
-class WorkflowValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'WorkflowValidationError';
-  }
-}
-
-class SchemaValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'SchemaValidationError';
-  }
-}
+import { SchemaValidationError, WorkflowValidationError } from '../errors';
 
 interface ParseOptions {
   schema?: z.ZodType;

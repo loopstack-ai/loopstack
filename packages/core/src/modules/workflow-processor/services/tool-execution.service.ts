@@ -99,7 +99,7 @@ export class ToolExecutionService {
         )
       : {};
 
-    let result: any;
+    let result: HandlerCallResult | undefined;
     const executeItems: Array<HandlerCallType | ToolCallType> =
       configElement.config.execute;
 
@@ -130,6 +130,14 @@ export class ToolExecutionService {
       if (execute.as) {
         extraVariables[execute.as] = result?.data;
       }
+
+      if (!result?.success) {
+        break;
+      }
+    }
+
+    if (!result) {
+      throw new Error(`Tool execution provided no results.`);
     }
 
     return result;

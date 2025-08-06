@@ -9,7 +9,7 @@ import {
   ExpressionString,
   MimeTypeSchema,
   DocumentSchema,
-  ToolConfigType, UISchema,
+  UISchema, JSONSchemaType,
 } from '@loopstack/shared';
 import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
@@ -18,13 +18,20 @@ import { WorkflowEntity } from '@loopstack/shared';
 import { DocumentService } from '../../persistence';
 import { merge, omit } from 'lodash';
 import { TemplateExpressionEvaluatorService } from '../services';
+import { SchemaValidationError } from '../errors';
 
 const schema = z
   .object({
     document: z.string(),
+    validate: z.union([
+      z.literal('strict'),
+      z.literal('safe'),
+      z.literal('skip'),
+    ]).default('strict').optional(),
     update: z
       .object({
         content: z.any(),
+        schema: JSONSchemaType.optional(),
         ui: UISchema.optional(),
         tags: z.array(z.string()).optional(),
         meta: z
@@ -51,11 +58,21 @@ const schema = z
 const config = z
   .object({
     document: z.string(),
+    validate: z.union([
+      ExpressionString,
+      z.literal('strict'),
+      z.literal('safe'),
+      z.literal('skip'),
+    ]).optional(),
     update: z
       .object({
         content: z.any(),
         ui: z.union([
           UISchema,
+          ExpressionString,
+        ]).optional(),
+        schema: z.union([
+          JSONSchemaType,
           ExpressionString,
         ]).optional(),
         tags: z.array(z.string()).optional(),
@@ -113,12 +130,9 @@ export class CreateDocumentHandler implements HandlerInterface {
       context.includes,
     );
 
-    console.log('props.update', props.update)
-
     // merge the custom properties
     const mergedTemplateData = merge({}, template.config, props.update ?? {});
 
-    console.log('mergedTemplateData', mergedTemplateData.ui)
     // create the document skeleton without content property
     const documentSkeleton =
       this.templateExpressionEvaluatorService.parse<DocumentType>(
@@ -134,9 +148,8 @@ export class CreateDocumentHandler implements HandlerInterface {
         },
       );
 
-    const zodSchema = this.schemaRegistry.getZodSchema(
-      `${template.key}.content`,
-    );
+    const documentSchema = documentSkeleton.schema;
+    const zodSchema = documentSchema ? this.schemaRegistry.createZod(documentSchema) : undefined;
     if (!zodSchema && mergedTemplateData.content) {
       throw Error(`Document creates with content no schema defined.`);
     }
@@ -151,27 +164,36 @@ export class CreateDocumentHandler implements HandlerInterface {
             workflow,
             transition: meta,
           },
-          {
-            schema: zodSchema,
-          },
+          // do not add schema here, we validate later
         )
       : null;
 
     // merge document skeleton with content data
-    const documentData = {
+    const documentData: Partial<DocumentEntity> = {
       ...documentSkeleton,
       content: parsedDocumentContent,
       configKey: template.key,
     };
 
-    console.log('documentData', documentData.ui)
+    // do final strict validation
+    if (zodSchema && props.validate !== 'skip') {
+      const result = zodSchema.safeParse(documentData.content);
+      if (!result.success) {
+        if (props.validate === 'strict') {
+          this.logger.error(result.error);
+          throw new SchemaValidationError('Document schema validation failed (strict)')
+        }
+
+        documentData.validationError = result.error;
+      }
+    }
 
     // create the document entity
     const document = this.documentService.create(
       workflow,
       context,
       meta,
-      documentData as Partial<DocumentEntity>,
+      documentData,
     );
 
     this.logger.debug(`Created document "${documentData.name}".`);

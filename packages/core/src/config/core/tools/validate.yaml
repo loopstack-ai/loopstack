@@ -7,6 +7,8 @@ tools:
           type: any
         schema:
           type: any
+        message:
+          type: string
       required:
         - source
         - schema
@@ -16,3 +18,4 @@ tools:
         arguments:
           source: ${ arguments.source }
           schema: ${ arguments.schema }
+          message: ${ arguments.message }

@@ -5,7 +5,15 @@ tools:
       properties:
         document:
           type: string
+        validate:
+          type: string
+          enum:
+            - strict
+            - safe
+            - skip
         content:
+          type: any
+        schema:
           type: any
         ui:
           type: any
@@ -16,6 +24,8 @@ tools:
       - handler: CreateDocumentHandler
         arguments:
           document: ${ arguments.document }
+          validate: ${ arguments.validate }
           update:
             content: ${ arguments.content }
             ui: ${ arguments.ui }
+            schema: ${ arguments.schema }
