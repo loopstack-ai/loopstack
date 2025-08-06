@@ -1,5 +1,5 @@
 import { Controller, Post, Body, UseGuards, Request, Response, HttpCode, HttpStatus, Get } from '@nestjs/common';
-import { AuthService, OAuthService } from '../services';
+import { AuthService, OAuthService, TokenService } from '../services';
 import { LocalAuthGuard, GoogleAuthGuard, DevAuthGuard } from '../guards';
 import {
   AuthResponseDto,
@@ -17,6 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly tokenService: TokenService,
     private readonly oauthService: OAuthService,
   ) {}
 
@@ -27,19 +28,8 @@ export class AuthController {
   async login(@Request() req, @Response({ passthrough: true }) res, @Body() loginDto: LoginDto): Promise<{ message: string }> {
     const tokens = await this.authService.login(req.user);
 
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: tokens.expiresIn * 1000,
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie('accessToken', tokens.accessToken, this.tokenService.createAccessTokenCookieOptions());
+    res.cookie('refreshToken', tokens.refreshToken, this.tokenService.createRefreshTokenCookieOptions());
 
     return { message: 'Login successful' };
   }
@@ -57,19 +47,8 @@ export class AuthController {
     const refreshToken = req.cookies?.refreshToken;
     const tokens = await this.authService.refresh(refreshToken);
 
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: tokens.expiresIn * 1000,
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('accessToken', tokens.accessToken, this.tokenService.createAccessTokenCookieOptions());
+    res.cookie('refreshToken', tokens.refreshToken, this.tokenService.createRefreshTokenCookieOptions());
 
     return { message: 'Token refreshed successfully' };
   }
@@ -121,19 +100,8 @@ export class AuthController {
   async devLogin(@Request() req, @Response({ passthrough: true }) res): Promise<{ message: string }> {
     const tokens = await this.authService.login(req.user);
 
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: tokens.expiresIn * 1000,
-    });
-
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    res.cookie('accessToken', tokens.accessToken, this.tokenService.createAccessTokenCookieOptions());
+    res.cookie('refreshToken', tokens.refreshToken, this.tokenService.createRefreshTokenCookieOptions());
 
     return { message: 'Login successful' };
   }

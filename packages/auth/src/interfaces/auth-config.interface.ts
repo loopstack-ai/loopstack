@@ -14,6 +14,7 @@ export interface AuthConfig {
     expiresIn: string;
     refreshSecret?: string;
     refreshExpiresIn?: string;
+    cookieDomain?: string;
   };
   oauth?: {
     google?: OAuthProviderConfig;

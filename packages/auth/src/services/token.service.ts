@@ -11,6 +11,34 @@ export class TokenService {
     private jwtService: JwtService,
   ) {}
 
+  private getExpiresIn(): number {
+    return this.getExpiresInSeconds(this.config.jwt?.expiresIn || '1h');
+  }
+
+  private getRefreshExpiresIn(): number {
+    return this.getExpiresInSeconds(this.config.jwt?.refreshExpiresIn || '7h');
+  }
+
+  createAccessTokenCookieOptions() {
+    return {
+      domain: this.config.jwt?.cookieDomain ?? undefined,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: this.getExpiresIn() * 1000,
+    }
+  }
+
+  createRefreshTokenCookieOptions() {
+    return {
+      domain: this.config.jwt?.cookieDomain ?? undefined,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: this.getRefreshExpiresIn() * 1000,
+    }
+  }
+
   async generateTokens(user: any) {
     const payload: JwtPayloadInterface = {
       sub: user.id || null,
@@ -29,7 +57,7 @@ export class TokenService {
     return {
       accessToken,
       refreshToken,
-      expiresIn: this.getExpiresInSeconds(this.config.jwt?.expiresIn || '1h'),
+      expiresIn: this.getExpiresIn(),
     };
   }
 
