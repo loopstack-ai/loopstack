@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.7.0
+
+### Minor Changes
+
+- feat: add validation handlers and error results for documents
+
 ## 0.6.1
 
 ### Patch Changes
