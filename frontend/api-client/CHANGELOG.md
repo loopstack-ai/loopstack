@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.6.1
+
+### Patch Changes
+
+- Added core tools and improvements
+
 ## 0.6.0
 
 ### Minor Changes
