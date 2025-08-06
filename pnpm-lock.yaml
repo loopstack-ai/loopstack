@@ -307,6 +307,9 @@ importers:
       tailwindcss:
         specifier: ^4.1.11
         version: 4.1.11
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
     devDependencies:
       '@eslint/js':
         specifier: ^9.32.0
