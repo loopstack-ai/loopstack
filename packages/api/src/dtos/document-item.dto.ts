@@ -58,6 +58,12 @@ export class DocumentItemDto {
 
   @Expose()
   @ApiProperty({
+    description: 'The zod validation error or null',
+  })
+  validationError: any;
+
+  @Expose()
+  @ApiProperty({
     description: 'The ui config for interface rendering',
   })
   ui: UISchemaType;
