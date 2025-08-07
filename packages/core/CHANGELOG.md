@@ -1,5 +1,13 @@
 # @loopstack/core
 
+## 0.7.3
+
+### Patch Changes
+
+- bump redis fix
+- Updated dependencies
+  - @loopstack/shared@0.7.3
+
 ## 0.7.2
 
 ### Patch Changes
