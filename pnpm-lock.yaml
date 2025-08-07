@@ -15,29 +15,32 @@ importers:
   apps/everhome:
     dependencies:
       '@loopstack/api':
-        specifier: ^0.6.1
+        specifier: ^0.7.4
         version: link:../../packages/api
       '@loopstack/auth':
-        specifier: ^0.6.1
+        specifier: ^0.7.4
         version: link:../../packages/auth
       '@loopstack/core':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/core
       '@loopstack/integration-resend':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/integrations/resend
       '@loopstack/llm':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/llm
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/shared
       '@loopstack/web':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/web
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.5(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/config':
+        specifier: ^4.0.2
+        version: 4.0.2(@nestjs/common@11.1.5(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^11.0.1
         version: 11.1.5(@nestjs/common@11.1.5(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.5)(@nestjs/platform-express@11.1.5)(@nestjs/websockets@11.1.5)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -176,10 +179,10 @@ importers:
         specifier: ^5.2.6
         version: 5.2.6
       '@loopstack/api-client':
-        specifier: ^0.6.1
+        specifier: ^0.7.0
         version: link:../api-client
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.1
         version: link:../../packages/shared
       '@radix-ui/react-accordion':
         specifier: ^1.2.11
@@ -390,7 +393,7 @@ importers:
   frontend/websocket:
     dependencies:
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.0
         version: link:../../packages/shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -591,10 +594,10 @@ importers:
   packages/api:
     dependencies:
       '@loopstack/core':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../core
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -736,10 +739,10 @@ importers:
   packages/auth:
     dependencies:
       '@loopstack/core':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../core
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -893,7 +896,7 @@ importers:
   packages/core:
     dependencies:
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../shared
       '@nestjs/bullmq':
         specifier: ^11.0.3
@@ -1059,10 +1062,10 @@ importers:
   packages/integrations/resend:
     dependencies:
       '@loopstack/core':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../core
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../shared
       '@nestjs/config':
         specifier: ^4.0.1
@@ -1171,7 +1174,7 @@ importers:
         specifier: ^4.3.2
         version: 4.6.0(keyv@5.4.0)
       '@loopstack/core':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../core
       '@loopstack/markdown-parser':
         specifier: ^1.1.2
@@ -1180,7 +1183,7 @@ importers:
         specifier: ^1.1.0
         version: link:../../libs/schema-to-template
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../shared
       '@nestjs/cache-manager':
         specifier: ^3.0.0
@@ -1332,10 +1335,10 @@ importers:
   packages/web:
     dependencies:
       '@loopstack/core':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../core
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.12
@@ -1447,19 +1450,19 @@ importers:
   templates/app-template:
     dependencies:
       '@loopstack/api':
-        specifier: ^0.6.1
+        specifier: ^0.7.4
         version: link:../../packages/api
       '@loopstack/auth':
-        specifier: ^0.6.1
+        specifier: ^0.7.4
         version: link:../../packages/auth
       '@loopstack/core':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/core
       '@loopstack/llm':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/llm
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -1577,19 +1580,19 @@ importers:
   templates/research-template:
     dependencies:
       '@loopstack/api':
-        specifier: ^0.6.1
+        specifier: ^0.7.4
         version: link:../../packages/api
       '@loopstack/core':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/core
       '@loopstack/llm':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/llm
       '@loopstack/shared':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/shared
       '@loopstack/web':
-        specifier: ^0.6.1
+        specifier: ^0.7.3
         version: link:../../packages/web
       '@nestjs/common':
         specifier: ^11.0.1
