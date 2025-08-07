@@ -54,7 +54,7 @@ var cookieParser = require('cookie-parser');
         transport: Transport.REDIS,
         options: {
           host: process.env.REDIS_HOST ?? 'localhost',
-          port: parseInt(process.env.REDIS_PORT ?? '6379', 0),
+          port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT ?? '6379', 0) : 6379,
           family: 0
         } as any,
       },
