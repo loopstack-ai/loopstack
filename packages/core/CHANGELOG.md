@@ -1,5 +1,13 @@
 # @loopstack/core
 
+## 0.7.4
+
+### Patch Changes
+
+- Add prepare script
+- Updated dependencies
+  - @loopstack/shared@0.7.4
+
 ## 0.7.3
 
 ### Patch Changes
