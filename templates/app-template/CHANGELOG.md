@@ -1,5 +1,17 @@
 # @loopstack/app-template
 
+## 0.7.3
+
+### Patch Changes
+
+- Fix redis for core scheduler
+- Updated dependencies
+  - @loopstack/api@0.7.3
+  - @loopstack/auth@0.7.3
+  - @loopstack/core@0.7.2
+  - @loopstack/llm@0.7.2
+  - @loopstack/shared@0.7.2
+
 ## 0.7.2
 
 ### Patch Changes
