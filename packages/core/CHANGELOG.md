@@ -1,5 +1,13 @@
 # @loopstack/core
 
+## 0.7.2
+
+### Patch Changes
+
+- Fix redis for core scheduler
+- Updated dependencies
+  - @loopstack/shared@0.7.2
+
 ## 0.7.1
 
 ### Patch Changes
