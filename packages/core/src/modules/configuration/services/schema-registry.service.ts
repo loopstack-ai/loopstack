@@ -1,20 +1,17 @@
-import { jsonSchemaToZod } from 'json-schema-to-zod';
 import { z } from 'zod';
 import { Injectable, Logger } from '@nestjs/common';
+import { ZodGeneratorService } from './zod-generator.service';
 
 @Injectable()
 export class SchemaRegistry {
   private logger = new Logger(SchemaRegistry.name);
   private zodSchemas: Map<string, z.ZodSchema> = new Map();
 
-  public createZod(jsonSchema: any): z.ZodType {
-    const zodSchemaString = jsonSchemaToZod(jsonSchema);
-    return new Function('z', `return ${zodSchemaString}`)(z);
-  }
+  constructor(private readonly zodGeneratorService: ZodGeneratorService) {}
 
   public addJSONSchema(key: string, jsonSchema: any): void {
     try {
-      const zodSchema = this.createZod(jsonSchema);
+      const zodSchema = this.zodGeneratorService.createZod(jsonSchema);
       this.zodSchemas.set(key, zodSchema);
     } catch (error) {
       throw new Error(

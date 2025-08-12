@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import {
   ConfigProviderRegistry,
   ConfigurationService,
-  SchemaRegistry,
+  SchemaRegistry, ZodGeneratorService,
 } from './services';
 import { JsonSchemaGeneratorService } from './services/json-schema-generator.service';
 import { HandlerRegistry } from './services';
@@ -20,7 +20,8 @@ import { DiscoveryModule } from '@nestjs/core';
     GenerateSchemaCommand,
     DynamicSchemaGeneratorService,
     SchemaRegistry,
+    ZodGeneratorService,
   ],
-  exports: [ConfigurationService, HandlerRegistry, SchemaRegistry],
+  exports: [ConfigurationService, HandlerRegistry, SchemaRegistry, ZodGeneratorService],
 })
 export class ConfigurationModule {}

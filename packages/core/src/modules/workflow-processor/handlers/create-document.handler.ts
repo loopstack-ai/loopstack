@@ -11,7 +11,7 @@ import {
   DocumentSchema,
   UISchema, JSONSchemaType,
 } from '@loopstack/shared';
-import { ConfigurationService, SchemaRegistry } from '../../configuration';
+import { ConfigurationService, SchemaRegistry, ZodGeneratorService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
@@ -108,6 +108,7 @@ export class CreateDocumentHandler implements HandlerInterface {
   constructor(
     private loopConfigService: ConfigurationService,
     private documentService: DocumentService,
+    private zodGeneratorService: ZodGeneratorService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private schemaRegistry: SchemaRegistry,
   ) {}
@@ -149,7 +150,7 @@ export class CreateDocumentHandler implements HandlerInterface {
       );
 
     const documentSchema = documentSkeleton.schema;
-    const zodSchema = documentSchema ? this.schemaRegistry.createZod(documentSchema) : undefined;
+    const zodSchema = documentSchema ? this.zodGeneratorService.createZod(documentSchema) : undefined;
     if (!zodSchema && mergedTemplateData.content) {
       throw Error(`Document creates with content no schema defined.`);
     }
