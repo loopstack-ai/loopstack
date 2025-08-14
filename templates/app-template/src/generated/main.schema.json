@@ -1183,6 +1183,25 @@
                                 "document": {
                                   "type": "string"
                                 },
+                                "validate": {
+                                  "anyOf": [
+                                    {
+                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "strict"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "safe"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "skip"
+                                    }
+                                  ]
+                                },
                                 "update": {
                                   "type": "object",
                                   "properties": {
@@ -1191,6 +1210,16 @@
                                       "anyOf": [
                                         {
                                           "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/ui"
+                                        },
+                                        {
+                                          "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                                        }
+                                      ]
+                                    },
+                                    "schema": {
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                                         },
                                         {
                                           "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
@@ -1885,10 +1914,83 @@
                                       "$ref": "#/definitions/MainSchema/properties/workflows/items/properties/parameters"
                                     }
                                   ]
+                                },
+                                "message": {
+                                  "anyOf": [
+                                    {
+                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
                                 }
                               },
                               "required": [
                                 "schema"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "as": {
+                              "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/items/anyOf/0/anyOf/0/properties/as"
+                            }
+                          },
+                          "required": [
+                            "handler",
+                            "arguments"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "handler": {
+                              "type": "string",
+                              "const": "ResetErrorHandler"
+                            },
+                            "arguments": {},
+                            "as": {
+                              "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/items/anyOf/0/anyOf/0/properties/as"
+                            }
+                          },
+                          "required": [
+                            "handler"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "handler": {
+                              "type": "string",
+                              "const": "ValidateDocumentHandler"
+                            },
+                            "arguments": {
+                              "type": "object",
+                              "properties": {
+                                "documentId": {
+                                  "anyOf": [
+                                    {
+                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                },
+                                "message": {
+                                  "anyOf": [
+                                    {
+                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "documentId"
                               ],
                               "additionalProperties": false
                             },
@@ -1999,64 +2101,18 @@
                           "properties": {
                             "handler": {
                               "type": "string",
-                              "const": "ChatCompletionsHandler"
+                              "const": "DelegateToolCallsHandler"
                             },
                             "arguments": {
                               "type": "object",
                               "properties": {
-                                "llm": {
-                                  "type": "object",
-                                  "properties": {
-                                    "model": {
-                                      "type": "string"
-                                    },
-                                    "envApiKey": {
-                                      "type": "string"
-                                    },
-                                    "baseUrl": {
-                                      "type": "string"
-                                    },
-                                    "requestTimeout": {
-                                      "type": "number"
-                                    },
-                                    "temperature": {
-                                      "type": "number"
-                                    }
-                                  },
-                                  "required": [
-                                    "model"
-                                  ],
-                                  "additionalProperties": false
-                                },
-                                "messages": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "role": {
-                                        "type": "string"
-                                      },
-                                      "content": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": [
-                                      "role",
-                                      "content"
-                                    ],
-                                    "additionalProperties": false
-                                  }
-                                },
-                                "messagesSearchTag": {
-                                  "type": "string"
-                                },
-                                "tools": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "string"
-                                  }
+                                "toolCalls": {
+                                  "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
                                 }
                               },
+                              "required": [
+                                "toolCalls"
+                              ],
                               "additionalProperties": false
                             },
                             "as": {
@@ -2074,18 +2130,118 @@
                           "properties": {
                             "handler": {
                               "type": "string",
-                              "const": "DelegateToolCallsHandler"
+                              "const": "AiGenerateObjectHandler"
                             },
                             "arguments": {
                               "type": "object",
                               "properties": {
-                                "toolCalls": {
-                                  "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                                "llm": {
+                                  "type": "object",
+                                  "properties": {
+                                    "model": {
+                                      "type": "string"
+                                    },
+                                    "provider": {
+                                      "type": "string"
+                                    },
+                                    "envApiKey": {
+                                      "type": "string"
+                                    },
+                                    "cacheResponse": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "messages": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "role": {
+                                        "type": "string"
+                                      },
+                                      "content": {}
+                                    },
+                                    "required": [
+                                      "role"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "messagesSearchTag": {
+                                  "type": "string"
+                                },
+                                "responseDocument": {
+                                  "anyOf": [
+                                    {
+                                      "$ref": "#/definitions/MainSchema/properties/pipelines/items/anyOf/0/properties/factory/anyOf/0/properties/condition"
+                                    },
+                                    {
+                                      "type": "string"
+                                    }
+                                  ]
                                 }
                               },
                               "required": [
-                                "toolCalls"
+                                "responseDocument"
                               ],
+                              "additionalProperties": false
+                            },
+                            "as": {
+                              "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/items/anyOf/0/anyOf/0/properties/as"
+                            }
+                          },
+                          "required": [
+                            "handler",
+                            "arguments"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "handler": {
+                              "type": "string",
+                              "const": "AiGenerateTextHandler"
+                            },
+                            "arguments": {
+                              "type": "object",
+                              "properties": {
+                                "llm": {
+                                  "type": "object",
+                                  "properties": {
+                                    "model": {
+                                      "type": "string"
+                                    },
+                                    "provider": {
+                                      "type": "string"
+                                    },
+                                    "envApiKey": {
+                                      "type": "string"
+                                    },
+                                    "cacheResponse": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "messages": {
+                                  "type": "array",
+                                  "items": {
+                                    "$ref": "#/definitions/MainSchema/properties/tools/items/properties/execute/items/anyOf/0/anyOf/18/properties/arguments/properties/messages/items"
+                                  }
+                                },
+                                "messagesSearchTag": {
+                                  "type": "string"
+                                },
+                                "tools": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
                               "additionalProperties": false
                             },
                             "as": {

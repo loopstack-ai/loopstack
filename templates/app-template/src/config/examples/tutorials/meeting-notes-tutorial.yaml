@@ -3,6 +3,7 @@ include:
   - core/tools/create-chat-message.yaml
   - core/tools/create-response.yaml
   - core/tools/create-document.yaml
+  - core/tools/batch-create-messages.yaml
   - examples/examples-workspace.yaml
 
 # Create a minimal root pipeline which executes the custom workflow
@@ -51,10 +52,9 @@ workflows:
               raw_notes: ${ USER_INPUT.content.text }
             as: SUMMARY_RESULT
 
-          - tool: create_chat_message
+          - tool: batch_create_messages
             arguments:
-              role: ${ SUMMARY_RESULT.response.data.role }
-              content: ${ SUMMARY_RESULT.response.data.content }
+              items: ${ SUMMARY_RESULT.steps[0].response.messages }
 
 # Create the custom LLM tool for summarization
 tools:
@@ -68,10 +68,10 @@ tools:
         - raw_notes
       additionalProperties: false
     execute:
-      - handler: ChatCompletionsHandler
+      - handler: AiGenerateTextHandler
         arguments:
           llm:
-            envApiKey: OPENAI_KEY
+            provider: openai
             model: gpt-4o
           messages:
             - role: system

@@ -1,13 +1,13 @@
 import {
   LlmResponseMessageInterface,
   LlmToolCallInterface,
-  PromptResponseInterface,
+  CacheResponse,
 } from '@loopstack/llm';
 
 export function createMockPromptResponse(
   content: string | null,
   toolCalls: LlmToolCallInterface[] | null = null,
-): PromptResponseInterface<LlmResponseMessageInterface> {
+): CacheResponse<LlmResponseMessageInterface> {
   return {
     messages: [],
     response: {

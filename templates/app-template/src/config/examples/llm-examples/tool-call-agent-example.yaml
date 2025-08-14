@@ -45,38 +45,31 @@ workflows:
         from: prompt_executed
         to: response_received
         call:
-          - tool: create_chat_message
+          - tool: batch_create_messages
             arguments:
-              role: ${ PROMPT_RESULT.response.data.role }
-              content: ${ PROMPT_RESULT.response.data.content }
-              tool_calls: ${ PROMPT_RESULT.response.data.tool_calls }
-
-      - name: check_for_tool_calls
-        from: response_received
-        to:
-          - tool_calls_received
-          - end
-        call:
-          - tool: switch_target
-            arguments:
-              target: "{{#if PROMPT_RESULT.response.data.tool_calls.length }}tool_calls_received{{else}}end{{/if }}"
+              items: ${ PROMPT_RESULT.steps[0].response.messages }
 
       - name: call_tools
-        from: tool_calls_received
+        from: response_received
         to: tools_called
         call:
           - tool: delegate_tool_calls
             arguments:
-              toolCalls: ${ PROMPT_RESULT.response.data.tool_calls }
+              messages: ${ PROMPT_RESULT.steps[0].response.messages }
             as: TOOL_RESPONSES
-
-      - name: add_tool_responses
-        from: tools_called
-        to: message_received
-        call:
           - tool: batch_create_messages
             arguments:
               items: ${ TOOL_RESPONSES }
+
+      - name: loop_back_when_tool_responses
+        from: tools_called
+        to:
+          - message_received
+          - end
+        call:
+          - tool: switch_target
+            arguments:
+              target: "{{#if TOOL_RESPONSES.length }}message_received{{else}}end{{/if }}"
 
 tools:
   - name: get_user_name
@@ -97,10 +90,10 @@ tools:
 
   - name: prompt_with_tools
     execute:
-      - handler: ChatCompletionsHandler
+      - handler: AiGenerateTextHandler
         arguments:
           llm:
-            envApiKey: OPENAI_KEY
+            provider: openai
             model: gpt-4o
           messagesSearchTag: message
           tools:

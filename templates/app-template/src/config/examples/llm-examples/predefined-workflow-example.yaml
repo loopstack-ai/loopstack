@@ -64,40 +64,36 @@ workflows:
         from: input_analysed
         to: analysis_added
         call:
-          - tool: create_mock
-            arguments:
-              input: ${ ANALYSIS.response.data }
           - tool: create_plain_message
             arguments:
               title: "Analysis"
-              content: ${ ANALYSIS.response.data.content }
+              content: ${ ANALYSIS.steps[0].response.messages[0].content[0].text }
 
       - name: improve
         from: analysis_added
         to: improved
         call:
           - tool: improve_text
+            arguments:
+              text: ${ ANALYSIS.steps[0].response.messages[0].content[0].text }
             as: IMPROVED_TEXT
 
       - name: add_improved_text
         from: improved
         to: improved_text_added
         call:
-          - tool: create_mock
-            arguments:
-              input: ${ ANALYSIS.response.data }
           - tool: create_plain_message
             arguments:
               title: "Improved Text"
-              content: ${ IMPROVED_TEXT.response.data.content }
+              content: ${ IMPROVED_TEXT.steps[0].response.messages[0].content[0].text }
 
 tools:
   - name: analyse_text
     execute:
-      - handler: ChatCompletionsHandler
+      - handler: AiGenerateTextHandler
         arguments:
           llm:
-            envApiKey: OPENAI_KEY
+            provider: openai
             model: gpt-4o
           messages:
             - role: system
@@ -115,11 +111,16 @@ tools:
                 {{ USER_INPUT_DOCUMENT.content.text }}
 
   - name: improve_text
+    parameters:
+      type: object
+      properties:
+        text:
+          type: string
     execute:
-      - handler: ChatCompletionsHandler
+      - handler: AiGenerateTextHandler
         arguments:
           llm:
-            envApiKey: OPENAI_KEY
+            provider: openai
             model: gpt-4o
           messages:
             - role: system
@@ -137,7 +138,7 @@ tools:
                 {{ USER_INPUT_DOCUMENT.content.text }}
   
                 Analysis and recommendations:
-                {{ ANALYSIS.response.data }}
+                {{ arguments.text }}
                   
                 Please provide an improved version of the original text based on this analysis.
 
