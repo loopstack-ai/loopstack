@@ -12,25 +12,14 @@ tools:
           items:
             type: object
             properties:
+              role:
+                type: string
               content:
-                type: object
-                properties:
-                  content:
-                    type: string
-                  role:
-                    type: string
-                  tool_call_id:
-                    type: string
-                  meta:
-                    type: object
-                    properties:
-                      level:
-                        type: string
-                      invalidate:
-                        type: boolean
-                    additionalProperties: false
-                additionalProperties: false
+                type: array
+                items:
+                  type: any
             required:
+              - role
               - content
             additionalProperties: false
       required:

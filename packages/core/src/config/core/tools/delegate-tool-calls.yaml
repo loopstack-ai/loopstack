@@ -3,12 +3,25 @@ tools:
     parameters:
       type: object
       properties:
-        toolCalls:
+        messages:
           type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+              content:
+                type: array
+                items:
+                  type: any
+            required:
+              - role
+              - content
+            additionalProperties: false
       required:
-        - toolCalls
+        - messages
       additionalProperties: false
     execute:
       - handler: DelegateToolCallsHandler
         arguments:
-          toolCalls: ${ arguments.toolCalls }
+          messages: ${ arguments.messages }

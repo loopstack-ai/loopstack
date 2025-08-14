@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { z } from 'zod';
+import { z } from "zod";
 import { jsonSchemaToZod } from 'json-schema-to-zod';
 
 @Injectable()

@@ -85,7 +85,8 @@ export class BatchCreateDocumentsHandler implements HandlerInterface {
 
     const documents: DocumentEntity[] = [];
     for (let index = 0; index < props.items.length; index++) {
-      const itemDocumentData = merge({}, documentSkeleton, props.items[index]);
+
+      const itemDocumentData = merge({}, documentSkeleton, { content: props.items[index] });
       if (!zodSchema && itemDocumentData.content) {
         throw Error(`Document creates with content no schema defined.`);
       }
