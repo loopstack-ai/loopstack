@@ -11,7 +11,7 @@ import {
   DocumentSchema,
   UISchema, JSONSchemaType,
 } from '@loopstack/shared';
-import { ConfigurationService, SchemaRegistry, ZodGeneratorService } from '../../configuration';
+import { ConfigurationService, ZodGeneratorService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
@@ -19,6 +19,7 @@ import { DocumentService } from '../../persistence';
 import { merge, omit } from 'lodash';
 import { TemplateExpressionEvaluatorService } from '../services';
 import { SchemaValidationError } from '../errors';
+import { ConfigTraceError } from '../../configuration';
 
 const schema = z
   .object({
@@ -110,7 +111,6 @@ export class CreateDocumentHandler implements HandlerInterface {
     private documentService: DocumentService,
     private zodGeneratorService: ZodGeneratorService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private schemaRegistry: SchemaRegistry,
   ) {}
 
   async apply(
@@ -131,33 +131,34 @@ export class CreateDocumentHandler implements HandlerInterface {
       context.includes,
     );
 
-    // merge the custom properties
-    const mergedTemplateData = merge({}, template.config, props.update ?? {});
+    try {
+      // merge the custom properties
+      const mergedTemplateData = merge({}, template.config, props.update ?? {});
 
-    // create the document skeleton without content property
-    const documentSkeleton =
-      this.templateExpressionEvaluatorService.parse<DocumentType>(
-        omit(mergedTemplateData, ['content']),
-        {
-          arguments: parentArguments,
-          context,
-          workflow,
-          transition: meta,
-        },
-        {
-          schema: DocumentSchema,
-        },
-      );
+      // create the document skeleton without content property
+      const documentSkeleton =
+        this.templateExpressionEvaluatorService.parse<DocumentType>(
+          omit(mergedTemplateData, ['content']),
+          {
+            arguments: parentArguments,
+            context,
+            workflow,
+            transition: meta,
+          },
+          {
+            schema: DocumentSchema,
+          },
+        );
 
-    const documentSchema = documentSkeleton.schema;
-    const zodSchema = documentSchema ? this.zodGeneratorService.createZod(documentSchema) : undefined;
-    if (!zodSchema && mergedTemplateData.content) {
-      throw Error(`Document creates with content no schema defined.`);
-    }
+      const documentSchema = documentSkeleton.schema;
+      const zodSchema = documentSchema ? this.zodGeneratorService.createZod(documentSchema) : undefined;
+      if (!zodSchema && mergedTemplateData.content) {
+        throw Error(`Document creates with content no schema defined.`);
+      }
 
-    // evaluate and parse document content using document schema
-    const parsedDocumentContent = mergedTemplateData.content
-      ? this.templateExpressionEvaluatorService.parse<DocumentType>(
+      // evaluate and parse document content using document schema
+      const parsedDocumentContent = mergedTemplateData.content
+        ? this.templateExpressionEvaluatorService.parse<DocumentType>(
           mergedTemplateData.content,
           {
             arguments: parentArguments,
@@ -167,43 +168,46 @@ export class CreateDocumentHandler implements HandlerInterface {
           },
           // do not add schema here, we validate later
         )
-      : null;
+        : null;
 
-    // merge document skeleton with content data
-    const documentData: Partial<DocumentEntity> = {
-      ...documentSkeleton,
-      content: parsedDocumentContent,
-      configKey: template.key,
-    };
+      // merge document skeleton with content data
+      const documentData: Partial<DocumentEntity> = {
+        ...documentSkeleton,
+        content: parsedDocumentContent,
+        configKey: template.key,
+      };
 
-    // do final strict validation
-    if (zodSchema && props.validate !== 'skip') {
-      const result = zodSchema.safeParse(documentData.content);
-      if (!result.success) {
-        if (props.validate === 'strict') {
-          this.logger.error(result.error);
-          throw new SchemaValidationError('Document schema validation failed (strict)')
+      // do final strict validation
+      if (zodSchema && props.validate !== 'skip') {
+        const result = zodSchema.safeParse(documentData.content);
+        if (!result.success) {
+          if (props.validate === 'strict') {
+            this.logger.error(result.error);
+            throw new SchemaValidationError('Document schema validation failed (strict)')
+          }
+
+          documentData.validationError = result.error;
         }
-
-        documentData.validationError = result.error;
       }
+
+      // create the document entity
+      const document = this.documentService.create(
+        workflow,
+        context,
+        meta,
+        documentData,
+      );
+
+      this.logger.debug(`Created document "${documentData.name}".`);
+
+      return {
+        success: true,
+        persist: true,
+        workflow,
+        data: document,
+      };
+    } catch (e) {
+      throw new ConfigTraceError(e, template);
     }
-
-    // create the document entity
-    const document = this.documentService.create(
-      workflow,
-      context,
-      meta,
-      documentData,
-    );
-
-    this.logger.debug(`Created document "${documentData.name}".`);
-
-    return {
-      success: true,
-      persist: true,
-      workflow,
-      data: document,
-    };
   }
 }

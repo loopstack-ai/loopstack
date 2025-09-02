@@ -24,6 +24,7 @@ import { TemplateExpressionEvaluatorService } from './template-expression-evalua
 import { omit } from 'lodash';
 import { WorkflowContextService } from './workflow-context.service';
 import { z } from 'zod';
+import { ConfigTraceError } from '../../configuration';
 
 const TransitionValidationsSchema = z.array(
   z
@@ -441,7 +442,7 @@ export class StateMachineProcessorService {
         this.commitWorkflowTransition(workflow, nextPlace, nextTransition);
       }
     } catch (e) {
-      this.logger.error(e);
+      this.logger.error(new ConfigTraceError(e, configElement));
 
       // roll back to original workflow so no changes are committed
       workflow = await this.workflowService.reload(workflow.id);

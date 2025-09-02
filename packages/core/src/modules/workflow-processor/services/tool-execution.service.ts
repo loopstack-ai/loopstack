@@ -13,6 +13,7 @@ import { HandlerExecutionService } from './handler-execution.service';
 import { ContextService } from '../../common';
 import { HandlerCallType } from '@loopstack/shared/dist/schemas/handler-call.schema';
 import { z } from 'zod';
+import { ConfigTraceError } from '../../configuration';
 
 @Injectable()
 export class ToolExecutionService {
@@ -75,16 +76,17 @@ export class ToolExecutionService {
 
     this.contextService.addIncludes(context, configElement.includes);
 
-    const zodSchema = this.schemaRegistry.getZodSchema(`${configElement.key}.arguments`);
+    try {
+      const zodSchema = this.schemaRegistry.getZodSchema(`${configElement.key}.arguments`);
 
-    const hasArguments =
-      toolCall.arguments && Object.keys(toolCall.arguments).length;
-    if (!zodSchema && hasArguments) {
-      throw Error(`Tool called with arguments but no schema defined.`);
-    }
+      const hasArguments =
+        toolCall.arguments && Object.keys(toolCall.arguments).length;
+      if (!zodSchema && hasArguments) {
+        throw Error(`Tool called with arguments but no schema defined.`);
+      }
 
-    const toolCallArguments = hasArguments
-      ? this.templateExpressionEvaluatorService.parse<ToolCallType>(
+      const toolCallArguments = hasArguments
+        ? this.templateExpressionEvaluatorService.parse<ToolCallType>(
           toolCall.arguments,
           {
             ...templateVariables,
@@ -97,49 +99,52 @@ export class ToolExecutionService {
             schema: zodSchema,
           },
         )
-      : {};
+        : {};
 
-    let result: HandlerCallResult | undefined;
-    const executeItems: Array<HandlerCallType | ToolCallType> =
-      configElement.config.execute;
+      let result: HandlerCallResult | undefined;
+      const executeItems: Array<HandlerCallType | ToolCallType> =
+        configElement.config.execute;
 
-    const extraVariables: Record<string, any> = {};
-    for (const execute of executeItems) {
-      result = undefined;
+      const extraVariables: Record<string, any> = {};
+      for (const execute of executeItems) {
+        result = undefined;
 
-      if (this.isHandlerCallType(execute)) {
-        result = await this.serviceExecutionService.callHandler(
-          execute as HandlerCallType,
-          toolCallArguments,
-          workflow,
-          context,
-          transitionData,
-          extraVariables,
-        );
-      } else if (this.isToolCallType(execute)) {
-        result = await this.applyTool(
-          execute as ToolCallType,
-          toolCallArguments,
-          workflow,
-          context,
-          transitionData,
-          extraVariables,
-        );
+        if (this.isHandlerCallType(execute)) {
+          result = await this.serviceExecutionService.callHandler(
+            execute as HandlerCallType,
+            toolCallArguments,
+            workflow,
+            context,
+            transitionData,
+            extraVariables,
+          );
+        } else if (this.isToolCallType(execute)) {
+          result = await this.applyTool(
+            execute as ToolCallType,
+            toolCallArguments,
+            workflow,
+            context,
+            transitionData,
+            extraVariables,
+          );
+        }
+
+        if (execute.as) {
+          extraVariables[execute.as] = result?.data;
+        }
+
+        if (!result?.success) {
+          break;
+        }
       }
 
-      if (execute.as) {
-        extraVariables[execute.as] = result?.data;
+      if (!result) {
+        throw new Error(`Tool execution provided no results.`);
       }
 
-      if (!result?.success) {
-        break;
-      }
+      return result;
+    } catch (e) {
+      throw new ConfigTraceError(e, configElement);
     }
-
-    if (!result) {
-      throw new Error(`Tool execution provided no results.`);
-    }
-
-    return result;
   }
 }

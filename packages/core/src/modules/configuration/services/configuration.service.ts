@@ -14,6 +14,7 @@ import { z } from 'zod';
 import { SchemaRegistry } from './schema-registry.service';
 import { HandlerRegistry } from './handler-registry.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { YamlLocatorService } from './yaml-locator.service';
 
 type ConfigElementMap = Map<string, ConfigElement<any>>;
 
@@ -30,6 +31,7 @@ export class ConfigurationService implements OnApplicationBootstrap {
     private mainSchemaGenerator: DynamicSchemaGeneratorService,
     private schemaRegistry: SchemaRegistry,
     private eventEmitter: EventEmitter2,
+    private yamlLocatorService: YamlLocatorService,
   ) {}
 
   onApplicationBootstrap() {
@@ -49,11 +51,6 @@ export class ConfigurationService implements OnApplicationBootstrap {
 
     if (!configSources.length) {
       return;
-    }
-
-    // validate each config file separately, so we can trace potential source of errors
-    for (const config of configSources) {
-      this.validate(config);
     }
 
     // build a config file lookup table
@@ -244,15 +241,19 @@ export class ConfigurationService implements OnApplicationBootstrap {
       const items = Object.entries(cleanConfig)
         .map(([key, data]) => {
           return (data as any).map(
-            (item: any) =>
-              ({
+            (item: any, index: number) => {
+              const location = this.yamlLocatorService.getYamlLocation(source.raw, [key, index]);
+              return {
                 key: `${source.relativePath}:${item.name}`,
+                type: key,
                 name: item.name,
                 path: source.relativePath,
-                type: key,
+                fullPath: source.path,
+                location: location,
                 includes: [],
                 config: item,
-              }) as ConfigElement<any>,
+              } as ConfigElement<any>
+            }
           );
         })
         .flat();
@@ -261,14 +262,6 @@ export class ConfigurationService implements OnApplicationBootstrap {
         items,
         include: include ?? [],
       };
-    } catch (error) {
-      this.handleConfigError(error, source.path);
-    }
-  }
-
-  private validate(source: ConfigSourceInterface): any {
-    try {
-      this.mainSchemaGenerator.getSchema().parse(source.config);
     } catch (error) {
       this.handleConfigError(error, source.path);
     }

@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import * as yaml from 'js-yaml';
+import { parse } from 'yaml';
 import { ConfigSourceInterface, MainConfigType } from '@loopstack/shared';
 
 export function loadConfiguration(path: string): ConfigSourceInterface[] {
@@ -27,9 +27,8 @@ function loadConfigsRecursively(
     const stats = fs.statSync(itemPath);
 
     if (stats.isFile() && item.endsWith('.yaml')) {
-      const config = yaml.load(
-        fs.readFileSync(itemPath, 'utf8'),
-      ) as MainConfigType;
+      const raw = fs.readFileSync(itemPath, 'utf8');
+      const config = parse(raw);
 
       const relativePath = path
         .relative(rootPath, itemPath)
@@ -37,6 +36,7 @@ function loadConfigsRecursively(
       configs.push({
         path: itemPath,
         relativePath,
+        raw,
         config,
       });
     } else if (stats.isDirectory()) {

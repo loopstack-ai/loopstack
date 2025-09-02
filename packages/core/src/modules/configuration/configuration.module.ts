@@ -9,6 +9,7 @@ import { HandlerRegistry } from './services';
 import { GenerateSchemaCommand } from './commands/generate-schema.command';
 import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generator.service';
 import { DiscoveryModule } from '@nestjs/core';
+import { YamlLocatorService } from './services/yaml-locator.service';
 
 @Module({
   imports: [DiscoveryModule],
@@ -21,6 +22,7 @@ import { DiscoveryModule } from '@nestjs/core';
     DynamicSchemaGeneratorService,
     SchemaRegistry,
     ZodGeneratorService,
+    YamlLocatorService,
   ],
   exports: [ConfigurationService, HandlerRegistry, SchemaRegistry, ZodGeneratorService],
 })

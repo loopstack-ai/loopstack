@@ -16,6 +16,7 @@ import { NamespaceProcessorService } from './namespace-processor.service';
 import { WorkflowProcessorService } from './workflow-processor.service';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { z } from 'zod';
+import { ConfigTraceError } from '../../configuration';
 
 const SequenceItemSchema = z
   .object({
@@ -105,10 +106,6 @@ export class PipelineProcessorService {
 
     this.logger.debug(`Processed all sequence items.`)
     return lastContext;
-  }
-
-  configExists(type: string, name: string): boolean {
-    return this.loopConfigService.has(`${type}s`, name);
   }
 
   async prepareAllContexts(
@@ -322,17 +319,21 @@ export class PipelineProcessorService {
 
     this.contextService.addIncludes(context, configElement.includes);
 
-    switch (type) {
-      case 'pipeline':
-        return this.runPipelineType(
-          configElement as ConfigElement<PipelineType>,
-          context,
-        );
-      case 'workflow':
-        return this.workflowProcessor.runStateMachineType(
-          configElement as ConfigElement<WorkflowType>,
-          context,
-        );
+    try {
+      switch (type) {
+        case 'pipeline':
+          return await this.runPipelineType(
+            configElement as ConfigElement<PipelineType>,
+            context,
+          );
+        case 'workflow':
+          return await this.workflowProcessor.runStateMachineType(
+            configElement as ConfigElement<WorkflowType>,
+            context,
+          );
+      }
+    } catch (e) {
+      throw new ConfigTraceError(e, configElement);
     }
 
     throw new Error(`Pipeline type ${type} unknown.`);
