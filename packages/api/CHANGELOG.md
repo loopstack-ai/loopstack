@@ -1,5 +1,22 @@
 # @loopstack/api
 
+## 0.8.0
+
+### Minor Changes
+
+- Implement oauth flow
+- b24bb28: Use vercel ai sdk with structured data
+
+### Patch Changes
+
+- b24bb28: Use AI Sdk for all message types front and backend
+- Updated dependencies
+- Updated dependencies [b24bb28]
+- Updated dependencies [b24bb28]
+- Updated dependencies
+  - @loopstack/core@0.8.0
+  - @loopstack/shared@0.8.0
+
 ## 0.7.5
 
 ### Patch Changes
