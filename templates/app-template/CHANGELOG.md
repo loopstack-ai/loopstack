@@ -1,5 +1,17 @@
 # @loopstack/app-template
 
+## 0.8.1
+
+### Patch Changes
+
+- Bump dependencies
+- Updated dependencies
+  - @loopstack/api@0.8.1
+  - @loopstack/auth@0.8.1
+  - @loopstack/core@0.8.1
+  - @loopstack/llm@0.8.1
+  - @loopstack/shared@0.8.1
+
 ## 0.8.0
 
 ### Minor Changes
