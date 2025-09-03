@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.8.0
+
+### Minor Changes
+
+- Implement oauth flow
+
 ## 0.7.0
 
 ### Minor Changes
