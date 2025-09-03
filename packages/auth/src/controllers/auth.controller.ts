@@ -71,8 +71,13 @@ export class AuthController {
   @Public()
   @Get('oauth/google/callback')
   @UseGuards(GoogleAuthGuard)
-  async googleCallback(@Request() req): Promise<AuthResponseDto> {
-    return this.oauthService.handleOAuthLogin(req.user);
+  async googleCallback(@Request() req, @Response({ passthrough: true }) res): Promise<{ message: string }>  {
+    const tokens = await this.oauthService.handleOAuthLogin(req.user);
+
+    res.cookie('accessToken', tokens.accessToken, this.tokenService.createAccessTokenCookieOptions());
+    res.cookie('refreshToken', tokens.refreshToken, this.tokenService.createRefreshTokenCookieOptions());
+
+    return { message: 'Login successful' };
   }
 
   @Post('link-provider')
