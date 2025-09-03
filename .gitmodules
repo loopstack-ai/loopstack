@@ -28,3 +28,6 @@
 [submodule "templates/app-template"]
 	path = templates/app-template
 	url = git@github.com:loopstack-ai/app-template.git
+[submodule "packages/auth"]
+	path = packages/auth
+	url = git@github.com:loopstack-ai/auth.git
