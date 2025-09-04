@@ -1566,6 +1566,35 @@ export const ApiV1AuthApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
+        authControllerGetAuthStrategies: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/auth/auth-strategies`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
         authControllerGetProviders: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/auth/providers`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -1866,6 +1895,17 @@ export const ApiV1AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
+        async authControllerGetAuthStrategies(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerGetAuthStrategies(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerGetAuthStrategies']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
         async authControllerGetProviders(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerGetProviders(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -1986,6 +2026,14 @@ export const ApiV1AuthApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
+        authControllerGetAuthStrategies(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.authControllerGetAuthStrategies(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
         authControllerGetProviders(options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.authControllerGetProviders(options).then((request) => request(axios, basePath));
         },
@@ -2072,6 +2120,14 @@ export interface ApiV1AuthApiInterface {
      * @memberof ApiV1AuthApiInterface
      */
     authControllerDevLogin(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1AuthApiInterface
+     */
+    authControllerGetAuthStrategies(options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
      * 
@@ -2207,6 +2263,16 @@ export class ApiV1AuthApi extends BaseAPI implements ApiV1AuthApiInterface {
      */
     public authControllerDevLogin(options?: RawAxiosRequestConfig) {
         return ApiV1AuthApiFp(this.configuration).authControllerDevLogin(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1AuthApi
+     */
+    public authControllerGetAuthStrategies(options?: RawAxiosRequestConfig) {
+        return ApiV1AuthApiFp(this.configuration).authControllerGetAuthStrategies(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
