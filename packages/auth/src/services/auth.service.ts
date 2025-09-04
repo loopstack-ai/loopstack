@@ -91,4 +91,8 @@ export class AuthService {
     return this.mapUserToResponse(user);
   }
 
+  getAuthStrategies() {
+    return this.config.strategies;
+  }
+
 }

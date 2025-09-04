@@ -2,7 +2,6 @@ import { Controller, Post, Body, UseGuards, Request, Response, HttpCode, HttpSta
 import { AuthService, OAuthService, TokenService } from '../services';
 import { LocalAuthGuard, GoogleAuthGuard, DevAuthGuard } from '../guards';
 import {
-  AuthResponseDto,
   CurrentUser,
   LinkProviderDto,
   LoginDto,
@@ -96,6 +95,11 @@ export class AuthController {
   @Get('me')
   async me(@CurrentUser() user: any): Promise<UserResponseDto> {
     return this.authService.getCurrentUser(user.userId);
+  }
+
+  @Get('auth-strategies')
+  async getAuthStrategies(): Promise<string[]> {
+    return this.authService.getAuthStrategies();
   }
 
   @Public()
