@@ -13,7 +13,7 @@ Loopstack is build on Typescript / NestJs Framework, leveraging a convenient yet
 - [Key Features](#key-features)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
-- [Building with Loopstack](#building-with-loopstack)
+- [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -87,22 +87,12 @@ Then, configure your IDE to use your custom schema for YAML validation: `./src/g
 
 Remember, to re-generate the schema when you add tools or modify their input schemas.
 
-## Tech Stack
+## Documentation
 
-- Backend: Node.js / NestJS
-- Frontend: React.js / Vite
-- Workflows: YAML + TypeScript
-- Database: PostgreSQL
-- Cache: Redis
-- Containerization: Docker
-
-## Building with Loopstack
-
-For detailed documentation, visit https://loopstack.ai/docs
+- 📖 **Documentation**: [https://loopstack.ai/docs](https://loopstack.ai/docs)
 
 ## Getting Help
 
-- 📖 **Documentation**: [https://loopstack.ai/docs](https://loopstack.ai/docs)
 - 💬 **Discord Community**: [https://discord.gg/loopstack](https://discord.gg/svAHrkxKZg)
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/loopstack-ai/loopstack/issues)
 
@@ -116,6 +106,18 @@ We're actively preparing Loopstack for full open-source contribution! While we f
 - 💬 Joining our [Discord community](https://discord.gg/svAHrkxKZg) to share feedback
 
 **Coming soon**: Full source code access, contribution guidelines, and developer onboarding docs.
+
+## License
+
+**Loopstack Core Modules** use the **Business Source License 1.1** (BSL):
+
+- ✅ **Free for personal and commercial use** - build apps, modify code, sell products
+- ❌ **Don't compete directly** - don't offer this software itself as a hosted service
+- 🚀 **Becomes fully open source** (Apache 2.0) after 4 years, possibly sooner
+
+We want you to use this software freely while we build a sustainable business. After 4 years, everything becomes completely open source with no restrictions. We are aiming to do this transition even earlier.
+
+For details see: [LICENSE.md](LICENSE.md)
 
 ---
 
