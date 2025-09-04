@@ -3,7 +3,7 @@
 [//]: # ([![Version]&#40;https://img.shields.io/badge/version-alpha-orange&#41;]&#40;https://github.com/loopstack-ai/loopstack/releases&#41;)
 [![Discord](https://img.shields.io/badge/discord-join%20community-7289da)](https://discord.gg/svAHrkxKZg)
 
-A developer-first, open-source framework for reliable AI workflow automation that eliminates the complexity of building, testing, and deploying AI-powered applications.
+A developer-first framework for reliable AI workflow automation that eliminates the complexity of building, testing, and deploying AI-powered applications.
 
 Loopstack is build on Typescript / NestJs Framework, leveraging a convenient yet powerful declarative approach to build AI automation flows.
 
