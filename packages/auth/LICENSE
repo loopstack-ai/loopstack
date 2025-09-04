@@ -1,21 +1,43 @@
-MIT License
+Business Source License 1.1
 
-Copyright (c) 2025 Loopstack GmbH
+Parameters
+----------
+Licensor:             Loopstack GmbH
+Licensed Work:        Loopstack Auth Module (the "Licensed Work")
+Additional Use Grant: You may freely use, copy, modify, and distribute the Licensed Work
+                      for both personal and commercial purposes, subject to the conditions below.
+Change Date:          Four years after the release date of each version.
+Change License:       Apache License, Version 2.0
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Terms
+-----
+1. License Grant
+   The Licensed Work is made available under the terms of this Business Source License (the "License").
+   You are granted the right to use, copy, modify, and distribute the Licensed Work for any
+   personal or commercial purpose, provided that:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   - You do not provide the Licensed Work to third parties as a managed or hosted service
+     where the primary value of the service is the Licensed Work itself, or a substantial
+     substitute for it.
+   - You comply with attribution requirements by including this License file with any distribution.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. Change License
+   On the Change Date, each version of the Licensed Work will automatically be
+   made available under the Change License (Apache License 2.0).
+
+3. Contributions
+   Any contributions to the Licensed Work will be licensed under the terms of this License
+   until the Change Date, and under the Change License thereafter.
+
+4. Disclaimer
+   The Licensed Work is provided "as is," without warranty of any kind, express or implied.
+
+Additional Terms
+----------------
+- This License does not grant you any rights to use the Licensor's trademarks or brand.
+- This License explicitly permits both personal and commercial use of the Licensed Work,
+  including incorporation into commercial products and services, subject to the restrictions
+  outlined in Section 1.
+
+For details on the Apache License 2.0 (effective after the Change Date), see:
+https://www.apache.org/licenses/LICENSE-2.0
