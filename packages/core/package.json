@@ -7,7 +7,7 @@
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel//"
   },
-  "license": "MIT",
+  "license": "BSL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
