@@ -5,7 +5,17 @@ import { PasswordService } from './password.service';
 import { TokenService } from './token.service';
 import { AuthConfig } from '../interfaces';
 import { AUTH_CONFIG } from '../constants';
-import { AuthResponseDto, RegisterDto, User, UserResponseDto } from '@loopstack/shared';
+import {
+  AuthResponseDto,
+  AuthStrategy,
+  RegisterDto,
+  User,
+  UserResponseDto,
+} from '@loopstack/shared';
+import {
+  DEV_USER_CONFIG,
+  DevUserResponseDto,
+} from '../constants/dev-user.constants';
 
 @Injectable()
 export class AuthService {
@@ -95,4 +105,14 @@ export class AuthService {
     return this.config.strategies;
   }
 
+  async getMe(user: any): Promise<UserResponseDto | DevUserResponseDto> {
+    if (
+      user.userId === null &&
+      this.getAuthStrategies().includes(AuthStrategy.DEV)
+    ) {
+      return DEV_USER_CONFIG;
+    }
+
+    return this.getCurrentUser(user.userId);
+  }
 }
