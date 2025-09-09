@@ -1,6 +1,7 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { Strategy } from 'passport-custom';
+import { DEV_USER_CONFIG } from '../constants/dev-user.constants';
 
 @Injectable()
 export class DevStrategy extends PassportStrategy(Strategy, 'dev') {
@@ -9,13 +10,6 @@ export class DevStrategy extends PassportStrategy(Strategy, 'dev') {
   }
 
   async validate(req: Request): Promise<any> {
-    return {
-      id: null,
-      email: 'dev@localhost',
-      firstName: 'Dev',
-      lastName: 'User',
-      roles: [],
-      isActive: true,
-    };
+    return DEV_USER_CONFIG;
   }
 }

@@ -10,6 +10,7 @@ import {
   UserResponseDto,
 } from '@loopstack/shared';
 import { ApiTags } from '@nestjs/swagger';
+import { DevUserResponseDto } from 'src/constants/dev-user.constants';
 
 @ApiTags('api/v1/auth')
 @Controller('api/v1/auth')
@@ -93,26 +94,12 @@ export class AuthController {
   }
 
   @Get('me')
-  async me(@CurrentUser() user: any): Promise<UserResponseDto> {
-    if (
-      !user.userId &&
-      user.email === 'dev@localhost' &&
-      this.authService.getAuthStrategies().includes(AuthStrategy.DEV)
-    ) {
-      return {
-        id: 'dev-user-id',
-        email: 'dev@localhost',
-        firstName: 'Dev',
-        lastName: 'User',
-        isActive: true,
-        roles: ['dev'],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    }
-
-    return this.authService.getCurrentUser(user.userId);
+  async me(
+    @CurrentUser() user: any,
+  ): Promise<UserResponseDto | DevUserResponseDto> {
+    return this.authService.getMe(user);
   }
+
   @Public()
   @Get('auth-strategies')
   async getAuthStrategies(): Promise<string[]> {
