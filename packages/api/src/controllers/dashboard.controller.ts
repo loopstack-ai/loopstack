@@ -27,8 +27,7 @@ export class DashboardController {
     description:
       'Retrieves aggregated statistics for all automations across all workspaces',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'Dashboard statistics retrieved successfully',
     type: DashboardStatsDto,
   })
