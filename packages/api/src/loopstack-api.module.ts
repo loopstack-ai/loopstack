@@ -74,6 +74,7 @@ var cookieParser = require('cookie-parser');
     DocumentController,
     NamespaceController,
     ConfigController,
+    DashboardController,
   ],
   providers: [
     AuthService,
@@ -86,8 +87,14 @@ var cookieParser = require('cookie-parser');
     WorkflowApiService,
     DocumentApiService,
     NamespaceApiService,
+    DashboardService,
   ],
-  exports: [PipelineApiService, WorkspaceApiService, ProcessorApiService],
+  exports: [
+    PipelineApiService,
+    WorkspaceApiService,
+    ProcessorApiService,
+    DashboardService,
+  ],
 })
 export class LoopstackApiModule extends ConfigurableModuleClass {
   static setup(
