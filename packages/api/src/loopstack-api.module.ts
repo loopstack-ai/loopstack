@@ -34,6 +34,8 @@ import { WsEventEmitterService } from './services/ws-event-emitter.service';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigController } from './controllers/config.controller';
+import { DashboardController } from './controllers/dashboard.controller';
+import { DashboardService } from './services/dashboard.service';
 var cookieParser = require('cookie-parser');
 
 @Module({
