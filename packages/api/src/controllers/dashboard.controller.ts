@@ -32,7 +32,6 @@ export class DashboardController {
     description: 'Dashboard statistics retrieved successfully',
     type: DashboardStatsDto,
   })
-  @ApiOkResponse({ type: DashboardStatsDto })
   async getDashboardStats(
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<DashboardStats> {
