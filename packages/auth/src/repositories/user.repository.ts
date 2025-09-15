@@ -17,13 +17,6 @@ export class UserRepository {
     });
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.repository.findOne({
-      where: { email },
-      relations: ['roles', 'roles.permissions'],
-    });
-  }
-
   async create(userData: Partial<User>): Promise<User> {
     const user = this.repository.create(userData);
     return this.repository.save(user);

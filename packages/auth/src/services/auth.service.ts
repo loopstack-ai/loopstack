@@ -1,40 +1,23 @@
-import { Injectable, UnauthorizedException, ConflictException, Inject } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from '../repositories';
-import { PasswordService } from './password.service';
 import { TokenService } from './token.service';
 import { AuthConfig } from '../interfaces';
 import { AUTH_CONFIG } from '../constants';
 import {
   AuthResponseDto,
-  AuthStrategy,
-  RegisterDto,
   User,
   UserResponseDto,
 } from '@loopstack/shared';
-import {
-  DEV_USER_CONFIG,
-  DevUserResponseDto,
-} from '../constants/dev-user.constants';
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject(AUTH_CONFIG) private config: AuthConfig,
     private userRepository: UserRepository,
-    private passwordService: PasswordService,
     private tokenService: TokenService,
     private jwtService: JwtService,
   ) {}
-
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.userRepository.findByEmail(email);
-    if (user && await this.passwordService.compare(password, user.password)) {
-      const { password, ...result } = user;
-      return result;
-    }
-    return null;
-  }
 
   async login(user: any): Promise<AuthResponseDto> {
     const tokens = await this.tokenService.generateTokens(user);
@@ -42,21 +25,6 @@ export class AuthService {
       ...tokens,
       tokenType: 'Bearer',
     };
-  }
-
-  async register(registerDto: RegisterDto): Promise<UserResponseDto> {
-    const existingUser = await this.userRepository.findByEmail(registerDto.email);
-    if (existingUser) {
-      throw new ConflictException('User already exists');
-    }
-
-    const hashedPassword = await this.passwordService.hash(registerDto.password);
-    const user = await this.userRepository.create({
-      ...registerDto,
-      password: hashedPassword,
-    });
-
-    return this.mapUserToResponse(user);
   }
 
   async refresh(refreshToken: string): Promise<AuthResponseDto> {
@@ -83,9 +51,6 @@ export class AuthService {
   mapUserToResponse(user: User): UserResponseDto {
     return {
       id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
       isActive: user.isActive,
       roles: user.roles?.map(role => role.name) || [],
       createdAt: user.createdAt,
@@ -105,14 +70,10 @@ export class AuthService {
     return this.config.strategies;
   }
 
-  async getMe(user: any): Promise<UserResponseDto | DevUserResponseDto> {
-    if (
-      user.userId === null &&
-      this.getAuthStrategies().includes(AuthStrategy.DEV)
-    ) {
-      return DEV_USER_CONFIG;
-    }
-
-    return this.getCurrentUser(user.userId);
+  getWorkerHealthInfo(): { clientId?: string; isConfigured: boolean } {
+    return {
+      clientId: this.config.clientId,
+      isConfigured: !!this.config.clientSecret,
+    };
   }
 }

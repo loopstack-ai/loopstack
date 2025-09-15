@@ -1,12 +1,5 @@
 import { AuthStrategy } from '@loopstack/shared';
 
-export interface OAuthProviderConfig {
-  clientId: string;
-  clientSecret: string;
-  callbackUrl: string;
-  scope?: string[];
-}
-
 export interface AuthConfig {
   strategies: AuthStrategy[];
   jwt?: {
@@ -16,9 +9,7 @@ export interface AuthConfig {
     refreshExpiresIn?: string;
     cookieDomain?: string;
   };
-  oauth?: {
-    google?: OAuthProviderConfig;
-    github?: OAuthProviderConfig;
-    facebook?: OAuthProviderConfig;
-  };
+  clientId?: string;
+  clientSecret?: string;
+  authCallback?: string;
 }

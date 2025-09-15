@@ -1,16 +1,30 @@
-import { Controller, Post, Body, UseGuards, Request, Response, HttpCode, HttpStatus, Get } from '@nestjs/common';
-import { AuthService, OAuthService, TokenService } from '../services';
-import { LocalAuthGuard, GoogleAuthGuard, DevAuthGuard } from '../guards';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Response,
+  HttpCode,
+  HttpStatus,
+  Get,
+} from '@nestjs/common';
+import { AuthService, TokenService } from '../services';
 import {
   CurrentUser,
-  LinkProviderDto,
-  LoginDto,
   Public,
-  RegisterDto,
   UserResponseDto,
 } from '@loopstack/shared';
-import { ApiTags } from '@nestjs/swagger';
-import { DevUserResponseDto } from 'src/constants/dev-user.constants';
+import {
+  ApiBody,
+  ApiExtraModels,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { HubAuthGuard } from '../guards/hub-auth.guard';
+import { HubLoginRequestDto } from '../dtos/hub-login-request.dto';
 
 @ApiTags('api/v1/auth')
 @Controller('api/v1/auth')
@@ -18,27 +32,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
-    private readonly oauthService: OAuthService,
   ) {}
-
-  @Public()
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(LocalAuthGuard)
-  @Post('login')
-  async login(@Request() req, @Response({ passthrough: true }) res, @Body() loginDto: LoginDto): Promise<{ message: string }> {
-    const tokens = await this.authService.login(req.user);
-
-    res.cookie('accessToken', tokens.accessToken, this.tokenService.createAccessTokenCookieOptions());
-    res.cookie('refreshToken', tokens.refreshToken, this.tokenService.createRefreshTokenCookieOptions());
-
-    return { message: 'Login successful' };
-  }
-
-  @Public()
-  @Post('register')
-  async register(@Body() registerDto: RegisterDto): Promise<UserResponseDto> {
-    return this.authService.register(registerDto);
-  }
 
   @Public()
   @HttpCode(HttpStatus.OK)
@@ -61,56 +55,34 @@ export class AuthController {
     return { message: 'Logout successful' };
   }
 
-  @Public()
-  @Get('oauth/google')
-  @UseGuards(GoogleAuthGuard)
-  async googleAuth() {
-    // Guard redirects to Google
-  }
-
-  @Public()
-  @Get('oauth/google/callback')
-  @UseGuards(GoogleAuthGuard)
-  async googleCallback(@Request() req, @Response({ passthrough: true }) res): Promise<{ message: string }>  {
-    const tokens = await this.oauthService.handleOAuthLogin(req.user);
-
-    res.cookie('accessToken', tokens.accessToken, this.tokenService.createAccessTokenCookieOptions());
-    res.cookie('refreshToken', tokens.refreshToken, this.tokenService.createRefreshTokenCookieOptions());
-
-    return { message: 'Login successful' };
-  }
-
-  @Post('link-provider')
-  async linkProvider(
-    @CurrentUser() user: any,
-    @Body() linkProviderDto: LinkProviderDto,
-  ): Promise<UserResponseDto> {
-    return this.oauthService.linkProvider(user.userId, linkProviderDto);
-  }
-
-  @Get('providers')
-  async getProviders(@CurrentUser() user: any): Promise<string[]> {
-    return this.oauthService.getUserProviders(user.userId);
-  }
-
   @Get('me')
   async me(
     @CurrentUser() user: any,
-  ): Promise<UserResponseDto | DevUserResponseDto> {
-    return this.authService.getMe(user);
+  ): Promise<UserResponseDto> {
+    return this.authService.getCurrentUser(user.id);
   }
 
   @Public()
-  @Get('auth-strategies')
-  async getAuthStrategies(): Promise<string[]> {
-    return this.authService.getAuthStrategies();
+  @Get('worker/health')
+  getInfo() {
+    return this.authService.getWorkerHealthInfo();
   }
 
   @Public()
+  @Post('oauth/hub')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(DevAuthGuard)
-  @Post('login-dev')
-  async devLogin(@Request() req, @Response({ passthrough: true }) res): Promise<{ message: string }> {
+  @UseGuards(HubAuthGuard)
+  @ApiOperation({ summary: 'Login via Hub' })
+  @ApiBody({ type: HubLoginRequestDto })
+  @ApiOkResponse()
+  @ApiUnauthorizedResponse()
+  @ApiExtraModels(HubLoginRequestDto)
+  async hubLogin(
+    @Body() hubLoginRequestDto: HubLoginRequestDto,
+    @Request() req,
+    @Response({ passthrough: true }) res,
+  ): Promise<{ message: string }> {
+
     const tokens = await this.authService.login(req.user);
 
     res.cookie('accessToken', tokens.accessToken, this.tokenService.createAccessTokenCookieOptions());
