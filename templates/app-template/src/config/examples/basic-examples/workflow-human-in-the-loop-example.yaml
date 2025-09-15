@@ -11,10 +11,10 @@ pipelines:
     type: root
     workspace: examples
     sequence:
-      - workflow: blog_post_review
+      - workflow: changelog_review
 
 workflows:
-  - name: blog_post_review
+  - name: changelog_review
     type: stateMachine
     transitions:
       - name: create_draft         # Step 1: Generate initial content draft
@@ -23,24 +23,31 @@ workflows:
         call:
           - tool: create_mock
             arguments:
-              input: 'blog post about renewable energy'
+              input: 'commit hash'
               output: |
-                # The Future of Renewable Energy
-
-                Renewable energy sources are becoming increasingly important as we work toward a sustainable future. Solar and wind power have seen dramatic cost reductions, making them competitive with traditional fossil fuels.
-
-                Key benefits include:
-                - Reduced carbon emissions
-                - Energy independence
-                - Long-term cost savings
-
-                The transition to renewable energy represents one of the most significant opportunities of our time.
+                # Changelog - Version 2.4.1
+  
+                  **Release Date:** September 9, 2025
+                
+                ## Bug Fixes
+                
+                - **Fixed memory leak in image processing module** - Resolved issue causing gradual performance degradation during batch operations
+                - **Corrected timezone display bug** - User timestamps now properly reflect local timezone settings
+                - **Resolved crash on startup** - Fixed null pointer exception affecting users with custom themes
+                - **Fixed search functionality** - Special characters in queries no longer break search results
+                - **Improved error handling** - Network timeout errors now display user-friendly messages instead of technical codes
+                
+                ## Minor Improvements
+                
+                - Enhanced loading spinner animations
+                - Updated dependency libraries to latest stable versions
+                - Optimized database query performance by 15%
             as: DRAFT_CONTENT
 
           - tool: create_chat_message
             arguments:
               role: 'assistant'
-              content: 'Draft content has been generated and is ready for your review.'
+              content: 'Changelog was generated and is ready for your review.'
 
       - name: show_approval_form    # Step 2: Present draft to user for approval
         from: draft_created
@@ -79,14 +86,14 @@ workflows:
           - tool: create_mock
             arguments:
               input: ${ DRAFT_CONTENT }
-              output: 'Content published successfully to blog.example.com'
+              output: 'Change is promoted to ready for publishing'
             as: PUBLISH_RESULT
 
           - tool: create_chat_message
             arguments:
               role: 'assistant'
               content: |
-                ✅ Content approved and published!
+                ✅ Changelog approved.
                 
                 {{ PUBLISH_RESULT }}
 
@@ -104,17 +111,20 @@ workflows:
             arguments:
               input: ${ DRAFT_CONTENT }
               output: |
-                # The Future of Renewable Energy (Revised)
-
-                Renewable energy sources are rapidly transforming our global energy landscape. Solar and wind power have experienced unprecedented cost reductions, making them not just environmentally responsible but economically superior to traditional fossil fuels.
-
-                Key benefits include:
-                - Significant reduction in carbon emissions
-                - Enhanced energy independence and security
-                - Substantial long-term cost savings
-                - Job creation in emerging green industries
-
-                The transition to renewable energy represents the most transformative opportunity of our generation, offering both environmental and economic advantages.
+                # Release Notes - v2.4.1
+                  *September 9, 2025*
+                
+                ## Critical Fixes
+                - **Memory leak resolved** - Fixed performance degradation in image batch processing
+                - **Startup crash eliminated** - Resolved null pointer exception with custom themes
+                - **Search now handles special characters** - No more broken queries with symbols
+                - **Timezone display corrected** - Timestamps now reflect proper local time
+                - **Better error messages** - Clear notifications replace cryptic network codes
+                
+                ## ⚡ Performance
+                - Database queries optimized (15% faster)
+                - Updated core dependencies
+                - Smoother loading animations
             as: DRAFT_CONTENT
 
 documents:
