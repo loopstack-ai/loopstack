@@ -1867,6 +1867,9 @@ importers:
       '@loopstack/api':
         specifier: ^0.8.1
         version: link:../../packages/api
+      '@loopstack/auth':
+        specifier: ^0.8.1
+        version: link:../../packages/auth
       '@loopstack/core':
         specifier: ^0.8.1
         version: link:../../packages/core
