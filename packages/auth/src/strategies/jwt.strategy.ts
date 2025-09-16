@@ -8,10 +8,13 @@ import { JwtPayloadInterface } from '@loopstack/shared';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(@Inject(AUTH_CONFIG) config: AuthConfig) {
+  constructor(
+    @Inject(AUTH_CONFIG) config: AuthConfig,
+  ) {
+    const cookieName = `${config.clientId}-access`;
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        JwtStrategy.extractJWTFromCookie,
+        JwtStrategy.extractJWTFromCookie(cookieName),
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
@@ -19,11 +22,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  private static extractJWTFromCookie(req: Request): string | null {
-    if (req.cookies && req.cookies.accessToken) {
-      return req.cookies.accessToken;
+  private static extractJWTFromCookie(cookieName: string) {
+    return (req: Request): string | null => {
+      if (req.cookies && req.cookies[cookieName]) {
+        return req.cookies[cookieName];
+      }
+      return null;
     }
-    return null;
   }
 
   async validate(payload: JwtPayloadInterface) {

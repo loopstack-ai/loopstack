@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthService, TokenService } from '../services';
 import {
+  AuthResponseDto,
   CurrentUser,
   Public,
   UserResponseDto,
@@ -34,15 +35,21 @@ export class AuthController {
     private readonly tokenService: TokenService,
   ) {}
 
+  private setCookies(res: any, tokens: AuthResponseDto) {
+    res.cookie(this.tokenService.getCookieName('access'), tokens.accessToken, this.tokenService.createAccessTokenCookieOptions());
+    res.cookie(this.tokenService.getCookieName('refresh'), tokens.refreshToken, this.tokenService.createRefreshTokenCookieOptions());
+  }
+
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
   async refresh(@Request() req, @Response({ passthrough: true }) res): Promise<{ message: string }> {
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshTokenName = this.tokenService.getCookieName('refresh');
+    const refreshToken = req.cookies?.[refreshTokenName];
+
     const tokens = await this.authService.refresh(refreshToken);
 
-    res.cookie('accessToken', tokens.accessToken, this.tokenService.createAccessTokenCookieOptions());
-    res.cookie('refreshToken', tokens.refreshToken, this.tokenService.createRefreshTokenCookieOptions());
+    this.setCookies(res, tokens);
 
     return { message: 'Token refreshed successfully' };
   }
@@ -50,8 +57,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   async logout(@Response({ passthrough: true }) res): Promise<{ message: string }> {
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    res.clearCookie(this.tokenService.getCookieName('access'));
+    res.clearCookie(this.tokenService.getCookieName('refresh'));
     return { message: 'Logout successful' };
   }
 
@@ -85,8 +92,7 @@ export class AuthController {
 
     const tokens = await this.authService.login(req.user);
 
-    res.cookie('accessToken', tokens.accessToken, this.tokenService.createAccessTokenCookieOptions());
-    res.cookie('refreshToken', tokens.refreshToken, this.tokenService.createRefreshTokenCookieOptions());
+    this.setCookies(res, tokens);
 
     return { message: 'Login successful' };
   }

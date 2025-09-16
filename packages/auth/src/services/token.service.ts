@@ -19,6 +19,10 @@ export class TokenService {
     return this.getExpiresInSeconds(this.config.jwt?.refreshExpiresIn || '7h');
   }
 
+  getCookieName(suffix: string) {
+    return `${this.config.clientId}-${suffix}`;
+  }
+
   createAccessTokenCookieOptions() {
     return {
       domain: this.config.jwt?.cookieDomain ?? undefined,

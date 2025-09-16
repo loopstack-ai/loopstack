@@ -9,6 +9,8 @@ import { UserRepository } from './repositories';
 import { AuthConfig } from './interfaces';
 import { AUTH_CONFIG } from './constants';
 import { Permission, Role, User } from '@loopstack/shared';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './guards';
 
 @Module({})
 export class AuthModule {
@@ -35,6 +37,10 @@ export class AuthModule {
       ],
       controllers: [AuthController],
       providers: [
+        {
+          provide: APP_GUARD,
+          useClass: JwtAuthGuard,
+        },
         {
           provide: AUTH_CONFIG,
           useValue: config,
