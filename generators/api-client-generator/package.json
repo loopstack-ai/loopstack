@@ -1,8 +1,6 @@
 {
   "name": "@loopstack/api-client-generator",
-  "displayName": "Loopstack Api Client Generator",
   "version": "0.0.1",
-  "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"

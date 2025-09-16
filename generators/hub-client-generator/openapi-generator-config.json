@@ -1,0 +1,8 @@
+{
+  "npmName": "@loopstack/hub-client",
+  "supportsES6": true,
+  "withInterfaces": true,
+  "npmVersion": "0.0.6",
+  "typescriptThreePlus": true,
+  "useSingleRequestParameter": true
+}

@@ -1,0 +1,15 @@
+{
+  "name": "@loopstack/hub-client-generator",
+  "version": "0.0.1",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "private": true,
+  "scripts": {
+    "generate": "openapi-generator-cli generate -i http://localhost:8002/api-json -g typescript-axios -o ../../frontend/hub-client -c openapi-generator-config.json"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.16.3"
+  }
+}

@@ -4,6 +4,9 @@
 [submodule "packages/core"]
 	path = packages/core
 	url = git@github.com:loopstack-ai/core.git
+[submodule "packages/code"]
+	path = packages/code
+	url = git@github.com:loopstack-ai/code.git
 [submodule "libs/markdown-parser"]
 	path = libs/markdown-parser
 	url = git@github.com:loopstack-ai/markdown-parser.git
