@@ -1,7 +1,4 @@
-import { AuthStrategy } from '@loopstack/shared';
-
 export interface AuthConfig {
-  strategies: AuthStrategy[];
   jwt?: {
     secret: string;
     expiresIn: string;

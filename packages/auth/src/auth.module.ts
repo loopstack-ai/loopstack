@@ -2,6 +2,7 @@ import { Module, DynamicModule } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { AuthService, TokenService, HubService } from './services';
 import { JwtStrategy, HubStrategy } from './strategies';
 import { AuthController } from './controllers';
@@ -14,24 +15,23 @@ import { JwtAuthGuard } from './guards';
 
 @Module({})
 export class AuthModule {
-  static forRoot(config: AuthConfig): DynamicModule {
-    const strategies: any[] = [];
+  static forRoot(): DynamicModule {
+    return this.forRootAsync();
+  }
 
-    if (config.strategies.includes('jwt' as any)) {
-      strategies.push(JwtStrategy);
-    }
-
-    if (config.strategies.includes('hub' as any)) {
-      strategies.push(HubStrategy);
-    }
-
+  static forRootAsync(): DynamicModule {
     return {
       module: AuthModule,
       imports: [
         PassportModule.register({ defaultStrategy: 'jwt' }),
-        JwtModule.register({
-          secret: config.jwt?.secret,
-          signOptions: { expiresIn: config.jwt?.expiresIn || '1h' },
+        JwtModule.registerAsync({
+          useFactory: (configService: ConfigService) => ({
+            secret: configService.get<string>('auth.jwt.secret'),
+            signOptions: {
+              expiresIn: configService.get<string>('auth.jwt.expiresIn') || '1h'
+            },
+          }),
+          inject: [ConfigService],
         }),
         TypeOrmModule.forFeature([User, Permission, Role]),
       ],
@@ -43,13 +43,15 @@ export class AuthModule {
         },
         {
           provide: AUTH_CONFIG,
-          useValue: config,
+          useFactory: (configService: ConfigService) => configService.get<AuthConfig>('auth'),
+          inject: [ConfigService],
         },
         AuthService,
         UserRepository,
         TokenService,
         HubService,
-        ...strategies,
+        JwtStrategy,
+        HubStrategy,
       ],
       exports: [AuthService, UserRepository],
     };
