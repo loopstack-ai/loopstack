@@ -1,36 +1,33 @@
 import { Module } from '@nestjs/common';
 import { loadConfiguration, LoopCoreModule } from '@loopstack/core';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { LoopstackApiModule } from '@loopstack/api';
 import { LlmModule } from '@loopstack/llm';
 import { AuthModule, JwtAuthGuard } from '@loopstack/auth';
-import { authConfig } from './auth.config';
 import { APP_GUARD } from '@nestjs/core';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { appConfig, authConfig, databaseConfig } from './app.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
       load: [
+        appConfig,
+        authConfig,
+        databaseConfig,
         () => ({
-          runStartupTasks: process.env.ENABLE_STARTUP_TASKS === 'true',
           configs: loadConfiguration(__dirname + '/config'),
-        }),
+        })
       ],
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      database: 'postgres',
-      password: 'admin',
-      autoLoadEntities: true,
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      useFactory: (configService: ConfigService) => configService.get('database') as TypeOrmModuleOptions,
+      inject: [ConfigService],
     }),
     LoopCoreModule,
-    AuthModule.forRoot(authConfig),
+    AuthModule.forRoot(),
     LoopstackApiModule,
     LlmModule,
   ],
