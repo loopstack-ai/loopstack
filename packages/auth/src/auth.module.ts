@@ -12,6 +12,7 @@ import { AUTH_CONFIG } from './constants';
 import { Permission, Role, User } from '@loopstack/shared';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards';
+import { ConfigValidationService } from './services/config-validation.service';
 
 @Module({})
 export class AuthModule {
@@ -46,6 +47,7 @@ export class AuthModule {
           useFactory: (configService: ConfigService) => configService.get<AuthConfig>('auth'),
           inject: [ConfigService],
         },
+        ConfigValidationService,
         AuthService,
         UserRepository,
         TokenService,

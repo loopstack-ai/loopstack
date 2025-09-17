@@ -5,7 +5,7 @@ import { TokenService } from './token.service';
 import { AuthConfig } from '../interfaces';
 import { AUTH_CONFIG } from '../constants';
 import {
-  AuthResponseDto,
+  AuthResponseDto, JwtPayloadInterface,
   User,
   UserResponseDto,
 } from '@loopstack/shared';
@@ -19,8 +19,15 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(user: any): Promise<AuthResponseDto> {
-    const tokens = await this.tokenService.generateTokens(user);
+  async login(user: User): Promise<AuthResponseDto> {
+
+    const payload: JwtPayloadInterface = {
+      sub: user.id,
+      workerId: user.workerId,
+      roles: user.roles?.map(role => role.name) || [],
+    };
+
+    const tokens = await this.tokenService.generateTokens(payload);
     return {
       ...tokens,
       tokenType: 'Bearer',
@@ -38,7 +45,13 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      const tokens = await this.tokenService.generateTokens(user);
+      // roles might have changed
+      const newPayload = {
+        ...payload,
+        roles: user.roles?.map(role => role.name) || [],
+      }
+
+      const tokens = await this.tokenService.generateTokens(newPayload);
       return {
         ...tokens,
         tokenType: 'Bearer',
@@ -64,10 +77,6 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
     return this.mapUserToResponse(user);
-  }
-
-  getAuthStrategies() {
-    return this.config.strategies;
   }
 
   getWorkerHealthInfo(): { clientId?: string; isConfigured: boolean } {

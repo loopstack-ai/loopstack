@@ -1,7 +1,6 @@
 import {
   Controller,
   Post,
-  Body,
   UseGuards,
   Request,
   Response,
@@ -17,15 +16,12 @@ import {
   UserResponseDto,
 } from '@loopstack/shared';
 import {
-  ApiBody,
-  ApiExtraModels,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { HubAuthGuard } from '../guards/hub-auth.guard';
-import { HubLoginRequestDto } from '../dtos/hub-login-request.dto';
 
 @ApiTags('api/v1/auth')
 @Controller('api/v1/auth')
@@ -80,12 +76,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(HubAuthGuard)
   @ApiOperation({ summary: 'Login via Hub' })
-  @ApiBody({ type: HubLoginRequestDto })
   @ApiOkResponse()
   @ApiUnauthorizedResponse()
-  @ApiExtraModels(HubLoginRequestDto)
   async hubLogin(
-    @Body() hubLoginRequestDto: HubLoginRequestDto,
     @Request() req,
     @Response({ passthrough: true }) res,
   ): Promise<{ message: string }> {

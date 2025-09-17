@@ -1,15 +1,18 @@
-import { Injectable, UnauthorizedException, Logger, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger, ConflictException, Inject } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { HubService } from '../services';
 import { Request } from 'express';
 import { UserRepository } from '../repositories';
+import { AUTH_CONFIG } from '../constants';
+import { AuthConfig } from '../interfaces';
 
 @Injectable()
 export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
   private readonly logger = new Logger(HubStrategy.name);
 
   constructor(
+    @Inject(AUTH_CONFIG) private config: AuthConfig,
     private hubService: HubService,
     private userRepository: UserRepository,
   ) {
@@ -38,6 +41,7 @@ export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
 
       const user = await this.userRepository.create({
         id: hubUserInfo.id,
+        workerId: this.config.clientId,
         isActive: true,
         roles: [],
       });

@@ -43,13 +43,7 @@ export class TokenService {
     }
   }
 
-  async generateTokens(user: any) {
-    const payload: JwtPayloadInterface = {
-      sub: user.id || null,
-      email: user.email,
-      roles: user.roles?.map(role => typeof role === 'string' ? role : role.name) || [],
-    };
-
+  async generateTokens(payload: JwtPayloadInterface) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
       this.jwtService.signAsync(payload, {
