@@ -122,6 +122,7 @@ export class DocumentService {
       workflow: { id: workflow.id } as WorkflowEntity,
       workspaceId: context.workspaceId,
       pipelineId: context.pipelineId,
+      createdBy: context.userId,
     });
 
     this.workflowService.addDocument(workflow, document);
