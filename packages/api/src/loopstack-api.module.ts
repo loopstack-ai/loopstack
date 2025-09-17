@@ -2,7 +2,6 @@ import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
 import { ConfigurableModuleClass } from './loop-api.module-definition';
 import { PipelineController } from './controllers/pipeline.controller';
 import { PipelineApiService } from './services/pipeline-api.service';
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkspaceController } from './controllers/workspace.controller';
 import { WorkspaceApiService } from './services/workspace-api.service';
@@ -38,9 +37,6 @@ var cookieParser = require('cookie-parser');
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
     TypeOrmModule.forFeature([
       PipelineEntity,
       WorkspaceEntity,
@@ -60,7 +56,7 @@ var cookieParser = require('cookie-parser');
       },
     ]),
     EventEmitterModule.forRoot(),
-    LoopCoreModule.forRoot(),
+    LoopCoreModule,
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET ?? 'NO SECRET',
