@@ -2,9 +2,19 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoopCoreModule } from '@loopstack/core';
 import { LlmModule } from '@loopstack/llm';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [
+        () => ({
+          runStartupTasks: false,
+          configs: [],
+        }),
+      ],
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -15,9 +25,7 @@ import { LlmModule } from '@loopstack/llm';
       autoLoadEntities: true,
       synchronize: true,
     }),
-    LoopCoreModule.forRoot({
-      runStartupTasks: false
-    }),
+    LoopCoreModule,
     LlmModule,
   ],
   providers: [],

@@ -6,9 +6,19 @@ import { LlmModule } from '@loopstack/llm';
 import { AuthModule, JwtAuthGuard } from '@loopstack/auth';
 import { authConfig } from './auth.config';
 import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [
+        () => ({
+          runStartupTasks: process.env.ENABLE_STARTUP_TASKS === 'true',
+          configs: loadConfiguration(__dirname + '/config'),
+        }),
+      ],
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -19,10 +29,7 @@ import { APP_GUARD } from '@nestjs/core';
       autoLoadEntities: true,
       synchronize: true,
     }),
-    LoopCoreModule.forRoot({
-      configs: loadConfiguration(__dirname + '/config'),
-      runStartupTasks: process.env.ENABLE_STARTUP_TASKS === 'true',
-    }),
+    LoopCoreModule,
     AuthModule.forRoot(authConfig),
     LoopstackApiModule,
     LlmModule,
