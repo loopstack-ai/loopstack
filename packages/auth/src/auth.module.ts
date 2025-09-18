@@ -13,6 +13,7 @@ import { Permission, Role, User } from '@loopstack/shared';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards';
 import { ConfigValidationService } from './services/config-validation.service';
+import { HubAuditService } from './services/hub-audit.service';
 
 @Module({})
 export class AuthModule {
@@ -51,9 +52,10 @@ export class AuthModule {
         AuthService,
         UserRepository,
         TokenService,
-        HubService,
         JwtStrategy,
+        HubService,
         HubStrategy,
+        HubAuditService,
       ],
       exports: [AuthService, UserRepository],
     };
