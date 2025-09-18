@@ -113,8 +113,6 @@ export class WorkspaceController {
     @Query('search') search?: string,
     @Query('searchColumns') searchColumnsParam?: string,
   ): Promise<PaginatedDto<WorkspaceItemDto>> {
-    console.log(user)
-
     let filter: WorkspaceFilterDto = {};
     if (filterParam) {
       try {
