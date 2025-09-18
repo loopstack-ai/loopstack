@@ -1,6 +1,7 @@
 import { registerAs } from '@nestjs/config';
 
 export const appConfig = registerAs('app', () => ({
+  nodeEnv: process.env.NODE_ENV || 'development',
   runStartupTasks: process.env.ENABLE_STARTUP_TASKS === 'true',
 }));
 
