@@ -38,7 +38,7 @@ export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
         return existingUser;
       }
 
-      const workerId = this.configService.get<string>('clientId');
+      const workerId = this.configService.get<string>('auth.clientId');
 
       const user = await this.userRepository.create({
         id: validateCodeResponse.data?.id,
