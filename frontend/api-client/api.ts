@@ -400,12 +400,6 @@ export type DocumentSortByDtoOrderEnum = typeof DocumentSortByDtoOrderEnum[keyof
  */
 export interface HubLoginRequestDto {
     /**
-     * The user ID
-     * @type {string}
-     * @memberof HubLoginRequestDto
-     */
-    'userId': string;
-    /**
      * The authorization code
      * @type {string}
      * @memberof HubLoginRequestDto
@@ -991,6 +985,25 @@ export interface RunPipelinePayloadDto {
 /**
  * 
  * @export
+ * @interface WorkerInfoDto
+ */
+export interface WorkerInfoDto {
+    /**
+     * Worker Client ID
+     * @type {string}
+     * @memberof WorkerInfoDto
+     */
+    'clientId'?: string;
+    /**
+     * Is worker configured.
+     * @type {boolean}
+     * @memberof WorkerInfoDto
+     */
+    'isConfigured': boolean;
+}
+/**
+ * 
+ * @export
  * @interface WorkflowControllerGetWorkflows200Response
  */
 export interface WorkflowControllerGetWorkflows200Response {
@@ -1562,153 +1575,8 @@ export const ApiV1AuthApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authControllerDevLogin: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/auth/login-dev`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerGetAuthStrategies: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/auth/auth-strategies`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
         authControllerGetInfo: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/auth/worker/health`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerGetProviders: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/auth/providers`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerGoogleAuth: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/auth/oauth/google`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerGoogleCallback: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/auth/oauth/google/callback`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1761,76 +1629,6 @@ export const ApiV1AuthApiAxiosParamCreator = function (configuration?: Configura
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(hubLoginRequestDto, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {object} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerLinkProvider: async (body: object, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'body' is not null or undefined
-            assertParamExists('authControllerLinkProvider', 'body', body)
-            const localVarPath = `/api/v1/auth/link-provider`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {object} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerLogin: async (body: object, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'body' is not null or undefined
-            assertParamExists('authControllerLogin', 'body', body)
-            const localVarPath = `/api/v1/auth/login`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1924,41 +1722,6 @@ export const ApiV1AuthApiAxiosParamCreator = function (configuration?: Configura
                 options: localVarRequestOptions,
             };
         },
-        /**
-         * 
-         * @param {object} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerRegister: async (body: object, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'body' is not null or undefined
-            assertParamExists('authControllerRegister', 'body', body)
-            const localVarPath = `/api/v1/auth/register`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
     }
 };
 
@@ -1974,65 +1737,10 @@ export const ApiV1AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authControllerDevLogin(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerDevLogin(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerDevLogin']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async authControllerGetAuthStrategies(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerGetAuthStrategies(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerGetAuthStrategies']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async authControllerGetInfo(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async authControllerGetInfo(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkerInfoDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerGetInfo(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerGetInfo']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async authControllerGetProviders(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerGetProviders(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerGetProviders']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async authControllerGoogleAuth(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerGoogleAuth(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerGoogleAuth']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async authControllerGoogleCallback(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerGoogleCallback(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerGoogleCallback']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2046,30 +1754,6 @@ export const ApiV1AuthApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerHubLogin(hubLoginRequestDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerHubLogin']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @param {object} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async authControllerLinkProvider(body: object, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerLinkProvider(body, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerLinkProvider']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @param {object} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async authControllerLogin(body: object, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerLogin(body, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerLogin']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2105,18 +1789,6 @@ export const ApiV1AuthApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerRefresh']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
-        /**
-         * 
-         * @param {object} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async authControllerRegister(body: object, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerRegister(body, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ApiV1AuthApi.authControllerRegister']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
     }
 };
 
@@ -2132,48 +1804,8 @@ export const ApiV1AuthApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authControllerDevLogin(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.authControllerDevLogin(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerGetAuthStrategies(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.authControllerGetAuthStrategies(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerGetInfo(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        authControllerGetInfo(options?: RawAxiosRequestConfig): AxiosPromise<WorkerInfoDto> {
             return localVarFp.authControllerGetInfo(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerGetProviders(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.authControllerGetProviders(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerGoogleAuth(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.authControllerGoogleAuth(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerGoogleCallback(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.authControllerGoogleCallback(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2184,24 +1816,6 @@ export const ApiV1AuthApiFactory = function (configuration?: Configuration, base
          */
         authControllerHubLogin(requestParameters: ApiV1AuthApiAuthControllerHubLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.authControllerHubLogin(requestParameters.hubLoginRequestDto, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {ApiV1AuthApiAuthControllerLinkProviderRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerLinkProvider(requestParameters: ApiV1AuthApiAuthControllerLinkProviderRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.authControllerLinkProvider(requestParameters.body, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {ApiV1AuthApiAuthControllerLoginRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerLogin(requestParameters: ApiV1AuthApiAuthControllerLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.authControllerLogin(requestParameters.body, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2227,15 +1841,6 @@ export const ApiV1AuthApiFactory = function (configuration?: Configuration, base
         authControllerRefresh(options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.authControllerRefresh(options).then((request) => request(axios, basePath));
         },
-        /**
-         * 
-         * @param {ApiV1AuthApiAuthControllerRegisterRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerRegister(requestParameters: ApiV1AuthApiAuthControllerRegisterRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.authControllerRegister(requestParameters.body, options).then((request) => request(axios, basePath));
-        },
     };
 };
 
@@ -2251,47 +1856,7 @@ export interface ApiV1AuthApiInterface {
      * @throws {RequiredError}
      * @memberof ApiV1AuthApiInterface
      */
-    authControllerDevLogin(options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApiInterface
-     */
-    authControllerGetAuthStrategies(options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApiInterface
-     */
-    authControllerGetInfo(options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApiInterface
-     */
-    authControllerGetProviders(options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApiInterface
-     */
-    authControllerGoogleAuth(options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApiInterface
-     */
-    authControllerGoogleCallback(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    authControllerGetInfo(options?: RawAxiosRequestConfig): AxiosPromise<WorkerInfoDto>;
 
     /**
      * 
@@ -2302,24 +1867,6 @@ export interface ApiV1AuthApiInterface {
      * @memberof ApiV1AuthApiInterface
      */
     authControllerHubLogin(requestParameters: ApiV1AuthApiAuthControllerHubLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
-    /**
-     * 
-     * @param {ApiV1AuthApiAuthControllerLinkProviderRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApiInterface
-     */
-    authControllerLinkProvider(requestParameters: ApiV1AuthApiAuthControllerLinkProviderRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
-    /**
-     * 
-     * @param {ApiV1AuthApiAuthControllerLoginRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApiInterface
-     */
-    authControllerLogin(requestParameters: ApiV1AuthApiAuthControllerLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
      * 
@@ -2345,15 +1892,6 @@ export interface ApiV1AuthApiInterface {
      */
     authControllerRefresh(options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-    /**
-     * 
-     * @param {ApiV1AuthApiAuthControllerRegisterRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApiInterface
-     */
-    authControllerRegister(requestParameters: ApiV1AuthApiAuthControllerRegisterRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
 }
 
 /**
@@ -2371,48 +1909,6 @@ export interface ApiV1AuthApiAuthControllerHubLoginRequest {
 }
 
 /**
- * Request parameters for authControllerLinkProvider operation in ApiV1AuthApi.
- * @export
- * @interface ApiV1AuthApiAuthControllerLinkProviderRequest
- */
-export interface ApiV1AuthApiAuthControllerLinkProviderRequest {
-    /**
-     * 
-     * @type {object}
-     * @memberof ApiV1AuthApiAuthControllerLinkProvider
-     */
-    readonly body: object
-}
-
-/**
- * Request parameters for authControllerLogin operation in ApiV1AuthApi.
- * @export
- * @interface ApiV1AuthApiAuthControllerLoginRequest
- */
-export interface ApiV1AuthApiAuthControllerLoginRequest {
-    /**
-     * 
-     * @type {object}
-     * @memberof ApiV1AuthApiAuthControllerLogin
-     */
-    readonly body: object
-}
-
-/**
- * Request parameters for authControllerRegister operation in ApiV1AuthApi.
- * @export
- * @interface ApiV1AuthApiAuthControllerRegisterRequest
- */
-export interface ApiV1AuthApiAuthControllerRegisterRequest {
-    /**
-     * 
-     * @type {object}
-     * @memberof ApiV1AuthApiAuthControllerRegister
-     */
-    readonly body: object
-}
-
-/**
  * ApiV1AuthApi - object-oriented interface
  * @export
  * @class ApiV1AuthApi
@@ -2425,58 +1921,8 @@ export class ApiV1AuthApi extends BaseAPI implements ApiV1AuthApiInterface {
      * @throws {RequiredError}
      * @memberof ApiV1AuthApi
      */
-    public authControllerDevLogin(options?: RawAxiosRequestConfig) {
-        return ApiV1AuthApiFp(this.configuration).authControllerDevLogin(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApi
-     */
-    public authControllerGetAuthStrategies(options?: RawAxiosRequestConfig) {
-        return ApiV1AuthApiFp(this.configuration).authControllerGetAuthStrategies(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApi
-     */
     public authControllerGetInfo(options?: RawAxiosRequestConfig) {
         return ApiV1AuthApiFp(this.configuration).authControllerGetInfo(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApi
-     */
-    public authControllerGetProviders(options?: RawAxiosRequestConfig) {
-        return ApiV1AuthApiFp(this.configuration).authControllerGetProviders(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApi
-     */
-    public authControllerGoogleAuth(options?: RawAxiosRequestConfig) {
-        return ApiV1AuthApiFp(this.configuration).authControllerGoogleAuth(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApi
-     */
-    public authControllerGoogleCallback(options?: RawAxiosRequestConfig) {
-        return ApiV1AuthApiFp(this.configuration).authControllerGoogleCallback(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2489,28 +1935,6 @@ export class ApiV1AuthApi extends BaseAPI implements ApiV1AuthApiInterface {
      */
     public authControllerHubLogin(requestParameters: ApiV1AuthApiAuthControllerHubLoginRequest, options?: RawAxiosRequestConfig) {
         return ApiV1AuthApiFp(this.configuration).authControllerHubLogin(requestParameters.hubLoginRequestDto, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {ApiV1AuthApiAuthControllerLinkProviderRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApi
-     */
-    public authControllerLinkProvider(requestParameters: ApiV1AuthApiAuthControllerLinkProviderRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1AuthApiFp(this.configuration).authControllerLinkProvider(requestParameters.body, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {ApiV1AuthApiAuthControllerLoginRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApi
-     */
-    public authControllerLogin(requestParameters: ApiV1AuthApiAuthControllerLoginRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1AuthApiFp(this.configuration).authControllerLogin(requestParameters.body, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2541,17 +1965,6 @@ export class ApiV1AuthApi extends BaseAPI implements ApiV1AuthApiInterface {
      */
     public authControllerRefresh(options?: RawAxiosRequestConfig) {
         return ApiV1AuthApiFp(this.configuration).authControllerRefresh(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {ApiV1AuthApiAuthControllerRegisterRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ApiV1AuthApi
-     */
-    public authControllerRegister(requestParameters: ApiV1AuthApiAuthControllerRegisterRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1AuthApiFp(this.configuration).authControllerRegister(requestParameters.body, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
