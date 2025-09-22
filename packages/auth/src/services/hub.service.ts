@@ -60,7 +60,7 @@ export class HubService implements OnModuleInit {
   }
 
   private validateConfiguration(): void {
-    const required = ['authCallback', 'clientId', 'clientSecret'];
+    const required = ['authCallback'];
     const missing = required.filter(field => !this.config[field]);
 
     if (missing.length > 0) {
