@@ -2,18 +2,19 @@ import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from '../repositories';
 import { TokenService } from './token.service';
-import { AuthConfig } from '../interfaces';
-import { AUTH_CONFIG } from '../constants';
 import {
   AuthResponseDto, JwtPayloadInterface,
   User,
   UserResponseDto,
 } from '@loopstack/shared';
+import { WorkerInfoDto } from '../dtos/worker-info.dto';
+import { plainToInstance } from 'class-transformer';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(AUTH_CONFIG) private config: AuthConfig,
+    private readonly configService: ConfigService,
     private userRepository: UserRepository,
     private tokenService: TokenService,
     private jwtService: JwtService,
@@ -37,7 +38,7 @@ export class AuthService {
   async refresh(refreshToken: string): Promise<AuthResponseDto> {
     try {
       const payload = this.jwtService.verify(refreshToken, {
-        secret: this.config.jwt?.refreshSecret || this.config.jwt?.secret,
+        secret: this.configService.get<string>('auth.jwt.refreshSecret'),
       });
 
       const user = await this.userRepository.findById(payload.sub);
@@ -79,10 +80,12 @@ export class AuthService {
     return this.mapUserToResponse(user);
   }
 
-  getWorkerHealthInfo(): { clientId?: string; isConfigured: boolean } {
-    return {
-      clientId: this.config.clientId,
-      isConfigured: !!this.config.clientSecret,
-    };
+  getWorkerHealthInfo(): WorkerInfoDto {
+    return plainToInstance(WorkerInfoDto, {
+      clientId: this.configService.get<string>('auth.clientId'),
+      isConfigured: !!this.configService.get<string>('auth.clientSecret'),
+    }, {
+      excludeExtraneousValues: true,
+    });
   }
 }
