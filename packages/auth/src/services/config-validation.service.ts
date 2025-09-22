@@ -12,8 +12,6 @@ export class ConfigValidationService implements OnModuleInit {
   private validateAuthConfig(): void {
     const requiredConfigs = [
       { key: 'auth.clientId', name: 'CLIENT_ID' },
-      { key: 'auth.clientSecret', name: 'CLIENT_SECRET' },
-      { key: 'auth.jwt.secret', name: 'JWT_SECRET' },
     ];
 
     const missingConfigs: string[] = [];
