@@ -26,6 +26,61 @@ import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerM
 /**
  * 
  * @export
+ * @interface DashboardStatsDto
+ */
+export interface DashboardStatsDto {
+    /**
+     * Total number of workspaces
+     * @type {number}
+     * @memberof DashboardStatsDto
+     */
+    'workspaceCount': number;
+    /**
+     * Total number of automations
+     * @type {number}
+     * @memberof DashboardStatsDto
+     */
+    'totalAutomations': number;
+    /**
+     * Total number of automation runs
+     * @type {number}
+     * @memberof DashboardStatsDto
+     */
+    'totalAutomationRuns': number;
+    /**
+     * Number of completed runs
+     * @type {number}
+     * @memberof DashboardStatsDto
+     */
+    'completedRuns': number;
+    /**
+     * Number of runs with errors
+     * @type {number}
+     * @memberof DashboardStatsDto
+     */
+    'errorRuns': number;
+    /**
+     * Number of runs currently in progress
+     * @type {number}
+     * @memberof DashboardStatsDto
+     */
+    'inProgressRuns': number;
+    /**
+     * List of recent workflow errors
+     * @type {Array<WorkflowDto>}
+     * @memberof DashboardStatsDto
+     */
+    'recentErrors': Array<WorkflowDto>;
+    /**
+     * List of recent pipeline runs
+     * @type {Array<PipelineDto>}
+     * @memberof DashboardStatsDto
+     */
+    'recentRuns': Array<PipelineDto>;
+}
+/**
+ * 
+ * @export
  * @interface DocumentControllerGetDocuments200Response
  */
 export interface DocumentControllerGetDocuments200Response {
@@ -2176,6 +2231,124 @@ export class ApiV1ConfigApi extends BaseAPI implements ApiV1ConfigApiInterface {
      */
     public configControllerGetWorkspaceTypes(options?: RawAxiosRequestConfig) {
         return ApiV1ConfigApiFp(this.configuration).configControllerGetWorkspaceTypes(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * ApiV1DashboardApi - axios parameter creator
+ * @export
+ */
+export const ApiV1DashboardApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Retrieves aggregated statistics for all automations across all workspaces
+         * @summary Get dashboard statistics
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        dashboardControllerGetDashboardStats: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/dashboard`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ApiV1DashboardApi - functional programming interface
+ * @export
+ */
+export const ApiV1DashboardApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ApiV1DashboardApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Retrieves aggregated statistics for all automations across all workspaces
+         * @summary Get dashboard statistics
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async dashboardControllerGetDashboardStats(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DashboardStatsDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.dashboardControllerGetDashboardStats(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1DashboardApi.dashboardControllerGetDashboardStats']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ApiV1DashboardApi - factory interface
+ * @export
+ */
+export const ApiV1DashboardApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ApiV1DashboardApiFp(configuration)
+    return {
+        /**
+         * Retrieves aggregated statistics for all automations across all workspaces
+         * @summary Get dashboard statistics
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        dashboardControllerGetDashboardStats(options?: RawAxiosRequestConfig): AxiosPromise<DashboardStatsDto> {
+            return localVarFp.dashboardControllerGetDashboardStats(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ApiV1DashboardApi - interface
+ * @export
+ * @interface ApiV1DashboardApi
+ */
+export interface ApiV1DashboardApiInterface {
+    /**
+     * Retrieves aggregated statistics for all automations across all workspaces
+     * @summary Get dashboard statistics
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1DashboardApiInterface
+     */
+    dashboardControllerGetDashboardStats(options?: RawAxiosRequestConfig): AxiosPromise<DashboardStatsDto>;
+
+}
+
+/**
+ * ApiV1DashboardApi - object-oriented interface
+ * @export
+ * @class ApiV1DashboardApi
+ * @extends {BaseAPI}
+ */
+export class ApiV1DashboardApi extends BaseAPI implements ApiV1DashboardApiInterface {
+    /**
+     * Retrieves aggregated statistics for all automations across all workspaces
+     * @summary Get dashboard statistics
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1DashboardApi
+     */
+    public dashboardControllerGetDashboardStats(options?: RawAxiosRequestConfig) {
+        return ApiV1DashboardApiFp(this.configuration).dashboardControllerGetDashboardStats(options).then((request) => request(this.axios, this.basePath));
     }
 }
 
