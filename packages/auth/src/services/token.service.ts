@@ -1,31 +1,30 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthConfig } from '../interfaces';
-import { AUTH_CONFIG } from '../constants';
 import { JwtPayloadInterface } from '@loopstack/shared';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TokenService {
   constructor(
-    @Inject(AUTH_CONFIG) private config: AuthConfig,
+    private readonly configService: ConfigService,
     private jwtService: JwtService,
   ) {}
 
   private getExpiresIn(): number {
-    return this.getExpiresInSeconds(this.config.jwt?.expiresIn || '1h');
+    return this.getExpiresInSeconds(this.configService.get('auth.jwt.expiresIn') || '1h');
   }
 
   private getRefreshExpiresIn(): number {
-    return this.getExpiresInSeconds(this.config.jwt?.refreshExpiresIn || '7h');
+    return this.getExpiresInSeconds(this.configService.get('auth.jwt.refreshExpiresIn') || '7h');
   }
 
   getCookieName(suffix: string) {
-    return `${this.config.clientId}-${suffix}`;
+    return `${this.configService.get('auth.clientId')}-${suffix}`;
   }
 
   createAccessTokenCookieOptions() {
     return {
-      domain: this.config.jwt?.cookieDomain ?? undefined,
+      domain: this.configService.get('auth.jwt.cookieDomain') ?? undefined,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -35,7 +34,7 @@ export class TokenService {
 
   createRefreshTokenCookieOptions() {
     return {
-      domain: this.config.jwt?.cookieDomain ?? undefined,
+      domain: this.configService.get('auth.jwt.cookieDomain') ?? undefined,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -43,12 +42,16 @@ export class TokenService {
     }
   }
 
+  private getRefreshSecret() {
+    return this.configService.get<string>('auth.jwt.refreshSecret') ?? this.configService.get<string>('auth.jwt.secret');
+  }
+
   async generateTokens(payload: JwtPayloadInterface) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
       this.jwtService.signAsync(payload, {
-        secret: this.config.jwt?.refreshSecret || this.config.jwt?.secret,
-        expiresIn: this.config.jwt?.refreshExpiresIn || '7d',
+        secret: this.getRefreshSecret(),
+        expiresIn: this.getRefreshExpiresIn(),
       }),
     ]);
 
@@ -70,5 +73,11 @@ export class TokenService {
       case 's': return value;
       default: return 3600;
     }
+  }
+
+  verifyRefreshToken(refreshToken: string) {
+    return this.jwtService.verify(refreshToken, {
+      secret: this.getRefreshSecret(),
+    });
   }
 }

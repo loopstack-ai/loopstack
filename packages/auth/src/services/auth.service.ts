@@ -1,5 +1,4 @@
 import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from '../repositories';
 import { TokenService } from './token.service';
 import {
@@ -17,15 +16,14 @@ export class AuthService {
     private readonly configService: ConfigService,
     private userRepository: UserRepository,
     private tokenService: TokenService,
-    private jwtService: JwtService,
   ) {}
 
   async login(user: User): Promise<AuthResponseDto> {
-
+    const workerId = this.configService.get('auth.clientId');
     const payload: JwtPayloadInterface = {
       sub: user.id,
-      workerId: user.workerId,
       roles: user.roles?.map(role => role.name) || [],
+      workerId,
     };
 
     const tokens = await this.tokenService.generateTokens(payload);
@@ -37,9 +35,7 @@ export class AuthService {
 
   async refresh(refreshToken: string): Promise<AuthResponseDto> {
     try {
-      const payload = this.jwtService.verify(refreshToken, {
-        secret: this.configService.get<string>('auth.jwt.refreshSecret'),
-      });
+      const payload = this.tokenService.verifyRefreshToken(refreshToken);
 
       const user = await this.userRepository.findById(payload.sub);
       if (!user || !user.isActive) {
@@ -48,7 +44,8 @@ export class AuthService {
 
       // roles might have changed
       const newPayload = {
-        ...payload,
+        sub: payload.sub,
+        workerId: payload.workerId,
         roles: user.roles?.map(role => role.name) || [],
       }
 
