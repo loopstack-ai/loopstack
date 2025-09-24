@@ -13,4 +13,10 @@ export class WorkerInfoDto {
     description: 'Is worker configured.',
   })
   isConfigured: boolean;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Current Timestamp.',
+  })
+  timestamp: string;
 }

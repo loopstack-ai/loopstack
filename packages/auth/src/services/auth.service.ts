@@ -81,6 +81,7 @@ export class AuthService {
     return plainToInstance(WorkerInfoDto, {
       clientId: this.configService.get<string>('auth.clientId'),
       isConfigured: !!this.configService.get<string>('auth.clientSecret'),
+      timestamp: new Date(),
     }, {
       excludeExtraneousValues: true,
     });
