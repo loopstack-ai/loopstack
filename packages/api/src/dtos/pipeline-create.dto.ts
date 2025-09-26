@@ -6,7 +6,7 @@ import {
   IsUUID,
   MaxLength,
   Matches,
-  ValidateIf,
+  ValidateIf, IsOptional,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -33,12 +33,13 @@ export class PipelineCreateDto {
    * @example "My Awesome Pipeline"
    */
   @IsString()
+  @IsOptional()
   @MaxLength(200, { message: 'Pipeline title must not exceed 200 characters' })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Human-readable title for the pipeline',
     example: 'My Awesome Pipeline',
   })
-  title: string;
+  title: string | null;
 
   /**
    * Array of labels/tags associated with the pipeline

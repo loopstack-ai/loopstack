@@ -32,6 +32,13 @@ export class PipelineItemDto {
 
   @Expose()
   @ApiProperty({
+    description: 'Run number for identification if no title is given.',
+    example: 123,
+  })
+  run: number;
+
+  @Expose()
+  @ApiProperty({
     type: 'array',
     items: { type: 'string' },
     description:
