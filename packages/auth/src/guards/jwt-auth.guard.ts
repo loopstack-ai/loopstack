@@ -1,15 +1,20 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from '@loopstack/shared';
+import { CurrentUserInterface, IS_PUBLIC_KEY } from '@loopstack/shared';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private reflector: Reflector) {
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly configService: ConfigService,
+  ) {
     super();
   }
 
-  canActivate(context: ExecutionContext) {
+  async canActivate(context: ExecutionContext) {
+    // skip jwt auth for public endpoints
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -17,6 +22,20 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (isPublic) {
       return true;
     }
-    return super.canActivate(context);
+
+    // jwt auth
+    const result = await super.canActivate(context);
+    if (!result) {
+      return false;
+    }
+
+    // ensure the authenticated user's worker ID matches the configured client ID.
+    // This prevents authentication issues when multiple workers share the same URL
+    // (e.g., localhost) but represent different clients. Without this check, a new worker
+    // could authenticate using cookies from a previous worker session, leading to
+    // cross-client authentication violations.
+    const { user }: { user: CurrentUserInterface } = context.switchToHttp().getRequest();
+    const clientId = this.configService.get<string>('auth.clientId');
+    return clientId === user.workerId;
   }
 }

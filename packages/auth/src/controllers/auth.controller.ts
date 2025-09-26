@@ -11,7 +11,7 @@ import {
 import { AuthService, TokenService } from '../services';
 import {
   AuthResponseDto,
-  CurrentUser,
+  CurrentUser, CurrentUserInterface,
   Public,
   UserResponseDto,
 } from '@loopstack/shared';
@@ -65,9 +65,9 @@ export class AuthController {
 
   @Get('me')
   async me(
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserInterface,
   ): Promise<UserResponseDto> {
-    return this.authService.getCurrentUser(user.id);
+    return this.authService.getCurrentUser(user.userId);
   }
 
   @Public()
