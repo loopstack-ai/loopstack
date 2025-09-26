@@ -41,6 +41,13 @@ export class CreateRunPipelineTaskProcessorService {
       throw new Error(`Can't resolve workspace ${pipelineConfig.config.workspace}`);
     }
 
+    //todo: user
+    //  also workspace config should allow defining unique workspaces so schedules are not executed twice
+    throw Error('Scheduler must inherit the user')
+    // const latestRunNumber = await this.createPipelineService.getLatestRunNumber(
+    //
+    // )
+
     const pipeline = await this.createPipelineService.create(
       {
         configKey: workspaceConfig.key,
