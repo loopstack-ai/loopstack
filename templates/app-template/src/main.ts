@@ -1,3 +1,5 @@
+process.env.TZ = 'UTC';
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { LoopstackApiModule } from '@loopstack/api';
