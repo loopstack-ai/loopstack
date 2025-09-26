@@ -825,6 +825,12 @@ export interface PipelineDto {
      */
     'title': string;
     /**
+     * Run number for identification if no title is given.
+     * @type {number}
+     * @memberof PipelineDto
+     */
+    'run': number;
+    /**
      * Tags associated with the pipeline for categorization and filtering
      * @type {Array<string>}
      * @memberof PipelineDto
@@ -907,6 +913,12 @@ export interface PipelineItemDto {
      */
     'title': string;
     /**
+     * Run number for identification if no title is given.
+     * @type {number}
+     * @memberof PipelineItemDto
+     */
+    'run': number;
+    /**
      * Tags associated with the pipeline for categorization and filtering
      * @type {Array<string>}
      * @memberof PipelineItemDto
@@ -969,6 +981,7 @@ export const PipelineSortByDtoFieldEnum = {
     Id: 'id',
     ConfigKey: 'configKey',
     Title: 'title',
+    Run: 'run',
     Labels: 'labels',
     Index: 'index',
     Status: 'status',
@@ -1055,6 +1068,12 @@ export interface WorkerInfoDto {
      * @memberof WorkerInfoDto
      */
     'isConfigured': boolean;
+    /**
+     * Current Timestamp.
+     * @type {string}
+     * @memberof WorkerInfoDto
+     */
+    'timestamp': string;
 }
 /**
  * 
