@@ -1,0 +1,10 @@
+transitions:
+  - name: research_topic
+    from: start
+    to: research_finished
+    call:
+      - tool: CreateMock   # A mock tool call returning the research result
+        arguments:
+          input: 'AI trends 2025'
+          output: 'Key AI trends include: agentic AI systems, reasoning models, and AI-powered robotics.'
+        as: researchResult

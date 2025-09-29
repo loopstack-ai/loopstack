@@ -4,8 +4,6 @@ import { getConnectionToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import {
   DocumentService,
-  loadConfiguration,
-  PipelineProcessorService,
   PipelineService,
   WorkflowService,
   WorkspaceService,
@@ -39,9 +37,6 @@ export async function createPipelineTestSetup(
   const moduleRef: TestingModule = await Test.createTestingModule({
     imports: [
       TestModule.forRoot({
-        configs: loadConfiguration(
-          options.configPath || __dirname + '/../../src/config',
-        ),
         mockServices: options.mockServices || [],
       }),
     ],
