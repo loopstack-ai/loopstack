@@ -20,20 +20,7 @@ import {
   WorkflowStateService,
   RootProcessorService,
   WorkflowContextService,
-  HandlerExecutionService,
 } from './services';
-import {
-  AddNamespaceHandler,
-  BatchCreateDocumentsHandler,
-  CreateDocumentHandler,
-  LoadDocumentHandler,
-  MockHandler, ResetErrorHandler,
-  SetContextHandler,
-  SetTargetPlaceHandler,
-  TransitionSelectorHandler,
-  UpdateDocumentHandler, ValidateDocumentHandler,
-  ValidateHandler,
-} from './handlers';
 import { CreatePipelineService } from './services';
 
 @Module({
@@ -52,7 +39,6 @@ import { CreatePipelineService } from './services';
     PipelineProcessorService,
     TemplateExpressionEvaluatorService,
     WorkflowContextService,
-    HandlerExecutionService,
     InitialRunValidator,
     WorkflowDependenciesValidator,
     WorkflowOptionValidator,
@@ -60,20 +46,6 @@ import { CreatePipelineService } from './services';
     StateMachineProcessorService,
     StateMachineConfigService,
     CreatePipelineService,
-
-    // Tool Handlers
-    CreateDocumentHandler,
-    BatchCreateDocumentsHandler,
-    MockHandler,
-    SetContextHandler,
-    AddNamespaceHandler,
-    LoadDocumentHandler,
-    TransitionSelectorHandler,
-    UpdateDocumentHandler,
-    SetTargetPlaceHandler,
-    ValidateHandler,
-    ResetErrorHandler,
-    ValidateDocumentHandler,
   ],
   exports: [
     RootProcessorService,

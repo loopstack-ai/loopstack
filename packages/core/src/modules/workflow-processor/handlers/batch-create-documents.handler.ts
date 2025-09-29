@@ -9,7 +9,6 @@ import {
   TransitionMetadataInterface,
   DocumentSchema,
 } from '@loopstack/shared';
-import { ConfigurationService, SchemaRegistry } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
@@ -42,10 +41,8 @@ export class BatchCreateDocumentsHandler implements HandlerInterface {
   private readonly logger = new Logger(BatchCreateDocumentsHandler.name);
 
   constructor(
-    private loopConfigService: ConfigurationService,
     private documentService: DocumentService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private schemaRegistry: SchemaRegistry,
   ) {}
 
   async apply(
@@ -60,11 +57,12 @@ export class BatchCreateDocumentsHandler implements HandlerInterface {
     }
 
     // get the document template
-    const template = this.loopConfigService.resolveConfig<DocumentType>(
-      'documents',
-      props.document,
-      context.includes,
-    );
+    const template = {} as any;
+    // this.loopConfigService.resolveConfig<DocumentType>(
+    //   'documents',
+    //   props.document,
+    //   context.includes,
+    // );
 
     try {
       const documentSkeleton =
@@ -81,9 +79,11 @@ export class BatchCreateDocumentsHandler implements HandlerInterface {
           },
         );
 
-      const zodSchema = this.schemaRegistry.getZodSchema(
-        `${template.key}.content`,
-      );
+      const zodSchema = z.any();
+      // todo
+      // this.schemaRegistry.getZodSchema(
+      //   `${template.key}.content`,
+      // );
 
       const documents: DocumentEntity[] = [];
       for (let index = 0; index < props.items.length; index++) {

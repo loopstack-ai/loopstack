@@ -4,11 +4,12 @@ import {
   ContextInterface,
   ConfigElement,
   WorkflowState,
-  WorkflowType,
+  WorkflowType, PipelineSequenceType, StateMachineType,
 } from '@loopstack/shared';
 import { WorkflowStateService } from './workflow-state.service';
 import { StateMachineConfigService } from './state-machine-config.service';
 import { ContextService } from '../../common';
+import { Block } from '../../configuration';
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -22,17 +23,19 @@ export class WorkflowProcessorService {
   ) {}
 
   async runStateMachineType(
-    configElement: ConfigElement<WorkflowType>,
+    block: Block,
     context: ContextInterface,
   ) {
-    const mergedConfigElement =
-      this.stateMachineConfigService.getConfig(configElement);
+    const config = block.config as StateMachineType;
 
-    this.contextService.addIncludes(context, mergedConfigElement.includes);
+    //todo
+    // const mergedConfigElement =
+    //   this.stateMachineConfigService.getConfig(config);
+    // this.contextService.addIncludes(context, mergedConfigElement.includes);
 
     // create or load state if needed
     const currentWorkflow = await this.workflowStateService.getWorkflowState(
-      mergedConfigElement,
+      block,
       context,
     );
 
@@ -40,7 +43,7 @@ export class WorkflowProcessorService {
       await this.stateMachineProcessorService.processStateMachine(
         context,
         currentWorkflow,
-        mergedConfigElement,
+        block,
       );
 
     if (workflow.status === WorkflowState.Failed) {

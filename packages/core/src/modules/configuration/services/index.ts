@@ -1,5 +1,3 @@
-export * from './handler-registry.service';
-export * from './configuration.service';
-export * from './config-provider.registry';
-export * from './schema-registry.service';
 export * from './zod-generator.service';
+export * from './block-registry.service';
+export * from './config-loader.service';

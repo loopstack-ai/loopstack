@@ -1,29 +1,24 @@
 import { Module } from '@nestjs/common';
 import {
-  ConfigProviderRegistry,
-  ConfigurationService,
-  SchemaRegistry, ZodGeneratorService,
+  BlockRegistryService,
+  ConfigLoaderService,
+  ZodGeneratorService,
 } from './services';
 import { JsonSchemaGeneratorService } from './services/json-schema-generator.service';
-import { HandlerRegistry } from './services';
 import { GenerateSchemaCommand } from './commands/generate-schema.command';
 import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generator.service';
 import { DiscoveryModule } from '@nestjs/core';
-import { YamlLocatorService } from './services/yaml-locator.service';
 
 @Module({
   imports: [DiscoveryModule],
   providers: [
-    HandlerRegistry,
-    ConfigProviderRegistry,
-    ConfigurationService,
     JsonSchemaGeneratorService,
     GenerateSchemaCommand,
     DynamicSchemaGeneratorService,
-    SchemaRegistry,
     ZodGeneratorService,
-    YamlLocatorService,
+    BlockRegistryService,
+    ConfigLoaderService,
   ],
-  exports: [ConfigurationService, HandlerRegistry, SchemaRegistry, ZodGeneratorService],
+  exports: [ZodGeneratorService, BlockRegistryService],
 })
 export class ConfigurationModule {}

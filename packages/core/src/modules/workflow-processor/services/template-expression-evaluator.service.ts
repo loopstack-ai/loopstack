@@ -6,7 +6,6 @@ import {
   WorkflowEntity,
 } from '@loopstack/shared';
 import { TemplateService } from '../../common';
-import { ConfigurationService } from '../../configuration';
 import { get, transform } from 'lodash';
 import { z } from 'zod';
 import { SchemaValidationError, WorkflowValidationError } from '../errors';
@@ -36,7 +35,6 @@ const DEFAULT_PARSE_OPTIONS: Partial<ParseOptions> = {
 @Injectable()
 export class TemplateExpressionEvaluatorService {
   constructor(
-    private configurationService: ConfigurationService,
     private templateService: TemplateService,
   ) {}
 
@@ -75,36 +73,6 @@ export class TemplateExpressionEvaluatorService {
   }
 
   /**
-   * Creates template helper functions
-   */
-  private getTemplateHelper(
-    options: Pick<ParseOptions, 'omitUseTemplates'>,
-  ): Record<string, any> {
-    if (options.omitUseTemplates) {
-      return {};
-    }
-
-    return {
-      useTemplate: (name: string, variables: any): string => {
-        const snippet = this.configurationService.get<SnippetConfigType>(
-          SNIPPETS_CONFIG_KEY,
-          name,
-        );
-
-        if (!snippet) {
-          return '';
-        }
-
-        const result = this.templateService.evaluate(
-          snippet.config.value,
-          variables,
-        );
-        return z.string().parse(result);
-      },
-    };
-  }
-
-  /**
    * Extracts workflow data for template evaluation
    */
   private getWorkflowData(
@@ -135,7 +103,6 @@ export class TemplateExpressionEvaluatorService {
       ...this.getAliasVariables(variables, options),
       ...this.getWorkflowData(variables, options),
       ...variables,
-      ...this.getTemplateHelper(options),
     };
   }
 

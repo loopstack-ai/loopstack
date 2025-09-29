@@ -7,7 +7,6 @@ import {
   ScheduledTask,
   ScheduledTaskSchema,
 } from '@loopstack/shared';
-import { ConfigurationService } from '../../configuration';
 import { StartupTask } from '@loopstack/shared/dist/schemas/startup.schema';
 import { ConfigService } from '@nestjs/config';
 
@@ -19,11 +18,12 @@ export class TaskInitializationService {
     private readonly eventEmitter: EventEmitter2,
     private readonly configService: ConfigService,
     private readonly taskSchedulerService: TaskSchedulerService,
-    private readonly configurationService: ConfigurationService,
   ) {}
 
   private getStartupTasks(): ConfigElement<StartupTask>[] {
-    return this.configurationService.getAll<StartupTask>('startup');
+    return []
+    // todo
+    // this.configurationService.getAll<StartupTask>('startup');
   }
 
   private createTask(task: ConfigElement<StartupTask>): ScheduledTask {

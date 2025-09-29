@@ -1,17 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigurationService, SchemaRegistry } from '../../configuration';
+import { BlockRegistryService } from '../../configuration';
 import {
   ContextInterface,
-  ToolConfigType,
   HandlerCallResult,
   ToolCallType,
   TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { WorkflowEntity } from '@loopstack/shared';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
-import { HandlerExecutionService } from './handler-execution.service';
-import { ContextService } from '../../common';
-import { HandlerCallType } from '@loopstack/shared/dist/schemas/handler-call.schema';
 import { z } from 'zod';
 import { ConfigTraceError } from '../../configuration';
 
@@ -20,24 +16,9 @@ export class ToolExecutionService {
   private logger = new Logger(ToolExecutionService.name);
 
   constructor(
-    private configurationService: ConfigurationService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private serviceExecutionService: HandlerExecutionService,
-    private schemaRegistry: SchemaRegistry,
-    private contextService: ContextService,
+    private readonly blockRegistryService: BlockRegistryService,
   ) {}
-
-  isHandlerCallType(
-    execute: HandlerCallType | ToolCallType,
-  ): execute is HandlerCallType {
-    return 'handler' in execute;
-  }
-
-  isToolCallType(
-    execute: HandlerCallType | ToolCallType,
-  ): execute is ToolCallType {
-    return 'tool' in execute;
-  }
 
   async applyTool(
     toolCall: ToolCallType,
@@ -67,20 +48,17 @@ export class ToolExecutionService {
       },
     );
 
-    const configElement =
-      this.configurationService.resolveConfig<ToolConfigType>(
-        'tools',
-        toolName,
-        context.includes,
-      );
-
-    this.contextService.addIncludes(context, configElement.includes);
+    const block = this.blockRegistryService.getBlock(toolName);
+    if (!block) {
+      throw new Error(`Block with name ${toolName} not found.`)
+    }
 
     try {
-      const zodSchema = this.schemaRegistry.getZodSchema(`${configElement.key}.arguments`);
+      const zodSchema: z.ZodType | undefined = block.metadata.paramsSchema;
 
       const hasArguments =
         toolCall.arguments && Object.keys(toolCall.arguments).length;
+
       if (!zodSchema && hasArguments) {
         throw Error(`Tool called with arguments but no schema defined.`);
       }
@@ -101,50 +79,20 @@ export class ToolExecutionService {
         )
         : {};
 
-      let result: HandlerCallResult | undefined;
-      const executeItems: Array<HandlerCallType | ToolCallType> =
-        configElement.config.execute;
-
-      const extraVariables: Record<string, any> = {};
-      for (const execute of executeItems) {
-        result = undefined;
-
-        if (this.isHandlerCallType(execute)) {
-          result = await this.serviceExecutionService.callHandler(
-            execute as HandlerCallType,
-            toolCallArguments,
-            workflow,
-            context,
-            transitionData,
-            extraVariables,
-          );
-        } else if (this.isToolCallType(execute)) {
-          result = await this.applyTool(
-            execute as ToolCallType,
-            toolCallArguments,
-            workflow,
-            context,
-            transitionData,
-            extraVariables,
-          );
-        }
-
-        if (execute.as) {
-          extraVariables[execute.as] = result?.data;
-        }
-
-        if (!result?.success) {
-          break;
-        }
-      }
-
+      let result: HandlerCallResult = block.provider.instance.apply(
+        toolCallArguments,
+        workflow,
+        context,
+        transitionData,
+        parentArguments,
+      );
       if (!result) {
         throw new Error(`Tool execution provided no results.`);
       }
 
       return result;
     } catch (e) {
-      throw new ConfigTraceError(e, configElement);
+      throw new ConfigTraceError(e, block);
     }
   }
 }

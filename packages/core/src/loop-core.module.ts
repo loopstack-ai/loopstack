@@ -6,7 +6,6 @@ import {
   ConfigurationModule,
 } from './modules';
 import { MigrationsService } from './services/migrations.service';
-import { ConfigProviderService } from './config-provider.service';
 import { SchedulerModule } from './modules/scheduler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MODULE_NAME_TOKEN } from '@loopstack/shared';
@@ -28,7 +27,6 @@ import { MODULE_NAME_TOKEN } from '@loopstack/shared';
       useValue: 'core',
     },
     MigrationsService,
-    ConfigProviderService,
   ],
   exports: [
     ConfigurationModule,

@@ -2,19 +2,14 @@ import { z, ZodType } from 'zod';
 import { Injectable } from '@nestjs/common';
 import {
   MainConfigSchema,
-  ToolConfigSchema,
   HandlerInterface,
   HandlerOptionsInterface,
-  ToolCallSchema,
 } from '@loopstack/shared';
-import { HandlerRegistry } from './handler-registry.service';
 import { HandlerCallSchema } from '@loopstack/shared/dist/schemas/handler-call.schema';
 
 @Injectable()
 export class DynamicSchemaGeneratorService {
   private schema: ZodType;
-
-  constructor(private readonly handlerRegistry: HandlerRegistry) {}
 
   // Simple Levenshtein distance function
   levenshteinDistance(str1: string, str2: string): number {
@@ -97,17 +92,21 @@ export class DynamicSchemaGeneratorService {
   }
 
   createDynamicSchema(): ReturnType<typeof MainConfigSchema.extend> {
-    const handlerExecutionSchemas = this.createDiscriminatedHandlerType(
-      this.handlerRegistry.getEntries(),
-    );
+    return MainConfigSchema;
 
-    const toolConfigSchema = ToolConfigSchema.extend({
-      execute: z.array(z.union([handlerExecutionSchemas, ToolCallSchema])),
-    });
-
-    return MainConfigSchema.extend({
-      tools: z.array(toolConfigSchema).optional(),
-    }).strict();
+    //todo
+    // const handlerExecutionSchemas = this.createDiscriminatedHandlerType(
+    //   this.handlerRegistry.getEntries(),
+    // );
+    // const toolConfigSchema = ToolConfigSchema.extend({
+    //   execute: z.array(z.union([
+    //     handlerExecutionSchemas,
+    //     ToolCallSchema
+    //   ])),
+    // });
+    // return MainConfigSchema.extend({
+    //   tools: z.array(toolConfigSchema).optional(),
+    // }).strict();
   }
 
   getSchema(): ZodType {

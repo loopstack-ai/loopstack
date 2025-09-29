@@ -10,6 +10,7 @@ import {
   PipelineService,
 } from '../../persistence';
 import { PipelineProcessorService } from './pipeline-processor.service';
+import { BlockRegistryService } from '../../configuration';
 
 @Injectable()
 export class RootProcessorService {
@@ -20,6 +21,7 @@ export class RootProcessorService {
     private pipelineService: PipelineService,
     private processorService: PipelineProcessorService,
     private namespacesService: NamespacesService,
+    private blockRegistryService: BlockRegistryService,
   ) {}
 
   private async processRootPipeline(
@@ -41,7 +43,13 @@ export class RootProcessorService {
 
     this.logger.debug(`Running Root Pipeline: ${pipeline.configKey}`);
 
+    const workspaceConfig = this.blockRegistryService.getBlock(pipeline.workspace.configKey);
+    if (!workspaceConfig) {
+      throw new Error(`Config for workspace ${pipeline.workspace.configKey} not found.`)
+    }
+
     return this.processorService.processPipelineItem(
+      workspaceConfig,
       {
         pipeline: pipeline.configKey,
       },

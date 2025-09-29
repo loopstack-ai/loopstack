@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigurationService } from '../../configuration';
+import { Block, BlockRegistryService } from '../../configuration';
 import { ContextService } from '../../common';
 import {
   ContextInterface,
@@ -7,8 +7,6 @@ import {
   PipelineSequenceType,
   PipelineFactoryType,
   PipelineItemType,
-  WorkflowType,
-  ConfigElement,
   NamespacePropsSchema,
   NamespacePropsType,
 } from '@loopstack/shared';
@@ -41,7 +39,7 @@ const FactoryIteratorSourceSchema = z.array(
 export class PipelineProcessorService {
   private readonly logger = new Logger(PipelineProcessorService.name);
   constructor(
-    private loopConfigService: ConfigurationService,
+    private readonly blockRegistryService: BlockRegistryService,
     private namespaceProcessorService: NamespaceProcessorService,
     private contextService: ContextService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
@@ -55,13 +53,14 @@ export class PipelineProcessorService {
   }
 
   async runSequenceType(
-    configElement: ConfigElement<PipelineSequenceType>,
+    block: Block,
     context: ContextInterface,
   ): Promise<ContextInterface> {
 
-    this.logger.debug(`Running Sequence: ${configElement.name}`);
+    this.logger.debug(`Running Sequence: ${block.target.name}`);
 
-    const sequence: PipelineItemType[] = configElement.config.sequence;
+    const config = block.config as PipelineSequenceType;
+    const sequence: PipelineItemType[] = config.sequence;
 
     this.logger.debug(`Processing sequence with ${sequence.length} items.`)
 
@@ -88,12 +87,13 @@ export class PipelineProcessorService {
       );
 
       if (evaluatedItem.condition === false) {
-        this.logger.debug(`Skipping execution due to condition: ${configElement.name}`);
+        this.logger.debug(`Skipping execution due to condition: ${block.target.name}`);
         continue;
       }
 
       lastContext.index = this.createIndex(index, i + 1);
       lastContext = await this.processPipelineItem(
+        block,
         item,
         lastContext,
       );
@@ -165,14 +165,15 @@ export class PipelineProcessorService {
   }
 
   async runFactoryType(
-    configElement: ConfigElement<PipelineFactoryType>,
+    block: Block,
     context: ContextInterface,
   ): Promise<ContextInterface> {
 
-    this.logger.debug(`Running Factory: ${configElement.name}`);
+    this.logger.debug(`Running Factory: ${block.target.name}`);
+    const config = block.config as PipelineFactoryType;
 
     const items = this.templateExpressionEvaluatorService.parse<string[]>(
-      configElement.config.iterator.source,
+      config.iterator.source,
       { context },
       {
         schema: FactoryIteratorSourceSchema,
@@ -185,7 +186,7 @@ export class PipelineProcessorService {
     // create or load all context / namespaces
     const preparedChildContexts = await this.prepareAllContexts(
       context,
-      configElement.config,
+      config,
       items,
     );
 
@@ -196,11 +197,12 @@ export class PipelineProcessorService {
     );
 
     let results: ContextInterface[] = [];
-    if (configElement.config.parallel) {
+    if (config.parallel) {
       // process the child elements parallel
       const allItems = preparedChildContexts.map((childContext) =>
         this.processPipelineItem(
-          configElement.config.factory,
+          block,
+          config.factory,
           childContext,
         ),
       );
@@ -211,7 +213,8 @@ export class PipelineProcessorService {
       // process the child elements sequential
       for (const childContext of preparedChildContexts) {
         const resultContext = await this.processPipelineItem(
-          configElement.config.factory,
+          block,
+          config.factory,
           childContext,
         );
 
@@ -239,13 +242,15 @@ export class PipelineProcessorService {
   }
 
   async runPipelineType(
-    configElement: ConfigElement<PipelineType>,
+    block: Block,
     context: ContextInterface,
   ): Promise<ContextInterface> {
-    if (configElement.config.namespace) {
+    const config = block.config as PipelineType;
+
+    if (config.namespace) {
       const namespaceConfig =
         this.templateExpressionEvaluatorService.parse<NamespacePropsType>(
-          configElement.config.namespace,
+          config.namespace,
           { context },
           {
             schema: NamespacePropsSchema,
@@ -262,19 +267,12 @@ export class PipelineProcessorService {
     }
 
     let updatedContext: ContextInterface | undefined = undefined;
-    switch (configElement.config.type) {
-      case 'root':
+    switch (config.type) {
       case 'sequence':
-        updatedContext = await this.runSequenceType(
-          configElement as ConfigElement<PipelineSequenceType>,
-          context,
-        );
+        updatedContext = await this.runSequenceType(block, context);
         break;
       case 'factory':
-        updatedContext = await this.runFactoryType(
-          configElement as ConfigElement<PipelineFactoryType>,
-          context,
-        );
+        updatedContext = await this.runFactoryType(block, context);
         break;
     }
 
@@ -301,39 +299,38 @@ export class PipelineProcessorService {
   }
 
   async processPipelineItem(
+    parentBlock: Block,
     item: PipelineItemType,
     context: ContextInterface,
   ): Promise<ContextInterface> {
     const type = ['tool', 'pipeline', 'workflow'].find((key) => key in item);
     if (!type) {
-      throw new Error('Unknown pipeline item type.');
+      throw new Error(`Unknown pipeline item type ${item}.`);
     }
 
     const itemName = item[type];
 
     this.logger.debug(`Processing pipeline item: ${itemName}`);
 
-    const configElement = this.loopConfigService.resolveConfig<
-      WorkflowType | PipelineType
-    >(`${type}s`, itemName, context.includes);
+    if (!parentBlock.metadata.imports.includes(itemName)) {
+      throw new Error(`Item with name ${itemName} not found in scope of ${parentBlock.target.name}`);
+    }
 
-    this.contextService.addIncludes(context, configElement.includes);
+    const block = this.blockRegistryService.getBlock(itemName);
+    if (!block) {
+      throw new Error(`Block with name ${itemName} not found.`)
+    }
 
     try {
-      switch (type) {
-        case 'pipeline':
-          return await this.runPipelineType(
-            configElement as ConfigElement<PipelineType>,
-            context,
-          );
-        case 'workflow':
-          return await this.workflowProcessor.runStateMachineType(
-            configElement as ConfigElement<WorkflowType>,
-            context,
-          );
+      switch (block.config.type) {
+        case 'factory':
+        case 'sequence':
+          return await this.runPipelineType(block, context);
+        case 'stateMachine':
+          return await this.workflowProcessor.runStateMachineType(block, context);
       }
     } catch (e) {
-      throw new ConfigTraceError(e, configElement);
+      throw new ConfigTraceError(e, block);
     }
 
     throw new Error(`Pipeline type ${type} unknown.`);

@@ -1,4 +1,4 @@
-import { ConfigElement } from '@loopstack/shared';
+import { Block } from '../services';
 
 export class ConfigTraceError extends Error {
   public readonly name = 'ConfigTraceError';
@@ -7,7 +7,7 @@ export class ConfigTraceError extends Error {
 
   constructor(
     originalError: Error,
-    configElement: ConfigElement<any>,
+    block: Block | any,
   ) {
     super(originalError.message);
 
@@ -19,7 +19,7 @@ export class ConfigTraceError extends Error {
       this.originalError = originalError;
     }
 
-    this.configTrace.push(`    at ${configElement.type}.${configElement.name} (${configElement.fullPath}:${configElement.location.start.line}:${configElement.location.start.col})`);
+    this.configTrace.push(`    at ${block.config.type} (${block.target.name})`);
 
     this.stack = this.formatCombinedStack();
 

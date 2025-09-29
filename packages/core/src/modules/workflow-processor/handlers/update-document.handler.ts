@@ -15,7 +15,6 @@ import { DocumentService } from '../../persistence';
 import { isEmpty, merge, omit } from 'lodash';
 import { ExpressionString } from '@loopstack/shared/dist/schemas/expression-type.schema';
 import { TemplateExpressionEvaluatorService } from '../services';
-import { SchemaRegistry } from '../../configuration';
 
 const config = z
   .object({
@@ -84,7 +83,6 @@ export class UpdateDocumentHandler implements HandlerInterface {
   constructor(
     private documentService: DocumentService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private schemaRegistry: SchemaRegistry,
   ) {}
 
   async apply(
@@ -127,9 +125,11 @@ export class UpdateDocumentHandler implements HandlerInterface {
       typeof props.update?.content === 'object'
         ? merge({}, document.content, props.update.content)
         : props.update?.content;
-    const zodSchema = this.schemaRegistry.getZodSchema(
-      `${document.configKey}.content`,
-    );
+    const zodSchema = z.any();
+    // todo
+    // this.schemaRegistry.getZodSchema(
+    //   `${document.configKey}.content`,
+    // );
     if (!zodSchema && content) {
       throw Error(`Document updates with content no schema defined.`);
     }

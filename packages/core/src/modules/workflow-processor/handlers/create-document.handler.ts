@@ -11,7 +11,7 @@ import {
   DocumentSchema,
   UISchema, JSONSchemaType,
 } from '@loopstack/shared';
-import { ConfigurationService, ZodGeneratorService } from '../../configuration';
+import { ZodGeneratorService } from '../../configuration';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
@@ -107,7 +107,6 @@ export class CreateDocumentHandler implements HandlerInterface {
   private readonly logger = new Logger(CreateDocumentHandler.name);
 
   constructor(
-    private loopConfigService: ConfigurationService,
     private documentService: DocumentService,
     private zodGeneratorService: ZodGeneratorService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
@@ -125,11 +124,13 @@ export class CreateDocumentHandler implements HandlerInterface {
     }
 
     // get the document template
-    const template = this.loopConfigService.resolveConfig<DocumentType>(
-      'documents',
-      props.document,
-      context.includes,
-    );
+    const template = {} as any;
+    // todo
+    // this.loopConfigService.resolveConfig<DocumentType>(
+    //   'documents',
+    //   props.document,
+    //   context.includes,
+    // );
 
     try {
       // merge the custom properties

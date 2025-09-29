@@ -13,7 +13,7 @@ import {
   WorkflowStateHistoryDto,
   WorkflowStatePlaceInfoDto,
   WorkflowTransitionType,
-  WorkflowType,
+  WorkflowType, StateMachineType,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
@@ -24,7 +24,7 @@ import { TemplateExpressionEvaluatorService } from './template-expression-evalua
 import { omit } from 'lodash';
 import { WorkflowContextService } from './workflow-context.service';
 import { z } from 'zod';
-import { ConfigTraceError } from '../../configuration';
+import { Block, BlockRegistryService, ConfigTraceError } from '../../configuration';
 
 const TransitionValidationsSchema = z.array(
   z
@@ -76,12 +76,14 @@ export class StateMachineProcessorService {
   async processStateMachine(
     context: ContextInterface,
     workflow: WorkflowEntity,
-    configElement: ConfigElement<WorkflowType>,
+    block: Block,
   ): Promise<WorkflowEntity> {
+    const config = block.config as StateMachineType;
+
     const args = this.templateExpressionEvaluatorService.parse<
       Record<string, any>
     >(
-      configElement.config.arguments,
+      config.arguments,
       { context },
       {
         schema: undefined, // todo: define workflow parameters to validate/parse arguments
@@ -116,7 +118,7 @@ export class StateMachineProcessorService {
     return this.loopStateMachine(
       context,
       workflow,
-      configElement,
+      block,
       stateMachineInfo,
     );
   }
@@ -299,13 +301,14 @@ export class StateMachineProcessorService {
   async loopStateMachine(
     beforeContext: ContextInterface,
     workflow: WorkflowEntity,
-    configElement: ConfigElement<WorkflowType>,
+    block: Block,
     stateMachineInfo: StateMachineInfoDto,
   ): Promise<WorkflowEntity> {
+    const config = block.config as StateMachineType;
     let context = beforeContext;
     workflow = await this.initStateMachine(workflow, stateMachineInfo);
 
-    if (!configElement.config.transitions) {
+    if (!config.transitions) {
       throw new Error(
         `Workflow ${workflow.configKey} does not have any transitions.`,
       );
@@ -332,7 +335,7 @@ export class StateMachineProcessorService {
         // exclude call property from transitions eval because this should be only
         // evaluated when called, so it received actual arguments
         const transitionsWithoutCallProperty =
-          configElement.config.transitions.map((transition) =>
+          config.transitions.map((transition) =>
             omit(transition, ['call']),
           );
         const evaluatedTransitions =
@@ -370,7 +373,7 @@ export class StateMachineProcessorService {
         transitionData.to = nextTransition.to;
 
         // get tool calls for transition
-        const toolCalls = configElement.config.transitions.find(
+        const toolCalls = config.transitions.find(
           (transition) => transition.name === transitionData.transition,
         )?.call;
 
@@ -385,6 +388,10 @@ export class StateMachineProcessorService {
               this.logger.debug(
                 `Call tool ${index} (${toolCall.tool}) on transition ${transitionData.transition}`,
               );
+
+              if (!block.metadata.imports.includes(toolCall.tool)) {
+                throw new Error(`Tool with name ${toolCall.tool} not found in scope of ${block.target.name}`);
+              }
 
               // apply the tool
               const result = await this.toolExecutionService.applyTool(
@@ -442,7 +449,7 @@ export class StateMachineProcessorService {
         this.commitWorkflowTransition(workflow, nextPlace, nextTransition);
       }
     } catch (e) {
-      this.logger.error(new ConfigTraceError(e, configElement));
+      this.logger.error(new ConfigTraceError(e, block));
 
       // roll back to original workflow so no changes are committed
       workflow = await this.workflowService.reload(workflow.id);

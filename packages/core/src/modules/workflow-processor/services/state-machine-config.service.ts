@@ -6,12 +6,10 @@ import {
   UISchemaType,
   ConfigElement,
 } from '@loopstack/shared';
-import { ConfigurationService } from '../../configuration';
 import { JSONSchemaType } from 'ajv';
 
 @Injectable()
 export class StateMachineConfigService {
-  constructor(private loopConfigService: ConfigurationService) {}
 
   public getConfig(
     configElement: ConfigElement<StateMachineType>,
@@ -36,13 +34,15 @@ export class StateMachineConfigService {
       };
     }
 
-    const parentStateMachine = this.getConfig(
-      this.loopConfigService.resolveConfig<StateMachineType>(
-        'workflows',
-        configElement.config.extends,
-        configElement.includes,
-      ),
-    );
+    const parentStateMachine = {} as ConfigElement<StateMachineType>;
+    // todo
+    // this.getConfig({}
+    //   this.loopConfigService.resolveConfig<StateMachineType>(
+    //     'workflows',
+    //     configElement.config.extends,
+    //     configElement.includes,
+    //   ),
+    // );
 
     transitions = _.unionBy(
       transitions,

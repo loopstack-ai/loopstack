@@ -46,21 +46,23 @@ export class TaskProcessorService extends WorkerHost {
         case 'run_pipeline':
           await this.runPipelineTaskProcessorService.process(task);
           break;
-        case 'create_run_pipeline':
-          await this.createRunPipelineTaskProcessorService.process(task, metadata);
-          break;
-        case 'cleanup_pipeline':
-          await this.cleanupPipelineTaskProcessorService.process(
-            task,
-            metadata,
-          );
-          break;
-        case 'create_workspace':
-          await this.createWorkspaceTaskProcessorService.process(
-            task,
-            metadata,
-          );
-          break;
+        // todo
+        // case 'create_run_pipeline':
+        //   await this.createRunPipelineTaskProcessorService.process(task, metadata);
+        //   break;
+        // case 'cleanup_pipeline':
+        //   await this.cleanupPipelineTaskProcessorService.process(
+        //     task,
+        //     metadata,
+        //   );
+        //   break;
+        //todo
+        // case 'create_workspace':
+        //   await this.createWorkspaceTaskProcessorService.process(
+        //     task,
+        //     metadata,
+        //   );
+        //   break;
       }
 
       await job.updateProgress(100);
