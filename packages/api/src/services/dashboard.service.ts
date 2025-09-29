@@ -9,7 +9,6 @@ import {
   WorkflowEntity,
   WorkflowState,
 } from '@loopstack/shared';
-import { ConfigurationService } from '@loopstack/core';
 
 export interface DashboardStats {
   workspaceCount: number;
@@ -25,7 +24,6 @@ export interface DashboardStats {
 @Injectable()
 export class DashboardService {
   constructor(
-    private readonly configService: ConfigurationService,
     @InjectRepository(PipelineEntity)
     private readonly pipelineRepository: Repository<PipelineEntity>,
     @InjectRepository(WorkflowEntity)
@@ -33,12 +31,14 @@ export class DashboardService {
   ) {}
 
   async getDashboardStats(user: string | null): Promise<DashboardStats> {
-    const workspaceCount =
-      this.configService.getAll<WorkspaceType>('workspaces').length;
-    const pipelineTypes = this.configService.getAll<PipelineType>('pipelines');
-    const automations = pipelineTypes.filter(
-      (p) => p.config.type === 'root',
-    ).length;
+    //todo
+    const workspaceCount = 0;
+      // this.configService.getAll<WorkspaceType>('workspaces').length;
+    // const pipelineTypes = this.configService.getAll<PipelineType>('pipelines');
+    const automations = 0;
+    // pipelineTypes.filter(
+    //   (p) => p.config.type === 'root',
+    // ).length;
 
     const userFilter = user === null ? IsNull() : user;
     const baseQuery = this.pipelineRepository

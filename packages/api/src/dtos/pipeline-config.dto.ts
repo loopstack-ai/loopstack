@@ -15,11 +15,4 @@ export class PipelineConfigDto {
     example: 'My Pipeline',
   })
   title: string;
-
-  @Expose()
-  @ApiProperty({
-    description: 'The workspace type for this pipeline',
-    example: 'my-workspace',
-  })
-  workspace: string;
 }
