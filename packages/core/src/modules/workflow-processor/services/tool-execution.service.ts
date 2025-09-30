@@ -54,7 +54,7 @@ export class ToolExecutionService {
     }
 
     try {
-      const zodSchema: z.ZodType | undefined = block.metadata.paramsSchema;
+      const zodSchema: z.ZodType | undefined = block.metadata.inputSchema;
 
       const hasArguments =
         toolCall.arguments && Object.keys(toolCall.arguments).length;

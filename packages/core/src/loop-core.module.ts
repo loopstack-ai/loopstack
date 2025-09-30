@@ -9,6 +9,7 @@ import { MigrationsService } from './services/migrations.service';
 import { SchedulerModule } from './modules/scheduler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MODULE_NAME_TOKEN } from '@loopstack/shared';
+import { CreateMock } from './blocks';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { MODULE_NAME_TOKEN } from '@loopstack/shared';
       useValue: 'core',
     },
     MigrationsService,
+    CreateMock
   ],
   exports: [
     ConfigurationModule,
@@ -34,6 +36,7 @@ import { MODULE_NAME_TOKEN } from '@loopstack/shared';
     PersistenceModule,
     WorkflowProcessorModule,
     SchedulerModule,
+    CreateMock
   ],
 })
 export class LoopCoreModule {}

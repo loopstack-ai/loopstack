@@ -4,9 +4,9 @@ import { Job } from 'bullmq';
 import { ScheduledTask } from '@loopstack/shared';
 import { OnEvent } from '@nestjs/event-emitter';
 import { RunPipelineTaskProcessorService } from './task-processor/run-pipeline-task-processor.service';
-import { CleanupPipelineTaskProcessorService } from './task-processor/cleanup-pipeline-task-processor.service';
-import { CreateWorkspaceTaskProcessorService } from './task-processor/create-workspace-task-processor.service';
-import { CreateRunPipelineTaskProcessorService } from './task-processor/create-run-pipeline-task-processor.service';
+// import { CleanupPipelineTaskProcessorService } from './task-processor/cleanup-pipeline-task-processor.service';
+// import { CreateWorkspaceTaskProcessorService } from './task-processor/create-workspace-task-processor.service';
+// import { CreateRunPipelineTaskProcessorService } from './task-processor/create-run-pipeline-task-processor.service';
 
 @Processor('task-queue', {
   concurrency: 1, // One job at a time
@@ -17,9 +17,9 @@ export class TaskProcessorService extends WorkerHost {
 
   constructor(
     private readonly runPipelineTaskProcessorService: RunPipelineTaskProcessorService,
-    private readonly createRunPipelineTaskProcessorService: CreateRunPipelineTaskProcessorService,
-    private readonly cleanupPipelineTaskProcessorService: CleanupPipelineTaskProcessorService,
-    private readonly createWorkspaceTaskProcessorService: CreateWorkspaceTaskProcessorService,
+    // private readonly createRunPipelineTaskProcessorService: CreateRunPipelineTaskProcessorService,
+    // private readonly cleanupPipelineTaskProcessorService: CleanupPipelineTaskProcessorService,
+    // private readonly createWorkspaceTaskProcessorService: CreateWorkspaceTaskProcessorService,
   ) {
     super();
   }

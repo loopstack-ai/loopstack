@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import {
@@ -24,7 +24,7 @@ export interface Block {
  * Discovers all classes decorated with @Block and loads their configuration files.
  */
 @Injectable()
-export class BlockRegistryService implements OnModuleInit {
+export class BlockRegistryService implements OnModuleInit, OnApplicationBootstrap {
   private logger = new Logger(BlockRegistryService.name);
   private readonly blocks = new Map<string, Block>();
 
@@ -37,7 +37,10 @@ export class BlockRegistryService implements OnModuleInit {
 
   async onModuleInit() {
     await this.discoverBlocks();
+  }
 
+  async onApplicationBootstrap() {
+    // todo move.
     this.eventEmitter.emit('configuration.initialized');
   }
 
