@@ -7,7 +7,10 @@ import {
 } from '@loopstack/shared';
 import { z } from 'zod';
 
-export abstract class Executable {
+export abstract class Tool {
+
+  type = 'tool';
+
   async apply(
     args: any,
     workflow: WorkflowEntity,

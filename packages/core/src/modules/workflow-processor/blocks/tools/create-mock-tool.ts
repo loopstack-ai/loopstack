@@ -6,7 +6,8 @@ import {
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { Logger } from '@nestjs/common';
-import { Executable, TemplateExpressionEvaluatorService } from '../../modules';
+import { TemplateExpressionEvaluatorService } from '../../services';
+import { Tool } from '../../abstract';
 
 const CreateMockInputSchema = z
   .object({
@@ -35,7 +36,7 @@ const CreateMockConfigSchema = z
   configSchema: CreateMockConfigSchema,
   documentationFile: __dirname + '/create-mock-tool.md',
 })
-export class CreateMock extends Executable {
+export class CreateMock extends Tool {
   protected readonly logger = new Logger(CreateMock.name);
 
   constructor(
