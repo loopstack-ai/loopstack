@@ -22,8 +22,33 @@ import {
   WorkflowContextService,
 } from './services';
 import { CreatePipelineService } from './services';
-import { CreateDocument, CreateMock, MessageDocument } from './blocks';
+import { MockHandler } from './handlers/mock.handler';
+import { MockService } from './blocks/services/mock.service';
+import {
+  CreateChatMessage,
+  CreateDocument,
+  CreateEntity,
+  CreateErrorMessage,
+  CreateMarkdownMessage,
+  CreatePlainMessage,
+  CreateResponse,
+  Debug,
+  CreateMock,
+  ErrorMessageDocument,
+   LoadDocument,
+  MarkdownMessageDocument,
+  MessageDocument,
+  PlainMessageDocument,
+  SetContext,
+  ResetError,
+  SqlQuery,
+  SwitchTarget,
+  UpdateDocument,
+  ValidateDocument,
+  Validate,
+} from './blocks';
 import { CreateDocumentService } from './blocks/services/create-document.service';
+import { CreateEntityService } from './blocks/services/create-entity.service';
 
 @Module({
   imports: [
@@ -48,11 +73,31 @@ import { CreateDocumentService } from './blocks/services/create-document.service
     StateMachineProcessorService,
     StateMachineConfigService,
     CreatePipelineService,
-
+    CreateChatMessage,
+    CreateEntity,
+    CreateErrorMessage,
+    CreateMarkdownMessage,
+    CreatePlainMessage,
+    CreateResponse,
+    Debug,
     CreateDocumentService,
+    CreateEntityService,
+    LoadDocument,
+    MockService,
+    MockHandler,
+    ResetError,
+    SqlQuery,
+    SwitchTarget,
+    UpdateDocument,
+    ValidateDocument,
+    Validate,
     CreateMock,
     CreateDocument,
     MessageDocument,
+    ErrorMessageDocument,
+    MarkdownMessageDocument,
+    PlainMessageDocument,
+    SetContext,
   ],
   exports: [
     RootProcessorService,
