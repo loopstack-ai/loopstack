@@ -8,3 +8,10 @@ transitions:
           input: 'AI trends 2025'
           output: 'Key AI trends include: agentic AI systems, reasoning models, and AI-powered robotics.'
         as: researchResult
+      - tool: CreateDocument
+        arguments:
+          document: MessageDocument
+          update:
+            content:
+              role: 'assistant'
+              content: 'Hello World'

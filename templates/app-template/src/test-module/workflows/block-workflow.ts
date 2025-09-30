@@ -1,8 +1,8 @@
 import { Block } from '@loopstack/shared';
-import { CreateMock } from '@loopstack/core';
+import { CreateDocument, CreateMock, MessageDocument } from '@loopstack/core';
 
 @Block({
-  imports: [CreateMock],
+  imports: [CreateMock, CreateDocument, MessageDocument],
   config: {
     type: 'stateMachine',
     title: "Block Workflow",
