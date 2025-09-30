@@ -1,5 +1,5 @@
 import { Block } from '@loopstack/shared';
-import { CreateMock } from '../tools/create-mock-tool';
+import { CreateMock } from '@loopstack/core';
 
 @Block({
   imports: [CreateMock],
