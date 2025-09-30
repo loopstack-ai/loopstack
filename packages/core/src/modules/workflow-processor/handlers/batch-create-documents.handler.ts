@@ -125,7 +125,7 @@ export class BatchCreateDocumentsHandler implements HandlerInterface {
           ),
         );
 
-        this.logger.debug(`Created document "${documentData.name}".`);
+        // this.logger.debug(`Created document "${documentData.name}".`);
       }
 
       return {

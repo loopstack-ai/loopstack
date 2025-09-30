@@ -22,7 +22,8 @@ import {
   WorkflowContextService,
 } from './services';
 import { CreatePipelineService } from './services';
-import { CreateMock } from './blocks';
+import { CreateDocument, CreateMock, MessageDocument } from './blocks';
+import { CreateDocumentService } from './blocks/services/create-document.service';
 
 @Module({
   imports: [
@@ -48,7 +49,10 @@ import { CreateMock } from './blocks';
     StateMachineConfigService,
     CreatePipelineService,
 
+    CreateDocumentService,
     CreateMock,
+    CreateDocument,
+    MessageDocument,
   ],
   exports: [
     RootProcessorService,
