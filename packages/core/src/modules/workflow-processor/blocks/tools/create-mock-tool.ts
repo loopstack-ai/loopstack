@@ -1,13 +1,8 @@
-import {
-  Block,
-  DocumentType,
-  ExecutionContext,
-  HandlerCallResult,
-} from '@loopstack/shared';
+import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
 import { z } from 'zod';
 import { Logger } from '@nestjs/common';
-import { TemplateExpressionEvaluatorService } from '../../services';
 import { Tool } from '../../abstract';
+import { MockService } from '../services/mock.service';
 
 const CreateMockInputSchema = z
   .object({
@@ -30,7 +25,7 @@ const CreateMockConfigSchema = z
 @Block({
   config: {
     type: 'tool',
-    description: "Create a mock response for debugging and testing.",
+    description: 'Create a mock response for debugging and testing.',
   },
   inputSchema: CreateMockInputSchema,
   configSchema: CreateMockConfigSchema,
@@ -39,57 +34,13 @@ const CreateMockConfigSchema = z
 export class CreateMock extends Tool {
   protected readonly logger = new Logger(CreateMock.name);
 
-  constructor(
-    protected templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-  ) {
+  constructor(protected mockService: MockService) {
     super();
   }
 
-  async execute(ctx: ExecutionContext<CreateMockInput>): Promise<HandlerCallResult> {
-
-    if (ctx.args.input) {
-      const input = this.templateExpressionEvaluatorService.parse<DocumentType>(
-        ctx.args.input,
-        {
-          args: ctx.parentArgs,
-          context: ctx.context,
-          workflow: ctx.workflow,
-          transition: ctx.transitionData,
-        },
-      );
-
-      this.logger.debug(input);
-    }
-
-    const output = ctx.args.output
-      ? this.templateExpressionEvaluatorService.parse<DocumentType>(
-        ctx.args.output,
-        {
-          args: ctx.parentArgs,
-          context: ctx.context,
-          workflow: ctx.workflow,
-          transition: ctx.transitionData,
-        },
-      )
-      : null;
-
-    if (ctx.args.error) {
-      const error = this.templateExpressionEvaluatorService.parse<string>(
-        ctx.args.error,
-        {
-          args: ctx.parentArgs,
-          context: ctx.context,
-          workflow: ctx.workflow,
-          transition: ctx.transitionData,
-        },
-      );
-
-      throw new Error(error);
-    }
-
-    return {
-      success: true,
-      data: output,
-    };
+  async execute(
+    ctx: ExecutionContext<CreateMockInput>,
+  ): Promise<HandlerCallResult> {
+    return this.mockService.createMock(ctx);
   }
 }

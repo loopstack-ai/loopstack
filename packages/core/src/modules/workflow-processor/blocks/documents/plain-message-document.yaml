@@ -1,0 +1,16 @@
+ui:
+  widget: plain-message
+schema:
+  type: object
+  properties:
+    title:
+      type: string
+    content:
+      type: string
+  additionalProperties: false
+meta:
+  level: info
+  invalidate: false
+content:
+  title: 'Text'
+  content: ''

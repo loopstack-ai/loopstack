@@ -1,2 +1,2 @@
-export * from './tools'
-export * from './documents'
+export * from './tools';
+export * from './documents';
