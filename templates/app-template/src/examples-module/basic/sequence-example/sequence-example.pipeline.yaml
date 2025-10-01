@@ -1,0 +1,4 @@
+sequence:
+  - workflow: ResearchTopicExampleWorkflow      # Step 1: Research
+  - workflow: WriteContentExampleWorkflow       # Step 2: Write content
+  - workflow: PublishContentExampleWorkflow     # Step 3: Publish

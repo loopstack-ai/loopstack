@@ -1,0 +1,18 @@
+transitions:
+  - name: research_topic
+    from: start
+    to: research_finished
+    call:
+      - tool: CreateMock   # A mock tool call returning the research result
+        arguments:
+          input: 'AI trends 2025'
+          output: 'Key AI trends include: agentic AI systems, reasoning models, and AI-powered robotics.'
+        exportContext: RESEARCH_RESULT
+  - name: show_results
+    from: research_finished
+    to: end
+    call:
+      - tool: CreateChatMessage    # Display the results in the chat
+        arguments:
+          role: 'assistant'
+          content: ${ context.variables.RESEARCH_RESULT }

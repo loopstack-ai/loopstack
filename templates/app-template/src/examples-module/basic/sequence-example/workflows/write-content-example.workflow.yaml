@@ -1,0 +1,20 @@
+transitions:
+    - name: write_content
+      from: start
+      to: content_created
+      call:
+          - tool: CreateMock   # A mock tool call returning the created content
+            arguments:
+                input: ${ context.variables.RESEARCH_RESULT }
+                output: |
+                    # Top AI Trends in 2025 
+                    Here are the key trends defining this year...
+            exportContext: CREATED_CONTENT
+    - name: show_results
+      from: content_created
+      to: end
+      call:
+          - tool: CreateChatMessage    # Display the content in the chat
+            arguments:
+                role: 'assistant'
+                content: ${ context.variables.CREATED_CONTENT }
