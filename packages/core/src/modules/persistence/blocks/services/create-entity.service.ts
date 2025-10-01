@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HandlerCallResult, ExecutionContext } from '@loopstack/shared';
-import { DynamicRepositoryService } from '../../../persistence';
+import { DynamicRepositoryService } from '../..';
 
 @Injectable()
 export class CreateEntityService {
@@ -14,6 +14,7 @@ export class CreateEntityService {
     ctx: ExecutionContext<{
       entity: string;
       data?: any;
+      items?: any[];
     }>,
   ): Promise<HandlerCallResult> {
     if (!ctx.workflow) {
@@ -24,14 +25,21 @@ export class CreateEntityService {
 
     const repository = this.dynamicRepositoryService.getRepository(
       ctx.args.entity,
-    );
+    ) as any;
 
-    const entity = repository.create(ctx.args.data || {});
-    const savedEntity = await repository.save(entity);
+    const items = ctx.args.items ?? [ctx.args.data];
+    console.log(items);
+    const entities: any[] = [];
+    for (const dto of items) {
+      // todo get the entity class and apply transformer + validator
+      entities.push(repository.create(dto));
+    }
+
+    await repository.save(entities);
 
     return {
       success: true,
-      data: savedEntity,
+      data: ctx.args.items ? entities : entities[0],
     };
   }
 }

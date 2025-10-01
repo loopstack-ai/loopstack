@@ -1,8 +1,8 @@
 import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Tool } from '../../abstract';
 import { DynamicRepositoryService } from '../../../persistence/services';
+import { Tool } from 'src/modules/workflow-processor';
 
 const SqlQueryInputSchema = z.object({
   entity: z.string(),

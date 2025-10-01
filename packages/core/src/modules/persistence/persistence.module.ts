@@ -61,6 +61,7 @@ import { SqlQueryHandler } from './handlers/sql-query.handler';
     WorkspaceService,
     DocumentService,
     NamespacesService,
+    DynamicRepositoryService,
   ],
 })
 export class PersistenceModule {}

@@ -1,17 +1,19 @@
 import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Tool } from '../../abstract';
+import { Tool } from 'src/modules/workflow-processor';
 import { CreateEntityService } from '../services/create-entity.service';
 
 const CreateEntityInputSchema = z.object({
   entity: z.string(),
-  data: z.any(),
+  data: z.any().optional(),
+  items: z.array(z.any()).optional(),
 });
 
 const CreateEntityConfigSchema = z.object({
   entity: z.string(),
-  data: z.any(),
+  data: z.any().optional(),
+  items: z.array(z.any()).optional(),
 });
 
 type CreateEntityInput = z.infer<typeof CreateEntityInputSchema>;

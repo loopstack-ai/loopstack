@@ -34,20 +34,22 @@ import {
   Debug,
   CreateMock,
   ErrorMessageDocument,
-   LoadDocument,
+  LoadDocument,
   MarkdownMessageDocument,
   MessageDocument,
   PlainMessageDocument,
   SetContext,
   ResetError,
-  SqlQuery,
   SwitchTarget,
   UpdateDocument,
   ValidateDocument,
   Validate,
+  BatchCreateMessages,
 } from './blocks';
+import { SqlQuery, BatchCreateEntity } from '../persistence/blocks/tools';
 import { CreateDocumentService } from './blocks/services/create-document.service';
-import { CreateEntityService } from './blocks/services/create-entity.service';
+import { CreateEntityService } from '../persistence/blocks/services/create-entity.service';
+import { BatchCreateDocumentsService } from './blocks/services/batch-create-documents.service';
 
 @Module({
   imports: [
@@ -78,8 +80,11 @@ import { CreateEntityService } from './blocks/services/create-entity.service';
     CreatePlainMessage,
     CreateResponse,
     Debug,
+    BatchCreateMessages,
+    BatchCreateEntity,
     CreateDocumentService,
     CreateEntityService,
+    BatchCreateDocumentsService,
     LoadDocument,
     MockService,
     MockHandler,
@@ -102,6 +107,8 @@ import { CreateEntityService } from './blocks/services/create-entity.service';
     ToolExecutionService,
     TemplateExpressionEvaluatorService,
     CreatePipelineService,
+    SqlQuery,
+    BatchCreateEntity,
   ],
 })
 export class WorkflowProcessorModule {}
