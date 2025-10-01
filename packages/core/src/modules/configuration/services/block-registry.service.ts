@@ -8,7 +8,6 @@ import {
 } from '@loopstack/shared';
 import { ConfigLoaderService } from './config-loader.service';
 import { omit } from 'lodash';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 export interface Block {
   target: any;
@@ -24,7 +23,7 @@ export interface Block {
  * Discovers all classes decorated with @Block and loads their configuration files.
  */
 @Injectable()
-export class BlockRegistryService implements OnModuleInit, OnApplicationBootstrap {
+export class BlockRegistryService implements OnModuleInit {
   private logger = new Logger(BlockRegistryService.name);
   private readonly blocks = new Map<string, Block>();
 
@@ -32,16 +31,10 @@ export class BlockRegistryService implements OnModuleInit, OnApplicationBootstra
     private readonly configLoaderService: ConfigLoaderService,
     private readonly discoveryService: DiscoveryService,
     private readonly reflector: Reflector,
-    private eventEmitter: EventEmitter2,
   ) {}
 
   async onModuleInit() {
     await this.discoverBlocks();
-  }
-
-  async onApplicationBootstrap() {
-    // todo move.
-    this.eventEmitter.emit('configuration.initialized');
   }
 
   /**

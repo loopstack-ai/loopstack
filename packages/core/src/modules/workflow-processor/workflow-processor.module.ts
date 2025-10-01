@@ -9,7 +9,6 @@ import {
   WorkflowOptionValidator,
 } from './validators';
 import {
-  StateMachineConfigService,
   StateMachineProcessorService,
   StateMachineValidatorRegistry,
   ToolExecutionService,
@@ -46,7 +45,6 @@ import { CreateDocumentService } from './blocks/services/create-document.service
     WorkflowOptionValidator,
     StateMachineValidatorRegistry,
     StateMachineProcessorService,
-    StateMachineConfigService,
     CreatePipelineService,
 
     CreateDocumentService,

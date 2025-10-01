@@ -5,10 +5,14 @@ import {
   ContextInterface,
   PipelineType,
   PipelineSequenceType,
-  PipelineFactoryType,
-  PipelineItemType,
+  PipelineFactoryConfigType,
+  PipelineItemConfigType,
   NamespacePropsSchema,
   NamespacePropsType,
+  PipelineItemSchema,
+  PipelineItemType,
+  PipelineFactorySchema,
+  PipelineFactoryType,
 } from '@loopstack/shared';
 import { NamespaceProcessorService } from './namespace-processor.service';
 import { WorkflowProcessorService } from './workflow-processor.service';
@@ -54,13 +58,14 @@ export class PipelineProcessorService {
 
   async runSequenceType(
     block: Block,
+    args: any,
     context: ContextInterface,
   ): Promise<ContextInterface> {
 
     this.logger.debug(`Running Sequence: ${block.target.name}`);
 
     const config = block.config as PipelineSequenceType;
-    const sequence: PipelineItemType[] = config.sequence;
+    const sequence: PipelineItemConfigType[] = config.sequence;
 
     this.logger.debug(`Processing sequence with ${sequence.length} items.`)
 
@@ -69,17 +74,15 @@ export class PipelineProcessorService {
 
     let lastContext = this.contextService.create(context);
     for (let i = 0; i < sequence.length; i++) {
-      const item: PipelineItemType = sequence[i];
-      const evaluatedItem = this.templateExpressionEvaluatorService.parse<{
-        name: string;
-        condition?: boolean;
-      }>(
+      const item: PipelineItemConfigType = sequence[i];
+      const evaluatedItem = this.templateExpressionEvaluatorService.parse<PipelineItemType>(
         item,
         {
+          arguments: args,
           context: lastContext,
         },
         {
-          schema: SequenceItemSchema,
+          schema: PipelineItemSchema,
           omitAliasVariables: true,
           omitUseTemplates: true,
           omitWorkflowData: true,
@@ -94,7 +97,7 @@ export class PipelineProcessorService {
       lastContext.index = this.createIndex(index, i + 1);
       lastContext = await this.processPipelineItem(
         block,
-        item,
+        evaluatedItem,
         lastContext,
       );
 
@@ -110,7 +113,8 @@ export class PipelineProcessorService {
 
   async prepareAllContexts(
     context: ContextInterface,
-    factory: PipelineFactoryType,
+    args: any,
+    config: PipelineFactoryType,
     items: string[],
   ): Promise<ContextInterface[]> {
     //create a new index level
@@ -125,10 +129,11 @@ export class PipelineProcessorService {
         meta: any;
       }>(
         {
-          label: factory.iterator.label,
-          meta: factory.iterator.meta,
+          label: config.iterator.label,
+          meta: config.iterator.meta,
         },
         {
+          arguments: args,
           context,
           item,
           index: i + 1,
@@ -166,17 +171,21 @@ export class PipelineProcessorService {
 
   async runFactoryType(
     block: Block,
+    args: any,
     context: ContextInterface,
   ): Promise<ContextInterface> {
 
     this.logger.debug(`Running Factory: ${block.target.name}`);
-    const config = block.config as PipelineFactoryType;
+    const config = block.config as PipelineFactoryConfigType;
 
-    const items = this.templateExpressionEvaluatorService.parse<string[]>(
-      config.iterator.source,
-      { context },
+    const parsedConfig = this.templateExpressionEvaluatorService.parse<PipelineFactoryType>(
+      config,
       {
-        schema: FactoryIteratorSourceSchema,
+        arguments: args,
+        context,
+      },
+      {
+        schema: PipelineFactorySchema,
         omitAliasVariables: true,
         omitUseTemplates: true,
         omitWorkflowData: true,
@@ -186,8 +195,9 @@ export class PipelineProcessorService {
     // create or load all context / namespaces
     const preparedChildContexts = await this.prepareAllContexts(
       context,
-      config,
-      items,
+      args,
+      parsedConfig,
+      parsedConfig.iterator.source,
     );
 
     // cleanup old namespaces
@@ -197,12 +207,12 @@ export class PipelineProcessorService {
     );
 
     let results: ContextInterface[] = [];
-    if (config.parallel) {
+    if (parsedConfig.parallel) {
       // process the child elements parallel
       const allItems = preparedChildContexts.map((childContext) =>
         this.processPipelineItem(
           block,
-          config.factory,
+          parsedConfig.factory,
           childContext,
         ),
       );
@@ -214,7 +224,7 @@ export class PipelineProcessorService {
       for (const childContext of preparedChildContexts) {
         const resultContext = await this.processPipelineItem(
           block,
-          config.factory,
+          parsedConfig.factory,
           childContext,
         );
 
@@ -243,6 +253,7 @@ export class PipelineProcessorService {
 
   async runPipelineType(
     block: Block,
+    args: any,
     context: ContextInterface,
   ): Promise<ContextInterface> {
     const config = block.config as PipelineType;
@@ -269,10 +280,10 @@ export class PipelineProcessorService {
     let updatedContext: ContextInterface | undefined = undefined;
     switch (config.type) {
       case 'sequence':
-        updatedContext = await this.runSequenceType(block, context);
+        updatedContext = await this.runSequenceType(block, args, context);
         break;
       case 'factory':
-        updatedContext = await this.runFactoryType(block, context);
+        updatedContext = await this.runFactoryType(block, args, context);
         break;
     }
 
@@ -309,6 +320,7 @@ export class PipelineProcessorService {
     }
 
     const itemName = item[type];
+    const itemArgs = item.args ?? {};
 
     this.logger.debug(`Processing pipeline item: ${itemName}`);
 
@@ -321,13 +333,15 @@ export class PipelineProcessorService {
       throw new Error(`Block with name ${itemName} not found.`)
     }
 
+    const parsedArgs = block.metadata.inputSchema?.parse(itemArgs);
+
     try {
       switch (block.config.type) {
         case 'factory':
         case 'sequence':
-          return await this.runPipelineType(block, context);
+          return await this.runPipelineType(block, parsedArgs, context);
         case 'stateMachine':
-          return await this.workflowProcessor.runStateMachineType(block, context);
+          return await this.workflowProcessor.runStateMachineType(block, parsedArgs, context);
       }
     } catch (e) {
       throw new ConfigTraceError(e, block);

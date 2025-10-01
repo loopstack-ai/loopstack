@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ZodError } from 'zod';
 import { TaskSchedulerService } from './task-scheduler.service';
 import {
@@ -11,7 +11,7 @@ import { StartupTask } from '@loopstack/shared/dist/schemas/startup.schema';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class TaskInitializationService {
+export class TaskInitializationService implements OnApplicationBootstrap {
   private readonly logger = new Logger(TaskInitializationService.name);
 
   constructor(
@@ -65,8 +65,7 @@ export class TaskInitializationService {
     return this.configService.get<boolean>('runStartupTasks', true);
   }
 
-  @OnEvent('configuration.initialized')
-  async handleTaskInitialization() {
+  async onApplicationBootstrap() {
     if (!this.isEnabled()) {
       this.eventEmitter.emit('tasks.initialized');
       return;

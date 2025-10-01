@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  ConfigElement,
   ContextInterface,
   HistoryTransition,
   HandlerCallResult,
@@ -13,7 +12,7 @@ import {
   WorkflowStateHistoryDto,
   WorkflowStatePlaceInfoDto,
   WorkflowTransitionType,
-  WorkflowType, StateMachineType,
+  StateMachineType,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
@@ -24,7 +23,7 @@ import { TemplateExpressionEvaluatorService } from './template-expression-evalua
 import { omit } from 'lodash';
 import { WorkflowContextService } from './workflow-context.service';
 import { z } from 'zod';
-import { Block, BlockRegistryService, ConfigTraceError } from '../../configuration';
+import { Block, ConfigTraceError } from '../../configuration';
 
 const TransitionValidationsSchema = z.array(
   z
@@ -77,22 +76,8 @@ export class StateMachineProcessorService {
     context: ContextInterface,
     workflow: WorkflowEntity,
     block: Block,
+    args: any,
   ): Promise<WorkflowEntity> {
-    const config = block.config as StateMachineType;
-
-    const args = this.templateExpressionEvaluatorService.parse<
-      Record<string, any>
-    >(
-      config.arguments,
-      { context },
-      {
-        schema: undefined, // todo: define workflow parameters to validate/parse arguments
-        omitAliasVariables: true,
-        omitUseTemplates: true,
-        omitWorkflowData: true,
-      },
-    );
-
     if (!workflow) {
       throw new Error(`No workflow entry.`);
     }
