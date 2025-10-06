@@ -18,7 +18,7 @@ import {
   PipelineSequenceType,
   WorkspaceType,
 } from '@loopstack/shared';
-import { Block, BlockRegistryService } from '@loopstack/core';
+import { BlockRegistryItem, BlockRegistryService } from '@loopstack/core';
 import { plainToInstance } from 'class-transformer';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
 import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
@@ -42,7 +42,7 @@ export class ConfigController {
     const blocks = this.blockRegistryService.getBlocksByType('workspace');
 
     const resolvedConfigs = blocks
-      .map((block: Block) => {
+      .map((block: BlockRegistryItem) => {
         const config = block.config as WorkspaceType;
         return {
           configKey: block.target.name,
