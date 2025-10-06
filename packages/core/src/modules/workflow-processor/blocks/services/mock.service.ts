@@ -5,7 +5,7 @@ import {
   DocumentType,
 } from '@loopstack/shared';
 import { TemplateExpressionEvaluatorService } from '../../services';
-import { MockHandler } from '../../handlers/mock.handler';
+import { Tool } from '../../abstract';
 
 @Injectable()
 export class MockService {
@@ -13,10 +13,10 @@ export class MockService {
 
   constructor(
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private readonly mockHandler: MockHandler,
   ) {}
 
   async createMock(
+    block: Tool,
     ctx: ExecutionContext<{
       input?: any;
       output?: any;
@@ -31,12 +31,7 @@ export class MockService {
     if (ctx.args.input) {
       parsedInput = this.templateExpressionEvaluatorService.parse<DocumentType>(
         ctx.args.input,
-        {
-          args: ctx.parentArgs,
-          context: ctx.context,
-          workflow: ctx.workflow,
-          transition: ctx.transitionData,
-        },
+        { this: block },
       );
       this.logger.debug(`Parsed input: ${JSON.stringify(parsedInput)}`);
     }
@@ -46,38 +41,22 @@ export class MockService {
       parsedOutput =
         this.templateExpressionEvaluatorService.parse<DocumentType>(
           ctx.args.output,
-          {
-            args: ctx.parentArgs,
-            context: ctx.context,
-            workflow: ctx.workflow,
-            transition: ctx.transitionData,
-          },
+          { this: block },
         );
     }
 
     if (ctx.args.error) {
       const parsedError = this.templateExpressionEvaluatorService.parse<string>(
         ctx.args.error,
-        {
-          args: ctx.parentArgs,
-          context: ctx.context,
-          workflow: ctx.workflow,
-          transition: ctx.transitionData,
-        },
+        { this: block },
       );
       throw new Error(parsedError);
     }
 
-    return this.mockHandler.apply(
-      {
-        input: parsedInput,
-        output: parsedOutput,
-      },
-      ctx.workflow,
-      ctx.context,
-      ctx.transitionData,
-      ctx.parentArgs,
-    );
+    return {
+      success: true,
+      data: parsedOutput,
+    };
   }
 
   async debug(
@@ -91,15 +70,9 @@ export class MockService {
 
     this.logger.debug(`Debug value: ${JSON.stringify(ctx.args.value)}`);
 
-    return this.mockHandler.apply(
-      {
-        input: ctx.args.value,
-        output: ctx.args.value,
-      },
-      ctx.workflow,
-      ctx.context,
-      ctx.transitionData,
-      ctx.parentArgs,
-    );
+    return {
+      success: true,
+      data: null,
+    };
   }
 }

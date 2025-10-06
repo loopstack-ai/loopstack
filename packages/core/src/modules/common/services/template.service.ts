@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ObjectExpressionHandler } from './expression-handler/object-expression.handler';
 import { TemplateExpressionHandler } from './expression-handler/template-expression.handler';
+import { Block } from '../../workflow-processor/abstract/block.abstract';
 
 export interface TemplateDetector {
   canHandle(value: any): boolean;
@@ -29,7 +30,7 @@ export class TemplateService {
   /**
    * Evaluates a value using the appropriate template handler
    */
-  evaluate(value: any, variables: Record<string, any>): any {
+  evaluate(value: any, ctx: Record<string, Block>,): any {
     // only handle string values
     if (value == null || typeof value !== 'string') {
       return value;
@@ -38,7 +39,7 @@ export class TemplateService {
     // select the appropriate handler
     for (const handler of this.handlers) {
       if (handler.canHandle(value)) {
-        return handler.process(value, variables);
+        return handler.process(value, ctx);
       }
     }
 
@@ -49,25 +50,25 @@ export class TemplateService {
   /**
    * Recursively evaluates template expressions in objects and arrays
    */
-  evaluateDeep<T = any>(obj: any, variables: Record<string, any>): T {
+  evaluateDeep<T = any>(obj: any, ctx: Record<string, Block>,): T {
     if (obj == null) {
       return obj;
     }
 
     if (Array.isArray(obj)) {
       return obj.map((item) => {
-        return this.evaluateDeep(item, variables);
+        return this.evaluateDeep(item, ctx);
       }) as T;
     }
 
     if (typeof obj === 'object') {
       const result: Record<string, any> = {};
       for (const [key, value] of Object.entries(obj)) {
-        result[key] = this.evaluateDeep(value, variables);
+        result[key] = this.evaluateDeep(value, ctx);
       }
       return result as T;
     }
 
-    return this.evaluate(obj, variables) as T;
+    return this.evaluate(obj, ctx) as T;
   }
 }

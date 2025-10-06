@@ -18,10 +18,9 @@ import {
   TemplateExpressionEvaluatorService,
   WorkflowStateService,
   RootProcessorService,
-  WorkflowContextService,
+  WorkflowContextService, BlockHelperService,
 } from './services';
 import { CreatePipelineService } from './services';
-import { MockHandler } from './handlers/mock.handler';
 import { MockService } from './blocks/services/mock.service';
 import {
   CreateChatMessage,
@@ -41,15 +40,14 @@ import {
   SetContext,
   ResetError,
   SwitchTarget,
-  UpdateDocument,
   ValidateDocument,
   Validate,
   BatchCreateMessages,
 } from './blocks';
 import { SqlQuery, BatchCreateEntity } from '../persistence/blocks/tools';
 import { CreateDocumentService } from './blocks/services/create-document.service';
-import { CreateEntityService } from '../persistence/blocks/services/create-entity.service';
-import { BatchCreateDocumentsService } from './blocks/services/batch-create-documents.service';
+import { CreateEntityService } from './blocks/services/create-entity.service';
+import { ServiceStateFactory } from './services/service-state-factory.service';
 
 @Module({
   imports: [
@@ -72,6 +70,8 @@ import { BatchCreateDocumentsService } from './blocks/services/batch-create-docu
     WorkflowOptionValidator,
     StateMachineValidatorRegistry,
     StateMachineProcessorService,
+    ServiceStateFactory,
+    BlockHelperService,
     CreatePipelineService,
     CreateChatMessage,
     CreateEntity,
@@ -87,11 +87,9 @@ import { BatchCreateDocumentsService } from './blocks/services/batch-create-docu
     BatchCreateDocumentsService,
     LoadDocument,
     MockService,
-    MockHandler,
     ResetError,
     SqlQuery,
     SwitchTarget,
-    UpdateDocument,
     ValidateDocument,
     Validate,
     CreateMock,

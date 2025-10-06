@@ -9,3 +9,4 @@ export * from './workflow-state.service';
 export * from './root-processor.service';
 export * from './workflow-context.service';
 export * from './create-pipeline.service';
+export * from './block-helper.service';

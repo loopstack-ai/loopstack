@@ -12,7 +12,7 @@ import {
   WorkflowStateHistoryDto,
   WorkflowStatePlaceInfoDto,
   WorkflowTransitionType,
-  StateMachineType,
+  StateMachineType, BlockConfigType,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
@@ -23,7 +23,8 @@ import { TemplateExpressionEvaluatorService } from './template-expression-evalua
 import { omit } from 'lodash';
 import { WorkflowContextService } from './workflow-context.service';
 import { z } from 'zod';
-import { Block, ConfigTraceError } from '../../configuration';
+import { BlockRegistryItem, ConfigTraceError } from '../../configuration';
+import { StateMachine } from '../abstract';
 
 const TransitionValidationsSchema = z.array(
   z
@@ -73,39 +74,45 @@ export class StateMachineProcessorService {
   }
 
   async processStateMachine(
-    context: ContextInterface,
     workflow: WorkflowEntity,
-    block: Block,
-    args: any,
-  ): Promise<WorkflowEntity> {
+    block: StateMachine,
+  ): Promise<StateMachine | false> {
     if (!workflow) {
       throw new Error(`No workflow entry.`);
     }
-    const validatorResult = this.canSkipRun(workflow, args);
+    const validatorResult = this.canSkipRun(workflow, block.inputs);
 
     const pendingTransition =
-      validatorResult.valid && context.transition?.workflowId === workflow.id
-        ? context.transition
+      validatorResult.valid && block.context.payload?.transition?.workflowId === workflow.id
+        ? block.context.payload?.transition
         : undefined;
 
     const stateMachineInfo = new StateMachineInfoDto(
-      args,
       pendingTransition,
       validatorResult,
     );
 
     if (stateMachineInfo.isStateValid && !pendingTransition) {
-      return workflow;
+      return false;
     }
 
     this.logger.debug(`Process state machine for workflow ${workflow!.configKey}`);
 
-    return this.loopStateMachine(
-      context,
+    const { workflow: updatedWorkflow, block: updatedBlockInstance } = await this.loopStateMachine(
       workflow,
       block,
       stateMachineInfo,
     );
+
+    if (updatedWorkflow.status === WorkflowState.Failed) {
+      updatedBlockInstance.state.error = true;
+    }
+
+    if (updatedBlockInstance.state.error || updatedWorkflow.place !== 'end') {
+      updatedBlockInstance.state.stop = true;
+    }
+
+    return updatedBlockInstance;
   }
 
   updateWorkflowState(
@@ -136,10 +143,10 @@ export class StateMachineProcessorService {
     );
   }
 
-  async initStateMachine(
+  initStateMachine(
     workflow: WorkflowEntity,
     stateMachineInfo: StateMachineInfoDto,
-  ): Promise<WorkflowEntity> {
+  ): void {
     workflow.status = WorkflowState.Running;
 
     // reset workflow to "start" if there are invalidation reasons
@@ -159,8 +166,6 @@ export class StateMachineProcessorService {
 
       this.updateWorkflowState(workflow, initialTransition);
     }
-
-    return workflow;
   }
 
   validateTransition(
@@ -216,7 +221,7 @@ export class StateMachineProcessorService {
   commitWorkflowTransition(
     workflow: WorkflowEntity,
     nextPlace: string | undefined,
-    nextTransition: TransitionInfoInterface,
+    nextTransition: TransitionMetadataInterface,
   ) {
     const place =
       nextPlace ??
@@ -284,16 +289,13 @@ export class StateMachineProcessorService {
   }
 
   async loopStateMachine(
-    beforeContext: ContextInterface,
     workflow: WorkflowEntity,
-    block: Block,
+    block: StateMachine,
     stateMachineInfo: StateMachineInfoDto,
-  ): Promise<WorkflowEntity> {
-    const config = block.config as StateMachineType;
-    let context = beforeContext;
-    workflow = await this.initStateMachine(workflow, stateMachineInfo);
+  ): Promise<{ workflow: WorkflowEntity, block: StateMachine }> {
+    this.initStateMachine(workflow, stateMachineInfo);
 
-    if (!config.transitions) {
+    if (!block.config.transitions) {
       throw new Error(
         `Workflow ${workflow.configKey} does not have any transitions.`,
       );
@@ -309,18 +311,16 @@ export class StateMachineProcessorService {
 
         this.logger.debug(`next pending transition: ${nextPending?.name ?? 'none'}`);
 
-        const transitionData: TransitionMetadataInterface = {
+        const stateMachineContext = {
           history:
             workflow.history?.history.map((item) => item.transition) ?? [],
-
-          // add the pending transition in the first iteration only
           payload: nextPending?.payload ?? null,
         };
 
         // exclude call property from transitions eval because this should be only
         // evaluated when called, so it received actual arguments
         const transitionsWithoutCallProperty =
-          config.transitions.map((transition) =>
+          block.config.transitions!.map((transition) =>
             omit(transition, ['call']),
           );
         const evaluatedTransitions =
@@ -328,12 +328,7 @@ export class StateMachineProcessorService {
             WorkflowTransitionType[]
           >(
             transitionsWithoutCallProperty,
-            {
-              arguments: stateMachineInfo.options,
-              context,
-              workflow,
-              transition: transitionData,
-            },
+            { this: block },
             {
               schema: TransitionValidationsSchema,
             },
@@ -348,18 +343,19 @@ export class StateMachineProcessorService {
           break;
         }
 
+        // update the metadata object with actual transition
+        block.setTransition({
+          ...stateMachineContext,
+          ...nextTransition,
+        });
+
         this.logger.debug(
-          `Applying next transition: ${nextTransition.transition}`,
+          `Applying next transition: ${block.currentTransition!.transition}`,
         );
 
-        // update the metadata object with actual transition
-        transitionData.transition = nextTransition.transition;
-        transitionData.from = nextTransition.from;
-        transitionData.to = nextTransition.to;
-
         // get tool calls for transition
-        const toolCalls = config.transitions.find(
-          (transition) => transition.name === transitionData.transition,
+        const toolCalls = block.config.transitions!.find(
+          (transition) => transition.name === block.currentTransition!.transition,
         )?.call;
 
         let nextPlace: string | undefined = undefined;
@@ -371,49 +367,49 @@ export class StateMachineProcessorService {
               index++;
 
               this.logger.debug(
-                `Call tool ${index} (${toolCall.tool}) on transition ${transitionData.transition}`,
+                `Call tool ${index} (${toolCall.tool}) on transition ${block.currentTransition!.transition}`,
               );
 
               if (!block.metadata.imports.includes(toolCall.tool)) {
-                throw new Error(`Tool with name ${toolCall.tool} not found in scope of ${block.target.name}`);
+                throw new Error(`Tool with name ${toolCall.tool} not found in scope of ${block.name}`);
               }
 
-              // apply the tool
-              const result = await this.toolExecutionService.applyTool(
+              // apply the tool and reassign the block instance
+              block = await this.toolExecutionService.applyTool(
                 toolCall,
-                stateMachineInfo.options,
+                block,
                 workflow,
-                context,
-                transitionData,
-                {},
               );
 
+              // todo: currently we cannot change the workflow entity in a tool call since the result of it is discarded:
               // add the response data to workflow
-              workflow = this.commitToolCallResult(
-                workflow,
-                transitionData.transition,
-                `call-${index}`,
-                toolCall,
-                result,
-              );
+              // workflow = this.commitToolCallResult(
+              //   workflow,
+              //   block.currentTransition!.transition!,
+              //   `call-${index}`,
+              //   toolCall,
+              //   result,
+              // );
 
-              // update the context for subsequent tool calls
-              if (workflow.contextVariables) {
-                context.variables = {
-                  ...context.variables,
-                  ...workflow.contextVariables,
-                };
-              }
+              // todo: also context updates should be reworked
+              // // update the context for subsequent tool calls
+              // if (workflow.contextVariables) {
+              //   context.variables = {
+              //     ...context.variables,
+              //     ...workflow.contextVariables,
+              //   };
+              // }
 
-              // set the next place, if specified
-              if (result?.place) {
-                nextPlace = result?.place;
-              }
+              // todo: also place updates should be reworked
+              // // set the next place, if specified
+              // if (result?.place) {
+              //   nextPlace = result?.place;
+              // }
             }
           }
         } catch (e) {
           // re-throw error if errors are not handled gracefully
-          if (!nextTransition.onError) {
+          if (!block.currentTransition!.onError) {
             throw e;
           }
 
@@ -421,17 +417,17 @@ export class StateMachineProcessorService {
           workflow = await this.workflowService.reload(workflow.id);
 
           // transition to error place
-          nextPlace = nextTransition.onError;
+          nextPlace = block.currentTransition!.onError;
           this.addWorkflowTransitionData(
             workflow,
-            transitionData.transition,
+            block.currentTransition!.transition!,
             'error',
             e.message,
           );
         }
 
         // apply the transition to next place
-        this.commitWorkflowTransition(workflow, nextPlace, nextTransition);
+        this.commitWorkflowTransition(workflow, nextPlace, block.currentTransition!);
       }
     } catch (e) {
       this.logger.error(new ConfigTraceError(e, block));
@@ -451,6 +447,6 @@ export class StateMachineProcessorService {
 
     await this.workflowService.save(workflow);
 
-    return workflow;
+    return { workflow, block };
   }
 }

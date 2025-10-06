@@ -9,7 +9,7 @@ import {
 import { ConfigLoaderService } from './config-loader.service';
 import { omit } from 'lodash';
 
-export interface Block {
+export interface BlockRegistryItem {
   target: any;
   provider: InstanceWrapper;
   metadata: BlockMetadata;
@@ -25,7 +25,7 @@ export interface Block {
 @Injectable()
 export class BlockRegistryService implements OnModuleInit {
   private logger = new Logger(BlockRegistryService.name);
-  private readonly blocks = new Map<string, Block>();
+  private readonly blocks = new Map<string, BlockRegistryItem>();
 
   constructor(
     private readonly configLoaderService: ConfigLoaderService,
@@ -76,7 +76,7 @@ export class BlockRegistryService implements OnModuleInit {
             imports: options.imports?.map((item: any ) => item.name) ?? []
           } as BlockMetadata;
 
-          const registeredBlock: Block = {
+          const registeredBlock: BlockRegistryItem = {
             target: metatype,
             provider,
             metadata,
@@ -104,21 +104,21 @@ export class BlockRegistryService implements OnModuleInit {
   /**
    * Gets all registered blocks
    */
-  getBlocks(): Block[] {
+  getBlocks(): BlockRegistryItem[] {
     return Array.from(this.blocks.values());
   }
 
   /**
    * Gets blocks by type
    */
-  getBlocksByType(type: BlockType): Block[] {
+  getBlocksByType(type: BlockType): BlockRegistryItem[] {
     return this.getBlocks().filter((block) => block.metadata.config.type === type);
   }
 
   /**
    * Gets a specific registered block by its class
    */
-  getBlock(target: string): Block | undefined {
-    return this.blocks.get(target) as Block;
+  getBlock(target: string): BlockRegistryItem | undefined {
+    return this.blocks.get(target) as BlockRegistryItem;
   }
 }

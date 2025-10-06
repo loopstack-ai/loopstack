@@ -40,9 +40,9 @@ export class CreateResponse extends Tool {
     };
 
     const transformedCtx = new ExecutionContext(
+      ctx.context,
       transformedInput,
       ctx.workflow,
-      ctx.context,
       ctx.transitionData,
       ctx.parentArgs,
     );

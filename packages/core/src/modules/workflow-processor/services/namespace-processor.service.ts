@@ -1,7 +1,8 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { ContextService } from '../../common';
 import { NamespacesService } from '../../persistence';
-import { ContextInterface, NamespacePropsType } from '@loopstack/shared';
+import { ContextInterface, NamespaceEntity, NamespacePropsType } from '@loopstack/shared';
+import { Block, BlockContext, BlockData } from '../abstract/block.abstract';
 
 @Injectable()
 export class NamespaceProcessorService {
@@ -15,31 +16,27 @@ export class NamespaceProcessorService {
   ) {}
 
   async createNamespace(
-    context: ContextInterface,
+    block: Block,
     props: NamespacePropsType,
-  ): Promise<ContextInterface> {
-    let clone = this.contextService.create(context);
-    clone.namespace = await this.namespacesService.create({
+  ): Promise<NamespaceEntity> {
+    return this.namespacesService.create({
       name: props.label ?? 'Group',
-      pipelineId: context.pipelineId,
-      workspaceId: context.workspaceId,
-      parent: context.namespace,
+      pipelineId: block.context.pipelineId,
+      workspaceId: block.context.workspaceId,
+      parent: block.context.namespace,
+      createdBy: block.context.userId,
       metadata: props.meta ?? {},
-      createdBy: context.userId,
     });
-    clone.labels.push(clone.namespace.name);
-
-    return clone;
   }
 
   async cleanupNamespace(
-    parentContext: ContextInterface,
-    validContexts: ContextInterface[],
+    parentBlock: Block,
+    validBlockData: Partial<BlockContext>[],
   ) {
-    const newChildNamespaceIds = validContexts.map((item) => item.namespace.id);
+    const newChildNamespaceIds = validBlockData.map((item) => item.namespace?.id).filter(v => !!v);
     const originalChildNamespaces =
       await this.namespacesService.getChildNamespaces(
-        parentContext.namespace.id,
+        parentBlock.context.namespace.id,
       );
     const danglingNamespaces = originalChildNamespaces.filter(
       (item) => !newChildNamespaceIds.includes(item.id),

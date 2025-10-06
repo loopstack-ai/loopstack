@@ -162,8 +162,8 @@ export class LoadDocument extends Tool {
     // load and filter entities based on options from database
     const result = await this.getDocumentsByQuery(
       ctx.args,
-      ctx.context.pipelineId,
-      ctx.context.workspaceId,
+      this.context.pipelineId,
+      this.context.workspaceId,
       ctx.workflow,
     );
 

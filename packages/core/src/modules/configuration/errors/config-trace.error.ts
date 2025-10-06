@@ -1,4 +1,4 @@
-import { Block } from '../services';
+import { Block } from '../../workflow-processor/abstract/block.abstract';
 
 export class ConfigTraceError extends Error {
   public readonly name = 'ConfigTraceError';
@@ -7,7 +7,7 @@ export class ConfigTraceError extends Error {
 
   constructor(
     originalError: Error,
-    block: Block | any,
+    block: Block,
   ) {
     super(originalError.message);
 
@@ -19,7 +19,7 @@ export class ConfigTraceError extends Error {
       this.originalError = originalError;
     }
 
-    this.configTrace.push(`    at ${block.config.type} (${block.target.name})`);
+    this.configTrace.push(`    at ${block.config.type} (${block.name})`);
 
     this.stack = this.formatCombinedStack();
 

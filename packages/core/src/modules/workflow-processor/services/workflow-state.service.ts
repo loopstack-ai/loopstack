@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WorkflowService } from '../../persistence';
 import {
-  ContextInterface, StateMachineType,
+  StateMachineType,
   WorkflowEntity,
 } from '@loopstack/shared';
-import { Block } from '../../configuration';
+import { StateMachine } from '../abstract';
 
 @Injectable()
 export class WorkflowStateService {
@@ -13,13 +13,12 @@ export class WorkflowStateService {
   constructor(private workflowService: WorkflowService) {}
 
   async getWorkflowState(
-    block: Block,
-    context: ContextInterface,
+    block: StateMachine,
   ): Promise<WorkflowEntity> {
     const workflow = await this.workflowService
-      .createFindQuery(context.namespace?.id, {
-        configKey: block.target.name,
-        labels: context.labels,
+      .createFindQuery(block.context.namespace?.id, {
+        configKey: block.name,
+        labels: block.context.labels,
       })
       .getOne();
 
@@ -30,14 +29,18 @@ export class WorkflowStateService {
     const config = block.config as StateMachineType;
 
     return this.workflowService.create({
-      createdBy: context.userId,
-      labels: context.labels,
-      namespace: context.namespace ?? undefined,
-      pipelineId: context.pipelineId,
-      configKey: block.target.name,
-      title: config.title ?? block.target.name,
+      createdBy: block.context.userId,
+      labels: block.context.labels,
+      namespace: block.context.namespace ?? undefined,
+      pipelineId: block.context.pipelineId,
+      configKey: block.name,
+      title: config.title ?? block.name,
       ui: config.ui ?? null,
-      index: context.index,
+      index: block.context.index,
     });
+  }
+
+  async saveWorkflow(workflow: WorkflowEntity) {
+    return this.workflowService.save(workflow);
   }
 }

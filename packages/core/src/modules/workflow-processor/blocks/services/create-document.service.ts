@@ -14,6 +14,8 @@ import { BlockRegistryService, ConfigTraceError } from '../../../configuration';
 import { DocumentService } from '../../../persistence';
 import { TemplateExpressionEvaluatorService } from '../../services';
 import { SchemaValidationError } from '../../errors';
+import { Document } from '../../abstract';
+import { ServiceStateFactory } from '../../services/service-state-factory.service';
 
 export const CreateDocumentInputSchema = z
   .object({
@@ -103,6 +105,7 @@ export class CreateDocumentService {
     private documentService: DocumentService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private readonly blockRegistryService: BlockRegistryService,
+    private readonly serviceStateFactory: ServiceStateFactory,
   ) {}
 
   async createDocument(
@@ -112,10 +115,14 @@ export class CreateDocumentService {
       throw new Error('Workflow is undefined');
     }
 
-    const documentBlock = this.blockRegistryService.getBlock(ctx.args.document);
-    if (!documentBlock) {
+    const blockRegistryItem = this.blockRegistryService.getBlock(ctx.args.document);
+    if (!blockRegistryItem) {
       throw new Error(`Document ${ctx.args.document} not found.`);
     }
+    const documentBlock = await this.serviceStateFactory.createBlockInstance<Document>(blockRegistryItem);
+    documentBlock.initDocument(
+      ctx.parentArgs,
+    )
 
     const config = documentBlock.config as DocumentConfigType;
 
@@ -127,12 +134,7 @@ export class CreateDocumentService {
       const documentSkeleton =
         this.templateExpressionEvaluatorService.parse<DocumentType>(
           omit(mergedTemplateData, ['content']),
-          {
-            arguments: ctx.parentArgs,
-            context: ctx.context,
-            workflow: ctx.workflow,
-            transition: ctx.transitionData,
-          },
+          { this: documentBlock },
           {
             schema: DocumentSchema,
           },
@@ -147,22 +149,17 @@ export class CreateDocumentService {
       const parsedDocumentContent = mergedTemplateData.content
         ? this.templateExpressionEvaluatorService.parse<DocumentType>(
           mergedTemplateData.content,
-          {
-            arguments: ctx.parentArgs,
-            context: ctx.context,
-            workflow: ctx.workflow,
-            transition: ctx.transitionData,
-          },
+          { this: documentBlock },
           // do not add schema here, we validate later
         )
         : null;
 
       // merge document skeleton with content data
       const documentData: Partial<DocumentEntity> = {
-        name: documentBlock.target.name,
+        name: documentBlock.name,
         ...documentSkeleton,
         content: parsedDocumentContent,
-        configKey: documentBlock.target.name,
+        configKey: documentBlock.name,
       };
 
       // do final strict validation
@@ -180,8 +177,10 @@ export class CreateDocumentService {
 
       // create the document entity
       const document = this.documentService.create(
+        ctx.context.workspaceId,
+        ctx.context.pipelineId,
+        ctx.context.userId,
         ctx.workflow,
-        ctx.context,
         ctx.transitionData,
         documentData,
       );

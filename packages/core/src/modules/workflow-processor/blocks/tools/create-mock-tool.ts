@@ -41,6 +41,6 @@ export class CreateMock extends Tool {
   async execute(
     ctx: ExecutionContext<CreateMockInput>,
   ): Promise<HandlerCallResult> {
-    return this.mockService.createMock(ctx);
+    return this.mockService.createMock(this, ctx);
   }
 }

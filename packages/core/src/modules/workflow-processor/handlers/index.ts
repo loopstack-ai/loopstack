@@ -1,11 +1,11 @@
 export * from './add-namespace.handler';
-export * from './create-document.handler';
-export * from './mock.handler';
+// export * from './create-document.handler';
+// export * from './mock.handler';
 export * from './load-document.handler';
 export * from './set-context.handler';
 export * from './transition-selector.handler';
-export * from './update-document.handler';
-export * from './batch-create-documents.handler';
+// export * from './update-document.handler';
+// export * from './batch-create-documents.handler';
 export * from './set-target-place.handler';
 export * from './validate.handler';
 export * from './reset-error.handler';

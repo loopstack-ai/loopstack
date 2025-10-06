@@ -1,7 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ContextService } from '../../common';
 import {
-  ContextInterface,
   PipelineEntity,
   PipelineState,
 } from '@loopstack/shared';
@@ -11,71 +9,76 @@ import {
 } from '../../persistence';
 import { PipelineProcessorService } from './pipeline-processor.service';
 import { BlockRegistryService } from '../../configuration';
+import { Block } from '../abstract/block.abstract';
+import { ServiceStateFactory } from './service-state-factory.service';
+import { Workspace } from '../abstract';
 
 @Injectable()
 export class RootProcessorService {
   private readonly logger = new Logger(RootProcessorService.name);
 
   constructor(
-    private contextService: ContextService,
     private pipelineService: PipelineService,
     private processorService: PipelineProcessorService,
     private namespacesService: NamespacesService,
     private blockRegistryService: BlockRegistryService,
+    private readonly serviceStateFactory: ServiceStateFactory,
   ) {}
 
   private async processRootPipeline(
     pipeline: PipelineEntity,
     payload: any,
-    variables?: Record<string, any>,
-  ): Promise<ContextInterface> {
+    args?: any,
+  ): Promise<Block> {
     const namespace =
       await this.namespacesService.createRootNamespace(pipeline);
 
-    const context = this.contextService.createRootContext(pipeline, {
-      labels: [...pipeline.labels, namespace.name],
-      namespace: namespace,
-      transition: payload.transition,
-      stop: false,
-      error: false,
-      variables: variables ?? {},
-    });
-
     this.logger.debug(`Running Root Pipeline: ${pipeline.configKey}`);
 
-    const workspaceConfig = this.blockRegistryService.getBlock(pipeline.workspace.configKey);
-    if (!workspaceConfig) {
+    const blockRegistryItem = this.blockRegistryService.getBlock(pipeline.workspace.configKey);
+    if (!blockRegistryItem) {
       throw new Error(`Config for workspace ${pipeline.workspace.configKey} not found.`)
     }
+    const block = await this.serviceStateFactory.createBlockInstance<Workspace>(blockRegistryItem, {
+      index: pipeline.index,
+      userId: pipeline.createdBy,
+      pipelineId: pipeline.id,
+      workspaceId: pipeline.workspaceId,
+      labels: [...pipeline.labels, namespace.name],
+      namespace: namespace,
+      payload: payload,
+    });
+
+    const parsedArgs = block.metadata.inputSchema?.parse(args);
+    block.initWorkspace(parsedArgs);
 
     return this.processorService.processPipelineItem(
-      workspaceConfig,
+      block,
       {
-        pipeline: pipeline.configKey,
+        name: pipeline.configKey,
       },
-      context,
     );
   }
 
   async runPipeline(
     pipeline: PipelineEntity,
     payload: any,
-    variables?: Record<string, any>,
-  ): Promise<ContextInterface> {
+    args?: any,
+  ): Promise<Block> {
     await this.pipelineService.setPipelineStatus(
       pipeline,
       PipelineState.Running,
     );
-    const context = await this.processRootPipeline(pipeline, payload, variables);
+    const block = await this.processRootPipeline(pipeline, payload, args);
 
-    const status = context.error
+    const status = block.state.error
       ? PipelineState.Failed
-      : context.stop
+      : block.state.stop
         ? PipelineState.Paused
         : PipelineState.Completed;
 
     await this.pipelineService.setPipelineStatus(pipeline, status);
 
-    return context;
+    return block;
   }
 }

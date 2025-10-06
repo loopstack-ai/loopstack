@@ -48,7 +48,6 @@ export class CreateEntityHandler implements HandlerInterface {
     );
 
     const items = props.items ?? [props.data];
-    console.log(items);
     const entities: ObjectLiteral[] = [];
     for (const dto of items) {
       // todo get the entity class and apply transformer + validator

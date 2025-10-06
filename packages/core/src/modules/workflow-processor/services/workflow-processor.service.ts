@@ -1,11 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineProcessorService } from './state-machine-processor.service';
-import {
-  ContextInterface,
-  WorkflowState,
-} from '@loopstack/shared';
 import { WorkflowStateService } from './workflow-state.service';
-import { Block } from '../../configuration';
+import { StateMachine } from '../abstract';
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -17,40 +13,40 @@ export class WorkflowProcessorService {
   ) {}
 
   async runStateMachineType(
-    block: Block,
+    block: StateMachine,
     args: any,
-    context: ContextInterface,
-  ) {
+  ): Promise<StateMachine> {
     // create or load state if needed
-    const currentWorkflow = await this.workflowStateService.getWorkflowState(
-      block,
-      context,
+    const currentWorkflow = await this.workflowStateService.getWorkflowState(block);
+
+    block.initWorkflow(
+      args,
+      currentWorkflow.data,
     );
 
-    const workflow =
+    const result =
       await this.stateMachineProcessorService.processStateMachine(
-        context,
         currentWorkflow,
         block,
-        args,
       );
 
-    if (workflow.status === WorkflowState.Failed) {
-      context.error = true;
+    if (false === result) {
+      return block;
     }
 
-    if (context.error || workflow.place !== 'end') {
-      context.stop = true;
-    } else {
-      // update the context if changed in workflow (required for completed/loaded workflows)
-      if (workflow.contextVariables) {
-        context.variables = {
-          ...context.variables,
-          ...workflow.contextVariables,
-        };
-      }
-    }
 
-    return context;
+    // todo: use blockInstance as primary data transfer object for state machine temporary states,
+    //   make getter functions available to template expressions
+    //   or directly call them via call function syntax as tool alternative (not sure if this is good since it is redundant with tool calls)
+    //     however: getter functions probably dont need dependency injection?
+
+    // updatedBlockInstance.researchResult = 'test123';
+
+    // export the block state and assign to persistent workflow
+    // workflow.blockState = this.serviceStateFactory.exportState(updatedBlockInstance);
+    // await this.workflowStateService.saveWorkflow(workflow);
+
+    // todo: apply changes to block?
+    return result;
   }
 }

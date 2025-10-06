@@ -14,6 +14,6 @@ export * from './load-document-tool';
 export * from './reset-error-tool';
 export * from './set-context-tool';
 export * from './switch-target-tool';
-export * from './update-document-tool';
+// export * from './update-document-tool';
 export * from './validate-document-tool';
 export * from './validate-tool';

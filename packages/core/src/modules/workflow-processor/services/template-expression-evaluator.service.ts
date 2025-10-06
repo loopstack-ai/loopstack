@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
   ContextInterface,
-  SnippetConfigType,
   TransitionMetadataInterface,
   WorkflowEntity,
 } from '@loopstack/shared';
@@ -9,6 +8,8 @@ import { TemplateService } from '../../common';
 import { get, transform } from 'lodash';
 import { z } from 'zod';
 import { SchemaValidationError, WorkflowValidationError } from '../errors';
+import { BlockRegistryItem } from '../../configuration';
+import { Block } from '../abstract/block.abstract';
 
 interface ParseOptions {
   schema?: z.ZodType;
@@ -23,8 +24,6 @@ type TemplateVariables = {
   workflow?: WorkflowEntity;
   transition?: TransitionMetadataInterface;
 } & Record<string, any>;
-
-const SNIPPETS_CONFIG_KEY = 'snippets';
 
 const DEFAULT_PARSE_OPTIONS: Partial<ParseOptions> = {
   omitAliasVariables: false,
@@ -124,7 +123,7 @@ export class TemplateExpressionEvaluatorService {
    */
   parse<T>(
     subject: any,
-    variables: TemplateVariables,
+    ctx: Record<string, Block>,
     options?: ParseOptions,
   ): T {
     if (
@@ -134,15 +133,16 @@ export class TemplateExpressionEvaluatorService {
       return subject;
     }
 
-    const mergedOptions = { ...DEFAULT_PARSE_OPTIONS, ...options };
-    const templateVariables = this.buildTemplateVariables(
-      variables,
-      mergedOptions,
-    );
+    // const mergedOptions = { ...DEFAULT_PARSE_OPTIONS, ...options };
+    // const templateVariables = this.buildTemplateVariables(
+    //   variables,
+    //   mergedOptions,
+    //
+    // );
 
     const result = this.templateService.evaluateDeep<T>(
       subject,
-      templateVariables,
+      ctx,
     );
 
     return options?.schema

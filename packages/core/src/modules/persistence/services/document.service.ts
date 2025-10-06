@@ -107,8 +107,10 @@ export class DocumentService {
   ) {}
 
   create(
+    workspaceId: string,
+    pipelineId: string,
+    userId: string,
     workflow: WorkflowEntity,
-    context: ContextInterface,
     transitionData: TransitionMetadataInterface,
     data: Partial<DocumentEntity>,
   ): DocumentEntity {
@@ -120,9 +122,9 @@ export class DocumentService {
       place: workflow!.place,
       labels: workflow!.labels,
       workflow: { id: workflow.id } as WorkflowEntity,
-      workspaceId: context.workspaceId,
-      pipelineId: context.pipelineId,
-      createdBy: context.userId,
+      workspaceId: workspaceId,
+      pipelineId: pipelineId,
+      createdBy: userId,
     });
 
     this.workflowService.addDocument(workflow, document);
