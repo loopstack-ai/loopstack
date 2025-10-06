@@ -1,2 +1,2 @@
 sequence:
-  - workflow: BlockWorkflow
+  - name: BlockWorkflow

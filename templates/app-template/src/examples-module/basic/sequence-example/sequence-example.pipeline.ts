@@ -2,6 +2,7 @@ import { Block } from '@loopstack/shared';
 import { ResearchTopicExampleWorkflow } from './workflows/research-topic-example.workflow';
 import { WriteContentExampleWorkflow } from './workflows/write-content-example.workflow';
 import { PublishContentExampleWorkflow } from './workflows/publish-content-example.workflow';
+import { Pipeline } from '@loopstack/core';
 
 @Block({
   imports: [
@@ -15,4 +16,7 @@ import { PublishContentExampleWorkflow } from './workflows/publish-content-examp
   },
   configFile: __dirname + '/sequence-example.pipeline.yaml',
 })
-export class SequenceExamplePipeline {}
+export class SequenceExamplePipeline extends Pipeline {
+  researchResult: any;
+  createdContent: any;
+}

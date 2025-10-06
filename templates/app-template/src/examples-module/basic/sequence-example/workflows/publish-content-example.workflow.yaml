@@ -7,7 +7,8 @@ transitions:
             arguments:
                 input: ${ context.variables.CREATED_CONTENT }
                 output: 'Blog post "Top AI Trends in 2025" published successfully to blog.example.com'
-            as: SUCCESS_MESSAGE
+            assign:
+              parent.successMessage: ${ this.result.data }
     - name: show_results
       from: published
       to: end
@@ -15,4 +16,4 @@ transitions:
           - tool: CreateChatMessage    # Display the success message in the chat
             arguments:
                 role: 'assistant'
-                content: ${ SUCCESS_MESSAGE }
+                content: ${ parent.successMessage }

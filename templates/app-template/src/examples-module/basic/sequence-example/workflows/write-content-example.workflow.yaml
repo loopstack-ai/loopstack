@@ -5,11 +5,15 @@ transitions:
       call:
           - tool: CreateMock   # A mock tool call returning the created content
             arguments:
-                input: ${ context.variables.RESEARCH_RESULT }
+                input: ${ parent.researchResult }
                 output: |
                     # Top AI Trends in 2025 
                     Here are the key trends defining this year...
-            exportContext: CREATED_CONTENT
+                  
+                    Based on Research:
+                    {{ parent.researchResult }}
+            assign:
+              parent.createdContent: ${ this.result.data }
     - name: show_results
       from: content_created
       to: end
@@ -17,4 +21,4 @@ transitions:
           - tool: CreateChatMessage    # Display the content in the chat
             arguments:
                 role: 'assistant'
-                content: ${ context.variables.CREATED_CONTENT }
+                content: ${ parent.createdContent }

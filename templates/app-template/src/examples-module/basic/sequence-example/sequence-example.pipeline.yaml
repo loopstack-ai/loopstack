@@ -1,4 +1,12 @@
 sequence:
-  - workflow: ResearchTopicExampleWorkflow      # Step 1: Research
-  - workflow: WriteContentExampleWorkflow       # Step 2: Write content
-  - workflow: PublishContentExampleWorkflow     # Step 3: Publish
+  - name: ResearchTopicExampleWorkflow      # Step 1: Research
+    assign:
+      parent.researchResult: ${ this.researchResult }
+  - name: WriteContentExampleWorkflow       # Step 2: Write content
+    args:
+      researchResult: ${ parent.researchResult }
+    assign:
+      parent.createdContent: ${ this.createdContent }
+  - name: PublishContentExampleWorkflow     # Step 3: Publish
+    args:
+      createdContent: ${ parent.createdContent }

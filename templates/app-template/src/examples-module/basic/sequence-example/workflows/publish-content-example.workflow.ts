@@ -1,4 +1,4 @@
-import { CreateChatMessage, CreateMock } from '@loopstack/core';
+import { CreateChatMessage, CreateMock, StateMachine } from '@loopstack/core';
 import { Block } from '@loopstack/shared';
 
 @Block({
@@ -9,4 +9,6 @@ import { Block } from '@loopstack/shared';
   },
   configFile: __dirname + '/publish-content-example.workflow.yaml',
 })
-export class PublishContentExampleWorkflow {}
+export class PublishContentExampleWorkflow extends StateMachine {
+  public successMessage: string;
+}

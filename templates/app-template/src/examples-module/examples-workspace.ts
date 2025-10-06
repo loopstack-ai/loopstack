@@ -1,5 +1,6 @@
 import { Block } from '@loopstack/shared';
 import { SequenceExamplePipeline } from './basic/sequence-example/sequence-example.pipeline';
+import { Workspace } from '@loopstack/core';
 
 @Block({
   imports: [SequenceExamplePipeline],
@@ -8,4 +9,4 @@ import { SequenceExamplePipeline } from './basic/sequence-example/sequence-examp
     title: 'Example Workspace'
   },
 })
-export class ExampleWorkspace {}
+export class ExampleWorkspace extends Workspace {}

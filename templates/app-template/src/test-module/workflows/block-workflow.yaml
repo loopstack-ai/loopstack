@@ -14,4 +14,4 @@ transitions:
           update:
             content:
               role: 'assistant'
-              content: 'Hello World'
+              content: ${ workflow.helloWorldProp }

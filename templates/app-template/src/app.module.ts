@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { LoopstackApiModule } from '@loopstack/api';
-import { LlmModule } from '@loopstack/llm';
+// import { LlmModule } from '@loopstack/llm';
 import { AuthModule, JwtAuthGuard } from '@loopstack/auth';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -28,7 +28,7 @@ import { ExamplesModule } from './examples-module/examples.module';
     LoopCoreModule,
     AuthModule.forRoot(),
     LoopstackApiModule,
-    LlmModule,
+    // LlmModule,
     TestModule,
     ExamplesModule,
   ],

@@ -1,4 +1,4 @@
-import { CreateChatMessage, CreateMock } from '@loopstack/core';
+import { CreateChatMessage, CreateMock, StateMachine } from '@loopstack/core';
 import { Block } from '@loopstack/shared';
 
 @Block({
@@ -9,4 +9,6 @@ import { Block } from '@loopstack/shared';
   },
   configFile: __dirname + '/research-topic-example.workflow.yaml',
 })
-export class ResearchTopicExampleWorkflow {}
+export class ResearchTopicExampleWorkflow extends StateMachine  {
+  researchResult: string;
+}
