@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.9.0
+
+### Minor Changes
+
+- Implement block scopes for automation components
+
 ## 0.8.1
 
 ### Patch Changes
