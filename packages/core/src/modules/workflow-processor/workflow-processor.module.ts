@@ -44,10 +44,10 @@ import {
   Validate,
   BatchCreateMessages,
 } from './blocks';
-import { SqlQuery, BatchCreateEntity } from '../persistence/blocks/tools';
+import { BatchCreateEntity } from '../persistence/blocks/tools';
 import { CreateDocumentService } from './blocks/services/create-document.service';
-import { CreateEntityService } from './blocks/services/create-entity.service';
 import { ServiceStateFactory } from './services/service-state-factory.service';
+import { BatchCreateDocumentsService } from './blocks/services/batch-create-documents.service';
 
 @Module({
   imports: [
@@ -83,12 +83,10 @@ import { ServiceStateFactory } from './services/service-state-factory.service';
     BatchCreateMessages,
     BatchCreateEntity,
     CreateDocumentService,
-    CreateEntityService,
     BatchCreateDocumentsService,
     LoadDocument,
     MockService,
     ResetError,
-    SqlQuery,
     SwitchTarget,
     ValidateDocument,
     Validate,
@@ -105,8 +103,6 @@ import { ServiceStateFactory } from './services/service-state-factory.service';
     ToolExecutionService,
     TemplateExpressionEvaluatorService,
     CreatePipelineService,
-    SqlQuery,
-    BatchCreateEntity,
   ],
 })
 export class WorkflowProcessorModule {}

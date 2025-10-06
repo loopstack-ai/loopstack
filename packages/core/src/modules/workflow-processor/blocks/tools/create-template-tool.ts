@@ -3,7 +3,6 @@ import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
 import { BlockRegistryService, ConfigTraceError } from '../../../configuration';
-import { SchemaToTemplateBuilder } from '@loopstack/schema-to-template';
 
 const CreateTemplateInputSchema = z.object({
   document: z.string(),
@@ -34,31 +33,31 @@ export class CreateTemplate extends Tool {
   async execute(
     ctx: ExecutionContext<CreateTemplateInput>,
   ): Promise<HandlerCallResult> {
-    if (!ctx.workflow) {
-      throw new Error('Workflow is undefined');
-    }
-
-    this.logger.debug(`Creating template for document ${ctx.args.document}`);
-
-    const documentBlock = this.blockRegistryService.getBlock(ctx.args.document);
-    if (!documentBlock) {
-      throw new Error(`Document ${ctx.args.document} not found.`);
-    }
-
-    try {
-      const builder = new SchemaToTemplateBuilder();
-      const outputTemplate = builder.createTemplateFromSchema(
-        documentBlock.metadata.inputSchema,
-      );
-
-      this.logger.debug(`Create template: "${documentBlock.target.name}".`);
+    // if (!ctx.workflow) {
+    //   throw new Error('Workflow is undefined');
+    // }
+    //
+    // this.logger.debug(`Creating template for document ${ctx.args.document}`);
+    //
+    // const documentBlock = this.blockRegistryService.getBlock(ctx.args.document);
+    // if (!documentBlock) {
+    //   throw new Error(`Document ${ctx.args.document} not found.`);
+    // }
+    //
+    // try {
+    //   const builder = new SchemaToTemplateBuilder();
+    //   const outputTemplate = builder.createTemplateFromSchema(
+    //     documentBlock.metadata.inputSchema,
+    //   );
+    //
+    //   this.logger.debug(`Create template: "${documentBlock.target.name}".`);
 
       return {
         success: true,
-        data: outputTemplate,
+        data: {} //outputTemplate,
       };
-    } catch (e) {
-      throw new ConfigTraceError(e as Error, documentBlock);
-    }
+    // } catch (e) {
+    //   throw new ConfigTraceError(e as Error, this);
+    // }
   }
 }

@@ -29,13 +29,14 @@ type CreateEntityInput = z.infer<typeof CreateEntityInputSchema>;
 export class CreateEntity extends Tool {
   protected readonly logger = new Logger(CreateEntity.name);
 
-  constructor(private readonly createEntityService: CreateEntityService) {
-    super();
-  }
+  // constructor(private readonly createEntityService: CreateEntityService) {
+  //   super();
+  // }
 
   async execute(
     ctx: ExecutionContext<CreateEntityInput>,
   ): Promise<HandlerCallResult> {
-    return this.createEntityService.createEntity(ctx);
+    throw 'needs implementation'
+    // return this.createEntityService.createEntity(ctx);
   }
 }

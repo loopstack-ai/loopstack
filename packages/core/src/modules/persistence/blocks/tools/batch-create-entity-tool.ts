@@ -27,13 +27,14 @@ type BatchCreateEntityInput = z.infer<typeof BatchCreateEntityInputSchema>;
 export class BatchCreateEntity extends Tool {
   protected readonly logger = new Logger(BatchCreateEntity.name);
 
-  constructor(private readonly createEntityService: CreateEntityService) {
-    super();
-  }
+  // constructor(private readonly createEntityService: CreateEntityService) {
+  //   super();
+  // }
 
   async execute(
     ctx: ExecutionContext<BatchCreateEntityInput>,
   ): Promise<HandlerCallResult> {
-    return this.createEntityService.createEntity(ctx);
+    throw 'needs implementation'
+    // return this.createEntityService.createEntity(ctx);
   }
 }
