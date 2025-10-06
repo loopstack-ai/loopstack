@@ -1,5 +1,20 @@
 # @loopstack/app-template
 
+## 0.9.0
+
+### Minor Changes
+
+- Implement block scopes for automation components
+
+### Patch Changes
+
+- Updated dependencies
+  - @loopstack/api@0.9.0
+  - @loopstack/auth@0.9.0
+  - @loopstack/core@0.9.0
+  - @loopstack/llm@0.9.0
+  - @loopstack/shared@0.9.0
+
 ## 0.8.1
 
 ### Patch Changes
