@@ -4,6 +4,21 @@ import { execSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
+// ========================================
+// MAINTENANCE MODE - TEMPORARILY DISABLED
+// ========================================
+console.log("\n🔧 MAINTENANCE MODE\n");
+console.log("━".repeat(50));
+console.log("The LoopStack installer is temporarily disabled for maintenance.");
+console.log("We're working on improvements and will be back soon!");
+console.log("━".repeat(50));
+console.log("\n💡 In the meantime:");
+console.log("   • Check our status page for updates");
+console.log("   • Visit https://github.com/loopstack-ai for more information");
+console.log("   • Contact support if you have urgent questions\n");
+process.exit(0);
+// ========================================
+
 const appName: string | undefined = process.argv[2];
 
 if (!appName) {
