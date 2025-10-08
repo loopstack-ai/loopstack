@@ -1,0 +1,15 @@
+sequence:
+  - id: initial
+    block: AlwaysExecutedWorkflow
+    args:
+      inputPath: ${ pipeline.args.inputPath }
+
+  # Option 1: Use Handlebars template expression to evaluate
+  - id: workflowA
+    block: ConditionalPathAWorkflow
+    condition: "{{#if (eq pipeline.args.inputPath 'A')}}1{{/if}}"
+
+  # Option 2: Use custom pipeline getter method to evaluate condition
+  - id: workflowB
+    block: ConditionalPathBWorkflow
+    condition: ${ pipeline.isPathB }

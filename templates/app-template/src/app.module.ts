@@ -7,7 +7,6 @@ import { AuthModule, JwtAuthGuard } from '@loopstack/auth';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { appConfig, authConfig, databaseConfig } from './app.config';
-import { TestModule } from './test-module/test.module';
 import { ExamplesModule } from './examples-module/examples.module';
 
 @Module({
@@ -29,7 +28,6 @@ import { ExamplesModule } from './examples-module/examples.module';
     AuthModule.forRoot(),
     LoopstackApiModule,
     // LlmModule,
-    TestModule,
     ExamplesModule,
   ],
   providers: [

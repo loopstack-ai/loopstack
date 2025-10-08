@@ -15,6 +15,13 @@ import {
 import {
   AccessDataUsingResultsContextWorkflow
 } from './basic/context-data-example/workflows/access-data-using-results-context.workflow';
+import { DynamicRoutingExampleWorkflow } from './basic/dynamic-routing-example/dynamic-routing-example.workflow';
+import {
+  ConditionalPipelineExampleSequence
+} from './basic/conditional-pipeline-example/conditional-pipeline-example.sequence';
+import { ConditionalPathAWorkflow } from './basic/conditional-pipeline-example/workflows/conditional-path-a.workflow';
+import { ConditionalPathBWorkflow } from './basic/conditional-pipeline-example/workflows/conditional-path-b.workflow';
+import { AlwaysExecutedWorkflow } from './basic/conditional-pipeline-example/workflows/always-executed.workflow';
 
 @Module({
   imports: [
@@ -33,6 +40,13 @@ import {
 
     CustomToolExampleWorkflow,
     MathSumTool,
+
+    DynamicRoutingExampleWorkflow,
+
+    ConditionalPipelineExampleSequence,
+    AlwaysExecutedWorkflow,
+    ConditionalPathAWorkflow,
+    ConditionalPathBWorkflow,
   ],
 })
 export class ExamplesModule {}
