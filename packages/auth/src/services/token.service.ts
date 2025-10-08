@@ -27,7 +27,7 @@ export class TokenService {
       domain: this.configService.get('auth.jwt.cookieDomain') ?? undefined,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'None',
       maxAge: this.getExpiresIn() * 1000,
     }
   }
@@ -37,7 +37,7 @@ export class TokenService {
       domain: this.configService.get('auth.jwt.cookieDomain') ?? undefined,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'None',
       maxAge: this.getRefreshExpiresIn() * 1000,
     }
   }
