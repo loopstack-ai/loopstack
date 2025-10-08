@@ -19,24 +19,12 @@ import { Factory, Pipeline, Workflow, Workspace } from '../abstract';
 import { Block, BlockContext } from '../abstract/block.abstract';
 import { BlockHelperService } from './block-helper.service';
 
-const SequenceItemSchema = z
-  .object({
-    workflow: z.string().optional(),
-    pipeline: z.string().optional(),
-    condition: z.boolean().optional(),
-  })
-  .strict();
-
 const FactoryIteratorItemSchema = z
   .object({
     label: z.string().optional(),
     meta: z.any(), //todo
   })
   .strict();
-
-const FactoryIteratorSourceSchema = z.array(
-  z.union([z.record(z.string(), z.any()), z.string()]),
-);
 
 @Injectable()
 export class PipelineProcessorService {
@@ -82,6 +70,7 @@ export class PipelineProcessorService {
       const parsedItem = this.templateExpressionEvaluatorService.parse<PipelineItemType>(
         item,
         {
+          pipeline: block,
           stepResults,
         },
         {
@@ -92,7 +81,7 @@ export class PipelineProcessorService {
         },
       );
 
-      if (parsedItem.condition === false) {
+      if (undefined !== parsedItem.condition && !parsedItem.condition) {
         this.logger.debug(`Skipping execution due to condition: ${parsedItem.id}`);
         continue;
       }

@@ -25,6 +25,7 @@ type TemplateVariables = {
 } & Record<string, any>;
 
 export interface ExpressionContext {
+  pipeline?: any;
   workflow?: any;
   this?: any;
   stepResults?: StepResultLookup;

@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { Block, ExecutionContext, HandlerCallResult, TemplateExpression } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -8,7 +8,7 @@ const SwitchTargetInputSchema = z.object({
 });
 
 const SwitchTargetConfigSchema = z.object({
-  target: z.string(),
+  target: TemplateExpression,
 });
 
 type SwitchTargetInput = z.infer<typeof SwitchTargetInputSchema>;
@@ -23,33 +23,25 @@ type SwitchTargetInput = z.infer<typeof SwitchTargetInputSchema>;
 export class SwitchTarget extends Tool {
   protected readonly logger = new Logger(SwitchTarget.name);
 
-  constructor() {
-    super();
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
   async execute(
-    ctx: ExecutionContext<SwitchTargetInput>,
   ): Promise<HandlerCallResult> {
-    if (!ctx.transitionData?.id) {
-      throw new Error('No transition available.');
-    }
-
-    const target = ctx.args.target.trim();
+    const target = this.args.target.trim();
     if (
-      (Array.isArray(ctx.transitionData.to) &&
-        !ctx.transitionData.to.includes(target)) ||
-      (!Array.isArray(ctx.transitionData.to) &&
-        ctx.transitionData.to !== target)
+      (Array.isArray(this.transition.to) &&
+        !this.transition.to.includes(target)) ||
+      (!Array.isArray(this.transition.to) &&
+        this.transition.to !== target)
     ) {
-      throw new Error(`Transition to ${target} not allowed.`);
+      throw new Error(`Transition to place "${target}" not allowed.`);
     }
 
     this.logger.debug(`Setting transition to: ${target}`);
 
     return {
       success: true,
-      place: target,
+      effects: {
+        setTransitionPlace: target
+      },
     };
   }
 }

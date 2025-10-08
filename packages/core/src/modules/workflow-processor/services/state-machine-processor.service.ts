@@ -10,7 +10,7 @@ import {
   WorkflowState,
   WorkflowStateHistoryDto,
   WorkflowStatePlaceInfoDto,
-  WorkflowTransitionType, AssignmentConfigType,
+  WorkflowTransitionType, AssignmentConfigType, ToolSideEffects,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
@@ -228,11 +228,11 @@ export class StateMachineProcessorService {
 
   commitWorkflowTransition(
     workflow: WorkflowEntity,
-    nextPlace: string | undefined,
+    effects: ToolSideEffects,
     nextTransition: TransitionMetadataInterface,
   ) {
     const place =
-      nextPlace ??
+      effects.setTransitionPlace ??
       (Array.isArray(nextTransition.to)
         ? nextTransition.to[0]
         : nextTransition.to);
@@ -369,6 +369,7 @@ export class StateMachineProcessorService {
           (transition) => transition.id === block.currentTransition!.id,
         )?.call;
 
+        const effects: ToolSideEffects = {}
         let nextPlace: string | undefined = undefined;
         let toolResults: Record<string, any> = {};
 
@@ -386,7 +387,7 @@ export class StateMachineProcessorService {
               }
 
               // apply the tool and reassign the block instance
-              const result = await this.toolExecutionService.applyTool(
+              const tool = await this.toolExecutionService.applyTool(
                 toolCall,
                 block,
                 workflow,
@@ -395,15 +396,19 @@ export class StateMachineProcessorService {
               );
 
               this.blockHelperService.assignToTargetBlock(toolCall.assign as AssignmentConfigType, {
-                this: result,
+                this: tool,
                 workflow: block,
               });
 
-              const output = result.toOutputObject()
+              const output = tool.toOutputObject()
               if (toolCall.id) {
                 toolResults[toolCall.id] = output;
               }
               toolResults[i.toString()] = output;
+
+              if (tool.result.effects) {
+                Object.assign(effects, tool.result.effects);
+              }
 
               // todo: currently we cannot change the workflow entity in a tool call since the result of it is discarded:
               // add the response data to workflow
@@ -442,8 +447,10 @@ export class StateMachineProcessorService {
           // roll back to original workflow so no changes are committed
           workflow = await this.workflowService.reload(workflow.id);
 
-          // transition to error place
-          nextPlace = block.currentTransition!.onError;
+          Object.assign(effects, {
+            setTransitionPlace: block.currentTransition!.onError,
+          } satisfies ToolSideEffects);
+
           this.addWorkflowTransitionData(
             workflow,
             block.currentTransition!.id!,
@@ -462,7 +469,7 @@ export class StateMachineProcessorService {
         block.transitionResults = transitionResults;
 
         // apply the transition to next place
-        this.commitWorkflowTransition(workflow, nextPlace, block.currentTransition!);
+        this.commitWorkflowTransition(workflow, effects, block.currentTransition!);
       }
     } catch (e) {
       this.logger.error(new ConfigTraceError(e, block));
