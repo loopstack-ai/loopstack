@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { Repository, IsNull, Brackets } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  WorkspaceType,
-  PipelineType,
   PipelineEntity,
   PipelineState,
   WorkflowEntity,
