@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.10.0
+
+### Minor Changes
+
+- Implement Block Processing
+
 ## 0.9.0
 
 ### Minor Changes
