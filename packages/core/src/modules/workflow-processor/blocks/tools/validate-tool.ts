@@ -25,10 +25,9 @@ type ValidateInput = z.infer<typeof ValidateInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Validate data against JSON schema.',
   },
-  inputSchema: ValidateInputSchema,
+  properties: ValidateInputSchema,
   configSchema: ValidateConfigSchema,
 })
 export class Validate extends Tool {

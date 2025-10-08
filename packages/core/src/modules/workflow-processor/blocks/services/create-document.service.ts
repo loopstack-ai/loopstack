@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   HandlerCallResult,
   DocumentEntity,
-  ExpressionString,
+  TemplateExpression,
   MimeTypeSchema,
   DocumentSchema,
   UISchema, JSONSchemaType, DocumentConfigType, ExecutionContext,
@@ -58,7 +58,7 @@ export const CreateDocumentConfigSchema = z
   .object({
     document: z.string(),
     validate: z.union([
-      ExpressionString,
+      TemplateExpression,
       z.literal('strict'),
       z.literal('safe'),
       z.literal('skip'),
@@ -68,20 +68,20 @@ export const CreateDocumentConfigSchema = z
         content: z.any(),
         ui: z.union([
           UISchema,
-          ExpressionString,
+          TemplateExpression,
         ]).optional(),
         schema: z.union([
           JSONSchemaType,
-          ExpressionString,
+          TemplateExpression,
         ]).optional(),
         tags: z.array(z.string()).optional(),
         meta: z
           .object({
-            mimeType: z.union([MimeTypeSchema, ExpressionString]).optional(),
-            invalidate: z.union([z.boolean(), ExpressionString]).optional(),
+            mimeType: z.union([MimeTypeSchema, TemplateExpression]).optional(),
+            invalidate: z.union([z.boolean(), TemplateExpression]).optional(),
             level: z
               .union([
-                ExpressionString,
+                TemplateExpression,
                 z.literal('debug'),
                 z.literal('info'),
                 z.literal('warning'),
@@ -134,13 +134,13 @@ export class CreateDocumentService {
       const documentSkeleton =
         this.templateExpressionEvaluatorService.parse<DocumentType>(
           omit(mergedTemplateData, ['content']),
-          { this: documentBlock },
+          { this: documentBlock.toOutputObject() },
           {
             schema: DocumentSchema,
           },
         );
 
-      const inputSchema = documentBlock.metadata.inputSchema;
+      const inputSchema = documentBlock.metadata.properties;
       if (!inputSchema && mergedTemplateData.content) {
         throw Error(`Document creates with content no schema defined.`);
       }
@@ -149,7 +149,7 @@ export class CreateDocumentService {
       const parsedDocumentContent = mergedTemplateData.content
         ? this.templateExpressionEvaluatorService.parse<DocumentType>(
           mergedTemplateData.content,
-          { this: documentBlock },
+          { this: documentBlock.toOutputObject() },
           // do not add schema here, we validate later
         )
         : null;

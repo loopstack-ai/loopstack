@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ObjectExpressionHandler } from './expression-handler/object-expression.handler';
 import { TemplateExpressionHandler } from './expression-handler/template-expression.handler';
-import { Block } from '../../workflow-processor/abstract/block.abstract';
+import { ExpressionContext } from '../../workflow-processor';
 
 export interface TemplateDetector {
   canHandle(value: any): boolean;
@@ -30,7 +30,7 @@ export class TemplateService {
   /**
    * Evaluates a value using the appropriate template handler
    */
-  evaluate(value: any, ctx: Record<string, Block>,): any {
+  evaluate(value: any, ctx: ExpressionContext): any {
     // only handle string values
     if (value == null || typeof value !== 'string') {
       return value;
@@ -50,7 +50,7 @@ export class TemplateService {
   /**
    * Recursively evaluates template expressions in objects and arrays
    */
-  evaluateDeep<T = any>(obj: any, ctx: Record<string, Block>,): T {
+  evaluateDeep<T = any>(obj: any, ctx: ExpressionContext): T {
     if (obj == null) {
       return obj;
     }

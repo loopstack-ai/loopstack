@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  ContextInterface,
   HistoryTransition,
   HandlerCallResult,
   ToolCallType,
@@ -11,8 +10,7 @@ import {
   WorkflowState,
   WorkflowStateHistoryDto,
   WorkflowStatePlaceInfoDto,
-  WorkflowTransitionType,
-  StateMachineType, BlockConfigType,
+  WorkflowTransitionType, AssignmentConfigType,
 } from '@loopstack/shared';
 import { ToolExecutionService } from './tool-execution.service';
 import { WorkflowService } from '../../persistence';
@@ -23,13 +21,22 @@ import { TemplateExpressionEvaluatorService } from './template-expression-evalua
 import { omit } from 'lodash';
 import { WorkflowContextService } from './workflow-context.service';
 import { z } from 'zod';
-import { BlockRegistryItem, ConfigTraceError } from '../../configuration';
-import { StateMachine } from '../abstract';
+import { ConfigTraceError } from '../../configuration';
+import { Pipeline, Workflow, Tool } from '../abstract';
+import { BlockHelperService } from './block-helper.service';
+
+export type StepResultLookup = Record<string, Pipeline | Workflow>;
+
+export type ToolResultLookup = Record<string, Tool>;
+
+export type TransitionResultLookup = Record<string, {
+  toolResults: ToolResultLookup
+}>;
 
 const TransitionValidationsSchema = z.array(
   z
     .object({
-      name: z.string(),
+      id: z.string(),
       from: z.union([z.string(), z.array(z.string())]).optional(),
       to: z.union([z.string(), z.array(z.string())]).optional(),
       when: z.enum(['manual', 'onEntry']).optional(),
@@ -48,6 +55,7 @@ export class StateMachineProcessorService {
     private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private readonly workflowContextService: WorkflowContextService,
+    private readonly blockHelperService: BlockHelperService,
   ) {}
 
   canSkipRun(
@@ -75,12 +83,12 @@ export class StateMachineProcessorService {
 
   async processStateMachine(
     workflow: WorkflowEntity,
-    block: StateMachine,
-  ): Promise<StateMachine | false> {
+    block: Workflow,
+  ): Promise<Workflow | false> {
     if (!workflow) {
       throw new Error(`No workflow entry.`);
     }
-    const validatorResult = this.canSkipRun(workflow, block.inputs);
+    const validatorResult = this.canSkipRun(workflow, block.args);
 
     const pendingTransition =
       validatorResult.valid && block.context.payload?.transition?.workflowId === workflow.id
@@ -192,11 +200,11 @@ export class StateMachineProcessorService {
   ): TransitionInfoInterface | null {
     let nextTransition: WorkflowTransitionType | undefined;
 
-    this.logger.debug(`Available Transitions: ${workflow.placeInfo?.availableTransitions.map((t) => t.name).join(', ')}`)
+    this.logger.debug(`Available Transitions: ${workflow.placeInfo?.availableTransitions.map((t) => t.id).join(', ')}`)
 
     if (pendingTransition) {
       nextTransition = workflow.placeInfo?.availableTransitions.find(
-        (item) => item.name === pendingTransition.name,
+        (item) => item.id === pendingTransition.id,
       );
     }
 
@@ -211,7 +219,7 @@ export class StateMachineProcessorService {
     }
 
     return {
-      transition: nextTransition.name,
+      id: nextTransition.id,
       from: workflow.place,
       to: nextTransition.to,
       onError: nextTransition.onError,
@@ -230,7 +238,7 @@ export class StateMachineProcessorService {
         : nextTransition.to);
 
     const historyItem: HistoryTransition = {
-      transition: nextTransition.transition,
+      transition: nextTransition.id,
       from: nextTransition.from,
       to: place,
     };
@@ -290,9 +298,9 @@ export class StateMachineProcessorService {
 
   async loopStateMachine(
     workflow: WorkflowEntity,
-    block: StateMachine,
+    block: Workflow,
     stateMachineInfo: StateMachineInfoDto,
-  ): Promise<{ workflow: WorkflowEntity, block: StateMachine }> {
+  ): Promise<{ workflow: WorkflowEntity, block: Workflow }> {
     this.initStateMachine(workflow, stateMachineInfo);
 
     if (!block.config.transitions) {
@@ -301,6 +309,7 @@ export class StateMachineProcessorService {
       );
     }
 
+    let transitionResults: TransitionResultLookup = {};
     try {
       const pendingTransition = [stateMachineInfo.pendingTransition];
       while (true) {
@@ -309,7 +318,7 @@ export class StateMachineProcessorService {
 
         const nextPending = pendingTransition.shift();
 
-        this.logger.debug(`next pending transition: ${nextPending?.name ?? 'none'}`);
+        this.logger.debug(`next pending transition: ${nextPending?.id ?? 'none'}`);
 
         const stateMachineContext = {
           history:
@@ -328,7 +337,9 @@ export class StateMachineProcessorService {
             WorkflowTransitionType[]
           >(
             transitionsWithoutCallProperty,
-            { this: block },
+            {
+              this: block.toOutputObject()
+            },
             {
               schema: TransitionValidationsSchema,
             },
@@ -350,24 +361,24 @@ export class StateMachineProcessorService {
         });
 
         this.logger.debug(
-          `Applying next transition: ${block.currentTransition!.transition}`,
+          `Applying next transition: ${block.currentTransition!.id}`,
         );
 
         // get tool calls for transition
         const toolCalls = block.config.transitions!.find(
-          (transition) => transition.name === block.currentTransition!.transition,
+          (transition) => transition.id === block.currentTransition!.id,
         )?.call;
 
         let nextPlace: string | undefined = undefined;
+        let toolResults: Record<string, any> = {};
+
         try {
           if (toolCalls) {
-            let index = 0;
+            let i = 0;
 
             for (const toolCall of toolCalls) {
-              index++;
-
               this.logger.debug(
-                `Call tool ${index} (${toolCall.tool}) on transition ${block.currentTransition!.transition}`,
+                `Call tool ${i} (${toolCall.tool}) on transition ${block.currentTransition!.id}`,
               );
 
               if (!block.metadata.imports.includes(toolCall.tool)) {
@@ -375,11 +386,24 @@ export class StateMachineProcessorService {
               }
 
               // apply the tool and reassign the block instance
-              block = await this.toolExecutionService.applyTool(
+              const result = await this.toolExecutionService.applyTool(
                 toolCall,
                 block,
                 workflow,
+                toolResults,
+                transitionResults,
               );
+
+              this.blockHelperService.assignToTargetBlock(toolCall.assign as AssignmentConfigType, {
+                this: result,
+                workflow: block,
+              });
+
+              const output = result.toOutputObject()
+              if (toolCall.id) {
+                toolResults[toolCall.id] = output;
+              }
+              toolResults[i.toString()] = output;
 
               // todo: currently we cannot change the workflow entity in a tool call since the result of it is discarded:
               // add the response data to workflow
@@ -405,6 +429,8 @@ export class StateMachineProcessorService {
               // if (result?.place) {
               //   nextPlace = result?.place;
               // }
+
+              i++;
             }
           }
         } catch (e) {
@@ -420,11 +446,20 @@ export class StateMachineProcessorService {
           nextPlace = block.currentTransition!.onError;
           this.addWorkflowTransitionData(
             workflow,
-            block.currentTransition!.transition!,
+            block.currentTransition!.id!,
             'error',
             e.message,
           );
         }
+
+        if (block.currentTransition?.id) {
+          transitionResults[block.currentTransition?.id] = {
+            toolResults
+          }
+        }
+
+        // update the transition result object
+        block.transitionResults = transitionResults;
 
         // apply the transition to next place
         this.commitWorkflowTransition(workflow, nextPlace, block.currentTransition!);

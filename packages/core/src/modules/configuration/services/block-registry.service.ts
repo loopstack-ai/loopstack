@@ -1,10 +1,15 @@
-import { Injectable, Logger, OnApplicationBootstrap, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import {
   BLOCK_METADATA_KEY,
   BlockConfigSchema,
-  BlockConfigType, BlockMetadata, BlockOptions, BlockType,
+  BlockConfigType,
+  BlockMetadata,
+  BlockOptions,
+  getDecoratedProperties,
+  INPUT_METADATA_KEY,
+  OUTPUT_METADATA_KEY,
 } from '@loopstack/shared';
 import { ConfigLoaderService } from './config-loader.service';
 import { omit } from 'lodash';
@@ -68,12 +73,20 @@ export class BlockRegistryService implements OnModuleInit {
             Object.assign(baseConfig, configSource.config);
           }
 
+          // override type from provider property
+          baseConfig.type = provider.instance.type;
+
           const config: BlockConfigType = BlockConfigSchema
             .parse(baseConfig);
 
+          const inputs = getDecoratedProperties(metatype, INPUT_METADATA_KEY);
+          const outputs = getDecoratedProperties(metatype, OUTPUT_METADATA_KEY);
+
           const metadata = {
             ...omit(options, ['documentationFile']),  // do not include unnecessary overhead
-            imports: options.imports?.map((item: any ) => item.name) ?? []
+            imports: options.imports?.map((item: any ) => item.name) ?? [],
+            inputProperties: inputs,
+            outputProperties: outputs,
           } as BlockMetadata;
 
           const registeredBlock: BlockRegistryItem = {
@@ -87,7 +100,7 @@ export class BlockRegistryService implements OnModuleInit {
           this.blocks.set(metatype.name, registeredBlock);
 
           this.logger.log(
-            `Registered block: ${metatype.name} (type: ${metadata.config.type})`,
+            `Registered block: ${metatype.name}`,
           );
         } catch (error) {
           this.logger.error(
@@ -111,8 +124,8 @@ export class BlockRegistryService implements OnModuleInit {
   /**
    * Gets blocks by type
    */
-  getBlocksByType(type: BlockType): BlockRegistryItem[] {
-    return this.getBlocks().filter((block) => block.metadata.config.type === type);
+  getBlocksByType(type: string): BlockRegistryItem[] {
+    return this.getBlocks().filter((block) => block.provider.instance.type === type);
   }
 
   /**

@@ -3,7 +3,7 @@ import {
   Handler,
   HandlerInterface,
   HandlerCallResult,
-  ExpressionString,
+  TemplateExpression,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { WorkflowEntity } from '@loopstack/shared';
@@ -13,7 +13,7 @@ const config = z
   .object({
     entity: z.string(),
     query: z.string(),
-    parameters: z.union([ExpressionString, z.array(z.any())]).optional(),
+    parameters: z.union([TemplateExpression, z.array(z.any())]).optional(),
   })
   .strict();
 

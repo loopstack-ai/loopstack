@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BlockRegistryService } from '../../configuration';
 import {
-  AssignmentConfigType,
-  ContextInterface,
   HandlerCallResult,
   ToolCallType,
 } from '@loopstack/shared';
@@ -10,9 +8,9 @@ import { WorkflowEntity } from '@loopstack/shared';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { z } from 'zod';
 import { ConfigTraceError } from '../../configuration';
-import { StateMachine, Tool } from '../abstract';
+import { Workflow, Tool } from '../abstract';
 import { ServiceStateFactory } from './service-state-factory.service';
-import { BlockHelperService } from './block-helper.service';
+import { ToolResultLookup, TransitionResultLookup } from './state-machine-processor.service';
 
 @Injectable()
 export class ToolExecutionService {
@@ -22,24 +20,27 @@ export class ToolExecutionService {
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private readonly blockRegistryService: BlockRegistryService,
     private readonly serviceStateFactory: ServiceStateFactory,
-    private readonly blockHelperService: BlockHelperService,
   ) {}
 
   async applyTool(
     toolCall: ToolCallType,
-    stateMachineBlock: StateMachine,
+    stateMachineBlock: Workflow,
     workflow: WorkflowEntity | undefined,
-  ): Promise<StateMachine> {
+    toolResults: ToolResultLookup,
+    transitionResults: TransitionResultLookup,
+  ): Promise<Tool> {
     this.logger.debug(
       `Tool ${toolCall.tool} called with arguments`,
-      toolCall.arguments,
+      toolCall.args,
     );
-    this.logger.debug(`Parent Arguments:`, stateMachineBlock.inputs);
+    this.logger.debug(`Parent Arguments:`, stateMachineBlock.args);
 
     const toolName = this.templateExpressionEvaluatorService.parse<string>(
       toolCall.tool,
       {
-        this: stateMachineBlock,
+        workflow: stateMachineBlock.toOutputObject(),
+        toolResults,
+        transitionResults,
       },
       {
         schema: z.string(),
@@ -52,16 +53,12 @@ export class ToolExecutionService {
     const block = await this.serviceStateFactory.createBlockInstance<Tool>(blockRegistryItem,{
       ...stateMachineBlock.context,
     });
-    block.initTool(
-      toolCall.arguments,
-      stateMachineBlock.currentTransition!,
-    )
 
     try {
-      const zodSchema: z.ZodType | undefined = block.metadata.inputSchema;
+      const zodSchema: z.ZodType | undefined = block.metadata.properties;
 
       const hasArguments =
-        toolCall.arguments && Object.keys(toolCall.arguments).length;
+        toolCall.args && Object.keys(toolCall.args).length;
 
       if (!zodSchema && hasArguments) {
         throw Error(`Tool called with arguments but no schema defined.`);
@@ -69,16 +66,23 @@ export class ToolExecutionService {
 
       const toolCallArguments = hasArguments
         ? this.templateExpressionEvaluatorService.parse<ToolCallType>(
-          toolCall.arguments,
+          toolCall.args,
           {
-            parent: stateMachineBlock,
-            this: block
+            workflow: stateMachineBlock.toOutputObject(),
+            this: block.toOutputObject(),
+            toolResults,
+            transitionResults,
           },
           {
             schema: zodSchema,
           },
         )
         : {};
+
+      block.initTool(
+        toolCallArguments,
+        stateMachineBlock.currentTransition!,
+      )
 
       let result: HandlerCallResult = await block.apply(
         toolCallArguments,
@@ -90,9 +94,7 @@ export class ToolExecutionService {
 
       block.result = result;
 
-      this.blockHelperService.assignToTargetBlock(toolCall.assign as AssignmentConfigType, block, stateMachineBlock);
-
-      return stateMachineBlock;
+      return block;
     } catch (e) {
       throw new ConfigTraceError(e, block);
     }

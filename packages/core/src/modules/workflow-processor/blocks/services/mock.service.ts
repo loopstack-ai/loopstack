@@ -31,7 +31,7 @@ export class MockService {
     if (ctx.args.input) {
       parsedInput = this.templateExpressionEvaluatorService.parse<DocumentType>(
         ctx.args.input,
-        { this: block },
+        { this: block.toOutputObject() },
       );
       this.logger.debug(`Parsed input: ${JSON.stringify(parsedInput)}`);
     }
@@ -41,14 +41,14 @@ export class MockService {
       parsedOutput =
         this.templateExpressionEvaluatorService.parse<DocumentType>(
           ctx.args.output,
-          { this: block },
+          { this: block.toOutputObject() },
         );
     }
 
     if (ctx.args.error) {
       const parsedError = this.templateExpressionEvaluatorService.parse<string>(
         ctx.args.error,
-        { this: block },
+        { this: block.toOutputObject() },
       );
       throw new Error(parsedError);
     }

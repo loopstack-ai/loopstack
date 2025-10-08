@@ -8,8 +8,6 @@ import {
   NamespacePropsType,
   PipelineItemSchema,
   PipelineItemType,
-  PipelineFactorySchema,
-  PipelineFactoryType,
 } from '@loopstack/shared';
 import { NamespaceProcessorService } from './namespace-processor.service';
 import { WorkflowProcessorService } from './workflow-processor.service';
@@ -17,10 +15,9 @@ import { TemplateExpressionEvaluatorService } from './template-expression-evalua
 import { z } from 'zod';
 import { ConfigTraceError } from '../../configuration';
 import { ServiceStateFactory } from './service-state-factory.service';
-import { Pipeline, StateMachine, Workspace } from '../abstract';
+import { Factory, Pipeline, Workflow, Workspace } from '../abstract';
 import { Block, BlockContext } from '../abstract/block.abstract';
 import { BlockHelperService } from './block-helper.service';
-import { omit } from 'lodash';
 
 const SequenceItemSchema = z
   .object({
@@ -61,7 +58,13 @@ export class PipelineProcessorService {
 
   async runSequenceType(
     block: Pipeline,
+    args: any,
   ): Promise<Pipeline> {
+
+    block.initPipeline(args);
+    block = await this.initBlockNamespace(block);
+
+    console.log(block);
 
     this.logger.debug(`Running Sequence: ${block.name}`);
 
@@ -73,12 +76,14 @@ export class PipelineProcessorService {
     // create a new index level
     const index = `${block.context.index}.0`;
 
-    let updatedBlock: Pipeline = block;
+    let stepResults: Record<string, any> = {};
     for (let i = 0; i < sequence.length; i++) {
       const item: PipelineItemConfigType = sequence[i];
       const parsedItem = this.templateExpressionEvaluatorService.parse<PipelineItemType>(
-        omit(item, ['assign']),
-        { parent: updatedBlock },
+        item,
+        {
+          stepResults,
+        },
         {
           schema: PipelineItemSchema,
           omitAliasVariables: true,
@@ -87,45 +92,45 @@ export class PipelineProcessorService {
         },
       );
 
-      // keep the original assign expression
-      const partiallyParsedItem: PipelineItemType = {
-        ...parsedItem,
-        assign: item.assign,
-      }
-
-      if (partiallyParsedItem.condition === false) {
-        this.logger.debug(`Skipping execution due to condition: ${updatedBlock.name}`);
+      if (parsedItem.condition === false) {
+        this.logger.debug(`Skipping execution due to condition: ${parsedItem.id}`);
         continue;
       }
 
       const currentIndex = this.createIndex(index, i + 1);
-      updatedBlock = await this.processPipelineItem<Pipeline>(
-        updatedBlock,
-        partiallyParsedItem,
+      const result = await this.processPipelineItem(
+        block,
+        parsedItem,
         {
           index: currentIndex,
         },
       );
 
-      if (updatedBlock.state.stop) {
+      const output = result.toOutputObject();
+      if (parsedItem.id) {
+        stepResults[parsedItem.id] = output;
+      }
+      stepResults[i.toString()] = output;
+
+      if (result.state.stop) {
         this.logger.debug(`Stopping sequence due to stop sign.`)
         break;
       }
     }
 
     this.logger.debug(`Processed all sequence items.`)
-    return updatedBlock;
+    return block;
   }
 
   async prepareAllContexts(
-    block: Pipeline,
-    config: PipelineFactoryType,
+    block: Factory,
+    config: PipelineFactoryConfigType,
     items: string[],
-  ): Promise<BlockContext[]> {
+  ): Promise<{ context: BlockContext; itemLabel: string; itemIndex: number; }[]> {
     //create a new index level
     const index = `${block.context.index}.0`;
 
-    const blockContexts: BlockContext[] = [];
+    const blockContexts: { context: BlockContext; itemLabel: string; itemIndex: number; }[] = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
 
@@ -137,7 +142,7 @@ export class PipelineProcessorService {
           label: config.iterator.label,
           meta: config.iterator.meta,
         },
-        { this: block },
+        { this: block.toOutputObject() },
         {
           schema: FactoryIteratorItemSchema,
           omitAliasVariables: true,
@@ -158,56 +163,63 @@ export class PipelineProcessorService {
         },
       );
 
-      blockContexts.push({
-        ...block.context,
-        namespace,
-        labels: [...block.context.labels, namespace.name],
-        iterationLabel: item,
-        index: this.createIndex(index, i + 1),
+      blockContexts.push({ context: {
+          ...block.context,
+          namespace,
+          labels: [...block.context.labels, namespace.name],
+          index: this.createIndex(index, i + 1),
+        },
+        itemLabel: item,
+        itemIndex: i,
       })
     }
 
     return blockContexts;
   }
 
-  async clonePipelineSetContext(block: Pipeline, context: BlockContext): Promise<Pipeline> {
+  async cloneFactorySetContext(block: Factory, data: { context: BlockContext; itemLabel: string; itemIndex: number; }): Promise<Factory> {
     const clone = await this.serviceStateFactory.createInstanceOf(block);
     clone.initBlock(
       block.name,
       block.metadata,
       block.config,
-      context,
+      data.context,
     );
-    clone.initPipeline(
-      block.inputs, //todo?
+    clone.initFactory(
+      block.args,
     );
+
+    clone.itemIndex = data.itemIndex;
+    clone.itemLabel = data.itemLabel;
 
     return clone;
   }
 
   async runFactoryType(
-    block: Pipeline,
-  ): Promise<Pipeline> {
+    block: Factory,
+    args: any,
+  ): Promise<Factory> {
+
+    block.initFactory(args);
+    block = await this.initBlockNamespace(block);
 
     this.logger.debug(`Running Factory: ${block.name}`);
     const config = block.config as PipelineFactoryConfigType;
 
-    const parsedConfig = this.templateExpressionEvaluatorService.parse<PipelineFactoryType>(
-      config,
-      { this: block },
+    // omit factory args for later
+    const items = this.templateExpressionEvaluatorService.parse<string[]>(
+      config.iterator.source,
+      { this: block.toOutputObject() },
       {
-        schema: PipelineFactorySchema,
-        omitAliasVariables: true,
-        omitUseTemplates: true,
-        omitWorkflowData: true,
+        schema: z.array(z.string()),
       },
     );
 
     // create or load all context / namespaces
     const preparedChildData = await this.prepareAllContexts(
       block,
-      parsedConfig,
-      parsedConfig.iterator.source,
+      config,
+      items,
     );
 
     // cleanup old namespaces
@@ -217,14 +229,25 @@ export class PipelineProcessorService {
     );
 
     let processedChildBlocks: Block[] = [];
-    if (parsedConfig.parallel) {
+    if (config.parallel) {
       // process the child elements parallel
       const resultBlocks = preparedChildData.map(async (childData) => {
-        const childBlock = await this.clonePipelineSetContext(block, childData);
+        const childBlock = await this.cloneFactorySetContext(block, childData);
+
+        const parsedItem = this.templateExpressionEvaluatorService.parse<PipelineItemType>(
+          config.factory,
+          {
+            this: childBlock,
+          },
+          {
+            schema: PipelineItemSchema,
+          },
+        );
+
         return this.processPipelineItem(
           childBlock,
-          parsedConfig.factory,
-          childData,
+          parsedItem,
+          childData.context,
         );
       });
 
@@ -233,11 +256,22 @@ export class PipelineProcessorService {
     } else {
       // process the child elements sequential
       for (const childData of preparedChildData) {
-        const childBlock = await this.clonePipelineSetContext(block, childData);
+        const childBlock = await this.cloneFactorySetContext(block, childData);
+
+        const parsedItem = this.templateExpressionEvaluatorService.parse<PipelineItemType>(
+          config.factory,
+          {
+            this: childBlock,
+          },
+          {
+            schema: PipelineItemSchema,
+          },
+        );
+
         const resultBlock = await this.processPipelineItem(
           childBlock,
-          parsedConfig.factory,
-          childData,
+          parsedItem,
+          childData.context,
         );
 
         processedChildBlocks.push(resultBlock);
@@ -263,17 +297,12 @@ export class PipelineProcessorService {
     return block;
   }
 
-  async runPipelineType(
-    block: Pipeline,
-    args: any,
-  ): Promise<Pipeline> {
-    block.initPipeline(args);
-
+  async initBlockNamespace<T extends Pipeline | Factory>(block: T): Promise<T> {
     if (block.config.namespace) {
       const namespaceConfig =
         this.templateExpressionEvaluatorService.parse<NamespacePropsType>(
           block.config.namespace,
-          { this: block },
+          { this: block.toOutputObject() },
           {
             schema: NamespacePropsSchema,
             omitAliasVariables: true,
@@ -289,28 +318,23 @@ export class PipelineProcessorService {
       block.context.labels = [...block.context.labels, block.context.namespace.name];
     }
 
-    switch (block.config.type) {
-      case 'sequence':
-        return this.runSequenceType(block);
-      case 'factory':
-        return this.runFactoryType(block);
-    }
+    return block;
   }
 
-  async processPipelineItem<T extends Block>(
-    parentBlock: T,
+  async processPipelineItem(
+    parentBlock: Block,
     item: PipelineItemType,
     contextUpdate?: Partial<BlockContext>,
-  ): Promise<T> {
-    this.logger.debug(`Processing pipeline item: ${item.name}`);
+  ): Promise<Pipeline | Factory | Workflow> {
+    this.logger.debug(`Processing pipeline item: ${item.block}`);
 
-    if (!parentBlock.metadata.imports.includes(item.name)) {
-      throw new Error(`Item with name ${item.name} not found in scope of ${parentBlock.name}`);
+    if (!parentBlock.metadata.imports.includes(item.block)) {
+      throw new Error(`Item with name ${item.block} not found in scope of ${parentBlock.name}`);
     }
 
-    const blockRegistryItem = this.blockRegistryService.getBlock(item.name);
+    const blockRegistryItem = this.blockRegistryService.getBlock(item.block);
     if (!blockRegistryItem) {
-      throw new Error(`Block with name ${item.name} not found.`)
+      throw new Error(`Block with name ${item.block} not found.`)
     }
 
     const block = await this.serviceStateFactory.createBlockInstance<Block>(blockRegistryItem, {
@@ -318,30 +342,19 @@ export class PipelineProcessorService {
       ...(contextUpdate ?? {}),
     });
 
-    const parsedArgs = block.metadata.inputSchema?.parse(item.args ?? {});
-
-    console.log('parentBlock', parentBlock)
-    console.log('block', block)
-    console.log('item.args', item.args)
-    console.log('parsedArgs', parsedArgs)
+    const parsedArgs = block.metadata.properties?.parse(item.args ?? {});
 
     try {
-      let resultBlock: Block | undefined;
-      switch (block.config.type) {
+      switch (block.type) {
         case 'factory':
+          return this.runFactoryType(block as Factory, parsedArgs);
         case 'sequence':
-          resultBlock = await this.runPipelineType(block as Pipeline, parsedArgs);
-          break;
-        case 'stateMachine':
-          resultBlock = await this.workflowProcessor.runStateMachineType(block as StateMachine, parsedArgs);
-          break;
+          return this.runSequenceType(block as Pipeline, parsedArgs);
+        case 'workflow':
+          return this.workflowProcessor.runStateMachineType(block as Workflow, parsedArgs);
       }
 
-      if (resultBlock && !resultBlock.state.stop && !resultBlock.state.error) {
-        this.logger.debug(`Assigning variables.`)
-        this.blockHelperService.assignToTargetBlock(item.assign, resultBlock, parentBlock);
-      }
-      return parentBlock;
+      throw new Error(`Unknown type ${block.type}`);
     } catch (e) {
       throw new ConfigTraceError(e, block);
     }

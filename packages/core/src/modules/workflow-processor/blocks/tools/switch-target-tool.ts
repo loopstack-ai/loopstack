@@ -15,10 +15,9 @@ type SwitchTargetInput = z.infer<typeof SwitchTargetInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Sets the target place for a transition to a defined value.',
   },
-  inputSchema: SwitchTargetInputSchema,
+  properties: SwitchTargetInputSchema,
   configSchema: SwitchTargetConfigSchema,
 })
 export class SwitchTarget extends Tool {
@@ -32,7 +31,7 @@ export class SwitchTarget extends Tool {
   async execute(
     ctx: ExecutionContext<SwitchTargetInput>,
   ): Promise<HandlerCallResult> {
-    if (!ctx.transitionData?.transition) {
+    if (!ctx.transitionData?.id) {
       throw new Error('No transition available.');
     }
 

@@ -1,8 +1,7 @@
 import {
   BlockConfigType,
   BlockMetadata,
-  BlockType,
-  NamespaceEntity,
+  NamespaceEntity, Output,
   TransitionPayloadInterface,
 } from '@loopstack/shared';
 
@@ -25,7 +24,6 @@ export interface BlockContext {
   payload?: {
     transition?: TransitionPayloadInterface;
   },
-  iterationLabel?: string;
 }
 
 export interface BlockState {
@@ -34,46 +32,41 @@ export interface BlockState {
 }
 
 export abstract class Block<TConfig extends BlockConfigType = BlockConfigType> {
-  #name: string;
-  #metadata: BlockMetadata;
-  #config: TConfig;
 
-  #context: BlockContext;
-  #state: BlockState;
+  abstract type: string;
+
+  name: string;
+
+  metadata: BlockMetadata;
+
+  config: TConfig;
+
+  @Output()
+  context: BlockContext;
+
+  @Output()
+  state: BlockState;
 
   initBlock(name: string, metadata: BlockMetadata, config: TConfig, context: BlockContext) {
-    this.#name = name;
-    this.#metadata = metadata;
-    this.#config = config;
-    this.#context = context;
+    this.name = name;
+    this.metadata = metadata;
+    this.config = config;
+    this.context = context;
 
-    this.#state = {
+    this.state = {
       stop: false,
       error: false,
     }
   }
 
-  get name(): string {
-    return this.#name;
+  toOutputObject() {
+    return this.metadata.outputProperties.reduce<Record<string, any>>((acc, key) => {
+      acc[key] = this[key];
+      return acc;
+    }, {});
   }
 
-  get type(): BlockType {
-    return this.#config.type;
-  }
-
-  get metadata(): BlockMetadata {
-    return this.#metadata;
-  }
-
-  get config(): TConfig {
-    return this.#config;
-  }
-
-  get context(): BlockContext {
-    return this.#context;
-  }
-
-  get state(): BlockState {
-    return this.#state;
+  isInputProperty(name: string) {
+    return this.metadata.inputProperties.includes(name);
   }
 }

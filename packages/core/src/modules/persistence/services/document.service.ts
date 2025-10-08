@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import {
   DocumentEntity,
-  ExpressionString,
+  TemplateExpression,
   WorkflowEntity,
   TransitionMetadataInterface,
 } from '@loopstack/shared';
@@ -75,8 +75,8 @@ const RawOperator = z.object({
 const PropertyCondition = z.union([
   z.string(),
   z.array(z.string()),
-  z.array(ExpressionString),
-  ExpressionString,
+  z.array(TemplateExpression),
+  TemplateExpression,
   NullOperator,
   ComparisonOperator,
   ArrayOperator,
@@ -116,7 +116,7 @@ export class DocumentService {
   ): DocumentEntity {
     const document = this.documentRepository.create({
       ...data,
-      transition: transitionData.transition,
+      transition: transitionData.id,
       index: workflow!.documents?.length ?? 0,
       workflowIndex: workflow!.index,
       place: workflow!.place,

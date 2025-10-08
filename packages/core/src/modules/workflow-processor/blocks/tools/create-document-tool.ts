@@ -13,10 +13,9 @@ import {
 
 @Block({
   config: {
-    type: 'tool',
     description: "Create a document.",
   },
-  inputSchema: CreateDocumentInputSchema,
+  properties: CreateDocumentInputSchema,
   configSchema: CreateDocumentConfigSchema,
 })
 export class CreateDocument extends Tool {

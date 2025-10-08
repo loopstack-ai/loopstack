@@ -19,10 +19,9 @@ type SetContextInput = z.infer<typeof SetContextInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Set a context.',
   },
-  inputSchema: SetContextInputSchema,
+  properties: SetContextInputSchema,
   configSchema: SetContextConfigSchema,
 })
 export class SetContext extends Tool {

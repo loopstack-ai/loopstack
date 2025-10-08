@@ -95,7 +95,7 @@ export class ObjectExpressionHandler
 
       // If the value is a getter function, invoke it
       if (typeof value === 'function') {
-        return (value as Function).call(ctx);
+        return (value as Function).call(undefined);
       }
 
       return value;

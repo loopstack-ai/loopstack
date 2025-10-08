@@ -18,10 +18,9 @@ type BatchCreateEntityInput = z.infer<typeof BatchCreateEntityInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Batch create entities.',
   },
-  inputSchema: BatchCreateEntityInputSchema,
+  properties: BatchCreateEntityInputSchema,
   configSchema: BatchCreateEntityConfigSchema,
 })
 export class BatchCreateEntity extends Tool {

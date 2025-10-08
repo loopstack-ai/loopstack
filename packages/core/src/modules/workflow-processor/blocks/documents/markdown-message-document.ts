@@ -12,7 +12,7 @@ const MarkdownMessageDocumentSchema = z.object({
     type: 'document',
     description: 'Markdown Message Document.',
   },
-  inputSchema: MarkdownMessageDocumentSchema,
+  properties: MarkdownMessageDocumentSchema,
   configSchema: MarkdownMessageDocumentSchema,
   configFile: __dirname + '/markdown-message-document.yaml',
 })

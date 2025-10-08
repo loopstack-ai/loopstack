@@ -24,10 +24,9 @@ const CreateMockConfigSchema = z
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Create a mock response for debugging and testing.',
   },
-  inputSchema: CreateMockInputSchema,
+  properties: CreateMockInputSchema,
   configSchema: CreateMockConfigSchema,
   documentationFile: __dirname + '/create-mock-tool.md',
 })

@@ -16,10 +16,9 @@ type DebugInput = z.infer<typeof DebugInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Debug tool for logging and inspecting values.',
   },
-  inputSchema: DebugInputSchema,
+  properties: DebugInputSchema,
   configSchema: DebugConfigSchema,
 })
 export class Debug extends Tool {

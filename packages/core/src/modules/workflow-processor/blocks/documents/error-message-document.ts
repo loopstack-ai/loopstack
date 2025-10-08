@@ -11,7 +11,7 @@ const ErrorMessageDocumentSchema = z.object({
     type: 'document',
     description: 'Error Message Document.',
   },
-  inputSchema: ErrorMessageDocumentSchema,
+  properties: ErrorMessageDocumentSchema,
   configSchema: ErrorMessageDocumentSchema,
   configFile: __dirname + '/error-message-document.yaml',
 })

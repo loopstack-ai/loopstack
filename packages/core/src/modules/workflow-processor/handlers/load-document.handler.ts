@@ -6,7 +6,7 @@ import {
   HandlerInterface,
   HandlerCallResult,
   TransitionMetadataInterface,
-  ExpressionString,
+  TemplateExpression,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
@@ -18,19 +18,19 @@ import {
 
 const config = z
   .object({
-    where: z.union([WhereCondition, ExpressionString]),
+    where: z.union([WhereCondition, TemplateExpression]),
     orderBy: z
       .union([
         z.record(z.string(), z.union([z.literal('ASC'), z.literal('DESC')])),
-        ExpressionString,
+        TemplateExpression,
       ])
       .optional(),
-    getMany: z.union([z.boolean(), ExpressionString]).optional(),
-    take: z.union([z.number(), ExpressionString]).optional(),
-    skip: z.union([z.number(), ExpressionString]).optional(),
-    isDependency: z.union([z.boolean(), ExpressionString]).optional(),
-    isGlobal: z.union([z.boolean(), ExpressionString]).optional(),
-    strictMode: z.union([z.boolean(), ExpressionString]).optional(),
+    getMany: z.union([z.boolean(), TemplateExpression]).optional(),
+    take: z.union([z.number(), TemplateExpression]).optional(),
+    skip: z.union([z.number(), TemplateExpression]).optional(),
+    isDependency: z.union([z.boolean(), TemplateExpression]).optional(),
+    isGlobal: z.union([z.boolean(), TemplateExpression]).optional(),
+    strictMode: z.union([z.boolean(), TemplateExpression]).optional(),
   })
   .strict();
 
@@ -116,7 +116,7 @@ export class LoadDocumentHandler implements HandlerInterface {
     result: DocumentEntity[] | DocumentEntity,
   ) {
     const prevImport: ContextImportInterface | undefined =
-      workflow.prevData?.imports?.[transitionData.transition!];
+      workflow.prevData?.imports?.[transitionData.id!];
 
     if (!workflow.dependencies) {
       workflow.dependencies = [];
@@ -154,7 +154,7 @@ export class LoadDocumentHandler implements HandlerInterface {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }
-    this.logger.debug(`Load document ${transitionData.transition}`);
+    this.logger.debug(`Load document ${transitionData.id}`);
 
     // load and filter entities based on options from database
     const result = await this.getDocumentsByQuery(

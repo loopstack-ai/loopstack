@@ -8,8 +8,7 @@ import { TemplateService } from '../../common';
 import { get, transform } from 'lodash';
 import { z } from 'zod';
 import { SchemaValidationError, WorkflowValidationError } from '../errors';
-import { BlockRegistryItem } from '../../configuration';
-import { Block } from '../abstract/block.abstract';
+import { StepResultLookup, ToolResultLookup, TransitionResultLookup } from './state-machine-processor.service';
 
 interface ParseOptions {
   schema?: z.ZodType;
@@ -25,11 +24,13 @@ type TemplateVariables = {
   transition?: TransitionMetadataInterface;
 } & Record<string, any>;
 
-const DEFAULT_PARSE_OPTIONS: Partial<ParseOptions> = {
-  omitAliasVariables: false,
-  omitWorkflowData: false,
-  omitUseTemplates: false,
-};
+export interface ExpressionContext {
+  workflow?: any;
+  this?: any;
+  stepResults?: StepResultLookup;
+  toolResults?: ToolResultLookup;
+  transitionResults?: TransitionResultLookup;
+}
 
 @Injectable()
 export class TemplateExpressionEvaluatorService {
@@ -123,7 +124,7 @@ export class TemplateExpressionEvaluatorService {
    */
   parse<T>(
     subject: any,
-    ctx: Record<string, Block>,
+    ctx: ExpressionContext,
     options?: ParseOptions,
   ): T {
     if (

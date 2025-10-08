@@ -3,7 +3,7 @@ import {
   Handler,
   HandlerInterface,
   HandlerCallResult,
-  ExpressionString,
+  TemplateExpression,
   WorkflowEntity, ContextInterface,
 } from '@loopstack/shared';
 import { z } from 'zod';
@@ -12,11 +12,11 @@ import { jsonSchemaToZod } from 'json-schema-to-zod';
 const config = z
   .object({
     documentId: z.union([
-      ExpressionString,
+      TemplateExpression,
       z.string(),
     ]),
     message: z.union([
-      ExpressionString,
+      TemplateExpression,
       z.string(),
     ]).optional(),
   })

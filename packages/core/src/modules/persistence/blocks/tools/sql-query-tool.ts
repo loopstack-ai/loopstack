@@ -24,10 +24,9 @@ type SqlQueryInput = z.infer<typeof SqlQueryInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Execute SQL queries against database entities.',
   },
-  inputSchema: SqlQueryInputSchema,
+  properties: SqlQueryInputSchema,
   configSchema: SqlQueryConfigSchema,
 })
 export class SqlQuery extends Tool {

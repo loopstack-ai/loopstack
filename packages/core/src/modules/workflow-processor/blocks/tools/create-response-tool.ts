@@ -16,10 +16,9 @@ type CreateResponseInput = z.infer<typeof CreateResponseInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Create a response document.',
   },
-  inputSchema: CreateResponseInputSchema,
+  properties: CreateResponseInputSchema,
   configSchema: CreateResponseConfigSchema,
 })
 export class CreateResponse extends Tool {

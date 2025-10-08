@@ -6,7 +6,6 @@ import {
   ObjectExpressionHandler,
   TemplateExpressionHandler,
   DateFormatterHelperService,
-  VariableSanitizerService,
   HandlebarsProcessor,
   OperatorsHelperService,
 } from './services';
@@ -24,7 +23,6 @@ import { ConfigurationModule } from '../configuration';
     HandlebarsProcessor,
     DateFormatterHelperService,
     OperatorsHelperService,
-    VariableSanitizerService,
   ],
   exports: [ClientMessageService, ContextService, TemplateService],
 })

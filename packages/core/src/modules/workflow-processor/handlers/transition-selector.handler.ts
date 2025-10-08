@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
-  ExpressionString,
+  TemplateExpression,
   Handler,
   HandlerInterface,
   HandlerCallResult,
@@ -12,7 +12,7 @@ const config = z
     transitions: z.array(
       z.object({
         place: z.string(),
-        condition: ExpressionString.optional(),
+        condition: TemplateExpression.optional(),
       }),
     ),
   })

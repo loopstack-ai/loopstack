@@ -20,10 +20,9 @@ type CreateMarkdownMessageInput = z.infer<
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Create a markdown message.',
   },
-  inputSchema: CreateMarkdownMessageInputSchema,
+  properties: CreateMarkdownMessageInputSchema,
   configSchema: CreateMarkdownMessageConfigSchema,
 })
 export class CreateMarkdownMessage extends Tool {

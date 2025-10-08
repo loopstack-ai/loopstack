@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineProcessorService } from './state-machine-processor.service';
 import { WorkflowStateService } from './workflow-state.service';
-import { StateMachine } from '../abstract';
+import { Workflow } from '../abstract';
 
 @Injectable()
 export class WorkflowProcessorService {
@@ -13,9 +13,9 @@ export class WorkflowProcessorService {
   ) {}
 
   async runStateMachineType(
-    block: StateMachine,
+    block: Workflow,
     args: any,
-  ): Promise<StateMachine> {
+  ): Promise<Workflow> {
     // create or load state if needed
     const currentWorkflow = await this.workflowStateService.getWorkflowState(block);
 

@@ -19,7 +19,7 @@ export class ConfigTraceError extends Error {
       this.originalError = originalError;
     }
 
-    this.configTrace.push(`    at ${block.config.type} (${block.name})`);
+    this.configTrace.push(`    at ${block.type} (${block.name})`);
 
     this.stack = this.formatCombinedStack();
 

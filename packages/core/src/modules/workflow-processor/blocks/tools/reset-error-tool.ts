@@ -11,10 +11,9 @@ type ResetErrorInput = z.infer<typeof ResetErrorInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Reset the error state of the workflow.',
   },
-  inputSchema: ResetErrorInputSchema,
+  properties: ResetErrorInputSchema,
   configSchema: ResetErrorConfigSchema,
 })
 export class ResetError extends Tool {

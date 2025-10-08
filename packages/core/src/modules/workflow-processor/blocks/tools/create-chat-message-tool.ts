@@ -52,10 +52,9 @@ type CreateChatMessageInput = z.infer<typeof CreateChatMessageInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Create a chat message.',
   },
-  inputSchema: CreateChatMessageInputSchema,
+  properties: CreateChatMessageInputSchema,
   configSchema: CreateChatMessageConfigSchema,
 })
 export class CreateChatMessage extends Tool {

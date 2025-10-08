@@ -1,13 +1,21 @@
-import { ContextInterface, StateMachineType, TransitionMetadataInterface } from '@loopstack/shared';
+import { Output, WorkflowType, TransitionMetadataInterface } from '@loopstack/shared';
 import { Block } from './block.abstract';
 import { cloneDeep } from 'lodash';
 import { Record } from 'openai/core';
+import { TransitionResultLookup } from '../services';
 
-export abstract class StateMachine<TConfig extends StateMachineType = StateMachineType> extends Block<TConfig> {
-  // inputs
-  #inputs: Record<string, any>; // args prev. options
+export abstract class Workflow<TConfig extends WorkflowType = WorkflowType> extends Block<TConfig> {
 
-  #transition: TransitionMetadataInterface | null;
+  type = 'workflow';
+
+  @Output()
+  args: Record<string, any>; // args prev. options
+
+  @Output()
+  currentTransition: TransitionMetadataInterface | null;
+
+  @Output()
+  transitionResults: TransitionResultLookup;
 
   // old:
   // prevData?: Record<string, Record<string, any>> | null;
@@ -30,8 +38,8 @@ export abstract class StateMachine<TConfig extends StateMachineType = StateMachi
     inputs: Record<string, any>,
     data: any,
   ) {
-    this.#inputs = inputs || {};
-    this.#transition = null;
+    this.args = inputs || {};
+    this.currentTransition = null;
 
     if (data) {
       this.populate(data);
@@ -39,14 +47,6 @@ export abstract class StateMachine<TConfig extends StateMachineType = StateMachi
   }
 
   public setTransition(transition: TransitionMetadataInterface | null) {
-    this.#transition = transition;
-  }
-
-  get inputs(): Record<string, any> {
-    return this.#inputs;
-  }
-
-  get currentTransition(): TransitionMetadataInterface | null {
-    return this.#transition;
+    this.currentTransition = transition;
   }
 }

@@ -14,7 +14,7 @@ const MessageDocumentSchema = z.object({
     type: 'document',
     description: "Message Document.",
   },
-  inputSchema: MessageDocumentSchema,
+  properties: MessageDocumentSchema,
   configSchema: MessageDocumentSchema,
   configFile: __dirname + '/message-document.yaml',
 })

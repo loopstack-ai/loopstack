@@ -18,10 +18,9 @@ type CreatePlainMessageInput = z.infer<typeof CreatePlainMessageInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Create a plain message.',
   },
-  inputSchema: CreatePlainMessageInputSchema,
+  properties: CreatePlainMessageInputSchema,
   configSchema: CreatePlainMessageConfigSchema,
 })
 export class CreatePlainMessage extends Tool {

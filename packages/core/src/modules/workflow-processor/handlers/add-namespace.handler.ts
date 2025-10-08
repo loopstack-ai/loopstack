@@ -7,13 +7,13 @@ import {
   HandlerCallResult,
   WorkflowEntity,
   NamespacePropsSchema,
-  ExpressionString,
+  TemplateExpression,
 } from '@loopstack/shared';
 import { NamespacesService } from '../../persistence';
 
 const config = z
   .object({
-    label: z.union([z.string(), ExpressionString]),
+    label: z.union([z.string(), TemplateExpression]),
     meta: z.any().optional(),
   })
   .strict();

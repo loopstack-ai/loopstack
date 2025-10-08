@@ -18,10 +18,9 @@ type ValidateDocumentInput = z.infer<typeof ValidateDocumentInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Validate document against its schema.',
   },
-  inputSchema: ValidateDocumentInputSchema,
+  properties: ValidateDocumentInputSchema,
   configSchema: ValidateDocumentConfigSchema,
 })
 export class ValidateDocument extends Tool {

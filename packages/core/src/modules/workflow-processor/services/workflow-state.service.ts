@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WorkflowService } from '../../persistence';
 import {
-  StateMachineType,
+  WorkflowType,
   WorkflowEntity,
 } from '@loopstack/shared';
-import { StateMachine } from '../abstract';
+import { Workflow } from '../abstract';
 
 @Injectable()
 export class WorkflowStateService {
@@ -13,7 +13,7 @@ export class WorkflowStateService {
   constructor(private workflowService: WorkflowService) {}
 
   async getWorkflowState(
-    block: StateMachine,
+    block: Workflow,
   ): Promise<WorkflowEntity> {
     const workflow = await this.workflowService
       .createFindQuery(block.context.namespace?.id, {
@@ -26,7 +26,7 @@ export class WorkflowStateService {
       return workflow;
     }
 
-    const config = block.config as StateMachineType;
+    const config = block.config as WorkflowType;
 
     return this.workflowService.create({
       createdBy: block.context.userId,

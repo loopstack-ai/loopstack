@@ -16,10 +16,9 @@ type CreateTemplateInput = z.infer<typeof CreateTemplateInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Create a template from a document schema.',
   },
-  inputSchema: CreateTemplateInputSchema,
+  properties: CreateTemplateInputSchema,
   configSchema: CreateTemplateConfigSchema,
 })
 export class CreateTemplate extends Tool {

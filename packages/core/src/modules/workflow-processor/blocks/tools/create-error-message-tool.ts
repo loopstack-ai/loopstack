@@ -16,10 +16,9 @@ type CreateErrorMessageInput = z.infer<typeof CreateErrorMessageInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Create an error message.',
   },
-  inputSchema: CreateErrorMessageInputSchema,
+  properties: CreateErrorMessageInputSchema,
   configSchema: CreateErrorMessageConfigSchema,
 })
 export class CreateErrorMessage extends Tool {

@@ -31,9 +31,9 @@ export class NamespaceProcessorService {
 
   async cleanupNamespace(
     parentBlock: Block,
-    validBlockData: Partial<BlockContext>[],
+    validBlockData: { context: BlockContext; }[],
   ) {
-    const newChildNamespaceIds = validBlockData.map((item) => item.namespace?.id).filter(v => !!v);
+    const newChildNamespaceIds = validBlockData.map((item) => item.context.namespace?.id).filter(v => !!v);
     const originalChildNamespaces =
       await this.namespacesService.getChildNamespaces(
         parentBlock.context.namespace.id,

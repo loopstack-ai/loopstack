@@ -1,6 +1,6 @@
 import {
   ExecutionContext,
-  HandlerCallResult,
+  HandlerCallResult, Output,
   ToolConfigType,
   TransitionMetadataInterface,
   WorkflowEntity,
@@ -10,19 +10,24 @@ import { Block } from './block.abstract';
 import { Record } from 'openai/core';
 
 export abstract class Tool<TConfig extends ToolConfigType = ToolConfigType> extends Block<TConfig> {
-  // inputs
-  #inputs: Record<string, any>; // args prev. options
 
-  #transition: TransitionMetadataInterface;
+  type = 'tool';
 
+  @Output()
+  args: Record<string, any>; // args prev. options
+
+  @Output()
+  transition: TransitionMetadataInterface;
+
+  @Output()
   result: HandlerCallResult;
 
   public initTool(
-    inputs: Record<string, any>,
+    args: Record<string, any>,
     transition: TransitionMetadataInterface,
   ) {
-    this.#inputs = inputs || {};
-    this.#transition = transition;
+    this.args = args || {};
+    this.transition = transition;
   }
 
   async apply(
@@ -34,7 +39,7 @@ export abstract class Tool<TConfig extends ToolConfigType = ToolConfigType> exte
       args,
       workflow,
       this.transition,
-      this.inputs,
+      this.args,
     );
 
     return this.execute(executionContext);
@@ -43,12 +48,4 @@ export abstract class Tool<TConfig extends ToolConfigType = ToolConfigType> exte
   protected abstract execute<TSchema extends z.ZodType>(
     ctx: ExecutionContext<z.infer<TSchema>>,
   ): Promise<HandlerCallResult>;
-
-  get inputs(): Record<string, any> {
-    return this.#inputs;
-  }
-
-  get transition(): TransitionMetadataInterface {
-    return this.#transition;
-  }
 }

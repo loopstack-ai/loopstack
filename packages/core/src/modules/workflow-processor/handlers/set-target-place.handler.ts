@@ -34,7 +34,7 @@ export class SetTargetPlaceHandler implements HandlerInterface {
     context: ContextInterface,
     transitionData: TransitionMetadataInterface,
   ): Promise<HandlerCallResult> {
-    if (!transitionData.transition) {
+    if (!transitionData.id) {
       throw new Error('No transition available.');
     }
 

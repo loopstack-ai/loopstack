@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TemplateDetector, TemplateProcessor } from '../template.service';
 import { HandlebarsProcessor } from '../handlebars-processor.service';
-import { VariableSanitizerService } from '../variable-sanitizer.service';
 import { TemplateExpressionError } from '../../errors/template-expression.error';
 
 interface ProcessingContext {
@@ -19,7 +18,6 @@ export class TemplateExpressionHandler
 
   constructor(
     private readonly handlebarsProcessor: HandlebarsProcessor,
-    private readonly variableSanitizerService: VariableSanitizerService,
   ) {}
 
   canHandle(value: any): boolean {
@@ -45,9 +43,7 @@ export class TemplateExpressionHandler
         );
       }
 
-      const sanitizedVariables =
-        this.variableSanitizerService.sanitizeVariables(context.variables);
-      return this.handlebarsProcessor.render(content, sanitizedVariables);
+      return this.handlebarsProcessor.render(content, context.variables);
     } catch (error) {
       this.logger.error(
         `Failed to process template expression: ${error.message}`,

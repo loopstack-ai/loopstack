@@ -20,10 +20,9 @@ type CreateEntityInput = z.infer<typeof CreateEntityInputSchema>;
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Create an entity.',
   },
-  inputSchema: CreateEntityInputSchema,
+  properties: CreateEntityInputSchema,
   configSchema: CreateEntityConfigSchema,
 })
 export class CreateEntity extends Tool {

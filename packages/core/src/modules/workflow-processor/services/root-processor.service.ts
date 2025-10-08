@@ -49,13 +49,14 @@ export class RootProcessorService {
       payload: payload,
     });
 
-    const parsedArgs = block.metadata.inputSchema?.parse(args);
+    const parsedArgs = block.metadata.properties?.parse(args);
     block.initWorkspace(parsedArgs);
 
     return this.processorService.processPipelineItem(
       block,
       {
-        name: pipeline.configKey,
+        id: 'root',
+        block: pipeline.configKey,
       },
     );
   }

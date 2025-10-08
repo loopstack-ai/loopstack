@@ -30,10 +30,9 @@ const BatchCreateMessagesConfigSchema = z
 
 @Block({
   config: {
-    type: 'tool',
     description: 'Batch create messages.',
   },
-  inputSchema: BatchCreateMessagesInputSchema,
+  properties: BatchCreateMessagesInputSchema,
   configSchema: BatchCreateMessagesConfigSchema,
   documentationFile: __dirname + '/batch-create-messages-tool.md',
 })

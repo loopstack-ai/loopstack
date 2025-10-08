@@ -12,7 +12,7 @@ const PlainMessageDocumentSchema = z.object({
     type: 'document',
     description: 'Plain Message Document.',
   },
-  inputSchema: PlainMessageDocumentSchema,
+  properties: PlainMessageDocumentSchema,
   configSchema: PlainMessageDocumentSchema,
   configFile: __dirname + '/plain-message-document.yaml',
 })
