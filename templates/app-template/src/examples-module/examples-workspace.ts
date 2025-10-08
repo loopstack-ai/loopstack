@@ -1,11 +1,16 @@
 import { Block } from '@loopstack/shared';
-import { SequenceExamplePipeline } from './basic/sequence-example/sequence-example.pipeline';
 import { Workspace } from '@loopstack/core';
+import { FactoryExampleFactory } from './basic/factory-example/factory-example.factory';
+import { CustomToolExampleWorkflow } from './basic/custom-tool-example/workflows/custom-tool-example.workflow';
+import { ContextDataExampleSequence } from './basic/context-data-example/context-data-example.sequence';
 
 @Block({
-  imports: [SequenceExamplePipeline],
+  imports: [
+    ContextDataExampleSequence,
+    FactoryExampleFactory,
+    CustomToolExampleWorkflow,
+  ],
   config: {
-    type: 'workspace',
     title: 'Example Workspace'
   },
 })

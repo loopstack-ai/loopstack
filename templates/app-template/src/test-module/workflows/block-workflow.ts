@@ -1,15 +1,14 @@
 import { Block } from '@loopstack/shared';
-import { CreateDocument, CreateMock, MessageDocument, StateMachine } from '@loopstack/core';
+import { CreateDocument, CreateMock, MessageDocument, Workflow } from '@loopstack/core';
 
 @Block({
   imports: [CreateMock, CreateDocument, MessageDocument],
   config: {
-    type: 'stateMachine',
     title: "Block Workflow",
   },
   configFile: __dirname + '/block-workflow.yaml',
 })
-export class BlockWorkflow extends StateMachine {
+export class BlockWorkflow extends Workflow {
 
   #otherTest = 'testOther';
   #myData = 'test';

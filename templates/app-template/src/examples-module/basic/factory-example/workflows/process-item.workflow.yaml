@@ -1,0 +1,11 @@
+transitions:
+  - id: do_some_processing
+    from: start
+    to: end
+    call:
+      - id: mock_results
+        tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Processing Item #{{ workflow.getIndex }} with label "{{ workflow.args.label }}".
