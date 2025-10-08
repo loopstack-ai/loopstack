@@ -1,5 +1,17 @@
 # @loopstack/api
 
+## 0.10.0
+
+### Minor Changes
+
+- Implement Block Processing
+
+### Patch Changes
+
+- Updated dependencies
+  - @loopstack/core@0.10.0
+  - @loopstack/shared@0.10.0
+
 ## 0.9.0
 
 ### Minor Changes
