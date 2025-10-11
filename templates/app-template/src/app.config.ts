@@ -3,6 +3,7 @@ import { registerAs } from '@nestjs/config';
 export const appConfig = registerAs('app', () => ({
   nodeEnv: process.env.NODE_ENV || 'development',
   runStartupTasks: process.env.ENABLE_STARTUP_TASKS === 'true',
+  isLocalMode: process.env.ENABLE_LOCAL_MODE === 'true',
 }));
 
 export const cliConfig = registerAs('app', () => ({
@@ -19,7 +20,7 @@ export const authConfig = registerAs('auth', () => ({
   },
   clientId: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
-  authCallback: process.env.AUTH_CALLBACK_URL || "https://studio.loopstack.ai/api/v1/sso/validate",
+  authCallback: process.env.AUTH_CALLBACK_URL || "https://app.loopstack.ai/api/v1/sso/validate",
 }));
 
 export const databaseConfig = registerAs('database', () => ({

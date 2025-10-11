@@ -3,7 +3,7 @@ import { LoopCoreModule } from '@loopstack/core';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { LoopstackApiModule } from '@loopstack/api';
 // import { LlmModule } from '@loopstack/llm';
-import { AuthModule, JwtAuthGuard } from '@loopstack/auth';
+import { AuthModule, ConditionalAuthGuard, JwtAuthGuard } from '@loopstack/auth';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { appConfig, authConfig, databaseConfig } from './app.config';
@@ -33,7 +33,7 @@ import { ExamplesModule } from './examples-module/examples.module';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard,
+      useClass: ConditionalAuthGuard,
     },
   ],
 })
