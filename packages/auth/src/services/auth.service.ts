@@ -78,9 +78,10 @@ export class AuthService {
   }
 
   getWorkerHealthInfo(): WorkerInfoDto {
+    const isLocalMode = this.configService.get<boolean>('app.isLocalMode');
     return plainToInstance(WorkerInfoDto, {
-      clientId: this.configService.get<string>('auth.clientId'),
-      isConfigured: !!this.configService.get<string>('auth.clientSecret'),
+      clientId: isLocalMode ? 'local' : this.configService.get<string>('auth.clientId'),
+      isConfigured: isLocalMode || !!this.configService.get<string>('auth.clientSecret'),
       timestamp: new Date(),
     }, {
       excludeExtraneousValues: true,

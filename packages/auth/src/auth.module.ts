@@ -11,9 +11,11 @@ import { AuthConfig } from './interfaces';
 import { AUTH_CONFIG } from './constants';
 import { Permission, Role, User } from '@loopstack/shared';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './guards';
 import { ConfigValidationService } from './services/config-validation.service';
 import { HubAuditService } from './services/hub-audit.service';
+import { ConditionalAuthGuard } from './guards/conditional-auth.guard';
+import { JwtAuthGuard } from './guards';
+import { LocalDevModeGuard } from './guards/local-dev-mode.guard';
 
 @Module({})
 export class AuthModule {
@@ -40,10 +42,6 @@ export class AuthModule {
       controllers: [AuthController],
       providers: [
         {
-          provide: APP_GUARD,
-          useClass: JwtAuthGuard,
-        },
-        {
           provide: AUTH_CONFIG,
           useFactory: (configService: ConfigService) => configService.get<AuthConfig>('auth'),
           inject: [ConfigService],
@@ -56,8 +54,11 @@ export class AuthModule {
         HubService,
         HubStrategy,
         HubAuditService,
+        JwtAuthGuard,
+        LocalDevModeGuard,
+        ConditionalAuthGuard,
       ],
-      exports: [AuthService, UserRepository],
+      exports: [AuthService, UserRepository, JwtAuthGuard, LocalDevModeGuard, ConditionalAuthGuard],
     };
   }
 }

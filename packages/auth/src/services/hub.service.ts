@@ -28,7 +28,10 @@ export class HubService implements OnModuleInit {
   private async initialize(): Promise<void> {
     try {
       this.config = this.loadConfiguration();
-      this.validateConfiguration();
+
+      if (!this.configService.get('app.isLocalMode')) {
+        this.validateConfiguration();
+      }
 
       this.axiosInstance = axios.create({
         timeout: this.config.timeout || 10000,
