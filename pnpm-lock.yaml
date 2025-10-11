@@ -160,7 +160,7 @@ importers:
   apps/hub:
     dependencies:
       '@loopstack/shared':
-        specifier: workspace:^0.10.0
+        specifier: workspace:^0.10.1
         version: link:../../packages/shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -329,19 +329,19 @@ importers:
   apps/suply-chain-backend:
     dependencies:
       '@loopstack/api':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/api
       '@loopstack/auth':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/auth
       '@loopstack/core':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/core
       '@loopstack/llm':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/llm
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/shared
       '@nestjs/axios':
         specifier: ^4.0.1
@@ -484,13 +484,13 @@ importers:
         specifier: ^5.2.1
         version: 5.2.2(react-hook-form@7.62.0(react@19.1.1))
       '@loopstack/api-client':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../api-client
       '@loopstack/hub-client':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../hub-client
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/shared
       '@radix-ui/react-accordion':
         specifier: ^1.2.11
@@ -723,7 +723,7 @@ importers:
   frontend/websocket:
     dependencies:
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -930,10 +930,10 @@ importers:
   packages/api:
     dependencies:
       '@loopstack/core':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../core
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -1075,10 +1075,10 @@ importers:
   packages/auth:
     dependencies:
       '@loopstack/core':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../core
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -1223,10 +1223,10 @@ importers:
   packages/code:
     dependencies:
       '@loopstack/core':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../core
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.12
@@ -1335,7 +1335,7 @@ importers:
   packages/core:
     dependencies:
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../shared
       '@nestjs/bullmq':
         specifier: ^11.0.3
@@ -1501,10 +1501,10 @@ importers:
   packages/integrations/resend:
     dependencies:
       '@loopstack/core':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../core
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../shared
       '@nestjs/config':
         specifier: ^4.0.1
@@ -1622,7 +1622,7 @@ importers:
         specifier: ^4.3.2
         version: 4.6.0(keyv@5.5.1)
       '@loopstack/core':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../core
       '@loopstack/markdown-parser':
         specifier: ^1.1.2
@@ -1631,7 +1631,7 @@ importers:
         specifier: ^1.1.0
         version: link:../../libs/schema-to-template
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../shared
       '@nestjs/cache-manager':
         specifier: ^3.0.0
@@ -1783,10 +1783,10 @@ importers:
   packages/web:
     dependencies:
       '@loopstack/core':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../core
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../shared
       '@nestjs/common':
         specifier: ^11.0.12
@@ -1898,19 +1898,19 @@ importers:
   templates/app-template:
     dependencies:
       '@loopstack/api':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/api
       '@loopstack/auth':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/auth
       '@loopstack/core':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/core
       '@loopstack/llm':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/llm
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/shared
       '@nestjs/common':
         specifier: ^11.0.1
@@ -2031,22 +2031,22 @@ importers:
   templates/research-template:
     dependencies:
       '@loopstack/api':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/api
       '@loopstack/auth':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/auth
       '@loopstack/core':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/core
       '@loopstack/llm':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/llm
       '@loopstack/shared':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/shared
       '@loopstack/web':
-        specifier: ^0.10.0
+        specifier: ^0.10.1
         version: link:../../packages/web
       '@nestjs/common':
         specifier: ^11.0.1
