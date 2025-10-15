@@ -64,6 +64,7 @@ export class NamespacesService {
         workspaceId: createNamespaceDto.workspaceId,
         pipeline: { id: createNamespaceDto.pipelineId } as PipelineEntity,
         metadata: createNamespaceDto.metadata,
+        createdBy: createNamespaceDto.createdBy ?? null,
       });
 
       return this.namespaceRepository.save(namespace);
