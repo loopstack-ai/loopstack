@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { z } from 'zod';
 import { Logger } from '@nestjs/common';
 import { Tool } from '../../abstract';
@@ -28,7 +28,7 @@ const BatchCreateMessagesConfigSchema = z
   })
   .strict();
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Batch create messages.',
   },
@@ -45,16 +45,11 @@ export class BatchCreateMessages extends Tool {
     super();
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async execute(
-    ctx: ExecutionContext<BatchCreateMessagesInput>,
-  ): Promise<HandlerCallResult> {
-    return this.batchCreateDocumentsService.batchCreateDocuments({
-      ...ctx,
-      args: {
+  async execute(): Promise<HandlerCallResult> {
+    return this.batchCreateDocumentsService.batchCreateDocuments(
+      {
         document: 'message',
-        items: ctx.args.items,
-      },
-    });
+        items: this.args.items,
+      }, this);
   }
 }

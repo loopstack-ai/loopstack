@@ -41,7 +41,6 @@ export class AddNamespaceHandler implements HandlerInterface {
       name: props.label,
       pipelineId: context.pipelineId,
       workspaceId: context.workspaceId,
-      metadata: props.meta,
       createdBy: context.userId,
       parent: context.namespace,
     });

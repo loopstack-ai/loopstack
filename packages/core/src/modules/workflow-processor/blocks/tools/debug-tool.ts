@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -14,7 +14,7 @@ const DebugConfigSchema = z.object({
 
 type DebugInput = z.infer<typeof DebugInputSchema>;
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Debug tool for logging and inspecting values.',
   },
@@ -28,7 +28,7 @@ export class Debug extends Tool {
     super();
   }
 
-  async execute(ctx: ExecutionContext<DebugInput>): Promise<HandlerCallResult> {
-    return this.mockService.debug(ctx);
+  async execute(): Promise<HandlerCallResult> {
+    return this.mockService.debug(this.args);
   }
 }

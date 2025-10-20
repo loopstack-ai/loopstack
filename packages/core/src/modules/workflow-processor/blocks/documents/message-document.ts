@@ -1,5 +1,5 @@
 import {
-  Block,
+  BlockConfig,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { Document } from '../../abstract';
@@ -9,7 +9,7 @@ const MessageDocumentSchema = z.object({
   content: z.string(),
 })
 
-@Block({
+@BlockConfig({
   config: {
     type: 'document',
     description: "Message Document.",

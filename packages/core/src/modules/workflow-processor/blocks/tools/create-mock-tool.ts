@@ -1,7 +1,7 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { z } from 'zod';
 import { Logger } from '@nestjs/common';
-import { Tool } from '../../abstract';
+import { Tool, Workflow } from '../../abstract';
 import { MockService } from '../services/mock.service';
 
 const CreateMockInputSchema = z
@@ -22,7 +22,7 @@ const CreateMockConfigSchema = z
   })
   .strict();
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Create a mock response for debugging and testing.',
   },
@@ -37,9 +37,7 @@ export class CreateMock extends Tool {
     super();
   }
 
-  async execute(
-    ctx: ExecutionContext<CreateMockInput>,
-  ): Promise<HandlerCallResult> {
-    return this.mockService.createMock(this, ctx);
+  async execute(): Promise<HandlerCallResult> {
+    return this.mockService.createMock(this.args);
   }
 }

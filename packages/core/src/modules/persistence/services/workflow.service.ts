@@ -92,6 +92,12 @@ export class WorkflowService {
     }
   }
 
+  addDocuments(workflow: WorkflowEntity, documents: DocumentEntity[]) {
+    for (const document of documents) {
+      this.addDocument(workflow, document);
+    }
+  }
+
   addDocument(workflow: WorkflowEntity, document: DocumentEntity) {
     // invalidate previous versions of the same document
     for (const doc of workflow.documents) {

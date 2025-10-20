@@ -1,11 +1,10 @@
 import { Logger } from '@nestjs/common';
 import {
   ContextImportInterface,
-  ExecutionContext,
   HandlerCallResult,
   TransitionMetadataInterface,
   TemplateExpression,
-  Block,
+  BlockConfig,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
@@ -52,7 +51,7 @@ const LoadDocumentConfigSchema = z
   })
   .strict();
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Load documents from database based on query conditions.',
   },
@@ -76,7 +75,7 @@ export class LoadDocument extends Tool {
     props: z.infer<typeof LoadDocumentInputSchema>,
     pipelineId: string,
     workspaceId: string,
-    workflow: WorkflowEntity,
+    workflowIndex: string,
   ): Promise<DocumentEntity[] | DocumentEntity | null> {
     const query = this.documentService.createDocumentsQuery(
       pipelineId,
@@ -88,7 +87,7 @@ export class LoadDocument extends Tool {
         orderBy: props.orderBy,
         isValidOnly: true,
         isGlobal: !!props.isGlobal,
-        ltWorkflowIndex: workflow.index,
+        ltWorkflowIndex: workflowIndex,
       },
     );
 
@@ -150,30 +149,29 @@ export class LoadDocument extends Tool {
    * tracks differences to previously imported documents
    * and updates workflow dependencies, if applicable
    */
-  async execute(
-    ctx: ExecutionContext<z.infer<typeof LoadDocumentInputSchema>>,
-  ): Promise<HandlerCallResult> {
-    if (!ctx.workflow) {
+  async execute(): Promise<HandlerCallResult> {
+    if (!this.state.id) {
       throw new Error('Workflow is undefined');
     }
-    this.logger.debug(`Load document ${ctx.transitionData?.id}`);
+    this.logger.debug(`Load document ${this.state.transition?.id}`);
 
     // load and filter entities based on options from database
     const result = await this.getDocumentsByQuery(
-      ctx.args,
-      this.context.pipelineId,
-      this.context.workspaceId,
-      ctx.workflow,
+      this.args,
+      this.ctx.pipelineId,
+      this.ctx.workspaceId,
+      this.ctx.index,
     );
 
+    // todo!
     // update workflow dependencies
-    if (result && ctx.args.isDependency) {
-      this.trackDependencies(ctx.workflow, ctx.transitionData, result);
-    }
+    // if (result && this.args.isDependency) {
+    //   this.trackDependencies(this.state.id, toolProcessor.ctx.state.transition!, result);
+    // }
 
     return {
       success: true,
-      workflow: ctx.workflow,
+      // workflow: toolProcessor.ctx.state.workflow,
       data: result,
     };
   }

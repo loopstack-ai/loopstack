@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -14,7 +14,7 @@ const CreateResponseConfigSchema = z.object({
 
 type CreateResponseInput = z.infer<typeof CreateResponseInputSchema>;
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Create a response document.',
   },
@@ -28,24 +28,14 @@ export class CreateResponse extends Tool {
     super();
   }
 
-  async execute(
-    ctx: ExecutionContext<CreateResponseInput>,
-  ): Promise<HandlerCallResult> {
+  async execute(): Promise<HandlerCallResult> {
     const transformedInput = {
-      document: ctx.args.document,
+      document: this.args.document,
       update: {
-        content: ctx.transitionData,
+        content: this.state.transition,
       },
     };
 
-    const transformedCtx = new ExecutionContext(
-      ctx.context,
-      transformedInput,
-      ctx.workflow,
-      ctx.transitionData,
-      ctx.parentArgs,
-    );
-
-    return this.createDocumentService.createDocument(transformedCtx);
+    return this.createDocumentService.createDocument(transformedInput, this);
   }
 }

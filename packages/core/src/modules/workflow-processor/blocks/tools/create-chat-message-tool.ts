@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -50,7 +50,7 @@ const CreateChatMessageConfigSchema = z.object({
 
 type CreateChatMessageInput = z.infer<typeof CreateChatMessageInputSchema>;
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Create a chat message.',
   },
@@ -64,32 +64,22 @@ export class CreateChatMessage extends Tool {
     super();
   }
 
-  async execute(
-    ctx: ExecutionContext<CreateChatMessageInput>,
-  ): Promise<HandlerCallResult> {
+  async execute(): Promise<HandlerCallResult> {
     const transformedInput = {
       document: 'MessageDocument',
       update: {
         content: {
-          role: ctx.args.role,
-          content: ctx.args.content,
-          tool_calls: ctx.args.tool_calls,
-          tool_call_id: ctx.args.tool_call_id,
-          annotations: ctx.args.annotations,
-          refusal: ctx.args.refusal,
+          role: this.args.role,
+          content: this.args.content,
+          tool_calls: this.args.tool_calls,
+          tool_call_id: this.args.tool_call_id,
+          annotations: this.args.annotations,
+          refusal: this.args.refusal,
         },
-        meta: ctx.args.meta,
+        meta: this.args.meta,
       },
     };
 
-    const transformedCtx = new ExecutionContext(
-      ctx.context,
-      transformedInput,
-      ctx.workflow,
-      ctx.transitionData,
-      ctx.parentArgs,
-    );
-
-    return this.createDocumentService.createDocument(transformedCtx);
+    return this.createDocumentService.createDocument(transformedInput, this);
   }
 }

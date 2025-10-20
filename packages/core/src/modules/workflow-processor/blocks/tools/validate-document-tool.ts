@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -16,7 +16,7 @@ const ValidateDocumentConfigSchema = z.object({
 
 type ValidateDocumentInput = z.infer<typeof ValidateDocumentInputSchema>;
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Validate document against its schema.',
   },
@@ -38,27 +38,22 @@ export class ValidateDocument extends Tool {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  async execute(
-    ctx: ExecutionContext<ValidateDocumentInput>,
-  ): Promise<HandlerCallResult> {
-    if (!ctx.workflow) {
-      throw new Error('Workflow is undefined');
-    }
-
-    const document = ctx.workflow.documents.find(
-      (item) => item.id === ctx.args.documentId,
+  async execute(): Promise<HandlerCallResult> {
+    const document = this.state.documentIds.find(
+      (id) => id === this.args.documentId,
     );
     if (!document) {
-      throw new Error(`Document with ID ${ctx.args.documentId} not found.`);
+      throw new Error(`Document with ID ${this.args.documentId} not found.`);
     }
 
-    const zodSchema = this.createZod(document.schema);
-    if (!zodSchema) {
-      throw Error(`No schema defined.`);
-    }
+    // todo!
+    // const zodSchema = this.createZod(document.schema);
+    // if (!zodSchema) {
+    //   throw Error(`No schema defined.`);
+    // }
 
     try {
-      const result = zodSchema.parse(document.schema);
+      const result = 'not implemented' //zodSchema.parse(document.schema); //todo!
 
       return {
         success: true,
@@ -69,8 +64,8 @@ export class ValidateDocument extends Tool {
         },
       };
     } catch (error) {
-      if (ctx.args.message) {
-        throw new Error(ctx.args.message);
+      if (this.args.message) {
+        throw new Error(this.args.message);
       }
 
       throw error;

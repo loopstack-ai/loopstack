@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -16,7 +16,7 @@ const CreatePlainMessageConfigSchema = z.object({
 
 type CreatePlainMessageInput = z.infer<typeof CreatePlainMessageInputSchema>;
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Create a plain message.',
   },
@@ -30,27 +30,17 @@ export class CreatePlainMessage extends Tool {
     super();
   }
 
-  async execute(
-    ctx: ExecutionContext<CreatePlainMessageInput>,
-  ): Promise<HandlerCallResult> {
+  async execute(): Promise<HandlerCallResult> {
     const transformedInput = {
       document: 'PlainMessageDocument',
       update: {
         content: {
-          title: ctx.args.title,
-          content: ctx.args.content,
+          title: this.args.title,
+          content: this.args.content,
         },
       },
     };
 
-    const transformedCtx = new ExecutionContext(
-      ctx.context,
-      transformedInput,
-      ctx.workflow,
-      ctx.transitionData,
-      ctx.parentArgs,
-    );
-
-    return this.createDocumentService.createDocument(transformedCtx);
+    return this.createDocumentService.createDocument(transformedInput, this);
   }
 }

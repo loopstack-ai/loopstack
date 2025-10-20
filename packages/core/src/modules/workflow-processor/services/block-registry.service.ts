@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import {
@@ -11,11 +11,12 @@ import {
   INPUT_METADATA_KEY,
   OUTPUT_METADATA_KEY,
 } from '@loopstack/shared';
-import { ConfigLoaderService } from './config-loader.service';
 import { omit } from 'lodash';
+import { Tool, Workflow, Document, Workspace, Pipeline, Factory } from '../abstract';
+import { ConfigLoaderService } from './config-loader.service';
 
 export interface BlockRegistryItem {
-  target: any;
+  name: string;
   provider: InstanceWrapper;
   metadata: BlockMetadata;
   configSource?: string;
@@ -40,6 +41,25 @@ export class BlockRegistryService implements OnModuleInit {
 
   async onModuleInit() {
     await this.discoverBlocks();
+  }
+
+  private getBlockType(instance: Workflow | Tool | Document | Workspace | Pipeline | Factory): string | undefined {
+    switch (true) {
+      case (instance instanceof Workflow):
+        return 'workflow';
+      case (instance instanceof Tool):
+        return 'tool';
+      case (instance instanceof Document):
+        return 'document';
+      case (instance instanceof Factory):
+        return 'factory';
+      case (instance instanceof Pipeline):
+        return 'sequence';
+      case (instance instanceof Workspace):
+        return 'workspace';
+    }
+
+    return undefined;
   }
 
   /**
@@ -74,7 +94,7 @@ export class BlockRegistryService implements OnModuleInit {
           }
 
           // override type from provider property
-          baseConfig.type = provider.instance.type;
+          baseConfig.type = this.getBlockType(provider.instance) as any;
 
           const config: BlockConfigType = BlockConfigSchema
             .parse(baseConfig);
@@ -84,23 +104,23 @@ export class BlockRegistryService implements OnModuleInit {
 
           const metadata = {
             ...omit(options, ['documentationFile']),  // do not include unnecessary overhead
-            imports: options.imports?.map((item: any ) => item.name) ?? [],
+            imports: options.imports ?? [],
             inputProperties: inputs,
             outputProperties: outputs,
           } as BlockMetadata;
 
           const registeredBlock: BlockRegistryItem = {
-            target: metatype,
+            name: metatype.name,
             provider,
             metadata,
             configSource: options.configFile,
             config,
           };
 
-          this.blocks.set(metatype.name, registeredBlock);
+          this.blocks.set(registeredBlock.name, registeredBlock);
 
           this.logger.log(
-            `Registered block: ${metatype.name}`,
+            `Registered block: ${registeredBlock.name}`,
           );
         } catch (error) {
           this.logger.error(

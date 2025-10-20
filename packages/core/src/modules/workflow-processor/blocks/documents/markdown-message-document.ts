@@ -1,4 +1,4 @@
-import { Block } from '@loopstack/shared';
+import { BlockConfig } from '@loopstack/shared';
 import { z } from 'zod';
 import { Document } from '../../abstract';
 
@@ -7,7 +7,7 @@ const MarkdownMessageDocumentSchema = z.object({
   markdown: z.string(),
 });
 
-@Block({
+@BlockConfig({
   config: {
     type: 'document',
     description: 'Markdown Message Document.',

@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -9,7 +9,7 @@ const ResetErrorConfigSchema = z.object({});
 
 type ResetErrorInput = z.infer<typeof ResetErrorInputSchema>;
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Reset the error state of the workflow.',
   },
@@ -24,18 +24,16 @@ export class ResetError extends Tool {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  async execute(
-    ctx: ExecutionContext<ResetErrorInput>,
-  ): Promise<HandlerCallResult> {
-    if (!ctx.workflow) {
+  async execute(): Promise<HandlerCallResult> {
+    if (!this.state.id) {
       throw new Error('Workflow is undefined');
     }
 
-    ctx.workflow.error = null;
+    this.state.error = undefined;
 
     return {
       success: true,
-      workflow: ctx.workflow,
+      // workflow: toolProcessor.ctx.state.workflow,
     };
   }
 }

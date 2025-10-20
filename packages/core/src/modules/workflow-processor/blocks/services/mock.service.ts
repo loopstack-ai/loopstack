@@ -1,74 +1,64 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   HandlerCallResult,
-  ExecutionContext,
-  DocumentType,
 } from '@loopstack/shared';
-import { TemplateExpressionEvaluatorService } from '../../services';
-import { Tool } from '../../abstract';
 
 @Injectable()
 export class MockService {
   private readonly logger = new Logger(MockService.name);
 
-  constructor(
-    private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-  ) {}
-
   async createMock(
-    block: Tool,
-    ctx: ExecutionContext<{
+    args: {
       input?: any;
       output?: any;
       error?: string;
-    }>,
+    },
   ): Promise<HandlerCallResult> {
-    if (!ctx.workflow) {
-      throw new Error('Workflow is undefined');
-    }
+    // let parsedInput: DocumentType | undefined;
+    //
+    // const parsedArgs = this.templateExpressionEvaluatorService.evaluateTemplate(
+    //   args,
+    //   {},
+    //   workflowProcessor,
+    //   ['document'],
+    //   DocumentSchema,
+    // );
+    //
+    // const parsedInput = this.templateExpressionEvaluatorService.parse<DocumentType>(
+    //   args.input,
+    //   workflowProcessor,
+    // );
+    this.logger.debug(`Input: ${JSON.stringify(args.input)}`);
 
-    let parsedInput: DocumentType | undefined;
-    if (ctx.args.input) {
-      parsedInput = this.templateExpressionEvaluatorService.parse<DocumentType>(
-        ctx.args.input,
-        { this: block.toOutputObject() },
-      );
-      this.logger.debug(`Parsed input: ${JSON.stringify(parsedInput)}`);
-    }
+    // let parsedOutput: DocumentType | null = null;
+    // if (args.output) {
+    //   parsedOutput =
+    //     this.templateExpressionEvaluatorService.parse<DocumentType>(
+    //       args.output,
+    //       workflowProcessor,
+    //     );
+    // }
 
-    let parsedOutput: DocumentType | null = null;
-    if (ctx.args.output) {
-      parsedOutput =
-        this.templateExpressionEvaluatorService.parse<DocumentType>(
-          ctx.args.output,
-          { this: block.toOutputObject() },
-        );
-    }
-
-    if (ctx.args.error) {
-      const parsedError = this.templateExpressionEvaluatorService.parse<string>(
-        ctx.args.error,
-        { this: block.toOutputObject() },
-      );
-      throw new Error(parsedError);
+    if (args.error) {
+      // const parsedError = this.templateExpressionEvaluatorService.parse<string>(
+      //   args.error,
+      //   workflowProcessor,
+      // );
+      throw new Error(args.error);
     }
 
     return {
       success: true,
-      data: parsedOutput,
+      data: args.output,
     };
   }
 
   async debug(
-    ctx: ExecutionContext<{
+    args: {
       value?: any;
-    }>,
+    },
   ): Promise<HandlerCallResult> {
-    if (!ctx.workflow) {
-      throw new Error('Workflow is undefined');
-    }
-
-    this.logger.debug(`Debug value: ${JSON.stringify(ctx.args.value)}`);
+    this.logger.debug(`Debug value: ${JSON.stringify(args.value)}`);
 
     return {
       success: true,

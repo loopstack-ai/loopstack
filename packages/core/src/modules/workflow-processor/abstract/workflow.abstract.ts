@@ -1,52 +1,50 @@
-import { Output, WorkflowType, TransitionMetadataInterface } from '@loopstack/shared';
-import { Block } from './block.abstract';
-import { cloneDeep } from 'lodash';
-import { Record } from 'openai/core';
-import { TransitionResultLookup } from '../services';
+import { BlockMetadata, WorkflowType } from '@loopstack/shared';
+import { WorkflowStateDto } from '../dtos/workflow-state.dto';
+import { WorkflowExecutionContextDto } from '../dtos/block-execution-context.dto';
+import { Expose, instanceToPlain, Type } from 'class-transformer';
+import { BlockInterface } from '../interfaces/block.interface';
 
-export abstract class Workflow<TConfig extends WorkflowType = WorkflowType> extends Block<TConfig> {
+export abstract class Workflow implements BlockInterface {
 
-  type = 'workflow';
+  public processor: string = 'workflow';
 
-  @Output()
-  args: Record<string, any>; // args prev. options
+  public metadata: BlockMetadata;
 
-  @Output()
-  currentTransition: TransitionMetadataInterface | null;
+  @Expose()
+  public args: any;
 
-  @Output()
-  transitionResults: TransitionResultLookup;
+  @Expose()
+  @Type(() => WorkflowStateDto)
+  public state: WorkflowStateDto;
 
-  // old:
-  // prevData?: Record<string, Record<string, any>> | null;
-  // aliasData?: Record<string, string[]>;
-  // contextVariables?: any;
+  @Expose()
+  @Type(() => WorkflowExecutionContextDto)
+  public ctx: WorkflowExecutionContextDto;
 
-  // todo: remove alias, try eliminating context Variables
+  @Expose()
+  public config: WorkflowType;
 
-  private populate(data: any) {
-    for (const [key, value] of Object.entries(data)) {
-      if (key in this) {
-        (this as any)[key] = cloneDeep(value);
-      } else {
-        console.warn(`Property ${key} not found on ${this.constructor.name}`);
-      }
-    }
+  init(metadata: BlockMetadata, args: any, ctx: WorkflowExecutionContextDto, data: Partial<WorkflowStateDto>) {
+    this.metadata = metadata;
+    this.args = args;
+    this.ctx = ctx;
+    this.state = new WorkflowStateDto(data);
   }
 
-  public initWorkflow(
-    inputs: Record<string, any>,
-    data: any,
-  ) {
-    this.args = inputs || {};
-    this.currentTransition = null;
-
-    if (data) {
-      this.populate(data);
-    }
+  @Expose()
+  get name(): string {
+    return this.constructor.name;
   }
 
-  public setTransition(transition: TransitionMetadataInterface | null) {
-    this.currentTransition = transition;
+  getResult() {
+    return instanceToPlain(this, {
+      strategy: this.config.classTransformStrategy || 'excludeAll',
+      groups: ['result'],
+      excludeExtraneousValues: true,
+    });
+  }
+
+  isInputProperty(metadata: BlockMetadata, name: string) {
+    return metadata.inputProperties.includes(name);
   }
 }

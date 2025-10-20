@@ -1,16 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   HandlerCallResult,
-  ExecutionContext,
-  DocumentEntity,
-  DocumentSchema,
-  DocumentType,
 } from '@loopstack/shared';
 import { DocumentService } from '../../../persistence';
 import { TemplateExpressionEvaluatorService } from '../../services';
-import { ConfigTraceError } from '../../../configuration';
-import { merge, omit } from 'lodash';
-import { z } from 'zod';
+import { Tool } from '../../abstract';
 
 @Injectable()
 export class BatchCreateDocumentsService {
@@ -22,10 +16,11 @@ export class BatchCreateDocumentsService {
   ) {}
 
   batchCreateDocuments(
-    ctx: ExecutionContext<{
+    args: {
       document: string;
       items: any[];
-    }>,
+    },
+    tool: Tool,
   ): HandlerCallResult {
     // if (!ctx.workflow) {
     //   throw new Error('Workflow is undefined');
@@ -107,7 +102,7 @@ export class BatchCreateDocumentsService {
     return {
       success: true,
       persist: true,
-      workflow: ctx.workflow,
+      // workflow: toolProcessor.ctx.state.workflow,
       data: [], //documents,
     };
   }

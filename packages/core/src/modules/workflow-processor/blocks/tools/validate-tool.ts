@@ -1,6 +1,5 @@
 import {
-  Block,
-  ExecutionContext,
+  BlockConfig,
   HandlerCallResult,
   JSONSchemaType,
 } from '@loopstack/shared';
@@ -23,7 +22,7 @@ const ValidateConfigSchema = z.object({
 
 type ValidateInput = z.infer<typeof ValidateInputSchema>;
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Validate data against JSON schema.',
   },
@@ -45,16 +44,14 @@ export class Validate extends Tool {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  async execute(
-    ctx: ExecutionContext<ValidateInput>,
-  ): Promise<HandlerCallResult> {
-    const zodSchema = this.createZod(ctx.args.schema);
+  async execute(): Promise<HandlerCallResult> {
+    const zodSchema = this.createZod(this.args.schema);
     if (!zodSchema) {
       throw Error(`No schema defined.`);
     }
 
     try {
-      const result = zodSchema.parse(ctx.args.source);
+      const result = zodSchema.parse(this.args.source);
 
       return {
         success: true,
@@ -65,8 +62,8 @@ export class Validate extends Tool {
         },
       };
     } catch (error) {
-      if (ctx.args.message) {
-        throw new Error(ctx.args.message);
+      if (this.args.message) {
+        throw new Error(this.args.message);
       }
 
       throw error;

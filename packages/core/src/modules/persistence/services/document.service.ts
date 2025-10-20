@@ -12,11 +12,10 @@ import {
   DocumentEntity,
   TemplateExpression,
   WorkflowEntity,
-  TransitionMetadataInterface,
 } from '@loopstack/shared';
 import { WorkflowService } from './workflow.service';
-import { ContextInterface } from '@loopstack/shared';
 import { z } from 'zod';
+import { Tool } from '../../workflow-processor';
 
 const NullOperator = z.object({
   isNull: z.boolean(),
@@ -107,28 +106,28 @@ export class DocumentService {
   ) {}
 
   create(
-    workspaceId: string,
-    pipelineId: string,
-    userId: string,
-    workflow: WorkflowEntity,
-    transitionData: TransitionMetadataInterface,
+    block: Tool,
     data: Partial<DocumentEntity>,
   ): DocumentEntity {
-    const document = this.documentRepository.create({
-      ...data,
-      transition: transitionData.id,
-      index: workflow!.documents?.length ?? 0,
-      workflowIndex: workflow!.index,
-      place: workflow!.place,
-      labels: workflow!.labels,
-      workflow: { id: workflow.id } as WorkflowEntity,
-      workspaceId: workspaceId,
-      pipelineId: pipelineId,
-      createdBy: userId,
-    });
+    if (!block.ctx.workflow.id) {
+      throw new Error(`No workflow assigned to processor context.`);
+    }
+    if (!block.ctx.workflow.transition?.id) {
+      throw new Error(`No transition assigned to processor state.`)
+    }
 
-    this.workflowService.addDocument(workflow, document);
-    return document;
+    return this.documentRepository.create({
+      ...data,
+      transition: block.ctx.workflow.transition.id,
+      index: block.state.documentIds?.length ?? 0,
+      workflowIndex: block.ctx.index,
+      place: block.state.place,
+      labels: block.ctx.labels,
+      workflow: { id: block.ctx.workflow.id } as WorkflowEntity,
+      workspaceId: block.ctx.workspaceId,
+      pipelineId: block.ctx.pipelineId,
+      createdBy: block.ctx.userId,
+    });
   }
 
   update(workflow: WorkflowEntity, entity: DocumentEntity): DocumentEntity {

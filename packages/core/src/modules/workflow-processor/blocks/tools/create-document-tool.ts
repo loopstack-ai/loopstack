@@ -1,17 +1,16 @@
 import {
-  Block,
-  ExecutionContext,
+  BlockConfig,
   HandlerCallResult,
 } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { Tool } from '../../abstract';
 import {
-  CreateDocumentConfigSchema, CreateDocumentInput,
+  CreateDocumentConfigSchema,
   CreateDocumentInputSchema,
   CreateDocumentService,
 } from '../services/create-document.service';
 
-@Block({
+@BlockConfig({
   config: {
     description: "Create a document.",
   },
@@ -27,7 +26,7 @@ export class CreateDocument extends Tool {
     super();
   }
 
-  async execute(ctx: ExecutionContext<CreateDocumentInput>): Promise<HandlerCallResult> {
-    return this.createDocumentService.createDocument(ctx);
+  async execute(): Promise<HandlerCallResult> {
+    return this.createDocumentService.createDocument(this.args, this);
   }
 }

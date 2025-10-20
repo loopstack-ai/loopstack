@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -14,7 +14,7 @@ const CreateErrorMessageConfigSchema = z.object({
 
 type CreateErrorMessageInput = z.infer<typeof CreateErrorMessageInputSchema>;
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Create an error message.',
   },
@@ -28,26 +28,16 @@ export class CreateErrorMessage extends Tool {
     super();
   }
 
-  async execute(
-    ctx: ExecutionContext<CreateErrorMessageInput>,
-  ): Promise<HandlerCallResult> {
+  async execute(): Promise<HandlerCallResult> {
     const transformedInput = {
       document: 'ErrorMessageDocument',
       update: {
         content: {
-          message: ctx.args.message,
+          message: this.args.message,
         },
       },
     };
 
-    const transformedCtx = new ExecutionContext(
-      ctx.context,
-      transformedInput,
-      ctx.workflow,
-      ctx.transitionData,
-      ctx.parentArgs,
-    );
-
-    return this.createDocumentService.createDocument(transformedCtx);
+    return this.createDocumentService.createDocument(transformedInput, this);
   }
 }

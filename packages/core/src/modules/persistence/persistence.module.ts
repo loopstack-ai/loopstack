@@ -16,15 +16,15 @@ import {
   WorkspaceService,
 } from './services';
 import { WorkflowSubscriber } from './subscriber/workflow.subscriber';
-import { CommonModule } from '../common';
+// import { CommonModule } from '../common';
 import { DocumentSubscriber } from './subscriber/document.subscriber';
 import { DataSource } from 'typeorm';
-import { CreateEntityHandler } from './handlers/create-entity.handler';
-import { SqlQueryHandler } from './handlers/sql-query.handler';
+// import { CreateEntityHandler } from './handlers/create-entity.handler';
+// import { SqlQueryHandler } from './handlers/sql-query.handler';
 
 @Module({
   imports: [
-    CommonModule,
+    // CommonModule,
     TypeOrmModule.forFeature([
       PipelineEntity,
       WorkflowEntity,
@@ -51,9 +51,8 @@ import { SqlQueryHandler } from './handlers/sql-query.handler';
       inject: [DataSource],
     },
 
-    // Tool Handlers
-    CreateEntityHandler,
-    SqlQueryHandler,
+    // CreateEntityHandler,
+    // SqlQueryHandler,
   ],
   exports: [
     WorkflowService,

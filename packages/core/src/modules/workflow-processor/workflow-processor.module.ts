@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ConfigurationModule } from '../configuration';
 import { PersistenceModule } from '../persistence';
 import { DiscoveryModule } from '@nestjs/core';
 import { CommonModule } from '../common';
@@ -9,23 +8,28 @@ import {
   WorkflowOptionValidator,
 } from './validators';
 import {
-  StateMachineProcessorService,
   StateMachineValidatorRegistry,
-  ToolExecutionService,
   NamespaceProcessorService,
-  PipelineProcessorService,
-  WorkflowProcessorService,
   TemplateExpressionEvaluatorService,
   WorkflowStateService,
   RootProcessorService,
-  WorkflowContextService, BlockHelperService,
+  WorkflowContextService,
+  BlockHelperService,
+  CapabilityBuilder,
+  BlockRegistryService,
+  ConfigLoaderService,
+  BlockFactory,
+  ProcessorFactory,
+  FactoryProcessorService,
+  SequenceProcessorService,
+  BlockProcessor,
+  WorkflowProcessorService, WorkspaceProcessorService, ToolProcessorService,
 } from './services';
 import { CreatePipelineService } from './services';
 import { MockService } from './blocks/services/mock.service';
 import {
   CreateChatMessage,
   CreateDocument,
-  CreateEntity,
   CreateErrorMessage,
   CreateMarkdownMessage,
   CreatePlainMessage,
@@ -37,51 +41,51 @@ import {
   MarkdownMessageDocument,
   MessageDocument,
   PlainMessageDocument,
-  SetContext,
   ResetError,
   SwitchTarget,
   ValidateDocument,
   Validate,
   BatchCreateMessages,
 } from './blocks';
-import { BatchCreateEntity } from '../persistence/blocks/tools';
 import { CreateDocumentService } from './blocks/services/create-document.service';
-import { ServiceStateFactory } from './services/service-state-factory.service';
 import { BatchCreateDocumentsService } from './blocks/services/batch-create-documents.service';
+import { CoreFactoryService } from './blocks/core-factory.service';
+import { ModuleFactory } from '@loopstack/shared';
 
 @Module({
   imports: [
     DiscoveryModule,
     CommonModule,
-    ConfigurationModule,
     PersistenceModule,
   ],
   providers: [
     RootProcessorService,
-    WorkflowStateService,
+    BlockFactory,
+    BlockProcessor,
+    ProcessorFactory,
+    FactoryProcessorService,
+    SequenceProcessorService,
     WorkflowProcessorService,
-    ToolExecutionService,
+    WorkspaceProcessorService,
+    ToolProcessorService,
+
+    WorkflowStateService,
     NamespaceProcessorService,
-    PipelineProcessorService,
     TemplateExpressionEvaluatorService,
     WorkflowContextService,
     InitialRunValidator,
     WorkflowDependenciesValidator,
     WorkflowOptionValidator,
     StateMachineValidatorRegistry,
-    StateMachineProcessorService,
-    ServiceStateFactory,
     BlockHelperService,
     CreatePipelineService,
     CreateChatMessage,
-    CreateEntity,
     CreateErrorMessage,
     CreateMarkdownMessage,
     CreatePlainMessage,
     CreateResponse,
     Debug,
     BatchCreateMessages,
-    BatchCreateEntity,
     CreateDocumentService,
     BatchCreateDocumentsService,
     LoadDocument,
@@ -96,13 +100,21 @@ import { BatchCreateDocumentsService } from './blocks/services/batch-create-docu
     ErrorMessageDocument,
     MarkdownMessageDocument,
     PlainMessageDocument,
-    SetContext,
+
+    ConfigLoaderService,
+    BlockRegistryService,
+    CapabilityBuilder,
+
+    CoreFactoryService,
   ],
   exports: [
     RootProcessorService,
-    ToolExecutionService,
     TemplateExpressionEvaluatorService,
     CreatePipelineService,
+    CreateChatMessage,
+    BlockRegistryService,
+    CoreFactoryService,
   ],
 })
+@ModuleFactory(CoreFactoryService)
 export class WorkflowProcessorModule {}

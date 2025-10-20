@@ -1,16 +1,43 @@
-import { Output, WorkspaceType } from '@loopstack/shared';
-import { Block } from './block.abstract';
+import { BlockMetadata, WorkspaceType } from '@loopstack/shared';
+import { Expose, instanceToPlain, Type } from 'class-transformer';
+import { BlockStateDto, WorkflowStateDto } from '../dtos/workflow-state.dto';
+import { WorkflowExecutionContextDto, WorkspaceExecutionContextDto } from '../dtos/block-execution-context.dto';
+import { BlockInterface } from '../interfaces/block.interface';
 
-export abstract class Workspace<TConfig extends WorkspaceType = WorkspaceType> extends Block<TConfig> {
+export abstract class Workspace implements BlockInterface {
+  public processor: string = 'workspace';
 
-  type = 'workspace';
+  public metadata: BlockMetadata;
 
-  @Output()
-  args: Record<string, any>; // args prev. options
+  @Expose()
+  public args: any;
 
-  public initWorkspace(
-    inputs: Record<string, any>,
-  ) {
-    this.args = inputs || {};
+  @Expose()
+  @Type(() => BlockStateDto)
+  public state: BlockStateDto;
+
+  @Expose()
+  public ctx: WorkspaceExecutionContextDto;
+
+  @Expose()
+  public config: WorkspaceType;
+
+  init(metadata: BlockMetadata, args: any, ctx: WorkflowExecutionContextDto, data: Partial<WorkflowStateDto>) {
+    this.metadata = metadata;
+    this.args = args;
+    this.ctx = ctx;
+    this.state = new WorkflowStateDto(data);
+  }
+
+  get name(): string {
+    return this.constructor.name;
+  }
+
+  getResult() {
+    return instanceToPlain(this, {
+      strategy: this.config.classTransformStrategy || 'excludeAll',
+      groups: ['result'],
+      excludeExtraneousValues: true,
+    });
   }
 }

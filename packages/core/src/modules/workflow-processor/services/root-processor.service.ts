@@ -7,11 +7,13 @@ import {
   NamespacesService,
   PipelineService,
 } from '../../persistence';
-import { PipelineProcessorService } from './pipeline-processor.service';
-import { BlockRegistryService } from '../../configuration';
-import { Block } from '../abstract/block.abstract';
-import { ServiceStateFactory } from './service-state-factory.service';
 import { Workspace } from '../abstract';
+import { BlockRegistryService } from './block-registry.service';
+import { BlockProcessor } from './block-processor.service';
+import { ProcessorFactory } from './processor.factory';
+import { BlockFactory } from './block.factory';
+import { WorkspaceExecutionContextDto } from '../dtos/block-execution-context.dto';
+import { BlockStateDto } from '../dtos/workflow-state.dto';
 
 @Injectable()
 export class RootProcessorService {
@@ -19,17 +21,18 @@ export class RootProcessorService {
 
   constructor(
     private pipelineService: PipelineService,
-    private processorService: PipelineProcessorService,
     private namespacesService: NamespacesService,
     private blockRegistryService: BlockRegistryService,
-    private readonly serviceStateFactory: ServiceStateFactory,
+    private readonly blockProcessor: BlockProcessor,
+    private readonly blockFactory: BlockFactory,
+    private readonly processorFactory: ProcessorFactory,
   ) {}
 
   private async processRootPipeline(
     pipeline: PipelineEntity,
     payload: any,
     args?: any,
-  ): Promise<Block> {
+  ): Promise<Workspace> {
     const namespace =
       await this.namespacesService.createRootNamespace(pipeline);
 
@@ -39,7 +42,9 @@ export class RootProcessorService {
     if (!blockRegistryItem) {
       throw new Error(`Config for workspace ${pipeline.workspace.configKey} not found.`)
     }
-    const block = await this.serviceStateFactory.createBlockInstance<Workspace>(blockRegistryItem, {
+
+    const ctx = new WorkspaceExecutionContextDto({
+      root: pipeline.configKey,
       index: pipeline.index,
       userId: pipeline.createdBy,
       pipelineId: pipeline.id,
@@ -49,23 +54,15 @@ export class RootProcessorService {
       payload: payload,
     });
 
-    const parsedArgs = block.metadata.properties?.parse(args);
-    block.initWorkspace(parsedArgs);
-
-    return this.processorService.processPipelineItem(
-      block,
-      {
-        id: 'root',
-        block: pipeline.configKey,
-      },
-    );
+    const block = await this.blockFactory.createBlock<Workspace, WorkspaceExecutionContextDto, BlockStateDto>(pipeline.workspace.configKey, args, ctx);
+    return this.blockProcessor.processBlock<Workspace>(block, this.processorFactory);
   }
 
   async runPipeline(
     pipeline: PipelineEntity,
     payload: any,
     args?: any,
-  ): Promise<Block> {
+  ): Promise<Workspace> {
     await this.pipelineService.setPipelineStatus(
       pipeline,
       PipelineState.Running,

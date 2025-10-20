@@ -1,72 +1,31 @@
 import {
-  BlockConfigType,
   BlockMetadata,
-  NamespaceEntity, Output,
-  TransitionPayloadInterface,
 } from '@loopstack/shared';
+import { instanceToPlain } from 'class-transformer';
+import { BlockStateDto } from '../dtos/workflow-state.dto';
 
-export interface BlockData {
-  index: string;
-  labels: string[];
-  namespace: NamespaceEntity;
-  item?: any;
-  stop?: boolean;
-  error?: boolean;
-}
+export abstract class Block {
 
-export interface BlockContext {
-  index: string;
-  userId: string | null;
-  pipelineId: string;
-  workspaceId: string;
-  namespace: NamespaceEntity;
-  labels: string[];
-  payload?: {
-    transition?: TransitionPayloadInterface;
-  },
-}
+  abstract processor: string;
 
-export interface BlockState {
-  stop: boolean;
-  error: boolean;
-}
+  abstract args: any;
 
-export abstract class Block<TConfig extends BlockConfigType = BlockConfigType> {
+  abstract state: BlockStateDto;
 
-  abstract type: string;
+  abstract ctx: any;
 
-  name: string;
+  abstract config: any;
 
-  metadata: BlockMetadata;
+  abstract init(args: any, ctx: any, data: Partial<BlockStateDto>): void;
 
-  config: TConfig;
-
-  @Output()
-  context: BlockContext;
-
-  @Output()
-  state: BlockState;
-
-  initBlock(name: string, metadata: BlockMetadata, config: TConfig, context: BlockContext) {
-    this.name = name;
-    this.metadata = metadata;
-    this.config = config;
-    this.context = context;
-
-    this.state = {
-      stop: false,
-      error: false,
-    }
+  isInputProperty(metadata: BlockMetadata, name: string) {
+    return metadata.inputProperties.includes(name);
   }
 
-  toOutputObject() {
-    return this.metadata.outputProperties.reduce<Record<string, any>>((acc, key) => {
-      acc[key] = this[key];
-      return acc;
-    }, {});
-  }
-
-  isInputProperty(name: string) {
-    return this.metadata.inputProperties.includes(name);
+  getResult() {
+    return instanceToPlain(this, {
+      strategy: this.config.classTransformStrategy || 'excludeAll',
+      groups: ['result'],
+    });
   }
 }

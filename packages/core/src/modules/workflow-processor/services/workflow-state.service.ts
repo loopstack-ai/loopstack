@@ -15,10 +15,11 @@ export class WorkflowStateService {
   async getWorkflowState(
     block: Workflow,
   ): Promise<WorkflowEntity> {
+
     const workflow = await this.workflowService
-      .createFindQuery(block.context.namespace?.id, {
+      .createFindQuery(block.ctx.namespace?.id, {
         configKey: block.name,
-        labels: block.context.labels,
+        labels: block.ctx.labels,
       })
       .getOne();
 
@@ -29,14 +30,14 @@ export class WorkflowStateService {
     const config = block.config as WorkflowType;
 
     return this.workflowService.create({
-      createdBy: block.context.userId,
-      labels: block.context.labels,
-      namespace: block.context.namespace ?? undefined,
-      pipelineId: block.context.pipelineId,
+      createdBy: block.ctx.userId,
+      labels: block.ctx.labels,
+      namespace: block.ctx.namespace ?? undefined,
+      pipelineId: block.ctx.pipelineId,
       configKey: block.name,
       title: config.title ?? block.name,
       ui: config.ui ?? null,
-      index: block.context.index,
+      index: block.ctx.index,
     });
   }
 

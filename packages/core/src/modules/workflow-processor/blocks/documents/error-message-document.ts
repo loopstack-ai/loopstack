@@ -1,4 +1,4 @@
-import { Block } from '@loopstack/shared';
+import { BlockConfig } from '@loopstack/shared';
 import { z } from 'zod';
 import { Document } from '../../abstract';
 
@@ -6,7 +6,7 @@ const ErrorMessageDocumentSchema = z.object({
   message: z.string(),
 });
 
-@Block({
+@BlockConfig({
   config: {
     type: 'document',
     description: 'Error Message Document.',

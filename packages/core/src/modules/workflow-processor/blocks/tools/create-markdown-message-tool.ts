@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -18,7 +18,7 @@ type CreateMarkdownMessageInput = z.infer<
   typeof CreateMarkdownMessageInputSchema
 >;
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Create a markdown message.',
   },
@@ -32,27 +32,17 @@ export class CreateMarkdownMessage extends Tool {
     super();
   }
 
-  async execute(
-    ctx: ExecutionContext<CreateMarkdownMessageInput>,
-  ): Promise<HandlerCallResult> {
+  async execute(): Promise<HandlerCallResult> {
     const transformedInput = {
       document: 'MarkdownMessageDocument',
       update: {
         content: {
-          title: ctx.args.title,
-          markdown: ctx.args.markdown,
+          title: this.args.title,
+          markdown: this.args.markdown,
         },
       },
     };
 
-    const transformedCtx = new ExecutionContext(
-      ctx.context,
-      transformedInput,
-      ctx.workflow,
-      ctx.transitionData,
-      ctx.parentArgs,
-    );
-
-    return this.createDocumentService.createDocument(transformedCtx);
+    return this.createDocumentService.createDocument(transformedInput, this);
   }
 }

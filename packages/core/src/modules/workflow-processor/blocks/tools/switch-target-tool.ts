@@ -1,4 +1,4 @@
-import { Block, ExecutionContext, HandlerCallResult, TemplateExpression } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult, TemplateExpression } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -13,7 +13,7 @@ const SwitchTargetConfigSchema = z.object({
 
 type SwitchTargetInput = z.infer<typeof SwitchTargetInputSchema>;
 
-@Block({
+@BlockConfig({
   config: {
     description: 'Sets the target place for a transition to a defined value.',
   },
@@ -23,14 +23,13 @@ type SwitchTargetInput = z.infer<typeof SwitchTargetInputSchema>;
 export class SwitchTarget extends Tool {
   protected readonly logger = new Logger(SwitchTarget.name);
 
-  async execute(
-  ): Promise<HandlerCallResult> {
+  async execute(): Promise<HandlerCallResult> {
     const target = this.args.target.trim();
     if (
-      (Array.isArray(this.transition.to) &&
-        !this.transition.to.includes(target)) ||
-      (!Array.isArray(this.transition.to) &&
-        this.transition.to !== target)
+      (Array.isArray(this.state.transition!.to) &&
+        !this.state.transition!.to.includes(target)) ||
+      (!Array.isArray(this.state.transition!.to) &&
+        this.state.transition!.to !== target)
     ) {
       throw new Error(`Transition to place "${target}" not allowed.`);
     }

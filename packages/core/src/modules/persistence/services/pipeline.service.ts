@@ -29,7 +29,7 @@ export class PipelineService {
   async createPipeline(
     options: Partial<PipelineEntity>,
     workspace: WorkspaceEntity,
-    user: string | null,
+    user: string,
   ) {
     const lastRunNumber = await this.getMaxRun(user, workspace.id);
 

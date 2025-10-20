@@ -1,4 +1,5 @@
 import { Block } from '../../workflow-processor/abstract/block.abstract';
+import { BlockInterface } from '../../workflow-processor/interfaces/block.interface';
 
 export class ConfigTraceError extends Error {
   public readonly name = 'ConfigTraceError';
@@ -7,7 +8,7 @@ export class ConfigTraceError extends Error {
 
   constructor(
     originalError: Error,
-    block: Block,
+    block: BlockInterface,
   ) {
     super(originalError.message);
 
@@ -19,7 +20,7 @@ export class ConfigTraceError extends Error {
       this.originalError = originalError;
     }
 
-    this.configTrace.push(`    at ${block.type} (${block.name})`);
+    this.configTrace.push(`    at (${block.constructor.name})`);
 
     this.stack = this.formatCombinedStack();
 

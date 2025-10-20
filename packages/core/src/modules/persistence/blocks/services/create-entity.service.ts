@@ -11,23 +11,24 @@ export class CreateEntityService {
   ) {}
 
   async createEntity(
-    ctx: ExecutionContext<{
+    args: {
       entity: string;
       data?: any;
       items?: any[];
-    }>,
+    },
+    ctx: ExecutionContext,
   ): Promise<HandlerCallResult> {
     if (!ctx.workflow) {
       throw new Error('Workflow is undefined');
     }
 
-    this.logger.debug(`Creating entity ${ctx.args.entity}`);
+    this.logger.debug(`Creating entity ${args.entity}`);
 
     const repository = this.dynamicRepositoryService.getRepository(
-      ctx.args.entity,
+      args.entity,
     ) as any;
 
-    const items = ctx.args.items ?? [ctx.args.data];
+    const items = args.items ?? [args.data];
     console.log(items);
     const entities: any[] = [];
     for (const dto of items) {
@@ -39,7 +40,7 @@ export class CreateEntityService {
 
     return {
       success: true,
-      data: ctx.args.items ? entities : entities[0],
+      data: args.items ? entities : entities[0],
     };
   }
 }

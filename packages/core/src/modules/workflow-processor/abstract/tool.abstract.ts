@@ -1,51 +1,50 @@
 import {
-  ExecutionContext,
-  HandlerCallResult, Output,
-  ToolConfigType,
-  TransitionMetadataInterface,
-  WorkflowEntity,
+  BlockMetadata,
+  HandlerCallResult, WorkflowType,
 } from '@loopstack/shared';
-import { z } from 'zod';
-import { Block } from './block.abstract';
-import { Record } from 'openai/core';
+import { BlockInterface } from '../interfaces/block.interface';
+import { Expose, instanceToPlain } from 'class-transformer';
+import { WorkflowStateDto } from '../dtos/workflow-state.dto';
+import { ToolExecutionContextDto, WorkflowExecutionContextDto } from '../dtos/block-execution-context.dto';
 
-export abstract class Tool<TConfig extends ToolConfigType = ToolConfigType> extends Block<TConfig> {
+export abstract class Tool implements BlockInterface {
+  @Expose()
+  public processor: string = 'tool';
 
-  type = 'tool';
+  public metadata: BlockMetadata;
 
-  @Output()
-  args: Record<string, any>; // args prev. options
+  @Expose()
+  public args: any;
 
-  @Output()
-  transition: TransitionMetadataInterface;
+  @Expose()
+  public state: WorkflowStateDto;
 
-  @Output()
-  result: HandlerCallResult;
+  @Expose()
+  public ctx: ToolExecutionContextDto;
 
-  public initTool(
-    args: Record<string, any>,
-    transition: TransitionMetadataInterface,
-  ) {
-    this.args = args || {};
-    this.transition = transition;
+  @Expose()
+  public config: WorkflowType;
+
+  init(metadata: BlockMetadata, args: any, ctx: ToolExecutionContextDto, data: Partial<WorkflowStateDto>) {
+    this.metadata = metadata;
+    this.args = args;
+    this.ctx = ctx;
+    this.state = new WorkflowStateDto(data);
   }
 
-  async apply(
-    args: any,
-    workflow: WorkflowEntity,
-  ): Promise<HandlerCallResult> {
-    const executionContext = new ExecutionContext(
-      this.context,
-      args,
-      workflow,
-      this.transition,
-      this.args,
-    );
-
-    return this.execute(executionContext);
+  get name(): string {
+    return this.constructor.name;
   }
 
-  protected abstract execute<TSchema extends z.ZodType>(
-    ctx: ExecutionContext<z.infer<TSchema>>,
-  ): Promise<HandlerCallResult>;
+  public abstract execute(): Promise<HandlerCallResult>;
+
+  result: any;
+
+  getResult() {
+    return instanceToPlain(this, {
+      strategy: this.config.classTransformStrategy || 'excludeAll',
+      groups: ['result'],
+      excludeExtraneousValues: true,
+    });
+  }
 }

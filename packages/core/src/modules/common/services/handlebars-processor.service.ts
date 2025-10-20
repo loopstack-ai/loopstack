@@ -297,12 +297,12 @@ export class HandlebarsProcessor implements OnModuleInit {
     );
   }
 
-  public render(content: string, variables: Record<string, any>): string {
+  public render(content: string, data: any, options: RuntimeOptions = {}): string {
     if (content.length > HandlebarsProcessor.MAX_TEMPLATE_SIZE) {
       throw new Error(`Template too large`);
     }
 
     const template = this.handlebars.compile(content, this.options);
-    return template(variables);
+    return template(data, options);
   }
 }

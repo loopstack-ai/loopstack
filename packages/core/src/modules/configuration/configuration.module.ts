@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import {
-  BlockRegistryService,
-  ConfigLoaderService,
   ZodGeneratorService,
 } from './services';
 import { JsonSchemaGeneratorService } from './services/json-schema-generator.service';
@@ -16,9 +14,7 @@ import { DiscoveryModule } from '@nestjs/core';
     GenerateSchemaCommand,
     DynamicSchemaGeneratorService,
     ZodGeneratorService,
-    BlockRegistryService,
-    ConfigLoaderService,
   ],
-  exports: [ZodGeneratorService, BlockRegistryService],
+  exports: [ZodGeneratorService],
 })
 export class ConfigurationModule {}

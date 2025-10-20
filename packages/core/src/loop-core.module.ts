@@ -29,8 +29,8 @@ import { MODULE_NAME_TOKEN } from '@loopstack/shared';
     MigrationsService,
   ],
   exports: [
-    ConfigurationModule,
     CommonModule,
+    ConfigurationModule,
     PersistenceModule,
     WorkflowProcessorModule,
     SchedulerModule,

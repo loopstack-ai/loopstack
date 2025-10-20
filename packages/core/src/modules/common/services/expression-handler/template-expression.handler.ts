@@ -4,7 +4,7 @@ import { HandlebarsProcessor } from '../handlebars-processor.service';
 import { TemplateExpressionError } from '../../errors/template-expression.error';
 
 interface ProcessingContext {
-  variables: Record<string, any>;
+  data: any;
   depth?: number;
 }
 
@@ -29,10 +29,10 @@ export class TemplateExpressionHandler
     );
   }
 
-  process(content: string, variables: Record<string, any>): any {
+  process(content: string, data: any): any {
     try {
       const context: ProcessingContext = {
-        variables,
+        data,
         depth: 0,
       };
 
@@ -43,7 +43,11 @@ export class TemplateExpressionHandler
         );
       }
 
-      return this.handlebarsProcessor.render(content, context.variables);
+      return this.handlebarsProcessor.render(content, context.data, {
+        allowedProtoProperties: {
+          // alternativeCalculation: true,
+        },
+      });
     } catch (error) {
       this.logger.error(
         `Failed to process template expression: ${error.message}`,

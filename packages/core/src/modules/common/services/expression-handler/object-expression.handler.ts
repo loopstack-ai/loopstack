@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TemplateDetector, TemplateProcessor } from '../template.service';
 import { get } from 'lodash';
 import { ObjectExpressionError } from '../../errors/object-expression.error';
-import { Block } from '../../../workflow-processor/abstract/block.abstract';
 
 @Injectable()
 export class ObjectExpressionHandler
@@ -25,11 +24,11 @@ export class ObjectExpressionHandler
     return typeof value === 'string' && this.EXPRESSION_PATTERN.test(value.trim());
   }
 
-  process(content: string, variables: Record<string, any>): any {
+  process(content: string, data: any): any {
     try {
       const expression = this.extractExpression(content);
       this.validateExpression(expression);
-      return this.evaluateExpression(expression, variables);
+      return this.evaluateExpression(expression, data);
     } catch (error) {
       if (error instanceof ObjectExpressionError) {
         throw error;
@@ -88,10 +87,10 @@ export class ObjectExpressionHandler
 
   private evaluateExpression(
     expression: string,
-    ctx: Record<string, Block>,
+    data: any,
   ): any {
     try {
-      const value = get(ctx, expression);
+      const value = get(data, expression);
 
       // If the value is a getter function, invoke it
       if (typeof value === 'function') {
