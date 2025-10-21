@@ -40,8 +40,6 @@ export class TemplateExpressionEvaluatorService {
 
     const config = block.config as any;
 
-    console.log('block=', block.name)
-
     const selfProperties = instanceToPlain(block, {
       strategy: config.classTransformStrategy || 'exposeAll',
       groups,

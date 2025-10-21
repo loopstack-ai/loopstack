@@ -52,7 +52,7 @@ export class SequenceProcessorService implements Processor {
 
       const currentIndex = this.blockHelperService.createIndex(index, i + 1);
 
-      const childBlock = await this.blockFactory.createBlock<Pipeline, PipelineExecutionContextDto, BlockStateDto>(
+      const childBlock = await this.blockFactory.createBlock<Pipeline, PipelineExecutionContextDto>(
         parsedItem.block,
         {
           ...parsedItem.args,
@@ -69,7 +69,8 @@ export class SequenceProcessorService implements Processor {
       }
       block.addStepResult(i.toString(), resultData);
 
-      if (processedBlock.state.stop) {
+      if (processedBlock.state?.stop) {
+        block.state.stop = true;
         this.logger.debug(`Stopping sequence due to stop sign.`)
         break;
       }

@@ -3,11 +3,12 @@ import {
   AssignmentConfigType,
   HandlerCallResult, NamespacePropsSchema, NamespacePropsType,
   PipelineFactoryConfigType,
-  PipelineSequenceType,
+  PipelineSequenceType, WorkflowEntity,
 } from '@loopstack/shared';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { Factory, Pipeline, Tool, Workflow } from '../abstract';
 import { NamespaceProcessorService } from './namespace-processor.service';
+import { WorkflowStateDto } from '../dtos/workflow-state.dto';
 
 @Injectable()
 export class BlockHelperService {
@@ -71,5 +72,34 @@ export class BlockHelperService {
         }
       }
     }
+  }
+
+  initBlockState(workflowEntity: WorkflowEntity): WorkflowStateDto {
+    return new WorkflowStateDto({
+      // init with persisted state:
+      id: workflowEntity.id,
+      history: workflowEntity.history ?? [],
+      place: workflowEntity.place,
+      transitionResults: workflowEntity.transitionResults,
+      documents: workflowEntity.documents,
+
+      // init with defaults:
+      error: false,
+      stop: false,
+      transition: undefined,
+      availableTransitions: null, // will be evaluated at workflow loop
+      currentTransitionResults: null,
+    })
+  }
+
+  persistBlockState(workflowEntity: WorkflowEntity, state: WorkflowStateDto) {
+    workflowEntity.history = state.history ?? null;
+    workflowEntity.place = state.place;
+    workflowEntity.transitionResults = state.transitionResults ?? null;
+    workflowEntity.documents = state.documents;
+    workflowEntity.hasError = state.error;
+
+    // persist available transitions for frontend
+    workflowEntity.availableTransitions = state.availableTransitions ?? null;
   }
 }

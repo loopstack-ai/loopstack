@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, Type } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ModuleRef } from '@nestjs/core';
 import { BLOCK_METADATA_KEY, BlockConfigType, MODULE_FACTORY_CLASS } from '@loopstack/shared';
@@ -7,6 +7,7 @@ import { BlockInterface } from '../interfaces/block.interface';
 
 @Injectable()
 export class CapabilityBuilder implements OnModuleInit {
+  private logger = new Logger(CapabilityBuilder.name);
   private serviceToFactory = new Map<Type<any>, ICapabilityFactory>();
 
   constructor(
@@ -50,7 +51,7 @@ export class CapabilityBuilder implements OnModuleInit {
               }
             }
 
-            console.log(`✅ Factory ${factoryClass.name} auto-discovered ${services.length} services from ${moduleClass.name}`);
+            this.logger.log(`✅ Factory ${factoryClass.name} auto-discovered ${services.length} services from ${moduleClass.name}`);
 
             for (const ServiceClass of services) {
               this.serviceToFactory.set(ServiceClass, factory);

@@ -1,6 +1,10 @@
-import { DocumentEntity, TransitionMetadataInterface } from '@loopstack/shared';
-import { ToolResultLookup, TransitionResultLookup } from '../services';
+import {
+  DocumentEntity,
+  HistoryTransition, ToolResultLookup, TransitionResultLookup,
+  WorkflowTransitionType,
+} from '@loopstack/shared';
 import { Expose } from 'class-transformer';
+import { WorkflowTransitionDto } from './workflow-transition.dto';
 
 interface BlockStateInterface {
   id: string;
@@ -23,39 +27,50 @@ export class BlockStateDto implements BlockStateInterface {
   }
 }
 
+export type InitWorkflowState = Omit<WorkflowStateDto, 'addDocuments'>;
+
 export class WorkflowStateDto implements BlockStateInterface {
   @Expose()
   id: string;
 
   @Expose()
-  error?: boolean;
+  error: boolean;
 
   @Expose()
-  stop?: boolean;
+  stop: boolean;
 
   @Expose()
-  history?: string[];
+  history: HistoryTransition[];
 
   @Expose()
-  transition?: TransitionMetadataInterface;
+  transition?: WorkflowTransitionDto;
 
   @Expose()
-  place?: string;
+  place: string;
 
   @Expose()
-  documentIds: string[];
+  transitionResults: TransitionResultLookup | null;
 
   @Expose()
-  toolResults?: ToolResultLookup;
+  currentTransitionResults: ToolResultLookup | null;
 
   @Expose()
-  transitionResults?: TransitionResultLookup;
+  availableTransitions: WorkflowTransitionType[] | null;
 
-  constructor(data: Partial<WorkflowStateDto>) {
+  documents: DocumentEntity[];
+
+  constructor(data: InitWorkflowState) {
     Object.assign(this, data);
   }
 
-  setDocumentIds(documents: DocumentEntity[]) {
-    this.documentIds = documents.map((item) => item.id);
+  addDocuments(documents: DocumentEntity[]) {
+    for (const document of documents) {
+      const existingIndex = document.id ? this.documents.findIndex((d) => d.id === document.id) : -1;
+      if (existingIndex != -1) {
+        this.documents[existingIndex] = document;
+      } else {
+        this.documents.push(document);
+      }
+    }
   }
 }

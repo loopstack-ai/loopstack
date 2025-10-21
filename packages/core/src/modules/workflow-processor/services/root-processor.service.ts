@@ -54,7 +54,7 @@ export class RootProcessorService {
       payload: payload,
     });
 
-    const block = await this.blockFactory.createBlock<Workspace, WorkspaceExecutionContextDto, BlockStateDto>(pipeline.workspace.configKey, args, ctx);
+    const block = await this.blockFactory.createBlock<Workspace, WorkspaceExecutionContextDto>(pipeline.workspace.configKey, args, ctx);
     return this.blockProcessor.processBlock<Workspace>(block, this.processorFactory);
   }
 
@@ -69,9 +69,9 @@ export class RootProcessorService {
     );
     const block = await this.processRootPipeline(pipeline, payload, args);
 
-    const status = block.state.error
+    const status = block.state?.error
       ? PipelineState.Failed
-      : block.state.stop
+      : block.state?.stop
         ? PipelineState.Paused
         : PipelineState.Completed;
 

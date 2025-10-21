@@ -41,11 +41,12 @@ export class SetContextHandler implements HandlerInterface {
       throw new Error('Workflow is undefined');
     }
 
-    workflow = this.workflowContextService.setWorkflowContextUpdate(
-      workflow,
-      props.key,
-      props.value,
-    );
+    // todo
+    // workflow = this.workflowContextService.setWorkflowContextUpdate(
+    //   workflow,
+    //   props.key,
+    //   props.value,
+    // );
 
     this.logger.debug(`Set context update key "${props.key}".`);
 

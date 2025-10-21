@@ -1,10 +1,11 @@
-import { BlockStateDto } from '../dtos/workflow-state.dto';
+import { BlockStateDto, WorkflowStateDto } from '../dtos/workflow-state.dto';
 import { BlockConfigType, BlockMetadata } from '@loopstack/shared';
 import {
   DocumentExecutionContextDto, FactoryExecutionContextDto, PipelineExecutionContextDto,
   ToolExecutionContextDto,
   WorkflowExecutionContextDto, WorkspaceExecutionContextDto,
 } from '../dtos/block-execution-context.dto';
+import { BlockRegistryItem } from '../services';
 
 export type BlockContextType = DocumentExecutionContextDto
   | WorkflowExecutionContextDto
@@ -20,13 +21,13 @@ export interface BlockInterface {
 
   args: any;
 
-  state: BlockStateDto;
+  state: BlockStateDto | WorkflowStateDto;
 
   ctx: BlockContextType;
 
   config: BlockConfigType;
 
-  init(metadata: BlockMetadata, args: any, ctx: any, data?: any): void;
+  init(registry: BlockRegistryItem, args: any, ctx: any): void;
 
   get name(): string;
 

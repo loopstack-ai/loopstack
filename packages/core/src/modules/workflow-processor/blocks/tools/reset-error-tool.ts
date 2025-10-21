@@ -29,7 +29,7 @@ export class ResetError extends Tool {
       throw new Error('Workflow is undefined');
     }
 
-    this.state.error = undefined;
+    // this.state.error = undefined;
 
     return {
       success: true,

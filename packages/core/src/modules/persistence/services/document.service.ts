@@ -119,9 +119,9 @@ export class DocumentService {
     return this.documentRepository.create({
       ...data,
       transition: block.ctx.workflow.transition.id,
-      index: block.state.documentIds?.length ?? 0,
+      index: block.ctx.workflow.documents?.length ?? 0,
       workflowIndex: block.ctx.index,
-      place: block.state.place,
+      place: block.ctx.workflow.place,
       labels: block.ctx.labels,
       workflow: { id: block.ctx.workflow.id } as WorkflowEntity,
       workspaceId: block.ctx.workspaceId,

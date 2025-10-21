@@ -8,11 +8,11 @@ export class WorkflowContextService {
     key: string,
     value: any,
   ): WorkflowEntity {
-    if (!workflow.contextVariables) {
-      workflow.contextVariables = {};
-    }
-
-    workflow.contextVariables[key] = value;
+    // if (!workflow.contextVariables) {
+    //   workflow.contextVariables = {};
+    // }
+    //
+    // workflow.contextVariables[key] = value;
     return workflow;
   }
 }

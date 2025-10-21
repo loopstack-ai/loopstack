@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
+import { Abstract, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import {
@@ -144,8 +144,8 @@ export class BlockRegistryService implements OnModuleInit {
   /**
    * Gets blocks by type
    */
-  getBlocksByType(type: string): BlockRegistryItem[] {
-    return this.getBlocks().filter((block) => block.provider.instance.type === type);
+  getBlocksByType(type: Abstract<any>): BlockRegistryItem[] {
+    return this.getBlocks().filter((block) => block.provider.instance instanceof type);
   }
 
   /**

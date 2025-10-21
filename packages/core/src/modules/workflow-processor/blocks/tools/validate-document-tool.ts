@@ -39,7 +39,7 @@ export class ValidateDocument extends Tool {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   async execute(): Promise<HandlerCallResult> {
-    const document = this.state.documentIds.find(
+    const document = this.ctx.workflow.documents.find(
       (id) => id === this.args.documentId,
     );
     if (!document) {

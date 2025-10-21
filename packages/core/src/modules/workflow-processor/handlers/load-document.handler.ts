@@ -115,29 +115,30 @@ export class LoadDocumentHandler implements HandlerInterface {
     transitionData: TransitionMetadataInterface,
     result: DocumentEntity[] | DocumentEntity,
   ) {
-    const prevImport: ContextImportInterface | undefined =
-      workflow.prevData?.imports?.[transitionData.id!];
-
-    if (!workflow.dependencies) {
-      workflow.dependencies = [];
-    }
-
-    if (prevImport) {
-      workflow.dependencies = workflow.dependencies.filter(
-        (dep) => !prevImport?.ids.includes(dep.id),
-      );
-    }
-
-    const existingDependencyIds = workflow.dependencies.map((dep) => dep.id);
-    const dependencyList = Array.isArray(result) ? result : [result];
-    const newDependencies = dependencyList.filter(
-      (entity) => !existingDependencyIds.includes(entity.id),
-    );
-
-    if (newDependencies.length) {
-      workflow.dependencies.push(...newDependencies);
-      this.updateWorkflowDependenciesHash(workflow);
-    }
+    // todo
+    // const prevImport: ContextImportInterface | undefined =
+    //   workflow.prevData?.imports?.[transitionData.id!];
+    //
+    // if (!workflow.dependencies) {
+    //   workflow.dependencies = [];
+    // }
+    //
+    // if (prevImport) {
+    //   workflow.dependencies = workflow.dependencies.filter(
+    //     (dep) => !prevImport?.ids.includes(dep.id),
+    //   );
+    // }
+    //
+    // const existingDependencyIds = workflow.dependencies.map((dep) => dep.id);
+    // const dependencyList = Array.isArray(result) ? result : [result];
+    // const newDependencies = dependencyList.filter(
+    //   (entity) => !existingDependencyIds.includes(entity.id),
+    // );
+    //
+    // if (newDependencies.length) {
+    //   workflow.dependencies.push(...newDependencies);
+    //   this.updateWorkflowDependenciesHash(workflow);
+    // }
   }
 
   /**

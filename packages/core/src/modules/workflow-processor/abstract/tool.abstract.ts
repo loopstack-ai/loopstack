@@ -4,8 +4,9 @@ import {
 } from '@loopstack/shared';
 import { BlockInterface } from '../interfaces/block.interface';
 import { Expose, instanceToPlain } from 'class-transformer';
-import { WorkflowStateDto } from '../dtos/workflow-state.dto';
-import { ToolExecutionContextDto, WorkflowExecutionContextDto } from '../dtos/block-execution-context.dto';
+import { BlockStateDto } from '../dtos/workflow-state.dto';
+import { ToolExecutionContextDto } from '../dtos/block-execution-context.dto';
+import { BlockRegistryItem } from '../services';
 
 export abstract class Tool implements BlockInterface {
   @Expose()
@@ -17,7 +18,7 @@ export abstract class Tool implements BlockInterface {
   public args: any;
 
   @Expose()
-  public state: WorkflowStateDto;
+  public state: BlockStateDto;
 
   @Expose()
   public ctx: ToolExecutionContextDto;
@@ -25,11 +26,15 @@ export abstract class Tool implements BlockInterface {
   @Expose()
   public config: WorkflowType;
 
-  init(metadata: BlockMetadata, args: any, ctx: ToolExecutionContextDto, data: Partial<WorkflowStateDto>) {
-    this.metadata = metadata;
+  init(registry: BlockRegistryItem, args: any, ctx: ToolExecutionContextDto) {
+    this.metadata = registry.metadata;
     this.args = args;
     this.ctx = ctx;
-    this.state = new WorkflowStateDto(data);
+    this.state = new BlockStateDto({
+      id: registry.name,
+      error: false,
+      stop: false,
+    });
   }
 
   get name(): string {

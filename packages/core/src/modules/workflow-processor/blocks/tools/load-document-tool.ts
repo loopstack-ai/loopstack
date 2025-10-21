@@ -119,29 +119,30 @@ export class LoadDocument extends Tool {
     transitionData: TransitionMetadataInterface,
     result: DocumentEntity[] | DocumentEntity,
   ) {
-    const prevImport: ContextImportInterface | undefined =
-      workflow.prevData?.imports?.[transitionData.id!];
-
-    if (!workflow.dependencies) {
-      workflow.dependencies = [];
-    }
-
-    if (prevImport) {
-      workflow.dependencies = workflow.dependencies.filter(
-        (dep) => !prevImport?.ids.includes(dep.id),
-      );
-    }
-
-    const existingDependencyIds = workflow.dependencies.map((dep) => dep.id);
-    const dependencyList = Array.isArray(result) ? result : [result];
-    const newDependencies = dependencyList.filter(
-      (entity) => !existingDependencyIds.includes(entity.id),
-    );
-
-    if (newDependencies.length) {
-      workflow.dependencies.push(...newDependencies);
-      this.updateWorkflowDependenciesHash(workflow);
-    }
+    // todo
+    // const prevImport: ContextImportInterface | undefined =
+    //   workflow.prevData?.imports?.[transitionData.id!];
+    //
+    // if (!workflow.dependencies) {
+    //   workflow.dependencies = [];
+    // }
+    //
+    // if (prevImport) {
+    //   workflow.dependencies = workflow.dependencies.filter(
+    //     (dep) => !prevImport?.ids.includes(dep.id),
+    //   );
+    // }
+    //
+    // const existingDependencyIds = workflow.dependencies.map((dep) => dep.id);
+    // const dependencyList = Array.isArray(result) ? result : [result];
+    // const newDependencies = dependencyList.filter(
+    //   (entity) => !existingDependencyIds.includes(entity.id),
+    // );
+    //
+    // if (newDependencies.length) {
+    //   workflow.dependencies.push(...newDependencies);
+    //   this.updateWorkflowDependenciesHash(workflow);
+    // }
   }
 
   /**
@@ -153,7 +154,7 @@ export class LoadDocument extends Tool {
     if (!this.state.id) {
       throw new Error('Workflow is undefined');
     }
-    this.logger.debug(`Load document ${this.state.transition?.id}`);
+    this.logger.debug(`Load document ${this.ctx.workflow.transition?.id}`);
 
     // load and filter entities based on options from database
     const result = await this.getDocumentsByQuery(

@@ -12,11 +12,10 @@ export class BlockFactory {
     private readonly capabilityBuilder: CapabilityBuilder,
   ) {}
 
-  async createBlock<T extends BlockInterface, TContext, TState>(
+  async createBlock<T extends BlockInterface, TContext>(
     blockName: string,
     args: any,
     ctx: TContext,
-    data?: TState,
   ): Promise<T> {
     this.logger.debug(`Processing item: "${blockName}"`);
 
@@ -28,7 +27,7 @@ export class BlockFactory {
     const parsedArgs = blockRegistryItem.metadata.properties?.parse(args ?? {});
 
     const service = await this.capabilityBuilder.getCapability<T>(blockRegistryItem.name, blockRegistryItem.config);
-    service.init(blockRegistryItem.metadata, parsedArgs, ctx, data)
+    service.init(blockRegistryItem, parsedArgs, ctx)
 
     return service;
   }

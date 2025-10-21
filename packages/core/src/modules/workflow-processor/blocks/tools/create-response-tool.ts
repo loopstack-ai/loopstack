@@ -32,7 +32,7 @@ export class CreateResponse extends Tool {
     const transformedInput = {
       document: this.args.document,
       update: {
-        content: this.state.transition,
+        content: this.ctx.workflow.transition,
       },
     };
 

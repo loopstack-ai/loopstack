@@ -26,10 +26,10 @@ export class SwitchTarget extends Tool {
   async execute(): Promise<HandlerCallResult> {
     const target = this.args.target.trim();
     if (
-      (Array.isArray(this.state.transition!.to) &&
-        !this.state.transition!.to.includes(target)) ||
-      (!Array.isArray(this.state.transition!.to) &&
-        this.state.transition!.to !== target)
+      (Array.isArray(this.ctx.workflow.transition!.to) &&
+        !this.ctx.workflow.transition!.to.includes(target)) ||
+      (!Array.isArray(this.ctx.workflow.transition!.to) &&
+        this.ctx.workflow.transition!.to !== target)
     ) {
       throw new Error(`Transition to place "${target}" not allowed.`);
     }

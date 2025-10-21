@@ -3,6 +3,7 @@ import { Expose, instanceToPlain } from 'class-transformer';
 import { BlockStateDto, WorkflowStateDto } from '../dtos/workflow-state.dto';
 import { WorkflowExecutionContextDto } from '../dtos/block-execution-context.dto';
 import { BlockInterface } from '../interfaces/block.interface';
+import { BlockRegistryItem } from '../services';
 
 export abstract class Factory implements BlockInterface {
 
@@ -23,11 +24,15 @@ export abstract class Factory implements BlockInterface {
   @Expose()
   public config: WorkflowType;
 
-  init(metadata: BlockMetadata, args: any, ctx: WorkflowExecutionContextDto, data: Partial<WorkflowStateDto>) {
-    this.metadata = metadata;
+  init(registry: BlockRegistryItem, args: any, ctx: WorkflowExecutionContextDto) {
+    this.metadata = registry.metadata;
     this.args = args;
     this.ctx = ctx;
-    this.state = new WorkflowStateDto(data);
+    this.state = new BlockStateDto({
+      id: registry.name,
+      error: false,
+      stop: false,
+    });
   }
 
   get name(): string {

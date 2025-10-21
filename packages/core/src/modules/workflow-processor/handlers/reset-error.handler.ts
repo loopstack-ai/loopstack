@@ -18,7 +18,7 @@ export class ResetErrorHandler implements HandlerInterface {
       throw new Error('Workflow is undefined');
     }
 
-    workflow.error = null;
+    // workflow.error = null;
 
     return {
       success: true,

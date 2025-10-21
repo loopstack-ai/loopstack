@@ -45,18 +45,19 @@ export class AddNamespaceHandler implements HandlerInterface {
       parent: context.namespace,
     });
 
-    if (!workflow.contextVariables) {
-      workflow.contextVariables = {};
-    }
-
-    const contextLabels = context.labels;
-    const workflowLabels = workflow.contextVariables.labels ?? [];
-
-    workflow.contextVariables.labels = [
-      ...contextLabels,
-      ...workflowLabels,
-      namespace.name,
-    ];
+    // todo
+    // if (!workflow.contextVariables) {
+    //   workflow.contextVariables = {};
+    // }
+    //
+    // const contextLabels = context.labels;
+    // const workflowLabels = workflow.contextVariables.labels ?? [];
+    //
+    // workflow.contextVariables.labels = [
+    //   ...contextLabels,
+    //   ...workflowLabels,
+    //   namespace.name,
+    // ];
 
     this.logger.debug(`Add namespace label "${namespace.name}".`);
 

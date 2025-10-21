@@ -1,4 +1,3 @@
-import { Block } from '../../workflow-processor/abstract/block.abstract';
 import { BlockInterface } from '../../workflow-processor/interfaces/block.interface';
 
 export class ConfigTraceError extends Error {

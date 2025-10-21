@@ -18,7 +18,7 @@ export class WorkspaceProcessorService implements Processor {
 
   async process(block: Workspace, factory: ProcessorFactory): Promise<Workspace> {
 
-    const childBlock = await this.blockFactory.createBlock<BlockInterface, BlockContextType, BlockStateDto>(
+    const childBlock = await this.blockFactory.createBlock<BlockInterface, BlockContextType>(
       block.ctx.root,
       block.args,
       block.ctx
