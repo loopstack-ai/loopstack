@@ -3,7 +3,8 @@ import { Processor } from '../../interfaces/processor.interface';
 import { ProcessorFactory } from '../processor.factory';
 import { Factory } from '../../abstract';
 import {
-  PipelineFactoryConfigType, PipelineFactoryIteratorSchema,
+  PipelineFactoryConfigType,
+  PipelineFactoryIteratorSchema,
   PipelineFactoryIteratorType,
 } from '@loopstack/shared';
 import { BlockHelperService } from '../block-helper.service';
@@ -11,7 +12,10 @@ import { TemplateExpressionEvaluatorService } from '../template-expression-evalu
 import { BlockFactory } from '../block.factory';
 import { NamespaceProcessorService } from '../namespace-processor.service';
 import { BlockProcessor } from '../block-processor.service';
-import { BlockContextType, BlockInterface } from '../../interfaces/block.interface';
+import {
+  BlockContextType,
+  BlockInterface,
+} from '../../interfaces/block.interface';
 
 @Injectable()
 export class FactoryProcessorService implements Processor {
@@ -39,7 +43,7 @@ export class FactoryProcessorService implements Processor {
       // create a new namespace for each child
       const namespace = await this.namespaceProcessorService.createNamespace(
         block,
-        { label: `${ item } (${i + 1})` },
+        { label: `${item} (${i + 1})` },
       );
 
       executionContexts[item] = {
@@ -60,18 +64,16 @@ export class FactoryProcessorService implements Processor {
     const config = block.config as unknown as PipelineFactoryConfigType;
 
     // omit factory args for later
-    const iterator = this.templateExpressionEvaluatorService.evaluateTemplate<PipelineFactoryIteratorType>(
-      config.iterator,
-      block,
-      ['pipeline'],
-      PipelineFactoryIteratorSchema,
-    );
+    const iterator =
+      this.templateExpressionEvaluatorService.evaluateTemplate<PipelineFactoryIteratorType>(
+        config.iterator,
+        block,
+        ['pipeline'],
+        PipelineFactoryIteratorSchema,
+      );
 
     // create or load all context / namespaces
-    const executionContexts = await this.prepareAllContexts(
-      block,
-      iterator,
-    );
+    const executionContexts = await this.prepareAllContexts(block, iterator);
 
     // cleanup old namespaces
     await this.namespaceProcessorService.cleanupNamespace(
@@ -82,30 +84,34 @@ export class FactoryProcessorService implements Processor {
     let processedChildBlocks: BlockInterface[] = [];
     if (config.parallel) {
       // process the child elements parallel
-      const resultBlocks = Object.entries(executionContexts).map(async ([item, blockContext], index) => {
+      const resultBlocks = Object.entries(executionContexts).map(
+        async ([item, blockContext], index) => {
+          const childBlock = await this.blockFactory.createBlock(
+            config.factory.block,
+            {
+              ...block.args, // include the parent args
+              index,
+              label: blockContext.namespace.name,
+              item,
+            },
+            blockContext,
+          );
 
-        const childBlock = await this.blockFactory.createBlock(
-          config.factory.block,
-          {
-            ...block.args,  // include the parent args
-            index,
-            label: blockContext.namespace.name,
-            item,
-          },
-          blockContext
-        );
+          const processedBlock = await this.blockProcessor.processBlock(
+            childBlock,
+            factory,
+          );
+          const resultData = processedBlock.getResult();
+          block.addItemResult(item, resultData);
+          block.addItemResult(index.toString(), resultData);
 
-        const processedBlock = await this.blockProcessor.processBlock(childBlock, factory);
-        const resultData = processedBlock.getResult();
-        block.addItemResult(item, resultData);
-        block.addItemResult(index.toString(), resultData);
-
-        return processedBlock;
-      });
+          return processedBlock;
+        },
+      );
 
       processedChildBlocks = await Promise.all(resultBlocks);
 
-      this.logger.debug(`Processed all parallel factory items.`)
+      this.logger.debug(`Processed all parallel factory items.`);
     } else {
       // process the child elements sequential
       let index = 0;
@@ -115,15 +121,18 @@ export class FactoryProcessorService implements Processor {
         const childBlock = await this.blockFactory.createBlock(
           config.factory.block,
           {
-            ...block.args,  // include the parent args
+            ...block.args, // include the parent args
             index,
             label: blockContext.namespace.name,
             item: key,
           },
-          blockContext
+          blockContext,
         );
 
-        const resultBlock = await this.blockProcessor.processBlock(childBlock, factory);
+        const resultBlock = await this.blockProcessor.processBlock(
+          childBlock,
+          factory,
+        );
         if (resultBlock.state.error || resultBlock.state.stop) {
           break;
         }
@@ -137,16 +146,16 @@ export class FactoryProcessorService implements Processor {
         index++;
       }
 
-      this.logger.debug(`Processed all sequential factory items.`)
+      this.logger.debug(`Processed all sequential factory items.`);
     }
 
     if (processedChildBlocks.some((resultBlock) => resultBlock.state.stop)) {
-      this.logger.debug('Stop promoted after factory')
+      this.logger.debug('Stop promoted after factory');
       block.state.stop = true;
     }
 
     if (processedChildBlocks.some((resultBlock) => resultBlock.state.error)) {
-      this.logger.debug('Error promoted after factory')
+      this.logger.debug('Error promoted after factory');
       block.state.error = true;
     }
 

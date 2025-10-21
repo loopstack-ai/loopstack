@@ -105,15 +105,12 @@ export class DocumentService {
     private workflowService: WorkflowService,
   ) {}
 
-  create(
-    block: Tool,
-    data: Partial<DocumentEntity>,
-  ): DocumentEntity {
+  create(block: Tool, data: Partial<DocumentEntity>): DocumentEntity {
     if (!block.ctx.workflow.id) {
       throw new Error(`No workflow assigned to processor context.`);
     }
     if (!block.ctx.workflow.transition?.id) {
-      throw new Error(`No transition assigned to processor state.`)
+      throw new Error(`No transition assigned to processor state.`);
     }
 
     return this.documentRepository.create({

@@ -1,4 +1,8 @@
-import { BlockConfig, HandlerCallResult, TemplateExpression } from '@loopstack/shared';
+import {
+  BlockConfig,
+  HandlerCallResult,
+  TemplateExpression,
+} from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../abstract';
@@ -39,7 +43,7 @@ export class SwitchTarget extends Tool {
     return {
       success: true,
       effects: {
-        setTransitionPlace: target
+        setTransitionPlace: target,
       },
     };
   }

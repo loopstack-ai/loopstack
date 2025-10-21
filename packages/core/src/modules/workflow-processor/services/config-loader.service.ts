@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigSourceInterface } from '@loopstack/shared';
 import path from 'path';
 import fs from 'fs';
@@ -6,6 +6,7 @@ import { parse } from 'yaml';
 
 @Injectable()
 export class ConfigLoaderService {
+  private logger = new Logger(ConfigLoaderService.name);
 
   public loadConfigFile(filePath: string): ConfigSourceInterface | null {
     try {
@@ -16,7 +17,7 @@ export class ConfigLoaderService {
       try {
         config = parse(raw);
       } catch (parseError) {
-        console.error(`Error parsing YAML file ${filePath}:`, parseError);
+        this.logger.error(`Error parsing YAML file ${filePath}:`, parseError);
         return null;
       }
 
@@ -27,9 +28,8 @@ export class ConfigLoaderService {
         config,
       };
     } catch (error) {
-      console.error(`Error reading file ${filePath}:`, error);
+      this.logger.error(`Error reading file ${filePath}:`, error);
       return null;
     }
   }
-
 }

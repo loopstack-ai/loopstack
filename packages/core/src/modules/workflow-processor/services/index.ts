@@ -3,7 +3,6 @@ export * from './namespace-processor.service';
 export * from './template-expression-evaluator.service';
 export * from './workflow-state.service';
 export * from './root-processor.service';
-export * from './workflow-context.service';
 export * from './create-pipeline.service';
 export * from './block-helper.service';
 export * from './block-registry.service';
@@ -11,7 +10,7 @@ export * from './capability-builder.service';
 export * from './config-loader.service';
 
 export * from './block.factory';
-export * from './block-processor.service'
+export * from './block-processor.service';
 export * from './processor.factory';
 export * from './processors/sequence-processor.service';
 export * from './processors/factory-processor.service';

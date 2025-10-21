@@ -1,12 +1,11 @@
 import { BlockMetadata, WorkflowType } from '@loopstack/shared';
 import { Expose, instanceToPlain } from 'class-transformer';
-import { BlockStateDto } from '../dtos/workflow-state.dto';
-import { WorkflowExecutionContextDto } from '../dtos/block-execution-context.dto';
+import { BlockStateDto } from '../dtos';
+import { WorkflowExecutionContextDto } from '../dtos';
 import { BlockInterface } from '../interfaces/block.interface';
 import { BlockRegistryItem } from '../services';
 
 export class Pipeline implements BlockInterface {
-
   @Expose()
   public processor: string = 'sequence';
 
@@ -24,7 +23,11 @@ export class Pipeline implements BlockInterface {
   @Expose()
   public config: WorkflowType;
 
-  init(registry: BlockRegistryItem, args: any, ctx: WorkflowExecutionContextDto) {
+  init(
+    registry: BlockRegistryItem,
+    args: any,
+    ctx: WorkflowExecutionContextDto,
+  ) {
     this.metadata = registry.metadata;
     this.args = args;
     this.ctx = ctx;
@@ -47,12 +50,9 @@ export class Pipeline implements BlockInterface {
     });
   }
 
-
-
-
   #steps: Record<string, any> = {};
 
-  addStepResult(key: string, value:any) {
+  addStepResult(key: string, value: any) {
     this.#steps[key] = value;
   }
 

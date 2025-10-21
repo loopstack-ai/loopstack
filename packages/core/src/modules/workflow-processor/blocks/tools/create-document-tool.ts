@@ -1,7 +1,4 @@
-import {
-  BlockConfig,
-  HandlerCallResult,
-} from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { Tool } from '../../abstract';
 import {
@@ -12,7 +9,7 @@ import {
 
 @BlockConfig({
   config: {
-    description: "Create a document.",
+    description: 'Create a document.',
   },
   properties: CreateDocumentInputSchema,
   configSchema: CreateDocumentConfigSchema,
@@ -20,9 +17,7 @@ import {
 export class CreateDocument extends Tool {
   protected readonly logger = new Logger(CreateDocument.name);
 
-  constructor(
-    private readonly createDocumentService: CreateDocumentService,
-  ) {
+  constructor(private readonly createDocumentService: CreateDocumentService) {
     super();
   }
 

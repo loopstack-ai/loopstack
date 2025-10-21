@@ -21,13 +21,16 @@ export class BlockFactory {
 
     const blockRegistryItem = this.blockRegistryService.getBlock(blockName);
     if (!blockRegistryItem) {
-      throw new Error(`Block with name "${blockName}" not found.`)
+      throw new Error(`Block with name "${blockName}" not found.`);
     }
 
     const parsedArgs = blockRegistryItem.metadata.properties?.parse(args ?? {});
 
-    const service = await this.capabilityBuilder.getCapability<T>(blockRegistryItem.name, blockRegistryItem.config);
-    service.init(blockRegistryItem, parsedArgs, ctx)
+    const service = await this.capabilityBuilder.getCapability<T>(
+      blockRegistryItem.name,
+      blockRegistryItem.config,
+    );
+    service.init(blockRegistryItem, parsedArgs, ctx);
 
     return service;
   }

@@ -1,19 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  HandlerCallResult,
-} from '@loopstack/shared';
+import { HandlerCallResult } from '@loopstack/shared';
 
 @Injectable()
 export class MockService {
   private readonly logger = new Logger(MockService.name);
 
-  async createMock(
-    args: {
-      input?: any;
-      output?: any;
-      error?: string;
-    },
-  ): Promise<HandlerCallResult> {
+  async createMock(args: {
+    input?: any;
+    output?: any;
+    error?: string;
+  }): Promise<HandlerCallResult> {
     // let parsedInput: DocumentType | undefined;
     //
     // const parsedArgs = this.templateExpressionEvaluatorService.evaluateTemplate(
@@ -53,11 +49,7 @@ export class MockService {
     };
   }
 
-  async debug(
-    args: {
-      value?: any;
-    },
-  ): Promise<HandlerCallResult> {
+  async debug(args: { value?: any }): Promise<HandlerCallResult> {
     this.logger.debug(`Debug value: ${JSON.stringify(args.value)}`);
 
     return {

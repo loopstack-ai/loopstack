@@ -1,1 +1,1 @@
-export * from './capability-factory.service'
+export * from './capability-factory.service';

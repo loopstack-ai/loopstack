@@ -5,25 +5,29 @@ import {
   TemplateExpression,
   MimeTypeSchema,
   DocumentSchema,
-  UISchema, JSONSchemaType, DocumentConfigType,
+  UISchema,
+  JSONSchemaType,
+  DocumentConfigType,
 } from '@loopstack/shared';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
 import { merge, omit } from 'lodash';
 import { ConfigTraceError } from '../../../configuration';
 import { DocumentService } from '../../../persistence';
-import { BlockRegistryService, TemplateExpressionEvaluatorService } from '../../services';
+import {
+  BlockRegistryService,
+  TemplateExpressionEvaluatorService,
+} from '../../services';
 import { SchemaValidationError } from '../../errors';
 import { Tool } from '../../abstract';
 
 export const CreateDocumentInputSchema = z
   .object({
     document: z.string(),
-    validate: z.union([
-      z.literal('strict'),
-      z.literal('safe'),
-      z.literal('skip'),
-    ]).default('strict').optional(),
+    validate: z
+      .union([z.literal('strict'), z.literal('safe'), z.literal('skip')])
+      .default('strict')
+      .optional(),
     update: z
       .object({
         content: z.any(),
@@ -56,23 +60,19 @@ export type CreateDocumentInput = z.infer<typeof CreateDocumentInputSchema>;
 export const CreateDocumentConfigSchema = z
   .object({
     document: z.string(),
-    validate: z.union([
-      TemplateExpression,
-      z.literal('strict'),
-      z.literal('safe'),
-      z.literal('skip'),
-    ]).optional(),
+    validate: z
+      .union([
+        TemplateExpression,
+        z.literal('strict'),
+        z.literal('safe'),
+        z.literal('skip'),
+      ])
+      .optional(),
     update: z
       .object({
         content: z.any(),
-        ui: z.union([
-          UISchema,
-          TemplateExpression,
-        ]).optional(),
-        schema: z.union([
-          JSONSchemaType,
-          TemplateExpression,
-        ]).optional(),
+        ui: z.union([UISchema, TemplateExpression]).optional(),
+        schema: z.union([JSONSchemaType, TemplateExpression]).optional(),
         tags: z.array(z.string()).optional(),
         meta: z
           .object({
@@ -122,12 +122,15 @@ export class CreateDocumentService {
       const mergedTemplateData = merge({}, config, args.update ?? {});
 
       // create the document skeleton without content property
-      const documentSkeleton = this.templateExpressionEvaluatorService.evaluateTemplate<Omit<DocumentType, 'content'>>(
-        omit(mergedTemplateData, ['content']),
-        tool,
-        ['document'],
-        DocumentSchema,
-      );
+      const documentSkeleton =
+        this.templateExpressionEvaluatorService.evaluateTemplate<
+          Omit<DocumentType, 'content'>
+        >(
+          omit(mergedTemplateData, ['content']),
+          tool,
+          ['document'],
+          DocumentSchema,
+        );
 
       const inputSchema = blockRegistryItem.metadata.properties;
       if (!inputSchema && mergedTemplateData.content) {
@@ -135,11 +138,12 @@ export class CreateDocumentService {
       }
 
       // evaluate document content
-      const parsedDocumentContent = this.templateExpressionEvaluatorService.evaluateTemplate<any>(
-        mergedTemplateData.content,
-        tool,
-        ['document'],
-      );
+      const parsedDocumentContent =
+        this.templateExpressionEvaluatorService.evaluateTemplate<any>(
+          mergedTemplateData.content,
+          tool,
+          ['document'],
+        );
 
       // merge document skeleton with content data
       const documentData: Partial<DocumentEntity> = {
@@ -155,7 +159,9 @@ export class CreateDocumentService {
         if (!result.success) {
           if (args.validate === 'strict') {
             this.logger.error(result.error);
-            throw new SchemaValidationError('Document schema validation failed (strict)')
+            throw new SchemaValidationError(
+              'Document schema validation failed (strict)',
+            );
           }
 
           documentData.validationError = result.error;
@@ -163,10 +169,7 @@ export class CreateDocumentService {
       }
 
       // create the document entity
-      const documentEntity = this.documentService.create(
-        tool,
-        documentData,
-      );
+      const documentEntity = this.documentService.create(tool, documentData);
 
       this.logger.debug(`Created document "${documentData.name}".`);
 
@@ -176,7 +179,7 @@ export class CreateDocumentService {
         data: documentEntity,
         effects: {
           addWorkflowDocuments: [documentEntity],
-        }
+        },
       };
     } catch (e) {
       throw new ConfigTraceError(e, blockRegistryItem.provider.instance);

@@ -50,6 +50,8 @@ export class BatchCreateMessages extends Tool {
       {
         document: 'message',
         items: this.args.items,
-      }, this);
+      },
+      this,
+    );
   }
 }

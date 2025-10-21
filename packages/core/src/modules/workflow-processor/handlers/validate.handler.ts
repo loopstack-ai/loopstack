@@ -11,18 +11,9 @@ import { jsonSchemaToZod } from 'json-schema-to-zod';
 
 const config = z
   .object({
-    source: z.union([
-      TemplateExpression,
-      z.any(),
-    ]),
-    schema: z.union([
-      TemplateExpression,
-      JSONSchemaType,
-    ]),
-    message: z.union([
-      TemplateExpression,
-      z.string(),
-    ]).optional(),
+    source: z.union([TemplateExpression, z.any()]),
+    schema: z.union([TemplateExpression, JSONSchemaType]),
+    message: z.union([TemplateExpression, z.string()]).optional(),
   })
   .strict();
 
@@ -46,10 +37,7 @@ export class ValidateHandler implements HandlerInterface {
     return new Function('z', `return ${zodSchemaString}`)(z);
   }
 
-  async apply(
-    props: z.infer<typeof schema>,
-  ): Promise<HandlerCallResult> {
-
+  async apply(props: z.infer<typeof schema>): Promise<HandlerCallResult> {
     const zodSchema = this.createZod(props.schema);
     if (!zodSchema) {
       throw Error(`No schema defined.`);
@@ -66,8 +54,8 @@ export class ValidateHandler implements HandlerInterface {
           result,
           error: null,
         },
-      }
-    } catch(error) {
+      };
+    } catch (error) {
       if (props.message) {
         throw new Error(props.message);
       }

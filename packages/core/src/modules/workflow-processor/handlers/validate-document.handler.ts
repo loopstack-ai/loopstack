@@ -4,21 +4,16 @@ import {
   HandlerInterface,
   HandlerCallResult,
   TemplateExpression,
-  WorkflowEntity, ContextInterface,
+  WorkflowEntity,
+  ContextInterface,
 } from '@loopstack/shared';
 import { z } from 'zod';
 import { jsonSchemaToZod } from 'json-schema-to-zod';
 
 const config = z
   .object({
-    documentId: z.union([
-      TemplateExpression,
-      z.string(),
-    ]),
-    message: z.union([
-      TemplateExpression,
-      z.string(),
-    ]).optional(),
+    documentId: z.union([TemplateExpression, z.string()]),
+    message: z.union([TemplateExpression, z.string()]).optional(),
   })
   .strict();
 
@@ -50,7 +45,9 @@ export class ValidateDocumentHandler implements HandlerInterface {
       throw new Error('Workflow is undefined');
     }
 
-    let document = workflow.documents.find((item) => item.id === props.documentId);
+    let document = workflow.documents.find(
+      (item) => item.id === props.documentId,
+    );
     if (!document) {
       throw new Error(`Document with ID ${props.documentId} not found.`);
     }
@@ -70,8 +67,8 @@ export class ValidateDocumentHandler implements HandlerInterface {
           result,
           error: null,
         },
-      }
-    } catch(error) {
+      };
+    } catch (error) {
       if (props.message) {
         throw new Error(props.message);
       }

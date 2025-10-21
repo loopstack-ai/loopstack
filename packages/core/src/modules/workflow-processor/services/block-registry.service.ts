@@ -12,7 +12,14 @@ import {
   OUTPUT_METADATA_KEY,
 } from '@loopstack/shared';
 import { omit } from 'lodash';
-import { Tool, Workflow, Document, Workspace, Pipeline, Factory } from '../abstract';
+import {
+  Tool,
+  Workflow,
+  Document,
+  Workspace,
+  Pipeline,
+  Factory,
+} from '../abstract';
 import { ConfigLoaderService } from './config-loader.service';
 
 export interface BlockRegistryItem {
@@ -43,19 +50,21 @@ export class BlockRegistryService implements OnModuleInit {
     await this.discoverBlocks();
   }
 
-  private getBlockType(instance: Workflow | Tool | Document | Workspace | Pipeline | Factory): string | undefined {
+  private getBlockType(
+    instance: Workflow | Tool | Document | Workspace | Pipeline | Factory,
+  ): string | undefined {
     switch (true) {
-      case (instance instanceof Workflow):
+      case instance instanceof Workflow:
         return 'workflow';
-      case (instance instanceof Tool):
+      case instance instanceof Tool:
         return 'tool';
-      case (instance instanceof Document):
+      case instance instanceof Document:
         return 'document';
-      case (instance instanceof Factory):
+      case instance instanceof Factory:
         return 'factory';
-      case (instance instanceof Pipeline):
+      case instance instanceof Pipeline:
         return 'sequence';
-      case (instance instanceof Workspace):
+      case instance instanceof Workspace:
         return 'workspace';
     }
 
@@ -82,12 +91,15 @@ export class BlockRegistryService implements OnModuleInit {
 
       if (options) {
         try {
-
           const baseConfig = options.config ?? {};
           if (options.configFile) {
-            const configSource = this.configLoaderService.loadConfigFile(options.configFile);
+            const configSource = this.configLoaderService.loadConfigFile(
+              options.configFile,
+            );
             if (!configSource) {
-              throw new Error(`Could not load config source ${options.configFile}`);
+              throw new Error(
+                `Could not load config source ${options.configFile}`,
+              );
             }
 
             Object.assign(baseConfig, configSource.config);
@@ -96,14 +108,13 @@ export class BlockRegistryService implements OnModuleInit {
           // override type from provider property
           baseConfig.type = this.getBlockType(provider.instance) as any;
 
-          const config: BlockConfigType = BlockConfigSchema
-            .parse(baseConfig);
+          const config: BlockConfigType = BlockConfigSchema.parse(baseConfig);
 
           const inputs = getDecoratedProperties(metatype, INPUT_METADATA_KEY);
           const outputs = getDecoratedProperties(metatype, OUTPUT_METADATA_KEY);
 
           const metadata = {
-            ...omit(options, ['documentationFile']),  // do not include unnecessary overhead
+            ...omit(options, ['documentationFile']), // do not include unnecessary overhead
             imports: options.imports ?? [],
             inputProperties: inputs,
             outputProperties: outputs,
@@ -119,14 +130,9 @@ export class BlockRegistryService implements OnModuleInit {
 
           this.blocks.set(registeredBlock.name, registeredBlock);
 
-          this.logger.log(
-            `Registered block: ${registeredBlock.name}`,
-          );
+          this.logger.log(`Registered block: ${registeredBlock.name}`);
         } catch (error) {
-          this.logger.error(
-            `Error registering block ${metatype.name}:`,
-            error,
-          );
+          this.logger.error(`Error registering block ${metatype.name}:`, error);
         }
       }
     }
@@ -145,7 +151,9 @@ export class BlockRegistryService implements OnModuleInit {
    * Gets blocks by type
    */
   getBlocksByType(type: Abstract<any>): BlockRegistryItem[] {
-    return this.getBlocks().filter((block) => block.provider.instance instanceof type);
+    return this.getBlocks().filter(
+      (block) => block.provider.instance instanceof type,
+    );
   }
 
   /**

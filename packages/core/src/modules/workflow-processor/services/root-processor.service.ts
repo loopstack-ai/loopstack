@@ -1,19 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  PipelineEntity,
-  PipelineState,
-} from '@loopstack/shared';
-import {
-  NamespacesService,
-  PipelineService,
-} from '../../persistence';
+import { PipelineEntity, PipelineState } from '@loopstack/shared';
+import { NamespacesService, PipelineService } from '../../persistence';
 import { Workspace } from '../abstract';
 import { BlockRegistryService } from './block-registry.service';
 import { BlockProcessor } from './block-processor.service';
 import { ProcessorFactory } from './processor.factory';
 import { BlockFactory } from './block.factory';
-import { WorkspaceExecutionContextDto } from '../dtos/block-execution-context.dto';
-import { BlockStateDto } from '../dtos/workflow-state.dto';
+import { WorkspaceExecutionContextDto } from '../dtos';
 
 @Injectable()
 export class RootProcessorService {
@@ -38,9 +31,13 @@ export class RootProcessorService {
 
     this.logger.debug(`Running Root Pipeline: ${pipeline.configKey}`);
 
-    const blockRegistryItem = this.blockRegistryService.getBlock(pipeline.workspace.configKey);
+    const blockRegistryItem = this.blockRegistryService.getBlock(
+      pipeline.workspace.configKey,
+    );
     if (!blockRegistryItem) {
-      throw new Error(`Config for workspace ${pipeline.workspace.configKey} not found.`)
+      throw new Error(
+        `Config for workspace ${pipeline.workspace.configKey} not found.`,
+      );
     }
 
     const ctx = new WorkspaceExecutionContextDto({
@@ -54,8 +51,14 @@ export class RootProcessorService {
       payload: payload,
     });
 
-    const block = await this.blockFactory.createBlock<Workspace, WorkspaceExecutionContextDto>(pipeline.workspace.configKey, args, ctx);
-    return this.blockProcessor.processBlock<Workspace>(block, this.processorFactory);
+    const block = await this.blockFactory.createBlock<
+      Workspace,
+      WorkspaceExecutionContextDto
+    >(pipeline.workspace.configKey, args, ctx);
+    return this.blockProcessor.processBlock<Workspace>(
+      block,
+      this.processorFactory,
+    );
   }
 
   async runPipeline(

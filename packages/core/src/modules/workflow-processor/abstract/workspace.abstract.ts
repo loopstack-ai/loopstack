@@ -1,7 +1,10 @@
 import { BlockMetadata, WorkspaceType } from '@loopstack/shared';
 import { Expose, instanceToPlain, Type } from 'class-transformer';
-import { BlockStateDto, WorkflowStateDto } from '../dtos/workflow-state.dto';
-import { WorkflowExecutionContextDto, WorkspaceExecutionContextDto } from '../dtos/block-execution-context.dto';
+import { BlockStateDto } from '../dtos';
+import {
+  WorkflowExecutionContextDto,
+  WorkspaceExecutionContextDto,
+} from '../dtos';
 import { BlockInterface } from '../interfaces/block.interface';
 import { BlockRegistryItem } from '../services';
 
@@ -23,7 +26,11 @@ export abstract class Workspace implements BlockInterface {
   @Expose()
   public config: WorkspaceType;
 
-  init(registry: BlockRegistryItem, args: any, ctx: WorkflowExecutionContextDto) {
+  init(
+    registry: BlockRegistryItem,
+    args: any,
+    ctx: WorkflowExecutionContextDto,
+  ) {
     this.metadata = registry.metadata;
     this.args = args;
     this.ctx = ctx;

@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  CleanupPipelineTask,
-  PipelineEntity,
-} from '@loopstack/shared';
+import { CleanupPipelineTask, PipelineEntity } from '@loopstack/shared';
 import { SelectQueryBuilder } from 'typeorm';
 import { PipelineService } from '../../../persistence';
 

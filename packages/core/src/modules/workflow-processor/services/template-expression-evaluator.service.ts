@@ -7,7 +7,7 @@ import { BlockInterface } from '../interfaces/block.interface';
 
 @Injectable()
 export class TemplateExpressionEvaluatorService {
-  private logger = new Logger(TemplateExpressionEvaluatorService.name)
+  private logger = new Logger(TemplateExpressionEvaluatorService.name);
 
   constructor(private templateService: TemplateService) {}
 
@@ -22,11 +22,13 @@ export class TemplateExpressionEvaluatorService {
   }
 
   private isValidTemplate(value: any) {
-    return typeof value === 'string' ||
+    return (
+      typeof value === 'string' ||
       (typeof value === 'object' &&
         value !== null &&
-        Object.keys(value).length > 0);
-  };
+        Object.keys(value).length > 0)
+    );
+  }
 
   public evaluateTemplate<T>(
     obj: any,

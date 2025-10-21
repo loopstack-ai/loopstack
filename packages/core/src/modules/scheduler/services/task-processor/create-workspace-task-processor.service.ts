@@ -10,9 +10,7 @@ export class CreateWorkspaceTaskProcessorService {
     CreateWorkspaceTaskProcessorService.name,
   );
 
-  constructor(
-    private readonly workspaceService: WorkspaceService,
-  ) {}
+  constructor(private readonly workspaceService: WorkspaceService) {}
 
   // public async process(
   //   task: CreateWorkspaceTask,

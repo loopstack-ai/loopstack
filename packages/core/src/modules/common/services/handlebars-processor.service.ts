@@ -297,7 +297,11 @@ export class HandlebarsProcessor implements OnModuleInit {
     );
   }
 
-  public render(content: string, data: any, options: RuntimeOptions = {}): string {
+  public render(
+    content: string,
+    data: any,
+    options: RuntimeOptions = {},
+  ): string {
     if (content.length > HandlebarsProcessor.MAX_TEMPLATE_SIZE) {
       throw new Error(`Template too large`);
     }

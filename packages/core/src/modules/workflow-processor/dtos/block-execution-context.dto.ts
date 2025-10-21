@@ -27,7 +27,7 @@ abstract class BlockExecutionContextDto {
   @Expose()
   payload?: {
     transition?: TransitionPayloadInterface;
-  }
+  };
 
   constructor(data: any) {
     Object.assign(this, data);

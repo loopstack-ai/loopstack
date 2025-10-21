@@ -3,15 +3,14 @@ import {
   CreatePipelineService,
   RootProcessorService,
 } from '../../../workflow-processor';
-import {
-  CreateRunPipelineTask,
-  WorkspaceType,
-} from '@loopstack/shared';
+import { CreateRunPipelineTask, WorkspaceType } from '@loopstack/shared';
 import { ConfigElementMetadata } from '@loopstack/shared/dist/schemas/config-element.schema';
 
 @Injectable()
 export class CreateRunPipelineTaskProcessorService {
-  private readonly logger = new Logger(CreateRunPipelineTaskProcessorService.name);
+  private readonly logger = new Logger(
+    CreateRunPipelineTaskProcessorService.name,
+  );
 
   constructor(
     private readonly createPipelineService: CreatePipelineService,

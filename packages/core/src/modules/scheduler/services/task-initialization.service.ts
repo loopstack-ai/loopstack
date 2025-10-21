@@ -21,7 +21,7 @@ export class TaskInitializationService implements OnApplicationBootstrap {
   ) {}
 
   private getStartupTasks(): ConfigElement<StartupTask>[] {
-    return []
+    return [];
     // todo
     // this.configurationService.getAll<StartupTask>('startup');
   }

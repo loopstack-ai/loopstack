@@ -5,10 +5,7 @@ export class ConfigTraceError extends Error {
   public readonly originalError: Error;
   public readonly configTrace: string[];
 
-  constructor(
-    originalError: Error,
-    block: BlockInterface,
-  ) {
+  constructor(originalError: Error, block: BlockInterface) {
     super(originalError.message);
 
     if (originalError instanceof ConfigTraceError) {
@@ -29,7 +26,8 @@ export class ConfigTraceError extends Error {
   }
 
   private formatCombinedStack(): string {
-    const originalStack = this.originalError?.stack || 'No stack trace available';
+    const originalStack =
+      this.originalError?.stack || 'No stack trace available';
 
     return [
       `${this.name}: ${this.message}`,
@@ -40,6 +38,4 @@ export class ConfigTraceError extends Error {
       originalStack,
     ].join('\n');
   }
-
-
 }

@@ -1,8 +1,14 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { NamespacesService } from '../../persistence';
 import { NamespaceEntity, NamespacePropsType } from '@loopstack/shared';
-import { BlockContextType, BlockInterface } from '../interfaces/block.interface';
-import { FactoryExecutionContextDto, PipelineExecutionContextDto } from '../dtos/block-execution-context.dto';
+import {
+  BlockContextType,
+  BlockInterface,
+} from '../interfaces/block.interface';
+import {
+  FactoryExecutionContextDto,
+  PipelineExecutionContextDto,
+} from '../dtos';
 
 @Injectable()
 export class NamespaceProcessorService {
@@ -30,7 +36,9 @@ export class NamespaceProcessorService {
     parentBlockCtx: PipelineExecutionContextDto | FactoryExecutionContextDto,
     validBlockContexts: BlockContextType[],
   ) {
-    const newChildNamespaceIds = validBlockContexts.map((item) => item.namespace?.id).filter(v => !!v);
+    const newChildNamespaceIds = validBlockContexts
+      .map((item) => item.namespace?.id)
+      .filter((v) => !!v);
     const originalChildNamespaces =
       await this.namespacesService.getChildNamespaces(
         parentBlockCtx.namespace.id,

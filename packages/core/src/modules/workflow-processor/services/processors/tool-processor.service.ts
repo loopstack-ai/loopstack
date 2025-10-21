@@ -11,5 +11,4 @@ export class ToolProcessorService implements Processor {
     block.result = await block.execute();
     return block;
   }
-
 }

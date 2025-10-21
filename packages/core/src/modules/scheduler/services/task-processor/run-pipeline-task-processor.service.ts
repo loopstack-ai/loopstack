@@ -1,7 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  RootProcessorService,
-} from '../../../workflow-processor';
+import { RootProcessorService } from '../../../workflow-processor';
 import { RunPipelineTask } from '@loopstack/shared/dist/schemas/startup.schema';
 import { PipelineService } from '../../../persistence';
 
@@ -22,16 +20,13 @@ export class RunPipelineTaskProcessorService {
     );
 
     if (!pipeline) {
-      throw new Error(`Pipeline with id ${task.payload.id} not found.`)
+      throw new Error(`Pipeline with id ${task.payload.id} not found.`);
     }
 
     this.logger.debug(
       `Pipeline for schedule task created with id ${pipeline.id}`,
     );
 
-    await this.rootProcessorService.runPipeline(
-      pipeline,
-      task.payload,
-    );
+    await this.rootProcessorService.runPipeline(pipeline, task.payload);
   }
 }

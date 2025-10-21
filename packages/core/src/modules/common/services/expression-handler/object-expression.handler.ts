@@ -21,7 +21,9 @@ export class ObjectExpressionHandler
   ]);
 
   canHandle(value: any): boolean {
-    return typeof value === 'string' && this.EXPRESSION_PATTERN.test(value.trim());
+    return (
+      typeof value === 'string' && this.EXPRESSION_PATTERN.test(value.trim())
+    );
   }
 
   process(content: string, data: any): any {
@@ -63,7 +65,7 @@ export class ObjectExpressionHandler
       );
     }
 
-    const segments = expression.split('.').filter(s => s.length > 0);
+    const segments = expression.split('.').filter((s) => s.length > 0);
 
     if (segments.length > this.MAX_DEPTH) {
       throw new ObjectExpressionError(
@@ -85,10 +87,7 @@ export class ObjectExpressionHandler
     }
   }
 
-  private evaluateExpression(
-    expression: string,
-    data: any,
-  ): any {
+  private evaluateExpression(expression: string, data: any): any {
     try {
       const value = get(data, expression);
 

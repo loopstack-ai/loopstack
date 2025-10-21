@@ -1,12 +1,14 @@
 import { BlockMetadata, WorkflowType } from '@loopstack/shared';
-import { BlockStateDto, WorkflowStateDto } from '../dtos/workflow-state.dto';
-import { WorkflowExecutionContextDto } from '../dtos/block-execution-context.dto';
+import { BlockStateDto, WorkflowStateDto } from '../dtos';
+import { WorkflowExecutionContextDto } from '../dtos';
 import { Expose, instanceToPlain, Type } from 'class-transformer';
 import { BlockInterface } from '../interfaces/block.interface';
 import { BlockRegistryItem } from '../services';
 
-export abstract class Workflow<TState extends WorkflowStateDto | BlockStateDto = WorkflowStateDto> implements BlockInterface {
-
+export abstract class Workflow<
+  TState extends WorkflowStateDto | BlockStateDto = WorkflowStateDto,
+> implements BlockInterface
+{
   public processor: string = 'workflow';
 
   public metadata: BlockMetadata;
@@ -25,7 +27,11 @@ export abstract class Workflow<TState extends WorkflowStateDto | BlockStateDto =
   @Expose()
   public config: WorkflowType;
 
-  init(registry: BlockRegistryItem, args: any, ctx: WorkflowExecutionContextDto) {
+  init(
+    registry: BlockRegistryItem,
+    args: any,
+    ctx: WorkflowExecutionContextDto,
+  ) {
     this.metadata = registry.metadata;
     this.args = args;
     this.ctx = ctx;

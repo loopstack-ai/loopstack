@@ -1,13 +1,17 @@
-import { BlockStateDto, WorkflowStateDto } from '../dtos/workflow-state.dto';
+import { BlockStateDto, WorkflowStateDto } from '../dtos';
 import { BlockConfigType, BlockMetadata } from '@loopstack/shared';
 import {
-  DocumentExecutionContextDto, FactoryExecutionContextDto, PipelineExecutionContextDto,
+  DocumentExecutionContextDto,
+  FactoryExecutionContextDto,
+  PipelineExecutionContextDto,
   ToolExecutionContextDto,
-  WorkflowExecutionContextDto, WorkspaceExecutionContextDto,
-} from '../dtos/block-execution-context.dto';
+  WorkflowExecutionContextDto,
+  WorkspaceExecutionContextDto,
+} from '../dtos';
 import { BlockRegistryItem } from '../services';
 
-export type BlockContextType = DocumentExecutionContextDto
+export type BlockContextType =
+  | DocumentExecutionContextDto
   | WorkflowExecutionContextDto
   | ToolExecutionContextDto
   | PipelineExecutionContextDto

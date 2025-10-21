@@ -3,24 +3,23 @@ import { Processor } from '../../interfaces/processor.interface';
 import { ProcessorFactory } from '../processor.factory';
 import { Tool, Workflow } from '../../abstract';
 import {
-  AssignmentConfigType, HandlerCallResult,
-  HistoryTransition, ToolCallType,
+  AssignmentConfigType,
+  HandlerCallResult,
+  HistoryTransition,
+  ToolCallType,
   ToolSideEffects,
   TransitionInfoInterface,
   TransitionMetadataInterface,
   TransitionPayloadInterface,
   WorkflowEntity,
   WorkflowState,
-  WorkflowStateHistoryDto,
-  WorkflowStatePlaceInfoDto,
-  WorkflowTransitionType, WorkflowType,
+  WorkflowTransitionType,
+  WorkflowType,
 } from '@loopstack/shared';
 import { BlockHelperService } from '../block-helper.service';
 import { TemplateExpressionEvaluatorService } from '../template-expression-evaluator.service';
 import { WorkflowStateService } from '../workflow-state.service';
-import {
-  StateMachineValidatorResultInterface
-} from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
+import { StateMachineValidatorResultInterface } from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
 import { omit } from 'lodash';
 import { ConfigTraceError } from '../../../configuration';
 import { WorkflowService } from '../../../persistence';
@@ -29,10 +28,9 @@ import { z } from 'zod';
 import { BlockProcessor } from '../block-processor.service';
 import { BlockRegistryService } from '../block-registry.service';
 import { BlockFactory } from '../block.factory';
-import { ToolExecutionContextDto } from '../../dtos/block-execution-context.dto';
-import { BlockStateDto } from '../../dtos/workflow-state.dto';
+import { ToolExecutionContextDto } from '../../dtos';
 import { TransitionResultLookup } from '@loopstack/shared/dist/interfaces/transition-results.types';
-import { WorkflowTransitionDto } from '../../dtos/workflow-transition.dto';
+import { WorkflowTransitionDto } from '../../dtos';
 
 const TransitionValidationsSchema = z.array(
   z
@@ -63,22 +61,28 @@ export class WorkflowProcessorService implements Processor {
 
   async process(block: Workflow, factory: ProcessorFactory): Promise<Workflow> {
     // create or load state if needed
-    const workflowEntity = await this.workflowStateService.getWorkflowState(block);
+    const workflowEntity =
+      await this.workflowStateService.getWorkflowState(block);
     block.state = this.blockHelperService.initBlockState(workflowEntity);
 
     const validatorResult = this.canSkipRun(workflowEntity, block.args);
 
     const pendingTransition =
-      validatorResult.valid && block.ctx.payload?.transition?.workflowId === workflowEntity.id
+      validatorResult.valid &&
+      block.ctx.payload?.transition?.workflowId === workflowEntity.id
         ? block.ctx.payload?.transition
         : undefined;
 
     if (validatorResult.valid && !pendingTransition) {
-      this.logger.debug('Skipping processing since state is processed still valid.')
+      this.logger.debug(
+        'Skipping processing since state is processed still valid.',
+      );
       return block;
     }
 
-    this.logger.debug(`Process state machine for workflow ${workflowEntity!.configKey}`);
+    this.logger.debug(
+      `Process state machine for workflow ${workflowEntity!.configKey}`,
+    );
 
     this.initStateMachine(block, workflowEntity, validatorResult);
 
@@ -86,7 +90,7 @@ export class WorkflowProcessorService implements Processor {
       workflowEntity,
       block,
       pendingTransition ? [pendingTransition] : [],
-      factory
+      factory,
     );
   }
 
@@ -113,39 +117,41 @@ export class WorkflowProcessorService implements Processor {
     };
   }
 
-  updateWorkflowState(
-    block: Workflow,
-    historyItem: HistoryTransition,
-  ): void {
+  updateWorkflowState(block: Workflow, historyItem: HistoryTransition): void {
     block.state.place = historyItem.to;
     block.state.history.push(historyItem);
   }
 
-  defineNextTransition(block: Workflow, pendingTransition: TransitionPayloadInterface | undefined) {
+  defineNextTransition(
+    block: Workflow,
+    pendingTransition: TransitionPayloadInterface | undefined,
+  ) {
     block.state.transition = this.getNextTransition(block, pendingTransition);
   }
 
   updateAvailableTransitions(block: Workflow): void {
-    this.logger.debug(`Updating Available Transitions for Place "${block.state.place}"`);
+    this.logger.debug(
+      `Updating Available Transitions for Place "${block.state.place}"`,
+    );
 
-    const config = block.config as WorkflowType
+    const config = block.config as WorkflowType;
 
     // exclude call property from transitions eval because this should be only
     // evaluated when called, so it received actual arguments
-    const transitionsWithoutCallProperty =
-      config.transitions!.map((transition) =>
-        omit(transition, ['call']),
-      );
+    const transitionsWithoutCallProperty = config.transitions!.map(
+      (transition) => omit(transition, ['call']),
+    );
 
     // make (latest) context available within service class
-    const evaluatedTransitions = this.templateExpressionEvaluatorService.evaluateTemplate<
-      WorkflowTransitionType[]
-    >(
-      transitionsWithoutCallProperty,
-      block,
-      ['workflow'],
-      TransitionValidationsSchema,
-    );
+    const evaluatedTransitions =
+      this.templateExpressionEvaluatorService.evaluateTemplate<
+        WorkflowTransitionType[]
+      >(
+        transitionsWithoutCallProperty,
+        block,
+        ['workflow'],
+        TransitionValidationsSchema,
+      );
 
     block.state.availableTransitions = evaluatedTransitions.filter(
       (item) =>
@@ -161,7 +167,6 @@ export class WorkflowProcessorService implements Processor {
     validation: StateMachineValidatorResultInterface,
   ): void {
     workflow.status = WorkflowState.Running;
-
 
     if (!validation.valid) {
       workflow.hashRecord = {
@@ -203,13 +208,15 @@ export class WorkflowProcessorService implements Processor {
     pendingTransition: TransitionPayloadInterface | undefined,
   ): WorkflowTransitionDto | undefined {
     if (!block.state.availableTransitions?.length) {
-      this.logger.debug(`No transitions available.`)
+      this.logger.debug(`No transitions available.`);
       return undefined;
     }
 
     let nextTransition: WorkflowTransitionType | undefined;
 
-    this.logger.debug(`Available Transitions: ${block.state.availableTransitions.map((t) => t.id).join(', ')}`)
+    this.logger.debug(
+      `Available Transitions: ${block.state.availableTransitions.map((t) => t.id).join(', ')}`,
+    );
 
     if (pendingTransition) {
       nextTransition = block.state.availableTransitions.find(
@@ -232,7 +239,10 @@ export class WorkflowProcessorService implements Processor {
       from: block.state.place,
       to: nextTransition.to,
       onError: nextTransition.onError,
-      payload: nextTransition.id === pendingTransition?.id ? pendingTransition?.payload : null,
+      payload:
+        nextTransition.id === pendingTransition?.id
+          ? pendingTransition?.payload
+          : null,
     });
   }
 
@@ -277,7 +287,7 @@ export class WorkflowProcessorService implements Processor {
   parseToolArguments(block: Workflow, tool: string, argsInput: any) {
     const blockRegistryItem = this.blockRegistryService.getBlock(tool);
     if (!blockRegistryItem) {
-      throw new Error(`Config for tool ${tool} not found.`)
+      throw new Error(`Config for tool ${tool} not found.`);
     }
 
     return this.templateExpressionEvaluatorService.evaluateTemplate<any>(
@@ -293,20 +303,19 @@ export class WorkflowProcessorService implements Processor {
     toolCalls: ToolCallType[] | undefined,
     factory: ProcessorFactory,
   ): Promise<{
-    toolResults: Record<string, any>,
-    effects: ToolSideEffects,
+    toolResults: Record<string, any>;
+    effects: ToolSideEffects;
   }> {
+    const currentTransition = block.state.transition!;
 
-    const currentTransition=  block.state.transition!;
-
-    const effects: ToolSideEffects = {}
+    const effects: ToolSideEffects = {};
     let toolResults: Record<string, any> = {};
 
     if (!toolCalls) {
       return {
         effects,
         toolResults,
-      }
+      };
     }
 
     try {
@@ -318,9 +327,16 @@ export class WorkflowProcessorService implements Processor {
             `Call tool ${i} (${toolCall.tool}) on transition ${currentTransition.id}`,
           );
 
-          const args = this.parseToolArguments(block, toolCall.tool, toolCall.args);
+          const args = this.parseToolArguments(
+            block,
+            toolCall.tool,
+            toolCall.args,
+          );
 
-          const toolBlock = await this.blockFactory.createBlock<Tool, ToolExecutionContextDto>(
+          const toolBlock = await this.blockFactory.createBlock<
+            Tool,
+            ToolExecutionContextDto
+          >(
             toolCall.tool,
             args,
             new ToolExecutionContextDto({
@@ -329,10 +345,17 @@ export class WorkflowProcessorService implements Processor {
             }),
           );
 
-          const resultDto = await this.blockProcessor.processBlock<Tool>(toolBlock, factory);
+          const resultDto = await this.blockProcessor.processBlock<Tool>(
+            toolBlock,
+            factory,
+          );
           const toolCallResult: HandlerCallResult = resultDto.result;
 
-          this.blockHelperService.assignToTargetBlock(toolCall.assign as AssignmentConfigType, block, resultDto);
+          this.blockHelperService.assignToTargetBlock(
+            toolCall.assign as AssignmentConfigType,
+            block,
+            resultDto,
+          );
 
           if (toolCall.id) {
             toolResults[toolCall.id] = toolCallResult;
@@ -347,7 +370,9 @@ export class WorkflowProcessorService implements Processor {
             // add documents early for timely updates in frontend
             // persisted with next loop iteration
             if (toolCallResult.effects.addWorkflowDocuments?.length) {
-              block.state.addDocuments(toolCallResult.effects.addWorkflowDocuments);
+              block.state.addDocuments(
+                toolCallResult.effects.addWorkflowDocuments,
+              );
             }
           }
 
@@ -377,7 +402,7 @@ export class WorkflowProcessorService implements Processor {
     return {
       effects,
       toolResults,
-    }
+    };
   }
 
   async processStateMachine(
@@ -386,23 +411,21 @@ export class WorkflowProcessorService implements Processor {
     pendingTransitions: TransitionPayloadInterface[],
     factory: ProcessorFactory,
   ): Promise<Workflow> {
-
-    const config = block.config as WorkflowType
+    const config = block.config as WorkflowType;
     if (!config.transitions) {
-      throw new Error(
-        `Workflow ${block.name} does not have any transitions.`,
-      );
+      throw new Error(`Workflow ${block.name} does not have any transitions.`);
     }
 
     let transitionResults: TransitionResultLookup = {};
     try {
       while (true) {
-
-        this.logger.debug('------------ NEXT TRANSITION')
+        this.logger.debug('------------ NEXT TRANSITION');
 
         const nextPendingTransition = pendingTransitions.shift();
 
-        this.logger.debug(`next pending transition: ${nextPendingTransition?.id ?? 'none'}`);
+        this.logger.debug(
+          `next pending transition: ${nextPendingTransition?.id ?? 'none'}`,
+        );
 
         this.updateAvailableTransitions(block);
 
@@ -412,7 +435,7 @@ export class WorkflowProcessorService implements Processor {
         this.blockHelperService.persistBlockState(workflowEntity, block.state);
         await this.workflowService.save(workflowEntity);
 
-        const currentTransition=  block.state.transition;
+        const currentTransition = block.state.transition;
 
         // no more transitions?
         if (!currentTransition) {
@@ -420,9 +443,7 @@ export class WorkflowProcessorService implements Processor {
           break;
         }
 
-        this.logger.debug(
-          `Applying next transition: ${currentTransition.id}`,
-        );
+        this.logger.debug(`Applying next transition: ${currentTransition.id}`);
 
         // get tool calls for transition
         const toolCalls = config.transitions!.find(
@@ -431,11 +452,15 @@ export class WorkflowProcessorService implements Processor {
 
         console.log(block.state);
 
-        const { effects, toolResults } = await this.processToolCalls(block, toolCalls, factory);
+        const { effects, toolResults } = await this.processToolCalls(
+          block,
+          toolCalls,
+          factory,
+        );
 
         transitionResults[currentTransition.id] = {
-          toolResults
-        }
+          toolResults,
+        };
 
         // update the transition result object
         block.state.transitionResults = transitionResults;

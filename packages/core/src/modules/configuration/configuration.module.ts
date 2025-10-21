@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
-import {
-  ZodGeneratorService,
-} from './services';
+import { ZodGeneratorService } from './services';
 import { JsonSchemaGeneratorService } from './services/json-schema-generator.service';
 import { GenerateSchemaCommand } from './commands/generate-schema.command';
 import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generator.service';

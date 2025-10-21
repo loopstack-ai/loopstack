@@ -1,7 +1,11 @@
 import { Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ModuleRef } from '@nestjs/core';
-import { BLOCK_METADATA_KEY, BlockConfigType, MODULE_FACTORY_CLASS } from '@loopstack/shared';
+import {
+  BLOCK_METADATA_KEY,
+  BlockConfigType,
+  MODULE_FACTORY_CLASS,
+} from '@loopstack/shared';
 import { ICapabilityFactory } from '../../../factories';
 import { BlockInterface } from '../interfaces/block.interface';
 
@@ -51,7 +55,9 @@ export class CapabilityBuilder implements OnModuleInit {
               }
             }
 
-            this.logger.log(`✅ Factory ${factoryClass.name} auto-discovered ${services.length} services from ${moduleClass.name}`);
+            this.logger.log(
+              `✅ Factory ${factoryClass.name} auto-discovered ${services.length} services from ${moduleClass.name}`,
+            );
 
             for (const ServiceClass of services) {
               this.serviceToFactory.set(ServiceClass, factory);
@@ -66,7 +72,9 @@ export class CapabilityBuilder implements OnModuleInit {
     return typeof instance.resolve === 'function';
   }
 
-  private resolveServiceClass<T>(serviceClassOrName: Type<T> | string): Type<T> {
+  private resolveServiceClass<T>(
+    serviceClassOrName: Type<T> | string,
+  ): Type<T> {
     if (typeof serviceClassOrName === 'string') {
       // Find service class by name
       for (const ServiceClass of this.serviceToFactory.keys()) {
@@ -79,7 +87,10 @@ export class CapabilityBuilder implements OnModuleInit {
     return serviceClassOrName;
   }
 
-  async getCapability<T extends BlockInterface>(serviceClassOrName: Type<T> | string, config: BlockConfigType): Promise<T> {
+  async getCapability<T extends BlockInterface>(
+    serviceClassOrName: Type<T> | string,
+    config: BlockConfigType,
+  ): Promise<T> {
     const ServiceClass = this.resolveServiceClass<T>(serviceClassOrName);
 
     // if (this.resolvedServices.has(ServiceClass)) {
@@ -89,58 +100,17 @@ export class CapabilityBuilder implements OnModuleInit {
     const factory = this.serviceToFactory.get(ServiceClass);
 
     if (!factory) {
-      throw new Error(`Service ${ServiceClass.name} not available in this context`);
+      throw new Error(
+        `Service ${ServiceClass.name} not available in this context`,
+      );
     }
 
     const service = await factory.resolve<T>(ServiceClass);
+
     // this.resolvedServices.set(ServiceClass, service);
 
     service.config = config;
 
     return service;
   }
-
-  hasCapability(serviceClassOrName: Type<any> | string): boolean {
-    const ServiceClass = this.resolveServiceClass(serviceClassOrName);
-    return this.serviceToFactory.has(ServiceClass);
-  }
-
-  // private resolveServiceClass<T>(serviceClassOrName: Type<T> | string): Type<T> {
-  //   if (typeof serviceClassOrName === 'string') {
-  //     // Find service class by name
-  //     for (const ServiceClass of this.serviceToFactory.keys()) {
-  //       if (ServiceClass.name === serviceClassOrName) {
-  //         return ServiceClass as Type<T>;
-  //       }
-  //     }
-  //     throw new Error(`Service with name '${serviceClassOrName}' not found`);
-  //   }
-  //   return serviceClassOrName;
-  // }
-  //
-  // validateServiceImport<T>(serviceClassOrName: Type<T> | string, registry: BlockRegistryItem): void {
-  //   const requiredServices: Type<any>[] = registry.metadata.imports;
-  //   const ServiceClass = this.resolveServiceClass<T>(serviceClassOrName);
-  //
-  //   if (!requiredServices.includes(ServiceClass)) {
-  //     throw new Error(`Service ${ServiceClass.name} is not imported to block ${registry.name}`);
-  //   }
-  // }
-  //
-  // async getCapability<T>(serviceClassOrName: Type<T> | string): Promise<T> {
-  //   const ServiceClass = this.resolveServiceClass<T>(serviceClassOrName);
-  //
-  //   const factory = this.serviceToFactory.get(ServiceClass);
-  //
-  //   if (!factory) {
-  //     throw new Error(`Service ${ServiceClass.name} not available in this context`);
-  //   }
-  //
-  //   return factory.resolve<T>(ServiceClass);
-  // }
-  //
-  // hasCapability(serviceClassOrName: Type<any> | string): boolean {
-  //   const ServiceClass = this.resolveServiceClass(serviceClassOrName);
-  //   return this.serviceToFactory.has(ServiceClass);
-  // }
 }

@@ -54,7 +54,7 @@ export class PipelineService {
       .where('pipeline.workspaceId = :workspaceId', { workspaceId });
 
     if (userId) {
-      query.andWhere('pipeline.createdBy = :userId', { userId })
+      query.andWhere('pipeline.createdBy = :userId', { userId });
     }
 
     const result = await query.getRawOne();

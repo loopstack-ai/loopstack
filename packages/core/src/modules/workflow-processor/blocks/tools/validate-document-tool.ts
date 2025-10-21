@@ -53,7 +53,7 @@ export class ValidateDocument extends Tool {
     // }
 
     try {
-      const result = 'not implemented' //zodSchema.parse(document.schema); //todo!
+      const result = 'not implemented'; //zodSchema.parse(document.schema); //todo!
 
       return {
         success: true,

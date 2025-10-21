@@ -16,9 +16,7 @@ export class TemplateExpressionHandler
 
   private static readonly MAX_TEMPLATE_SIZE = 50000;
 
-  constructor(
-    private readonly handlebarsProcessor: HandlebarsProcessor,
-  ) {}
+  constructor(private readonly handlebarsProcessor: HandlebarsProcessor) {}
 
   canHandle(value: any): boolean {
     return (

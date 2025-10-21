@@ -13,7 +13,6 @@ import {
   TemplateExpressionEvaluatorService,
   WorkflowStateService,
   RootProcessorService,
-  WorkflowContextService,
   BlockHelperService,
   CapabilityBuilder,
   BlockRegistryService,
@@ -23,7 +22,9 @@ import {
   FactoryProcessorService,
   SequenceProcessorService,
   BlockProcessor,
-  WorkflowProcessorService, WorkspaceProcessorService, ToolProcessorService,
+  WorkflowProcessorService,
+  WorkspaceProcessorService,
+  ToolProcessorService,
 } from './services';
 import { CreatePipelineService } from './services';
 import { MockService } from './blocks/services/mock.service';
@@ -53,11 +54,7 @@ import { CoreFactoryService } from './blocks/core-factory.service';
 import { ModuleFactory } from '@loopstack/shared';
 
 @Module({
-  imports: [
-    DiscoveryModule,
-    CommonModule,
-    PersistenceModule,
-  ],
+  imports: [DiscoveryModule, CommonModule, PersistenceModule],
   providers: [
     RootProcessorService,
     BlockFactory,
@@ -72,7 +69,6 @@ import { ModuleFactory } from '@loopstack/shared';
     WorkflowStateService,
     NamespaceProcessorService,
     TemplateExpressionEvaluatorService,
-    WorkflowContextService,
     InitialRunValidator,
     WorkflowDependenciesValidator,
     WorkflowOptionValidator,

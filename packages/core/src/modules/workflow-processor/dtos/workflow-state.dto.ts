@@ -1,6 +1,8 @@
 import {
   DocumentEntity,
-  HistoryTransition, ToolResultLookup, TransitionResultLookup,
+  HistoryTransition,
+  ToolResultLookup,
+  TransitionResultLookup,
   WorkflowTransitionType,
 } from '@loopstack/shared';
 import { Expose } from 'class-transformer';
@@ -65,7 +67,9 @@ export class WorkflowStateDto implements BlockStateInterface {
 
   addDocuments(documents: DocumentEntity[]) {
     for (const document of documents) {
-      const existingIndex = document.id ? this.documents.findIndex((d) => d.id === document.id) : -1;
+      const existingIndex = document.id
+        ? this.documents.findIndex((d) => d.id === document.id)
+        : -1;
       if (existingIndex != -1) {
         this.documents[existingIndex] = document;
       } else {

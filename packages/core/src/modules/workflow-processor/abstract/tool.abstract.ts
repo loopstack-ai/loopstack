@@ -1,11 +1,12 @@
 import {
   BlockMetadata,
-  HandlerCallResult, WorkflowType,
+  HandlerCallResult,
+  WorkflowType,
 } from '@loopstack/shared';
 import { BlockInterface } from '../interfaces/block.interface';
 import { Expose, instanceToPlain } from 'class-transformer';
-import { BlockStateDto } from '../dtos/workflow-state.dto';
-import { ToolExecutionContextDto } from '../dtos/block-execution-context.dto';
+import { BlockStateDto } from '../dtos';
+import { ToolExecutionContextDto } from '../dtos';
 import { BlockRegistryItem } from '../services';
 
 export abstract class Tool implements BlockInterface {

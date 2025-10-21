@@ -9,16 +9,16 @@ import { RunPipelineTaskProcessorService } from './services/task-processor/run-p
 import { CleanupPipelineTaskProcessorService } from './services/task-processor/cleanup-pipeline-task-processor.service';
 import { PersistenceModule } from '../persistence';
 import { CreateWorkspaceTaskProcessorService } from './services/task-processor/create-workspace-task-processor.service';
-import {
-  CreateRunPipelineTaskProcessorService
-} from './services/task-processor/create-run-pipeline-task-processor.service';
+import { CreateRunPipelineTaskProcessorService } from './services/task-processor/create-run-pipeline-task-processor.service';
 
 @Module({
   imports: [
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST ?? 'localhost',
-        port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT ?? '6379', 0) : 6379,
+        port: process.env.REDIS_PORT
+          ? parseInt(process.env.REDIS_PORT ?? '6379', 0)
+          : 6379,
         family: 0,
         // host: process.env.REDIS_HOST || 'localhost',
         // port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
