@@ -1,10 +1,9 @@
 import { Expose, plainToInstance } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   PipelineState,
   WorkflowEntity,
   WorkflowState,
-  WorkflowStatePlaceInfoDto,
 } from '@loopstack/shared';
 
 /**
@@ -64,21 +63,26 @@ export class WorkflowItemDto {
   progress: number;
 
   @Expose()
-  @ApiPropertyOptional({
-    type: 'string',
-    description: 'Error message if workflow execution failed',
-    example: 'Failed to connect to external service',
-    nullable: true,
-  })
-  error: string | null;
-
-  @Expose()
   @ApiProperty({
     enum: WorkflowState,
     enumName: 'WorkflowState',
     description: 'Current status of the workflow',
   })
   status: PipelineState;
+
+  @Expose()
+  @ApiProperty({
+    type: 'boolean',
+    nullable: false,
+  })
+  hasError: boolean;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Current place in the workflow state machine',
+    example: 'approval_pending',
+  })
+  place: string;
 
   @Expose()
   @ApiProperty({
@@ -95,22 +99,6 @@ export class WorkflowItemDto {
     example: '2023-01-16T09:12:33.456Z',
   })
   updatedAt: Date;
-
-  @Expose()
-  @ApiProperty({
-    description: 'Current place in the workflow state machine',
-    example: 'approval_pending',
-  })
-  place: string;
-
-  @Expose()
-  @ApiPropertyOptional({
-    type: WorkflowStatePlaceInfoDto,
-    description:
-      'Additional information about the current place in the workflow',
-    nullable: true,
-  })
-  placeInfo: WorkflowStatePlaceInfoDto | null;
 
   @Expose()
   @ApiProperty({

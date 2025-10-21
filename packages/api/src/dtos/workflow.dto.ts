@@ -1,12 +1,12 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  HistoryTransition,
   PipelineState,
   UISchemaType,
   WorkflowEntity,
   WorkflowState,
-  WorkflowStateHistoryDto,
-  WorkflowStatePlaceInfoDto,
+  WorkflowTransitionType,
 } from '@loopstack/shared';
 
 /**
@@ -66,21 +66,28 @@ export class WorkflowDto {
   progress: number;
 
   @Expose()
-  @ApiPropertyOptional({
-    type: 'string',
-    description: 'Error message if workflow execution failed',
-    example: 'Failed to connect to external service',
-    nullable: true,
-  })
-  error: string | null;
-
-  @Expose()
   @ApiProperty({
     enum: WorkflowState,
     enumName: 'WorkflowState',
     description: 'Current status of the workflow',
   })
   status: PipelineState;
+
+  @Expose()
+  @ApiProperty({
+    type: 'boolean',
+    nullable: false,
+  })
+  hasError: boolean;
+
+  @Expose()
+  @ApiPropertyOptional({
+    type: 'string',
+    description: 'Error message if workflow execution failed',
+    example: 'Failed to connect to external service',
+    nullable: true,
+  })
+  errorMessage: string | null;
 
   @Expose()
   @ApiProperty({
@@ -91,20 +98,19 @@ export class WorkflowDto {
 
   @Expose()
   @ApiPropertyOptional({
-    type: WorkflowStatePlaceInfoDto,
     description:
-      'Additional information about the current place in the workflow',
+      'Available transitions for the current place in the workflow',
     nullable: true,
+    isArray: true,
   })
-  placeInfo: WorkflowStatePlaceInfoDto | null;
+  availableTransitions: WorkflowTransitionType[] | null;
 
   @Expose()
   @ApiPropertyOptional({
-    type: WorkflowStateHistoryDto,
     description: 'History of state transitions within the workflow',
     nullable: true,
   })
-  transitionHistory: WorkflowStateHistoryDto | null;
+  history: HistoryTransition[] | null;
 
   @Expose()
   @ApiPropertyOptional({

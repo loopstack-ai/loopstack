@@ -10,7 +10,7 @@ import {
   BadRequestException,
   Controller,
   Get,
-  Param,
+  Param, Type,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -18,7 +18,7 @@ import {
   PipelineSequenceType,
   WorkspaceType,
 } from '@loopstack/shared';
-import { BlockRegistryItem, BlockRegistryService } from '@loopstack/core';
+import { BlockRegistryItem, BlockRegistryService, Workspace } from '@loopstack/core';
 import { plainToInstance } from 'class-transformer';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
 import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
@@ -39,14 +39,14 @@ export class ConfigController {
   @ApiUnauthorizedResponse()
   getWorkspaceTypes(): WorkspaceConfigDto[] {
 
-    const blocks = this.blockRegistryService.getBlocksByType('workspace');
+    const blocks = this.blockRegistryService.getBlocksByType(Workspace);
 
     const resolvedConfigs = blocks
       .map((block: BlockRegistryItem) => {
         const config = block.config as WorkspaceType;
         return {
-          configKey: block.target.name,
-          title: config.title ?? block.target.name,
+          configKey: block.name,
+          title: config.title ?? block.name,
         }
       });
 
@@ -74,15 +74,15 @@ export class ConfigController {
       throw new BadRequestException(`Config for workspace with name ${workspaceConfigKey} not found.`);
     }
 
-    const filtered = workspaceBlock.metadata.imports.map((pipelineName: string) => {
-      const pipelineBlock = this.blockRegistryService.getBlock(pipelineName);
+    const filtered = workspaceBlock.metadata.imports.map((item: Type<any>) => {
+      const pipelineBlock = this.blockRegistryService.getBlock(item.name);
       if (!pipelineBlock) {
-        throw new BadRequestException(`Config for pipeline with name ${pipelineName} not found.`);
+        throw new BadRequestException(`Config for pipeline with name ${item} not found.`);
       }
 
       const config = pipelineBlock.config as PipelineSequenceType;
       return {
-        configKey: pipelineName,
+        configKey: item.name,
         title: config.title,
       };
     });

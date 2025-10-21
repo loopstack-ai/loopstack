@@ -38,6 +38,8 @@ export class PipelineCreateDto {
   @ApiPropertyOptional({
     description: 'Human-readable title for the pipeline',
     example: 'My Awesome Pipeline',
+    type: 'string',
+    nullable: true,
   })
   title: string | null;
 

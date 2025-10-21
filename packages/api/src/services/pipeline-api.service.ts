@@ -116,7 +116,7 @@ export class PipelineApiService {
    */
   async create(
     pipelineData: PipelineCreateDto,
-    user: string | null,
+    user: string,
   ): Promise<PipelineEntity> {
     try {
       return this.createPipelineService.create({
