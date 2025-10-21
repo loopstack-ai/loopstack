@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
-  ContextService,
   TemplateService,
   ObjectExpressionHandler,
   TemplateExpressionHandler,
@@ -16,7 +15,6 @@ import { ConfigurationModule } from '../configuration';
   imports: [ConfigurationModule, EventEmitterModule.forRoot()],
   providers: [
     ClientMessageService,
-    ContextService,
     TemplateService,
     ObjectExpressionHandler,
     TemplateExpressionHandler,
@@ -24,6 +22,6 @@ import { ConfigurationModule } from '../configuration';
     DateFormatterHelperService,
     OperatorsHelperService,
   ],
-  exports: [ClientMessageService, ContextService, TemplateService],
+  exports: [ClientMessageService, TemplateService],
 })
 export class CommonModule {}

@@ -60,8 +60,4 @@ export class PipelineService {
     const result = await query.getRawOne();
     return result?.maxRun ? Number(result.maxRun) : 0;
   }
-
-  getRepository() {
-    return this.entityRepository;
-  }
 }

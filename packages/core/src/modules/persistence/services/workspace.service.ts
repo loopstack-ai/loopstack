@@ -30,8 +30,4 @@ export class WorkspaceService {
     });
     return await this.workspaceRepository.save(workspace);
   }
-
-  getRepository() {
-    return this.workspaceRepository;
-  }
 }

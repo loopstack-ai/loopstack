@@ -2,7 +2,7 @@ import {
   DocumentEntity,
   HistoryTransition,
   ToolResultLookup,
-  TransitionResultLookup,
+  TransitionResultLookup, WorkflowEntity,
   WorkflowTransitionType,
 } from '@loopstack/shared';
 import { Expose } from 'class-transformer';
@@ -73,8 +73,19 @@ export class WorkflowStateDto implements BlockStateInterface {
       if (existingIndex != -1) {
         this.documents[existingIndex] = document;
       } else {
-        this.documents.push(document);
+        this.addDocument(document)
       }
     }
+  }
+
+  addDocument(document: DocumentEntity) {
+    // invalidate previous versions of the same document
+    for (const doc of this.documents) {
+      if (doc.name === document.name && doc.meta?.invalidate !== false) {
+        doc.isInvalidated = true;
+      }
+    }
+
+    this.documents.push(document);
   }
 }

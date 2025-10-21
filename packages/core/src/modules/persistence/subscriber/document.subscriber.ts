@@ -5,7 +5,7 @@ import {
   EventSubscriber,
   InsertEvent,
 } from 'typeorm';
-// import { ClientMessageService } from '../../common/services/client-message.service';
+import { ClientMessageService } from '../../common/services/client-message.service';
 import { ConfigService } from '@nestjs/config';
 
 @EventSubscriber()
@@ -16,7 +16,7 @@ export class DocumentSubscriber
 
   constructor(
     dataSource: DataSource,
-    // private clientMessageService: ClientMessageService,
+    private clientMessageService: ClientMessageService,
     private configService: ConfigService,
   ) {
     dataSource.subscribers.push(this);
@@ -28,15 +28,15 @@ export class DocumentSubscriber
   }
 
   afterInsert(event: InsertEvent<DocumentEntity>) {
-    // this.clientMessageService.dispatch(
-    //   new ClientMessageDto({
-    //     type: 'document.created',
-    //     id: event.entity.id,
-    //     userId: event.entity.createdBy,
-    //     workflowId: event.entity.workflowId,
-    //     workerId: this.clientId,
-    //     data: event.entity,
-    //   }),
-    // );
+    this.clientMessageService.dispatch(
+      new ClientMessageDto({
+        type: 'document.created',
+        id: event.entity.id,
+        userId: event.entity.createdBy,
+        workflowId: event.entity.workflowId,
+        workerId: this.clientId,
+        data: event.entity,
+      }),
+    );
   }
 }
