@@ -1,8 +1,5 @@
-// local-dev-user.seed.ts
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DataSource } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { UserRepository } from '../repositories';
 import { User } from '@loopstack/shared';
 

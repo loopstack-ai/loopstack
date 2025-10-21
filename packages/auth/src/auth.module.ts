@@ -10,10 +10,9 @@ import { UserRepository } from './repositories';
 import { AuthConfig } from './interfaces';
 import { AUTH_CONFIG } from './constants';
 import { Permission, Role, User } from '@loopstack/shared';
-import { APP_GUARD } from '@nestjs/core';
 import { ConfigValidationService } from './services/config-validation.service';
 import { HubAuditService } from './services/hub-audit.service';
-import { ConditionalAuthGuard } from './guards/conditional-auth.guard';
+import { ConditionalAuthGuard } from './guards';
 import { JwtAuthGuard } from './guards';
 import { LocalDevModeGuard } from './guards/local-dev-mode.guard';
 
@@ -32,7 +31,7 @@ export class AuthModule {
           useFactory: (configService: ConfigService) => ({
             secret: configService.get<string>('auth.jwt.secret'),
             signOptions: {
-              expiresIn: configService.get<string>('auth.jwt.expiresIn') || '1h'
+              expiresIn: configService.get<any>('auth.jwt.expiresIn') || '1h'
             },
           }),
           inject: [ConfigService],
