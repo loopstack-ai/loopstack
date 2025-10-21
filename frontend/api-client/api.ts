@@ -680,12 +680,6 @@ export interface PipelineConfigDto {
      * @memberof PipelineConfigDto
      */
     'title'?: string;
-    /**
-     * The workspace type for this pipeline
-     * @type {string}
-     * @memberof PipelineConfigDto
-     */
-    'workspace': string;
 }
 /**
  * 
@@ -786,7 +780,7 @@ export interface PipelineCreateDto {
      * @type {string}
      * @memberof PipelineCreateDto
      */
-    'title': string;
+    'title'?: string | null;
     /**
      * Array of labels/tags associated with the pipeline
      * @type {Array<string>}
@@ -1149,17 +1143,23 @@ export interface WorkflowDto {
      */
     'progress': number;
     /**
-     * Error message if workflow execution failed
-     * @type {string}
-     * @memberof WorkflowDto
-     */
-    'error'?: string | null;
-    /**
      * Current status of the workflow
      * @type {WorkflowState}
      * @memberof WorkflowDto
      */
     'status': WorkflowState;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof WorkflowDto
+     */
+    'hasError': boolean;
+    /**
+     * Error message if workflow execution failed
+     * @type {string}
+     * @memberof WorkflowDto
+     */
+    'errorMessage'?: string | null;
     /**
      * Current place in the workflow state machine
      * @type {string}
@@ -1167,17 +1167,17 @@ export interface WorkflowDto {
      */
     'place': string;
     /**
-     * Additional information about the current place in the workflow
-     * @type {object}
+     * Available transitions for the current place in the workflow
+     * @type {Array<object>}
      * @memberof WorkflowDto
      */
-    'placeInfo'?: object | null;
+    'availableTransitions'?: Array<object> | null;
     /**
      * History of state transitions within the workflow
      * @type {object}
      * @memberof WorkflowDto
      */
-    'transitionHistory'?: object | null;
+    'history'?: object | null;
     /**
      * Ui schema config for the workflow
      * @type {{ [key: string]: any; }}
@@ -1279,17 +1279,23 @@ export interface WorkflowItemDto {
      */
     'progress': number;
     /**
-     * Error message if workflow execution failed
-     * @type {string}
-     * @memberof WorkflowItemDto
-     */
-    'error'?: string | null;
-    /**
      * Current status of the workflow
      * @type {WorkflowState}
      * @memberof WorkflowItemDto
      */
     'status': WorkflowState;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof WorkflowItemDto
+     */
+    'hasError': boolean;
+    /**
+     * Current place in the workflow state machine
+     * @type {string}
+     * @memberof WorkflowItemDto
+     */
+    'place': string;
     /**
      * Date and time when the workflow item was created
      * @type {string}
@@ -1302,18 +1308,6 @@ export interface WorkflowItemDto {
      * @memberof WorkflowItemDto
      */
     'updatedAt': string;
-    /**
-     * Current place in the workflow state machine
-     * @type {string}
-     * @memberof WorkflowItemDto
-     */
-    'place': string;
-    /**
-     * Additional information about the current place in the workflow
-     * @type {object}
-     * @memberof WorkflowItemDto
-     */
-    'placeInfo'?: object | null;
     /**
      * Unique identifier of the workspace this workflow item belongs to
      * @type {string}
@@ -1362,15 +1356,13 @@ export const WorkflowSortByDtoFieldEnum = {
     Index: 'index',
     Progress: 'progress',
     Status: 'status',
-    Error: 'error',
+    HasError: 'hasError',
+    ErrorMessage: 'errorMessage',
     CreatedAt: 'createdAt',
     UpdatedAt: 'updatedAt',
     Place: 'place',
-    PrevData: 'prevData',
-    CurrData: 'currData',
-    AliasData: 'aliasData',
-    ContextVariables: 'contextVariables',
-    PlaceInfo: 'placeInfo',
+    TransitionResults: 'transitionResults',
+    AvailableTransitions: 'availableTransitions',
     History: 'history',
     Ui: 'ui',
     NamespaceId: 'namespaceId',
