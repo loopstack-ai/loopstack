@@ -1,0 +1,7 @@
+parallel: true                                 # Run all instances in parallel. Defaults to false.
+factory:
+  block: ProcessItemWorkflow
+iterator:
+  source: ${ fruits }
+namespace:
+  label: Fruits

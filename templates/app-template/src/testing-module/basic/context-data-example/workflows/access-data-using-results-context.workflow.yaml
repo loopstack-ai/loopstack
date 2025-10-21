@@ -1,0 +1,43 @@
+transitions:
+  - id: create_some_data
+    from: start
+    to: data_created
+    call:
+
+      # Create test data and return it in the tool result
+      - id: say_hello
+        tool: CreateMock
+        args:
+          output: 'Hello World.'
+
+      # Access the data using the call id as identifier
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Data from specific call id: {{ state.currentTransitionResults.say_hello.data }}
+
+      # Access the data using the call index
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Data from first tool call: {{ state.currentTransitionResults.0.data }}
+
+  - id: access_data
+    from: data_created
+    to: end
+    call:
+
+      # Access the data from a previous transition using transition and call id
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Data from transition id + tool call id: {{ state.transitionResults.create_some_data.toolResults.say_hello.data }}
+
+      # Access the data using a custom helper function of the workflow
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: ${ theMessage }

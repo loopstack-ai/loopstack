@@ -1,0 +1,12 @@
+transitions:
+  - id: access_data
+    from: start
+    to: end
+    call:
+
+      # Access the workflow arguments
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Data from arguments: {{ args.message }}

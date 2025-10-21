@@ -1,0 +1,13 @@
+sequence:
+  - id: workflow1
+    block: AccessDataUsingResultsContextWorkflow
+
+  - id: workflow2
+    block: AccessDataUsingCustomVariableWorkflow
+
+#  - id: workflow3
+#    block: AccessDataFromArgumentsWorkflow
+#
+#    # pass in the message from workflow 2 as argument
+#    args:
+#      message: ${ steps.workflow2.message }
