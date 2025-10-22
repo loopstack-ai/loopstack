@@ -1,14 +1,11 @@
 import { Module } from '@nestjs/common';
-import {
-  CommonModule,
-  WorkflowProcessorModule,
-  PersistenceModule,
-  ConfigurationModule,
-} from './modules';
 import { MigrationsService } from './services/migrations.service';
-import { SchedulerModule } from './modules/scheduler';
+import { SchedulerModule } from './scheduler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MODULE_NAME_TOKEN } from '@loopstack/shared';
+import { CommonModule } from './common';
+import { PersistenceModule } from './persistence';
+import { WorkflowProcessorModule } from './workflow-processor';
 
 @Module({
   imports: [
@@ -16,7 +13,6 @@ import { MODULE_NAME_TOKEN } from '@loopstack/shared';
       global: true,
     }),
     CommonModule,
-    ConfigurationModule,
     PersistenceModule,
     WorkflowProcessorModule,
     SchedulerModule,
@@ -30,7 +26,6 @@ import { MODULE_NAME_TOKEN } from '@loopstack/shared';
   ],
   exports: [
     CommonModule,
-    ConfigurationModule,
     PersistenceModule,
     WorkflowProcessorModule,
     SchedulerModule,
