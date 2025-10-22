@@ -1,1 +1,2 @@
-export * from './loopstack-api.module';
+export * from './loopstack-api.module'
+export * from './interfaces'

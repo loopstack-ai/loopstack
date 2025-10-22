@@ -15,7 +15,7 @@ import {
 } from '@loopstack/shared';
 import { ProcessorController } from './controllers/processor.controller';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { LoopstackApiConfigPluginOptions } from './interfaces/api-config-options';
+import { LoopstackApiConfigPluginOptions } from './interfaces';
 import { WorkflowController } from './controllers/workflow.controller';
 import { DocumentController } from './controllers/document.controller';
 import { WorkflowApiService } from './services/workflow-api.service';
@@ -35,6 +35,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigController } from './controllers/config.controller';
 import { DashboardController } from './controllers/dashboard.controller';
 import { DashboardService } from './services/dashboard.service';
+import { AuthModule, ConditionalAuthGuard } from '@loopstack/auth';
+import { APP_GUARD } from '@nestjs/core';
 var cookieParser = require('cookie-parser');
 
 @Module({
@@ -59,6 +61,7 @@ var cookieParser = require('cookie-parser');
     ]),
     EventEmitterModule.forRoot(),
     LoopCoreModule,
+    AuthModule.forRoot(),
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET ?? 'NO SECRET',
@@ -75,6 +78,10 @@ var cookieParser = require('cookie-parser');
     DashboardController,
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ConditionalAuthGuard,
+    },
     AuthService,
     JwtStrategy,
     NullStrategy,
