@@ -67,7 +67,10 @@ export class SequenceProcessorService implements Processor {
           ...parsedItem.args,
           index: currentIndex,
         },
-        block.ctx,
+        {
+          ...block.ctx,
+          index: currentIndex,
+        },
       );
 
       const processedBlock = await this.blockProcessor.processBlock(
