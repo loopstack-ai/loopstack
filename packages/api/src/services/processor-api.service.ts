@@ -5,8 +5,8 @@ import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
 import {
   ScheduledTask,
 } from '@loopstack/shared';
-import { TaskSchedulerService } from '@loopstack/core/dist/modules/scheduler';
 import { randomUUID } from 'node:crypto';
+import { TaskSchedulerService } from '@loopstack/core';
 
 @Injectable()
 export class ProcessorApiService {
