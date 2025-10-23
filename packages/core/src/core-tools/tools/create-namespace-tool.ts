@@ -24,7 +24,6 @@ export class CreateNamespaceTool extends Tool {
   }
 
   async execute(): Promise<HandlerCallResult> {
-
     const namespace = await this.namespacesService.create({
       name: this.args.label,
       pipelineId: this.ctx.pipelineId,

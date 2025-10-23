@@ -1,8 +1,7 @@
 import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Tool } from '../../workflow-processor';
-import { jsonSchemaToZod } from 'json-schema-to-zod';
+import { BlockRegistryService, Tool } from '../../workflow-processor';
 
 const ValidateDocumentInputSchema = z.object({
   documentId: z.string(),
@@ -26,18 +25,10 @@ type ValidateDocumentInput = z.infer<typeof ValidateDocumentInputSchema>;
 export class ValidateDocument extends Tool {
   protected readonly logger = new Logger(ValidateDocument.name);
 
-  constructor() {
+  constructor(private readonly blockRegistryService: BlockRegistryService) {
     super();
   }
 
-  private createZod(jsonSchema: any): z.ZodType {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const zodSchemaString = jsonSchemaToZod(jsonSchema);
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    return new Function('z', `return ${zodSchemaString}`)(z);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
   async execute(): Promise<HandlerCallResult> {
     const document = this.ctx.workflow.documents.find(
       (id) => id === this.args.documentId,
@@ -46,14 +37,18 @@ export class ValidateDocument extends Tool {
       throw new Error(`Document with ID ${this.args.documentId} not found.`);
     }
 
-    // todo!
-    // const zodSchema = this.createZod(document.schema);
-    // if (!zodSchema) {
-    //   throw Error(`No schema defined.`);
-    // }
+    const blockRegistryItem = this.blockRegistryService.getBlock(document.configKey);
+    if (!blockRegistryItem) {
+      throw new Error(`Block with name "${document.configKey}" not found.`);
+    }
+
+    const schema = blockRegistryItem.metadata.properties;
+    if (!schema) {
+      throw Error(`No schema defined.`);
+    }
 
     try {
-      const result = 'not implemented'; //zodSchema.parse(document.schema); //todo!
+      const result = schema.parse(document.schema);
 
       return {
         success: true,

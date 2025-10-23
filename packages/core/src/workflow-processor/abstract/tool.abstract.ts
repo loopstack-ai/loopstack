@@ -9,14 +9,14 @@ import { BlockStateDto } from '../dtos';
 import { ToolExecutionContextDto } from '../dtos';
 import { BlockRegistryItem } from '../services';
 
-export abstract class Tool implements BlockInterface {
+export abstract class Tool<TArgs extends object = any> implements BlockInterface {
   @Expose()
   public processor: string = 'tool';
 
   public metadata: BlockMetadata;
 
   @Expose()
-  public args: any;
+  public args: TArgs;
 
   @Expose()
   public state: BlockStateDto;

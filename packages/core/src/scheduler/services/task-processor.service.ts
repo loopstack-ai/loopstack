@@ -4,9 +4,6 @@ import { Job } from 'bullmq';
 import { ScheduledTask } from '@loopstack/shared';
 import { OnEvent } from '@nestjs/event-emitter';
 import { RunPipelineTaskProcessorService } from './task-processor/run-pipeline-task-processor.service';
-// import { CleanupPipelineTaskProcessorService } from './task-processor/cleanup-pipeline-task-processor.service';
-// import { CreateWorkspaceTaskProcessorService } from './task-processor/create-workspace-task-processor.service';
-// import { CreateRunPipelineTaskProcessorService } from './task-processor/create-run-pipeline-task-processor.service';
 
 @Processor('task-queue', {
   concurrency: 1, // One job at a time
@@ -36,7 +33,7 @@ export class TaskProcessorService extends WorkerHost {
   }
 
   async process(job: Job<ScheduledTask>) {
-    const { id, task, metadata } = job.data;
+    const { id, task } = job.data;
     this.logger.debug(`Processing task ${id}`);
 
     try {
@@ -46,7 +43,6 @@ export class TaskProcessorService extends WorkerHost {
         case 'run_pipeline':
           await this.runPipelineTaskProcessorService.process(task);
           break;
-        // todo
         // case 'create_run_pipeline':
         //   await this.createRunPipelineTaskProcessorService.process(task, metadata);
         //   break;
@@ -56,7 +52,6 @@ export class TaskProcessorService extends WorkerHost {
         //     metadata,
         //   );
         //   break;
-        //todo
         // case 'create_workspace':
         //   await this.createWorkspaceTaskProcessorService.process(
         //     task,

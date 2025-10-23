@@ -146,6 +146,9 @@ export class LoadDocument extends Tool {
    * and updates workflow dependencies, if applicable
    */
   async execute(): Promise<HandlerCallResult> {
+
+    throw new Error(`Not implemented yet.`)
+
     if (!this.state.id) {
       throw new Error('Workflow is undefined');
     }

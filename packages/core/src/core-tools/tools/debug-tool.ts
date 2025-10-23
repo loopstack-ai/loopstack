@@ -21,7 +21,7 @@ type DebugInput = z.infer<typeof DebugInputSchema>;
   properties: DebugInputSchema,
   configSchema: DebugConfigSchema,
 })
-export class Debug extends Tool {
+export class Debug extends Tool<DebugInput> {
   protected readonly logger = new Logger(Debug.name);
 
   constructor(private readonly mockService: MockService) {
@@ -29,6 +29,6 @@ export class Debug extends Tool {
   }
 
   async execute(): Promise<HandlerCallResult> {
-    return this.mockService.debug(this.args);
+    return this.mockService.createMock({ input: this.args.value });
   }
 }

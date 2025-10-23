@@ -5,19 +5,27 @@ import {
 } from '@loopstack/shared';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { jsonSchemaToZod } from 'json-schema-to-zod';
 import { Tool } from '../../workflow-processor';
+import Ajv, { ValidateFunction } from 'ajv';
 
 const ValidateInputSchema = z.object({
-  source: z.any(),
+  data: z.any(),
   schema: JSONSchemaType,
   message: z.string().optional(),
+  options: z.object({
+    allErrors: z.boolean(),
+    strict: z.boolean(),
+  }).optional(),
 });
 
 const ValidateConfigSchema = z.object({
   source: z.any(),
   schema: JSONSchemaType,
   message: z.string().optional(),
+  options: z.object({
+    allErrors: z.boolean(),
+    strict: z.boolean(),
+  }).optional(),
 });
 
 type ValidateInput = z.infer<typeof ValidateInputSchema>;
@@ -29,44 +37,36 @@ type ValidateInput = z.infer<typeof ValidateInputSchema>;
   properties: ValidateInputSchema,
   configSchema: ValidateConfigSchema,
 })
-export class Validate extends Tool {
+export class Validate extends Tool<ValidateInput> {
   protected readonly logger = new Logger(Validate.name);
 
-  constructor() {
-    super();
-  }
-
-  private createZod(jsonSchema: any): z.ZodType {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const zodSchemaString = jsonSchemaToZod(jsonSchema);
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    return new Function('z', `return ${zodSchemaString}`)(z);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
   async execute(): Promise<HandlerCallResult> {
-    const zodSchema = this.createZod(this.args.schema);
-    if (!zodSchema) {
+
+    const ajv = new Ajv({
+      allErrors: this.args.options?.allErrors ?? true,
+      strict: this.args.options?.strict ?? true,
+    });
+
+    if (!this.args.schema) {
       throw Error(`No schema defined.`);
     }
 
-    try {
-      const result = zodSchema.parse(this.args.source);
+    const validate: ValidateFunction = ajv.compile(this.args.schema);
+    const isValid = validate(this.args.data);
 
-      return {
-        success: true,
-        data: {
-          valid: true,
-          result,
-          error: null,
-        },
-      };
-    } catch (error) {
+    if (!isValid) {
       if (this.args.message) {
         throw new Error(this.args.message);
       }
-
-      throw error;
+      throw new Error(`Validation failed.`)
     }
+
+    return {
+      success: true,
+      data: {
+        valid: isValid,
+        error: null,
+      },
+    };
   }
 }

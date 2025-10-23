@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CreateWorkspaceTask } from '@loopstack/shared';
 import { WorkspaceService } from '../../../persistence';
-import { IsNull } from 'typeorm';
-import { ConfigElementMetadata } from '@loopstack/shared/dist/schemas/config-element.schema';
 
 @Injectable()
 export class CreateWorkspaceTaskProcessorService {

@@ -46,6 +46,9 @@ export class BatchCreateMessages extends Tool {
   }
 
   async execute(): Promise<HandlerCallResult> {
+
+    throw new Error('Not implemented yet.')
+
     return this.batchCreateDocumentsService.batchCreateDocuments(
       {
         document: 'message',
