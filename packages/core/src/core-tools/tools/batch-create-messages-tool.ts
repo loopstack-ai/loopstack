@@ -49,12 +49,19 @@ export class BatchCreateMessages extends Tool {
 
     throw new Error('Not implemented yet.')
 
-    return this.batchCreateDocumentsService.batchCreateDocuments(
+    const documents = this.batchCreateDocumentsService.batchCreateDocuments(
       {
         document: 'message',
         items: this.args.items,
       },
       this,
     );
+
+    return {
+      data: documents,
+      effects: {
+        addWorkflowDocuments: documents,
+      },
+    };
   }
 }

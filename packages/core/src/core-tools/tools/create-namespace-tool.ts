@@ -33,7 +33,6 @@ export class CreateNamespaceTool extends Tool {
     });
 
     return {
-      success: true,
       data: namespace,
     }
   }

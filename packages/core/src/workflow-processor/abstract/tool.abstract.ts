@@ -7,7 +7,7 @@ import { BlockInterface } from '../interfaces/block.interface';
 import { Expose, instanceToPlain } from 'class-transformer';
 import { BlockStateDto } from '../dtos';
 import { ToolExecutionContextDto } from '../dtos';
-import { BlockRegistryItem } from '../services';
+import { BlockRegistryItem, ProcessorFactory } from '../services';
 
 export abstract class Tool<TArgs extends object = any> implements BlockInterface {
   @Expose()
@@ -42,7 +42,7 @@ export abstract class Tool<TArgs extends object = any> implements BlockInterface
     return this.constructor.name;
   }
 
-  public abstract execute(): Promise<HandlerCallResult>;
+  public abstract execute(options: { factory: ProcessorFactory; }): Promise<HandlerCallResult>;
 
   result: any;
 

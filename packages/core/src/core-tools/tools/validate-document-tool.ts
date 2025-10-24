@@ -51,7 +51,6 @@ export class ValidateDocument extends Tool {
       const result = schema.parse(document.schema);
 
       return {
-        success: true,
         data: {
           valid: true,
           result,

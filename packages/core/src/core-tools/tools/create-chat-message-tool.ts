@@ -3,70 +3,66 @@ import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../workflow-processor';
 import { CreateDocumentService } from '../services/create-document.service';
+import { MessageDocument } from '../documents';
+import { BatchCreateDocumentsService } from '../services/batch-create-documents.service';
 
-const CreateChatMessageInputSchema = z.object({
-  content: z.union([z.string(), z.null()]),
+const MessageSchema = z.object({
+  content: z.any(),
   role: z.string(),
   tool_calls: z.array(z.any()).optional(),
   tool_call_id: z.string().optional(),
   annotations: z.any().optional(),
   refusal: z.any().optional(),
-  meta: z
-    .object({
-      level: z
-        .union([
-          z.literal('debug'),
-          z.literal('info'),
-          z.literal('warning'),
-          z.literal('error'),
-        ])
-        .optional(),
-      invalidate: z.boolean().optional(),
-    })
-    .optional(),
 });
 
-const CreateChatMessageConfigSchema = z.object({
-  content: z.union([z.string(), z.null()]),
-  role: z.string(),
-  tool_calls: z.array(z.any()).optional(),
-  tool_call_id: z.string().optional(),
-  annotations: z.any().optional(),
-  refusal: z.any().optional(),
-  meta: z
-    .object({
-      level: z
-        .union([
-          z.literal('debug'),
-          z.literal('info'),
-          z.literal('warning'),
-          z.literal('error'),
-        ])
-        .optional(),
-      invalidate: z.boolean().optional(),
-    })
-    .optional(),
-});
+const CreateChatMessageInputSchema = z.union([
+  MessageSchema,
+  z.array(MessageSchema),
+]);
+
+const CreateChatMessageConfigSchema = z.union([
+  MessageSchema,
+  z.array(MessageSchema),
+]);
 
 type CreateChatMessageInput = z.infer<typeof CreateChatMessageInputSchema>;
 
 @BlockConfig({
   config: {
-    description: 'Create a chat message.',
+    description: 'Create chat message(s).',
   },
   properties: CreateChatMessageInputSchema,
   configSchema: CreateChatMessageConfigSchema,
 })
-export class CreateChatMessage extends Tool {
+export class CreateChatMessage extends Tool<CreateChatMessageInput> {
   protected readonly logger = new Logger(CreateChatMessage.name);
 
-  constructor(private readonly createDocumentService: CreateDocumentService) {
+  constructor(
+    private readonly createDocumentService: CreateDocumentService,
+    private readonly batchCreateDocumentsService: BatchCreateDocumentsService,
+
+  ) {
     super();
   }
 
   async execute(): Promise<HandlerCallResult> {
-    const transformedInput = {
-      document: 'MessageDocument',
+
+    if (Array.isArray(this.args)) {
+      const documents = this.batchCreateDocumentsService.batchCreateDocuments({
+        document: MessageDocument.name,
+        items: this.args,
+      }, this);
+
+      return {
+        data: documents.map((document) => document.content),
+        effects: {
+          addWorkflowDocuments: documents,
+        },
+      }
+    }
+
+    const document = this.createDocumentService.createDocument({
+      document: MessageDocument.name,
       update: {
         content: {
           role: this.args.role,
@@ -76,10 +72,14 @@ export class CreateChatMessage extends Tool {
           annotations: this.args.annotations,
           refusal: this.args.refusal,
         },
-        meta: this.args.meta,
-      },
-    };
+      }
+    }, this);
 
-    return this.createDocumentService.createDocument(transformedInput, this);
+    return {
+      data: document.content,
+      effects: {
+        addWorkflowDocuments: [document],
+      },
+    }
   }
 }

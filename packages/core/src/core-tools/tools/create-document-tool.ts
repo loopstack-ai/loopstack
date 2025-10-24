@@ -22,6 +22,13 @@ export class CreateDocument extends Tool {
   }
 
   async execute(): Promise<HandlerCallResult> {
-    return this.createDocumentService.createDocument(this.args, this);
+    const document = this.createDocumentService.createDocument(this.args, this);
+
+    return {
+      data: document,
+      effects: {
+        addWorkflowDocuments: [document],
+      }
+    }
   }
 }

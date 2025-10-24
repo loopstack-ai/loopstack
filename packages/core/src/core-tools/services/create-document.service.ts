@@ -14,11 +14,13 @@ import { z } from 'zod';
 import { merge, omit } from 'lodash';
 import { DocumentService } from '../../persistence';
 import {
-  BlockRegistryService, ConfigTraceError,
+  BlockRegistryService, ConfigTraceError, Document,
   SchemaValidationError,
   TemplateExpressionEvaluatorService,
   Tool,
 } from '../../workflow-processor';
+import { zodToJsonSchema } from 'zod-to-json-schema';
+import { plainToInstance } from 'class-transformer';
 
 export const CreateDocumentInputSchema = z
   .object({
@@ -100,15 +102,15 @@ export class CreateDocumentService {
   private readonly logger = new Logger(CreateDocumentService.name);
 
   constructor(
-    private documentService: DocumentService,
-    private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
+    private readonly documentService: DocumentService,
+    private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private readonly blockRegistryService: BlockRegistryService,
   ) {}
 
-  async createDocument(
+  createDocument(
     args: CreateDocumentInput,
     tool: Tool,
-  ): Promise<HandlerCallResult> {
+  ): DocumentEntity {
     const blockRegistryItem = this.blockRegistryService.getBlock(args.document);
     if (!blockRegistryItem) {
       throw new Error(`Document ${args.document} not found.`);
@@ -136,6 +138,14 @@ export class CreateDocumentService {
         throw Error(`Document creates with content no schema defined.`);
       }
 
+      let schema = mergedTemplateData.schema;
+      if (!schema) {
+        schema = zodToJsonSchema(inputSchema as any, {
+          name: 'documentSchema',
+          target: 'jsonSchema7',
+        })?.definitions?.documentSchema;
+      }
+
       // evaluate document content
       const parsedDocumentContent =
         this.templateExpressionEvaluatorService.evaluateTemplate<any>(
@@ -144,11 +154,18 @@ export class CreateDocumentService {
           ['document'],
         );
 
+      const documentContent = plainToInstance(blockRegistryItem.provider.metatype as any, parsedDocumentContent, {
+        excludeExtraneousValues: true,
+      });
+
+      console.log(documentContent);
+
       // merge document skeleton with content data
       const documentData: Partial<DocumentEntity> = {
-        name: blockRegistryItem.name,
         ...documentSkeleton,
-        content: parsedDocumentContent,
+        schema,
+        name: blockRegistryItem.name,
+        content: documentContent,
         configKey: blockRegistryItem.name,
       };
 
@@ -172,14 +189,7 @@ export class CreateDocumentService {
 
       this.logger.debug(`Created document "${documentData.name}".`);
 
-      return {
-        success: true,
-        persist: true,
-        data: documentEntity,
-        effects: {
-          addWorkflowDocuments: [documentEntity],
-        },
-      };
+      return documentEntity;
     } catch (e) {
       throw new ConfigTraceError(e, blockRegistryItem.provider.instance);
     }

@@ -52,10 +52,10 @@ export class TemplateExpressionEvaluatorService {
 
     const result = this.evaluateTemplateRaw<T>(obj, selfProperties);
 
-    this.logger.debug(`Evaluated ${obj} to ${result}`);
-    if (typeof result === 'object') {
-      this.logger.debug(result);
-    }
+    // this.logger.debug(`Evaluated ${obj} to ${result}`);
+    // if (typeof result === 'object') {
+    //   this.logger.debug(result);
+    // }
 
     return schema ? this.validateResult<T>(result, schema) : result;
   }

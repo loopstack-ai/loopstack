@@ -13,7 +13,7 @@ export class EntityCreationService {
     entityName: string,
     data: ObjectLiteral | ObjectLiteral[],
     workflow?: WorkflowEntity,
-  ): Promise<{ success: boolean; data: ObjectLiteral | ObjectLiteral[] }> {
+  ): Promise<{ data: ObjectLiteral | ObjectLiteral[] }> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }
@@ -31,7 +31,6 @@ export class EntityCreationService {
     await repository.save(entities);
 
     return {
-      success: true,
       data: Array.isArray(data) ? entities : entities[0],
     };
   }

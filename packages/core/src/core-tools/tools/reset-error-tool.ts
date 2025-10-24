@@ -32,7 +32,6 @@ export class ResetError extends Tool {
     // this.state.error = undefined;
 
     return {
-      success: true,
       // workflow: toolProcessor.ctx.state.workflow,
     };
   }

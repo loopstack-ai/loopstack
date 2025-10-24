@@ -169,7 +169,6 @@ export class LoadDocument extends Tool {
     // }
 
     return {
-      success: true,
       // workflow: toolProcessor.ctx.state.workflow,
       data: result,
     };

@@ -41,7 +41,6 @@ export class SwitchTarget extends Tool {
     this.logger.debug(`Setting transition to: ${target}`);
 
     return {
-      success: true,
       effects: {
         setTransitionPlace: target,
       },

@@ -17,7 +17,6 @@ export class MockService {
     }
 
     return {
-      success: true,
       data: args.output,
     };
   }

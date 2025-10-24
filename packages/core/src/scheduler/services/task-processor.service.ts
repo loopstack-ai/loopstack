@@ -63,7 +63,7 @@ export class TaskProcessorService extends WorkerHost {
       await job.updateProgress(100);
 
       this.logger.debug(`Task ${id} completed successfully`);
-      return { success: true, taskId: id, completedAt: new Date() };
+      return { taskId: id, completedAt: new Date() };
     } catch (error) {
       this.logger.error(`Task ${id} failed:`, error);
       throw error;

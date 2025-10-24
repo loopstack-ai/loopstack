@@ -13,7 +13,7 @@ export class SqlQueryService {
     query: string,
     parameters?: any[],
     workflow?: WorkflowEntity,
-  ): Promise<{ success: boolean; data: any }> {
+  ): Promise<{ data: any }> {
     if (!workflow) {
       throw new Error('Workflow is undefined');
     }
@@ -26,7 +26,6 @@ export class SqlQueryService {
     const result = await repository.query(query, parameters ?? []);
 
     return {
-      success: true,
       data: result,
     };
   }

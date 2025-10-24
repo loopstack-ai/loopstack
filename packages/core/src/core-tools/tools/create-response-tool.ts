@@ -36,6 +36,14 @@ export class CreateResponse extends Tool {
       },
     };
 
-    return this.createDocumentService.createDocument(transformedInput, this);
+    const document = this.createDocumentService.createDocument(transformedInput, this);
+
+    return {
+      data: document,
+      effects: {
+        addWorkflowDocuments: [document],
+      },
+    };
+
   }
 }

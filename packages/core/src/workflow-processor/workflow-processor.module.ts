@@ -61,6 +61,8 @@ import { PersistenceModule } from '../persistence';
     TemplateExpressionEvaluatorService,
     CreatePipelineService,
     BlockRegistryService,
+    BlockProcessor,
+    BlockFactory,
   ],
 })
 export class WorkflowProcessorModule {}

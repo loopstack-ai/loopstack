@@ -62,7 +62,6 @@ export class Validate extends Tool<ValidateInput> {
     }
 
     return {
-      success: true,
       data: {
         valid: isValid,
         error: null,
