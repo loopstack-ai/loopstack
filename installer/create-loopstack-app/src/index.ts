@@ -5,29 +5,17 @@ import * as fs from "fs";
 import * as path from "path";
 
 const appName: string | undefined = process.argv[2];
+const templateVersion: string = process.argv[3] || "latest";
 
 if (!appName) {
   console.error("❌ Please provide a project name.");
+  console.error("Usage: create-loopstack-app <app-name> [template-version]");
+  console.error("Example: create-loopstack-app my-app");
   process.exit(1);
 }
 
 console.log(`📦 Creating LoopStack app: ${appName}`);
-
-// Get the current package version to determine template version
-const currentPackageJsonPath: string = path.join(process.cwd(), "package.json");
-let templateVersion = "main"; // default fallback
-
-if (fs.existsSync(currentPackageJsonPath)) {
-  const currentPackageJson: any = JSON.parse(fs.readFileSync(currentPackageJsonPath, "utf8"));
-  const version = currentPackageJson.version;
-
-  if (version) {
-    const versionParts = version.split(".");
-    const minorVersion = `${versionParts[0]}.${versionParts[1]}`;
-    templateVersion = `v${minorVersion}`;
-    console.log(`📌 Using template version: ${templateVersion}`);
-  }
-}
+console.log(`📌 Using template version: ${templateVersion}`);
 
 // Clone starter template
 const repo = "https://github.com/loopstack-ai/app-template.git";
@@ -35,11 +23,19 @@ execSync(`git clone ${repo} ${appName}`, { stdio: "inherit" });
 
 // Checkout the specific version tag
 process.chdir(appName);
-try {
-  console.log(`🔄 Checking out template version ${templateVersion}...`);
-  execSync(`git checkout ${templateVersion}`, { stdio: "inherit" });
-} catch (error) {
-  console.warn(`⚠️  Warning: Could not checkout ${templateVersion}, using default branch`);
+
+if (templateVersion !== "latest") {
+  const tagName = `@loopstack/app-template@${templateVersion}`;
+  try {
+    console.log(`🔄 Checking out template tag ${tagName}...`);
+    execSync(`git checkout ${tagName}`, { stdio: "inherit" });
+  } catch (error) {
+    console.error(`❌ Error: Could not checkout tag ${tagName}`);
+    console.error("Please verify that the template version exists.");
+    process.exit(1);
+  }
+} else {
+  console.log(`🔄 Using latest version from default branch...`);
 }
 
 // Update package json
@@ -60,7 +56,7 @@ if (fs.existsSync(envExamplePath)) {
   console.warn("⚠️  Warning: .env.example not found, skipping .env creation");
 }
 
-// Reset git
+// Reset git repository
 const gitDir: string = path.join(process.cwd(), ".git");
 if (fs.existsSync(gitDir)) {
   fs.rmSync(gitDir, { recursive: true, force: true });
