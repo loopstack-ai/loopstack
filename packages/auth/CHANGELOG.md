@@ -1,5 +1,17 @@
 # @loopstack/auth
 
+## 0.11.0
+
+### Minor Changes
+
+- f1db120: Implement Block Wrapper for Typescript services
+
+### Patch Changes
+
+- Updated dependencies [f1db120]
+  - @loopstack/core@0.11.0
+  - @loopstack/shared@0.11.0
+
 ## 0.10.0
 
 ### Minor Changes
