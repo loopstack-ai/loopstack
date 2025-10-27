@@ -47,17 +47,6 @@ services:
     networks:
       - monorepo-network
 
-  react-app:
-    image: jakobklippel/loopstack-react-app:latest
-    pull_policy: always
-    ports:
-      - "3000:3000"
-    depends_on:
-      - websocket-server
-    restart: unless-stopped
-    networks:
-      - monorepo-network
-
 networks:
   monorepo-network:
     driver: bridge
