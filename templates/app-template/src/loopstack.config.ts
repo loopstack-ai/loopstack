@@ -28,7 +28,7 @@ export const authConfig = registerAs<AuthConfig>('auth', () => {
     },
     clientId: process.env.CLIENT_ID || '',
     clientSecret: process.env.CLIENT_SECRET || '',
-    authCallback: process.env.AUTH_CALLBACK_URL || 'https://app.loopstack.ai/api/v1/sso/validate',
+    authCallback: process.env.AUTH_CALLBACK_URL || 'https://hub.loopstack.ai/api/v1/sso/validate',
   };
 });
 
