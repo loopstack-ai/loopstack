@@ -1,0 +1,29 @@
+transitions:
+  - id: create_message
+    from: start
+    to: message_added
+    call:
+      - id: prompt_message
+        tool: CreateChatMessage
+        args:
+          role: user
+          content: Write a haiku about {{ args.subject }}
+
+  - id: prompt
+    from: message_added
+    to: prompt_executed
+    call:
+      - id: execute_prompt
+        tool: AiGenerateText
+        args:
+          llm:
+            provider: openai
+            model: gpt-4o
+          messagesSearchTag: message
+
+  - id: display_message
+    from: prompt_executed
+    to: end
+    call:
+      - tool: CreateChatMessage
+        args: ${ state.transitionResults.prompt.toolResults.execute_prompt.data }

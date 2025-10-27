@@ -1,0 +1,9 @@
+transitions:
+  - id: create_message
+    from: start
+    to: end
+    call:
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: ${ message }

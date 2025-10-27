@@ -1,0 +1,27 @@
+transitions:
+  - id: prompt
+    from: start
+    to: prompt_executed
+    call:
+      - id: execute_prompt
+        tool: AiGenerateObject
+        args:
+          llm:
+            provider: openai
+            model: gpt-4o
+          responseDocument: FileDocument
+          prompt: |
+            Create a Python script that prints 'Hello, World!' to the console.
+            Wrap the code in triple-backticks.
+        assign:
+          file: ${ result.data }
+
+  - id: create_document
+    from: prompt_executed
+    to: end
+    call:
+      - tool: CreateDocument
+        args:
+          document: FileDocument
+          update:
+            content: ${ file }

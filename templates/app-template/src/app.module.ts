@@ -1,41 +1,36 @@
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoopstackApiModule } from '@loopstack/api';
-// import { LlmModule } from '@loopstack/llm';
-import { AuthModule, ConditionalAuthGuard } from '@loopstack/auth';
-import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { appConfig, authConfig, databaseConfig } from './app.config';
+import { loopstackConfig } from './loopstack.config';
 import { TestingModule } from './testing-module/testing.module';
-// import { ExamplesModule } from './examples-module/examples.module';
+import { ExampleModule } from './example-module/example.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [
-        appConfig,
-        authConfig,
-        databaseConfig,
-      ],
+      load: loopstackConfig,
     }),
     TypeOrmModule.forRootAsync({
-      useFactory: (configService: ConfigService) => configService.get('database') as TypeOrmModuleOptions,
       inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get('DATABASE_HOST', 'localhost'),
+        port: configService.get('DATABASE_PORT', 5432),
+        username: configService.get('DATABASE_USERNAME', 'postgres'),
+        database: configService.get('DATABASE_NAME', 'postgres'),
+        password: configService.get('DATABASE_PASSWORD', 'admin'),
+        autoLoadEntities: true,
+        synchronize: configService.get('NODE_ENV') !== 'production',
+      }),
     }),
     LoopCoreModule,
-    AuthModule.forRoot(),
     LoopstackApiModule,
-    // LlmModule,
     TestingModule,
-  ],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ConditionalAuthGuard,
-    },
+    ExampleModule,
   ],
 })
 export class AppModule {}

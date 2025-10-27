@@ -1,0 +1,50 @@
+transitions:
+  - id: initial
+    from: start
+    to: message_created
+    call:
+      - id: crate_message
+        tool: CreateChatMessage
+        args:
+          role: user
+          content: How is the weather in Berlin?
+
+  - id: prompt
+    from: message_created
+    to: prompt_executed
+    call:
+      - id: execute_prompt
+        tool: AiGenerateText
+        args:
+          llm:
+            provider: openai
+            model: gpt-4o
+          messagesSearchTag: message
+          tools:
+            - GetWeather
+      - id: add_response_messages
+        tool: CreateChatMessage
+        args: ${ state.currentTransitionResults.execute_prompt.data }
+
+  - id: delegate_tools
+    from: prompt_executed
+    to: tools_called
+    call:
+      - id: delegate_calls
+        tool: DelegateToolCalls
+        args:
+          messages: ${ state.transitionResults.prompt.toolResults.execute_prompt.data }
+        assign:
+          toolCallResultMessages: ${ result.data }
+      - tool: CreateChatMessage
+        args: ${ toolCallResultMessages }
+
+  - id: continue
+    from: tools_called
+    to:
+      - message_created
+      - end
+    call:
+      - tool: SwitchTarget
+        args:
+          target: "{{#if toolCallResultMessages.length }}message_created{{else}}end{{/if}}"

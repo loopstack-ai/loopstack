@@ -1,0 +1,74 @@
+transitions:
+  - id: calculate
+    from: start
+    to: end
+    call:
+      # Use a custom tool
+      - id: calculation
+        tool: MathSumTool
+        args:
+          a: ${ args.a }
+          b: ${ args.b }
+
+      # Display the result
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Tool calculation result:
+            {{ args.a }} + {{ args.b }} = {{ state.currentTransitionResults.calculation.data }}
+
+      # Alternatively, use a custom workflow getter function
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Alternatively, using workflow getter function:
+            {{ args.a }} + {{ args.b }} = {{ calculate }}
+
+      # Access class properties and methods with different exposition settings
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Accessible class properties (through template expressions): 
+            
+            Exposed Property: {{ accessibleProperty }}
+            Not Exposed Property: {{ notAccessibleProperty }}
+            Workflow Context Property: {{ workflowContextProperty }}
+            Tool Context Property: {{ toolContextProperty }}            
+            Exposed Getter Method: {{ exposedGetter }}            
+
+      # Use a stateless tool
+      - id: count1
+        tool: StatelessCounterTool
+      - id: count2
+        tool: StatelessCounterTool
+      - id: count3
+        tool: StatelessCounterTool
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Stateless counter tool (call 1-3) should not count:
+
+            > {{ state.currentTransitionResults.count1.data }}
+            > {{ state.currentTransitionResults.count2.data }}
+            > {{ state.currentTransitionResults.count3.data }}
+
+      # Use a stateful tool
+      - id: count4
+        tool: StatefulCounterTool
+      - id: count5
+        tool: StatefulCounterTool
+      - id: count6
+        tool: StatefulCounterTool
+      - tool: CreateChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Stateful counter tool (call 4-6) should count: 
+
+            > {{ state.currentTransitionResults.count4.data }}
+            > {{ state.currentTransitionResults.count5.data }}
+            > {{ state.currentTransitionResults.count6.data }}

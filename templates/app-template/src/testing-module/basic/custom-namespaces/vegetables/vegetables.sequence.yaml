@@ -1,0 +1,4 @@
+namespace:
+  label: Vegetables
+sequence:
+  - block: HelloFromNamespaceMessageWorkflow

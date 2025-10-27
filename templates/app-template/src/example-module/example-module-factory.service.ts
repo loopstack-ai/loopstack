@@ -3,7 +3,7 @@ import { Capability } from '@loopstack/shared';
 import { CapabilityFactory } from '@loopstack/core';
 
 @Capability()
-export class TestModuleFactory extends CapabilityFactory {
+export class ExampleModuleFactoryService extends CapabilityFactory {
   constructor(moduleRef: ModuleRef) {
     super(moduleRef);
   }

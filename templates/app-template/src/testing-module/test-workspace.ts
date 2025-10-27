@@ -1,12 +1,13 @@
 import { BlockConfig } from '@loopstack/shared';
 import { Workspace } from '@loopstack/core';
-import { FactoryExampleFactory } from './basic/factory-example/factory-example.factory';
-import { CustomToolExampleWorkflow } from './basic/custom-tool-example/workflows/custom-tool-example.workflow';
-import { ContextDataExampleSequence } from './basic/context-data-example/context-data-example.sequence';
-import { DynamicRoutingExampleWorkflow } from './basic/dynamic-routing-example/dynamic-routing-example.workflow';
+import { FactoryExampleFactory } from './basic/factory-pattern/factory-example.factory';
+import { CustomToolExampleWorkflow } from './basic/custom-tools/workflows/custom-tool-example.workflow';
+import { ContextDataExampleSequence } from './basic/accessing-context-data/context-data-example.sequence';
+import { DynamicRoutingExampleWorkflow } from './basic/dynamic-routing/dynamic-routing-example.workflow';
 import {
   ConditionalPipelineExampleSequence
-} from './basic/conditional-pipeline-example/conditional-pipeline-example.sequence';
+} from './basic/conditional-pipeline/conditional-pipeline-example.sequence';
+import { CustomNamespacesSequence } from './basic/custom-namespaces/custom-namespaces.sequence';
 
 @BlockConfig({
   imports: [
@@ -14,7 +15,8 @@ import {
     FactoryExampleFactory,
     CustomToolExampleWorkflow,
     DynamicRoutingExampleWorkflow,
-    // ConditionalPipelineExampleSequence
+    ConditionalPipelineExampleSequence,
+    CustomNamespacesSequence,
   ],
   config: {
     title: 'Testing Workspace'

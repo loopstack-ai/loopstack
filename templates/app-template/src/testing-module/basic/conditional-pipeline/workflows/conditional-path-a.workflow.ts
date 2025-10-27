@@ -1,0 +1,17 @@
+import { CreateChatMessage, Workflow } from '@loopstack/core';
+import { BlockConfig } from '@loopstack/shared';
+import { Expose } from 'class-transformer';
+
+@BlockConfig({
+  imports: [CreateChatMessage],
+  config: {
+    title: 'Path A',
+  },
+  configFile: __dirname + '/simple-message.workflow.yaml',
+})
+export class ConditionalPathAWorkflow extends Workflow  {
+  @Expose()
+  get message() {
+    return 'This is a path A message';
+  }
+}
