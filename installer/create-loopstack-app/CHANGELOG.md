@@ -1,5 +1,11 @@
 # create-loopstack-app
 
+## 0.11.0
+
+### Minor Changes
+
+- f1db120: Implement Block Wrapper for Typescript services
+
 ## 0.2.0
 
 ### Minor Changes
