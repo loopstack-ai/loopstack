@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.11.0
+
+### Minor Changes
+
+- f1db120: Implement Block Wrapper for Typescript services
+
 ## 0.10.0
 
 ### Minor Changes
