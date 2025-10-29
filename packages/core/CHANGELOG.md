@@ -1,5 +1,13 @@
 # @loopstack/core
 
+## 0.11.1
+
+### Patch Changes
+
+- fb1600e: Various fixes and improvements
+- Updated dependencies [fb1600e]
+  - @loopstack/shared@0.11.1
+
 ## 0.11.0
 
 ### Minor Changes
