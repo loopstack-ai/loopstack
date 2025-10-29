@@ -1,4 +1,0 @@
-namespace:
-  label: Fruits
-sequence:
-  - block: HelloFromNamespaceMessageWorkflow

@@ -1,4 +1,0 @@
-sequence:
-  - block: HelloFromNamespaceMessageWorkflow
-  - block: FruitsSequence
-  - block: VegetablesSequence
