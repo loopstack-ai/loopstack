@@ -9,7 +9,6 @@ schema:
       type: string
   additionalProperties: false
 meta:
-  level: info
   invalidate: false
 content:
   title: 'Markdown'

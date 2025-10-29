@@ -158,8 +158,6 @@ export class CreateDocumentService {
         excludeExtraneousValues: true,
       });
 
-      console.log(documentContent);
-
       // merge document skeleton with content data
       const documentData: Partial<DocumentEntity> = {
         ...documentSkeleton,

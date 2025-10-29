@@ -12,4 +12,3 @@ ui:
   widget: chat-message
 meta:
   invalidate: false
-  level: info

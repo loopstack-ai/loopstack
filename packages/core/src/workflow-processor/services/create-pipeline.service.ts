@@ -13,7 +13,7 @@ export class CreatePipelineService {
   async create(
     workspaceWhere: FindOptionsWhere<WorkspaceEntity>,
     data: Partial<PipelineEntity>,
-    user: string,
+    user: string | null,
   ): Promise<PipelineEntity> {
     const workspace = await this.workspaceService.getWorkspace(
       workspaceWhere,

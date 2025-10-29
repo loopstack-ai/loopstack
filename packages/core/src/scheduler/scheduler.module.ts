@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { TaskSchedulerService } from './services';
+import { RunService, TaskSchedulerService } from './services';
 import { TaskProcessorService } from './services/task-processor.service';
 import { TaskInitializationService } from './services/task-initialization.service';
 import { RunPipelineTaskProcessorService } from './services/task-processor/run-pipeline-task-processor.service';
@@ -48,7 +48,8 @@ import { WorkflowProcessorModule } from '../workflow-processor';
     CreateRunPipelineTaskProcessorService,
     CleanupPipelineTaskProcessorService,
     CreateWorkspaceTaskProcessorService,
+    RunService,
   ],
-  exports: [TaskSchedulerService],
+  exports: [TaskSchedulerService, RunService],
 })
 export class SchedulerModule {}

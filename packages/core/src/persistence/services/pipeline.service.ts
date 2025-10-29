@@ -1,5 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { FindOptionsWhere, IsNull, Repository } from 'typeorm';
 import {
   PipelineEntity,
   PipelineState,
@@ -17,11 +17,23 @@ export class PipelineService {
     userId: string | null,
     relations: string[] = ['workspace', 'namespaces'],
   ) {
-    return this.entityRepository.findOne({
-      where: {
+
+    const where: FindOptionsWhere<PipelineEntity>[] = [
+      {
         id,
-        createdBy: null === userId ? IsNull() : userId,
+        createdBy: IsNull(),
       },
+    ];
+
+    if (userId) {
+      where.push({
+        id,
+        createdBy: userId,
+      })
+    }
+
+    return this.entityRepository.findOne({
+      where,
       relations,
     });
   }
@@ -29,7 +41,7 @@ export class PipelineService {
   async createPipeline(
     options: Partial<PipelineEntity>,
     workspace: WorkspaceEntity,
-    user: string,
+    user: string | null,
   ) {
     const lastRunNumber = await this.getMaxRun(user, workspace.id);
 

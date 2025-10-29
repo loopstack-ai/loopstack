@@ -64,6 +64,7 @@ export class WorkflowProcessorService implements Processor {
     const workflowEntity =
       await this.workflowStateService.getWorkflowState(block);
     block.state = this.blockHelperService.initBlockState(workflowEntity);
+    this.blockHelperService.populateBlockInputProperties(block, workflowEntity.inputData);
 
     const validatorResult = this.canSkipRun(workflowEntity, block.args);
 
@@ -432,7 +433,7 @@ export class WorkflowProcessorService implements Processor {
         this.defineNextTransition(block, nextPendingTransition);
 
         // persist workflow for state and added documents of previous loop iteration
-        this.blockHelperService.persistBlockState(workflowEntity, block.state);
+        this.blockHelperService.persistBlockState(workflowEntity, block);
         await this.workflowService.save(workflowEntity);
 
         const currentTransition = block.state.transition;
@@ -449,8 +450,6 @@ export class WorkflowProcessorService implements Processor {
         const toolCalls = config.transitions!.find(
           (transition) => transition.id === currentTransition.id,
         )?.call;
-
-        console.log(block.state);
 
         const { effects, toolResults } = await this.processToolCalls(
           block,
@@ -470,7 +469,7 @@ export class WorkflowProcessorService implements Processor {
       }
 
       // update/add documents, if any. Only when no errors occurred
-      this.blockHelperService.persistBlockState(workflowEntity, block.state);
+      this.blockHelperService.persistBlockState(workflowEntity, block);
     } catch (e) {
       this.logger.error(new ConfigTraceError(e, block));
       workflowEntity.errorMessage = e.message;

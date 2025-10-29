@@ -55,6 +55,7 @@ export class RootProcessorService {
       Workspace,
       WorkspaceExecutionContextDto
     >(pipeline.workspace.configKey, args, ctx);
+
     return this.blockProcessor.processBlock<Workspace>(
       block,
       this.processorFactory,
@@ -64,13 +65,14 @@ export class RootProcessorService {
   async runPipeline(
     pipeline: PipelineEntity,
     payload: any,
-    args?: any,
   ): Promise<Workspace> {
     await this.pipelineService.setPipelineStatus(
       pipeline,
       PipelineState.Running,
     );
-    const block = await this.processRootPipeline(pipeline, payload, args);
+
+    console.log('pipeline.args', pipeline.args)
+    const block = await this.processRootPipeline(pipeline, payload, pipeline.args);
 
     const status = block.state?.error
       ? PipelineState.Failed

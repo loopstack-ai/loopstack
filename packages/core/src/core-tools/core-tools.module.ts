@@ -19,7 +19,7 @@ import {
   Validate,
   ValidateDocument,
 } from './index';
-import { CreateDocumentService } from './services/create-document.service';
+import { CreateDocumentService } from './services';
 import { BatchCreateDocumentsService } from './services/batch-create-documents.service';
 import { MockService } from './services/mock.service';
 import { CommonModule } from '../common';
@@ -54,7 +54,8 @@ import { PersistenceModule } from '../persistence';
     PlainMessageDocument,
   ],
   exports: [
-    CoreToolsFactoryService
+    CoreToolsFactoryService,
+    CreateDocumentService,
   ]
 })
 @ModuleFactory(CoreToolsFactoryService)

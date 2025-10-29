@@ -95,14 +95,36 @@ export class BlockHelperService {
     });
   }
 
-  persistBlockState(workflowEntity: WorkflowEntity, state: WorkflowStateDto) {
-    workflowEntity.history = state.history ?? null;
-    workflowEntity.place = state.place;
-    workflowEntity.transitionResults = state.transitionResults ?? null;
-    workflowEntity.documents = state.documents;
-    workflowEntity.hasError = state.error;
+  populateBlockInputProperties(block: Workflow, inputData: Record<string, any>) {
+    const classInputProps = block.metadata.inputProperties;
+    for (const propertyName of classInputProps) {
+      if (propertyName in inputData) {
+        block[propertyName] = inputData[propertyName];
+      }
+    }
+  }
+
+  exportBlockInputProperties(block: Workflow) {
+    const classInputProps = block.metadata.inputProperties;
+    const exportData: Record<string, any> = {}
+    for (const propertyName of classInputProps) {
+      if (propertyName in block) {
+        exportData[propertyName] = block[propertyName];
+      }
+    }
+
+    return exportData;
+  }
+
+  persistBlockState(workflowEntity: WorkflowEntity, block: Workflow) {
+    workflowEntity.history = block.state.history ?? null;
+    workflowEntity.place = block.state.place;
+    workflowEntity.transitionResults = block.state.transitionResults ?? null;
+    workflowEntity.documents = block.state.documents;
+    workflowEntity.hasError = block.state.error;
+    workflowEntity.inputData = this.exportBlockInputProperties(block);
 
     // persist available transitions for frontend
-    workflowEntity.availableTransitions = state.availableTransitions ?? null;
+    workflowEntity.availableTransitions = block.state.availableTransitions ?? null;
   }
 }

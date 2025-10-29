@@ -10,7 +10,7 @@ abstract class BlockExecutionContextDto {
   index: string;
 
   @Expose()
-  userId: string;
+  userId: string | null;
 
   @Expose()
   pipelineId: string;
