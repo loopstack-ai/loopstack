@@ -14,7 +14,7 @@ if (!appName) {
   process.exit(1);
 }
 
-console.log(`📦 Creating LoopStack app: ${appName}`);
+console.log(`📦 Creating Loopstack app: ${appName}`);
 console.log(`📌 Using template version: ${templateVersion}`);
 
 // Clone starter template
@@ -68,9 +68,9 @@ execSync("npm install", { stdio: "inherit" });
 console.log("🔄 Initializing fresh git repository...");
 execSync("git init", { stdio: "inherit" });
 execSync("git add .", { stdio: "inherit" });
-execSync(`git commit -m "Initial commit from LoopStack template"`, { stdio: "inherit" });
+execSync(`git commit -m "Initial commit"`, { stdio: "inherit" });
 
-console.log("\n🎉 LoopStack project created successfully!\n");
+console.log("\n🎉 Loopstack project created successfully!\n");
 
 console.log("👉 Next steps to get started:");
 console.log(`   1. cd ${appName}`);
