@@ -1,5 +1,11 @@
 # create-loopstack-app
 
+## 0.11.2
+
+### Patch Changes
+
+- fb1600e: Various fixes and improvements
+
 ## 0.11.0
 
 ### Minor Changes
