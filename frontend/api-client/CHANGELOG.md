@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.11.1
+
+### Patch Changes
+
+- fb1600e: Various fixes and improvements
+
 ## 0.11.0
 
 ### Minor Changes
