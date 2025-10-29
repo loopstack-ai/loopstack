@@ -36,7 +36,7 @@ services:
       - NODE_ENV=${NODE_ENV:-development}
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
-      - WS_PORT=${WS_PORT:-8001}
+      - APP_PORT=${APP_PORT:-8001}
       - CORS_ORIGIN=${WS_PORT:-localhost}
       - JWT_SECRET=${JWT_SECRET:-NO SECRET}
       - LOCAL_MODE=${ENABLE_LOCAL_MODE:-false}
