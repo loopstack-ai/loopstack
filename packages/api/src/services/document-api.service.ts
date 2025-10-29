@@ -18,7 +18,7 @@ export class DocumentApiService {
    * find all documents for the user with optional filters, sorting, and pagination.
    */
   async findAll(
-    user: string | null,
+    user: string,
     filter: DocumentFilterDto,
     sortBy: DocumentSortByDto[],
     pagination: {
@@ -41,10 +41,16 @@ export class DocumentApiService {
     );
 
     const findOptions: FindManyOptions<DocumentEntity> = {
-      where: {
-        createdBy: user === null ? IsNull() : user,
-        ...filter,
-      },
+      where: [
+        {
+          createdBy: user,
+          ...filter,
+        },
+        {
+          createdBy: IsNull(),
+          ...filter,
+        },
+      ],
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {
           acc[sort.field] = sort.order;

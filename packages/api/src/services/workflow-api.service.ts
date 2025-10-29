@@ -18,7 +18,7 @@ export class WorkflowApiService {
    * find all workflows for the user with optional filters, sorting, and pagination.
    */
   async findAll(
-    user: string | null,
+    user: string,
     filter: WorkflowFilterDto,
     sortBy: WorkflowSortByDto[],
     pagination: {
@@ -41,10 +41,16 @@ export class WorkflowApiService {
     );
 
     const findOptions: FindManyOptions<WorkflowEntity> = {
-      where: {
-        createdBy: user === null ? IsNull() : user,
-        ...filter,
-      },
+      where: [
+        {
+          createdBy: user,
+          ...filter,
+        },
+        {
+          createdBy: IsNull(),
+          ...filter,
+        },
+      ],
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {
           acc[sort.field] = sort.order;
@@ -73,12 +79,18 @@ export class WorkflowApiService {
   /**
    * Finds a workflow by ID.
    */
-  async findOneById(id: string, user: string | null): Promise<WorkflowEntity> {
+  async findOneById(id: string, user: string): Promise<WorkflowEntity> {
     const workflow = await this.workflowRepository.findOne({
-      where: {
-        id,
-        createdBy: user === null ? IsNull() : user,
-      },
+      where: [
+        {
+          id,
+          createdBy: user,
+        },
+        {
+          id,
+          createdBy: IsNull(),
+        },
+      ],
     });
 
     if (!workflow) {
@@ -90,12 +102,18 @@ export class WorkflowApiService {
   /**
    * Deletes a workflow by ID (hard delete).
    */
-  async delete(id: string, user: string | null): Promise<void> {
+  async delete(id: string, user: string): Promise<void> {
     const workflow = await this.workflowRepository.findOne({
-      where: {
-        id,
-        createdBy: user === null ? IsNull() : user,
-      },
+      where: [
+        {
+          id,
+          createdBy: user,
+        },
+        {
+          id,
+          createdBy: IsNull(),
+        },
+      ],
     });
 
     if (!workflow)

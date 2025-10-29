@@ -18,7 +18,7 @@ export class NamespaceApiService {
    * find all namespaces for the user with optional filters, sorting, and pagination.
    */
   async findAll(
-    user: string | null,
+    user: string,
     filter: NamespaceFilterDto,
     sortBy: NamespaceSortByDto[],
     pagination: {
@@ -41,10 +41,16 @@ export class NamespaceApiService {
     );
 
     const findOptions: FindManyOptions<NamespaceEntity> = {
-      where: {
-        createdBy: user === null ? IsNull() : user,
-        ...filter,
-      },
+      where: [
+        {
+          createdBy: user,
+          ...filter,
+        },
+        {
+          createdBy: IsNull(),
+          ...filter,
+        },
+      ],
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {
           acc[sort.field] = sort.order;
@@ -73,12 +79,18 @@ export class NamespaceApiService {
   /**
    * Finds a namespace by ID.
    */
-  async findOneById(id: string, user: string | null): Promise<NamespaceEntity> {
+  async findOneById(id: string, user: string): Promise<NamespaceEntity> {
     const namespace = await this.namespaceRepository.findOne({
-      where: {
-        id,
-        createdBy: user === null ? IsNull() : user,
-      },
+      where: [
+        {
+          id,
+          createdBy: user,
+        },
+        {
+          id,
+          createdBy: IsNull(),
+        },
+      ],
       relations: ['workflows', 'children'],
     });
 

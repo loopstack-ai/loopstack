@@ -49,10 +49,16 @@ export class WorkspaceApiService {
     const queryBuilder =
       this.workspaceRepository.createQueryBuilder('workspace');
 
-    queryBuilder.where({
-      createdBy: user === null ? IsNull() : user,
-      ...filter,
-    });
+    queryBuilder.where([
+      {
+        createdBy: user,
+        ...filter,
+      },
+      {
+        createdBy: IsNull(),
+        ...filter,
+      },
+    ]);
 
     if (search?.query && search.columns?.length > 0) {
       const searchConditions = search.columns.map(
@@ -96,12 +102,18 @@ export class WorkspaceApiService {
   /**
    * Finds a workspace by ID.
    */
-  async findOneById(id: string, user: string | null): Promise<WorkspaceEntity> {
+  async findOneById(id: string, user: string): Promise<WorkspaceEntity> {
     const workspace = await this.workspaceRepository.findOne({
-      where: {
-        id,
-        createdBy: user === null ? IsNull() : user,
-      },
+      where: [
+        {
+          id,
+          createdBy: user,
+        },
+        {
+          id,
+          createdBy: IsNull(),
+        },
+      ],
     });
 
     if (!workspace) {
@@ -130,13 +142,19 @@ export class WorkspaceApiService {
   async update(
     id: string,
     workspaceData: WorkspaceUpdateDto,
-    user: string | null,
+    user: string,
   ): Promise<WorkspaceEntity> {
     const workspace = await this.workspaceRepository.findOne({
-      where: {
-        id,
-        createdBy: user === null ? IsNull() : user,
-      },
+      where: [
+        {
+          id,
+          createdBy: user,
+        },
+        {
+          id,
+          createdBy: IsNull(),
+        },
+      ]
     });
 
     if (!workspace)
@@ -149,12 +167,18 @@ export class WorkspaceApiService {
   /**
    * Deletes a workspace by ID (hard delete).
    */
-  async delete(id: string, user: string | null): Promise<void> {
+  async delete(id: string, user: string): Promise<void> {
     const workspace = await this.workspaceRepository.findOne({
-      where: {
-        id,
-        createdBy: user === null ? IsNull() : user,
-      },
+      where: [
+        {
+          id,
+          createdBy: user,
+        },
+        {
+          id,
+          createdBy: IsNull(),
+        },
+      ],
     });
 
     if (!workspace)
@@ -165,7 +189,7 @@ export class WorkspaceApiService {
 
   async batchDelete(
     ids: string[],
-    user: string | null,
+    user: string,
   ): Promise<{
     deleted: string[];
     failed: Array<{ id: string; error: string }>;
@@ -178,10 +202,16 @@ export class WorkspaceApiService {
     }
 
     const existingPipelines = await this.workspaceRepository.find({
-      where: {
-        id: In(ids),
-        createdBy: user === null ? IsNull() : user,
-      },
+      where: [
+        {
+          id: In(ids),
+          createdBy: user,
+        },
+        {
+          id: In(ids),
+          createdBy: IsNull(),
+        },
+      ],
       select: ['id'],
     });
 
@@ -200,10 +230,16 @@ export class WorkspaceApiService {
     }
 
     try {
-      const deleteResult = await this.workspaceRepository.delete({
-        id: In(existingIds),
-        createdBy: user === null ? IsNull() : user,
-      });
+      const deleteResult = await this.workspaceRepository.delete([
+        {
+          id: In(existingIds),
+          createdBy: user,
+        },
+        {
+          id: In(existingIds),
+          createdBy: IsNull(),
+        },
+      ]);
 
       // Check if all expected deletions occurred
       if (deleteResult.affected === existingIds.length) {
@@ -212,10 +248,16 @@ export class WorkspaceApiService {
         // Handle partial deletion - this is rare but can happen
         // We need to check which ones were actually deleted
         const remainingPipelines = await this.workspaceRepository.find({
-          where: {
-            id: In(existingIds),
-            createdBy: user === null ? IsNull() : user,
-          },
+          where: [
+            {
+              id: In(existingIds),
+              createdBy: user,
+            },
+            {
+              id: In(existingIds),
+              createdBy: IsNull(),
+            },
+          ],
           select: ['id'],
         });
 
