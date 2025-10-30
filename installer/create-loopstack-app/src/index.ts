@@ -105,10 +105,7 @@ console.log(`   1. cd ${appName}`);
 console.log("   2. docker compose up -d");
 console.log("   3. npm run start:dev");
 
-console.log("\n👉 Your app will be available at:");
-console.log("   → http://localhost:3000");
+console.log("\n👉 Finally, configure and manage your environment at:");
+console.log("   → https://app.loopstack.ai");
 
-console.log("\n💡 Quick tips:");
-console.log("   • Edit your .env file to configure your environment");
-console.log("   • Need help? Check the documentation or README.md");
 console.log("─".repeat(50));
