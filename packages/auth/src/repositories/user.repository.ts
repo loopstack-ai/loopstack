@@ -26,4 +26,8 @@ export class UserRepository {
     await this.repository.update(id, userData);
     return this.findById(id);
   }
+
+  getRepository() {
+    return this.repository;
+  }
 }
