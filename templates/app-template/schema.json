@@ -1,0 +1,794 @@
+{
+  "$ref": "#/definitions/MainSchema",
+  "definitions": {
+    "MainSchema": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "classTransformStrategy": {
+              "type": "string",
+              "enum": [
+                "exposeAll",
+                "excludeAll"
+              ],
+              "default": "exposeAll"
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "label"
+              ],
+              "additionalProperties": false
+            },
+            "type": {
+              "type": "string",
+              "const": "factory",
+              "default": "factory"
+            },
+            "factory": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "block": {
+                  "type": "string"
+                },
+                "condition": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "anyOf": [
+                        {
+                          "not": {}
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:\\||>)?(?:[-+])?\\s*\\$\\{([\\s\\S]*?)\\}\\s*$"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "args": {}
+              },
+              "required": [
+                "block"
+              ],
+              "additionalProperties": false
+            },
+            "parallel": {
+              "type": "boolean"
+            },
+            "iterator": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "source"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "namespace",
+            "factory",
+            "iterator"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "classTransformStrategy": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/classTransformStrategy"
+            },
+            "title": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/title"
+            },
+            "description": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/description"
+            },
+            "namespace": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/namespace"
+            },
+            "type": {
+              "type": "string",
+              "const": "sequence",
+              "default": "sequence"
+            },
+            "sequence": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory"
+              }
+            }
+          },
+          "required": [
+            "sequence"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "classTransformStrategy": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/classTransformStrategy"
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "namespace": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/namespace"
+            },
+            "ui": {
+              "type": "object",
+              "properties": {
+                "widget": {
+                  "type": "string"
+                },
+                "index": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "descriptions": {
+                  "type": "string"
+                },
+                "placeholder": {
+                  "type": "string"
+                },
+                "rows": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0
+                },
+                "inline": {
+                  "type": "boolean"
+                },
+                "inputType": {
+                  "type": "string"
+                },
+                "emptyValue": {},
+                "help": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "enumOptions": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "value": {}
+                            },
+                            "required": [
+                              "label"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "titleFormat": {
+                  "type": "string"
+                },
+                "addable": {
+                  "type": "boolean"
+                },
+                "removable": {
+                  "type": "boolean"
+                },
+                "movable": {
+                  "type": "boolean"
+                },
+                "accept": {
+                  "type": "string"
+                },
+                "multiple": {
+                  "type": "boolean"
+                },
+                "hidden": {
+                  "type": "boolean"
+                },
+                "disabled": {
+                  "type": "boolean"
+                },
+                "readonly": {
+                  "type": "boolean"
+                },
+                "collapsed": {
+                  "type": "boolean"
+                },
+                "order": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "buttons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "transition": {
+                        "type": "string"
+                      },
+                      "position": {
+                        "type": "number"
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "props": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      },
+                      "widget": {
+                        "type": "string"
+                      },
+                      "enabledWhen": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "transition"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/2/properties/ui"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/MainSchema/anyOf/2/properties/ui"
+                      }
+                    }
+                  ]
+                },
+                "properties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/ui"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "type": {
+              "type": "string",
+              "const": "workflow",
+              "default": "workflow"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "string",
+                        "number",
+                        "integer",
+                        "boolean",
+                        "array",
+                        "object",
+                        "null",
+                        "any"
+                      ]
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "string",
+                          "number",
+                          "integer",
+                          "boolean",
+                          "array",
+                          "object",
+                          "null"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "$id": {
+                  "type": "string"
+                },
+                "$schema": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "default": {},
+                "minLength": {
+                  "type": "integer"
+                },
+                "maxLength": {
+                  "type": "integer"
+                },
+                "pattern": {
+                  "type": "string"
+                },
+                "format": {
+                  "type": "string"
+                },
+                "multipleOf": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "minimum": {
+                  "type": "number"
+                },
+                "maximum": {
+                  "type": "number"
+                },
+                "exclusiveMinimum": {
+                  "type": [
+                    "boolean",
+                    "number"
+                  ]
+                },
+                "exclusiveMaximum": {
+                  "type": [
+                    "boolean",
+                    "number"
+                  ]
+                },
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                      }
+                    }
+                  ]
+                },
+                "additionalItems": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                    }
+                  ]
+                },
+                "minItems": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "maxItems": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "uniqueItems": {
+                  "type": "boolean"
+                },
+                "contains": {
+                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                },
+                "properties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                  }
+                },
+                "patternProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                  }
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                    }
+                  ]
+                },
+                "required": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "propertyNames": {
+                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                },
+                "minProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "maxProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "allOf": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                  }
+                },
+                "anyOf": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                  }
+                },
+                "oneOf": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                  }
+                },
+                "not": {
+                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                },
+                "if": {
+                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                },
+                "then": {
+                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                },
+                "else": {
+                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                },
+                "enum": {
+                  "type": "array"
+                },
+                "const": {},
+                "definitions": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+                  }
+                },
+                "$ref": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "transitions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "from": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "to": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "when": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "manual",
+                          "onEntry"
+                        ]
+                      },
+                      {
+                        "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                      }
+                    ]
+                  },
+                  "call": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "tool": {
+                          "type": "string"
+                        },
+                        "args": {},
+                        "exportContext": {
+                          "type": "string"
+                        },
+                        "as": {
+                          "type": "string"
+                        },
+                        "assign": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "anyOf": [
+                              {
+                                "type": "null"
+                              },
+                              {
+                                "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                              },
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": {}
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "tool"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "onError": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "classTransformStrategy": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/classTransformStrategy"
+            },
+            "type": {
+              "type": "string",
+              "const": "document",
+              "default": "document"
+            },
+            "description": {
+              "type": "string"
+            },
+            "content": {},
+            "schema": {
+              "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
+            },
+            "ui": {
+              "$ref": "#/definitions/MainSchema/anyOf/2/properties/ui"
+            },
+            "tags": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "meta": {
+              "type": "object",
+              "properties": {
+                "hidden": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                    }
+                  ]
+                },
+                "mimeType": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "text/plain",
+                        "text/html",
+                        "text/css",
+                        "text/xml",
+                        "text/markdown",
+                        "application/javascript",
+                        "application/typescript",
+                        "application/json",
+                        "application/xml",
+                        "application/yaml"
+                      ]
+                    },
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                    }
+                  ]
+                },
+                "invalidate": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                    }
+                  ]
+                },
+                "level": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                    },
+                    {
+                      "type": "string",
+                      "const": "debug"
+                    },
+                    {
+                      "type": "string",
+                      "const": "info"
+                    },
+                    {
+                      "type": "string",
+                      "const": "warning"
+                    },
+                    {
+                      "type": "string",
+                      "const": "error"
+                    }
+                  ]
+                },
+                "enableAtPlaces": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "hideAtPlaces": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "data": {}
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "classTransformStrategy": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/classTransformStrategy"
+            },
+            "type": {
+              "type": "string",
+              "const": "tool",
+              "default": "tool"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "classTransformStrategy": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/classTransformStrategy"
+            },
+            "type": {
+              "type": "string",
+              "const": "workspace",
+              "default": "workspace"
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
