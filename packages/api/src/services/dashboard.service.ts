@@ -40,14 +40,9 @@ export class DashboardService {
 
     const baseQuery = this.pipelineRepository
       .createQueryBuilder('pipeline')
-      .where([
-        {
-          createdBy: user,
-        },
-        {
-          createdBy: IsNull(),
-        },
-      ]);
+      .where({
+        createdBy: user,
+      });
 
     const [total, completed, failed, inProgress, recentRuns, recentErrors] =
       await Promise.all([
@@ -75,14 +70,9 @@ export class DashboardService {
           .getMany(),
         this.workflowRepository
           .createQueryBuilder('workflow')
-          .where([
-            {
-              createdBy: user,
-            },
-            {
-              createdBy: IsNull(),
-            },
-          ])
+          .where({
+            createdBy: user,
+          })
           .andWhere({ status: WorkflowState.Failed })
           .orderBy('workflow.createdAt', 'DESC')
           .take(7)

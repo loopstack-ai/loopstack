@@ -41,16 +41,10 @@ export class DocumentApiService {
     );
 
     const findOptions: FindManyOptions<DocumentEntity> = {
-      where: [
-        {
-          createdBy: user,
-          ...filter,
-        },
-        {
-          createdBy: IsNull(),
-          ...filter,
-        },
-      ],
+      where: {
+        createdBy: user,
+        ...filter,
+      },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {
           acc[sort.field] = sort.order;
@@ -79,11 +73,11 @@ export class DocumentApiService {
   /**
    * Finds a document by ID.
    */
-  async findOneById(id: string, user: string | null): Promise<DocumentEntity> {
+  async findOneById(id: string, user: string): Promise<DocumentEntity> {
     const document = await this.documentRepository.findOne({
       where: {
         id,
-        createdBy: user === null ? IsNull() : user,
+        createdBy: user,
       },
     });
 

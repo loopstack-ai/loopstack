@@ -22,7 +22,7 @@ export class PipelineApiService {
    * find all pipelines for the user with optional filters, sorting, and pagination.
    */
   async findAll(
-    user: string | null,
+    user: string,
     filter: PipelineFilterDto,
     sortBy: PipelineSortByDto[],
     pagination: {
@@ -50,16 +50,10 @@ export class PipelineApiService {
 
     const queryBuilder = this.pipelineRepository.createQueryBuilder('pipeline');
 
-    queryBuilder.where([
-      {
-        createdBy: user,
-        ...filter,
-      },
-      {
-        createdBy: IsNull(),
-        ...filter,
-      },
-    ]);
+    queryBuilder.where({
+      createdBy: user,
+      ...filter,
+    });
 
     if (search?.query && search.columns?.length > 0) {
       const searchConditions = search.columns.map(
@@ -105,16 +99,10 @@ export class PipelineApiService {
    */
   async findOneById(id: string, user: string): Promise<PipelineEntity> {
     const pipeline = await this.pipelineRepository.findOne({
-      where: [
-        {
-          id,
-          createdBy: user,
-        },
-        {
-          id,
-          createdBy: IsNull(),
-        },
-      ],
+      where: {
+        id,
+        createdBy: user,
+      },
     });
 
     if (!pipeline) {
@@ -150,16 +138,10 @@ export class PipelineApiService {
     user: string,
   ): Promise<PipelineEntity> {
     const pipeline = await this.pipelineRepository.findOne({
-      where: [
-        {
-          id,
-          createdBy: user,
-        },
-        {
-          id,
-          createdBy: IsNull(),
-        },
-      ],
+      where: {
+        id,
+        createdBy: user,
+      },
     });
 
     if (!pipeline)
@@ -174,16 +156,10 @@ export class PipelineApiService {
    */
   async delete(id: string, user: string): Promise<void> {
     const pipeline = await this.pipelineRepository.findOne({
-      where: [
-        {
-          id,
-          createdBy: user,
-        },
-        {
-          id,
-          createdBy: IsNull(),
-        },
-      ],
+      where: {
+        id,
+        createdBy: user,
+      },
     });
 
     if (!pipeline)
@@ -207,16 +183,10 @@ export class PipelineApiService {
     }
 
     const existingPipelines = await this.pipelineRepository.find({
-      where: [
-        {
-          id: In(ids),
-          createdBy: user,
-        },
-        {
-          id: In(ids),
-          createdBy: IsNull(),
-        },
-      ],
+      where: {
+        id: In(ids),
+        createdBy: user,
+      },
       select: ['id'],
     });
 
@@ -237,16 +207,10 @@ export class PipelineApiService {
     }
 
     try {
-      const deleteResult = await this.pipelineRepository.delete([
-        {
-          id: In(existingPipelineIds),
-          createdBy: user,
-        },
-        {
-          id: In(existingPipelineIds),
-          createdBy: IsNull(),
-        },
-      ]);
+      const deleteResult = await this.pipelineRepository.delete({
+        id: In(existingPipelineIds),
+        createdBy: user,
+      });
 
       // Check if all expected deletions occurred
       if (deleteResult.affected === existingPipelineIds.length) {
@@ -255,16 +219,10 @@ export class PipelineApiService {
         // Handle partial deletion - this is rare but can happen
         // We need to check which ones were actually deleted
         const remainingPipelines = await this.pipelineRepository.find({
-          where: [
-            {
-              id: In(existingPipelineIds),
-              createdBy: user,
-            },
-            {
-              id: In(existingPipelineIds),
-              createdBy: IsNull(),
-            },
-          ],
+          where: {
+            id: In(existingPipelineIds),
+            createdBy: user,
+          },
           select: ['id'],
         });
 

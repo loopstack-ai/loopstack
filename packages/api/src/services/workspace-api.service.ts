@@ -20,7 +20,7 @@ export class WorkspaceApiService {
    * find all workspaces for the user with optional filters, sorting, and pagination.
    */
   async findAll(
-    user: string | null,
+    user: string,
     filter: WorkspaceFilterDto,
     sortBy: WorkspaceSortByDto[],
     pagination: {
@@ -49,16 +49,10 @@ export class WorkspaceApiService {
     const queryBuilder =
       this.workspaceRepository.createQueryBuilder('workspace');
 
-    queryBuilder.where([
-      {
-        createdBy: user,
-        ...filter,
-      },
-      {
-        createdBy: IsNull(),
-        ...filter,
-      },
-    ]);
+    queryBuilder.where({
+      createdBy: user,
+      ...filter,
+    });
 
     if (search?.query && search.columns?.length > 0) {
       const searchConditions = search.columns.map(
@@ -104,16 +98,10 @@ export class WorkspaceApiService {
    */
   async findOneById(id: string, user: string): Promise<WorkspaceEntity> {
     const workspace = await this.workspaceRepository.findOne({
-      where: [
-        {
-          id,
-          createdBy: user,
-        },
-        {
-          id,
-          createdBy: IsNull(),
-        },
-      ],
+      where: {
+        id,
+        createdBy: user,
+      },
     });
 
     if (!workspace) {
@@ -127,7 +115,7 @@ export class WorkspaceApiService {
    */
   async create(
     workspaceData: WorkspaceCreateDto,
-    user: string | null,
+    user: string,
   ): Promise<WorkspaceEntity> {
     const workspace = this.workspaceRepository.create({
       ...workspaceData,
@@ -145,16 +133,10 @@ export class WorkspaceApiService {
     user: string,
   ): Promise<WorkspaceEntity> {
     const workspace = await this.workspaceRepository.findOne({
-      where: [
-        {
-          id,
-          createdBy: user,
-        },
-        {
-          id,
-          createdBy: IsNull(),
-        },
-      ]
+      where: {
+        id,
+        createdBy: user,
+      },
     });
 
     if (!workspace)
@@ -169,16 +151,10 @@ export class WorkspaceApiService {
    */
   async delete(id: string, user: string): Promise<void> {
     const workspace = await this.workspaceRepository.findOne({
-      where: [
-        {
-          id,
-          createdBy: user,
-        },
-        {
-          id,
-          createdBy: IsNull(),
-        },
-      ],
+      where: {
+        id,
+        createdBy: user,
+      },
     });
 
     if (!workspace)
@@ -202,16 +178,10 @@ export class WorkspaceApiService {
     }
 
     const existingPipelines = await this.workspaceRepository.find({
-      where: [
-        {
-          id: In(ids),
-          createdBy: user,
-        },
-        {
-          id: In(ids),
-          createdBy: IsNull(),
-        },
-      ],
+      where: {
+        id: In(ids),
+        createdBy: user,
+      },
       select: ['id'],
     });
 
@@ -230,16 +200,10 @@ export class WorkspaceApiService {
     }
 
     try {
-      const deleteResult = await this.workspaceRepository.delete([
-        {
-          id: In(existingIds),
-          createdBy: user,
-        },
-        {
-          id: In(existingIds),
-          createdBy: IsNull(),
-        },
-      ]);
+      const deleteResult = await this.workspaceRepository.delete({
+        id: In(existingIds),
+        createdBy: user,
+      });
 
       // Check if all expected deletions occurred
       if (deleteResult.affected === existingIds.length) {
@@ -248,16 +212,10 @@ export class WorkspaceApiService {
         // Handle partial deletion - this is rare but can happen
         // We need to check which ones were actually deleted
         const remainingPipelines = await this.workspaceRepository.find({
-          where: [
-            {
-              id: In(existingIds),
-              createdBy: user,
-            },
-            {
-              id: In(existingIds),
-              createdBy: IsNull(),
-            },
-          ],
+          where: {
+            id: In(existingIds),
+            createdBy: user,
+          },
           select: ['id'],
         });
 

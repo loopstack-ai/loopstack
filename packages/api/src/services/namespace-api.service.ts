@@ -41,16 +41,10 @@ export class NamespaceApiService {
     );
 
     const findOptions: FindManyOptions<NamespaceEntity> = {
-      where: [
-        {
-          createdBy: user,
-          ...filter,
-        },
-        {
-          createdBy: IsNull(),
-          ...filter,
-        },
-      ],
+      where: {
+        createdBy: user,
+        ...filter,
+      },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {
           acc[sort.field] = sort.order;
@@ -81,16 +75,10 @@ export class NamespaceApiService {
    */
   async findOneById(id: string, user: string): Promise<NamespaceEntity> {
     const namespace = await this.namespaceRepository.findOne({
-      where: [
-        {
-          id,
-          createdBy: user,
-        },
-        {
-          id,
-          createdBy: IsNull(),
-        },
-      ],
+      where: {
+        id,
+        createdBy: user,
+      },
       relations: ['workflows', 'children'],
     });
 

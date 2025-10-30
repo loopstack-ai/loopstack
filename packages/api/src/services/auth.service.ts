@@ -6,7 +6,7 @@ import { UserDto } from '../dtos/user.dto';
 export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
-  async login(user: { id: string | null }, response: any): Promise<UserDto> {
+  async login(user: { id: string }, response: any): Promise<UserDto> {
     const payload = { id: user.id };
     const token = this.jwtService.sign(payload);
 

@@ -41,16 +41,10 @@ export class WorkflowApiService {
     );
 
     const findOptions: FindManyOptions<WorkflowEntity> = {
-      where: [
-        {
-          createdBy: user,
-          ...filter,
-        },
-        {
-          createdBy: IsNull(),
-          ...filter,
-        },
-      ],
+      where: {
+        createdBy: user,
+        ...filter,
+      },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {
           acc[sort.field] = sort.order;
@@ -81,16 +75,10 @@ export class WorkflowApiService {
    */
   async findOneById(id: string, user: string): Promise<WorkflowEntity> {
     const workflow = await this.workflowRepository.findOne({
-      where: [
-        {
-          id,
-          createdBy: user,
-        },
-        {
-          id,
-          createdBy: IsNull(),
-        },
-      ],
+      where: {
+        id,
+        createdBy: user,
+      },
     });
 
     if (!workflow) {
@@ -104,16 +92,10 @@ export class WorkflowApiService {
    */
   async delete(id: string, user: string): Promise<void> {
     const workflow = await this.workflowRepository.findOne({
-      where: [
-        {
-          id,
-          createdBy: user,
-        },
-        {
-          id,
-          createdBy: IsNull(),
-        },
-      ],
+      where: {
+        id,
+        createdBy: user,
+      },
     });
 
     if (!workflow)

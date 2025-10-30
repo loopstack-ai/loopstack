@@ -16,7 +16,7 @@ export class ProcessorApiService {
 
   async processPipeline(
     pipelineId: string,
-    user: string | null,
+    user: string,
     payload: RunPipelinePayloadDto,
   ): Promise<any> {
     return this.taskSchedulerService.addTask({

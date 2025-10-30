@@ -37,6 +37,7 @@ import { DashboardController } from './controllers/dashboard.controller';
 import { DashboardService } from './services/dashboard.service';
 import { AuthModule, ConditionalAuthGuard } from '@loopstack/auth';
 import { APP_GUARD } from '@nestjs/core';
+import { UserService } from './services';
 var cookieParser = require('cookie-parser');
 
 @Module({
@@ -93,12 +94,14 @@ var cookieParser = require('cookie-parser');
     DocumentApiService,
     NamespaceApiService,
     DashboardService,
+    UserService,
   ],
   exports: [
     PipelineApiService,
     WorkspaceApiService,
     ProcessorApiService,
     DashboardService,
+    UserService,
   ],
 })
 export class LoopstackApiModule extends ConfigurableModuleClass {
