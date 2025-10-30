@@ -13,17 +13,17 @@ export class WorkspaceService {
 
   async getWorkspace(
     where: FindOptionsWhere<WorkspaceEntity>,
-    user: string | null = null,
+    user: string,
   ): Promise<WorkspaceEntity | null> {
     return this.workspaceRepository.findOne({
       where: {
         ...where,
-        createdBy: user === null ? IsNull() : user,
+        createdBy: user,
       },
     });
   }
 
-  async create(data: Partial<WorkspaceEntity>, user: string | null) {
+  async create(data: Partial<WorkspaceEntity>, user: string) {
     const workspace = this.workspaceRepository.create({
       ...data,
       createdBy: user,

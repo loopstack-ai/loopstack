@@ -14,22 +14,13 @@ export class PipelineService {
 
   getPipeline(
     id: string,
-    userId: string | null,
+    userId: string,
     relations: string[] = ['workspace', 'namespaces'],
   ) {
 
-    const where: FindOptionsWhere<PipelineEntity>[] = [
-      {
-        id,
-        createdBy: IsNull(),
-      },
-    ];
-
-    if (userId) {
-      where.push({
-        id,
-        createdBy: userId,
-      })
+    const where: FindOptionsWhere<PipelineEntity> = {
+      id,
+      createdBy: userId,
     }
 
     return this.entityRepository.findOne({
@@ -41,7 +32,7 @@ export class PipelineService {
   async createPipeline(
     options: Partial<PipelineEntity>,
     workspace: WorkspaceEntity,
-    user: string | null,
+    user: string,
   ) {
     const lastRunNumber = await this.getMaxRun(user, workspace.id);
 
@@ -59,7 +50,7 @@ export class PipelineService {
     await this.entityRepository.save(pipeline);
   }
 
-  async getMaxRun(userId: string | null, workspaceId: string): Promise<number> {
+  async getMaxRun(userId: string, workspaceId: string): Promise<number> {
     const query = this.entityRepository
       .createQueryBuilder('pipeline')
       .select('MAX(pipeline.run)', 'maxRun')

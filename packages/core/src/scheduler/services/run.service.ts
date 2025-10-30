@@ -21,10 +21,10 @@ export class RunService {
     itemName: string,
     workspaceName: string,
     payload: any = {},
+    userId: string,
     options: {
       workspaceTitle?: string;
     } = {},
-    userId: string | null = null
   ): Promise<{
     workerId: string;
     pipelineId: string;
@@ -41,7 +41,7 @@ export class RunService {
       workspace = await this.workspaceService.create({
         configKey: workspaceName,
         title: options.workspaceTitle || workspaceName,
-      }, null);
+      }, userId);
     }
 
     const pipeline = await this.createPipelineService.create({
