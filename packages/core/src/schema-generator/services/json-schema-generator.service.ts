@@ -3,15 +3,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { writeFileSync } from 'fs';
-import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
+// import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
+import { BlockConfigSchema } from '@loopstack/shared';
 
 const SCHEMA_PATH = './src/generated/main.schema.json';
 
 @Injectable()
 export class JsonSchemaGeneratorService {
-  constructor(
-    private readonly dynamicSchemaGeneratorService: DynamicSchemaGeneratorService,
-  ) {}
+  // constructor(
+  //   private readonly dynamicSchemaGeneratorService: DynamicSchemaGeneratorService,
+  // ) {}
 
   async generateSchemas() {
     const outputDir = path.resolve(process.cwd(), 'src/generated');
@@ -19,9 +20,9 @@ export class JsonSchemaGeneratorService {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    const mainSchema = this.dynamicSchemaGeneratorService.getSchema();
+    // const mainSchema = this.dynamicSchemaGeneratorService.getSchema();
 
-    const jsonSchema = zodToJsonSchema(mainSchema as any, {
+    const jsonSchema = zodToJsonSchema(BlockConfigSchema, {
       name: 'MainSchema',
       target: 'jsonSchema7',
     });
