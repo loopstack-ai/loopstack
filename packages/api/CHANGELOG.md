@@ -1,5 +1,18 @@
 # @loopstack/api
 
+## 0.12.0
+
+### Minor Changes
+
+- 04b6c66: Beta Release
+
+### Patch Changes
+
+- Updated dependencies [04b6c66]
+  - @loopstack/auth@0.12.0
+  - @loopstack/core@0.12.0
+  - @loopstack/shared@0.12.0
+
 ## 0.11.1
 
 ### Patch Changes
