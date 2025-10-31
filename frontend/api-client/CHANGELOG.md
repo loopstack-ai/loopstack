@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.12.0
+
+### Minor Changes
+
+- 04b6c66: Beta Release
+
 ## 0.11.1
 
 ### Patch Changes
