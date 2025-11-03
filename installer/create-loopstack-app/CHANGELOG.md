@@ -1,5 +1,11 @@
 # create-loopstack-app
 
+## 0.12.2
+
+### Patch Changes
+
+- 1b88ec2: Bump version
+
 ## 0.12.1
 
 ### Patch Changes
