@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/app-template",
-  "version": "0.12.1",
+  "version": "0.12.2",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -18,10 +18,10 @@
     "tag": "git tag -a $npm_package_name@$npm_package_version -m \"Release $npm_package_name version $npm_package_version\" && git push origin $npm_package_name@$npm_package_version && git tag -f $npm_package_name@latest && git push -f origin $npm_package_name@latest"
   },
   "dependencies": {
-    "@loopstack/api": "^0.12.1",
-    "@loopstack/core": "^0.12.1",
-    "@loopstack/llm": "^0.12.1",
-    "@loopstack/shared": "^0.12.1",
+    "@loopstack/api": "^0.12.2",
+    "@loopstack/core": "^0.12.2",
+    "@loopstack/llm": "^0.12.2",
+    "@loopstack/shared": "^0.12.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
