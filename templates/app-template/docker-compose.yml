@@ -38,7 +38,8 @@ services:
       - REDIS_PORT=${REDIS_PORT:-6379}
       - APP_PORT=${APP_PORT:-8001}
       - CORS_ORIGIN=${WS_PORT:-localhost}
-      - JWT_SECRET=${JWT_SECRET:-${CLIENT_SECRET:-dev-secret-change-me}}
+      - JWT_SECRET=${JWT_SECRET}
+      - CLIENT_SECRET=${CLIENT_SECRET}
       - LOCAL_MODE=${ENABLE_LOCAL_MODE:-false}
     depends_on:
       - redis
