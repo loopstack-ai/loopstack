@@ -1,5 +1,16 @@
 # @loopstack/app-template
 
+## 0.12.1
+
+### Patch Changes
+
+- 228674f: Minor changes, Use Client Secret fallback
+- Updated dependencies [228674f]
+  - @loopstack/api@0.12.1
+  - @loopstack/core@0.12.1
+  - @loopstack/llm@0.12.1
+  - @loopstack/shared@0.12.1
+
 ## 0.12.0
 
 ### Minor Changes
