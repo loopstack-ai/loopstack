@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { IsNull, Repository, In } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
 import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
 import { ConfigService } from '@nestjs/config';
@@ -117,8 +117,11 @@ export class WorkspaceApiService {
     workspaceData: WorkspaceCreateDto,
     user: string,
   ): Promise<WorkspaceEntity> {
+    const title = workspaceData.title || `${workspaceData.configKey}`;
+
     const workspace = this.workspaceRepository.create({
       ...workspaceData,
+      title,
       createdBy: user,
     });
     return await this.workspaceRepository.save(workspace);
