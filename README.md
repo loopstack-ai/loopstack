@@ -23,8 +23,6 @@ Loopstack simplifies AI workflow automation by providing a declarative YAML-base
 
 It ships with a built-in frontend to execute and control your workflows while providing a well documented API and developer SDK for integration in your own applications.
 
-**Perfect for**: Document processing pipelines, content generation workflows, data analysis automation, and multi-step AI operations that require reliable execution and human control.
-
 ## Key Features
 
 - **🚀 Zero-config Setup** - Start building AI workflows in minutes
@@ -42,50 +40,8 @@ It ships with a built-in frontend to execute and control your workflows while pr
 - Git
 
 ## Getting started:
-### Step 1: Create a loopstack starter application
 
-```
-npx create-loopstack-app my-project
-```
-
-### Step 2: Configure Your Environment
-```
-cd my-project
-cp .env.example .env
-
-# Edit .env with your API keys (OpenAI, Anthropic, etc.)
-```
-
-### Step 3: Start the dev environment
-
-```
-docker compose up -d
-```
-This starts the following services:
-
-- PostgreSQL (port 5432) - workflow state and document storage
-- Redis (port 6379) - pub/sub and caching
-- Websocket Server (port 8001) - live messaging
-- Loopstack Studio (port 3000) - workflow user interface
-
-### Step 4: Run your app
-```
-npm run start:dev
-```
-Your application is now running at:
-
-http://localhost:3000
-
-### Optional: enable schema validation in your IDE
-
-For yaml file validation in your IDE, generate and link your custom JSON schema.
-```
-npm run generate:schema
-```
-
-Then, configure your IDE to use your custom schema for YAML validation: `./src/generated/main.schema.json`
-
-Remember, to re-generate the schema when you add tools or modify their input schemas.
+Register at https://app.loopstack.ai, create a new dev environment and follow the instructions in the setup guide.
 
 ## Documentation
 
