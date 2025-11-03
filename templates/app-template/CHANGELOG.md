@@ -1,5 +1,11 @@
 # @loopstack/app-template
 
+## 0.12.3
+
+### Patch Changes
+
+- 190f960: Fix env fallback
+
 ## 0.12.2
 
 ### Patch Changes
