@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.12.1
+
+### Patch Changes
+
+- 228674f: Minor changes, Use Client Secret fallback
+
 ## 0.12.0
 
 ### Minor Changes
