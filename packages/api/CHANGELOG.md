@@ -1,5 +1,15 @@
 # @loopstack/api
 
+## 0.12.2
+
+### Patch Changes
+
+- 1b88ec2: Bump version
+- Updated dependencies [1b88ec2]
+  - @loopstack/auth@0.12.2
+  - @loopstack/core@0.12.2
+  - @loopstack/shared@0.12.2
+
 ## 0.12.1
 
 ### Patch Changes
