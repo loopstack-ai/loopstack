@@ -1489,7 +1489,7 @@ export interface WorkspaceControllerGetWorkspaces200Response {
  */
 export interface WorkspaceCreateDto {
     /**
-     * Human-readable title for the workspace
+     * Human-readable title for the workspace. If not provided, a default name will be generated
      * @type {string}
      * @memberof WorkspaceCreateDto
      */
