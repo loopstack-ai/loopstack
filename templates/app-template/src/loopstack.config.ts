@@ -11,9 +11,6 @@ export const authConfig = registerAs<AuthConfig>('auth', () => {
   const isProduction = process.env.NODE_ENV === 'production';
 
   if (isProduction) {
-    if (!process.env.JWT_SECRET) {
-      throw new Error('JWT_SECRET is required in production');
-    }
     if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
       throw new Error('CLIENT_ID and CLIENT_SECRET are required in production');
     }
@@ -21,9 +18,9 @@ export const authConfig = registerAs<AuthConfig>('auth', () => {
 
   return {
     jwt: {
-      secret: process.env.JWT_SECRET || 'NO SECRET',
+      secret: process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dev-secret-change-me',
       expiresIn: process.env.JWT_EXPIRES_IN || '1h',
-      refreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'NO SECRET',
+      refreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dev-secret-change-me',
       refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     },
     clientId: process.env.CLIENT_ID || '',
