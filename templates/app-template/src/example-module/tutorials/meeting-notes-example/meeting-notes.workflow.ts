@@ -1,13 +1,13 @@
 import { Expose } from 'class-transformer';
 import { CreateDocument, Workflow } from '@loopstack/core';
 import { BlockConfig, Input } from '@loopstack/shared';
-import { AiGenerateObject } from '@loopstack/llm';
+import { AiGenerateDocument } from '@loopstack/llm';
 import { MeetingNotesDocument } from './documents/meeting-notes-document';
 import { OptimizedNotesDocument } from './documents/optimized-notes-document';
 
 @BlockConfig({
   imports: [
-    AiGenerateObject,
+    AiGenerateDocument,
     CreateDocument,
     MeetingNotesDocument,
     OptimizedNotesDocument,
