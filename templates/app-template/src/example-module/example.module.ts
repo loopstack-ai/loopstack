@@ -10,6 +10,9 @@ import { PromptStructuredDataWorkflow } from './llm/prompt-structured-data-examp
 import { FileDocument } from './llm/prompt-structured-data-example/documents/file-document';
 import { GetWeather } from './llm/tool-call-example/tools/get-weather.tool';
 import { ToolCallWorkflow } from './llm/tool-call-example/tool-call.workflow';
+import { MeetingNotesWorkflow } from './tutorials/meeting-notes-example/meeting-notes.workflow';
+import { MeetingNotesDocument } from './tutorials/meeting-notes-example/documents/meeting-notes-document';
+import { OptimizedNotesDocument } from './tutorials/meeting-notes-example/documents/optimized-notes-document';
 
 @Module({
   imports: [
@@ -27,6 +30,10 @@ import { ToolCallWorkflow } from './llm/tool-call-example/tool-call.workflow';
 
     GetWeather,
     ToolCallWorkflow,
+
+    MeetingNotesWorkflow,
+    MeetingNotesDocument,
+    OptimizedNotesDocument,
 
     ExampleModuleFactoryService,
   ],

@@ -1,0 +1,31 @@
+ui:
+  order:
+    - date
+    - summary
+    - participants
+    - decisions
+    - actionItems
+  properties:
+    date:
+      title: Date
+    summary:
+      title: Summary
+      widget: textarea-expand
+    participants:
+      title: Participants
+      collapsed: true
+      items:
+        title: Participant
+    decisions:
+      title: Decisions
+      collapsed: true
+      items:
+        title: Decision
+    actionItems:
+      title: Action Items
+      collapsed: true
+      items:
+        title: Action Item
+  buttons:
+    - transition: confirm
+      label: "Confirm"

@@ -1,0 +1,8 @@
+ui:
+  properties:
+    text:
+      title: Notes
+      widget: textarea-expand
+  buttons:
+    - transition: user_response
+      label: "Optimize Notes"
