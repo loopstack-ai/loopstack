@@ -29,16 +29,16 @@ import { NullStrategy } from './strategies/null.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthService } from './services/auth.service';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { WsEventEmitterService } from './services/ws-event-emitter.service';
+import { SseEventService } from './services/sse-event.service';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigController } from './controllers/config.controller';
 import { DashboardController } from './controllers/dashboard.controller';
 import { DashboardService } from './services/dashboard.service';
 import { AuthModule, ConditionalAuthGuard } from '@loopstack/auth';
 import { APP_GUARD } from '@nestjs/core';
 import { UserService } from './services';
-var cookieParser = require('cookie-parser');
+import { SseController } from './controllers/sse.controller';
+const cookieParser = require('cookie-parser');
 
 @Module({
   imports: [
@@ -48,17 +48,6 @@ var cookieParser = require('cookie-parser');
       WorkflowEntity,
       DocumentEntity,
       NamespaceEntity,
-    ]),
-    ClientsModule.register([
-      {
-        name: 'REDIS_PUB_SUB',
-        transport: Transport.REDIS,
-        options: {
-          host: process.env.REDIS_HOST ?? 'localhost',
-          port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT ?? '6379', 0) : 6379,
-          family: 0
-        } as any,
-      },
     ]),
     EventEmitterModule.forRoot(),
     LoopCoreModule,
@@ -77,6 +66,7 @@ var cookieParser = require('cookie-parser');
     NamespaceController,
     ConfigController,
     DashboardController,
+    SseController,
   ],
   providers: [
     {
@@ -86,7 +76,7 @@ var cookieParser = require('cookie-parser');
     AuthService,
     JwtStrategy,
     NullStrategy,
-    WsEventEmitterService,
+    SseEventService,
     PipelineApiService,
     WorkspaceApiService,
     ProcessorApiService,
@@ -102,6 +92,7 @@ var cookieParser = require('cookie-parser');
     ProcessorApiService,
     DashboardService,
     UserService,
+    SseEventService,
   ],
 })
 export class LoopstackApiModule extends ConfigurableModuleClass {
@@ -135,10 +126,12 @@ export class LoopstackApiModule extends ConfigurableModuleClass {
     }
 
     // todo: what does/change
-    app.useGlobalPipes(new ValidationPipe({
-      whitelist: true,
-      transform: true,
-    }));
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        transform: true,
+      }),
+    );
 
     app.use(cookieParser());
   }
