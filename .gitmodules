@@ -25,6 +25,12 @@
 [submodule "frontend/app-react"]
 	path = frontend/app-react
 	url = git@github.com:loopstack-ai/app-react.git
+[submodule "frontend/loopstack-studio"]
+	path = frontend/loopstack-studio
+	url = git@github.com:loopstack-ai/loopstack-studio.git
+[submodule "frontend/loopstack-cloud"]
+	path = frontend/loopstack-cloud
+	url = git@github.com:loopstack-ai/loopstack-cloud.git
 [submodule "frontend/websocket"]
 	path = frontend/websocket
 	url = git@github.com:loopstack-ai/websocket.git
