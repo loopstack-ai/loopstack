@@ -34,6 +34,15 @@
 [submodule "templates/app-template"]
 	path = templates/app-template
 	url = git@github.com:loopstack-ai/app-template.git
+[submodule "templates/blank-template"]
+	path = templates/blank-template
+	url = git@github.com:loopstack-ai/blank-template.git
+[submodule "templates/swe-demo-template"]
+	path = templates/swe-demo-template
+	url = git@github.com:loopstack-ai/swe-demo-template.git
+[submodule "templates/testing-template"]
+	path = templates/testing-template
+	url = git@github.com:loopstack-ai/testing-template.git
 [submodule "packages/auth"]
 	path = packages/auth
 	url = git@github.com:loopstack-ai/auth.git
