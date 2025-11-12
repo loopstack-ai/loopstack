@@ -1,0 +1,87 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import { ClientMessageDto } from '@loopstack/shared';
+import { Subject } from 'rxjs';
+
+interface SseConnection {
+  workerId: string;
+  userId: string;
+  subject: Subject<ClientMessageDto>;
+}
+
+@Injectable()
+export class SseEventService {
+  private readonly logger = new Logger(SseEventService.name);
+  private connections: Map<string, SseConnection> = new Map();
+
+  private getConnectionKey(workerId: string, userId: string): string {
+    return `worker:${workerId}-user:${userId}`;
+  }
+
+  registerConnection(
+    workerId: string,
+    userId: string,
+  ): Subject<ClientMessageDto> {
+    const key = this.getConnectionKey(workerId, userId);
+    const subject = new Subject<ClientMessageDto>();
+
+    this.connections.set(key, {
+      workerId,
+      userId,
+      subject,
+    });
+
+    return subject;
+  }
+
+  unregisterConnection(workerId: string, userId: string): void {
+    const key = this.getConnectionKey(workerId, userId);
+    const connection = this.connections.get(key);
+
+    if (connection) {
+      connection.subject.complete();
+      this.connections.delete(key);
+    }
+  }
+
+  private sendToConnection(
+    workerId: string,
+    userId: string,
+    message: ClientMessageDto,
+  ): void {
+    const key = this.getConnectionKey(workerId, userId);
+    const connection = this.connections.get(key);
+
+    if (connection) {
+      try {
+        connection.subject.next(message);
+      } catch (error) {
+        this.logger.error(
+          `Error sending message to user ${userId} on worker ${workerId}:`,
+          error,
+        );
+      }
+    } else {
+      this.logger.debug(
+        `No active SSE connection found for user ${userId} on worker ${workerId}`,
+      );
+    }
+  }
+
+  @OnEvent('client.message')
+  handleClientMessage(payload: ClientMessageDto): void {
+    if (payload.userId && payload.workerId) {
+      this.sendToConnection(payload.workerId, payload.userId, payload);
+    } else {
+      this.logger.warn(`Client message missing userId or workerId:`, payload);
+    }
+  }
+
+  getConnectionCount(): number {
+    return this.connections.size;
+  }
+
+  getActiveConnections(): string[] {
+    return Array.from(this.connections.keys());
+  }
+}
