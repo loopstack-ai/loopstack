@@ -47,7 +47,7 @@ export abstract class Workspace implements BlockInterface {
 
   getResult() {
     return instanceToPlain(this, {
-      strategy: this.config.classTransformStrategy || 'excludeAll',
+      strategy: 'excludeAll',
       groups: ['result'],
       excludeExtraneousValues: true,
     });

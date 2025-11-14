@@ -48,7 +48,7 @@ export abstract class Tool<TArgs extends object = any> implements BlockInterface
 
   getResult() {
     return instanceToPlain(this, {
-      strategy: this.config.classTransformStrategy || 'excludeAll',
+      strategy: 'excludeAll',
       groups: ['result'],
       excludeExtraneousValues: true,
     });

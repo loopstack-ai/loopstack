@@ -49,7 +49,7 @@ export abstract class Workflow<
 
   getResult() {
     return instanceToPlain(this, {
-      strategy: this.config.classTransformStrategy || 'excludeAll',
+      strategy: 'excludeAll',
       groups: ['result'],
       excludeExtraneousValues: true,
     });
