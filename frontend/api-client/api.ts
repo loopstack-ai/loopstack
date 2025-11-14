@@ -3770,6 +3770,195 @@ export class ApiV1ProcessorApi extends BaseAPI implements ApiV1ProcessorApiInter
 
 
 /**
+ * ApiV1SseApi - axios parameter creator
+ * @export
+ */
+export const ApiV1SseApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Returns the number of active SSE connections
+         * @summary SSE health check
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        sseControllerHealth: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/sse/health`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Establishes a Server-Sent Events connection to receive real-time updates
+         * @summary Server-Sent Events stream
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        sseControllerStream: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/sse/stream`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ApiV1SseApi - functional programming interface
+ * @export
+ */
+export const ApiV1SseApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ApiV1SseApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Returns the number of active SSE connections
+         * @summary SSE health check
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async sseControllerHealth(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.sseControllerHealth(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1SseApi.sseControllerHealth']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Establishes a Server-Sent Events connection to receive real-time updates
+         * @summary Server-Sent Events stream
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async sseControllerStream(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.sseControllerStream(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ApiV1SseApi.sseControllerStream']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ApiV1SseApi - factory interface
+ * @export
+ */
+export const ApiV1SseApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ApiV1SseApiFp(configuration)
+    return {
+        /**
+         * Returns the number of active SSE connections
+         * @summary SSE health check
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        sseControllerHealth(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.sseControllerHealth(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Establishes a Server-Sent Events connection to receive real-time updates
+         * @summary Server-Sent Events stream
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        sseControllerStream(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.sseControllerStream(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ApiV1SseApi - interface
+ * @export
+ * @interface ApiV1SseApi
+ */
+export interface ApiV1SseApiInterface {
+    /**
+     * Returns the number of active SSE connections
+     * @summary SSE health check
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1SseApiInterface
+     */
+    sseControllerHealth(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
+    /**
+     * Establishes a Server-Sent Events connection to receive real-time updates
+     * @summary Server-Sent Events stream
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1SseApiInterface
+     */
+    sseControllerStream(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
+}
+
+/**
+ * ApiV1SseApi - object-oriented interface
+ * @export
+ * @class ApiV1SseApi
+ * @extends {BaseAPI}
+ */
+export class ApiV1SseApi extends BaseAPI implements ApiV1SseApiInterface {
+    /**
+     * Returns the number of active SSE connections
+     * @summary SSE health check
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1SseApi
+     */
+    public sseControllerHealth(options?: RawAxiosRequestConfig) {
+        return ApiV1SseApiFp(this.configuration).sseControllerHealth(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Establishes a Server-Sent Events connection to receive real-time updates
+     * @summary Server-Sent Events stream
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ApiV1SseApi
+     */
+    public sseControllerStream(options?: RawAxiosRequestConfig) {
+        return ApiV1SseApiFp(this.configuration).sseControllerStream(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * ApiV1WorkflowsApi - axios parameter creator
  * @export
  */
