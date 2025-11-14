@@ -48,7 +48,7 @@ export const OVERRIDE_POINTS = {
    * Must implement: EnvironmentService interface
    * Default: LocalEnvironmentService (localStorage-based, single environment)
    */
-  environmentService: '@loopstack/loopstack-studio/services/LocalEnvironmentService',
-} as const
+  environmentService: '@loopstack/loopstack-studio/services/LocalEnvironmentService'
+} as const;
 
-export type OverridePoint = typeof OVERRIDE_POINTS[keyof typeof OVERRIDE_POINTS]
+export type OverridePoint = (typeof OVERRIDE_POINTS)[keyof typeof OVERRIDE_POINTS];

@@ -1,34 +1,32 @@
-import { createContext, useContext } from 'react'
-import type { StudioRouter, EnvironmentService } from '../types'
-import type { ReactNode } from 'react'
+import { createContext, useContext } from 'react';
+import type { StudioRouter, Environment } from '../types';
+import type { ReactNode } from 'react';
 
 interface StudioContext {
-  router: StudioRouter
-  service: EnvironmentService
+  router: StudioRouter;
+  environment: Environment;
 }
 
-const StudioContext = createContext<StudioContext | null>(null)
+const StudioContext = createContext<StudioContext | null>(null);
 
 export const StudioProvider = ({
-                                 children,
-                                 router,
-                                 service
-                               }: {
-  children: ReactNode
-  router: StudioRouter
-  service: EnvironmentService
+  children,
+  router,
+  environment
+}: {
+  children: ReactNode;
+  router: StudioRouter;
+  environment: Environment;
 }) => {
   return (
-    <StudioContext.Provider value={{ router, service }}>
-      {children}
-    </StudioContext.Provider>
-  )
-}
+    <StudioContext.Provider value={{ router, environment }}>{children}</StudioContext.Provider>
+  );
+};
 
 export const useStudio = () => {
-  const context = useContext(StudioContext)
+  const context = useContext(StudioContext);
   if (!context) {
-    throw new Error('useStudio must be used within StudioProvider')
+    throw new Error('useStudio must be used within StudioProvider');
   }
-  return context
-}
+  return context;
+};

@@ -5,7 +5,7 @@
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -23,6 +23,17 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+
+    /* Path aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@loopstack/shared": ["packages/shared/src"],
+      "@loopstack/api-client": ["frontend/api-client"]
+    },
+
+    /* For library */
+    "declaration": true,
+    "declarationMap": true
   },
   "include": ["src"]
 }

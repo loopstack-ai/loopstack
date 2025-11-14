@@ -1,25 +1,24 @@
 export interface Environment {
-  id: string
-  name: string
-  url: string
-}
-
-export interface EnvironmentConfig {
-  name: string
-  url: string
-}
-
-export interface EnvironmentService {
-  getEnvironments(): Promise<Environment[]>
-  getEnvironment(id: string): Promise<Environment>
-  updateEnvironment(id: string, config: EnvironmentConfig): Promise<void>
-  deleteEnvironment(id: string): Promise<void>
-  testConnection(url: string): Promise<boolean>
+  id: string;
+  name: string;
+  url: string;
 }
 
 export interface StudioRouter {
-  navigateToEnvironmentList(): void
-  navigateToEnvironmentDetail(envId: string): void
-  navigateToEnvironmentSettings(envId: string): void
-  getCurrentEnvironmentId(): string | null
+  navigateToHome(): void;
+  navigateToEnvironmentInfo(): void;
+  getDashboard(): string;
+  navigateToDashboard(): void;
+  getWorkspaces(): string;
+  navigateToWorkspaces(): void;
+  getWorkspacesCreate(): string;
+  navigateToWorkspacesCreate(): void;
+  getWorkspace(workspaceId: string): string;
+  navigateToWorkspace(workspaceId: string): void;
+  getPipeline(pipelineId: string): string;
+  navigateToPipeline(pipelineId: string): void;
+  navigateToWorkflow(pipelineId: string, workflowId: string, clickId: string | undefined): void;
+  navigateToPipelineNamespace(workspaceId: string, pipelineId: string, namespaceId: string): void;
+  getCurrentEnvironmentId(): string;
+  getTheme(): 'local' | 'cloud';
 }
