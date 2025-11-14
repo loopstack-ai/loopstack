@@ -27,6 +27,7 @@ import { HubAuthGuard } from '../guards/hub-auth.guard';
 import { WorkerInfoDto } from '../dtos/worker-info.dto';
 import { ApiResponse as SwaggerApiResponse } from '@nestjs/swagger/dist/decorators/api-response.decorator';
 import { HubLoginRequestDto } from '../dtos/hub-login-request.dto';
+import { HubLoginResponseDto } from '../dtos/hub-login-response.dto';
 
 @ApiTags('api/v1/auth')
 @Controller('api/v1/auth')
@@ -85,18 +86,19 @@ export class AuthController {
   @ApiOperation({ summary: 'Login via Hub' })
   @ApiBody({ type: HubLoginRequestDto })
   @ApiExtraModels(HubLoginRequestDto)
+  @SwaggerApiResponse({ type: HubLoginResponseDto })
   @ApiOkResponse()
   @ApiUnauthorizedResponse()
   async hubLogin(
     @Body() hubLoginRequestDto: HubLoginRequestDto,
     @Request() req,
     @Response({ passthrough: true }) res,
-  ): Promise<{ message: string }> {
+  ): Promise<HubLoginResponseDto> {
 
     const tokens = await this.authService.login(req.user);
 
     this.setCookies(res, tokens);
 
-    return { message: 'Login successful' };
+    return { id: req.user.id, message: 'Login successful' };
   }
 }

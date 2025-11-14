@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@loopstack/shared';
+import { UserTypeEnum } from '@loopstack/shared/dist/enums/user-type.enum';
 
 @Injectable()
 export class UserRepository {
@@ -13,6 +14,15 @@ export class UserRepository {
   async findById(id: string): Promise<User | null> {
     return this.repository.findOne({
       where: { id },
+      relations: ['roles', 'roles.permissions'],
+    });
+  }
+
+  async findLocalUser(): Promise<User | null> {
+    return this.repository.findOne({
+      where: {
+        type: UserTypeEnum.Local
+      },
       relations: ['roles', 'roles.permissions'],
     });
   }

@@ -22,6 +22,7 @@ export class AuthService {
     const workerId = this.configService.get('auth.clientId');
     const payload: JwtPayloadInterface = {
       sub: user.id,
+      type: user.type,
       roles: user.roles?.map(role => role.name) || [],
       workerId,
     };
@@ -45,6 +46,7 @@ export class AuthService {
       // roles might have changed
       const newPayload = {
         sub: payload.sub,
+        type: payload.type,
         workerId: payload.workerId,
         roles: user.roles?.map(role => role.name) || [],
       }
