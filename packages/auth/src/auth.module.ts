@@ -13,7 +13,6 @@ import { Permission, Role, User } from '@loopstack/shared';
 import { ConfigValidationService } from './services/config-validation.service';
 import { HubAuditService } from './services/hub-audit.service';
 import { JwtAuthGuard } from './guards';
-import { LocalDevModeGuard } from './guards/local-dev-mode.guard';
 
 @Module({})
 export class AuthModule {
@@ -53,9 +52,8 @@ export class AuthModule {
         HubStrategy,
         HubAuditService,
         JwtAuthGuard,
-        LocalDevModeGuard,
       ],
-      exports: [AuthService, UserRepository, JwtAuthGuard, LocalDevModeGuard],
+      exports: [AuthService, UserRepository, JwtAuthGuard],
     };
   }
 }
