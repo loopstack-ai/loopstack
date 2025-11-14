@@ -34,7 +34,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ConfigController } from './controllers/config.controller';
 import { DashboardController } from './controllers/dashboard.controller';
 import { DashboardService } from './services/dashboard.service';
-import { AuthModule, ConditionalAuthGuard } from '@loopstack/auth';
+import { AuthModule, JwtAuthGuard } from '@loopstack/auth';
 import { APP_GUARD } from '@nestjs/core';
 import { UserService } from './services';
 import { SseController } from './controllers/sse.controller';
@@ -71,7 +71,7 @@ const cookieParser = require('cookie-parser');
   providers: [
     {
       provide: APP_GUARD,
-      useClass: ConditionalAuthGuard,
+      useClass: JwtAuthGuard,
     },
     AuthService,
     JwtStrategy,

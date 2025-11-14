@@ -25,6 +25,8 @@ export class SseEventService {
     const key = this.getConnectionKey(workerId, userId);
     const subject = new Subject<ClientMessageDto>();
 
+    this.logger.debug(`Registering SSE connection for user ${userId} on worker ${workerId}`);
+
     this.connections.set(key, {
       workerId,
       userId,
@@ -37,6 +39,8 @@ export class SseEventService {
   unregisterConnection(workerId: string, userId: string): void {
     const key = this.getConnectionKey(workerId, userId);
     const connection = this.connections.get(key);
+
+    this.logger.debug(`Unregistering SSE connection for user ${userId} on worker ${workerId}`);
 
     if (connection) {
       connection.subject.complete();
@@ -51,6 +55,8 @@ export class SseEventService {
   ): void {
     const key = this.getConnectionKey(workerId, userId);
     const connection = this.connections.get(key);
+
+    this.logger.debug(`Sending message to user ${userId} on worker ${workerId}: ${JSON.stringify(message)}`);
 
     if (connection) {
       try {
