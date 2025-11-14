@@ -23,8 +23,8 @@ export const authConfig = registerAs<AuthConfig>('auth', () => {
       refreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dev-secret-change-me',
       refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     },
-    clientId: process.env.CLIENT_ID || '',
-    clientSecret: process.env.CLIENT_SECRET || '',
+    clientId: process.env.CLIENT_ID || 'local',
+    clientSecret: process.env.CLIENT_SECRET || 'dev-secret-change-me',
     authCallback: process.env.AUTH_CALLBACK_URL || 'https://hub.loopstack.ai/api/v1/sso/validate',
   };
 });
