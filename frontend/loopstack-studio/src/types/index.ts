@@ -11,8 +11,6 @@ export interface StudioRouter {
   navigateToDashboard(): void;
   getWorkspaces(): string;
   navigateToWorkspaces(): void;
-  getWorkspacesCreate(): string;
-  navigateToWorkspacesCreate(): void;
   getWorkspace(workspaceId: string): string;
   navigateToWorkspace(workspaceId: string): void;
   getPipeline(pipelineId: string): string;

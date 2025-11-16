@@ -12,7 +12,6 @@ import DataTablePagination from '../data-table/DataTablePagination';
 import DataTableToolbar from '../data-table/DataTableToolbar';
 
 export function DataTable<T extends { id: string }>({
-  title = 'Data Table',
   data,
   columns,
   totalItems,
@@ -170,7 +169,6 @@ export function DataTable<T extends { id: string }>({
   return (
     <div className="space-y-4">
       <DataTableToolbar
-        title={title}
         searchTerm={searchTerm}
         onSearchChange={onSearchChange}
         onFilterToggle={() => setIsFilterOpen(!isFilterOpen)}

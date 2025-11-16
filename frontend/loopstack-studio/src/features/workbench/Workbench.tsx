@@ -6,11 +6,11 @@ import { SidebarProvider, SidebarTrigger, SidebarInsetDiv } from '../../componen
 import { Home } from 'lucide-react';
 import { useWorkspace } from '../../hooks/useWorkspaces.ts';
 import MainLayout from '../../components/layout/MainLayout.tsx';
-import { WorkbenchContext } from './WorkbenchContext.tsx';
-import type { WorkbenchState } from './WorkbenchContext.tsx';
-import { ScrollProvider } from './ScrollProvider.tsx';
-import WorkbenchMainContainer from './WorkbenchMainContainer.tsx';
-import WorkbenchSidebar from './WorkbenchSidebar.tsx';
+import { WorkbenchContext } from './components/WorkbenchContext.tsx';
+import type { WorkbenchState } from './components/WorkbenchContext.tsx';
+import { ScrollProvider } from './providers/ScrollProvider.tsx';
+import WorkbenchMainContainer from './components/WorkbenchMainContainer.tsx';
+import WorkbenchSidebar from './components/WorkbenchSidebar.tsx';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 
 export default function Workbench() {

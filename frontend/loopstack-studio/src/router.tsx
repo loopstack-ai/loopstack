@@ -8,12 +8,12 @@ import WorkerLayout from './app/WorkerLayout.tsx';
 import config from './config.ts';
 import DashboardPage from './pages/DashboardPage.tsx';
 import { StudioProvider } from './providers/StudioProvider.tsx';
-import Workspaces from './features/workspaces/Workspaces.tsx';
-import Workspace from './features/workspaces/Workspaces/Workspace.tsx';
+import WorkspacePage from './pages/WorkspacePage.tsx';
 import LocalHealthCheck from './features/health/LocalHealthCheck.tsx';
 import DebugPage from './pages/DebugPage.tsx';
 import Workbench from './features/workbench/Workbench.tsx';
 import { SseProvider } from './providers/SseProvider.tsx';
+import WorkspacesPage from './pages/WorkspacesPage.tsx';
 
 function AppRoot() {
   const router = useRouter(config.environment.id);
@@ -46,11 +46,11 @@ const router = createBrowserRouter([
       },
       {
         path: 'workspaces',
-        element: <Workspaces />
+        element: <WorkspacesPage />
       },
       {
         path: 'workspaces/:workspaceId',
-        element: <Workspace />
+        element: <WorkspacePage />
       },
       {
         path: 'pipelines/:pipelineId',

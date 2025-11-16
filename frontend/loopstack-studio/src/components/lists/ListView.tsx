@@ -34,7 +34,6 @@ export interface OriginalRowAction {
 }
 
 interface ListViewProps {
-  title?: string;
   loading: boolean;
   error: Error | null;
   items: any[];
@@ -64,7 +63,6 @@ interface ListViewProps {
 }
 
 const ListView: React.FC<ListViewProps> = ({
-  title = 'Items List',
   loading,
   error,
   items,
@@ -198,9 +196,8 @@ const ListView: React.FC<ListViewProps> = ({
   );
 
   return (
-    <div className="w-full pt-4">
+    <div className="w-full">
       <DataTable
-        title={title}
         data={items}
         columns={transformedColumns}
         totalItems={totalItems}

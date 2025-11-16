@@ -4,7 +4,6 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 
 interface DataTableToolbarProps {
-  title: string;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
   onFilterToggle: () => void;
@@ -18,7 +17,6 @@ interface DataTableToolbarProps {
 }
 
 const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
-  title,
   searchTerm = '',
   onSearchChange,
   onFilterToggle,
@@ -32,10 +30,11 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
 }) => {
   return (
     <div className="flex items-center justify-between mb-4">
-      <h2 className="text-2xl font-bold">{title}</h2>
-
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between w-full">
         {children}
+      </div>
+      <div className="flex items-center gap-2">
+
         {showSearch ? (
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />

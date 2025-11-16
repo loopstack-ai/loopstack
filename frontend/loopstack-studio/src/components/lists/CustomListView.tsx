@@ -35,7 +35,6 @@ export interface OriginalRowAction {
 }
 
 interface ListViewProps {
-  title?: string;
   loading: boolean;
   error: Error | null;
   items: any[];
@@ -60,7 +59,6 @@ interface ListViewProps {
 }
 
 const ListView: React.FC<ListViewProps> = ({
-  title = 'Items List',
   loading,
   error,
   items,
@@ -152,7 +150,6 @@ const ListView: React.FC<ListViewProps> = ({
   return (
     <div className="w-full">
       <DataList
-        title={title}
         data={items}
         totalItems={totalItems}
         loading={loading}

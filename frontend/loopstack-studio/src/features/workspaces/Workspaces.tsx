@@ -8,11 +8,9 @@ import {
 import { useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useWorkspaceConfig } from '../../hooks/useConfig.ts';
-import { Home } from 'lucide-react';
 import type { WorkspaceItemDto } from '@loopstack/api-client';
 import { Dialog, DialogContent } from '../../components/ui/dialog.tsx';
-import MainLayout from '../../components/layout/MainLayout.tsx';
-import CreateWorkspace from './Workspaces/CreateWorkspace.tsx';
+import CreateWorkspace from './components/CreateWorkspace.tsx';
 import {
   Tooltip,
   TooltipContent,
@@ -88,19 +86,9 @@ const Workspaces = () => {
     setOpenEdit(undefined);
   };
 
-  const breadcrumbData = [
-    {
-      label: 'Dashboard',
-      href: router.getDashboard(),
-      icon: <Home className="h-4 w-4" />
-    },
-    { label: 'Workspaces', current: true }
-  ];
-
   return (
-    <MainLayout breadcrumbsData={breadcrumbData}>
+    <>
       <ItemListView
-        title={'Workspaces'}
         loading={fetchWorkspaceTypes.isPending || fetchWorkspaces.isPending}
         error={fetchWorkspaces.error ?? fetchWorkspaceTypes.error ?? null}
         items={fetchWorkspaces.data?.data ?? []}
@@ -164,16 +152,16 @@ const Workspaces = () => {
             // },
             {
               id: 'createdAt',
-              label: 'Created Date',
+              label: 'Date Created',
               minWidth: 100,
               format: (value) => new Date(value).toLocaleDateString()
             },
-            {
-              id: 'updatedAt',
-              label: 'Updated Date',
-              minWidth: 100,
-              format: (value) => new Date(value).toLocaleDateString()
-            }
+            // {
+            //   id: 'updatedAt',
+            //   label: 'Updated Date',
+            //   minWidth: 100,
+            //   format: (value) => new Date(value).toLocaleDateString()
+            // }
           ] as Column[]
         }
         filterConfig={{}}
@@ -194,7 +182,7 @@ const Workspaces = () => {
           />
         </DialogContent>
       </Dialog>
-    </MainLayout>
+    </>
   );
 };
 

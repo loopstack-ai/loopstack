@@ -8,14 +8,12 @@ const DebugPage = () => {
 
   const authApi = api?.ApiV1AuthApi as ApiV1AuthApi;
 
-  // @ts-ignore
-  const basePath = authApi?.basePath;
-
   return (
     <div>
       <p>Name: {environment?.name}</p>
       <p>Id: {environment?.id}</p>
-      <p>Base Path: {basePath}</p>
+      <p>Base Path: {(authApi as any)?.basePath}</p>
+
     </div>
   );
 };

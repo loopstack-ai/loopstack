@@ -12,7 +12,6 @@ import DataTableToolbar from './DataTableToolbar';
 import type { DataListProps } from './data-list.ts';
 
 export function DataList<T extends { id: string }>({
-  title = 'Data Table',
   data,
   totalItems,
   loading = false,
@@ -115,7 +114,6 @@ export function DataList<T extends { id: string }>({
   return (
     <div className="space-y-4">
       <DataTableToolbar
-        title={title}
         searchTerm={searchTerm}
         onSearchChange={onSearchChange}
         onFilterToggle={() => setIsFilterOpen(!isFilterOpen)}
@@ -126,19 +124,31 @@ export function DataList<T extends { id: string }>({
         showFilter={!!onFiltersChange && Object.keys(filterConfig).length > 0}
         showSearch={!!onSearchChange}
       >
-        {enableBatchActions && (
-          <DataTableBatchActions
-            selectedCount={selectedRows.length}
-            batchActions={allBatchActions}
-            onBatchAction={handleBatchAction}
+        <div className="text-sm text-gray-400">
+          <Checkbox
+            checked={selectedRows.length === data.length && data.length > 0}
+            onCheckedChange={toggleSelectAll}
+            aria-label="Select all rows"
+            className="mr-4"
           />
-        )}
-        <DataTableFilters
-          filters={filters}
-          filterConfig={filterConfig}
-          onFiltersChange={onFiltersChange}
-          isOpen={isFilterOpen}
-        />
+          Select All
+        </div>
+
+        <div>
+          {enableBatchActions && (
+            <DataTableBatchActions
+              selectedCount={selectedRows.length}
+              batchActions={allBatchActions}
+              onBatchAction={handleBatchAction}
+            />
+          )}
+          <DataTableFilters
+            filters={filters}
+            filterConfig={filterConfig}
+            onFiltersChange={onFiltersChange}
+            isOpen={isFilterOpen}
+          />
+        </div>
       </DataTableToolbar>
 
       {error && (
@@ -148,16 +158,6 @@ export function DataList<T extends { id: string }>({
           </CardContent>
         </Card>
       )}
-
-      <div className="text-sm text-gray-400">
-        <Checkbox
-          checked={selectedRows.length === data.length && data.length > 0}
-          onCheckedChange={toggleSelectAll}
-          aria-label="Select all rows"
-          className="mr-4"
-        />
-        Select All
-      </div>
 
       <div className="space-y-2">
         {loading ? (

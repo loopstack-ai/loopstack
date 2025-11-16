@@ -34,14 +34,6 @@ export class LocalRouter implements StudioRouter {
     this.navigate(this.getWorkspaces());
   }
 
-  getWorkspacesCreate() {
-    return '/workspaces?create=true';
-  }
-
-  navigateToWorkspacesCreate() {
-    this.navigate(this.getWorkspacesCreate());
-  }
-
   getWorkspace(workspaceId: string) {
     return `/workspaces/${workspaceId}`;
   }
