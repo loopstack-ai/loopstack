@@ -27,6 +27,14 @@ services:
     networks:
       - monorepo-network
 
+  studio:
+    image: jakobklippel/loopstack-studio:latest
+    pull_policy: always
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - monorepo-network
 
 networks:
   monorepo-network:
