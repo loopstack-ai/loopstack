@@ -1,7 +1,7 @@
 {
   "name": "@loopstack/loopstack-studio",
   "private": true,
-  "version": "0.13.1",
+  "version": "0.14.0",
   "type": "module",
   "main": "./src/main.ts",
   "exports": {
@@ -23,8 +23,8 @@
   "dependencies": {
     "@fontsource/roboto": "^5.2.6",
     "@hookform/resolvers": "^5.2.1",
-    "@loopstack/api-client": "^0.12.2",
-    "@loopstack/shared": "^0.12.2",
+    "@loopstack/api-client": "^0.13.0",
+    "@loopstack/shared": "^0.13.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-avatar": "^1.1.10",
