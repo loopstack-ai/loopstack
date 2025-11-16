@@ -1,7 +1,7 @@
 {
   "name": "@loopstack/loopstack-studio",
   "private": true,
-  "version": "0.13.0",
+  "version": "0.13.1",
   "type": "module",
   "main": "./src/main.ts",
   "exports": {
