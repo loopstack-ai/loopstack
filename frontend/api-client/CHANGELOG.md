@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.13.0
+
+### Minor Changes
+
+- 41aabbf: Use local frontend without authentication
+
 ## 0.12.2
 
 ### Patch Changes
