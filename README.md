@@ -5,19 +5,6 @@
 
 A developer-first framework for reliable AI workflow automation that eliminates the complexity of building, testing, and deploying AI-powered applications.
 
-Loopstack is build on Typescript / NestJs Framework, leveraging a convenient yet powerful declarative approach to build AI automation flows.
-
-## Table of Contents
-
-- [What is Loopstack?](#what-is-loopstack)
-- [Key Features](#key-features)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-- [License](#license)
-
-## What is Loopstack?
 
 Loopstack simplifies AI workflow automation by providing a declarative YAML-based approach to define complex AI operations. Instead of writing boilerplate code for AI integrations, prompt management, and workflow orchestration, you define your logic in configuration files and let Loopstack handle the execution.
 
@@ -29,9 +16,10 @@ It ships with a built-in frontend to execute and control your workflows while pr
 - **📝 Declarative Workflows** - Define complex AI operations using simple YAML configuration
 - **🔧 Built-in Studio** - Visual interface for executing and interacting with workflows
 - **🔌 Extensible Architecture** - Custom tools and integrations with TypeScript
-- **📊 Production Ready** - Built-in error handling, retries, and observability
-- **🧪 Testing Framework** - End-to-end testing support for AI workflows
-- **📚 Developer SDK** - Well-documented API for integration with existing applications
+
+[//]: # (- **📊 Production Ready** - Built-in error handling, retries, and observability)
+[//]: # (- **🧪 Testing Framework** - End-to-end testing support for AI workflows)
+[//]: # (- **📚 Developer SDK** - Well-documented API for integration with existing applications)
 
 ## Prerequisites
 
@@ -41,7 +29,58 @@ It ships with a built-in frontend to execute and control your workflows while pr
 
 ## Getting started:
 
-Register at https://app.loopstack.ai, create a new dev environment and follow the instructions in the setup guide.
+### Step 1: Install
+
+```shell
+npx create-loopstack-app my-project
+```
+
+### Step 2: Start Environment
+
+```shell
+cd my-project
+docker compose up -d
+```
+
+### Step 3: Run your app
+```shell
+npm run start:dev
+```
+
+Congratulations, your application is now running at:
+
+http://localhost:3000
+
+## Additional Setup options
+
+### API Keys 
+
+To use LLM functionality, edit your local .env file and add API keys (OpenAI, Anthropic, etc.) as needed
+
+```dotenv
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Running from Source (Frontend)
+
+#### 1. Clone the repository
+
+```shell
+git clone https://github.com/loopstack-ai/loopstack-studio.git
+```
+
+#### 2. Install dependencies
+
+```shell
+cd loopstack-studio
+npm install
+```
+
+#### 3. Start the frontend
+
+```shell
+npm run dev
+```
 
 ## Documentation
 
@@ -68,10 +107,9 @@ We're actively preparing Loopstack for full open-source contribution! While we f
 **Loopstack Core Modules** use the **Business Source License 1.1** (BSL):
 
 - ✅ **Free for personal and commercial use** - build apps, modify code, sell products
-- ❌ **Don't compete directly** - don't offer this software itself as a hosted service
-- 🚀 **Becomes fully open source** (Apache 2.0) after 4 years, possibly sooner
+- ❌ **No cloud service** - don't offer this software itself as a hosted service
 
-We want you to use this software freely while we build a sustainable business. After 4 years, everything becomes completely open source with no restrictions. We are aiming to do this transition even earlier.
+We want you to use this software freely while we build a business that guarantees long term development and maintenance. After 4 years, everything becomes completely open source with no restrictions.
 
 For details see: [LICENSE.md](LICENSE.md)
 
