@@ -1,21 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { Repository, IsNull, Brackets } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   PipelineEntity,
   PipelineState,
-  WorkflowEntity,
   WorkflowState,
 } from '@loopstack/shared';
 
 export interface DashboardStats {
-  workspaceCount: number;
-  totalAutomations: number;
   totalAutomationRuns: number;
   completedRuns: number;
   errorRuns: number;
   inProgressRuns: number;
-  recentErrors: WorkflowEntity[];
+  recentErrors: PipelineEntity[];
   recentRuns: PipelineEntity[];
 }
 
@@ -24,20 +21,9 @@ export class DashboardService {
   constructor(
     @InjectRepository(PipelineEntity)
     private readonly pipelineRepository: Repository<PipelineEntity>,
-    @InjectRepository(WorkflowEntity)
-    private readonly workflowRepository: Repository<WorkflowEntity>,
   ) {}
 
   async getDashboardStats(user: string): Promise<DashboardStats> {
-    //todo
-    const workspaceCount = 0;
-      // this.configService.getAll<WorkspaceType>('workspaces').length;
-    // const pipelineTypes = this.configService.getAll<PipelineType>('pipelines');
-    const automations = 0;
-    // pipelineTypes.filter(
-    //   (p) => p.config.type === 'root',
-    // ).length;
-
     const baseQuery = this.pipelineRepository
       .createQueryBuilder('pipeline')
       .where({
@@ -65,23 +51,18 @@ export class DashboardService {
           .getCount(),
         baseQuery
           .clone()
-          .orderBy('pipeline.createdAt', 'DESC')
-          .take(7)
+          .orderBy('pipeline.updatedAt', 'DESC')
+          .limit(3)
           .getMany(),
-        this.workflowRepository
-          .createQueryBuilder('workflow')
-          .where({
-            createdBy: user,
-          })
+        baseQuery
+          .clone()
           .andWhere({ status: WorkflowState.Failed })
-          .orderBy('workflow.createdAt', 'DESC')
-          .take(7)
+          .orderBy('pipeline.updatedAt', 'DESC')
+          .limit(3)
           .getMany(),
       ]);
 
     return {
-      workspaceCount,
-      totalAutomations: automations,
       totalAutomationRuns: total,
       completedRuns: completed,
       errorRuns: failed,
