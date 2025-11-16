@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Badge } from '../../../../components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../../components/ui/dialog';
-import PromptDetails from './MetadataModal/PromptDetails.tsx';
-import DocumentDetails from './MetadataModal/DocumentDetails.tsx';
+import { Badge } from '../../../components/ui/badge.tsx';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog.tsx';
+import PromptDetails from './document-details/PromptDetails.tsx';
+import DocumentDetails from './document-details/DocumentDetails.tsx';
 
 // Define types for the renderer components
 type MetadataRendererProps = {

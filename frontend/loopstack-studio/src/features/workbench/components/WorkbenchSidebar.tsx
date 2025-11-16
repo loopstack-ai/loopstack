@@ -8,7 +8,7 @@ import {
   SidebarTrigger,
   SidebarMenu
 } from '../../../components/ui/sidebar.tsx';
-import WorkbenchNavigation from './WorkbenchNavigation.tsx';
+import WorkbenchNavigation from '../WorkbenchNavigation.tsx';
 import type { PipelineDto } from '@loopstack/api-client';
 
 interface WorkbenchSidebarProps {
@@ -29,8 +29,6 @@ const WorkbenchSidebar = ({ namespaceTree, pipeline }: WorkbenchSidebarProps) =>
           <SidebarMenu>
             {pipeline && namespaceTree.length ? (
               <WorkbenchNavigation
-                workspaceId={pipeline.workspaceId}
-                pipelineId={pipeline.id}
                 namespaceTree={namespaceTree}
                 indent={0}
               />

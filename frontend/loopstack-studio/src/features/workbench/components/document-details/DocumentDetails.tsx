@@ -4,9 +4,9 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger
-} from '../../../../../components/ui/accordion';
-import { Badge } from '../../../../../components/ui/badge';
-import { Card, CardContent } from '../../../../../components/ui/card';
+} from '../../../../components/ui/accordion.tsx';
+import { Badge } from '../../../../components/ui/badge.tsx';
+import { Card, CardContent } from '../../../../components/ui/card.tsx';
 import { Tag, FileText, Code } from 'lucide-react';
 
 interface DocumentMeta {

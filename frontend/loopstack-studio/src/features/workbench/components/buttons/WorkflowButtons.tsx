@@ -1,11 +1,11 @@
 import React from 'react';
-import { Button } from '../../../../../components/ui/button';
+import { Button } from '../../../../components/ui/button.tsx';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger
-} from '../../../../../components/ui/tooltip';
+} from '../../../../components/ui/tooltip.tsx';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,13 +16,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger
-} from '../../../../../components/ui/alert-dialog';
+} from '../../../../components/ui/alert-dialog.tsx';
 import { Trash2, LockOpen } from 'lucide-react';
-import { useDeleteWorkflow } from '../../../../../hooks/useWorkflows.ts';
-import { useRunPipeline } from '../../../../../hooks/useProcessor.ts';
+import { useDeleteWorkflow } from '../../../../hooks/useWorkflows.ts';
+import { useRunPipeline } from '../../../../hooks/useProcessor.ts';
 import type { PipelineDto, WorkflowDto } from '@loopstack/api-client';
 import type { WorkflowTransitionType } from '@loopstack/shared';
-import { useStudio } from '../../../../../providers/StudioProvider.tsx';
+import { useStudio } from '../../../../providers/StudioProvider.tsx';
 
 const WorkflowButtons: React.FC<{
   pipeline: PipelineDto;

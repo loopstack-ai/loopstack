@@ -3,7 +3,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import { cn } from '../../utils/utils.ts';
+import { cn } from '../../lib/utils.ts';
 import MermaidDiagram from './MermaidDiagram.tsx';
 import 'katex/dist/katex.min.css';
 import './markdown.css';

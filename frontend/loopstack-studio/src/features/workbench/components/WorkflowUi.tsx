@@ -5,8 +5,8 @@ import type {
   TransitionPayloadInterface,
   UIFormButtonType
 } from '@loopstack/shared';
-import { ChatInput } from '../../../../components/dynamic-form/ChatInput.tsx';
-import { useRunPipeline } from '../../../../hooks/useProcessor.ts';
+import { ChatInput } from '../../../components/dynamic-form/ChatInput.tsx';
+import { useRunPipeline } from '../../../hooks/useProcessor.ts';
 
 interface WorkflowUiProps {
   workflow: WorkflowDto;

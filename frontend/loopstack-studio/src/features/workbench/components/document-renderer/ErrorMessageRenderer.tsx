@@ -1,6 +1,6 @@
 import React from 'react';
-import CompletionMessagePaper from '../../../../../components/messages/CompletionMessagePaper.tsx';
-import { Alert, AlertDescription } from '../../../../../components/ui/alert';
+import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
+import { Alert, AlertDescription } from '../../../../components/ui/alert.tsx';
 
 interface ErrorMessageRendererProps {
   document: any; //TODO: Define a more specific type for document

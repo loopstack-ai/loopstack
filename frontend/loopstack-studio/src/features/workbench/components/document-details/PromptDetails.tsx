@@ -4,9 +4,9 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger
-} from '../../../../../components/ui/accordion';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../../components/ui/card';
-import CompletionMessagePaper from '../../../../../components/messages/CompletionMessagePaper.tsx';
+} from '../../../../components/ui/accordion.tsx';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card.tsx';
+import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
 
 interface PromptData {
   cache: any;

@@ -1,20 +1,20 @@
 import React, { useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import WorkbenchNavigationWorkflowItem from './WorkbenchNavigationWorkflowItem.tsx';
+import NavigationItem from './components/NavigationItem.tsx';
 import type { WorkflowItemDto } from '@loopstack/api-client';
-import type { NamespaceTree } from '../../../hooks/useNamespaceTree.ts';
-import { useFetchWorkflowsByNamespace } from '../../../hooks/useWorkflows.ts';
-import { SidebarMenuSubItem } from '../../../components/ui/sidebar.tsx';
-import { Skeleton } from '../../../components/ui/skeleton.tsx';
-import { WorkbenchContext } from './WorkbenchContext.tsx';
-import { useScroll } from '../providers/ScrollProvider.tsx';
-import { useStudio } from '../../../providers/StudioProvider.tsx';
+import type { NamespaceTree } from '../../hooks/useNamespaceTree.ts';
+import { useFetchWorkflowsByNamespace } from '../../hooks/useWorkflows.ts';
+import { SidebarMenuSubItem } from '../../components/ui/sidebar.tsx';
+import { Skeleton } from '../../components/ui/skeleton.tsx';
+import { WorkbenchContextProvider } from './providers/WorkbenchContextProvider.tsx';
+import { useScroll } from './providers/ScrollProvider.tsx';
+import { useStudio } from '../../providers/StudioProvider.tsx';
 
 interface WorkbenchNavigationWorkflowsProps {
   namespace: NamespaceTree;
 }
 
-const WorkbenchNavigationWorkflows: React.FC<WorkbenchNavigationWorkflowsProps> = ({
+const NavigationItems: React.FC<WorkbenchNavigationWorkflowsProps> = ({
   namespace
 }) => {
   const { router } = useStudio();
@@ -25,7 +25,7 @@ const WorkbenchNavigationWorkflows: React.FC<WorkbenchNavigationWorkflowsProps> 
     clickId: string;
   }>();
 
-  const workbenchContext = useContext(WorkbenchContext);
+  const workbenchContext = useContext(WorkbenchContextProvider);
 
   const fetchWorkflows = useFetchWorkflowsByNamespace(namespace.id);
 
@@ -71,7 +71,7 @@ const WorkbenchNavigationWorkflows: React.FC<WorkbenchNavigationWorkflowsProps> 
     <>
       {fetchWorkflows.data.map((item: WorkflowItemDto) => (
         <SidebarMenuSubItem key={`wf-${item.id}`}>
-          <WorkbenchNavigationWorkflowItem
+          <NavigationItem
             workflow={item}
             isSelected={workbenchContext?.state.activeSectionId?.endsWith(item.id) ?? false}
             navigateTo={handleNavigateTo}
@@ -82,4 +82,4 @@ const WorkbenchNavigationWorkflows: React.FC<WorkbenchNavigationWorkflowsProps> 
   );
 };
 
-export default WorkbenchNavigationWorkflows;
+export default NavigationItems;

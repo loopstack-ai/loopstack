@@ -1,8 +1,8 @@
 import React from 'react';
 import type { TransitionPayloadInterface, WorkflowTransitionType } from '@loopstack/shared';
-import { useRunPipeline } from '../../../../../hooks/useProcessor.ts';
+import { useRunPipeline } from '../../../../hooks/useProcessor.ts';
 import type { DocumentItemDto, PipelineDto, WorkflowDto } from '@loopstack/api-client';
-import Form from '../../../../../components/dynamic-form/Form';
+import Form from '../../../../components/dynamic-form/Form.tsx';
 
 interface DocumentFormRendererProps {
   pipeline: PipelineDto;

@@ -27,6 +27,9 @@
     /* Path aliases */
     "baseUrl": ".",
     "paths": {
+      "@/*": [
+        "./src/*"
+      ],
       "@loopstack/shared": ["packages/shared/src"],
       "@loopstack/api-client": ["frontend/api-client"]
     },

@@ -1,14 +1,14 @@
 import React from 'react';
-import { Button } from '../../../../../components/ui/button';
+import { Button } from '../../../../components/ui/button.tsx';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger
-} from '../../../../../components/ui/tooltip';
+} from '../../../../components/ui/tooltip.tsx';
 import type { PipelineDto } from '@loopstack/api-client';
 import { Hammer } from 'lucide-react';
-import { useRunPipeline } from '../../../../../hooks/useProcessor.ts';
+import { useRunPipeline } from '../../../../hooks/useProcessor.ts';
 
 interface PipelineButtonsProps {
   pipeline: PipelineDto;

@@ -9,4 +9,4 @@ export type WorkbenchContextType = {
   setActiveSectionId: (id: string | null) => void;
 } | null;
 
-export const WorkbenchContext = createContext<WorkbenchContextType>(null);
+export const WorkbenchContextProvider = createContext<WorkbenchContextType>(null);

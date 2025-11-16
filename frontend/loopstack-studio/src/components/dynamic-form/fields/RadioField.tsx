@@ -2,7 +2,7 @@ import React from 'react';
 import { Controller } from 'react-hook-form';
 import { Label } from '../../ui/label';
 import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
-import { cn } from '../../../utils/utils.ts';
+import { cn } from '../../../lib/utils.ts';
 import type { FieldProps } from '../types.ts';
 
 export interface RadioFieldSchema {

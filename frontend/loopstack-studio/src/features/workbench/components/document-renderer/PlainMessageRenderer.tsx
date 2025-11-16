@@ -1,5 +1,5 @@
 import React from 'react';
-import CompletionMessagePaper from '../../../../../components/messages/CompletionMessagePaper.tsx';
+import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
 
 interface PlainMessageRendererProps {
   document: any; //TODO: Define a more specific type for document

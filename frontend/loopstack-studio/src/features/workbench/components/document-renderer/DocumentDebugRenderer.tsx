@@ -3,7 +3,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger
-} from '../../../../../components/ui/collapsible';
+} from '../../../../components/ui/collapsible.tsx';
 import { ChevronDown } from 'lucide-react';
 
 interface DocumentDebugRendererProps {

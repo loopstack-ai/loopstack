@@ -1,12 +1,10 @@
 import React from 'react';
 import { RectangleHorizontal } from 'lucide-react';
-import { SidebarMenuDiv, SidebarMenuItem, SidebarMenuSub } from '../../../components/ui/sidebar.tsx';
-import type { NamespaceTree } from '../../../hooks/useNamespaceTree.ts';
-import WorkbenchNavigationWorkflows from './WorkbenchNavigationWorkflows.tsx';
+import { SidebarMenuDiv, SidebarMenuItem, SidebarMenuSub } from '../../components/ui/sidebar.tsx';
+import type { NamespaceTree } from '../../hooks/useNamespaceTree.ts';
+import NavigationItems from './NavigationItems.tsx';
 
 interface WorkbenchNavigationProps {
-  workspaceId: string;
-  pipelineId: string;
   namespaceTree: NamespaceTree[];
   indent: number;
 }
@@ -27,7 +25,7 @@ const WorkbenchNavigation: React.FC<WorkbenchNavigationProps> = ({ namespaceTree
           </SidebarMenuDiv>
 
           <SidebarMenuSub style={{ marginLeft: `${depth * 16 + 8}px` }}>
-            <WorkbenchNavigationWorkflows namespace={item} />
+            <NavigationItems namespace={item} />
           </SidebarMenuSub>
         </SidebarMenuItem>
 

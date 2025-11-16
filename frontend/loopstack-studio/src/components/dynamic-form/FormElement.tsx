@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../../utils/utils.ts';
+import { cn } from '../../lib/utils.ts';
 import { FormElementHeader } from './FormElementHeader.tsx';
 import { ObjectController } from './ObjectController.tsx';
 import { ArrayController } from './ArrayController.tsx';

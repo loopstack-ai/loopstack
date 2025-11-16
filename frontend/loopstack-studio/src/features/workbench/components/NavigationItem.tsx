@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { WorkflowItemDto } from '@loopstack/api-client';
 import { File, Play, CheckCircle } from 'lucide-react';
-import { cn } from '../../../utils/utils.ts';
+import { cn } from '../../../lib/utils.ts';
 
 interface WorkbenchNavigationWorkflowItemProps {
   workflow: WorkflowItemDto;
@@ -9,7 +9,7 @@ interface WorkbenchNavigationWorkflowItemProps {
   navigateTo: (workflowId: string) => void;
 }
 
-export const WorkbenchNavigationWorkflowItem: React.FC<WorkbenchNavigationWorkflowItemProps> = ({
+export const NavigationItem: React.FC<WorkbenchNavigationWorkflowItemProps> = ({
   workflow,
   isSelected,
   navigateTo
@@ -85,4 +85,4 @@ export const WorkbenchNavigationWorkflowItem: React.FC<WorkbenchNavigationWorkfl
   );
 };
 
-export default WorkbenchNavigationWorkflowItem;
+export default NavigationItem;

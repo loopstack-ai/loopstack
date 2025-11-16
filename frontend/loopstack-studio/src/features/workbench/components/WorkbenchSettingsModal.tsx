@@ -9,7 +9,7 @@ import { Settings } from 'lucide-react';
 import { Button } from '../../../components/ui/button.tsx';
 import { Switch } from '../../../components/ui/switch.tsx';
 import { Label } from '../../../components/ui/label.tsx';
-import type { WorkbenchSettingsInterface } from './WorkbenchMainContainer.tsx';
+import type { WorkbenchSettingsInterface } from '../WorkflowList.tsx';
 
 interface WorkbenchSettingsModalProps {
   settings: WorkbenchSettingsInterface;

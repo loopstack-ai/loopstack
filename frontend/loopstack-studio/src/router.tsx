@@ -11,9 +11,9 @@ import { StudioProvider } from './providers/StudioProvider.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import LocalHealthCheck from './features/health/LocalHealthCheck.tsx';
 import DebugPage from './pages/DebugPage.tsx';
-import Workbench from './features/workbench/Workbench.tsx';
 import { SseProvider } from './providers/SseProvider.tsx';
 import WorkspacesPage from './pages/WorkspacesPage.tsx';
+import WorkbenchPage from '@/pages/WorkbenchPage.tsx';
 
 function AppRoot() {
   const router = useRouter(config.environment.id);
@@ -54,15 +54,15 @@ const router = createBrowserRouter([
       },
       {
         path: 'pipelines/:pipelineId',
-        element: <Workbench />
+        element: <WorkbenchPage />
       },
       {
         path: 'pipelines/:pipelineId/workflows/:workflowId/:clickId?',
-        element: <Workbench />
+        element: <WorkbenchPage />
       },
       {
         path: 'pipelines/:pipelineId/namespaces/:namespaceId/w/:workflowId',
-        element: <Workbench />
+        element: <WorkbenchPage />
       }
     ]
   }

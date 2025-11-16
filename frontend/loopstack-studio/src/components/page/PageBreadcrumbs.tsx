@@ -6,7 +6,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator
 } from '../ui/breadcrumb';
-import { cn } from '../../utils/utils.ts';
+import { cn } from '../../lib/utils.ts';
 import { ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 

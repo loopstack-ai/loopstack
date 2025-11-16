@@ -1,5 +1,5 @@
 import React from 'react';
-import CompletionMessagePaper from '../../../../../components/messages/CompletionMessagePaper.tsx';
+import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
 import type { DocumentItemDto } from '@loopstack/api-client';
 import type { ModelMessage } from 'ai';
 import MessageContentRenderer from './AiMessageContent.tsx';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import { cn } from '../utils/utils.ts';
+import { cn } from '../lib/utils.ts';
 
 interface LoadingCenteredProps extends React.HTMLAttributes<HTMLDivElement> {
   loading?: boolean;

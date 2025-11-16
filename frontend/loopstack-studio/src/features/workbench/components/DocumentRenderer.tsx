@@ -1,25 +1,28 @@
 import React from 'react';
 import type { DocumentItemDto, PipelineDto, WorkflowItemDto } from '@loopstack/api-client';
-import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
-import DocumentDebugRenderer from './DocumentRenderer/DocumentDebugRenderer.tsx';
-import DocumentFormRenderer from './DocumentRenderer/DocumentFormRenderer.tsx';
-import DocumentMessageRenderer from './DocumentRenderer/DocumentMessageRenderer.tsx';
-import ErrorMessageRenderer from './DocumentRenderer/ErrorMessageRenderer.tsx';
-import PlainMessageRenderer from './DocumentRenderer/PlainMessageRenderer.tsx';
-import MarkdownMessageRenderer from './DocumentRenderer/MarkdownMessageRenderer.tsx';
+import CompletionMessagePaper from '../../../components/messages/CompletionMessagePaper.tsx';
+import DocumentDebugRenderer from './document-renderer/DocumentDebugRenderer.tsx';
+import DocumentFormRenderer from './document-renderer/DocumentFormRenderer.tsx';
+import DocumentMessageRenderer from './document-renderer/DocumentMessageRenderer.tsx';
+import ErrorMessageRenderer from './document-renderer/ErrorMessageRenderer.tsx';
+import PlainMessageRenderer from './document-renderer/PlainMessageRenderer.tsx';
+import MarkdownMessageRenderer from './document-renderer/MarkdownMessageRenderer.tsx';
+import AiMessage from '@/features/workbench/components/document-renderer/AiMessage.tsx';
 
 interface DocumentRendererProps {
   pipeline: PipelineDto;
   workflow: WorkflowItemDto;
   document: DocumentItemDto;
   isActive: boolean;
+  isLastItem: boolean;
 }
 
 const DocumentRenderer: React.FC<DocumentRendererProps> = ({
   pipeline,
   workflow,
   document,
-  isActive
+  isActive,
+  isLastItem,
 }) => {
   const viewOnly = !isActive;
 
@@ -28,6 +31,8 @@ const DocumentRenderer: React.FC<DocumentRendererProps> = ({
 
   const render = () => {
     switch (widget) {
+      case 'ai-message':
+        return <AiMessage document={document} isLastMessage={isLastItem} />
       case 'debug':
         return (
           <div className="flex mb-4">
