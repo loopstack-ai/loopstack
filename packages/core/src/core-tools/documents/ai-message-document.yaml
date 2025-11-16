@@ -1,0 +1,14 @@
+tags:
+  - message
+schema:
+  type: object
+  properties:
+    role:
+      type: string
+    content:
+      type: any
+#      additionalProperties: false
+ui:
+  widget: ai-message
+meta:
+  invalidate: false

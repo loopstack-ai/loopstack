@@ -25,6 +25,7 @@ import { MockService } from './services/mock.service';
 import { CommonModule } from '../common';
 import { WorkflowProcessorModule } from '../workflow-processor';
 import { PersistenceModule } from '../persistence';
+import { AiMessageDocument } from './documents/ai-message-document';
 
 @Module({
   imports: [CommonModule, PersistenceModule, WorkflowProcessorModule],
@@ -52,6 +53,8 @@ import { PersistenceModule } from '../persistence';
     ErrorMessageDocument,
     MarkdownMessageDocument,
     PlainMessageDocument,
+
+    AiMessageDocument,
   ],
   exports: [
     CoreToolsFactoryService,
