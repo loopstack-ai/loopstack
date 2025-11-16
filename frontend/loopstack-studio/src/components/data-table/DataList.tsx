@@ -169,8 +169,8 @@ export function DataList<T extends { id: string }>({
             {data.length === 0 ? (
               <span>No items found</span>
             ) : (
-              data.map((item) => (
-                <div className="flex items-center">
+              data.map((item, index) => (
+                <div key={`data-list-item-${index}`} className="flex items-center">
                   {enableBatchActions && (
                     <div
                       className="pr-4 flex items-center justify-center"
