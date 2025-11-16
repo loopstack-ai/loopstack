@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
 import { useRouter } from './routing/LocalRouter.tsx';
@@ -36,6 +36,10 @@ const router = createBrowserRouter([
     path: '/',
     element: <AppRoot />,
     children: [
+      {
+        index: true,
+        element: <Navigate to="/dashboard" replace />
+      },
       {
         path: 'info',
         element: <DebugPage />
