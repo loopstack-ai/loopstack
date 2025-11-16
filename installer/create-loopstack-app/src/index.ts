@@ -100,8 +100,9 @@ execSync(`git commit -m "Initial commit"`, { stdio: "inherit" });
 
 console.log("\n🎉 Loopstack project created successfully!\n");
 
-console.log("\n👉 Configure and manage your environment at:");
-console.log("   → https://app.loopstack.ai");
-console.log("     and follow the setup guide.");
+console.log("👉 Next steps to get started:");
+console.log(`   1. cd ${appName}`);
+console.log("   2. docker compose up -d");
+console.log("   3. npm run start:dev");
 
 console.log("─".repeat(50));
