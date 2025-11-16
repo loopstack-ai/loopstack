@@ -1,5 +1,17 @@
 # @loopstack/auth
 
+## 0.13.0
+
+### Minor Changes
+
+- 41aabbf: Use local frontend without authentication
+
+### Patch Changes
+
+- Updated dependencies [41aabbf]
+  - @loopstack/core@0.13.0
+  - @loopstack/shared@0.13.0
+
 ## 0.12.2
 
 ### Patch Changes
