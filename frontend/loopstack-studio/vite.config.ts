@@ -4,22 +4,73 @@ import tailwindcss from '@tailwindcss/vite';
 import dts from 'vite-plugin-dts';
 import * as path from 'path';
 
-export default defineConfig({
-  plugins: [
-    react({
-      babel: {
-        plugins: [['babel-plugin-react-compiler']]
+export default defineConfig(({ mode }) => {
+  const isLibrary = mode === 'lib';
+
+  return {
+    plugins: [
+      react({
+        babel: {
+          plugins: [['babel-plugin-react-compiler']]
+        }
+      }),
+      tailwindcss(),
+      ...(isLibrary
+        ? [
+            dts({
+              insertTypesEntry: true,
+              include: ['src']
+            })
+          ]
+        : [])
+    ],
+    build: isLibrary
+      ? {
+          lib: {
+            entry: path.resolve(__dirname, 'src/index.ts'),
+            formats: ['es']
+          },
+          rollupOptions: {
+            external: [
+              'react',
+              'react-dom',
+              'react/jsx-runtime',
+              'react/compiler-runtime',
+              '@loopstack/api-client',
+              '@loopstack/shared',
+              /^@radix-ui\/.*/,
+              /^@tanstack\/.*/,
+              /^react-/,
+              /^lucide-react/,
+              'axios',
+              'lodash',
+              'zod',
+              'sonner',
+              'date-fns',
+              'clsx',
+              'tailwind-merge',
+              'class-variance-authority'
+            ],
+            output: {
+              format: 'es',
+              preserveModules: true,
+              preserveModulesRoot: 'src',
+              entryFileNames: '[name].js'
+            }
+          }
+        }
+      : {
+          outDir: 'dist',
+          rollupOptions: {
+            input: {
+              main: path.resolve(__dirname, 'index.html')
+            }
+          }
+        },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src')
       }
-    }),
-    tailwindcss(),
-    dts({
-      insertTypesEntry: true,
-      include: ['src']
-    })
-  ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
+    }
+  };
 });

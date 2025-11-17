@@ -3,18 +3,25 @@
   "private": true,
   "version": "0.14.1",
   "type": "module",
-  "main": "./src/main.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./types": "./src/types/index.ts",
-    "./app": "./src/app/index.ts",
-    "./providers": "./src/providers/StudioProvider.tsx",
-    "./routing/LocalRouter": "./src/routing/LocalRouter.tsx",
-    "./services/LocalEnvironmentService": "./src/services/LocalEnvironmentService.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
+    "build:lib": "tsc -b && vite build --mode lib",
     "lint": "eslint .",
     "preview": "vite preview",
     "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
