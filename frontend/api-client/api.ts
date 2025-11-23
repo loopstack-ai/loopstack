@@ -140,7 +140,7 @@ export interface DocumentDto {
      */
     'content': object;
     /**
-     * The json schema for document validation
+     * The json schema for form validation
      * @type {object}
      * @memberof DocumentDto
      */
@@ -292,7 +292,7 @@ export interface DocumentItemDto {
      */
     'content': object;
     /**
-     * The json schema for document validation
+     * The json schema for form validation
      * @type {object}
      * @memberof DocumentItemDto
      */
@@ -416,13 +416,13 @@ export interface DocumentSortByDto {
 
 export const DocumentSortByDtoFieldEnum = {
     Id: 'id',
-    Name: 'name',
+    MessageId: 'messageId',
     ConfigKey: 'configKey',
     WorkspaceId: 'workspaceId',
     PipelineId: 'pipelineId',
     Content: 'content',
     Schema: 'schema',
-    ValidationError: 'validationError',
+    Error: 'error',
     Ui: 'ui',
     Tags: 'tags',
     Meta: 'meta',
@@ -466,6 +466,25 @@ export interface HubLoginRequestDto {
      * @memberof HubLoginRequestDto
      */
     'grantType': string;
+}
+/**
+ * 
+ * @export
+ * @interface HubLoginResponseDto
+ */
+export interface HubLoginResponseDto {
+    /**
+     * The logged in user id
+     * @type {string}
+     * @memberof HubLoginResponseDto
+     */
+    'id': string;
+    /**
+     * A message
+     * @type {string}
+     * @memberof HubLoginResponseDto
+     */
+    'message': string;
 }
 /**
  * 
@@ -680,6 +699,24 @@ export interface PipelineConfigDto {
      * @memberof PipelineConfigDto
      */
     'title'?: string;
+    /**
+     * The description of the pipeline type
+     * @type {string}
+     * @memberof PipelineConfigDto
+     */
+    'description'?: string;
+    /**
+     * The json schema for form validation
+     * @type {object}
+     * @memberof PipelineConfigDto
+     */
+    'schema'?: object;
+    /**
+     * The ui config for interface rendering
+     * @type {object}
+     * @memberof PipelineConfigDto
+     */
+    'ui'?: object;
 }
 /**
  * 
@@ -793,6 +830,18 @@ export interface PipelineCreateDto {
      * @memberof PipelineCreateDto
      */
     'workspaceId': string;
+    /**
+     * Start transition for the run
+     * @type {object}
+     * @memberof PipelineCreateDto
+     */
+    'transition'?: object | null;
+    /**
+     * Arguments for the pipeline run
+     * @type {{ [key: string]: any; }}
+     * @memberof PipelineCreateDto
+     */
+    'args'?: { [key: string]: any; } | null;
 }
 /**
  * 
@@ -848,6 +897,18 @@ export interface PipelineDto {
      * @memberof PipelineDto
      */
     'context': object;
+    /**
+     * The json schema for form validation
+     * @type {object}
+     * @memberof PipelineDto
+     */
+    'schema': object;
+    /**
+     * The ui config for interface rendering
+     * @type {object}
+     * @memberof PipelineDto
+     */
+    'ui': object;
     /**
      * Timestamp when the pipeline was created
      * @type {string}
@@ -981,6 +1042,9 @@ export const PipelineSortByDtoFieldEnum = {
     Status: 'status',
     Args: 'args',
     Context: 'context',
+    Schema: 'schema',
+    Error: 'error',
+    Ui: 'ui',
     CreatedAt: 'createdAt',
     UpdatedAt: 'updatedAt',
     WorkspaceId: 'workspaceId',
@@ -1180,6 +1244,12 @@ export interface WorkflowDto {
      */
     'history'?: object | null;
     /**
+     * The json schema for form validation
+     * @type {object}
+     * @memberof WorkflowDto
+     */
+    'schema': object;
+    /**
      * Ui schema config for the workflow
      * @type {{ [key: string]: any; }}
      * @memberof WorkflowDto
@@ -1366,6 +1436,8 @@ export const WorkflowSortByDtoFieldEnum = {
     InputData: 'inputData',
     AvailableTransitions: 'availableTransitions',
     History: 'history',
+    Schema: 'schema',
+    Error: 'error',
     Ui: 'ui',
     NamespaceId: 'namespaceId',
     PipelineId: 'pipelineId',
