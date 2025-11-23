@@ -1,14 +1,7 @@
 tags:
   - message
-schema:
-  type: object
-  properties:
-    role:
-      type: string
-    content:
-      type: any
-#      additionalProperties: false
 ui:
-  widget: ai-message
+  form:
+    widget: ai-message
 meta:
-  invalidate: false
+  invalidate: true

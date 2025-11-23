@@ -8,7 +8,7 @@ import {
   BlockMetadata,
   BlockOptions,
   getDecoratedProperties,
-  INPUT_METADATA_KEY,
+  INPUT_METADATA_KEY, JSONSchemaConfigType,
   OUTPUT_METADATA_KEY,
 } from '@loopstack/shared';
 import { omit } from 'lodash';
@@ -21,6 +21,7 @@ import {
   Factory,
 } from '../abstract';
 import { ConfigLoaderService } from './config-loader.service';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 export interface BlockRegistryItem {
   name: string;
@@ -110,6 +111,14 @@ export class BlockRegistryService implements OnModuleInit {
 
           const config: BlockConfigType = BlockConfigSchema.parse(baseConfig);
 
+          let parametersSchema: JSONSchemaConfigType | undefined = undefined;
+          if (options.properties) {
+            parametersSchema = zodToJsonSchema(options.properties as any, {
+              name: 'parametersSchema',
+              target: 'jsonSchema7',
+            })?.definitions?.parametersSchema;
+          }
+
           const inputs = getDecoratedProperties(metatype, INPUT_METADATA_KEY);
           const outputs = getDecoratedProperties(metatype, OUTPUT_METADATA_KEY);
 
@@ -118,6 +127,7 @@ export class BlockRegistryService implements OnModuleInit {
             imports: options.imports ?? [],
             inputProperties: inputs,
             outputProperties: outputs,
+            propertiesSchema: parametersSchema,
           } as BlockMetadata;
 
           const registeredBlock: BlockRegistryItem = {

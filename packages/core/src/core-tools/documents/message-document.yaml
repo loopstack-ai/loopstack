@@ -1,14 +1,7 @@
 tags:
   - message
-schema:
-  type: object
-  properties:
-    role:
-      type: string
-    content:
-      type: any
-#      additionalProperties: false
 ui:
-  widget: chat-message
+  form:
+    widget: chat-message
 meta:
   invalidate: false

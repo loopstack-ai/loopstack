@@ -1,13 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  HandlerCallResult,
   DocumentEntity,
   TemplateExpression,
-  MimeTypeSchema,
   DocumentSchema,
-  UISchema,
-  JSONSchemaType,
-  DocumentConfigType,
+  DocumentConfigType, DocumentConfigSchema,
 } from '@loopstack/shared';
 import { DocumentType } from '@loopstack/shared';
 import { z } from 'zod';
@@ -21,38 +17,17 @@ import {
 } from '../../workflow-processor';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { plainToInstance } from 'class-transformer';
+import { randomUUID } from 'node:crypto';
 
 export const CreateDocumentInputSchema = z
   .object({
+    id: z.string().optional(),
     document: z.string(),
     validate: z
       .union([z.literal('strict'), z.literal('safe'), z.literal('skip')])
       .default('strict')
       .optional(),
-    update: z
-      .object({
-        content: z.any(),
-        schema: JSONSchemaType.optional(),
-        ui: UISchema.optional(),
-        tags: z.array(z.string()).optional(),
-        meta: z
-          .object({
-            mimeType: MimeTypeSchema.optional(),
-            invalidate: z.boolean().optional(),
-            level: z
-              .union([
-                z.literal('debug'),
-                z.literal('info'),
-                z.literal('warning'),
-                z.literal('error'),
-              ])
-              .optional(),
-            enableAtPlaces: z.array(z.string()).optional(),
-            hideAtPlaces: z.array(z.string()).optional(),
-          })
-          .optional(),
-      })
-      .optional(),
+    update: DocumentSchema.optional(),
   })
   .strict();
 
@@ -60,6 +35,7 @@ export type CreateDocumentInput = z.infer<typeof CreateDocumentInputSchema>;
 
 export const CreateDocumentConfigSchema = z
   .object({
+    id: z.union([TemplateExpression, z.string()]).optional(),
     document: z.string(),
     validate: z
       .union([
@@ -69,31 +45,7 @@ export const CreateDocumentConfigSchema = z
         z.literal('skip'),
       ])
       .optional(),
-    update: z
-      .object({
-        content: z.any(),
-        ui: z.union([UISchema, TemplateExpression]).optional(),
-        schema: z.union([JSONSchemaType, TemplateExpression]).optional(),
-        tags: z.array(z.string()).optional(),
-        meta: z
-          .object({
-            mimeType: z.union([MimeTypeSchema, TemplateExpression]).optional(),
-            invalidate: z.union([z.boolean(), TemplateExpression]).optional(),
-            level: z
-              .union([
-                TemplateExpression,
-                z.literal('debug'),
-                z.literal('info'),
-                z.literal('warning'),
-                z.literal('error'),
-              ])
-              .optional(),
-            enableAtPlaces: z.array(z.string()).optional(),
-            hideAtPlaces: z.array(z.string()).optional(),
-          })
-          .optional(),
-      })
-      .optional(),
+    update: DocumentConfigSchema.optional(),
   })
   .strict();
 
@@ -122,6 +74,8 @@ export class CreateDocumentService {
       // merge the custom properties
       const mergedTemplateData = merge({}, config, args.update ?? {});
 
+      console.log('mergedTemplateData config', config)
+
       // create the document skeleton without content property
       const documentSkeleton =
         this.templateExpressionEvaluatorService.evaluateTemplate<
@@ -138,13 +92,10 @@ export class CreateDocumentService {
         throw Error(`Document creates with content no schema defined.`);
       }
 
-      let schema = mergedTemplateData.schema;
-      if (!schema) {
-        schema = zodToJsonSchema(inputSchema as any, {
-          name: 'documentSchema',
-          target: 'jsonSchema7',
-        })?.definitions?.documentSchema;
-      }
+      const jsonSchema = zodToJsonSchema(inputSchema as any, {
+        name: 'documentSchema',
+        target: 'jsonSchema7',
+      })?.definitions?.documentSchema;
 
       // evaluate document content
       const parsedDocumentContent =
@@ -158,11 +109,18 @@ export class CreateDocumentService {
         excludeExtraneousValues: true,
       });
 
+      const messageId = args.id ? this.templateExpressionEvaluatorService.evaluateTemplate<any>(
+        args.id,
+        tool,
+        ['document'],
+        z.string(),
+      ) : undefined;
+
       // merge document skeleton with content data
       const documentData: Partial<DocumentEntity> = {
         ...documentSkeleton,
-        schema,
-        name: blockRegistryItem.name,
+        schema: jsonSchema,
+        messageId: messageId || randomUUID(),
         content: documentContent,
         configKey: blockRegistryItem.name,
       };
@@ -178,14 +136,14 @@ export class CreateDocumentService {
             );
           }
 
-          documentData.validationError = result.error;
+          documentData.error = result.error;
         }
       }
 
       // create the document entity
       const documentEntity = this.documentService.create(tool, documentData);
 
-      this.logger.debug(`Created document "${documentData.name}".`);
+      this.logger.debug(`Created document "${documentData.messageId}".`);
 
       return documentEntity;
     } catch (e) {

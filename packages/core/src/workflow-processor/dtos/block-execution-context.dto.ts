@@ -34,6 +34,12 @@ abstract class BlockExecutionContextDto {
   }
 }
 
+export class RootExecutionContextDto extends BlockExecutionContextDto {
+  constructor(data: RootExecutionContextDto) {
+    super(data);
+  }
+}
+
 export class PipelineExecutionContextDto extends BlockExecutionContextDto {
   constructor(data: PipelineExecutionContextDto) {
     super(data);

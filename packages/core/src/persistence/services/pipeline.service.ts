@@ -30,14 +30,14 @@ export class PipelineService {
   }
 
   async createPipeline(
-    options: Partial<PipelineEntity>,
+    data: Partial<PipelineEntity>,
     workspace: WorkspaceEntity,
     user: string,
   ) {
     const lastRunNumber = await this.getMaxRun(user, workspace.id);
 
     const pipeline = this.entityRepository.create({
-      ...options,
+      ...data,
       run: lastRunNumber + 1,
       createdBy: user,
       workspace,

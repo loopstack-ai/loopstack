@@ -35,7 +35,6 @@ export class DocumentSubscriber
         userId: event.entity.createdBy,
         workflowId: event.entity.workflowId,
         workerId: this.clientId,
-        data: event.entity,
       }),
     );
   }

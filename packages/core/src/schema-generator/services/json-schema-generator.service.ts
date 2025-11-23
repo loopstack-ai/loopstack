@@ -6,7 +6,7 @@ import { writeFileSync } from 'fs';
 // import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
 import { BlockConfigSchema } from '@loopstack/shared';
 
-const SCHEMA_PATH = './src/generated/main.schema.json';
+const SCHEMA_PATH = './schema.json';
 
 @Injectable()
 export class JsonSchemaGeneratorService {

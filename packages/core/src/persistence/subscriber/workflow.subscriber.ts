@@ -37,7 +37,6 @@ export class WorkflowSubscriber
         namespaceId: event.entity.namespaceId,
         pipelineId: event.entity.pipelineId,
         workerId: this.clientId,
-        data: event.entity,
       }),
     );
   }
@@ -51,15 +50,6 @@ export class WorkflowSubscriber
         namespaceId: event.databaseEntity.namespaceId,
         pipelineId: event.databaseEntity.pipelineId,
         workerId: this.clientId,
-        data: event.entity
-          ? {
-              ...event.databaseEntity,
-              ...event.updatedColumns.reduce((acc, column) => {
-                acc[column.propertyName] = column.getEntityValue(event.entity!);
-                return acc;
-              }, {}),
-            }
-          : event.databaseEntity,
       }),
     );
   }

@@ -81,7 +81,7 @@ export class WorkflowStateDto implements BlockStateInterface {
   addDocument(document: DocumentEntity) {
     // invalidate previous versions of the same document
     for (const doc of this.documents) {
-      if (doc.name === document.name && doc.meta?.invalidate !== false) {
+      if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
         doc.isInvalidated = true;
       }
     }

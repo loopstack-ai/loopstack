@@ -5,7 +5,7 @@ import {
   CreateDocumentConfigSchema,
   CreateDocumentInputSchema,
   CreateDocumentService,
-} from '../services/create-document.service';
+} from '../services';
 
 @BlockConfig({
   config: {

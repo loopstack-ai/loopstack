@@ -1,13 +1,6 @@
 ui:
-  widget: markdown-message
-schema:
-  type: object
-  properties:
-    title:
-      type: string
-    markdown:
-      type: string
-  additionalProperties: false
+  form:
+    widget: markdown-message
 meta:
   invalidate: false
 content:

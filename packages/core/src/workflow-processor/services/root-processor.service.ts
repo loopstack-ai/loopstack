@@ -5,7 +5,7 @@ import { BlockRegistryService } from './block-registry.service';
 import { BlockProcessor } from './block-processor.service';
 import { ProcessorFactory } from './processor.factory';
 import { BlockFactory } from './block.factory';
-import { WorkspaceExecutionContextDto } from '../dtos';
+import { RootExecutionContextDto } from '../dtos';
 import { NamespacesService, PipelineService } from '../../persistence';
 
 @Injectable()
@@ -25,22 +25,22 @@ export class RootProcessorService {
     pipeline: PipelineEntity,
     payload: any,
     args?: any,
-  ): Promise<Workspace> {
+  ): Promise<any> {
     const namespace =
       await this.namespacesService.createRootNamespace(pipeline);
 
     this.logger.debug(`Running Root Pipeline: ${pipeline.configKey}`);
 
     const blockRegistryItem = this.blockRegistryService.getBlock(
-      pipeline.workspace.configKey,
+      pipeline.configKey,
     );
     if (!blockRegistryItem) {
       throw new Error(
-        `Config for workspace ${pipeline.workspace.configKey} not found.`,
+        `Config for pipeline ${pipeline.configKey} not found.`,
       );
     }
 
-    const ctx = new WorkspaceExecutionContextDto({
+    const ctx = new RootExecutionContextDto({
       root: pipeline.configKey,
       index: pipeline.index,
       userId: pipeline.createdBy,
@@ -51,12 +51,9 @@ export class RootProcessorService {
       payload: payload,
     });
 
-    const block = await this.blockFactory.createBlock<
-      Workspace,
-      WorkspaceExecutionContextDto
-    >(pipeline.workspace.configKey, args, ctx);
+    const block = await this.blockFactory.createBlock(pipeline.configKey, args, ctx);
 
-    return this.blockProcessor.processBlock<Workspace>(
+    return this.blockProcessor.processBlock(
       block,
       this.processorFactory,
     );
@@ -71,7 +68,6 @@ export class RootProcessorService {
       PipelineState.Running,
     );
 
-    console.log('pipeline.args', pipeline.args)
     const block = await this.processRootPipeline(pipeline, payload, pipeline.args);
 
     const status = block.state?.error

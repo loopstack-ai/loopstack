@@ -1,12 +1,7 @@
 tags:
   - error
-schema:
-  type: object
-  properties:
-    message:
-      type: string
-  additionalProperties: false
 ui:
-  widget: error-message
+  form:
+    widget: error-message
 meta:
   invalidate: false

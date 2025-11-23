@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DocumentConfigType, DocumentEntity, DocumentSchema, HandlerCallResult } from '@loopstack/shared';
+import { DocumentConfigType, DocumentEntity, DocumentSchema } from '@loopstack/shared';
 import { DocumentService } from '../../persistence';
 import {
   BlockRegistryService, ConfigTraceError,
@@ -8,6 +8,9 @@ import {
   Tool,
 } from '../../workflow-processor';
 import { merge, omit } from 'lodash';
+import { z } from 'zod';
+import { randomUUID } from 'node:crypto';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 @Injectable()
 export class BatchCreateDocumentsService {
@@ -52,6 +55,11 @@ export class BatchCreateDocumentsService {
         throw Error(`Document creates with content no schema defined.`);
       }
 
+      const jsonSchema = zodToJsonSchema(inputSchema as any, {
+        name: 'documentSchema',
+        target: 'jsonSchema7',
+      })?.definitions?.documentSchema;
+
       const documents: DocumentEntity[] = [];
       for (let index = 0; index < args.items.length; index++) {
         const itemDocumentData = merge({}, documentSkeleton, {
@@ -66,10 +74,18 @@ export class BatchCreateDocumentsService {
             ['document'],
           );
 
+        const messageId = args.items[index].id ? this.templateExpressionEvaluatorService.evaluateTemplate<any>(
+          args.items[index].id,
+          tool,
+          ['document'],
+          z.string(),
+        ) : undefined;
+
         // merge document skeleton with content data
         const documentData: Partial<DocumentEntity> = {
           ...documentSkeleton,
-          name: blockRegistryItem.name,
+          schema: jsonSchema,
+          messageId: messageId || randomUUID(),
           content: parsedDocumentContent,
           configKey: blockRegistryItem.name,
         };
@@ -85,14 +101,14 @@ export class BatchCreateDocumentsService {
               );
             }
 
-            documentData.validationError = result.error;
+            documentData.error = result.error;
           }
         }
 
         // create the document entity
         const documentEntity = this.documentService.create(tool, documentData);
 
-        this.logger.debug(`Created document "${documentData.name}".`);
+        this.logger.debug(`Created document "${documentData.messageId}".`);
 
         documents.push(documentEntity);
       }

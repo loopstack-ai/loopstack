@@ -1,13 +1,6 @@
 ui:
-  widget: plain-message
-schema:
-  type: object
-  properties:
-    title:
-      type: string
-    content:
-      type: string
-  additionalProperties: false
+  form:
+    widget: plain-message
 meta:
   invalidate: false
 content:
