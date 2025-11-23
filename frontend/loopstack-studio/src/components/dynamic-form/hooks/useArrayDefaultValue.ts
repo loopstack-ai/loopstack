@@ -1,11 +1,15 @@
-import type { JSONSchemaConfigType } from '@loopstack/shared';
+import { type UiPropertiesType } from '@loopstack/shared';
 
 // Get the default value for a new item in the array
-export const useArrayDefaultValue = (schema: JSONSchemaConfigType) => {
-  if (schema.items.type === 'object') {
+export const useArrayDefaultValue = (items: UiPropertiesType | undefined) => {
+  if (!items) {
+    return '';
+  }
+
+  if (items.type === 'object') {
     const defaultObj: Record<string, any> = {};
-    if (schema.items.properties) {
-      Object.entries(schema.items.properties).forEach(([key, prop]: [string, any]) => {
+    if (items.properties) {
+      Object.entries(items.properties).forEach(([key, prop]: [string, any]) => {
         if (prop.default !== undefined) {
           defaultObj[key] = prop.default;
         } else {
@@ -35,13 +39,13 @@ export const useArrayDefaultValue = (schema: JSONSchemaConfigType) => {
     return defaultObj;
   }
 
-  if (schema.items.type === 'array') {
+  if (items.type === 'array') {
     return [];
   }
 
-  if (schema.items.default !== undefined) return schema.items.default;
+  if (items.default !== undefined) return items.default;
 
-  switch (schema.items.type) {
+  switch (items.type) {
     case 'string':
       return '';
     case 'number':

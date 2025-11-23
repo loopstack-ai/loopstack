@@ -1,13 +1,21 @@
-import React from 'react';
-import type { TransitionPayloadInterface, WorkflowTransitionType } from '@loopstack/shared';
-import { useRunPipeline } from '../../../../hooks/useProcessor.ts';
-import type { DocumentItemDto, PipelineDto, WorkflowDto } from '@loopstack/api-client';
-import Form from '../../../../components/dynamic-form/Form.tsx';
+import React, { useEffect } from 'react';
+import {
+  type DocumentItemInterface,
+  type TransitionPayloadInterface, type UiPropertiesType, type UiWidgetType,
+  type WorkflowInterface,
+  type WorkflowTransitionType,
+} from '@loopstack/shared';
+import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import type { PipelineDto } from '@loopstack/api-client';
+import Form from '@/components/dynamic-form/Form.tsx';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import UiActions from '@/components/ui-widgets/UiActions.tsx';
 
 interface DocumentFormRendererProps {
   pipeline: PipelineDto;
-  workflow: WorkflowDto;
-  document: DocumentItemDto;
+  workflow: WorkflowInterface;
+  document: DocumentItemInterface;
   enabled: boolean;
   viewOnly: boolean;
 }
@@ -21,12 +29,32 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
 }) => {
   const runPipeline = useRunPipeline();
 
-  const enabledTransitions = (workflow.availableTransitions as any).map(
-    (transition: WorkflowTransitionType) => transition.id
-  );
+  const form = useForm<Record<string, any>>({
+    defaultValues: document.schema.type === 'object' ? document.content : { raw: document.content },
+    mode: 'onChange'
+  });
 
-  const handleFormSubmit = (payload: any, transition: string) => {
-    if (!enabledTransitions.includes(transition)) {
+  useEffect(() => {
+    if (document.validationError) {
+      const error = document.validationError as z.ZodError;
+      error.issues.forEach((issue) => {
+        const fieldPath = issue.path.join('.');
+        form.setError(fieldPath, {
+          type: issue.code,
+          message: issue.message
+        });
+      });
+    } else {
+      form.clearErrors();
+    }
+  }, [document.validationError, form]);
+
+  const availableTransitions = (workflow.availableTransitions as any)?.map(
+    (transition: WorkflowTransitionType) => transition.id
+  ) ?? [];
+
+  const executePipelineRun = (transition: string, payload: any) => {
+    if (!availableTransitions.includes(transition)) {
       console.error(`Transition ${transition} not available.`);
       return;
     }
@@ -44,15 +72,42 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
     });
   };
 
+  const handleFormSubmit = (transition: string) => (data: Record<string, any>) => {
+    if (document.schema.type === 'object') {
+      executePipelineRun(transition, data);
+    } else {
+      executePipelineRun(transition, data.raw);
+    }
+  }
+
+  const handleSubmit = (transition: string) => {
+    // use data from react-hook-form
+    form.handleSubmit(handleFormSubmit(transition))();
+  };
+
+  const ui = document.ui?.form as UiPropertiesType | undefined;
+  const schema = document.schema;
+  const disabledProps = !enabled || ui?.disabled || false;
+  const actions = (document.ui?.actions || []) as UiWidgetType[];
+
   return (
     <div className="flex">
       <Form
-        document={document}
-        onSubmit={handleFormSubmit}
-        disabled={!enabled}
+        form={form}
+        schema={schema}
+        ui={ui}
+        mimeType={document.meta?.mimeType}
+        disabled={disabledProps}
         viewOnly={viewOnly}
-        enabledTransitions={enabledTransitions}
-      />
+        actions={
+          <UiActions
+            actions={actions}
+            onSubmit={handleSubmit}
+            availableTransitions={availableTransitions}
+            disabled={disabledProps}
+            isLoading={runPipeline.isPending}
+          />
+        } />
     </div>
   );
 };

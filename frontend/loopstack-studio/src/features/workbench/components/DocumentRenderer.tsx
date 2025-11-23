@@ -1,5 +1,5 @@
 import React from 'react';
-import type { DocumentItemDto, PipelineDto, WorkflowItemDto } from '@loopstack/api-client';
+import type { PipelineDto } from '@loopstack/api-client';
 import CompletionMessagePaper from '../../../components/messages/CompletionMessagePaper.tsx';
 import DocumentDebugRenderer from './document-renderer/DocumentDebugRenderer.tsx';
 import DocumentFormRenderer from './document-renderer/DocumentFormRenderer.tsx';
@@ -8,11 +8,12 @@ import ErrorMessageRenderer from './document-renderer/ErrorMessageRenderer.tsx';
 import PlainMessageRenderer from './document-renderer/PlainMessageRenderer.tsx';
 import MarkdownMessageRenderer from './document-renderer/MarkdownMessageRenderer.tsx';
 import AiMessage from '@/features/workbench/components/document-renderer/AiMessage.tsx';
+import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/shared';
 
 interface DocumentRendererProps {
   pipeline: PipelineDto;
-  workflow: WorkflowItemDto;
-  document: DocumentItemDto;
+  workflow: WorkflowInterface;
+  document: DocumentItemInterface;
   isActive: boolean;
   isLastItem: boolean;
 }
@@ -25,14 +26,12 @@ const DocumentRenderer: React.FC<DocumentRendererProps> = ({
   isLastItem,
 }) => {
   const viewOnly = !isActive;
-
-  // @ts-ignore
-  const widget = document.ui?.['widget'] ?? 'object-form';
+  const widget = document.ui?.form?.widget ?? 'object-form';
 
   const render = () => {
     switch (widget) {
       case 'ai-message':
-        return <AiMessage document={document} isLastMessage={isLastItem} />
+        return <AiMessage document={document} isLastItem={isLastItem} />
       case 'debug':
         return (
           <div className="flex mb-4">

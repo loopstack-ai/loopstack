@@ -1,18 +1,33 @@
-import type { JSONSchemaConfigType, MimeType } from '@loopstack/shared';
+import {
+  type DocumentItemInterface, type JSONSchemaConfigType,
+  type MimeType, type UiFormType,
+  type UiPropertiesType, type WorkflowInterface,
+} from '@loopstack/shared';
 import type { UseFormReturn } from 'react-hook-form';
-import type { DocumentItemDto } from '@loopstack/api-client';
+import React from 'react';
 
-export interface DynamicFormProps {
-  document: DocumentItemDto;
-  onSubmit: (data: Record<string, any>, transition: string) => void;
+export interface DocumentFormProps {
+  workflow: WorkflowInterface,
+  document: DocumentItemInterface;
+  onSubmit: (transition: string, data: Record<string, any>) => void;
   disabled: boolean;
   viewOnly: boolean;
-  enabledTransitions: string[];
+}
+
+export interface DynamicFormProps {
+  form: any;
+  schema: JSONSchemaConfigType;
+  ui?: UiFormType;
+  mimeType?: MimeType;
+  disabled: boolean;
+  viewOnly: boolean;
+  actions?: React.ReactNode;
 }
 
 export interface FormBodyProps {
   mimeType?: MimeType;
-  schema: JSONSchemaConfigType;
+  schema: UiPropertiesType;
+  ui: UiPropertiesType | undefined;
   form: UseFormReturn;
   disabled: boolean;
   viewOnly: boolean;
@@ -20,7 +35,8 @@ export interface FormBodyProps {
 
 export interface FormElementProps {
   name: string | null;
-  schema: JSONSchemaConfigType;
+  schema: UiPropertiesType;
+  ui: UiPropertiesType | undefined;
   required: boolean;
   disabled: boolean;
   viewOnly: boolean;

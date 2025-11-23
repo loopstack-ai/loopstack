@@ -11,13 +11,14 @@ import { useArrayDefaultValue } from './hooks/useArrayDefaultValue.ts';
 export const ArrayController: React.FC<FormElementProps> = ({
   name,
   schema,
+  ui,
   form,
   disabled,
   parentKey,
   viewOnly
 }) => {
   const newParentKey = useMergeParentKey(parentKey, name);
-  const collapsed = schema.collapsed ?? false;
+  const collapsed = ui?.collapsed ?? false;
   const [isOpen, setIsOpen] = useState(!collapsed);
 
   const { fields, append, remove } = useFieldArray({
@@ -25,7 +26,7 @@ export const ArrayController: React.FC<FormElementProps> = ({
     name: newParentKey ?? ''
   });
 
-  const defaultItemValue = useArrayDefaultValue(schema);
+  const defaultItemValue = useArrayDefaultValue(schema.items);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -38,7 +39,7 @@ export const ArrayController: React.FC<FormElementProps> = ({
         >
           {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           <span className="font-medium">
-            {schema.title || name}
+            {ui?.title || schema.title || name}
             {!isOpen && (
               <span className="ml-2 text-sm text-gray-500">
                 ({fields.length} {fields.length === 1 ? 'item' : 'items'})
@@ -64,6 +65,7 @@ export const ArrayController: React.FC<FormElementProps> = ({
                     parentKey={newParentKey}
                     required={false}
                     schema={schema.items}
+                    ui={ui?.items}
                     form={form}
                     disabled={disabled}
                     viewOnly={viewOnly}
@@ -97,7 +99,7 @@ export const ArrayController: React.FC<FormElementProps> = ({
               className="mt-4"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add {schema.items.title || 'Item'}
+              Add {ui?.items?.title || schema.items.title || 'Item'}
             </Button>
           ) : (
             ''

@@ -1,88 +1,43 @@
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
 import type { DynamicFormProps } from './types';
-import { FormElementHeader } from './FormElementHeader.tsx';
-import FormButtons from './FormButtons.tsx';
-import FormBody from './FormBody.tsx';
-import { merge } from 'lodash';
-import { z } from 'zod';
+import { FormElementHeader } from './FormElementHeader';
+import FormBody from './FormBody';
+import React from 'react';
 
 const Form: React.FC<DynamicFormProps> = ({
-  document,
-  onSubmit,
+  form,
+  schema,
+  ui,
+  mimeType,
   disabled,
-  enabledTransitions,
-  viewOnly
-}) => {
-  const form = useForm<Record<string, any>>({
-    defaultValues:
-      // @ts-ignore //todo
-      document.schema.type === 'object' ? document.content : { raw: document.content },
-    mode: 'onChange'
-  });
-
-  useEffect(() => {
-    if (document.validationError) {
-      const error = document.validationError as z.ZodError;
-      error.issues.forEach((issue) => {
-        const fieldPath = issue.path.join('.');
-        form.setError(fieldPath, {
-          type: issue.code,
-          message: issue.message
-        });
-      });
-    } else {
-      form.clearErrors();
-    }
-  }, [document.validationError, form]);
-
-  const handleButtonClick = (transition: string) => {
-    return (data: Record<string, any>) => {
-      // @ts-ignore //todo
-      if (document.schema.type === 'object') {
-        onSubmit(data, transition);
-      } else {
-        onSubmit(data.raw, transition);
-      }
-    };
-  };
-
-  const schema = merge({}, document.schema ?? {}, document.ui ?? {});
-  // @ts-ignore //todo
-  const disabledProps = disabled || schema.disabled || false;
+  viewOnly,
+  actions,
+}: DynamicFormProps) => {
 
   return (
     <div className="container mx-auto">
       <FormElementHeader
-        // @ts-ignore //todo
-        title={schema.title}
-        // @ts-ignore //todo
-        description={schema.description}
-        disabled={disabledProps}
+        title={ui?.form?.title}
+        description={ui?.form?.description}
+        disabled={disabled}
       />
 
       <form>
         <FormBody
           form={form}
-          // @ts-ignore //todo
-          mimeType={document.meta?.mimeType}
+          mimeType={mimeType}
           schema={schema}
-          disabled={disabledProps}
+          ui={ui}
+          disabled={disabled}
           viewOnly={viewOnly}
         />
 
-        <FormButtons
-          // @ts-ignore //todo
-          buttons={schema?.buttons ?? []}
-          handleButtonClick={handleButtonClick}
-          disabled={disabledProps}
-          viewOnly={viewOnly}
-          enabledTransitions={enabledTransitions}
-          form={form}
-        />
+        {!viewOnly && !!actions && <div className="mt-4 w-full flex justify-end">
+          { actions }
+        </div>}
+
       </form>
     </div>
-  );
+);
 };
 
 export default Form;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../../lib/utils.ts';
+import { cn } from '@/lib/utils.ts';
 import { FormElementHeader } from './FormElementHeader.tsx';
 import { ObjectController } from './ObjectController.tsx';
 import { ArrayController } from './ArrayController.tsx';
@@ -22,15 +22,12 @@ export const FormElement: React.FC<FormElementProps> = (props) => {
         return (
           <>
             <FormElementHeader title={schema.title} disabled={disabled} />
-            {/*<div key={name} className="mb-3 p-2 border border-gray-200 rounded">*/}
             <ObjectController {...props} />
-            {/*</div>*/}
           </>
         );
       case 'array':
         return (
           <>
-            {/*<FormElementHeader title={schema.title} disabled={disabled} />*/}
             <div className="mt-3">
               <ArrayController {...props} />
             </div>

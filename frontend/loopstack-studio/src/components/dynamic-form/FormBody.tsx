@@ -4,7 +4,7 @@ import MarkdownContent from './MarkdownContent.tsx';
 import type { FormBodyProps } from './types.ts';
 import CodeContent from './CodeContent.tsx';
 
-const FormBody: React.FC<FormBodyProps> = ({ mimeType, schema, disabled, viewOnly, form }) => {
+const FormBody: React.FC<FormBodyProps> = ({ mimeType, schema, ui, disabled, viewOnly, form }: FormBodyProps) => {
   const rawValue = form.watch('raw');
 
   const renderType = () => {
@@ -20,6 +20,7 @@ const FormBody: React.FC<FormBodyProps> = ({ mimeType, schema, disabled, viewOnl
             name={null}
             parentKey={null}
             schema={schema}
+            ui={ui}
             form={form}
             disabled={disabled}
             required={true}

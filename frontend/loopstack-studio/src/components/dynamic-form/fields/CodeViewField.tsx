@@ -1,9 +1,10 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
 import { Copy, Check } from 'lucide-react';
-import { Label } from '../../ui/label';
-import type { FieldProps } from '../types.ts';
-import CodeContent from '../CodeContent.tsx';
+import { BaseFieldWrapper } from './BaseFieldWrapper';
+import { useFieldConfig } from '../hooks/useFieldConfig';
+import type { FieldProps } from '../types';
+import CodeContent from '../CodeContent';
 
 export interface CodeFieldSchema {
   title?: string;
@@ -14,33 +15,30 @@ export interface CodeFieldSchema {
   help?: string;
   description?: string;
   default?: string;
+  readonly?: boolean;
+  disabled?: boolean;
 }
 
 interface CodeFieldProps extends FieldProps {
   schema: CodeFieldSchema;
 }
 
-export const CodeViewField: React.FC<CodeFieldProps> = ({ name, schema, required, form }) => {
+const stripCodeFence = (text: string): string => {
+  const codeFenceRegex = /^```[\w-]*\n?([\s\S]*?)\n?```$/;
+  const match = text.match(codeFenceRegex);
+  return match ? match[1] : text;
+};
+
+export const CodeViewField: React.FC<CodeFieldProps> = ({
+                                                          name,
+                                                          schema,
+                                                          ui,
+                                                          required,
+                                                          form,
+                                                          disabled
+                                                        }) => {
   const [copied, setCopied] = React.useState(false);
-  const fieldLabel = schema?.title || name;
-  const helpText = schema?.help || schema.description || '';
-
-  const fieldState = form.getFieldState(name);
-  const hasError = !!fieldState.error;
-  const errorMessage = fieldState.error?.message?.toString();
-
-  const stripCodeFence = (text: string): string => {
-    // Match triple backticks with optional language identifier at the start
-    // and triple backticks at the end
-    const codeFenceRegex = /^```[\w-]*\n?([\s\S]*?)\n?```$/;
-    const match = text.match(codeFenceRegex);
-
-    if (match) {
-      return match[1];
-    }
-
-    return text;
-  };
+  const config = useFieldConfig(name, schema, ui, disabled);
 
   const handleCopy = async (text: string) => {
     try {
@@ -57,30 +55,37 @@ export const CodeViewField: React.FC<CodeFieldProps> = ({ name, schema, required
     <Controller
       name={name}
       control={form.control}
-      defaultValue={schema.default || ''}
+      defaultValue={config.defaultValue || ''}
       render={({ field }) => (
-        <div className="space-y-2 block my-4 mb-8">
-          <Label htmlFor={name} className={hasError ? 'text-destructive' : ''}>
-            {fieldLabel}
-            {required && <span className="text-destructive ml-1">*</span>}
-          </Label>
-          <div className="border rounded-md overflow-hidden w-full relative">
+        <BaseFieldWrapper
+          name={name}
+          label={config.fieldLabel}
+          required={required}
+          error={config.error}
+          helpText={config.helpText}
+          description={config.description}
+        >
+          <div
+            className="border rounded-md overflow-hidden w-full relative"
+            {...config.getAriaProps()}
+          >
             <button
               type="button"
               onClick={() => handleCopy(field.value || '')}
-              className="absolute top-2 right-2 p-2 rounded-md bg-background/80 hover:bg-background border transition-colors z-10"
+              disabled={config.isDisabled || !field.value}
+              className="absolute top-2 right-2 p-2 rounded-md bg-background/80 hover:bg-background border transition-colors z-10 disabled:opacity-50 disabled:cursor-not-allowed"
               title={copied ? 'Copied!' : 'Copy to clipboard'}
+              aria-label={copied ? 'Copied to clipboard' : 'Copy code to clipboard'}
             >
-              {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              {copied ? (
+                <Check className="h-4 w-4 text-green-600" aria-hidden="true" />
+              ) : (
+                <Copy className="h-4 w-4" aria-hidden="true" />
+              )}
             </button>
             <CodeContent content={field.value || ''} />
           </div>
-          {(hasError || helpText) && (
-            <p className={`text-sm ${hasError ? 'text-destructive' : 'text-muted-foreground'}`}>
-              {hasError ? errorMessage : helpText}
-            </p>
-          )}
-        </div>
+        </BaseFieldWrapper>
       )}
     />
   );

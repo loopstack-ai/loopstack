@@ -1,11 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useApiClient } from './useApi.ts';
 import type { WorkflowItemDto, WorkflowSortByDto } from '@loopstack/api-client';
-import { eventBus } from '../services';
-import { SseClientEvents } from '../events';
+import { eventBus } from '@/services';
+import { SseClientEvents } from '@/events';
+import type { WorkflowInterface } from '@loopstack/shared';
 
-export function useWorkflow(id: string) {
+export function useWorkflow(id: string): UseQueryResult<WorkflowInterface> {
   const { envKey, api } = useApiClient();
 
   return useQuery({
@@ -17,7 +18,7 @@ export function useWorkflow(id: string) {
       return api.ApiV1WorkflowsApi.workflowControllerGetWorkflowById({ id });
     },
     enabled: !!id,
-    select: (res) => res.data
+    select: (res): WorkflowInterface => res.data
   });
 }
 

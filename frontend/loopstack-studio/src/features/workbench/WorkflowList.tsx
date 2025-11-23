@@ -61,8 +61,8 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
       </div>
 
       {fetchWorkflows.data ? (
-          <div className="mx-auto pb-10" ref={listRef}>
-            <div className="space-y-0">
+          <div className="mx-auto mb-10" ref={listRef}>
+            <div>
               {fetchWorkflows.data.map((item) => {
                 const sectionId = `section-${item.index}-${item.id}`;
                 const isActive = activeId === sectionId;
@@ -89,18 +89,20 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
                         <Separator className="flex-1" />
                       </div>
                     </div>
-                    <WorkflowItem
-                      pipeline={pipeline}
-                      workflowId={item.id}
-                      scrollTo={scrollTo}
-                      settings={settings}
-                    />
+                    <div className="max-w-4xl mx-auto px-3">
+                      <WorkflowItem
+                        pipeline={pipeline}
+                        workflowId={item.id}
+                        scrollTo={scrollTo}
+                        settings={settings}
+                      />
+                    </div>
                   </div>
                 );
               })}
             </div>
-            <Separator className="my-6" />
-            <PipelineButtons pipeline={pipeline} />
+            {/*<Separator className="my-6" />*/}
+            {/*<PipelineButtons pipeline={pipeline} />*/}
           </div>
         ) : null}
     </div>

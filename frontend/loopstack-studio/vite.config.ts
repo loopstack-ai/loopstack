@@ -24,6 +24,9 @@ export default defineConfig(({ mode }) => {
           ]
         : [])
     ],
+    optimizeDeps: {
+      include: ['@loopstack/shared', '@loopstack/api-client']
+    },
     build: isLibrary
       ? {
           lib: {

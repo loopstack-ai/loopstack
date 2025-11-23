@@ -1,8 +1,10 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
 import { Checkbox } from '../../ui/checkbox';
-import { Label } from '../../ui/label';
-import type { FieldProps } from '../types.ts';
+import { BaseFieldWrapper } from './BaseFieldWrapper';
+import { useFieldConfig } from '../hooks/useFieldConfig';
+import type { FieldProps } from '../types';
+import { Label } from '@/components/ui/label.tsx';
 
 export interface CheckboxFieldSchema {
   title?: string;
@@ -18,52 +20,51 @@ interface CheckboxFieldProps extends FieldProps {
 }
 
 export const CheckboxField: React.FC<CheckboxFieldProps> = ({
-  name,
-  schema,
-  required,
-  form,
-  disabled
-}) => {
-  const fieldLabel = schema.title || name;
-  const helpText = schema?.help || schema.description || '';
-  const isReadOnly = schema?.readonly;
-  const isDisabled = schema?.disabled || disabled;
-
-  const errors = form.formState.errors;
+                                                              name,
+                                                              schema,
+                                                              ui,
+                                                              required,
+                                                              form,
+                                                              disabled
+                                                            }) => {
+  const config = useFieldConfig(name, schema, ui, disabled);
 
   return (
     <Controller
       name={name}
       control={form.control}
-      defaultValue={schema.default || false}
+      defaultValue={config.defaultValue || false}
+      rules={{
+        validate: required ? (value) => value === true || 'This field is required' : undefined
+      }}
       render={({ field: { onChange, value, ref } }) => (
-        <div className="space-y-2 block my-4 mb-8">
+        <BaseFieldWrapper
+          name={name}
+          label={config.fieldLabel}
+          required={required}
+          error={config.error}
+          helpText={config.helpText}
+          description={config.description}
+        >
           <div className="flex items-center space-x-2">
             <Checkbox
               id={name}
               checked={!!value}
-              onCheckedChange={isReadOnly ? undefined : onChange}
-              disabled={isDisabled}
+              onCheckedChange={config.isReadOnly ? undefined : (checked) => onChange(checked || false)}
+              disabled={config.isDisabled}
               ref={ref}
               name={name}
               required={required}
+              {...config.getAriaProps()}
             />
             <Label
               htmlFor={name}
-              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 hover:cursor-pointer ${
-                required ? "after:content-['*'] after:ml-0.5 after:text-red-500" : ''
-              }`}
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              {fieldLabel}
+              {config.fieldLabel}
             </Label>
           </div>
-          {helpText && !errors[name] && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          {errors[name] && (
-            <p className="text-sm font-medium text-destructive">
-              {errors[name]?.message?.toString()}
-            </p>
-          )}
-        </div>
+        </BaseFieldWrapper>
       )}
     />
   );

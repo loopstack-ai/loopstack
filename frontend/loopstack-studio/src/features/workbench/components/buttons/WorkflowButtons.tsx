@@ -1,11 +1,11 @@
 import React from 'react';
-import { Button } from '../../../../components/ui/button.tsx';
+import { Button } from '@/components/ui/button.tsx';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger
-} from '../../../../components/ui/tooltip.tsx';
+} from '@/components/ui/tooltip.tsx';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,17 +16,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger
-} from '../../../../components/ui/alert-dialog.tsx';
+} from '@/components/ui/alert-dialog.tsx';
 import { Trash2, LockOpen } from 'lucide-react';
-import { useDeleteWorkflow } from '../../../../hooks/useWorkflows.ts';
-import { useRunPipeline } from '../../../../hooks/useProcessor.ts';
+import { useDeleteWorkflow } from '@/hooks/useWorkflows.ts';
+import { useRunPipeline } from '@/hooks/useProcessor.ts';
 import type { PipelineDto, WorkflowDto } from '@loopstack/api-client';
-import type { WorkflowTransitionType } from '@loopstack/shared';
-import { useStudio } from '../../../../providers/StudioProvider.tsx';
+import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/shared';
+import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const WorkflowButtons: React.FC<{
   pipeline: PipelineDto;
-  workflow: WorkflowDto;
+  workflow: WorkflowInterface;
 }> = ({ pipeline, workflow }) => {
   const { router } = useStudio();
 
@@ -56,7 +56,7 @@ const WorkflowButtons: React.FC<{
 
   const handleDelete = async () => {
     try {
-      await deleteWorkflow.mutate(workflow);
+      deleteWorkflow.mutate(workflow as unknown as WorkflowDto);
       handlePing();
       router.navigateToPipeline(pipeline.id);
     } catch (error) {
