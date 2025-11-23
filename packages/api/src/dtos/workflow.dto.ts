@@ -1,18 +1,17 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  HistoryTransition,
-  PipelineState,
-  UISchemaType,
-  WorkflowEntity,
+  HistoryTransition, type JSONSchemaConfigType,
+  PipelineState, type UiFormType,
+  WorkflowEntity, WorkflowInterface,
   WorkflowState,
-  WorkflowTransitionType,
+  type WorkflowTransitionType,
 } from '@loopstack/shared';
 
 /**
  * Data Transfer Object representing a workflow
  */
-export class WorkflowDto {
+export class WorkflowDto implements WorkflowInterface {
   @Expose()
   @ApiProperty({
     description: 'Unique identifier of the workflow',
@@ -71,7 +70,7 @@ export class WorkflowDto {
     enumName: 'WorkflowState',
     description: 'Current status of the workflow',
   })
-  status: PipelineState;
+  status: WorkflowState;
 
   @Expose()
   @ApiProperty({
@@ -113,13 +112,19 @@ export class WorkflowDto {
   history: HistoryTransition[] | null;
 
   @Expose()
+  @ApiProperty({
+    description: 'The json schema for form validation',
+  })
+  schema: JSONSchemaConfigType;
+
+  @Expose()
   @ApiPropertyOptional({
     type: 'object',
     additionalProperties: true,
     description: 'Ui schema config for the workflow',
     nullable: true,
   })
-  ui: UISchemaType | null;
+  ui: UiFormType | null;
 
   @Expose()
   @ApiProperty({

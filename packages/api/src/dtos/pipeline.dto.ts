@@ -1,6 +1,6 @@
 import { Exclude, Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { PipelineEntity, PipelineState } from '@loopstack/shared';
+import { type JSONSchemaConfigType, PipelineEntity, PipelineState, type UiFormType } from '@loopstack/shared';
 import { PipelineContextDto } from './pipeline-context.dto';
 
 /**
@@ -69,6 +69,18 @@ export class PipelineDto {
     description: 'Contextual information available to the pipeline',
   })
   context: PipelineContextDto;
+
+  @Expose()
+  @ApiProperty({
+    description: 'The json schema for form validation',
+  })
+  schema: JSONSchemaConfigType;
+
+  @Expose()
+  @ApiProperty({
+    description: 'The ui config for interface rendering',
+  })
+  ui: UiFormType;
 
   @Expose()
   @ApiProperty({

@@ -1,5 +1,6 @@
 import { Expose } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { JSONSchemaConfigType, UiFormType } from '@loopstack/shared';
 
 export class PipelineConfigDto {
   @Expose()
@@ -14,5 +15,23 @@ export class PipelineConfigDto {
     description: 'The title of the pipeline type',
     example: 'My Pipeline',
   })
-  title: string;
+  title?: string;
+
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'The description of the pipeline type',
+  })
+  description?: string;
+
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'The json schema for form validation',
+  })
+  schema?: JSONSchemaConfigType;
+
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'The ui config for interface rendering',
+  })
+  ui?: UiFormType;
 }

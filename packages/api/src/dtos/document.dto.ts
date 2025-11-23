@@ -2,8 +2,7 @@ import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { DocumentMetaDto } from './document-meta.dto';
 import { DocumentContentDto } from './document-content.dto';
-import { DocumentEntity, JSONSchemaConfigType } from '@loopstack/shared';
-import { UISchemaType } from '@loopstack/shared/dist/schemas/ui.schema';
+import { DocumentEntity, JSONSchemaConfigType, UiFormType } from '@loopstack/shared';
 
 /**
  * Data Transfer Object for Document entities
@@ -51,7 +50,7 @@ export class DocumentDto<T = unknown> {
 
   @Expose()
   @ApiProperty({
-    description: 'The json schema for document validation',
+    description: 'The json schema for form validation',
   })
   schema: JSONSchemaConfigType;
 
@@ -65,7 +64,7 @@ export class DocumentDto<T = unknown> {
   @ApiProperty({
     description: 'The ui config for interface rendering',
   })
-  ui: UISchemaType;
+  ui: UiFormType;
 
   /**
    * Document metadata

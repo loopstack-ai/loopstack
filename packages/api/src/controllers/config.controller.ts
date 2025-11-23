@@ -10,15 +10,17 @@ import {
   BadRequestException,
   Controller,
   Get,
-  Param, Type,
+  Param,
+  Type,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { PipelineSequenceType, WorkspaceType } from '@loopstack/shared';
 import {
-  PipelineSequenceType,
-  WorkspaceType,
-} from '@loopstack/shared';
-import { BlockRegistryItem, BlockRegistryService, Workspace } from '@loopstack/core';
+  BlockRegistryItem,
+  BlockRegistryService,
+  Workspace,
+} from '@loopstack/core';
 import { plainToInstance } from 'class-transformer';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
 import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
@@ -31,6 +33,7 @@ import { sortBy } from 'lodash';
 export class ConfigController {
   constructor(
     private readonly blockRegistryService: BlockRegistryService,
+
   ) {}
 
   @Get('workspaces')
@@ -38,17 +41,15 @@ export class ConfigController {
   @ApiOkResponse({ type: WorkspaceConfigDto, isArray: true })
   @ApiUnauthorizedResponse()
   getWorkspaceTypes(): WorkspaceConfigDto[] {
-
     const blocks = this.blockRegistryService.getBlocksByType(Workspace);
 
-    const resolvedConfigs = blocks
-      .map((block: BlockRegistryItem) => {
-        const config = block.config as WorkspaceType;
-        return {
-          configKey: block.name,
-          title: config.title ?? block.name,
-        }
-      });
+    const resolvedConfigs = blocks.map((block: BlockRegistryItem) => {
+      const config = block.config as WorkspaceType;
+      return {
+        configKey: block.name,
+        title: config.title ?? block.name,
+      };
+    });
 
     return plainToInstance(WorkspaceConfigDto, resolvedConfigs, {
       excludeExtraneousValues: true,
@@ -69,22 +70,30 @@ export class ConfigController {
   getPipelineTypesByWorkspace(
     @Param('workspaceConfigKey') workspaceConfigKey: string,
   ): PipelineConfigDto[] {
-    const workspaceBlock = this.blockRegistryService.getBlock(workspaceConfigKey);
+    const workspaceBlock =
+      this.blockRegistryService.getBlock(workspaceConfigKey);
     if (!workspaceBlock) {
-      throw new BadRequestException(`Config for workspace with name ${workspaceConfigKey} not found.`);
+      throw new BadRequestException(
+        `Config for workspace with name ${workspaceConfigKey} not found.`,
+      );
     }
 
     const filtered = workspaceBlock.metadata.imports.map((item: Type<any>) => {
       const pipelineBlock = this.blockRegistryService.getBlock(item.name);
       if (!pipelineBlock) {
-        throw new BadRequestException(`Config for pipeline with name ${item} not found.`);
+        throw new BadRequestException(
+          `Config for pipeline with name ${item.name} not found.`,
+        );
       }
 
       const config = pipelineBlock.config as PipelineSequenceType;
       return {
         configKey: item.name,
         title: config.title,
-      };
+        description: config.description,
+        schema: pipelineBlock.metadata.propertiesSchema,
+        ui: config.ui,
+      } satisfies PipelineConfigDto;
     });
 
     const sorted = sortBy(filtered, 'title');

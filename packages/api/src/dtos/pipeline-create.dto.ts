@@ -5,11 +5,10 @@ import {
   ArrayNotEmpty,
   IsUUID,
   MaxLength,
-  Matches,
   ValidateIf, IsOptional,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 
 /**
  * Data Transfer Object for creating a new pipeline
@@ -71,4 +70,23 @@ export class PipelineCreateDto {
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   workspaceId: string;
+
+  @Expose()
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: 'Start transition for the run',
+    nullable: true,
+  })
+  transition: string | null;
+
+  @Expose()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: 'object',
+    additionalProperties: true,
+    description: 'Arguments for the pipeline run',
+    nullable: true,
+  })
+  args: any | null;
 }
