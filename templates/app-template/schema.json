@@ -6,14 +6,6 @@
         {
           "type": "object",
           "properties": {
-            "classTransformStrategy": {
-              "type": "string",
-              "enum": [
-                "exposeAll",
-                "excludeAll"
-              ],
-              "default": "exposeAll"
-            },
             "title": {
               "type": "string"
             },
@@ -30,6 +22,220 @@
               "required": [
                 "label"
               ],
+              "additionalProperties": false
+            },
+            "ui": {
+              "type": "object",
+              "properties": {
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "transition": {
+                            "type": "string"
+                          },
+                          "widget": {
+                            "type": "string"
+                          },
+                          "enabledWhen": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "type": {
+                            "type": "string",
+                            "const": "button"
+                          },
+                          "options": {
+                            "type": "object",
+                            "properties": {
+                              "position": {
+                                "type": "number"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "props": {
+                                "type": "object",
+                                "additionalProperties": {}
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "transition",
+                          "type"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "transition": {
+                            "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/actions/items/anyOf/0/properties/transition"
+                          },
+                          "widget": {
+                            "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/actions/items/anyOf/0/properties/widget"
+                          },
+                          "enabledWhen": {
+                            "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/actions/items/anyOf/0/properties/enabledWhen"
+                          },
+                          "type": {
+                            "type": "string",
+                            "const": "custom"
+                          },
+                          "options": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "props": {
+                                "type": "object",
+                                "additionalProperties": {}
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "transition",
+                          "type"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "form": {
+                  "type": "object",
+                  "properties": {
+                    "widget": {
+                      "type": "string"
+                    },
+                    "index": {
+                      "type": "number"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "descriptions": {
+                      "type": "string"
+                    },
+                    "placeholder": {
+                      "type": "string"
+                    },
+                    "rows": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "inline": {
+                      "type": "boolean"
+                    },
+                    "inputType": {
+                      "type": "string"
+                    },
+                    "emptyValue": {},
+                    "help": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "enumOptions": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "value": {}
+                                },
+                                "required": [
+                                  "label"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "string"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "titleFormat": {
+                      "type": "string"
+                    },
+                    "addable": {
+                      "type": "boolean"
+                    },
+                    "removable": {
+                      "type": "boolean"
+                    },
+                    "movable": {
+                      "type": "boolean"
+                    },
+                    "accept": {
+                      "type": "string"
+                    },
+                    "multiple": {
+                      "type": "boolean"
+                    },
+                    "hidden": {
+                      "type": "boolean"
+                    },
+                    "disabled": {
+                      "type": "boolean"
+                    },
+                    "readonly": {
+                      "type": "boolean"
+                    },
+                    "collapsed": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "items": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/form"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/form"
+                          }
+                        }
+                      ]
+                    },
+                    "properties": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/form"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
               "additionalProperties": false
             },
             "type": {
@@ -107,9 +313,6 @@
         {
           "type": "object",
           "properties": {
-            "classTransformStrategy": {
-              "$ref": "#/definitions/MainSchema/anyOf/0/properties/classTransformStrategy"
-            },
             "title": {
               "$ref": "#/definitions/MainSchema/anyOf/0/properties/title"
             },
@@ -118,6 +321,9 @@
             },
             "namespace": {
               "$ref": "#/definitions/MainSchema/anyOf/0/properties/namespace"
+            },
+            "ui": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui"
             },
             "type": {
               "type": "string",
@@ -139,383 +345,19 @@
         {
           "type": "object",
           "properties": {
-            "classTransformStrategy": {
-              "$ref": "#/definitions/MainSchema/anyOf/0/properties/classTransformStrategy"
-            },
             "title": {
               "type": "string"
             },
             "description": {
               "type": "string"
             },
-            "namespace": {
-              "$ref": "#/definitions/MainSchema/anyOf/0/properties/namespace"
-            },
             "ui": {
-              "type": "object",
-              "properties": {
-                "widget": {
-                  "type": "string"
-                },
-                "index": {
-                  "type": "number"
-                },
-                "label": {
-                  "type": "string"
-                },
-                "descriptions": {
-                  "type": "string"
-                },
-                "placeholder": {
-                  "type": "string"
-                },
-                "rows": {
-                  "type": "integer",
-                  "exclusiveMinimum": 0
-                },
-                "inline": {
-                  "type": "boolean"
-                },
-                "inputType": {
-                  "type": "string"
-                },
-                "emptyValue": {},
-                "help": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
-                },
-                "enumOptions": {
-                  "anyOf": [
-                    {
-                      "type": "array",
-                      "items": {
-                        "anyOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "label": {
-                                "type": "string"
-                              },
-                              "value": {}
-                            },
-                            "required": [
-                              "label"
-                            ],
-                            "additionalProperties": false
-                          },
-                          {
-                            "type": "string"
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "string"
-                    }
-                  ]
-                },
-                "titleFormat": {
-                  "type": "string"
-                },
-                "addable": {
-                  "type": "boolean"
-                },
-                "removable": {
-                  "type": "boolean"
-                },
-                "movable": {
-                  "type": "boolean"
-                },
-                "accept": {
-                  "type": "string"
-                },
-                "multiple": {
-                  "type": "boolean"
-                },
-                "hidden": {
-                  "type": "boolean"
-                },
-                "disabled": {
-                  "type": "boolean"
-                },
-                "readonly": {
-                  "type": "boolean"
-                },
-                "collapsed": {
-                  "type": "boolean"
-                },
-                "order": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "buttons": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "transition": {
-                        "type": "string"
-                      },
-                      "position": {
-                        "type": "number"
-                      },
-                      "label": {
-                        "type": "string"
-                      },
-                      "props": {
-                        "type": "object",
-                        "additionalProperties": {}
-                      },
-                      "widget": {
-                        "type": "string"
-                      },
-                      "enabledWhen": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "required": [
-                      "transition"
-                    ],
-                    "additionalProperties": false
-                  }
-                },
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/MainSchema/anyOf/2/properties/ui"
-                    },
-                    {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/definitions/MainSchema/anyOf/2/properties/ui"
-                      }
-                    }
-                  ]
-                },
-                "properties": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/ui"
-                  }
-                }
-              },
-              "additionalProperties": false
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui"
             },
             "type": {
               "type": "string",
               "const": "workflow",
               "default": "workflow"
-            },
-            "parameters": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "enum": [
-                        "string",
-                        "number",
-                        "integer",
-                        "boolean",
-                        "array",
-                        "object",
-                        "null",
-                        "any"
-                      ]
-                    },
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "string",
-                          "number",
-                          "integer",
-                          "boolean",
-                          "array",
-                          "object",
-                          "null"
-                        ]
-                      }
-                    }
-                  ]
-                },
-                "$id": {
-                  "type": "string"
-                },
-                "$schema": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                },
-                "default": {},
-                "minLength": {
-                  "type": "integer"
-                },
-                "maxLength": {
-                  "type": "integer"
-                },
-                "pattern": {
-                  "type": "string"
-                },
-                "format": {
-                  "type": "string"
-                },
-                "multipleOf": {
-                  "type": "number",
-                  "exclusiveMinimum": 0
-                },
-                "minimum": {
-                  "type": "number"
-                },
-                "maximum": {
-                  "type": "number"
-                },
-                "exclusiveMinimum": {
-                  "type": [
-                    "boolean",
-                    "number"
-                  ]
-                },
-                "exclusiveMaximum": {
-                  "type": [
-                    "boolean",
-                    "number"
-                  ]
-                },
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                    },
-                    {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                      }
-                    }
-                  ]
-                },
-                "additionalItems": {
-                  "anyOf": [
-                    {
-                      "type": "boolean"
-                    },
-                    {
-                      "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                    }
-                  ]
-                },
-                "minItems": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "maxItems": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "uniqueItems": {
-                  "type": "boolean"
-                },
-                "contains": {
-                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                },
-                "properties": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                  }
-                },
-                "patternProperties": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                  }
-                },
-                "additionalProperties": {
-                  "anyOf": [
-                    {
-                      "type": "boolean"
-                    },
-                    {
-                      "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                    }
-                  ]
-                },
-                "required": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "propertyNames": {
-                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                },
-                "minProperties": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "maxProperties": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "allOf": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                  }
-                },
-                "anyOf": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                  }
-                },
-                "oneOf": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                  }
-                },
-                "not": {
-                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                },
-                "if": {
-                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                },
-                "then": {
-                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                },
-                "else": {
-                  "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                },
-                "enum": {
-                  "type": "array"
-                },
-                "const": {},
-                "definitions": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-                  }
-                },
-                "$ref": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
             },
             "transitions": {
               "type": "array",
@@ -577,12 +419,6 @@
                           "type": "string"
                         },
                         "args": {},
-                        "exportContext": {
-                          "type": "string"
-                        },
-                        "as": {
-                          "type": "string"
-                        },
                         "assign": {
                           "type": "object",
                           "additionalProperties": {
@@ -632,9 +468,6 @@
         {
           "type": "object",
           "properties": {
-            "classTransformStrategy": {
-              "$ref": "#/definitions/MainSchema/anyOf/0/properties/classTransformStrategy"
-            },
             "type": {
               "type": "string",
               "const": "document",
@@ -644,11 +477,8 @@
               "type": "string"
             },
             "content": {},
-            "schema": {
-              "$ref": "#/definitions/MainSchema/anyOf/2/properties/parameters"
-            },
             "ui": {
-              "$ref": "#/definitions/MainSchema/anyOf/2/properties/ui"
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui"
             },
             "tags": {
               "anyOf": [
@@ -753,9 +583,6 @@
         {
           "type": "object",
           "properties": {
-            "classTransformStrategy": {
-              "$ref": "#/definitions/MainSchema/anyOf/0/properties/classTransformStrategy"
-            },
             "type": {
               "type": "string",
               "const": "tool",
@@ -763,6 +590,9 @@
             },
             "description": {
               "type": "string"
+            },
+            "ui": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui"
             }
           },
           "additionalProperties": false
@@ -770,9 +600,6 @@
         {
           "type": "object",
           "properties": {
-            "classTransformStrategy": {
-              "$ref": "#/definitions/MainSchema/anyOf/0/properties/classTransformStrategy"
-            },
             "type": {
               "type": "string",
               "const": "workspace",

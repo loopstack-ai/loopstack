@@ -1,8 +1,13 @@
+type: document
 ui:
-  properties:
-    text:
-      title: Notes
-      widget: textarea-expand
-  buttons:
-    - transition: user_response
-      label: "Optimize Notes"
+  form:
+    properties:
+      text:
+        title: Text
+        widget: textarea
+  actions:
+    - type: button
+      widget: button
+      transition: user_response
+      options:
+        label: "Optimize Notes"

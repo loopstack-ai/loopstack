@@ -21,6 +21,10 @@ const configSchema = z.object({
 })
 export class GetWeather extends Tool {
   async execute(): Promise<HandlerCallResult> {
+
+    // Wait for 3 seconds for testing
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
     return {
       type: 'text',
       data: 'Mostly sunny, 14C, rain in the afternoon.'

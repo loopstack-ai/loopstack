@@ -1,16 +1,38 @@
-transitions:
-  - id: create_message
-    from: start
-    to: message_added
-    call:
-      - id: prompt_message
-        tool: CreateChatMessage
-        args:
-          role: user
-          content: Write a haiku about {{ args.subject }}
+title: "Example 2: LLM Chat (Assistant Bob)"
 
+description: An example workflow that demonstrates how to create a simple chat interface. Messages are processed by an LLM to generate responses.
+
+ui:
+  actions:
+    - type: custom
+      transition: user_message
+      widget: prompt-input
+      enabledWhen:
+        - ready
+      options:
+        label: Send Message
+
+transitions:
+  - id: greeting
+    from: start
+    to: ready
+    call:
+      - tool: CreateDocument
+        args:
+          document: AiMessageDocument
+          update:
+            meta:
+              hidden: true
+            content:
+              role: system
+              parts:
+                - type: text
+                  text: |
+                    You are a helpful assistant named Bob.
+                    Always tell the user your name.
+                    Use available tools to help the user with their requests.
   - id: prompt
-    from: message_added
+    from: ready
     to: prompt_executed
     call:
       - id: execute_prompt
@@ -20,10 +42,31 @@ transitions:
             provider: openai
             model: gpt-4o
           messagesSearchTag: message
+        assign:
+          llmResponse: ${ result.data }
 
-  - id: display_message
+  - id: add_response
     from: prompt_executed
-    to: end
+    to: waiting_for_user
     call:
-      - tool: CreateChatMessage
-        args: ${ state.transitionResults.prompt.toolResults.execute_prompt.data }
+      - tool: CreateDocument
+        args:
+          document: AiMessageDocument
+          update:
+            content: ${ llmResponse }
+
+  - id: user_message
+    from: waiting_for_user
+    to: ready
+    when: manual
+    call:
+      - id: prompt_message
+        tool: CreateDocument
+        args:
+          document: AiMessageDocument
+          update:
+            content:
+              role: user
+              parts:
+                - type: text
+                  text: ${ ctx.payload.transition.payload }

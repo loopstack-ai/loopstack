@@ -1,20 +1,16 @@
 import { Workflow } from '@loopstack/core';
-import { BlockConfig } from '@loopstack/shared';
-import { z } from 'zod';
+import { BlockConfig, Input } from '@loopstack/shared';
 import { AiGenerateText } from '@loopstack/llm';
-
-const propertiesSchema = z.object({
-  subject: z.string().default("coffee"),
-});
+import { Expose } from 'class-transformer';
 
 @BlockConfig({
   imports: [
     AiGenerateText
   ],
-  properties: propertiesSchema,
-  config: {
-    title: 'Example 2: LLM Chat',
-  },
   configFile: __dirname + '/chat.workflow.yaml',
 })
-export class ChatWorkflow extends Workflow  {}
+export class ChatWorkflow extends Workflow  {
+  @Input()
+  @Expose()
+  llmResponse: any;
+}

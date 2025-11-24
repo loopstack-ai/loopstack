@@ -1,20 +1,27 @@
-transitions:
-  - id: initial
-    from: start
-    to: message_created
-    call:
-      - id: crate_message
-        tool: CreateChatMessage
-        args:
-          role: user
-          content: How is the weather in Berlin?
+title: "Example 5: LLM Tool Calling (Berlin Weather)"
 
-  - id: prompt
-    from: message_created
+description: An example workflow that demonstrates how to use an LLM to call external tools and handle their responses.
+
+transitions:
+  - id: greeting
+    from: start
+    to: ready
+    call:
+      - tool: CreateDocument
+        args:
+          document: AiMessageDocument
+          update:
+            content:
+              role: user
+              parts:
+                - type: text
+                  text: How is the weather in Berlin?
+
+  - id: llm_turn
+    from: ready
     to: prompt_executed
     call:
-      - id: execute_prompt
-        tool: AiGenerateText
+      - tool: AiGenerateText
         args:
           llm:
             provider: openai
@@ -22,29 +29,43 @@ transitions:
           messagesSearchTag: message
           tools:
             - GetWeather
-      - id: add_response_messages
-        tool: CreateChatMessage
-        args: ${ state.currentTransitionResults.execute_prompt.data }
+        assign:
+          llmResponse: ${ result.data }
+
+      - tool: CreateDocument
+        args:
+          id: ${ llmResponse.id }
+          document: AiMessageDocument
+          update:
+            content: ${ llmResponse }
 
   - id: delegate_tools
     from: prompt_executed
-    to: tools_called
+    to: tool_calls_processed
     call:
-      - id: delegate_calls
-        tool: DelegateToolCalls
+      - tool: DelegateToolCall
         args:
-          messages: ${ state.transitionResults.prompt.toolResults.execute_prompt.data }
+          message: ${ llmResponse }
         assign:
-          toolCallResultMessages: ${ result.data }
-      - tool: CreateChatMessage
-        args: ${ toolCallResultMessages }
+          toolCallResult: ${ result.data }
 
-  - id: continue
-    from: tools_called
+  - id: route_next
+    from: tool_calls_processed
     to:
-      - message_created
+      - tool_response
       - end
     call:
       - tool: SwitchTarget
         args:
-          target: "{{#if toolCallResultMessages.length }}message_created{{else}}end{{/if}}"
+          target: "{{#if toolCallResult.parts.length }}tool_response{{else}}end{{/if}}"
+
+  - id: add_tool_response_message
+    from: tool_response
+    to: ready
+    call:
+      - tool: CreateDocument
+        args:
+          id: ${ toolCallResult.id }
+          document: AiMessageDocument
+          update:
+            content: ${ toolCallResult }

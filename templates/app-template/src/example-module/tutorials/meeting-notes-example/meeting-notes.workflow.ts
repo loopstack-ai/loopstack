@@ -4,6 +4,7 @@ import { BlockConfig, Input } from '@loopstack/shared';
 import { AiGenerateDocument } from '@loopstack/llm';
 import { MeetingNotesDocument } from './documents/meeting-notes-document';
 import { OptimizedNotesDocument } from './documents/optimized-notes-document';
+import { z } from 'zod';
 
 @BlockConfig({
   imports: [
@@ -12,9 +13,9 @@ import { OptimizedNotesDocument } from './documents/optimized-notes-document';
     MeetingNotesDocument,
     OptimizedNotesDocument,
   ],
-  config: {
-    title: 'Tutorial 1: Meeting Notes',
-  },
+  properties: z.object({
+    inputText: z.string().default("- meeting 1.1.2025\n- budget: need 2 cut costs sarah said\n- hire new person?? --> marketing\n- vendor pricing - follow up needed by anna"),
+  }),
   configFile: __dirname + '/meeting-notes.workflow.yaml',
 })
 export class MeetingNotesWorkflow extends Workflow {

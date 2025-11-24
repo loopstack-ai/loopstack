@@ -1,17 +1,20 @@
 import { Workflow } from '@loopstack/core';
 import { BlockConfig, Input } from '@loopstack/shared';
-import { AiGenerateObject } from '@loopstack/llm';
+import { AiGenerateDocument } from '@loopstack/llm';
 import { FileDocument } from './documents/file-document';
 import { Expose } from 'class-transformer';
+import { z } from 'zod';
+
+const propertiesSchema = z.object({
+  language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
+});
 
 @BlockConfig({
   imports: [
-    AiGenerateObject,
+    AiGenerateDocument,
     FileDocument,
   ],
-  config: {
-    title: 'Example 3: LLM Prompt Structured Data',
-  },
+  properties: propertiesSchema,
   configFile: __dirname + '/prompt-structured-data.workflow.yaml',
 })
 export class PromptStructuredDataWorkflow extends Workflow {
