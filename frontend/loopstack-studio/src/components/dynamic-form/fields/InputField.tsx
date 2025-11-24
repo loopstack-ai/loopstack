@@ -46,7 +46,7 @@ export interface InputFieldSchema {
   description?: string;
   disabled?: boolean;
   readonly?: boolean;
-  default?: string;
+  default?: string | number;
   minimum?: number;
   maximum?: number;
   multipleOf?: number;
@@ -58,6 +58,10 @@ interface InputFieldProps extends FieldProps {
   schema: InputFieldSchema;
 }
 
+const isNumericType = (schema: InputFieldSchema): boolean => {
+  return schema.type === 'number' || schema.type === 'integer';
+};
+
 export const InputField: React.FC<InputFieldProps> = ({
                                                         name,
                                                         schema,
@@ -68,11 +72,10 @@ export const InputField: React.FC<InputFieldProps> = ({
                                                         viewOnly
                                                       }) => {
   const config = useFieldConfig(name, schema, ui, disabled);
-
   const inputType = getInputType(schema);
-  const placeholder = schema.placeholder || schema.examples?.[0] || '';
-
+  const placeholder = schema.placeholder || schema.examples?.[0]?.toString() || '';
   const validationRules = buildTextValidationRules(schema, required);
+  const isNumeric = isNumericType(schema);
 
   if (viewOnly) {
     return (
@@ -83,9 +86,9 @@ export const InputField: React.FC<InputFieldProps> = ({
         <Controller
           name={name}
           control={form.control}
-          defaultValue={config.defaultValue || ''}
+          defaultValue={config.defaultValue ?? ''}
           render={({ field }) => (
-            <div className="text-sm">{field.value || '—'}</div>
+            <div className="text-sm">{field.value ?? '—'}</div>
           )}
         />
       </div>
@@ -96,7 +99,7 @@ export const InputField: React.FC<InputFieldProps> = ({
     <Controller
       name={name}
       control={form.control}
-      defaultValue={config.defaultValue || ''}
+      defaultValue={config.defaultValue ?? (isNumeric ? undefined : '')}
       rules={validationRules}
       render={({ field }) => (
         <BaseFieldWrapper
@@ -110,7 +113,17 @@ export const InputField: React.FC<InputFieldProps> = ({
           <Input
             {...field}
             id={name}
-            onChange={config.isReadOnly ? undefined : field.onChange}
+            onChange={(e) => {
+              if (config.isReadOnly) return;
+
+              if (isNumeric) {
+                const value = e.target.value;
+                field.onChange(value === '' ? undefined : Number(value));
+              } else {
+                field.onChange(e);
+              }
+            }}
+            value={field.value ?? ''}
             type={inputType}
             placeholder={placeholder}
             disabled={config.isDisabled}
