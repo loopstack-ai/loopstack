@@ -77,6 +77,7 @@ export class PipelineCreateDto {
   @ApiPropertyOptional({
     description: 'Start transition for the run',
     nullable: true,
+    type: 'string',
   })
   transition: string | null;
 
