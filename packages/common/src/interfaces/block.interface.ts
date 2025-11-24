@@ -1,0 +1,24 @@
+import { z } from 'zod';
+import { Scope, Type } from '@nestjs/common';
+import { BlockConfigType, JSONSchemaConfigType } from '@loopstack/types';
+
+export interface BlockOptions {
+  scope?: Scope;
+  imports?: any[];
+  config?: Partial<BlockConfigType>;
+  configFile?: string;
+  documentationFile?: string;
+  properties?: z.ZodType,
+  configSchema?: z.ZodType,
+}
+
+export interface BlockMetadata {
+  imports: Type<any>[];
+  config: BlockConfigType;
+  configFile?: string;
+  properties?: z.ZodType,
+  propertiesSchema?: JSONSchemaConfigType;
+  configSchema?: z.ZodType,
+  inputProperties: string[];
+  outputProperties: string[];
+}

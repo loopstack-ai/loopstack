@@ -1,0 +1,1 @@
+export const MODULE_NAME_TOKEN = 'MODULE_NAME_TOKEN';
