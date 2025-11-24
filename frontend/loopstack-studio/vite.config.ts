@@ -53,7 +53,6 @@ export default defineConfig(({ mode }) => {
               'clsx',
               'tailwind-merge',
               'class-variance-authority',
-              'class-validator',
             ],
             output: {
               format: 'es',
@@ -69,7 +68,6 @@ export default defineConfig(({ mode }) => {
             input: {
               main: path.resolve(__dirname, 'index.html')
             },
-            external: ['class-validator']
           }
         },
     resolve: {

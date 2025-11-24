@@ -58,6 +58,7 @@
     "@xyflow/react": "^12.9.3",
     "ai": "^5.0.72",
     "axios": "^1.13.2",
+    "class-validator": "^0.14.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
