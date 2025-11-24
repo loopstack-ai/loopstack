@@ -14,9 +14,9 @@ const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow,onSubmit }) => {
     return null;
   }
 
-  const availableTransitions = (workflow.availableTransitions as any).map(
+  const availableTransitions = (workflow.availableTransitions as any)?.map(
     (transition: WorkflowTransitionType) => transition.id
-  );
+  ) ?? [];
 
   return (
     <div className="p-4">

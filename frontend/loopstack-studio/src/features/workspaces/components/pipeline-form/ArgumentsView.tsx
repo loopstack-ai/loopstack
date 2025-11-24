@@ -34,48 +34,46 @@ const ArgumentsView = ({
     form.handleSubmit(handleFormSubmit(transition))();
   };
 
-  return <div className="flex flex-col h-full">
+  return <div className="flex flex-col">
     <HeaderSection
-      icon={<Zap className="w-5 h-5 text-primary-foreground" />}
+      icon={<Zap className="w-5 h-5" />}
       title={config?.title || config?.configKey || ''}
       description={config?.description}
       showBack={true}
       onBack={onBack}
     />
 
-    <div className="flex-1 overflow-y-auto mb-6 px-1">
+    <div className="mb-6 max-h-[400px] overflow-y-auto border border-border rounded-md p-4">
+
       {hasArguments && config ? (
-        <>
-          <div className="text-xs text-center text-muted-foreground mb-1">Arguments</div>
-        <div className="space-y-4 border border-border rounded-lg px-4">
-          <Form
-            form={form}
-            schema={config.schema}
-            ui={config.ui?.form}
-            disabled={false}
-            viewOnly={false}
-          />
-        </div>
-        </>
+        <Form
+          form={form}
+          schema={config.schema}
+          ui={config.ui?.form}
+          disabled={false}
+          viewOnly={false}
+        />
       ) : (
         <div className="flex items-center justify-center py-12">
           <p className="text-muted-foreground">No additional configuration required.</p>
         </div>
       )}
+
     </div>
 
-    <div className="pt-4">
+    <div className="flex justify-end">
       <Button
         variant="default"
         disabled={isLoading}
         onClick={() => handleSubmit('')}
         size={'lg'}
-        className={'w-full font-medium'}
+        className={'font-medium'}
       >
         {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
         Run Now
       </Button>
     </div>
+
   </div>;
 };
 

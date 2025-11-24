@@ -1,16 +1,26 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiClient } from './useApi.ts';
 import type { WorkflowItemDto, WorkflowSortByDto } from '@loopstack/api-client';
-import { eventBus } from '@/services';
-import { SseClientEvents } from '@/events';
 import type { WorkflowInterface } from '@loopstack/shared';
+import type { AxiosResponse } from 'axios';
 
-export function useWorkflow(id: string): UseQueryResult<WorkflowInterface> {
+export function getWorkflowsCacheKey(envKey: string, namespaceId: string) {
+  return ['workflows', envKey, namespaceId];
+}
+
+export function getWorkflowCacheKey(envKey: string, workflowId: string) {
+  return ['workflow', envKey, workflowId];
+}
+
+export function getWorkflowsByPipelineCacheKey(envKey: string, pipelineId: string) {
+  return ['workflows-by-pipeline', envKey, pipelineId];
+}
+
+export function useWorkflow(id: string) {
   const { envKey, api } = useApiClient();
 
-  return useQuery({
-    queryKey: ['workflow', id, envKey],
+  return useQuery<AxiosResponse, Error, WorkflowInterface>({
+    queryKey: getWorkflowCacheKey(envKey, id),
     queryFn: () => {
       if (!api) {
         throw new Error('API not available');
@@ -18,7 +28,7 @@ export function useWorkflow(id: string): UseQueryResult<WorkflowInterface> {
       return api.ApiV1WorkflowsApi.workflowControllerGetWorkflowById({ id });
     },
     enabled: !!id,
-    select: (res): WorkflowInterface => res.data
+    select: (res) => res.data
   });
 }
 
@@ -38,7 +48,7 @@ export function useFetchWorkflowsByPipeline(pipelineId: string) {
   };
 
   return useQuery({
-    queryKey: ['workflows-by-pipeline', pipelineId, envKey],
+    queryKey: getWorkflowsByPipelineCacheKey(envKey, pipelineId),
     queryFn: () => {
       if (!api) {
         throw new Error('API not available');
@@ -66,7 +76,7 @@ export function useFetchWorkflowsByNamespace(namespaceId: string) {
   };
 
   return useQuery({
-    queryKey: ['workflows', namespaceId, envKey],
+    queryKey: getWorkflowsCacheKey(envKey, namespaceId),
     queryFn: () => {
       if (!api) {
         throw new Error('API not available');
@@ -90,62 +100,9 @@ export function useDeleteWorkflow() {
       return api.ApiV1WorkflowsApi.workflowControllerDeleteWorkflow({ id: workflow.id });
     },
     onSuccess: (_, workflow) => {
-      queryClient.removeQueries({ queryKey: ['workflow', workflow.id, envKey] });
-      queryClient.invalidateQueries({ queryKey: ['workflows', workflow.namespaceId, envKey] });
-      queryClient.invalidateQueries({
-        queryKey: ['workflows-by-pipeline', workflow.pipelineId, envKey]
-      });
+      queryClient.removeQueries({ queryKey: getWorkflowCacheKey(envKey, workflow.id) });
+      queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey, workflow.namespaceId) });
+      queryClient.invalidateQueries({ queryKey: getWorkflowsByPipelineCacheKey(envKey, workflow.pipelineId) });
     }
   });
-}
-
-export function useWorkflowsInvalidationEvents(workerId: string | undefined) {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (workerId) {
-      const unsubWorkflowCreatedSubscriber = eventBus.on(
-        SseClientEvents.WORKFLOW_CREATED,
-        (payload: any) => {
-          if (payload.namespaceId) {
-            queryClient.invalidateQueries({
-              queryKey: ['workflows', payload.namespaceId, workerId]
-            });
-            queryClient.invalidateQueries({
-              queryKey: ['namespaces', payload.pipelineId, workerId]
-            });
-            queryClient.invalidateQueries({
-              queryKey: ['workflows', payload.namespaceId, workerId]
-            });
-          }
-
-          if (payload.pipelineId) {
-            queryClient.invalidateQueries({
-              queryKey: ['workflows-by-pipeline', payload.pipelineId, workerId]
-            });
-          }
-        }
-      );
-
-      const unsubWorkflowUpdatedSubscriber = eventBus.on(
-        SseClientEvents.WORKFLOW_UPDATED,
-        (payload: any) => {
-          if (payload.id) {
-            queryClient.invalidateQueries({ queryKey: ['workflow', payload.id, workerId] });
-            queryClient.invalidateQueries({
-              queryKey: ['namespaces', payload.pipelineId, workerId]
-            });
-            queryClient.invalidateQueries({
-              queryKey: ['workflows', payload.namespaceId, workerId]
-            });
-          }
-        }
-      );
-
-      return () => {
-        unsubWorkflowCreatedSubscriber();
-        unsubWorkflowUpdatedSubscriber();
-      };
-    }
-  }, [queryClient]);
 }

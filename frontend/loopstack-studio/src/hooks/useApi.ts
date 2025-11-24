@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import axios from 'axios';
-import { ApiClientEvents } from '../events';
+import { ApiClientEvents } from '@/events';
 import { useStudio } from '../providers/StudioProvider';
-import { eventBus } from '../services';
+import { eventBus } from '@/services';
 import {
   ApiV1AuthApi,
   ApiV1ConfigApi,
@@ -15,8 +15,6 @@ import {
   ApiV1WorkspacesApi,
   Configuration
 } from '@loopstack/api-client';
-import { useWorkflowsInvalidationEvents } from './useWorkflows.ts';
-import { useDocumentsInvalidationEvents } from './useDocuments.ts';
 
 export function useApiClient() {
   const { environment } = useStudio();
@@ -61,9 +59,6 @@ export function useApiClient() {
       ApiV1WorkflowsApi: new ApiV1WorkflowsApi(apiConfig, url, axiosInstance),
       ApiV1WorkspacesApi: new ApiV1WorkspacesApi(apiConfig, url, axiosInstance)
     };
-
-    useWorkflowsInvalidationEvents(environment.id);
-    useDocumentsInvalidationEvents(environment.id);
 
     return {
       envKey: environment.id,

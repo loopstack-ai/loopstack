@@ -1,7 +1,7 @@
 import React from 'react';
 import { RectangleHorizontal } from 'lucide-react';
 import { SidebarMenuDiv, SidebarMenuItem, SidebarMenuSub } from '../../components/ui/sidebar.tsx';
-import type { NamespaceTree } from '../../hooks/useNamespaceTree.ts';
+import type { NamespaceTree } from '@/hooks/useNamespaceTree.ts';
 import NavigationItems from './NavigationItems.tsx';
 
 interface WorkbenchNavigationProps {

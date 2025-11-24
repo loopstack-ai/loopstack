@@ -1,13 +1,12 @@
 import ErrorSnackbar from '../../components/snackbars/ErrorSnackbar.tsx';
 import LoadingCentered from '../../components/LoadingCentered.tsx';
-import { useFetchWorkflowsByPipeline } from '../../hooks/useWorkflows.ts';
+import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
 import type { PipelineDto } from '@loopstack/api-client';
 import React, { useContext, useEffect, useState } from 'react';
 import WorkbenchSettingsModal from './components/WorkbenchSettingsModal.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { cn } from '@/lib/utils.ts';
 import WorkflowItem from '@/features/workbench/WorkflowItem.tsx';
-import PipelineButtons from '@/features/workbench/components/buttons/PipelineButtons.tsx';
 import { useIntersectionObserver } from '@/features/workbench/hooks/useIntersectionObserver.ts';
 import { useScrollToListItem } from '@/features/workbench/hooks/useScrollToListItem.ts';
 import { WorkbenchContextProvider } from '@/features/workbench/providers/WorkbenchContextProvider.tsx';

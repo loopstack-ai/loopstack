@@ -10,7 +10,7 @@ import { useFilterDocuments } from '@/hooks/useDocuments.ts';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import WorkflowForms from '@/features/workbench/components/WorkflowForms.tsx';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
-import type { TransitionPayloadInterface } from '@loopstack/shared';
+import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/shared';
 import DocumentList from '@/features/workbench/components/DocumentList.tsx';
 
 const WorkflowItem: React.FC<{
@@ -30,8 +30,6 @@ const WorkflowItem: React.FC<{
     }
   }, [fetchWorkflow.isSuccess, fetchDocuments.isSuccess, workflowId, paramsWorkflowId, clickId]);
 
-  // const { messages, sendMessage, status, regenerate } = useChat();
-
   const filterDocuments = useCallback((item: DocumentItemDto) => {
     let hidden =
       (item.meta as any)?.['hidden'] ||
@@ -50,7 +48,7 @@ const WorkflowItem: React.FC<{
     return !hidden;
   }, [fetchWorkflow.data, settings.showFullMessageHistory]);
 
-  const documents = useMemo(() => {
+  const documents: DocumentItemInterface[] = useMemo(() => {
     if (!fetchDocuments.data) {
       return [];
     }

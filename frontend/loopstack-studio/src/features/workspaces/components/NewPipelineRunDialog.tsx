@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog.tsx';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog.tsx';
 import type { WorkspaceDto } from '@loopstack/api-client';
 import PipelineForm from './PipelineForm.tsx';
 
@@ -22,8 +22,9 @@ const CreatePipelineDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <div className="mt-4">
+      <DialogTitle>Run Pipeline</DialogTitle>
+      <DialogContent className="max-h-[80vh] min-h-[300px] !max-w-2xl">
+        <div className="mt-4 overflow-y-auto">
           <PipelineForm
             title="Run Pipeline"
             workspace={workspace}

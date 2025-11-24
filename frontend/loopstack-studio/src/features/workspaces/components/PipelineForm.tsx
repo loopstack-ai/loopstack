@@ -128,41 +128,39 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
   if (!fetchPipelineTypes.data) return null;
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative">
       <ErrorSnackbar error={createPipeline.error} />
       <ErrorSnackbar error={pingPipeline.error} />
       <ErrorSnackbar error={fetchPipelineTypes.error} />
 
-      <div className="relative min-h-[600px]">
+      <div className="relative overflow-hidden">
         <div
-          className={`absolute inset-0 transition-transform duration-300 ease-in-out px-1 ${
-            currentStep === 'selection' ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className="flex transition-transform duration-300 ease-in-out"
+          style={{ transform: `translateX(-${currentStep === 'arguments' ? 100 : 0}%)` }}
         >
-          <SelectionView
-            title={title}
-            pipelineTypes={fetchPipelineTypes.data}
-            formData={formData}
-            errors={errors}
-            isLoading={isLoading}
-            onInputChange={handleInputChange}
-            onNext={handleNext}
-            buttonLabel={ hasArguments ? 'Configure Arguments' : 'Run Now' }
-          />
-        </div>
+          {/* Selection View */}
+          <div className="w-full flex-shrink-0 px-1">
+            <SelectionView
+              title={title}
+              pipelineTypes={fetchPipelineTypes.data}
+              formData={formData}
+              errors={errors}
+              isLoading={isLoading}
+              onInputChange={handleInputChange}
+              onNext={handleNext}
+            />
+          </div>
 
-        <div
-          className={`absolute inset-0 transition-transform duration-300 ease-in-out px-1 ${
-            currentStep === 'arguments' ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          <ArgumentsView
-            config={selectedPipelineConfig}
-            hasArguments={hasArguments}
-            isLoading={isLoading}
-            onBack={handleBack}
-            onSubmit={handleSubmit}
-          />
+          {/* Arguments View */}
+          <div className="w-full flex-shrink-0 px-1">
+            <ArgumentsView
+              config={selectedPipelineConfig}
+              hasArguments={hasArguments}
+              isLoading={isLoading}
+              onBack={handleBack}
+              onSubmit={handleSubmit}
+            />
+          </div>
         </div>
       </div>
     </div>
