@@ -52,7 +52,8 @@ export default defineConfig(({ mode }) => {
               'date-fns',
               'clsx',
               'tailwind-merge',
-              'class-variance-authority'
+              'class-variance-authority',
+              'class-validator',
             ],
             output: {
               format: 'es',
@@ -67,7 +68,8 @@ export default defineConfig(({ mode }) => {
           rollupOptions: {
             input: {
               main: path.resolve(__dirname, 'index.html')
-            }
+            },
+            external: ['class-validator']
           }
         },
     resolve: {
