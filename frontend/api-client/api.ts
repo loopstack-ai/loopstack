@@ -832,10 +832,10 @@ export interface PipelineCreateDto {
     'workspaceId': string;
     /**
      * Start transition for the run
-     * @type {object}
+     * @type {string}
      * @memberof PipelineCreateDto
      */
-    'transition'?: object | null;
+    'transition'?: string | null;
     /**
      * Arguments for the pipeline run
      * @type {{ [key: string]: any; }}
