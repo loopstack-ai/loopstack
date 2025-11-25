@@ -1,5 +1,5 @@
 import { CreateChatMessage, SwitchTarget, Workflow } from '@loopstack/core';
-import { BlockConfig, Input } from '@loopstack/shared';
+import { BlockConfig, Input } from '@loopstack/common';
 import { AiGenerateText, DelegateToolCall } from '@loopstack/llm';
 import { GetWeather } from './tools/get-weather.tool';
 import { Expose } from 'class-transformer';

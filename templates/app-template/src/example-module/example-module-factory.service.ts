@@ -1,5 +1,5 @@
 import { ModuleRef } from '@nestjs/core';
-import { Capability } from '@loopstack/shared';
+import { Capability } from '@loopstack/common';
 import { CapabilityFactory } from '@loopstack/core';
 
 @Capability()

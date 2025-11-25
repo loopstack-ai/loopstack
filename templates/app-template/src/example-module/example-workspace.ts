@@ -1,4 +1,4 @@
-import { BlockConfig } from '@loopstack/shared';
+import { BlockConfig } from '@loopstack/common';
 import { Workspace } from '@loopstack/core';
 import { PromptWorkflow } from './llm/prompt-example/prompt.workflow';
 import { ChatWorkflow } from './llm/chat-example/chat.workflow';

@@ -1,13 +1,13 @@
-import { registerAs } from '@nestjs/config';
+import { registerAs, ConfigFactory } from '@nestjs/config';
 import { AuthConfig } from '@loopstack/api';
 import { AppConfig } from '@loopstack/core';
 
-export const appConfig = registerAs<AppConfig>('app', () => ({
+export const appConfig: ReturnType<typeof registerAs<AppConfig>> = registerAs<AppConfig>('app', () => ({
   nodeEnv: process.env.NODE_ENV || 'development',
   isLocalMode: process.env.ENABLE_LOCAL_MODE === 'true',
 }));
 
-export const authConfig = registerAs<AuthConfig>('auth', () => {
+export const authConfig: ReturnType<typeof registerAs<AuthConfig>> = registerAs<AuthConfig>('auth', () => {
   const isProduction = process.env.NODE_ENV === 'production';
 
   if (isProduction) {
@@ -29,7 +29,7 @@ export const authConfig = registerAs<AuthConfig>('auth', () => {
   };
 });
 
-export const loopstackConfig = [
+export const loopstackConfig: ConfigFactory[] = [
   appConfig,
   authConfig,
-]
+];

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CoreToolsModule, LoopCoreModule } from '@loopstack/core';
-import { ModuleFactory } from '@loopstack/shared';
+import { ModuleFactory } from '@loopstack/common';
 import { ExampleModuleFactoryService } from './example-module-factory.service';
 import { LlmModule } from '@loopstack/llm';
 import { ExampleWorkspace } from './example-workspace';

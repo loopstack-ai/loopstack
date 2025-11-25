@@ -1,5 +1,5 @@
 import { Workflow } from '@loopstack/core';
-import { BlockConfig, Input } from '@loopstack/shared';
+import { BlockConfig, Input } from '@loopstack/common';
 import { z } from 'zod';
 import { AiGenerateText } from '@loopstack/llm';
 import { Expose } from 'class-transformer';
