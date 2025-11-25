@@ -2,7 +2,7 @@
 
 # Configuration
 API_URL="http://localhost:8002/api-json"
-API_CLIENT_PATH="../../frontend/hub-client"
+API_CLIENT_PATH="../hub-client"
 
 # Get current version and increment patch
 CURRENT_VERSION=$(node -p "require('$API_CLIENT_PATH/package.json').version" 2>/dev/null || echo "0.0.0")
