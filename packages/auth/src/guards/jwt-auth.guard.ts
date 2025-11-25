@@ -1,9 +1,9 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { CurrentUserInterface, IS_PUBLIC_KEY } from '@loopstack/shared';
+import { CurrentUserInterface, IS_PUBLIC_KEY } from '@loopstack/common';
 import { ConfigService } from '@nestjs/config';
-import { UserTypeEnum } from '@loopstack/shared/dist/enums/user-type.enum';
+import { UserTypeEnum } from '@loopstack/common';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {

@@ -19,7 +19,8 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@loopstack/core": ["packages/core/src"],
-      "@loopstack/shared": ["packages/shared/src"]
+      "@loopstack/contracts": ["packages/contracts/src"],
+      "@loopstack/common": ["packages/common/src"]
     },
   }
 }

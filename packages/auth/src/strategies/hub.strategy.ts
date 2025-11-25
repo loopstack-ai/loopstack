@@ -5,9 +5,9 @@ import { HubService } from '../services';
 import { Request } from 'express';
 import { UserRepository } from '../repositories';
 import { ConfigService } from '@nestjs/config';
-import { UserTypeEnum } from '@loopstack/shared/dist/enums/user-type.enum';
+import { UserTypeEnum } from '@loopstack/common';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '@loopstack/shared';
+import { User } from '@loopstack/common';
 
 @Injectable()
 export class HubStrategy extends PassportStrategy(Strategy, 'hub') {

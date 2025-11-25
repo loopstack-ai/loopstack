@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@loopstack/shared';
-import { UserTypeEnum } from '@loopstack/shared/dist/enums/user-type.enum';
+import { User } from '@loopstack/common';
+import { UserTypeEnum } from '@loopstack/common';
 
 @Injectable()
 export class UserRepository {

@@ -9,7 +9,7 @@ import { AuthController } from './controllers';
 import { UserRepository } from './repositories';
 import { AuthConfig } from './interfaces';
 import { AUTH_CONFIG } from './constants';
-import { Permission, Role, User } from '@loopstack/shared';
+import { Permission, Role, User } from '@loopstack/common';
 import { ConfigValidationService } from './services/config-validation.service';
 import { HubAuditService } from './services/hub-audit.service';
 import { JwtAuthGuard } from './guards';

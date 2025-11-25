@@ -10,11 +10,9 @@ import {
 } from '@nestjs/common';
 import { AuthService, TokenService } from '../services';
 import {
-  AuthResponseDto,
   CurrentUser, CurrentUserInterface,
   Public,
-  UserResponseDto,
-} from '@loopstack/shared';
+} from '@loopstack/common';
 import {
   ApiBody,
   ApiExtraModels,
@@ -28,6 +26,8 @@ import { WorkerInfoDto } from '../dtos/worker-info.dto';
 import { ApiResponse as SwaggerApiResponse } from '@nestjs/swagger/dist/decorators/api-response.decorator';
 import { HubLoginRequestDto } from '../dtos/hub-login-request.dto';
 import { HubLoginResponseDto } from '../dtos/hub-login-response.dto';
+import { AuthResponseDto } from '../dtos/auth-response.dto';
+import { UserResponseDto } from '../dtos/user-response.dto';
 
 @ApiTags('api/v1/auth')
 @Controller('api/v1/auth')

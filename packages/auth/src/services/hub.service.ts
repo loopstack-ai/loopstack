@@ -1,6 +1,6 @@
 import { BadGatewayException, BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
-import { IValidateCodeResponse, SsoValidateCodeDto } from '@loopstack/shared';
+import { IValidateCodeResponse } from '@loopstack/common';
 import { ConfigService } from '@nestjs/config';
 import { HubConfig, RequestContext } from '../interfaces/hub-service.interfaces';
 import { HubAuditService } from './hub-audit.service';
@@ -9,6 +9,7 @@ import {
   HubConfigurationException, HubServiceUnavailableException, HubTimeoutException,
   InvalidAuthCodeException,
 } from '../exceptions/hub.exceptions';
+import { SsoValidateCodeInterface } from '@loopstack/common';
 
 @Injectable()
 export class HubService implements OnModuleInit {
@@ -154,7 +155,7 @@ export class HubService implements OnModuleInit {
         const response = await this.axiosInstance.post<
           IValidateCodeResponse,
           AxiosResponse<IValidateCodeResponse>,
-          SsoValidateCodeDto
+          SsoValidateCodeInterface
         >(
           this.config.authCallback,
           {

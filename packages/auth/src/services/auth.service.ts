@@ -1,14 +1,15 @@
-import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserRepository } from '../repositories';
 import { TokenService } from './token.service';
 import {
-  AuthResponseDto, JwtPayloadInterface,
+  JwtPayloadInterface,
   User,
-  UserResponseDto,
-} from '@loopstack/shared';
+} from '@loopstack/common';
 import { WorkerInfoDto } from '../dtos/worker-info.dto';
 import { plainToInstance } from 'class-transformer';
 import { ConfigService } from '@nestjs/config';
+import { AuthResponseDto } from '../dtos/auth-response.dto';
+import { UserResponseDto } from '../dtos/user-response.dto';
 
 @Injectable()
 export class AuthService {

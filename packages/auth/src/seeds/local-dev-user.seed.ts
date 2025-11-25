@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserRepository } from '../repositories';
-import { User } from '@loopstack/shared';
+import { User } from '@loopstack/common';
 
 @Injectable()
 export class LocalDevUserSeeder implements OnModuleInit {

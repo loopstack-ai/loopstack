@@ -4,7 +4,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthConfig } from '../interfaces';
 import { AUTH_CONFIG } from '../constants';
-import { JwtPayloadInterface } from '@loopstack/shared';
+import { JwtPayloadInterface } from '@loopstack/common';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

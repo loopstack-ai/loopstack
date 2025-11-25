@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayloadInterface } from '@loopstack/shared';
+import { JwtPayloadInterface } from '@loopstack/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
