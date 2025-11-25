@@ -37,8 +37,7 @@ console.log(`📦 Creating Loopstack app: ${appName}`);
 console.log(`📋 Using template: ${templateName}`);
 console.log(`🏷️  Using tag: ${tag}`);
 
-// Use degit to clone the specified tag
-const repo = `loopstack-ai/${templateName}`;
+const repo = `https://github.com/loopstack-ai/${templateName}`;
 console.log(`🔗 Cloning from: ${repo}#${tag}`);
 
 try {
