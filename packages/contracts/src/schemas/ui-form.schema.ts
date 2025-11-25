@@ -14,8 +14,6 @@ export const UiFormButtonOptionsSchema = z.object({
   props: z.record(z.any()).optional(),
 })
 
-export type UiFormButtonOptionsType = z.infer<typeof UiFormButtonOptionsSchema>;
-
 export const UiFormButtonSchema = UiFormBaseSchema.extend({
   type: z.literal('button'),
   options: z.object({
@@ -33,18 +31,13 @@ export const UiFormCustomSchema = UiFormBaseSchema.extend({
   }).optional(),
 });
 
-export type UiFormButtonType = z.infer<typeof UiFormButtonSchema>;
-
 export const UiWidgetSchema = discriminatedUnion('type', [
   UiFormButtonSchema,
   UiFormCustomSchema,
 ]);
-
-export type UiWidgetType = z.infer<typeof UiWidgetSchema>;
 
 export const UiFormSchema = z.object({
   actions: z.array(UiWidgetSchema).optional(),
   form: UiPropertiesSchema.optional(),
 });
 
-export type UiFormType = z.infer<typeof UiFormSchema>;

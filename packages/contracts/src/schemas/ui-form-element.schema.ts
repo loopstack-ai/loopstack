@@ -38,5 +38,3 @@ export const UiElementSchema = z.object({
   order: z.array(z.string()).optional(),
 });
 
-export type UiElementType = z.infer<typeof UiElementSchema>;
-

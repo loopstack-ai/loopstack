@@ -8,4 +8,3 @@ export const ToolConfigSchema = BlockSchema.extend({
   ui: UiFormSchema.optional()
 });
 
-export type ToolConfigType = z.infer<typeof ToolConfigSchema>;

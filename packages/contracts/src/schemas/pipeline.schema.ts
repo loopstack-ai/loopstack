@@ -21,8 +21,6 @@ export const PipelineItemConfigSchema = z.object({
   args: z.any().optional(),
 });
 
-export type PipelineItemConfigType = z.infer<typeof PipelineItemConfigSchema>;
-
 export const PipelineItemSchema = z.object({
   id: z.string().optional(),
   block: z.string(),
@@ -32,16 +30,12 @@ export const PipelineItemSchema = z.object({
   args: z.any().optional(),
 });
 
-export type PipelineItemType = z.infer<typeof PipelineItemSchema>;
-
 export const PipelineFactoryIteratorConfigSchema = z.object({
   source: z.union([
     TemplateExpression,
     z.array(z.string()),
   ]),
 });
-
-export type PipelineFactoryIteratorConfigType = z.infer<typeof PipelineFactoryIteratorConfigSchema>;
 
 export const PipelineFactoryConfigSchema = PipelineBaseSchema.extend({
   type: z.literal('factory').default('factory'),
@@ -51,13 +45,9 @@ export const PipelineFactoryConfigSchema = PipelineBaseSchema.extend({
   iterator: PipelineFactoryIteratorConfigSchema,
 });
 
-export type PipelineFactoryConfigType = z.infer<typeof PipelineFactoryConfigSchema>;
-
 export const PipelineFactoryIteratorSchema = z.object({
   source: z.array(z.string()),
 });
-
-export type PipelineFactoryIteratorType = z.infer<typeof PipelineFactoryIteratorSchema>;
 
 export const PipelineFactorySchema = PipelineBaseSchema.extend({
   namespace: NamespacePropsSchema,
@@ -66,12 +56,8 @@ export const PipelineFactorySchema = PipelineBaseSchema.extend({
   iterator: PipelineFactoryIteratorSchema,
 });
 
-export type PipelineFactoryType = z.infer<typeof PipelineFactorySchema>;
-
 export const PipelineSequenceSchema = PipelineBaseSchema.extend({
   type: z.literal('sequence').default('sequence'),
   sequence: z.array(PipelineItemConfigSchema),
 });
-
-export type PipelineSequenceType = z.infer<typeof PipelineSequenceSchema>;
 

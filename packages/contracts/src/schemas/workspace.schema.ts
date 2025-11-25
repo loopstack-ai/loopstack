@@ -7,4 +7,3 @@ export const WorkspaceSchema = BlockSchema.extend({
   description: z.string().optional(),
 });
 
-export type WorkspaceType = z.infer<typeof WorkspaceSchema>;

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const JSONSchemaType: z.ZodType<any> = z.lazy(() =>
     z.object({
@@ -66,4 +66,3 @@ export const JSONSchemaType: z.ZodType<any> = z.lazy(() =>
     })
 );
 
-export interface JSONSchemaConfigType extends z.infer<typeof JSONSchemaType> {}

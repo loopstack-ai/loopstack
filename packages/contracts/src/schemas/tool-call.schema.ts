@@ -8,4 +8,3 @@ export const ToolCallSchema = z.object({
   assign: AssignmentConfigSchema.optional(),
 });
 
-export type ToolCallType = z.infer<typeof ToolCallSchema>;

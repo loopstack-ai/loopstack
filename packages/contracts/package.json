@@ -1,6 +1,6 @@
 {
-  "name": "@loopstack/types",
-  "displayName": "Loopstack Types",
+  "name": "@loopstack/contracts",
+  "displayName": "Loopstack Contracts",
   "description": "A collection of types and schemas shared between projects",
   "version": "0.14.0",
   "license": "BSL",
@@ -10,6 +10,27 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/types/index.js"
+    },
+    "./enums": {
+      "types": "./dist/enums/index.d.ts",
+      "default": "./dist/enums/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "default": "./dist/schemas/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "types": ["./dist/types/index.d.ts"],
+      "enums": ["./dist/enums/index.d.ts"],
+      "schemas": ["./dist/schemas/index.d.ts"]
+    }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "watch": "tsc --watch",

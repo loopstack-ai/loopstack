@@ -7,4 +7,3 @@ export const TransitionPayloadSchema = z.object({
   meta: z.any().optional(),
 });
 
-export type TransitionPayload = z.infer<typeof TransitionPayloadSchema>

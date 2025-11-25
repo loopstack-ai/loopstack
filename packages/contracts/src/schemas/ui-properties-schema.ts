@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 import { UiElementSchema } from './ui-form-element.schema';
 
 export const UiPropertiesSchema: z.ZodType<any> = z.lazy(() =>
@@ -8,4 +8,3 @@ export const UiPropertiesSchema: z.ZodType<any> = z.lazy(() =>
     })
 );
 
-export interface UiPropertiesType extends z.infer<typeof UiPropertiesSchema> {}

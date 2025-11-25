@@ -1,4 +1,4 @@
-# Loopstack Types and Schemas
+# Loopstack Contracts: Types and Schemas
 
 This is a submodule of the **Loopstack** framework.
 

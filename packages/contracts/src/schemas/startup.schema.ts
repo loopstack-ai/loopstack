@@ -78,11 +78,8 @@ export const StartupTaskSchema = z.discriminatedUnion('type', [
   // CreateWorkspaceTaskSchema,
 ])
 
-export type RunPipelineTask = z.infer<typeof RunPipelineTaskSchema>;
-
 export const ScheduledTaskSchema = z.object({
   id: z.string().min(1, 'id is required'),
   task: StartupTaskSchema,
 });
 
-export type ScheduledTask = z.infer<typeof ScheduledTaskSchema>;

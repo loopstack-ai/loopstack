@@ -12,8 +12,6 @@ export const AssignmentSchema = z.record(
   ])
 );
 
-export type AssignmentType = z.infer<typeof AssignmentSchema>;
-
 export const AssignmentConfigSchema = z.record(
   z.string(),
   z.union([
@@ -26,4 +24,3 @@ export const AssignmentConfigSchema = z.record(
   ])
 );
 
-export type AssignmentConfigType = z.infer<typeof AssignmentConfigSchema>;

@@ -16,8 +16,6 @@ export const MimeTypeSchema = z.enum([
   "application/yaml",
 ]);
 
-export type MimeType = z.infer<typeof MimeTypeSchema>;
-
 export const DocumentConfigSchema = BlockSchema.extend({
   type: z.literal('document').default('document').optional(),
   description: z.string().optional(),
@@ -53,8 +51,6 @@ export const DocumentConfigSchema = BlockSchema.extend({
   }).optional(),
 })
 
-export type DocumentConfigType = z.infer<typeof DocumentConfigSchema>;
-
 export const DocumentSchema = z.object({
   type: z.literal('document').default('document').optional(),
   description: z.string().optional(),
@@ -77,8 +73,6 @@ export const DocumentSchema = z.object({
   }).optional(),
 })
 
-export type DocumentType = z.infer<typeof DocumentSchema>;
-
 export const DocumentMessageContentSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
   content: z.string().optional(),
@@ -97,6 +91,4 @@ export const DocumentMessageContentSchema = z.object({
 export const DocumentMessageSchema = DocumentSchema.extend({
   content: DocumentMessageContentSchema,
 });
-
-export type DocumentMessageType = z.infer<typeof DocumentMessageSchema>;
 

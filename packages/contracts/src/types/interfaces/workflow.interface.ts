@@ -1,6 +1,8 @@
-import { WorkflowState } from '../enums';
-import { JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '../schemas';
+import { WorkflowState } from '../../enums';
 import { HistoryTransition } from './history-transition.interface';
+import { JSONSchemaConfigType } from '../types/json-schema-config.type';
+import { UiFormType } from '../types/ui-form.type';
+import { WorkflowTransitionType } from '../types/workflow-transition.type';
 
 export interface WorkflowInterface {
   id: string;
