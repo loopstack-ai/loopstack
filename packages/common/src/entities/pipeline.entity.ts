@@ -13,7 +13,7 @@ import { NamespaceEntity } from './namespace.entity';
 import { PipelineState } from '../enums';
 import { StableJsonTransformer } from '../utils';
 import { z } from 'zod';
-import { JSONSchemaConfigType } from '@loopstack/types';
+import type { JSONSchemaConfigType } from '@loopstack/contracts/types';
 
 @Entity({ name: 'core_pipeline' })
 export class PipelineEntity {

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Scope, Type } from '@nestjs/common';
-import { BlockConfigType, JSONSchemaConfigType } from '@loopstack/types';
+import type { BlockConfigType, JSONSchemaConfigType } from '@loopstack/contracts/types';
 
 export interface BlockOptions {
   scope?: Scope;

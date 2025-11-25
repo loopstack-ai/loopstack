@@ -16,7 +16,7 @@ import { WorkflowState } from '../enums';
 import { TransitionResultLookup } from '../interfaces';
 import { StableJsonTransformer } from '../utils';
 import { z } from 'zod';
-import { HistoryTransition, JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '@loopstack/types';
+import type { HistoryTransition, JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '@loopstack/contracts/types';
 
 @Entity({ name: 'core_workflow' })
 export class WorkflowEntity {

@@ -17,12 +17,10 @@
     "compile": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@loopstack/types": "^0.14.0",
     "@nestjs/typeorm": "^11.0.0",
     "typeorm": "^0.3.25"
   },
   "devDependencies": {
-    "@loopstack/types": "^0.14.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/typeorm": "^11.0.0",
     "@types/node": "^22.13.4",
@@ -30,6 +28,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@loopstack/contracts": "^0.14.0",
     "fast-json-stable-stringify": "^2.1.0",
     "murmurhash": "^2.0.1",
     "reflect-metadata": "^0.2.2",

@@ -12,7 +12,7 @@ import {
 import { WorkflowEntity } from './workflow.entity';
 import { StableJsonTransformer } from '../utils';
 import { z } from 'zod';
-import { JSONSchemaConfigType } from '@loopstack/types';
+import type { JSONSchemaConfigType } from '@loopstack/contracts/types';
 
 @Entity({ name: 'core_document' })
 export class DocumentEntity<T = any> {
