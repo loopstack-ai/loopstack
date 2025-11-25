@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WorkflowEntity } from '@loopstack/shared';
+import { WorkflowEntity } from '@loopstack/common';
 import { Workflow } from '../abstract';
 import { WorkflowService } from '../../persistence';
 

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PipelineEntity, PipelineState } from '@loopstack/shared';
+import { PipelineEntity, PipelineState } from '@loopstack/common';
 import { Workspace } from '../abstract';
 import { BlockRegistryService } from './block-registry.service';
 import { BlockProcessor } from './block-processor.service';
@@ -35,9 +35,7 @@ export class RootProcessorService {
       pipeline.configKey,
     );
     if (!blockRegistryItem) {
-      throw new Error(
-        `Config for pipeline ${pipeline.configKey} not found.`,
-      );
+      throw new Error(`Config for pipeline ${pipeline.configKey} not found.`);
     }
 
     const ctx = new RootExecutionContextDto({
@@ -51,12 +49,13 @@ export class RootProcessorService {
       payload: payload,
     });
 
-    const block = await this.blockFactory.createBlock(pipeline.configKey, args, ctx);
-
-    return this.blockProcessor.processBlock(
-      block,
-      this.processorFactory,
+    const block = await this.blockFactory.createBlock(
+      pipeline.configKey,
+      args,
+      ctx,
     );
+
+    return this.blockProcessor.processBlock(block, this.processorFactory);
   }
 
   async runPipeline(
@@ -68,7 +67,11 @@ export class RootProcessorService {
       PipelineState.Running,
     );
 
-    const block = await this.processRootPipeline(pipeline, payload, pipeline.args);
+    const block = await this.processRootPipeline(
+      pipeline,
+      payload,
+      pipeline.args,
+    );
 
     const status = block.state?.error
       ? PipelineState.Failed

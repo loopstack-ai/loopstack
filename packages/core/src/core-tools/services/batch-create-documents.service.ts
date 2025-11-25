@@ -1,8 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DocumentConfigType, DocumentEntity, DocumentSchema } from '@loopstack/shared';
+import { DocumentSchema } from '@loopstack/contracts/schemas';
+import type { DocumentConfigType } from '@loopstack/contracts/types';
+import { DocumentEntity } from '@loopstack/common';
 import { DocumentService } from '../../persistence';
 import {
-  BlockRegistryService, ConfigTraceError,
+  BlockRegistryService,
+  ConfigTraceError,
   SchemaValidationError,
   TemplateExpressionEvaluatorService,
   Tool,
@@ -38,17 +41,11 @@ export class BatchCreateDocumentsService {
     const config = blockRegistryItem.config as DocumentConfigType;
 
     try {
-
       // create the document skeleton without content property
       const documentSkeleton =
         this.templateExpressionEvaluatorService.evaluateTemplate<
           Omit<DocumentType, 'content'>
-        >(
-          omit(config, ['content']),
-          tool,
-          ['document'],
-          DocumentSchema,
-        );
+        >(omit(config, ['content']), tool, ['document'], DocumentSchema);
 
       const inputSchema = blockRegistryItem.metadata.properties;
       if (!inputSchema && config.content) {
@@ -74,12 +71,14 @@ export class BatchCreateDocumentsService {
             ['document'],
           );
 
-        const messageId = args.items[index].id ? this.templateExpressionEvaluatorService.evaluateTemplate<any>(
-          args.items[index].id,
-          tool,
-          ['document'],
-          z.string(),
-        ) : undefined;
+        const messageId = args.items[index].id
+          ? this.templateExpressionEvaluatorService.evaluateTemplate<any>(
+              args.items[index].id,
+              tool,
+              ['document'],
+              z.string(),
+            )
+          : undefined;
 
         // merge document skeleton with content data
         const documentData: Partial<DocumentEntity> = {

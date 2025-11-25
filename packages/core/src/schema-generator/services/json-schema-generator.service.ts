@@ -4,7 +4,7 @@ import * as path from 'path';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { writeFileSync } from 'fs';
 // import { DynamicSchemaGeneratorService } from './dynamic-schema-generator.service';
-import { BlockConfigSchema } from '@loopstack/shared';
+import { BlockConfigSchema } from '@loopstack/contracts/schemas';
 
 const SCHEMA_PATH = './schema.json';
 
@@ -22,7 +22,7 @@ export class JsonSchemaGeneratorService {
 
     // const mainSchema = this.dynamicSchemaGeneratorService.getSchema();
 
-    const jsonSchema = zodToJsonSchema(BlockConfigSchema, {
+    const jsonSchema = zodToJsonSchema(BlockConfigSchema as any, {
       name: 'MainSchema',
       target: 'jsonSchema7',
     });

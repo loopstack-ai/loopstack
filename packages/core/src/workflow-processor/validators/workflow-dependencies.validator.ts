@@ -2,8 +2,8 @@ import { Logger } from '@nestjs/common';
 import {
   StateMachineValidator,
   StateMachineValidatorInterface,
-} from '@loopstack/shared';
-import { WorkflowEntity } from '@loopstack/shared';
+} from '@loopstack/common';
+import { WorkflowEntity } from '@loopstack/common';
 import { WorkflowService } from '../../persistence';
 
 @StateMachineValidator({ priority: 200 })

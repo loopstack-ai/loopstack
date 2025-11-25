@@ -3,23 +3,27 @@ import { Processor } from '../../interfaces/processor.interface';
 import { ProcessorFactory } from '../processor.factory';
 import { Tool, Workflow } from '../../abstract';
 import {
+  HandlerCallResult, StateMachineValidatorResultInterface,
+  ToolSideEffects, TransitionResultLookup,
+  WorkflowEntity,
+} from '@loopstack/common';
+import {
   AssignmentConfigType,
-  HandlerCallResult,
   HistoryTransition,
   ToolCallType,
-  ToolSideEffects,
   TransitionInfoInterface,
   TransitionMetadataInterface,
   TransitionPayloadInterface,
-  WorkflowEntity,
-  WorkflowState,
   WorkflowTransitionType,
   WorkflowType,
-} from '@loopstack/shared';
+} from '@loopstack/contracts/types';
+import {
+  WorkflowState,
+} from '@loopstack/contracts/enums';
+
 import { BlockHelperService } from '../block-helper.service';
 import { TemplateExpressionEvaluatorService } from '../template-expression-evaluator.service';
 import { WorkflowStateService } from '../workflow-state.service';
-import { StateMachineValidatorResultInterface } from '@loopstack/shared/dist/interfaces/state-machine-validator-result.interface';
 import { omit } from 'lodash';
 import { StateMachineValidatorRegistry } from '../state-machine-validator.registry';
 import { z } from 'zod';
@@ -27,7 +31,6 @@ import { BlockProcessor } from '../block-processor.service';
 import { BlockRegistryService } from '../block-registry.service';
 import { BlockFactory } from '../block.factory';
 import { ToolExecutionContextDto } from '../../dtos';
-import { TransitionResultLookup } from '@loopstack/shared/dist/interfaces/transition-results.types';
 import { WorkflowTransitionDto } from '../../dtos';
 import { WorkflowService } from '../../../persistence';
 import { ConfigTraceError } from '../../errors';
@@ -64,7 +67,10 @@ export class WorkflowProcessorService implements Processor {
     const workflowEntity =
       await this.workflowStateService.getWorkflowState(block);
     block.state = this.blockHelperService.initBlockState(workflowEntity);
-    this.blockHelperService.populateBlockInputProperties(block, workflowEntity.inputData);
+    this.blockHelperService.populateBlockInputProperties(
+      block,
+      workflowEntity.inputData,
+    );
 
     const validatorResult = this.canSkipRun(workflowEntity, block.args);
 

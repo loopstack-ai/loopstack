@@ -3,11 +3,13 @@ import { Processor } from '../../interfaces/processor.interface';
 import { ProcessorFactory } from '../processor.factory';
 import { Pipeline } from '../../abstract';
 import {
-  PipelineItemConfigType,
   PipelineItemSchema,
+} from '@loopstack/contracts/schemas';
+import {
+  PipelineItemConfigType,
   PipelineItemType,
   PipelineSequenceType,
-} from '@loopstack/shared';
+} from '@loopstack/contracts/types';
 import { BlockHelperService } from '../block-helper.service';
 import { TemplateExpressionEvaluatorService } from '../template-expression-evaluator.service';
 import { BlockFactory } from '../block.factory';

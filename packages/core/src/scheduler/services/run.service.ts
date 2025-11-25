@@ -1,6 +1,6 @@
-import { Body, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { ScheduledTask } from '@loopstack/shared';
+import type { ScheduledTask } from '@loopstack/contracts/types';
 import { ConfigService } from '@nestjs/config';
 import { WorkspaceService } from '../../persistence';
 import { CreatePipelineService } from '../../workflow-processor';
@@ -13,9 +13,7 @@ export class RunService {
     private readonly createPipelineService: CreatePipelineService,
     private readonly workspaceService: WorkspaceService,
     private readonly taskSchedulerService: TaskSchedulerService,
-  ) {
-
-  }
+  ) {}
 
   async run(
     itemName: string,
@@ -30,26 +28,35 @@ export class RunService {
     pipelineId: string;
     workspaceId: string;
   }> {
-
     const workerId = this.configService.get('auth.clientId');
 
-    let workspace = await this.workspaceService.getWorkspace({
-      configKey: workspaceName,
-    }, userId);
+    let workspace = await this.workspaceService.getWorkspace(
+      {
+        configKey: workspaceName,
+      },
+      userId,
+    );
 
     if (!workspace) {
-      workspace = await this.workspaceService.create({
-        configKey: workspaceName,
-        title: options.workspaceTitle || workspaceName,
-      }, userId);
+      workspace = await this.workspaceService.create(
+        {
+          configKey: workspaceName,
+          title: options.workspaceTitle || workspaceName,
+        },
+        userId,
+      );
     }
 
-    const pipeline = await this.createPipelineService.create({
-      id: workspace.id,
-    }, {
-      configKey: itemName,
-      args: payload
-    }, userId);
+    const pipeline = await this.createPipelineService.create(
+      {
+        id: workspace.id,
+      },
+      {
+        configKey: itemName,
+        args: payload,
+      },
+      userId,
+    );
 
     await this.taskSchedulerService.addTask({
       id: 'manual_pipeline_execution-' + randomUUID(),
@@ -59,7 +66,7 @@ export class RunService {
         payload: {
           id: pipeline.id,
         },
-        user: userId
+        user: userId,
       },
     } satisfies ScheduledTask);
 
@@ -67,6 +74,6 @@ export class RunService {
       workerId,
       workspaceId: workspace.id,
       pipelineId: pipeline.id,
-    }
+    };
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PipelineEntity, WorkspaceEntity } from '@loopstack/shared';
+import { PipelineEntity, WorkspaceEntity } from '@loopstack/common';
 import { FindOptionsWhere } from 'typeorm';
 import { PipelineService, WorkspaceService } from '../../persistence';
 import { BlockRegistryService } from './block-registry.service';
@@ -21,9 +21,7 @@ export class CreatePipelineService {
       data.configKey,
     );
     if (!blockRegistryItem) {
-      throw new Error(
-        `Config for block ${data.configKey} not found.`,
-      );
+      throw new Error(`Config for block ${data.configKey} not found.`);
     }
 
     if (data.args && Object.keys(data.args).length !== 0) {

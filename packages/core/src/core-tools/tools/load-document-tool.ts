@@ -1,13 +1,18 @@
 import { Logger } from '@nestjs/common';
 import {
-  HandlerCallResult,
-  TransitionMetadataInterface,
   TemplateExpression,
-  BlockConfig,
-} from '@loopstack/shared';
+} from '@loopstack/contracts/schemas';
+import {
+  TransitionMetadataInterface,
+} from '@loopstack/contracts/types';
+import { HandlerCallResult, BlockConfig } from '@loopstack/common';
 import { z } from 'zod';
-import { DocumentEntity, WorkflowEntity } from '@loopstack/shared';
-import { DocumentService, WhereCondition, WorkflowService } from '../../persistence';
+import { DocumentEntity, WorkflowEntity } from '@loopstack/common';
+import {
+  DocumentService,
+  WhereCondition,
+  WorkflowService,
+} from '../../persistence';
 import { Tool } from '../../workflow-processor';
 
 const LoadDocumentInputSchema = z
@@ -146,8 +151,7 @@ export class LoadDocument extends Tool {
    * and updates workflow dependencies, if applicable
    */
   async execute(): Promise<HandlerCallResult> {
-
-    throw new Error(`Not implemented yet.`)
+    throw new Error(`Not implemented yet.`);
 
     if (!this.state.id) {
       throw new Error('Workflow is undefined');

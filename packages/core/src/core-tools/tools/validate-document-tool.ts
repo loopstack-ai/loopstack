@@ -1,4 +1,4 @@
-import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/common';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BlockRegistryService, Tool } from '../../workflow-processor';
@@ -37,7 +37,9 @@ export class ValidateDocument extends Tool {
       throw new Error(`Document with ID ${this.args.documentId} not found.`);
     }
 
-    const blockRegistryItem = this.blockRegistryService.getBlock(document.configKey);
+    const blockRegistryItem = this.blockRegistryService.getBlock(
+      document.configKey,
+    );
     if (!blockRegistryItem) {
       throw new Error(`Block with name "${document.configKey}" not found.`);
     }

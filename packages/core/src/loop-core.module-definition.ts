@@ -1,5 +1,5 @@
 import { ConfigurableModuleBuilder } from '@nestjs/common';
-import { ConfigSourceInterface } from '@loopstack/shared';
+import type { ConfigSourceInterface } from '@loopstack/contracts/types';
 
 export interface LoopCoreModuleOptions {
   runStartupTasks?: boolean;

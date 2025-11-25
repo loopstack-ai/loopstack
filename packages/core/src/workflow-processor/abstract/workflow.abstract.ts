@@ -1,4 +1,5 @@
-import { BlockMetadata, WorkflowType } from '@loopstack/shared';
+import type { WorkflowType } from '@loopstack/contracts/types';
+import { BlockMetadata } from '@loopstack/common';
 import { BlockStateDto, WorkflowStateDto } from '../dtos';
 import { WorkflowExecutionContextDto } from '../dtos';
 import { Expose, instanceToPlain, Type } from 'class-transformer';

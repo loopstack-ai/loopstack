@@ -1,8 +1,5 @@
-import {
-  BlockConfig,
-  HandlerCallResult,
-  TemplateExpression,
-} from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/common';
+import { TemplateExpression } from '@loopstack/contracts/schemas';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../workflow-processor';

@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, IsNull, Repository } from 'typeorm';
-import { WorkspaceEntity } from '@loopstack/shared';
+import { FindOptionsWhere, Repository } from 'typeorm';
+import { WorkspaceEntity } from '@loopstack/common';
 import { Logger } from '@nestjs/common';
 
 export class WorkspaceService {

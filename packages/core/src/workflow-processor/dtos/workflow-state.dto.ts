@@ -1,10 +1,11 @@
 import {
   DocumentEntity,
-  HistoryTransition,
   ToolResultLookup,
-  TransitionResultLookup, WorkflowEntity,
-  WorkflowTransitionType,
-} from '@loopstack/shared';
+  TransitionResultLookup,
+} from '@loopstack/common';
+
+import type { HistoryTransition, WorkflowTransitionType } from '@loopstack/contracts/types';
+
 import { Expose } from 'class-transformer';
 import { WorkflowTransitionDto } from './workflow-transition.dto';
 
@@ -29,7 +30,10 @@ export class BlockStateDto implements BlockStateInterface {
   }
 }
 
-export type InitWorkflowState = Omit<WorkflowStateDto, 'addDocuments' | 'addDocument'>;
+export type InitWorkflowState = Omit<
+  WorkflowStateDto,
+  'addDocuments' | 'addDocument'
+>;
 
 export class WorkflowStateDto implements BlockStateInterface {
   @Expose()
@@ -73,7 +77,7 @@ export class WorkflowStateDto implements BlockStateInterface {
       if (existingIndex != -1) {
         this.documents[existingIndex] = document;
       } else {
-        this.addDocument(document)
+        this.addDocument(document);
       }
     }
   }
@@ -81,7 +85,10 @@ export class WorkflowStateDto implements BlockStateInterface {
   addDocument(document: DocumentEntity) {
     // invalidate previous versions of the same document
     for (const doc of this.documents) {
-      if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
+      if (
+        doc.messageId === document.messageId &&
+        doc.meta?.invalidate !== false
+      ) {
         doc.isInvalidated = true;
       }
     }

@@ -6,7 +6,7 @@ import {
   PipelineEntity,
   WorkflowEntity,
   WorkspaceEntity,
-} from '@loopstack/shared';
+} from '@loopstack/common';
 import {
   DocumentService,
   DynamicRepositoryService,

@@ -1,4 +1,4 @@
-import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/common';
 import { z } from 'zod';
 import { Logger } from '@nestjs/common';
 import { BatchCreateDocumentsService } from '../services/batch-create-documents.service';
@@ -46,8 +46,7 @@ export class BatchCreateMessages extends Tool {
   }
 
   async execute(): Promise<HandlerCallResult> {
-
-    throw new Error('Not implemented yet.')
+    throw new Error('Not implemented yet.');
 
     const documents = this.batchCreateDocumentsService.batchCreateDocuments(
       {

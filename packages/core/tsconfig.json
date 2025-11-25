@@ -21,7 +21,8 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@loopstack/shared": ["../shared/dist"],
+      "@loopstack/contracts": ["packages/contracts/src"],
+      "@loopstack/common": ["packages/common/src"]
     },
   },
   "include": ["./src"],

@@ -1,4 +1,4 @@
-import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/common';
 import { Logger } from '@nestjs/common';
 import { Tool } from '../../workflow-processor';
 import {
@@ -28,7 +28,7 @@ export class CreateDocument extends Tool {
       data: document,
       effects: {
         addWorkflowDocuments: [document],
-      }
-    }
+      },
+    };
   }
 }

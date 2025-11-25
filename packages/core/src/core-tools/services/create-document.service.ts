@@ -1,16 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  DocumentEntity,
   TemplateExpression,
   DocumentSchema,
-  DocumentConfigType, DocumentConfigSchema,
-} from '@loopstack/shared';
-import { DocumentType } from '@loopstack/shared';
+  DocumentConfigSchema,
+} from '@loopstack/contracts/schemas';
+import {
+  DocumentConfigType,
+} from '@loopstack/contracts/types';
+import { DocumentEntity } from '@loopstack/common';
+import { DocumentType } from '@loopstack/contracts/types';
 import { z } from 'zod';
 import { merge, omit } from 'lodash';
 import { DocumentService } from '../../persistence';
 import {
-  BlockRegistryService, ConfigTraceError, Document,
+  BlockRegistryService,
+  ConfigTraceError,
+  Document,
   SchemaValidationError,
   TemplateExpressionEvaluatorService,
   Tool,
@@ -59,10 +64,7 @@ export class CreateDocumentService {
     private readonly blockRegistryService: BlockRegistryService,
   ) {}
 
-  createDocument(
-    args: CreateDocumentInput,
-    tool: Tool,
-  ): DocumentEntity {
+  createDocument(args: CreateDocumentInput, tool: Tool): DocumentEntity {
     const blockRegistryItem = this.blockRegistryService.getBlock(args.document);
     if (!blockRegistryItem) {
       throw new Error(`Document ${args.document} not found.`);
@@ -74,7 +76,7 @@ export class CreateDocumentService {
       // merge the custom properties
       const mergedTemplateData = merge({}, config, args.update ?? {});
 
-      console.log('mergedTemplateData config', config)
+      console.log('mergedTemplateData config', config);
 
       // create the document skeleton without content property
       const documentSkeleton =
@@ -105,16 +107,22 @@ export class CreateDocumentService {
           ['document'],
         );
 
-      const documentContent = plainToInstance(blockRegistryItem.provider.metatype as any, parsedDocumentContent, {
-        excludeExtraneousValues: true,
-      });
+      const documentContent = plainToInstance(
+        blockRegistryItem.provider.metatype as any,
+        parsedDocumentContent,
+        {
+          excludeExtraneousValues: true,
+        },
+      );
 
-      const messageId = args.id ? this.templateExpressionEvaluatorService.evaluateTemplate<any>(
-        args.id,
-        tool,
-        ['document'],
-        z.string(),
-      ) : undefined;
+      const messageId = args.id
+        ? this.templateExpressionEvaluatorService.evaluateTemplate<any>(
+            args.id,
+            tool,
+            ['document'],
+            z.string(),
+          )
+        : undefined;
 
       // merge document skeleton with content data
       const documentData: Partial<DocumentEntity> = {

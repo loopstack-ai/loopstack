@@ -1,4 +1,4 @@
-import { ClientMessageDto, DocumentEntity } from '@loopstack/shared';
+import { DocumentEntity } from '@loopstack/common';
 import {
   DataSource,
   EntitySubscriberInterface,
@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { ClientMessageService } from '../../common/services/client-message.service';
 import { ConfigService } from '@nestjs/config';
+import { ClientMessageDto } from '../dtos/client-message.dto';
 
 @EventSubscriber()
 export class DocumentSubscriber

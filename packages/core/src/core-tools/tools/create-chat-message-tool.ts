@@ -1,4 +1,4 @@
-import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/common';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../workflow-processor';
@@ -40,46 +40,50 @@ export class CreateChatMessage extends Tool<CreateChatMessageInput> {
   constructor(
     private readonly createDocumentService: CreateDocumentService,
     private readonly batchCreateDocumentsService: BatchCreateDocumentsService,
-
   ) {
     super();
   }
 
   async execute(): Promise<HandlerCallResult> {
-
     if (Array.isArray(this.args)) {
-      const documents = this.batchCreateDocumentsService.batchCreateDocuments({
-        document: MessageDocument.name,
-        items: this.args,
-      }, this);
+      const documents = this.batchCreateDocumentsService.batchCreateDocuments(
+        {
+          document: MessageDocument.name,
+          items: this.args,
+        },
+        this,
+      );
 
       return {
         data: documents.map((document) => document.content),
         effects: {
           addWorkflowDocuments: documents,
         },
-      }
+      };
     }
 
-    const document = this.createDocumentService.createDocument({
-      document: MessageDocument.name,
-      update: {
-        content: {
-          role: this.args.role,
-          content: this.args.content,
-          tool_calls: this.args.tool_calls,
-          tool_call_id: this.args.tool_call_id,
-          annotations: this.args.annotations,
-          refusal: this.args.refusal,
+    const document = this.createDocumentService.createDocument(
+      {
+        document: MessageDocument.name,
+        update: {
+          content: {
+            role: this.args.role,
+            content: this.args.content,
+            tool_calls: this.args.tool_calls,
+            tool_call_id: this.args.tool_call_id,
+            annotations: this.args.annotations,
+            refusal: this.args.refusal,
+          },
         },
-      }
-    }, this);
+      },
+      this,
+    );
 
     return {
       data: document.content,
       effects: {
         addWorkflowDocuments: [document],
       },
-    }
+    };
   }
 }

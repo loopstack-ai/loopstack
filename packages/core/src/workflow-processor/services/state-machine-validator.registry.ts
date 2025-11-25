@@ -4,7 +4,7 @@ import _ from 'lodash';
 import {
   LOOP_STATE_MACHINE_VALIDATOR_DECORATOR,
   StateMachineValidatorInterface,
-} from '@loopstack/shared';
+} from '@loopstack/common';
 
 @Injectable()
 export class StateMachineValidatorRegistry implements OnModuleInit {

@@ -1,5 +1,6 @@
 import { BlockStateDto, WorkflowStateDto } from '../dtos';
-import { BlockConfigType, BlockMetadata } from '@loopstack/shared';
+import { BlockMetadata } from '@loopstack/common';
+import type { BlockConfigType } from '@loopstack/contracts/types';
 import {
   DocumentExecutionContextDto,
   FactoryExecutionContextDto,

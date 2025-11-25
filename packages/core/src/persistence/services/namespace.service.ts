@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NamespaceEntity, PipelineEntity } from '@loopstack/shared';
-import { NamespaceCreateInterface } from '@loopstack/shared';
+import { NamespaceEntity, PipelineEntity } from '@loopstack/common';
+import type { NamespaceCreateInterface } from '@loopstack/contracts/types';
 
 @Injectable()
 export class NamespacesService {

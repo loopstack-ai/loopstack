@@ -1,11 +1,8 @@
 import { Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ModuleRef } from '@nestjs/core';
-import {
-  BLOCK_METADATA_KEY,
-  BlockConfigType,
-  MODULE_FACTORY_CLASS,
-} from '@loopstack/shared';
+import { BLOCK_METADATA_KEY, MODULE_FACTORY_CLASS } from '@loopstack/common';
+import type { BlockConfigType } from '@loopstack/contracts/types';
 import { BlockInterface } from '../interfaces/block.interface';
 import { ICapabilityFactory } from '../abstract';
 

@@ -1,8 +1,5 @@
-import {
-  BlockConfig,
-  HandlerCallResult,
-  JSONSchemaType,
-} from '@loopstack/shared';
+import { JSONSchemaType } from '@loopstack/contracts/schemas';
+import { BlockConfig, HandlerCallResult } from '@loopstack/common';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../workflow-processor';
@@ -12,20 +9,24 @@ const ValidateInputSchema = z.object({
   data: z.any(),
   schema: JSONSchemaType,
   message: z.string().optional(),
-  options: z.object({
-    allErrors: z.boolean(),
-    strict: z.boolean(),
-  }).optional(),
+  options: z
+    .object({
+      allErrors: z.boolean(),
+      strict: z.boolean(),
+    })
+    .optional(),
 });
 
 const ValidateConfigSchema = z.object({
   source: z.any(),
   schema: JSONSchemaType,
   message: z.string().optional(),
-  options: z.object({
-    allErrors: z.boolean(),
-    strict: z.boolean(),
-  }).optional(),
+  options: z
+    .object({
+      allErrors: z.boolean(),
+      strict: z.boolean(),
+    })
+    .optional(),
 });
 
 type ValidateInput = z.infer<typeof ValidateInputSchema>;
@@ -41,7 +42,6 @@ export class Validate extends Tool<ValidateInput> {
   protected readonly logger = new Logger(Validate.name);
 
   async execute(): Promise<HandlerCallResult> {
-
     const ajv = new Ajv({
       allErrors: this.args.options?.allErrors ?? true,
       strict: this.args.options?.strict ?? true,
@@ -58,7 +58,7 @@ export class Validate extends Tool<ValidateInput> {
       if (this.args.message) {
         throw new Error(this.args.message);
       }
-      throw new Error(`Validation failed.`)
+      throw new Error(`Validation failed.`);
     }
 
     return {

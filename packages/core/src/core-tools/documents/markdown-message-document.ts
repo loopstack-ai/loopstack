@@ -1,4 +1,4 @@
-import { BlockConfig } from '@loopstack/shared';
+import { BlockConfig } from '@loopstack/common';
 import { z } from 'zod';
 import { Document } from '../../workflow-processor';
 

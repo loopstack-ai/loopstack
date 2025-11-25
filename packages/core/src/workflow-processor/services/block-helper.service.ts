@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
+import type {
   AssignmentConfigType,
-  NamespacePropsSchema,
   NamespacePropsType,
   PipelineFactoryConfigType,
   PipelineSequenceType,
-  WorkflowEntity,
-} from '@loopstack/shared';
+} from '@loopstack/contracts/types';
+import {
+  NamespacePropsSchema,
+} from '@loopstack/contracts/schemas';
 import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
 import { Factory, Pipeline, Tool, Workflow } from '../abstract';
 import { NamespaceProcessorService } from './namespace-processor.service';
 import { WorkflowStateDto } from '../dtos';
+import { WorkflowEntity } from '@loopstack/common';
 
 @Injectable()
 export class BlockHelperService {
@@ -95,7 +97,10 @@ export class BlockHelperService {
     });
   }
 
-  populateBlockInputProperties(block: Workflow, inputData: Record<string, any>) {
+  populateBlockInputProperties(
+    block: Workflow,
+    inputData: Record<string, any>,
+  ) {
     const classInputProps = block.metadata.inputProperties;
     for (const propertyName of classInputProps) {
       if (propertyName in inputData) {
@@ -106,7 +111,7 @@ export class BlockHelperService {
 
   exportBlockInputProperties(block: Workflow) {
     const classInputProps = block.metadata.inputProperties;
-    const exportData: Record<string, any> = {}
+    const exportData: Record<string, any> = {};
     for (const propertyName of classInputProps) {
       if (propertyName in block) {
         exportData[propertyName] = block[propertyName];
@@ -125,6 +130,7 @@ export class BlockHelperService {
     workflowEntity.inputData = this.exportBlockInputProperties(block);
 
     // persist available transitions for frontend
-    workflowEntity.availableTransitions = block.state.availableTransitions ?? null;
+    workflowEntity.availableTransitions =
+      block.state.availableTransitions ?? null;
   }
 }

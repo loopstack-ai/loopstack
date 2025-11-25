@@ -8,11 +8,8 @@ import {
   SelectQueryBuilder,
   WhereExpressionBuilder,
 } from 'typeorm';
-import {
-  DocumentEntity,
-  TemplateExpression,
-  WorkflowEntity,
-} from '@loopstack/shared';
+import { DocumentEntity, WorkflowEntity } from '@loopstack/common';
+import { TemplateExpression } from '@loopstack/contracts/schemas';
 import { WorkflowService } from './workflow.service';
 import { z } from 'zod';
 import { Tool } from '../../workflow-processor';
@@ -115,7 +112,9 @@ export class DocumentService {
 
     // todo. this check could be done earlier or introduce a specific transition for alternative paths
     if (Array.isArray(block.ctx.workflow.transition.to)) {
-      throw new Error(`Cannot create a document on an undecided transition target. Make sure to set a singular "to" place for a transition where documents are created`);
+      throw new Error(
+        `Cannot create a document on an undecided transition target. Make sure to set a singular "to" place for a transition where documents are created`,
+      );
     }
 
     return this.documentRepository.create({

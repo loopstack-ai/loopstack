@@ -2,15 +2,20 @@ import { Abstract, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import {
-  BLOCK_METADATA_KEY,
   BlockConfigSchema,
+} from '@loopstack/contracts/schemas';
+import {
   BlockConfigType,
+  JSONSchemaConfigType,
+} from '@loopstack/contracts/types';
+import {
+  BLOCK_METADATA_KEY,
   BlockMetadata,
   BlockOptions,
   getDecoratedProperties,
-  INPUT_METADATA_KEY, JSONSchemaConfigType,
+  INPUT_METADATA_KEY,
   OUTPUT_METADATA_KEY,
-} from '@loopstack/shared';
+} from '@loopstack/common';
 import { omit } from 'lodash';
 import {
   Tool,

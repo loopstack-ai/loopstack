@@ -4,9 +4,11 @@ import { ProcessorFactory } from '../processor.factory';
 import { Factory } from '../../abstract';
 import {
   PipelineFactoryConfigType,
-  PipelineFactoryIteratorSchema,
   PipelineFactoryIteratorType,
-} from '@loopstack/shared';
+} from '@loopstack/contracts/types';
+import {
+  PipelineFactoryIteratorSchema,
+} from '@loopstack/contracts/schemas';
 import { BlockHelperService } from '../block-helper.service';
 import { TemplateExpressionEvaluatorService } from '../template-expression-evaluator.service';
 import { BlockFactory } from '../block.factory';

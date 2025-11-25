@@ -1,4 +1,5 @@
-import { BlockConfig, HandlerCallResult, NamespacePropsSchema, TemplateExpression } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/common';
+import { NamespacePropsSchema, TemplateExpression } from '@loopstack/contracts/schemas';
 import { Logger } from '@nestjs/common';
 import { Tool } from '../../workflow-processor';
 import { z } from 'zod';
@@ -34,6 +35,6 @@ export class CreateNamespaceTool extends Tool {
 
     return {
       data: namespace,
-    }
+    };
   }
 }

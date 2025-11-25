@@ -54,7 +54,6 @@ import { PersistenceModule } from '../persistence';
     ConfigLoaderService,
     BlockRegistryService,
     CapabilityBuilder,
-
   ],
   exports: [
     RootProcessorService,

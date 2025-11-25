@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { RunPipelineTask } from '@loopstack/shared/dist/schemas/startup.schema';
+import type { RunPipelineTask } from '@loopstack/contracts/types';
 import { PipelineService } from '../../../persistence';
 import { RootProcessorService } from '../../../workflow-processor';
 

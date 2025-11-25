@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ModuleFactory } from '@loopstack/shared';
+import { ModuleFactory } from '@loopstack/common';
 import { CoreToolsFactoryService } from './core-tools-factory.service';
 import {
   BatchCreateMessages,
@@ -12,8 +12,10 @@ import {
   CreateResponse,
   Debug,
   ErrorMessageDocument,
-  LoadDocument, MarkdownMessageDocument,
-  MessageDocument, PlainMessageDocument,
+  LoadDocument,
+  MarkdownMessageDocument,
+  MessageDocument,
+  PlainMessageDocument,
   ResetError,
   SwitchTarget,
   Validate,
@@ -56,11 +58,7 @@ import { AiMessageDocument } from './documents/ai-message-document';
 
     AiMessageDocument,
   ],
-  exports: [
-    CoreToolsFactoryService,
-    CreateDocumentService,
-  ]
+  exports: [CoreToolsFactoryService, CreateDocumentService],
 })
 @ModuleFactory(CoreToolsFactoryService)
 export class CoreToolsModule {}
-

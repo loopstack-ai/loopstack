@@ -33,7 +33,8 @@
     "typeorm": "^0.3.20"
   },
   "dependencies": {
-    "@loopstack/shared": "^0.14.0",
+    "@loopstack/common": "^0.14.0",
+    "@loopstack/contracts": "^0.14.0",
     "@nestjs/bullmq": "^11.0.3",
     "@nestjs/config": "^4.0.0",
     "@nestjs/event-emitter": "^3.0.1",

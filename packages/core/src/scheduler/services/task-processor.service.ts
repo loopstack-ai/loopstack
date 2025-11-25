@@ -1,7 +1,7 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { ScheduledTask } from '@loopstack/shared';
+import type { ScheduledTask } from '@loopstack/contracts/types';
 import { OnEvent } from '@nestjs/event-emitter';
 import { RunPipelineTaskProcessorService } from './task-processor/run-pipeline-task-processor.service';
 

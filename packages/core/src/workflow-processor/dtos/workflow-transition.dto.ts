@@ -1,4 +1,4 @@
-import { TransitionMetadataInterface } from '@loopstack/shared';
+import type { TransitionMetadataInterface } from '@loopstack/contracts/types';
 import { Expose } from 'class-transformer';
 
 export class WorkflowTransitionDto implements TransitionMetadataInterface {

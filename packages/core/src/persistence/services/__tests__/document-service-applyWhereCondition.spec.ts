@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DocumentService } from '../document.service';
-import { DocumentEntity } from '@loopstack/shared';
+import { DocumentEntity } from '@loopstack/common';
 import { WorkflowService } from '../workflow.service';
 import { Brackets } from 'typeorm';
 

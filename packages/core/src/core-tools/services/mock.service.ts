@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { HandlerCallResult } from '@loopstack/shared';
+import { HandlerCallResult } from '@loopstack/common';
 
 @Injectable()
 export class MockService {

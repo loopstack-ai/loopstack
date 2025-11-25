@@ -8,7 +8,7 @@ import {
   PipelineEntity,
   WorkflowEntity,
   WorkspaceEntity,
-} from '@loopstack/shared';
+} from '@loopstack/common';
 
 export interface TestSetup {
   moduleRef: TestingModule;

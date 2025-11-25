@@ -1,5 +1,6 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { NamespaceEntity, NamespacePropsType } from '@loopstack/shared';
+import type { NamespacePropsType } from '@loopstack/contracts/types';
+import { NamespaceEntity } from '@loopstack/common';
 import {
   BlockContextType,
   BlockInterface,

@@ -1,10 +1,10 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, IsNull, Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import {
   PipelineEntity,
   PipelineState,
   WorkspaceEntity,
-} from '@loopstack/shared';
+} from '@loopstack/common';
 
 export class PipelineService {
   constructor(
@@ -17,11 +17,10 @@ export class PipelineService {
     userId: string,
     relations: string[] = ['workspace', 'namespaces'],
   ) {
-
     const where: FindOptionsWhere<PipelineEntity> = {
       id,
       createdBy: userId,
-    }
+    };
 
     return this.entityRepository.findOne({
       where,

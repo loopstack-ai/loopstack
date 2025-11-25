@@ -1,4 +1,4 @@
-import { BlockConfig, HandlerCallResult } from '@loopstack/shared';
+import { BlockConfig, HandlerCallResult } from '@loopstack/common';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Tool } from '../../workflow-processor';
@@ -38,7 +38,10 @@ export class CreateErrorMessage extends Tool {
       },
     };
 
-    const document = this.createDocumentService.createDocument(transformedInput, this);
+    const document = this.createDocumentService.createDocument(
+      transformedInput,
+      this,
+    );
 
     return {
       data: document,

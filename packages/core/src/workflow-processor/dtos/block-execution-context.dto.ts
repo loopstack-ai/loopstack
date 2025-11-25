@@ -1,4 +1,5 @@
-import { NamespaceEntity, TransitionPayloadInterface } from '@loopstack/shared';
+import { NamespaceEntity } from '@loopstack/common';
+import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { WorkflowStateDto } from './workflow-state.dto';
 import { Expose } from 'class-transformer';
 

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigSourceInterface } from '@loopstack/shared';
+import type { ConfigSourceInterface } from '@loopstack/contracts/types';
 import path from 'path';
 import fs from 'fs';
 import { parse } from 'yaml';
