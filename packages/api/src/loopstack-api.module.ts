@@ -12,7 +12,7 @@ import {
   PipelineEntity,
   WorkflowEntity,
   WorkspaceEntity,
-} from '@loopstack/shared';
+} from '@loopstack/common';
 import { ProcessorController } from './controllers/processor.controller';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoopstackApiConfigPluginOptions } from './interfaces';

@@ -32,7 +32,7 @@ import { WorkspaceDto } from '../dtos/workspace.dto';
 import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
-import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/shared';
+import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
 
 @ApiTags('api/v1/workspaces')
 @ApiExtraModels(

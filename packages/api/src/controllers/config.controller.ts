@@ -15,7 +15,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { PipelineSequenceType, WorkspaceType } from '@loopstack/shared';
+import { PipelineSequenceType, WorkspaceType } from '@loopstack/contracts/types';
 import {
   BlockRegistryItem,
   BlockRegistryService,

@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { ClientMessageDto } from '@loopstack/shared';
+import type { ClientMessageInterface } from '@loopstack/contracts/types';
 import { Subject } from 'rxjs';
 
 interface SseConnection {
   workerId: string;
   userId: string;
-  subject: Subject<ClientMessageDto>;
+  subject: Subject<ClientMessageInterface>;
 }
 
 @Injectable()
@@ -21,9 +21,9 @@ export class SseEventService {
   registerConnection(
     workerId: string,
     userId: string,
-  ): Subject<ClientMessageDto> {
+  ): Subject<ClientMessageInterface> {
     const key = this.getConnectionKey(workerId, userId);
-    const subject = new Subject<ClientMessageDto>();
+    const subject = new Subject<ClientMessageInterface>();
 
     this.logger.debug(`Registering SSE connection for user ${userId} on worker ${workerId}`);
 
@@ -51,7 +51,7 @@ export class SseEventService {
   private sendToConnection(
     workerId: string,
     userId: string,
-    message: ClientMessageDto,
+    message: ClientMessageInterface,
   ): void {
     const key = this.getConnectionKey(workerId, userId);
     const connection = this.connections.get(key);
@@ -75,7 +75,7 @@ export class SseEventService {
   }
 
   @OnEvent('client.message')
-  handleClientMessage(payload: ClientMessageDto): void {
+  handleClientMessage(payload: ClientMessageInterface): void {
     if (payload.userId && payload.workerId) {
       this.sendToConnection(payload.workerId, payload.userId, payload);
     } else {

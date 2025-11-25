@@ -1,7 +1,7 @@
 import { Expose, plainToInstance, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { WorkflowItemDto } from './workflow-item.dto';
-import { NamespaceEntity } from '@loopstack/shared';
+import { NamespaceEntity } from '@loopstack/common';
 
 /**
  * Data Transfer Object representing a namespace

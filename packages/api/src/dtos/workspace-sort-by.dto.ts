@@ -1,6 +1,6 @@
 import { SortOrder } from '../enums/sort-order.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { WorkspaceEntity } from '@loopstack/shared';
+import { WorkspaceEntity } from '@loopstack/common';
 import { getEntityColumns } from '../utils/get-entity-columns.util';
 
 const sortFields = getEntityColumns(WorkspaceEntity);

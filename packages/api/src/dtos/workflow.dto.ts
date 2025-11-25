@@ -1,12 +1,15 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  HistoryTransition, type JSONSchemaConfigType,
-  PipelineState, type UiFormType,
-  WorkflowEntity, WorkflowInterface,
+  WorkflowEntity,
   WorkflowState,
-  type WorkflowTransitionType,
-} from '@loopstack/shared';
+} from '@loopstack/common';
+import type {
+  HistoryTransition, JSONSchemaConfigType,
+  UiFormType,
+  WorkflowInterface,
+  WorkflowTransitionType,
+} from '@loopstack/contracts/types';
 
 /**
  * Data Transfer Object representing a workflow

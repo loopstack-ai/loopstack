@@ -10,7 +10,7 @@ import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { SseEventService } from '../services/sse-event.service';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/shared';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 import { Request } from 'express';
 
 @ApiTags('api/v1/sse')

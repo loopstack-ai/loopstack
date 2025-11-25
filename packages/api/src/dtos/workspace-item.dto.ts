@@ -1,6 +1,6 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { WorkspaceEntity } from '@loopstack/shared';
+import { WorkspaceEntity } from '@loopstack/common';
 
 /**
  * Data Transfer Object for Workspace Item

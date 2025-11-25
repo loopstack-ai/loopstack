@@ -9,7 +9,7 @@ import {
   DashboardService,
   DashboardStats,
 } from '../services/dashboard.service';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/shared';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 import { DashboardStatsDto } from '../dtos/dashboard.dto';
 
 @ApiTags('api/v1/dashboard')

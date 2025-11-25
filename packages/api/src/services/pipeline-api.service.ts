@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { IsNull, Repository, In } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
 import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
 import { ConfigService } from '@nestjs/config';
 import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
-import { PipelineEntity, WorkspaceEntity } from '@loopstack/shared';
+import { PipelineEntity, WorkspaceEntity } from '@loopstack/common';
 import { CreatePipelineService } from '@loopstack/core';
 
 @Injectable()

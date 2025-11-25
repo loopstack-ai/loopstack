@@ -27,7 +27,7 @@ import { WorkflowDto } from '../dtos/workflow.dto';
 import { WorkflowItemDto } from '../dtos/workflow-item.dto';
 import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/shared';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 
 @ApiTags('api/v1/workflows')
 @ApiExtraModels(WorkflowDto, WorkflowItemDto)

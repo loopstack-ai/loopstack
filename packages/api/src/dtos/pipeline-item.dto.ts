@@ -1,6 +1,6 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { PipelineEntity, PipelineState } from '@loopstack/shared';
+import { PipelineEntity, PipelineState } from '@loopstack/common';
 
 /**
  * Data Transfer Object for Pipeline item listing

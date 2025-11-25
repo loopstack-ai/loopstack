@@ -4,7 +4,7 @@ import {
   PipelineState,
   WorkflowEntity,
   WorkflowState,
-} from '@loopstack/shared';
+} from '@loopstack/common';
 
 /**
  * Data Transfer Object representing a workflow item

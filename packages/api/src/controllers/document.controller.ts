@@ -25,7 +25,7 @@ import { DocumentDto } from '../dtos/document.dto';
 import { DocumentItemDto } from '../dtos/document-item.dto';
 import { DocumentFilterDto } from '../dtos/document-filter.dto';
 import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/shared';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 
 @ApiTags('api/v1/documents')
 @ApiExtraModels(DocumentDto, DocumentItemDto)

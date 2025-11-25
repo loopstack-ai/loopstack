@@ -24,8 +24,9 @@
   },
   "dependencies": {
     "@loopstack/auth": "^0.14.0",
+    "@loopstack/common": "^0.14.0",
+    "@loopstack/contracts": "^0.14.0",
     "@loopstack/core": "^0.14.0",
-    "@loopstack/shared": "^0.14.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",

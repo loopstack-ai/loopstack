@@ -2,9 +2,9 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
-import {
+import type {
   ScheduledTask,
-} from '@loopstack/shared';
+} from '@loopstack/contracts/types';
 import { randomUUID } from 'node:crypto';
 import { TaskSchedulerService } from '@loopstack/core';
 

@@ -1,6 +1,7 @@
 import { Exclude, Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { type JSONSchemaConfigType, PipelineEntity, PipelineState, type UiFormType } from '@loopstack/shared';
+import { PipelineEntity, PipelineState } from '@loopstack/common';
+import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
 import { PipelineContextDto } from './pipeline-context.dto';
 
 /**

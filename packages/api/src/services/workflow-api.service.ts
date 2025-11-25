@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { IsNull, FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
-import { WorkflowEntity } from '@loopstack/shared';
+import { WorkflowEntity } from '@loopstack/common';
 
 @Injectable()
 export class WorkflowApiService {

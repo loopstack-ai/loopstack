@@ -15,7 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { ProcessorApiService } from '../services/processor-api.service';
 import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/shared';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 
 /**
  * Controller handling pipeline processor operations

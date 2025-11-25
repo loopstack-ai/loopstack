@@ -26,7 +26,7 @@ import { NamespaceItemDto } from '../dtos/namespace-item.dto';
 import { NamespaceFilterDto } from '../dtos/namespace-filter.dto';
 import { NamespaceSortByDto } from '../dtos/namespace-sort-by.dto';
 import { NamespaceApiService } from '../services/namespace-api.service';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/shared';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 
 @ApiTags('api/v1/namespaces')
 @ApiExtraModels(NamespaceDto, NamespaceItemDto)

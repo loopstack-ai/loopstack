@@ -5,7 +5,7 @@ import {
   PipelineEntity,
   PipelineState,
   WorkflowState,
-} from '@loopstack/shared';
+} from '@loopstack/common';
 
 export interface DashboardStats {
   totalAutomationRuns: number;

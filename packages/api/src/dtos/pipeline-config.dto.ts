@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { JSONSchemaConfigType, UiFormType } from '@loopstack/shared';
+import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
 
 export class PipelineConfigDto {
   @Expose()

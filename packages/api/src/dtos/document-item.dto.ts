@@ -2,8 +2,8 @@ import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { DocumentMetaDto } from './document-meta.dto';
 import { DocumentContentDto } from './document-content.dto';
-import { DocumentEntity, JSONSchemaConfigType, UiFormType } from '@loopstack/shared';
-import { DocumentItemInterface } from '@loopstack/shared';
+import { DocumentEntity } from '@loopstack/common';
+import type { DocumentItemInterface, JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
 
 /**
  * Data Transfer Object for Document Item entities

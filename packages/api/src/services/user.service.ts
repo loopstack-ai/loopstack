@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@loopstack/shared';
+import { User } from '@loopstack/common';
 import { FindOptionsWhere } from 'typeorm';
 import { UserRepository } from '@loopstack/auth';
 

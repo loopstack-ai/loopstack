@@ -32,7 +32,7 @@ import { PipelineDto } from '../dtos/pipeline.dto';
 import { PipelineItemDto } from '../dtos/pipeline-item.dto';
 import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
 import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
-import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/shared';
+import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
 
 @ApiTags('api/v1/pipelines')
 @ApiExtraModels(
