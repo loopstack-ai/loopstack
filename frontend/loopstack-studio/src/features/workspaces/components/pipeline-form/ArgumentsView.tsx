@@ -1,5 +1,5 @@
 import { Loader2, Zap } from 'lucide-react';
-import type { PipelineConfigInterface } from '@loopstack/shared';
+import type { PipelineConfigInterface } from '@loopstack/contracts/types';
 import { Button } from '@/components/ui/button.tsx';
 import Form from '@/components/dynamic-form/Form.tsx';
 import { useForm } from 'react-hook-form';

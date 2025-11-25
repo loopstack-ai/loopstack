@@ -21,7 +21,7 @@ import { Trash2, LockOpen } from 'lucide-react';
 import { useDeleteWorkflow } from '@/hooks/useWorkflows.ts';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
 import type { PipelineDto, WorkflowDto } from '@loopstack/api-client';
-import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/shared';
+import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const WorkflowButtons: React.FC<{

@@ -18,14 +18,17 @@ export default defineConfig(({ mode }) => {
       ...(isLibrary
         ? [
             dts({
-              insertTypesEntry: true,
-              include: ['src']
+              tsconfigPath: './tsconfig.app.json',
+              rollupTypes: true
             })
           ]
         : [])
     ],
     optimizeDeps: {
-      include: ['@loopstack/shared', '@loopstack/api-client']
+      include: [
+        '@loopstack/contracts/types',
+        '@loopstack/api-client'
+      ]
     },
     build: isLibrary
       ? {
@@ -40,7 +43,7 @@ export default defineConfig(({ mode }) => {
               'react/jsx-runtime',
               'react/compiler-runtime',
               '@loopstack/api-client',
-              '@loopstack/shared',
+              '@loopstack/contracts',
               /^@radix-ui\/.*/,
               /^@tanstack\/.*/,
               /^react-/,

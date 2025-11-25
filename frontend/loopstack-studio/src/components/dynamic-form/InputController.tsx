@@ -12,7 +12,7 @@ import type { SwitchFieldSchema } from './fields/SwitchField';
 import { CodeViewField } from './fields/CodeViewField';
 import type { CodeFieldSchema } from './fields/CodeViewField';
 import type { FieldProps } from './types';
-import type { UiPropertiesType } from '@loopstack/shared';
+import type { UiPropertiesType } from '@loopstack/contracts/types';
 import { InputField, type InputFieldSchema } from '@/components/dynamic-form/fields/InputField.tsx';
 import { TextareaField, type TextareaFieldSchema } from '@/components/dynamic-form/fields/TextareaField.tsx';
 

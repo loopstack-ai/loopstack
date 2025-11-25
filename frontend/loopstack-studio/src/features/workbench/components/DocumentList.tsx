@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import type { PipelineDto } from '@loopstack/api-client';
-import {
-  type DocumentItemInterface,
-  type DocumentType,
-  type WorkflowInterface, WorkflowState,
-} from '@loopstack/shared';
+import type {
+  DocumentItemInterface,
+  DocumentType,
+  WorkflowInterface,
+  WorkflowStateType,
+} from '@loopstack/contracts/types';
 import { useParams } from 'react-router-dom';
 import type { WorkbenchSettingsInterface } from '../WorkflowList.tsx';
 import DocumentItem from '@/features/workbench/components/DocumentItem';
@@ -26,7 +27,7 @@ const DocumentList: React.FC<{
     }
   }, [workflow.id, paramsWorkflowId, clickId]);
 
-  const isWorkflowActive = workflow.status === WorkflowState.Waiting;
+  const isWorkflowActive = workflow.status === 'waiting' satisfies WorkflowStateType;
 
   return <div className="flex flex-col gap-8 p-4">
     {documents.map((item: DocumentItemInterface, documentIndex: number) => {

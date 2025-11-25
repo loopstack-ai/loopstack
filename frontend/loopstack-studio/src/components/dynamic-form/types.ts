@@ -1,8 +1,8 @@
-import {
-  type DocumentItemInterface, type JSONSchemaConfigType,
-  type MimeType, type UiFormType,
-  type UiPropertiesType, type WorkflowInterface,
-} from '@loopstack/shared';
+import type {
+  DocumentItemInterface, JSONSchemaConfigType,
+  MimeType, UiFormType,
+  UiPropertiesType, WorkflowInterface,
+} from '@loopstack/contracts/types';
 import type { UseFormReturn } from 'react-hook-form';
 import React from 'react';
 

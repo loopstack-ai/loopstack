@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 import type {
   UiWidgetType,
-} from '@loopstack/shared';
+} from '@loopstack/contracts/types';
 import UiWidget from '@/components/ui-widgets/UiWidget.tsx';
 
 export interface UiActionsProps {

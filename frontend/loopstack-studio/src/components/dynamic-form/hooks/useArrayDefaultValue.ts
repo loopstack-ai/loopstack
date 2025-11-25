@@ -1,4 +1,4 @@
-import { type UiPropertiesType } from '@loopstack/shared';
+import { type UiPropertiesType } from '@loopstack/contracts/types';
 
 // Get the default value for a new item in the array
 export const useArrayDefaultValue = (items: UiPropertiesType | undefined) => {

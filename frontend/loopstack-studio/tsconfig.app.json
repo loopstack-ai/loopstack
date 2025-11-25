@@ -30,7 +30,7 @@
       "@/*": [
         "./src/*"
       ],
-      "@loopstack/shared": ["packages/shared/src"],
+      "@loopstack/contracts": ["packages/contracts"],
       "@loopstack/api-client": ["frontend/api-client"]
     },
 

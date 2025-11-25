@@ -11,7 +11,7 @@ import type { UIMessage } from 'ai';
 import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources.tsx';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-elements/reasoning.tsx';
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/ai-elements/tool.tsx';
-import type { DocumentItemInterface } from '@loopstack/shared';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 
 const AiMessage = ({ document, isLastItem }: { document: DocumentItemInterface, isLastItem: boolean }) => {
 

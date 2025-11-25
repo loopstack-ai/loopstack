@@ -4,7 +4,7 @@ import React from 'react';
 import type {
   JSONSchemaConfigType,
   UiFormType, UiWidgetType,
-} from '@loopstack/shared';
+} from '@loopstack/contracts/types';
 import UiActions from '@/components/ui-widgets/UiActions.tsx';
 
 interface PipelinePropertiesFormContainerProps {

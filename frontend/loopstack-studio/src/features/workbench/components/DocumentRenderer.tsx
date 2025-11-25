@@ -8,7 +8,7 @@ import ErrorMessageRenderer from './document-renderer/ErrorMessageRenderer.tsx';
 import PlainMessageRenderer from './document-renderer/PlainMessageRenderer.tsx';
 import MarkdownMessageRenderer from './document-renderer/MarkdownMessageRenderer.tsx';
 import AiMessage from '@/features/workbench/components/document-renderer/AiMessage.tsx';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/shared';
+import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
 
 interface DocumentRendererProps {
   pipeline: PipelineDto;

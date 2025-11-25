@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiClient } from './useApi.ts';
 import type { WorkflowItemDto, WorkflowSortByDto } from '@loopstack/api-client';
-import type { WorkflowInterface } from '@loopstack/shared';
+import type { WorkflowInterface } from '@loopstack/contracts/types';
 import type { AxiosResponse } from 'axios';
 
 export function getWorkflowsCacheKey(envKey: string, namespaceId: string) {

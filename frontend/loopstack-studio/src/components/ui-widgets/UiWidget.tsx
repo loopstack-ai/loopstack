@@ -1,6 +1,6 @@
 import React from 'react';
 import { SubmitButton } from './widgets/SubmitButton';
-import type { UiFormButtonOptionsType, UiWidgetType } from '@loopstack/shared';
+import type { UiFormButtonOptionsType, UiWidgetType } from '@loopstack/contracts/types';
 import AiPromptInput from '@/components/ui-widgets/widgets/AiPromptInput';
 import { ButtonFullWidth } from '@/components/ui-widgets/widgets/ButtonFullWidth.tsx';
 

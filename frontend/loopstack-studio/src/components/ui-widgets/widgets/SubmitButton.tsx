@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '../../ui/button.tsx';
-import type { UiFormButtonOptionsType } from '@loopstack/shared';
+import type { UiFormButtonOptionsType } from '@loopstack/contracts/types';
 import { Loader2 } from 'lucide-react';
 
 interface SubmitButtonProps {

@@ -10,7 +10,7 @@ import { useFilterDocuments } from '@/hooks/useDocuments.ts';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import WorkflowForms from '@/features/workbench/components/WorkflowForms.tsx';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
-import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/shared';
+import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/contracts/types';
 import DocumentList from '@/features/workbench/components/DocumentList.tsx';
 
 const WorkflowItem: React.FC<{

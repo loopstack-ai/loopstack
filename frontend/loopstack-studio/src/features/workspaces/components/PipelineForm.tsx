@@ -6,7 +6,7 @@ import { useRunPipeline } from '@/hooks/useProcessor.ts';
 import { usePipelineConfig } from '@/hooks/useConfig.ts';
 import type { WorkspaceDto } from '@loopstack/api-client';
 import { useStudio } from '@/providers/StudioProvider.tsx';
-import type { PipelineConfigInterface } from '@loopstack/shared';
+import type { PipelineConfigInterface } from '@loopstack/contracts/types';
 import ArgumentsView from '@/features/workspaces/components/pipeline-form/ArgumentsView.tsx';
 import SelectionView from '@/features/workspaces/components/pipeline-form/SelectionView.tsx';
 

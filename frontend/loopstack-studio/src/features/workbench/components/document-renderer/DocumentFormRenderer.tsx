@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import {
-  type DocumentItemInterface,
-  type TransitionPayloadInterface, type UiPropertiesType, type UiWidgetType,
-  type WorkflowInterface,
-  type WorkflowTransitionType,
-} from '@loopstack/shared';
+import type {
+  DocumentItemInterface,
+  TransitionPayloadInterface, UiPropertiesType, UiWidgetType,
+  WorkflowInterface,
+  WorkflowTransitionType,
+} from '@loopstack/contracts/types';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
 import type { PipelineDto } from '@loopstack/api-client';
 import Form from '@/components/dynamic-form/Form.tsx';

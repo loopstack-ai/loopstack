@@ -4,7 +4,7 @@ import { omit } from 'lodash';
 import type { WorkbenchSettingsInterface } from '../WorkflowList.tsx';
 import DocumentRenderer from './DocumentRenderer.tsx';
 import DocumentMetadataPills from './DocumentMetadataPills.tsx';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/shared';
+import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
 
 const DocumentItem: React.FC<{
   document: DocumentItemInterface;
