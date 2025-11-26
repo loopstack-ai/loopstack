@@ -665,6 +665,9 @@ importers:
       ajv:
         specifier: ^8.17.1
         version: 8.17.1
+      axios:
+        specifier: ^1.13.2
+        version: 1.13.2
       bullmq:
         specifier: ^5.56.8
         version: 5.64.1
@@ -1225,7 +1228,7 @@ importers:
         specifier: ^0.14.0
         version: link:../../packages/common
       '@loopstack/contracts':
-        specifier: workspace:^0.14.0
+        specifier: ^0.14.0
         version: link:../../packages/contracts
       '@loopstack/core':
         specifier: ^0.14.0

@@ -1,0 +1,15 @@
+{
+  "name": "@loopstack/cli",
+  "version": "1.0.0",
+  "description": "Global wrapper for Loopstack local commands",
+  "bin": {
+    "loopstack": "./bin/loopstack.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "keywords": ["loopstack", "cli"],
+  "engines": {
+    "node": ">=16"
+  }
+}
