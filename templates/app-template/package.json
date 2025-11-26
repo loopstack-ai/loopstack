@@ -16,7 +16,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "tag": "git tag -a v$npm_package_version -m \"Release version $npm_package_version\" && git tag -f latest",
-    "generate:schema": "ts-node src/cli.ts -- generate-schema"
+    "loopstack": "ts-node src/cli.ts",
+    "loopstack:dev": "tsx src/cli.ts"
   },
   "dependencies": {
     "@loopstack/api": "^0.14.0",
