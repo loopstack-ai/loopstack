@@ -6,7 +6,7 @@ import { MODULE_NAME_TOKEN } from '@loopstack/common';
 import { CommonModule } from './common';
 import { PersistenceModule } from './persistence';
 import { WorkflowProcessorModule } from './workflow-processor';
-import { SchemaGeneratorModule } from './schema-generator';
+import { CliModule } from './cli';
 
 @Module({
   imports: [
@@ -17,7 +17,7 @@ import { SchemaGeneratorModule } from './schema-generator';
     PersistenceModule,
     WorkflowProcessorModule,
     SchedulerModule,
-    SchemaGeneratorModule,
+    CliModule,
   ],
   providers: [
     {

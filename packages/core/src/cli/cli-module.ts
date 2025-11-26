@@ -3,13 +3,17 @@ import { JsonSchemaGeneratorService } from './services/json-schema-generator.ser
 import { GenerateSchemaCommand } from './commands/generate-schema.command';
 import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generator.service';
 import { DiscoveryModule } from '@nestjs/core';
+import { RegistryAddCommand } from './commands/registry-add.command';
 
 @Module({
   imports: [DiscoveryModule],
   providers: [
-    JsonSchemaGeneratorService,
     GenerateSchemaCommand,
+    RegistryAddCommand,
+
+    JsonSchemaGeneratorService,
     DynamicSchemaGeneratorService,
+
   ],
 })
-export class SchemaGeneratorModule {}
+export class CliModule {}
