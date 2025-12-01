@@ -1,4 +1,5 @@
 export enum RegistryEntryStatus {
+  DRAFT = "draft",
   PENDING = "pending",
   ACTIVE = "active",
   INACTIVE = "inactive",
