@@ -26,11 +26,49 @@ import {
   ToolProcessorService,
 } from './services';
 import { CreatePipelineService } from './services';
-import { PersistenceModule } from '../persistence';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DocumentEntity, NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
+import {
+  DocumentService, DynamicRepositoryService,
+  NamespacesService,
+  PipelineService,
+  WorkflowService,
+  WorkspaceService,
+} from './services';
+import { WorkflowSubscriber } from './subscriber/workflow.subscriber';
+import { DocumentSubscriber } from './subscriber/document.subscriber';
+import { DataSource } from 'typeorm';
 
 @Module({
-  imports: [DiscoveryModule, CommonModule, PersistenceModule],
+  imports: [
+    TypeOrmModule.forFeature([
+      PipelineEntity,
+      WorkflowEntity,
+      DocumentEntity,
+      WorkspaceEntity,
+      NamespaceEntity,
+    ]),
+    DiscoveryModule,
+    CommonModule,
+  ],
   providers: [
+    WorkflowService,
+    PipelineService,
+    WorkspaceService,
+    DocumentService,
+    NamespacesService,
+    WorkflowSubscriber,
+    DocumentSubscriber,
+    {
+      provide: DynamicRepositoryService,
+      useFactory: (dataSource) => {
+        return new DynamicRepositoryService(dataSource, {
+          blacklist: [],
+        });
+      },
+      inject: [DataSource],
+    },
+
     RootProcessorService,
     BlockFactory,
     BlockProcessor,
@@ -56,6 +94,13 @@ import { PersistenceModule } from '../persistence';
     CapabilityBuilder,
   ],
   exports: [
+    WorkflowService,
+    PipelineService,
+    WorkspaceService,
+    DocumentService,
+    NamespacesService,
+    DynamicRepositoryService,
+
     RootProcessorService,
     TemplateExpressionEvaluatorService,
     CreatePipelineService,

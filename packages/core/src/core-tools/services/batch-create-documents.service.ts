@@ -2,10 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DocumentSchema } from '@loopstack/contracts/schemas';
 import type { DocumentConfigType } from '@loopstack/contracts/types';
 import { DocumentEntity } from '@loopstack/common';
-import { DocumentService } from '../../persistence';
 import {
   BlockRegistryService,
-  ConfigTraceError,
+  ConfigTraceError, DocumentService,
   SchemaValidationError,
   TemplateExpressionEvaluatorService,
   Tool,

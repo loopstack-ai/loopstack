@@ -28,7 +28,6 @@ const CreateMockConfigSchema = z
   },
   properties: CreateMockInputSchema,
   configSchema: CreateMockConfigSchema,
-  documentationFile: __dirname + '/create-mock-tool.md',
 })
 export class CreateMock extends Tool {
   protected readonly logger = new Logger(CreateMock.name);

@@ -16,7 +16,7 @@ export class DocumentSubscriber
   clientId: string;
 
   constructor(
-    dataSource: DataSource,
+    private dataSource: DataSource,
     private clientMessageService: ClientMessageService,
     private configService: ConfigService,
   ) {

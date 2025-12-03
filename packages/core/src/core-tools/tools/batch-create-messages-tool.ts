@@ -34,7 +34,6 @@ const BatchCreateMessagesConfigSchema = z
   },
   properties: BatchCreateMessagesInputSchema,
   configSchema: BatchCreateMessagesConfigSchema,
-  documentationFile: __dirname + '/batch-create-messages-tool.md',
 })
 export class BatchCreateMessages extends Tool {
   protected readonly logger = new Logger(BatchCreateMessages.name);

@@ -4,7 +4,7 @@ import {
   StateMachineValidatorInterface,
 } from '@loopstack/common';
 import { WorkflowEntity } from '@loopstack/common';
-import { WorkflowService } from '../../persistence';
+import { WorkflowService } from '../services';
 
 @StateMachineValidator({ priority: 200 })
 export class WorkflowDependenciesValidator

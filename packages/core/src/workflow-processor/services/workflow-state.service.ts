@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WorkflowEntity } from '@loopstack/common';
 import { Workflow } from '../abstract';
-import { WorkflowService } from '../../persistence';
+import { WorkflowService } from './persistence';
 
 @Injectable()
 export class WorkflowStateService {
@@ -11,11 +11,10 @@ export class WorkflowStateService {
 
   async getWorkflowState(block: Workflow): Promise<WorkflowEntity> {
     const workflow = await this.workflowService
-      .createFindQuery(block.ctx.namespace?.id, {
+      .findOneByQuery(block.ctx.namespace?.id, {
         configKey: block.name,
         labels: block.ctx.labels,
-      })
-      .getOne();
+      });
 
     if (workflow) {
       return workflow;

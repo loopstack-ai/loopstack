@@ -12,7 +12,7 @@ import {
   DocumentService,
   WhereCondition,
   WorkflowService,
-} from '../../persistence';
+} from '../../workflow-processor';
 import { Tool } from '../../workflow-processor';
 
 const LoadDocumentInputSchema = z

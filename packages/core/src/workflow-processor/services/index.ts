@@ -17,3 +17,6 @@ export * from './processors/factory-processor.service';
 export * from './processors/workflow-processor.service';
 export * from './processors/workspace-processor.service';
 export * from './processors/tool-processor.service';
+export * from './processor.factory';
+
+export * from './persistence';

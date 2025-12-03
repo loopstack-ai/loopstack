@@ -5,7 +5,6 @@ import { TaskProcessorService } from './services/task-processor.service';
 import { TaskInitializationService } from './services/task-initialization.service';
 import { RunPipelineTaskProcessorService } from './services/task-processor/run-pipeline-task-processor.service';
 import { CleanupPipelineTaskProcessorService } from './services/task-processor/cleanup-pipeline-task-processor.service';
-import { PersistenceModule } from '../persistence';
 import { CreateWorkspaceTaskProcessorService } from './services/task-processor/create-workspace-task-processor.service';
 import { CreateRunPipelineTaskProcessorService } from './services/task-processor/create-run-pipeline-task-processor.service';
 import { WorkflowProcessorModule } from '../workflow-processor';
@@ -37,7 +36,6 @@ import { WorkflowProcessorModule } from '../workflow-processor';
         },
       },
     }),
-    PersistenceModule,
     WorkflowProcessorModule,
   ],
   providers: [

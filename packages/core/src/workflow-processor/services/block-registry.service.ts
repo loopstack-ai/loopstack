@@ -128,7 +128,7 @@ export class BlockRegistryService implements OnModuleInit {
           const outputs = getDecoratedProperties(metatype, OUTPUT_METADATA_KEY);
 
           const metadata = {
-            ...omit(options, ['documentationFile']), // do not include unnecessary overhead
+            ...options,
             imports: options.imports ?? [],
             inputProperties: inputs,
             outputProperties: outputs,

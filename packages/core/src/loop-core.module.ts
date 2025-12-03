@@ -2,19 +2,32 @@ import { Module } from '@nestjs/common';
 import { MigrationsService } from './services/migrations.service';
 import { SchedulerModule } from './scheduler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { MODULE_NAME_TOKEN } from '@loopstack/common';
+import {
+  DocumentEntity,
+  MODULE_NAME_TOKEN,
+  NamespaceEntity,
+  PipelineEntity,
+  WorkflowEntity,
+  WorkspaceEntity,
+} from '@loopstack/common';
 import { CommonModule } from './common';
-import { PersistenceModule } from './persistence';
 import { WorkflowProcessorModule } from './workflow-processor';
 import { CliModule } from './cli';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([
+      PipelineEntity,
+      WorkflowEntity,
+      DocumentEntity,
+      WorkspaceEntity,
+      NamespaceEntity,
+    ]),
     EventEmitterModule.forRoot({
       global: true,
     }),
     CommonModule,
-    PersistenceModule,
     WorkflowProcessorModule,
     SchedulerModule,
     CliModule,
@@ -28,7 +41,6 @@ import { CliModule } from './cli';
   ],
   exports: [
     CommonModule,
-    PersistenceModule,
     WorkflowProcessorModule,
     SchedulerModule,
   ],

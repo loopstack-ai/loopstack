@@ -6,7 +6,7 @@ import { BlockProcessor } from './block-processor.service';
 import { ProcessorFactory } from './processor.factory';
 import { BlockFactory } from './block.factory';
 import { RootExecutionContextDto } from '../dtos';
-import { NamespacesService, PipelineService } from '../../persistence';
+import { NamespacesService, PipelineService } from './persistence';
 
 @Injectable()
 export class RootProcessorService {

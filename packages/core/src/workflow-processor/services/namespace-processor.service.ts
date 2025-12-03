@@ -9,7 +9,7 @@ import {
   FactoryExecutionContextDto,
   PipelineExecutionContextDto,
 } from '../dtos';
-import { NamespacesService } from '../../persistence';
+import { NamespacesService } from './persistence';
 
 @Injectable()
 export class NamespaceProcessorService {

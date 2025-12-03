@@ -11,11 +11,9 @@ import { DocumentEntity } from '@loopstack/common';
 import { DocumentType } from '@loopstack/contracts/types';
 import { z } from 'zod';
 import { merge, omit } from 'lodash';
-import { DocumentService } from '../../persistence';
 import {
   BlockRegistryService,
-  ConfigTraceError,
-  Document,
+  ConfigTraceError, DocumentService,
   SchemaValidationError,
   TemplateExpressionEvaluatorService,
   Tool,
@@ -75,8 +73,6 @@ export class CreateDocumentService {
     try {
       // merge the custom properties
       const mergedTemplateData = merge({}, config, args.update ?? {});
-
-      console.log('mergedTemplateData config', config);
 
       // create the document skeleton without content property
       const documentSkeleton =

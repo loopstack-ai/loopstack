@@ -43,6 +43,16 @@ export class WorkflowService {
     return queryBuilder;
   }
 
+  findOneByQuery(
+    namespaceId: string,
+    options?: {
+      configKey?: string;
+      labels?: string[];
+    },
+  ) {
+    return this.createFindQuery(namespaceId, options).getOne();
+  }
+
   findById(id: string): Promise<WorkflowEntity | null> {
     return this.workflowRepository.findOne({
       where: { id },

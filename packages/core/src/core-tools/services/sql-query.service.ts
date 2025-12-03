@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WorkflowEntity } from '@loopstack/common';
-import { DynamicRepositoryService } from '../../persistence';
+import { DynamicRepositoryService } from '../../workflow-processor';
 
 @Injectable()
 export class SqlQueryService {

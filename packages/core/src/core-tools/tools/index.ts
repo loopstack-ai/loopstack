@@ -14,3 +14,4 @@ export * from './switch-target-tool';
 export * from './validate-document-tool';
 export * from './validate-tool';
 export * from './create-namespace-tool';
+export * from './create-value-tool';

@@ -12,7 +12,7 @@ import { DocumentEntity, WorkflowEntity } from '@loopstack/common';
 import { TemplateExpression } from '@loopstack/contracts/schemas';
 import { WorkflowService } from './workflow.service';
 import { z } from 'zod';
-import { Tool } from '../../workflow-processor';
+import { Tool } from '../../abstract';
 
 const NullOperator = z.object({
   isNull: z.boolean(),

@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { RunPipelineTask } from '@loopstack/contracts/types';
-import { PipelineService } from '../../../persistence';
-import { RootProcessorService } from '../../../workflow-processor';
+import { PipelineService, RootProcessorService } from '../../../workflow-processor';
 
 @Injectable()
 export class RunPipelineTaskProcessorService {

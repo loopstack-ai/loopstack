@@ -8,7 +8,7 @@ export class ToolProcessorService implements Processor {
   private readonly logger = new Logger(ToolProcessorService.name);
 
   async process(block: Tool, factory: ProcessorFactory): Promise<Tool> {
-    block.result = await block.execute({ factory });
+    block.result = await block.execute(block.args, block.ctx, factory);
     return block;
   }
 }

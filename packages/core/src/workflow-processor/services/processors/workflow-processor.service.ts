@@ -32,7 +32,7 @@ import { BlockRegistryService } from '../block-registry.service';
 import { BlockFactory } from '../block.factory';
 import { ToolExecutionContextDto } from '../../dtos';
 import { WorkflowTransitionDto } from '../../dtos';
-import { WorkflowService } from '../../../persistence';
+import { WorkflowService } from '../persistence';
 import { ConfigTraceError } from '../../errors';
 
 const TransitionValidationsSchema = z.array(
@@ -340,7 +340,7 @@ export class WorkflowProcessorService implements Processor {
             toolCall.args,
           );
 
-          const toolBlock = await this.blockFactory.createBlock<
+          let toolBlock = await this.blockFactory.createBlock<
             Tool,
             ToolExecutionContextDto
           >(
@@ -352,16 +352,16 @@ export class WorkflowProcessorService implements Processor {
             }),
           );
 
-          const resultDto = await this.blockProcessor.processBlock<Tool>(
+          toolBlock = await this.blockProcessor.processBlock<Tool>(
             toolBlock,
             factory,
           );
-          const toolCallResult: HandlerCallResult = resultDto.result;
+          const toolCallResult: HandlerCallResult = toolBlock.result;
 
           this.blockHelperService.assignToTargetBlock(
             toolCall.assign as AssignmentConfigType,
             block,
-            resultDto,
+            toolBlock,
           );
 
           if (toolCall.id) {

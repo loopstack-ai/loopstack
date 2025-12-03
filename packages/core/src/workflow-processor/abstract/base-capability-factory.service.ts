@@ -5,7 +5,7 @@ export interface ICapabilityFactory {
   resolve<T>(ServiceClass: Type<T>): Promise<T>;
 }
 
-export abstract class CapabilityFactory implements ICapabilityFactory {
+export abstract class BaseCapabilityFactory implements ICapabilityFactory {
   constructor(protected readonly moduleRef: ModuleRef) {}
 
   async resolve<T>(ServiceClass: Type<T>): Promise<T> {

@@ -41,9 +41,7 @@ export abstract class Tool<TArgs extends object = any>
     return this.constructor.name;
   }
 
-  public abstract execute(options: {
-    factory: ProcessorFactory;
-  }): Promise<HandlerCallResult>;
+  public abstract execute(args: any, ctx: ToolExecutionContextDto, factory: ProcessorFactory): Promise<HandlerCallResult>;
 
   result: any;
 

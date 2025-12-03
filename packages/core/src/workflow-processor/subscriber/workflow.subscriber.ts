@@ -17,7 +17,7 @@ export class WorkflowSubscriber
   clientId: string;
 
   constructor(
-    dataSource: DataSource,
+    private dataSource: DataSource,
     private clientMessageService: ClientMessageService,
     private configService: ConfigService,
   ) {

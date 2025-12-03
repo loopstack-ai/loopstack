@@ -1,9 +1,8 @@
 import { BlockConfig, HandlerCallResult } from '@loopstack/common';
 import { NamespacePropsSchema, TemplateExpression } from '@loopstack/contracts/schemas';
 import { Logger } from '@nestjs/common';
-import { Tool } from '../../workflow-processor';
+import { NamespacesService, Tool } from '../../workflow-processor';
 import { z } from 'zod';
-import { NamespacesService } from '../../persistence';
 
 @BlockConfig({
   config: {

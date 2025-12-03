@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ModuleFactory } from '@loopstack/common';
-import { CoreToolsFactoryService } from './core-tools-factory.service';
+import { CoreToolsModuleCapabilityFactory } from './core-tools-module-capability.factory';
 import {
   BatchCreateMessages,
   CreateChatMessage,
@@ -9,7 +8,7 @@ import {
   CreateMarkdownMessage,
   CreateMock,
   CreatePlainMessage,
-  CreateResponse,
+  CreateResponse, CreateValue,
   Debug,
   ErrorMessageDocument,
   LoadDocument,
@@ -26,13 +25,12 @@ import { BatchCreateDocumentsService } from './services/batch-create-documents.s
 import { MockService } from './services/mock.service';
 import { CommonModule } from '../common';
 import { WorkflowProcessorModule } from '../workflow-processor';
-import { PersistenceModule } from '../persistence';
 import { AiMessageDocument } from './documents/ai-message-document';
 
 @Module({
-  imports: [CommonModule, PersistenceModule, WorkflowProcessorModule],
+  imports: [CommonModule, WorkflowProcessorModule],
   providers: [
-    CoreToolsFactoryService,
+    CoreToolsModuleCapabilityFactory,
 
     CreateChatMessage,
     CreateErrorMessage,
@@ -55,10 +53,10 @@ import { AiMessageDocument } from './documents/ai-message-document';
     ErrorMessageDocument,
     MarkdownMessageDocument,
     PlainMessageDocument,
+    CreateValue,
 
     AiMessageDocument,
   ],
-  exports: [CoreToolsFactoryService, CreateDocumentService],
+  exports: [CoreToolsModuleCapabilityFactory, CreateDocumentService],
 })
-@ModuleFactory(CoreToolsFactoryService)
 export class CoreToolsModule {}
