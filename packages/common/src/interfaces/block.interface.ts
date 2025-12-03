@@ -7,7 +7,6 @@ export interface BlockOptions {
   imports?: any[];
   config?: Partial<BlockConfigType>;
   configFile?: string;
-  documentationFile?: string;
   properties?: z.ZodType,
   configSchema?: z.ZodType,
 }
