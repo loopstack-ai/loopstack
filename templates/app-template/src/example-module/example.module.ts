@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CoreToolsModule, LoopCoreModule } from '@loopstack/core';
-import { ModuleFactory } from '@loopstack/common';
-import { ExampleModuleFactoryService } from './example-module-factory.service';
+import { ExampleModuleCapabilityFactory } from './example-module-capability.factory';
 import { LlmModule } from '@loopstack/llm';
 import { ExampleWorkspace } from './example-workspace';
 import { PromptWorkflow } from './llm/prompt-example/prompt.workflow';
@@ -35,12 +34,11 @@ import { OptimizedNotesDocument } from './tutorials/meeting-notes-example/docume
     MeetingNotesDocument,
     OptimizedNotesDocument,
 
-    ExampleModuleFactoryService,
+    ExampleModuleCapabilityFactory,
   ],
   exports: [
-    ExampleModuleFactoryService
+    ExampleModuleCapabilityFactory
   ]
 })
-@ModuleFactory(ExampleModuleFactoryService)
 export class ExampleModule {}
 
