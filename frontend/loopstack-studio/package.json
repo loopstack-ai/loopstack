@@ -1,6 +1,5 @@
 {
   "name": "@loopstack/loopstack-studio",
-  "private": true,
   "version": "0.15.0",
   "type": "module",
   "main": "./dist/index.js",
