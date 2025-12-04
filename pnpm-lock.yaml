@@ -34,7 +34,7 @@ importers:
         specifier: ^5.2.1
         version: 5.2.2(react-hook-form@7.66.1(react@19.2.0))
       '@loopstack/api-client':
-        specifier: ^0.14.0
+        specifier: ^0.14.2
         version: link:../api-client
       '@loopstack/contracts':
         specifier: ^0.14.0
