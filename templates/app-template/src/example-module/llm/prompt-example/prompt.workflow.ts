@@ -1,4 +1,4 @@
-import { Workflow } from '@loopstack/core';
+import { CreateDocument, Workflow } from '@loopstack/core';
 import { BlockConfig, Input } from '@loopstack/common';
 import { z } from 'zod';
 import { AiGenerateText } from '@loopstack/llm';
@@ -10,6 +10,7 @@ const propertiesSchema = z.object({
 
 @BlockConfig({
   imports: [
+    CreateDocument,
     AiGenerateText
   ],
   properties: propertiesSchema,
