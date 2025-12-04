@@ -132,7 +132,7 @@ export interface DocumentDto {
      * @type {string}
      * @memberof DocumentDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * Contents of the document
      * @type {object}
@@ -284,7 +284,7 @@ export interface DocumentItemDto {
      * @type {string}
      * @memberof DocumentItemDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * Contents of the document
      * @type {object}
@@ -417,7 +417,7 @@ export interface DocumentSortByDto {
 export const DocumentSortByDtoFieldEnum = {
     Id: 'id',
     MessageId: 'messageId',
-    ConfigKey: 'configKey',
+    BlockName: 'blockName',
     WorkspaceId: 'workspaceId',
     PipelineId: 'pipelineId',
     Content: 'content',
@@ -692,7 +692,7 @@ export interface PipelineConfigDto {
      * @type {string}
      * @memberof PipelineConfigDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * The title of the pipeline type
      * @type {string}
@@ -811,7 +811,7 @@ export interface PipelineCreateDto {
      * @type {string}
      * @memberof PipelineCreateDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * Human-readable title for the pipeline
      * @type {string}
@@ -860,7 +860,7 @@ export interface PipelineDto {
      * @type {string}
      * @memberof PipelineDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * Display title of the pipeline
      * @type {string}
@@ -960,7 +960,7 @@ export interface PipelineItemDto {
      * @type {string}
      * @memberof PipelineItemDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * Display title of the pipeline
      * @type {string}
@@ -1034,7 +1034,7 @@ export interface PipelineSortByDto {
 
 export const PipelineSortByDtoFieldEnum = {
     Id: 'id',
-    ConfigKey: 'configKey',
+    BlockName: 'blockName',
     Title: 'title',
     Run: 'run',
     Labels: 'labels',
@@ -1182,7 +1182,7 @@ export interface WorkflowDto {
      * @type {string}
      * @memberof WorkflowDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * Display title of the workflow
      * @type {string}
@@ -1324,7 +1324,7 @@ export interface WorkflowItemDto {
      * @type {string}
      * @memberof WorkflowItemDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * Display title of the workflow
      * @type {string}
@@ -1422,7 +1422,7 @@ export interface WorkflowSortByDto {
 
 export const WorkflowSortByDtoFieldEnum = {
     Id: 'id',
-    ConfigKey: 'configKey',
+    BlockName: 'blockName',
     Title: 'title',
     Index: 'index',
     Progress: 'progress',
@@ -1483,7 +1483,7 @@ export interface WorkspaceConfigDto {
      * @type {string}
      * @memberof WorkspaceConfigDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * The title of the workspace type
      * @type {string}
@@ -1571,7 +1571,7 @@ export interface WorkspaceCreateDto {
      * @type {string}
      * @memberof WorkspaceCreateDto
      */
-    'configKey': string;
+    'blockName': string;
 }
 /**
  * 
@@ -1590,7 +1590,7 @@ export interface WorkspaceDto {
      * @type {string}
      * @memberof WorkspaceDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * Display title of the workspace
      * @type {string}
@@ -1633,7 +1633,7 @@ export interface WorkspaceItemDto {
      * @type {string}
      * @memberof WorkspaceItemDto
      */
-    'configKey': string;
+    'blockName': string;
     /**
      * Display title of the workspace
      * @type {string}
@@ -1676,7 +1676,7 @@ export interface WorkspaceSortByDto {
 export const WorkspaceSortByDtoFieldEnum = {
     Id: 'id',
     Title: 'title',
-    ConfigKey: 'configKey',
+    BlockName: 'blockName',
     CreatedAt: 'createdAt',
     UpdatedAt: 'updatedAt',
     CreatedBy: 'createdBy'
@@ -2119,15 +2119,15 @@ export const ApiV1ConfigApiAxiosParamCreator = function (configuration?: Configu
         /**
          * 
          * @summary Get all pipeline types available for this workspace
-         * @param {string} workspaceConfigKey The config key of the workspace type
+         * @param {string} workspaceBlockName The config key of the workspace type
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        configControllerGetPipelineTypesByWorkspace: async (workspaceConfigKey: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'workspaceConfigKey' is not null or undefined
-            assertParamExists('configControllerGetPipelineTypesByWorkspace', 'workspaceConfigKey', workspaceConfigKey)
-            const localVarPath = `/api/v1/config/workspaces/{workspaceConfigKey}/pipelines`
-                .replace(`{${"workspaceConfigKey"}}`, encodeURIComponent(String(workspaceConfigKey)));
+        configControllerGetPipelineTypesByWorkspace: async (workspaceBlockName: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'workspaceBlockName' is not null or undefined
+            assertParamExists('configControllerGetPipelineTypesByWorkspace', 'workspaceBlockName', workspaceBlockName)
+            const localVarPath = `/api/v1/config/workspaces/{workspaceBlockName}/pipelines`
+                .replace(`{${"workspaceBlockName"}}`, encodeURIComponent(String(workspaceBlockName)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2193,12 +2193,12 @@ export const ApiV1ConfigApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Get all pipeline types available for this workspace
-         * @param {string} workspaceConfigKey The config key of the workspace type
+         * @param {string} workspaceBlockName The config key of the workspace type
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async configControllerGetPipelineTypesByWorkspace(workspaceConfigKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<PipelineConfigDto>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.configControllerGetPipelineTypesByWorkspace(workspaceConfigKey, options);
+        async configControllerGetPipelineTypesByWorkspace(workspaceBlockName: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<PipelineConfigDto>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.configControllerGetPipelineTypesByWorkspace(workspaceBlockName, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ApiV1ConfigApi.configControllerGetPipelineTypesByWorkspace']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -2233,7 +2233,7 @@ export const ApiV1ConfigApiFactory = function (configuration?: Configuration, ba
          * @throws {RequiredError}
          */
         configControllerGetPipelineTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<PipelineConfigDto>> {
-            return localVarFp.configControllerGetPipelineTypesByWorkspace(requestParameters.workspaceConfigKey, options).then((request) => request(axios, basePath));
+            return localVarFp.configControllerGetPipelineTypesByWorkspace(requestParameters.workspaceBlockName, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2285,7 +2285,7 @@ export interface ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceReques
      * @type {string}
      * @memberof ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspace
      */
-    readonly workspaceConfigKey: string
+    readonly workspaceBlockName: string
 }
 
 /**
@@ -2304,7 +2304,7 @@ export class ApiV1ConfigApi extends BaseAPI implements ApiV1ConfigApiInterface {
      * @memberof ApiV1ConfigApi
      */
     public configControllerGetPipelineTypesByWorkspace(requestParameters: ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest, options?: RawAxiosRequestConfig) {
-        return ApiV1ConfigApiFp(this.configuration).configControllerGetPipelineTypesByWorkspace(requestParameters.workspaceConfigKey, options).then((request) => request(this.axios, this.basePath));
+        return ApiV1ConfigApiFp(this.configuration).configControllerGetPipelineTypesByWorkspace(requestParameters.workspaceBlockName, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
