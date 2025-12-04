@@ -12,7 +12,7 @@ export class WorkflowStateService {
   async getWorkflowState(block: Workflow): Promise<WorkflowEntity> {
     const workflow = await this.workflowService
       .findOneByQuery(block.ctx.namespace?.id, {
-        configKey: block.name,
+        blockName: block.name,
         labels: block.ctx.labels,
       });
 
@@ -25,7 +25,7 @@ export class WorkflowStateService {
       labels: block.ctx.labels,
       namespace: block.ctx.namespace ?? undefined,
       pipelineId: block.ctx.pipelineId,
-      configKey: block.name,
+      blockName: block.name,
       title: block.config.title ?? block.name,
       ui: block.config.ui ?? null,
       index: block.ctx.index,

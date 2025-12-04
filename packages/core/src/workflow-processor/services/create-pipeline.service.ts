@@ -13,15 +13,15 @@ export class CreatePipelineService {
   ) {}
 
   private validateArguments(data: Partial<PipelineEntity>) {
-    if (!data.configKey) {
-      throw new Error(`configKey is required to create a pipeline.`);
+    if (!data.blockName) {
+      throw new Error(`blockName is required to create a pipeline.`);
     }
 
     const blockRegistryItem = this.blockRegistryService.getBlock(
-      data.configKey,
+      data.blockName,
     );
     if (!blockRegistryItem) {
-      throw new Error(`Config for block ${data.configKey} not found.`);
+      throw new Error(`Config for block ${data.blockName} not found.`);
     }
 
     if (data.args && Object.keys(data.args).length !== 0) {

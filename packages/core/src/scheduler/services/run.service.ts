@@ -31,7 +31,7 @@ export class RunService {
 
     let workspace = await this.workspaceService.getWorkspace(
       {
-        configKey: workspaceName,
+        blockName: workspaceName,
       },
       userId,
     );
@@ -39,7 +39,7 @@ export class RunService {
     if (!workspace) {
       workspace = await this.workspaceService.create(
         {
-          configKey: workspaceName,
+          blockName: workspaceName,
           title: options.workspaceTitle || workspaceName,
         },
         userId,
@@ -51,7 +51,7 @@ export class RunService {
         id: workspace.id,
       },
       {
-        configKey: itemName,
+        blockName: itemName,
         args: payload,
       },
       userId,

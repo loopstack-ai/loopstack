@@ -88,7 +88,7 @@ export class WorkflowProcessorService implements Processor {
     }
 
     this.logger.debug(
-      `Process state machine for workflow ${workflowEntity!.configKey}`,
+      `Process state machine for workflow ${workflowEntity!.blockName}`,
     );
 
     this.initStateMachine(block, workflowEntity, validatorResult);

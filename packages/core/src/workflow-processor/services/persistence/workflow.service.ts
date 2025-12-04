@@ -13,11 +13,11 @@ export class WorkflowService {
   createFindQuery(
     namespaceId: string,
     options?: {
-      configKey?: string;
+      blockName?: string;
       labels?: string[];
     },
   ): SelectQueryBuilder<WorkflowEntity> {
-    const { configKey, labels } = options || {};
+    const { blockName, labels } = options || {};
 
     const queryBuilder = this.workflowRepository
       .createQueryBuilder('workflow')
@@ -25,8 +25,8 @@ export class WorkflowService {
       .leftJoinAndSelect('workflow.documents', 'document')
       .leftJoinAndSelect('workflow.dependencies', 'dependencies');
 
-    if (configKey) {
-      queryBuilder.andWhere('workflow.config_key = :configKey', { configKey });
+    if (blockName) {
+      queryBuilder.andWhere('workflow.block_name = :blockName', { blockName });
     }
 
     if (labels !== undefined) {
@@ -46,7 +46,7 @@ export class WorkflowService {
   findOneByQuery(
     namespaceId: string,
     options?: {
-      configKey?: string;
+      blockName?: string;
       labels?: string[];
     },
   ) {

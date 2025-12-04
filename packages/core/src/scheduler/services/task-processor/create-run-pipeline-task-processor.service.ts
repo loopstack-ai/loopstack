@@ -46,10 +46,10 @@ export class CreateRunPipelineTaskProcessorService {
   //
   //   const pipeline = await this.createPipelineService.create(
   //     {
-  //       configKey: workspaceConfig.key,
+  //       blockName: workspaceConfig.key,
   //     },
   //     {
-  //       configKey: pipelineConfig.key,
+  //       blockName: pipelineConfig.key,
   //       title: `${task.title ?? task.name} (scheduled)`,
   //     },
   //     null, //todo: on behalf of user X

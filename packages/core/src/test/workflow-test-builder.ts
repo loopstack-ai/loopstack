@@ -16,7 +16,7 @@ type MockConfig = {
 
 export const DEFAULT_WORKFLOW_ENTITY: Omit<WorkflowEntity, 'namespace'> = {
   id: '00000000-0000-0000-0000-000000000000',
-  configKey: '',
+  blockName: '',
   title: '',
   index: '1',
   progress: 0,

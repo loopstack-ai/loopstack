@@ -126,7 +126,7 @@ export class CreateDocumentService {
         schema: jsonSchema,
         messageId: messageId || randomUUID(),
         content: documentContent,
-        configKey: blockRegistryItem.name,
+        blockName: blockRegistryItem.name,
       };
 
       // do final strict validation

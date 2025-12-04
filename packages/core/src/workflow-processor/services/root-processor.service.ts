@@ -29,17 +29,17 @@ export class RootProcessorService {
     const namespace =
       await this.namespacesService.createRootNamespace(pipeline);
 
-    this.logger.debug(`Running Root Pipeline: ${pipeline.configKey}`);
+    this.logger.debug(`Running Root Pipeline: ${pipeline.blockName}`);
 
     const blockRegistryItem = this.blockRegistryService.getBlock(
-      pipeline.configKey,
+      pipeline.blockName,
     );
     if (!blockRegistryItem) {
-      throw new Error(`Config for pipeline ${pipeline.configKey} not found.`);
+      throw new Error(`Config for pipeline ${pipeline.blockName} not found.`);
     }
 
     const ctx = new RootExecutionContextDto({
-      root: pipeline.configKey,
+      root: pipeline.blockName,
       index: pipeline.index,
       userId: pipeline.createdBy,
       pipelineId: pipeline.id,
@@ -50,7 +50,7 @@ export class RootProcessorService {
     });
 
     const block = await this.blockFactory.createBlock(
-      pipeline.configKey,
+      pipeline.blockName,
       args,
       ctx,
     );

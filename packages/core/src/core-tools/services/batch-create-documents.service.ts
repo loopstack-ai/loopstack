@@ -85,7 +85,7 @@ export class BatchCreateDocumentsService {
           schema: jsonSchema,
           messageId: messageId || randomUUID(),
           content: parsedDocumentContent,
-          configKey: blockRegistryItem.name,
+          blockName: blockRegistryItem.name,
         };
 
         // do final strict validation
