@@ -125,7 +125,7 @@ const Workspaces = () => {
                       <Badge
                         variant="outline"
                         className="cursor-pointer hover:bg-primary/10"
-                        onClick={() => setFilters((curr) => ({ ...curr, configKey: value }))}
+                        onClick={() => setFilters((curr) => ({ ...curr, blockName: value }))}
                       >
                         {value.length > 25 ? value.slice(0, 25) + '...' : value}
                       </Badge>

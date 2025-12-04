@@ -75,7 +75,7 @@ const CreateWorkspace = ({
       {
         workspaceCreateDto: {
           title: name || undefined,
-          configKey: workspaceType
+          blockName: workspaceType
         }
       },
       {
@@ -115,19 +115,19 @@ const CreateWorkspace = ({
 
             {!workspace && (
               <div className="space-y-2">
-                <Label htmlFor="configKey">Type</Label>
+                <Label htmlFor="blockName">Type</Label>
                 <Select
-                  name="configKey"
+                  name="blockName"
                   value={workspaceType}
                   onValueChange={handleWorkspaceTypeChange}
                 >
-                  <SelectTrigger id="configKey" className="w-full">
+                  <SelectTrigger id="blockName" className="w-full">
                     <SelectValue placeholder="Select a type" />
                   </SelectTrigger>
                   <SelectContent>
                     {types.map((item: WorkspaceConfigDto) => (
-                      <SelectItem key={item.configKey} value={item.configKey}>
-                        {item.title ?? item.configKey}
+                      <SelectItem key={item.blockName} value={item.blockName}>
+                        {item.title ?? item.blockName}
                       </SelectItem>
                     ))}
                   </SelectContent>

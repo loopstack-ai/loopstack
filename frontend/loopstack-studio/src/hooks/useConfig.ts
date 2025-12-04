@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { PipelineConfigDto } from '@loopstack/api-client';
-import { useApiClient } from './useApi.ts';
+import { useApiClient } from './useApi';
 
 export function useWorkspaceConfig() {
   const { envKey, api } = useApiClient();
@@ -18,20 +18,20 @@ export function useWorkspaceConfig() {
   });
 }
 
-export function usePipelineConfig(workspaceConfigKey: string | undefined) {
+export function usePipelineConfig(workspaceBlockName: string | undefined) {
   const { envKey, api } = useApiClient();
 
   return useQuery({
-    queryKey: ['pipeline-types', workspaceConfigKey, envKey],
+    queryKey: ['pipeline-types', workspaceBlockName, envKey],
     queryFn: () => {
       if (!api) {
         throw new Error('API not available');
       }
       return api.ApiV1ConfigApi.configControllerGetPipelineTypesByWorkspace({
-        workspaceConfigKey: workspaceConfigKey!
+        workspaceBlockName: workspaceBlockName!
       });
     },
-    enabled: !!workspaceConfigKey,
+    enabled: !!workspaceBlockName,
     select: (res) => res.data as PipelineConfigDto[]
   });
 }

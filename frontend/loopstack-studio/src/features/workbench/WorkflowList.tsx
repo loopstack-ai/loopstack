@@ -83,7 +83,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
                               isActive ? 'text-primary' : 'text-muted-foreground'
                             )}
                           >
-                            {item.title ?? item.configKey}
+                            {item.title ?? item.blockName}
                           </span>
                         <Separator className="flex-1" />
                       </div>

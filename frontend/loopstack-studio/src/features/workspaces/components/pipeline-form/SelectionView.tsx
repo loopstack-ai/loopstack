@@ -21,13 +21,13 @@ const SelectionView = ({
                        }: {
   title: string;
   pipelineTypes: PipelineConfigDto[];
-  formData: { configKey: string };
-  errors: { configKey: string };
+  formData: { blockName: string };
+  errors: { blockName: string };
   isLoading: boolean;
   onInputChange: (field: string, value: string) => void;
   onNext: () => void;
 }) => {
-  const selectedConfig = pipelineTypes.find((p) => p.configKey === formData.configKey);
+  const selectedConfig = pipelineTypes.find((p) => p.blockName === formData.blockName);
 
   return (
     <div className="flex flex-col">
@@ -44,29 +44,29 @@ const SelectionView = ({
           </label>
           <div className="flex gap-2">
             <Select
-              value={formData.configKey}
-              onValueChange={(value) => onInputChange('configKey', value)}
+              value={formData.blockName}
+              onValueChange={(value) => onInputChange('blockName', value)}
               disabled={isLoading}
             >
               <SelectTrigger
                 id="automation"
                 className={`flex-1 ${
-                  errors.configKey ? 'border-red-500 focus:ring-red-500' : ''
+                  errors.blockName ? 'border-red-500 focus:ring-red-500' : ''
                 }`}
               >
                 <SelectValue placeholder="Select an automation..." />
               </SelectTrigger>
               <SelectContent>
                 {pipelineTypes.map((item) => (
-                  <SelectItem key={item.configKey} value={item.configKey}>
-                    {item.title ?? item.configKey}
+                  <SelectItem key={item.blockName} value={item.blockName}>
+                    {item.title ?? item.blockName}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Button
               variant="default"
-              disabled={isLoading || !formData.configKey}
+              disabled={isLoading || !formData.blockName}
               onClick={onNext}
               className="px-4"
             >
@@ -77,9 +77,9 @@ const SelectionView = ({
               )}
             </Button>
           </div>
-          {errors.configKey && (
+          {errors.blockName && (
             <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
-              {errors.configKey}
+              {errors.blockName}
             </p>
           )}
         </div>
@@ -87,7 +87,7 @@ const SelectionView = ({
         {selectedConfig && (
           <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
             <h3 className="font-medium text-sm text-foreground mb-1">
-              {selectedConfig.title || selectedConfig.configKey}
+              {selectedConfig.title || selectedConfig.blockName}
             </h3>
             {selectedConfig.description && (
               <p className="text-sm text-muted-foreground leading-relaxed">

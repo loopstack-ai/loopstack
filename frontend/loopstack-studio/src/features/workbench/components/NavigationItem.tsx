@@ -77,7 +77,7 @@ export const NavigationItem: React.FC<WorkbenchNavigationWorkflowItemProps> = ({
       >
         <div className="flex items-center gap-2 min-w-0">
           {getIcon()}
-          <span className="truncate text-sm">{workflow.title ?? workflow.configKey}</span>
+          <span className="truncate text-sm">{workflow.title ?? workflow.blockName}</span>
         </div>
         {getProgressIndicator()}
       </button>

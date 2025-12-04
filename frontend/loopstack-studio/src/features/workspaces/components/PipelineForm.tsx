@@ -21,43 +21,47 @@ type Step = 'selection' | 'arguments';
 const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
   const { router } = useStudio();
 
+
   const createPipeline = useCreatePipeline();
   const pingPipeline = useRunPipeline();
-  const fetchPipelineTypes = usePipelineConfig(workspace.configKey);
+
+  const fetchPipelineTypes = usePipelineConfig(workspace.blockName);
+
+  console.log(fetchPipelineTypes.error)
 
   const [currentStep, setCurrentStep] = useState<Step>('selection');
   const [formData, setFormData] = useState({
     name: '',
-    configKey: '',
+    blockName: '',
     properties: {}
   });
 
   const [errors, setErrors] = useState({
     name: '',
-    configKey: ''
+    blockName: ''
   });
 
   const selectedPipelineConfig: PipelineConfigInterface | undefined = useMemo(() => {
-    if (!formData.configKey || !fetchPipelineTypes.data) return undefined;
-    return fetchPipelineTypes.data.find((p) => p.configKey === formData.configKey);
-  }, [formData.configKey, fetchPipelineTypes.data]);
+    if (!formData.blockName || !fetchPipelineTypes.data) return undefined;
+    return fetchPipelineTypes.data.find((p) => p.blockName === formData.blockName);
+  }, [formData.blockName, fetchPipelineTypes.data]);
 
   const hasArguments = !!selectedPipelineConfig?.schema;
   const isLoading = createPipeline.isPending || pingPipeline.isPending;
 
   useEffect(() => {
-    if (!formData.configKey && fetchPipelineTypes.data?.[0]?.configKey) {
+    if (!formData.blockName && fetchPipelineTypes.data?.[0]?.blockName) {
       setFormData((prev) => ({
         ...prev,
-        configKey: fetchPipelineTypes.data[0].configKey
+        blockName: fetchPipelineTypes.data[0].blockName
       }));
     }
-  }, [fetchPipelineTypes.data, formData.configKey]);
+  }, [fetchPipelineTypes.data, formData.blockName]);
 
   const validateForm = (): boolean => {
-    if (formData.configKey) return true;
+    if (formData.blockName) return true;
 
-    setErrors({ name: '', configKey: 'Please select an automation type' });
+    setErrors({ name: '', blockName: 'Please select an automation type' });
     return false;
   };
 
@@ -69,7 +73,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
     createPipeline.mutate(
       {
         pipelineCreateDto: {
-          configKey: formData.configKey,
+          blockName: formData.blockName,
           title: formData.name || null,
           workspaceId: workspace.id,
           transition,

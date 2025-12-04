@@ -99,7 +99,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
         <h3 className="font-medium hover:text-primary transition-colors">
           Run #{item.run} {item.title ? `(${item.title})` : ''}
         </h3>
-        <p className="text-sm text-gray-500 mt-1">{item.configKey}</p>
+        <p className="text-sm text-gray-500 mt-1">{item.blockName}</p>
         <p className="text-xs text-gray-400 mt-2">{formatUpdatedTime(item.updatedAt)}</p>
       </div>
       <Badge variant="default" className={getPipelineStatusColor(item.status)}>
