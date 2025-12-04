@@ -38,7 +38,7 @@ export class DocumentItemDto implements DocumentItemInterface {
     description: 'Config key of the document',
     example: 'file.yaml:my-document',
   })
-  configKey: string;
+  blockName: string;
 
   /**
    * Contents of the document

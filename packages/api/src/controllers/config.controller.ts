@@ -46,7 +46,7 @@ export class ConfigController {
     const resolvedConfigs = blocks.map((block: BlockRegistryItem) => {
       const config = block.config as WorkspaceType;
       return {
-        configKey: block.name,
+        blockName: block.name,
         title: config.title ?? block.name,
       };
     });
@@ -56,25 +56,25 @@ export class ConfigController {
     });
   }
 
-  @Get('workspaces/:workspaceConfigKey/pipelines')
+  @Get('workspaces/:workspaceBlockName/pipelines')
   @ApiOperation({
     summary: 'Get all pipeline types available for this workspace',
   })
   @ApiParam({
-    name: 'workspaceConfigKey',
+    name: 'workspaceBlockName',
     type: String,
     description: 'The config key of the workspace type',
   })
   @ApiOkResponse({ type: PipelineConfigDto, isArray: true })
   @ApiUnauthorizedResponse()
   getPipelineTypesByWorkspace(
-    @Param('workspaceConfigKey') workspaceConfigKey: string,
+    @Param('workspaceBlockName') workspaceBlockName: string,
   ): PipelineConfigDto[] {
     const workspaceBlock =
-      this.blockRegistryService.getBlock(workspaceConfigKey);
+      this.blockRegistryService.getBlock(workspaceBlockName);
     if (!workspaceBlock) {
       throw new BadRequestException(
-        `Config for workspace with name ${workspaceConfigKey} not found.`,
+        `Config for workspace with name ${workspaceBlockName} not found.`,
       );
     }
 
@@ -88,7 +88,7 @@ export class ConfigController {
 
       const config = pipelineBlock.config as PipelineSequenceType;
       return {
-        configKey: item.name,
+        blockName: item.name,
         title: config.title,
         description: config.description,
         schema: pipelineBlock.metadata.propertiesSchema,

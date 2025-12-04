@@ -8,7 +8,7 @@ export class PipelineConfigDto {
     description: 'The config Key of the pipeline',
     example: 'file.yaml:my-model',
   })
-  configKey: string;
+  blockName: string;
 
   @Expose()
   @ApiPropertyOptional({

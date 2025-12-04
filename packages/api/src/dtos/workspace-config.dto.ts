@@ -10,7 +10,7 @@ export class WorkspaceConfigDto {
     description: 'Config key of the workspace',
     example: 'file.yaml:my-workspace',
   })
-  configKey: string;
+  blockName: string;
 
   @Expose()
   @ApiPropertyOptional({

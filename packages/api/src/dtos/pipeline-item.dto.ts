@@ -21,7 +21,7 @@ export class PipelineItemDto {
     description: 'Config key of the pipeline',
     example: 'file.yaml:my-pipeline',
   })
-  configKey: string;
+  blockName: string;
 
   @Expose()
   @ApiProperty({

@@ -24,5 +24,5 @@ export class WorkspaceCreateDto {
     description: 'The config key of the workspace',
     example: 'file.yaml:my-workflow-type',
   })
-  configKey: string;
+  blockName: string;
 }

@@ -25,7 +25,7 @@ export class PipelineCreateDto {
     description: 'Process config key identifier for the pipeline',
     example: 'file.yaml:my-pipeline',
   })
-  configKey: string;
+  blockName: string;
 
   /**
    * Human-readable title for the pipeline

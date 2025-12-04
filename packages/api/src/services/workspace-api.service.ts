@@ -117,7 +117,7 @@ export class WorkspaceApiService {
     workspaceData: WorkspaceCreateDto,
     user: string,
   ): Promise<WorkspaceEntity> {
-    const title = workspaceData.title || `${workspaceData.configKey}`;
+    const title = workspaceData.title || `${workspaceData.blockName}`;
 
     const workspace = this.workspaceRepository.create({
       ...workspaceData,
