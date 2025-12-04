@@ -6,11 +6,14 @@ import { Tool } from '../../workflow-processor';
 
 const SwitchTargetInputSchema = z.object({
   target: z.string(),
-});
+}).strict();
 
 const SwitchTargetConfigSchema = z.object({
-  target: TemplateExpression,
-});
+  target: z.union([
+    z.string(),
+    TemplateExpression,
+  ]),
+}).strict();
 
 type SwitchTargetInput = z.infer<typeof SwitchTargetInputSchema>;
 

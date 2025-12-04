@@ -1,10 +1,10 @@
-import { BlockConfig, HandlerCallResult } from '@loopstack/common';
+import { BlockConfig, DocumentEntity, HandlerCallResult } from '@loopstack/common';
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Tool } from '../../workflow-processor';
-import { CreateDocumentService } from '../services/create-document.service';
+import { ProcessorFactory, Tool } from '../../workflow-processor';
 import { MessageDocument } from '../documents';
-import { BatchCreateDocumentsService } from '../services/batch-create-documents.service';
+import { DelegateService } from '../services';
+import { CreateDocument } from './create-document-tool';
 
 const MessageSchema = z.object({
   content: z.any(),
@@ -38,51 +38,44 @@ export class CreateChatMessage extends Tool<CreateChatMessageInput> {
   protected readonly logger = new Logger(CreateChatMessage.name);
 
   constructor(
-    private readonly createDocumentService: CreateDocumentService,
-    private readonly batchCreateDocumentsService: BatchCreateDocumentsService,
+    private readonly delegateService: DelegateService,
   ) {
     super();
   }
 
-  async execute(): Promise<HandlerCallResult> {
-    if (Array.isArray(this.args)) {
-      const documents = this.batchCreateDocumentsService.batchCreateDocuments(
-        {
-          document: MessageDocument.name,
-          items: this.args,
-        },
-        this,
-      );
+  async execute(args: CreateChatMessageInput, ctx: any, factory: ProcessorFactory): Promise<HandlerCallResult> {
+    const items = !Array.isArray(args) ? [args] : args;
 
-      return {
-        data: documents.map((document) => document.content),
-        effects: {
-          addWorkflowDocuments: documents,
-        },
-      };
-    }
-
-    const document = this.createDocumentService.createDocument(
-      {
+    const createdDocuments: DocumentEntity[] = [];
+    for (const item of items) {
+      const createDocumentArgs = {
         document: MessageDocument.name,
         update: {
           content: {
-            role: this.args.role,
-            content: this.args.content,
-            tool_calls: this.args.tool_calls,
-            tool_call_id: this.args.tool_call_id,
-            annotations: this.args.annotations,
-            refusal: this.args.refusal,
+            role: item.role,
+            content: item.content,
+            tool_calls: item.tool_calls,
+            tool_call_id: item.tool_call_id,
+            annotations: item.annotations,
+            refusal: item.refusal,
           },
         },
-      },
-      this,
-    );
+      };
+
+      const result = await this.delegateService.delegate(
+        CreateDocument.name,
+        createDocumentArgs,
+        ctx,
+        factory,
+      );
+
+      createdDocuments.push(result.data as DocumentEntity)
+    }
 
     return {
-      data: document.content,
+      data: createdDocuments,
       effects: {
-        addWorkflowDocuments: [document],
+        addWorkflowDocuments: createdDocuments,
       },
     };
   }
