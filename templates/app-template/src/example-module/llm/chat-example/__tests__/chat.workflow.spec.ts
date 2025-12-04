@@ -152,11 +152,11 @@ describe('ChatWorkflow', () => {
         ],
         documents: [
           {
-            configKey: AiMessageDocument.name,
+            blockName: AiMessageDocument.name,
             content: mockSystemPrompt,
           } as DocumentEntity,
           {
-            configKey: AiMessageDocument.name,
+            blockName: AiMessageDocument.name,
             content: mockLlmResponse1,
           } as DocumentEntity,
         ]

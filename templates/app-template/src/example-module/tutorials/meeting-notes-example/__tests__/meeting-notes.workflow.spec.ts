@@ -109,7 +109,7 @@ describe('MeetingNotesWorkflow', () => {
         ],
         documents: [
           {
-            configKey: MeetingNotesDocument.name,
+            blockName: MeetingNotesDocument.name,
             content: mockInitialNotes,
           } as DocumentEntity,
         ],
@@ -218,11 +218,11 @@ describe('MeetingNotesWorkflow', () => {
         ],
         documents: [
           {
-            configKey: MeetingNotesDocument.name,
+            blockName: MeetingNotesDocument.name,
             content: mockMeetingNotes,
           } as DocumentEntity,
           {
-            configKey: OptimizedNotesDocument.name,
+            blockName: OptimizedNotesDocument.name,
             content: mockOptimizedNotes,
           } as DocumentEntity,
         ],
