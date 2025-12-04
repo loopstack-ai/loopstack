@@ -305,6 +305,12 @@ export class WorkflowProcessorService implements Processor {
     );
   }
 
+  private validateToolAvailable(toolName, parentBlock: Workflow) {
+    if (!parentBlock.metadata.imports.some((item) => item.name === toolName)) {
+      throw new Error(`Tool ${toolName} is not available. Make sure to import required tools to the workflow.`)
+    }
+  }
+
   async processToolCalls(
     block: Workflow,
     toolCalls: ToolCallType[] | undefined,
@@ -333,6 +339,8 @@ export class WorkflowProcessorService implements Processor {
           this.logger.debug(
             `Call tool ${i} (${toolCall.tool}) on transition ${currentTransition.id}`,
           );
+
+          this.validateToolAvailable(toolCall.tool, block);
 
           const args = this.parseToolArguments(
             block,

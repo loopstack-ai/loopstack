@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Type } from '@nestjs/common';
 import {
   BlockFactory,
   BlockProcessor,
@@ -17,7 +17,18 @@ export class DelegateService {
     private readonly blockFactory: BlockFactory,
   ) {}
 
-  async delegate(toolName: string, args: any, ctx: any, factory: ProcessorFactory): Promise<HandlerCallResult> {
+  private validateToolAvailable(toolName: string, availableImports: (Type | string)[]) {
+    if (!availableImports.some((item) =>
+      typeof item === 'string' ? item === toolName : item.name === toolName
+    )) {
+      throw new Error(`Tool ${toolName} is not available. Make sure to import required tools to the parent block.`)
+    }
+  }
+
+  async delegate(toolName: string, args: any, ctx: any, factory: ProcessorFactory, availableImports: (Type | string)[]): Promise<HandlerCallResult> {
+
+    this.validateToolAvailable(toolName, availableImports);
+
     const toolBlock = await this.blockFactory.createBlock<
       Tool,
       ToolExecutionContextDto

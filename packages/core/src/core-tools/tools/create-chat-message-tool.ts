@@ -28,6 +28,9 @@ const CreateChatMessageConfigSchema = z.union([
 type CreateChatMessageInput = z.infer<typeof CreateChatMessageInputSchema>;
 
 @BlockConfig({
+  imports: [
+    CreateDocument
+  ],
   config: {
     description: 'Create chat message(s).',
   },
@@ -67,6 +70,7 @@ export class CreateChatMessage extends Tool<CreateChatMessageInput> {
         createDocumentArgs,
         ctx,
         factory,
+        this.metadata.imports,
       );
 
       createdDocuments.push(result.data as DocumentEntity)

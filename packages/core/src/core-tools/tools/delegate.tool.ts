@@ -11,7 +11,7 @@ import { DelegateService } from '../services';
 const DelegateToolSchema = z.object({
   tool: z.string(),
   args: z.any().optional(),
-  allowed: z.array(z.string()).optional(),
+  allowedTools: z.array(z.string()),
 }).strict();
 
 const DelegateToolConfigSchema = z.object({
@@ -20,7 +20,7 @@ const DelegateToolConfigSchema = z.object({
     TemplateExpression,
   ]),
   args: z.any().optional(),
-  allowed: z.array(z.string()).optional(),
+  allowedTools: z.array(z.string()),
 }).strict();
 
 type DelegateToolType = z.infer<typeof DelegateToolSchema>;
@@ -42,16 +42,12 @@ export class DelegateTool extends Tool<DelegateToolType> {
   }
 
   async execute(args: DelegateToolType, ctx: any, factory: ProcessorFactory): Promise<HandlerCallResult> {
-
-    if (args.allowed !== undefined && args.allowed.includes(args.tool)) {
-      throw new Error(`Delegate tool call ${args.tool} is not allowed.`);
-    }
-
     return this.delegateService.delegate(
       args.tool,
       args.args,
       ctx,
       factory,
+      args.allowedTools,
     );
   }
 }

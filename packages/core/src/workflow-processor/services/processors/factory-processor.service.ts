@@ -59,11 +59,19 @@ export class FactoryProcessorService implements Processor {
     return executionContexts;
   }
 
+  private validateAvailable(name: string, parentBlock: BlockInterface) {
+    if (!parentBlock.metadata.imports.some((item) => item.name === name)) {
+      throw new Error(`Block ${name} is not available. Make sure to import required blocks to the parent.`)
+    }
+  }
+
   async process(block: Factory, factory: ProcessorFactory): Promise<Factory> {
     block = await this.blockHelperService.initBlockNamespace(block);
 
     this.logger.debug(`Running Factory: ${block.name}`);
     const config = block.config as unknown as PipelineFactoryConfigType;
+
+    this.validateAvailable(config.factory.block, block);
 
     // omit factory args for later
     const iterator =

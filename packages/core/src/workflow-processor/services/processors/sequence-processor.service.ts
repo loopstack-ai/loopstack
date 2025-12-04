@@ -15,6 +15,7 @@ import { TemplateExpressionEvaluatorService } from '../template-expression-evalu
 import { BlockFactory } from '../block.factory';
 import { BlockProcessor } from '../block-processor.service';
 import { PipelineExecutionContextDto } from '../../dtos';
+import { BlockInterface } from '../../interfaces';
 
 @Injectable()
 export class SequenceProcessorService implements Processor {
@@ -26,6 +27,12 @@ export class SequenceProcessorService implements Processor {
     private readonly blockHelperService: BlockHelperService,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
   ) {}
+
+  private validateAvailable(name: string, parentBlock: BlockInterface) {
+    if (!parentBlock.metadata.imports.some((item) => item.name === name)) {
+      throw new Error(`Block ${name} is not available. Make sure to import required blocks to the parent.`)
+    }
+  }
 
   async process(block: Pipeline, factory: ProcessorFactory): Promise<Pipeline> {
     block = await this.blockHelperService.initBlockNamespace(block);
@@ -57,6 +64,8 @@ export class SequenceProcessorService implements Processor {
         );
         continue;
       }
+
+      this.validateAvailable(parsedItem.block, block);
 
       const currentIndex = this.blockHelperService.createIndex(index, i + 1);
 
