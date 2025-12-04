@@ -1,7 +1,7 @@
 import { JSONSchemaConfigType, UiFormType } from '../types';
 
 export interface PipelineConfigInterface {
-  configKey: string;
+  blockName: string;
   title?: string;
   description?: string;
   schema?: JSONSchemaConfigType;

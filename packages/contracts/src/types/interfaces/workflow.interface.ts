@@ -6,7 +6,7 @@ import { WorkflowTransitionType } from '../types/workflow-transition.type';
 
 export interface WorkflowInterface {
   id: string;
-  configKey: string;
+  blockName: string;
   title: string;
   index: number;
   labels: string[];
