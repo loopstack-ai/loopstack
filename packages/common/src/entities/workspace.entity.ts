@@ -10,9 +10,9 @@ export class WorkspaceEntity {
   @Column({ type: 'varchar', nullable: true })
   title!: string;
 
-  @Column({ type: 'varchar', name: 'config_key' })
+  @Column({ type: 'varchar', name: 'block_name' })
   @Index()
-  configKey!: string;
+  blockName!: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;

@@ -20,9 +20,9 @@ export class PipelineEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', name: 'config_key' })
+  @Column({ type: 'varchar', name: 'block_name' })
   @Index()
-  configKey!: string;
+  blockName!: string;
 
   @Column({ type: 'varchar', nullable: true })
   title!: string | null;
