@@ -1,54 +1,35 @@
-import {
-  createToolTestingModule,
-  describeSchemaTests,
-} from '../../../test';
 import { SwitchTarget } from '../switch-target-tool';
-import {
-  BlockFactory,
-  Tool,
-} from '../../../workflow-processor';
 import { TestingModule } from '@nestjs/testing';
-import { Module } from '@nestjs/common';
-import { CoreToolsModuleCapabilityFactory } from '../../core-tools-module-capability.factory';
-
-@Module({
-  providers: [
-    CoreToolsModuleCapabilityFactory,
-    SwitchTarget
-  ],
-  exports: [CoreToolsModuleCapabilityFactory],
-})
-class CoreToolsModule {}
+import { createToolTestingContext, describeSchemaTests } from '../../../test';
+import { Tool } from '../../../workflow-processor';
 
 describe('Tool: SwitchTarget', () => {
   let module: TestingModule;
-  let blockFactory: BlockFactory;
+  let createToolInstance: (args: any, ctx?: any) => Promise<SwitchTarget>;
+
+  const defaultContext = {
+    workflow: {
+      transition: {
+        to: ['placeA', 'placeB'],
+      },
+    },
+  };
 
   beforeAll(async () => {
-    module = await createToolTestingModule(CoreToolsModule);
-    await module.init();
-    blockFactory = module.get(BlockFactory);
+    const ctx = await createToolTestingContext(SwitchTarget);
+    module = ctx.module;
+    createToolInstance = ctx.createTool;
   });
 
   afterAll(async () => {
-    if (module) {
-      await module.close();
-    }
+    await module?.close();
   });
 
   describe('Block Metadata', () => {
-    let tool: Tool;
+    let tool: SwitchTarget;
 
     beforeAll(async () => {
-      tool = await blockFactory.createBlock<SwitchTarget, any>('SwitchTarget', {
-        target: 'placeA',
-      }, {
-        workflow: {
-          transition: {
-            to: ['placeA', 'placeB'],
-          },
-        },
-      });
+      tool = await createToolInstance({ target: 'placeA' }, defaultContext);
     });
 
     it('tool should be defined', async () => {
@@ -72,15 +53,7 @@ describe('Tool: SwitchTarget', () => {
     let tool: Tool;
 
     beforeAll(async () => {
-      tool = await blockFactory.createBlock<SwitchTarget, any>('SwitchTarget', {
-        target: 'placeA',
-      }, {
-        workflow: {
-          transition: {
-            to: ['placeA', 'placeB'],
-          },
-        },
-      });
+      tool = await createToolInstance({ target: 'placeA' }, defaultContext);
     });
 
     describeSchemaTests(() => tool.metadata.properties!, [
@@ -111,15 +84,7 @@ describe('Tool: SwitchTarget', () => {
     let tool: Tool;
 
     beforeAll(async () => {
-      tool = await blockFactory.createBlock<SwitchTarget, any>('SwitchTarget', {
-        target: 'placeA',
-      }, {
-        workflow: {
-          transition: {
-            to: ['placeA', 'placeB'],
-          },
-        },
-      });
+      tool = await createToolInstance({ target: 'placeA' }, defaultContext);
     });
 
     describeSchemaTests(() => tool.metadata.configSchema!, [
@@ -150,15 +115,7 @@ describe('Tool: SwitchTarget', () => {
     let tool: Tool;
 
     beforeAll(async () => {
-      tool = await blockFactory.createBlock<SwitchTarget, any>('SwitchTarget', {
-        target: 'placeA',
-      }, {
-        workflow: {
-          transition: {
-            to: ['placeA', 'placeB'],
-          },
-        },
-      });
+      tool = await createToolInstance({ target: 'placeA' }, defaultContext);
     });
 
     it('should have correct arguments', async () => {
@@ -168,9 +125,7 @@ describe('Tool: SwitchTarget', () => {
 
   describe('Result', () => {
     it('should return setTransitionPlace effect when target is in array of allowed places', async () => {
-      const tool = await blockFactory.createBlock<SwitchTarget, any>('SwitchTarget', {
-        target: 'placeA',
-      }, {
+      const tool = await createToolInstance({ target: 'placeA' }, {
         workflow: {
           transition: {
             to: ['placeA', 'placeB'],
@@ -184,9 +139,7 @@ describe('Tool: SwitchTarget', () => {
     });
 
     it('should return setTransitionPlace effect when target matches single allowed place', async () => {
-      const tool = await blockFactory.createBlock<SwitchTarget, any>('SwitchTarget', {
-        target: 'placeA',
-      }, {
+      const tool = await createToolInstance({ target: 'placeA' }, {
         workflow: {
           transition: {
             to: 'placeA',
@@ -200,9 +153,7 @@ describe('Tool: SwitchTarget', () => {
     });
 
     it('should trim whitespace from target', async () => {
-      const tool = await blockFactory.createBlock<SwitchTarget, any>('SwitchTarget', {
-        target: '  placeA  ',
-      }, {
+      const tool = await createToolInstance({ target: '  placeA  ' }, {
         workflow: {
           transition: {
             to: ['placeA', 'placeB'],
@@ -216,9 +167,7 @@ describe('Tool: SwitchTarget', () => {
     });
 
     it('should throw error when target is not in array of allowed places', async () => {
-      const tool = await blockFactory.createBlock<SwitchTarget, any>('SwitchTarget', {
-        target: 'placeC',
-      }, {
+      const tool = await createToolInstance({ target: 'placeC' }, {
         workflow: {
           transition: {
             to: ['placeA', 'placeB'],
@@ -230,9 +179,7 @@ describe('Tool: SwitchTarget', () => {
     });
 
     it('should throw error when target does not match single allowed place', async () => {
-      const tool = await blockFactory.createBlock<SwitchTarget, any>('SwitchTarget', {
-        target: 'placeB',
-      }, {
+      const tool = await createToolInstance({ target: 'placeB' }, {
         workflow: {
           transition: {
             to: 'placeA',

@@ -1,48 +1,27 @@
-import {
-  createToolTestingModule,
-  describeSchemaTests,
-} from '../../../test';
 import { CreateValue } from '../create-value-tool';
-import {
-  BlockFactory,
-  Tool,
-} from '../../../workflow-processor';
 import { TestingModule } from '@nestjs/testing';
-import { Module } from '@nestjs/common';
-import { CoreToolsModuleCapabilityFactory } from '../../core-tools-module-capability.factory';
-
-@Module({
-  providers: [
-    CoreToolsModuleCapabilityFactory,
-    CreateValue
-  ],
-  exports: [CoreToolsModuleCapabilityFactory],
-})
-class CoreToolsModule {}
+import { createToolTestingContext, describeSchemaTests } from '../../../test';
+import { Tool } from '../../../workflow-processor';
 
 describe('Tool: CreateValue', () => {
   let module: TestingModule;
-  let blockFactory: BlockFactory;
+  let createToolInstance: (args: any, ctx?: any) => Promise<CreateValue>;
 
   beforeAll(async () => {
-    module = await createToolTestingModule(CoreToolsModule);
-    await module.init();
-    blockFactory = module.get(BlockFactory);
+    const ctx = await createToolTestingContext(CreateValue);
+    module = ctx.module;
+    createToolInstance = ctx.createTool;
   });
 
   afterAll(async () => {
-    if (module) {
-      await module.close();
-    }
+    await module?.close();
   });
 
   describe('Block Metadata', () => {
-    let tool: Tool;
+    let tool: CreateValue;
 
     beforeAll(async () => {
-      tool = await blockFactory.createBlock<CreateValue, any>('CreateValue', {
-        input: 'any',
-      }, {});
+      tool = await createToolInstance({ input: 'any' });
     });
 
     it('tool should be defined', async () => {
@@ -66,9 +45,7 @@ describe('Tool: CreateValue', () => {
     let tool: Tool;
 
     beforeAll(async () => {
-      tool = await blockFactory.createBlock<CreateValue, any>('CreateValue', {
-        input: 'any',
-      }, {});
+      tool = await createToolInstance({ input: 'any' });
     });
 
     describeSchemaTests(() => tool.metadata.properties!, [
@@ -78,10 +55,10 @@ describe('Tool: CreateValue', () => {
         shouldPass: false,
       },
       {
-        description: 'should accept valid input',
+        description: 'should accept valid string input',
         args: { input: 'Hello World!' },
-        shouldPass: true
-      }
+        shouldPass: true,
+      },
     ]);
   });
 
@@ -89,9 +66,7 @@ describe('Tool: CreateValue', () => {
     let tool: Tool;
 
     beforeAll(async () => {
-      tool = await blockFactory.createBlock<CreateValue, any>('CreateValue', {
-        input: 'any',
-      }, {});
+      tool = await createToolInstance({ input: 'any' });
     });
 
     describeSchemaTests(() => tool.metadata.configSchema!, [
@@ -101,9 +76,9 @@ describe('Tool: CreateValue', () => {
         shouldPass: false,
       },
       {
-        description: 'should accept valid input',
+        description: 'should accept valid string input',
         args: { input: 'Hello World!' },
-        shouldPass: true
+        shouldPass: true,
       },
       {
         description: 'should accept property accessor expressions',
@@ -122,9 +97,7 @@ describe('Tool: CreateValue', () => {
     let tool: Tool;
 
     beforeAll(async () => {
-      tool = await blockFactory.createBlock<CreateValue, any>('CreateValue', {
-        input: 'any',
-      }, {});
+      tool = await createToolInstance({ input: 'any' });
     });
 
     it('should have correct arguments', async () => {
@@ -133,11 +106,8 @@ describe('Tool: CreateValue', () => {
   });
 
   describe('Result', () => {
-    it('should return correct ', async () => {
-      const tool = await blockFactory.createBlock<CreateValue, any>('CreateValue', {
-        input: 'hello world',
-      }, {});
-
+    it('should return string input unchanged', async () => {
+      const tool = await createToolInstance({ input: 'hello world' });
       const result = await tool.execute();
 
       expect(result.data).toBe('hello world');
