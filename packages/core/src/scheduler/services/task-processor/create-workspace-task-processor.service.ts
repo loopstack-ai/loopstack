@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WorkspaceService } from '../../../workflow-processor';
+import { WorkspaceService } from '../../../persistence';
 
 @Injectable()
 export class CreateWorkspaceTaskProcessorService {

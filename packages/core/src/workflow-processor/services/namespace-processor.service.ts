@@ -1,24 +1,65 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import type { NamespacePropsType } from '@loopstack/contracts/types';
-import { NamespaceEntity } from '@loopstack/common';
+import { Injectable, Logger } from '@nestjs/common';
+import type {
+  NamespacePropsType,
+  PipelineFactoryConfigType,
+  PipelineSequenceType,
+} from '@loopstack/contracts/types';
+import { NamespaceEntity, PipelineEntity } from '@loopstack/common';
 import {
   BlockContextType,
   BlockInterface,
-} from '../interfaces/block.interface';
-import {
   FactoryExecutionContextDto,
   PipelineExecutionContextDto,
-} from '../dtos';
-import { NamespacesService } from './persistence';
+  TemplateExpressionEvaluatorService,
+} from '../../common';
+import { Factory, Pipeline } from '../abstract';
+import { NamespacePropsSchema } from '@loopstack/contracts/schemas';
+import { NamespacesService } from '../../persistence';
 
 @Injectable()
 export class NamespaceProcessorService {
   private readonly logger = new Logger(NamespaceProcessorService.name);
 
   constructor(
-    @Inject(forwardRef(() => NamespacesService))
+    // @Inject(forwardRef(() => NamespacesService))
     private namespacesService: NamespacesService,
+    private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
   ) {}
+
+  async createRootNamespace(
+    pipeline: PipelineEntity,
+  ): Promise<NamespaceEntity> {
+    return this.namespacesService.create({
+      name: 'Root',
+      pipelineId: pipeline.id,
+      workspaceId: pipeline.workspaceId,
+      metadata: {
+        title: pipeline.title,
+      },
+      createdBy: pipeline.createdBy,
+      parent: null,
+    });
+  }
+
+  async initBlockNamespace<T extends Pipeline | Factory>(block: T): Promise<T> {
+    const config: PipelineSequenceType | PipelineFactoryConfigType =
+      block.config as any;
+
+    if (config.namespace) {
+      const namespaceConfig =
+        this.templateExpressionEvaluatorService.evaluateTemplate<NamespacePropsType>(
+          config.namespace,
+          block,
+          ['pipeline'],
+          NamespacePropsSchema,
+        );
+
+      block.ctx.namespace = await this.createNamespace(block, namespaceConfig);
+      block.ctx.labels = [...block.ctx.labels, block.ctx.namespace.name];
+    }
+
+    return block;
+  }
 
   async createNamespace(
     block: BlockInterface,

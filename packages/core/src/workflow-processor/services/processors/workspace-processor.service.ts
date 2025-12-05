@@ -1,13 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Processor } from '../../interfaces/processor.interface';
 import { ProcessorFactory } from '../processor.factory';
 import { Workspace } from '../../abstract';
 import { BlockFactory } from '../block.factory';
 import { BlockProcessor } from '../block-processor.service';
-import {
-  BlockContextType,
-  BlockInterface,
-} from '../../interfaces/block.interface';
+import { BlockContextType, BlockInterface, Processor } from '../../../common';
 
 @Injectable()
 export class WorkspaceProcessorService implements Processor {
@@ -20,7 +16,9 @@ export class WorkspaceProcessorService implements Processor {
 
   private validateAvailable(name: string, parentBlock: BlockInterface) {
     if (!parentBlock.metadata.imports.some((item) => item.name === name)) {
-      throw new Error(`Block ${name} is not available. Make sure to import required blocks to the parent.`)
+      throw new Error(
+        `Block ${name} is not available. Make sure to import required blocks to the parent.`,
+      );
     }
   }
 

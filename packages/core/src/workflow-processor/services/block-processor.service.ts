@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ProcessorFactory } from './processor.factory';
-import { BlockInterface } from '../interfaces/block.interface';
+import { BlockInterface } from '../../common';
 
 @Injectable()
 export class BlockProcessor {
@@ -8,7 +8,7 @@ export class BlockProcessor {
     block: TInstance,
     factory: ProcessorFactory,
   ): Promise<TInstance> {
-    const processorName = block.processor;
+    const processorName = block.type;
     const processor = factory.getProcessor(processorName);
     if (!processor) {
       throw new Error(`Processor ${processorName} is not defined.`);

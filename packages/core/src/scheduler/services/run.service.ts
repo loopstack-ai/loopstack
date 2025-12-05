@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { ConfigService } from '@nestjs/config';
-import { CreatePipelineService, WorkspaceService } from '../../workflow-processor';
+import { CreatePipelineService } from '../../workflow-processor';
 import { TaskSchedulerService } from './task-scheduler.service';
+import { WorkspaceService } from '../../persistence';
 
 @Injectable()
 export class RunService {

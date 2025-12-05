@@ -39,10 +39,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     },
     MigrationsService,
   ],
-  exports: [
-    CommonModule,
-    WorkflowProcessorModule,
-    SchedulerModule,
-  ],
+  exports: [CommonModule, WorkflowProcessorModule, SchedulerModule],
 })
 export class LoopCoreModule {}

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Processor } from '../../interfaces/processor.interface';
 import { ProcessorFactory } from '../processor.factory';
 import { Tool } from '../../abstract';
+import { Processor } from '../../../common';
 
 @Injectable()
 export class ToolProcessorService implements Processor {

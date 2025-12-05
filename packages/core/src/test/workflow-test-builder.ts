@@ -1,13 +1,19 @@
-import { generateObjectFingerprint, HandlerCallResult, WorkflowEntity, WorkflowState } from '@loopstack/common';
+import {
+  generateObjectFingerprint,
+  HandlerCallResult,
+  WorkflowEntity,
+  WorkflowState,
+} from '@loopstack/common';
 import { INestApplication } from '@nestjs/common';
 import {
   BlockFactory,
   ProcessorFactory,
   Workflow,
-  WorkflowExecutionContextDto,
-  WorkflowProcessorService, WorkflowService,
+  WorkflowProcessorService,
 } from '../workflow-processor';
 import { cloneDeep } from 'lodash';
+import { WorkflowExecutionContextDto } from '../common';
+import { WorkflowService } from '../persistence';
 
 type MockConfig = {
   tool: any;
@@ -63,15 +69,20 @@ export class WorkflowTestBuilder<T extends Workflow> {
 
   constructor(
     private testModuleFactory: () => Promise<any>,
-    private classRef: new (...args: any[]) => T
+    private classRef: new (...args: any[]) => T,
   ) {}
 
   /**
    * Add a tool mock configuration
    */
-  withToolMock(tool: any, resolvedReturnValues?: HandlerCallResult | HandlerCallResult[]): this {
-
-    const values = resolvedReturnValues === undefined || Array.isArray(resolvedReturnValues) ? resolvedReturnValues : [resolvedReturnValues];
+  withToolMock(
+    tool: any,
+    resolvedReturnValues?: HandlerCallResult | HandlerCallResult[],
+  ): this {
+    const values =
+      resolvedReturnValues === undefined || Array.isArray(resolvedReturnValues)
+        ? resolvedReturnValues
+        : [resolvedReturnValues];
 
     if (!tool) {
       throw new Error('Mock config must include a tool');
@@ -126,7 +137,7 @@ export class WorkflowTestBuilder<T extends Workflow> {
     const spy = this.mockSpyMap.get(tool);
     if (!spy) {
       throw new Error(
-        `No mock spy found for tool: ${tool.name}. Did you forget to call withToolMock?`
+        `No mock spy found for tool: ${tool.name}. Did you forget to call withToolMock?`,
       );
     }
     return spy;
@@ -188,7 +199,7 @@ export class WorkflowTestBuilder<T extends Workflow> {
    * Run a workflow with automatic setup/teardown and proper assertion timing
    */
   async runWorkflow(
-    testFn: (result: T, builder: this) => void | Promise<void>
+    testFn: (result: T, builder: this) => void | Promise<void>,
   ): Promise<void> {
     await this.setup();
     try {
@@ -202,33 +213,42 @@ export class WorkflowTestBuilder<T extends Workflow> {
   /**
    * Execute the workflow
    */
-  async execute(overrideCtx?: Partial<WorkflowExecutionContextDto>): Promise<T> {
+  async execute(
+    overrideCtx?: Partial<WorkflowExecutionContextDto>,
+  ): Promise<T> {
     if (!this.isSetup) {
-      throw new Error('Test builder not setup. Call setup() first or use run() or runTest().');
+      throw new Error(
+        'Test builder not setup. Call setup() first or use run() or runTest().',
+      );
     }
 
     const mockWorkflowEntity = cloneDeep({
       ...DEFAULT_WORKFLOW_ENTITY,
       ...{ id: this.workflowId ?? crypto.randomUUID() },
-      ...(this.optionsHash ? { hashRecord: { options: this.optionsHash } } : {}),
+      ...(this.optionsHash
+        ? { hashRecord: { options: this.optionsHash } }
+        : {}),
       ...this.workflowData,
     });
 
-    jest.spyOn(this.workflowService!, 'findOneByQuery').mockResolvedValue(mockWorkflowEntity as any);
-    jest.spyOn(this.workflowService!, 'save').mockResolvedValue(mockWorkflowEntity as any);
+    jest
+      .spyOn(this.workflowService!, 'findOneByQuery')
+      .mockResolvedValue(mockWorkflowEntity as any);
+    jest
+      .spyOn(this.workflowService!, 'save')
+      .mockResolvedValue(mockWorkflowEntity as any);
 
     const ctx = new WorkflowExecutionContextDto({
       ...this.contextData,
       ...(overrideCtx ?? {}),
     } as unknown as WorkflowExecutionContextDto);
 
-    this.block = await this.blockFactory!.createBlock<Workflow, WorkflowExecutionContextDto>(
-      this.classRef.name,
-      this.blockArgs,
-      ctx
-    );
+    this.block = await this.blockFactory!.createBlock<
+      Workflow,
+      WorkflowExecutionContextDto
+    >(this.classRef.name, this.blockArgs, ctx);
 
-    return await this.service!.process(this.block, this.factory!) as T;
+    return (await this.service!.process(this.block, this.factory!)) as T;
   }
 
   private setupMocks(): void {

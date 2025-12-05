@@ -48,8 +48,7 @@ export class RegistryAddCommand extends CommandRunner {
       }
 
       // Prompt for target directory if not provided
-      const targetDir =
-        options.dir || (await this.promptForDirectory(item));
+      const targetDir = options.dir || (await this.promptForDirectory(item));
       const fullTargetPath = path.resolve(originalDir, targetDir);
 
       // Check if directory already exists
@@ -139,7 +138,9 @@ export class RegistryAddCommand extends CommandRunner {
     return val as 'npm' | 'pnpm';
   }
 
-  private async findRegistryItem(itemName: string): Promise<RegistryItem | null> {
+  private async findRegistryItem(
+    itemName: string,
+  ): Promise<RegistryItem | null> {
     try {
       console.log('Loading registry...');
       const response = await axios.get<RegistryItem[]>(this.registryUrl);
@@ -147,7 +148,7 @@ export class RegistryAddCommand extends CommandRunner {
 
       // Search for item by name (case-insensitive)
       const item = registry.find(
-        (entry) => entry.name.toLowerCase() === itemName.toLowerCase()
+        (entry) => entry.name.toLowerCase() === itemName.toLowerCase(),
       );
 
       return item || null;

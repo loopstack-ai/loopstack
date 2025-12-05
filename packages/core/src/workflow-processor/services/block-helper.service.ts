@@ -1,49 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  AssignmentConfigType,
-  NamespacePropsType,
-  PipelineFactoryConfigType,
-  PipelineSequenceType,
-} from '@loopstack/contracts/types';
-import {
-  NamespacePropsSchema,
-} from '@loopstack/contracts/schemas';
-import { TemplateExpressionEvaluatorService } from './template-expression-evaluator.service';
-import { Factory, Pipeline, Tool, Workflow } from '../abstract';
-import { NamespaceProcessorService } from './namespace-processor.service';
-import { WorkflowStateDto } from '../dtos';
+import type { AssignmentConfigType } from '@loopstack/contracts/types';
+import { Tool, Workflow } from '../abstract';
 import { WorkflowEntity } from '@loopstack/common';
+import {
+  TemplateExpressionEvaluatorService,
+  WorkflowStateDto,
+} from '../../common';
+import { WorkflowStateService } from './workflow-state.service';
 
 @Injectable()
 export class BlockHelperService {
   constructor(
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private namespaceProcessorService: NamespaceProcessorService,
+    private workflowStateService: WorkflowStateService,
   ) {}
-
-  async initBlockNamespace<T extends Pipeline | Factory>(block: T): Promise<T> {
-    const config: PipelineSequenceType | PipelineFactoryConfigType =
-      block.config as any;
-
-    if (config.namespace) {
-      const namespaceConfig =
-        this.templateExpressionEvaluatorService.evaluateTemplate<NamespacePropsType>(
-          config.namespace,
-          block,
-          ['pipeline'],
-          NamespacePropsSchema,
-        );
-
-      block.ctx.namespace =
-        await this.namespaceProcessorService.createNamespace(
-          block,
-          namespaceConfig,
-        );
-      block.ctx.labels = [...block.ctx.labels, block.ctx.namespace.name];
-    }
-
-    return block;
-  }
 
   createIndex(ltreeIndex: string, increment: number = 1): string {
     const parts = ltreeIndex.split('.').map(Number);
@@ -94,6 +64,10 @@ export class BlockHelperService {
       transition: undefined,
       availableTransitions: null, // will be evaluated at workflow loop
       currentTransitionResults: null,
+
+      persistenceState: {
+        documentsUpdated: false,
+      },
     });
   }
 
@@ -121,7 +95,7 @@ export class BlockHelperService {
     return exportData;
   }
 
-  persistBlockState(workflowEntity: WorkflowEntity, block: Workflow) {
+  async persistBlockState(workflowEntity: WorkflowEntity, block: Workflow) {
     workflowEntity.history = block.state.history ?? null;
     workflowEntity.place = block.state.place;
     workflowEntity.transitionResults = block.state.transitionResults ?? null;
@@ -132,5 +106,10 @@ export class BlockHelperService {
     // persist available transitions for frontend
     workflowEntity.availableTransitions =
       block.state.availableTransitions ?? null;
+
+    await this.workflowStateService.saveWorkflowState(
+      workflowEntity,
+      block.state.persistenceState,
+    );
   }
 }

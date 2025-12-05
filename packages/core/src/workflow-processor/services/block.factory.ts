@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BlockRegistryService } from './block-registry.service';
 import { CapabilityBuilder } from './capability-builder.service';
-import { BlockInterface } from '../interfaces/block.interface';
+import { BlockInterface } from '../../common';
 
 @Injectable()
 export class BlockFactory {
@@ -31,6 +31,8 @@ export class BlockFactory {
       blockRegistryItem.config,
     );
     service.init(blockRegistryItem, parsedArgs, ctx);
+
+    this.logger.debug(`Found capability ${service.name}`);
 
     return service;
   }

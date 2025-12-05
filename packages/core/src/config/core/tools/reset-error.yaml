@@ -1,4 +1,0 @@
-tools:
-  - name: reset_error
-    execute:
-      - handler: ResetErrorHandler

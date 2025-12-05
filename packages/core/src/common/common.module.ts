@@ -7,6 +7,7 @@ import {
   DateFormatterHelperService,
   HandlebarsProcessor,
   OperatorsHelperService,
+  TemplateExpressionEvaluatorService,
 } from './services';
 import { ClientMessageService } from './services/client-message.service';
 
@@ -20,7 +21,8 @@ import { ClientMessageService } from './services/client-message.service';
     HandlebarsProcessor,
     DateFormatterHelperService,
     OperatorsHelperService,
+    TemplateExpressionEvaluatorService,
   ],
-  exports: [ClientMessageService, TemplateService],
+  exports: [ClientMessageService, TemplateExpressionEvaluatorService],
 })
 export class CommonModule {}

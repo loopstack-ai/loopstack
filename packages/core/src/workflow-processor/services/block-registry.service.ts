@@ -1,9 +1,6 @@
 import { Abstract, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
-import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import {
-  BlockConfigSchema,
-} from '@loopstack/contracts/schemas';
+import { BlockConfigSchema } from '@loopstack/contracts/schemas';
 import {
   BlockConfigType,
   JSONSchemaConfigType,
@@ -16,25 +13,10 @@ import {
   INPUT_METADATA_KEY,
   OUTPUT_METADATA_KEY,
 } from '@loopstack/common';
-import { omit } from 'lodash';
-import {
-  Tool,
-  Workflow,
-  Document,
-  Workspace,
-  Pipeline,
-  Factory,
-} from '../abstract';
+import { Tool, Workflow, Workspace, Pipeline, Factory } from '../abstract';
 import { ConfigLoaderService } from './config-loader.service';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-
-export interface BlockRegistryItem {
-  name: string;
-  provider: InstanceWrapper;
-  metadata: BlockMetadata;
-  configSource?: string;
-  config: BlockConfigType;
-}
+import { BlockRegistryItem } from '../../common';
 
 /**
  * Block Registry Service
@@ -56,16 +38,12 @@ export class BlockRegistryService implements OnModuleInit {
     await this.discoverBlocks();
   }
 
-  private getBlockType(
-    instance: Workflow | Tool | Document | Workspace | Pipeline | Factory,
-  ): string | undefined {
+  private getBlockType(instance: any): string | undefined {
     switch (true) {
       case instance instanceof Workflow:
         return 'workflow';
       case instance instanceof Tool:
         return 'tool';
-      case instance instanceof Document:
-        return 'document';
       case instance instanceof Factory:
         return 'factory';
       case instance instanceof Pipeline:
@@ -112,7 +90,9 @@ export class BlockRegistryService implements OnModuleInit {
           }
 
           // override type from provider property
-          baseConfig.type = this.getBlockType(provider.instance) as any;
+          if (!baseConfig.type) {
+            baseConfig.type = this.getBlockType(provider.instance) as any;
+          }
 
           const config: BlockConfigType = BlockConfigSchema.parse(baseConfig);
 

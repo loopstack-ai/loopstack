@@ -1,23 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Processor } from '../../interfaces/processor.interface';
 import { ProcessorFactory } from '../processor.factory';
 import { Factory } from '../../abstract';
 import {
   PipelineFactoryConfigType,
   PipelineFactoryIteratorType,
 } from '@loopstack/contracts/types';
-import {
-  PipelineFactoryIteratorSchema,
-} from '@loopstack/contracts/schemas';
+import { PipelineFactoryIteratorSchema } from '@loopstack/contracts/schemas';
 import { BlockHelperService } from '../block-helper.service';
-import { TemplateExpressionEvaluatorService } from '../template-expression-evaluator.service';
 import { BlockFactory } from '../block.factory';
 import { NamespaceProcessorService } from '../namespace-processor.service';
 import { BlockProcessor } from '../block-processor.service';
 import {
   BlockContextType,
   BlockInterface,
-} from '../../interfaces/block.interface';
+  Processor,
+  TemplateExpressionEvaluatorService,
+} from '../../../common';
 
 @Injectable()
 export class FactoryProcessorService implements Processor {
@@ -61,12 +59,14 @@ export class FactoryProcessorService implements Processor {
 
   private validateAvailable(name: string, parentBlock: BlockInterface) {
     if (!parentBlock.metadata.imports.some((item) => item.name === name)) {
-      throw new Error(`Block ${name} is not available. Make sure to import required blocks to the parent.`)
+      throw new Error(
+        `Block ${name} is not available. Make sure to import required blocks to the parent.`,
+      );
     }
   }
 
   async process(block: Factory, factory: ProcessorFactory): Promise<Factory> {
-    block = await this.blockHelperService.initBlockNamespace(block);
+    block = await this.namespaceProcessorService.initBlockNamespace(block);
 
     this.logger.debug(`Running Factory: ${block.name}`);
     const config = block.config as unknown as PipelineFactoryConfigType;

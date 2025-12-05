@@ -1,14 +1,16 @@
 import { BlockMetadata } from '@loopstack/common';
 import type { WorkflowType } from '@loopstack/contracts/types';
 import { Expose, instanceToPlain } from 'class-transformer';
-import { BlockStateDto } from '../dtos';
-import { WorkflowExecutionContextDto } from '../dtos';
-import { BlockInterface } from '../interfaces/block.interface';
-import { BlockRegistryItem } from '../services';
+import {
+  BlockInterface,
+  BlockRegistryItem,
+  BlockStateDto,
+  WorkflowExecutionContextDto,
+} from '../../common';
 
 export abstract class Factory implements BlockInterface {
   @Expose()
-  public processor: string = 'factory';
+  public type: string = 'factory';
 
   public metadata: BlockMetadata;
 

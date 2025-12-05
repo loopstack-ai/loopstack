@@ -1,21 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Processor } from '../../interfaces/processor.interface';
 import { ProcessorFactory } from '../processor.factory';
 import { Pipeline } from '../../abstract';
-import {
-  PipelineItemSchema,
-} from '@loopstack/contracts/schemas';
+import { PipelineItemSchema } from '@loopstack/contracts/schemas';
 import {
   PipelineItemConfigType,
   PipelineItemType,
   PipelineSequenceType,
 } from '@loopstack/contracts/types';
 import { BlockHelperService } from '../block-helper.service';
-import { TemplateExpressionEvaluatorService } from '../template-expression-evaluator.service';
 import { BlockFactory } from '../block.factory';
 import { BlockProcessor } from '../block-processor.service';
-import { PipelineExecutionContextDto } from '../../dtos';
-import { BlockInterface } from '../../interfaces';
+import {
+  BlockInterface,
+  PipelineExecutionContextDto,
+  Processor,
+  TemplateExpressionEvaluatorService,
+} from '../../../common';
+import { NamespaceProcessorService } from '../namespace-processor.service';
 
 @Injectable()
 export class SequenceProcessorService implements Processor {
@@ -25,17 +26,20 @@ export class SequenceProcessorService implements Processor {
     private readonly blockFactory: BlockFactory,
     private readonly blockProcessor: BlockProcessor,
     private readonly blockHelperService: BlockHelperService,
+    private readonly namespaceProcessorService: NamespaceProcessorService,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
   ) {}
 
   private validateAvailable(name: string, parentBlock: BlockInterface) {
     if (!parentBlock.metadata.imports.some((item) => item.name === name)) {
-      throw new Error(`Block ${name} is not available. Make sure to import required blocks to the parent.`)
+      throw new Error(
+        `Block ${name} is not available. Make sure to import required blocks to the parent.`,
+      );
     }
   }
 
   async process(block: Pipeline, factory: ProcessorFactory): Promise<Pipeline> {
-    block = await this.blockHelperService.initBlockNamespace(block);
+    block = await this.namespaceProcessorService.initBlockNamespace(block);
 
     this.logger.debug(`Running Sequence: ${block.name}`);
 
@@ -72,17 +76,10 @@ export class SequenceProcessorService implements Processor {
       const childBlock = await this.blockFactory.createBlock<
         Pipeline,
         PipelineExecutionContextDto
-      >(
-        parsedItem.block,
-        {
-          ...parsedItem.args,
-          index: currentIndex,
-        },
-        {
-          ...block.ctx,
-          index: currentIndex,
-        },
-      );
+      >(parsedItem.block, parsedItem.args, {
+        ...block.ctx,
+        index: currentIndex,
+      });
 
       const processedBlock = await this.blockProcessor.processBlock(
         childBlock,

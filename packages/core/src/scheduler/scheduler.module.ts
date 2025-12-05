@@ -8,6 +8,7 @@ import { CleanupPipelineTaskProcessorService } from './services/task-processor/c
 import { CreateWorkspaceTaskProcessorService } from './services/task-processor/create-workspace-task-processor.service';
 import { CreateRunPipelineTaskProcessorService } from './services/task-processor/create-run-pipeline-task-processor.service';
 import { WorkflowProcessorModule } from '../workflow-processor';
+import { PersistenceModule } from '../persistence';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { WorkflowProcessorModule } from '../workflow-processor';
         },
       },
     }),
+    PersistenceModule,
     WorkflowProcessorModule,
   ],
   providers: [

@@ -5,8 +5,9 @@ import { BlockRegistryService } from './block-registry.service';
 import { BlockProcessor } from './block-processor.service';
 import { ProcessorFactory } from './processor.factory';
 import { BlockFactory } from './block.factory';
-import { RootExecutionContextDto } from '../dtos';
-import { NamespacesService, PipelineService } from './persistence';
+import { RootExecutionContextDto } from '../../common';
+import { NamespaceProcessorService } from './namespace-processor.service';
+import { PipelineService } from '../../persistence';
 
 @Injectable()
 export class RootProcessorService {
@@ -14,11 +15,11 @@ export class RootProcessorService {
 
   constructor(
     private pipelineService: PipelineService,
-    private namespacesService: NamespacesService,
     private blockRegistryService: BlockRegistryService,
     private readonly blockProcessor: BlockProcessor,
     private readonly blockFactory: BlockFactory,
     private readonly processorFactory: ProcessorFactory,
+    private readonly namespaceProcessorService: NamespaceProcessorService,
   ) {}
 
   private async processRootPipeline(
@@ -27,7 +28,7 @@ export class RootProcessorService {
     args?: any,
   ): Promise<any> {
     const namespace =
-      await this.namespacesService.createRootNamespace(pipeline);
+      await this.namespaceProcessorService.createRootNamespace(pipeline);
 
     this.logger.debug(`Running Root Pipeline: ${pipeline.blockName}`);
 

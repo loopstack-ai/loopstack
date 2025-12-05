@@ -1,16 +1,19 @@
 import type { WorkflowType } from '@loopstack/contracts/types';
 import { BlockMetadata } from '@loopstack/common';
-import { BlockStateDto, WorkflowStateDto } from '../dtos';
-import { WorkflowExecutionContextDto } from '../dtos';
 import { Expose, instanceToPlain, Type } from 'class-transformer';
-import { BlockInterface } from '../interfaces/block.interface';
-import { BlockRegistryItem } from '../services';
+import {
+  BlockInterface,
+  BlockRegistryItem,
+  BlockStateDto,
+  WorkflowExecutionContextDto,
+  WorkflowStateDto,
+} from '../../common';
 
 export abstract class Workflow<
   TState extends WorkflowStateDto | BlockStateDto = WorkflowStateDto,
 > implements BlockInterface
 {
-  public processor: string = 'workflow';
+  public type: string = 'workflow';
 
   public metadata: BlockMetadata;
 

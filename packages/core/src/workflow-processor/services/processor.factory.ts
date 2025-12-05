@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Processor } from '../interfaces/processor.interface';
 import { SequenceProcessorService } from './processors/sequence-processor.service';
 import { FactoryProcessorService } from './processors/factory-processor.service';
 import { WorkflowProcessorService } from './processors/workflow-processor.service';
 import { WorkspaceProcessorService } from './processors/workspace-processor.service';
 import { ToolProcessorService } from './processors/tool-processor.service';
+import { Processor } from '../../common';
 
 @Injectable()
 export class ProcessorFactory {

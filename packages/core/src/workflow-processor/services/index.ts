@@ -1,6 +1,5 @@
 export * from './state-machine-validator.registry';
 export * from './namespace-processor.service';
-export * from './template-expression-evaluator.service';
 export * from './workflow-state.service';
 export * from './root-processor.service';
 export * from './create-pipeline.service';
@@ -8,6 +7,9 @@ export * from './block-helper.service';
 export * from './block-registry.service';
 export * from './capability-builder.service';
 export * from './config-loader.service';
+export * from './state-machine-validator.service';
+export * from './state-machine-processor.service';
+export * from './state-machine-tool-call-processor.service';
 
 export * from './block.factory';
 export * from './block-processor.service';
@@ -18,5 +20,3 @@ export * from './processors/workflow-processor.service';
 export * from './processors/workspace-processor.service';
 export * from './processors/tool-processor.service';
 export * from './processor.factory';
-
-export * from './persistence';

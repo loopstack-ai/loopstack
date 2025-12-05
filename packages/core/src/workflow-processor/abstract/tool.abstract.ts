@@ -1,16 +1,19 @@
 import { BlockMetadata, HandlerCallResult } from '@loopstack/common';
 import type { WorkflowType } from '@loopstack/contracts/types';
-import { BlockInterface } from '../interfaces/block.interface';
 import { Expose, instanceToPlain } from 'class-transformer';
-import { BlockStateDto } from '../dtos';
-import { ToolExecutionContextDto } from '../dtos';
-import { BlockRegistryItem, ProcessorFactory } from '../services';
+import {
+  BlockInterface,
+  BlockRegistryItem,
+  BlockStateDto,
+  ToolExecutionContextDto,
+} from '../../common';
+import { ProcessorFactory } from '../services';
 
 export abstract class Tool<TArgs extends object = any>
   implements BlockInterface
 {
   @Expose()
-  public processor: string = 'tool';
+  public type: string = 'tool';
 
   public metadata: BlockMetadata;
 
@@ -41,7 +44,11 @@ export abstract class Tool<TArgs extends object = any>
     return this.constructor.name;
   }
 
-  public abstract execute(args: any, ctx: ToolExecutionContextDto, factory: ProcessorFactory): Promise<HandlerCallResult>;
+  public abstract execute(
+    args: any,
+    ctx: ToolExecutionContextDto,
+    factory: ProcessorFactory,
+  ): Promise<HandlerCallResult>;
 
   result: any;
 

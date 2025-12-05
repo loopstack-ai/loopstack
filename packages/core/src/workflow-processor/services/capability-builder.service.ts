@@ -1,13 +1,10 @@
 import { Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { ModuleRef } from '@nestjs/core';
-import {
-  BLOCK_METADATA_KEY,
-  FACTORY_MODULE,
-} from '@loopstack/common';
+import { BLOCK_METADATA_KEY, FACTORY_MODULE } from '@loopstack/common';
 import { BlockConfigType } from '@loopstack/contracts/types';
-import { BlockInterface } from '../interfaces/block.interface';
 import { ICapabilityFactory } from '../abstract';
+import { BlockInterface } from '../../common';
 
 @Injectable()
 export class CapabilityBuilder implements OnModuleInit {
@@ -31,7 +28,8 @@ export class CapabilityBuilder implements OnModuleInit {
 
     const modules = this.getModules();
     if (!modules) {
-      const errorMsg = 'Could not access module container - this may indicate an incompatible NestJS version';
+      const errorMsg =
+        'Could not access module container - this may indicate an incompatible NestJS version';
       this.logger.error(errorMsg);
       throw new Error(errorMsg);
     }
@@ -49,7 +47,10 @@ export class CapabilityBuilder implements OnModuleInit {
    */
   private registerCapabilitiesFromModules(
     modules: Map<string, any>,
-    factories: Map<string, { instance: ICapabilityFactory; metatype: Function | Type<any> }>,
+    factories: Map<
+      string,
+      { instance: ICapabilityFactory; metatype: Function | Type<any> }
+    >,
   ): void {
     for (const [, module] of modules) {
       const moduleClass = module.metatype;
@@ -67,7 +68,10 @@ export class CapabilityBuilder implements OnModuleInit {
    */
   private registerModuleCapabilities(
     module: any,
-    factoryEntry: { instance: ICapabilityFactory; metatype: Function | Type<any> },
+    factoryEntry: {
+      instance: ICapabilityFactory;
+      metatype: Function | Type<any>;
+    },
   ): void {
     const { instance: factory, metatype: factoryClass } = factoryEntry;
     let count = 0;
@@ -151,13 +155,15 @@ export class CapabilityBuilder implements OnModuleInit {
    * Resolves a service class from either a class reference or a string name.
    * Uses O(1) lookup for both cases.
    */
-  private resolveServiceClass<T>(serviceClassOrName: Type<T> | string): Type<T> {
+  private resolveServiceClass<T>(
+    serviceClassOrName: Type<T> | string,
+  ): Type<T> {
     if (typeof serviceClassOrName === 'string') {
       const serviceClass = this.serviceNameToClass.get(serviceClassOrName);
       if (!serviceClass) {
         throw new Error(
           `Service with name '${serviceClassOrName}' not found. ` +
-          `Available capabilities: ${this.getRegisteredCapabilities().join(', ')}`,
+            `Available capabilities: ${this.getRegisteredCapabilities().join(', ')}`,
         );
       }
       return serviceClass as Type<T>;
@@ -172,7 +178,7 @@ export class CapabilityBuilder implements OnModuleInit {
     if (!this.initialized) {
       throw new Error(
         'CapabilityBuilder is not yet initialized. ' +
-        'Ensure onModuleInit has completed before calling getCapability.',
+          'Ensure onModuleInit has completed before calling getCapability.',
       );
     }
   }
@@ -199,7 +205,7 @@ export class CapabilityBuilder implements OnModuleInit {
     if (!factory) {
       throw new Error(
         `Service ${ServiceClass.name} not available. ` +
-        `Ensure its module has a factory decorated with @CapabilityFactory.`,
+          `Ensure its module has a factory decorated with @CapabilityFactory.`,
       );
     }
 

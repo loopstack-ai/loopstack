@@ -13,7 +13,6 @@ import { RegistryAddCommand } from './commands/registry-add.command';
 
     JsonSchemaGeneratorService,
     DynamicSchemaGeneratorService,
-
   ],
 })
 export class CliModule {}

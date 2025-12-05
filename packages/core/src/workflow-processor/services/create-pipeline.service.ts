@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PipelineEntity, WorkspaceEntity } from '@loopstack/common';
 import { FindOptionsWhere } from 'typeorm';
-import { PipelineService, WorkspaceService } from './persistence';
 import { BlockRegistryService } from './block-registry.service';
+import { PipelineService, WorkspaceService } from '../../persistence';
 
 @Injectable()
 export class CreatePipelineService {

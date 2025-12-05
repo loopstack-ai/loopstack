@@ -14,7 +14,7 @@ import { CapabilityFactory } from '@loopstack/common';
 
 export interface MockProvider<T = any> {
   provide: Type<T>;
-  mock: Partial<T>;
+  useValue: Partial<T>;
 }
 
 export interface ToolTestContext<TTool extends Tool = Tool> {
@@ -24,7 +24,9 @@ export interface ToolTestContext<TTool extends Tool = Tool> {
   getMock: <T>(token: Type<T>) => T;
 }
 
-export async function createToolTestingModule(toolModule: any): Promise<TestingModule> {
+export async function createToolTestingModule(
+  toolModule: any,
+): Promise<TestingModule> {
   return await Test.createTestingModule({
     imports: [toolModule],
     providers: [
@@ -52,10 +54,7 @@ export async function createToolTestingContext<TTool extends Tool>(
   const providers: Provider[] = [
     DynamicCapabilityFactory,
     toolClass,
-    ...mockProviders.map(({ provide, mock }) => ({
-      provide,
-      useValue: mock,
-    })),
+    ...mockProviders,
   ];
 
   @Module({

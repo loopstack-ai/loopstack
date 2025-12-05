@@ -9,7 +9,6 @@ import {
 import {
   StateMachineValidatorRegistry,
   NamespaceProcessorService,
-  TemplateExpressionEvaluatorService,
   WorkflowStateService,
   RootProcessorService,
   BlockHelperService,
@@ -24,20 +23,21 @@ import {
   WorkflowProcessorService,
   WorkspaceProcessorService,
   ToolProcessorService,
+  StateMachineValidatorService,
+  StateMachineProcessorService,
+  StateMachineToolCallProcessorService,
 } from './services';
 import { CreatePipelineService } from './services';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DocumentEntity, NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
 import {
-  DocumentService, DynamicRepositoryService,
-  NamespacesService,
-  PipelineService,
-  WorkflowService,
-  WorkspaceService,
-} from './services';
-import { WorkflowSubscriber } from './subscriber/workflow.subscriber';
-import { DocumentSubscriber } from './subscriber/document.subscriber';
+  DocumentEntity,
+  NamespaceEntity,
+  PipelineEntity,
+  WorkflowEntity,
+  WorkspaceEntity,
+} from '@loopstack/common';
 import { DataSource } from 'typeorm';
+import { PersistenceModule } from '../persistence';
 
 @Module({
   imports: [
@@ -48,61 +48,49 @@ import { DataSource } from 'typeorm';
       WorkspaceEntity,
       NamespaceEntity,
     ]),
+    PersistenceModule,
     DiscoveryModule,
     CommonModule,
   ],
   providers: [
-    WorkflowService,
-    PipelineService,
-    WorkspaceService,
-    DocumentService,
-    NamespacesService,
-    WorkflowSubscriber,
-    DocumentSubscriber,
-    {
-      provide: DynamicRepositoryService,
-      useFactory: (dataSource) => {
-        return new DynamicRepositoryService(dataSource, {
-          blacklist: [],
-        });
-      },
-      inject: [DataSource],
-    },
+    // {
+    //   provide: DynamicRepositoryService,
+    //   useFactory: (dataSource) => {
+    //     return new DynamicRepositoryService(dataSource, {
+    //       blacklist: [],
+    //     });
+    //   },
+    //   inject: [DataSource],
+    // },
 
     RootProcessorService,
-    BlockFactory,
-    BlockProcessor,
-    ProcessorFactory,
-    FactoryProcessorService,
-    SequenceProcessorService,
-    WorkflowProcessorService,
-    WorkspaceProcessorService,
-    ToolProcessorService,
+    BlockFactory, //*
+    BlockProcessor, //*
+    ProcessorFactory, //* injected as arg
+    FactoryProcessorService, //*
+    SequenceProcessorService, //*
+    WorkflowProcessorService, //*
+    WorkspaceProcessorService, //*
+    ToolProcessorService, //*
 
-    WorkflowStateService,
-    NamespaceProcessorService,
-    TemplateExpressionEvaluatorService,
-    InitialRunValidator,
-    WorkflowDependenciesValidator,
-    WorkflowOptionValidator,
-    StateMachineValidatorRegistry,
-    BlockHelperService,
+    WorkflowStateService, //* workflow
+    NamespaceProcessorService, //*
+    InitialRunValidator, //* workflow
+    WorkflowDependenciesValidator, //* workflow
+    WorkflowOptionValidator, //* workflow
+    StateMachineValidatorRegistry, //*
+    StateMachineValidatorService, //*
+    StateMachineProcessorService, //*
+    StateMachineToolCallProcessorService, //*
+    BlockHelperService, //*
     CreatePipelineService,
 
-    ConfigLoaderService,
-    BlockRegistryService,
-    CapabilityBuilder,
+    ConfigLoaderService, //*BlockRegistryService
+    BlockRegistryService, //* StateMachineToolCallProcessorService
+    CapabilityBuilder, //*
   ],
   exports: [
-    WorkflowService,
-    PipelineService,
-    WorkspaceService,
-    DocumentService,
-    NamespacesService,
-    DynamicRepositoryService,
-
     RootProcessorService,
-    TemplateExpressionEvaluatorService,
     CreatePipelineService,
     BlockRegistryService,
     BlockProcessor,

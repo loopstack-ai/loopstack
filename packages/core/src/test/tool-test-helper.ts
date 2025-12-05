@@ -7,7 +7,10 @@ export interface SchemaTestCase {
   expectedError?: string;
 }
 
-export function testSchema(schema: z.ZodSchema, testCase: SchemaTestCase): void {
+export function testSchema(
+  schema: z.ZodSchema,
+  testCase: SchemaTestCase,
+): void {
   const result = schema.safeParse(testCase.args);
   expect(result.success).toBe(testCase.shouldPass);
 
@@ -16,7 +19,10 @@ export function testSchema(schema: z.ZodSchema, testCase: SchemaTestCase): void 
   }
 }
 
-export function describeSchemaTests(fn: () => z.ZodType, testCases: SchemaTestCase[]): void {
+export function describeSchemaTests(
+  fn: () => z.ZodType,
+  testCases: SchemaTestCase[],
+): void {
   testCases.forEach((testCase) => {
     const expectation = testCase.shouldPass ? 'should accept' : 'should reject';
 

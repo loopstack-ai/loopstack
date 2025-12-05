@@ -1,16 +1,16 @@
 import type { WorkspaceType } from '@loopstack/contracts/types';
 import { BlockMetadata } from '@loopstack/common';
 import { Expose, instanceToPlain, Type } from 'class-transformer';
-import { BlockStateDto } from '../dtos';
 import {
+  BlockInterface,
+  BlockRegistryItem,
+  BlockStateDto,
   WorkflowExecutionContextDto,
   WorkspaceExecutionContextDto,
-} from '../dtos';
-import { BlockInterface } from '../interfaces/block.interface';
-import { BlockRegistryItem } from '../services';
+} from '../../common';
 
 export abstract class Workspace implements BlockInterface {
-  public processor: string = 'workspace';
+  public type: string = 'workspace';
 
   public metadata: BlockMetadata;
 
