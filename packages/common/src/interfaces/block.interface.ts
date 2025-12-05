@@ -3,6 +3,7 @@ import { Scope, Type } from '@nestjs/common';
 import type { BlockConfigType, JSONSchemaConfigType } from '@loopstack/contracts/types';
 
 export interface BlockOptions {
+  type?: string;
   scope?: Scope;
   imports?: any[];
   config?: Partial<BlockConfigType>;
