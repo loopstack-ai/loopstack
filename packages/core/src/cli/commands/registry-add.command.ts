@@ -13,7 +13,7 @@ interface AddCommandOptions {
 
 interface RegistryItem {
   name: string;
-  repo: string;
+  repositoryUrl: string;
   description?: string;
 }
 
@@ -23,7 +23,7 @@ interface RegistryItem {
   description: 'Add an item from the loopstack registry',
 })
 export class RegistryAddCommand extends CommandRunner {
-  private readonly registryUrl = 'https://r.loopstack.ai/registry.json';
+  private readonly registryUrl = 'https://loopstack.ai/r/registry.json';
   private readonly tempDir = '.loopstack/tmp';
 
   async run(inputs: string[], options: AddCommandOptions): Promise<void> {
@@ -70,7 +70,7 @@ export class RegistryAddCommand extends CommandRunner {
 
       try {
         // Clone to temp directory using the repo URL from registry
-        await this.cloneItem(registryItem.repo, tempPath);
+        await this.cloneItem(registryItem.repositoryUrl, tempPath);
 
         // Check if src directory exists in temp
         const tempSrcPath = path.join(tempPath, 'src');
@@ -99,7 +99,7 @@ export class RegistryAddCommand extends CommandRunner {
         console.log('Possible reasons:');
         console.log('  - Item does not exist in registry');
         console.log('  - Network connection issue');
-        console.log(`  - Invalid repo URL: ${registryItem.repo}`);
+        console.log(`  - Invalid repo URL: ${registryItem.repositoryUrl}`);
         process.exit(1);
       } finally {
         // Cleanup temp directory
@@ -135,7 +135,7 @@ export class RegistryAddCommand extends CommandRunner {
     if (val !== 'npm' && val !== 'pnpm') {
       throw new Error('Package manager must be npm or pnpm');
     }
-    return val as 'npm' | 'pnpm';
+    return val;
   }
 
   private async findRegistryItem(
@@ -319,9 +319,9 @@ export class RegistryAddCommand extends CommandRunner {
           console.log(
             `WARNING: Unsupported package manager '${pm}', using ${defaultPM}`,
           );
-          resolve(defaultPM as 'npm' | 'pnpm');
+          resolve(defaultPM);
         } else {
-          resolve(pm as 'npm' | 'pnpm');
+          resolve(pm);
         }
       });
     });
