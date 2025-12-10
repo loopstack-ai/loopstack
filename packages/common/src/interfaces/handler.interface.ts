@@ -5,9 +5,9 @@ export interface ToolSideEffects {
   addWorkflowDocuments?: DocumentEntity[];
 }
 
-export type HandlerCallResult = {
+export type ToolResult<TData = any> = {
   type?: 'text' | 'image' | 'file';
-  data?: any;
+  data?: TData;
   error?: string;
   effects?: ToolSideEffects
 };

@@ -77,7 +77,7 @@ export class WorkflowEntity {
   availableTransitions!: WorkflowTransitionType[] | null;
 
   @Column('jsonb', { name: 'history', nullable: true })
-  history!: HistoryTransition[] | null;
+  history!: any[] | null; //todo should be WorkflowMementoDto[]
 
   @Column({
     type: 'jsonb',
