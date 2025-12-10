@@ -7,6 +7,14 @@
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
+  "keywords": [
+    "loopstack",
+    "tool",
+    "ai",
+    "llm",
+    "openai",
+    "anthropic"
+  ],
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
