@@ -5,13 +5,14 @@ import {
   WithArguments,
   Tool,
 } from '@loopstack/common';
-import { CreateDocument, ToolBase } from '@loopstack/core';
+import { ToolBase } from '@loopstack/core';
 import {
   AiGenerateObject,
   AiGenerateObjectArgsType,
   AiGenerateObjectSchema,
 } from './ai-generate-object.tool';
 import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
+import { CreateDocument } from '@loopstack/core-ui-module';
 
 @Injectable()
 @BlockConfig({

@@ -44,6 +44,7 @@
     "@ai-sdk/provider-utils": "^3.0.8",
     "@loopstack/common": "^0.14.0",
     "@loopstack/core": "^0.14.0",
+    "@loopstack/core-ui-module": "^0.14.0",
     "ai": "^5.0.6",
     "lodash": "^4.17.21",
     "zod": "^3.24.1"
