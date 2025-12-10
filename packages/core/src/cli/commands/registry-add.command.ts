@@ -18,7 +18,7 @@ interface RegistryItem {
 }
 
 @Command({
-  name: 'registry:add',
+  name: 'add',
   arguments: '<item>',
   description: 'Add an item from the loopstack registry',
 })
@@ -31,7 +31,7 @@ export class RegistryAddCommand extends CommandRunner {
 
     if (!item) {
       console.error('Please specify an item to install');
-      console.log('Usage: loopstack registry:add <item>');
+      console.log('Usage: loopstack add <item>');
       process.exit(1);
     }
 
@@ -143,7 +143,9 @@ export class RegistryAddCommand extends CommandRunner {
   ): Promise<RegistryItem | null> {
     try {
       console.log('Loading registry...');
-      const response = await axios.get<RegistryItem[]>(this.registryUrl);
+      const response = await axios.get<RegistryItem[]>(
+        `${this.registryUrl}?package=${itemName}`,
+      );
       const registry = response.data;
 
       // Search for item by name (case-insensitive)
