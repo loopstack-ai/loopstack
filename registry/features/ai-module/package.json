@@ -1,7 +1,7 @@
 {
   "name": "@loopstack/ai-module",
   "displayName": "Loopstack Ai Module",
-  "description": "Loopstack Module for AI features.",
+  "description": "A collection of useful tools for performing AI actions using model provider APIs such as OpenAI and Anthropic",
   "version": "0.14.0",
   "author": {
     "name": "Jakob Klippel",
@@ -31,22 +31,21 @@
     "rxjs": "^7.8.0"
   },
   "dependencies": {
-    "@loopstack/common": "^0.14.0",
-    "@loopstack/contracts": "^0.14.0",
-    "@loopstack/core": "^0.14.0",
     "@ai-sdk/anthropic": "^2.0.1",
     "@ai-sdk/openai": "^2.0.4",
     "@ai-sdk/provider-utils": "^3.0.8",
+    "@loopstack/common": "^0.14.0",
+    "@loopstack/core": "^0.14.0",
     "ai": "^5.0.6",
     "lodash": "^4.17.21",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@nestjs/config": "^4.0.1",
     "@eslint/eslintrc": "^3.3.0",
     "@eslint/js": "^9.22.0",
     "@nestjs/cli": "^11.0.5",
     "@nestjs/common": "^11.0.12",
+    "@nestjs/config": "^4.0.1",
     "@nestjs/core": "^11.0.12",
     "@nestjs/platform-express": "^11.0.12",
     "@nestjs/schematics": "^11.0.2",
