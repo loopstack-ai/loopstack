@@ -44,4 +44,4 @@ import { AiMessageDocument } from './documents';
     AiMessageDocument,
   ]
 })
-export class LlmModule {}
+export class AiModule {}
