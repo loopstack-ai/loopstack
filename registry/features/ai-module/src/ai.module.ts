@@ -7,15 +7,16 @@ import { DiscoveryModule } from '@nestjs/core';
 import { AiMessagesHelperService } from './services';
 import { AiProviderModelHelperService } from './services';
 import { AiToolsHelperService } from './services';
-import { AiGenerateDocument, AiGenerateObject, AiGenerateText, DelegateToolCall } from './tools';
+import {
+  AiGenerateDocument,
+  AiGenerateObject,
+  AiGenerateText,
+  DelegateToolCall,
+} from './tools';
 import { AiMessageDocument } from './documents';
 
 @Module({
-  imports: [
-    LoopCoreModule,
-    CoreFeaturesModule,
-    DiscoveryModule,
-  ],
+  imports: [LoopCoreModule, CoreFeaturesModule, DiscoveryModule],
   providers: [
     // services
     AiMessagesHelperService,
@@ -42,6 +43,6 @@ import { AiMessageDocument } from './documents';
     AiGenerateText,
     DelegateToolCall,
     AiMessageDocument,
-  ]
+  ],
 })
 export class AiModule {}

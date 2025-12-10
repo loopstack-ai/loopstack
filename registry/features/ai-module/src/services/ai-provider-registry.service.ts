@@ -52,14 +52,19 @@ export class AiProviderRegistryService implements OnModuleInit {
     const provider = this.providers.get(providerName.toLowerCase());
 
     if (!provider) {
-      throw new Error(`AI provider '${providerName}' not found. Available providers: ${this.getAvailableProviders().join(', ')}`);
+      throw new Error(
+        `AI provider '${providerName}' not found. Available providers: ${this.getAvailableProviders().join(', ')}`,
+      );
     }
 
     try {
       const client = provider.createClient(options);
       return provider.getModel(client, options.model);
     } catch (error) {
-      this.logger.error(`Failed to create model for provider ${providerName}:`, error);
+      this.logger.error(
+        `Failed to create model for provider ${providerName}:`,
+        error,
+      );
       throw error;
     }
   }

@@ -10,12 +10,12 @@ export interface AiProviderModelConfig {
 
 @Injectable()
 export class AiProviderModelHelperService {
+  constructor(private readonly aiProviderRegistry: AiProviderRegistryService) {}
 
-  constructor(
-    private readonly aiProviderRegistry: AiProviderRegistryService,
-  ) {}
-
-  private getApiKey(envApiKey: string | undefined, providerName: string): string {
+  private getApiKey(
+    envApiKey: string | undefined,
+    providerName: string,
+  ): string {
     const defaultKey = `${providerName.toUpperCase()}_API_KEY`;
     const apiKey = envApiKey ? process.env[envApiKey] : process.env[defaultKey];
 
@@ -32,7 +32,9 @@ export class AiProviderModelHelperService {
     const model = modelName ?? process.env['DEFAULT_MODEL'];
 
     if (!modelName) {
-      throw new Error(`No Model defined. Please provide DEFAULT_MODEL or set the model parameter in the completion service call.`);
+      throw new Error(
+        `No Model defined. Please provide DEFAULT_MODEL or set the model parameter in the completion service call.`,
+      );
     }
 
     return model;
@@ -42,7 +44,9 @@ export class AiProviderModelHelperService {
     const provider = name ?? process.env['DEFAULT_PROVIDER'];
 
     if (!provider) {
-      throw new Error(`No Provider defined. Please provide DEFAULT_PROVIDER or set the provider parameter in the completion service call.`);
+      throw new Error(
+        `No Provider defined. Please provide DEFAULT_PROVIDER or set the provider parameter in the completion service call.`,
+      );
     }
 
     return provider;

@@ -17,8 +17,11 @@ type DelegateToolCallsToolArgs = z.infer<typeof DelegateToolCallsToolSchema>;
 })
 @WithArguments(DelegateToolCallsToolSchema)
 export class DelegateToolCall extends ToolBase<DelegateToolCallsToolArgs> {
-  async execute(args: DelegateToolCallsToolArgs, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
-
+  async execute(
+    args: DelegateToolCallsToolArgs,
+    ctx: WorkflowExecution,
+    parent: WorkflowBase,
+  ): Promise<ToolResult> {
     const parts = args.message.parts;
     const resultParts: ToolUIPart[] = [];
 
@@ -30,19 +33,18 @@ export class DelegateToolCall extends ToolBase<DelegateToolCallsToolArgs> {
       const toolName = part.type.replace(/^tool-/, '');
 
       const tool = parent.getTool(toolName);
-      const result = await tool.execute(part.input, ctx);
+      const result = await tool.execute(part.input, ctx, parent);
 
       resultParts.push({
-          type: part.type,
-          toolCallId: part.toolCallId,
-          output: {
-            type: result.type || 'text',
-            value: result.data
-          },
-          input: part.input,
-          state: 'output-available',
-        } satisfies ToolUIPart
-      );
+        type: part.type,
+        toolCallId: part.toolCallId,
+        output: {
+          type: result.type || 'text',
+          value: result.data,
+        },
+        input: part.input,
+        state: 'output-available',
+      } satisfies ToolUIPart);
     }
 
     const resultMessage = {
@@ -52,7 +54,7 @@ export class DelegateToolCall extends ToolBase<DelegateToolCallsToolArgs> {
     } satisfies UIMessage;
 
     return {
-      data: resultMessage
-    }
+      data: resultMessage,
+    };
   }
 }

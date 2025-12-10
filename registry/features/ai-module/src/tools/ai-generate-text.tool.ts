@@ -1,14 +1,16 @@
-import { z } from "zod";
-import {
-  ToolResult,
-  BlockConfig, WithArguments,
-} from '@loopstack/common';
-import {pick} from 'lodash';
+import { z } from 'zod';
+import { ToolResult, BlockConfig, WithArguments } from '@loopstack/common';
+import { pick } from 'lodash';
 import { ToolBase, WorkflowBase } from '@loopstack/core';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
 import { AiToolsHelperService } from '../services';
-import { convertToModelMessages, createUIMessageStream, streamText, UIMessage } from 'ai';
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  streamText,
+  UIMessage,
+} from 'ai';
 import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 
@@ -20,8 +22,8 @@ type AiGenerateTextArgsType = z.infer<typeof AiGenerateTextSchema>;
 
 @BlockConfig({
   config: {
-    description: "Generates text using a LLM"
-  }
+    description: 'Generates text using a LLM',
+  },
 })
 @WithArguments(AiGenerateTextSchema)
 export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
@@ -33,25 +35,32 @@ export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
     super();
   }
 
-  async execute(args: AiGenerateTextArgsType, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
-
+  async execute(
+    args: AiGenerateTextArgsType,
+    ctx: WorkflowExecution,
+    parent: WorkflowBase,
+  ): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: any = {};
 
-    options.tools = args.tools ? this.aiToolsHelperService.getTools(args.tools, parent) : undefined;
+    options.tools = args.tools
+      ? this.aiToolsHelperService.getTools(args.tools, parent)
+      : undefined;
 
     if (args.prompt) {
       options.prompt = args.prompt;
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), pick(args, ['prompt', 'messages', 'messagesSearchTag']));
-      options.messages = convertToModelMessages(messages, { tools: options.tools });
+      const messages = this.aiMessagesHelperService.getMessages(
+        ctx.state.getMetadata('documents'),
+        pick(args, ['prompt', 'messages', 'messagesSearchTag']),
+      );
+      options.messages = convertToModelMessages(messages, {
+        tools: options.tools,
+      });
     }
 
-    const uiMessage = await this.handleGenerateText(
-      model,
-      options
-    );
+    const uiMessage = await this.handleGenerateText(model, options);
 
     return {
       data: uiMessage,
@@ -75,7 +84,7 @@ export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
             writer.merge(
               result.toUIMessageStream({
                 sendReasoning: true,
-              })
+              }),
             );
           },
           onFinish: async (data) => {

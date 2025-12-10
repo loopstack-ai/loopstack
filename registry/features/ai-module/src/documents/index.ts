@@ -1,1 +1,1 @@
-export * from './ai-message-document'
+export * from './ai-message-document';

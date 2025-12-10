@@ -1,10 +1,11 @@
-import { z } from "zod";
+import { z } from 'zod';
+import { ToolResult, BlockConfig, WithArguments } from '@loopstack/common';
+import { pick } from 'lodash';
 import {
-  ToolResult,
-  BlockConfig, WithArguments,
-} from '@loopstack/common';
-import {pick} from 'lodash';
-import { convertToModelMessages, generateObject, GenerateObjectResult } from 'ai';
+  convertToModelMessages,
+  generateObject,
+  GenerateObjectResult,
+} from 'ai';
 import { ToolBase, WorkflowBase } from '@loopstack/core';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
@@ -20,8 +21,8 @@ export type AiGenerateObjectArgsType = z.infer<typeof AiGenerateObjectSchema>;
 
 @BlockConfig({
   config: {
-    description: "Generates a structured object using a LLM"
-  }
+    description: 'Generates a structured object using a LLM',
+  },
 })
 @WithArguments(AiGenerateObjectSchema)
 export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
@@ -32,8 +33,11 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
     super();
   }
 
-  async execute(args: AiGenerateObjectArgsType, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
-
+  async execute(
+    args: AiGenerateObjectArgsType,
+    ctx: WorkflowExecution,
+    parent: WorkflowBase,
+  ): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: any = {};
@@ -41,14 +45,19 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
     if (args.prompt) {
       options.prompt = args.prompt;
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), pick(args, ['prompt', 'messages', 'messagesSearchTag']));
+      const messages = this.aiMessagesHelperService.getMessages(
+        ctx.state.getMetadata('documents'),
+        pick(args, ['prompt', 'messages', 'messagesSearchTag']),
+      );
       options.messages = convertToModelMessages(messages);
     }
 
     const document: Block = parent.getDocument(args.responseDocument);
     const responseSchema = document.argsSchema;
     if (!responseSchema) {
-      throw new Error(`AI object generation source document must have a schema.`);
+      throw new Error(
+        `AI object generation source document must have a schema.`,
+      );
     }
 
     options.schema = responseSchema;
