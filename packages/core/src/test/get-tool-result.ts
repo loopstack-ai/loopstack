@@ -1,9 +1,9 @@
-import { Workflow } from '../workflow-processor';
+import { WorkflowExecutionContextDto } from '../common';
 
 export function getToolResult(
-  result: Workflow,
+  ctx: WorkflowExecutionContextDto,
   transitionId: string | number,
   toolId: string | number,
 ): any {
-  return result.state.transitionResults?.[transitionId]?.toolResults?.[toolId];
+  return ctx.state.transitionResults?.[transitionId]?.toolResults?.[toolId];
 }

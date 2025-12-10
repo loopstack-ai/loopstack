@@ -1,95 +1,122 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ProcessorFactory } from '../processor.factory';
-import { Workflow } from '../../abstract';
+import { WorkflowBase } from '../../abstract';
 import {
   StateMachineValidatorResultInterface,
-  WorkflowEntity,
 } from '@loopstack/common';
-import { HistoryTransition } from '@loopstack/contracts/types';
-import { WorkflowState } from '@loopstack/contracts/enums';
-
-import { BlockHelperService } from '../block-helper.service';
+import { WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
 import { WorkflowStateService } from '../workflow-state.service';
 import { StateMachineValidatorService } from '../state-machine-validator.service';
 import { StateMachineProcessorService } from '../state-machine-processor.service';
-import { Processor } from '../../../common';
+import { BlockExecutionContextDto, Processor } from '../../../common';
+import { WorkflowState } from '../state/workflow.state';
+import { z } from 'zod';
+import { WorkflowStateCaretaker } from '../state/workflow-state-caretaker';
+import { ExecutionContext } from '../../dtos/execution-context';
+import { WorkflowExecution } from '../../interfaces/workflow-execution.interface';
 
 @Injectable()
 export class WorkflowProcessorService implements Processor {
   private readonly logger = new Logger(WorkflowProcessorService.name);
 
   constructor(
-    private readonly blockHelperService: BlockHelperService,
     private readonly workflowStateService: WorkflowStateService,
     private readonly stateMachineValidatorService: StateMachineValidatorService,
     private readonly stateMachineProcessorService: StateMachineProcessorService,
   ) {}
 
-  async process(block: Workflow, factory: ProcessorFactory): Promise<Workflow> {
-    // create or load state if needed
-    const workflowEntity =
-      await this.workflowStateService.getWorkflowState(block);
-    block.state = this.blockHelperService.initBlockState(workflowEntity);
+  async process(workflow: WorkflowBase, args: any, context: BlockExecutionContextDto): Promise<WorkflowExecution> {
+    const validArgs = workflow.validate(args);
 
-    this.blockHelperService.populateBlockInputProperties(
-      block,
-      workflowEntity.inputData,
+    const workflowEntity =
+      await this.workflowStateService.getWorkflowState(workflow, context);
+
+    context.workflowId = workflowEntity.id;
+
+    const workflowStateDataSchema = workflow.stateSchema ? workflow.stateSchema : z.object({});
+
+    const workflowStateCaretaker = WorkflowStateCaretaker.deserialize(workflowEntity.history ?? [], workflowStateDataSchema);
+
+    const executionContext = new ExecutionContext({
+      error: false,
+      stop: false,
+      transition: undefined,
+      availableTransitions: [],
+      persistenceState: {
+        documentsUpdated: false,
+      },
+    })
+
+    const workflowState = new WorkflowState(
+      workflowStateDataSchema,
+      workflowStateCaretaker,
+      {},
+      {
+        documents: workflowEntity.documents,
+        place: workflowEntity.place,
+        tools: {}
+      }
     );
 
+    const ctx = {
+      context,
+      state: workflowState,
+      runtime: executionContext,
+      entity: workflowEntity,
+    } as WorkflowExecution;
+
     const validatorResult = this.stateMachineValidatorService.validate(
-      workflowEntity,
-      block.args,
+      ctx.entity,
+      validArgs,
     );
 
     const pendingTransition =
       validatorResult.valid &&
-      block.ctx.payload?.transition?.workflowId === workflowEntity.id
-        ? block.ctx.payload?.transition
+      ctx.context.payload?.transition?.workflowId === ctx.entity.id
+        ? ctx.context.payload?.transition
         : undefined;
 
     if (validatorResult.valid && !pendingTransition) {
       this.logger.debug(
         'Skipping processing since state is processed still valid.',
       );
-      return block;
+      return ctx;
     }
 
     this.logger.debug(
-      `Process state machine for workflow ${workflowEntity!.blockName}`,
+      `Process state machine for workflow ${workflow.name}`,
     );
 
-    this.initStateMachine(block, workflowEntity, validatorResult);
+    this.initStateMachine(ctx, validatorResult);
 
     return this.stateMachineProcessorService.processStateMachine(
-      workflowEntity,
-      block,
+      workflow,
+      validArgs,
+      ctx,
       pendingTransition ? [pendingTransition] : [],
-      factory,
     );
   }
 
   initStateMachine(
-    block: Workflow,
-    workflow: WorkflowEntity,
+    ctx: WorkflowExecution,
     validation: StateMachineValidatorResultInterface,
   ): void {
-    workflow.status = WorkflowState.Running;
+    ctx.entity.status = WorkflowStateEnum.Running;
 
     if (!validation.valid) {
-      workflow.hashRecord = {
-        ...(workflow?.hashRecord ?? {}),
+      ctx.entity.hashRecord = {
+        ...(ctx.entity?.hashRecord ?? {}),
         ...validation.hashRecordUpdates,
       };
 
-      // reset workflow to "start" if there are invalidation reasons
-      const initialTransition: HistoryTransition = {
-        transition: 'invalidation',
-        from: workflow.place,
-        to: 'start',
-      };
+      ctx.state.setMetadata('place', 'start');
 
-      block.state.place = initialTransition.to;
-      block.state.history.push(initialTransition);
+      ctx.state.setMetadata('transition', {
+        transition: 'invalidation',
+        from: ctx.entity.place,
+        to: 'start'
+      });
+
+      ctx.state.checkpoint('init');
     }
   }
 }

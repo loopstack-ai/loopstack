@@ -1,20 +1,12 @@
 import { Abstract, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
-import { BlockConfigSchema } from '@loopstack/contracts/schemas';
 import {
-  BlockConfigType,
   JSONSchemaConfigType,
 } from '@loopstack/contracts/types';
 import {
   BLOCK_METADATA_KEY,
-  BlockMetadata,
   BlockOptions,
-  getDecoratedProperties,
-  INPUT_METADATA_KEY,
-  OUTPUT_METADATA_KEY,
 } from '@loopstack/common';
-import { Tool, Workflow, Workspace, Pipeline, Factory } from '../abstract';
-import { ConfigLoaderService } from './config-loader.service';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { BlockRegistryItem } from '../../common';
 
@@ -29,30 +21,12 @@ export class BlockRegistryService implements OnModuleInit {
   private readonly blocks = new Map<string, BlockRegistryItem>();
 
   constructor(
-    private readonly configLoaderService: ConfigLoaderService,
     private readonly discoveryService: DiscoveryService,
     private readonly reflector: Reflector,
   ) {}
 
   async onModuleInit() {
     await this.discoverBlocks();
-  }
-
-  private getBlockType(instance: any): string | undefined {
-    switch (true) {
-      case instance instanceof Workflow:
-        return 'workflow';
-      case instance instanceof Tool:
-        return 'tool';
-      case instance instanceof Factory:
-        return 'factory';
-      case instance instanceof Pipeline:
-        return 'sequence';
-      case instance instanceof Workspace:
-        return 'workspace';
-    }
-
-    return undefined;
   }
 
   /**
@@ -75,57 +49,12 @@ export class BlockRegistryService implements OnModuleInit {
 
       if (options) {
         try {
-          const baseConfig = options.config ?? {};
-          if (options.configFile) {
-            const configSource = this.configLoaderService.loadConfigFile(
-              options.configFile,
-            );
-            if (!configSource) {
-              throw new Error(
-                `Could not load config source ${options.configFile}`,
-              );
-            }
+          this.blocks.set(provider.instance.name, {
+            name: provider.instance.name,
+            provider
+          });
 
-            Object.assign(baseConfig, configSource.config);
-          }
-
-          // override type from provider property
-          if (!baseConfig.type) {
-            baseConfig.type = this.getBlockType(provider.instance) as any;
-          }
-
-          const config: BlockConfigType = BlockConfigSchema.parse(baseConfig);
-
-          let parametersSchema: JSONSchemaConfigType | undefined = undefined;
-          if (options.properties) {
-            parametersSchema = zodToJsonSchema(options.properties as any, {
-              name: 'parametersSchema',
-              target: 'jsonSchema7',
-            })?.definitions?.parametersSchema;
-          }
-
-          const inputs = getDecoratedProperties(metatype, INPUT_METADATA_KEY);
-          const outputs = getDecoratedProperties(metatype, OUTPUT_METADATA_KEY);
-
-          const metadata = {
-            ...options,
-            imports: options.imports ?? [],
-            inputProperties: inputs,
-            outputProperties: outputs,
-            propertiesSchema: parametersSchema,
-          } as BlockMetadata;
-
-          const registeredBlock: BlockRegistryItem = {
-            name: metatype.name,
-            provider,
-            metadata,
-            configSource: options.configFile,
-            config,
-          };
-
-          this.blocks.set(registeredBlock.name, registeredBlock);
-
-          this.logger.log(`Registered block: ${registeredBlock.name}`);
+          this.logger.log(`Registered block: ${provider.instance.name}`);
         } catch (error) {
           this.logger.error(`Error registering block ${metatype.name}:`, error);
         }
@@ -156,5 +85,15 @@ export class BlockRegistryService implements OnModuleInit {
    */
   getBlock(target: string): BlockRegistryItem | undefined {
     return this.blocks.get(target) as BlockRegistryItem;
+  }
+
+  zodToJsonSchema(properties: any) {
+    // @ts-ignore
+    const jsonSchema = zodToJsonSchema(properties, {
+      name: 'propertiesSchema',
+      target: 'jsonSchema7',
+    });
+
+    return jsonSchema?.definitions?.propertiesSchema as JSONSchemaConfigType;
   }
 }

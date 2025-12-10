@@ -1,6 +1,6 @@
-import { BlockConfig } from '@loopstack/common';
+import { BlockConfig, WithArguments } from '@loopstack/common';
 import { z } from 'zod';
-import { Document } from '../models';
+import { DocumentBase } from '../models';
 
 const PlainMessageDocumentSchema = z.object({
   title: z.string().optional(),
@@ -12,8 +12,7 @@ const PlainMessageDocumentSchema = z.object({
     type: 'document',
     description: 'Plain Message Document.',
   },
-  properties: PlainMessageDocumentSchema,
-  configSchema: PlainMessageDocumentSchema,
   configFile: __dirname + '/plain-message-document.yaml',
 })
-export class PlainMessageDocument extends Document {}
+@WithArguments(PlainMessageDocumentSchema)
+export class PlainMessageDocument extends DocumentBase {}

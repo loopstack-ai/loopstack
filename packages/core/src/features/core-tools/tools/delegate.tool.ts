@@ -1,9 +1,8 @@
-import { BlockConfig, HandlerCallResult } from '@loopstack/common';
-import { Logger } from '@nestjs/common';
+import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { TemplateExpression } from '@loopstack/contracts/schemas';
 import { DelegateService } from '../services';
-import { ProcessorFactory, Tool } from '../../../workflow-processor';
+import { ToolBase } from '../../../workflow-processor';
 
 const DelegateToolSchema = z
   .object({
@@ -13,24 +12,16 @@ const DelegateToolSchema = z
   })
   .strict();
 
-const DelegateToolConfigSchema = z
-  .object({
-    tool: z.union([z.string(), TemplateExpression]),
-    args: z.any().optional(),
-    allowedTools: z.array(z.string()),
-  })
-  .strict();
-
 type DelegateToolType = z.infer<typeof DelegateToolSchema>;
 
+@Injectable()
 @BlockConfig({
   config: {
     description: 'Delegate to another tool.',
   },
-  properties: DelegateToolSchema,
-  configSchema: DelegateToolConfigSchema,
 })
-export class DelegateTool extends Tool<DelegateToolType> {
+@WithArguments(DelegateToolSchema)
+export class DelegateTool extends ToolBase<DelegateToolType> {
   protected readonly logger = new Logger(DelegateTool.name);
 
   constructor(private readonly delegateService: DelegateService) {
@@ -40,13 +31,11 @@ export class DelegateTool extends Tool<DelegateToolType> {
   async execute(
     args: DelegateToolType,
     ctx: any,
-    factory: ProcessorFactory,
-  ): Promise<HandlerCallResult> {
+  ): Promise<ToolResult> {
     return this.delegateService.delegate(
       args.tool,
       args.args,
       ctx,
-      factory,
       args.allowedTools,
     );
   }

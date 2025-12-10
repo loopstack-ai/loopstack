@@ -3,5 +3,3 @@ tags:
 ui:
   form:
     widget: chat-message
-meta:
-  invalidate: false

@@ -3,5 +3,3 @@ tags:
 ui:
   form:
     widget: error-message
-meta:
-  invalidate: false

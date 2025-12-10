@@ -1,8 +1,6 @@
 ui:
   form:
     widget: plain-message
-meta:
-  invalidate: false
 content:
   title: 'Text'
   content: ''

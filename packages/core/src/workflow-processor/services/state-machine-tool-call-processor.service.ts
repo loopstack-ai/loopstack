@@ -1,17 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { HandlerCallResult, ToolSideEffects } from '@loopstack/common';
+import { DocumentEntity, ToolResult, ToolSideEffects } from '@loopstack/common';
 import { AssignmentConfigType, ToolCallType } from '@loopstack/contracts/types';
-
-import { BlockHelperService } from './block-helper.service';
-import { BlockProcessor } from './block-processor.service';
-import { BlockRegistryService } from './block-registry.service';
-import { BlockFactory } from './block.factory';
-import { Tool, Workflow } from '../abstract';
-import { ProcessorFactory } from './processor.factory';
+import { WorkflowBase } from '../abstract';
 import {
+  CustomHelper,
   TemplateExpressionEvaluatorService,
-  ToolExecutionContextDto,
 } from '../../common';
+import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
 
 @Injectable()
 export class StateMachineToolCallProcessorService {
@@ -20,53 +15,22 @@ export class StateMachineToolCallProcessorService {
   );
 
   constructor(
-    private readonly blockHelperService: BlockHelperService,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private readonly blockRegistryService: BlockRegistryService,
-    private readonly blockProcessor: BlockProcessor,
-    private readonly blockFactory: BlockFactory,
   ) {}
 
-  parseToolArguments(block: Workflow, tool: string, argsInput: any) {
-    const blockRegistryItem = this.blockRegistryService.getBlock(tool);
-    if (!blockRegistryItem) {
-      throw new Error(`Config for tool ${tool} not found.`);
-    }
-
-    return this.templateExpressionEvaluatorService.evaluateTemplate<any>(
-      argsInput,
-      block,
-      ['tool'],
-      blockRegistryItem.metadata.properties,
-    );
-  }
-
-  private validateToolAvailable(toolName, parentBlock: Workflow) {
-    if (!parentBlock.metadata.imports.some((item) => item.name === toolName)) {
-      throw new Error(
-        `Tool ${toolName} is not available. Make sure to import required tools to the workflow.`,
-      );
-    }
-  }
-
   async processToolCalls(
-    block: Workflow,
+    block: WorkflowBase,
     toolCalls: ToolCallType[] | undefined,
-    factory: ProcessorFactory,
-  ): Promise<{
-    toolResults: Record<string, any>;
-    effects: ToolSideEffects;
-  }> {
-    const currentTransition = block.state.transition!;
+    args: any,
+    ctx: WorkflowExecution,
+  ): Promise<WorkflowExecution> {
+    const transition = ctx.runtime.transition!;
 
-    const effects: ToolSideEffects = {};
+    let effects: ToolSideEffects[] = [];
     let toolResults: Record<string, any> = {};
 
     if (!toolCalls) {
-      return {
-        effects,
-        toolResults,
-      };
+      return ctx;
     }
 
     try {
@@ -75,39 +39,36 @@ export class StateMachineToolCallProcessorService {
 
         for (const toolCall of toolCalls) {
           this.logger.debug(
-            `Call tool ${i} (${toolCall.tool}) on transition ${currentTransition.id}`,
+            `Call tool ${i} (${toolCall.tool}) on transition ${transition.id}`,
           );
 
-          this.validateToolAvailable(toolCall.tool, block);
+          const tool = block.getTool(toolCall.tool);
+          if (!tool) {
+            throw new Error(`Tool with name ${toolCall.tool} not found.`)
+          }
 
-          const args = this.parseToolArguments(
-            block,
-            toolCall.tool,
+          const templateHelpers: CustomHelper[] = block.helpers.map((name: string) => ({
+            name,
+            fn: block[name]
+          }));
+
+          const evaluatedArgs = this.templateExpressionEvaluatorService.evaluateTemplate<any>(
             toolCall.args,
+            block.getTemplateVars(args, ctx), // todo: restrict / expose ctx.state contents
+            {
+              cacheKey: block.name,
+              helpers: templateHelpers
+            }
           );
 
-          let toolBlock = await this.blockFactory.createBlock<
-            Tool,
-            ToolExecutionContextDto
-          >(
-            toolCall.tool,
-            args,
-            new ToolExecutionContextDto({
-              ...block.ctx,
-              workflow: block.state,
-            }),
-          );
+          const parsedArgs = tool.validate(evaluatedArgs);
 
-          toolBlock = await this.blockProcessor.processBlock<Tool>(
-            toolBlock,
-            factory,
-          );
-          const toolCallResult: HandlerCallResult = toolBlock.result;
+          const toolCallResult: ToolResult = await tool.execute(parsedArgs, ctx, block);
 
-          this.blockHelperService.assignToTargetBlock(
+          this.assignToTargetBlock(
             toolCall.assign as AssignmentConfigType,
-            block,
-            toolBlock,
+            ctx,
+            toolCallResult,
           );
 
           if (toolCall.id) {
@@ -115,33 +76,51 @@ export class StateMachineToolCallProcessorService {
           }
           toolResults[i.toString()] = toolCallResult;
 
-          block.state.currentTransitionResults = toolResults;
+          // do this early, so subsequent tool calls can use results
+          ctx.state.updateMetadata({
+            tools: {
+              [transition.id]: toolResults,
+            }
+          });
 
           if (toolCallResult.effects) {
-            Object.assign(effects, toolCallResult.effects);
-
-            // add documents early for timely updates in frontend
-            // persisted with next loop iteration
-            if (toolCallResult.effects.addWorkflowDocuments?.length) {
-              block.state.addDocuments(
-                toolCallResult.effects.addWorkflowDocuments,
-              );
-            }
+            effects.push(toolCallResult.effects);
           }
 
           i++;
         }
+
+        // apply the transition to next place
+        const transitionEffects = effects.reduce((acc, effect) => {
+          acc.setTransitionPlace = effect.setTransitionPlace;
+          return acc;
+        }, { setTransitionPlace: undefined });
+
+        if (transitionEffects.setTransitionPlace) {
+          ctx.runtime.nextPlace = transitionEffects.setTransitionPlace;
+        }
+
+        // add documents early for timely updates in frontend
+        // persisted with next loop iteration
+        for (const effect of effects) {
+          if (effect.addWorkflowDocuments?.length) {
+            this.addDocuments(
+              ctx,
+              effect.addWorkflowDocuments,
+            );
+          }
+        }
       }
     } catch (e) {
       // re-throw error if errors are not handled gracefully
-      if (!currentTransition.onError) {
+      if (!transition.onError) {
         throw e;
       }
 
       // set error place through manipulating effects
-      Object.assign(effects, {
-        setTransitionPlace: currentTransition.onError,
-      } satisfies ToolSideEffects);
+      effects.push({
+        setTransitionPlace: transition.onError,
+      });
 
       // todo: add error info
       // this.addWorkflowTransitionData(
@@ -152,9 +131,67 @@ export class StateMachineToolCallProcessorService {
       // );
     }
 
-    return {
-      effects,
-      toolResults,
-    };
+    return ctx;
+  }
+
+  addDocuments(ctx: WorkflowExecution, documents: DocumentEntity[]) {
+    for (const document of documents) {
+      const existingIndex = document.id
+        ? ctx.state.getMetadata('documents').findIndex((d) => d.id === document.id)
+        : -1;
+
+      if (existingIndex != -1) {
+        this.updateDocument(ctx, existingIndex, document);
+      } else {
+        this.addDocument(ctx, document);
+      }
+    }
+  }
+
+  updateDocument(ctx: WorkflowExecution, index: number, document: DocumentEntity) {
+    const documents = ctx.state.getMetadata('documents');
+
+    if (index != -1) {
+      documents[index] = document;
+    }
+
+    ctx.state.setMetadata('documents', documents)
+    ctx.runtime.persistenceState.documentsUpdated = true;
+  }
+
+  addDocument(ctx: WorkflowExecution, document: DocumentEntity) {
+    // invalidate previous versions of the same document
+    const documents = ctx.state.getMetadata('documents');
+    for (const doc of documents) {
+      if (
+        doc.messageId === document.messageId &&
+        doc.meta?.invalidate !== false
+      ) {
+        doc.isInvalidated = true;
+      }
+    }
+
+    documents.push(document);
+    ctx.state.setMetadata('documents', documents)
+    ctx.runtime.persistenceState.documentsUpdated = true;
+  }
+
+  assignToTargetBlock(
+    assign: AssignmentConfigType | undefined,
+    ctx: WorkflowExecution,
+    result: ToolResult,
+  ) {
+    if (assign) {
+      const update: any = {};
+      for (const [key, value] of Object.entries(assign)) {
+        update[key] =
+          this.templateExpressionEvaluatorService.evaluateTemplateRaw<string>(
+            value,
+            { result },
+          );
+      }
+
+      ctx.state.update(update);
+    }
   }
 }

@@ -1,9 +1,9 @@
 import { NamespaceEntity } from '@loopstack/common';
 import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
-import { WorkflowStateDto } from './workflow-state.dto';
+import { BlockStateDto, WorkflowStateDto } from './workflow-state.dto';
 import { Expose } from 'class-transformer';
 
-abstract class BlockExecutionContextDto {
+export class BlockExecutionContextDto<TState extends WorkflowStateDto | BlockStateDto = BlockStateDto> {
   @Expose()
   root: string;
 
@@ -20,6 +20,9 @@ abstract class BlockExecutionContextDto {
   workspaceId: string;
 
   @Expose()
+  workflowId?: string;
+
+  @Expose()
   namespace: NamespaceEntity;
 
   @Expose()
@@ -30,13 +33,15 @@ abstract class BlockExecutionContextDto {
     transition?: TransitionPayloadInterface;
   };
 
+  state: TState;
+
   constructor(data: any) {
     Object.assign(this, data);
   }
 }
 
 export class RootExecutionContextDto extends BlockExecutionContextDto {
-  constructor(data: RootExecutionContextDto) {
+  constructor(data: Omit<RootExecutionContextDto, 'setState'>) {
     super(data);
   }
 }
@@ -46,9 +51,13 @@ export class PipelineExecutionContextDto extends BlockExecutionContextDto {
     super(data);
   }
 }
-export class WorkflowExecutionContextDto extends BlockExecutionContextDto {
+export class WorkflowExecutionContextDto extends BlockExecutionContextDto<WorkflowStateDto> {
+
+  state: WorkflowStateDto;
+
   constructor(data: WorkflowExecutionContextDto) {
     super(data);
+    this.state = data.state;
   }
 }
 export class FactoryExecutionContextDto extends BlockExecutionContextDto {
@@ -64,14 +73,5 @@ export class WorkspaceExecutionContextDto extends BlockExecutionContextDto {
 export class DocumentExecutionContextDto extends BlockExecutionContextDto {
   constructor(data: DocumentExecutionContextDto) {
     super(data);
-  }
-}
-
-export class ToolExecutionContextDto extends BlockExecutionContextDto {
-  workflow: WorkflowStateDto;
-
-  constructor(data: ToolExecutionContextDto) {
-    super(data);
-    this.workflow = data.workflow;
   }
 }

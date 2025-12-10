@@ -1,7 +1,6 @@
-import { BlockConfig } from '@loopstack/common';
+import { BlockConfig, WithArguments } from '@loopstack/common';
 import { z } from 'zod';
-import { Document } from '../models';
-import { Expose } from 'class-transformer';
+import { DocumentBase } from '../models';
 
 const MessageDocumentSchema = z.object({
   role: z.string(),
@@ -13,14 +12,7 @@ const MessageDocumentSchema = z.object({
     type: 'document',
     description: 'Message Document.',
   },
-  properties: MessageDocumentSchema,
-  configSchema: MessageDocumentSchema,
   configFile: __dirname + '/message-document.yaml',
 })
-export class MessageDocument extends Document {
-  @Expose()
-  role: string;
-
-  @Expose()
-  content: string;
-}
+@WithArguments(MessageDocumentSchema)
+export class MessageDocument extends DocumentBase {}

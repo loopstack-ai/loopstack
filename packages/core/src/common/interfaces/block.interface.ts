@@ -1,20 +1,17 @@
-import { BlockStateDto, WorkflowStateDto } from '../dtos';
-import { BlockMetadata } from '@loopstack/common';
-import type { BlockConfigType } from '@loopstack/contracts/types';
+import type {
+  BlockConfigType,
+} from '@loopstack/contracts/types';
 import {
   DocumentExecutionContextDto,
   FactoryExecutionContextDto,
   PipelineExecutionContextDto,
-  ToolExecutionContextDto,
   WorkflowExecutionContextDto,
   WorkspaceExecutionContextDto,
 } from '../dtos';
-import { BlockRegistryItem } from './block-registry-item.interface';
 
 export type BlockContextType =
   | DocumentExecutionContextDto
   | WorkflowExecutionContextDto
-  | ToolExecutionContextDto
   | PipelineExecutionContextDto
   | WorkspaceExecutionContextDto
   | FactoryExecutionContextDto;
@@ -22,19 +19,15 @@ export type BlockContextType =
 export interface BlockInterface {
   type: string;
 
-  metadata: BlockMetadata;
-
-  args: any;
-
-  state: BlockStateDto | WorkflowStateDto;
-
-  ctx: BlockContextType;
+  // metadata: BlockMetadata;
 
   config: BlockConfigType;
 
-  init(registry: BlockRegistryItem, args: any, ctx: any): void;
+  tools: string[];
+
+  workflows: string[];
+
+  helpers: string[];
 
   get name(): string;
-
-  getResult(): any;
 }

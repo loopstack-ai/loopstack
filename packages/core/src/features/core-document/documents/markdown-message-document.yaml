@@ -1,8 +1,6 @@
 ui:
   form:
     widget: markdown-message
-meta:
-  invalidate: false
 content:
   title: 'Markdown'
   markdown: ''

@@ -1,19 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { WorkflowEntity } from '@loopstack/common';
-import { Workflow } from '../abstract';
+import { WorkflowBase } from '../abstract';
 import { WorkflowService } from '../../persistence';
-import { PersistenceState } from '../../common';
+import { BlockExecutionContextDto, PersistenceState } from '../../common';
+import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
 
 @Injectable()
 export class WorkflowStateService {
   constructor(private workflowService: WorkflowService) {}
 
-  async getWorkflowState(block: Workflow): Promise<WorkflowEntity> {
+  async getWorkflowState(block: WorkflowBase, context: BlockExecutionContextDto): Promise<WorkflowEntity> {
     const workflow = await this.workflowService.findOneByQuery(
-      block.ctx.namespace?.id,
+      context.namespace?.id,
       {
         blockName: block.name,
-        labels: block.ctx.labels,
+        labels: context.labels,
       },
     );
 
@@ -21,15 +22,18 @@ export class WorkflowStateService {
       return workflow;
     }
 
+    const config = block.getConfig();
+
     return this.workflowService.create({
-      createdBy: block.ctx.userId,
-      labels: block.ctx.labels,
-      namespace: block.ctx.namespace ?? undefined,
-      pipelineId: block.ctx.pipelineId,
+      createdBy: context.userId,
+      labels: context.labels,
+      namespace: context.namespace ?? undefined,
+      pipelineId: context.pipelineId,
       blockName: block.name,
-      title: block.config.title ?? block.name,
-      ui: block.config.ui ?? null,
-      index: block.ctx.index,
+      title: config.title ?? block.name,
+      ui: config.ui ?? null,
+      index: context.index,
+      place: 'start',
     });
   }
 
@@ -38,5 +42,20 @@ export class WorkflowStateService {
     persistenceState: PersistenceState,
   ) {
     return this.workflowService.save(entity, persistenceState);
+  }
+
+  async saveExecutionState(ctx: WorkflowExecution) {
+    ctx.entity.history = ctx.state.caretaker.serialize();
+
+    // save selected info to entity directly
+    ctx.entity.place = ctx.state.getMetadata('place');
+    ctx.entity.documents = ctx.state.getMetadata('documents');
+    ctx.entity.availableTransitions = ctx.runtime.availableTransitions || null;
+    ctx.entity.hasError = ctx.runtime.error;
+
+    await this.saveWorkflowState(
+      ctx.entity,
+      ctx.runtime.persistenceState,
+    );
   }
 }

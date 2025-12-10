@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ObjectExpressionHandler } from './expression-handler/object-expression.handler';
-import { TemplateExpressionHandler } from './expression-handler/template-expression.handler';
+import { TemplateExOptions, TemplateExpressionHandler } from './expression-handler/template-expression.handler';
 
 export interface TemplateDetector {
   canHandle(value: any): boolean;
 }
 
 export interface TemplateProcessor {
-  process(value: string, data: any): any;
+  process(value: string, data: any, options?: TemplateExOptions): any;
 }
 
 @Injectable()
@@ -29,7 +29,7 @@ export class TemplateService {
   /**
    * Evaluates a value using the appropriate template handler
    */
-  evaluate(value: any, data: any): any {
+  evaluate(value: any, data: any, options?: TemplateExOptions): any {
     // only handle string values
     if (value == null || typeof value !== 'string') {
       return value;
@@ -38,7 +38,7 @@ export class TemplateService {
     // select the appropriate handler
     for (const handler of this.handlers) {
       if (handler.canHandle(value)) {
-        return handler.process(value, data);
+        return handler.process(value, data, options);
       }
     }
 
@@ -49,25 +49,25 @@ export class TemplateService {
   /**
    * Recursively evaluates template expressions in objects and arrays
    */
-  evaluateDeep<T = any>(obj: any, data: any): T {
+  evaluateDeep<T = any>(obj: any, data: any, options?: TemplateExOptions): T {
     if (obj == null) {
       return obj;
     }
 
     if (Array.isArray(obj)) {
       return obj.map((item) => {
-        return this.evaluateDeep(item, data);
+        return this.evaluateDeep(item, data, options);
       }) as T;
     }
 
     if (typeof obj === 'object') {
       const result: Record<string, any> = {};
       for (const [key, value] of Object.entries(obj)) {
-        result[key] = this.evaluateDeep(value, data);
+        result[key] = this.evaluateDeep(value, data, options);
       }
       return result as T;
     }
 
-    return this.evaluate(obj, data) as T;
+    return this.evaluate(obj, data, options) as T;
   }
 }

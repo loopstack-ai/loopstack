@@ -1,12 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TemplateDetector, TemplateProcessor } from '../template.service';
-import { HandlebarsProcessor } from '../handlebars-processor.service';
+import { CustomHelper, HandlebarsProcessor } from '../handlebars-processor.service';
 import { TemplateExpressionError } from '../../errors/template-expression.error';
+import { z } from 'zod';
 
 interface ProcessingContext {
   data: any;
   depth?: number;
 }
+
+export interface TemplateExOptions {
+  cacheKey?: string,
+  schema?: z.ZodType,
+  helpers?: CustomHelper[]
+}
+
 
 @Injectable()
 export class TemplateExpressionHandler
@@ -27,7 +35,7 @@ export class TemplateExpressionHandler
     );
   }
 
-  process(content: string, data: any): any {
+  process(content: string, data: any, options: TemplateExOptions): any {
     try {
       const context: ProcessingContext = {
         data,
@@ -41,11 +49,14 @@ export class TemplateExpressionHandler
         );
       }
 
-      return this.handlebarsProcessor.render(content, context.data, {
-        allowedProtoProperties: {
-          // alternativeCalculation: true,
-        },
-      });
+      return this.handlebarsProcessor.render(
+        content,
+        context.data,
+        {
+          cacheKeyPrefix: options.cacheKey,
+          helpers: options.helpers,
+        }
+      );
     } catch (error) {
       this.logger.error(
         `Failed to process template expression: ${error.message}`,

@@ -11,18 +11,13 @@ import {
   NamespaceProcessorService,
   WorkflowStateService,
   RootProcessorService,
-  BlockHelperService,
-  CapabilityBuilder,
   BlockRegistryService,
   ConfigLoaderService,
-  BlockFactory,
   ProcessorFactory,
   FactoryProcessorService,
   SequenceProcessorService,
   BlockProcessor,
   WorkflowProcessorService,
-  WorkspaceProcessorService,
-  ToolProcessorService,
   StateMachineValidatorService,
   StateMachineProcessorService,
   StateMachineToolCallProcessorService,
@@ -36,7 +31,6 @@ import {
   WorkflowEntity,
   WorkspaceEntity,
 } from '@loopstack/common';
-import { DataSource } from 'typeorm';
 import { PersistenceModule } from '../persistence';
 
 @Module({
@@ -64,37 +58,32 @@ import { PersistenceModule } from '../persistence';
     // },
 
     RootProcessorService,
-    BlockFactory, //*
-    BlockProcessor, //*
-    ProcessorFactory, //* injected as arg
-    FactoryProcessorService, //*
-    SequenceProcessorService, //*
-    WorkflowProcessorService, //*
-    WorkspaceProcessorService, //*
-    ToolProcessorService, //*
+    BlockProcessor,
+    ProcessorFactory,
+    FactoryProcessorService,
+    SequenceProcessorService,
+    WorkflowProcessorService,
 
-    WorkflowStateService, //* workflow
-    NamespaceProcessorService, //*
-    InitialRunValidator, //* workflow
-    WorkflowDependenciesValidator, //* workflow
-    WorkflowOptionValidator, //* workflow
-    StateMachineValidatorRegistry, //*
-    StateMachineValidatorService, //*
-    StateMachineProcessorService, //*
-    StateMachineToolCallProcessorService, //*
-    BlockHelperService, //*
+    WorkflowStateService,
+    NamespaceProcessorService,
+    InitialRunValidator,
+    WorkflowDependenciesValidator,
+    WorkflowOptionValidator,
+    StateMachineValidatorRegistry,
+    StateMachineValidatorService,
+    StateMachineProcessorService,
+    StateMachineToolCallProcessorService,
     CreatePipelineService,
 
-    ConfigLoaderService, //*BlockRegistryService
-    BlockRegistryService, //* StateMachineToolCallProcessorService
-    CapabilityBuilder, //*
+    ConfigLoaderService,
+    BlockRegistryService,
   ],
   exports: [
     RootProcessorService,
     CreatePipelineService,
     BlockRegistryService,
     BlockProcessor,
-    BlockFactory,
+    WorkflowProcessorService,
   ],
 })
 export class WorkflowProcessorModule {}

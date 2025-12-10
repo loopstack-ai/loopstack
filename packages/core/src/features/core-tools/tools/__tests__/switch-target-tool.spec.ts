@@ -1,218 +1,157 @@
-import { SwitchTarget } from '../switch-target-tool';
 import { TestingModule } from '@nestjs/testing';
-import { createToolTestingContext, describeSchemaTests } from '../../../test';
-import { Tool } from '../../../workflow-processor';
+import { SwitchTarget } from '../switch-target-tool';
+import { createExecutionContext, createToolTest } from '../../../../test';
 
-describe('Tool: SwitchTarget', () => {
+describe('SwitchTarget', () => {
   let module: TestingModule;
-  let createToolInstance: (args: any, ctx?: any) => Promise<SwitchTarget>;
+  let tool: SwitchTarget;
 
-  const defaultContext = {
-    workflow: {
-      transition: {
-        to: ['placeA', 'placeB'],
-      },
-    },
-  };
+  beforeEach(async () => {
+    module = await createToolTest()
+      .forTool(SwitchTarget)
+      .compile();
 
-  beforeAll(async () => {
-    const ctx = await createToolTestingContext(SwitchTarget);
-    module = ctx.module;
-    createToolInstance = ctx.createTool;
+    tool = module.get(SwitchTarget);
   });
 
-  afterAll(async () => {
-    await module?.close();
+  afterEach(async () => {
+    await module.close();
   });
 
-  describe('Block Metadata', () => {
-    let tool: SwitchTarget;
-
-    beforeAll(async () => {
-      tool = await createToolInstance({ target: 'placeA' }, defaultContext);
+  describe('initialization', () => {
+    it('should be defined', () => {
+      expect(tool).toBeDefined();
     });
 
-    it('tool should be defined', async () => {
-      expect(tool).toBeInstanceOf(SwitchTarget);
-    });
-
-    it('should have metadata attached', () => {
-      expect(tool.metadata).toBeDefined();
-    });
-
-    it('should have properties schema', () => {
-      expect(tool.metadata.properties).toBeDefined();
-    });
-
-    it('should have config schema', () => {
-      expect(tool.metadata.configSchema).toBeDefined();
+    it('should have argsSchema defined', () => {
+      expect(tool.argsSchema).toBeDefined();
     });
   });
 
-  describe('Properties Schema', () => {
-    let tool: Tool;
-
-    beforeAll(async () => {
-      tool = await createToolInstance({ target: 'placeA' }, defaultContext);
+  describe('validation', () => {
+    it('should validate valid target string', () => {
+      const validated = tool.validate({ target: 'next-place' });
+      expect(validated).toEqual({ target: 'next-place' });
     });
 
-    describeSchemaTests(
-      () => tool.metadata.properties!,
-      [
-        {
-          description: 'should not allow additional properties',
-          args: { target: 'placeA', extra: 'invalid' },
-          shouldPass: false,
-        },
-        {
-          description: 'should accept valid target string',
-          args: { target: 'placeA' },
-          shouldPass: true,
-        },
-        {
-          description: 'should require target property',
-          args: {},
-          shouldPass: false,
-        },
-        {
-          description: 'should reject non-string target',
-          args: { target: 123 },
-          shouldPass: false,
-        },
-      ],
-    );
-  });
-
-  describe('Config Schema', () => {
-    let tool: Tool;
-
-    beforeAll(async () => {
-      tool = await createToolInstance({ target: 'placeA' }, defaultContext);
+    it('should validate empty target string', () => {
+      const validated = tool.validate({ target: '' });
+      expect(validated).toEqual({ target: '' });
     });
 
-    describeSchemaTests(
-      () => tool.metadata.configSchema!,
-      [
-        {
-          description: 'should not allow additional properties',
-          args: { target: 'placeA', extra: 'invalid' },
-          shouldPass: false,
-        },
-        {
-          description: 'should accept valid target string',
-          args: { target: 'placeA' },
-          shouldPass: true,
-        },
-        {
-          description: 'should accept property accessor expressions',
-          args: { target: '${ somePlace }' },
-          shouldPass: true,
-        },
-        {
-          description: 'should accept template expressions',
-          args: { target: '{{ targetPlace }}' },
-          shouldPass: true,
-        },
-      ],
-    );
-  });
-
-  describe('Arguments', () => {
-    let tool: Tool;
-
-    beforeAll(async () => {
-      tool = await createToolInstance({ target: 'placeA' }, defaultContext);
+    it('should reject non-string target', () => {
+      expect(() => tool.validate({ target: 123 })).toThrow();
     });
 
-    it('should have correct arguments', async () => {
-      expect(tool.args).toEqual({ target: 'placeA' });
+    it('should reject missing target property', () => {
+      expect(() => tool.validate({})).toThrow();
+    });
+
+    it('should reject extra properties (strict mode)', () => {
+      expect(() => tool.validate({ target: 'place', extra: 'field' })).toThrow();
+    });
+
+    it('should reject null target', () => {
+      expect(() => tool.validate({ target: null })).toThrow();
     });
   });
 
-  describe('Result', () => {
-    it('should return setTransitionPlace effect when target is in array of allowed places', async () => {
-      const tool = await createToolInstance(
-        { target: 'placeA' },
-        {
-          workflow: {
-            transition: {
-              to: ['placeA', 'placeB'],
-            },
+  describe('execution with array of targets', () => {
+    it('should set transition place when target is in allowed array', async () => {
+      const ctx = createExecutionContext({
+        runtime: {
+          transition: {
+            to: ['place-a', 'place-b', 'place-c'],
           },
         },
-      );
+      });
 
-      const result = await tool.execute();
+      const args = tool.validate({ target: 'place-b' });
+      const result = await tool.execute(args, ctx);
 
-      expect(result.effects).toEqual({ setTransitionPlace: 'placeA' });
+      expect(result.effects).toBeDefined();
+      expect(result.effects!.setTransitionPlace).toBe('place-b');
     });
 
-    it('should return setTransitionPlace effect when target matches single allowed place', async () => {
-      const tool = await createToolInstance(
-        { target: 'placeA' },
-        {
-          workflow: {
-            transition: {
-              to: 'placeA',
-            },
+    it('should throw error when target is not in allowed array', async () => {
+      const ctx = createExecutionContext({
+        runtime: {
+          transition: {
+            to: ['place-a', 'place-b'],
           },
         },
-      );
+      });
 
-      const result = await tool.execute();
+      const args = tool.validate({ target: 'invalid-place' });
 
-      expect(result.effects).toEqual({ setTransitionPlace: 'placeA' });
-    });
-
-    it('should trim whitespace from target', async () => {
-      const tool = await createToolInstance(
-        { target: '  placeA  ' },
-        {
-          workflow: {
-            transition: {
-              to: ['placeA', 'placeB'],
-            },
-          },
-        },
-      );
-
-      const result = await tool.execute();
-
-      expect(result.effects).toEqual({ setTransitionPlace: 'placeA' });
-    });
-
-    it('should throw error when target is not in array of allowed places', async () => {
-      const tool = await createToolInstance(
-        { target: 'placeC' },
-        {
-          workflow: {
-            transition: {
-              to: ['placeA', 'placeB'],
-            },
-          },
-        },
-      );
-
-      await expect(tool.execute()).rejects.toThrow(
-        'Transition to place "placeC" not allowed.',
+      await expect(tool.execute(args, ctx)).rejects.toThrow(
+        'Transition to place "invalid-place" not allowed.'
       );
     });
 
-    it('should throw error when target does not match single allowed place', async () => {
-      const tool = await createToolInstance(
-        { target: 'placeB' },
-        {
-          workflow: {
-            transition: {
-              to: 'placeA',
-            },
+    it('should trim whitespace from target before checking', async () => {
+      const ctx = createExecutionContext({
+        runtime: {
+          transition: {
+            to: ['place-a', 'place-b'],
           },
         },
-      );
+      });
 
-      await expect(tool.execute()).rejects.toThrow(
-        'Transition to place "placeB" not allowed.',
-      );
+      const args = tool.validate({ target: '  place-a  ' });
+      const result = await tool.execute(args, ctx);
+
+      expect(result.effects!.setTransitionPlace).toBe('place-a');
     });
   });
+
+  describe('execution with single target', () => {
+    it('should set transition place when target matches single allowed value', async () => {
+      const ctx = createExecutionContext({
+        runtime: {
+          transition: {
+            to: 'only-place',
+          },
+        },
+      });
+
+      const args = tool.validate({ target: 'only-place' });
+      const result = await tool.execute(args, ctx);
+
+      expect(result.effects).toBeDefined();
+      expect(result.effects!.setTransitionPlace).toBe('only-place');
+    });
+
+    it('should throw error when target does not match single allowed value', async () => {
+      const ctx = createExecutionContext({
+        runtime: {
+          transition: {
+            to: 'only-place',
+          },
+        },
+      });
+
+      const args = tool.validate({ target: 'wrong-place' });
+
+      await expect(tool.execute(args, ctx)).rejects.toThrow(
+        'Transition to place "wrong-place" not allowed.'
+      );
+    });
+
+    it('should trim whitespace and match single target', async () => {
+      const ctx = createExecutionContext({
+        runtime: {
+          transition: {
+            to: 'target-place',
+          },
+        },
+      });
+
+      const args = tool.validate({ target: '  target-place  ' });
+      const result = await tool.execute(args, ctx);
+
+      expect(result.effects!.setTransitionPlace).toBe('target-place');
+    });
+  });
+
 });

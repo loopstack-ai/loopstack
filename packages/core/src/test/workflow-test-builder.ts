@@ -1,24 +1,9 @@
-import {
-  generateObjectFingerprint,
-  HandlerCallResult,
-  WorkflowEntity,
-  WorkflowState,
-} from '@loopstack/common';
-import { INestApplication } from '@nestjs/common';
-import {
-  BlockFactory,
-  ProcessorFactory,
-  Workflow,
-  WorkflowProcessorService,
-} from '../workflow-processor';
-import { cloneDeep } from 'lodash';
-import { WorkflowExecutionContextDto } from '../common';
+import { TestingModule } from '@nestjs/testing';
+import { Type } from '@nestjs/common';
+import { WorkflowEntity, WorkflowState } from '@loopstack/common';
+import { createTestingModule } from './create-testing-module';
 import { WorkflowService } from '../persistence';
-
-type MockConfig = {
-  tool: any;
-  mockResolvedValues?: HandlerCallResult[] | undefined;
-};
+import { createToolMock, ToolMock } from './tool-test-builder';
 
 export const DEFAULT_WORKFLOW_ENTITY: Omit<WorkflowEntity, 'namespace'> = {
   id: '00000000-0000-0000-0000-000000000000',
@@ -48,239 +33,192 @@ export const DEFAULT_WORKFLOW_ENTITY: Omit<WorkflowEntity, 'namespace'> = {
   dependencies: [],
 };
 
-export class WorkflowTestBuilder<T extends Workflow> {
-  private mocks: MockConfig[] = [];
-  private workflowData: Partial<WorkflowEntity> = {};
-  private contextData: Partial<WorkflowExecutionContextDto> = {};
-  private blockArgs: any = {};
-  private optionsHash: string | undefined;
-  private workflowId: string = crypto.randomUUID();
+/**
+ * Mock for WorkflowService
+ */
+export interface WorkflowServiceMock {
+  save: jest.Mock;
+  create: jest.Mock;
+  findOneByQuery: jest.Mock;
+}
 
-  private app: INestApplication | null = null;
-  private service: WorkflowProcessorService | null = null;
-  private factory: ProcessorFactory | null = null;
-  private blockFactory: BlockFactory | null = null;
-  private module: any = null;
-  private workflowService: WorkflowService | null = null;
-  private mockSpies: jest.SpyInstance[] = [];
-  private mockSpyMap = new Map<any, jest.SpyInstance>();
-  private isSetup = false;
-  private block: Workflow | null = null;
+/**
+ * Creates a standard WorkflowService mock
+ */
+export function createWorkflowServiceMock(): WorkflowServiceMock {
+  return {
+    save: jest.fn(),
+    create: jest.fn().mockImplementation((input) =>
+      Promise.resolve({
+        ...DEFAULT_WORKFLOW_ENTITY,
+        ...input,
+        id: crypto.randomUUID(),
+      })
+    ),
+    findOneByQuery: jest.fn().mockResolvedValue(undefined),
+  };
+}
 
-  constructor(
-    private testModuleFactory: () => Promise<any>,
-    private classRef: new (...args: any[]) => T,
-  ) {}
+/**
+ * Builder for creating workflow test modules
+ *
+ * @example
+ * ```typescript
+ * const module = await createWorkflowTest()
+ *   .forWorkflow(CustomToolExampleWorkflow)
+ *   .withImports(LoopCoreModule, CoreToolsModule)
+ *   .withToolMock(MathSumTool)
+ *   .withToolOverride(CreateChatMessage)
+ *   .compile();
+ *
+ * const workflow = module.get(CustomToolExampleWorkflow);
+ * const processor = module.get(WorkflowProcessorService);
+ * ```
+ */
+export class WorkflowTestBuilder<TWorkflow = any> {
+  private imports: any[] = [];
+  private providers: any[] = [];
+  private overrides = new Map<any, any>();
+  private workflowClass?: Type<TWorkflow>;
+  private workflowServiceMock: WorkflowServiceMock;
+  private existingWorkflowEntity?: Partial<WorkflowEntity>;
+
+  constructor() {
+    this.workflowServiceMock = createWorkflowServiceMock();
+  }
 
   /**
-   * Add a tool mock configuration
+   * Set the workflow class to test
    */
-  withToolMock(
-    tool: any,
-    resolvedReturnValues?: HandlerCallResult | HandlerCallResult[],
-  ): this {
-    const values =
-      resolvedReturnValues === undefined || Array.isArray(resolvedReturnValues)
-        ? resolvedReturnValues
-        : [resolvedReturnValues];
+  forWorkflow<T>(workflowClass: Type<T>): WorkflowTestBuilder<T> {
+    this.workflowClass = workflowClass as any;
+    this.providers.push(workflowClass);
+    return this as unknown as WorkflowTestBuilder<T>;
+  }
 
-    if (!tool) {
-      throw new Error('Mock config must include a tool');
-    }
-
-    const config: MockConfig = {
-      tool,
-      mockResolvedValues: values,
-    };
-
-    this.mocks.push(config);
+  /**
+   * Add module imports
+   */
+  withImports(...imports: any[]): this {
+    this.imports.push(...imports);
     return this;
   }
 
   /**
-   * Set workflow data (should be workflow state not entity - marked as todo)
+   * Add real providers (services, dependencies)
    */
-  withWorkflowData(data: Partial<WorkflowEntity>): this {
-    this.workflowData = data;
+  withProvider(...providers: Type<any>[]): this {
+    this.providers.push(...providers);
     return this;
   }
 
   /**
-   * Set execution context data
+   * Add multiple providers at once
    */
-  withContext(context: Partial<WorkflowExecutionContextDto>): this {
-    this.contextData = context;
+  withProviders(...providers: any[]): this {
+    this.providers.push(...providers);
     return this;
   }
 
   /**
-   * Set workflow arguments
+   * Mock a provider with a specific value
+   * Use for providers defined in local providers array
    */
-  withArgs(args: any): this {
-    this.blockArgs = args;
-    this.optionsHash = generateObjectFingerprint(args);
+  withMock<T>(token: Type<T> | string | symbol, mock: Partial<T> | any): this {
+    this.providers.push({
+      provide: token,
+      useValue: mock,
+    });
     return this;
   }
 
   /**
-   * Set workflow ID
+   * Override a provider from an imported module
+   * Use for providers that come from imported modules
    */
-  withWorkflowId(id: string): this {
-    this.workflowId = id;
+  withOverride<T>(token: Type<T> | string | symbol, mock: Partial<T> | any): this {
+    this.overrides.set(token, mock);
     return this;
   }
 
   /**
-   * Get a mock spy by tool class
+   * Mock a tool with a standard tool mock (validate + execute)
+   * Adds to local providers - use withToolOverride for tools from imported modules
    */
-  getToolSpy(tool: any): jest.SpyInstance {
-    const spy = this.mockSpyMap.get(tool);
-    if (!spy) {
-      throw new Error(
-        `No mock spy found for tool: ${tool.name}. Did you forget to call withToolMock?`,
-      );
-    }
-    return spy;
+  withToolMock<T>(toolClass: Type<T>): this {
+    const mock = createToolMock();
+    this.providers.push({
+      provide: toolClass,
+      useValue: mock,
+    });
+    return this;
   }
 
   /**
-   * Setup the test environment
+   * Override a tool from an imported module with a standard tool mock
+   * Use for tools that come from imported modules
    */
-  async setup(): Promise<void> {
-    if (this.isSetup) {
-      throw new Error('Test builder already setup. Call teardown() first.');
-    }
-
-    this.setupMocks();
-    await this.initializeModule();
-    this.isSetup = true;
+  withToolOverride<T>(toolClass: Type<T>): this {
+    const mock = createToolMock();
+    this.overrides.set(toolClass, mock);
+    return this;
   }
 
   /**
-   * Teardown the test environment
+   * Configure findOneByQuery to return an existing workflow entity
+   * Use to test resuming from an existing workflow state
    */
-  async teardown(): Promise<void> {
-    if (!this.isSetup) {
-      return; // Already torn down or never set up
-    }
-
-    this.restoreMocks();
-
-    if (this.app) {
-      await this.app.close();
-      this.app = null;
-    }
-
-    if (this.module) {
-      await this.module.close();
-      this.module = null;
-    }
-
-    this.service = null;
-    this.factory = null;
-    this.blockFactory = null;
-    this.workflowService = null;
-    this.isSetup = false;
+  withExistingWorkflow(entity: Partial<WorkflowEntity>): this {
+    this.existingWorkflowEntity = entity;
+    return this;
   }
 
   /**
-   * Run the workflow and automatically handle setup/teardown
+   * Build and compile the testing module
    */
-  async run(): Promise<Workflow> {
-    await this.setup();
-    try {
-      return await this.execute();
-    } finally {
-      await this.teardown();
-    }
-  }
-
-  /**
-   * Run a workflow with automatic setup/teardown and proper assertion timing
-   */
-  async runWorkflow(
-    testFn: (result: T, builder: this) => void | Promise<void>,
-  ): Promise<void> {
-    await this.setup();
-    try {
-      const result = await this.execute();
-      await testFn(result, this);
-    } finally {
-      await this.teardown();
-    }
-  }
-
-  /**
-   * Execute the workflow
-   */
-  async execute(
-    overrideCtx?: Partial<WorkflowExecutionContextDto>,
-  ): Promise<T> {
-    if (!this.isSetup) {
-      throw new Error(
-        'Test builder not setup. Call setup() first or use run() or runTest().',
-      );
+  async compile(): Promise<TestingModule> {
+    if (this.existingWorkflowEntity) {
+      this.workflowServiceMock.findOneByQuery.mockResolvedValue({
+        ...DEFAULT_WORKFLOW_ENTITY,
+        id: crypto.randomUUID(),
+        ...this.existingWorkflowEntity,
+      });
     }
 
-    const mockWorkflowEntity = cloneDeep({
-      ...DEFAULT_WORKFLOW_ENTITY,
-      ...{ id: this.workflowId ?? crypto.randomUUID() },
-      ...(this.optionsHash
-        ? { hashRecord: { options: this.optionsHash } }
-        : {}),
-      ...this.workflowData,
+    let builder = createTestingModule({
+      imports: this.imports,
+      providers: this.providers,
     });
 
-    jest
-      .spyOn(this.workflowService!, 'findOneByQuery')
-      .mockResolvedValue(mockWorkflowEntity as any);
-    jest
-      .spyOn(this.workflowService!, 'save')
-      .mockResolvedValue(mockWorkflowEntity as any);
+    // Apply WorkflowService override
+    builder = builder
+      .overrideProvider(WorkflowService)
+      .useValue(this.workflowServiceMock);
 
-    const ctx = new WorkflowExecutionContextDto({
-      ...this.contextData,
-      ...(overrideCtx ?? {}),
-    } as unknown as WorkflowExecutionContextDto);
+    // Apply all other overrides
+    for (const [token, mock] of this.overrides) {
+      builder = builder.overrideProvider(token).useValue(mock);
+    }
 
-    this.block = await this.blockFactory!.createBlock<
-      Workflow,
-      WorkflowExecutionContextDto
-    >(this.classRef.name, this.blockArgs, ctx);
+    const module = await builder.compile();
+    await module.init();
 
-    return (await this.service!.process(this.block, this.factory!)) as T;
+    return module;
   }
+}
 
-  private setupMocks(): void {
-    this.mocks.forEach((mockConfig) => {
-      const spy = jest.spyOn(mockConfig.tool.prototype, 'execute');
-
-      if (mockConfig.mockResolvedValues !== undefined) {
-        mockConfig.mockResolvedValues.forEach((value) => {
-          spy.mockResolvedValueOnce(value);
-        });
-      }
-
-      this.mockSpies.push(spy);
-      this.mockSpyMap.set(mockConfig.tool, spy);
-    });
-  }
-
-  private restoreMocks(): void {
-    this.mockSpies.forEach((spy) => spy.mockRestore());
-    this.mockSpies = [];
-    this.mockSpyMap.clear();
-    this.mocks = [];
-  }
-
-  private async initializeModule(): Promise<void> {
-    this.module = await this.testModuleFactory();
-    this.app = this.module.createNestApplication();
-    await this.app?.init();
-
-    this.service = this.module.get(WorkflowProcessorService);
-    this.factory = this.module.get(ProcessorFactory);
-    this.blockFactory = this.module.get(BlockFactory);
-    this.workflowService = this.module.get(WorkflowService);
-  }
+/**
+ * Create a new workflow test builder
+ *
+ * @example
+ * ```typescript
+ * const module = await createWorkflowTest()
+ *   .forWorkflow(CustomToolExampleWorkflow)
+ *   .withImports(LoopCoreModule)
+ *   .withToolMock(MathSumTool)
+ *   .compile();
+ * ```
+ */
+export function createWorkflowTest(): WorkflowTestBuilder {
+  return new WorkflowTestBuilder();
 }

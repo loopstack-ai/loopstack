@@ -1,312 +1,132 @@
-import Handlebars from 'handlebars';
+import Handlebars, { RuntimeOptions, TemplateDelegate } from 'handlebars';
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import {
-  DateFormatterHelperService,
-  OperatorsHelperService,
-} from './handlebars-helpers';
+
+export interface CustomHelper {
+  name: string;
+  fn: Function;
+}
+
+export interface RenderOptions extends Omit<RuntimeOptions, 'helpers'> {
+  cacheKeyPrefix?: string;
+  helpers?: CustomHelper[];
+}
+
+interface CachedTemplate {
+  template: TemplateDelegate;
+  handlebars: typeof Handlebars;
+}
 
 @Injectable()
 export class HandlebarsProcessor implements OnModuleInit {
-  private handlebars: typeof Handlebars;
+  private handlebars!: typeof Handlebars;
+  private templateCache = new Map<string, CachedTemplate>();
 
-  private allowedHelpers = {
-    // Block helper: {{#if condition}}...{{/if}} - safe boolean evaluation
-    if: true,
+  private static readonly MAX_TEMPLATE_SIZE = 50_000;
+  private static readonly MAX_CACHE_SIZE = 100;
 
-    // Used with if/unless: {{#if}}...{{else}}...{{/if}} - safe alternative branch
-    else: true,
+  private static readonly RESERVED_HELPERS = new Set([
+    'if', 'unless', 'each', 'with', 'lookup', 'log',
+  ]);
 
-    // Block helper: {{#unless condition}}...{{/unless}} - safe negated conditional
-    unless: true,
-
-    // Block helper: {{#each items}}{{this}}{{/each}} - safe iteration, no property traversal
-    each: true,
-
-    // Log helper
-    log: true,
-
-    // DISABLED: {{#with object}}{{property}}{{/with}} - can access dangerous object properties
-    // Risk: {{#with constructor}}{{prototype}}{{/with}} could access prototype chain
-    with: false,
-
-    // DISABLED: {{lookup object key}} - dynamic property access vulnerability
-    // Risk: {{lookup this "constructor"}} or {{lookup (lookup this "constructor") "prototype"}}
-    // Allows arbitrary object property traversal including prototype pollution
-    lookup: false,
-
-    // CUSTOM HELPERS
-    currentDate: true,
-    formatDate: true,
-    timeAgo: true,
-
-    // EQUALITY OPERATORS - safe value comparison with sanitization
-    eq: true, // {{#if (eq user.role "admin")}} - strict equality (===)
-    ne: true, // {{#if (ne status "active")}} - strict inequality (!==)
-    looseEq: true, // {{#if (looseEq value "5")}} - loose equality (==)
-    looseNe: true, // {{#if (looseNe value "5")}} - loose inequality (!=)
-
-    // COMPARISON OPERATORS - safe numeric comparison with type validation
-    gt: true, // {{#if (gt user.age 18)}} - greater than
-    gte: true, // {{#if (gte score 100)}} - greater than or equal
-    lt: true, // {{#if (lt price 50)}} - less than
-    lte: true, // {{#if (lte quantity 10)}} - less than or equal
-
-    // LOGICAL OPERATORS - safe boolean logic with argument validation
-    and: true, // {{#if (and user.isActive user.isVerified)}} - logical AND
-    or: true, // {{#if (or user.isPremium user.isTrial)}} - logical OR
-    not: true, // {{#if (not user.isBlocked)}} - logical NOT
-
-    // STRING OPERATORS - safe string manipulation with sanitization
-    contains: true, // {{#if (contains user.email "@company.com")}} - string contains
-    startsWith: true, // {{#if (startsWith user.name "Dr.")}} - string starts with
-    endsWith: true, // {{#if (endsWith file.name ".pdf")}} - string ends with
-    regexTest: true, // {{#if (regexTest phone "^\\+1")}} - regex test with flag validation
-
-    // ARRAY/OBJECT OPERATORS - safe collection operations without prototype access
-    in: true, // {{#if (in user.role validRoles)}} - value in array/object
-    length: true, // {{length items}} - get length of string/array/object
-    isEmpty: true, // {{#if (isEmpty user.tags)}} - check if empty
-
-    // TYPE CHECKING OPERATORS - safe runtime type validation
-    typeOf: true, // {{typeOf value}} - get type as string
-    isNull: true, // {{#if (isNull value)}} - check if null
-    isUndefined: true, // {{#if (isUndefined value)}} - check if undefined
-    isNumber: true, // {{#if (isNumber user.age)}} - check if number
-    isString: true, // {{#if (isString user.name)}} - check if string
-    isBoolean: true, // {{#if (isBoolean flag)}} - check if boolean
-    isArray: true, // {{#if (isArray items)}} - check if array
-    isObject: true, // {{#if (isObject user)}} - check if object (not array/null)
-
-    // MATHEMATICAL OPERATORS - safe arithmetic with overflow/underflow protection
-    add: true, // {{add price tax shipping}} - addition with multiple args
-    subtract: true, // {{subtract original discount}} - subtraction
-    multiply: true, // {{multiply price 0.08}} - multiplication
-    divide: true, // {{divide total count}} - division with zero-division protection
-    modulo: true, // {{modulo number 10}} - modulo with zero-division protection
-
-    // UTILITY OPERATORS - safe fallback and default value handling
-    default: true, // {{default user.displayName user.username}} - fallback value
-  };
-
-  private options = {
-    // Currently disabled - throws on undefined properties like {{user.name}} when user is undefined
-    // TODO: Enable with proper optional property handling (use {{#if user}}{{user.name}}{{/if}} pattern)
+  private readonly compileOptions: CompileOptions = {
     strict: false,
-
-    // XSS RISK: Currently disabled HTML escaping - ALL output is rendered as raw HTML
-    // TODO: Set to false (enable escaping) and use {{{triple}}} for intentional raw HTML only
     noEscape: true,
-
-    // Don't assume objects exist - prevents "Cannot read property of undefined" errors
-    // Safely handles {{user.profile.name}} when user or profile might be undefined
     assumeObjects: false,
-
-    // Prevent whitespace-based template obfuscation attacks
-    // Disables indentation tricks that could hide malicious template code
     preventIndent: true,
-
-    // Whitelist of allowed helpers - blocks dangerous helpers like 'lookup'
-    // Only helpers explicitly listed in this.allowedHelpers can be used in templates
-    knownHelpers: this.allowedHelpers,
-
-    // Enforce helper whitelist - any unlisted helper throws compilation error
-    // Prevents use of built-in dangerous helpers or injection of custom helpers
+    knownHelpers: {
+      if: true,
+      unless: true,
+      each: true,
+      log: true,
+      with: false,
+      lookup: false,
+    },
     knownHelpersOnly: true,
-
-    // Disable @data variables (@root, @index, @key, etc.)
-    // Prevents access to template context that could expose internal object structure
     data: false,
-
-    // Require explicit context for partials
-    // Forces {{> partial this}} instead of automatic context inheritance
     explicitPartialContext: true,
-
-    // Use modern Handlebars behavior instead of legacy compatibility mode
-    // Avoids potential vulnerabilities from older Handlebars versions
     compat: false,
-
-    // Use default whitespace handling for standalone helpers
-    // Prevents extra blank lines but minimal security impact
     ignoreStandalone: false,
   };
 
-  private static readonly MAX_TEMPLATE_SIZE = 50000;
-
-  constructor(
-    private readonly dateFormatterHelperService: DateFormatterHelperService,
-    private readonly operatorsHelperService: OperatorsHelperService,
-  ) {}
-
-  onModuleInit() {
+  onModuleInit(): void {
     this.handlebars = Handlebars.create();
-    this.handlebars.registerHelper(
-      'currentDate',
-      this.dateFormatterHelperService.getCurrentDateHelper(),
-    );
-    this.handlebars.registerHelper(
-      'formatDate',
-      this.dateFormatterHelperService.getFormatDateHelper(),
-    );
-    this.handlebars.registerHelper(
-      'timeAgo',
-      this.dateFormatterHelperService.getTimeAgoHelper(),
-    );
-
-    // Equality operators
-    this.handlebars.registerHelper(
-      'eq',
-      this.operatorsHelperService.getEqualsHelper(),
-    );
-    this.handlebars.registerHelper(
-      'ne',
-      this.operatorsHelperService.getNotEqualsHelper(),
-    );
-    this.handlebars.registerHelper(
-      'looseEq',
-      this.operatorsHelperService.getLooseEqualsHelper(),
-    );
-    this.handlebars.registerHelper(
-      'looseNe',
-      this.operatorsHelperService.getLooseNotEqualsHelper(),
-    );
-
-    // Comparison operators
-    this.handlebars.registerHelper(
-      'gt',
-      this.operatorsHelperService.getGreaterThanHelper(),
-    );
-    this.handlebars.registerHelper(
-      'gte',
-      this.operatorsHelperService.getGreaterThanOrEqualHelper(),
-    );
-    this.handlebars.registerHelper(
-      'lt',
-      this.operatorsHelperService.getLessThanHelper(),
-    );
-    this.handlebars.registerHelper(
-      'lte',
-      this.operatorsHelperService.getLessThanOrEqualHelper(),
-    );
-
-    // Logical operators
-    this.handlebars.registerHelper(
-      'and',
-      this.operatorsHelperService.getAndHelper(),
-    );
-    this.handlebars.registerHelper(
-      'or',
-      this.operatorsHelperService.getOrHelper(),
-    );
-    this.handlebars.registerHelper(
-      'not',
-      this.operatorsHelperService.getNotHelper(),
-    );
-
-    // String operators
-    this.handlebars.registerHelper(
-      'contains',
-      this.operatorsHelperService.getContainsHelper(),
-    );
-    this.handlebars.registerHelper(
-      'startsWith',
-      this.operatorsHelperService.getStartsWithHelper(),
-    );
-    this.handlebars.registerHelper(
-      'endsWith',
-      this.operatorsHelperService.getEndsWithHelper(),
-    );
-    this.handlebars.registerHelper(
-      'regexTest',
-      this.operatorsHelperService.getRegexTestHelper(),
-    );
-
-    // Array/Object operators
-    this.handlebars.registerHelper(
-      'in',
-      this.operatorsHelperService.getInHelper(),
-    );
-    this.handlebars.registerHelper(
-      'length',
-      this.operatorsHelperService.getLengthHelper(),
-    );
-    this.handlebars.registerHelper(
-      'isEmpty',
-      this.operatorsHelperService.getIsEmptyHelper(),
-    );
-
-    // Type checking operators
-    this.handlebars.registerHelper(
-      'typeOf',
-      this.operatorsHelperService.getTypeOfHelper(),
-    );
-    this.handlebars.registerHelper(
-      'isNull',
-      this.operatorsHelperService.getIsNullHelper(),
-    );
-    this.handlebars.registerHelper(
-      'isUndefined',
-      this.operatorsHelperService.getIsUndefinedHelper(),
-    );
-    this.handlebars.registerHelper(
-      'isNumber',
-      this.operatorsHelperService.getIsNumberHelper(),
-    );
-    this.handlebars.registerHelper(
-      'isString',
-      this.operatorsHelperService.getIsStringHelper(),
-    );
-    this.handlebars.registerHelper(
-      'isBoolean',
-      this.operatorsHelperService.getIsBooleanHelper(),
-    );
-    this.handlebars.registerHelper(
-      'isArray',
-      this.operatorsHelperService.getIsArrayHelper(),
-    );
-    this.handlebars.registerHelper(
-      'isObject',
-      this.operatorsHelperService.getIsObjectHelper(),
-    );
-
-    // Mathematical operators
-    this.handlebars.registerHelper(
-      'add',
-      this.operatorsHelperService.getAddHelper(),
-    );
-    this.handlebars.registerHelper(
-      'subtract',
-      this.operatorsHelperService.getSubtractHelper(),
-    );
-    this.handlebars.registerHelper(
-      'multiply',
-      this.operatorsHelperService.getMultiplyHelper(),
-    );
-    this.handlebars.registerHelper(
-      'divide',
-      this.operatorsHelperService.getDivideHelper(),
-    );
-    this.handlebars.registerHelper(
-      'modulo',
-      this.operatorsHelperService.getModuloHelper(),
-    );
-
-    // Utility operators
-    this.handlebars.registerHelper(
-      'default',
-      this.operatorsHelperService.getDefaultHelper(),
-    );
   }
 
   public render(
     content: string,
-    data: any,
-    options: RuntimeOptions = {},
+    data: Record<string, unknown> = {},
+    options: RenderOptions = {},
   ): string {
-    if (content.length > HandlebarsProcessor.MAX_TEMPLATE_SIZE) {
-      throw new Error(`Template too large`);
+    if (typeof content !== 'string') {
+      throw new TypeError('Template content must be a string');
     }
 
-    const template = this.handlebars.compile(content, this.options);
-    return template(data, options);
+    if (content.length > HandlebarsProcessor.MAX_TEMPLATE_SIZE) {
+      throw new Error(
+        `Template exceeds maximum size of ${HandlebarsProcessor.MAX_TEMPLATE_SIZE} characters`,
+      );
+    }
+
+    const { cacheKeyPrefix, helpers: customHelpers, ...runtimeOptions } = options;
+
+    const cacheKey = `${options.cacheKeyPrefix}--${content}`;
+
+    const cached = this.getOrCreateCached(cacheKey, () =>
+      customHelpers?.length
+        ? this.createCustomHelperTemplate(content, customHelpers)
+        : { template: this.handlebars.compile(content, this.compileOptions), handlebars: this.handlebars },
+    );
+
+    return cached.template(data, runtimeOptions);
+  }
+
+  private getOrCreateCached(
+    key: string,
+    factory: () => CachedTemplate,
+  ): CachedTemplate {
+    let cached = this.templateCache.get(key);
+
+    if (!cached) {
+      if (this.templateCache.size >= HandlebarsProcessor.MAX_CACHE_SIZE) {
+        const firstKey = this.templateCache.keys().next().value;
+        if (firstKey) this.templateCache.delete(firstKey);
+      }
+      cached = factory();
+      this.templateCache.set(key, cached);
+    }
+
+    return cached;
+  }
+
+  private createCustomHelperTemplate(
+    content: string,
+    customHelpers: CustomHelper[],
+  ): CachedTemplate {
+    const isolatedHandlebars = Handlebars.create();
+    const extendedKnownHelpers: Record<string, boolean> = { ...this.compileOptions.knownHelpers };
+
+    for (const helper of customHelpers) {
+      if (HandlebarsProcessor.RESERVED_HELPERS.has(helper.name)) {
+        throw new Error(`Cannot override reserved helper: "${helper.name}"`);
+      }
+      isolatedHandlebars.registerHelper(helper.name, this.wrapHelper(helper.fn));
+      extendedKnownHelpers[helper.name] = true;
+    }
+
+    const template = isolatedHandlebars.compile(content, {
+      ...this.compileOptions,
+      knownHelpers: extendedKnownHelpers,
+    });
+
+    return { template, handlebars: isolatedHandlebars };
+  }
+
+  private wrapHelper(fn: Function): Handlebars.HelperDelegate {
+    return function (this: any, ...args: any[]) {
+      const options = args[args.length - 1];
+      const isHandlebarsOptions =
+        options && typeof options === 'object' && 'hash' in options;
+      return fn.apply(this, isHandlebarsOptions ? args.slice(0, -1) : args);
+    };
   }
 }

@@ -4,6 +4,8 @@ import { BlockInterface } from '../interfaces';
 import { SchemaValidationError } from '../errors';
 import { z } from 'zod';
 import { instanceToPlain } from 'class-transformer';
+import { CustomHelper } from './handlebars-processor.service';
+import { TemplateExOptions } from './expression-handler/template-expression.handler';
 
 @Injectable()
 export class TemplateExpressionEvaluatorService {
@@ -32,36 +34,33 @@ export class TemplateExpressionEvaluatorService {
 
   public evaluateTemplate<T>(
     obj: any,
-    block: BlockInterface,
-    groups?: string[],
-    schema?: z.ZodType,
+    variables: any,
+    options?: TemplateExOptions
   ): T {
     if (obj === undefined) {
       return obj;
     }
 
-    const config = block.config as any;
-
-    const selfProperties = instanceToPlain(block, {
-      strategy: config.classTransformStrategy || 'exposeAll',
-      groups,
-      excludeExtraneousValues: true,
-    });
+    // const selfProperties = instanceToPlain(variables, {
+    //   strategy: 'exposeAll',
+    //   groups,
+    //   excludeExtraneousValues: true,
+    // });
 
     // console.log('selfProperties', selfProperties);
 
-    const result = this.evaluateTemplateRaw<T>(obj, selfProperties);
+    const result = this.evaluateTemplateRaw<T>(obj, variables, options);
 
     // this.logger.debug(`Evaluated ${obj} to ${result}`);
     // if (typeof result === 'object') {
     //   this.logger.debug(result);
     // }
 
-    return schema ? this.validateResult<T>(result, schema) : result;
+    return options?.schema ? this.validateResult<T>(result, options.schema) : result;
   }
 
-  public evaluateTemplateRaw<T>(obj: any, variables: any): T {
+  public evaluateTemplateRaw<T>(obj: any, variables: any, options?: TemplateExOptions): T {
     const isValid = this.isValidTemplate(obj);
-    return isValid ? this.templateService.evaluateDeep<T>(obj, variables) : obj;
+    return isValid ? this.templateService.evaluateDeep<T>(obj, variables, options) : obj;
   }
 }

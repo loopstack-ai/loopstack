@@ -1,18 +1,14 @@
-import { BlockMetadata } from '@loopstack/common';
-import type { WorkflowType } from '@loopstack/contracts/types';
 import { Expose, instanceToPlain } from 'class-transformer';
 import {
   BlockInterface,
-  BlockRegistryItem,
   BlockStateDto,
   WorkflowExecutionContextDto,
 } from '../../common';
+import { Block } from './block.abstract';
 
-export class Pipeline implements BlockInterface {
+export class PipelineBase extends Block implements BlockInterface {
   @Expose()
   public type: string = 'sequence';
-
-  public metadata: BlockMetadata;
 
   @Expose()
   public args: any;
@@ -22,24 +18,6 @@ export class Pipeline implements BlockInterface {
 
   @Expose()
   public ctx: WorkflowExecutionContextDto;
-
-  @Expose()
-  public config: WorkflowType;
-
-  init(
-    registry: BlockRegistryItem,
-    args: any,
-    ctx: WorkflowExecutionContextDto,
-  ) {
-    this.metadata = registry.metadata;
-    this.args = args;
-    this.ctx = ctx;
-    this.state = new BlockStateDto({
-      id: registry.name,
-      error: false,
-      stop: false,
-    });
-  }
 
   get name(): string {
     return this.constructor.name;

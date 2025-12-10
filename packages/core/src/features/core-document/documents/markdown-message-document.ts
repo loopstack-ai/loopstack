@@ -1,6 +1,6 @@
-import { BlockConfig } from '@loopstack/common';
+import { BlockConfig, WithArguments } from '@loopstack/common';
 import { z } from 'zod';
-import { Document } from '../models';
+import { DocumentBase } from '../models';
 
 const MarkdownMessageDocumentSchema = z.object({
   title: z.string().optional(),
@@ -12,8 +12,7 @@ const MarkdownMessageDocumentSchema = z.object({
     type: 'document',
     description: 'Markdown Message Document.',
   },
-  properties: MarkdownMessageDocumentSchema,
-  configSchema: MarkdownMessageDocumentSchema,
   configFile: __dirname + '/markdown-message-document.yaml',
 })
-export class MarkdownMessageDocument extends Document {}
+@WithArguments(MarkdownMessageDocumentSchema)
+export class MarkdownMessageDocument extends DocumentBase {}

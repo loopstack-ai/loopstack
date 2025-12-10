@@ -1,32 +1,36 @@
-import { BlockConfig, HandlerCallResult } from '@loopstack/common';
+import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
 import { z } from 'zod';
-import { Logger } from '@nestjs/common';
-import { TemplateExpression } from '@loopstack/contracts/schemas';
-import { Tool } from '../../../workflow-processor';
+import { Injectable, Logger } from '@nestjs/common';
+import { ToolBase } from '../../../workflow-processor';
 
+const InputSchema = z.union([
+  z.string(),
+  z.number(),
+  z.object({}).passthrough(),
+  z.array(z.unknown()),
+  z.null(),
+  z.boolean(),
+]);
+
+type InputType = z.infer<typeof InputSchema>;
+
+@Injectable()
 @BlockConfig({
   config: {
     description: 'Create a value from input.',
   },
-  properties: z
-    .object({
-      input: z.any(),
-    })
-    .strict(),
-  configSchema: z
-    .object({
-      input: z.union([TemplateExpression, z.any()]),
-    })
-    .strict(),
 })
-export class CreateValue extends Tool {
+@WithArguments(z.object({
+  input: InputSchema,
+}).strict())
+export class CreateValue extends ToolBase<{ input: InputType }> {
   protected readonly logger = new Logger(CreateValue.name);
 
-  async execute(): Promise<HandlerCallResult> {
-    this.logger.debug(`Created value: ${JSON.stringify(this.args.input)}`);
+  async execute(args: { input: InputType }): Promise<ToolResult> {
+    this.logger.debug(`Created value: ${JSON.stringify(args.input)}`);
 
     return {
-      data: this.args.input,
+      data: args.input,
     };
   }
 }

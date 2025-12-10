@@ -6,13 +6,12 @@ import type {
 } from '@loopstack/contracts/types';
 import { NamespaceEntity, PipelineEntity } from '@loopstack/common';
 import {
-  BlockContextType,
+  BlockContextType, BlockExecutionContextDto,
   BlockInterface,
   FactoryExecutionContextDto,
   PipelineExecutionContextDto,
-  TemplateExpressionEvaluatorService,
+  TemplateExpressionEvaluatorService, WorkflowExecutionContextDto,
 } from '../../common';
-import { Factory, Pipeline } from '../abstract';
 import { NamespacePropsSchema } from '@loopstack/contracts/schemas';
 import { NamespacesService } from '../../persistence';
 
@@ -41,7 +40,7 @@ export class NamespaceProcessorService {
     });
   }
 
-  async initBlockNamespace<T extends Pipeline | Factory>(block: T): Promise<T> {
+  async initBlockNamespace<T extends BlockInterface>(block: T, ctx: BlockExecutionContextDto): Promise<BlockExecutionContextDto> {
     const config: PipelineSequenceType | PipelineFactoryConfigType =
       block.config as any;
 
@@ -50,27 +49,27 @@ export class NamespaceProcessorService {
         this.templateExpressionEvaluatorService.evaluateTemplate<NamespacePropsType>(
           config.namespace,
           block,
-          ['pipeline'],
-          NamespacePropsSchema,
+          // ['pipeline'],
+          { schema: NamespacePropsSchema },
         );
 
-      block.ctx.namespace = await this.createNamespace(block, namespaceConfig);
-      block.ctx.labels = [...block.ctx.labels, block.ctx.namespace.name];
+      ctx.namespace = await this.createNamespace(ctx, namespaceConfig);
+      ctx.labels = [...ctx.labels, ctx.namespace.name];
     }
 
-    return block;
+    return ctx;
   }
 
   async createNamespace(
-    block: BlockInterface,
+    ctx: WorkflowExecutionContextDto | PipelineExecutionContextDto | FactoryExecutionContextDto,
     props: NamespacePropsType,
   ): Promise<NamespaceEntity> {
     return this.namespacesService.create({
       name: props.label ?? 'Group',
-      pipelineId: block.ctx.pipelineId,
-      workspaceId: block.ctx.workspaceId,
-      parent: block.ctx.namespace,
-      createdBy: block.ctx.userId,
+      pipelineId: ctx.pipelineId,
+      workspaceId: ctx.workspaceId,
+      parent: ctx.namespace,
+      createdBy: ctx.userId,
     });
   }
 

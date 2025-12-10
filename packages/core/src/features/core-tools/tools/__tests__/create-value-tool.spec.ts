@@ -1,122 +1,125 @@
-import { CreateValue } from '../create-value-tool';
 import { TestingModule } from '@nestjs/testing';
-import { createToolTestingContext, describeSchemaTests } from '../../../test';
-import { Tool } from '../../../workflow-processor';
+import { CreateValue } from '../create-value-tool';
+import { createToolTest } from '../../../../test';
 
-describe('Tool: CreateValue', () => {
+describe('CreateValue', () => {
   let module: TestingModule;
-  let createToolInstance: (args: any, ctx?: any) => Promise<CreateValue>;
+  let tool: CreateValue;
 
-  beforeAll(async () => {
-    const ctx = await createToolTestingContext(CreateValue);
-    module = ctx.module;
-    createToolInstance = ctx.createTool;
+  beforeEach(async () => {
+    module = await createToolTest()
+      .forTool(CreateValue)
+      .compile();
+
+    tool = module.get(CreateValue);
   });
 
-  afterAll(async () => {
-    await module?.close();
+  afterEach(async () => {
+    await module.close();
   });
 
-  describe('Block Metadata', () => {
-    let tool: CreateValue;
-
-    beforeAll(async () => {
-      tool = await createToolInstance({ input: 'any' });
+  describe('initialization', () => {
+    it('should be defined', () => {
+      expect(tool).toBeDefined();
     });
 
-    it('tool should be defined', async () => {
-      expect(tool).toBeInstanceOf(CreateValue);
-    });
-
-    it('should have metadata attached', () => {
-      expect(tool.metadata).toBeDefined();
-    });
-
-    it('should have properties schema', () => {
-      expect(tool.metadata.properties).toBeDefined();
-    });
-
-    it('should have config schema', () => {
-      expect(tool.metadata.configSchema).toBeDefined();
+    it('should have argsSchema defined', () => {
+      expect(tool.argsSchema).toBeDefined();
     });
   });
 
-  describe('Properties Schema', () => {
-    let tool: Tool;
-
-    beforeAll(async () => {
-      tool = await createToolInstance({ input: 'any' });
+  describe('validation', () => {
+    it('should validate input with any value', () => {
+      const validated = tool.validate({ input: 'test' });
+      expect(validated).toEqual({ input: 'test' });
     });
 
-    describeSchemaTests(
-      () => tool.metadata.properties!,
-      [
-        {
-          description: 'should not allow additional properties',
-          args: { input: 'Hello World!', test: 1 },
-          shouldPass: false,
-        },
-        {
-          description: 'should accept valid string input',
-          args: { input: 'Hello World!' },
-          shouldPass: true,
-        },
-      ],
-    );
-  });
-
-  describe('Config Schema', () => {
-    let tool: Tool;
-
-    beforeAll(async () => {
-      tool = await createToolInstance({ input: 'any' });
+    it('should validate input with number', () => {
+      const validated = tool.validate({ input: 42 });
+      expect(validated).toEqual({ input: 42 });
     });
 
-    describeSchemaTests(
-      () => tool.metadata.configSchema!,
-      [
-        {
-          description: 'should not allow additional properties',
-          args: { input: 'Hello World!', test: 1 },
-          shouldPass: false,
-        },
-        {
-          description: 'should accept valid string input',
-          args: { input: 'Hello World!' },
-          shouldPass: true,
-        },
-        {
-          description: 'should accept property accessor expressions',
-          args: { input: '${ someValue }' },
-          shouldPass: true,
-        },
-        {
-          description: 'should accept template expressions',
-          args: { input: '{{ valueA }}' },
-          shouldPass: true,
-        },
-      ],
-    );
-  });
-
-  describe('Arguments', () => {
-    let tool: Tool;
-
-    beforeAll(async () => {
-      tool = await createToolInstance({ input: 'any' });
+    it('should validate input with object', () => {
+      const validated = tool.validate({ input: { key: 'value' } });
+      expect(validated).toEqual({ input: { key: 'value' } });
     });
 
-    it('should have correct arguments', async () => {
-      expect(tool.args).toEqual({ input: 'any' });
+    it('should validate input with array', () => {
+      const validated = tool.validate({ input: [1, 2, 3] });
+      expect(validated).toEqual({ input: [1, 2, 3] });
+    });
+
+    it('should validate input with null', () => {
+      const validated = tool.validate({ input: null });
+      expect(validated).toEqual({ input: null });
+    });
+
+    it('should reject extra properties (strict mode)', () => {
+      expect(() => tool.validate({ input: 'test', extra: 'field' })).toThrow();
+    });
+
+    it('should reject missing input property', () => {
+      expect(() => tool.validate({})).toThrow();
     });
   });
 
-  describe('Result', () => {
-    it('should return string input unchanged', async () => {
-      const tool = await createToolInstance({ input: 'hello world' });
-      const result = await tool.execute();
+  describe('execution', () => {
+    it('should return string input as data', async () => {
+      const args = tool.validate({ input: 'hello world' });
+      const result = await tool.execute(args);
 
       expect(result.data).toBe('hello world');
+    });
+
+    it('should return number input as data', async () => {
+      const args = tool.validate({ input: 123 });
+      const result = await tool.execute(args);
+
+      expect(result.data).toBe(123);
+    });
+
+    it('should return object input as data', async () => {
+      const input = { name: 'test', value: 42 };
+      const args = tool.validate({ input });
+      const result = await tool.execute(args);
+
+      expect(result.data).toEqual(input);
+    });
+
+    it('should return array input as data', async () => {
+      const input = [1, 'two', { three: 3 }];
+      const args = tool.validate({ input });
+      const result = await tool.execute(args);
+
+      expect(result.data).toEqual(input);
+    });
+
+    it('should return boolean input as data', async () => {
+      const args = tool.validate({ input: true });
+      const result = await tool.execute(args);
+
+      expect(result.data).toBe(true);
+    });
+
+    it('should return null input as data', async () => {
+      const args = tool.validate({ input: null });
+      const result = await tool.execute(args);
+
+      expect(result.data).toBeNull();
+    });
+
+    it('should return nested object input as data', async () => {
+      const input = {
+        level1: {
+          level2: {
+            level3: 'deep value',
+          },
+        },
+      };
+      const args = tool.validate({ input });
+      const result = await tool.execute(args);
+
+      expect(result.data).toEqual(input);
     });
   });
 });

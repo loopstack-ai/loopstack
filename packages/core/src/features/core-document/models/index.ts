@@ -1,1 +1,1 @@
-export * from './document.abstract';
+export * from './document-base.abstract';

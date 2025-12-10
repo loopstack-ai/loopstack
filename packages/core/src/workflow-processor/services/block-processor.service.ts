@@ -1,19 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { ProcessorFactory } from './processor.factory';
-import { BlockInterface } from '../../common';
+import { BlockExecutionContextDto, BlockInterface } from '../../common';
+import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
 
 @Injectable()
 export class BlockProcessor {
+
+  constructor(private readonly processorFactory: ProcessorFactory) {
+  }
   async processBlock<TInstance extends BlockInterface>(
     block: TInstance,
-    factory: ProcessorFactory,
-  ): Promise<TInstance> {
+    args: any,
+    ctx: BlockExecutionContextDto,
+  ): Promise<WorkflowExecution> {
     const processorName = block.type;
-    const processor = factory.getProcessor(processorName);
+    const processor = this.processorFactory.getProcessor(processorName);
     if (!processor) {
       throw new Error(`Processor ${processorName} is not defined.`);
     }
 
-    return processor.process(block, factory);
+    return processor.process(block, args, ctx);
   }
 }

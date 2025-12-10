@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
-import { CoreDocumentCapabilityFactory } from './core-document-capability.factory';
 import { CommonModule } from '../../common';
 import { CreateDocument } from './tools';
 import { DocumentService } from './services';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DocumentEntity } from '@loopstack/common';
 import {
-  AiMessageDocument,
   ErrorMessageDocument,
   MarkdownMessageDocument,
   MessageDocument,
@@ -24,7 +22,6 @@ import { CoreToolsModule } from '../core-tools';
     WorkflowProcessorModule,
   ],
   providers: [
-    CoreDocumentCapabilityFactory,
     DocumentService,
 
     // Tools
@@ -36,8 +33,11 @@ import { CoreToolsModule } from '../core-tools';
     MarkdownMessageDocument,
     MessageDocument,
     PlainMessageDocument,
-    AiMessageDocument,
   ],
-  exports: [CoreDocumentCapabilityFactory, DocumentService],
+  exports: [
+    DocumentService,
+    CreateChatMessage,
+    CreateDocument,
+  ],
 })
 export class CoreDocumentModule {}

@@ -1,14 +1,15 @@
 import {
   BlockConfig,
-  DocumentEntity,
-  HandlerCallResult,
+  DocumentEntity, Tool,
+  ToolResult, WithArguments,
 } from '@loopstack/common';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { CreateDocument } from './create-document-tool';
-import { ProcessorFactory, Tool } from '../../../workflow-processor';
+import { ToolBase } from '../../../workflow-processor';
 import { MessageDocument } from '../documents';
-import { DelegateService } from '../../core-tools';
+import { WorkflowExecution } from '../../../workflow-processor/interfaces/workflow-execution.interface';
+import { Block } from '../../../workflow-processor/abstract/block.abstract';
 
 const MessageSchema = z.object({
   content: z.any(),
@@ -24,33 +25,25 @@ const CreateChatMessageInputSchema = z.union([
   z.array(MessageSchema),
 ]);
 
-const CreateChatMessageConfigSchema = z.union([
-  MessageSchema,
-  z.array(MessageSchema),
-]);
-
 type CreateChatMessageInput = z.infer<typeof CreateChatMessageInputSchema>;
 
+@Injectable()
 @BlockConfig({
-  imports: [CreateDocument],
   config: {
     description: 'Create chat message(s).',
   },
-  properties: CreateChatMessageInputSchema,
-  configSchema: CreateChatMessageConfigSchema,
 })
-export class CreateChatMessage extends Tool<CreateChatMessageInput> {
+@WithArguments(CreateChatMessageInputSchema)
+export class CreateChatMessage extends ToolBase<CreateChatMessageInput> {
   protected readonly logger = new Logger(CreateChatMessage.name);
 
-  constructor(private readonly delegateService: DelegateService) {
-    super();
-  }
+  @Tool() private createDocument: CreateDocument;
 
   async execute(
     args: CreateChatMessageInput,
-    ctx: any,
-    factory: ProcessorFactory,
-  ): Promise<HandlerCallResult> {
+    ctx: WorkflowExecution,
+    parent: Block,
+  ): Promise<ToolResult> {
     const items = !Array.isArray(args) ? [args] : args;
 
     const createdDocuments: DocumentEntity[] = [];
@@ -69,14 +62,7 @@ export class CreateChatMessage extends Tool<CreateChatMessageInput> {
         },
       };
 
-      const result = await this.delegateService.delegate(
-        CreateDocument.name,
-        createDocumentArgs,
-        ctx,
-        factory,
-        this.metadata.imports,
-      );
-
+      const result = await this.createDocument.execute(createDocumentArgs, ctx, parent);
       createdDocuments.push(result.data as DocumentEntity);
     }
 

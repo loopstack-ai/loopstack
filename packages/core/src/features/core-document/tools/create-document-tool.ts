@@ -1,10 +1,10 @@
 import {
   BlockConfig,
   DocumentEntity,
-  HandlerCallResult,
+  ToolResult, WithArguments,
 } from '@loopstack/common';
 import { Logger } from '@nestjs/common';
-import { BlockRegistryService, Tool } from '../../../workflow-processor';
+import { ToolBase } from '../../../workflow-processor';
 import { DocumentConfigType, DocumentType } from '@loopstack/contracts/types';
 import { merge, omit } from 'lodash';
 import {
@@ -13,15 +13,16 @@ import {
   TemplateExpression,
 } from '@loopstack/contracts/schemas';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { plainToInstance } from 'class-transformer';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
-import { DocumentService } from '../services/document.service';
+import { DocumentService } from '../services';
 import {
   ConfigTraceError,
   SchemaValidationError,
   TemplateExpressionEvaluatorService,
 } from '../../../common';
+import { WorkflowExecution } from '../../../workflow-processor/interfaces/workflow-execution.interface';
+import { Block } from '../../../workflow-processor/abstract/block.abstract';
 
 export const CreateDocumentInputSchema = z
   .object({
@@ -57,38 +58,26 @@ export const CreateDocumentConfigSchema = z
   config: {
     description: 'Create a document.',
   },
-  properties: CreateDocumentInputSchema,
-  configSchema: CreateDocumentConfigSchema,
 })
-export class CreateDocument extends Tool {
+@WithArguments(CreateDocumentInputSchema)
+export class CreateDocument extends ToolBase {
   protected readonly logger = new Logger(CreateDocument.name);
 
   constructor(
     private readonly documentService: DocumentService,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-    private readonly blockRegistryService: BlockRegistryService,
   ) {
     super();
   }
 
-  async execute(): Promise<HandlerCallResult> {
-    const document = this.createDocument(this.args);
+  async execute(args: CreateDocumentInput, ctx: WorkflowExecution, parent: Block): Promise<ToolResult> {
 
-    return {
-      data: document,
-      effects: {
-        addWorkflowDocuments: [document],
-      },
-    };
-  }
-
-  private createDocument(args: CreateDocumentInput): DocumentEntity {
-    const blockRegistryItem = this.blockRegistryService.getBlock(args.document);
-    if (!blockRegistryItem) {
-      throw new Error(`Document ${args.document} not found.`);
+    const document = parent.getDocument(args.document);
+    if (!document) {
+      throw new Error(`Document ${args.document} not found in parent context.`);
     }
 
-    const config = blockRegistryItem.config as DocumentConfigType;
+    const config = document.config as DocumentConfigType;
 
     try {
       // merge the custom properties
@@ -100,58 +89,28 @@ export class CreateDocument extends Tool {
           Omit<DocumentType, 'content'>
         >(
           omit(mergedTemplateData, ['content']),
-          this,
-          ['document'],
-          DocumentSchema,
+          { args } as any,
+          // ['document'],
+          { schema: DocumentSchema },
         );
-
-      const inputSchema = blockRegistryItem.metadata.properties;
-      if (!inputSchema && mergedTemplateData.content) {
-        throw Error(`Document creates with content no schema defined.`);
-      }
-
-      const jsonSchema = zodToJsonSchema(inputSchema as any, {
-        name: 'documentSchema',
-        target: 'jsonSchema7',
-      })?.definitions?.documentSchema;
 
       // evaluate document content
       const parsedDocumentContent =
         this.templateExpressionEvaluatorService.evaluateTemplate<any>(
           mergedTemplateData.content,
-          this,
-          ['document'],
+          { args } as any,
         );
 
-      const documentContent = plainToInstance(
-        blockRegistryItem.provider.metatype as any,
-        parsedDocumentContent,
-        {
-          excludeExtraneousValues: true,
-        },
-      );
+      const inputSchema = document.argsSchema;
+      if (!inputSchema && parsedDocumentContent) {
+        throw Error(`Document creates with content no schema defined.`);
+      }
 
-      const messageId = args.id
-        ? this.templateExpressionEvaluatorService.evaluateTemplate<any>(
-            args.id,
-            this,
-            ['document'],
-            z.string(),
-          )
-        : undefined;
+      let documentContent = undefined;
+      const errorData: { error?: any } = {};
 
-      // merge document skeleton with content data
-      const documentData: Partial<DocumentEntity> = {
-        ...documentSkeleton,
-        schema: jsonSchema,
-        messageId: messageId || randomUUID(),
-        content: documentContent,
-        blockName: blockRegistryItem.name,
-      };
-
-      // do final strict validation
       if (inputSchema && args.validate !== 'skip') {
-        const result = inputSchema.safeParse(documentData.content);
+        const result = inputSchema.safeParse(parsedDocumentContent);
         if (!result.success) {
           if (args.validate === 'strict') {
             this.logger.error(result.error);
@@ -160,18 +119,50 @@ export class CreateDocument extends Tool {
             );
           }
 
-          documentData.error = result.error;
+          errorData.error = result.error;
         }
+
+        documentContent = result.data;
       }
 
+      const messageId = args.id
+        ? this.templateExpressionEvaluatorService.evaluateTemplate<any>(
+          args.id,
+          { args } as any,
+          { schema: z.string() },
+        )
+        : undefined;
+
+      const jsonSchema = zodToJsonSchema(inputSchema as any, {
+        name: 'documentSchema',
+        target: 'jsonSchema7',
+      })?.definitions?.documentSchema;
+
+      // merge document skeleton with content data
+      const documentData: Partial<DocumentEntity> = {
+        ...documentSkeleton,
+        ...errorData,
+        schema: jsonSchema,
+        messageId: messageId || randomUUID(),
+        content: documentContent,
+        blockName: document.name,
+      };
+
       // create the document entity
-      const documentEntity = this.documentService.create(this, documentData);
+      const documentEntity = this.documentService.create(ctx, documentData);
 
       this.logger.debug(`Created document "${documentData.messageId}".`);
 
-      return documentEntity;
+      return {
+        data: documentEntity,
+        effects: {
+          addWorkflowDocuments: [documentEntity],
+        },
+      };
+
     } catch (e) {
-      throw new ConfigTraceError(e, blockRegistryItem.provider.instance);
+      throw new ConfigTraceError(e, document);
     }
   }
+
 }

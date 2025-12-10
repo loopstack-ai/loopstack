@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DocumentEntity, WorkflowEntity } from '@loopstack/common';
-import { Tool } from '../../../workflow-processor';
+import { WorkflowExecution } from '../../../workflow-processor/interfaces/workflow-execution.interface';
 
 @Injectable()
 export class DocumentService {
@@ -11,16 +11,14 @@ export class DocumentService {
     private documentRepository: Repository<DocumentEntity>,
   ) {}
 
-  create(block: Tool, data: Partial<DocumentEntity>): DocumentEntity {
-    if (!block.ctx.workflow.id) {
-      throw new Error(`No workflow assigned to processor context.`);
-    }
-    if (!block.ctx.workflow.transition?.id) {
+  create(ctx: WorkflowExecution, data: Partial<DocumentEntity>): DocumentEntity {
+    const transition = ctx.runtime.transition!;
+    if (!transition.id) {
       throw new Error(`No transition assigned to processor state.`);
     }
 
     // todo. this check could be done earlier or introduce a specific transition for alternative paths
-    if (Array.isArray(block.ctx.workflow.transition.to)) {
+    if (Array.isArray(transition.to)) {
       throw new Error(
         `Cannot create a document on an undecided transition target. Make sure to set a singular "to" place for a transition where documents are created`,
       );
@@ -28,15 +26,15 @@ export class DocumentService {
 
     return this.documentRepository.create({
       ...data,
-      transition: block.ctx.workflow.transition.id,
-      index: block.ctx.workflow.documents?.length ?? 0,
-      workflowIndex: block.ctx.index,
-      place: block.ctx.workflow.transition.to,
-      labels: block.ctx.labels,
-      workflow: { id: block.ctx.workflow.id } as WorkflowEntity,
-      workspaceId: block.ctx.workspaceId,
-      pipelineId: block.ctx.pipelineId,
-      createdBy: block.ctx.userId,
+      transition: transition.id,
+      index: ctx.state.getMetadata('documents')?.length ?? 0,
+      workflowIndex: ctx.context.index,
+      place: transition.to,
+      labels: ctx.context.labels,
+      workflow: { id: ctx.context.workflowId } as WorkflowEntity,
+      workspaceId: ctx.context.workspaceId,
+      pipelineId: ctx.context.pipelineId,
+      createdBy: ctx.context.userId,
     });
   }
 }

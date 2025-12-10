@@ -1,4 +1,4 @@
-import { DocumentEntity, HandlerCallResult } from '@loopstack/common';
+import { DocumentEntity, ToolResult } from '@loopstack/common';
 import { createDocumentMock } from './create-document-mock';
 import { MessageDocument } from '../features/core-document';
 
@@ -6,7 +6,7 @@ export function createDocumentResultMock<T>(
   source: new (...args: any[]) => any,
   content: T,
   documentProps: Partial<DocumentEntity> = {},
-): HandlerCallResult {
+): ToolResult {
   const document = createDocumentMock(source, content, documentProps);
   return {
     data: document,

@@ -1,12 +1,8 @@
 import { Injectable, Logger, Type } from '@nestjs/common';
-import { HandlerCallResult } from '@loopstack/common';
+import { ToolResult } from '@loopstack/common';
 import {
-  BlockFactory,
   BlockProcessor,
-  ProcessorFactory,
-  Tool,
 } from '../../../workflow-processor';
-import { ToolExecutionContextDto } from '../../../common';
 
 @Injectable()
 export class DelegateService {
@@ -14,7 +10,6 @@ export class DelegateService {
 
   constructor(
     private readonly blockProcessor: BlockProcessor,
-    private readonly blockFactory: BlockFactory,
   ) {}
 
   private validateToolAvailable(
@@ -36,21 +31,21 @@ export class DelegateService {
     toolName: string,
     args: any,
     ctx: any,
-    factory: ProcessorFactory,
     availableImports: (Type | string)[],
-  ): Promise<HandlerCallResult> {
-    this.validateToolAvailable(toolName, availableImports);
+  ): Promise<ToolResult> {
+    // this.validateToolAvailable(toolName, availableImports);
+    //
+    // const toolBlock = await this.blockFactory.resolveEntrypoint<
+    //   Tool
+    // >(toolName);
+    //
+    // const tool = await this.blockProcessor.processBlock<Tool>(
+    //   toolBlock,
+    //   args,
+    //   ctx,
+    //   factory
+    // );
 
-    const toolBlock = await this.blockFactory.createBlock<
-      Tool,
-      ToolExecutionContextDto
-    >(toolName, args, ctx);
-
-    const tool = await this.blockProcessor.processBlock<Tool>(
-      toolBlock,
-      factory,
-    );
-
-    return tool.result;
+    return {};
   }
 }

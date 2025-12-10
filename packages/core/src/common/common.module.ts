@@ -10,9 +10,13 @@ import {
   TemplateExpressionEvaluatorService,
 } from './services';
 import { ClientMessageService } from './services/client-message.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [EventEmitterModule.forRoot()],
+  imports: [
+    ConfigModule,
+    EventEmitterModule.forRoot()
+  ],
   providers: [
     ClientMessageService,
     TemplateService,
