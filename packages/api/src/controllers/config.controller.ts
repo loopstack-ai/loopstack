@@ -11,15 +11,14 @@ import {
   Controller,
   Get,
   Param,
-  Type,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { PipelineSequenceType, WorkspaceType } from '@loopstack/contracts/types';
+import { WorkflowType, WorkspaceType } from '@loopstack/contracts/types';
 import {
   BlockRegistryItem,
-  BlockRegistryService,
-  Workspace,
+  BlockRegistryService, WorkflowBase,
+  WorkspaceBase,
 } from '@loopstack/core';
 import { plainToInstance } from 'class-transformer';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
@@ -41,10 +40,10 @@ export class ConfigController {
   @ApiOkResponse({ type: WorkspaceConfigDto, isArray: true })
   @ApiUnauthorizedResponse()
   getWorkspaceTypes(): WorkspaceConfigDto[] {
-    const blocks = this.blockRegistryService.getBlocksByType(Workspace);
+    const blocks = this.blockRegistryService.getBlocksByType(WorkspaceBase);
 
     const resolvedConfigs = blocks.map((block: BlockRegistryItem) => {
-      const config = block.config as WorkspaceType;
+      const config = block.provider.instance.config as WorkspaceType;
       return {
         blockName: block.name,
         title: config.title ?? block.name,
@@ -78,20 +77,23 @@ export class ConfigController {
       );
     }
 
-    const filtered = workspaceBlock.metadata.imports.map((item: Type<any>) => {
-      const pipelineBlock = this.blockRegistryService.getBlock(item.name);
-      if (!pipelineBlock) {
-        throw new BadRequestException(
-          `Config for pipeline with name ${item.name} not found.`,
-        );
-      }
+    const instance = workspaceBlock.provider.instance as WorkspaceBase;
 
-      const config = pipelineBlock.config as PipelineSequenceType;
+    const workflows: { name: string, instance: WorkflowBase }[] = instance.workflows.reduce((acc, key) => [
+      ...acc,
+      { name: key, instance: instance[key] }
+    ], []);
+
+    const filtered = workflows.map((item) => {
+      const config = item.instance.config as WorkflowType;
+
+      const propertiesSchema = item.instance.argsSchema ? this.blockRegistryService.zodToJsonSchema(item.instance.argsSchema) : undefined;
+
       return {
         blockName: item.name,
         title: config.title,
         description: config.description,
-        schema: pipelineBlock.metadata.propertiesSchema,
+        schema: propertiesSchema,
         ui: config.ui,
       } satisfies PipelineConfigDto;
     });
