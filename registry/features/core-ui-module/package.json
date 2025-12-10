@@ -1,7 +1,7 @@
 {
-  "name": "@loopstack/core-document-module",
-  "displayName": "Loopstack Core Tools Module",
-  "description": "A collection of core tools for basic workflow functionality",
+  "name": "@loopstack/core-ui-module",
+  "displayName": "Loopstack Core UI Module",
+  "description": "A collection of tools for creating specific UI documents for interaction in the loopstack studio ",
   "version": "0.14.0",
   "author": {
     "name": "Jakob Klippel",
@@ -30,8 +30,11 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.14.0",
+    "@loopstack/contracts": "^0.14.0",
     "@loopstack/core": "^0.14.0",
-    "zod": "^3.24.1"
+    "lodash": "^4.17.21",
+    "zod": "^3.24.1",
+    "zod-to-json-schema": "^3.25.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",

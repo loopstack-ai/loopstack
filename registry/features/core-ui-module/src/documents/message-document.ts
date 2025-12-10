@@ -1,6 +1,6 @@
 import { BlockConfig, WithArguments } from '@loopstack/common';
 import { z } from 'zod';
-import { DocumentBase } from '../models';
+import { DocumentBase } from '@loopstack/core';
 
 const MessageDocumentSchema = z.object({
   role: z.string(),

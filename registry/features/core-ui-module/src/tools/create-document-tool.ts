@@ -4,7 +4,6 @@ import {
   ToolResult, WithArguments,
 } from '@loopstack/common';
 import { Logger } from '@nestjs/common';
-import { ToolBase } from '../../../workflow-processor';
 import { DocumentConfigType, DocumentType } from '@loopstack/contracts/types';
 import { merge, omit } from 'lodash';
 import {
@@ -15,14 +14,13 @@ import {
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
-import { DocumentService } from '../services';
 import {
-  ConfigTraceError,
+  Block, ConfigTraceError, DocumentService,
   SchemaValidationError,
   TemplateExpressionEvaluatorService,
-} from '../../../common';
-import { WorkflowExecution } from '../../../workflow-processor/interfaces/workflow-execution.interface';
-import { Block } from '../../../workflow-processor/abstract/block.abstract';
+  ToolBase,
+  WorkflowExecution,
+} from '@loopstack/core';
 
 export const CreateDocumentInputSchema = z
   .object({

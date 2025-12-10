@@ -1,9 +1,5 @@
 import { Module } from '@nestjs/common';
-import { CommonModule } from '../../common';
 import { CreateDocument } from './tools';
-import { DocumentService } from './services';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DocumentEntity } from '@loopstack/common';
 import {
   ErrorMessageDocument,
   MarkdownMessageDocument,
@@ -11,17 +7,14 @@ import {
   PlainMessageDocument,
 } from './documents';
 import { CreateChatMessage } from './tools';
-import { WorkflowProcessorModule } from '../../workflow-processor';
+import { CommonModule, LoopCoreModule } from '@loopstack/core';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([DocumentEntity]),
     CommonModule,
-    WorkflowProcessorModule,
+    LoopCoreModule,
   ],
   providers: [
-    DocumentService,
-
     // Tools
     CreateDocument,
     CreateChatMessage,
@@ -33,9 +26,8 @@ import { WorkflowProcessorModule } from '../../workflow-processor';
     PlainMessageDocument,
   ],
   exports: [
-    DocumentService,
     CreateChatMessage,
     CreateDocument,
   ],
 })
-export class CoreDocumentModule {}
+export class CoreUiModule {}

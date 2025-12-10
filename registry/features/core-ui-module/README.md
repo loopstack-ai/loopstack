@@ -1,2 +1,2 @@
-# Loopstack Core Tools Module
+# Loopstack Core UI Module
 

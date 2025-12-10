@@ -6,10 +6,8 @@ import {
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { CreateDocument } from './create-document-tool';
-import { ToolBase } from '../../../workflow-processor';
 import { MessageDocument } from '../documents';
-import { WorkflowExecution } from '../../../workflow-processor/interfaces/workflow-execution.interface';
-import { Block } from '../../../workflow-processor/abstract/block.abstract';
+import { Block, ToolBase, WorkflowExecution } from '@loopstack/core';
 
 const MessageSchema = z.object({
   content: z.any(),
