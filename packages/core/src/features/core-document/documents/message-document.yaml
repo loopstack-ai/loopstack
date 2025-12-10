@@ -1,5 +1,0 @@
-tags:
-  - message
-ui:
-  form:
-    widget: chat-message

@@ -2,11 +2,11 @@ import { BlockConfigType } from '@loopstack/contracts/types';
 import {
   BlockInterface,
 } from '../../common';
-import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
+import { WorkflowExecution } from '../interfaces';
 import { WorkflowBase } from './workflow-base.abstract';
 import { ToolBase } from './tool-base.abstract';
 import { z } from 'zod';
-import { DocumentBase } from '../../features';
+import { DocumentBase } from './document-base.abstract';
 
 export abstract class Block<TArgs extends object = any> implements BlockInterface
 {

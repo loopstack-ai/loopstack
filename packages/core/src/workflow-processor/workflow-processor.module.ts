@@ -79,6 +79,7 @@ import { PersistenceModule } from '../persistence';
     BlockRegistryService,
   ],
   exports: [
+    PersistenceModule,
     RootProcessorService,
     CreatePipelineService,
     BlockRegistryService,

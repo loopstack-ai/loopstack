@@ -1,5 +1,0 @@
-tags:
-  - error
-ui:
-  form:
-    widget: error-message
