@@ -21,13 +21,10 @@ type Step = 'selection' | 'arguments';
 const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
   const { router } = useStudio();
 
-
   const createPipeline = useCreatePipeline();
   const pingPipeline = useRunPipeline();
 
   const fetchPipelineTypes = usePipelineConfig(workspace.blockName);
-
-  console.log(fetchPipelineTypes.error)
 
   const [currentStep, setCurrentStep] = useState<Step>('selection');
   const [formData, setFormData] = useState({
@@ -158,6 +155,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
           {/* Arguments View */}
           <div className="w-full flex-shrink-0 px-1">
             <ArgumentsView
+              key={formData.blockName} // forces remount of the component / form when selection is changed
               config={selectedPipelineConfig}
               hasArguments={hasArguments}
               isLoading={isLoading}

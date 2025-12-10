@@ -1,5 +1,6 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, QueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
+import debounce from 'lodash/debounce';
 import { useStudio } from './StudioProvider';
 import { eventBus } from '@/services';
 import { SseClientEvents } from '@/events';
@@ -7,96 +8,86 @@ import { getDocumentsCacheKey } from '@/hooks/useDocuments.ts';
 import { getWorkflowCacheKey, getWorkflowsByPipelineCacheKey, getWorkflowsCacheKey } from '@/hooks/useWorkflows.ts';
 import { getNamespacesByPipelineCacheKey } from '@/hooks/useNamespaces.ts';
 
+type DebouncedInvalidator = ReturnType<typeof debounce<() => void>>;
+
+const DEBOUNCE_MS = 300;
+
+function createDebouncedInvalidator(
+  queryClient: QueryClient,
+  queryKey: unknown[]
+): DebouncedInvalidator {
+  return debounce(() => {
+    queryClient.invalidateQueries({ queryKey });
+  }, DEBOUNCE_MS);
+}
+
 export function InvalidationEventsProvider() {
   const { environment } = useStudio();
   const queryClient = useQueryClient();
-  const workflowTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const documentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const invalidatorCache = useRef<Map<string, DebouncedInvalidator>>(new Map());
 
   useEffect(() => {
     if (!environment.id) return;
 
-    console.log('InvalidationEventsProvider mounted for environment:', environment.id);
-
     const envKey = environment.id;
-    const unsubWorkflowCreatedSubscriber = eventBus.on(
+    const cache = invalidatorCache.current;
+
+    function invalidate(queryKey: unknown[]) {
+      const keyStr = JSON.stringify(queryKey);
+
+      if (!cache.has(keyStr)) {
+        cache.set(keyStr, createDebouncedInvalidator(queryClient, queryKey));
+      }
+
+      cache.get(keyStr)!();
+    }
+
+    const unsubWorkflowCreated = eventBus.on(
       SseClientEvents.WORKFLOW_CREATED,
       (payload: any) => {
-        if (workflowTimeoutRef.current) {
-          clearTimeout(workflowTimeoutRef.current);
+        if (payload.namespaceId) {
+          invalidate(getWorkflowsCacheKey(envKey, payload.namespaceId));
         }
-        workflowTimeoutRef.current = setTimeout(() => {
-          if (payload.namespaceId) {
-            queryClient.invalidateQueries({
-              queryKey: getWorkflowsCacheKey(envKey, payload.namespaceId)
-            });
-          }
-
-          if (payload.pipelineId) {
-            queryClient.invalidateQueries({
-              queryKey: getNamespacesByPipelineCacheKey(envKey, payload.pipelineId)
-            });
-            queryClient.invalidateQueries({
-              queryKey: getWorkflowsByPipelineCacheKey(envKey, payload.pipelineId)
-            });
-          }
-        }, 300);
+        if (payload.pipelineId) {
+          invalidate(getNamespacesByPipelineCacheKey(envKey, payload.pipelineId));
+          invalidate(getWorkflowsByPipelineCacheKey(envKey, payload.pipelineId));
+        }
       }
     );
-    
-    const unsubWorkflowUpdatedSubscriber = eventBus.on(
+
+    const unsubWorkflowUpdated = eventBus.on(
       SseClientEvents.WORKFLOW_UPDATED,
       (payload: any) => {
-        if (workflowTimeoutRef.current) {
-          clearTimeout(workflowTimeoutRef.current);
+        if (payload.id) {
+          invalidate(getWorkflowCacheKey(envKey, payload.id));
         }
-        workflowTimeoutRef.current = setTimeout(() => {
-          if (payload.id) {
-            queryClient.invalidateQueries({ queryKey: getWorkflowCacheKey(envKey, payload.id) });
-          }
-
-          if (payload.namespaceId)  {
-            queryClient.invalidateQueries({
-              queryKey: getWorkflowsCacheKey(envKey, payload.namespaceId)
-            });
-          }
-
-          if (payload.pipelineId) {
-            queryClient.invalidateQueries({
-              queryKey: getNamespacesByPipelineCacheKey(envKey, payload.pipelineId)
-            });
-            queryClient.invalidateQueries({
-              queryKey: getWorkflowsByPipelineCacheKey(envKey, payload.pipelineId)
-            });
-          }
-        }, 300);
+        if (payload.namespaceId) {
+          invalidate(getWorkflowsCacheKey(envKey, payload.namespaceId));
+        }
+        if (payload.pipelineId) {
+          invalidate(getNamespacesByPipelineCacheKey(envKey, payload.pipelineId));
+          invalidate(getWorkflowsByPipelineCacheKey(envKey, payload.pipelineId));
+        }
       }
     );
 
-    const unsubDocumentCreatedSubscriber = eventBus.on(
+    const unsubDocumentCreated = eventBus.on(
       SseClientEvents.DOCUMENT_CREATED,
       (payload: any) => {
-        if (documentTimeoutRef.current) {
-          clearTimeout(documentTimeoutRef.current);
+        if (payload.workflowId) {
+          invalidate(getDocumentsCacheKey(envKey, payload.workflowId));
         }
-        documentTimeoutRef.current = setTimeout(() => {
-          if (payload.workflowId) {
-            queryClient.invalidateQueries({ queryKey: getDocumentsCacheKey(envKey, payload.workflowId)});
-          }
-        }, 300);
       }
     );
 
     return () => {
-      unsubWorkflowCreatedSubscriber();
-      unsubWorkflowUpdatedSubscriber();
-      unsubDocumentCreatedSubscriber();
-      if (workflowTimeoutRef.current) {
-        clearTimeout(workflowTimeoutRef.current);
-      }
-      if (documentTimeoutRef.current) {
-        clearTimeout(documentTimeoutRef.current);
-      }
+      unsubWorkflowCreated();
+      unsubWorkflowUpdated();
+      unsubDocumentCreated();
+
+      // Cancel all pending debounced calls and clear cache
+      cache.forEach(debouncedFn => debouncedFn.cancel());
+      cache.clear();
     };
   }, [queryClient, environment.id]);
 
