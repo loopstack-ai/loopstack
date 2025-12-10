@@ -13,7 +13,7 @@ transitions:
     to: prompt_executed
     call:
       - id: execute_prompt
-        tool: AiGenerateText
+        tool: aiGenerateText
         args:
           llm:
             provider: openai
@@ -26,8 +26,8 @@ transitions:
     from: prompt_executed
     to: end
     call:
-      - tool: CreateDocument
+      - tool: createDocument
         args:
-          document: AiMessageDocument
+          document: aiMessageDocument
           update:
             content: ${ llmResponse }

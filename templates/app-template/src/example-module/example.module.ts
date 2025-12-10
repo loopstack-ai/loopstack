@@ -1,43 +1,31 @@
 import { Module } from '@nestjs/common';
-import { CoreToolsModule, LoopCoreModule } from '@loopstack/core';
-import { ExampleModuleCapabilityFactory } from './example-module-capability.factory';
-import { LlmModule } from '@loopstack/llm';
+import { CoreFeaturesModule, LoopCoreModule } from '@loopstack/core';
 import { ExampleWorkspace } from './example-workspace';
-import { PromptWorkflow } from './llm/prompt-example/prompt.workflow';
-import { ChatWorkflow } from './llm/chat-example/chat.workflow';
-import { PromptStructuredDataWorkflow } from './llm/prompt-structured-data-example/prompt-structured-data.workflow';
-import { FileDocument } from './llm/prompt-structured-data-example/documents/file-document';
-import { GetWeather } from './llm/tool-call-example/tools/get-weather.tool';
-import { ToolCallWorkflow } from './llm/tool-call-example/tool-call.workflow';
-import { MeetingNotesWorkflow } from './tutorials/meeting-notes-example/meeting-notes.workflow';
-import { MeetingNotesDocument } from './tutorials/meeting-notes-example/documents/meeting-notes-document';
-import { OptimizedNotesDocument } from './tutorials/meeting-notes-example/documents/optimized-notes-document';
+import { AiModule } from '@loopstack/ai-module';
+import { PromptWorkflow } from './prompt-example/prompt.workflow';
 
 @Module({
   imports: [
     LoopCoreModule,
-    CoreToolsModule,
-    LlmModule
+    CoreFeaturesModule,
+    AiModule,
   ],
   providers: [
     ExampleWorkspace,
     PromptWorkflow,
-    ChatWorkflow,
-
-    PromptStructuredDataWorkflow,
-    FileDocument,
-
-    GetWeather,
-    ToolCallWorkflow,
-
-    MeetingNotesWorkflow,
-    MeetingNotesDocument,
-    OptimizedNotesDocument,
-
-    ExampleModuleCapabilityFactory,
+    // ChatWorkflow,
+    //
+    // PromptStructuredDataWorkflow,
+    // FileDocument,
+    //
+    // GetWeather,
+    // ToolCallWorkflow,
+    //
+    // MeetingNotesWorkflow,
+    // MeetingNotesDocument,
+    // OptimizedNotesDocument,
   ],
   exports: [
-    ExampleModuleCapabilityFactory
   ]
 })
 export class ExampleModule {}
