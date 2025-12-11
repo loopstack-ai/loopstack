@@ -205,15 +205,13 @@ export class RegistryAddCommand extends CommandRunner {
     const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
     const deps = pkg.dependencies || {};
-    const devDeps = pkg.devDependencies || {};
-    const allDeps = { ...deps, ...devDeps };
 
-    if (Object.keys(allDeps).length === 0) {
+    if (Object.keys(deps).length === 0) {
       return;
     }
 
     console.log('\nDependencies:');
-    Object.entries(allDeps).forEach(([name, version]) => {
+    Object.entries(deps).forEach(([name, version]) => {
       console.log(`  ${name}@${version}`);
     });
 
@@ -230,19 +228,9 @@ export class RegistryAddCommand extends CommandRunner {
           ([name, version]) => `${name}@${version}`,
         );
 
-        const devDepsList = Object.entries(devDeps).map(
-          ([name, version]) => `${name}@${version}`,
-        );
-
         if (depsList.length > 0) {
           console.log('\nAdding dependencies to package.json...');
           const command = this.getAddCommand(pm, depsList.join(' '), false);
-          execSync(command, { stdio: 'inherit' });
-        }
-
-        if (devDepsList.length > 0) {
-          console.log('Adding dev dependencies to package.json...');
-          const command = this.getAddCommand(pm, devDepsList.join(' '), true);
           execSync(command, { stdio: 'inherit' });
         }
 
@@ -250,7 +238,7 @@ export class RegistryAddCommand extends CommandRunner {
         console.log(`Run '${this.getInstallCommand(pm)}' to install them`);
       } catch (error) {
         console.warn('Failed to add dependencies');
-        const packages = Object.entries(allDeps)
+        const packages = Object.entries(deps)
           .map(([name, version]) => `${name}@${version}`)
           .join(' ');
         console.log(
@@ -258,7 +246,7 @@ export class RegistryAddCommand extends CommandRunner {
         );
       }
     } else {
-      const packages = Object.entries(allDeps)
+      const packages = Object.entries(deps)
         .map(([name, version]) => `${name}@${version}`)
         .join(' ');
       console.log(
@@ -268,7 +256,7 @@ export class RegistryAddCommand extends CommandRunner {
   }
 
   private async promptForDirectory(item: string): Promise<string> {
-    const defaultDir = `src/packages/${item}`;
+    const defaultDir = `src/${item}`;
 
     const rl = readline.createInterface({
       input: process.stdin,
