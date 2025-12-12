@@ -2,8 +2,8 @@ import { WorkflowBase } from '@loopstack/core';
 import { BlockConfig, Helper, Tool } from '@loopstack/common';
 import { Injectable } from '@nestjs/common';
 import { WorkflowMetadataInterface } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-metadata.interface';
-import { CreateValue } from '@loopstack/core-tools-module';
 import { CreateChatMessage } from '@loopstack/core-ui-module';
+import { CreateValue } from '@loopstack/create-value-tool';
 
 @Injectable()
 @BlockConfig({
