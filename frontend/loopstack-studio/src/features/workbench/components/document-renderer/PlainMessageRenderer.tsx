@@ -7,8 +7,8 @@ interface PlainMessageRendererProps {
 
 const PlainMessageRenderer: React.FC<PlainMessageRendererProps> = ({ document }) => {
   return (
-    <CompletionMessagePaper role={document.content.title ?? 'plain'}>
-      <div className="ml-8">{document.content.content}</div>
+    <CompletionMessagePaper>
+      {document.content.text}
     </CompletionMessagePaper>
   );
 };

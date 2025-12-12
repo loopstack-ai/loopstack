@@ -1,6 +1,5 @@
 import React from 'react';
-import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
-import { Alert, AlertDescription } from '../../../../components/ui/alert.tsx';
+import { Alert, AlertDescription } from '@/components/ui/alert.tsx';
 
 interface ErrorMessageRendererProps {
   document: any; //TODO: Define a more specific type for document
@@ -8,11 +7,9 @@ interface ErrorMessageRendererProps {
 
 const ErrorMessageRenderer: React.FC<ErrorMessageRendererProps> = ({ document }) => {
   return (
-    <CompletionMessagePaper role={'error'}>
-      <Alert variant="destructive">
-        <AlertDescription>{document.content.message}</AlertDescription>
-      </Alert>
-    </CompletionMessagePaper>
+    <Alert variant="destructive" className="w-auto">
+      <AlertDescription>{document.content.error}</AlertDescription>
+    </Alert>
   );
 };
 

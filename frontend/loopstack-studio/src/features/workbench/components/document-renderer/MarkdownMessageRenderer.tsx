@@ -8,10 +8,8 @@ interface MarkdownMessageRendererProps {
 
 const MarkdownMessageRenderer: React.FC<MarkdownMessageRendererProps> = ({ document }) => {
   return (
-    <CompletionMessagePaper role={document.content.title ?? 'plain'}>
-      <div className="ml-8">
-        <MarkdownContent content={document.content.markdown} />
-      </div>
+    <CompletionMessagePaper>
+      <MarkdownContent content={document.content.markdown} />
     </CompletionMessagePaper>
   );
 };

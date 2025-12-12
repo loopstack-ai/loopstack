@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils.ts';
 import { Card } from '../ui/card';
 
 interface CompletionMessagePaperProps {
-  role: 'system' | 'user' | 'assistant' | 'tool' | 'error' | 'document';
+  role?: 'system' | 'user' | 'assistant' | 'tool' | 'error' | 'document';
   children: React.ReactNode;
   timestamp?: Date;
   metadata?: Record<string, any>;
@@ -46,7 +46,7 @@ const CompletionMessagePaper: React.FC<CompletionMessagePaperProps> = ({
     }
   };
 
-  const config = roleConfig[role] ?? roleConfig['tool'];
+  const config = (role ? roleConfig[role] : undefined) ?? roleConfig['assistant'];
   const isUser = role === 'user';
 
   const formatTimestamp = (date: Date): string => {
@@ -72,12 +72,12 @@ const CompletionMessagePaper: React.FC<CompletionMessagePaperProps> = ({
         )}
       >
         <div className="flex items-center mb-2 gap-2 opacity-70">
-          <span
+          {role ? <span
             className="text-xs font-semibold uppercase tracking-wider"
             style={{ color: config.color }}
           >
             {role}
-          </span>
+          </span> : ''}
           {timestamp && (
             <span className="text-xs text-muted-foreground font-mono">
               {formatTimestamp(timestamp)}

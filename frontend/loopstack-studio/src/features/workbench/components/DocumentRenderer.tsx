@@ -54,13 +54,13 @@ const DocumentRenderer: React.FC<DocumentRendererProps> = ({
             />
           </CompletionMessagePaper>
         );
-      case 'chat-message':
+      case 'message':
         return <DocumentMessageRenderer document={document} />;
-      case 'error-message':
+      case 'error':
         return <ErrorMessageRenderer document={document} />;
-      case 'plain-message':
+      case 'plain':
         return <PlainMessageRenderer document={document} />;
-      case 'markdown-message':
+      case 'markdown':
         return <MarkdownMessageRenderer document={document} />;
       default:
         return <>unknown document type</>;
