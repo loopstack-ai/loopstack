@@ -7,8 +7,8 @@ import {
   WorkflowProcessorService,
 } from '@loopstack/core';
 import { WorkflowStateWorkflow } from '../workflow-state.workflow';
-import { CoreToolsModule, CreateValue } from '@loopstack/core-tools-module';
 import { CoreUiModule, CreateChatMessage } from '@loopstack/core-ui-module';
+import { CreateValue } from '@loopstack/create-value-tool';
 
 describe('WorkflowStateWorkflow', () => {
   let module: TestingModule;
@@ -21,8 +21,8 @@ describe('WorkflowStateWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(WorkflowStateWorkflow)
-      .withImports(LoopCoreModule, CoreToolsModule, CoreUiModule)
-      .withToolOverride(CreateValue)
+      .withImports(LoopCoreModule, CoreUiModule)
+      .withToolMock(CreateValue)
       .withToolOverride(CreateChatMessage)
       .compile();
 
