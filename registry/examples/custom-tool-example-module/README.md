@@ -1,2 +1,2 @@
 
-# Loopstack Custom Tool Example Workflow
+# Loopstack Custom Tool Example Module
