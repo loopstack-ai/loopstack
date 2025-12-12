@@ -12,7 +12,6 @@ import {
 } from '@loopstack/common';
 import { CommonModule } from './common';
 import { WorkflowProcessorModule } from './workflow-processor';
-import { CliModule } from './cli';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
@@ -30,7 +29,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     CommonModule,
     WorkflowProcessorModule,
     SchedulerModule,
-    CliModule,
   ],
   providers: [
     {

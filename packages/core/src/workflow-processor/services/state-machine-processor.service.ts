@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  WorkflowEntity,
-} from '@loopstack/common';
-import {
   HistoryTransition,
   TransitionInfoInterface,
   TransitionMetadataInterface,
@@ -12,29 +9,18 @@ import {
 } from '@loopstack/contracts/types';
 import { WorkflowState } from '@loopstack/contracts/enums';
 
-import { omit } from 'lodash';
+import { omit, uniq } from 'lodash';
 import { z } from 'zod';
 import { WorkflowBase } from '../abstract';
 import { StateMachineToolCallProcessorService } from './state-machine-tool-call-processor.service';
 import {
-  ConfigTraceError,
+  ConfigTraceError, CustomHelper,
   TemplateExpressionEvaluatorService,
   WorkflowTransitionDto,
 } from '../../common';
-import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
+import { WorkflowExecution } from '../interfaces';
 import { WorkflowStateService } from './workflow-state.service';
-
-const TransitionValidationsSchema = z.array(
-  z
-    .object({
-      id: z.string(),
-      from: z.union([z.string(), z.array(z.string())]).optional(),
-      to: z.union([z.string(), z.array(z.string())]).optional(),
-      when: z.enum(['manual', 'onEntry']).optional(),
-      onError: z.string().optional(),
-    })
-    .strict(),
-);
+import { WorkflowTransitionSchema } from '@loopstack/contracts/schemas';
 
 @Injectable()
 export class StateMachineProcessorService {
@@ -46,7 +32,7 @@ export class StateMachineProcessorService {
     private readonly stateMachineToolCallProcessorService: StateMachineToolCallProcessorService,
   ) {}
 
-  getAvailableTransitions(block: WorkflowBase, ctx: WorkflowExecution): WorkflowTransitionType[] {
+  getAvailableTransitions(block: WorkflowBase, args: any, ctx: WorkflowExecution): WorkflowTransitionType[] {
     this.logger.debug(
       `Updating Available Transitions for Place "${ctx.state.getMetadata('place')}"`,
     );
@@ -59,21 +45,44 @@ export class StateMachineProcessorService {
       (transition) => omit(transition, ['call']),
     );
 
+    const templateHelpers: CustomHelper[] = block.helpers.map((name: string) => ({
+      name,
+      fn: block[name]
+    }));
+
     // make (latest) context available within service class
     const evaluatedTransitions =
       this.templateExpressionEvaluatorService.evaluateTemplate<
         WorkflowTransitionType[]
       >(
         transitionsWithoutCallProperty,
-        block,
-        { schema: TransitionValidationsSchema },
+        block.getTemplateVars(args, ctx),
+        {
+          cacheKey: block.name,
+          helpers: templateHelpers,
+          schema: z.array(WorkflowTransitionSchema)
+        },
       );
+
+    const validPlaces = uniq([
+      'start',
+      'end',
+      ...(config.transitions?.map((t) => t.from).flat() ?? []),
+    ]);
+
+    const isValidFromPlace = (from: string | string[]) =>
+      (typeof from === 'string' && (from === '*' || from === ctx.state.getMetadata('place'))) ||
+      (Array.isArray(from) && (from.includes('*') || from.includes(ctx.state.getMetadata('place'))));
+
+    const isValidToPlace = (to: string) => validPlaces.includes(to);
+
+    const isEnabledPlace = (value: string | number | boolean | undefined) => value === undefined || !!value;
 
     return evaluatedTransitions.filter(
       (item) =>
-        item.from?.includes('*') ||
-        (typeof item.from === 'string' && item.from === ctx.state.getMetadata('place')) ||
-        (Array.isArray(item.from) && item.from.includes(ctx.state.getMetadata('place'))),
+        isValidFromPlace(item.from)
+        && isValidToPlace(item.to)
+        && isEnabledPlace(item.if)
     );
   }
 
@@ -81,13 +90,9 @@ export class StateMachineProcessorService {
     nextTransition: TransitionInfoInterface,
     historyItem: HistoryTransition,
   ) {
-    const to = Array.isArray(nextTransition.to)
-      ? nextTransition.to
-      : [nextTransition.to];
-
     if (
       !historyItem.to ||
-      ![...to, nextTransition.from].includes(historyItem.to)
+      ![nextTransition.to, nextTransition.from].includes(historyItem.to)
     ) {
       throw new Error(
         `target place "${historyItem.to}" not available in transition`,
@@ -118,7 +123,9 @@ export class StateMachineProcessorService {
 
     if (!nextTransition) {
       nextTransition = ctx.runtime.availableTransitions.find(
-        (item) => undefined === item.when || item.when === 'onEntry',
+        (item) =>
+          (undefined === item.trigger || item.trigger === 'onEntry')
+          && (undefined === item.if || item.if === 'true'),
       );
     }
 
@@ -142,11 +149,7 @@ export class StateMachineProcessorService {
     ctx: WorkflowExecution,
     nextTransition: TransitionMetadataInterface,
   ) {
-    const place =
-      ctx.runtime.nextPlace ??
-      (Array.isArray(nextTransition.to)
-        ? nextTransition.to[0]
-        : nextTransition.to);
+    const place = ctx.runtime.nextPlace ?? nextTransition.to;
 
     const historyItem: HistoryTransition = {
       transition: nextTransition.id,
@@ -184,7 +187,7 @@ export class StateMachineProcessorService {
         );
 
         ctx.runtime.nextPlace = undefined;
-        ctx.runtime.availableTransitions = this.getAvailableTransitions(block, ctx);
+        ctx.runtime.availableTransitions = this.getAvailableTransitions(block, args, ctx);
         ctx.runtime.transition = this.getNextTransition(
           ctx,
           nextPendingTransition,

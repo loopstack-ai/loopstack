@@ -9,7 +9,7 @@ export class WorkflowTransitionDto implements TransitionMetadataInterface {
   from!: string;
 
   @Expose()
-  to!: string | string[];
+  to!: string;
 
   @Expose()
   onError?: string;

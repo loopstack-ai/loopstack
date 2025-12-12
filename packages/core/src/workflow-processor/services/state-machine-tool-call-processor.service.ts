@@ -6,7 +6,7 @@ import {
   CustomHelper,
   TemplateExpressionEvaluatorService,
 } from '../../common';
-import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
+import { WorkflowExecution } from '../interfaces';
 
 @Injectable()
 export class StateMachineToolCallProcessorService {
@@ -54,7 +54,7 @@ export class StateMachineToolCallProcessorService {
 
           const evaluatedArgs = this.templateExpressionEvaluatorService.evaluateTemplate<any>(
             toolCall.args,
-            block.getTemplateVars(args, ctx), // todo: restrict / expose ctx.state contents
+            block.getTemplateVars(args, ctx),
             {
               cacheKey: block.name,
               helpers: templateHelpers

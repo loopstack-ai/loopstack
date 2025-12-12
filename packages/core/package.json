@@ -48,7 +48,6 @@
     "handlebars": "^4.7.8",
     "json-schema-to-zod": "^2.6.1",
     "lodash": "^4.17.21",
-    "nest-commander": "^3.16.1",
     "openai": "^4.86.2",
     "yaml": "^2.8.1",
     "zod": "^3.25.76"

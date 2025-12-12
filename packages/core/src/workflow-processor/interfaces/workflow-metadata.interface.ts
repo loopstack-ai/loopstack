@@ -1,5 +1,5 @@
 import { DocumentEntity } from '@loopstack/common';
-import { HistoryTransition } from '@loopstack/contracts/dist/types';
+import { HistoryTransition } from '@loopstack/contracts/types';
 
 export interface WorkflowMetadataInterface {
   documents: DocumentEntity[],

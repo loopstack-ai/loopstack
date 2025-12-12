@@ -59,6 +59,7 @@ export abstract class Block<TArgs extends object = any> implements BlockInterfac
   }
 
   public getTemplateVars(args: any, ctx: WorkflowExecution) {
+    // todo: restrict / expose ctx.state contents
     return {
       ...ctx.state.getAll(),
       metadata: ctx.state.getAllMetadata(),
