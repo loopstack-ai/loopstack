@@ -1,6 +1,6 @@
 export interface TransitionInfoInterface {
   id: string;
   from: string;
-  to: string | string[];
+  to: string;
   onError?: string;
 }

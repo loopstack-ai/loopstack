@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { WorkflowTransitionSchema } from './workflow-transition.schema';
+import { WorkflowTransitionConfigSchema } from './workflow-transition.schema';
 import { BlockSchema } from './block.schema';
 import { UiFormSchema } from './ui-form.schema';
 
@@ -15,6 +15,6 @@ export const WorkflowBaseSchema = BlockSchema.extend({
 
 export const WorkflowSchema = WorkflowBaseSchema.extend({
   type: z.literal('workflow').default('workflow'),
-  transitions: z.array(WorkflowTransitionSchema).optional(),
+  transitions: z.array(WorkflowTransitionConfigSchema).optional(),
 });
 

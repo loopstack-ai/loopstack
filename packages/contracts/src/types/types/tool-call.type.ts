@@ -1,4 +1,4 @@
 import { z } from 'zod';
-import { ToolCallSchema } from '../../schemas';
+import { ToolCallConfigSchema } from '../../schemas';
 
-export type ToolCallType = z.infer<typeof ToolCallSchema>;
+export type ToolCallType = z.infer<typeof ToolCallConfigSchema>;
