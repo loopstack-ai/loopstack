@@ -7,8 +7,8 @@ import {
   WithState,
 } from '@loopstack/common';
 import { z } from 'zod';
-import { MathSumTool } from '../tools/math-sum.tool';
-import { CounterTool } from '../tools/counter.tool';
+import { MathSumTool } from '../tools';
+import { CounterTool } from '../tools';
 import { Injectable } from '@nestjs/common';
 import { CreateChatMessage } from '@loopstack/core-ui-module';
 

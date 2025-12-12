@@ -63,19 +63,3 @@ transitions:
             Counter tool should count:
 
             {{ metadata.tools.calculate.count1.data }}, {{ count2 }}, {{ count3 }}
-
-
-#      # Use a stateful tool
-#      - id: count4
-#        tool: nonFunctionalCounterTool
-#      - id: count5
-#        tool: nonFunctionalCounterTool
-#      - id: count6
-#        tool: nonFunctionalCounterTool
-#      - tool: createChatMessage
-#        args:
-#          role: 'assistant'
-#          content: |
-#            Counter tool created with factory pattern should not count:
-#
-#            {{ state.currentTransitionResults.count4.data }}, {{ state.currentTransitionResults.count5.data }}, {{ state.currentTransitionResults.count6.data }}

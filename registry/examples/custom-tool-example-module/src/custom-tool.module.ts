@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
-import { CoreToolsModule } from '@loopstack/core-tools-module';
-import { MathSumTool } from './tools/math-sum.tool';
-import { CounterTool } from './tools/counter.tool';
+import { MathSumTool } from './tools';
+import { CounterTool } from './tools';
 import { MathService } from './services/math.service';
-import { CustomToolExampleWorkflow } from './workflows/custom-tool-example.workflow';
+import { CustomToolExampleWorkflow } from './workflows';
 
 @Module({
-  imports: [LoopCoreModule, CoreToolsModule, CoreUiModule],
+  imports: [LoopCoreModule, CoreUiModule],
   providers: [
     CustomToolExampleWorkflow,
     MathSumTool,

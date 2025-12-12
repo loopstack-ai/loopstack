@@ -7,10 +7,8 @@ import {
   ToolMock,
   WorkflowProcessorService,
 } from '@loopstack/core';
-import { MathSumTool } from '../../tools/math-sum.tool';
-import { CounterTool } from '../../tools/counter.tool';
+import { MathSumTool, CounterTool } from '../../tools';
 import { z } from 'zod';
-import { CoreToolsModule } from '@loopstack/core-tools-module';
 import { CoreUiModule, CreateChatMessage } from '@loopstack/core-ui-module';
 
 describe('CustomToolExampleWorkflow', () => {
@@ -25,7 +23,7 @@ describe('CustomToolExampleWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(CustomToolExampleWorkflow)
-      .withImports(LoopCoreModule, CoreToolsModule, CoreUiModule)
+      .withImports(LoopCoreModule, CoreUiModule)
       .withToolMock(MathSumTool)
       .withToolMock(CounterTool)
       .withToolOverride(CreateChatMessage) // override tools from imported modules
@@ -204,7 +202,7 @@ describe('CustomToolExampleWorkflow with existing entity', () => {
   it('should resume from existing workflow', async () => {
     const module = await createWorkflowTest()
       .forWorkflow(CustomToolExampleWorkflow)
-      .withImports(LoopCoreModule, CoreToolsModule, CoreUiModule)
+      .withImports(LoopCoreModule, CoreUiModule)
       .withToolMock(MathSumTool)
       .withToolMock(CounterTool)
       .withToolOverride(CreateChatMessage)
