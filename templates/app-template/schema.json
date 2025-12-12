@@ -381,19 +381,24 @@
                     ]
                   },
                   "to": {
+                    "type": "string"
+                  },
+                  "if": {
                     "anyOf": [
                       {
-                        "type": "string"
+                        "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
                       },
                       {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
+                        "type": "string",
+                        "const": "true"
+                      },
+                      {
+                        "type": "string",
+                        "const": "false"
                       }
                     ]
                   },
-                  "when": {
+                  "trigger": {
                     "anyOf": [
                       {
                         "type": "string",
@@ -457,7 +462,9 @@
                   }
                 },
                 "required": [
-                  "id"
+                  "id",
+                  "from",
+                  "to"
                 ],
                 "additionalProperties": false
               }
