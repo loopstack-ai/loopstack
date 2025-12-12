@@ -1,6 +1,0 @@
-ui:
-  form:
-    widget: plain-message
-content:
-  title: 'Text'
-  content: ''

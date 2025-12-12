@@ -1,21 +1,17 @@
 import {
   BlockConfig,
-  DocumentEntity, Tool,
+  DocumentEntity, Tool, Document,
   ToolResult, WithArguments,
 } from '@loopstack/common';
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { CreateDocument } from './create-document-tool';
 import { MessageDocument } from '../documents';
-import { Block, ToolBase, WorkflowExecution } from '@loopstack/core';
+import { ToolBase, WorkflowExecution } from '@loopstack/core';
 
 const MessageSchema = z.object({
-  content: z.any(),
   role: z.string(),
-  tool_calls: z.array(z.any()).optional(),
-  tool_call_id: z.string().optional(),
-  annotations: z.any().optional(),
-  refusal: z.any().optional(),
+  content: z.string(),
 });
 
 const CreateChatMessageInputSchema = z.union([
@@ -36,31 +32,31 @@ export class CreateChatMessage extends ToolBase<CreateChatMessageInput> {
   protected readonly logger = new Logger(CreateChatMessage.name);
 
   @Tool() private createDocument: CreateDocument;
+  @Document() private messageDocument: MessageDocument;
 
   async execute(
     args: CreateChatMessageInput,
     ctx: WorkflowExecution,
-    parent: Block,
   ): Promise<ToolResult> {
     const items = !Array.isArray(args) ? [args] : args;
 
     const createdDocuments: DocumentEntity[] = [];
     for (const item of items) {
       const createDocumentArgs = {
-        document: MessageDocument.name,
+        document: 'messageDocument',
         update: {
           content: {
             role: item.role,
             content: item.content,
-            tool_calls: item.tool_calls,
-            tool_call_id: item.tool_call_id,
-            annotations: item.annotations,
-            refusal: item.refusal,
           },
         },
       };
 
-      const result = await this.createDocument.execute(createDocumentArgs, ctx, parent);
+      const result = await this.createDocument.execute(
+        createDocumentArgs,
+        ctx,
+        this,
+      );
       createdDocuments.push(result.data as DocumentEntity);
     }
 

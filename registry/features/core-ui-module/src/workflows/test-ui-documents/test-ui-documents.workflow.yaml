@@ -1,0 +1,43 @@
+title: Core Ui Documents
+
+transitions:
+  - id: render_all
+    from: start
+    to: end
+    call:
+
+      # Message
+      - tool: createDocument
+        args:
+          document: messageDocument
+          update:
+            content:
+              role: 'assistant'
+              content: 'This is the default message'
+
+      # Error
+      - tool: createDocument
+        args:
+          document: errorDocument
+          update:
+            content:
+              error: 'This is an error message'
+
+      # Markdown
+      - tool: createDocument
+        args:
+          document: markdownDocument
+          update:
+            content:
+              markdown: |
+                # Markdown
+                
+                This is `markdown`
+
+      # Plain Text
+      - tool: createDocument
+        args:
+          document: plainDocument
+          update:
+            content:
+              text: This is plain text

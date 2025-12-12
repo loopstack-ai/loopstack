@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { CreateDocument } from './tools';
 import {
-  ErrorMessageDocument,
-  MarkdownMessageDocument,
+  ErrorDocument,
+  MarkdownDocument,
   MessageDocument,
-  PlainMessageDocument,
+  PlainDocument,
 } from './documents';
 import { CreateChatMessage } from './tools';
 import { CommonModule, LoopCoreModule } from '@loopstack/core';
+import { TestUiDocumentsWorkflow } from './workflows';
 
 @Module({
   imports: [
@@ -20,14 +21,22 @@ import { CommonModule, LoopCoreModule } from '@loopstack/core';
     CreateChatMessage,
 
     // Documents
-    ErrorMessageDocument,
-    MarkdownMessageDocument,
+    ErrorDocument,
+    MarkdownDocument,
     MessageDocument,
-    PlainMessageDocument,
+    PlainDocument,
+
+    // Workflows
+    TestUiDocumentsWorkflow
   ],
   exports: [
-    CreateChatMessage,
     CreateDocument,
+    CreateChatMessage,
+    ErrorDocument,
+    MarkdownDocument,
+    MessageDocument,
+    PlainDocument,
+    TestUiDocumentsWorkflow,
   ],
 })
 export class CoreUiModule {}

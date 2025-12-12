@@ -1,6 +1,0 @@
-ui:
-  form:
-    widget: markdown-message
-content:
-  title: 'Markdown'
-  markdown: ''

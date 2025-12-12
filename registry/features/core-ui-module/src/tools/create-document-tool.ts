@@ -1,26 +1,36 @@
 import {
   BlockConfig,
   DocumentEntity,
-  ToolResult, WithArguments,
+  ToolResult,
+  WithArguments,
 } from '@loopstack/common';
 import { Logger } from '@nestjs/common';
 import { DocumentConfigType, DocumentType } from '@loopstack/contracts/types';
 import { merge, omit } from 'lodash';
-import {
-  DocumentConfigSchema,
-  DocumentSchema,
-  TemplateExpression,
-} from '@loopstack/contracts/schemas';
+import { DocumentSchema } from '@loopstack/contracts/schemas';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { z } from 'zod';
+import { z, ZodSchema, ZodError } from 'zod';
 import { randomUUID } from 'node:crypto';
 import {
-  Block, ConfigTraceError, DocumentService,
+  Block,
+  ConfigTraceError,
+  DocumentService,
   SchemaValidationError,
   TemplateExpressionEvaluatorService,
   ToolBase,
   WorkflowExecution,
 } from '@loopstack/core';
+
+interface TemplateContext {
+  args: CreateDocumentInput;
+}
+
+interface ContentValidationResult {
+  content: unknown;
+  error?: ZodError;
+}
+
+type ValidateMode = 'strict' | 'safe' | 'skip';
 
 export const CreateDocumentInputSchema = z
   .object({
@@ -28,29 +38,12 @@ export const CreateDocumentInputSchema = z
     document: z.string(),
     validate: z
       .union([z.literal('strict'), z.literal('safe'), z.literal('skip')])
-      .default('strict')
-      .optional(),
+      .default('strict'),
     update: DocumentSchema.optional(),
   })
   .strict();
 
 export type CreateDocumentInput = z.infer<typeof CreateDocumentInputSchema>;
-
-export const CreateDocumentConfigSchema = z
-  .object({
-    id: z.union([TemplateExpression, z.string()]).optional(),
-    document: z.string(),
-    validate: z
-      .union([
-        TemplateExpression,
-        z.literal('strict'),
-        z.literal('safe'),
-        z.literal('skip'),
-      ])
-      .optional(),
-    update: DocumentConfigSchema.optional(),
-  })
-  .strict();
 
 @BlockConfig({
   config: {
@@ -68,99 +61,176 @@ export class CreateDocument extends ToolBase {
     super();
   }
 
-  async execute(args: CreateDocumentInput, ctx: WorkflowExecution, parent: Block): Promise<ToolResult> {
-
+  async execute(
+    args: CreateDocumentInput,
+    ctx: WorkflowExecution,
+    parent: Block,
+  ): Promise<ToolResult> {
     const document = parent.getDocument(args.document);
     if (!document) {
-      throw new Error(`Document ${args.document} not found in parent context.`);
+      throw new Error(
+        `Document "${args.document}" not found in parent context.`,
+      );
     }
 
-    const config = document.config as DocumentConfigType;
-
     try {
-      // merge the custom properties
-      const mergedTemplateData = merge({}, config, args.update ?? {});
+      const config = document.config as DocumentConfigType;
+      const templateContext = { args };
 
-      // create the document skeleton without content property
-      const documentSkeleton =
-        this.templateExpressionEvaluatorService.evaluateTemplate<
-          Omit<DocumentType, 'content'>
-        >(
-          omit(mergedTemplateData, ['content']),
-          { args } as any,
-          // ['document'],
-          { schema: DocumentSchema },
-        );
+      const mergedTemplateData = this.mergeTemplateData(config, args.update);
 
-      // evaluate document content
-      const parsedDocumentContent =
-        this.templateExpressionEvaluatorService.evaluateTemplate<any>(
-          mergedTemplateData.content,
-          { args } as any,
-        );
+      const documentSkeleton = this.createDocumentSkeleton(mergedTemplateData, templateContext);
 
-      const inputSchema = document.argsSchema;
-      if (!inputSchema && parsedDocumentContent) {
-        throw Error(`Document creates with content no schema defined.`);
-      }
+      const parsedContent = this.createDocumentContent(mergedTemplateData.content, templateContext);
 
-      let documentContent = undefined;
-      const errorData: { error?: any } = {};
+      const validationResult = this.validateContent(
+        document.argsSchema,
+        parsedContent,
+        args.validate,
+      );
 
-      if (inputSchema && args.validate !== 'skip') {
-        const result = inputSchema.safeParse(parsedDocumentContent);
-        if (!result.success) {
-          if (args.validate === 'strict') {
-            this.logger.error(result.error);
-            throw new SchemaValidationError(
-              'Document schema validation failed (strict)',
-            );
-          }
+      const messageId = this.resolveMessageId(args.id, templateContext);
 
-          errorData.error = result.error;
-        }
+      const jsonSchema = this.createJsonSchema(document.argsSchema);
 
-        documentContent = result.data;
-      }
-
-      const messageId = args.id
-        ? this.templateExpressionEvaluatorService.evaluateTemplate<any>(
-          args.id,
-          { args } as any,
-          { schema: z.string() },
-        )
-        : undefined;
-
-      const jsonSchema = zodToJsonSchema(inputSchema as any, {
-        name: 'documentSchema',
-        target: 'jsonSchema7',
-      })?.definitions?.documentSchema;
-
-      // merge document skeleton with content data
-      const documentData: Partial<DocumentEntity> = {
-        ...documentSkeleton,
-        ...errorData,
+      const documentEntity = this.createDocumentEntity(ctx, {
+        skeleton: documentSkeleton,
+        content: validationResult.content,
+        error: validationResult.error,
         schema: jsonSchema,
-        messageId: messageId || randomUUID(),
-        content: documentContent,
+        messageId,
         blockName: document.name,
-      };
+      });
 
-      // create the document entity
-      const documentEntity = this.documentService.create(ctx, documentData);
+      this.logger.debug(`Created document "${messageId}".`);
 
-      this.logger.debug(`Created document "${documentData.messageId}".`);
-
-      return {
-        data: documentEntity,
-        effects: {
-          addWorkflowDocuments: [documentEntity],
-        },
-      };
-
+      return this.buildResult(documentEntity);
     } catch (e) {
       throw new ConfigTraceError(e, document);
     }
   }
 
+  private mergeTemplateData(
+    config: DocumentConfigType,
+    update?: Partial<DocumentConfigType>,
+  ): DocumentConfigType {
+    return merge({}, config, update ?? {});
+  }
+
+  private createDocumentSkeleton(
+    templateData: DocumentConfigType,
+    context: TemplateContext,
+  ): Omit<DocumentType, 'content'> {
+    return this.templateExpressionEvaluatorService.evaluateTemplate<
+      Omit<DocumentType, 'content'>
+    >(omit(templateData, ['content']), context, { schema: DocumentSchema });
+  }
+
+  private createDocumentContent(
+    contentTemplate: unknown,
+    context: TemplateContext,
+  ): unknown {
+    return this.templateExpressionEvaluatorService.evaluateTemplate<unknown>(
+      contentTemplate,
+      context,
+    );
+  }
+
+  private validateContent(
+    schema: ZodSchema | undefined,
+    content: unknown,
+    mode: ValidateMode,
+  ): ContentValidationResult {
+    if (!schema && content !== undefined) {
+      throw new Error(
+        'Document was created with content but no schema is defined.',
+      );
+    }
+
+    if (!schema || mode === 'skip') {
+      return { content };
+    }
+
+    const result = schema.safeParse(content);
+
+    if (!result.success) {
+      if (mode === 'strict') {
+        this.logger.error(result.error);
+        throw new SchemaValidationError(
+          'Document schema validation failed (strict mode)',
+        );
+      }
+
+      return {
+        content: result.data,
+        error: result.error,
+      };
+    }
+
+    return { content: result.data };
+  }
+
+  private resolveMessageId(
+    idTemplate: string | undefined,
+    context: TemplateContext,
+  ): string {
+    if (!idTemplate) {
+      return randomUUID();
+    }
+
+    return this.templateExpressionEvaluatorService.evaluateTemplate<string>(
+      idTemplate,
+      context,
+      { schema: z.string() },
+    );
+  }
+
+  private createJsonSchema(schema: ZodSchema | undefined): unknown {
+    if (!schema) {
+      return undefined;
+    }
+
+    // @ts-ignore
+    const converted = zodToJsonSchema(schema, {
+      name: 'documentSchema',
+      target: 'jsonSchema7',
+    }) as any;
+
+    return converted?.definitions?.documentSchema;
+  }
+
+  private createDocumentEntity(
+    ctx: WorkflowExecution,
+    params: {
+      skeleton: Omit<DocumentType, 'content'>;
+      content: unknown;
+      error?: ZodError;
+      schema: unknown;
+      messageId: string;
+      blockName: string;
+    },
+  ): DocumentEntity {
+    const documentData: Partial<DocumentEntity> = {
+      ...params.skeleton,
+      content: params.content,
+      schema: params.schema,
+      messageId: params.messageId,
+      blockName: params.blockName,
+    };
+
+    if (params.error) {
+      documentData.error = params.error;
+    }
+
+    return this.documentService.create(ctx, documentData);
+  }
+
+  private buildResult(documentEntity: DocumentEntity): ToolResult {
+    return {
+      data: documentEntity,
+      effects: {
+        addWorkflowDocuments: [documentEntity],
+      },
+    };
+  }
 }

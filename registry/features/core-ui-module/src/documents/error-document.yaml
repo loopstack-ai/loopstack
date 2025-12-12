@@ -2,4 +2,4 @@ tags:
   - error
 ui:
   form:
-    widget: error-message
+    widget: error
