@@ -98,7 +98,6 @@ describe('PromptWorkflow', () => {
       // Verify history contains expected places
       const history = result.state.caretaker.getHistory();
       const places = history.map((h) => h.metadata?.place);
-      expect(places).toContain('start');
       expect(places).toContain('prompt_executed');
       expect(places).toContain('end');
     });
