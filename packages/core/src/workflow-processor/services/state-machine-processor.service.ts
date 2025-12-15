@@ -162,7 +162,7 @@ export class StateMachineProcessorService {
     ctx.state.setMetadata('place', historyItem.to);
     ctx.state.setMetadata('transition', historyItem);
 
-    ctx.state.checkpoint(historyItem.transition);
+    ctx.state.checkpoint();
   }
 
   async processStateMachine(

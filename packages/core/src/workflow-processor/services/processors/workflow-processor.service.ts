@@ -108,15 +108,18 @@ export class WorkflowProcessorService implements Processor {
         ...validation.hashRecordUpdates,
       };
 
-      ctx.state.setMetadata('place', 'start');
+      // add invalidation transition if not at start place
+      if (ctx.state.getMetadata('place') !== 'start') {
+        ctx.state.setMetadata('place', 'start');
 
-      ctx.state.setMetadata('transition', {
-        transition: 'invalidation',
-        from: ctx.entity.place,
-        to: 'start'
-      });
+        ctx.state.setMetadata('transition', {
+          transition: 'invalidation',
+          from: ctx.entity.place,
+          to: 'start'
+        });
 
-      ctx.state.checkpoint('init');
+        ctx.state.checkpoint();
+      }
     }
   }
 }

@@ -8,7 +8,6 @@ export class WorkflowState<TData extends z.ZodType> {
   private data: z.infer<TData>;
   private metadata: WorkflowMetadataInterface;
   private version: number;
-  private currentStep: string;
 
   public readonly caretaker: WorkflowStateCaretaker<z.infer<TData>>;
 
@@ -60,28 +59,14 @@ export class WorkflowState<TData extends z.ZodType> {
   }
 
   // Checkpoint at a named step
-  checkpoint(step: string): void {
-    this.currentStep = step;
+  checkpoint(): void {
     const memento = {
       data: { ...this.data },
       metadata: { ...this.metadata },
-      step,
       timestamp: new Date(),
       version: this.version++,
     } satisfies WorkflowMementoData<TData>;
-    this.caretaker.save(step, memento);
-  }
-
-  // Restore from a specific step
-  restoreToStep(step: string): boolean {
-    const memento = this.caretaker.getAtStep(step);
-    if (!memento) return false;
-
-    this.data = this.schema.parse(memento.data);
-    this.metadata = this.schema.parse(memento.metadata);
-    this.currentStep = memento.step;
-    this.version = memento.version + 1;
-    return true;
+    this.caretaker.save(memento);
   }
 
   restoreToLatest(): boolean {
@@ -89,13 +74,8 @@ export class WorkflowState<TData extends z.ZodType> {
     if (!memento) return false;
 
     this.data = this.schema.parse(memento.data);
-    this.metadata = this.schema.parse(memento.metadata);
-    this.currentStep = memento.step;
+    this.metadata = memento.metadata;
     this.version = memento.version + 1;
     return true;
-  }
-
-  getCurrentStep(): string {
-    return this.currentStep;
   }
 }
