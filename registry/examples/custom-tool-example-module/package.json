@@ -2,7 +2,7 @@
   "name": "@loopstack/custom-tool-example-module",
   "displayName": "Loopstack Custom Tool Example Module",
   "description": "A complete example demonstrating how to implement and use a custom tool in a workflow",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -30,9 +30,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/common": "^0.14.0",
-    "@loopstack/core": "^0.14.0",
-    "@loopstack/core-ui-module": "^0.14.0",
+    "@loopstack/common": "^0.15.0",
+    "@loopstack/core": "^0.15.0",
+    "@loopstack/core-ui-module": "^0.15.0",
     "@nestjs/common": "^11.0.12",
     "zod": "^3.24.1"
   },
