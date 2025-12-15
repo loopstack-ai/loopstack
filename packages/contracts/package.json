@@ -2,7 +2,7 @@
   "name": "@loopstack/contracts",
   "displayName": "Loopstack Contracts",
   "description": "A collection of types and schemas shared between projects",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "license": "BSL",
   "author": {
     "name": "Jakob Klippel",
@@ -26,9 +26,15 @@
   },
   "typesVersions": {
     "*": {
-      "types": ["./dist/types/index.d.ts"],
-      "enums": ["./dist/enums/index.d.ts"],
-      "schemas": ["./dist/schemas/index.d.ts"]
+      "types": [
+        "./dist/types/index.d.ts"
+      ],
+      "enums": [
+        "./dist/enums/index.d.ts"
+      ],
+      "schemas": [
+        "./dist/schemas/index.d.ts"
+      ]
     }
   },
   "scripts": {
