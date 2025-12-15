@@ -1,4 +1,4 @@
-title: "Example 1: Simple Prompt (Write a haiku)"
+title: "Simple Prompt Example (Write a haiku)"
 description: An example workflow that demonstrates how to use a prompt to generate a haiku about a given subject using an LLM.
 
 ui:
