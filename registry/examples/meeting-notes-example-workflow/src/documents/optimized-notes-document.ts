@@ -1,6 +1,7 @@
 import { BlockConfig, WithArguments } from '@loopstack/common';
 import { z } from 'zod';
 import { DocumentBase } from '@loopstack/core';
+import { Injectable } from '@nestjs/common';
 
 export const OptimizedMeetingNotesDocumentSchema = z.object({
   date: z.string(),
@@ -10,6 +11,7 @@ export const OptimizedMeetingNotesDocumentSchema = z.object({
   actionItems: z.array(z.string()),
 });
 
+@Injectable()
 @BlockConfig({
   configFile: __dirname + '/optimized-notes-document.yaml',
 })

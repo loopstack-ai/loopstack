@@ -1,5 +1,5 @@
 import { WorkflowBase } from '@loopstack/core';
-import { BlockConfig, Input, Tool, WithArguments, WithState } from '@loopstack/common';
+import { BlockConfig, Document, Tool, WithArguments, WithState } from '@loopstack/common';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
 import { z } from 'zod';
@@ -19,6 +19,6 @@ import { CreateDocument } from '@loopstack/core-ui-module';
 export class MeetingNotesWorkflow extends WorkflowBase {
   @Tool() aiGenerateDocument: AiGenerateDocument;
   @Tool() createDocument: CreateDocument;
-  @Tool() meetingNotesDocument: MeetingNotesDocument;
-  @Tool() optimizedNotesDocument: OptimizedNotesDocument;
+  @Document() meetingNotesDocument: MeetingNotesDocument;
+  @Document() optimizedNotesDocument: OptimizedNotesDocument;
 }

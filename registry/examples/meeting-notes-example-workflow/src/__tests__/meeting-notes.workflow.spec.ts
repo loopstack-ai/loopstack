@@ -11,7 +11,7 @@ import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { AiModule, AiGenerateDocument } from '@loopstack/ai-module';
 import { MeetingNotesDocument } from '../documents/meeting-notes-document';
 import { OptimizedNotesDocument } from '../documents/optimized-notes-document';
-import { DocumentEntity, generateObjectFingerprint } from '@loopstack/common';
+import { generateObjectFingerprint } from '@loopstack/common';
 
 describe('MeetingNotesWorkflow', () => {
   let module: TestingModule;

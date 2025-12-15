@@ -37,7 +37,7 @@ transitions:
           id: input
           document: meetingNotesDocument
           update:
-            content: ${ ctx.payload.transition.payload }
+            content: ${ transition.payload }
         assign:
           meetingNotes: ${ result.data.content }
 
@@ -51,7 +51,9 @@ transitions:
           llm:
             provider: openai
             model: gpt-4o
-          responseDocument: optimizedNotesDocument
+          response:
+            id: final
+            document: optimizedNotesDocument
           prompt: |
             Extract all information from the provided meeting notes into the structured document.
 
@@ -69,8 +71,9 @@ transitions:
       - id: create_response
         tool: createDocument
         args:
+          id: final
           document: optimizedNotesDocument
           update:
-            content: ${ ctx.payload.transition.payload }
+            content: ${ transition.payload }
         assign:
           optimizedNotes: ${ result.data.content }
