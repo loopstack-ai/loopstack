@@ -10,9 +10,6 @@
 [submodule "packages/contracts"]
 	path = packages/contracts
 	url = git@github.com:loopstack-ai/contracts.git
-[submodule "packages/llm"]
-    path = packages/llm
-    url = git@github.com:loopstack-ai/llm.git
 [submodule "packages/auth"]
     path = packages/auth
     url = git@github.com:loopstack-ai/auth.git
@@ -44,3 +41,6 @@
 	path = frontend/loopstack-studio
 	url = git@github.com:loopstack-ai/loopstack-studio.git
 
+[submodule "packages/ai-module"]
+	path = packages/ai-module
+	url = git@github.com:loopstack-ai/ai-module.git
