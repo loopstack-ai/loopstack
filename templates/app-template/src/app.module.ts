@@ -4,7 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoopstackApiModule } from '@loopstack/api';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { loopstackConfig } from './loopstack.config';
-import { ExampleModule } from './example-module/example.module';
 
 @Module({
   imports: [
@@ -28,7 +27,6 @@ import { ExampleModule } from './example-module/example.module';
     }),
     LoopCoreModule,
     LoopstackApiModule,
-    ExampleModule,
   ],
 })
 export class AppModule {}
