@@ -1,3 +1,5 @@
+type: document
+
 ui:
   form:
     order:
