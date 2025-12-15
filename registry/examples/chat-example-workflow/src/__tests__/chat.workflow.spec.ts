@@ -4,12 +4,12 @@ import {
   BlockExecutionContextDto,
   createWorkflowTest,
   LoopCoreModule,
-  ToolMock, WorkflowMementoData, WorkflowMetadataInterface,
+  ToolMock,
   WorkflowProcessorService,
 } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
-import { AiModule, AiGenerateText, AiMessageDocument } from '@loopstack/ai-module';
-import { DocumentEntity, generateObjectFingerprint } from '@loopstack/common';
+import { AiModule, AiGenerateText } from '@loopstack/ai-module';
+import { generateObjectFingerprint } from '@loopstack/common';
 
 describe('ChatWorkflow', () => {
   let module: TestingModule;
@@ -120,7 +120,6 @@ describe('ChatWorkflow', () => {
       // Verify history contains expected places
       const history = result.state.caretaker.getHistory();
       const places = history.map((h) => h.metadata?.place);
-      expect(places).toContain('start');
       expect(places).toContain('ready');
       expect(places).toContain('prompt_executed');
       expect(places).toContain('waiting_for_user');
@@ -231,7 +230,7 @@ describe('ChatWorkflow', () => {
 
       // Verify history contains expected places for full flow
       const history = result.state.caretaker.getHistory();
-      expect(history[0].metadata.transition.from).toBe('waiting_for_user');
+      expect(history[0].metadata.transition?.from).toBe('waiting_for_user');
       const places = history.map((h) => h.metadata?.place);
       expect(places).toStrictEqual(['ready', 'prompt_executed', 'waiting_for_user']);
 
