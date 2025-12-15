@@ -63,6 +63,7 @@ export abstract class Block<TArgs extends object = any> implements BlockInterfac
     return {
       ...ctx.state.getAll(),
       metadata: ctx.state.getAllMetadata(),
+      transition: ctx.runtime.transition,
       args,
     };
   }
