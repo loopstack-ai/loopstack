@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/app-template",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -20,12 +20,12 @@
     "loopstack:dev": "tsx src/cli.ts"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.14.0",
-    "@loopstack/api": "^0.14.0",
-    "@loopstack/common": "^0.14.0",
-    "@loopstack/core": "^0.14.0",
-    "@loopstack/core-ui-module": "^0.14.0",
-    "@loopstack/core-tools-module": "^0.14.0",
+    "@loopstack/ai-module": "^0.15.0",
+    "@loopstack/api": "^0.15.0",
+    "@loopstack/common": "^0.15.0",
+    "@loopstack/core": "^0.15.0",
+    "@loopstack/core-ui-module": "^0.15.0",
+    "@loopstack/core-tools-module": "^0.15.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
