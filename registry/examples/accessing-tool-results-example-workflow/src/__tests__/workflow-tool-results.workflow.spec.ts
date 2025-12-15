@@ -89,8 +89,8 @@ describe('WorkflowToolResultsWorkflow', () => {
 
       // Should complete both transitions
       const history = result.state.caretaker.getHistory();
-      expect(history.some((h) => h.step === 'create_some_data')).toBe(true);
-      expect(history.some((h) => h.step === 'access_data')).toBe(true);
+      expect(history.some((h) => h.metadata.transition?.transition === 'create_some_data')).toBe(true);
+      expect(history.some((h) => h.metadata.transition?.transition === 'access_data')).toBe(true);
 
       expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
         {
