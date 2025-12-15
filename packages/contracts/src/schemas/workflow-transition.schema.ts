@@ -6,7 +6,7 @@ export const WorkflowTransitionConfigSchema = z.object({
   id: z.string(),
   from: z.union([z.string(), z.array(z.string())]),
   to: z.string(),
-  if: z.union([TemplateExpression, z.literal('true'), z.literal('false')]).optional(),
+  if: z.union([TemplateExpression, z.string(), z.literal('true'), z.literal('false')]).optional(),
   trigger: z.union([
     z.enum(["manual", "onEntry"]),
     TemplateExpression,
