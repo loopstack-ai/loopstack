@@ -34,7 +34,8 @@ transitions:
           llm:
             provider: openai
             model: gpt-4o
-          responseDocument: fileDocument
+          response:
+            document: fileDocument
           prompt: |
             Create a {{ args.language }} script that prints 'Hello, World!' to the console.
             Wrap the code in triple-backticks.
