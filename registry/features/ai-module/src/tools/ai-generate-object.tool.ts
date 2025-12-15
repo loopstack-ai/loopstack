@@ -14,7 +14,10 @@ import { Block } from '@loopstack/core/dist/workflow-processor/abstract/block.ab
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 
 export const AiGenerateObjectSchema = AiGenerateToolBaseSchema.extend({
-  responseDocument: z.string(),
+  response: z.object({
+    id: z.string().optional(),
+    document: z.string(),
+  }),
 }).strict();
 
 export type AiGenerateObjectArgsType = z.infer<typeof AiGenerateObjectSchema>;
@@ -52,9 +55,9 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
       options.messages = convertToModelMessages(messages);
     }
 
-    const document: Block = parent.getDocument(args.responseDocument);
+    const document: Block = parent.getDocument(args.response.document);
     if (!document) {
-      throw new Error(`Document with name "${args.responseDocument}" not found in tool execution context.`);
+      throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
     }
     const responseSchema = document.argsSchema;
     if (!responseSchema) {

@@ -34,7 +34,8 @@ export class AiGenerateDocument extends ToolBase<AiGenerateObjectArgsType> {
     const result = await this.getTool('aiGenerateObject').execute(args, ctx, parent);
     return this.getTool('createDocument').execute(
       {
-        document: args.responseDocument,
+        id: args.response.id,
+        document: args.response.document,
         update: {
           content: result.data,
         },
