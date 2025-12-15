@@ -1,5 +1,5 @@
 {
-  "name": "@loopstack/prompt-structured-output-workflow",
+  "name": "@loopstack/prompt-structured-output-example-workflow",
   "displayName": "Loopstack Structured Prompt Output Example Workflow",
   "description": "A simple workflow showing how to work with structured LLM output in Loopstack.",
   "version": "0.14.0",
