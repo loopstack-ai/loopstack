@@ -389,6 +389,9 @@
                         "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
                       },
                       {
+                        "type": "string"
+                      },
+                      {
                         "type": "string",
                         "const": "true"
                       },
