@@ -36,7 +36,6 @@
     "@loopstack/common": "^0.14.0",
     "@loopstack/core": "^0.14.0",
     "@loopstack/core-ui-module": "^0.14.0",
-    "@loopstack/create-value-tool": "^0.14.0",
     "@nestjs/common": "^11.0.12",
     "zod": "^3.24.1"
   },
