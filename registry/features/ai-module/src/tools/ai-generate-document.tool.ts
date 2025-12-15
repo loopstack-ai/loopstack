@@ -5,7 +5,7 @@ import {
   WithArguments,
   Tool,
 } from '@loopstack/common';
-import { ToolBase } from '@loopstack/core';
+import { Block, ToolBase } from '@loopstack/core';
 import {
   AiGenerateObject,
   AiGenerateObjectArgsType,
@@ -29,8 +29,9 @@ export class AiGenerateDocument extends ToolBase<AiGenerateObjectArgsType> {
   async execute(
     args: AiGenerateObjectArgsType,
     ctx: WorkflowExecution,
+    parent: Block,
   ): Promise<ToolResult> {
-    const result = await this.getTool('aiGenerateObject').execute(args, ctx);
+    const result = await this.getTool('aiGenerateObject').execute(args, ctx, parent);
     return this.getTool('createDocument').execute(
       {
         document: args.responseDocument,
@@ -39,6 +40,7 @@ export class AiGenerateDocument extends ToolBase<AiGenerateObjectArgsType> {
         },
       },
       ctx,
+      parent,
     );
   }
 }

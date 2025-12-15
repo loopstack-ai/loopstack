@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { DocumentBase } from '@loopstack/core';
 
 const AiMessageDocumentSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   role: z.union([
     z.literal('system'),
     z.literal('user'),

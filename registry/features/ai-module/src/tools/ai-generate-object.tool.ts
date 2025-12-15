@@ -53,6 +53,9 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
     }
 
     const document: Block = parent.getDocument(args.responseDocument);
+    if (!document) {
+      throw new Error(`Document with name "${args.responseDocument}" not found in tool execution context.`);
+    }
     const responseSchema = document.argsSchema;
     if (!responseSchema) {
       throw new Error(
