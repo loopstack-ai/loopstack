@@ -191,9 +191,8 @@ describe('CustomToolExampleWorkflow', () => {
 
       // Transition history
       const history = result.state.caretaker.getHistory();
-      expect(history[0].step).toBe('init');
-      expect(history[1].step).toBe('calculate');
-      expect(history[1].metadata.place).toBe('end');
+      expect(history[0].metadata.transition?.transition).toBe('calculate');
+      expect(history[0].metadata.place).toBe('end');
     });
   });
 });
