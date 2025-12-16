@@ -69,4 +69,4 @@ transitions:
               role: user
               parts:
                 - type: text
-                  text: ${ ctx.payload.transition.payload }
+                  text: ${ transition.payload }
