@@ -24,6 +24,7 @@
     "@loopstack/api": "^0.15.0",
     "@loopstack/common": "^0.15.0",
     "@loopstack/core": "^0.15.0",
+    "@loopstack/cli-module": "^0.15.0",
     "@loopstack/core-ui-module": "^0.15.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",

@@ -5,6 +5,7 @@ import { LoopstackApiModule } from '@loopstack/api';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { loopstackConfig } from './loopstack.config';
 import { DefaultModule } from './default.module';
+import { CliModule } from '@loopstack/cli-module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { DefaultModule } from './default.module';
     }),
     LoopCoreModule,
     LoopstackApiModule,
+    CliModule,
 
     // Custom Workflow Modules:
     DefaultModule,
