@@ -1,4 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
+import { DataSource } from 'typeorm';
 import { CustomToolExampleWorkflow } from '../custom-tool-example.workflow';
 import {
   BlockExecutionContextDto,
@@ -10,23 +11,28 @@ import {
 import { MathSumTool, CounterTool } from '../../tools';
 import { z } from 'zod';
 import { CoreUiModule, CreateChatMessage } from '@loopstack/core-ui-module';
+import { createTestDataSource } from '../../test-utils/create-test-datasource';
 
 describe('CustomToolExampleWorkflow', () => {
   let module: TestingModule;
   let workflow: CustomToolExampleWorkflow;
   let processor: WorkflowProcessorService;
+  let dataSource: DataSource;
 
   let mockMathSumTool: ToolMock;
   let mockCounterTool: ToolMock;
   let mockCreateChatMessageTool: ToolMock;
 
   beforeEach(async () => {
+    dataSource = await createTestDataSource();
+
     module = await createWorkflowTest()
       .forWorkflow(CustomToolExampleWorkflow)
       .withImports(LoopCoreModule, CoreUiModule)
       .withToolMock(MathSumTool)
       .withToolMock(CounterTool)
-      .withToolOverride(CreateChatMessage) // override tools from imported modules
+      .withToolOverride(CreateChatMessage)
+      .withOverride(DataSource, dataSource)
       .compile();
 
     workflow = module.get(CustomToolExampleWorkflow);
@@ -38,7 +44,12 @@ describe('CustomToolExampleWorkflow', () => {
   });
 
   afterEach(async () => {
-    await module.close();
+    if (module) {
+      await module.close();
+    }
+    if (dataSource?.isInitialized) {
+      await dataSource.destroy();
+    }
   });
 
   describe('initialization', () => {
@@ -199,9 +210,12 @@ describe('CustomToolExampleWorkflow', () => {
 
 describe('CustomToolExampleWorkflow with existing entity', () => {
   it('should resume from existing workflow', async () => {
+    const dataSource = await createTestDataSource();
+
     const module = await createWorkflowTest()
       .forWorkflow(CustomToolExampleWorkflow)
       .withImports(LoopCoreModule, CoreUiModule)
+      .withOverride(DataSource, dataSource)
       .withToolMock(MathSumTool)
       .withToolMock(CounterTool)
       .withToolOverride(CreateChatMessage)
@@ -215,5 +229,8 @@ describe('CustomToolExampleWorkflow with existing entity', () => {
     expect(workflow).toBeDefined();
 
     await module.close();
+    if (dataSource?.isInitialized) {
+      await dataSource.destroy();
+    }
   });
 });
