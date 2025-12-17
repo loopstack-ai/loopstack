@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoopstackApiModule } from '@loopstack/api';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { loopstackConfig } from './loopstack.config';
+import { DefaultModule } from './default.module';
 
 @Module({
   imports: [
@@ -27,6 +28,9 @@ import { loopstackConfig } from './loopstack.config';
     }),
     LoopCoreModule,
     LoopstackApiModule,
+
+    // Custom Workflow Modules:
+    DefaultModule,
   ],
 })
 export class AppModule {}
