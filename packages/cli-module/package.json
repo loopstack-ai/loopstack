@@ -1,5 +1,5 @@
 {
-  "name": "@loopstack/cli",
+  "name": "@loopstack/cli-module",
   "displayName": "Loopstack Cli Module",
   "description": "The cli module for Loopstack",
   "version": "0.15.0",
