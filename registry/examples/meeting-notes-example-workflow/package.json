@@ -30,7 +30,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/ai-module": "workspace:^0.15.0",
+    "@loopstack/ai-module": "^0.15.0",
     "@loopstack/common": "^0.15.0",
     "@loopstack/core": "^0.15.0",
     "@loopstack/core-ui-module": "^0.15.0",
