@@ -1,7 +1,6 @@
 {
   "name": "@loopstack/app-template",
   "version": "0.15.4",
-  "private": true,
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
