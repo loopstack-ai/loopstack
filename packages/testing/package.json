@@ -2,32 +2,14 @@
   "name": "@loopstack/testing",
   "displayName": "Loopstack Testing Utils",
   "description": "Testing utilities for building tests for loopstack components",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
   "license": "Apache-2.0",
-  "exports": {
-    "./tools": {
-      "types": "./dist/tools/index.d.ts",
-      "default": "./dist/tools/index.js"
-    },
-    "./workflows": {
-      "types": "./dist/workflows/index.d.ts",
-      "default": "./dist/workflows/index.js"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "tools": [
-        "dist/tools/index.d.ts"
-      ],
-      "workflows": [
-        "dist/workflows/index.d.ts"
-      ]
-    }
-  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "nest build",
     "watch": "nest build --watch",

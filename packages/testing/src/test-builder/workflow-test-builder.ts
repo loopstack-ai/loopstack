@@ -1,9 +1,13 @@
 import { TestingModule } from '@nestjs/testing';
 import { Type } from '@nestjs/common';
-import { WorkflowEntity, WorkflowState } from '@loopstack/common';
-import { createTestingModule } from './create-testing-module';
-import { createToolMock } from '../tools';
+import {
+  WorkflowEntity,
+  WorkflowState,
+} from '@loopstack/common';
 import { WorkflowService } from '@loopstack/core';
+import { mockCoreModuleProviders } from './core-module-mock';
+import { createTestingModule } from './create-testing-module';
+import { createToolMock } from './tool-test-builder';
 
 export const DEFAULT_WORKFLOW_ENTITY: Omit<WorkflowEntity, 'namespace'> = {
   id: '00000000-0000-0000-0000-000000000000',
@@ -45,7 +49,7 @@ export interface WorkflowServiceMock {
 /**
  * Creates a standard WorkflowService mock
  */
-export function createWorkflowServiceMock(): WorkflowServiceMock {
+export function createWorkflowServiceMock(mockEntity = {}): WorkflowServiceMock {
   return {
     save: jest.fn(),
     create: jest.fn().mockImplementation((input) =>
@@ -53,6 +57,7 @@ export function createWorkflowServiceMock(): WorkflowServiceMock {
         ...DEFAULT_WORKFLOW_ENTITY,
         ...input,
         id: crypto.randomUUID(),
+        ...mockEntity,
       })
     ),
     findOneByQuery: jest.fn().mockResolvedValue(undefined),
@@ -81,7 +86,7 @@ export class WorkflowTestBuilder<TWorkflow = any> {
   private overrides = new Map<any, any>();
   private workflowClass?: Type<TWorkflow>;
   private workflowServiceMock: WorkflowServiceMock;
-  private existingWorkflowEntity?: Partial<WorkflowEntity>;
+  private module: TestingModule;
 
   constructor() {
     this.workflowServiceMock = createWorkflowServiceMock();
@@ -169,7 +174,7 @@ export class WorkflowTestBuilder<TWorkflow = any> {
    * Use to test resuming from an existing workflow state
    */
   withExistingWorkflow(entity: Partial<WorkflowEntity>): this {
-    this.existingWorkflowEntity = entity;
+    this.workflowServiceMock = createWorkflowServiceMock(entity);
     return this;
   }
 
@@ -177,25 +182,20 @@ export class WorkflowTestBuilder<TWorkflow = any> {
    * Build and compile the testing module
    */
   async compile(): Promise<TestingModule> {
-    if (this.existingWorkflowEntity) {
-      this.workflowServiceMock.findOneByQuery.mockResolvedValue({
-        ...DEFAULT_WORKFLOW_ENTITY,
-        id: crypto.randomUUID(),
-        ...this.existingWorkflowEntity,
-      });
-    }
-
     let builder = createTestingModule({
       imports: this.imports,
       providers: this.providers,
     });
+
+    // Apply core overrides
+    builder = mockCoreModuleProviders(builder);
 
     // Apply WorkflowService override
     builder = builder
       .overrideProvider(WorkflowService)
       .useValue(this.workflowServiceMock);
 
-    // Apply all other overrides
+    // Apply custom overrides
     for (const [token, mock] of this.overrides) {
       builder = builder.overrideProvider(token).useValue(mock);
     }
@@ -207,18 +207,6 @@ export class WorkflowTestBuilder<TWorkflow = any> {
   }
 }
 
-/**
- * Create a new workflow test builder
- *
- * @example
- * ```typescript
- * const module = await createWorkflowTest()
- *   .forWorkflow(CustomToolExampleWorkflow)
- *   .withImports(LoopCoreModule)
- *   .withToolMock(MathSumTool)
- *   .compile();
- * ```
- */
 export function createWorkflowTest(): WorkflowTestBuilder {
   return new WorkflowTestBuilder();
 }
