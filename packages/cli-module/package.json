@@ -2,7 +2,7 @@
   "name": "@loopstack/cli-module",
   "displayName": "Loopstack Cli Module",
   "description": "The cli module for Loopstack",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
