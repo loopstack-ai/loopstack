@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
-import { createToolTest, ToolMock } from '@loopstack/core';
 import { MathSumTool } from '../math-sum.tool';
 import { MathService } from '../../services/math.service';
+import { createToolTest } from '@loopstack/testing';
 
 describe('MathSumTool', () => {
   let module: TestingModule;
