@@ -2,7 +2,7 @@
   "name": "@loopstack/testing",
   "displayName": "Loopstack Testing Utils",
   "description": "Testing utilities for building tests for loopstack components",
-  "version": "0.15.2",
+  "version": "0.15.4",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
