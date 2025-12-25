@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/app-template",
-  "version": "0.15.4",
+  "version": "0.15.5",
   "repository": {
     "type": "git",
     "url": "https://github.com/loopstack-ai/app-template"
@@ -23,12 +23,12 @@
     "loopstack:dev": "tsx src/cli.ts"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.15.0",
-    "@loopstack/api": "^0.15.0",
-    "@loopstack/common": "^0.15.0",
-    "@loopstack/core": "^0.15.0",
+    "@loopstack/ai-module": "^0.15.1",
+    "@loopstack/api": "^0.15.1",
+    "@loopstack/common": "^0.15.1",
+    "@loopstack/core": "^0.15.3",
     "@loopstack/cli-module": "^0.15.0",
-    "@loopstack/core-ui-module": "^0.15.0",
+    "@loopstack/core-ui-module": "^0.15.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
