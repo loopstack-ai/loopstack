@@ -2,7 +2,6 @@ import { TestingModule } from '@nestjs/testing';
 import { CustomToolExampleWorkflow } from '../custom-tool-example.workflow';
 import {
   BlockExecutionContextDto,
-  LoopCoreModule,
   WorkflowProcessorService,
 } from '@loopstack/core';
 import { MathSumTool, CounterTool } from '../../tools';
@@ -199,8 +198,16 @@ describe('CustomToolExampleWorkflow', () => {
 });
 
 describe('CustomToolExampleWorkflow with existing entity', () => {
+  let module: TestingModule; // Declare at describe level
+
+  afterEach(async () => {
+    if (module) {
+      await module.close();
+    }
+  });
+
   it('should resume from existing workflow', async () => {
-    const module = await createWorkflowTest()
+    module = await createWorkflowTest()
       .forWorkflow(CustomToolExampleWorkflow)
       .withImports(CoreUiModule)
       .withToolMock(MathSumTool)
@@ -214,7 +221,5 @@ describe('CustomToolExampleWorkflow with existing entity', () => {
 
     const workflow = module.get(CustomToolExampleWorkflow);
     expect(workflow).toBeDefined();
-
-    await module.close();
   });
 });
