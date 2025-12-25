@@ -2,7 +2,7 @@
   "name": "@loopstack/api",
   "displayName": "Loopstack Api Module",
   "description": "The api module of the loopstack automation framework",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -23,10 +23,10 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/auth": "^0.15.0",
-    "@loopstack/common": "^0.15.0",
+    "@loopstack/auth": "^0.15.1",
+    "@loopstack/common": "^0.15.1",
     "@loopstack/contracts": "^0.15.0",
-    "@loopstack/core": "^0.15.0",
+    "@loopstack/core": "^0.15.3",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
