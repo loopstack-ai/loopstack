@@ -2,7 +2,7 @@
   "name": "@loopstack/ai-module",
   "displayName": "Loopstack Ai Module",
   "description": "A collection of useful tools for performing AI actions using model provider APIs such as OpenAI and Anthropic",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -42,9 +42,9 @@
     "@ai-sdk/anthropic": "^2.0.1",
     "@ai-sdk/openai": "^2.0.4",
     "@ai-sdk/provider-utils": "^3.0.8",
-    "@loopstack/common": "^0.15.0",
-    "@loopstack/core": "^0.15.0",
-    "@loopstack/core-ui-module": "^0.15.0",
+    "@loopstack/common": "^0.15.1",
+    "@loopstack/core": "^0.15.3",
+    "@loopstack/core-ui-module": "^0.15.1",
     "ai": "^5.0.6",
     "lodash": "^4.17.21",
     "zod": "^3.24.1"
