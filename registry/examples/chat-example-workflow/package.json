@@ -2,7 +2,7 @@
   "name": "@loopstack/chat-example-workflow",
   "displayName": "Loopstack Chat Example Workflow",
   "description": "An example chat workflow to interact with an LLM.",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -30,10 +30,10 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.15.0",
-    "@loopstack/common": "^0.15.0",
-    "@loopstack/core": "^0.15.0",
-    "@loopstack/core-ui-module": "^0.15.0",
+    "@loopstack/ai-module": "^0.15.1",
+    "@loopstack/common": "^0.15.1",
+    "@loopstack/core": "^0.15.3",
+    "@loopstack/core-ui-module": "^0.15.1",
     "@nestjs/common": "^11.0.12",
     "zod": "^3.24.1"
   },
