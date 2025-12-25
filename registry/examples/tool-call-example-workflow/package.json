@@ -2,7 +2,7 @@
   "name": "@loopstack/tool-call-example-workflow",
   "displayName": "Loopstack Tool Calling Example Workflow",
   "description": "A simple workflow showing how to implement tool calling in an agentic loopstack workflow.",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -30,11 +30,11 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.15.0",
-    "@loopstack/common": "^0.15.0",
-    "@loopstack/core": "^0.15.0",
-    "@loopstack/core-ui-module": "^0.15.0",
-    "@loopstack/testing": "^0.15.0",
+    "@loopstack/ai-module": "^0.15.1",
+    "@loopstack/common": "^0.15.1",
+    "@loopstack/core": "^0.15.3",
+    "@loopstack/core-ui-module": "^0.15.1",
+    "@loopstack/testing": "^0.15.5",
     "@nestjs/common": "^11.0.12",
     "zod": "^3.24.1"
   },
