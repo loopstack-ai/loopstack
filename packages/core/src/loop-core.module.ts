@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
-import { MigrationsService } from './services/migrations.service';
 import { SchedulerModule } from './scheduler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
   DocumentEntity,
-  MODULE_NAME_TOKEN,
   NamespaceEntity,
   PipelineEntity,
   WorkflowEntity,
@@ -29,13 +27,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     CommonModule,
     WorkflowProcessorModule,
     SchedulerModule,
-  ],
-  providers: [
-    {
-      provide: MODULE_NAME_TOKEN,
-      useValue: 'core',
-    },
-    MigrationsService,
   ],
   exports: [CommonModule, WorkflowProcessorModule, SchedulerModule],
 })

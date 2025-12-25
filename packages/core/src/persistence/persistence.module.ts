@@ -9,6 +9,7 @@ import {
 } from '@loopstack/common';
 import {
   DocumentService,
+  MigrationsService,
   NamespacesService,
   PipelineService,
   WorkflowService,
@@ -33,6 +34,7 @@ import { CommonModule } from '../common';
     WorkspaceService,
     PipelineService,
     DocumentService,
+    MigrationsService,
   ],
   exports: [
     WorkflowService,

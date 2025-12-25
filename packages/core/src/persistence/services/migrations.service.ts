@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { EnableLtreeExtension1742827301075 } from '../migrations/1742827301075-EnableLtreeExtension';
+import { EnableLtreeExtension1742827301075 } from '../../migrations/1742827301075-EnableLtreeExtension';
 
 @Injectable()
 export class MigrationsService implements OnModuleInit {
