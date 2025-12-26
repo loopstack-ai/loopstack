@@ -25,8 +25,15 @@ This is a great starting point before building your own custom tools.
 Create a new Loopstack project if you haven't already:
 
 ```bash
-npx create-loopstack-app my-project-name
-cd my-project-name
+npx create-loopstack-app my-project
+cd my-project
+```
+
+Start Environment
+
+```bash
+cd my-project
+docker compose up -d
 ```
 
 ### Add the Module
@@ -80,10 +87,10 @@ export class DefaultWorkspace extends WorkspaceBase {
 }
 ```
 
-### 3. Run
+### 3. Run Backend
 
 ```bash
 npm run start:dev
 ```
 
-Open [localhost:3000](http://localhost:3000) (default) or [localhost:5173](http://localhost:5173) (if running the frontend from source).
+Open [localhost:3000](http://localhost:3000) and execute the workflow in the Loopstack Studio.
