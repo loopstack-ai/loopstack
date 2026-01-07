@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ToolResult, BlockConfig, WithArguments } from '@loopstack/common';
-import { pick } from 'lodash';
 import {
   convertToModelMessages,
   generateObject,
@@ -12,6 +11,7 @@ import { AiProviderModelHelperService } from '../services';
 import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
 import { Block } from '@loopstack/core/dist/workflow-processor/abstract/block.abstract';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
+import { ModelMessage } from '@ai-sdk/provider-utils';
 
 export const AiGenerateObjectSchema = AiGenerateToolBaseSchema.extend({
   response: z.object({
@@ -50,7 +50,10 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
     } else {
       const messages = this.aiMessagesHelperService.getMessages(
         ctx.state.getMetadata('documents'),
-        pick(args, ['prompt', 'messages', 'messagesSearchTag']),
+        {
+          messages: args.messages as ModelMessage[],
+          messagesSearchTag: args.messagesSearchTag,
+        },
       );
       options.messages = convertToModelMessages(messages);
     }
