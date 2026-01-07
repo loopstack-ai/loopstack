@@ -7,7 +7,8 @@
   },
   "private": true,
   "scripts": {
-    "generate": "./generate.sh"
+    "generate": "./generate.sh",
+    "build": "echo 'No build needed' && exit 0"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.16.3"
