@@ -17,12 +17,17 @@ type InputType = z.infer<typeof InputSchema>;
 @Injectable()
 @BlockConfig({
   config: {
-    description: 'Create a value from input.',
+    description:
+      'Creates a value from an expression input. This tool is helpful to debug a template expression or value in a workflow. Also it can be used to reassign a value to another using a template expression.',
   },
 })
-@WithArguments(z.object({
-  input: InputSchema,
-}).strict())
+@WithArguments(
+  z
+    .object({
+      input: InputSchema,
+    })
+    .strict(),
+)
 export class CreateValue extends ToolBase<{ input: InputType }> {
   protected readonly logger = new Logger(CreateValue.name);
 
