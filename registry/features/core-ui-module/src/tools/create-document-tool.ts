@@ -81,11 +81,9 @@ export class CreateDocument extends ToolBase {
 
       const documentSkeleton = this.createDocumentSkeleton(mergedTemplateData, templateContext);
 
-      const parsedContent = this.createDocumentContent(mergedTemplateData.content, templateContext);
-
       const validationResult = this.validateContent(
         document.argsSchema,
-        parsedContent,
+        mergedTemplateData.content,
         args.validate,
       );
 
@@ -124,16 +122,6 @@ export class CreateDocument extends ToolBase {
     return this.templateExpressionEvaluatorService.evaluateTemplate<
       Omit<DocumentType, 'content'>
     >(omit(templateData, ['content']), context, { schema: DocumentSchema });
-  }
-
-  private createDocumentContent(
-    contentTemplate: unknown,
-    context: TemplateContext,
-  ): unknown {
-    return this.templateExpressionEvaluatorService.evaluateTemplate<unknown>(
-      contentTemplate,
-      context,
-    );
   }
 
   private validateContent(
