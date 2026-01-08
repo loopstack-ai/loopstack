@@ -13,7 +13,7 @@ export function useRunPipeline() {
       }
       return api.ApiV1ProcessorApi.processorControllerRunPipeline(pipelineRunRequest);
     },
-    onSuccess: (_) => {
+    onSuccess: () => {
       console.log('success');
       queryClient.invalidateQueries({ queryKey: ['pipelines'] });
     },

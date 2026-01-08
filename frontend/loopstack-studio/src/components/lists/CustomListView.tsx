@@ -117,7 +117,7 @@ const ListView: React.FC<ListViewProps> = ({
 
   const handleSearchChange = useCallback(
     (term: string) => {
-      setSearchTerm && setSearchTerm(term);
+      setSearchTerm?.(term);
       setPage(0);
     },
     [setSearchTerm, setPage],
@@ -125,7 +125,7 @@ const ListView: React.FC<ListViewProps> = ({
 
   const handleFiltersChange = useCallback(
     (newFilters: Record<string, string>) => {
-      setFilters && setFilters(newFilters);
+      setFilters?.(newFilters);
       setPage(0);
     },
     [setFilters, setPage],

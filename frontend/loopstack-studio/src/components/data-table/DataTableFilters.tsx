@@ -20,11 +20,11 @@ const DataTableFilters: React.FC<DataTableFiltersProps> = ({ filters, filterConf
     } else {
       newFilters[key] = value;
     }
-    onFiltersChange && onFiltersChange(newFilters);
+    onFiltersChange?.(newFilters);
   };
 
   const clearAllFilters = () => {
-    onFiltersChange && onFiltersChange({});
+    onFiltersChange?.({});
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -127,7 +127,7 @@ export function useBatchDeletePipeline() {
         pipelineControllerBatchDeletePipelinesRequest: { ids },
       });
     },
-    onSuccess: (_) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pipelines'], type: 'all' });
     },
   });
