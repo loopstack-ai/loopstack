@@ -1,8 +1,5 @@
 import { useMemo } from 'react';
 import axios from 'axios';
-import { ApiClientEvents } from '@/events';
-import { useStudio } from '../providers/StudioProvider';
-import { eventBus } from '@/services';
 import {
   ApiV1AuthApi,
   ApiV1ConfigApi,
@@ -13,8 +10,11 @@ import {
   ApiV1ProcessorApi,
   ApiV1WorkflowsApi,
   ApiV1WorkspacesApi,
-  Configuration
+  Configuration,
 } from '@loopstack/api-client';
+import { ApiClientEvents } from '@/events';
+import { eventBus } from '@/services';
+import { useStudio } from '../providers/StudioProvider';
 
 export function useApiClient() {
   const { environment } = useStudio();
@@ -26,9 +26,9 @@ export function useApiClient() {
       baseOptions: {
         withCredentials: true,
         headers: {
-          'Content-Type': 'application/json'
-        }
-      }
+          'Content-Type': 'application/json',
+        },
+      },
     });
 
     const axiosInstance = axios.create();
@@ -45,7 +45,7 @@ export function useApiClient() {
         }
 
         return Promise.reject(error);
-      }
+      },
     );
 
     const api = {
@@ -57,12 +57,12 @@ export function useApiClient() {
       ApiV1PipelinesApi: new ApiV1PipelinesApi(apiConfig, url, axiosInstance),
       ApiV1ProcessorApi: new ApiV1ProcessorApi(apiConfig, url, axiosInstance),
       ApiV1WorkflowsApi: new ApiV1WorkflowsApi(apiConfig, url, axiosInstance),
-      ApiV1WorkspacesApi: new ApiV1WorkspacesApi(apiConfig, url, axiosInstance)
+      ApiV1WorkspacesApi: new ApiV1WorkspacesApi(apiConfig, url, axiosInstance),
     };
 
     return {
       envKey: environment.id,
-      api
+      api,
     };
   }, [environment.id, environment.url]);
 }

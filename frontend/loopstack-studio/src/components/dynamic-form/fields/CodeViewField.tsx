@@ -1,10 +1,10 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
-import { Copy, Check } from 'lucide-react';
-import { BaseFieldWrapper } from './BaseFieldWrapper';
+import { Check, Copy } from 'lucide-react';
+import CodeContent from '../CodeContent';
 import { useFieldConfig } from '../hooks/useFieldConfig';
 import type { FieldProps } from '../types';
-import CodeContent from '../CodeContent';
+import { BaseFieldWrapper } from './BaseFieldWrapper';
 
 export interface CodeFieldSchema {
   title?: string;
@@ -29,14 +29,7 @@ const stripCodeFence = (text: string): string => {
   return match ? match[1] : text;
 };
 
-export const CodeViewField: React.FC<CodeFieldProps> = ({
-                                                          name,
-                                                          schema,
-                                                          ui,
-                                                          required,
-                                                          form,
-                                                          disabled
-                                                        }) => {
+export const CodeViewField: React.FC<CodeFieldProps> = ({ name, schema, ui, required, form, disabled }) => {
   const [copied, setCopied] = React.useState(false);
   const config = useFieldConfig(name, schema, ui, disabled);
 
@@ -65,15 +58,12 @@ export const CodeViewField: React.FC<CodeFieldProps> = ({
           helpText={config.helpText}
           description={config.description}
         >
-          <div
-            className="border rounded-md overflow-hidden w-full relative"
-            {...config.getAriaProps()}
-          >
+          <div className="relative w-full overflow-hidden rounded-md border" {...config.getAriaProps()}>
             <button
               type="button"
               onClick={() => handleCopy(field.value || '')}
               disabled={config.isDisabled || !field.value}
-              className="absolute top-2 right-2 p-2 rounded-md bg-background/80 hover:bg-background border transition-colors z-10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-background/80 hover:bg-background absolute top-2 right-2 z-10 rounded-md border p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               title={copied ? 'Copied!' : 'Copy to clipboard'}
               aria-label={copied ? 'Copied to clipboard' : 'Copy code to clipboard'}
             >

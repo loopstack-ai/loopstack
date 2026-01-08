@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { Card, CardContent } from '../ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Button } from '../ui/button';
-import { Checkbox } from '../ui/checkbox';
-import { Loader2, ArrowUp, ArrowDown, Eye, Edit, Trash2 } from 'lucide-react';
-import type { DataTableProps, BatchAction, RowAction } from './data-table.ts';
+import { ArrowDown, ArrowUp, Edit, Eye, Loader2, Trash2 } from 'lucide-react';
+import ConfirmDialog from '../data-table/ConfirmDialog';
 import DataTableBatchActions from '../data-table/DataTableBatchAction';
 import DataTableFilters from '../data-table/DataTableFilters';
-import ConfirmDialog from '../data-table/ConfirmDialog';
 import DataTablePagination from '../data-table/DataTablePagination';
 import DataTableToolbar from '../data-table/DataTableToolbar';
+import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
+import { Checkbox } from '../ui/checkbox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import type { BatchAction, DataTableProps, RowAction } from './data-table.ts';
 
 export function DataTable<T extends { id: string }>({
   data,
@@ -36,7 +36,7 @@ export function DataTable<T extends { id: string }>({
   enableBatchActions = true,
   batchActions = [],
   onBatchDelete,
-  rowActions = []
+  rowActions = [],
 }: DataTableProps<T>) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -55,9 +55,7 @@ export function DataTable<T extends { id: string }>({
   };
 
   const toggleSelectRow = (id: string) => {
-    setSelectedRows((prev) =>
-      prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
-    );
+    setSelectedRows((prev) => (prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]));
   };
 
   const clearSelection = () => setSelectedRows([]);
@@ -94,13 +92,13 @@ export function DataTable<T extends { id: string }>({
           {
             id: 'delete',
             label: 'Delete Selected',
-            icon: <Trash2 className="h-4 w-4 mr-2" />,
+            icon: <Trash2 className="mr-2 h-4 w-4" />,
             variant: 'destructive' as const,
-            action: handleBatchDeleteClick
-          }
+            action: handleBatchDeleteClick,
+          },
         ]
       : []),
-    ...batchActions
+    ...batchActions,
   ];
 
   const handleBatchAction = async (action: BatchAction) => {
@@ -114,11 +112,7 @@ export function DataTable<T extends { id: string }>({
 
   const getSortIcon = (columnId: string) => {
     if (sortBy !== columnId) return null;
-    return sortOrder === 'asc' ? (
-      <ArrowUp className="h-4 w-4" />
-    ) : (
-      <ArrowDown className="h-4 w-4" />
-    );
+    return sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
   };
 
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
@@ -132,8 +126,8 @@ export function DataTable<T extends { id: string }>({
             label: 'View',
             icon: <Eye className="h-4 w-4" />,
             variant: 'ghost' as const,
-            action: onRowClick
-          }
+            action: onRowClick,
+          },
         ]
       : []),
     ...(onEdit
@@ -143,8 +137,8 @@ export function DataTable<T extends { id: string }>({
             label: 'Edit',
             icon: <Edit className="h-4 w-4" />,
             variant: 'ghost' as const,
-            action: onEdit
-          }
+            action: onEdit,
+          },
         ]
       : []),
     ...(onDelete
@@ -154,10 +148,10 @@ export function DataTable<T extends { id: string }>({
             label: 'Delete',
             icon: <Trash2 className="h-4 w-4" />,
             variant: 'ghost' as const,
-            action: (item: T) => handleDeleteClick(item.id)
-          }
+            action: (item: T) => handleDeleteClick(item.id),
+          },
         ]
-      : [])
+      : []),
   ];
 
   // Combine default and custom actions
@@ -225,11 +219,7 @@ export function DataTable<T extends { id: string }>({
                     <TableHead
                       key={column.id}
                       className={`${
-                        column.align === 'center'
-                          ? 'text-center'
-                          : column.align === 'right'
-                          ? 'text-right'
-                          : ''
+                        column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : ''
                       }`}
                       style={{ minWidth: column.minWidth }}
                     >
@@ -254,10 +244,8 @@ export function DataTable<T extends { id: string }>({
                 {data.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={
-                        columns.length + (enableBatchActions ? 1 : 0) + (showActionsColumn ? 1 : 0)
-                      }
-                      className="text-center py-8 text-muted-foreground"
+                      colSpan={columns.length + (enableBatchActions ? 1 : 0) + (showActionsColumn ? 1 : 0)}
+                      className="text-muted-foreground py-8 text-center"
                     >
                       No items found
                     </TableCell>
@@ -284,11 +272,7 @@ export function DataTable<T extends { id: string }>({
                         <TableCell
                           key={column.id}
                           className={
-                            column.align === 'center'
-                              ? 'text-center'
-                              : column.align === 'right'
-                              ? 'text-right'
-                              : ''
+                            column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : ''
                           }
                         >
                           {column.format

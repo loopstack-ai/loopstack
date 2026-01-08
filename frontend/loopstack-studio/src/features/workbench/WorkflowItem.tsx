@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import type { DocumentItemDto, PipelineDto } from '@loopstack/api-client';
+import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/contracts/types';
+import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
+import DocumentList from '@/features/workbench/components/DocumentList.tsx';
+import WorkflowForms from '@/features/workbench/components/WorkflowForms.tsx';
+import { useFilterDocuments } from '@/hooks/useDocuments.ts';
+import { useRunPipeline } from '@/hooks/useProcessor.ts';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
 import LoadingCentered from '../../components/LoadingCentered.tsx';
-import { useParams } from 'react-router-dom';
 import BasicErrorComponent from '../../components/content/errorAlert.tsx';
 import type { WorkbenchSettingsInterface } from './WorkflowList.tsx';
 import WorkflowButtons from './components/buttons/WorkflowButtons.tsx';
-import { useFilterDocuments } from '@/hooks/useDocuments.ts';
-import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
-import WorkflowForms from '@/features/workbench/components/WorkflowForms.tsx';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
-import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/contracts/types';
-import DocumentList from '@/features/workbench/components/DocumentList.tsx';
 
 const WorkflowItem: React.FC<{
   pipeline: PipelineDto;
@@ -30,23 +30,23 @@ const WorkflowItem: React.FC<{
     }
   }, [fetchWorkflow.isSuccess, fetchDocuments.isSuccess, workflowId, paramsWorkflowId, clickId]);
 
-  const filterDocuments = useCallback((item: DocumentItemDto) => {
-    let hidden =
-      (item.meta as any)?.['hidden'] ||
-      (item.ui as any)?.hidden ||
-      !!(item.meta as any)?.hideAtPlaces?.includes(fetchWorkflow.data?.place);
+  const filterDocuments = useCallback(
+    (item: DocumentItemDto) => {
+      let hidden =
+        (item.meta as any)?.['hidden'] ||
+        (item.ui as any)?.hidden ||
+        !!(item.meta as any)?.hideAtPlaces?.includes(fetchWorkflow.data?.place);
 
-    const isInternalMessage = false; //['tool'].includes(document.content.role);
+      const isInternalMessage = false; //['tool'].includes(document.content.role);
 
-    if (
-      !settings.showFullMessageHistory &&
-      (isInternalMessage || item.tags?.includes('internal'))
-    ) {
-      hidden = true;
-    }
+      if (!settings.showFullMessageHistory && (isInternalMessage || item.tags?.includes('internal'))) {
+        hidden = true;
+      }
 
-    return !hidden;
-  }, [fetchWorkflow.data, settings.showFullMessageHistory]);
+      return !hidden;
+    },
+    [fetchWorkflow.data, settings.showFullMessageHistory],
+  );
 
   const documents: DocumentItemInterface[] = useMemo(() => {
     if (!fetchDocuments.data) {
@@ -64,11 +64,11 @@ const WorkflowItem: React.FC<{
         transition: {
           id: transition,
           workflowId: workflowId,
-          payload: data
-        } as TransitionPayloadInterface
-      }
+          payload: data,
+        } as TransitionPayloadInterface,
+      },
     });
-  }
+  };
 
   const isLoading = runPipeline.isPending || fetchWorkflow.data?.status === 'running';
 
@@ -79,21 +79,25 @@ const WorkflowItem: React.FC<{
 
       <BasicErrorComponent error={fetchWorkflow.data?.errorMessage} />
 
-      {fetchWorkflow.isSuccess && <DocumentList
-        pipeline={pipeline}
-        workflow={fetchWorkflow.data}
-        documents={documents}
-        scrollTo={scrollTo}
-        settings={settings}
-        isLoading={isLoading}
-      />}
+      {fetchWorkflow.isSuccess && (
+        <DocumentList
+          pipeline={pipeline}
+          workflow={fetchWorkflow.data}
+          documents={documents}
+          scrollTo={scrollTo}
+          settings={settings}
+          isLoading={isLoading}
+        />
+      )}
 
       <LoadingCentered loading={isLoading} />
 
-      {!!fetchWorkflow.data && <>
-        <WorkflowForms workflow={fetchWorkflow.data} onSubmit={handleRun} />
-        <WorkflowButtons pipeline={pipeline} workflow={fetchWorkflow.data} />
-      </>}
+      {!!fetchWorkflow.data && (
+        <>
+          <WorkflowForms workflow={fetchWorkflow.data} onSubmit={handleRun} />
+          <WorkflowButtons pipeline={pipeline} workflow={fetchWorkflow.data} />
+        </>
+      )}
     </div>
   );
 };

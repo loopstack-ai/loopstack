@@ -1,11 +1,11 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
-import { Textarea } from '../../ui/textarea';
+import { buildTextValidationRules } from '@/components/dynamic-form/fields/utils/text-validation-utils.ts';
 import { Label } from '../../ui/label';
-import { BaseFieldWrapper } from './BaseFieldWrapper';
+import { Textarea } from '../../ui/textarea';
 import { useFieldConfig } from '../hooks/useFieldConfig';
 import type { FieldProps } from '../types';
-import { buildTextValidationRules } from '@/components/dynamic-form/fields/utils/text-validation-utils.ts';
+import { BaseFieldWrapper } from './BaseFieldWrapper';
 
 export interface TextareaFieldSchema {
   title?: string;
@@ -29,14 +29,14 @@ interface TextareaFieldProps extends FieldProps {
 }
 
 export const TextareaField: React.FC<TextareaFieldProps> = ({
-                                                              name,
-                                                              schema,
-                                                              ui,
-                                                              required,
-                                                              form,
-                                                              disabled,
-                                                              viewOnly
-                                                            }) => {
+  name,
+  schema,
+  ui,
+  required,
+  form,
+  disabled,
+  viewOnly,
+}) => {
   const config = useFieldConfig(name, schema, ui, disabled);
 
   const placeholder = schema.placeholder || schema.examples?.[0] || '';
@@ -46,17 +46,13 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
 
   if (viewOnly) {
     return (
-      <div className="block mt-4 mb-8">
-        <Label className="text-sm text-muted-foreground mb-1 block">
-          {config.fieldLabel}
-        </Label>
+      <div className="mt-4 mb-8 block">
+        <Label className="text-muted-foreground mb-1 block text-sm">{config.fieldLabel}</Label>
         <Controller
           name={name}
           control={form.control}
           defaultValue={config.defaultValue || ''}
-          render={({ field }) => (
-            <div className="text-sm whitespace-pre-wrap">{field.value || '—'}</div>
-          )}
+          render={({ field }) => <div className="text-sm whitespace-pre-wrap">{field.value || '—'}</div>}
         />
       </div>
     );
@@ -89,7 +85,7 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
             className={config.error ? 'border-destructive focus-visible:ring-destructive' : ''}
             style={{
               minHeight: rows ? `${rows * 1.5}em` : undefined,
-              resize: rows ? 'vertical' : 'none'
+              resize: rows ? 'vertical' : 'none',
             }}
             {...config.getAriaProps()}
           />

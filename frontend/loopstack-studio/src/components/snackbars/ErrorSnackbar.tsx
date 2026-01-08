@@ -17,15 +17,7 @@ const ErrorSnackbar: React.FC<ErrorSnackbarProps> = ({ error }) => {
     return 'An unexpected error occurred.';
   }, [error]);
 
-  return (
-    <Snackbar
-      message={errorMessage}
-      variant="error"
-      duration={4000}
-      position="bottom-center"
-      show={!!error}
-    />
-  );
+  return <Snackbar message={errorMessage} variant="error" duration={4000} position="bottom-center" show={!!error} />;
 };
 
 export default ErrorSnackbar;

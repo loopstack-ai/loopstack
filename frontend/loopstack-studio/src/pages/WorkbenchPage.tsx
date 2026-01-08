@@ -1,11 +1,11 @@
 import { useParams } from 'react-router-dom';
-import { usePipeline } from '../hooks/usePipelines.ts';
 import { Home, Loader2 } from 'lucide-react';
-import { useWorkspace } from '../hooks/useWorkspaces.ts';
-import MainLayout from '../components/layout/MainLayout.tsx';
-import { useStudio } from '../providers/StudioProvider.tsx';
-import Workbench from '@/features/workbench/Workbench.tsx';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
+import Workbench from '@/features/workbench/Workbench.tsx';
+import MainLayout from '../components/layout/MainLayout.tsx';
+import { usePipeline } from '../hooks/usePipelines.ts';
+import { useWorkspace } from '../hooks/useWorkspaces.ts';
+import { useStudio } from '../providers/StudioProvider.tsx';
 
 export default function WorkbenchPage() {
   const { router } = useStudio();
@@ -21,13 +21,11 @@ export default function WorkbenchPage() {
     { label: 'Workspaces', href: router.getWorkspaces() },
     {
       label: fetchWorkspace.data?.title ?? '',
-      href: workspaceId ? router.getWorkspace(workspaceId) : undefined
+      href: workspaceId ? router.getWorkspace(workspaceId) : undefined,
     },
     {
-      label: `Run #${fetchPipeline.data?.run} ${
-        fetchPipeline.data?.title ? `(${fetchPipeline.data?.title}})` : ''
-      }`
-    }
+      label: `Run #${fetchPipeline.data?.run} ${fetchPipeline.data?.title ? `(${fetchPipeline.data?.title}})` : ''}`,
+    },
   ];
 
   return (

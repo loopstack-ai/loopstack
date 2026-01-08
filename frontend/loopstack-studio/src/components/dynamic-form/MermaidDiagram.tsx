@@ -12,8 +12,8 @@ mermaid.initialize({
   securityLevel: 'loose',
   flowchart: {
     useMaxWidth: true,
-    htmlLabels: true
-  }
+    htmlLabels: true,
+  },
 });
 
 const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, className }) => {

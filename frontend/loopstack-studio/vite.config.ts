@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import dts from 'vite-plugin-dts';
+import react from '@vitejs/plugin-react';
 import * as path from 'path';
+import { defineConfig } from 'vite';
+import dts from 'vite-plugin-dts';
 
 export default defineConfig(({ mode }) => {
   const isLibrary = mode === 'lib';
@@ -11,30 +11,27 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react({
         babel: {
-          plugins: [['babel-plugin-react-compiler']]
-        }
+          plugins: [['babel-plugin-react-compiler']],
+        },
       }),
       tailwindcss(),
       ...(isLibrary
         ? [
             dts({
               tsconfigPath: './tsconfig.app.json',
-              rollupTypes: true
-            })
+              rollupTypes: true,
+            }),
           ]
-        : [])
+        : []),
     ],
     optimizeDeps: {
-      include: [
-        '@loopstack/contracts/types',
-        '@loopstack/api-client'
-      ]
+      include: ['@loopstack/contracts/types', '@loopstack/api-client'],
     },
     build: isLibrary
       ? {
           lib: {
             entry: path.resolve(__dirname, 'src/index.ts'),
-            formats: ['es']
+            formats: ['es'],
           },
           rollupOptions: {
             external: [
@@ -61,22 +58,22 @@ export default defineConfig(({ mode }) => {
               format: 'es',
               preserveModules: true,
               preserveModulesRoot: 'src',
-              entryFileNames: '[name].js'
-            }
-          }
+              entryFileNames: '[name].js',
+            },
+          },
         }
       : {
           outDir: 'dist',
           rollupOptions: {
             input: {
-              main: path.resolve(__dirname, 'index.html')
+              main: path.resolve(__dirname, 'index.html'),
             },
-          }
+          },
         },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src')
-      }
-    }
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
   };
 });

@@ -6,7 +6,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogTitle,
 } from '../ui/alert-dialog';
 
 interface ConfirmDialogProps {
@@ -28,7 +28,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
-  variant = 'default'
+  variant = 'default',
 }) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>

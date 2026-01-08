@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useApiClient } from './useApi.ts';
 import type {
   ApiV1PipelinesApiPipelineControllerCreatePipelineRequest,
   ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest,
-  PipelineSortByDto
+  PipelineSortByDto,
 } from '@loopstack/api-client';
+import { useApiClient } from './useApi.ts';
 
 export function usePipeline(id: string | undefined) {
   const { envKey, api } = useApiClient();
@@ -18,7 +18,7 @@ export function usePipeline(id: string | undefined) {
       return api.ApiV1PipelinesApi.pipelineControllerGetPipelineById({ id: id! });
     },
     enabled: !!id,
-    select: (res) => res.data
+    select: (res) => res.data,
   });
 }
 
@@ -28,7 +28,7 @@ export function useFilterPipelines(
   sortBy: string = 'id',
   order: string = 'desc',
   page: number = 0,
-  limit: number = 10
+  limit: number = 10,
 ) {
   const { envKey, api } = useApiClient();
 
@@ -37,13 +37,13 @@ export function useFilterPipelines(
     sortBy: JSON.stringify([
       {
         field: sortBy,
-        order: order
-      } as PipelineSortByDto
+        order: order,
+      } as PipelineSortByDto,
     ]),
     page,
     limit,
     search: searchTerm,
-    searchColumns: JSON.stringify(['title', 'model'])
+    searchColumns: JSON.stringify(['title', 'model']),
   };
 
   return useQuery({
@@ -55,7 +55,7 @@ export function useFilterPipelines(
       return api.ApiV1PipelinesApi.pipelineControllerGetPipelines(requestParams);
     },
     select: (res) => res.data,
-    enabled: true
+    enabled: true,
   });
 }
 
@@ -65,9 +65,7 @@ export function useCreatePipeline() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      pipelineCreateRequest: ApiV1PipelinesApiPipelineControllerCreatePipelineRequest
-    ) => {
+    mutationFn: (pipelineCreateRequest: ApiV1PipelinesApiPipelineControllerCreatePipelineRequest) => {
       if (!api) {
         throw new Error('API not available');
       }
@@ -75,7 +73,7 @@ export function useCreatePipeline() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
-    }
+    },
   });
 }
 
@@ -84,9 +82,7 @@ export function useUpdatePipeline() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      pipelineUpdateRequest: ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest
-    ) => {
+    mutationFn: (pipelineUpdateRequest: ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest) => {
       if (!api) {
         throw new Error('API not available');
       }
@@ -95,7 +91,7 @@ export function useUpdatePipeline() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pipeline', variables.id, envKey] });
       queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
-    }
+    },
   });
 }
 
@@ -114,7 +110,7 @@ export function useDeletePipeline() {
       // Remove the pipeline from the cache and invalidate the pipelines list
       queryClient.removeQueries({ queryKey: ['pipeline', id, envKey] });
       queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
-    }
+    },
   });
 }
 
@@ -128,11 +124,11 @@ export function useBatchDeletePipeline() {
         throw new Error('API not available');
       }
       return api.ApiV1PipelinesApi.pipelineControllerBatchDeletePipelines({
-        pipelineControllerBatchDeletePipelinesRequest: { ids }
+        pipelineControllerBatchDeletePipelinesRequest: { ids },
       });
     },
     onSuccess: (_) => {
       queryClient.invalidateQueries({ queryKey: ['pipelines'], type: 'all' });
-    }
+    },
   });
 }

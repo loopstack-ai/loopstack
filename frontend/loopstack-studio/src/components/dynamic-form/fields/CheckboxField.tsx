@@ -1,10 +1,10 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
+import { Label } from '@/components/ui/label.tsx';
 import { Checkbox } from '../../ui/checkbox';
-import { BaseFieldWrapper } from './BaseFieldWrapper';
 import { useFieldConfig } from '../hooks/useFieldConfig';
 import type { FieldProps } from '../types';
-import { Label } from '@/components/ui/label.tsx';
+import { BaseFieldWrapper } from './BaseFieldWrapper';
 
 export interface CheckboxFieldSchema {
   title?: string;
@@ -19,14 +19,7 @@ interface CheckboxFieldProps extends FieldProps {
   schema: CheckboxFieldSchema;
 }
 
-export const CheckboxField: React.FC<CheckboxFieldProps> = ({
-                                                              name,
-                                                              schema,
-                                                              ui,
-                                                              required,
-                                                              form,
-                                                              disabled
-                                                            }) => {
+export const CheckboxField: React.FC<CheckboxFieldProps> = ({ name, schema, ui, required, form, disabled }) => {
   const config = useFieldConfig(name, schema, ui, disabled);
 
   return (
@@ -35,7 +28,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
       control={form.control}
       defaultValue={config.defaultValue || false}
       rules={{
-        validate: required ? (value) => value === true || 'This field is required' : undefined
+        validate: required ? (value) => value === true || 'This field is required' : undefined,
       }}
       render={({ field: { onChange, value, ref } }) => (
         <BaseFieldWrapper
@@ -59,7 +52,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
             />
             <Label
               htmlFor={name}
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               {config.fieldLabel}
             </Label>

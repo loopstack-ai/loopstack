@@ -17,33 +17,33 @@ const CompletionMessagePaper: React.FC<CompletionMessagePaperProps> = ({
   timestamp,
   metadata,
   fullWidth = false,
-  className
+  className,
 }) => {
   const roleConfig = {
     system: {
       color: '#efb108',
-      align: 'left'
+      align: 'left',
     },
     user: {
       color: '#0496d0',
-      align: 'right'
+      align: 'right',
     },
     assistant: {
       color: '#004a98',
-      align: 'left'
+      align: 'left',
     },
     document: {
       color: '#0e2135',
-      align: 'left'
+      align: 'left',
     },
     tool: {
       color: '#efb108',
-      align: 'left'
+      align: 'left',
     },
     error: {
       color: '#dc0d33',
-      align: 'left'
-    }
+      align: 'left',
+    },
   };
 
   const config = (role ? roleConfig[role] : undefined) ?? roleConfig['assistant'];
@@ -52,66 +52,48 @@ const CompletionMessagePaper: React.FC<CompletionMessagePaperProps> = ({
   const formatTimestamp = (date: Date): string => {
     return date.toLocaleTimeString([], {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
   return (
     <div
       className={cn(
-        'mb-1 flex flex-row items-start animate-in fade-in duration-300',
+        'animate-in fade-in mb-1 flex flex-row items-start duration-300',
         isUser ? 'justify-end' : 'justify-start',
-        className
+        className,
       )}
     >
       <div
         className={cn(
-          'min-w-[200px] flex flex-col',
-          fullWidth ? 'w-full max-w-full' : 'max-w-[75%] w-auto',
-          isUser ? 'items-end' : 'items-start'
+          'flex min-w-[200px] flex-col',
+          fullWidth ? 'w-full max-w-full' : 'w-auto max-w-[75%]',
+          isUser ? 'items-end' : 'items-start',
         )}
       >
-        <div className="flex items-center mb-2 gap-2 opacity-70">
-          {role ? <span
-            className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: config.color }}
-          >
-            {role}
-          </span> : ''}
-          {timestamp && (
-            <span className="text-xs text-muted-foreground font-mono">
-              {formatTimestamp(timestamp)}
+        <div className="mb-2 flex items-center gap-2 opacity-70">
+          {role ? (
+            <span className="text-xs font-semibold tracking-wider uppercase" style={{ color: config.color }}>
+              {role}
             </span>
+          ) : (
+            ''
           )}
+          {timestamp && <span className="text-muted-foreground font-mono text-xs">{formatTimestamp(timestamp)}</span>}
         </div>
 
         {metadata && Object.keys(metadata).length > 0 && (
-          <div
-            className={cn(
-              'bg-muted rounded-md p-2 mb-2 mFax-w-full',
-              isUser ? 'self-end' : 'self-start'
-            )}
-          >
+          <div className={cn('bg-muted mFax-w-full mb-2 rounded-md p-2', isUser ? 'self-end' : 'self-start')}>
             {Object.entries(metadata).map(([key, value]) => (
-              <div key={key} className="text-xs text-muted-foreground font-mono">
+              <div key={key} className="text-muted-foreground font-mono text-xs">
                 <strong>{key}:</strong> {String(value)}
               </div>
             ))}
           </div>
         )}
 
-        <Card
-          className={cn(
-            'relative px-5 py-3 max-w-full break-words shadow-none ',
-            fullWidth ? 'w-full' : 'w-auto'
-          )}
-        >
-          <div
-            className={cn(
-              'whitespace-pre-wrap break-words leading-relaxed',
-              isUser ? 'user' : 'text-foreground'
-            )}
-          >
+        <Card className={cn('relative max-w-full px-5 py-3 break-words shadow-none', fullWidth ? 'w-full' : 'w-auto')}>
+          <div className={cn('leading-relaxed break-words whitespace-pre-wrap', isUser ? 'user' : 'text-foreground')}>
             <div className="message-content">{children}</div>
           </div>
         </Card>

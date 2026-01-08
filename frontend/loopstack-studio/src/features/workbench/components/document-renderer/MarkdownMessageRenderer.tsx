@@ -1,6 +1,6 @@
 import React from 'react';
-import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
 import MarkdownContent from '../../../../components/dynamic-form/MarkdownContent.tsx';
+import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
 
 interface MarkdownMessageRendererProps {
   document: any; //TODO: Define a more specific type for document

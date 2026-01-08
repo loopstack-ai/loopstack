@@ -14,7 +14,7 @@ export function useWorkspaceConfig() {
       return api.ApiV1ConfigApi.configControllerGetWorkspaceTypes();
     },
     select: (res) => res.data,
-    enabled: true
+    enabled: true,
   });
 }
 
@@ -28,10 +28,10 @@ export function usePipelineConfig(workspaceBlockName: string | undefined) {
         throw new Error('API not available');
       }
       return api.ApiV1ConfigApi.configControllerGetPipelineTypesByWorkspace({
-        workspaceBlockName: workspaceBlockName!
+        workspaceBlockName: workspaceBlockName!,
       });
     },
     enabled: !!workspaceBlockName,
-    select: (res) => res.data as PipelineConfigDto[]
+    select: (res) => res.data as PipelineConfigDto[],
   });
 }

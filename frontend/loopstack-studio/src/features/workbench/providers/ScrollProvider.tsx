@@ -5,7 +5,7 @@ const ScrollContext = createContext<{
   setScrollTo: (value: boolean) => void;
 }>({
   enableScrollTo: true,
-  setScrollTo: () => {}
+  setScrollTo: () => {},
 });
 
 export const ScrollProvider: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -13,11 +13,7 @@ export const ScrollProvider: React.FC<{ children: React.ReactElement }> = ({ chi
 
   const setScrollTo = (value: boolean) => setEnableScrollTo(value);
 
-  return (
-    <ScrollContext.Provider value={{ enableScrollTo, setScrollTo }}>
-      {children}
-    </ScrollContext.Provider>
-  );
+  return <ScrollContext.Provider value={{ enableScrollTo, setScrollTo }}>{children}</ScrollContext.Provider>;
 };
 
 export const useScroll = () => useContext(ScrollContext);

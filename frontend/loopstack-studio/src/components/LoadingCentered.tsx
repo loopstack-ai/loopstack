@@ -7,14 +7,9 @@ interface LoadingCenteredProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: number;
 }
 
-const LoadingCentered: React.FC<LoadingCenteredProps> = ({
-  loading = false,
-  size = 24,
-  className,
-  ...props
-}) => {
+const LoadingCentered: React.FC<LoadingCenteredProps> = ({ loading = false, size = 24, className, ...props }) => {
   return loading ? (
-    <div className={cn('flex justify-center items-center', className)} {...props}>
+    <div className={cn('flex items-center justify-center', className)} {...props}>
       <Loader2 className="animate-spin" size={size} />
     </div>
   ) : (

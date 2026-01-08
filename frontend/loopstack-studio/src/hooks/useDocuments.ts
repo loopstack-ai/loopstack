@@ -22,7 +22,7 @@ export function useDocument(id: string) {
       return api.ApiV1DocumentsApi.documentControllerGetDocumentById({ id });
     },
     enabled: !!id,
-    select: (res) => res.data
+    select: (res) => res.data,
   });
 }
 
@@ -32,14 +32,14 @@ export function useFilterDocuments(workflowId: string | undefined) {
   const requestParams = {
     filter: JSON.stringify({
       workflowId: workflowId,
-      isInvalidated: false
+      isInvalidated: false,
     } as DocumentFilterDto),
     sortBy: JSON.stringify([
       {
         field: 'index',
-        order: 'ASC'
-      } as DocumentSortByDto
-    ])
+        order: 'ASC',
+      } as DocumentSortByDto,
+    ]),
   };
 
   return useQuery<any>({
@@ -51,6 +51,6 @@ export function useFilterDocuments(workflowId: string | undefined) {
       return api.ApiV1DocumentsApi.documentControllerGetDocuments(requestParams);
     },
     enabled: !!workflowId,
-    select: (res) => res.data.data
+    select: (res) => res.data.data,
   });
 }

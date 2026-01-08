@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import type { ReactElement } from 'react';
-import type { BatchAction, RowAction } from '../data-table/data-table.ts';
 import { DataList } from '../data-table/DataList.tsx';
+import type { BatchAction, RowAction } from '../data-table/data-table.ts';
 
 export interface Item {
   id: string;
@@ -79,14 +79,14 @@ const ListView: React.FC<ListViewProps> = ({
   enableBatchActions = true,
   rowActions = [],
   itemRenderer,
-  newButtonLabel
+  newButtonLabel,
 }) => {
   const transformedBatchActions: BatchAction[] = batchActions.map((action) => ({
     id: action.id,
     label: action.label,
     icon: action.icon,
     variant: action.variant,
-    action: action.action
+    action: action.action,
   }));
 
   const transformedRowActions: RowAction[] = rowActions.map((action) => ({
@@ -97,14 +97,14 @@ const ListView: React.FC<ListViewProps> = ({
     action: action.action,
     condition: action.condition,
     disabled: action.disabled,
-    className: action.className
+    className: action.className,
   }));
 
   const handlePageChange = useCallback(
     (newPage: number) => {
       setPage(newPage);
     },
-    [setPage]
+    [setPage],
   );
 
   const handlePageSizeChange = useCallback(
@@ -112,7 +112,7 @@ const ListView: React.FC<ListViewProps> = ({
       setRowsPerPage(newSize);
       setPage(0);
     },
-    [setRowsPerPage, setPage]
+    [setRowsPerPage, setPage],
   );
 
   const handleSearchChange = useCallback(
@@ -120,7 +120,7 @@ const ListView: React.FC<ListViewProps> = ({
       setSearchTerm && setSearchTerm(term);
       setPage(0);
     },
-    [setSearchTerm, setPage]
+    [setSearchTerm, setPage],
   );
 
   const handleFiltersChange = useCallback(
@@ -128,14 +128,14 @@ const ListView: React.FC<ListViewProps> = ({
       setFilters && setFilters(newFilters);
       setPage(0);
     },
-    [setFilters, setPage]
+    [setFilters, setPage],
   );
 
   const handleRowClick = useCallback(
     (item: any) => {
       onClick(item.id);
     },
-    [onClick]
+    [onClick],
   );
 
   const handleBatchDelete = useCallback(
@@ -144,7 +144,7 @@ const ListView: React.FC<ListViewProps> = ({
         await batchDelete(ids);
       }
     },
-    [batchDelete]
+    [batchDelete],
   );
 
   return (

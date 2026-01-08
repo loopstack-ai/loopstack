@@ -1,13 +1,16 @@
-import type {
-  DocumentItemInterface, JSONSchemaConfigType,
-  MimeType, UiFormType,
-  UiPropertiesType, WorkflowInterface,
-} from '@loopstack/contracts/types';
-import type { UseFormReturn } from 'react-hook-form';
 import React from 'react';
+import type { UseFormReturn } from 'react-hook-form';
+import type {
+  DocumentItemInterface,
+  JSONSchemaConfigType,
+  MimeType,
+  UiFormType,
+  UiPropertiesType,
+  WorkflowInterface,
+} from '@loopstack/contracts/types';
 
 export interface DocumentFormProps {
-  workflow: WorkflowInterface,
+  workflow: WorkflowInterface;
   document: DocumentItemInterface;
   onSubmit: (transition: string, data: Record<string, any>) => void;
   disabled: boolean;

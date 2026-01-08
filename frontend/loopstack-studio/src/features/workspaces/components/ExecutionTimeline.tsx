@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Badge } from '../../../components/ui/badge.tsx';
+import { format, formatDistanceToNow, isToday, isYesterday, parseISO } from 'date-fns';
 import { Loader2 } from 'lucide-react';
-import { formatDistanceToNow, format, isToday, isYesterday, parseISO } from 'date-fns';
-import { useBatchDeletePipeline, useFilterPipelines } from '../../../hooks/usePipelines.ts';
 import type { PipelineItemDto, PipelineStatus, WorkspaceDto } from '@loopstack/api-client';
-import CreatePipelineDialog from './NewPipelineRunDialog.tsx';
-import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
 import CustomListView from '../../../components/lists/CustomListView.tsx';
+import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
+import { Badge } from '../../../components/ui/badge.tsx';
+import { useBatchDeletePipeline, useFilterPipelines } from '../../../hooks/usePipelines.ts';
 import { useStudio } from '../../../providers/StudioProvider.tsx';
+import CreatePipelineDialog from './NewPipelineRunDialog.tsx';
 
 interface PipelinesProps {
   workspace: WorkspaceDto;
@@ -49,7 +49,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
     'createdAt', // default ordering
     'desc', // newest first
     page,
-    rowsPerPage
+    rowsPerPage,
   );
 
   // const deletePipeline = useDeletePipeline();
@@ -94,13 +94,13 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
   const totalItems = fetchPipelines.data?.total ?? 0;
 
   const renderItem = (item: PipelineItemDto) => (
-    <div className="flex justify-between items-center space-x-3">
+    <div className="flex items-center justify-between space-x-3">
       <div>
-        <h3 className="font-medium hover:text-primary transition-colors">
+        <h3 className="hover:text-primary font-medium transition-colors">
           Run #{item.run} {item.title ? `(${item.title})` : ''}
         </h3>
-        <p className="text-sm text-gray-500 mt-1">{item.blockName}</p>
-        <p className="text-xs text-gray-400 mt-2">{formatUpdatedTime(item.updatedAt)}</p>
+        <p className="mt-1 text-sm text-gray-500">{item.blockName}</p>
+        <p className="mt-2 text-xs text-gray-400">{formatUpdatedTime(item.updatedAt)}</p>
       </div>
       <Badge variant="default" className={getPipelineStatusColor(item.status)}>
         {item.status}
@@ -146,12 +146,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
         newButtonLabel="Run"
       />
 
-      <CreatePipelineDialog
-        isOpen={open}
-        onOpenChange={setOpen}
-        workspace={workspace}
-        onSuccess={handleClose}
-      />
+      <CreatePipelineDialog isOpen={open} onOpenChange={setOpen} workspace={workspace} onSuccess={handleClose} />
     </div>
   );
 };

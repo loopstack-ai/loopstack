@@ -1,8 +1,8 @@
 import React from 'react';
-import { ObjectController } from './ObjectController.tsx';
-import MarkdownContent from './MarkdownContent.tsx';
-import type { FormBodyProps } from './types.ts';
 import CodeContent from './CodeContent.tsx';
+import MarkdownContent from './MarkdownContent.tsx';
+import { ObjectController } from './ObjectController.tsx';
+import type { FormBodyProps } from './types.ts';
 
 const FormBody: React.FC<FormBodyProps> = ({ mimeType, schema, ui, disabled, viewOnly, form }: FormBodyProps) => {
   const rawValue = form.watch('raw');

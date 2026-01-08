@@ -1,12 +1,7 @@
 import React from 'react';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from '../../../../components/ui/accordion.tsx';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card.tsx';
 import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../../../components/ui/accordion.tsx';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card.tsx';
 
 interface PromptData {
   cache: any;
@@ -59,9 +54,7 @@ const PromptDetails: React.FC<PromptDetailsProps> = ({ promptData }: any) => {
             <div className="space-y-4">
               <Card>
                 <CardContent className="p-4">
-                  <pre className="whitespace-pre-wrap break-words font-mono text-xs">
-                    {response?.data}
-                  </pre>
+                  <pre className="font-mono text-xs break-words whitespace-pre-wrap">{response?.data}</pre>
                 </CardContent>
               </Card>
 
@@ -75,9 +68,7 @@ const PromptDetails: React.FC<PromptDetailsProps> = ({ promptData }: any) => {
                     <p className="text-sm">Prompt ID: {response?.metadata?.prompt_id}</p>
                     <p className="text-sm">Response Time: {response?.metadata?.response_time} ms</p>
                     <p className="text-sm">Prompt Tokens: {response?.metadata?.prompt_token}</p>
-                    <p className="text-sm">
-                      Completion Tokens: {response?.metadata?.completion_token}
-                    </p>
+                    <p className="text-sm">Completion Tokens: {response?.metadata?.completion_token}</p>
                   </div>
                 </CardContent>
               </Card>

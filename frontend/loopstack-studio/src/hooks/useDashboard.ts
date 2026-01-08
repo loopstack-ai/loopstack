@@ -13,6 +13,6 @@ export function useDashboardStats() {
       const res = await api.ApiV1DashboardApi.dashboardControllerGetDashboardStats();
       return res.data;
     },
-    enabled: true
+    enabled: true,
   });
 }

@@ -1,7 +1,7 @@
-import { Search, Filter, Plus, X } from 'lucide-react';
+import { Filter, Plus, Search, X } from 'lucide-react';
+import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Badge } from '../ui/badge';
 
 interface DataTableToolbarProps {
   searchTerm?: string;
@@ -26,29 +26,26 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
   newButtonLabel,
   showFilter,
   showSearch,
-  children
+  children,
 }) => {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center justify-between w-full">
-        {children}
-      </div>
+    <div className="mb-4 flex items-center justify-between">
+      <div className="flex w-full items-center justify-between">{children}</div>
       <div className="flex items-center gap-2">
-
         {showSearch ? (
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
             <Input
               placeholder="Search..."
               value={searchTerm}
               onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
-              className="pl-10 w-64"
+              className="w-64 pl-10"
             />
             {searchTerm && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                className="absolute top-1/2 right-1 h-6 w-6 -translate-y-1/2 transform p-0"
                 onClick={() => onSearchChange && onSearchChange('')}
               >
                 <X className="h-3 w-3" />
@@ -66,13 +63,10 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
             onClick={onFilterToggle}
             className="relative"
           >
-            <Filter className="h-4 w-4 mr-2" />
+            <Filter className="mr-2 h-4 w-4" />
             Filters
             {filterCount > 0 && (
-              <Badge
-                variant="secondary"
-                className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
-              >
+              <Badge variant="secondary" className="ml-2 flex h-5 w-5 items-center justify-center p-0 text-xs">
                 {filterCount}
               </Badge>
             )}
@@ -83,7 +77,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
 
         {onNew && (
           <Button size="sm" onClick={onNew}>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             {newButtonLabel ?? 'New'}
           </Button>
         )}

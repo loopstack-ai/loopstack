@@ -21,7 +21,7 @@ export function useNamespace(id: string) {
       return api.ApiV1NamespacesApi.namespaceControllerGetWorkflowById({ id });
     },
     enabled: !!id,
-    select: (res) => res.data
+    select: (res) => res.data,
   });
 }
 
@@ -30,8 +30,8 @@ export function useFilterNamespaces(pipelineId?: string) {
 
   const requestParams = {
     filter: JSON.stringify({
-      pipelineId
-    })
+      pipelineId,
+    }),
   };
 
   return useQuery({
@@ -43,6 +43,6 @@ export function useFilterNamespaces(pipelineId?: string) {
       return api.ApiV1NamespacesApi.namespaceControllerGetWorkflows(requestParams);
     },
     enabled: !!pipelineId,
-    select: (res) => res.data.data
+    select: (res) => res.data.data,
   });
 }

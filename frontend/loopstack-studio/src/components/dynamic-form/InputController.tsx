@@ -1,30 +1,22 @@
 import React from 'react';
+import type { UiPropertiesType } from '@loopstack/contracts/types';
+import { InputField, type InputFieldSchema } from '@/components/dynamic-form/fields/InputField.tsx';
+import { TextareaField, type TextareaFieldSchema } from '@/components/dynamic-form/fields/TextareaField.tsx';
 import { CheckboxField } from './fields/CheckboxField';
 import type { CheckboxFieldSchema } from './fields/CheckboxField';
-import { SelectField } from './fields/SelectField';
-import type { SelectFieldSchema } from './fields/SelectField';
+import { CodeViewField } from './fields/CodeViewField';
+import type { CodeFieldSchema } from './fields/CodeViewField';
 import { RadioField } from './fields/RadioField';
 import type { RadioFieldSchema } from './fields/RadioField';
+import { SelectField } from './fields/SelectField';
+import type { SelectFieldSchema } from './fields/SelectField';
 import { SliderField } from './fields/SliderField';
 import type { SliderFieldSchema } from './fields/SliderField';
 import { SwitchField } from './fields/SwitchField';
 import type { SwitchFieldSchema } from './fields/SwitchField';
-import { CodeViewField } from './fields/CodeViewField';
-import type { CodeFieldSchema } from './fields/CodeViewField';
 import type { FieldProps } from './types';
-import type { UiPropertiesType } from '@loopstack/contracts/types';
-import { InputField, type InputFieldSchema } from '@/components/dynamic-form/fields/InputField.tsx';
-import { TextareaField, type TextareaFieldSchema } from '@/components/dynamic-form/fields/TextareaField.tsx';
 
-type WidgetType =
-  | 'checkbox'
-  | 'radio'
-  | 'switch'
-  | 'select'
-  | 'slider'
-  | 'text'
-  | 'code-view'
-  | 'textarea';
+type WidgetType = 'checkbox' | 'radio' | 'switch' | 'select' | 'slider' | 'text' | 'code-view' | 'textarea';
 
 type FieldSchema =
   | CheckboxFieldSchema
@@ -52,10 +44,7 @@ const WIDGET_NAMES = Object.keys(WIDGET_REGISTRY) as WidgetType[];
 /**
  * Determines the widget type based on schema properties
  */
-const resolveWidgetType = (
-  schema: UiPropertiesType,
-  uiWidget?: string
-): WidgetType => {
+const resolveWidgetType = (schema: UiPropertiesType, uiWidget?: string): WidgetType => {
   if (uiWidget && WIDGET_NAMES.includes(uiWidget as WidgetType)) {
     return uiWidget as WidgetType;
   }
@@ -88,11 +77,5 @@ export const InputController: React.FC<FieldProps> = (props) => {
 
   const FieldComponent = WIDGET_REGISTRY[widgetType];
 
-  return (
-    <FieldComponent
-      {...props}
-      name={fieldName}
-      schema={schema as FieldSchema}
-    />
-  );
+  return <FieldComponent {...props} name={fieldName} schema={schema as FieldSchema} />;
 };

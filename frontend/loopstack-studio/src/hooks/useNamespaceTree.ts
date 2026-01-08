@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useFilterNamespaces } from './useNamespaces.ts';
 import type { NamespaceItemDto } from '@loopstack/api-client';
+import { useFilterNamespaces } from './useNamespaces.ts';
 
 export interface NamespaceTree extends NamespaceItemDto {
   childNodes: NamespaceTree[];
@@ -15,7 +15,7 @@ function buildNamespaceTree(namespaces: NamespaceItemDto[]): NamespaceTree[] {
   namespaces.forEach((namespace) => {
     namespaceMap.set(namespace.id, {
       ...namespace,
-      childNodes: []
+      childNodes: [],
     });
   });
 
@@ -29,9 +29,7 @@ function buildNamespaceTree(namespaces: NamespaceItemDto[]): NamespaceTree[] {
       if (parentNode) {
         parentNode.childNodes.push(namespaceNode);
       } else {
-        console.warn(
-          `Parent namespace with ID ${namespace.parentId} not found for ${namespace.id}`
-        );
+        console.warn(`Parent namespace with ID ${namespace.parentId} not found for ${namespace.id}`);
         rootNodes.push(namespaceNode);
       }
     } else {

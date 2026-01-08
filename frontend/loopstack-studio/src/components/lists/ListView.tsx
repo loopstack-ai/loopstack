@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { DataTable } from '../data-table/DataTable';
-import type { DataTableColumn, BatchAction, RowAction } from '../data-table/data-table';
+import type { BatchAction, DataTableColumn, RowAction } from '../data-table/data-table';
 
 export interface Item {
   id: string;
@@ -88,7 +88,7 @@ const ListView: React.FC<ListViewProps> = ({
   batchActions = [],
   batchDelete,
   enableBatchActions = true,
-  rowActions = []
+  rowActions = [],
 }) => {
   const transformedColumns: DataTableColumn[] = columns.map((column) => ({
     id: column.id,
@@ -104,7 +104,7 @@ const ListView: React.FC<ListViewProps> = ({
           }
           return formatted;
         }
-      : undefined
+      : undefined,
   }));
 
   const transformedBatchActions: BatchAction[] = batchActions.map((action) => ({
@@ -112,7 +112,7 @@ const ListView: React.FC<ListViewProps> = ({
     label: action.label,
     icon: action.icon,
     variant: action.variant,
-    action: action.action
+    action: action.action,
   }));
 
   const transformedRowActions: RowAction[] = rowActions.map((action) => ({
@@ -123,14 +123,14 @@ const ListView: React.FC<ListViewProps> = ({
     action: action.action,
     condition: action.condition,
     disabled: action.disabled,
-    className: action.className
+    className: action.className,
   }));
 
   const handlePageChange = useCallback(
     (newPage: number) => {
       setPage(newPage);
     },
-    [setPage]
+    [setPage],
   );
 
   const handlePageSizeChange = useCallback(
@@ -138,7 +138,7 @@ const ListView: React.FC<ListViewProps> = ({
       setRowsPerPage(newSize);
       setPage(0);
     },
-    [setRowsPerPage, setPage]
+    [setRowsPerPage, setPage],
   );
 
   const handleSortChange = useCallback(
@@ -146,7 +146,7 @@ const ListView: React.FC<ListViewProps> = ({
       setOrderBy(field);
       setOrder(sortOrder);
     },
-    [setOrderBy, setOrder]
+    [setOrderBy, setOrder],
   );
 
   const handleSearchChange = useCallback(
@@ -154,7 +154,7 @@ const ListView: React.FC<ListViewProps> = ({
       setSearchTerm(term);
       setPage(0);
     },
-    [setSearchTerm, setPage]
+    [setSearchTerm, setPage],
   );
 
   const handleFiltersChange = useCallback(
@@ -162,28 +162,28 @@ const ListView: React.FC<ListViewProps> = ({
       setFilters(newFilters);
       setPage(0);
     },
-    [setFilters, setPage]
+    [setFilters, setPage],
   );
 
   const handleRowClick = useCallback(
     (item: any) => {
       onClick(item.id);
     },
-    [onClick]
+    [onClick],
   );
 
   const handleEditClick = useCallback(
     (item: any) => {
       handleEdit(item);
     },
-    [handleEdit]
+    [handleEdit],
   );
 
   const handleDeleteClick = useCallback(
     async (id: string) => {
       deleteItem(id);
     },
-    [deleteItem]
+    [deleteItem],
   );
 
   const handleBatchDelete = useCallback(
@@ -192,7 +192,7 @@ const ListView: React.FC<ListViewProps> = ({
         await batchDelete(ids);
       }
     },
-    [batchDelete]
+    [batchDelete],
   );
 
   return (

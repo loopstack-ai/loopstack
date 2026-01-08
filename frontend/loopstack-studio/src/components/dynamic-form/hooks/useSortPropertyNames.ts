@@ -4,7 +4,7 @@ export const useSortedPropertyNames = (properties: Record<string, any>, order?: 
   if (order?.length) {
     propertyNames = [
       ...order.filter((name) => propertyNames.includes(name)),
-      ...propertyNames.filter((name) => !order.includes(name))
+      ...propertyNames.filter((name) => !order.includes(name)),
     ];
   }
 

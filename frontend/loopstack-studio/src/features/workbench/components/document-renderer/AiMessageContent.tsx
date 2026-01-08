@@ -1,13 +1,5 @@
 import React from 'react';
-import type {
-  DataContent,
-  FilePart,
-  ImagePart,
-  ModelMessage,
-  TextPart,
-  ToolCallPart,
-  ToolResultPart
-} from 'ai';
+import type { DataContent, FilePart, ImagePart, ModelMessage, TextPart, ToolCallPart, ToolResultPart } from 'ai';
 
 interface ReasoningPart {
   type: 'reasoning';
@@ -29,7 +21,7 @@ const getDataUrl = (data: DataContent | URL, mediaType?: string): string => {
 
 // Individual content part renderers
 const TextPartRenderer: React.FC<{ part: TextPart }> = ({ part }) => (
-  <div className="whitespace-pre-wrap text-sm leading-relaxed">{part.text}</div>
+  <div className="text-sm leading-relaxed whitespace-pre-wrap">{part.text}</div>
 );
 
 const ImagePartRenderer: React.FC<{ part: ImagePart }> = ({ part }) => (
@@ -37,10 +29,10 @@ const ImagePartRenderer: React.FC<{ part: ImagePart }> = ({ part }) => (
     <img
       src={getDataUrl(part.image, part.mediaType)}
       alt="Uploaded image"
-      className="max-w-full h-auto rounded-lg border shadow-sm"
+      className="h-auto max-w-full rounded-lg border shadow-sm"
       style={{ maxHeight: '400px' }}
     />
-    {part.mediaType && <div className="text-xs text-gray-500 mt-1">Type: {part.mediaType}</div>}
+    {part.mediaType && <div className="mt-1 text-xs text-gray-500">Type: {part.mediaType}</div>}
   </div>
 );
 
@@ -49,7 +41,7 @@ const FilePartRenderer: React.FC<{ part: FilePart }> = ({ part }) => (
     <div className="flex items-center space-x-2">
       <div className="text-2xl">📎</div>
       <div>
-        <div className="font-medium text-sm">{part.filename || 'Unnamed file'}</div>
+        <div className="text-sm font-medium">{part.filename || 'Unnamed file'}</div>
         <div className="text-xs text-gray-500">{part.mediaType}</div>
       </div>
     </div>
@@ -59,10 +51,10 @@ const FilePartRenderer: React.FC<{ part: FilePart }> = ({ part }) => (
 const ReasoningPartRenderer: React.FC<{ part: ReasoningPart }> = ({ part }) =>
   part.text ? (
     <div>
-      <div className="flex items-center space-x-2 mb-2">
-        <div className="text-purple-600 font-medium text-sm">Reasoning</div>
+      <div className="mb-2 flex items-center space-x-2">
+        <div className="text-sm font-medium text-purple-600">Reasoning</div>
       </div>
-      <div className="text-sm text-purple-800 whitespace-pre-wrap">{part.text}</div>
+      <div className="text-sm whitespace-pre-wrap text-purple-800">{part.text}</div>
     </div>
   ) : (
     ''
@@ -70,21 +62,19 @@ const ReasoningPartRenderer: React.FC<{ part: ReasoningPart }> = ({ part }) =>
 
 const ToolCallPartRenderer: React.FC<{ part: ToolCallPart }> = ({ part }) => (
   <div>
-    <div className="flex items-center justify-between mb-2">
+    <div className="mb-2 flex items-center justify-between">
       <div className="flex items-center space-x-2">
-        <div className="font-medium text-sm">{part.toolName}</div>
+        <div className="text-sm font-medium">{part.toolName}</div>
         {part.providerExecuted && (
-          <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Executed</span>
+          <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">Executed</span>
         )}
       </div>
-      <div className="text-xs text-gray-500 font-mono ml-5">ID: {part.toolCallId}</div>
+      <div className="ml-5 font-mono text-xs text-gray-500">ID: {part.toolCallId}</div>
     </div>
     {part.input ? (
-      <div className="text-xs bg-white p-2 rounded border">
-        <div className="text-gray-600 mb-1">Input:</div>
-        <pre className="whitespace-pre-wrap overflow-x-auto">
-          {JSON.stringify(part.input, null, 2)}
-        </pre>
+      <div className="rounded border bg-white p-2 text-xs">
+        <div className="mb-1 text-gray-600">Input:</div>
+        <pre className="overflow-x-auto whitespace-pre-wrap">{JSON.stringify(part.input, null, 2)}</pre>
       </div>
     ) : (
       ''
@@ -94,14 +84,12 @@ const ToolCallPartRenderer: React.FC<{ part: ToolCallPart }> = ({ part }) => (
 
 const ToolResultPartRenderer: React.FC<{ part: ToolResultPart }> = ({ part }) => (
   <div>
-    <div className="flex items-center justify-between mb-2">
-      <div className="font-medium text-sm">{part.toolName} Result</div>
-      <div className="text-xs text-gray-500 font-mono ml-5">ID: {part.toolCallId}</div>
+    <div className="mb-2 flex items-center justify-between">
+      <div className="text-sm font-medium">{part.toolName} Result</div>
+      <div className="ml-5 font-mono text-xs text-gray-500">ID: {part.toolCallId}</div>
     </div>
-    <div className="text-xs bg-white p-2 rounded border">
-      <pre className="whitespace-pre-wrap overflow-x-auto">
-        {JSON.stringify(part.output, null, 2)}
-      </pre>
+    <div className="rounded border bg-white p-2 text-xs">
+      <pre className="overflow-x-auto whitespace-pre-wrap">{JSON.stringify(part.output, null, 2)}</pre>
     </div>
   </div>
 );
@@ -124,7 +112,7 @@ const MessageContentRenderer: React.FC<{ message: ModelMessage }> = ({ message }
         return <ToolResultPartRenderer key={index} part={part as ToolResultPart} />;
       default:
         return (
-          <div key={index} className="p-2 bg-gray-100 rounded text-sm">
+          <div key={index} className="rounded bg-gray-100 p-2 text-sm">
             Unknown content type: {part.type}
           </div>
         );
@@ -135,8 +123,8 @@ const MessageContentRenderer: React.FC<{ message: ModelMessage }> = ({ message }
     // Handle system messages (always string)
     if (message.role === 'system') {
       return (
-        <div className="text-sm text-gray-600 italic bg-gray-50 p-3 rounded-lg border-l-4 border-gray-400">
-          <div className="font-medium mb-1">System</div>
+        <div className="rounded-lg border-l-4 border-gray-400 bg-gray-50 p-3 text-sm text-gray-600 italic">
+          <div className="mb-1 font-medium">System</div>
           <div className="whitespace-pre-wrap">{message.content}</div>
         </div>
       );
@@ -151,11 +139,7 @@ const MessageContentRenderer: React.FC<{ message: ModelMessage }> = ({ message }
 
     // Handle array content
     if (Array.isArray(content)) {
-      return (
-        <div className="space-y-2">
-          {content.map((part, index) => renderContentPart(part, index))}
-        </div>
-      );
+      return <div className="space-y-2">{content.map((part, index) => renderContentPart(part, index))}</div>;
     }
 
     return <div className="text-sm text-red-600">Invalid content format</div>;

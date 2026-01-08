@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
-import { useCreatePipeline } from '@/hooks/usePipelines.ts';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
-import { usePipelineConfig } from '@/hooks/useConfig.ts';
 import type { WorkspaceDto } from '@loopstack/api-client';
-import { useStudio } from '@/providers/StudioProvider.tsx';
 import type { PipelineConfigInterface } from '@loopstack/contracts/types';
 import ArgumentsView from '@/features/workspaces/components/pipeline-form/ArgumentsView.tsx';
 import SelectionView from '@/features/workspaces/components/pipeline-form/SelectionView.tsx';
+import { usePipelineConfig } from '@/hooks/useConfig.ts';
+import { useCreatePipeline } from '@/hooks/usePipelines.ts';
+import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import { useStudio } from '@/providers/StudioProvider.tsx';
+import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
 
 interface PipelineFormProps {
   title: string;
@@ -30,12 +30,12 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
   const [formData, setFormData] = useState({
     name: '',
     blockName: '',
-    properties: {}
+    properties: {},
   });
 
   const [errors, setErrors] = useState({
     name: '',
-    blockName: ''
+    blockName: '',
   });
 
   const selectedPipelineConfig: PipelineConfigInterface | undefined = useMemo(() => {
@@ -50,7 +50,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
     if (!formData.blockName && fetchPipelineTypes.data?.[0]?.blockName) {
       setFormData((prev) => ({
         ...prev,
-        blockName: fetchPipelineTypes.data[0].blockName
+        blockName: fetchPipelineTypes.data[0].blockName,
       }));
     }
   }, [fetchPipelineTypes.data, formData.blockName]);
@@ -75,7 +75,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
           workspaceId: workspace.id,
           transition,
           args: data,
-        }
+        },
       },
       {
         onSuccess: (createdPipeline) => {
@@ -83,14 +83,14 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
             {
               pipelineId: createdPipeline.data.id,
               runPipelinePayloadDto: {},
-              force: true
+              force: true,
             },
             {
-              onSuccess: () => navigateToPipeline(createdPipeline.data.id)
-            }
+              onSuccess: () => navigateToPipeline(createdPipeline.data.id),
+            },
           );
-        }
-      }
+        },
+      },
     );
   };
 
@@ -121,9 +121,11 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
   };
 
   if (fetchPipelineTypes.isLoading) {
-    return <div className="flex justify-center items-center min-h-[200px]">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-    </div>;
+    return (
+      <div className="flex min-h-[200px] items-center justify-center">
+        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   if (!fetchPipelineTypes.data) return null;

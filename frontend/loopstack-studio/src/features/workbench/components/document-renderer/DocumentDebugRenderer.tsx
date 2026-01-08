@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from '../../../../components/ui/collapsible.tsx';
 import { ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../../components/ui/collapsible.tsx';
 
 interface DocumentDebugRendererProps {
   //TODO: ADD TYPE
@@ -13,9 +9,9 @@ interface DocumentDebugRendererProps {
 
 const DocumentDebugRenderer: React.FC<DocumentDebugRendererProps> = ({ document }) => {
   return (
-    <div className="flex justify-end mb-2 mx-3">
-      <Collapsible className="bg-gray-100 rounded-lg border-0 shadow-none">
-        <CollapsibleTrigger className="flex items-center justify-between w-full p-4 text-left">
+    <div className="mx-3 mb-2 flex justify-end">
+      <Collapsible className="rounded-lg border-0 bg-gray-100 shadow-none">
+        <CollapsibleTrigger className="flex w-full items-center justify-between p-4 text-left">
           <span className="text-gray-500">Debug Info</span>
           <ChevronDown className="h-4 w-4 text-gray-400" />
         </CollapsibleTrigger>

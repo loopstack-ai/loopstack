@@ -1,14 +1,14 @@
 import React from 'react';
 import type { PipelineDto } from '@loopstack/api-client';
+import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import AiMessage from '@/features/workbench/components/document-renderer/AiMessage.tsx';
 import CompletionMessagePaper from '../../../components/messages/CompletionMessagePaper.tsx';
 import DocumentDebugRenderer from './document-renderer/DocumentDebugRenderer.tsx';
 import DocumentFormRenderer from './document-renderer/DocumentFormRenderer.tsx';
 import DocumentMessageRenderer from './document-renderer/DocumentMessageRenderer.tsx';
 import ErrorMessageRenderer from './document-renderer/ErrorMessageRenderer.tsx';
-import PlainMessageRenderer from './document-renderer/PlainMessageRenderer.tsx';
 import MarkdownMessageRenderer from './document-renderer/MarkdownMessageRenderer.tsx';
-import AiMessage from '@/features/workbench/components/document-renderer/AiMessage.tsx';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import PlainMessageRenderer from './document-renderer/PlainMessageRenderer.tsx';
 
 interface DocumentRendererProps {
   pipeline: PipelineDto;
@@ -18,33 +18,23 @@ interface DocumentRendererProps {
   isLastItem: boolean;
 }
 
-const DocumentRenderer: React.FC<DocumentRendererProps> = ({
-  pipeline,
-  workflow,
-  document,
-  isActive,
-  isLastItem,
-}) => {
+const DocumentRenderer: React.FC<DocumentRendererProps> = ({ pipeline, workflow, document, isActive, isLastItem }) => {
   const viewOnly = !isActive;
   const widget = document.ui?.form?.widget ?? 'object-form';
 
   const render = () => {
     switch (widget) {
       case 'ai-message':
-        return <AiMessage document={document} isLastItem={isLastItem} />
+        return <AiMessage document={document} isLastItem={isLastItem} />;
       case 'debug':
         return (
-          <div className="flex mb-4">
+          <div className="mb-4 flex">
             <DocumentDebugRenderer document={document} />
           </div>
         );
       case 'object-form':
         return (
-          <CompletionMessagePaper
-            role={'document'}
-            fullWidth={true}
-            timestamp={new Date(document.createdAt)}
-          >
+          <CompletionMessagePaper role={'document'} fullWidth={true} timestamp={new Date(document.createdAt)}>
             <DocumentFormRenderer
               pipeline={pipeline}
               workflow={workflow}

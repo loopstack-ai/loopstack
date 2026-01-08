@@ -23,7 +23,7 @@ const Snackbar: React.FC<BaseSnackbarProps> = ({
   duration = 4000,
   position = 'bottom-center',
   id,
-  onDismiss
+  onDismiss,
 }) => {
   useEffect(() => {
     if (!message || !show) {
@@ -38,7 +38,7 @@ const Snackbar: React.FC<BaseSnackbarProps> = ({
       duration,
       position,
       id,
-      ...(icon && { icon })
+      ...(icon && { icon }),
     };
 
     switch (variant) {

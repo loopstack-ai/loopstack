@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useApiClient } from './useApi.ts';
 import type {
   ApiV1WorkspacesApiWorkspaceControllerCreateWorkspaceRequest,
   ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest,
-  WorkspaceSortByDto
+  WorkspaceSortByDto,
 } from '@loopstack/api-client';
+import { useApiClient } from './useApi.ts';
 
 export function useWorkspace(id: string | undefined) {
   const { envKey, api } = useApiClient();
@@ -18,7 +18,7 @@ export function useWorkspace(id: string | undefined) {
       return api.ApiV1WorkspacesApi.workspaceControllerGetWorkspaceById({ id: id! });
     },
     enabled: !!id,
-    select: (res) => res.data
+    select: (res) => res.data,
   });
 }
 
@@ -28,7 +28,7 @@ export function useFilterWorkspaces(
   sortBy: string = 'id',
   order: string = 'desc',
   page: number = 0,
-  limit: number = 10
+  limit: number = 10,
 ) {
   const { envKey, api } = useApiClient();
 
@@ -37,13 +37,13 @@ export function useFilterWorkspaces(
     sortBy: JSON.stringify([
       {
         field: sortBy,
-        order: order
-      } as WorkspaceSortByDto
+        order: order,
+      } as WorkspaceSortByDto,
     ]),
     page,
     limit,
     search: searchTerm,
-    searchColumns: JSON.stringify(['title'])
+    searchColumns: JSON.stringify(['title']),
   };
 
   return useQuery({
@@ -55,7 +55,7 @@ export function useFilterWorkspaces(
       return api.ApiV1WorkspacesApi.workspaceControllerGetWorkspaces(requestParams);
     },
     select: (res) => res.data,
-    enabled: true
+    enabled: true,
   });
 }
 
@@ -64,9 +64,7 @@ export function useCreateWorkspace() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      workspaceCreateRequest: ApiV1WorkspacesApiWorkspaceControllerCreateWorkspaceRequest
-    ) => {
+    mutationFn: (workspaceCreateRequest: ApiV1WorkspacesApiWorkspaceControllerCreateWorkspaceRequest) => {
       if (!api) {
         throw new Error('API not available');
       }
@@ -74,7 +72,7 @@ export function useCreateWorkspace() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspaces'] });
-    }
+    },
   });
 }
 
@@ -83,9 +81,7 @@ export function useUpdateWorkspace() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      workspaceUpdateRequest: ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest
-    ) => {
+    mutationFn: (workspaceUpdateRequest: ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest) => {
       if (!api) {
         throw new Error('API not available');
       }
@@ -94,7 +90,7 @@ export function useUpdateWorkspace() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['workspace', variables.id, envKey] });
       queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
-    }
+    },
   });
 }
 
@@ -113,7 +109,7 @@ export function useDeleteWorkspace() {
       // Remove the workspace from the cache and invalidate the workspaces list
       queryClient.removeQueries({ queryKey: ['workspace', id, envKey] });
       queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
-    }
+    },
   });
 }
 
@@ -127,11 +123,11 @@ export function useBatchDeleteWorkspaces() {
         throw new Error('API not available');
       }
       return api.ApiV1WorkspacesApi.workspaceControllerBatchDeleteWorkspaces({
-        workspaceControllerBatchDeleteWorkspacesRequest: { ids }
+        workspaceControllerBatchDeleteWorkspacesRequest: { ids },
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspaces'] });
-    }
+    },
   });
 }

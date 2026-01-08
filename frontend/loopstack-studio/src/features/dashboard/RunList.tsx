@@ -1,5 +1,5 @@
-import { ScrollArea } from '../../components/ui/scroll-area.tsx';
 import RunItem from '@/features/dashboard/RunItem.tsx';
+import { ScrollArea } from '../../components/ui/scroll-area.tsx';
 
 interface RunsListProps {
   type: string;

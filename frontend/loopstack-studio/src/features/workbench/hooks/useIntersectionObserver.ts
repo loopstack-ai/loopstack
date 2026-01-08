@@ -34,8 +34,8 @@ export const useIntersectionObserver = (rootMargin: string = '0px') => {
       {
         root: document.querySelector('.list-container'),
         threshold: 0.05,
-        rootMargin
-      }
+        rootMargin,
+      },
     );
 
     return () => {
@@ -50,6 +50,6 @@ export const useIntersectionObserver = (rootMargin: string = '0px') => {
 
   return {
     activeId,
-    observe
+    observe,
   };
 };

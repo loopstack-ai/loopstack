@@ -2,12 +2,12 @@ import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 
 const HeaderSection = ({
-                         icon,
-                         title,
-                         description,
-                         showBack,
-                         onBack
-                       }: {
+  icon,
+  title,
+  description,
+  showBack,
+  onBack,
+}: {
   icon: React.ReactNode;
   title: string;
   description?: string;
@@ -18,21 +18,19 @@ const HeaderSection = ({
     {showBack && (
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 group"
+        className="text-muted-foreground hover:text-foreground group mb-4 flex items-center gap-2 text-sm transition-colors"
       >
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
         <span>Back to Selection</span>
       </button>
     )}
     <div className="flex items-start gap-4">
-      <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg border border-border">
+      <div className="border-border flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border">
         {icon}
       </div>
-      <div className="flex-1 min-w-0">
-        <h2 className="text-xl font-semibold text-foreground mb-1">{title}</h2>
-        {description && (
-          <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-        )}
+      <div className="min-w-0 flex-1">
+        <h2 className="text-foreground mb-1 text-xl font-semibold">{title}</h2>
+        {description && <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>}
       </div>
     </div>
   </div>

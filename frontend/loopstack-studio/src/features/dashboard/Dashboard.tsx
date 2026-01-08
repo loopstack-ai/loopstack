@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card.tsx';
 import { Link } from 'react-router-dom';
-import { useStudio } from '../../providers/StudioProvider.tsx';
 import RunsList from '@/features/dashboard/RunList.tsx';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card.tsx';
+import { useStudio } from '../../providers/StudioProvider.tsx';
 
 export default function Dashboard({ dashboardStats }: any) {
   const { router } = useStudio();
@@ -12,7 +12,7 @@ export default function Dashboard({ dashboardStats }: any) {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
         <div className="md:col-span-1">
           <Card className="h-full">
             <CardHeader>
@@ -21,7 +21,7 @@ export default function Dashboard({ dashboardStats }: any) {
             <CardContent className="space-y-3">
               <Link
                 to={router.getWorkspaces()}
-                className="block text-sm text-primary hover:text-primary/80 font-medium transition-colors p-2 hover:bg-muted rounded"
+                className="text-primary hover:text-primary/80 hover:bg-muted block rounded p-2 text-sm font-medium transition-colors"
               >
                 My Workspaces
               </Link>
@@ -29,7 +29,7 @@ export default function Dashboard({ dashboardStats }: any) {
           </Card>
         </div>
 
-        <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:col-span-3 md:grid-cols-3">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Executions</CardTitle>
@@ -53,7 +53,7 @@ export default function Dashboard({ dashboardStats }: any) {
               <CardTitle className="text-lg">Failed</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-destructive">{dashboardStats.errorRuns}</p>
+              <p className="text-destructive text-3xl font-bold">{dashboardStats.errorRuns}</p>
             </CardContent>
           </Card>
 
@@ -67,18 +67,13 @@ export default function Dashboard({ dashboardStats }: any) {
           {/*</Card>*/}
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Recently Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <RunsList
-              type='runs'
-              runs={dashboardStats.recentRuns}
-              router={router}
-              emptyMessage="No recent runs."
-            />
+            <RunsList type="runs" runs={dashboardStats.recentRuns} router={router} emptyMessage="No recent runs." />
           </CardContent>
         </Card>
 
@@ -88,7 +83,7 @@ export default function Dashboard({ dashboardStats }: any) {
           </CardHeader>
           <CardContent>
             <RunsList
-              type='errors'
+              type="errors"
               runs={dashboardStats.recentErrors}
               router={router}
               emptyMessage="No recent errors."

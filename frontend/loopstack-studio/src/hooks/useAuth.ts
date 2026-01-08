@@ -16,7 +16,7 @@ export function useMe(enabled = true) {
     select: (res) => res.data,
     retry: false,
     staleTime: 5 * 60 * 1000,
-    enabled: enabled
+    enabled: enabled,
   });
 }
 
@@ -33,7 +33,7 @@ export function useGetHealthInfo(enabled = true) {
     },
     select: (res) => res.data,
     staleTime: 5 * 60 * 1000,
-    enabled: enabled
+    enabled: enabled,
   });
 }
 
@@ -50,7 +50,7 @@ export function useWorkerAuth() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-    }
+    },
   });
 }
 
@@ -67,6 +67,6 @@ export function useWorkerAuthTokenRefresh() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
-    }
+    },
   });
 }

@@ -1,6 +1,6 @@
-import { useStudio } from './StudioProvider.tsx';
 import { useEffect } from 'react';
 import { eventBus } from '../services';
+import { useStudio } from './StudioProvider.tsx';
 
 let eventSource: EventSource | null = null;
 
@@ -16,7 +16,7 @@ export function SseProvider() {
       const sseUrl = `${environment.url}/api/v1/sse/stream`;
 
       eventSource = new EventSource(sseUrl, {
-        withCredentials: true
+        withCredentials: true,
       });
 
       eventSource.onopen = () => {
@@ -35,7 +35,7 @@ export function SseProvider() {
         'workflow.updated',
         'document.created',
         'pipeline.updated',
-        'workspace.updated'
+        'workspace.updated',
       ];
 
       eventTypes.forEach((eventType) => {

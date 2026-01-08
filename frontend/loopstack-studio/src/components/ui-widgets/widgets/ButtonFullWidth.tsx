@@ -1,7 +1,7 @@
 import React from 'react';
-import { Button } from '../../ui/button.tsx';
-import type { UiFormButtonOptionsType } from '@loopstack/contracts/types';
 import { Loader2 } from 'lucide-react';
+import type { UiFormButtonOptionsType } from '@loopstack/contracts/types';
+import { Button } from '../../ui/button.tsx';
 
 interface SubmitButtonProps {
   transition: string;
@@ -17,15 +17,15 @@ export const ButtonFullWidth: React.FC<SubmitButtonProps> = ({ transition, ui, d
 
   return (
     <Button
-      type='button'
-      variant={ui?.variant as any || 'default'}
+      type="button"
+      variant={(ui?.variant as any) || 'default'}
       {...submitButtonProps}
       disabled={disabled || isLoading}
       onClick={onClick}
       size={'lg'}
       className={'w-full font-medium'}
     >
-      {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+      {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
       {submitButtonText}
     </Button>
   );

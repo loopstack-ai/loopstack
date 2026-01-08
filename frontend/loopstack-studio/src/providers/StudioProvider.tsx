@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
-import type { StudioRouter, Environment } from '../types';
 import type { ReactNode } from 'react';
+import type { Environment, StudioRouter } from '../types';
 
 interface StudioContext {
   router: StudioRouter;
@@ -12,15 +12,13 @@ const StudioContext = createContext<StudioContext | null>(null);
 export const StudioProvider = ({
   children,
   router,
-  environment
+  environment,
 }: {
   children: ReactNode;
   router: StudioRouter;
   environment: Environment;
 }) => {
-  return (
-    <StudioContext.Provider value={{ router, environment }}>{children}</StudioContext.Provider>
-  );
+  return <StudioContext.Provider value={{ router, environment }}>{children}</StudioContext.Provider>;
 };
 
 export const useStudio = () => {

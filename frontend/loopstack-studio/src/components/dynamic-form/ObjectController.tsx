@@ -11,7 +11,7 @@ export const ObjectController: React.FC<FormElementProps> = ({
   form,
   disabled,
   parentKey,
-  viewOnly
+  viewOnly,
 }: FormElementProps) => {
   const propertyNames = useSortedPropertyNames(schema.properties, ui?.order);
   const newParentKey = useMergeParentKey(parentKey, name);
@@ -22,7 +22,8 @@ export const ObjectController: React.FC<FormElementProps> = ({
     <>
       {propertyNames.map((propName) => {
         const itemSchema = schema?.properties?.[propName];
-        return itemSchema ? <FormElement
+        return itemSchema ? (
+          <FormElement
             key={`el-${propName}`}
             form={form}
             disabled={disabled}
@@ -32,7 +33,8 @@ export const ObjectController: React.FC<FormElementProps> = ({
             schema={schema?.properties?.[propName]}
             ui={ui?.properties?.[propName]}
             required={requiredFields.includes(propName)}
-          /> : null;
+          />
+        ) : null;
       })}
     </>
   );

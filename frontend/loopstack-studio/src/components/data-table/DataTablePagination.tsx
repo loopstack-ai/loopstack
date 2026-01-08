@@ -1,6 +1,6 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface DataTablePaginationProps {
   page: number;
@@ -15,20 +15,17 @@ const DataTablePagination: React.FC<DataTablePaginationProps> = ({
   pageSize,
   totalItems,
   onPageChange,
-  onPageSizeChange
+  onPageSizeChange,
 }) => {
   const totalPages = Math.ceil(totalItems / pageSize);
   const startItem = page * pageSize + 1;
   const endItem = Math.min((page + 1) * pageSize, totalItems);
 
   return (
-    <div className="flex items-center justify-between mt-4">
+    <div className="mt-4 flex items-center justify-between">
       <div className="flex items-center space-x-2">
-        <span className="text-sm text-muted-foreground">Rows per page</span>
-        <Select
-          value={pageSize.toString()}
-          onValueChange={(value) => onPageSizeChange(parseInt(value))}
-        >
+        <span className="text-muted-foreground text-sm">Rows per page</span>
+        <Select value={pageSize.toString()} onValueChange={(value) => onPageSizeChange(parseInt(value))}>
           <SelectTrigger className="w-24">
             <SelectValue />
           </SelectTrigger>
@@ -42,17 +39,12 @@ const DataTablePagination: React.FC<DataTablePaginationProps> = ({
         </Select>
       </div>
 
-      <div className="text-sm text-muted-foreground">
+      <div className="text-muted-foreground text-sm">
         {startItem}-{endItem} of {totalItems} items
       </div>
 
       <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(page - 1)}
-          disabled={page === 0}
-        >
+        <Button variant="outline" size="sm" onClick={() => onPageChange(page - 1)} disabled={page === 0}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
 
@@ -60,12 +52,7 @@ const DataTablePagination: React.FC<DataTablePaginationProps> = ({
           Page {totalItems === 0 ? 0 : page + 1} of {totalPages}
         </span>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(page + 1)}
-          disabled={page >= totalPages - 1}
-        >
+        <Button variant="outline" size="sm" onClick={() => onPageChange(page + 1)} disabled={page >= totalPages - 1}>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

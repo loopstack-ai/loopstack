@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useApiClient } from './useApi.ts';
+import type { AxiosResponse } from 'axios';
 import type { WorkflowItemDto, WorkflowSortByDto } from '@loopstack/api-client';
 import type { WorkflowInterface } from '@loopstack/contracts/types';
-import type { AxiosResponse } from 'axios';
+import { useApiClient } from './useApi.ts';
 
 export function getWorkflowsCacheKey(envKey: string, namespaceId: string) {
   return ['workflows', envKey, namespaceId];
@@ -28,7 +28,7 @@ export function useWorkflow(id: string) {
       return api.ApiV1WorkflowsApi.workflowControllerGetWorkflowById({ id });
     },
     enabled: !!id,
-    select: (res) => res.data
+    select: (res) => res.data,
   });
 }
 
@@ -37,14 +37,14 @@ export function useFetchWorkflowsByPipeline(pipelineId: string) {
 
   const requestParams = {
     filter: JSON.stringify({
-      pipelineId
+      pipelineId,
     }),
     sortBy: JSON.stringify([
       {
         field: 'index',
-        order: 'ASC'
-      } as WorkflowSortByDto
-    ])
+        order: 'ASC',
+      } as WorkflowSortByDto,
+    ]),
   };
 
   return useQuery({
@@ -56,7 +56,7 @@ export function useFetchWorkflowsByPipeline(pipelineId: string) {
       return api.ApiV1WorkflowsApi.workflowControllerGetWorkflows(requestParams);
     },
     select: (res) => res.data.data,
-    enabled: true
+    enabled: true,
   });
 }
 
@@ -65,14 +65,14 @@ export function useFetchWorkflowsByNamespace(namespaceId: string) {
 
   const requestParams = {
     filter: JSON.stringify({
-      namespaceId
+      namespaceId,
     }),
     sortBy: JSON.stringify([
       {
         field: 'index',
-        order: 'ASC'
-      } as WorkflowSortByDto
-    ])
+        order: 'ASC',
+      } as WorkflowSortByDto,
+    ]),
   };
 
   return useQuery({
@@ -84,7 +84,7 @@ export function useFetchWorkflowsByNamespace(namespaceId: string) {
       return api.ApiV1WorkflowsApi.workflowControllerGetWorkflows(requestParams);
     },
     select: (res) => res.data.data,
-    enabled: true
+    enabled: true,
   });
 }
 
@@ -103,6 +103,6 @@ export function useDeleteWorkflow() {
       queryClient.removeQueries({ queryKey: getWorkflowCacheKey(envKey, workflow.id) });
       queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey, workflow.namespaceId) });
       queryClient.invalidateQueries({ queryKey: getWorkflowsByPipelineCacheKey(envKey, workflow.pipelineId) });
-    }
+    },
   });
 }

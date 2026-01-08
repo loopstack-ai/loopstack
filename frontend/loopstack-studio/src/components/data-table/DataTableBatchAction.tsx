@@ -10,20 +10,15 @@ interface DataTableBatchActionsProps {
 const DataTableBatchActions: React.FC<DataTableBatchActionsProps> = ({
   selectedCount,
   batchActions,
-  onBatchAction
+  onBatchAction,
 }) => {
   if (selectedCount === 0) return null;
 
   return (
-    <div className="flex items-center justify-between mr-4">
+    <div className="mr-4 flex items-center justify-between">
       <div className="flex gap-2">
         {batchActions.map((action) => (
-          <Button
-            key={action.id}
-            variant={action.variant || 'outline'}
-            size="sm"
-            onClick={() => onBatchAction(action)}
-          >
+          <Button key={action.id} variant={action.variant || 'outline'} size="sm" onClick={() => onBatchAction(action)}>
             {action.icon}
             {action.label} ({selectedCount})
           </Button>

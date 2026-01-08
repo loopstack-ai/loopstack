@@ -1,10 +1,10 @@
-import LoadingCentered from '../components/LoadingCentered.tsx';
-import { Alert } from '../components/ui/alert.tsx';
 import { Home } from 'lucide-react';
+import LoadingCentered from '../components/LoadingCentered.tsx';
 import MainLayout from '../components/layout/MainLayout.tsx';
+import { Alert } from '../components/ui/alert.tsx';
+import Dashboard from '../features/dashboard/Dashboard.tsx';
 import { useDashboardStats } from '../hooks/useDashboard.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
-import Dashboard from '../features/dashboard/Dashboard.tsx';
 
 export default function DashboardPage() {
   const { environment } = useStudio();
@@ -16,9 +16,7 @@ export default function DashboardPage() {
   }
 
   if (error) {
-    return (
-      <Alert className="p-4 text-red-500 w-full">Error loading dashboard: {error.message}</Alert>
-    );
+    return <Alert className="w-full p-4 text-red-500">Error loading dashboard: {error.message}</Alert>;
   }
 
   if (!dashboardStats) {
@@ -29,14 +27,14 @@ export default function DashboardPage() {
     {
       label: environment.name,
       href: '#',
-      icon: <Home className="h-4 w-4" />
+      icon: <Home className="h-4 w-4" />,
     },
-    { label: 'Dashboard', current: true }
+    { label: 'Dashboard', current: true },
   ];
 
   return (
     <MainLayout breadcrumbsData={breadcrumbsData}>
-      <h1 className="text-3xl font-bold tracking-tight mb-4">Dashboard</h1>
+      <h1 className="mb-4 text-3xl font-bold tracking-tight">Dashboard</h1>
 
       <Dashboard dashboardStats={dashboardStats} />
     </MainLayout>

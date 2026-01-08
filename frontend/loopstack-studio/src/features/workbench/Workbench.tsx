@@ -1,18 +1,18 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import type { PipelineDto } from '@loopstack/api-client';
+import { SidebarInsetDiv, SidebarProvider, SidebarTrigger } from '../../components/ui/sidebar.tsx';
 import { useNamespaceTree } from '../../hooks/useNamespaceTree.ts';
-import { SidebarProvider, SidebarTrigger, SidebarInsetDiv } from '../../components/ui/sidebar.tsx';
-import { WorkbenchContextProvider } from './providers/WorkbenchContextProvider.tsx';
-import type { WorkbenchState } from './providers/WorkbenchContextProvider.tsx';
-import { ScrollProvider } from './providers/ScrollProvider.tsx';
 import WorkflowList from './WorkflowList.tsx';
 import WorkbenchSidebar from './components/WorkbenchSidebar.tsx';
-import type { PipelineDto } from '@loopstack/api-client';
+import { ScrollProvider } from './providers/ScrollProvider.tsx';
+import { WorkbenchContextProvider } from './providers/WorkbenchContextProvider.tsx';
+import type { WorkbenchState } from './providers/WorkbenchContextProvider.tsx';
 
 export default function Workbench({ pipeline }: { pipeline: PipelineDto }) {
   const namespaceTree = useNamespaceTree(pipeline?.id);
 
   const [workbenchState, setWorkbenchState] = useState<WorkbenchState>({
-    activeSectionId: null
+    activeSectionId: null,
   });
 
   const handleSetActiveSectionId = useCallback((id: string | null) => {
@@ -22,19 +22,19 @@ export default function Workbench({ pipeline }: { pipeline: PipelineDto }) {
   const contextValue = useMemo(
     () => ({
       state: workbenchState,
-      setActiveSectionId: handleSetActiveSectionId
+      setActiveSectionId: handleSetActiveSectionId,
     }),
-    [workbenchState, handleSetActiveSectionId]
+    [workbenchState, handleSetActiveSectionId],
   );
 
   return (
     <WorkbenchContextProvider.Provider value={contextValue}>
       <SidebarProvider defaultOpen={true} className="workbench-sidebar">
-        <SidebarTrigger className="flex items-center justify-center hover:cursor-pointer h-8 w-8 fixed top-0 right-0 z-40 p-8 md:hidden" />
+        <SidebarTrigger className="fixed top-0 right-0 z-40 flex h-8 w-8 items-center justify-center p-8 hover:cursor-pointer md:hidden" />
         <SidebarInsetDiv>
           <div className="flex-1">
             <ScrollProvider>
-              <div className="flex flex-col h-full">
+              <div className="flex h-full flex-col">
                 <div className="flex-1 overflow-hidden">
                   <WorkflowList pipeline={pipeline} />
                 </div>

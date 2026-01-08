@@ -1,3 +1,4 @@
+import type { PipelineDto } from '@loopstack/api-client';
 import {
   Sidebar,
   SidebarContent,
@@ -5,11 +6,10 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
   SidebarTrigger,
-  SidebarMenu
 } from '../../../components/ui/sidebar.tsx';
 import WorkbenchNavigation from '../WorkbenchNavigation.tsx';
-import type { PipelineDto } from '@loopstack/api-client';
 
 interface WorkbenchSidebarProps {
   namespaceTree: any[];
@@ -18,21 +18,16 @@ interface WorkbenchSidebarProps {
 
 const WorkbenchSidebar = ({ namespaceTree, pipeline }: WorkbenchSidebarProps) => {
   return (
-    <Sidebar side="right" collapsible="icon" className="z-31 workbench-sidebar">
-      <SidebarHeader className="border-b border-sidebar-border flex-row justify-between p-2 w-full">
-        <SidebarTrigger className="flex items-center justify-center hover:cursor-pointer h-8 w-8" />
+    <Sidebar side="right" collapsible="icon" className="workbench-sidebar z-31">
+      <SidebarHeader className="border-sidebar-border w-full flex-row justify-between border-b p-2">
+        <SidebarTrigger className="flex h-8 w-8 items-center justify-center hover:cursor-pointer" />
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Pipeline Navigation</SidebarGroupLabel>
           <SidebarMenu>
-            {pipeline && namespaceTree.length ? (
-              <WorkbenchNavigation
-                namespaceTree={namespaceTree}
-                indent={0}
-              />
-            ) : null}
+            {pipeline && namespaceTree.length ? <WorkbenchNavigation namespaceTree={namespaceTree} indent={0} /> : null}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

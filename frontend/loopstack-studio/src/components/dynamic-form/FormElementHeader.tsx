@@ -11,8 +11,8 @@ export const FormElementHeader: React.FC<FormHeaderProps> = ({ title, descriptio
 
   return (
     <>
-      {title && <h1 className="text-xl font-semibold mb-2">{title}</h1>}
-      {description && <p className="text-base text-muted-foreground">{description}</p>}
+      {title && <h1 className="mb-2 text-xl font-semibold">{title}</h1>}
+      {description && <p className="text-muted-foreground text-base">{description}</p>}
     </>
   );
 };

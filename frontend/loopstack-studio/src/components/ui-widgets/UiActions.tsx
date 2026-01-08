@@ -1,7 +1,5 @@
 import React, { Fragment } from 'react';
-import type {
-  UiWidgetType,
-} from '@loopstack/contracts/types';
+import type { UiWidgetType } from '@loopstack/contracts/types';
 import UiWidget from '@/components/ui-widgets/UiWidget.tsx';
 
 export interface UiActionsProps {
@@ -12,35 +10,22 @@ export interface UiActionsProps {
   isLoading?: boolean;
 }
 
-const UiActions: React.FC<UiActionsProps> = ({
-   actions,
-   availableTransitions,
-   disabled,
-   onSubmit,
-   isLoading,
-}) => {
-
+const UiActions: React.FC<UiActionsProps> = ({ actions, availableTransitions, disabled, onSubmit, isLoading }) => {
   return (
-    <div className="mt-4 w-full flex justify-end">
+    <div className="mt-4 flex w-full justify-end">
       {actions.map((config: UiWidgetType, index: number) => {
-
         const isDisabled =
-          disabled ||
-          config.transition === undefined ||
-          !availableTransitions.includes(config.transition);
+          disabled || config.transition === undefined || !availableTransitions.includes(config.transition);
 
         const handleSubmit = (data?: Record<string, any>) => {
           onSubmit(config.transition, data || {});
         };
 
-        return <Fragment key={`ui-widget-${index}-${config.transition}`}>
-          <UiWidget
-            config={config}
-            onSubmit={handleSubmit}
-            disabled={isDisabled}
-            isLoading={isLoading}
-          />
-        </Fragment>
+        return (
+          <Fragment key={`ui-widget-${index}-${config.transition}`}>
+            <UiWidget config={config} onSubmit={handleSubmit} disabled={isDisabled} isLoading={isLoading} />
+          </Fragment>
+        );
       })}
     </div>
   );

@@ -1,7 +1,7 @@
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { X } from 'lucide-react';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 interface DataTableFiltersProps {
   filters: Record<string, string>;
@@ -10,12 +10,7 @@ interface DataTableFiltersProps {
   isOpen: boolean;
 }
 
-const DataTableFilters: React.FC<DataTableFiltersProps> = ({
-  filters,
-  filterConfig,
-  onFiltersChange,
-  isOpen
-}) => {
+const DataTableFilters: React.FC<DataTableFiltersProps> = ({ filters, filterConfig, onFiltersChange, isOpen }) => {
   if (!isOpen) return null;
 
   const handleFilterChange = (key: string, value: string) => {
@@ -39,10 +34,7 @@ const DataTableFilters: React.FC<DataTableFiltersProps> = ({
     <div className="flex flex-wrap gap-4">
       {Object.entries(filterConfig).map(([key, options]) => (
         <div key={key}>
-          <Select
-            value={filters[key] || 'all'}
-            onValueChange={(value) => handleFilterChange(key, value)}
-          >
+          <Select value={filters[key] || 'all'} onValueChange={(value) => handleFilterChange(key, value)}>
             <SelectTrigger>
               <SelectValue placeholder={`Select ${key}`} />
             </SelectTrigger>

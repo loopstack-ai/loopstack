@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { Card, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { Checkbox } from '../ui/checkbox';
 import { Loader2, Trash2 } from 'lucide-react';
-import type { BatchAction, RowAction } from './data-table.ts';
+import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
+import { Checkbox } from '../ui/checkbox';
+import ConfirmDialog from './ConfirmDialog';
 import DataTableBatchActions from './DataTableBatchAction';
 import DataTableFilters from './DataTableFilters';
-import ConfirmDialog from './ConfirmDialog';
 import DataTablePagination from './DataTablePagination';
 import DataTableToolbar from './DataTableToolbar';
 import type { DataListProps } from './data-list.ts';
+import type { BatchAction, RowAction } from './data-table.ts';
 
 export function DataList<T extends { id: string }>({
   data,
@@ -32,7 +32,7 @@ export function DataList<T extends { id: string }>({
   onBatchDelete,
   rowActions = [],
   itemRenderer,
-  newButtonLabel
+  newButtonLabel,
 }: DataListProps<T>) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -51,9 +51,7 @@ export function DataList<T extends { id: string }>({
   };
 
   const toggleSelectRow = (id: string) => {
-    setSelectedRows((prev) =>
-      prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
-    );
+    setSelectedRows((prev) => (prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]));
   };
 
   const clearSelection = () => setSelectedRows([]);
@@ -82,13 +80,13 @@ export function DataList<T extends { id: string }>({
           {
             id: 'delete',
             label: 'Delete Selected',
-            icon: <Trash2 className="h-4 w-4 mr-2" />,
+            icon: <Trash2 className="mr-2 h-4 w-4" />,
             variant: 'destructive' as const,
-            action: handleBatchDeleteClick
-          }
+            action: handleBatchDeleteClick,
+          },
         ]
       : []),
-    ...batchActions
+    ...batchActions,
   ];
 
   const handleBatchAction = async (action: BatchAction) => {
@@ -172,10 +170,7 @@ export function DataList<T extends { id: string }>({
               data.map((item, index) => (
                 <div key={`data-list-item-${index}`} className="flex items-center">
                   {enableBatchActions && (
-                    <div
-                      className="pr-4 flex items-center justify-center"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className="flex items-center justify-center pr-4" onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={selectedRows.includes(item.id)}
                         onCheckedChange={() => toggleSelectRow(item.id)}
@@ -183,7 +178,7 @@ export function DataList<T extends { id: string }>({
                       />
                     </div>
                   )}
-                  <Card key={item.id} className="hover:shadow-md transition-shadow flex-grow my-2">
+                  <Card key={item.id} className="my-2 flex-grow transition-shadow hover:shadow-md">
                     <CardContent className="px-6">
                       <div className="flex items-center justify-between">
                         <div
@@ -198,10 +193,7 @@ export function DataList<T extends { id: string }>({
                     </CardContent>
                   </Card>
                   {showActionsColumn && (
-                    <div
-                      className="flex items-center justify-center"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-1">
                         {allRowActions.map((action) => {
                           // Check if action should be shown based on condition

@@ -1,10 +1,7 @@
-import Form from '@/components/dynamic-form/Form.tsx';
-import { useForm } from 'react-hook-form';
 import React from 'react';
-import type {
-  JSONSchemaConfigType,
-  UiFormType, UiWidgetType,
-} from '@loopstack/contracts/types';
+import { useForm } from 'react-hook-form';
+import type { JSONSchemaConfigType, UiFormType, UiWidgetType } from '@loopstack/contracts/types';
+import Form from '@/components/dynamic-form/Form.tsx';
 import UiActions from '@/components/ui-widgets/UiActions.tsx';
 
 interface PipelinePropertiesFormContainerProps {
@@ -24,29 +21,30 @@ const PipelinePropertiesFormContainer: React.FC<PipelinePropertiesFormContainerP
   onSubmit,
   isLoading,
 }) => {
-
   const form = useForm<Record<string, any>>({
     defaultValues: defaultValues ?? {},
-    mode: 'onChange'
+    mode: 'onChange',
   });
 
   const handleFormSubmit = (transition: string) => (data: Record<string, any>) => {
     onSubmit(transition, data);
-  }
+  };
 
   const handleSubmit = (transition: string) => {
     // use data from react-hook-form
     form.handleSubmit(handleFormSubmit(transition));
   };
 
-  const uiActions = [{
-    type: 'button',
-    widget: 'button-full-w',
-    transition: '',
-    options: {
-      label: 'Run Now',
-    },
-  } satisfies UiWidgetType];
+  const uiActions = [
+    {
+      type: 'button',
+      widget: 'button-full-w',
+      transition: '',
+      options: {
+        label: 'Run Now',
+      },
+    } satisfies UiWidgetType,
+  ];
 
   return (
     <>
@@ -64,7 +62,8 @@ const PipelinePropertiesFormContainer: React.FC<PipelinePropertiesFormContainerP
             disabled={false}
             isLoading={isLoading}
           />
-        } />
+        }
+      />
     </>
   );
 };

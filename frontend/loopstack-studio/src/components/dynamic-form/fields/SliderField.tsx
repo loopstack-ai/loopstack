@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import type { RegisterOptions } from 'react-hook-form';
 import { Slider } from '../../ui/slider';
-import { BaseFieldWrapper } from './BaseFieldWrapper';
 import { useFieldConfig } from '../hooks/useFieldConfig';
 import type { FieldProps } from '../types';
+import { BaseFieldWrapper } from './BaseFieldWrapper';
 
 export interface SliderFieldSchema {
   title?: string;
@@ -22,10 +22,7 @@ interface SliderFieldProps extends FieldProps {
   schema: SliderFieldSchema;
 }
 
-const buildSliderValidationRules = (
-  schema: SliderFieldSchema,
-  required?: boolean
-): RegisterOptions => {
+const buildSliderValidationRules = (schema: SliderFieldSchema, required?: boolean): RegisterOptions => {
   const min = schema.minimum ?? 0;
   const max = schema.maximum ?? 100;
 
@@ -33,11 +30,11 @@ const buildSliderValidationRules = (
     required: required ? 'This field is required' : undefined,
     min: {
       value: min,
-      message: `Value must be at least ${min}`
+      message: `Value must be at least ${min}`,
     },
     max: {
       value: max,
-      message: `Value must be at most ${max}`
+      message: `Value must be at most ${max}`,
     },
     validate: {
       multipleOf: (value) => {
@@ -51,19 +48,12 @@ const buildSliderValidationRules = (
           return 'Value must be a valid number';
         }
         return true;
-      }
-    }
+      },
+    },
   };
 };
 
-export const SliderField: React.FC<SliderFieldProps> = ({
-                                                          name,
-                                                          schema,
-                                                          ui,
-                                                          required,
-                                                          form,
-                                                          disabled
-                                                        }) => {
+export const SliderField: React.FC<SliderFieldProps> = ({ name, schema, ui, required, form, disabled }) => {
   const config = useFieldConfig(name, schema, ui, disabled);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -103,7 +93,7 @@ export const SliderField: React.FC<SliderFieldProps> = ({
             helpText={config.helpText}
             description={config.description}
           >
-            <div className="px-2 relative" ref={sliderRef}>
+            <div className="relative px-2" ref={sliderRef}>
               <div
                 className="slider-with-hover"
                 onMouseMove={(e) => {
@@ -142,10 +132,10 @@ export const SliderField: React.FC<SliderFieldProps> = ({
               {/* Tooltip showing current value */}
               {(isDragging || isHovering) && (
                 <div
-                  className="absolute -top-10 bg-popover text-popover-foreground px-2 py-1 rounded-md text-sm border shadow-md pointer-events-none z-10"
+                  className="bg-popover text-popover-foreground pointer-events-none absolute -top-10 z-10 rounded-md border px-2 py-1 text-sm shadow-md"
                   style={{
                     left: `${thumbPos}px`,
-                    transform: 'translateX(-50%)'
+                    transform: 'translateX(-50%)',
                   }}
                   role="tooltip"
                   aria-live="polite"
@@ -155,11 +145,11 @@ export const SliderField: React.FC<SliderFieldProps> = ({
               )}
 
               {/* Min/Max labels */}
-              <div className="flex justify-between mt-2">
-                <span className="text-xs text-muted-foreground" aria-label={`Minimum value: ${min}`}>
+              <div className="mt-2 flex justify-between">
+                <span className="text-muted-foreground text-xs" aria-label={`Minimum value: ${min}`}>
                   {min}
                 </span>
-                <span className="text-xs text-muted-foreground" aria-label={`Maximum value: ${max}`}>
+                <span className="text-muted-foreground text-xs" aria-label={`Maximum value: ${max}`}>
                   {max}
                 </span>
               </div>

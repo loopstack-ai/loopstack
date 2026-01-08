@@ -6,11 +6,7 @@ interface PlainMessageRendererProps {
 }
 
 const PlainMessageRenderer: React.FC<PlainMessageRendererProps> = ({ document }) => {
-  return (
-    <CompletionMessagePaper>
-      {document.content.text}
-    </CompletionMessagePaper>
-  );
+  return <CompletionMessagePaper>{document.content.text}</CompletionMessagePaper>;
 };
 
 export default PlainMessageRenderer;

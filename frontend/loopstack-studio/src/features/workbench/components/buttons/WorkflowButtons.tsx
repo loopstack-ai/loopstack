@@ -1,11 +1,7 @@
 import React from 'react';
-import { Button } from '@/components/ui/button.tsx';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip.tsx';
+import { LockOpen, Trash2 } from 'lucide-react';
+import type { PipelineDto, WorkflowDto } from '@loopstack/api-client';
+import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,13 +11,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog.tsx';
-import { Trash2, LockOpen } from 'lucide-react';
-import { useDeleteWorkflow } from '@/hooks/useWorkflows.ts';
+import { Button } from '@/components/ui/button.tsx';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
-import type { PipelineDto, WorkflowDto } from '@loopstack/api-client';
-import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
+import { useDeleteWorkflow } from '@/hooks/useWorkflows.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const WorkflowButtons: React.FC<{
@@ -37,7 +32,7 @@ const WorkflowButtons: React.FC<{
     runPipeline.mutate({
       pipelineId: pipeline.id,
       runPipelinePayloadDto: {},
-      force: false
+      force: false,
     });
   };
 
@@ -47,10 +42,10 @@ const WorkflowButtons: React.FC<{
       runPipelinePayloadDto: {
         transition: {
           name: 'unlock',
-          workflowId: workflow.id
-        }
+          workflowId: workflow.id,
+        },
       },
-      force: false
+      force: false,
     });
   };
 
@@ -77,7 +72,7 @@ const WorkflowButtons: React.FC<{
                     variant="default"
                     size="sm"
                     disabled={deleteWorkflow.isPending}
-                    className="h-8 w-8 p-0 bg-transparent hover:bg-gray-100 ml-3.5 text-black"
+                    className="ml-3.5 h-8 w-8 bg-transparent p-0 text-black hover:bg-gray-100"
                   >
                     {deleteWorkflow.isPending ? (
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -100,10 +95,7 @@ const WorkflowButtons: React.FC<{
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive hover:bg-destructive/90 text-white"
-                  onClick={handleDelete}
-                >
+                <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-white" onClick={handleDelete}>
                   Delete
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -111,9 +103,7 @@ const WorkflowButtons: React.FC<{
           </AlertDialog>
 
           {workflow.place === 'end' &&
-            (workflow.availableTransitions as any)?.find(
-              (t: WorkflowTransitionType) => t.id === 'unlock'
-            ) && (
+            (workflow.availableTransitions as any)?.find((t: WorkflowTransitionType) => t.id === 'unlock') && (
               <AlertDialog>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -122,7 +112,7 @@ const WorkflowButtons: React.FC<{
                         variant="default"
                         size="sm"
                         disabled={runPipeline.isPending}
-                        className="h-8 w-8 p-0 bg-transparent hover:bg-gray-100 ml-3.5 text-black"
+                        className="ml-3.5 h-8 w-8 bg-transparent p-0 text-black hover:bg-gray-100"
                       >
                         {runPipeline.isPending ? (
                           <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -139,9 +129,7 @@ const WorkflowButtons: React.FC<{
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Unlock workflow</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to unlock this workflow?
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>Are you sure you want to unlock this workflow?</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>

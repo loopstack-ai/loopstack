@@ -1,11 +1,11 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
+import { buildTextValidationRules } from '@/components/dynamic-form/fields/utils/text-validation-utils.ts';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
-import { BaseFieldWrapper } from './BaseFieldWrapper';
 import { useFieldConfig } from '../hooks/useFieldConfig';
 import type { FieldProps } from '../types';
-import { buildTextValidationRules } from '@/components/dynamic-form/fields/utils/text-validation-utils.ts';
+import { BaseFieldWrapper } from './BaseFieldWrapper';
 
 export const getInputType = (property: InputFieldSchema): React.HTMLInputTypeAttribute => {
   if (property.format) {
@@ -62,15 +62,7 @@ const isNumericType = (schema: InputFieldSchema): boolean => {
   return schema.type === 'number' || schema.type === 'integer';
 };
 
-export const InputField: React.FC<InputFieldProps> = ({
-                                                        name,
-                                                        schema,
-                                                        ui,
-                                                        required,
-                                                        form,
-                                                        disabled,
-                                                        viewOnly
-                                                      }) => {
+export const InputField: React.FC<InputFieldProps> = ({ name, schema, ui, required, form, disabled, viewOnly }) => {
   const config = useFieldConfig(name, schema, ui, disabled);
   const inputType = getInputType(schema);
   const placeholder = schema.placeholder || schema.examples?.[0]?.toString() || '';
@@ -79,17 +71,13 @@ export const InputField: React.FC<InputFieldProps> = ({
 
   if (viewOnly) {
     return (
-      <div className="block mt-4 mb-8">
-        <Label className="text-sm text-muted-foreground mb-1 block">
-          {config.fieldLabel}
-        </Label>
+      <div className="mt-4 mb-8 block">
+        <Label className="text-muted-foreground mb-1 block text-sm">{config.fieldLabel}</Label>
         <Controller
           name={name}
           control={form.control}
           defaultValue={config.defaultValue ?? ''}
-          render={({ field }) => (
-            <div className="text-sm">{field.value ?? '—'}</div>
-          )}
+          render={({ field }) => <div className="text-sm">{field.value ?? '—'}</div>}
         />
       </div>
     );

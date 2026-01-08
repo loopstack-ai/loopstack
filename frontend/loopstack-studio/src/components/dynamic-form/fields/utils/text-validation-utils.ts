@@ -13,10 +13,7 @@ interface ValidationSchema {
   multipleOf?: number;
 }
 
-export const buildTextValidationRules = (
-  schema: ValidationSchema,
-  required?: boolean
-): RegisterOptions => {
+export const buildTextValidationRules = (schema: ValidationSchema, required?: boolean): RegisterOptions => {
   const rules: RegisterOptions = {};
 
   if (required) {
@@ -26,14 +23,14 @@ export const buildTextValidationRules = (
   if (schema.minLength !== undefined) {
     rules.minLength = {
       value: schema.minLength,
-      message: `Minimum length is ${schema.minLength} characters`
+      message: `Minimum length is ${schema.minLength} characters`,
     };
   }
 
   if (schema.maxLength !== undefined) {
     rules.maxLength = {
       value: schema.maxLength,
-      message: `Maximum length is ${schema.maxLength} characters`
+      message: `Maximum length is ${schema.maxLength} characters`,
     };
   }
 
@@ -41,7 +38,7 @@ export const buildTextValidationRules = (
   if (minValue !== undefined) {
     rules.min = {
       value: minValue,
-      message: `Minimum value is ${minValue}`
+      message: `Minimum value is ${minValue}`,
     };
   }
 
@@ -49,43 +46,42 @@ export const buildTextValidationRules = (
   if (maxValue !== undefined) {
     rules.max = {
       value: maxValue,
-      message: `Maximum value is ${maxValue}`
+      message: `Maximum value is ${maxValue}`,
     };
   }
 
   if (schema.pattern) {
     rules.pattern = {
       value: new RegExp(schema.pattern),
-      message: 'Invalid format'
+      message: 'Invalid format',
     };
   }
 
   if (schema.format === 'email') {
     rules.pattern = {
       value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      message: 'Invalid email address'
+      message: 'Invalid email address',
     };
   }
 
   if (schema.format === 'url') {
     rules.pattern = {
       value: /^https?:\/\/.+/,
-      message: 'Invalid URL'
+      message: 'Invalid URL',
     };
   }
 
   if (schema.format === 'phone') {
     rules.pattern = {
       value: /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/,
-      message: 'Invalid phone number'
+      message: 'Invalid phone number',
     };
   }
 
   if (schema.multipleOf !== undefined) {
     rules.validate = {
       multipleOf: (value: number) =>
-        value % schema.multipleOf! === 0 ||
-        `Value must be a multiple of ${schema.multipleOf}`
+        value % schema.multipleOf! === 0 || `Value must be a multiple of ${schema.multipleOf}`,
     };
   }
 

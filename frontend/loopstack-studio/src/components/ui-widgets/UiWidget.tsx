@@ -1,8 +1,8 @@
 import React from 'react';
-import { SubmitButton } from './widgets/SubmitButton';
 import type { UiFormButtonOptionsType, UiWidgetType } from '@loopstack/contracts/types';
 import AiPromptInput from '@/components/ui-widgets/widgets/AiPromptInput';
 import { ButtonFullWidth } from '@/components/ui-widgets/widgets/ButtonFullWidth.tsx';
+import { SubmitButton } from './widgets/SubmitButton';
 
 export interface UiWidgetProps {
   config: UiWidgetType;
@@ -11,22 +11,11 @@ export interface UiWidgetProps {
   isLoading?: boolean;
 }
 
-const UiWidget: React.FC<UiWidgetProps> = ({
-  config,
-  onSubmit,
-  disabled,
-  isLoading,
-}) => {
-
+const UiWidget: React.FC<UiWidgetProps> = ({ config, onSubmit, disabled, isLoading }) => {
   switch (config.widget) {
     case 'prompt-input':
       return (
-        <AiPromptInput
-          transition={config.transition}
-          disabled={disabled}
-          onSubmit={onSubmit}
-          ui={config.options}
-        />
+        <AiPromptInput transition={config.transition} disabled={disabled} onSubmit={onSubmit} ui={config.options} />
       );
     case 'button':
       return (

@@ -5,7 +5,7 @@ import type { BreadCrumbsData } from '../page/PageBreadcrumbs.tsx';
 const MainLayout = ({
   children,
   breadcrumbsData,
-  headerMenu
+  headerMenu,
 }: {
   children: ReactElement | ReactElement[];
   breadcrumbsData: BreadCrumbsData[];
@@ -13,7 +13,7 @@ const MainLayout = ({
 }) => {
   return (
     <div className="px-4">
-      <div className="flex items-center justify-between min-h-[60px]">
+      <div className="flex min-h-[60px] items-center justify-between">
         <PageBreadcrumbs breadcrumbData={breadcrumbsData} />
         {headerMenu}
       </div>

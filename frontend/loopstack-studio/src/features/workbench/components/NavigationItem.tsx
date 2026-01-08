@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { CheckCircle, File, Play } from 'lucide-react';
 import type { WorkflowItemDto } from '@loopstack/api-client';
-import { File, Play, CheckCircle } from 'lucide-react';
 import { cn } from '../../../lib/utils.ts';
 
 interface WorkbenchNavigationWorkflowItemProps {
@@ -12,18 +12,18 @@ interface WorkbenchNavigationWorkflowItemProps {
 export const NavigationItem: React.FC<WorkbenchNavigationWorkflowItemProps> = ({
   workflow,
   isSelected,
-  navigateTo
+  navigateTo,
 }) => {
   const isFinished = workflow.place === 'end';
   const isRunning = !isFinished && (workflow.progress ?? 0) > 0;
 
   const getIcon = () => {
     if (isFinished) {
-      return <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />;
+      return <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-500" />;
     } else if (isRunning) {
-      return <Play className="h-4 w-4 text-blue-500 flex-shrink-0" />;
+      return <Play className="h-4 w-4 flex-shrink-0 text-blue-500" />;
     } else {
-      return <File className="h-4 w-4 text-gray-500 flex-shrink-0" />;
+      return <File className="h-4 w-4 flex-shrink-0 text-gray-500" />;
     }
   };
 
@@ -31,8 +31,8 @@ export const NavigationItem: React.FC<WorkbenchNavigationWorkflowItemProps> = ({
     if (!isFinished && (workflow.progress ?? 0) > 0) {
       return (
         <div className="ml-auto">
-          <div className="relative w-4 h-4">
-            <svg className="w-4 h-4 transform -rotate-90" viewBox="0 0 32 32">
+          <div className="relative h-4 w-4">
+            <svg className="h-4 w-4 -rotate-90 transform" viewBox="0 0 32 32">
               <circle
                 cx="16"
                 cy="16"
@@ -71,11 +71,11 @@ export const NavigationItem: React.FC<WorkbenchNavigationWorkflowItemProps> = ({
       <button
         onClick={handleClick}
         className={cn(
-          'w-full flex items-center justify-between p-2 text-left rounded-md text-sm outline-hidden transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring cursor-pointer',
-          { 'bg-sidebar-accent text-sidebar-accent-foreground font-medium': isSelected }
+          'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-sidebar-ring flex w-full cursor-pointer items-center justify-between rounded-md p-2 text-left text-sm outline-hidden transition-colors focus-visible:ring-2',
+          { 'bg-sidebar-accent text-sidebar-accent-foreground font-medium': isSelected },
         )}
       >
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
           {getIcon()}
           <span className="truncate text-sm">{workflow.title ?? workflow.blockName}</span>
         </div>

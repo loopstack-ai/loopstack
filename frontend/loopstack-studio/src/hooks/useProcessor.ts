@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useApiClient } from './useApi.ts';
 import type { ApiV1ProcessorApiProcessorControllerRunPipelineRequest } from '@loopstack/api-client';
+import { useApiClient } from './useApi.ts';
 
 export function useRunPipeline() {
   const { api } = useApiClient();
@@ -19,6 +19,6 @@ export function useRunPipeline() {
     },
     onError: (error) => {
       console.error('Error:', error);
-    }
+    },
   });
 }

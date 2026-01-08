@@ -1,25 +1,16 @@
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import type { WorkspaceItemDto } from '@loopstack/api-client';
 import ItemListView from '../../components/lists/ListView.tsx';
 import type { Column } from '../../components/lists/ListView.tsx';
-import {
-  useBatchDeleteWorkspaces,
-  useDeleteWorkspace,
-  useFilterWorkspaces
-} from '../../hooks/useWorkspaces.ts';
-import { useSearchParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { useWorkspaceConfig } from '../../hooks/useConfig.ts';
-import type { WorkspaceItemDto } from '@loopstack/api-client';
-import { Dialog, DialogContent } from '../../components/ui/dialog.tsx';
-import CreateWorkspace from './components/CreateWorkspace.tsx';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '../../components/ui/tooltip.tsx';
 import { Badge } from '../../components/ui/badge.tsx';
+import { Dialog, DialogContent } from '../../components/ui/dialog.tsx';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip.tsx';
+import { useWorkspaceConfig } from '../../hooks/useConfig.ts';
 import { useDebounce } from '../../hooks/useDebounce.ts';
+import { useBatchDeleteWorkspaces, useDeleteWorkspace, useFilterWorkspaces } from '../../hooks/useWorkspaces.ts';
 import { useStudio } from '../../providers/StudioProvider.tsx';
+import CreateWorkspace from './components/CreateWorkspace.tsx';
 
 const Workspaces = () => {
   const { router } = useStudio();
@@ -45,14 +36,7 @@ const Workspaces = () => {
 
   const fetchWorkspaceTypes = useWorkspaceConfig();
 
-  const fetchWorkspaces = useFilterWorkspaces(
-    debouncedSearchTerm,
-    filters,
-    orderBy,
-    order,
-    page,
-    rowsPerPage
-  );
+  const fetchWorkspaces = useFilterWorkspaces(debouncedSearchTerm, filters, orderBy, order, page, rowsPerPage);
 
   const deletePipeline = useDeleteWorkspace();
   const batchDeletePipelines = useBatchDeleteWorkspaces();
@@ -124,7 +108,7 @@ const Workspaces = () => {
                     <TooltipTrigger asChild>
                       <Badge
                         variant="outline"
-                        className="cursor-pointer hover:bg-primary/10"
+                        className="hover:bg-primary/10 cursor-pointer"
                         onClick={() => setFilters((curr) => ({ ...curr, blockName: value }))}
                       >
                         {value.length > 25 ? value.slice(0, 25) + '...' : value}
@@ -135,7 +119,7 @@ const Workspaces = () => {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              )
+              ),
             },
             // {
             //   id: 'type',
@@ -154,7 +138,7 @@ const Workspaces = () => {
               id: 'createdAt',
               label: 'Date Created',
               minWidth: 100,
-              format: (value) => new Date(value).toLocaleDateString()
+              format: (value) => new Date(value).toLocaleDateString(),
             },
             // {
             //   id: 'updatedAt',
@@ -175,11 +159,7 @@ const Workspaces = () => {
 
       <Dialog open={!!openEdit} onOpenChange={(open) => !open && handleEditClose()}>
         <DialogContent className="max-w-2xl">
-          <CreateWorkspace
-            types={fetchWorkspaceTypes.data ?? []}
-            workspace={openEdit}
-            onSuccess={handleEditClose}
-          />
+          <CreateWorkspace types={fetchWorkspaceTypes.data ?? []} workspace={openEdit} onSuccess={handleEditClose} />
         </DialogContent>
       </Dialog>
     </>

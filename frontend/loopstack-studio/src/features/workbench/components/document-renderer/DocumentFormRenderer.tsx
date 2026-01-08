@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import type { PipelineDto } from '@loopstack/api-client';
 import type {
   DocumentItemInterface,
-  TransitionPayloadInterface, UiPropertiesType, UiWidgetType,
+  TransitionPayloadInterface,
+  UiPropertiesType,
+  UiWidgetType,
   WorkflowInterface,
   WorkflowTransitionType,
 } from '@loopstack/contracts/types';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
-import type { PipelineDto } from '@loopstack/api-client';
 import Form from '@/components/dynamic-form/Form.tsx';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
 import UiActions from '@/components/ui-widgets/UiActions.tsx';
+import { useRunPipeline } from '@/hooks/useProcessor.ts';
 
 interface DocumentFormRendererProps {
   pipeline: PipelineDto;
@@ -25,13 +27,13 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
   workflow,
   document,
   enabled,
-  viewOnly
+  viewOnly,
 }) => {
   const runPipeline = useRunPipeline();
 
   const form = useForm<Record<string, any>>({
     defaultValues: document.schema.type === 'object' ? document.content : { raw: document.content },
-    mode: 'onChange'
+    mode: 'onChange',
   });
 
   useEffect(() => {
@@ -41,7 +43,7 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
         const fieldPath = issue.path.join('.');
         form.setError(fieldPath, {
           type: issue.code,
-          message: issue.message
+          message: issue.message,
         });
       });
     } else {
@@ -49,9 +51,8 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
     }
   }, [document.validationError, form]);
 
-  const availableTransitions = (workflow.availableTransitions as any)?.map(
-    (transition: WorkflowTransitionType) => transition.id
-  ) ?? [];
+  const availableTransitions =
+    (workflow.availableTransitions as any)?.map((transition: WorkflowTransitionType) => transition.id) ?? [];
 
   const executePipelineRun = (transition: string, payload: any) => {
     if (!availableTransitions.includes(transition)) {
@@ -65,10 +66,10 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
         transition: {
           id: transition,
           workflowId: workflow.id,
-          payload: payload
+          payload: payload,
           // meta?: any;
-        } as TransitionPayloadInterface
-      }
+        } as TransitionPayloadInterface,
+      },
     });
   };
 
@@ -78,7 +79,7 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
     } else {
       executePipelineRun(transition, data.raw);
     }
-  }
+  };
 
   const handleSubmit = (transition: string) => {
     // use data from react-hook-form
@@ -107,7 +108,8 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
             disabled={disabledProps}
             isLoading={runPipeline.isPending}
           />
-        } />
+        }
+      />
     </div>
   );
 };

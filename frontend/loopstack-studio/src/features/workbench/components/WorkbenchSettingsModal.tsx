@@ -1,14 +1,8 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '../../../components/ui/dialog.tsx';
 import { Settings } from 'lucide-react';
 import { Button } from '../../../components/ui/button.tsx';
-import { Switch } from '../../../components/ui/switch.tsx';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog.tsx';
 import { Label } from '../../../components/ui/label.tsx';
+import { Switch } from '../../../components/ui/switch.tsx';
 import type { WorkbenchSettingsInterface } from '../WorkflowList.tsx';
 
 interface WorkbenchSettingsModalProps {
@@ -22,23 +16,19 @@ const WorkbenchSettingsModal: React.FC<WorkbenchSettingsModalProps> = ({
   settings,
   onSettingsChange,
   open,
-  onOpenChange
+  onOpenChange,
 }) => {
   const handleSettingChange = (key: keyof WorkbenchSettingsInterface, value: boolean) => {
     onSettingsChange({
       ...settings,
-      [key]: value
+      [key]: value,
     });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-gray-500 hover:text-gray-700 hover:cursor-pointer"
-        >
+        <Button variant="ghost" size="icon" className="text-gray-500 hover:cursor-pointer hover:text-gray-700">
           <Settings className="h-5 w-5" />
         </Button>
       </DialogTrigger>
@@ -52,7 +42,7 @@ const WorkbenchSettingsModal: React.FC<WorkbenchSettingsModalProps> = ({
               <Label htmlFor="debug-mode" className="text-sm font-medium">
                 Enable Debug Mode
               </Label>
-              <p className="text-sm text-muted-foreground">Show debug info for each document</p>
+              <p className="text-muted-foreground text-sm">Show debug info for each document</p>
             </div>
             <Switch
               id="debug-mode"
@@ -66,9 +56,7 @@ const WorkbenchSettingsModal: React.FC<WorkbenchSettingsModalProps> = ({
               <Label htmlFor="message-history" className="text-sm font-medium">
                 Full Message History
               </Label>
-              <p className="text-sm text-muted-foreground">
-                Show all internal messages and prompts
-              </p>
+              <p className="text-muted-foreground text-sm">Show all internal messages and prompts</p>
             </div>
             <Switch
               id="message-history"

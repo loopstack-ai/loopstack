@@ -1,14 +1,14 @@
+import { useNavigate } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
+import { cn } from '../../lib/utils.ts';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator
+  BreadcrumbSeparator,
 } from '../ui/breadcrumb';
-import { cn } from '../../lib/utils.ts';
-import { ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 export interface BreadCrumbsData {
   label: string;

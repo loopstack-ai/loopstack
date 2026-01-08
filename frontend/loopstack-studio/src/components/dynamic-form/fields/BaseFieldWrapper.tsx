@@ -15,24 +15,24 @@ interface BaseFieldWrapperProps {
 }
 
 export const BaseFieldWrapper: React.FC<BaseFieldWrapperProps> = ({
-                                                                    name,
-                                                                    label,
-                                                                    required,
-                                                                    error,
-                                                                    helpText,
-                                                                    description,
-                                                                    children,
-                                                                    labelClassName = '',
-                                                                    showLabel = true,
-                                                                    helpTextPosition = 'after'
-                                                                  }) => {
+  name,
+  label,
+  required,
+  error,
+  helpText,
+  description,
+  children,
+  labelClassName = '',
+  showLabel = true,
+  helpTextPosition = 'after',
+}) => {
   return (
-    <div className="space-y-2 block mt-4 mb-8">
+    <div className="mt-4 mb-8 block space-y-2">
       {showLabel && (
         <Label
           htmlFor={name}
-          className={`text-sm font-medium leading-none ${
-            required ? "after:content-['*'] after:ml-0.5 after:text-red-500" : ''
+          className={`text-sm leading-none font-medium ${
+            required ? "after:ml-0.5 after:text-red-500 after:content-['*']" : ''
           } ${labelClassName}`}
         >
           {label}
@@ -40,27 +40,23 @@ export const BaseFieldWrapper: React.FC<BaseFieldWrapperProps> = ({
       )}
 
       {helpTextPosition === 'before' && helpText && !error && (
-        <p className="text-sm text-muted-foreground">
-          {helpText}
-        </p>
+        <p className="text-muted-foreground text-sm">{helpText}</p>
       )}
 
       {children}
 
       {description && !error && (
-        <p id={`${name}-description`} className="text-sm text-muted-foreground">
+        <p id={`${name}-description`} className="text-muted-foreground text-sm">
           {description}
         </p>
       )}
 
       {helpTextPosition === 'after' && helpText && !error && (
-        <p className="text-sm text-muted-foreground">
-          {helpText}
-        </p>
+        <p className="text-muted-foreground text-sm">{helpText}</p>
       )}
 
       {error && (
-        <p className="text-sm font-medium text-destructive" role="alert">
+        <p className="text-destructive text-sm font-medium" role="alert">
           {String(error.message || 'Invalid value')}
         </p>
       )}

@@ -6,7 +6,7 @@ export const useScrollToListItem = () => {
   const scrollTo = useCallback((workflowId: string) => {
     if (listRef.current && workflowId) {
       const itemToScrollTo = Array.from(listRef.current.children[0].children).find((child) =>
-        (child as HTMLElement).dataset.id?.endsWith(workflowId)
+        (child as HTMLElement).dataset.id?.endsWith(workflowId),
       ) as HTMLElement | undefined;
 
       if (itemToScrollTo) {
@@ -15,7 +15,7 @@ export const useScrollToListItem = () => {
 
         window.scrollTo({
           top: absoluteElementTop,
-          behavior: 'smooth'
+          behavior: 'smooth',
         });
       }
     }

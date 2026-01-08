@@ -14,7 +14,7 @@ export const useFieldConfig = <T extends BaseSchema>(
   name: string,
   schema: T,
   ui?: FieldProps['ui'],
-  disabled?: boolean
+  disabled?: boolean,
 ) => {
   const form = useFormContext();
   const error = form?.formState.errors[name];

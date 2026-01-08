@@ -1,24 +1,18 @@
 import { useEffect, useState } from 'react';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle
-} from '../../components/ui/sheet.tsx';
-import { useGetHealthInfo, useWorkerAuth, useWorkerAuthTokenRefresh } from '../../hooks/useAuth.ts';
-import { eventBus } from '../../services';
-import { ApiClientEvents } from '../../events';
-import { useStudio } from '../../providers/StudioProvider.tsx';
-import { RefreshCw } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { RefreshCw } from 'lucide-react';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../../components/ui/sheet.tsx';
+import { ApiClientEvents } from '../../events';
+import { useGetHealthInfo, useWorkerAuth, useWorkerAuthTokenRefresh } from '../../hooks/useAuth.ts';
+import { useStudio } from '../../providers/StudioProvider.tsx';
+import { eventBus } from '../../services';
 
 export const Escalation = {
   None: 0,
   Refresh: 1,
   Login: 2,
   Debug: 3,
-  Connection: 4
+  Connection: 4,
 } as const;
 
 export type Escalation = (typeof Escalation)[keyof typeof Escalation];
@@ -66,8 +60,8 @@ const LocalHealthCheck = () => {
     authenticateWorker.mutate({
       hubLoginRequestDto: {
         code: 'local',
-        grantType: 'local'
-      }
+        grantType: 'local',
+      },
     });
   };
 
@@ -125,7 +119,7 @@ const LocalHealthCheck = () => {
     <Sheet open={escalation >= Escalation.Debug}>
       <SheetContent side="bottom">
         <SheetHeader>
-          <div className="flex flex-row justify-between items-center w-full">
+          <div className="flex w-full flex-row items-center justify-between">
             <div>
               <SheetTitle>Connection issues detected</SheetTitle>
               <SheetDescription>
@@ -141,11 +135,9 @@ const LocalHealthCheck = () => {
               <div className="mr-10">
                 <button
                   onClick={handleCheckHealth}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="bg-primary flex items-center gap-2 rounded-md px-4 py-2 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <RefreshCw
-                    className={`h-3 w-3 ${fetchHealthInfo.isLoading ? 'animate-spin' : ''}`}
-                  />
+                  <RefreshCw className={`h-3 w-3 ${fetchHealthInfo.isLoading ? 'animate-spin' : ''}`} />
                   Retry
                 </button>
               </div>

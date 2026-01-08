@@ -1,5 +1,5 @@
-import { ApiV1AuthApi, Configuration } from '@loopstack/api-client';
 import axios from 'axios';
+import { ApiV1AuthApi, Configuration } from '@loopstack/api-client';
 import { ApiClientEvents } from '../events/api-client-events';
 import type { Environment } from '../types';
 import { eventBus } from './eventEmitter';
@@ -9,9 +9,9 @@ export function createApiClient(environment: Environment) {
     baseOptions: {
       withCredentials: true,
       headers: {
-        'Content-Type': 'application/json'
-      }
-    }
+        'Content-Type': 'application/json',
+      },
+    },
   });
 
   const axiosInstance = axios.create();
@@ -25,11 +25,11 @@ export function createApiClient(environment: Environment) {
         eventBus.emit(ApiClientEvents.ERR_NETWORK, environment.id);
       }
       return Promise.reject(error);
-    }
+    },
   );
 
   return {
-    auth: new ApiV1AuthApi(apiConfig, environment.url, axiosInstance)
+    auth: new ApiV1AuthApi(apiConfig, environment.url, axiosInstance),
     // Add other APIs as needed
   };
 }

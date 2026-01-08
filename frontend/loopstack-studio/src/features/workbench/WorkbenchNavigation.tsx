@@ -1,7 +1,7 @@
 import React from 'react';
 import { RectangleHorizontal } from 'lucide-react';
-import { SidebarMenuDiv, SidebarMenuItem, SidebarMenuSub } from '../../components/ui/sidebar.tsx';
 import type { NamespaceTree } from '@/hooks/useNamespaceTree.ts';
+import { SidebarMenuDiv, SidebarMenuItem, SidebarMenuSub } from '../../components/ui/sidebar.tsx';
 import NavigationItems from './NavigationItems.tsx';
 
 interface WorkbenchNavigationProps {
@@ -15,11 +15,11 @@ const WorkbenchNavigation: React.FC<WorkbenchNavigationProps> = ({ namespaceTree
       <React.Fragment key={item.id}>
         <SidebarMenuItem>
           <SidebarMenuDiv
-            className="w-full justify-between hover:bg-accent-sidebar-foreground"
+            className="hover:bg-accent-sidebar-foreground w-full justify-between"
             style={{ paddingLeft: `${depth * 16 + 8}px` }}
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <RectangleHorizontal className="h-4 w-4 text-gray-500 flex-shrink-0" />
+            <div className="flex min-w-0 items-center gap-2">
+              <RectangleHorizontal className="h-4 w-4 flex-shrink-0 text-gray-500" />
               <span className="truncate">{item.name}</span>
             </div>
           </SidebarMenuDiv>

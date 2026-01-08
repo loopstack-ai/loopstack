@@ -1,6 +1,6 @@
 import { ApiV1AuthApi } from '@loopstack/api-client';
-import { useStudio } from '../providers/StudioProvider.tsx';
 import { useApiClient } from '../hooks';
+import { useStudio } from '../providers/StudioProvider.tsx';
 
 const DebugPage = () => {
   const { environment } = useStudio();
@@ -13,7 +13,6 @@ const DebugPage = () => {
       <p>Name: {environment?.name}</p>
       <p>Id: {environment?.id}</p>
       <p>Base Path: {(authApi as any)?.basePath}</p>
-
     </div>
   );
 };

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Badge } from '../../../components/ui/badge.tsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog.tsx';
-import PromptDetails from './document-details/PromptDetails.tsx';
 import DocumentDetails from './document-details/DocumentDetails.tsx';
+import PromptDetails from './document-details/PromptDetails.tsx';
 
 // Define types for the renderer components
 type MetadataRendererProps = {
@@ -12,7 +12,7 @@ type MetadataRendererProps = {
 // Component to render standard metadata values (non-prompt)
 const DefaultMetadataRenderer = ({ data }: MetadataRendererProps) => {
   return (
-    <div className="p-4 font-mono whitespace-pre-wrap overflow-auto max-h-96 bg-muted rounded-md">
+    <div className="bg-muted max-h-96 overflow-auto rounded-md p-4 font-mono whitespace-pre-wrap">
       {JSON.stringify(data, null, 2)}
     </div>
   );
@@ -24,7 +24,7 @@ type MetadataRenderer = React.FC<MetadataRendererProps>;
 // Component map for different metadata types
 const metadataRenderers: Record<string, MetadataRenderer> = {
   prompt: ({ data }) => <PromptDetails promptData={data} />,
-  document: ({ data }) => <DocumentDetails data={data} />
+  document: ({ data }) => <DocumentDetails data={data} />,
   // Add more specialized renderers here in the future
 };
 
@@ -53,12 +53,12 @@ const DocumentMetadataPills = ({ metaData }: { metaData: Record<string, any> }) 
 
   return (
     <div className="px-6">
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="mb-8 flex flex-wrap gap-2">
         {Object.entries(metaData).map(([key, item]) => (
           <Badge
             key={key}
             variant="outline"
-            className="cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors rounded-full px-3 py-1"
+            className="hover:bg-accent hover:text-accent-foreground cursor-pointer rounded-full px-3 py-1 transition-colors"
             onClick={() => handlePillClick(item, key)}
           >
             {key}
@@ -68,11 +68,11 @@ const DocumentMetadataPills = ({ metaData }: { metaData: Record<string, any> }) 
 
       {selectedItem && (
         <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogContent className="max-w-2xl max-h-3/4 overflow-auto">
+          <DialogContent className="max-h-3/4 max-w-2xl overflow-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {selectedKey}
-                <span className="text-xs text-muted-foreground font-normal">Metadata</span>
+                <span className="text-muted-foreground text-xs font-normal">Metadata</span>
               </DialogTitle>
             </DialogHeader>
             <div className="mt-4">{getRenderer(selectedKey)}</div>

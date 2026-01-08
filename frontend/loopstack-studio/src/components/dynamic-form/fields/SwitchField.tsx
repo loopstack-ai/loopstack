@@ -1,10 +1,10 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
-import { Switch } from '../../ui/switch';
 import { Label } from '../../ui/label';
-import { BaseFieldWrapper } from './BaseFieldWrapper';
+import { Switch } from '../../ui/switch';
 import { useFieldConfig } from '../hooks/useFieldConfig';
 import type { FieldProps } from '../types';
+import { BaseFieldWrapper } from './BaseFieldWrapper';
 
 export interface SwitchFieldSchema {
   title?: string;
@@ -22,14 +22,7 @@ interface SwitchFieldProps extends FieldProps {
   schema: SwitchFieldSchema;
 }
 
-export const SwitchField: React.FC<SwitchFieldProps> = ({
-                                                          name,
-                                                          schema,
-                                                          ui,
-                                                          required,
-                                                          form,
-                                                          disabled
-                                                        }) => {
+export const SwitchField: React.FC<SwitchFieldProps> = ({ name, schema, ui, required, form, disabled }) => {
   const config = useFieldConfig(name, schema, ui, disabled);
 
   const validationRules = React.useMemo(() => {
@@ -37,13 +30,13 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({
 
     if (schema.const === true) {
       rules.validate = {
-        mustBeTrue: (value: boolean) => value === true || 'This field must be accepted'
+        mustBeTrue: (value: boolean) => value === true || 'This field must be accepted',
       };
     }
 
     if (schema.enum?.length === 1 && schema.enum[0] === true) {
       rules.validate = {
-        mustBeTrue: (value: boolean) => value === true || 'This field must be accepted'
+        mustBeTrue: (value: boolean) => value === true || 'This field must be accepted',
       };
     }
 
@@ -78,8 +71,8 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({
             />
             <Label
               htmlFor={name}
-              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
-                required ? "after:content-['*'] after:ml-0.5 after:text-red-500" : ''
+              className={`text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
+                required ? "after:ml-0.5 after:text-red-500 after:content-['*']" : ''
               }`}
             >
               {config.fieldLabel}

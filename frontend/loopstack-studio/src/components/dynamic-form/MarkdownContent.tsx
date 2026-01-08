@@ -1,11 +1,11 @@
 import React from 'react';
 import Markdown from 'react-markdown';
+import 'katex/dist/katex.min.css';
+import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
 import { cn } from '../../lib/utils.ts';
 import MermaidDiagram from './MermaidDiagram.tsx';
-import 'katex/dist/katex.min.css';
 import './markdown.css';
 
 interface MarkdownContentProps {
@@ -28,11 +28,7 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, className })
               return <MermaidDiagram chart={children} />;
             }
 
-            return isInline ? (
-              <code>{children}</code>
-            ) : (
-              <code className={className}>{children}</code>
-            );
+            return isInline ? <code>{children}</code> : <code className={className}>{children}</code>;
           },
 
           table: ({ children }) => (
@@ -71,7 +67,7 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, className })
                 {children}
               </span>
             );
-          }
+          },
         }}
       >
         {content}

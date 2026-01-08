@@ -1,11 +1,11 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
+import { cn } from '@/lib/utils.ts';
 import { Label } from '../../ui/label';
 import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
-import { BaseFieldWrapper } from './BaseFieldWrapper';
 import { useFieldConfig } from '../hooks/useFieldConfig';
-import { cn } from '@/lib/utils.ts';
 import type { FieldProps } from '../types';
+import { BaseFieldWrapper } from './BaseFieldWrapper';
 
 export interface RadioFieldSchema {
   title?: string;
@@ -26,20 +26,13 @@ interface RadioFieldProps extends FieldProps {
   schema: RadioFieldSchema;
 }
 
-export const RadioField: React.FC<RadioFieldProps> = ({
-                                                        name,
-                                                        schema,
-                                                        ui,
-                                                        required,
-                                                        form,
-                                                        disabled
-                                                      }) => {
+export const RadioField: React.FC<RadioFieldProps> = ({ name, schema, ui, required, form, disabled }) => {
   const config = useFieldConfig(name, schema, ui, disabled);
 
   // Get custom enum options if provided
   const enumOptions = schema.enumOptions;
-  const enumLabels = enumOptions ? enumOptions.map(opt => opt.label) : schema.enum;
-  const enumValues = enumOptions ? enumOptions.map(opt => opt.value) : schema.enum;
+  const enumLabels = enumOptions ? enumOptions.map((opt) => opt.label) : schema.enum;
+  const enumValues = enumOptions ? enumOptions.map((opt) => opt.value) : schema.enum;
 
   return (
     <Controller
@@ -47,7 +40,7 @@ export const RadioField: React.FC<RadioFieldProps> = ({
       control={form.control}
       defaultValue={config.defaultValue || ''}
       rules={{
-        required: required ? 'This field is required' : undefined
+        required: required ? 'This field is required' : undefined,
       }}
       render={({ field }) => (
         <BaseFieldWrapper
@@ -65,7 +58,7 @@ export const RadioField: React.FC<RadioFieldProps> = ({
             disabled={config.isDisabled}
             required={required}
             aria-label={config.fieldLabel}
-            className={cn(schema.inline && 'flex flex-row space-x-4 space-y-0')}
+            className={cn(schema.inline && 'flex flex-row space-y-0 space-x-4')}
             {...config.getAriaProps()}
           >
             {enumValues?.map((option: string, index: number) => (
@@ -79,8 +72,8 @@ export const RadioField: React.FC<RadioFieldProps> = ({
                 <Label
                   htmlFor={`${name}-${option}`}
                   className={cn(
-                    'text-sm font-normal cursor-pointer',
-                    config.isDisabled && 'cursor-not-allowed opacity-70'
+                    'cursor-pointer text-sm font-normal',
+                    config.isDisabled && 'cursor-not-allowed opacity-70',
                   )}
                 >
                   {enumLabels?.[index] || option}

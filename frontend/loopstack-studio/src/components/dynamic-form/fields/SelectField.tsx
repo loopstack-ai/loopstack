@@ -1,9 +1,9 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
-import { BaseFieldWrapper } from './BaseFieldWrapper';
 import { useFieldConfig } from '../hooks/useFieldConfig';
 import type { FieldProps } from '../types';
+import { BaseFieldWrapper } from './BaseFieldWrapper';
 
 interface EnumOption {
   label: string;
@@ -26,29 +26,19 @@ interface SelectFieldProps extends FieldProps {
   schema: SelectFieldSchema;
 }
 
-export const SelectField: React.FC<SelectFieldProps> = ({
-                                                          name,
-                                                          schema,
-                                                          ui,
-                                                          required,
-                                                          form,
-                                                          disabled
-                                                        }) => {
+export const SelectField: React.FC<SelectFieldProps> = ({ name, schema, ui, required, form, disabled }) => {
   const config = useFieldConfig(name, schema, ui, disabled);
 
   // Get enum options - prioritize enumOptions over enum
-  const enumOptions =
-    schema.enumOptions && schema.enumOptions.length > 0
-      ? schema.enumOptions
-      : schema.enum || [];
+  const enumOptions = schema.enumOptions && schema.enumOptions.length > 0 ? schema.enumOptions : schema.enum || [];
 
   // Extract labels and values from enum options
   const enumLabels = enumOptions.map((opt: string | number | EnumOption) =>
-    typeof opt === 'string' || typeof opt === 'number' ? opt : opt.label
+    typeof opt === 'string' || typeof opt === 'number' ? opt : opt.label,
   );
 
   const enumValues = enumOptions.map((opt: string | number | EnumOption) =>
-    typeof opt === 'string' || typeof opt === 'number' ? opt : opt.value
+    typeof opt === 'string' || typeof opt === 'number' ? opt : opt.value,
   );
 
   const placeholder = schema.placeholder || `Select ${config.fieldLabel}`;
@@ -59,7 +49,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       control={form.control}
       defaultValue={config.defaultValue || ''}
       rules={{
-        required: required ? 'This field is required' : undefined
+        required: required ? 'This field is required' : undefined,
       }}
       render={({ field }) => (
         <BaseFieldWrapper
@@ -76,20 +66,12 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             disabled={config.isDisabled}
             required={required}
           >
-            <SelectTrigger
-              id={name}
-              className={config.error ? 'border-destructive' : ''}
-              {...config.getAriaProps()}
-            >
+            <SelectTrigger id={name} className={config.error ? 'border-destructive' : ''} {...config.getAriaProps()}>
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
               {enumValues.map((option: string | number, index: number) => (
-                <SelectItem
-                  key={`${option}-${index}`}
-                  value={option.toString()}
-                  disabled={config.isDisabled}
-                >
+                <SelectItem key={`${option}-${index}`} value={option.toString()} disabled={config.isDisabled}>
                   {enumLabels[index]?.toString() || option.toString()}
                 </SelectItem>
               ))}

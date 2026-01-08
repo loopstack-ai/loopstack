@@ -1,7 +1,7 @@
 import React from 'react';
-import { Button } from '../../ui/button.tsx';
-import type { UiFormButtonOptionsType } from '@loopstack/contracts/types';
 import { Loader2 } from 'lucide-react';
+import type { UiFormButtonOptionsType } from '@loopstack/contracts/types';
+import { Button } from '../../ui/button.tsx';
 
 interface SubmitButtonProps {
   transition: string;
@@ -17,7 +17,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({ transition, ui, disa
 
   return (
     <Button
-      type='button'
+      type="button"
       variant="default"
       {...submitButtonProps}
       disabled={disabled || isLoading}
@@ -25,7 +25,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({ transition, ui, disa
       size={'default'}
       className="w-48"
     >
-      {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+      {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
       {submitButtonText}
     </Button>
   );

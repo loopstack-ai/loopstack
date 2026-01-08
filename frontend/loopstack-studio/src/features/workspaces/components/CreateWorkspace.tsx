@@ -1,26 +1,20 @@
 import * as React from 'react';
-import { useCreateWorkspace, useUpdateWorkspace } from '../../../hooks/useWorkspaces.ts';
-import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
 import { useEffect, useState } from 'react';
+import { DialogTitle } from '@radix-ui/react-dialog';
+import { Loader2 } from 'lucide-react';
 import type { WorkspaceConfigDto, WorkspaceItemDto } from '@loopstack/api-client';
+import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
 import { Button } from '../../../components/ui/button.tsx';
+import { DialogHeader } from '../../../components/ui/dialog.tsx';
 import { Input } from '../../../components/ui/input.tsx';
 import { Label } from '../../../components/ui/label.tsx';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '../../../components/ui/select.tsx';
-import { Loader2 } from 'lucide-react';
-import { DialogHeader } from '../../../components/ui/dialog.tsx';
-import { DialogTitle } from '@radix-ui/react-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select.tsx';
+import { useCreateWorkspace, useUpdateWorkspace } from '../../../hooks/useWorkspaces.ts';
 
 const CreateWorkspace = ({
   types,
   workspace,
-  onSuccess
+  onSuccess,
 }: {
   types: any[];
   workspace?: WorkspaceItemDto;
@@ -51,14 +45,14 @@ const CreateWorkspace = ({
       {
         id: workspace!.id,
         workspaceUpdateDto: {
-          title: name
-        }
+          title: name,
+        },
       },
       {
         onSuccess: () => {
           onSuccess();
-        }
-      }
+        },
+      },
     );
   };
 
@@ -75,15 +69,15 @@ const CreateWorkspace = ({
       {
         workspaceCreateDto: {
           title: name || undefined,
-          blockName: workspaceType
-        }
+          blockName: workspaceType,
+        },
       },
       {
         onSuccess: () => {
           console.log('closing');
           onSuccess();
-        }
-      }
+        },
+      },
     );
   };
 
@@ -96,7 +90,7 @@ const CreateWorkspace = ({
 
       <div className="my-4">
         <DialogHeader className="space-y-1">
-          <DialogTitle className="text-lg leading-none font-semibold mb-4">
+          <DialogTitle className="mb-4 text-lg leading-none font-semibold">
             {workspace ? 'Edit' : 'Add'} Workspace
           </DialogTitle>
         </DialogHeader>
@@ -116,11 +110,7 @@ const CreateWorkspace = ({
             {!workspace && (
               <div className="space-y-2">
                 <Label htmlFor="blockName">Type</Label>
-                <Select
-                  name="blockName"
-                  value={workspaceType}
-                  onValueChange={handleWorkspaceTypeChange}
-                >
+                <Select name="blockName" value={workspaceType} onValueChange={handleWorkspaceTypeChange}>
                   <SelectTrigger id="blockName" className="w-full">
                     <SelectValue placeholder="Select a type" />
                   </SelectTrigger>
