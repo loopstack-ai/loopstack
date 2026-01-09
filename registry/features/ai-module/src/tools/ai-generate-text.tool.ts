@@ -42,7 +42,11 @@ export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
   ): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
-    const options: any = {};
+    const options: {
+      prompt?: any;
+      messages?: any;
+      tools?: any;
+    } = {};
 
     options.tools = args.tools
       ? this.aiToolsHelperService.getTools(args.tools, parent)
@@ -90,12 +94,8 @@ export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
               }),
             );
           },
-          onFinish: async (data) => {
-            try {
-              resolve(data.responseMessage);
-            } catch (error) {
-              reject(error);
-            }
+          onFinish: (data) => {
+            resolve(data.responseMessage);
           },
         });
 
@@ -108,7 +108,7 @@ export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
               if (done) break;
             }
           } catch (error) {
-            reject(error);
+            reject(error instanceof Error ? error : new Error(String(error)));
           }
         })();
       });

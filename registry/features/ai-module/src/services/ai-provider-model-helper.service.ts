@@ -31,7 +31,7 @@ export class AiProviderModelHelperService {
   private getModel(modelName: string | undefined): string {
     const model = modelName ?? process.env['DEFAULT_MODEL'];
 
-    if (!modelName) {
+    if (!model) {
       throw new Error(
         `No Model defined. Please provide DEFAULT_MODEL or set the model parameter in the completion service call.`,
       );
@@ -52,10 +52,10 @@ export class AiProviderModelHelperService {
     return provider;
   }
 
-  getProviderModel(config: AiProviderModelConfig): any {
-    const modelName = this.getModel(config.model);
-    const providerName = this.getProvider(config.provider);
-    const apiKey = this.getApiKey(config.envApiKey, providerName);
+  getProviderModel(config?: AiProviderModelConfig): any {
+    const modelName = this.getModel(config?.model);
+    const providerName = this.getProvider(config?.provider);
+    const apiKey = this.getApiKey(config?.envApiKey, providerName);
 
     return this.aiProviderRegistry.createModel(providerName, {
       apiKey: apiKey,

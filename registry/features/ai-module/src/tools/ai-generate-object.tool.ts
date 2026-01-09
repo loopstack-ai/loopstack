@@ -43,7 +43,11 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
   ): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
-    const options: any = {};
+    const options: {
+      prompt?: any;
+      messages?: any;
+      schema?: any;
+    } = {};
 
     if (args.prompt) {
       options.prompt = args.prompt;
@@ -58,9 +62,13 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
       options.messages = convertToModelMessages(messages);
     }
 
-    const document: Block = parent.getDocument(args.response.document);
+    const document: Block | undefined = parent.getDocument(
+      args.response.document,
+    );
     if (!document) {
-      throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
+      throw new Error(
+        `Document with name "${args.response.document}" not found in tool execution context.`,
+      );
     }
     const responseSchema = document.argsSchema;
     if (!responseSchema) {

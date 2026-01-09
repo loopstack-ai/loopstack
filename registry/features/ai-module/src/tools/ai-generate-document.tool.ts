@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   ToolResult,
   BlockConfig,
@@ -23,16 +23,28 @@ import { CreateDocument } from '@loopstack/core-ui-module';
 })
 @WithArguments(AiGenerateObjectSchema)
 export class AiGenerateDocument extends ToolBase<AiGenerateObjectArgsType> {
-  @Tool() aiGenerateObject: AiGenerateObject;
-  @Tool() createDocument: CreateDocument;
+  @Tool() private aiGenerateObject!: AiGenerateObject;
+  @Tool() private createDocument!: CreateDocument;
+
+  private getRequiredTool(name: string): ToolBase<any> {
+    const tool = this.getTool(name);
+    if (tool === undefined) {
+      throw new Error(`Tool "${name}" is not available`);
+    }
+    return tool;
+  }
 
   async execute(
     args: AiGenerateObjectArgsType,
     ctx: WorkflowExecution,
     parent: Block,
   ): Promise<ToolResult> {
-    const result = await this.getTool('aiGenerateObject').execute(args, ctx, parent);
-    return this.getTool('createDocument').execute(
+    const result = await this.getRequiredTool('aiGenerateObject').execute(
+      args,
+      ctx,
+      parent,
+    );
+    return this.getRequiredTool('createDocument').execute(
       {
         id: args.response.id,
         document: args.response.document,

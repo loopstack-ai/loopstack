@@ -5,7 +5,16 @@ import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/inter
 import { ToolUIPart, UIMessage } from 'ai';
 
 const DelegateToolCallsToolSchema = z.object({
-  message: z.any(),
+  message: z.object({
+    id: z.string(),
+    parts: z.array(
+      z.object({
+        type: z.string(),
+        input: z.any(),
+        toolCallId: z.string(),
+      }),
+    ),
+  }),
 });
 
 type DelegateToolCallsToolArgs = z.infer<typeof DelegateToolCallsToolSchema>;
@@ -33,10 +42,13 @@ export class DelegateToolCall extends ToolBase<DelegateToolCallsToolArgs> {
       const toolName = part.type.replace(/^tool-/, '');
 
       const tool = parent.getTool(toolName);
+      if (!tool) {
+        throw new Error(`Tool ${toolName} not found.`);
+      }
       const result = await tool.execute(part.input, ctx, parent);
 
       resultParts.push({
-        type: part.type,
+        type: part.type as any,
         toolCallId: part.toolCallId,
         output: {
           type: result.type || 'text',
