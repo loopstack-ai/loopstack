@@ -1,7 +1,7 @@
 import { WorkflowBase } from '@loopstack/core';
 import { Injectable } from '@nestjs/common';
 import { BlockConfig, Tool } from '@loopstack/common';
-import { CreateChatMessage } from '@loopstack/core-ui-module';
+import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
 @Injectable()
 @BlockConfig({
