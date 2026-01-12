@@ -19,8 +19,7 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
-    "prepare": "pnpm run build"
+    "build": "tsc"
   },
   "dependencies": {
     "inquirer": "^9.3.7"
