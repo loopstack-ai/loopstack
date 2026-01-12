@@ -35,15 +35,19 @@ cd my-project
 docker compose up -d
 ```
 
-### Add the Module
+### Install the Module
+
+#### As Node Dependency via Npm:
+
+```bash
+npm install --save @loopstack/create-chat-message-tool
+```
+
+#### OR: Copy Sources via Loopstack CLI
 
 ```bash
 loopstack add @loopstack/create-chat-message-tool
 ```
-
-This copies the source files into your `src` directory.
-
-> Using the `loopstack add` command is a great way to explore the code to learn new concepts or add own customizations.
 
 ## Setup
 
