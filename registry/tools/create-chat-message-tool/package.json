@@ -2,7 +2,7 @@
   "name": "@loopstack/create-chat-message-tool",
   "displayName": "Loopstack Create Chat Message Tool",
   "description": "A tool to create chat messages from in a workflow",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
