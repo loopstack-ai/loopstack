@@ -57,7 +57,7 @@ import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
 import { AiModule } from '@loopstack/ai-module';
 import { DefaultWorkspace } from './default.workspace';
-import { ChatExampleModule } from './chat-example-workflow';
+import { ChatExampleModule } from './@loopstack/chat-example-workflow';
 
 @Module({
   imports: [LoopCoreModule, CoreUiModule, AiModule, ChatExampleModule],
@@ -74,7 +74,7 @@ Add the workflow to your workspace class using the `@Workflow()` decorator:
 import { Injectable } from '@nestjs/common';
 import { BlockConfig, Workflow } from '@loopstack/common';
 import { WorkspaceBase } from '@loopstack/core';
-import { ChatWorkflow } from './chat-example-workflow';
+import { ChatWorkflow } from './@loopstack/chat-example-workflow';
 
 @Injectable()
 @BlockConfig({
