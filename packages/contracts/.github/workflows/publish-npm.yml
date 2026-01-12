@@ -1,0 +1,83 @@
+name: 'Publish to NPM Workflow'
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    name: 'Build & Publish to NPM'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if tag is on main branch
+        run: |
+          git fetch origin main
+          if ! git branch -r --contains ${{ github.ref }} | grep -q 'origin/main'; then
+            echo "❌ Tag is not on main branch"
+            exit 1
+          fi
+          echo "✅ Tag is on main branch"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Extract Package Version
+        id: package
+        run: |
+          echo "name=$(node -p "require('./package.json').name")" >> $GITHUB_OUTPUT
+          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Validate Version Matches Tag
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          PKG_VERSION=${{ steps.package.outputs.version }}
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "❌ Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+          echo "✅ Versions match"
+
+      - name: Install Dependencies
+        run: npm ci
+        
+      - name: Build Package
+        run: npm run build --if-present
+
+      - name: Publish to NPM
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: success()
+        with:
+          tag_name: ${{ github.ref_name }}
+          body: |
+            ## 📦 NPM Package
+
+            **Package:** [${{ steps.package.outputs.name }}](https://www.npmjs.com/package/${{ steps.package.outputs.name }}/v/${{ steps.package.outputs.version }})
+            **Version:** ${{ steps.package.outputs.version }}
+
+            Install with:
+            ```bash
+            npm install ${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}
+            ```
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
