@@ -39,6 +39,13 @@ export function WithState<T extends z.ZodType>(schema: T): ClassDecorator {
   };
 }
 
+export function WithResult<T extends z.ZodType>(schema: T): ClassDecorator {
+  return (target: any) => {
+    validateStateSchema(schema);
+    target.resultSchema = schema;
+  };
+}
+
 function getTools(target: any): string[] {
   const keys: (string | symbol)[] = Reflect.getMetadata(TOOL_METADATA_KEY, target.prototype) || [];
   return keys.map(key => String(key));

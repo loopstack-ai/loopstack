@@ -70,6 +70,13 @@ export class WorkflowEntity {
   })
   inputData!: Record<string, any>;
 
+  @Column({
+    type: 'jsonb',
+    name: 'result',
+    nullable: true,
+  })
+  result!: Record<string, any> | null;
+
   @Column('jsonb', {
     name: 'available_transitions',
     nullable: true,
