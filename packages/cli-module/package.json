@@ -2,7 +2,7 @@
   "name": "@loopstack/cli-module",
   "displayName": "Loopstack Cli Module",
   "description": "The cli module for Loopstack",
-  "version": "0.15.2",
+  "version": "0.16.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -27,8 +27,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/contracts": "^0.15.0",
-    "@loopstack/core": "^0.15.0",
+    "@loopstack/contracts": "^0.16.0",
+    "@loopstack/core": "^0.16.0",
     "@nestjs/common": "^11.1.9",
     "@nestjs/core": "^11.1.9",
     "axios": "^1.13.2",
