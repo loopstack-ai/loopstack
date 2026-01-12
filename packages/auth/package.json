@@ -2,7 +2,7 @@
   "name": "@loopstack/auth",
   "displayName": "Loopstack Auth Module",
   "description": "The auth module of the loopstack automation framework",
-  "version": "0.15.1",
+  "version": "0.16.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -22,9 +22,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/common": "^0.15.1",
-    "@loopstack/contracts": "^0.15.0",
-    "@loopstack/core": "^0.15.3",
+    "@loopstack/common": "^0.16.0",
+    "@loopstack/contracts": "^0.16.0",
+    "@loopstack/core": "^0.16.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
