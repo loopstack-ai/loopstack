@@ -2,7 +2,7 @@
   "name": "@loopstack/core-ui-module",
   "displayName": "Loopstack Core UI Module",
   "description": "A collection of tools for creating specific UI documents for interaction in the loopstack studio ",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"

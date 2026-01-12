@@ -6,7 +6,6 @@ import {
   MessageDocument,
   PlainDocument,
 } from './documents';
-import { CreateChatMessage } from './tools';
 import { CommonModule, LoopCoreModule } from '@loopstack/core';
 import { TestUiDocumentsWorkflow } from './workflows';
 
@@ -18,7 +17,6 @@ import { TestUiDocumentsWorkflow } from './workflows';
   providers: [
     // Tools
     CreateDocument,
-    CreateChatMessage,
 
     // Documents
     ErrorDocument,
@@ -31,7 +29,6 @@ import { TestUiDocumentsWorkflow } from './workflows';
   ],
   exports: [
     CreateDocument,
-    CreateChatMessage,
     ErrorDocument,
     MarkdownDocument,
     MessageDocument,
