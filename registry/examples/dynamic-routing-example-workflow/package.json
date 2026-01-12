@@ -2,7 +2,7 @@
   "name": "@loopstack/dynamic-routing-example-workflow",
   "displayName": "Loopstack Dynamic Routing Example Worflow",
   "description": "A workflow demonstrating how to create dynamic routing an a workflow",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -32,13 +32,14 @@
   "dependencies": {
     "@loopstack/common": "^0.16.0",
     "@loopstack/core": "^0.16.0",
-    "@loopstack/core-ui-module": "^0.16.0",
+    "@loopstack/create-chat-message-tool": "^0.16.1",
     "@nestjs/common": "^11.0.12",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
     "@eslint/js": "^9.22.0",
+    "@loopstack/testing": "^0.16.0",
     "@nestjs/cli": "^11.0.5",
     "@nestjs/testing": "^11.0.12",
     "@swc/cli": "^0.6.0",
@@ -72,6 +73,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
+    "testTimeout": 10000,
+    "forceExit": true,
     "maxWorkers": 1
   }
 }
