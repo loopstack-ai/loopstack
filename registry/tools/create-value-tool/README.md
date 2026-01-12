@@ -62,10 +62,10 @@ import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
 import { DefaultWorkspace } from './default.workspace';
-import { CreateValueModule } from './create-value-tool';
+import { CreateValueToolModule } from './create-value-tool';
 
 @Module({
-  imports: [LoopCoreModule, CoreUiModule, CreateValueModule],
+  imports: [LoopCoreModule, CoreUiModule, CreateValueToolModule],
   providers: [DefaultWorkspace],
 })
 export class DefaultModule {}
