@@ -2,7 +2,7 @@
   "name": "@loopstack/create-value-tool",
   "displayName": "Loopstack Create Value Tool",
   "description": "A simple tool that logs and returns a value of a loopstack workflow. This is useful for debugging or initializing workflow context variables.",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
