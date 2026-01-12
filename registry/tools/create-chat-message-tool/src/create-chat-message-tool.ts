@@ -1,10 +1,11 @@
 import { z } from 'zod';
 import { Injectable, Logger } from '@nestjs/common';
-import { Block, ToolBase, WorkflowExecution } from '@loopstack/core';
+import { ToolBase, WorkflowExecution } from '@loopstack/core';
 import {
   BlockConfig,
   DocumentEntity,
   Tool,
+  Document,
   ToolResult,
   WithArguments,
 } from '@loopstack/common';
@@ -33,18 +34,18 @@ export class CreateChatMessage extends ToolBase<CreateChatMessageInput> {
   protected readonly logger = new Logger(CreateChatMessage.name);
 
   @Tool() private createDocument: CreateDocument;
+  @Document() private messageDocument: MessageDocument;
 
   async execute(
     args: CreateChatMessageInput,
     ctx: WorkflowExecution,
-    parent: Block,
   ): Promise<ToolResult> {
     const items = !Array.isArray(args) ? [args] : args;
 
     const createdDocuments: DocumentEntity[] = [];
     for (const item of items) {
       const createDocumentArgs = {
-        document: MessageDocument.name,
+        document: 'messageDocument',
         update: {
           content: {
             role: item.role,
@@ -56,7 +57,7 @@ export class CreateChatMessage extends ToolBase<CreateChatMessageInput> {
       const result = await this.createDocument.execute(
         createDocumentArgs,
         ctx,
-        parent,
+        this,
       );
       createdDocuments.push(result.data as DocumentEntity);
     }
