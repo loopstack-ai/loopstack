@@ -55,12 +55,11 @@ Add `CustomToolModule` to your `default.module.ts` (included in the skeleton app
 ```typescript
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
-import { CoreUiModule } from '@loopstack/core-ui-module';
 import { DefaultWorkspace } from './default.workspace';
 import { CustomToolModule } from './custom-tool-example-module';
 
 @Module({
-  imports: [LoopCoreModule, CoreUiModule, CustomToolModule],
+  imports: [LoopCoreModule, CustomToolModule],
   providers: [DefaultWorkspace],
 })
 export class DefaultModule {}
