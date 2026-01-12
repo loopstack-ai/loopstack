@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, Index } from 'typeorm';
+import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { PipelineEntity } from './pipeline.entity';
 

@@ -1,6 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
-import { Role } from './role.entity';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { PermissionInterface } from '../interfaces';
+import { Role } from './role.entity';
 
 @Entity('auth_permissions')
 export class Permission implements PermissionInterface {
@@ -19,6 +19,6 @@ export class Permission implements PermissionInterface {
   @Column({ nullable: true })
   description!: string;
 
-  @ManyToMany(() => Role, role => role.permissions)
+  @ManyToMany(() => Role, (role) => role.permissions)
   roles!: Role[];
 }

@@ -4,5 +4,5 @@ export interface StateMachineValidatorInterface {
   validate(
     workflow: WorkflowEntity,
     args: Record<string, any> | undefined,
-  ): { valid: boolean; target?: string; hash?: string; }
+  ): { valid: boolean; target?: string; hash?: string };
 }

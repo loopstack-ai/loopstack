@@ -1,16 +1,16 @@
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
   ManyToOne,
   OneToMany,
-  JoinColumn,
-  Index,
-  CreateDateColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { WorkflowEntity } from './workflow.entity';
 import { PipelineEntity } from './pipeline.entity';
+import { WorkflowEntity } from './workflow.entity';
 
 @Entity('core_namespace')
 export class NamespaceEntity {

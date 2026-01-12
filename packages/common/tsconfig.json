@@ -17,7 +17,7 @@
     "incremental": false,
     "baseUrl": "./",
     "paths": {
-      "@loopstack/contracts": ["packages/contracts/src"],
+      "@loopstack/contracts": ["packages/contracts/src"]
     }
   },
   "exclude": ["node_modules", "dist"],

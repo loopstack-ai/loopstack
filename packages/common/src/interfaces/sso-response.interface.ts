@@ -14,9 +14,9 @@ export interface IApiResponse<T = any> {
   correlationId?: string;
 }
 
-export interface IGenerateCodeResponse extends IApiResponse<IAuthorizationCodeResponse> {}
+export type IGenerateCodeResponse = IApiResponse<IAuthorizationCodeResponse>;
 
-export interface IValidateCodeResponse extends IApiResponse<UserInterface> {}
+export type IValidateCodeResponse = IApiResponse<UserInterface>;
 
 export interface IErrorResponse {
   statusCode: number;

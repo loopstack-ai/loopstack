@@ -9,10 +9,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { WorkflowEntity } from './workflow.entity';
-import { StableJsonTransformer } from '../utils';
 import { z } from 'zod';
 import type { JSONSchemaConfigType } from '@loopstack/contracts/types';
+import { StableJsonTransformer } from '../utils';
+import { WorkflowEntity } from './workflow.entity';
 
 @Entity({ name: 'core_document' })
 export class DocumentEntity<T = any> {
@@ -46,7 +46,7 @@ export class DocumentEntity<T = any> {
   })
   schema!: JSONSchemaConfigType | null;
 
-  @Column('jsonb', { nullable: true, name: "validation_error" })
+  @Column('jsonb', { nullable: true, name: 'validation_error' })
   error!: z.ZodError | null;
 
   @Column({

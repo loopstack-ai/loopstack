@@ -1,7 +1,8 @@
 import {
   Column,
   CreateDateColumn,
-  Entity, Index,
+  Entity,
+  Index,
   JoinColumn,
   JoinTable,
   ManyToMany,
@@ -10,13 +11,13 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { DocumentEntity } from './document.entity';
-import { NamespaceEntity } from './namespace.entity';
+import { z } from 'zod';
+import type { JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '@loopstack/contracts/types';
 import { WorkflowState } from '../enums';
 import { TransitionResultLookup } from '../interfaces';
 import { StableJsonTransformer } from '../utils';
-import { z } from 'zod';
-import type { HistoryTransition, JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '@loopstack/contracts/types';
+import { DocumentEntity } from './document.entity';
+import { NamespaceEntity } from './namespace.entity';
 
 @Entity({ name: 'core_workflow' })
 export class WorkflowEntity {
@@ -94,7 +95,7 @@ export class WorkflowEntity {
   })
   schema!: JSONSchemaConfigType | null;
 
-  @Column('jsonb', { nullable: true, name: "error" })
+  @Column('jsonb', { nullable: true, name: 'error' })
   error!: z.ZodError | null;
 
   @Column({
@@ -139,14 +140,10 @@ export class WorkflowEntity {
   @Column('jsonb', { name: 'hash_record', nullable: true })
   hashRecord!: Record<string, string | null> | null;
 
-  @OneToMany(
-    () => DocumentEntity,
-    (document: DocumentEntity) => document.workflow,
-    {
-      cascade: true,
-      onDelete: 'CASCADE',
-    },
-  )
+  @OneToMany(() => DocumentEntity, (document: DocumentEntity) => document.workflow, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   documents!: DocumentEntity[];
 
   @Column({ name: 'created_by', type: 'uuid' })

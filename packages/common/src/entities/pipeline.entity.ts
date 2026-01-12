@@ -1,19 +1,20 @@
 import {
   Column,
   CreateDateColumn,
-  Entity, Index,
+  Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { WorkspaceEntity } from './workspace.entity';
-import { NamespaceEntity } from './namespace.entity';
-import { PipelineState } from '../enums';
-import { StableJsonTransformer } from '../utils';
 import { z } from 'zod';
 import type { JSONSchemaConfigType } from '@loopstack/contracts/types';
+import { PipelineState } from '../enums';
+import { StableJsonTransformer } from '../utils';
+import { NamespaceEntity } from './namespace.entity';
+import { WorkspaceEntity } from './workspace.entity';
 
 @Entity({ name: 'core_pipeline' })
 export class PipelineEntity {
@@ -57,7 +58,7 @@ export class PipelineEntity {
   })
   schema!: JSONSchemaConfigType | null;
 
-  @Column('jsonb', { nullable: true, name: "error" })
+  @Column('jsonb', { nullable: true, name: 'error' })
   error!: z.ZodError | null;
 
   @Column({

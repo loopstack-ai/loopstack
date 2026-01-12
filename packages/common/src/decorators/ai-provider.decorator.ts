@@ -8,8 +8,5 @@ export interface AiProviderDecoratorOptions {
 }
 
 export function AiProvider(options: AiProviderDecoratorOptions): ClassDecorator {
-  return applyDecorators(
-    Injectable(),
-    SetMetadata(AI_PROVIDER_DECORATOR, options),
-  );
+  return applyDecorators(Injectable(), SetMetadata(AI_PROVIDER_DECORATOR, options));
 }

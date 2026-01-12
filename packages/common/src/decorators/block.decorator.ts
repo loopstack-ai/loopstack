@@ -1,7 +1,7 @@
-import { BlockOptions } from '../interfaces';
 import { Inject } from '@nestjs/common';
-import { buildConfig } from '../utils/block-config.builder';
 import { z } from 'zod';
+import { BlockOptions } from '../interfaces';
+import { buildConfig } from '../utils/block-config.builder';
 
 export const BLOCK_METADATA_KEY = Symbol('block');
 export const INPUT_METADATA_KEY = Symbol('input');
@@ -48,22 +48,22 @@ export function WithResult<T extends z.ZodType>(schema: T): ClassDecorator {
 
 function getTools(target: any): string[] {
   const keys: (string | symbol)[] = Reflect.getMetadata(TOOL_METADATA_KEY, target.prototype) || [];
-  return keys.map(key => String(key));
+  return keys.map((key) => String(key));
 }
 
 function getDocuments(target: any): string[] {
   const keys: (string | symbol)[] = Reflect.getMetadata(DOCUMENT_METADATA_KEY, target.prototype) || [];
-  return keys.map(key => String(key));
+  return keys.map((key) => String(key));
 }
 
 function getWorkflows(target: any): string[] {
   const keys: (string | symbol)[] = Reflect.getMetadata(WORKFLOW_METADATA_KEY, target.prototype) || [];
-  return keys.map(key => String(key));
+  return keys.map((key) => String(key));
 }
 
 function getHelpers(target: any): string[] {
   const keys: (string | symbol)[] = Reflect.getMetadata(TEMPLATE_HELPER_METADATA_KEY, target.prototype) || [];
-  return keys.map(key => String(key));
+  return keys.map((key) => String(key));
 }
 
 export function BlockConfig(options: BlockOptions): ClassDecorator {

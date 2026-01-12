@@ -1,13 +1,6 @@
-import {
-  Entity,
-  Column,
-  ManyToMany,
-  JoinTable,
-  CreateDateColumn,
-  UpdateDateColumn, PrimaryColumn,
-} from 'typeorm';
-import { Role } from './role.entity';
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { UserTypeEnum } from '../enums/user-type.enum';
+import { Role } from './role.entity';
 
 @Entity('auth_users')
 export class User {
@@ -23,11 +16,11 @@ export class User {
   @Column({ default: true })
   isActive!: boolean;
 
-  @ManyToMany(() => Role, role => role.users)
+  @ManyToMany(() => Role, (role) => role.users)
   @JoinTable({
     name: 'auth_user_roles',
     joinColumn: { name: 'user_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' }
+    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
   })
   roles!: Role[];
 
