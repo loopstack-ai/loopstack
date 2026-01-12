@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Jakob Klippel.
+Copyright 2025 The Loopstack Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@ limitations under the License.
 
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
-import { CoreUiModule } from '@loopstack/core-ui-module';
 import { MathSumTool } from './tools';
 import { CounterTool } from './tools';
 import { MathService } from './services/math.service';
 import { CustomToolExampleWorkflow } from './workflows';
+import { CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 
 @Module({
-  imports: [LoopCoreModule, CoreUiModule],
+  imports: [LoopCoreModule, CreateChatMessageToolModule],
   providers: [CustomToolExampleWorkflow, MathSumTool, CounterTool, MathService],
   exports: [CustomToolExampleWorkflow, MathSumTool, CounterTool, MathService],
 })

@@ -26,7 +26,7 @@ import { z } from 'zod';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 import { Injectable } from '@nestjs/common';
-import { CreateChatMessage } from '@loopstack/core-ui-module';
+import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
 @Injectable()
 @BlockConfig({
