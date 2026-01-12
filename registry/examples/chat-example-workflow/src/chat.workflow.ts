@@ -1,7 +1,7 @@
 import { WorkflowBase } from '@loopstack/core';
-import { BlockConfig, Tool, WithState } from '@loopstack/common';
+import { BlockConfig, Tool, Document, WithState } from '@loopstack/common';
 import { z } from 'zod';
-import { AiGenerateText } from '@loopstack/ai-module';
+import { AiGenerateText, AiMessageDocument } from '@loopstack/ai-module';
 import { CreateDocument } from '@loopstack/core-ui-module';
 
 @BlockConfig({
@@ -13,4 +13,5 @@ import { CreateDocument } from '@loopstack/core-ui-module';
 export class ChatWorkflow extends WorkflowBase  {
   @Tool() createDocument: CreateDocument;
   @Tool() aiGenerateText: AiGenerateText;
+  @Document() aiMessageDocument: AiMessageDocument;
 }
