@@ -36,13 +36,13 @@
     "@loopstack/core-ui-module": "^0.16.1",
     "@loopstack/create-chat-message-tool": "^0.16.1",
     "@loopstack/create-value-tool": "^0.16.1",
-    "@loopstack/testing": "^0.16.0",
     "@nestjs/common": "^11.0.12",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
     "@eslint/js": "^9.22.0",
+    "@loopstack/testing": "^0.16.0",
     "@nestjs/cli": "^11.0.5",
     "@nestjs/testing": "^11.0.12",
     "@swc/cli": "^0.6.0",
