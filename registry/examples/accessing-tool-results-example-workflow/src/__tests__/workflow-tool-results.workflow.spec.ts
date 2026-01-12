@@ -5,9 +5,10 @@ import {
   LoopCoreModule,
   WorkflowProcessorService,
 } from '@loopstack/core';
-import { CoreUiModule, CreateChatMessage } from '@loopstack/core-ui-module';
-import { CreateValue } from '@loopstack/create-value-tool';
+import { CoreUiModule } from '@loopstack/core-ui-module';
+import { CreateValue, CreateValueToolModule } from '@loopstack/create-value-tool';
 import { createWorkflowTest, ToolMock } from '@loopstack/testing';
+import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 
 describe('WorkflowToolResultsWorkflow', () => {
   let module: TestingModule;
@@ -20,8 +21,8 @@ describe('WorkflowToolResultsWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(WorkflowToolResultsWorkflow)
-      .withImports(LoopCoreModule, CoreUiModule)
-      .withToolMock(CreateValue)
+      .withImports(LoopCoreModule, CoreUiModule, CreateValueToolModule, CreateChatMessageToolModule)
+      .withToolOverride(CreateValue)
       .withToolOverride(CreateChatMessage)
       .compile();
 

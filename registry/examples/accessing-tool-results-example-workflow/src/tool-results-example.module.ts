@@ -18,10 +18,11 @@ import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
 import { WorkflowToolResultsWorkflow } from './workflow-tool-results.workflow';
-import { CreateValue } from '@loopstack/create-value-tool';
+import { CreateValueToolModule } from '@loopstack/create-value-tool';
+import { CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 
 @Module({
-  imports: [LoopCoreModule, CoreUiModule, CreateValue],
+  imports: [LoopCoreModule, CoreUiModule, CreateValueToolModule, CreateChatMessageToolModule],
   providers: [
     WorkflowToolResultsWorkflow
   ],
