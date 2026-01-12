@@ -2,14 +2,13 @@ import { TestingModule } from '@nestjs/testing';
 import { ChatWorkflow } from '../chat.workflow';
 import {
   BlockExecutionContextDto,
-  createWorkflowTest,
   LoopCoreModule,
-  ToolMock,
   WorkflowProcessorService,
 } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { AiModule, AiGenerateText } from '@loopstack/ai-module';
 import { generateObjectFingerprint } from '@loopstack/common';
+import { createWorkflowTest, ToolMock } from '@loopstack/testing';
 
 describe('ChatWorkflow', () => {
   let module: TestingModule;
