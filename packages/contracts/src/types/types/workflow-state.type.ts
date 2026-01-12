@@ -1,7 +1,1 @@
-export type WorkflowStateType =
-  | 'pending'
-  | 'running'
-  | 'waiting'
-  | 'completed'
-  | 'failed'
-  | 'canceled';
+export type WorkflowStateType = 'pending' | 'running' | 'waiting' | 'completed' | 'failed' | 'canceled';

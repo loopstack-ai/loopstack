@@ -6,4 +6,3 @@ export const WorkspaceSchema = BlockSchema.extend({
   title: z.string().optional(),
   description: z.string().optional(),
 });
-

@@ -12,18 +12,20 @@ export const UiElementSchema = z.object({
   emptyValue: z.any().optional(),
   help: z.string().optional(),
   title: z.string().optional(),
-  enumOptions: z.union([
-    z.array(
-      z.union([
-        z.object({
-          label: z.string(),
-          value: z.any()
-        }),
-        z.string(),
-      ]),
-    ),
-    z.string()
-  ]).optional(),
+  enumOptions: z
+    .union([
+      z.array(
+        z.union([
+          z.object({
+            label: z.string(),
+            value: z.any(),
+          }),
+          z.string(),
+        ]),
+      ),
+      z.string(),
+    ])
+    .optional(),
   titleFormat: z.string().optional(),
   addable: z.boolean().optional(),
   removable: z.boolean().optional(),
@@ -37,4 +39,3 @@ export const UiElementSchema = z.object({
 
   order: z.array(z.string()).optional(),
 });
-

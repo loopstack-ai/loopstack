@@ -14,4 +14,3 @@ export const ToolCallSchema = z.object({
   args: z.any().optional(),
   assign: AssignmentSchema.optional(),
 });
-

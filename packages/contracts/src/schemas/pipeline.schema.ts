@@ -1,14 +1,14 @@
 import { z } from 'zod';
-import { NamespacePropsSchema } from './workflow.schema';
-import { TemplateExpression } from './template-expression.schema';
 import { BlockSchema } from './block.schema';
+import { TemplateExpression } from './template-expression.schema';
 import { UiFormSchema } from './ui-form.schema';
+import { NamespacePropsSchema } from './workflow.schema';
 
 export const PipelineBaseSchema = BlockSchema.extend({
   title: z.string().optional(),
   description: z.string().optional(),
   namespace: NamespacePropsSchema.optional(),
-  ui: UiFormSchema.optional()
+  ui: UiFormSchema.optional(),
 });
 
 export const PipelineItemConfigSchema = z.object({
@@ -24,17 +24,12 @@ export const PipelineItemConfigSchema = z.object({
 export const PipelineItemSchema = z.object({
   id: z.string().optional(),
   block: z.string(),
-  condition: z
-    .union([z.boolean(), z.string()])
-    .optional(),
+  condition: z.union([z.boolean(), z.string()]).optional(),
   args: z.any().optional(),
 });
 
 export const PipelineFactoryIteratorConfigSchema = z.object({
-  source: z.union([
-    TemplateExpression,
-    z.array(z.string()),
-  ]),
+  source: z.union([TemplateExpression, z.array(z.string())]),
 });
 
 export const PipelineFactoryConfigSchema = PipelineBaseSchema.extend({
@@ -60,4 +55,3 @@ export const PipelineSequenceSchema = PipelineBaseSchema.extend({
   type: z.literal('sequence').default('sequence'),
   sequence: z.array(PipelineItemConfigSchema),
 });
-

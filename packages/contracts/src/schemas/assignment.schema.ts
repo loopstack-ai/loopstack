@@ -4,12 +4,12 @@ import { TemplateExpression } from './template-expression.schema';
 export const AssignmentSchema = z.record(
   z.string(),
   z.union([
-      z.null(), // ~ in YAML becomes null
-      z.string(),
-      z.number(),
-      z.boolean(),
-      z.record(z.any()),
-  ])
+    z.null(), // ~ in YAML becomes null
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.record(z.any()),
+  ]),
 );
 
 export const AssignmentConfigSchema = z.record(
@@ -21,6 +21,5 @@ export const AssignmentConfigSchema = z.record(
     z.number(),
     z.boolean(),
     z.record(z.any()),
-  ])
+  ]),
 );
-

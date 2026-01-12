@@ -1,19 +1,19 @@
 export enum RegistryEntryStatus {
-  DRAFT = "draft",
-  PENDING = "pending",
-  ACTIVE = "active",
-  INACTIVE = "inactive",
+  DRAFT = 'draft',
+  PENDING = 'pending',
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
 }
 
 export enum RegistryEntryCategory {
-  FULL_AUTOMATIONS = "full-automations",
-  TOOLS = "tools",
-  WORKFLOWS = "workflows",
-  DEMOS_AND_TESTS = "demos-and-tests",
-  EXPERIMENTAL = "experimental",
-  STARTER_TEMPLATES = "starter-templates",
-  INTEGRATIONS = "integrations",
-  AGENTS = "agents",
+  FULL_AUTOMATIONS = 'full-automations',
+  TOOLS = 'tools',
+  WORKFLOWS = 'workflows',
+  DEMOS_AND_TESTS = 'demos-and-tests',
+  EXPERIMENTAL = 'experimental',
+  STARTER_TEMPLATES = 'starter-templates',
+  INTEGRATIONS = 'integrations',
+  AGENTS = 'agents',
 }
 
 export type RegistryCategory = `${RegistryEntryCategory}`;
