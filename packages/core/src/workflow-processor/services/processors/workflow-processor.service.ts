@@ -108,6 +108,8 @@ export class WorkflowProcessorService implements Processor {
         ...validation.hashRecordUpdates,
       };
 
+      ctx.entity.result = null;
+
       // add invalidation transition if not at start place
       if (ctx.state.getMetadata('place') !== 'start') {
         ctx.state.setMetadata('place', 'start');

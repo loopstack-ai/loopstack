@@ -9,6 +9,7 @@ import { CreateWorkspaceTaskProcessorService } from './services/task-processor/c
 import { CreateRunPipelineTaskProcessorService } from './services/task-processor/create-run-pipeline-task-processor.service';
 import { WorkflowProcessorModule } from '../workflow-processor';
 import { PersistenceModule } from '../persistence';
+import { EventProcessorService } from './services/event-processor.service';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { PersistenceModule } from '../persistence';
     CleanupPipelineTaskProcessorService,
     CreateWorkspaceTaskProcessorService,
     RunService,
+    EventProcessorService,
   ],
   exports: [TaskSchedulerService, RunService],
 })

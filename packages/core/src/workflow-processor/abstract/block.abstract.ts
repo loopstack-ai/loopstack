@@ -26,6 +26,8 @@ export abstract class Block<TArgs extends object = any> implements BlockInterfac
 
   static readonly stateSchema: z.ZodType | undefined;
 
+  static readonly resultSchema: z.ZodType | undefined;
+
   get name(): string {
     return this.constructor.name;
   }
@@ -56,6 +58,10 @@ export abstract class Block<TArgs extends object = any> implements BlockInterfac
 
   get stateSchema(): z.ZodType | undefined {
     return (this.constructor as typeof Block).stateSchema;
+  }
+
+  get resultSchema(): z.ZodType | undefined {
+    return (this.constructor as typeof Block).resultSchema;
   }
 
   public getTemplateVars(args: any, ctx: WorkflowExecution) {

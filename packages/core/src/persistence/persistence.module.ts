@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
-  DocumentEntity,
+  DocumentEntity, EventSubscriberEntity,
   NamespaceEntity,
   PipelineEntity,
   WorkflowEntity,
   WorkspaceEntity,
 } from '@loopstack/common';
 import {
-  DocumentService,
+  DocumentService, EventSubscriberService,
   MigrationsService,
   NamespacesService,
   PipelineService,
@@ -25,6 +25,7 @@ import { CommonModule } from '../common';
       WorkspaceEntity,
       PipelineEntity,
       DocumentEntity,
+      EventSubscriberEntity,
     ]),
     CommonModule,
   ],
@@ -35,6 +36,7 @@ import { CommonModule } from '../common';
     PipelineService,
     DocumentService,
     MigrationsService,
+    EventSubscriberService,
   ],
   exports: [
     WorkflowService,
@@ -42,6 +44,7 @@ import { CommonModule } from '../common';
     WorkspaceService,
     PipelineService,
     DocumentService,
+    EventSubscriberService,
   ],
 })
 export class PersistenceModule {}

@@ -11,6 +11,7 @@ import {
 import { CommonModule } from './common';
 import { WorkflowProcessorModule } from './workflow-processor';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ExecuteWorkflowAsync } from './tools';
 
 @Module({
   imports: [
@@ -28,6 +29,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     WorkflowProcessorModule,
     SchedulerModule,
   ],
-  exports: [CommonModule, WorkflowProcessorModule, SchedulerModule],
+  providers: [
+    ExecuteWorkflowAsync,
+  ],
+  exports: [CommonModule, WorkflowProcessorModule, SchedulerModule, ExecuteWorkflowAsync],
 })
 export class LoopCoreModule {}

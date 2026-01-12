@@ -231,6 +231,10 @@ export class StateMachineProcessorService {
       ctx.runtime.stop = true;
     } else if (ctx.state.getMetadata('place') === 'end') {
       ctx.entity.status = WorkflowState.Completed;
+      if (block.resultSchema) {
+        const result = block.getResult(ctx);
+        ctx.entity.result = block.resultSchema.parse(result);
+      }
     } else {
       ctx.entity.status = WorkflowState.Waiting;
       ctx.runtime.stop = true;

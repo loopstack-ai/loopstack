@@ -1,5 +1,5 @@
 import { ToolResult } from '@loopstack/common';
-import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
+import { WorkflowExecution } from '../interfaces';
 import { Block } from './block.abstract';
 
 export abstract class ToolBase<TArgs extends object = any> extends Block {

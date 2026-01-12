@@ -2,6 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { RunPipelineTask } from '@loopstack/contracts/types';
 import { RootProcessorService } from '../../../workflow-processor';
 import { PipelineService } from '../../../persistence';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { WorkflowState } from '@loopstack/contracts/enums';
+import type { PipelineEventPayload } from '../../../persistence/services/event-subscriber.service';
 
 @Injectable()
 export class RunPipelineTaskProcessorService {
@@ -10,6 +13,7 @@ export class RunPipelineTaskProcessorService {
   constructor(
     private readonly pipelineService: PipelineService,
     private readonly rootProcessorService: RootProcessorService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   public async process(task: RunPipelineTask) {
@@ -27,6 +31,19 @@ export class RunPipelineTaskProcessorService {
       `Pipeline for schedule task created with id ${pipeline.id}`,
     );
 
-    await this.rootProcessorService.runPipeline(pipeline, task.payload);
+    const resultCtx = await this.rootProcessorService.runPipeline(
+      pipeline,
+      task.payload,
+    );
+    if (resultCtx.entity.status === WorkflowState.Completed) {
+      this.logger.log(`Root pipeline execution completed.`);
+
+      this.eventEmitter.emit('pipeline.event', {
+        eventPipelineId: pipeline.id,
+        eventName: 'completed',
+        workspaceId: pipeline.workspaceId,
+        data: resultCtx.entity.result,
+      } satisfies PipelineEventPayload);
+    }
   }
 }

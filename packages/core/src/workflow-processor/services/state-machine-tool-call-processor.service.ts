@@ -3,10 +3,13 @@ import { DocumentEntity, ToolResult, ToolSideEffects } from '@loopstack/common';
 import { AssignmentConfigType, ToolCallType } from '@loopstack/contracts/types';
 import { WorkflowBase } from '../abstract';
 import {
+  BlockInterface,
   CustomHelper,
   TemplateExpressionEvaluatorService,
 } from '../../common';
 import { WorkflowExecution } from '../interfaces';
+import { z } from 'zod';
+import { WorkflowTransitionSchema } from '@loopstack/contracts/schemas';
 
 @Injectable()
 export class StateMachineToolCallProcessorService {
@@ -66,6 +69,7 @@ export class StateMachineToolCallProcessorService {
           const toolCallResult: ToolResult = await tool.execute(parsedArgs, ctx, block);
 
           this.assignToTargetBlock(
+            block,
             toolCall.assign as AssignmentConfigType,
             ctx,
             toolCallResult,
@@ -177,17 +181,29 @@ export class StateMachineToolCallProcessorService {
   }
 
   assignToTargetBlock(
+    block: BlockInterface,
     assign: AssignmentConfigType | undefined,
     ctx: WorkflowExecution,
     result: ToolResult,
   ) {
     if (assign) {
+
+      const templateHelpers: CustomHelper[] = block.helpers.map((name: string) => ({
+        name,
+        fn: block[name]
+      }));
+
       const update: any = {};
       for (const [key, value] of Object.entries(assign)) {
         update[key] =
           this.templateExpressionEvaluatorService.evaluateTemplateRaw<string>(
             value,
             { result },
+            {
+              cacheKey: block.name,
+              helpers: templateHelpers,
+              schema: z.array(WorkflowTransitionSchema)
+            },
           );
       }
 
