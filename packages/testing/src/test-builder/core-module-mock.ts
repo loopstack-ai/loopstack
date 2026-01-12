@@ -1,6 +1,13 @@
 import { TestingModuleBuilder } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DocumentEntity, NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
+import {
+  DocumentEntity,
+  EventSubscriberEntity,
+  NamespaceEntity,
+  PipelineEntity,
+  WorkflowEntity,
+  WorkspaceEntity,
+} from '@loopstack/common';
 import { MigrationsService } from '@loopstack/core';
 
 const createMockRepository = () => ({
@@ -9,13 +16,19 @@ const createMockRepository = () => ({
   findOneBy: jest.fn().mockResolvedValue(null),
   findBy: jest.fn().mockResolvedValue([]),
   create: jest.fn().mockImplementation((dto) => dto),
-  save: jest.fn().mockImplementation((entity) => Promise.resolve({ id: 'mock-id', ...entity })),
+  save: jest
+    .fn()
+    .mockImplementation((entity) =>
+      Promise.resolve({ id: 'mock-id', ...entity }),
+    ),
   update: jest.fn().mockResolvedValue({ affected: 1 }),
   delete: jest.fn().mockResolvedValue({ affected: 1 }),
   remove: jest.fn().mockResolvedValue({}),
 });
 
-export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingModuleBuilder {
+export function mockCoreModuleProviders(
+  builder: TestingModuleBuilder,
+): TestingModuleBuilder {
   return builder
     .overrideProvider(MigrationsService)
     .useValue({
@@ -31,5 +44,7 @@ export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingM
     .overrideProvider(getRepositoryToken(WorkspaceEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(NamespaceEntity))
+    .useValue(createMockRepository())
+    .overrideProvider(getRepositoryToken(EventSubscriberEntity))
     .useValue(createMockRepository());
 }

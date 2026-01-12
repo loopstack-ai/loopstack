@@ -35,6 +35,7 @@ export const DEFAULT_WORKFLOW_ENTITY: Omit<WorkflowEntity, 'namespace'> = {
   createdBy: '',
   documents: [],
   dependencies: [],
+  result: null,
 };
 
 /**
