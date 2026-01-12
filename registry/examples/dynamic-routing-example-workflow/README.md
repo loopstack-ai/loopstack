@@ -55,7 +55,7 @@ Add `DynamicRoutingExampleModule` to your `default.module.ts` (included in the s
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { DefaultWorkspace } from './default.workspace';
-import { DynamicRoutingExampleModule } from './dynamic-routing-example-workflow';
+import { DynamicRoutingExampleModule } from './@loopstack/dynamic-routing-example-workflow';
 
 @Module({
   imports: [LoopCoreModule, DynamicRoutingExampleModule],
@@ -72,7 +72,7 @@ Add the workflow to your workspace class using the `@Workflow()` decorator:
 import { Injectable } from '@nestjs/common';
 import { BlockConfig, Workflow } from '@loopstack/common';
 import { WorkspaceBase } from '@loopstack/core';
-import { DynamicRoutingExampleWorkflow } from './dynamic-routing-example-workflow';
+import { DynamicRoutingExampleWorkflow } from './@loopstack/dynamic-routing-example-workflow';
 
 @Injectable()
 @BlockConfig({
