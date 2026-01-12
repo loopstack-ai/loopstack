@@ -2,13 +2,12 @@ import { TestingModule } from '@nestjs/testing';
 import { PromptWorkflow } from '../prompt.workflow';
 import {
   BlockExecutionContextDto,
-  createWorkflowTest,
   LoopCoreModule,
-  ToolMock,
   WorkflowProcessorService,
 } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { AiModule, AiGenerateText } from '@loopstack/ai-module';
+import { createWorkflowTest, ToolMock } from '@loopstack/testing';
 
 describe('PromptWorkflow', () => {
   let module: TestingModule;
