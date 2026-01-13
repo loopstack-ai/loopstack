@@ -2,9 +2,7 @@ import { TestingModule } from '@nestjs/testing';
 import { MeetingNotesWorkflow } from '../meeting-notes.workflow';
 import {
   BlockExecutionContextDto,
-  createWorkflowTest,
   LoopCoreModule,
-  ToolMock,
   WorkflowProcessorService,
 } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
@@ -12,6 +10,7 @@ import { AiModule, AiGenerateDocument } from '@loopstack/ai-module';
 import { MeetingNotesDocument } from '../documents/meeting-notes-document';
 import { OptimizedNotesDocument } from '../documents/optimized-notes-document';
 import { generateObjectFingerprint } from '@loopstack/common';
+import { createWorkflowTest, ToolMock } from '@loopstack/testing';
 
 describe('MeetingNotesWorkflow', () => {
   let module: TestingModule;
