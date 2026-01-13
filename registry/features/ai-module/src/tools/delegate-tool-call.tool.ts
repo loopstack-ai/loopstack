@@ -10,8 +10,8 @@ const DelegateToolCallsToolSchema = z.object({
     parts: z.array(
       z.object({
         type: z.string(),
-        input: z.any(),
-        toolCallId: z.string(),
+        input: z.any().optional(),
+        toolCallId: z.string().optional()
       }),
     ),
   }),
