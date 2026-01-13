@@ -2,14 +2,13 @@ import { TestingModule } from '@nestjs/testing';
 import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow';
 import {
   BlockExecutionContextDto,
-  createWorkflowTest,
   LoopCoreModule,
-  ToolMock,
   WorkflowProcessorService,
 } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { AiModule, AiGenerateDocument } from '@loopstack/ai-module';
 import { FileDocument } from '../documents/file-document';
+import { createWorkflowTest, ToolMock } from '@loopstack/testing';
 
 describe('PromptStructuredOutputWorkflow', () => {
   let module: TestingModule;

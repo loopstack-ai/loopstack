@@ -1,6 +1,6 @@
 import { WorkflowBase, } from '@loopstack/core';
 import { Document, Tool, WithArguments } from '@loopstack/common';
-import { BlockConfig, Input, WithState } from '@loopstack/common';
+import { BlockConfig, WithState } from '@loopstack/common';
 import { z } from 'zod';
 import { FileDocument, FileDocumentSchema } from './documents/file-document';
 import { CreateDocument } from '@loopstack/core-ui-module';
