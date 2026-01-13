@@ -1,14 +1,13 @@
 import { TestingModule } from '@nestjs/testing';
 import {
   BlockExecutionContextDto,
-  createWorkflowTest,
   LoopCoreModule,
-  ToolMock,
   WorkflowProcessorService,
 } from '@loopstack/core';
 import { WorkflowStateWorkflow } from '../workflow-state.workflow';
-import { CoreUiModule, CreateChatMessage } from '@loopstack/core-ui-module';
-import { CreateValue } from '@loopstack/create-value-tool';
+import { CreateValue, CreateValueToolModule } from '@loopstack/create-value-tool';
+import { createWorkflowTest, ToolMock } from '@loopstack/testing';
+import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 
 describe('WorkflowStateWorkflow', () => {
   let module: TestingModule;
@@ -21,8 +20,8 @@ describe('WorkflowStateWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(WorkflowStateWorkflow)
-      .withImports(LoopCoreModule, CoreUiModule)
-      .withToolMock(CreateValue)
+      .withImports(LoopCoreModule, CreateValueToolModule, CreateChatMessageToolModule)
+      .withToolOverride(CreateValue)
       .withToolOverride(CreateChatMessage)
       .compile();
 
