@@ -2,7 +2,7 @@
   "name": "@loopstack/workflow-state-example-workflow",
   "displayName": "Loopstack State Interaction Example Worflow",
   "description": "A workflow demonstrating how to interact with custom state of a workflow",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
