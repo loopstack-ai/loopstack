@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useMe } from '../hooks/useAuth.ts';
 import { eventBus } from '../services';
 import { useStudio } from './StudioProvider.tsx';
 
@@ -6,9 +7,11 @@ let eventSource: EventSource | null = null;
 
 export function SseProvider() {
   const { environment } = useStudio();
+  const { data: user, isSuccess: isAuthenticated } = useMe();
+  const hasConnected = useRef(false);
 
   useEffect(() => {
-    if (environment.url) {
+    if (environment.url && isAuthenticated && user) {
       if (eventSource) {
         eventSource.close();
         eventSource = null;
@@ -21,6 +24,7 @@ export function SseProvider() {
 
       eventSource.onopen = () => {
         console.log('SSE connection established');
+        hasConnected.current = true;
       };
 
       eventSource.onerror = (error) => {
@@ -56,7 +60,7 @@ export function SseProvider() {
         }
       };
     }
-  }, [environment.url]);
+  }, [environment.url, isAuthenticated, user]);
 
   return null;
 }
