@@ -42,7 +42,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
       <SidebarMenuItem>
         <SidebarMenuButton className="opacity-50">
           <Loader2 className="h-3 w-3 animate-spin" />
-          <span className="text-xs">Loading...</span>
+          <span className="text-sm">Loading...</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     );
@@ -57,9 +57,9 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuButton className="group/trigger font-medium">
-            <Play className="text-primary h-3 w-3 fill-current" />
-            <span className="truncate text-xs">{workflow.title ?? workflow.blockName}</span>
-            <ChevronRight className="text-muted-foreground ml-auto h-3 w-3 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+            <Play className="text-primary h-3.5 w-3.5 fill-current" />
+            <span className="truncate text-sm">{workflow.title ?? workflow.blockName}</span>
+            <ChevronRight className="text-muted-foreground ml-auto h-3.5 w-3.5 transition-transform group-data-[state=open]/collapsible:rotate-90" />
           </SidebarMenuButton>
         </CollapsibleTrigger>
 
@@ -73,10 +73,9 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
                   <div className="border-primary/60 bg-primary/20 flex h-4 w-4 items-center justify-center rounded-full border-2" />
                 </div>
                 <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                  <span className="bg-muted text-foreground w-fit truncate rounded px-1.5 py-0.5 font-mono text-[11px] font-medium">
+                  <span className="bg-muted text-foreground w-fit truncate rounded px-1.5 py-0.5 font-mono text-xs font-medium">
                     start
                   </span>
-                  <span className="text-muted-foreground truncate text-[9px] italic">(none)</span>
                 </div>
               </div>
 
@@ -106,36 +105,36 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
                       <div className="flex items-baseline gap-1.5">
                         <span
                           className={cn(
-                            'w-fit truncate rounded px-1.5 py-0.5 font-mono text-[11px] font-medium',
+                            'w-fit truncate rounded px-1.5 py-0.5 font-mono text-xs font-medium',
                             isLast ? 'bg-primary/15 text-primary' : 'bg-muted/60 text-muted-foreground',
                           )}
                         >
                           {place}
                         </span>
                         {transitionName && (
-                          <span className="text-muted-foreground truncate text-[9px] italic">
+                          <span className="text-muted-foreground truncate text-[10px] italic">
                             (via {transitionName})
                           </span>
                         )}
                       </div>
 
-                      <div className="text-muted-foreground flex items-center gap-2 text-[9px]">
+                      <div className="text-muted-foreground flex items-center gap-2 text-[10px]">
                         {toolNames.length > 0 && (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div className="flex cursor-default items-center gap-0.5">
-                                <Wrench className="h-2.5 w-2.5" />
+                                <Wrench className="h-3 w-3" />
                                 <span className="tabular-nums">{toolNames.length}</span>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent side="right" className="max-w-48">
                               <p className="text-xs font-medium">Tools used:</p>
-                              <p className="text-muted-foreground text-[10px]">{toolNames.join(', ')}</p>
+                              <p className="text-muted-foreground text-[11px]">{toolNames.join(', ')}</p>
                             </TooltipContent>
                           </Tooltip>
                         )}
                         <div className="flex items-center gap-0.5">
-                          <Clock className="h-2.5 w-2.5" />
+                          <Clock className="h-3 w-3" />
                           <span className="tabular-nums">{format(new Date(entry.timestamp), 'HH:mm:ss')}</span>
                         </div>
                       </div>

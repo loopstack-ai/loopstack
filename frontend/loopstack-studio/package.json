@@ -22,7 +22,7 @@
     "dist"
   ],
   "scripts": {
-    "dev": "tsc - b && vite",
+    "dev": "tsc -b && vite",
     "build": "tsc -b && vite build",
     "build:lib": "tsc -b && vite build --mode lib",
     "lint": "eslint .",
