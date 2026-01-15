@@ -12,7 +12,7 @@ export const FormElement: React.FC<FormElementProps> = (props) => {
   const hidden = !!schema?.hidden;
 
   // type can be an array. remove null option which is for optional properties and select the first type for rendering.
-  const type = Array.isArray(schema.type) ? schema.type.filter((i) => i !== 'null').shift() : schema.type;
+  const type = Array.isArray(schema.type) ? schema.type.filter((i: string) => i !== 'null').shift() : schema.type;
 
   const renderFormElement = () => {
     switch (type) {

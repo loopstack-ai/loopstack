@@ -8,8 +8,10 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarTrigger,
-} from '../../../components/ui/sidebar.tsx';
+} from '@/components/ui/sidebar.tsx';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.tsx';
 import WorkbenchNavigation from '../WorkbenchNavigation.tsx';
+import PipelineHistoryList from './PipelineHistoryList.tsx';
 
 interface WorkbenchSidebarProps {
   namespaceTree: any[];
@@ -25,14 +27,32 @@ const WorkbenchSidebar = ({ namespaceTree, pipeline }: WorkbenchSidebarProps) =>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Pipeline Navigation</SidebarGroupLabel>
-          <SidebarMenu>
-            {pipeline && namespaceTree.length ? <WorkbenchNavigation namespaceTree={namespaceTree} indent={0} /> : null}
-          </SidebarMenu>
+          <Tabs defaultValue="pipelineNavigation" className="w-full">
+            <TabsList className="w-full">
+              <TabsTrigger value="pipelineNavigation">Navigation</TabsTrigger>
+              <TabsTrigger value="pipelineHistory">History</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="pipelineNavigation">
+              <SidebarGroupLabel>Pipeline Navigation</SidebarGroupLabel>
+              <SidebarMenu>
+                {pipeline && namespaceTree.length ? (
+                  <WorkbenchNavigation namespaceTree={namespaceTree} indent={0} />
+                ) : null}
+              </SidebarMenu>
+            </TabsContent>
+
+            <TabsContent value="pipelineHistory">
+              <SidebarGroupLabel>Run History</SidebarGroupLabel>
+              <SidebarMenu>
+                <PipelineHistoryList pipeline={pipeline} />
+              </SidebarMenu>
+            </TabsContent>
+          </Tabs>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter></SidebarFooter>
+      <SidebarFooter />
     </Sidebar>
   );
 };
