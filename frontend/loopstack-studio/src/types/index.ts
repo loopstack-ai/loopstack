@@ -15,6 +15,8 @@ export interface StudioRouter {
   navigateToWorkspace(workspaceId: string): void;
   getPipeline(pipelineId: string): string;
   navigateToPipeline(pipelineId: string): void;
+  getPipelineDebug(pipelineId: string): string;
+  navigateToPipelineDebug(pipelineId: string): void;
   navigateToWorkflow(pipelineId: string, workflowId: string, clickId: string | undefined): void;
   navigateToPipelineNamespace(workspaceId: string, pipelineId: string, namespaceId: string): void;
   getCurrentEnvironmentId(): string;
