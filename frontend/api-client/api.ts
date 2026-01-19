@@ -927,6 +927,12 @@ export interface PipelineDto {
      * @memberof PipelineDto
      */
     'workspaceId': string;
+    /**
+     * ID of parent pipeline. Is Null for root pipelines
+     * @type {object}
+     * @memberof PipelineDto
+     */
+    'parentId': object;
 }
 
 
@@ -942,6 +948,12 @@ export interface PipelineFilterDto {
      * @memberof PipelineFilterDto
      */
     'workspaceId'?: string;
+    /**
+     * 
+     * @type {object}
+     * @memberof PipelineFilterDto
+     */
+    'parentId'?: object;
 }
 /**
  * 
@@ -1009,6 +1021,12 @@ export interface PipelineItemDto {
      * @memberof PipelineItemDto
      */
     'workspaceId': string;
+    /**
+     * ID of parent pipeline. Is Null for root pipelines
+     * @type {object}
+     * @memberof PipelineItemDto
+     */
+    'parentId': object;
 }
 
 
@@ -1048,7 +1066,8 @@ export const PipelineSortByDtoFieldEnum = {
     CreatedAt: 'createdAt',
     UpdatedAt: 'updatedAt',
     WorkspaceId: 'workspaceId',
-    CreatedBy: 'createdBy'
+    CreatedBy: 'createdBy',
+    ParentId: 'parentId'
 } as const;
 
 export type PipelineSortByDtoFieldEnum = typeof PipelineSortByDtoFieldEnum[keyof typeof PipelineSortByDtoFieldEnum];
@@ -1434,6 +1453,7 @@ export const WorkflowSortByDtoFieldEnum = {
     Place: 'place',
     TransitionResults: 'transitionResults',
     InputData: 'inputData',
+    Result: 'result',
     AvailableTransitions: 'availableTransitions',
     History: 'history',
     Schema: 'schema',
