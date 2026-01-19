@@ -5,7 +5,6 @@ import {
   Controls,
   type Edge,
   type Node,
-  Panel,
   ReactFlow,
   useEdgesState,
   useNodesState,
@@ -13,9 +12,8 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Loader2 } from 'lucide-react';
-import type { WorkflowItemDto } from '@loopstack/api-client';
+import type { PipelineConfigDto, WorkflowItemDto } from '@loopstack/api-client';
 import { usePipeline } from '@/hooks/usePipelines.ts';
-import { cn } from '@/lib/utils.ts';
 import StateNode, { type StateNodeData } from './pipeline-flow/StateNode.tsx';
 import WorkflowGraph from './pipeline-flow/WorkflowGraph.tsx';
 
@@ -26,9 +24,16 @@ const nodeTypes = {
 interface PipelineFlowViewerProps {
   pipelineId: string;
   workflows: WorkflowItemDto[];
+  pipelineConfig?: PipelineConfigDto;
+  animationsEnabled: boolean;
 }
 
-const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({ pipelineId, workflows }) => {
+const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
+  pipelineId,
+  workflows,
+  pipelineConfig,
+  animationsEnabled,
+}) => {
   const { data: pipeline } = usePipeline(pipelineId);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<StateNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -97,8 +102,10 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({ pipelineId, wor
             key={workflow.id}
             pipeline={pipeline}
             workflow={workflow}
+            pipelineConfig={pipelineConfig}
             onGraphReady={handleGraphReady}
             onLoadingChange={handleLoadingChange}
+            animationsEnabled={animationsEnabled}
           />
         ))}
 
@@ -119,52 +126,12 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({ pipelineId, wor
           proOptions={{ hideAttribution: true }}
           className="bg-background"
         >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1} className="opacity-30" />
+          <Background variant={BackgroundVariant.Cross} gap={24} size={1} className="opacity-[0.15]" />
           <Controls className="bg-card border-border rounded-lg border shadow-md" />
-          <Panel
-            position="top-left"
-            className="bg-card/90 border-border rounded-lg border p-3 shadow-md backdrop-blur-sm"
-          >
-            <h3 className="mb-2 text-sm font-semibold">Workflow States</h3>
-            <div className="flex flex-col gap-1.5 text-[10px]">
-              <LegendItem color="bg-blue-500" label="Start state" />
-              <LegendItem color="bg-primary" label="Current state" />
-              <LegendItem color="bg-green-500" label="End state" />
-              <LegendItem color="bg-muted-foreground/40" label="Visited state" />
-              <div className="bg-border my-1 h-px" />
-              <LegendItem color="bg-primary" label="Executed path" isLine />
-              <LegendItem color="bg-muted-foreground/40" label="Potential path" isLine isDashed />
-              <LegendItem color="bg-muted-foreground" label="Automatic (onEntry)" isLine isDotted />
-            </div>
-          </Panel>
         </ReactFlow>
       )}
     </div>
   );
 };
-
-const LegendItem: React.FC<{
-  color: string;
-  label: string;
-  isLine?: boolean;
-  isDashed?: boolean;
-  isDotted?: boolean;
-}> = ({ color, label, isLine, isDashed, isDotted }) => (
-  <div className="flex items-center gap-2">
-    {isLine ? (
-      <div
-        className={cn(
-          'h-0.5 w-4 rounded',
-          color,
-          isDashed && 'border-t border-dashed',
-          isDotted && 'border-t border-dotted',
-        )}
-      />
-    ) : (
-      <div className={cn('h-2.5 w-2.5 rounded border-2 border-transparent', color)} />
-    )}
-    <span className="text-muted-foreground">{label}</span>
-  </div>
-);
 
 export default PipelineFlowViewer;

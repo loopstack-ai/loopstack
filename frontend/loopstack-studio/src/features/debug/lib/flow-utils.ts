@@ -26,7 +26,7 @@ export function getLayoutedElements(
   direction: 'TB' | 'LR' = 'LR',
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: direction, nodesep: 80, ranksep: 150 });
+  g.setGraph({ rankdir: direction, nodesep: 100, ranksep: 200 });
 
   nodes.forEach((node) => {
     g.setNode(node.id, { width: 130, height: 70 });
@@ -87,7 +87,7 @@ export function getTransitions(obj: any, seen = new Set()): WorkflowTransitionTy
         const found = getTransitions(parsed, seen);
         if (found.length > 0) return found;
       } catch {
-        // Not JSON
+        console.error('Failed to parse transitions', val);
       }
     }
   }
@@ -95,12 +95,40 @@ export function getTransitions(obj: any, seen = new Set()): WorkflowTransitionTy
   return [];
 }
 
+export function formatCondition(condition: string): string {
+  if (!condition) return '';
+  const clean = condition.replace(/\{\{|\}\}/g, '').trim();
+  const parts = clean.split(/\s+/);
+  if (parts.length === 3) {
+    const [op, left, right] = parts;
+    const map: Record<string, string> = {
+      gt: '>',
+      lt: '<',
+      eq: '==',
+      ne: '!=',
+      ge: '>=',
+      le: '<=',
+    };
+    if (map[op]) {
+      return `${left} ${map[op]} ${right}`;
+    }
+  }
+
+  return clean;
+}
+
 export function buildWorkflowGraph(
   pipeline: any,
   workflowData: WorkflowInterface | undefined,
   workflowId: string,
+  configTransitions: WorkflowTransitionType[] = [],
+  animationsEnabled: boolean = true,
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
   let transitionsInDefinition: WorkflowTransitionType[] = [];
+
+  if (configTransitions.length > 0) {
+    transitionsInDefinition.push(...configTransitions);
+  }
 
   if (pipeline) {
     transitionsInDefinition.push(...getTransitions(pipeline));
@@ -167,7 +195,7 @@ export function buildWorkflowGraph(
         id: t.id,
         from: fromState,
         to: t.to,
-        condition: t.if,
+        condition: (t as any).if || (t as any).condition,
         trigger: t.trigger,
       });
     });
@@ -220,6 +248,7 @@ export function buildWorkflowGraph(
       isCurrent: state === currentPlace,
       isVisited: visitedStates.has(state),
       visitCount: stateVisitCount.get(state) ?? 0,
+      animationsEnabled,
     },
   }));
 
@@ -236,8 +265,9 @@ export function buildWorkflowGraph(
 
     let edgeLabel = t.id;
     if (t.condition) {
-      const cleanCond = t.condition.replace(/\{\{| \}\}/g, '').trim();
-      edgeLabel = `${t.id} (if: ${cleanCond.length > 20 ? cleanCond.substring(0, 17) + '...' : cleanCond})`;
+      const formatted = formatCondition(t.condition);
+      const displayCond = formatted.length > 30 ? formatted.substring(0, 27) + '...' : formatted;
+      edgeLabel = `${t.id}\n[if ${displayCond}]`;
     }
 
     edgeMap.set(edgeKey, {
@@ -245,22 +275,30 @@ export function buildWorkflowGraph(
       source: `${workflowId}-${t.from}`,
       target: `${workflowId}-${t.to}`,
       type: 'smoothstep',
+      animated: isExecuted && animationsEnabled,
       label: edgeLabel,
       style: {
-        strokeWidth: isExecuted ? 2 : 1.5,
+        strokeWidth: isExecuted ? 2.5 : 1.5,
         stroke: isExecuted ? 'var(--primary)' : 'var(--muted-foreground)',
-        strokeDasharray: isAutomatic ? '5,5' : !isExecuted ? '3,3' : undefined,
-        opacity: isExecuted ? 1 : 0.4,
+        strokeDasharray: isAutomatic ? '4,4' : !isExecuted ? '5,5' : undefined,
+        opacity: isExecuted ? 1 : 0.3,
       },
       labelStyle: {
         fill: isExecuted ? 'var(--primary)' : 'var(--muted-foreground)',
-        fontWeight: isExecuted ? 600 : 400,
-        fontSize: '10px',
+        fontWeight: isExecuted ? 600 : 500,
+        fontSize: '11px',
+        opacity: isExecuted ? 1 : 0.7,
       },
+      labelBgStyle: {
+        fill: 'var(--background)',
+        opacity: 0.8,
+      },
+      labelBgPadding: [4, 2],
+      labelShowBg: true,
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        width: 15,
-        height: 15,
+        width: 18,
+        height: 18,
         color: isExecuted ? 'var(--primary)' : 'var(--muted-foreground)',
       },
       data: { isExecuted, ...t },

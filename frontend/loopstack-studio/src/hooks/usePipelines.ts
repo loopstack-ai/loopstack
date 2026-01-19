@@ -95,6 +95,25 @@ export function useUpdatePipeline() {
   });
 }
 
+export function usePipelineConfig(workspaceBlockName: string | undefined, pipelineBlockName: string | undefined) {
+  const { envKey, api } = useApiClient();
+
+  return useQuery({
+    queryKey: ['pipelineConfig', workspaceBlockName, pipelineBlockName, envKey],
+    queryFn: () => {
+      if (!api) {
+        throw new Error('API not available');
+      }
+      return api.ApiV1ConfigApi.configControllerGetPipelineConfigByName({
+        workspaceBlockName: workspaceBlockName!,
+        pipelineName: pipelineBlockName!,
+      });
+    },
+    enabled: !!workspaceBlockName && !!pipelineBlockName,
+    select: (res) => res.data,
+  });
+}
+
 export function useDeletePipeline() {
   const { envKey, api } = useApiClient();
   const queryClient = useQueryClient();
