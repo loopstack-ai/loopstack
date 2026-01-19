@@ -27,7 +27,8 @@ if (!projectRoot) {
 
 const result = spawnSync('npm', ['run', 'loopstack', '--', ...process.argv.slice(2)], {
   cwd: projectRoot,
-  stdio: 'inherit'
+  stdio: 'inherit',
+  shell: true,
 });
 
 process.exit(result.status || 0);
