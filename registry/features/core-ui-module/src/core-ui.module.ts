@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CreateDocument } from './tools';
 import {
-  ErrorDocument,
+  ErrorDocument, LinkDocument,
   MarkdownDocument,
   MessageDocument,
   PlainDocument,
@@ -23,6 +23,7 @@ import { TestUiDocumentsWorkflow } from './workflows';
     MarkdownDocument,
     MessageDocument,
     PlainDocument,
+    LinkDocument,
 
     // Workflows
     TestUiDocumentsWorkflow
@@ -33,6 +34,7 @@ import { TestUiDocumentsWorkflow } from './workflows';
     MarkdownDocument,
     MessageDocument,
     PlainDocument,
+    LinkDocument,
     TestUiDocumentsWorkflow,
   ],
 })
