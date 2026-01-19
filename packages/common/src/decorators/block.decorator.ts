@@ -11,6 +11,17 @@ export const DOCUMENT_METADATA_KEY = Symbol('document');
 export const WORKFLOW_METADATA_KEY = Symbol('workflow');
 export const TEMPLATE_HELPER_METADATA_KEY = Symbol('templateHelper');
 
+export interface WorkflowOptions {
+  visible?: boolean;
+}
+
+export interface WorkflowDecoratorOptions {
+  token?: any;
+  options?: WorkflowOptions;
+}
+
+export const WORKFLOW_OPTIONS_KEY = 'workflow:options';
+
 export function WithArguments<T extends z.ZodType>(schema: T): ClassDecorator {
   return (target: any) => {
     target.argsSchema = schema;
@@ -66,6 +77,10 @@ function getHelpers(target: any): string[] {
   return keys.map((key) => String(key));
 }
 
+export function getWorkflowOptions(target: any, propertyKey: string | symbol): WorkflowOptions {
+  return Reflect.getMetadata(WORKFLOW_OPTIONS_KEY, target, propertyKey) ?? { visible: true };
+}
+
 export function BlockConfig(options: BlockOptions): ClassDecorator {
   return (target: any) => {
     target.blockConfig = buildConfig(options);
@@ -104,8 +119,14 @@ export function Document(token?: any): PropertyDecorator & MethodDecorator {
   };
 }
 
-export function Workflow(token?: any): PropertyDecorator & MethodDecorator {
+export function Workflow(options?: WorkflowDecoratorOptions): PropertyDecorator & MethodDecorator {
   return (target: any, propertyKey: string | symbol) => {
+    const token = options?.token;
+    const config: WorkflowOptions = {
+      visible: true,
+      ...options?.options,
+    };
+
     const type = token ?? Reflect.getMetadata('design:type', target, propertyKey);
 
     if (type) {
@@ -114,6 +135,8 @@ export function Workflow(token?: any): PropertyDecorator & MethodDecorator {
 
     const existingWorkflows = Reflect.getMetadata(WORKFLOW_METADATA_KEY, target) || [];
     Reflect.defineMetadata(WORKFLOW_METADATA_KEY, [...existingWorkflows, propertyKey], target);
+
+    Reflect.defineMetadata(WORKFLOW_OPTIONS_KEY, config, target, propertyKey);
   };
 }
 

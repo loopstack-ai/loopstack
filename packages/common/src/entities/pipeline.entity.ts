@@ -89,4 +89,17 @@ export class PipelineEntity {
 
   @OneToMany(() => NamespaceEntity, (namespace) => namespace.pipeline)
   namespaces!: NamespaceEntity[];
+
+  @ManyToOne(() => PipelineEntity, (pipeline) => pipeline.children, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'parent_id' })
+  parent!: PipelineEntity | null;
+
+  @Column({ name: 'parent_id', type: 'uuid', nullable: true })
+  parentId!: string | null;
+
+  @OneToMany(() => PipelineEntity, (pipeline) => pipeline.parent)
+  children!: PipelineEntity[];
 }
