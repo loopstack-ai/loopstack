@@ -66,7 +66,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
         <CollapsibleContent>
           <SidebarMenuSub className="ml-2 border-none pl-0">
             <div className="relative py-2">
-              <div className="from-primary/60 via-primary/30 to-muted/20 absolute top-3 bottom-3 left-[7px] w-0.5 rounded-full bg-gradient-to-b" />
+              <div className="from-primary/60 via-primary/30 to-muted/20 absolute top-7 bottom-3 left-[7px] w-0.5 rounded-full bg-gradient-to-b" />
 
               <div className="group/entry relative flex gap-3 py-1 pl-0">
                 <div className="relative z-10 flex shrink-0 items-center justify-center">
