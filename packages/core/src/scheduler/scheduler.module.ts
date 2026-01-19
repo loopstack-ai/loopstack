@@ -20,10 +20,9 @@ import { EventProcessorService } from './services/event-processor.service';
           ? parseInt(process.env.REDIS_PORT ?? '6379', 0)
           : 6379,
         family: 0,
-        // host: process.env.REDIS_HOST || 'localhost',
-        // port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
-        // password: process.env.REDIS_PASSWORD,
-        // family: 0,
+        ...(process.env.REDIS_PASSWORD ? {
+          password: process.env.REDIS_PASSWORD,
+        } : {}),
       },
     }),
     BullModule.registerQueue({

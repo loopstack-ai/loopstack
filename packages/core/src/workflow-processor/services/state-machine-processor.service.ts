@@ -232,7 +232,7 @@ export class StateMachineProcessorService {
     } else if (ctx.state.getMetadata('place') === 'end') {
       ctx.entity.status = WorkflowState.Completed;
       if (block.resultSchema) {
-        const result = block.getResult(ctx);
+        const result = block.getResult(ctx, args);
         ctx.entity.result = block.resultSchema.parse(result);
       }
     } else {

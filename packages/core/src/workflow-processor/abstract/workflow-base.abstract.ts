@@ -12,5 +12,5 @@ export abstract class WorkflowBase extends Block implements BlockInterface {
     return this.config as WorkflowType;
   }
 
-  getResult(ctx: WorkflowExecution): any {}
+  getResult(ctx: WorkflowExecution, args: any): any {}
 }
