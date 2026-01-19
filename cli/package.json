@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/cli",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "description": "Global wrapper for Loopstack local commands",
   "bin": {
     "loopstack": "./bin/loopstack.js"
