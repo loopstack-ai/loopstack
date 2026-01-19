@@ -24,7 +24,7 @@ export function usePipeline(id: string | undefined) {
 
 export function useFilterPipelines(
   searchTerm: string | undefined,
-  filter: Record<string, string>,
+  filter: Record<string, string | null>,
   sortBy: string = 'id',
   order: string = 'desc',
   page: number = 0,
