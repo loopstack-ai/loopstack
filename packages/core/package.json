@@ -2,7 +2,7 @@
   "name": "@loopstack/core",
   "displayName": "Loopstack Core Module",
   "description": "The core module of the loopstack automation framework",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel//"
@@ -36,7 +36,7 @@
     "typeorm": "^0.3.20"
   },
   "dependencies": {
-    "@loopstack/common": "^0.16.0",
+    "@loopstack/common": "^0.17.0",
     "@nestjs/bullmq": "^11.0.3",
     "@nestjs/config": "^4.0.0",
     "@nestjs/event-emitter": "^3.0.1",
