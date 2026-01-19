@@ -21,8 +21,8 @@
     "lodash": "^4.17.21"
   },
   "peerDependencies": {
-    "@loopstack/common": "^0.16.0",
-    "@loopstack/core": "^0.16.0",
+    "@loopstack/common": "^0.17.0",
+    "@loopstack/core": "^0.17.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.0",
@@ -42,8 +42,8 @@
     }
   },
   "devDependencies": {
-    "@loopstack/common": "^0.16.0",
-    "@loopstack/core": "^0.16.0",
+    "@loopstack/common": "^0.17.0",
+    "@loopstack/core": "^0.17.0",
     "@nestjs/cli": "^11.0.5",
     "@nestjs/common": "^11.1.9",
     "@nestjs/config": "^4.0.2",
