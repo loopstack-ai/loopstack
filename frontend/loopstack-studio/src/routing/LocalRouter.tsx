@@ -50,6 +50,14 @@ export class LocalRouter implements StudioRouter {
     this.navigate(this.getPipeline(pipelineId));
   }
 
+  getPipelineDebug(pipelineId: string) {
+    return `/pipelines/${pipelineId}/debug`;
+  }
+
+  navigateToPipelineDebug(pipelineId: string) {
+    this.navigate(this.getPipelineDebug(pipelineId));
+  }
+
   navigateToWorkflow(pipelineId: string, workflowId: string, clickId: string | undefined) {
     this.navigate(`/pipelines/${pipelineId}/workflows/${workflowId}/${(clickId ? parseInt(clickId) : 0) + 1}`);
   }

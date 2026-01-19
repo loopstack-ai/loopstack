@@ -1,4 +1,6 @@
+import { GitGraph } from 'lucide-react';
 import type { PipelineDto } from '@loopstack/api-client';
+import { Button } from '@/components/ui/button.tsx';
 import {
   Sidebar,
   SidebarContent,
@@ -11,6 +13,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar.tsx';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.tsx';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip.tsx';
+import { useStudio } from '@/providers/StudioProvider.tsx';
 import WorkbenchNavigation from '../WorkbenchNavigation.tsx';
 import PipelineHistoryList from './PipelineHistoryList.tsx';
 
@@ -20,6 +24,7 @@ interface WorkbenchSidebarProps {
 }
 
 const WorkbenchSidebar = ({ namespaceTree, pipeline }: WorkbenchSidebarProps) => {
+  const { router } = useStudio();
   const { open } = useSidebar();
 
   return (
@@ -27,6 +32,25 @@ const WorkbenchSidebar = ({ namespaceTree, pipeline }: WorkbenchSidebarProps) =>
       <SidebarHeader className="border-sidebar-border w-full flex-row items-center justify-between border-b p-2">
         <div className="flex items-center gap-1">
           <SidebarTrigger className="flex h-8 w-8 items-center justify-center hover:cursor-pointer" />
+          {pipeline && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => router.navigateToPipelineDebug(pipeline.id)}
+                  >
+                    <GitGraph className="text-muted-foreground h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Debug Pipeline Flow</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </SidebarHeader>
 
