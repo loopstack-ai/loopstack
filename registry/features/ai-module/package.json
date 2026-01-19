@@ -2,7 +2,7 @@
   "name": "@loopstack/ai-module",
   "displayName": "Loopstack Ai Module",
   "description": "A collection of useful tools for performing AI actions using model provider APIs such as OpenAI and Anthropic",
-  "version": "0.16.2",
+  "version": "0.16.3",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"

@@ -11,7 +11,7 @@ const DelegateToolCallsToolSchema = z.object({
       z.object({
         type: z.string(),
         input: z.any().optional(),
-        toolCallId: z.string().optional()
+        toolCallId: z.string().optional(),
       }),
     ),
   }),
@@ -37,6 +37,10 @@ export class DelegateToolCall extends ToolBase<DelegateToolCallsToolArgs> {
     for (const part of parts) {
       if (!part.type.startsWith('tool-')) {
         continue;
+      }
+
+      if (!part.toolCallId) {
+        throw new Error(`No toolCallId provided`);
       }
 
       const toolName = part.type.replace(/^tool-/, '');
