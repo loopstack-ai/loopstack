@@ -2,7 +2,7 @@
   "name": "@loopstack/custom-tool-example-module",
   "displayName": "Loopstack Custom Tool Example Module",
   "description": "A complete example demonstrating how to implement and use a custom tool in a workflow",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -28,14 +28,14 @@
     "test": "jest"
   },
   "dependencies": {
-    "@loopstack/common": "^0.16.0",
-    "@loopstack/core": "^0.16.0",
-    "@loopstack/create-chat-message-tool": "^0.16.2",
+    "@loopstack/common": "^0.17.0",
+    "@loopstack/core": "^0.17.0",
+    "@loopstack/create-chat-message-tool": "^0.16.3",
     "@nestjs/common": "^11.0.12",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@loopstack/testing": "^0.16.0",
+    "@loopstack/testing": "^0.17.0",
     "@nestjs/cli": "^11.0.5",
     "@nestjs/testing": "^11.0.12",
     "@types/jest": "^29.5.14",
