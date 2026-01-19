@@ -13,14 +13,19 @@ export class CreatePipelineService {
     private readonly blockRegistryService: BlockRegistryService,
   ) {}
 
-  private validateArguments(workspace: WorkspaceBase, data: Partial<PipelineEntity>) {
+  private validateArguments(
+    workspace: WorkspaceBase,
+    data: Partial<PipelineEntity>,
+  ) {
     if (!data.blockName) {
       throw new Error(`blockName is required to create a pipeline.`);
     }
 
     const workflow = workspace.getWorkflow(data.blockName);
     if (!workflow) {
-      throw new Error(`Workflow ${data.blockName} not available in workspace ${workspace.name}.`);
+      throw new Error(
+        `Workflow ${data.blockName} not available in workspace ${workspace.name}.`,
+      );
     }
 
     if (data.args && Object.keys(data.args).length !== 0) {
@@ -35,6 +40,7 @@ export class CreatePipelineService {
     workspaceWhere: FindOptionsWhere<WorkspaceEntity>,
     data: Partial<PipelineEntity>,
     user: string,
+    parentPipelineId?: string,
   ): Promise<PipelineEntity> {
     const workspace = await this.workspaceService.getWorkspace(
       workspaceWhere,
@@ -51,7 +57,24 @@ export class CreatePipelineService {
       throw new Error(`Config for block ${data.blockName} not found.`);
     }
 
-    const validData = this.validateArguments(workspaceRegistry.provider.instance, data);
-    return this.pipelineService.createPipeline(validData, workspace, user);
+    let parentPipeline: PipelineEntity | null = null;
+    if (parentPipelineId) {
+      parentPipeline = await this.pipelineService.getPipeline(
+        parentPipelineId,
+        user,
+        [],
+      );
+    }
+
+    const validData = this.validateArguments(
+      workspaceRegistry.provider.instance,
+      data,
+    );
+    return this.pipelineService.createPipeline(
+      validData,
+      workspace,
+      user,
+      parentPipeline,
+    );
   }
 }

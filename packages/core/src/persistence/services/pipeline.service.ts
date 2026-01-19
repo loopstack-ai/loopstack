@@ -32,6 +32,7 @@ export class PipelineService {
     data: Partial<PipelineEntity>,
     workspace: WorkspaceEntity,
     user: string,
+    parent?: PipelineEntity | null,
   ) {
     const lastRunNumber = await this.getMaxRun(user, workspace.id);
 
@@ -40,6 +41,7 @@ export class PipelineService {
       run: lastRunNumber + 1,
       createdBy: user,
       workspace,
+      parent: parent || null,
     });
     return await this.entityRepository.save(pipeline);
   }

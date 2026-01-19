@@ -1,4 +1,9 @@
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
+import {
+  BlockConfig,
+  PipelineEntity,
+  ToolResult,
+  WithArguments,
+} from '@loopstack/common';
 import { z } from 'zod';
 import { Injectable, Logger } from '@nestjs/common';
 import {
@@ -55,6 +60,7 @@ export class ExecuteWorkflowAsync extends ToolBase<ExecuteWorkflowAsyncArgs> {
         },
       },
       ctx.context.userId,
+      ctx.context.pipelineId,
     );
 
     await this.eventSubscriberService.registerSubscriber(
