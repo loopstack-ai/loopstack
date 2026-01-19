@@ -6,4 +6,8 @@ export class PipelineFilterDto {
   @IsUUID()
   @ApiPropertyOptional()
   workspaceId?: string;
+
+  @IsOptional()
+  @ApiPropertyOptional()
+  parentId?: string | null;
 }

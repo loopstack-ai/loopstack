@@ -24,6 +24,7 @@ import { plainToInstance } from 'class-transformer';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
 import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
 import { sortBy } from 'lodash';
+import { getWorkflowOptions } from '@loopstack/common';
 
 @ApiTags('api/v1/config')
 @ApiExtraModels(WorkspaceConfigDto, PipelineConfigDto)
@@ -79,12 +80,16 @@ export class ConfigController {
 
     const instance = workspaceBlock.provider.instance as WorkspaceBase;
 
-    const workflows: { name: string, instance: WorkflowBase }[] = instance.workflows.reduce((acc, key) => [
+    const workflows: { name: string, instance: WorkflowBase, hidden: boolean }[] = instance.workflows.reduce((acc, key) => [
       ...acc,
-      { name: key, instance: instance[key] }
+      {
+        name: key,
+        instance: instance[key],
+        hidden: getWorkflowOptions(instance, key)?.visible === false
+      }
     ], []);
 
-    const filtered = workflows.map((item) => {
+    const filtered = workflows.filter((item) => !item.hidden).map((item) => {
       const config = item.instance.config as WorkflowType;
 
       const propertiesSchema = item.instance.argsSchema ? this.blockRegistryService.zodToJsonSchema(item.instance.argsSchema) : undefined;

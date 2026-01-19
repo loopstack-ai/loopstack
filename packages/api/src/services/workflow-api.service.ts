@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, Repository, IsNull } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -40,10 +40,17 @@ export class WorkflowApiService {
       [],
     );
 
+    const transformedFilter = Object.fromEntries(
+      Object.entries(filter).map(([key, value]) => [
+        key,
+        value === null ? IsNull() : value,
+      ]),
+    );
+
     const findOptions: FindManyOptions<WorkflowEntity> = {
       where: {
         createdBy: user,
-        ...filter,
+        ...transformedFilter,
       },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {

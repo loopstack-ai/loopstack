@@ -85,6 +85,12 @@ export class PipelineItemDto {
   })
   workspaceId: string;
 
+  @Expose()
+  @ApiProperty({
+    description: 'ID of parent pipeline. Is Null for root pipelines',
+  })
+  parentId: string | null;
+
   /**
    * Creates a PipelineItemDto instance from a PipelineEntity
    * @param pipeline The source PipelineEntity to transform

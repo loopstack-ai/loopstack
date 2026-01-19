@@ -106,6 +106,12 @@ export class PipelineDto {
   })
   workspaceId: string;
 
+  @Expose()
+  @ApiProperty({
+    description: 'ID of parent pipeline. Is Null for root pipelines',
+  })
+  parentId: string | null;
+
   @Exclude()
   createdBy: string | null;
 

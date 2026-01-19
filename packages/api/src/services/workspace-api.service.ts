@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository, In } from 'typeorm';
+import { Repository, In, IsNull } from 'typeorm';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
 import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
 import { ConfigService } from '@nestjs/config';
@@ -49,9 +49,16 @@ export class WorkspaceApiService {
     const queryBuilder =
       this.workspaceRepository.createQueryBuilder('workspace');
 
+    const transformedFilter = Object.fromEntries(
+      Object.entries(filter).map(([key, value]) => [
+        key,
+        value === null ? IsNull() : value,
+      ]),
+    );
+
     queryBuilder.where({
       createdBy: user,
-      ...filter,
+      ...transformedFilter,
     });
 
     if (search?.query && search.columns?.length > 0) {

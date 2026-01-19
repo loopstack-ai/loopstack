@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, Repository, IsNull } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NamespaceFilterDto } from '../dtos/namespace-filter.dto';
@@ -40,10 +40,17 @@ export class NamespaceApiService {
       [],
     );
 
+    const transformedFilter = Object.fromEntries(
+      Object.entries(filter).map(([key, value]) => [
+        key,
+        value === null ? IsNull() : value,
+      ]),
+    );
+
     const findOptions: FindManyOptions<NamespaceEntity> = {
       where: {
         createdBy: user,
-        ...filter,
+        ...transformedFilter,
       },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {

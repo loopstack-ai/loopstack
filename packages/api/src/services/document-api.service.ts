@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, Repository, IsNull } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -40,10 +40,17 @@ export class DocumentApiService {
       [],
     );
 
+    const transformedFilter = Object.fromEntries(
+      Object.entries(filter).map(([key, value]) => [
+        key,
+        value === null ? IsNull() : value,
+      ]),
+    );
+
     const findOptions: FindManyOptions<DocumentEntity> = {
       where: {
         createdBy: user,
-        ...filter,
+        ...transformedFilter,
       },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {

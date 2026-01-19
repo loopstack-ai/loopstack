@@ -1,5 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Repository, In } from 'typeorm';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Repository, In, IsNull } from 'typeorm';
 import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
 import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
 import { ConfigService } from '@nestjs/config';
@@ -50,9 +54,16 @@ export class PipelineApiService {
 
     const queryBuilder = this.pipelineRepository.createQueryBuilder('pipeline');
 
+    const transformedFilter = Object.fromEntries(
+      Object.entries(filter).map(([key, value]) => [
+        key,
+        value === null ? IsNull() : value,
+      ]),
+    );
+
     queryBuilder.where({
       createdBy: user,
-      ...filter,
+      ...transformedFilter,
     });
 
     if (search?.query && search.columns?.length > 0) {
@@ -119,13 +130,15 @@ export class PipelineApiService {
     user: string,
   ): Promise<PipelineEntity> {
     try {
-      return this.createPipelineService.create({
-        id: pipelineData.workspaceId,
-      }, pipelineData, user);
-    } catch(e) {
-      throw new BadRequestException(
-        `Pipeline installation failed.`,
+      return this.createPipelineService.create(
+        {
+          id: pipelineData.workspaceId,
+        },
+        pipelineData,
+        user,
       );
+    } catch (e) {
+      throw new BadRequestException(`Pipeline installation failed.`);
     }
   }
 
