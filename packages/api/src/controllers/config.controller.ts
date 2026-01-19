@@ -56,6 +56,53 @@ export class ConfigController {
     });
   }
 
+  @Get('workspaces/:workspaceBlockName/pipelines/:pipelineName')
+  @ApiOperation({
+    summary: 'Get the full config of a specific pipeline by name',
+  })
+  @ApiParam({
+    name: 'workspaceBlockName',
+    type: String,
+    description: 'The config key of the workspace type',
+  })
+  @ApiParam({
+    name: 'pipelineName',
+    type: String,
+    description: 'The name of the pipeline to retrieve',
+  })
+  @ApiOkResponse({ type: PipelineConfigDto })
+  @ApiUnauthorizedResponse()
+  getPipelineConfigByName(
+    @Param('workspaceBlockName') workspaceBlockName: string,
+    @Param('pipelineName') pipelineName: string,
+  ): WorkflowType {
+    const workspaceBlock =
+      this.blockRegistryService.getBlock(workspaceBlockName);
+    if (!workspaceBlock) {
+      throw new BadRequestException(
+        `Config for workspace with name ${workspaceBlockName} not found.`,
+      );
+    }
+
+    const instance = workspaceBlock.provider.instance as WorkspaceBase;
+
+    if (!instance.workflows.includes(pipelineName)) {
+      throw new BadRequestException(
+        `Pipeline with name ${pipelineName} not found in workspace ${workspaceBlockName}. Available: ${instance.workflows.join(', ')}`,
+      );
+    }
+
+    const workflow = instance.getWorkflow(pipelineName);
+    if (!workflow) {
+      throw new BadRequestException(
+        `Workflow with name ${pipelineName} not found in workspace ${workspaceBlockName}.`,
+      );
+    }
+    const config = workflow.config as WorkflowType;
+
+    return config;
+  }
+
   @Get('workspaces/:workspaceBlockName/pipelines')
   @ApiOperation({
     summary: 'Get all pipeline types available for this workspace',

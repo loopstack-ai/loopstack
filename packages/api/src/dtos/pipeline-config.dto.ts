@@ -34,4 +34,10 @@ export class PipelineConfigDto {
     description: 'The ui config for interface rendering',
   })
   ui?: UiFormType;
+
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'The state machine transitions',
+  })
+  transitions?: any[];
 }
