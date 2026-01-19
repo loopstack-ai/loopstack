@@ -2,6 +2,7 @@ import React from 'react';
 import type { PipelineDto } from '@loopstack/api-client';
 import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
 import AiMessage from '@/features/workbench/components/document-renderer/AiMessage.tsx';
+import LinkMessageRenderer from '@/features/workbench/components/document-renderer/LinkMessageRenderer.tsx';
 import CompletionMessagePaper from '../../../components/messages/CompletionMessagePaper.tsx';
 import DocumentDebugRenderer from './document-renderer/DocumentDebugRenderer.tsx';
 import DocumentFormRenderer from './document-renderer/DocumentFormRenderer.tsx';
@@ -52,6 +53,8 @@ const DocumentRenderer: React.FC<DocumentRendererProps> = ({ pipeline, workflow,
         return <PlainMessageRenderer document={document} />;
       case 'markdown':
         return <MarkdownMessageRenderer document={document} />;
+      case 'link':
+        return <LinkMessageRenderer document={document} />;
       default:
         return <>unknown document type</>;
     }
