@@ -2,7 +2,7 @@
   "name": "module-name",
   "displayName": "",
   "description": "",
-  "version": "0.0.0",
+  "version": "0.17.0",
   "author": {
     "name": "",
     "url": ""
@@ -18,13 +18,13 @@
     "test": "jest"
   },
   "dependencies": {
-    "@loopstack/common": "^0.16.0",
-    "@loopstack/core": "^0.16.0",
+    "@loopstack/common": "^0.17.0",
+    "@loopstack/core": "^0.17.0",
     "@nestjs/common": "^11.0.12",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@loopstack/testing": "^0.16.0",
+    "@loopstack/testing": "^0.17.0",
     "@nestjs/cli": "^11.0.5",
     "@nestjs/testing": "^11.0.12",
     "@types/jest": "^29.5.14",
