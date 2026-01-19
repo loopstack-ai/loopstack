@@ -2,7 +2,7 @@
   "name": "@loopstack/prompt-structured-output-example-workflow",
   "displayName": "Loopstack Structured Prompt Output Example Workflow",
   "description": "A simple workflow showing how to work with structured LLM output in Loopstack.",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -32,11 +32,11 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.16.3",
-    "@loopstack/common": "^0.16.0",
-    "@loopstack/core": "^0.16.0",
-    "@loopstack/core-ui-module": "^0.16.1",
-    "@loopstack/testing": "^0.16.0",
+    "@loopstack/ai-module": "^0.16.4",
+    "@loopstack/common": "^0.17.0",
+    "@loopstack/core": "^0.17.0",
+    "@loopstack/core-ui-module": "^0.17.0",
+    "@loopstack/testing": "^0.17.0",
     "@nestjs/common": "^11.0.12",
     "zod": "^3.24.1"
   },
