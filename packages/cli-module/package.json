@@ -2,7 +2,7 @@
   "name": "@loopstack/cli-module",
   "displayName": "Loopstack Cli Module",
   "description": "The cli module for Loopstack",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@loopstack/contracts": "^0.16.0",
-    "@loopstack/core": "^0.16.0",
+    "@loopstack/core": "^0.17.0",
     "@nestjs/common": "^11.1.9",
     "@nestjs/core": "^11.1.9",
     "axios": "^1.13.2",
