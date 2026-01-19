@@ -5,7 +5,6 @@
   "compilerOptions": {
     "assets": ["**/*.yaml", "**/*.yml"],
     "watchAssets": true,
-    "tsConfigPath": "tsconfig.json",
     "deleteOutDir": true
   }
 }
