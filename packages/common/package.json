@@ -15,8 +15,7 @@
     "watch": "tsc --watch",
     "compile": "tsc --noEmit",
     "lint": "eslint .",
-    "format": "prettier --write .",
-    "prepare": "husky"
+    "format": "prettier --write ."
   },
   "peerDependencies": {
     "@nestjs/typeorm": "^11.0.0",
