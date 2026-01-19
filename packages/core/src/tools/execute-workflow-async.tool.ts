@@ -80,10 +80,7 @@ export class ExecuteWorkflowAsync extends ToolBase<ExecuteWorkflowAsyncArgs> {
     } satisfies ScheduledTask);
 
     return {
-      data: {
-        id: job?.id,
-        data: job?.data,
-      },
+      data: job?.data,
     };
   }
 }
