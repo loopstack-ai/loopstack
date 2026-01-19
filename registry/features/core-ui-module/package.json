@@ -2,7 +2,7 @@
   "name": "@loopstack/core-ui-module",
   "displayName": "Loopstack Core UI Module",
   "description": "A collection of tools for creating specific UI documents for interaction in the loopstack studio ",
-  "version": "0.16.1",
+  "version": "0.17.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -28,9 +28,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@loopstack/common": "^0.16.0",
+    "@loopstack/common": "^0.17.0",
     "@loopstack/contracts": "^0.16.0",
-    "@loopstack/core": "^0.16.0",
+    "@loopstack/core": "^0.17.0",
     "lodash": "^4.17.21",
     "zod": "^3.24.1",
     "zod-to-json-schema": "^3.25.0"
