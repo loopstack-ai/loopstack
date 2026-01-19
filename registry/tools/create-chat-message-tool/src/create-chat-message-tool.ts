@@ -52,6 +52,7 @@ export class CreateChatMessage extends ToolBase<CreateChatMessageInput> {
             content: item.content,
           },
         },
+        validate: 'strict' as 'strict'
       };
 
       const result = await this.createDocument.execute(
