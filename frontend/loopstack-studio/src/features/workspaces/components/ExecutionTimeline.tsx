@@ -45,7 +45,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
   // Fetch pipelines with pagination
   const fetchPipelines = useFilterPipelines(
     undefined, // no search
-    { workspaceId: workspace.id }, // only workspace filter
+    { workspaceId: workspace.id, parentId: null }, // only workspace filter
     'createdAt', // default ordering
     'desc', // newest first
     page,
