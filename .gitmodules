@@ -1,9 +1,6 @@
 [submodule "packages/api"]
 	path = packages/api
 	url = git@github.com:loopstack-ai/api.git
-[submodule "packages/core"]
-	path = packages/core
-	url = git@github.com:loopstack-ai/core.git
 [submodule "packages/auth"]
     path = packages/auth
     url = git@github.com:loopstack-ai/auth.git
