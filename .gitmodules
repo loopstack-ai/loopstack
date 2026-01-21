@@ -1,6 +1,3 @@
-[submodule "packages/cli-module"]
-    path = packages/cli-module
-    url = git@github.com:loopstack-ai/cli.git
 [submodule "templates/app-template"]
     path = templates/app-template
     url = git@github.com:loopstack-ai/app-template.git
