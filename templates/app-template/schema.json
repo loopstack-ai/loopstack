@@ -1,0 +1,631 @@
+{
+  "$ref": "#/definitions/MainSchema",
+  "definitions": {
+    "MainSchema": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "label"
+              ],
+              "additionalProperties": false
+            },
+            "ui": {
+              "type": "object",
+              "properties": {
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "transition": {
+                            "type": "string"
+                          },
+                          "widget": {
+                            "type": "string"
+                          },
+                          "enabledWhen": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "type": {
+                            "type": "string",
+                            "const": "button"
+                          },
+                          "options": {
+                            "type": "object",
+                            "properties": {
+                              "position": {
+                                "type": "number"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "props": {
+                                "type": "object",
+                                "additionalProperties": {}
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "transition",
+                          "type"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "transition": {
+                            "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/actions/items/anyOf/0/properties/transition"
+                          },
+                          "widget": {
+                            "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/actions/items/anyOf/0/properties/widget"
+                          },
+                          "enabledWhen": {
+                            "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/actions/items/anyOf/0/properties/enabledWhen"
+                          },
+                          "type": {
+                            "type": "string",
+                            "const": "custom"
+                          },
+                          "options": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "props": {
+                                "type": "object",
+                                "additionalProperties": {}
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "transition",
+                          "type"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                },
+                "form": {
+                  "type": "object",
+                  "properties": {
+                    "widget": {
+                      "type": "string"
+                    },
+                    "index": {
+                      "type": "number"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "descriptions": {
+                      "type": "string"
+                    },
+                    "placeholder": {
+                      "type": "string"
+                    },
+                    "rows": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "inline": {
+                      "type": "boolean"
+                    },
+                    "inputType": {
+                      "type": "string"
+                    },
+                    "emptyValue": {},
+                    "help": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "enumOptions": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "value": {}
+                                },
+                                "required": [
+                                  "label"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "string"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "titleFormat": {
+                      "type": "string"
+                    },
+                    "addable": {
+                      "type": "boolean"
+                    },
+                    "removable": {
+                      "type": "boolean"
+                    },
+                    "movable": {
+                      "type": "boolean"
+                    },
+                    "accept": {
+                      "type": "string"
+                    },
+                    "multiple": {
+                      "type": "boolean"
+                    },
+                    "hidden": {
+                      "type": "boolean"
+                    },
+                    "disabled": {
+                      "type": "boolean"
+                    },
+                    "readonly": {
+                      "type": "boolean"
+                    },
+                    "collapsed": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "items": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/form"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/form"
+                          }
+                        }
+                      ]
+                    },
+                    "properties": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/form"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "type": {
+              "type": "string",
+              "const": "factory",
+              "default": "factory"
+            },
+            "factory": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "block": {
+                  "type": "string"
+                },
+                "condition": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "anyOf": [
+                        {
+                          "not": {}
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:\\||>)?(?:[-+])?\\s*\\$\\{([\\s\\S]*?)\\}\\s*$"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "args": {}
+              },
+              "required": [
+                "block"
+              ],
+              "additionalProperties": false
+            },
+            "parallel": {
+              "type": "boolean"
+            },
+            "iterator": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "source"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "namespace",
+            "factory",
+            "iterator"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "title": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/title"
+            },
+            "description": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/description"
+            },
+            "namespace": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/namespace"
+            },
+            "ui": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui"
+            },
+            "type": {
+              "type": "string",
+              "const": "sequence",
+              "default": "sequence"
+            },
+            "sequence": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory"
+              }
+            }
+          },
+          "required": [
+            "sequence"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "ui": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui"
+            },
+            "type": {
+              "type": "string",
+              "const": "workflow",
+              "default": "workflow"
+            },
+            "transitions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "from": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "to": {
+                    "type": "string"
+                  },
+                  "if": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "const": "true"
+                      },
+                      {
+                        "type": "string",
+                        "const": "false"
+                      }
+                    ]
+                  },
+                  "trigger": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "manual",
+                          "onEntry"
+                        ]
+                      },
+                      {
+                        "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                      }
+                    ]
+                  },
+                  "call": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "tool": {
+                          "type": "string"
+                        },
+                        "args": {},
+                        "assign": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "anyOf": [
+                              {
+                                "type": "null"
+                              },
+                              {
+                                "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                              },
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": {}
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "tool"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "onError": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "from",
+                  "to"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "document",
+              "default": "document"
+            },
+            "description": {
+              "type": "string"
+            },
+            "content": {},
+            "ui": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui"
+            },
+            "tags": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "meta": {
+              "type": "object",
+              "properties": {
+                "hidden": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                    }
+                  ]
+                },
+                "mimeType": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "text/plain",
+                        "text/html",
+                        "text/css",
+                        "text/xml",
+                        "text/markdown",
+                        "application/javascript",
+                        "application/typescript",
+                        "application/json",
+                        "application/xml",
+                        "application/yaml"
+                      ]
+                    },
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                    }
+                  ]
+                },
+                "invalidate": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                    }
+                  ]
+                },
+                "level": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
+                    },
+                    {
+                      "type": "string",
+                      "const": "debug"
+                    },
+                    {
+                      "type": "string",
+                      "const": "info"
+                    },
+                    {
+                      "type": "string",
+                      "const": "warning"
+                    },
+                    {
+                      "type": "string",
+                      "const": "error"
+                    }
+                  ]
+                },
+                "enableAtPlaces": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "hideAtPlaces": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "data": {}
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "tool",
+              "default": "tool"
+            },
+            "description": {
+              "type": "string"
+            },
+            "ui": {
+              "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "workspace",
+              "default": "workspace"
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

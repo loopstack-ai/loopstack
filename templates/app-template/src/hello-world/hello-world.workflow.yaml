@@ -1,0 +1,14 @@
+title: "Hello World"
+
+description: |
+  A minimal workflow sending a "Hello World" message
+
+transitions:
+  - id: say_hello
+    from: start
+    to: end
+    call:
+      - tool: createChatMessage
+        args:
+          role: 'assistant'
+          content: 'Hello World!'
