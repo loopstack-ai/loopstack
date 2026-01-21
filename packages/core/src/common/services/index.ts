@@ -1,0 +1,6 @@
+export * from './template.service';
+export * from './expression-handler/object-expression.handler';
+export * from './expression-handler/template-expression.handler';
+export * from './handlebars-processor.service';
+export * from './handlebars-helpers';
+export * from './template-expression-evaluator.service';
