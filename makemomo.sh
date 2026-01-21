@@ -13,7 +13,7 @@ git() {
 # Configuration: Add your subprojects here
 # Format: "repo_url|target_path|branch"
 SUBPROJECTS=(
-    "git@github.com:loopstack-ai/contracts.git|packages/contracts|main"
+  "git@github.com:loopstack-ai/cli.git|packages/cli-module|main"
 )
 
 # Base branch to create feature branches from
