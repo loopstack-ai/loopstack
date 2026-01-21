@@ -13,10 +13,6 @@
 [submodule "apps/loopstack-cloud/frontend"]
 	path = apps/loopstack-cloud/frontend
 	url = git@github.com:loopstack-ai/loopstack-cloud.git
-[submodule "frontend/loopstack-studio"]
-	path = frontend/loopstack-studio
-	url = git@github.com:loopstack-ai/loopstack-studio.git
-
 [submodule "apps/dev-tools"]
 	path = apps/dev-tools
 	url = git@github.com:loopstack-ai/dev-tools.git
