@@ -7,9 +7,6 @@
 [submodule "packages/common"]
 	path = packages/common
 	url = git@github.com:loopstack-ai/common.git
-[submodule "packages/contracts"]
-	path = packages/contracts
-	url = git@github.com:loopstack-ai/contracts.git
 [submodule "packages/auth"]
     path = packages/auth
     url = git@github.com:loopstack-ai/auth.git
