@@ -28,7 +28,6 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "format": "prettier --write .",
-    "docker:push": "make deploy IMAGE_NAME=jakobklippel/loopstack-studio",
     "test": "vitest",
     "prepare": "husky"
   },

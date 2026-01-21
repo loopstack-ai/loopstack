@@ -10,9 +10,12 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "watch": "tsc --watch",
+    "build": "nest build",
+    "watch": "nest build --watch",
     "compile": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write ."
