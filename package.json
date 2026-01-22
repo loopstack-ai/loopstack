@@ -2,8 +2,8 @@
   "name": "loopstack",
   "displayName": "Loopstack AI Workflow Automation Framework",
   "description": "A monorepo to maintain loopstack core module and demo applications",
-  "version": "0.0.3",
-  "packageManager": "npm@10.9.2",
+  "version": "0.17.0",
+  "packageManager": "npm@11.8.0",
   "main": "index.js",
   "author": {
     "name": "Jakob Klippel",
@@ -18,7 +18,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.29.4",
+    "@changesets/cli": "^2.29.8",
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.39.2",
     "@nestjs/cli": "^11.0.16",
@@ -29,7 +29,7 @@
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.23",
-    "@types/node": "^25.0.9",
+    "@types/node": "^25.0.10",
     "@types/supertest": "^6.0.3",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",

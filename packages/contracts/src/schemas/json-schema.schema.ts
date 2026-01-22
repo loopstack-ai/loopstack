@@ -90,8 +90,8 @@ export const JSONSchemaType: z.ZodType<JSONSchemaDefinition> = z.lazy(() =>
     contains: JSONSchemaType.optional(),
 
     // Object validators
-    properties: z.record(JSONSchemaType).optional(),
-    patternProperties: z.record(JSONSchemaType).optional(),
+    properties: z.record(z.string(), JSONSchemaType).optional(),
+    patternProperties: z.record(z.string(), JSONSchemaType).optional(),
     additionalProperties: z.union([z.boolean(), JSONSchemaType]).optional(),
     required: z.array(z.string()).optional(),
     propertyNames: JSONSchemaType.optional(),
@@ -114,7 +114,7 @@ export const JSONSchemaType: z.ZodType<JSONSchemaDefinition> = z.lazy(() =>
     const: z.unknown().optional(),
 
     // Schema composition
-    definitions: z.record(JSONSchemaType).optional(),
+    definitions: z.record(z.string(), JSONSchemaType).optional(),
     $ref: z.string().optional(),
   }),
 );

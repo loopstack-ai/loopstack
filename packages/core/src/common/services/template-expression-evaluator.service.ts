@@ -10,7 +10,7 @@ export class TemplateExpressionEvaluatorService {
 
   constructor(private templateService: TemplateService) {}
 
-  private validateResult<T>(result: T, schema: z.ZodType<T, z.ZodTypeDef, unknown>): T {
+  private validateResult<T>(result: unknown, schema: z.ZodType<T>): T {
     try {
       return schema.parse(result);
     } catch (error) {
@@ -44,9 +44,7 @@ export class TemplateExpressionEvaluatorService {
     //   this.logger.debug(result);
     // }
 
-    return options?.schema
-      ? this.validateResult(result, options.schema as z.ZodType<T, z.ZodTypeDef, unknown>)
-      : result;
+    return options?.schema ? this.validateResult(result, options.schema as z.ZodType<T>) : result;
   }
 
   public evaluateTemplateRaw<T>(obj: unknown, variables: Record<string, unknown>, options?: TemplateExOptions): T {

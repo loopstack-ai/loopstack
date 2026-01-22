@@ -2,7 +2,7 @@
   "name": "@loopstack/contracts",
   "displayName": "Loopstack Contracts",
   "description": "A collection of types and schemas shared between projects",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "license": "BSL",
   "author": {
     "name": "Jakob Klippel",
@@ -13,6 +13,9 @@
   "files": [
     "dist"
   ],
+  "dependencies": {
+    "zod": "^4.3.5"
+  },
   "exports": {
     "./types": {
       "types": "./dist/types/index.d.ts",
@@ -46,8 +49,5 @@
     "compile": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write ."
-  },
-  "peerDependencies": {
-    "zod": "^3.25.76"
   }
 }
