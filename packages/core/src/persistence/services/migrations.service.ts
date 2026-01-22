@@ -38,9 +38,9 @@ export class MigrationsService implements OnModuleInit {
             )
           `);
 
-          const existingMigration = await queryRunner.manager
+          const existingMigration = (await queryRunner.manager
             .query(`SELECT * FROM core_migrations WHERE name = $1`, [name])
-            .catch(() => null);
+            .catch(() => null)) as unknown[] | null;
 
           if (!existingMigration && existingMigration !== null) {
             await queryRunner.manager.query(`
@@ -56,26 +56,26 @@ export class MigrationsService implements OnModuleInit {
           if (!existingMigration || existingMigration.length === 0) {
             await migration.up(queryRunner);
 
-            await queryRunner.manager.query(
-              `INSERT INTO core_migrations (name, timestamp) VALUES ($1, $2)`,
-              [name, Date.now()],
-            );
+            await queryRunner.manager.query(`INSERT INTO core_migrations (name, timestamp) VALUES ($1, $2)`, [
+              name,
+              Date.now(),
+            ]);
 
             this.logger.log(`Migration applied: ${name}`);
           } else {
             this.logger.log(`Migration already applied: ${name}`);
           }
-        } catch (error) {
-          this.logger.error(
-            `Failed to apply migration ${name}: ${error.message}`,
-          );
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          this.logger.error(`Failed to apply migration ${name}: ${message}`);
           throw error;
         }
       }
 
       this.logger.log('All migrations completed successfully');
-    } catch (error) {
-      this.logger.error(`Migration failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Migration failed: ${message}`);
       throw error;
     }
   }

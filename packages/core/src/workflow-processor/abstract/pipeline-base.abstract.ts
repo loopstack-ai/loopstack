@@ -1,9 +1,5 @@
 import { Expose, instanceToPlain } from 'class-transformer';
-import {
-  BlockInterface,
-  BlockStateDto,
-  WorkflowExecutionContextDto,
-} from '../../common';
+import { BlockInterface, BlockStateDto, WorkflowExecutionContextDto } from '../../common';
 import { Block } from './block.abstract';
 
 export class PipelineBase extends Block implements BlockInterface {
@@ -31,9 +27,9 @@ export class PipelineBase extends Block implements BlockInterface {
     });
   }
 
-  #steps: Record<string, any> = {};
+  #steps: Record<string, unknown> = {};
 
-  addStepResult(key: string, value: any) {
+  addStepResult(key: string, value: unknown) {
     this.#steps[key] = value;
   }
 

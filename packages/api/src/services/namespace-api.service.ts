@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, Repository, IsNull } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { FindManyOptions, IsNull, Repository } from 'typeorm';
+import { NamespaceEntity } from '@loopstack/common';
 import { NamespaceFilterDto } from '../dtos/namespace-filter.dto';
 import { NamespaceSortByDto } from '../dtos/namespace-sort-by.dto';
-import { NamespaceEntity } from '@loopstack/common';
 
 @Injectable()
 export class NamespaceApiService {
@@ -31,20 +31,11 @@ export class NamespaceApiService {
     page: number;
     limit: number;
   }> {
-    const defaultLimit = this.configService.get<number>(
-      'NAMESPACE_DEFAULT_LIMIT',
-      100,
-    );
-    const defaultSortBy = this.configService.get<NamespaceSortByDto[]>(
-      'NAMESPACE_DEFAULT_SORT_BY',
-      [],
-    );
+    const defaultLimit = this.configService.get<number>('NAMESPACE_DEFAULT_LIMIT', 100);
+    const defaultSortBy = this.configService.get<NamespaceSortByDto[]>('NAMESPACE_DEFAULT_SORT_BY', []);
 
     const transformedFilter = Object.fromEntries(
-      Object.entries(filter).map(([key, value]) => [
-        key,
-        value === null ? IsNull() : value,
-      ]),
+      Object.entries(filter).map(([key, value]) => [key, value === null ? IsNull() : value]),
     );
 
     const findOptions: FindManyOptions<NamespaceEntity> = {
@@ -60,14 +51,10 @@ export class NamespaceApiService {
         {} as Record<string, 'ASC' | 'DESC'>,
       ),
       take: pagination.limit ?? defaultLimit,
-      skip:
-        pagination.page && pagination.limit
-          ? (pagination.page - 1) * pagination.limit
-          : 0,
+      skip: pagination.page && pagination.limit ? (pagination.page - 1) * pagination.limit : 0,
     };
 
-    const [data, total] =
-      await this.namespaceRepository.findAndCount(findOptions);
+    const [data, total] = await this.namespaceRepository.findAndCount(findOptions);
 
     return {
       data,

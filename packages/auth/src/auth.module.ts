@@ -1,18 +1,17 @@
-import { Module, DynamicModule } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
-import { AuthService, TokenService, HubService } from './services';
-import { JwtStrategy, HubStrategy } from './strategies';
-import { AuthController } from './controllers';
-import { UserRepository } from './repositories';
-import { AuthConfig } from './interfaces';
-import { AUTH_CONFIG } from './constants';
+import type { StringValue } from 'ms';
 import { Permission, Role, User } from '@loopstack/common';
+import { AuthController } from './controllers';
+import { JwtAuthGuard } from './guards';
+import { UserRepository } from './repositories';
+import { AuthService, HubService, TokenService } from './services';
 import { ConfigValidationService } from './services/config-validation.service';
 import { HubAuditService } from './services/hub-audit.service';
-import { JwtAuthGuard } from './guards';
+import { HubStrategy, JwtStrategy } from './strategies';
 
 @Module({})
 export class AuthModule {
@@ -29,7 +28,7 @@ export class AuthModule {
           useFactory: (configService: ConfigService) => ({
             secret: configService.get<string>('auth.jwt.secret'),
             signOptions: {
-              expiresIn: configService.get<any>('auth.jwt.expiresIn') || '1h'
+              expiresIn: configService.get<StringValue | number | undefined>('auth.jwt.expiresIn') || '1h',
             },
           }),
           inject: [ConfigService],
@@ -38,11 +37,6 @@ export class AuthModule {
       ],
       controllers: [AuthController],
       providers: [
-        {
-          provide: AUTH_CONFIG,
-          useFactory: (configService: ConfigService) => configService.get<AuthConfig>('auth'),
-          inject: [ConfigService],
-        },
         ConfigValidationService,
         AuthService,
         UserRepository,

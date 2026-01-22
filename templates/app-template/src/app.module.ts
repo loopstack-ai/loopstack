@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoopstackApiModule } from '@loopstack/api';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { loopstackConfig } from './loopstack.config';
-import { DefaultModule } from './default.module';
 import { CliModule } from '@loopstack/cli-module';
+import { LoopCoreModule } from '@loopstack/core';
+import { DefaultModule } from './default.module';
+import { loopstackConfig } from './loopstack.config';
 
 @Module({
   imports: [

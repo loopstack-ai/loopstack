@@ -1,31 +1,31 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Param,
+  ParseIntPipe,
+  Query,
   UsePipes,
   ValidationPipe,
-  Query,
-  ParseIntPipe,
-  BadRequestException,
 } from '@nestjs/common';
 import {
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
   ApiExtraModels,
   ApiOkResponse,
+  ApiOperation,
+  ApiParam,
   ApiQuery,
+  ApiResponse,
+  ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { DocumentApiService } from '../services/document-api.service';
-import { PaginatedDto } from '../dtos/paginated.dto';
-import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
-import { DocumentDto } from '../dtos/document.dto';
-import { DocumentItemDto } from '../dtos/document-item.dto';
-import { DocumentFilterDto } from '../dtos/document-filter.dto';
-import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
+import { DocumentFilterDto } from '../dtos/document-filter.dto';
+import { DocumentItemDto } from '../dtos/document-item.dto';
+import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
+import { DocumentDto } from '../dtos/document.dto';
+import { PaginatedDto } from '../dtos/paginated.dto';
+import { DocumentApiService } from '../services/document-api.service';
 
 @ApiTags('api/v1/documents')
 @ApiExtraModels(DocumentDto, DocumentItemDto)
@@ -85,7 +85,7 @@ export class DocumentController {
     if (filterParam) {
       try {
         filter = JSON.parse(filterParam) as DocumentFilterDto;
-      } catch (e) {
+      } catch {
         throw new BadRequestException('Invalid filter format');
       }
     }
@@ -94,20 +94,15 @@ export class DocumentController {
     if (sortByParam) {
       try {
         sortBy = JSON.parse(sortByParam) as DocumentSortByDto[];
-      } catch (e) {
+      } catch {
         throw new BadRequestException('Invalid sortBy format');
       }
     }
 
-    const result = await this.documentService.findAll(
-      user.userId,
-      filter,
-      sortBy,
-      {
-        page,
-        limit,
-      },
-    );
+    const result = await this.documentService.findAll(user.userId, filter, sortBy, {
+      page,
+      limit,
+    });
     return PaginatedDto.create(DocumentItemDto, result);
   }
 
@@ -120,10 +115,7 @@ export class DocumentController {
   @ApiResponse({ status: 404, description: 'Document not found' })
   @ApiOkResponse({ type: DocumentDto })
   @ApiUnauthorizedResponse()
-  async getDocumentById(
-    @Param('id') id: string,
-    @CurrentUser() user: CurrentUserInterface,
-  ): Promise<DocumentDto> {
+  async getDocumentById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<DocumentDto> {
     const document = await this.documentService.findOneById(id, user.userId);
     return DocumentDto.create(document);
   }

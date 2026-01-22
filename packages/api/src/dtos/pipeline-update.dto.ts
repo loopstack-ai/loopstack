@@ -1,13 +1,6 @@
-import {
-  IsString,
-  IsArray,
-  ArrayNotEmpty,
-  IsOptional,
-  MaxLength,
-  ValidateIf,
-} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { ArrayNotEmpty, IsArray, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
 
 /**
  * Data Transfer Object for updating an existing pipeline
@@ -17,7 +10,7 @@ export class PipelineUpdateDto {
    * Human-readable title for the pipeline
    * @example "My Updated Pipeline"
    */
-  @ValidateIf((o) => o.title !== undefined)
+  @ValidateIf((o: { title?: string }) => o.title !== undefined)
   @IsString()
   @IsOptional()
   @MaxLength(200, { message: 'Pipeline title must not exceed 200 characters' })
@@ -31,7 +24,7 @@ export class PipelineUpdateDto {
    * Array of labels/tags associated with the pipeline
    * @example ["frontend", "react", "typescript"]
    */
-  @ValidateIf((o) => o.labels !== undefined)
+  @ValidateIf((o: { labels?: string }) => o.labels !== undefined)
   @IsArray()
   @ArrayNotEmpty({ message: 'Labels array cannot be empty' })
   @IsString({ each: true, message: 'Each label must be a string' })

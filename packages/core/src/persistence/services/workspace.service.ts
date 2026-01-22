@@ -1,7 +1,7 @@
+import { Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
-import { Logger } from '@nestjs/common';
 
 export class WorkspaceService {
   private readonly logger = new Logger(WorkspaceService.name);
@@ -11,10 +11,7 @@ export class WorkspaceService {
     private workspaceRepository: Repository<WorkspaceEntity>,
   ) {}
 
-  async getWorkspace(
-    where: FindOptionsWhere<WorkspaceEntity>,
-    user: string,
-  ): Promise<WorkspaceEntity | null> {
+  async getWorkspace(where: FindOptionsWhere<WorkspaceEntity>, user: string): Promise<WorkspaceEntity | null> {
     return this.workspaceRepository.findOne({
       where: {
         ...where,

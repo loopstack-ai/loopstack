@@ -1,17 +1,8 @@
-import {
-  DocumentEntity,
-  ToolResultLookup,
-  TransitionResultLookup,
-} from '@loopstack/common';
-
-import type {
-  HistoryTransition,
-  WorkflowTransitionType,
-} from '@loopstack/contracts/types';
-
 import { Expose } from 'class-transformer';
-import { WorkflowTransitionDto } from './workflow-transition.dto';
+import { DocumentEntity, ToolResultLookup, TransitionResultLookup } from '@loopstack/common';
+import type { HistoryTransition, WorkflowTransitionType } from '@loopstack/contracts/types';
 import { PersistenceState } from '../interfaces';
+import { WorkflowTransitionDto } from './workflow-transition.dto';
 
 interface BlockStateInterface {
   id: string;
@@ -34,10 +25,7 @@ export class BlockStateDto implements BlockStateInterface {
   }
 }
 
-export type InitWorkflowState = Omit<
-  WorkflowStateDto,
-  'addDocuments' | 'addDocument' | 'updateDocument'
->;
+export type InitWorkflowState = Omit<WorkflowStateDto, 'addDocuments' | 'addDocument' | 'updateDocument'>;
 
 export class WorkflowStateDto implements BlockStateInterface {
   @Expose()
@@ -79,9 +67,7 @@ export class WorkflowStateDto implements BlockStateInterface {
 
   addDocuments(documents: DocumentEntity[]) {
     for (const document of documents) {
-      const existingIndex = document.id
-        ? this.documents.findIndex((d) => d.id === document.id)
-        : -1;
+      const existingIndex = document.id ? this.documents.findIndex((d) => d.id === document.id) : -1;
 
       if (existingIndex != -1) {
         this.updateDocument(existingIndex, document);
@@ -102,10 +88,7 @@ export class WorkflowStateDto implements BlockStateInterface {
   addDocument(document: DocumentEntity) {
     // invalidate previous versions of the same document
     for (const doc of this.documents) {
-      if (
-        doc.messageId === document.messageId &&
-        doc.meta?.invalidate !== false
-      ) {
+      if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
         doc.isInvalidated = true;
       }
     }

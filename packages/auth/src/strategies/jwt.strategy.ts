@@ -1,16 +1,15 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, Inject } from '@nestjs/common';
 import { Request } from 'express';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { CurrentUserInterface, JwtPayloadInterface } from '@loopstack/common';
 import { AuthConfig } from '../interfaces';
-import { AUTH_CONFIG } from '../constants';
-import { JwtPayloadInterface } from '@loopstack/common';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(
-    @Inject(AUTH_CONFIG) config: AuthConfig,
-  ) {
+  constructor(configService: ConfigService) {
+    const config = configService.getOrThrow<AuthConfig>('auth');
     const cookieName = `${config.clientId}-access`;
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -18,20 +17,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
-      secretOrKey: config.jwt?.secret,
+      secretOrKey: config.jwt?.secret ?? '',
     });
   }
 
   private static extractJWTFromCookie(cookieName: string) {
     return (req: Request): string | null => {
-      if (req.cookies && req.cookies[cookieName]) {
-        return req.cookies[cookieName];
+      const cookies = req.cookies as Record<string, string> | undefined;
+      if (cookies && cookies[cookieName]) {
+        return cookies[cookieName];
       }
       return null;
-    }
+    };
   }
 
-  async validate(payload: JwtPayloadInterface) {
+  validate(payload: JwtPayloadInterface): CurrentUserInterface {
     return {
       userId: payload.sub,
       type: payload.type,

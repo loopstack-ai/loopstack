@@ -1,5 +1,5 @@
-import { Expose, plainToInstance, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { Expose, plainToInstance } from 'class-transformer';
 import { NamespaceEntity } from '@loopstack/common';
 
 /**

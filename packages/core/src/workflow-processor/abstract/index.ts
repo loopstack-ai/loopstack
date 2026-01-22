@@ -1,4 +1,4 @@
-export * from './block.abstract'
+export * from './block.abstract';
 export * from './tool-base.abstract';
 export * from './pipeline-base.abstract';
 export * from './workflow-base.abstract';

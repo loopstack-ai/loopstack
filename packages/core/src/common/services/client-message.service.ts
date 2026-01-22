@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { ClientMessageInterface } from '@loopstack/contracts/types';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { WorkflowEntity } from '@loopstack/common';
+import { ClientMessageInterface } from '@loopstack/contracts/types';
 import { ClientMessageDto } from '../dtos/client-message.dto';
-import { DocumentEntity, WorkflowEntity } from '@loopstack/common';
 
 @Injectable()
 export class ClientMessageService {

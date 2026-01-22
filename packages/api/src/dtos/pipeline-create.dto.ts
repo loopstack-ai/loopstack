@@ -1,14 +1,15 @@
-import {
-  IsString,
-  IsArray,
-  IsNotEmpty,
-  ArrayNotEmpty,
-  IsUUID,
-  MaxLength,
-  ValidateIf, IsOptional,
-} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  ValidateIf,
+} from 'class-validator';
 
 /**
  * Data Transfer Object for creating a new pipeline
@@ -46,7 +47,7 @@ export class PipelineCreateDto {
    * Array of labels/tags associated with the pipeline
    * @example ["frontend", "react", "typescript"]
    */
-  @ValidateIf((o) => o.labels !== undefined)
+  @ValidateIf((o: { labels?: string[] }) => o.labels !== undefined)
   @IsArray()
   @ArrayNotEmpty()
   @IsString({ each: true, message: 'Each label must be a string' })
@@ -89,5 +90,5 @@ export class PipelineCreateDto {
     description: 'Arguments for the pipeline run',
     nullable: true,
   })
-  args: any | null;
+  args: any;
 }

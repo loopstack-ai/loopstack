@@ -1,9 +1,5 @@
 import { Logger } from '@nestjs/common';
-import {
-  generateObjectFingerprint,
-  StateMachineValidator,
-  StateMachineValidatorInterface,
-} from '@loopstack/common';
+import { StateMachineValidator, StateMachineValidatorInterface, generateObjectFingerprint } from '@loopstack/common';
 import { WorkflowEntity } from '@loopstack/common';
 
 @StateMachineValidator({ priority: 100 })

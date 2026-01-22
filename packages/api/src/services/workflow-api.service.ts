@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, Repository, IsNull } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
+import { FindManyOptions, IsNull, Repository } from 'typeorm';
 import { WorkflowEntity } from '@loopstack/common';
+import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
+import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
 
 @Injectable()
 export class WorkflowApiService {
@@ -31,20 +31,11 @@ export class WorkflowApiService {
     page: number;
     limit: number;
   }> {
-    const defaultLimit = this.configService.get<number>(
-      'WORKFLOW_DEFAULT_LIMIT',
-      100,
-    );
-    const defaultSortBy = this.configService.get<WorkflowSortByDto[]>(
-      'WORKFLOW_DEFAULT_SORT_BY',
-      [],
-    );
+    const defaultLimit = this.configService.get<number>('WORKFLOW_DEFAULT_LIMIT', 100);
+    const defaultSortBy = this.configService.get<WorkflowSortByDto[]>('WORKFLOW_DEFAULT_SORT_BY', []);
 
     const transformedFilter = Object.fromEntries(
-      Object.entries(filter).map(([key, value]) => [
-        key,
-        value === null ? IsNull() : value,
-      ]),
+      Object.entries(filter).map(([key, value]) => [key, value === null ? IsNull() : value]),
     );
 
     const findOptions: FindManyOptions<WorkflowEntity> = {
@@ -60,14 +51,10 @@ export class WorkflowApiService {
         {} as Record<string, 'ASC' | 'DESC'>,
       ),
       take: pagination.limit ?? defaultLimit,
-      skip:
-        pagination.page && pagination.limit
-          ? (pagination.page - 1) * pagination.limit
-          : 0,
+      skip: pagination.page && pagination.limit ? (pagination.page - 1) * pagination.limit : 0,
     };
 
-    const [data, total] =
-      await this.workflowRepository.findAndCount(findOptions);
+    const [data, total] = await this.workflowRepository.findAndCount(findOptions);
 
     return {
       data,
@@ -105,8 +92,7 @@ export class WorkflowApiService {
       },
     });
 
-    if (!workflow)
-      throw new NotFoundException(`Workflow with ID ${id} not found`);
+    if (!workflow) throw new NotFoundException(`Workflow with ID ${id} not found`);
 
     await this.workflowRepository.delete(id);
   }

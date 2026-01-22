@@ -1,2 +1,2 @@
-export * from './jwt.strategy'
-export * from './hub.strategy'
+export * from './jwt.strategy';
+export * from './hub.strategy';

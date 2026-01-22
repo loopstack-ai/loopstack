@@ -1,15 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserRepository } from '../repositories';
-import { TokenService } from './token.service';
-import {
-  JwtPayloadInterface,
-  User,
-} from '@loopstack/common';
-import { WorkerInfoDto } from '../dtos/worker-info.dto';
-import { plainToInstance } from 'class-transformer';
 import { ConfigService } from '@nestjs/config';
+import { plainToInstance } from 'class-transformer';
+import { JwtPayloadInterface, User } from '@loopstack/common';
 import { AuthResponseDto } from '../dtos/auth-response.dto';
 import { UserResponseDto } from '../dtos/user-response.dto';
+import { WorkerInfoDto } from '../dtos/worker-info.dto';
+import { UserRepository } from '../repositories';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthService {
@@ -20,11 +17,11 @@ export class AuthService {
   ) {}
 
   async login(user: User): Promise<AuthResponseDto> {
-    const workerId = this.configService.get('auth.clientId');
+    const workerId = this.configService.get<string>('auth.clientId') ?? '';
     const payload: JwtPayloadInterface = {
       sub: user.id,
       type: user.type,
-      roles: user.roles?.map(role => role.name) || [],
+      roles: user.roles?.map((role) => role.name) || [],
       workerId,
     };
 
@@ -49,15 +46,15 @@ export class AuthService {
         sub: payload.sub,
         type: payload.type,
         workerId: payload.workerId,
-        roles: user.roles?.map(role => role.name) || [],
-      }
+        roles: user.roles?.map((role) => role.name) || [],
+      };
 
       const tokens = await this.tokenService.generateTokens(newPayload);
       return {
         ...tokens,
         tokenType: 'Bearer',
       };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
@@ -66,7 +63,7 @@ export class AuthService {
     return {
       id: user.id,
       isActive: user.isActive,
-      roles: user.roles?.map(role => role.name) || [],
+      roles: user.roles?.map((role) => role.name) || [],
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -82,12 +79,16 @@ export class AuthService {
 
   getWorkerHealthInfo(): WorkerInfoDto {
     const isLocalMode = this.configService.get<boolean>('app.isLocalMode');
-    return plainToInstance(WorkerInfoDto, {
-      clientId: isLocalMode ? 'local' : this.configService.get<string>('auth.clientId'),
-      isConfigured: isLocalMode || !!this.configService.get<string>('auth.clientSecret'),
-      timestamp: new Date(),
-    }, {
-      excludeExtraneousValues: true,
-    });
+    return plainToInstance(
+      WorkerInfoDto,
+      {
+        clientId: isLocalMode ? 'local' : this.configService.get<string>('auth.clientId'),
+        isConfigured: isLocalMode || !!this.configService.get<string>('auth.clientSecret'),
+        timestamp: new Date(),
+      },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 }

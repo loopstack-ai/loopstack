@@ -1,20 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ProcessorFactory } from '../processor.factory';
+import { PipelineFactoryIteratorType } from '@loopstack/contracts/types';
 import {
-  PipelineFactoryConfigType,
-  PipelineFactoryIteratorType,
-} from '@loopstack/contracts/types';
-import { PipelineFactoryIteratorSchema } from '@loopstack/contracts/schemas';
-import { NamespaceProcessorService } from '../namespace-processor.service';
-import { BlockProcessor } from '../block-processor.service';
-import {
-  BlockContextType, BlockExecutionContextDto,
-  BlockInterface, FactoryExecutionContextDto, PipelineExecutionContextDto,
+  BlockContextType,
+  BlockExecutionContextDto,
+  PipelineExecutionContextDto,
   Processor,
   TemplateExpressionEvaluatorService,
 } from '../../../common';
 import { FactoryBase } from '../../abstract/factory-base.abstract';
 import { WorkflowExecution } from '../../interfaces/workflow-execution.interface';
+import { BlockProcessor } from '../block-processor.service';
+import { NamespaceProcessorService } from '../namespace-processor.service';
 
 @Injectable()
 export class FactoryProcessorService implements Processor {
@@ -44,10 +40,7 @@ export class FactoryProcessorService implements Processor {
       const item = iterator.source[i];
 
       // create a new namespace for each child
-      const namespace = await this.namespaceProcessorService.createNamespace(
-        ctx,
-        { label: `${item} (${i + 1})` },
-      );
+      const namespace = await this.namespaceProcessorService.createNamespace(ctx, { label: `${item} (${i + 1})` });
 
       executionContexts[item] = {
         ...ctx,
@@ -60,7 +53,8 @@ export class FactoryProcessorService implements Processor {
     return executionContexts;
   }
 
-  private validateAvailable(name: string, parentBlock: BlockInterface) {
+  private validateAvailable() {
+    // name: string, parentBlock: BlockInterface
     // if (!parentBlock.metadata?.imports.some((item) => item.name === name)) {
     //   throw new Error(
     //     `Block ${name} is not available. Make sure to import required blocks to the parent.`,
@@ -69,7 +63,8 @@ export class FactoryProcessorService implements Processor {
   }
 
   async process(block: FactoryBase, args: any, ctx: BlockExecutionContextDto): Promise<WorkflowExecution> {
-    ctx = await this.namespaceProcessorService.initBlockNamespace(block, ctx);
+    // ctx = await this.namespaceProcessorService.initBlockNamespace(block, ctx);
+    await this.namespaceProcessorService.initBlockNamespace(block, ctx);
 
     // this.logger.debug(`Running Factory: ${block.name}`);
     // const config = block.config as unknown as PipelineFactoryConfigType;
@@ -176,6 +171,6 @@ export class FactoryProcessorService implements Processor {
     //   block.state.error = true;
     // }
 
-    return {} as any;
+    return {} as WorkflowExecution;
   }
 }

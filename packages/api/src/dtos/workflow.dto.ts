@@ -1,11 +1,9 @@
-import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  WorkflowEntity,
-  WorkflowState,
-} from '@loopstack/common';
+import { Expose, plainToInstance } from 'class-transformer';
+import { WorkflowEntity, WorkflowState } from '@loopstack/common';
 import type {
-  HistoryTransition, JSONSchemaConfigType,
+  HistoryTransition,
+  JSONSchemaConfigType,
   UiFormType,
   WorkflowInterface,
   WorkflowTransitionType,
@@ -51,8 +49,7 @@ export class WorkflowDto implements WorkflowInterface {
   @ApiProperty({
     type: 'array',
     items: { type: 'string' },
-    description:
-      'Tags associated with the workflow for categorization and filtering',
+    description: 'Tags associated with the workflow for categorization and filtering',
     example: ['frontend', 'featureXY'],
   })
   labels: string[];
@@ -100,8 +97,7 @@ export class WorkflowDto implements WorkflowInterface {
 
   @Expose()
   @ApiPropertyOptional({
-    description:
-      'Available transitions for the current place in the workflow',
+    description: 'Available transitions for the current place in the workflow',
     nullable: true,
     isArray: true,
   })

@@ -5,9 +5,5 @@ import { Block } from './block.abstract';
 export abstract class ToolBase<TArgs extends object = any> extends Block {
   public type: string = 'tool';
 
-  public abstract execute(
-    args: TArgs,
-    ctx: WorkflowExecution,
-    parentBlock?: Block,
-  ): Promise<ToolResult>;
+  public abstract execute(args: TArgs, ctx: WorkflowExecution, parentBlock?: Block): Promise<ToolResult>;
 }

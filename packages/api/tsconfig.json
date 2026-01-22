@@ -1,26 +1,26 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "target": "ES2023",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
+    "rootDir": "./src",
+    "incremental": false,
     "baseUrl": "./",
-    "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false,
-    "paths": {
-      "@loopstack/core": ["packages/core/src"],
-      "@loopstack/contracts": ["packages/contracts/src"],
-      "@loopstack/common": ["packages/common/src"]
-    },
-  }
+    "noFallthroughCasesInSwitch": false
+  },
+  "include": ["./src", "./test"],
+  "exclude": ["node_modules", "dist"]
 }

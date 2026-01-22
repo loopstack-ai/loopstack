@@ -2,9 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class CleanupPipelineTaskProcessorService {
-  private readonly logger = new Logger(
-    CleanupPipelineTaskProcessorService.name,
-  );
+  private readonly logger = new Logger(CleanupPipelineTaskProcessorService.name);
 
   // constructor(
   //   private readonly configurationService: ConfigurationService,

@@ -1,5 +1,5 @@
-import { IsOptional } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 
 /**

@@ -1,21 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ProcessorFactory } from '../processor.factory';
+import { PipelineItemConfigType, PipelineSequenceType } from '@loopstack/contracts/types';
+import { BlockExecutionContextDto, Processor, TemplateExpressionEvaluatorService } from '../../../common';
 import { PipelineBase } from '../../abstract';
-import { PipelineItemSchema } from '@loopstack/contracts/schemas';
-import {
-  PipelineItemConfigType,
-  PipelineItemType,
-  PipelineSequenceType,
-} from '@loopstack/contracts/types';
-import { BlockProcessor } from '../block-processor.service';
-import {
-  BlockExecutionContextDto,
-  BlockInterface, PipelineExecutionContextDto,
-  Processor,
-  TemplateExpressionEvaluatorService,
-} from '../../../common';
-import { NamespaceProcessorService } from '../namespace-processor.service';
 import { WorkflowExecution } from '../../interfaces/workflow-execution.interface';
+import { BlockProcessor } from '../block-processor.service';
+import { NamespaceProcessorService } from '../namespace-processor.service';
 
 @Injectable()
 export class SequenceProcessorService implements Processor {
@@ -27,7 +16,8 @@ export class SequenceProcessorService implements Processor {
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
   ) {}
 
-  private validateAvailable(name: string, parentBlock: BlockInterface) {
+  private validateAvailable() {
+    //name: string, parentBlock: BlockInterface
     // if (!parentBlock.metadata?.imports.some((item) => item.name === name)) {
     //   throw new Error(
     //     `Block ${name} is not available. Make sure to import required blocks to the parent.`,
@@ -36,7 +26,8 @@ export class SequenceProcessorService implements Processor {
   }
 
   async process(block: PipelineBase, args: any, ctx: BlockExecutionContextDto): Promise<WorkflowExecution> {
-    ctx = await this.namespaceProcessorService.initBlockNamespace(block, ctx);
+    // ctx = await this.namespaceProcessorService.initBlockNamespace(block, ctx);
+    await this.namespaceProcessorService.initBlockNamespace(block, ctx);
 
     this.logger.debug(`Running Sequence: ${block.name}`);
 
@@ -46,7 +37,7 @@ export class SequenceProcessorService implements Processor {
     this.logger.debug(`Processing sequence with ${sequence.length} items.`);
 
     // create a new index level
-    const index = `${ctx.index}.0`;
+    // const index = `${ctx.index}.0`;
 
     // for (let i = 0; i < sequence.length; i++) {
     //   const item: PipelineItemConfigType = sequence[i];
@@ -106,6 +97,6 @@ export class SequenceProcessorService implements Processor {
     // }
 
     this.logger.debug(`Processed all sequence items.`);
-    return { } as any;
+    return {} as WorkflowExecution;
   }
 }

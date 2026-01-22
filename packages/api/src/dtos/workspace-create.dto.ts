@@ -1,5 +1,5 @@
-import { IsString, MaxLength, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class WorkspaceCreateDto {
   /**
@@ -10,8 +10,7 @@ export class WorkspaceCreateDto {
   @IsString({ message: 'Workspace title must be a string' })
   @MaxLength(200, { message: 'Workspace title must not exceed 200 characters' })
   @ApiPropertyOptional({
-    description:
-      'Human-readable title for the workspace. If not provided, a default name will be generated',
+    description: 'Human-readable title for the workspace. If not provided, a default name will be generated',
     example: 'My Awesome Workspace',
   })
   title?: string;

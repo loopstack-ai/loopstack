@@ -1,9 +1,5 @@
-import { Expose, instanceToPlain, Type } from 'class-transformer';
-import {
-  BlockInterface,
-  BlockStateDto,
-  WorkspaceExecutionContextDto,
-} from '../../common';
+import { Expose, Type, instanceToPlain } from 'class-transformer';
+import { BlockInterface, BlockStateDto, WorkspaceExecutionContextDto } from '../../common';
 import { Block } from './block.abstract';
 
 export abstract class WorkspaceBase extends Block implements BlockInterface {

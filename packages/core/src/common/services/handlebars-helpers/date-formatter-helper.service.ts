@@ -4,7 +4,7 @@ import { format, formatDistanceToNow, isValid, parseISO } from 'date-fns';
 @Injectable()
 export class DateFormatterHelperService {
   private readonly MAX_FORMAT_LENGTH = 100;
-  private readonly ALLOWED_FORMAT_CHARS = /^[YyMmDdHhSsaAEepdT\s\-\/:.,'"]+$/;
+  private readonly ALLOWED_FORMAT_CHARS = /^[YyMmDdHhSsaAEepdT\s\-/:.,'"]+$/;
 
   private validateFormatString(formatString: string): boolean {
     if (!formatString) return true;
@@ -43,7 +43,7 @@ export class DateFormatterHelperService {
       }
 
       return isValid(dateObj) ? dateObj : null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -52,8 +52,8 @@ export class DateFormatterHelperService {
    * Factory method that returns currentDate helper function
    */
   getCurrentDateHelper() {
-    return (...args: any[]): string => {
-      const [formatString] = args.slice(0, -1);
+    return (...args: unknown[]): string => {
+      const [formatString] = args.slice(0, -1) as [string | undefined];
 
       const now = new Date();
 
@@ -83,7 +83,7 @@ export class DateFormatterHelperService {
 
       try {
         return format(now, pattern);
-      } catch (error) {
+      } catch {
         throw new Error(`Error Formatting Date: "${pattern}"`);
       }
     };
@@ -93,8 +93,8 @@ export class DateFormatterHelperService {
    * Factory method that returns formatDate helper function
    */
   getFormatDateHelper() {
-    return (...args: any[]): string => {
-      const [date, formatString] = args.slice(0, -1);
+    return (...args: unknown[]): string => {
+      const [date, formatString] = args.slice(0, -1) as [unknown, string | undefined];
 
       const dateObj = this.validateDateInput(date);
       if (!dateObj) {
@@ -111,7 +111,7 @@ export class DateFormatterHelperService {
 
       try {
         return format(dateObj, formatString);
-      } catch (error) {
+      } catch {
         throw new Error(`Error Formatting Date "${formatString}"`);
       }
     };
@@ -121,8 +121,8 @@ export class DateFormatterHelperService {
    * Factory method that returns timeAgo helper function
    */
   getTimeAgoHelper() {
-    return (...args: any[]): string => {
-      const [date] = args.slice(0, -1);
+    return (...args: unknown[]): string => {
+      const [date] = args.slice(0, -1) as [unknown];
 
       const dateObj = this.validateDateInput(date);
       if (!dateObj) {
@@ -131,7 +131,7 @@ export class DateFormatterHelperService {
 
       try {
         return formatDistanceToNow(dateObj, { addSuffix: true });
-      } catch (error) {
+      } catch {
         throw new Error(`Invalid Date`);
       }
     };

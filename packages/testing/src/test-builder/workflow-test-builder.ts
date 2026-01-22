@@ -1,13 +1,12 @@
+import { DynamicModule, ForwardReference, Provider, Type } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { Type } from '@nestjs/common';
-import {
-  WorkflowEntity,
-  WorkflowState,
-} from '@loopstack/common';
+import { WorkflowEntity, WorkflowState } from '@loopstack/common';
 import { WorkflowService } from '@loopstack/core';
 import { mockCoreModuleProviders } from './core-module-mock';
 import { createTestingModule } from './create-testing-module';
 import { createToolMock } from './tool-test-builder';
+
+type ModuleImport = Type | DynamicModule | Promise<DynamicModule> | ForwardReference;
 
 export const DEFAULT_WORKFLOW_ENTITY: Omit<WorkflowEntity, 'namespace'> = {
   id: '00000000-0000-0000-0000-000000000000',
@@ -59,7 +58,7 @@ export function createWorkflowServiceMock(mockEntity = {}): WorkflowServiceMock 
         ...input,
         id: crypto.randomUUID(),
         ...mockEntity,
-      })
+      }),
     ),
     findOneByQuery: jest.fn().mockResolvedValue(undefined),
   };
@@ -81,9 +80,9 @@ export function createWorkflowServiceMock(mockEntity = {}): WorkflowServiceMock 
  * const processor = module.get(WorkflowProcessorService);
  * ```
  */
-export class WorkflowTestBuilder<TWorkflow = any> {
-  private imports: any[] = [];
-  private providers: any[] = [];
+export class WorkflowTestBuilder<TWorkflow = unknown> {
+  private imports: ModuleImport[] = [];
+  private providers: Provider[] = [];
   private overrides = new Map<any, any>();
   private workflowClass?: Type<TWorkflow>;
   private workflowServiceMock: WorkflowServiceMock;
@@ -97,7 +96,7 @@ export class WorkflowTestBuilder<TWorkflow = any> {
    * Set the workflow class to test
    */
   forWorkflow<T>(workflowClass: Type<T>): WorkflowTestBuilder<T> {
-    this.workflowClass = workflowClass as any;
+    (this.workflowClass as Type<unknown> | undefined) = workflowClass;
     this.providers.push(workflowClass);
     return this as unknown as WorkflowTestBuilder<T>;
   }
@@ -105,7 +104,7 @@ export class WorkflowTestBuilder<TWorkflow = any> {
   /**
    * Add module imports
    */
-  withImports(...imports: any[]): this {
+  withImports(...imports: ModuleImport[]): this {
     this.imports.push(...imports);
     return this;
   }
@@ -121,7 +120,7 @@ export class WorkflowTestBuilder<TWorkflow = any> {
   /**
    * Add multiple providers at once
    */
-  withProviders(...providers: any[]): this {
+  withProviders(...providers: Provider[]): this {
     this.providers.push(...providers);
     return this;
   }
@@ -130,7 +129,7 @@ export class WorkflowTestBuilder<TWorkflow = any> {
    * Mock a provider with a specific value
    * Use for providers defined in local providers array
    */
-  withMock<T>(token: Type<T> | string | symbol, mock: Partial<T> | any): this {
+  withMock<T>(token: Type<T> | string | symbol, mock: Partial<T>): this {
     this.providers.push({
       provide: token,
       useValue: mock,
@@ -142,7 +141,7 @@ export class WorkflowTestBuilder<TWorkflow = any> {
    * Override a provider from an imported module
    * Use for providers that come from imported modules
    */
-  withOverride<T>(token: Type<T> | string | symbol, mock: Partial<T> | any): this {
+  withOverride<T>(token: Type<T> | string | symbol, mock: Partial<T>): this {
     this.overrides.set(token, mock);
     return this;
   }
@@ -192,9 +191,7 @@ export class WorkflowTestBuilder<TWorkflow = any> {
     builder = mockCoreModuleProviders(builder);
 
     // Apply WorkflowService override
-    builder = builder
-      .overrideProvider(WorkflowService)
-      .useValue(this.workflowServiceMock);
+    builder = builder.overrideProvider(WorkflowService).useValue(this.workflowServiceMock);
 
     // Apply custom overrides
     for (const [token, mock] of this.overrides) {

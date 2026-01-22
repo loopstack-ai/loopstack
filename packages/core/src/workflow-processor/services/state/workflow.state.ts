@@ -1,20 +1,20 @@
+import { merge } from 'lodash';
 import { z } from 'zod';
-import { WorkflowStateCaretaker } from './workflow-state-caretaker';
 import { WorkflowMementoData } from '../../interfaces/workflow-memento-data.interfate';
 import { WorkflowMetadataInterface } from '../../interfaces/workflow-metadata.interface';
-import { merge } from 'lodash';
+import { WorkflowStateCaretaker } from './workflow-state-caretaker';
 
-export class WorkflowState<TData extends z.ZodType> {
-  private data: z.infer<TData>;
+export class WorkflowState<TData extends z.ZodType, TInferred = z.infer<TData>> {
+  private data: TInferred;
   private metadata: WorkflowMetadataInterface;
   private version: number;
 
-  public readonly caretaker: WorkflowStateCaretaker<z.infer<TData>>;
+  public readonly caretaker: WorkflowStateCaretaker<TInferred>;
 
   constructor(
     private readonly schema: TData,
-    caretaker: WorkflowStateCaretaker<z.infer<TData>>,
-    data: z.infer<TData>,
+    caretaker: WorkflowStateCaretaker<TInferred>,
+    data: TInferred,
     metadata: WorkflowMetadataInterface,
   ) {
     this.data = data;
@@ -25,20 +25,20 @@ export class WorkflowState<TData extends z.ZodType> {
     this.restoreToLatest();
   }
 
-  get<K extends keyof z.infer<TData>>(key: K): z.infer<TData>[K] {
+  get<K extends keyof TInferred>(key: K): TInferred[K] {
     return this.data[key];
   }
 
-  set<K extends keyof z.infer<TData>>(key: K, value: z.infer<TData>[K]): void {
+  set<K extends keyof TInferred>(key: K, value: TInferred[K]): void {
     this.data[key] = value;
-    this.data = this.schema.parse(this.data);
+    this.data = this.schema.parse(this.data) as TInferred;
   }
 
-  update(partial: Partial<z.infer<TData>>): void {
-    this.data = this.schema.parse({ ...this.data, ...partial });
+  update(partial: Partial<TInferred>): void {
+    this.data = this.schema.parse({ ...this.data, ...partial }) as TInferred;
   }
 
-  getAll(): Readonly<z.infer<TData>> {
+  getAll(): Readonly<TInferred> {
     return Object.freeze({ ...this.data });
   }
 
@@ -60,12 +60,12 @@ export class WorkflowState<TData extends z.ZodType> {
 
   // Checkpoint at a named step
   checkpoint(): void {
-    const memento = {
+    const memento: WorkflowMementoData<TInferred> = {
       data: { ...this.data },
       metadata: { ...this.metadata },
       timestamp: new Date(),
       version: this.version++,
-    } satisfies WorkflowMementoData<TData>;
+    };
     this.caretaker.save(memento);
   }
 
@@ -73,7 +73,7 @@ export class WorkflowState<TData extends z.ZodType> {
     const memento = this.caretaker.getLatest();
     if (!memento) return false;
 
-    this.data = this.schema.parse(memento.data);
+    this.data = this.schema.parse(memento.data) as TInferred;
     this.metadata = memento.metadata;
     this.version = memento.version + 1;
     return true;

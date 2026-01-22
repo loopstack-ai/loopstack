@@ -11,9 +11,7 @@ export class NamespacesService {
     private namespaceRepository: Repository<NamespaceEntity>,
   ) {}
 
-  async create(
-    createNamespaceDto: NamespaceCreateInterface,
-  ): Promise<NamespaceEntity> {
+  async create(createNamespaceDto: NamespaceCreateInterface): Promise<NamespaceEntity> {
     // Check if namespace with the same name and workspace already exists
     let namespace = await this.namespaceRepository.findOne({
       where: {

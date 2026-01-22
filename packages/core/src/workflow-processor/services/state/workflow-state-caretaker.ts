@@ -21,7 +21,10 @@ export class WorkflowStateCaretaker<TData> {
     return this.mementos; // nothing to serialize yet
   }
 
-  static deserialize<TData>(data: WorkflowMementoData<TData>[], schema: z.ZodType<TData>): WorkflowStateCaretaker<TData> {
+  static deserialize<TData>(
+    data: WorkflowMementoData<TData>[],
+    schema: z.ZodType<TData>,
+  ): WorkflowStateCaretaker<TData> {
     const caretaker = new WorkflowStateCaretaker<TData>();
 
     for (const item of data) {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayloadInterface } from '@loopstack/common';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TokenService {
@@ -24,26 +24,28 @@ export class TokenService {
 
   createAccessTokenCookieOptions() {
     return {
-      domain: this.configService.get('auth.jwt.cookieDomain') ?? undefined,
+      domain: this.configService.get<string>('auth.jwt.cookieDomain'),
       httpOnly: true,
       secure: true, // process.env.NODE_ENV === 'production',
-      sameSite: 'None',
+      sameSite: 'none' as const,
       maxAge: this.getExpiresIn() * 1000,
-    }
+    };
   }
 
   createRefreshTokenCookieOptions() {
     return {
-      domain: this.configService.get('auth.jwt.cookieDomain') ?? undefined,
+      domain: this.configService.get<string>('auth.jwt.cookieDomain'),
       httpOnly: true,
       secure: true, // process.env.NODE_ENV === 'production',
-      sameSite: 'None',
+      sameSite: 'none' as const,
       maxAge: this.getRefreshExpiresIn() * 1000,
-    }
+    };
   }
 
   private getRefreshSecret() {
-    return this.configService.get<string>('auth.jwt.refreshSecret') ?? this.configService.get<string>('auth.jwt.secret');
+    return (
+      this.configService.get<string>('auth.jwt.refreshSecret') ?? this.configService.get<string>('auth.jwt.secret')
+    );
   }
 
   async generateTokens(payload: JwtPayloadInterface) {
@@ -67,16 +69,21 @@ export class TokenService {
     const value = parseInt(expiresIn.slice(0, -1));
 
     switch (unit) {
-      case 'h': return value * 3600;
-      case 'd': return value * 86400;
-      case 'm': return value * 60;
-      case 's': return value;
-      default: return 3600;
+      case 'h':
+        return value * 3600;
+      case 'd':
+        return value * 86400;
+      case 'm':
+        return value * 60;
+      case 's':
+        return value;
+      default:
+        return 3600;
     }
   }
 
-  verifyRefreshToken(refreshToken: string) {
-    return this.jwtService.verify(refreshToken, {
+  verifyRefreshToken(refreshToken: string): JwtPayloadInterface {
+    return this.jwtService.verify<JwtPayloadInterface>(refreshToken, {
       secret: this.getRefreshSecret(),
     });
   }

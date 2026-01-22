@@ -19,9 +19,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "label"
-              ],
+              "required": ["label"],
               "additionalProperties": false
             },
             "ui": {
@@ -67,10 +65,7 @@
                             "additionalProperties": false
                           }
                         },
-                        "required": [
-                          "transition",
-                          "type"
-                        ],
+                        "required": ["transition", "type"],
                         "additionalProperties": false
                       },
                       {
@@ -103,10 +98,7 @@
                             "additionalProperties": false
                           }
                         },
-                        "required": [
-                          "transition",
-                          "type"
-                        ],
+                        "required": ["transition", "type"],
                         "additionalProperties": false
                       }
                     ]
@@ -161,9 +153,7 @@
                                   },
                                   "value": {}
                                 },
-                                "required": [
-                                  "label"
-                                ],
+                                "required": ["label"],
                                 "additionalProperties": false
                               },
                               {
@@ -272,9 +262,7 @@
                 },
                 "args": {}
               },
-              "required": [
-                "block"
-              ],
+              "required": ["block"],
               "additionalProperties": false
             },
             "parallel": {
@@ -297,17 +285,11 @@
                   ]
                 }
               },
-              "required": [
-                "source"
-              ],
+              "required": ["source"],
               "additionalProperties": false
             }
           },
-          "required": [
-            "namespace",
-            "factory",
-            "iterator"
-          ],
+          "required": ["namespace", "factory", "iterator"],
           "additionalProperties": false
         },
         {
@@ -337,9 +319,7 @@
               }
             }
           },
-          "required": [
-            "sequence"
-          ],
+          "required": ["sequence"],
           "additionalProperties": false
         },
         {
@@ -405,10 +385,7 @@
                     "anyOf": [
                       {
                         "type": "string",
-                        "enum": [
-                          "manual",
-                          "onEntry"
-                        ]
+                        "enum": ["manual", "onEntry"]
                       },
                       {
                         "$ref": "#/definitions/MainSchema/anyOf/0/properties/factory/properties/condition/anyOf/1/anyOf/1"
@@ -454,9 +431,7 @@
                           }
                         }
                       },
-                      "required": [
-                        "tool"
-                      ],
+                      "required": ["tool"],
                       "additionalProperties": false
                     }
                   },
@@ -464,11 +439,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "id",
-                  "from",
-                  "to"
-                ],
+                "required": ["id", "from", "to"],
                 "additionalProperties": false
               }
             }

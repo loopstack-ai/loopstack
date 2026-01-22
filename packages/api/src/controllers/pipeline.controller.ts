@@ -1,46 +1,41 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
+  Delete,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
   Put,
-  Delete,
-  Body,
-  Param,
+  Query,
   UsePipes,
   ValidationPipe,
-  Query,
-  ParseIntPipe,
-  BadRequestException,
 } from '@nestjs/common';
 import {
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
   ApiBody,
   ApiExtraModels,
   ApiOkResponse,
+  ApiOperation,
+  ApiParam,
   ApiQuery,
+  ApiResponse,
+  ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { PipelineApiService } from '../services/pipeline-api.service';
-import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
-import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
-import { PaginatedDto } from '../dtos/paginated.dto';
+import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
 import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
-import { PipelineDto } from '../dtos/pipeline.dto';
+import { PaginatedDto } from '../dtos/paginated.dto';
+import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
+import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
 import { PipelineItemDto } from '../dtos/pipeline-item.dto';
 import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
-import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
-import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
+import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
+import { PipelineDto } from '../dtos/pipeline.dto';
+import { PipelineApiService } from '../services/pipeline-api.service';
 
 @ApiTags('api/v1/pipelines')
-@ApiExtraModels(
-  PipelineDto,
-  PipelineItemDto,
-  PipelineCreateDto,
-  PipelineUpdateDto,
-)
+@ApiExtraModels(PipelineDto, PipelineItemDto, PipelineCreateDto, PipelineUpdateDto)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @Controller('api/v1/pipelines')
 export class PipelineController {
@@ -88,8 +83,7 @@ export class PipelineController {
     name: 'search',
     required: false,
     type: String,
-    description:
-      'Search term to filter workspaces by title or other searchable fields',
+    description: 'Search term to filter workspaces by title or other searchable fields',
   })
   @ApiQuery({
     name: 'searchColumns',
@@ -98,8 +92,7 @@ export class PipelineController {
       type: 'string',
       example: '["title","description"]',
     },
-    description:
-      'JSON string array of columns to search in (defaults to title and type if not specified)',
+    description: 'JSON string array of columns to search in (defaults to title and type if not specified)',
   })
   @ApiPaginatedResponse(PipelineItemDto)
   async getPipelines(
@@ -115,7 +108,7 @@ export class PipelineController {
     if (filterParam) {
       try {
         filter = JSON.parse(filterParam) as PipelineFilterDto;
-      } catch (e) {
+      } catch {
         throw new BadRequestException('Invalid filter format');
       }
     }
@@ -124,7 +117,7 @@ export class PipelineController {
     if (sortByParam) {
       try {
         sortBy = JSON.parse(sortByParam) as PipelineSortByDto[];
-      } catch (e) {
+      } catch {
         throw new BadRequestException('Invalid sortBy format');
       }
     }
@@ -132,10 +125,8 @@ export class PipelineController {
     let searchColumns: (keyof WorkspaceEntity)[] = [];
     if (searchColumnsParam) {
       try {
-        searchColumns = JSON.parse(
-          searchColumnsParam,
-        ) as (keyof WorkspaceEntity)[];
-      } catch (e) {
+        searchColumns = JSON.parse(searchColumnsParam) as (keyof WorkspaceEntity)[];
+      } catch {
         throw new BadRequestException('Invalid searchColumns format');
       }
     }
@@ -165,10 +156,7 @@ export class PipelineController {
   @ApiResponse({ status: 404, description: 'Pipeline not found' })
   @ApiOkResponse({ type: PipelineDto })
   @ApiUnauthorizedResponse()
-  async getPipelineById(
-    @Param('id') id: string,
-    @CurrentUser() user: CurrentUserInterface,
-  ): Promise<PipelineDto> {
+  async getPipelineById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<PipelineDto> {
     const pipeline = await this.pipelineApiService.findOneById(id, user.userId);
     return PipelineDto.create(pipeline);
   }
@@ -185,10 +173,7 @@ export class PipelineController {
     @Body() pipelineCreateDto: PipelineCreateDto,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<PipelineDto> {
-    const pipeline = await this.pipelineApiService.create(
-      pipelineCreateDto,
-      user.userId,
-    );
+    const pipeline = await this.pipelineApiService.create(pipelineCreateDto, user.userId);
     return PipelineDto.create(pipeline);
   }
 
@@ -207,11 +192,7 @@ export class PipelineController {
     @Body() pipelineUpdateDto: PipelineUpdateDto,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<PipelineDto> {
-    const pipeline = await this.pipelineApiService.update(
-      id,
-      pipelineUpdateDto,
-      user.userId,
-    );
+    const pipeline = await this.pipelineApiService.update(id, pipelineUpdateDto, user.userId);
     return PipelineDto.create(pipeline);
   }
 
@@ -224,10 +205,7 @@ export class PipelineController {
   @ApiResponse({ status: 204, description: 'Pipeline deleted successfully' })
   @ApiResponse({ status: 404, description: 'Pipeline not found' })
   @ApiUnauthorizedResponse()
-  async deletePipeline(
-    @Param('id') id: string,
-    @CurrentUser() user: CurrentUserInterface,
-  ): Promise<void> {
+  async deletePipeline(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<void> {
     await this.pipelineApiService.delete(id, user.userId);
   }
 
@@ -287,9 +265,6 @@ export class PipelineController {
     deleted: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
-    return await this.pipelineApiService.batchDelete(
-      batchDeleteDto.ids,
-      user.userId,
-    );
+    return await this.pipelineApiService.batchDelete(batchDeleteDto.ids, user.userId);
   }
 }

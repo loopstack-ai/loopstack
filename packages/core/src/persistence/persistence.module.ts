@@ -1,21 +1,23 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
-  DocumentEntity, EventSubscriberEntity,
+  DocumentEntity,
+  EventSubscriberEntity,
   NamespaceEntity,
   PipelineEntity,
   WorkflowEntity,
   WorkspaceEntity,
 } from '@loopstack/common';
+import { CommonModule } from '../common';
 import {
-  DocumentService, EventSubscriberService,
+  DocumentService,
+  EventSubscriberService,
   MigrationsService,
   NamespacesService,
   PipelineService,
   WorkflowService,
   WorkspaceService,
 } from './services';
-import { CommonModule } from '../common';
 
 @Module({
   imports: [

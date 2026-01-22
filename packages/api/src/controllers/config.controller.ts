@@ -1,3 +1,4 @@
+import { BadRequestException, Controller, Get, Param, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ApiExtraModels,
   ApiOkResponse,
@@ -6,35 +7,20 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Param,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
-import { WorkflowType, WorkspaceType } from '@loopstack/contracts/types';
-import {
-  BlockRegistryItem,
-  BlockRegistryService, WorkflowBase,
-  WorkspaceBase,
-} from '@loopstack/core';
 import { plainToInstance } from 'class-transformer';
-import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
-import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
 import { sortBy } from 'lodash';
 import { getWorkflowOptions } from '@loopstack/common';
+import { WorkflowType, WorkspaceType } from '@loopstack/contracts/types';
+import { BlockRegistryItem, BlockRegistryService, WorkflowBase, WorkspaceBase } from '@loopstack/core';
+import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
+import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
 
 @ApiTags('api/v1/config')
 @ApiExtraModels(WorkspaceConfigDto, PipelineConfigDto)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @Controller('api/v1/config')
 export class ConfigController {
-  constructor(
-    private readonly blockRegistryService: BlockRegistryService,
-
-  ) {}
+  constructor(private readonly blockRegistryService: BlockRegistryService) {}
 
   @Get('workspaces')
   @ApiOperation({ summary: 'Get all models available for this workspace' })
@@ -44,7 +30,7 @@ export class ConfigController {
     const blocks = this.blockRegistryService.getBlocksByType(WorkspaceBase);
 
     const resolvedConfigs = blocks.map((block: BlockRegistryItem) => {
-      const config = block.provider.instance.config as WorkspaceType;
+      const config = (block.provider.instance as WorkspaceBase).config as WorkspaceType;
       return {
         blockName: block.name,
         title: config.title ?? block.name,
@@ -76,12 +62,9 @@ export class ConfigController {
     @Param('workspaceBlockName') workspaceBlockName: string,
     @Param('pipelineName') pipelineName: string,
   ): WorkflowType {
-    const workspaceBlock =
-      this.blockRegistryService.getBlock(workspaceBlockName);
+    const workspaceBlock = this.blockRegistryService.getBlock(workspaceBlockName);
     if (!workspaceBlock) {
-      throw new BadRequestException(
-        `Config for workspace with name ${workspaceBlockName} not found.`,
-      );
+      throw new BadRequestException(`Config for workspace with name ${workspaceBlockName} not found.`);
     }
 
     const instance = workspaceBlock.provider.instance as WorkspaceBase;
@@ -94,13 +77,9 @@ export class ConfigController {
 
     const workflow = instance.getWorkflow(pipelineName);
     if (!workflow) {
-      throw new BadRequestException(
-        `Workflow with name ${pipelineName} not found in workspace ${workspaceBlockName}.`,
-      );
+      throw new BadRequestException(`Workflow with name ${pipelineName} not found in workspace ${workspaceBlockName}.`);
     }
-    const config = workflow.config as WorkflowType;
-
-    return config;
+    return workflow.config as WorkflowType;
   }
 
   @Get('workspaces/:workspaceBlockName/pipelines')
@@ -114,41 +93,40 @@ export class ConfigController {
   })
   @ApiOkResponse({ type: PipelineConfigDto, isArray: true })
   @ApiUnauthorizedResponse()
-  getPipelineTypesByWorkspace(
-    @Param('workspaceBlockName') workspaceBlockName: string,
-  ): PipelineConfigDto[] {
-    const workspaceBlock =
-      this.blockRegistryService.getBlock(workspaceBlockName);
+  getPipelineTypesByWorkspace(@Param('workspaceBlockName') workspaceBlockName: string): PipelineConfigDto[] {
+    const workspaceBlock = this.blockRegistryService.getBlock(workspaceBlockName);
     if (!workspaceBlock) {
-      throw new BadRequestException(
-        `Config for workspace with name ${workspaceBlockName} not found.`,
-      );
+      throw new BadRequestException(`Config for workspace with name ${workspaceBlockName} not found.`);
     }
 
     const instance = workspaceBlock.provider.instance as WorkspaceBase;
 
-    const workflows: { name: string, instance: WorkflowBase, hidden: boolean }[] = instance.workflows.reduce((acc, key) => [
-      ...acc,
-      {
-        name: key,
-        instance: instance[key],
-        hidden: getWorkflowOptions(instance, key)?.visible === false
-      }
-    ], []);
+    const workflows: { name: string; instance: WorkflowBase; hidden: boolean }[] = instance.workflows.map((key) => ({
+      name: key,
+      instance: instance[key] as WorkflowBase,
+      hidden: getWorkflowOptions(instance, key)?.visible === false,
+    }));
 
-    const filtered = workflows.filter((item) => !item.hidden).map((item) => {
-      const config = item.instance.config as WorkflowType;
+    const filtered = workflows
+      .filter((item) => !item.hidden)
+      .map((item) => {
+        const config = item.instance.config as WorkflowType;
 
-      const propertiesSchema = item.instance.argsSchema ? this.blockRegistryService.zodToJsonSchema(item.instance.argsSchema) : undefined;
+        let propertiesSchema: any = undefined;
+        if (item.instance.argsSchema) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          propertiesSchema = this.blockRegistryService.zodToJsonSchema(item.instance.argsSchema as any) as unknown;
+        }
 
-      return {
-        blockName: item.name,
-        title: config.title,
-        description: config.description,
-        schema: propertiesSchema,
-        ui: config.ui,
-      } satisfies PipelineConfigDto;
-    });
+        return {
+          blockName: item.name,
+          title: config.title,
+          description: config.description,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          schema: propertiesSchema,
+          ui: config.ui,
+        } satisfies PipelineConfigDto;
+      });
 
     const sorted = sortBy(filtered, 'title');
 

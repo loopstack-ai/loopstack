@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { WorkflowEntity } from '@loopstack/common';
-import { WorkflowBase } from '../abstract';
-import { WorkflowService } from '../../persistence';
 import { BlockExecutionContextDto, PersistenceState } from '../../common';
+import { WorkflowService } from '../../persistence';
+import { WorkflowBase } from '../abstract';
 import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
 
 @Injectable()
@@ -10,13 +10,10 @@ export class WorkflowStateService {
   constructor(private workflowService: WorkflowService) {}
 
   async getWorkflowState(block: WorkflowBase, context: BlockExecutionContextDto): Promise<WorkflowEntity> {
-    const workflow = await this.workflowService.findOneByQuery(
-      context.namespace?.id,
-      {
-        blockName: block.name,
-        labels: context.labels,
-      },
-    );
+    const workflow = await this.workflowService.findOneByQuery(context.namespace?.id, {
+      blockName: block.name,
+      labels: context.labels,
+    });
 
     if (workflow) {
       return workflow;
@@ -37,10 +34,7 @@ export class WorkflowStateService {
     });
   }
 
-  async saveWorkflowState(
-    entity: WorkflowEntity,
-    persistenceState: PersistenceState,
-  ) {
+  async saveWorkflowState(entity: WorkflowEntity, persistenceState: PersistenceState) {
     return this.workflowService.save(entity, persistenceState);
   }
 
@@ -53,9 +47,6 @@ export class WorkflowStateService {
     ctx.entity.availableTransitions = ctx.runtime.availableTransitions || null;
     ctx.entity.hasError = ctx.runtime.error;
 
-    await this.saveWorkflowState(
-      ctx.entity,
-      ctx.runtime.persistenceState,
-    );
+    await this.saveWorkflowState(ctx.entity, ctx.runtime.persistenceState);
   }
 }

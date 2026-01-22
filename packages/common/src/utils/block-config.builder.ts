@@ -32,7 +32,7 @@ export function buildConfig(options: BlockOptions, type?: string): BlockConfigTy
 function loadConfigFile(filePath: string): ConfigSourceInterface | null {
   const raw = fs.readFileSync(filePath, 'utf8');
 
-  const config = parse(raw);
+  const config = parse(raw) as Partial<BlockConfigType>;
 
   return {
     path: filePath,

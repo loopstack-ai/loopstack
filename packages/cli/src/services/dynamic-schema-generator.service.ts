@@ -1,5 +1,5 @@
-import { z, ZodType } from 'zod';
 import { Injectable } from '@nestjs/common';
+import { ZodType, z } from 'zod';
 
 @Injectable()
 export class DynamicSchemaGeneratorService {

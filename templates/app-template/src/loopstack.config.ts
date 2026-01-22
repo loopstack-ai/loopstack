@@ -1,4 +1,4 @@
-import { registerAs, ConfigFactory } from '@nestjs/config';
+import { ConfigFactory, registerAs } from '@nestjs/config';
 import { AuthConfig } from '@loopstack/api';
 import { AppConfig } from '@loopstack/core';
 
@@ -20,7 +20,8 @@ export const authConfig: ReturnType<typeof registerAs<AuthConfig>> = registerAs<
     jwt: {
       secret: process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dev-secret-change-me',
       expiresIn: process.env.JWT_EXPIRES_IN || '1h',
-      refreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dev-secret-change-me',
+      refreshSecret:
+        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dev-secret-change-me',
       refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     },
     clientId: process.env.CLIENT_ID || 'local',
@@ -29,7 +30,4 @@ export const authConfig: ReturnType<typeof registerAs<AuthConfig>> = registerAs<
   };
 });
 
-export const loopstackConfig: ConfigFactory[] = [
-  appConfig,
-  authConfig,
-];
+export const loopstackConfig: ConfigFactory[] = [appConfig, authConfig];

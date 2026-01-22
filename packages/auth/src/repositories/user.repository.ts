@@ -21,7 +21,7 @@ export class UserRepository {
   async findLocalUser(): Promise<User | null> {
     return this.repository.findOne({
       where: {
-        type: UserTypeEnum.Local
+        type: UserTypeEnum.Local,
       },
       relations: ['roles', 'roles.permissions'],
     });

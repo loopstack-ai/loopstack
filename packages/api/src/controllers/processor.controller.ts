@@ -1,9 +1,4 @@
-import {
-  Body,
-  Controller,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
 import {
   ApiBody,
   ApiOperation,
@@ -13,9 +8,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ProcessorApiService } from '../services/processor-api.service';
-import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
+import { ProcessorApiService } from '../services/processor-api.service';
 
 /**
  * Controller handling pipeline processor operations
@@ -31,8 +26,7 @@ export class ProcessorController {
   @Post('run/:pipelineId')
   @ApiOperation({
     summary: 'Run a pipeline',
-    description:
-      'Triggers the processing of a pipeline with the given ID and configuration',
+    description: 'Triggers the processing of a pipeline with the given ID and configuration',
   })
   @ApiParam({
     name: 'pipelineId',
@@ -71,10 +65,6 @@ export class ProcessorController {
     @Body() payload: RunPipelinePayloadDto,
     @CurrentUser() user: CurrentUserInterface,
   ): void {
-    this.processorApiService.processPipeline(
-      pipelineId,
-      user.userId,
-      payload ?? {},
-    );
+    void this.processorApiService.processPipeline(pipelineId, user.userId, payload ?? {});
   }
 }

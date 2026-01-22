@@ -1,9 +1,9 @@
-import Handlebars, { RuntimeOptions, TemplateDelegate } from 'handlebars';
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import Handlebars, { RuntimeOptions, TemplateDelegate } from 'handlebars';
 
 export interface CustomHelper {
   name: string;
-  fn: Function;
+  fn: (...args: unknown[]) => unknown;
 }
 
 export interface RenderOptions extends Omit<RuntimeOptions, 'helpers'> {
@@ -24,9 +24,7 @@ export class HandlebarsProcessor implements OnModuleInit {
   private static readonly MAX_TEMPLATE_SIZE = 50_000;
   private static readonly MAX_CACHE_SIZE = 100;
 
-  private static readonly RESERVED_HELPERS = new Set([
-    'if', 'unless', 'each', 'with', 'lookup', 'log',
-  ]);
+  private static readonly RESERVED_HELPERS = new Set(['if', 'unless', 'each', 'with', 'lookup', 'log']);
 
   private readonly compileOptions: CompileOptions = {
     strict: false,
@@ -52,24 +50,18 @@ export class HandlebarsProcessor implements OnModuleInit {
     this.handlebars = Handlebars.create();
   }
 
-  public render(
-    content: string,
-    data: Record<string, unknown> = {},
-    options: RenderOptions = {},
-  ): string {
+  public render(content: string, data: Record<string, unknown> = {}, options: RenderOptions = {}): string {
     if (typeof content !== 'string') {
       throw new TypeError('Template content must be a string');
     }
 
     if (content.length > HandlebarsProcessor.MAX_TEMPLATE_SIZE) {
-      throw new Error(
-        `Template exceeds maximum size of ${HandlebarsProcessor.MAX_TEMPLATE_SIZE} characters`,
-      );
+      throw new Error(`Template exceeds maximum size of ${HandlebarsProcessor.MAX_TEMPLATE_SIZE} characters`);
     }
 
     const { cacheKeyPrefix, helpers: customHelpers, ...runtimeOptions } = options;
 
-    const cacheKey = `${options.cacheKeyPrefix}--${content}`;
+    const cacheKey = `${cacheKeyPrefix ?? ''}--${content}`;
 
     const cached = this.getOrCreateCached(cacheKey, () =>
       customHelpers?.length
@@ -80,15 +72,12 @@ export class HandlebarsProcessor implements OnModuleInit {
     return cached.template(data, runtimeOptions);
   }
 
-  private getOrCreateCached(
-    key: string,
-    factory: () => CachedTemplate,
-  ): CachedTemplate {
+  private getOrCreateCached(key: string, factory: () => CachedTemplate): CachedTemplate {
     let cached = this.templateCache.get(key);
 
     if (!cached) {
       if (this.templateCache.size >= HandlebarsProcessor.MAX_CACHE_SIZE) {
-        const firstKey = this.templateCache.keys().next().value;
+        const firstKey = this.templateCache.keys().next().value as string | undefined;
         if (firstKey) this.templateCache.delete(firstKey);
       }
       cached = factory();
@@ -98,10 +87,7 @@ export class HandlebarsProcessor implements OnModuleInit {
     return cached;
   }
 
-  private createCustomHelperTemplate(
-    content: string,
-    customHelpers: CustomHelper[],
-  ): CachedTemplate {
+  private createCustomHelperTemplate(content: string, customHelpers: CustomHelper[]): CachedTemplate {
     const isolatedHandlebars = Handlebars.create();
     const extendedKnownHelpers: Record<string, boolean> = { ...this.compileOptions.knownHelpers };
 
@@ -121,12 +107,11 @@ export class HandlebarsProcessor implements OnModuleInit {
     return { template, handlebars: isolatedHandlebars };
   }
 
-  private wrapHelper(fn: Function): Handlebars.HelperDelegate {
-    return function (this: any, ...args: any[]) {
-      const options = args[args.length - 1];
-      const isHandlebarsOptions =
-        options && typeof options === 'object' && 'hash' in options;
-      return fn.apply(this, isHandlebarsOptions ? args.slice(0, -1) : args);
+  private wrapHelper(fn: (...args: unknown[]) => unknown): Handlebars.HelperDelegate {
+    return function (this: unknown, ...args: unknown[]) {
+      const options: unknown = args[args.length - 1];
+      const isHandlebarsOptions = options && typeof options === 'object' && 'hash' in options;
+      return fn.apply(this, isHandlebarsOptions ? args.slice(0, -1) : args) as unknown;
     };
   }
 }

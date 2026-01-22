@@ -1,46 +1,41 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
+  Delete,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
   Put,
-  Delete,
-  Body,
-  Param,
+  Query,
   UsePipes,
   ValidationPipe,
-  ParseIntPipe,
-  Query,
-  BadRequestException,
 } from '@nestjs/common';
 import {
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
   ApiBody,
   ApiExtraModels,
   ApiOkResponse,
+  ApiOperation,
+  ApiParam,
   ApiQuery,
+  ApiResponse,
+  ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { WorkspaceApiService } from '../services/workspace-api.service';
-import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
-import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
-import { PaginatedDto } from '../dtos/paginated.dto';
-import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
-import { WorkspaceDto } from '../dtos/workspace.dto';
-import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
-import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
-import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
 import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
+import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
+import { PaginatedDto } from '../dtos/paginated.dto';
+import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
+import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
+import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
+import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
+import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
+import { WorkspaceDto } from '../dtos/workspace.dto';
+import { WorkspaceApiService } from '../services/workspace-api.service';
 
 @ApiTags('api/v1/workspaces')
-@ApiExtraModels(
-  WorkspaceDto,
-  WorkspaceItemDto,
-  WorkspaceCreateDto,
-  WorkspaceUpdateDto,
-)
+@ApiExtraModels(WorkspaceDto, WorkspaceItemDto, WorkspaceCreateDto, WorkspaceUpdateDto)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @Controller('api/v1/workspaces')
 export class WorkspaceController {
@@ -51,8 +46,7 @@ export class WorkspaceController {
    */
   @Get()
   @ApiOperation({
-    summary:
-      'Retrieve workspaces with filters, sorting, pagination, and search',
+    summary: 'Retrieve workspaces with filters, sorting, pagination, and search',
   })
   @ApiExtraModels(WorkspaceFilterDto, WorkspaceSortByDto)
   @ApiQuery({
@@ -89,8 +83,7 @@ export class WorkspaceController {
     name: 'search',
     required: false,
     type: String,
-    description:
-      'Search term to filter workspaces by title or other searchable fields',
+    description: 'Search term to filter workspaces by title or other searchable fields',
   })
   @ApiQuery({
     name: 'searchColumns',
@@ -99,8 +92,7 @@ export class WorkspaceController {
       type: 'string',
       example: '["title","description"]',
     },
-    description:
-      'JSON string array of columns to search in (defaults to title and type if not specified)',
+    description: 'JSON string array of columns to search in (defaults to title and type if not specified)',
   })
   @ApiPaginatedResponse(WorkspaceItemDto)
   @ApiUnauthorizedResponse()
@@ -117,7 +109,7 @@ export class WorkspaceController {
     if (filterParam) {
       try {
         filter = JSON.parse(filterParam) as WorkspaceFilterDto;
-      } catch (e) {
+      } catch {
         throw new BadRequestException('Invalid filter format');
       }
     }
@@ -126,7 +118,7 @@ export class WorkspaceController {
     if (sortByParam) {
       try {
         sortBy = JSON.parse(sortByParam) as WorkspaceSortByDto[];
-      } catch (e) {
+      } catch {
         throw new BadRequestException('Invalid sortBy format');
       }
     }
@@ -134,10 +126,8 @@ export class WorkspaceController {
     let searchColumns: (keyof WorkspaceEntity)[] = [];
     if (searchColumnsParam) {
       try {
-        searchColumns = JSON.parse(
-          searchColumnsParam,
-        ) as (keyof WorkspaceEntity)[];
-      } catch (e) {
+        searchColumns = JSON.parse(searchColumnsParam) as (keyof WorkspaceEntity)[];
+      } catch {
         throw new BadRequestException('Invalid searchColumns format');
       }
     }
@@ -171,10 +161,7 @@ export class WorkspaceController {
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiOkResponse({ type: WorkspaceDto })
   @ApiUnauthorizedResponse()
-  async getWorkspaceById(
-    @Param('id') id: string,
-    @CurrentUser() user: CurrentUserInterface,
-  ): Promise<WorkspaceDto> {
+  async getWorkspaceById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<WorkspaceDto> {
     const workspace = await this.workspaceService.findOneById(id, user.userId);
     return WorkspaceDto.create(workspace);
   }
@@ -191,10 +178,7 @@ export class WorkspaceController {
     @Body() workspaceData: WorkspaceCreateDto,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkspaceDto> {
-    const workspace = await this.workspaceService.create(
-      workspaceData,
-      user.userId,
-    );
+    const workspace = await this.workspaceService.create(workspaceData, user.userId);
     return WorkspaceDto.create(workspace);
   }
 
@@ -217,11 +201,7 @@ export class WorkspaceController {
     @Body() workspaceData: WorkspaceUpdateDto,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<WorkspaceDto> {
-    const workspace = await this.workspaceService.update(
-      id,
-      workspaceData,
-      user.userId,
-    );
+    const workspace = await this.workspaceService.update(id, workspaceData, user.userId);
     return WorkspaceDto.create(workspace);
   }
 
@@ -238,10 +218,7 @@ export class WorkspaceController {
   @ApiResponse({ status: 204, description: 'Workspace deleted successfully' })
   @ApiResponse({ status: 404, description: 'Workspace not found' })
   @ApiUnauthorizedResponse()
-  async deleteWorkspace(
-    @Param('id') id: string,
-    @CurrentUser() user: CurrentUserInterface,
-  ): Promise<void> {
+  async deleteWorkspace(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<void> {
     await this.workspaceService.delete(id, user.userId);
   }
 
@@ -301,9 +278,6 @@ export class WorkspaceController {
     deleted: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
-    return await this.workspaceService.batchDelete(
-      batchDeleteDto.ids,
-      user.userId,
-    );
+    return await this.workspaceService.batchDelete(batchDeleteDto.ids, user.userId);
   }
 }

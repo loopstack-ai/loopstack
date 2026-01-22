@@ -1,6 +1,8 @@
+import { UserTypeEnum } from '../enums';
+
 export interface CurrentUserInterface {
   userId: string;
-  type: string;
+  type: UserTypeEnum;
   workerId: string;
   roles: string[];
 }

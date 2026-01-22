@@ -17,10 +17,7 @@ export class PaginatedDto<T> {
   @ApiProperty()
   limit: number;
 
-  static create<T>(
-    classInstance: ClassConstructor<T>,
-    data: PaginatedDto<any>,
-  ) {
+  static create<T>(classInstance: ClassConstructor<T>, data: PaginatedDto<any>) {
     const instance = new PaginatedDto<T>();
 
     instance.total = data.total;

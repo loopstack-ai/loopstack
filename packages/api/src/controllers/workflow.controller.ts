@@ -1,33 +1,32 @@
 import {
+  BadRequestException,
   Controller,
+  Delete,
   Get,
   Param,
-  Request,
-  UsePipes,
-  ValidationPipe,
   ParseIntPipe,
   Query,
-  BadRequestException,
-  Delete,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
   ApiExtraModels,
   ApiOkResponse,
+  ApiOperation,
+  ApiParam,
   ApiQuery,
+  ApiResponse,
+  ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { WorkflowApiService } from '../services/workflow-api.service';
-import { PaginatedDto } from '../dtos/paginated.dto';
-import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
-import { WorkflowDto } from '../dtos/workflow.dto';
-import { WorkflowItemDto } from '../dtos/workflow-item.dto';
-import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
-import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
+import { PaginatedDto } from '../dtos/paginated.dto';
+import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
+import { WorkflowItemDto } from '../dtos/workflow-item.dto';
+import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
+import { WorkflowDto } from '../dtos/workflow.dto';
+import { WorkflowApiService } from '../services/workflow-api.service';
 
 @ApiTags('api/v1/workflows')
 @ApiExtraModels(WorkflowDto, WorkflowItemDto)
@@ -87,7 +86,7 @@ export class WorkflowController {
     if (filterParam) {
       try {
         filter = JSON.parse(filterParam) as WorkflowFilterDto;
-      } catch (e) {
+      } catch {
         throw new BadRequestException('Invalid filter format');
       }
     }
@@ -96,20 +95,15 @@ export class WorkflowController {
     if (sortByParam) {
       try {
         sortBy = JSON.parse(sortByParam) as WorkflowSortByDto[];
-      } catch (e) {
+      } catch {
         throw new BadRequestException('Invalid sortBy format');
       }
     }
 
-    const result = await this.workflowService.findAll(
-      user.userId,
-      filter,
-      sortBy,
-      {
-        page,
-        limit,
-      },
-    );
+    const result = await this.workflowService.findAll(user.userId, filter, sortBy, {
+      page,
+      limit,
+    });
     return PaginatedDto.create(WorkflowItemDto, result);
   }
 
@@ -122,10 +116,7 @@ export class WorkflowController {
   @ApiResponse({ status: 404, description: 'Workflow not found' })
   @ApiOkResponse({ type: WorkflowDto })
   @ApiUnauthorizedResponse()
-  async getWorkflowById(
-    @Param('id') id: string,
-    @CurrentUser() user: CurrentUserInterface,
-  ): Promise<WorkflowDto> {
+  async getWorkflowById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<WorkflowDto> {
     const workflow = await this.workflowService.findOneById(id, user.userId);
     return WorkflowDto.create(workflow);
   }
@@ -139,10 +130,7 @@ export class WorkflowController {
   @ApiResponse({ status: 204, description: 'Workflow deleted successfully' })
   @ApiResponse({ status: 404, description: 'Workflow not found' })
   @ApiUnauthorizedResponse()
-  async deleteWorkflow(
-    @Param('id') id: string,
-    @CurrentUser() user: CurrentUserInterface,
-  ): Promise<void> {
+  async deleteWorkflow(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<void> {
     await this.workflowService.delete(id, user.userId);
   }
 }

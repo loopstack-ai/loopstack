@@ -1,8 +1,8 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { Job } from 'bullmq';
 import type { ScheduledTask } from '@loopstack/contracts/types';
-import { OnEvent } from '@nestjs/event-emitter';
 import { RunPipelineTaskProcessorService } from './task-processor/run-pipeline-task-processor.service';
 
 @Processor('task-queue', {

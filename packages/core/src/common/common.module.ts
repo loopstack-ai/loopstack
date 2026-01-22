@@ -1,22 +1,19 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
-  TemplateService,
-  ObjectExpressionHandler,
-  TemplateExpressionHandler,
   DateFormatterHelperService,
   HandlebarsProcessor,
+  ObjectExpressionHandler,
   OperatorsHelperService,
   TemplateExpressionEvaluatorService,
+  TemplateExpressionHandler,
+  TemplateService,
 } from './services';
 import { ClientMessageService } from './services/client-message.service';
-import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [
-    ConfigModule,
-    EventEmitterModule.forRoot()
-  ],
+  imports: [ConfigModule, EventEmitterModule.forRoot()],
   providers: [
     ClientMessageService,
     TemplateService,

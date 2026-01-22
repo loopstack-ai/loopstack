@@ -1,16 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiOkResponse,
-} from '@nestjs/swagger';
-import {
-  DashboardService,
-  DashboardStats,
-} from '../services/dashboard.service';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 import { DashboardStatsDto } from '../dtos/dashboard.dto';
+import { DashboardService, DashboardStats } from '../services/dashboard.service';
 
 @ApiTags('api/v1/dashboard')
 @Controller('api/v1/dashboard')
@@ -24,16 +16,13 @@ export class DashboardController {
   @Get()
   @ApiOperation({
     summary: 'Get dashboard statistics',
-    description:
-      'Retrieves aggregated statistics for all automations across all workspaces',
+    description: 'Retrieves aggregated statistics for all automations across all workspaces',
   })
   @ApiOkResponse({
     description: 'Dashboard statistics retrieved successfully',
     type: DashboardStatsDto,
   })
-  async getDashboardStats(
-    @CurrentUser() user: CurrentUserInterface,
-  ): Promise<DashboardStats> {
+  async getDashboardStats(@CurrentUser() user: CurrentUserInterface): Promise<DashboardStats> {
     return this.dashboardService.getDashboardStats(user?.userId);
   }
 }

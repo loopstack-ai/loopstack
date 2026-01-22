@@ -1,6 +1,5 @@
-import type {
-  BlockConfigType,
-} from '@loopstack/contracts/types';
+import type { BlockConfigType } from '@loopstack/contracts/types';
+import { WorkflowExecution } from '../../workflow-processor';
 import {
   DocumentExecutionContextDto,
   FactoryExecutionContextDto,
@@ -30,4 +29,6 @@ export interface BlockInterface {
   helpers: string[];
 
   get name(): string;
+
+  getTemplateVars(args: unknown, ctx: WorkflowExecution): Record<string, unknown>;
 }

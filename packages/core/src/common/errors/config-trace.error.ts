@@ -26,8 +26,7 @@ export class ConfigTraceError extends Error {
   }
 
   private formatCombinedStack(): string {
-    const originalStack =
-      this.originalError?.stack || 'No stack trace available';
+    const originalStack = this.originalError?.stack || 'No stack trace available';
 
     return [
       `${this.name}: ${this.message}`,

@@ -1,61 +1,40 @@
 import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
-import { ConfigurableModuleClass } from './loop-api.module-definition';
-import { PipelineController } from './controllers/pipeline.controller';
-import { PipelineApiService } from './services/pipeline-api.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { WorkspaceController } from './controllers/workspace.controller';
-import { WorkspaceApiService } from './services/workspace-api.service';
-import { ProcessorApiService } from './services/processor-api.service';
-import {
-  DocumentEntity,
-  NamespaceEntity,
-  PipelineEntity,
-  WorkflowEntity,
-  WorkspaceEntity,
-} from '@loopstack/common';
-import { ProcessorController } from './controllers/processor.controller';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { LoopstackApiConfigPluginOptions } from './interfaces';
-import { WorkflowController } from './controllers/workflow.controller';
-import { DocumentController } from './controllers/document.controller';
-import { WorkflowApiService } from './services/workflow-api.service';
-import { DocumentApiService } from './services/document-api.service';
-import { NamespaceController } from './controllers/namespace.controller';
-import { NamespaceApiService } from './services/namespace-api.service';
-import { LoopCoreModule } from '@loopstack/core';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
-import { NullStrategy } from './strategies/null.strategy';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { AuthService } from './services/auth.service';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { SseEventService } from './services/sse-event.service';
+import { APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import cookieParser from 'cookie-parser';
+import { AuthModule, JwtAuthGuard } from '@loopstack/auth';
+import { DocumentEntity, NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
+import { LoopCoreModule } from '@loopstack/core';
 import { ConfigController } from './controllers/config.controller';
 import { DashboardController } from './controllers/dashboard.controller';
-import { DashboardService } from './services/dashboard.service';
-import { AuthModule, JwtAuthGuard } from '@loopstack/auth';
-import { APP_GUARD } from '@nestjs/core';
-import { UserService } from './services';
+import { DocumentController } from './controllers/document.controller';
+import { NamespaceController } from './controllers/namespace.controller';
+import { PipelineController } from './controllers/pipeline.controller';
+import { ProcessorController } from './controllers/processor.controller';
 import { SseController } from './controllers/sse.controller';
-const cookieParser = require('cookie-parser');
+import { WorkflowController } from './controllers/workflow.controller';
+import { WorkspaceController } from './controllers/workspace.controller';
+import { LoopstackApiConfigPluginOptions } from './interfaces';
+import { ConfigurableModuleClass } from './loop-api.module-definition';
+import { UserService } from './services';
+import { DashboardService } from './services/dashboard.service';
+import { DocumentApiService } from './services/document-api.service';
+import { NamespaceApiService } from './services/namespace-api.service';
+import { PipelineApiService } from './services/pipeline-api.service';
+import { ProcessorApiService } from './services/processor-api.service';
+import { SseEventService } from './services/sse-event.service';
+import { WorkflowApiService } from './services/workflow-api.service';
+import { WorkspaceApiService } from './services/workspace-api.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      PipelineEntity,
-      WorkspaceEntity,
-      WorkflowEntity,
-      DocumentEntity,
-      NamespaceEntity,
-    ]),
+    TypeOrmModule.forFeature([PipelineEntity, WorkspaceEntity, WorkflowEntity, DocumentEntity, NamespaceEntity]),
     EventEmitterModule.forRoot(),
     LoopCoreModule,
     AuthModule.forRoot(),
-    PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET ?? 'NO SECRET',
-    }),
   ],
   controllers: [
     PipelineController,
@@ -73,9 +52,6 @@ const cookieParser = require('cookie-parser');
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
-    AuthService,
-    JwtStrategy,
-    NullStrategy,
     SseEventService,
     PipelineApiService,
     WorkspaceApiService,
@@ -96,10 +72,7 @@ const cookieParser = require('cookie-parser');
   ],
 })
 export class LoopstackApiModule extends ConfigurableModuleClass {
-  static setup(
-    app: INestApplication,
-    options: LoopstackApiConfigPluginOptions = {},
-  ): void {
+  static setup(app: INestApplication, options: LoopstackApiConfigPluginOptions = {}): void {
     const corsEnabled = options.cors?.enabled ?? true;
     if (corsEnabled) {
       app.enableCors(

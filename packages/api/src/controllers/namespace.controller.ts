@@ -1,32 +1,31 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Param,
-  Request,
-  UsePipes,
-  ValidationPipe,
   ParseIntPipe,
   Query,
-  BadRequestException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
   ApiExtraModels,
   ApiOkResponse,
+  ApiOperation,
+  ApiParam,
   ApiQuery,
+  ApiResponse,
+  ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { PaginatedDto } from '../dtos/paginated.dto';
-import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
-import { NamespaceDto } from '../dtos/namespace.dto';
-import { NamespaceItemDto } from '../dtos/namespace-item.dto';
-import { NamespaceFilterDto } from '../dtos/namespace-filter.dto';
-import { NamespaceSortByDto } from '../dtos/namespace-sort-by.dto';
-import { NamespaceApiService } from '../services/namespace-api.service';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
+import { NamespaceFilterDto } from '../dtos/namespace-filter.dto';
+import { NamespaceItemDto } from '../dtos/namespace-item.dto';
+import { NamespaceSortByDto } from '../dtos/namespace-sort-by.dto';
+import { NamespaceDto } from '../dtos/namespace.dto';
+import { PaginatedDto } from '../dtos/paginated.dto';
+import { NamespaceApiService } from '../services/namespace-api.service';
 
 @ApiTags('api/v1/namespaces')
 @ApiExtraModels(NamespaceDto, NamespaceItemDto)
@@ -86,7 +85,7 @@ export class NamespaceController {
     if (filterParam) {
       try {
         filter = JSON.parse(filterParam) as NamespaceFilterDto;
-      } catch (e) {
+      } catch {
         throw new BadRequestException('Invalid filter format');
       }
     }
@@ -95,20 +94,15 @@ export class NamespaceController {
     if (sortByParam) {
       try {
         sortBy = JSON.parse(sortByParam) as NamespaceSortByDto[];
-      } catch (e) {
+      } catch {
         throw new BadRequestException('Invalid sortBy format');
       }
     }
 
-    const result = await this.namespaceApiService.findAll(
-      user.userId,
-      filter,
-      sortBy,
-      {
-        page,
-        limit,
-      },
-    );
+    const result = await this.namespaceApiService.findAll(user.userId, filter, sortBy, {
+      page,
+      limit,
+    });
     return PaginatedDto.create(NamespaceItemDto, result);
   }
 
@@ -125,14 +119,8 @@ export class NamespaceController {
   @ApiResponse({ status: 404, description: 'Namespace not found' })
   @ApiOkResponse({ type: NamespaceDto })
   @ApiUnauthorizedResponse()
-  async getWorkflowById(
-    @Param('id') id: string,
-    @CurrentUser() user: CurrentUserInterface,
-  ): Promise<NamespaceDto> {
-    const workflow = await this.namespaceApiService.findOneById(
-      id,
-      user.userId,
-    );
+  async getWorkflowById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<NamespaceDto> {
+    const workflow = await this.namespaceApiService.findOneById(id, user.userId);
     return NamespaceDto.create(workflow);
   }
 }

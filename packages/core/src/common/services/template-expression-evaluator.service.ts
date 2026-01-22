@@ -1,11 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { TemplateService } from './template.service';
-import { BlockInterface } from '../interfaces';
-import { SchemaValidationError } from '../errors';
 import { z } from 'zod';
-import { instanceToPlain } from 'class-transformer';
-import { CustomHelper } from './handlebars-processor.service';
+import { SchemaValidationError } from '../errors';
 import { TemplateExOptions } from './expression-handler/template-expression.handler';
+import { TemplateService } from './template.service';
 
 @Injectable()
 export class TemplateExpressionEvaluatorService {
@@ -13,7 +10,7 @@ export class TemplateExpressionEvaluatorService {
 
   constructor(private templateService: TemplateService) {}
 
-  private validateResult<T>(result: T, schema: z.ZodType): T {
+  private validateResult<T>(result: T, schema: z.ZodType<T, z.ZodTypeDef, unknown>): T {
     try {
       return schema.parse(result);
     } catch (error) {
@@ -23,22 +20,13 @@ export class TemplateExpressionEvaluatorService {
     }
   }
 
-  private isValidTemplate(value: any) {
-    return (
-      typeof value === 'string' ||
-      (typeof value === 'object' &&
-        value !== null &&
-        Object.keys(value).length > 0)
-    );
+  private isValidTemplate(value: unknown): boolean {
+    return typeof value === 'string' || (typeof value === 'object' && value !== null && Object.keys(value).length > 0);
   }
 
-  public evaluateTemplate<T>(
-    obj: any,
-    variables: any,
-    options?: TemplateExOptions
-  ): T {
+  public evaluateTemplate<T>(obj: unknown, variables: Record<string, unknown>, options?: TemplateExOptions): T {
     if (obj === undefined) {
-      return obj;
+      return obj as T;
     }
 
     // const selfProperties = instanceToPlain(variables, {
@@ -56,11 +44,13 @@ export class TemplateExpressionEvaluatorService {
     //   this.logger.debug(result);
     // }
 
-    return options?.schema ? this.validateResult<T>(result, options.schema) : result;
+    return options?.schema
+      ? this.validateResult(result, options.schema as z.ZodType<T, z.ZodTypeDef, unknown>)
+      : result;
   }
 
-  public evaluateTemplateRaw<T>(obj: any, variables: any, options?: TemplateExOptions): T {
+  public evaluateTemplateRaw<T>(obj: unknown, variables: Record<string, unknown>, options?: TemplateExOptions): T {
     const isValid = this.isValidTemplate(obj);
-    return isValid ? this.templateService.evaluateDeep<T>(obj, variables, options) : obj;
+    return isValid ? this.templateService.evaluateDeep<T>(obj, variables, options) : (obj as T);
   }
 }

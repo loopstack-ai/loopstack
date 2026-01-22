@@ -26,9 +26,7 @@ export class ConfigValidationService implements OnModuleInit {
     });
 
     if (missingConfigs.length > 0) {
-      throw new Error(
-        `Missing required configuration values: ${missingConfigs.join(', ')}`
-      );
+      throw new Error(`Missing required configuration values: ${missingConfigs.join(', ')}`);
     }
   }
 }

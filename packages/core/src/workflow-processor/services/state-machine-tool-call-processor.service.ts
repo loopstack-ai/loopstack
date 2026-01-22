@@ -1,25 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DocumentEntity, ToolResult, ToolSideEffects } from '@loopstack/common';
-import { AssignmentConfigType, ToolCallType } from '@loopstack/contracts/types';
-import { WorkflowBase } from '../abstract';
-import {
-  BlockInterface,
-  CustomHelper,
-  TemplateExpressionEvaluatorService,
-} from '../../common';
-import { WorkflowExecution } from '../interfaces';
 import { z } from 'zod';
+import { DocumentEntity, ToolResult, ToolSideEffects } from '@loopstack/common';
 import { WorkflowTransitionSchema } from '@loopstack/contracts/schemas';
+import { AssignmentConfigType, ToolCallType } from '@loopstack/contracts/types';
+import { CustomHelper, TemplateExpressionEvaluatorService } from '../../common';
+import { WorkflowBase } from '../abstract';
+import { WorkflowExecution } from '../interfaces';
 
 @Injectable()
 export class StateMachineToolCallProcessorService {
-  private readonly logger = new Logger(
-    StateMachineToolCallProcessorService.name,
-  );
+  private readonly logger = new Logger(StateMachineToolCallProcessorService.name);
 
-  constructor(
-    private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-  ) {}
+  constructor(private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService) {}
 
   async processToolCalls(
     block: WorkflowBase,
@@ -29,8 +21,8 @@ export class StateMachineToolCallProcessorService {
   ): Promise<WorkflowExecution> {
     const transition = ctx.runtime.transition!;
 
-    let effects: ToolSideEffects[] = [];
-    let toolResults: Record<string, any> = {};
+    const effects: ToolSideEffects[] = [];
+    const toolResults: Record<string, any> = {};
 
     if (!toolCalls) {
       return ctx;
@@ -41,39 +33,34 @@ export class StateMachineToolCallProcessorService {
         let i = 0;
 
         for (const toolCall of toolCalls) {
-          this.logger.debug(
-            `Call tool ${i} (${toolCall.tool}) on transition ${transition.id}`,
-          );
+          this.logger.debug(`Call tool ${i} (${toolCall.tool}) on transition ${transition.id}`);
 
           const tool = block.getTool(toolCall.tool);
           if (!tool) {
-            throw new Error(`Tool with name ${toolCall.tool} not found.`)
+            throw new Error(`Tool with name ${toolCall.tool} not found.`);
           }
 
-          const templateHelpers: CustomHelper[] = block.helpers.map((name: string) => ({
-            name,
-            fn: block[name]
-          }));
+          const templateHelpers: CustomHelper[] = block.helpers
+            .map((name: string) => ({
+              name,
+              fn: block.getHelper(name),
+            }))
+            .filter((helper): helper is CustomHelper => helper.fn !== undefined);
 
-          const evaluatedArgs = this.templateExpressionEvaluatorService.evaluateTemplate<any>(
+          const evaluatedArgs = this.templateExpressionEvaluatorService.evaluateTemplate<unknown>(
             toolCall.args,
             block.getTemplateVars(args, ctx),
             {
               cacheKey: block.name,
-              helpers: templateHelpers
-            }
+              helpers: templateHelpers,
+            },
           );
 
-          const parsedArgs = tool.validate(evaluatedArgs);
+          const parsedArgs: unknown = tool.validate(evaluatedArgs);
 
           const toolCallResult: ToolResult = await tool.execute(parsedArgs, ctx, block);
 
-          this.assignToTargetBlock(
-            block,
-            toolCall.assign as AssignmentConfigType,
-            ctx,
-            toolCallResult,
-          );
+          this.assignToTargetBlock(block, toolCall.assign as AssignmentConfigType, ctx, toolCallResult);
 
           if (toolCall.id) {
             toolResults[toolCall.id] = toolCallResult;
@@ -84,7 +71,7 @@ export class StateMachineToolCallProcessorService {
           ctx.state.updateMetadata({
             tools: {
               [transition.id]: toolResults,
-            }
+            },
           });
 
           if (toolCallResult.effects) {
@@ -95,10 +82,13 @@ export class StateMachineToolCallProcessorService {
         }
 
         // apply the transition to next place
-        const transitionEffects = effects.reduce((acc, effect) => {
-          acc.setTransitionPlace = effect.setTransitionPlace;
-          return acc;
-        }, { setTransitionPlace: undefined });
+        const transitionEffects = effects.reduce(
+          (acc, effect) => {
+            acc.setTransitionPlace = effect.setTransitionPlace;
+            return acc;
+          },
+          { setTransitionPlace: undefined },
+        );
 
         if (transitionEffects.setTransitionPlace) {
           ctx.runtime.nextPlace = transitionEffects.setTransitionPlace;
@@ -108,10 +98,7 @@ export class StateMachineToolCallProcessorService {
         // persisted with next loop iteration
         for (const effect of effects) {
           if (effect.addWorkflowDocuments?.length) {
-            this.addDocuments(
-              ctx,
-              effect.addWorkflowDocuments,
-            );
+            this.addDocuments(ctx, effect.addWorkflowDocuments);
           }
         }
       }
@@ -159,7 +146,7 @@ export class StateMachineToolCallProcessorService {
       documents[index] = document;
     }
 
-    ctx.state.setMetadata('documents', documents)
+    ctx.state.setMetadata('documents', documents);
     ctx.runtime.persistenceState.documentsUpdated = true;
   }
 
@@ -167,44 +154,41 @@ export class StateMachineToolCallProcessorService {
     // invalidate previous versions of the same document
     const documents = ctx.state.getMetadata('documents');
     for (const doc of documents) {
-      if (
-        doc.messageId === document.messageId &&
-        doc.meta?.invalidate !== false
-      ) {
+      if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
         doc.isInvalidated = true;
       }
     }
 
     documents.push(document);
-    ctx.state.setMetadata('documents', documents)
+    ctx.state.setMetadata('documents', documents);
     ctx.runtime.persistenceState.documentsUpdated = true;
   }
 
   assignToTargetBlock(
-    block: BlockInterface,
+    block: WorkflowBase,
     assign: AssignmentConfigType | undefined,
     ctx: WorkflowExecution,
     result: ToolResult,
   ) {
     if (assign) {
+      const templateHelpers: CustomHelper[] = block.helpers
+        .map((name: string) => ({
+          name,
+          fn: block.getHelper(name),
+        }))
+        .filter((helper): helper is CustomHelper => helper.fn !== undefined);
 
-      const templateHelpers: CustomHelper[] = block.helpers.map((name: string) => ({
-        name,
-        fn: block[name]
-      }));
-
-      const update: any = {};
+      const update: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(assign)) {
-        update[key] =
-          this.templateExpressionEvaluatorService.evaluateTemplateRaw<string>(
-            value,
-            { result },
-            {
-              cacheKey: block.name,
-              helpers: templateHelpers,
-              schema: z.array(WorkflowTransitionSchema)
-            },
-          );
+        update[key] = this.templateExpressionEvaluatorService.evaluateTemplateRaw<string>(
+          value,
+          { result },
+          {
+            cacheKey: block.name,
+            helpers: templateHelpers,
+            schema: z.array(WorkflowTransitionSchema),
+          },
+        );
       }
 
       ctx.state.update(update);

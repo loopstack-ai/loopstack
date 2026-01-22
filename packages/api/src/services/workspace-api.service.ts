@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository, In, IsNull } from 'typeorm';
-import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
-import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
 import { ConfigService } from '@nestjs/config';
-import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
+import { In, IsNull, Repository } from 'typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
+import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
+import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
+import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
+import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
 
 @Injectable()
 export class WorkspaceApiService {
@@ -37,23 +37,13 @@ export class WorkspaceApiService {
     page: number;
     limit: number;
   }> {
-    const defaultLimit = this.configService.get<number>(
-      'WORKSPACE_DEFAULT_LIMIT',
-      100,
-    );
-    const defaultSortBy = this.configService.get<WorkspaceSortByDto[]>(
-      'WORKSPACE_DEFAULT_SORT_BY',
-      [],
-    );
+    const defaultLimit = this.configService.get<number>('WORKSPACE_DEFAULT_LIMIT', 100);
+    const defaultSortBy = this.configService.get<WorkspaceSortByDto[]>('WORKSPACE_DEFAULT_SORT_BY', []);
 
-    const queryBuilder =
-      this.workspaceRepository.createQueryBuilder('workspace');
+    const queryBuilder = this.workspaceRepository.createQueryBuilder('workspace');
 
     const transformedFilter = Object.fromEntries(
-      Object.entries(filter).map(([key, value]) => [
-        key,
-        value === null ? IsNull() : value,
-      ]),
+      Object.entries(filter).map(([key, value]) => [key, value === null ? IsNull() : value]),
     );
 
     queryBuilder.where({
@@ -62,9 +52,7 @@ export class WorkspaceApiService {
     });
 
     if (search?.query && search.columns?.length > 0) {
-      const searchConditions = search.columns.map(
-        (column) => `workspace.${String(column)} ILIKE :searchQuery`,
-      );
+      const searchConditions = search.columns.map((column) => `workspace.${String(column)} ILIKE :searchQuery`);
 
       queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
         searchQuery: `%${search.query}%`,
@@ -84,11 +72,7 @@ export class WorkspaceApiService {
     }
 
     queryBuilder.take(pagination.limit ?? defaultLimit);
-    queryBuilder.skip(
-      pagination.page && pagination.limit
-        ? pagination.page * pagination.limit
-        : 0,
-    );
+    queryBuilder.skip(pagination.page && pagination.limit ? pagination.page * pagination.limit : 0);
 
     const [data, total] = await queryBuilder.getManyAndCount();
 
@@ -120,10 +104,7 @@ export class WorkspaceApiService {
   /**
    * Creates a new workspace.
    */
-  async create(
-    workspaceData: WorkspaceCreateDto,
-    user: string,
-  ): Promise<WorkspaceEntity> {
+  async create(workspaceData: WorkspaceCreateDto, user: string): Promise<WorkspaceEntity> {
     const title = workspaceData.title || `${workspaceData.blockName}`;
 
     const workspace = this.workspaceRepository.create({
@@ -137,11 +118,7 @@ export class WorkspaceApiService {
   /**
    * Updates an existing workspace by ID.
    */
-  async update(
-    id: string,
-    workspaceData: WorkspaceUpdateDto,
-    user: string,
-  ): Promise<WorkspaceEntity> {
+  async update(id: string, workspaceData: WorkspaceUpdateDto, user: string): Promise<WorkspaceEntity> {
     const workspace = await this.workspaceRepository.findOne({
       where: {
         id,
@@ -149,8 +126,7 @@ export class WorkspaceApiService {
       },
     });
 
-    if (!workspace)
-      throw new NotFoundException(`Workspace with ID ${id} not found`);
+    if (!workspace) throw new NotFoundException(`Workspace with ID ${id} not found`);
 
     Object.assign(workspace, workspaceData);
     return await this.workspaceRepository.save(workspace);
@@ -167,8 +143,7 @@ export class WorkspaceApiService {
       },
     });
 
-    if (!workspace)
-      throw new NotFoundException(`Workspace with ID ${id} not found`);
+    if (!workspace) throw new NotFoundException(`Workspace with ID ${id} not found`);
 
     await this.workspaceRepository.delete(id);
   }
@@ -230,12 +205,8 @@ export class WorkspaceApiService {
         });
 
         const remainingIds = remainingPipelines.map((pipeline) => pipeline.id);
-        const actuallyDeleted = existingIds.filter(
-          (id) => !remainingIds.includes(id),
-        );
-        const failedToDelete = existingIds.filter((id) =>
-          remainingIds.includes(id),
-        );
+        const actuallyDeleted = existingIds.filter((id) => !remainingIds.includes(id));
+        const failedToDelete = existingIds.filter((id) => remainingIds.includes(id));
 
         deleted.push(...actuallyDeleted);
         failedToDelete.forEach((id) => {
@@ -249,7 +220,7 @@ export class WorkspaceApiService {
       existingIds.forEach((id) => {
         failed.push({
           id,
-          error: `Database error: ${error.message}`,
+          error: `Database error: ${error instanceof Error ? error.message : String(error)}`,
         });
       });
     }

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import type { ScheduledTask } from '@loopstack/contracts/types';
-import { ConfigService } from '@nestjs/config';
+import { WorkspaceService } from '../../persistence';
 import { CreatePipelineService } from '../../workflow-processor';
 import { TaskSchedulerService } from './task-scheduler.service';
-import { WorkspaceService } from '../../persistence';
 
 @Injectable()
 export class RunService {
@@ -18,7 +18,7 @@ export class RunService {
   async run(
     itemName: string,
     workspaceName: string,
-    payload: any = {},
+    payload: unknown = {},
     userId: string,
     options: {
       workspaceTitle?: string;
@@ -28,7 +28,7 @@ export class RunService {
     pipelineId: string;
     workspaceId: string;
   }> {
-    const workerId = this.configService.get('auth.clientId');
+    const workerId = this.configService.getOrThrow<string>('auth.clientId');
 
     let workspace = await this.workspaceService.getWorkspace(
       {

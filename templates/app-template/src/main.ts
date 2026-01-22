@@ -1,14 +1,14 @@
-process.env.TZ = 'UTC';
-
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { LoopstackApiModule } from '@loopstack/api';
+import { AppModule } from './app.module';
+
+process.env.TZ = 'UTC';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  LoopstackApiModule.setup(app as any);
+  LoopstackApiModule.setup(app);
 
   await app.listen(process.env.PORT ?? 8000);
 }
-bootstrap();
+void bootstrap();

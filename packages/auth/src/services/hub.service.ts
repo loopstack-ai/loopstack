@@ -1,15 +1,17 @@
 import { BadGatewayException, BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { IValidateCodeResponse } from '@loopstack/common';
-import { ConfigService } from '@nestjs/config';
-import { HubConfig, RequestContext } from '../interfaces/hub-service.interfaces';
-import { HubAuditService } from './hub-audit.service';
+import { SsoValidateCodeInterface } from '@loopstack/common';
 import {
   HubAuthenticationException,
-  HubConfigurationException, HubServiceUnavailableException, HubTimeoutException,
+  HubConfigurationException,
+  HubServiceUnavailableException,
+  HubTimeoutException,
   InvalidAuthCodeException,
 } from '../exceptions/hub.exceptions';
-import { SsoValidateCodeInterface } from '@loopstack/common';
+import { HubConfig, RequestContext } from '../interfaces/hub-service.interfaces';
+import { HubAuditService } from './hub-audit.service';
 
 @Injectable()
 export class HubService implements OnModuleInit {
@@ -22,15 +24,15 @@ export class HubService implements OnModuleInit {
     private readonly auditService: HubAuditService,
   ) {}
 
-  async onModuleInit(): Promise<void> {
-    await this.initialize();
+  onModuleInit(): void {
+    this.initialize();
   }
 
-  private async initialize(): Promise<void> {
+  private initialize(): void {
     try {
       this.config = this.loadConfiguration();
 
-      if (!this.configService.get('app.isLocalMode')) {
+      if (!this.configService.get<boolean>('app.isLocalMode')) {
         this.validateConfiguration();
       }
 
@@ -52,12 +54,10 @@ export class HubService implements OnModuleInit {
   }
 
   private loadConfiguration(): HubConfig {
-    const authConfig = this.configService.get('auth');
-
     return {
-      authCallback: authConfig?.authCallback,
-      clientId: authConfig?.clientId,
-      clientSecret: authConfig?.clientSecret,
+      authCallback: this.configService.get<string>('auth.authCallback') ?? '',
+      clientId: this.configService.get<string>('auth.clientId') ?? '',
+      clientSecret: this.configService.get<string>('auth.clientSecret') ?? '',
       timeout: 10000,
       retries: 3,
     };
@@ -65,7 +65,7 @@ export class HubService implements OnModuleInit {
 
   private validateConfiguration(): void {
     const required = ['authCallback'];
-    const missing = required.filter(field => !this.config[field]);
+    const missing = required.filter((field) => !this.config[field]);
 
     if (missing.length > 0) {
       throw new HubConfigurationException(`Missing required fields: ${missing.join(', ')}`);
@@ -86,10 +86,10 @@ export class HubService implements OnModuleInit {
         this.logger.debug(`Making request to: ${config.url}`);
         return config;
       },
-      (error) => {
+      (error: unknown) => {
         this.logger.error('Request interceptor error:', error);
-        return Promise.reject(error);
-      }
+        return Promise.reject(error instanceof Error ? error : new Error(String(error)));
+      },
     );
 
     this.axiosInstance.interceptors.response.use(
@@ -97,45 +97,51 @@ export class HubService implements OnModuleInit {
         this.logger.debug(`Response received: ${response.status}`);
         return response;
       },
-      (error) => {
-        this.logger.error(`Response error: ${error.response?.status} - ${error.message}`);
-        return Promise.reject(error);
-      }
+      (error: unknown) => {
+        if (error instanceof AxiosError) {
+          this.logger.error(`Response error: ${error.response?.status} - ${error.message}`);
+        } else {
+          this.logger.error('Response error:', error);
+        }
+        return Promise.reject(error instanceof Error ? error : new Error(String(error)));
+      },
     );
   }
 
   private async retryOperation<T>(
     operation: () => Promise<T>,
     maxRetries: number = 3,
-    delay: number = 1000
+    delay: number = 1000,
   ): Promise<T> {
-    let lastError: Error | undefined = undefined;
+    let lastError: Error = new Error('Unknown error');
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await operation();
       } catch (error) {
-        lastError = error;
+        lastError = error instanceof Error ? error : new Error(String(error));
 
         // Don't retry on client errors (4xx)
-        if (error instanceof AxiosError && error.response?.status && error.response?.status >= 400 && error.response?.status < 500) {
+        if (
+          error instanceof AxiosError &&
+          error.response?.status &&
+          error.response?.status >= 400 &&
+          error.response?.status < 500
+        ) {
           throw error;
         }
 
         if (attempt < maxRetries) {
-          this.logger.warn(`Attempt ${attempt} failed, retrying in ${delay}ms: ${error.message}`);
-          await new Promise(resolve => setTimeout(resolve, delay * attempt));
+          this.logger.warn(`Attempt ${attempt} failed, retrying in ${delay}ms: ${lastError.message}`);
+          await new Promise((resolve) => setTimeout(resolve, delay * attempt));
         }
       }
     }
 
-    throw lastError ;
+    throw lastError;
   }
 
-  async exchangeCodeForUserInfo(
-    code: string,
-    context?: RequestContext
-  ): Promise<IValidateCodeResponse> {
+  async exchangeCodeForUserInfo(code: string, context?: RequestContext): Promise<IValidateCodeResponse> {
     const requestContext: RequestContext = {
       correlationId: context?.correlationId || 'no-correlation-id',
       requestId: context?.requestId,
@@ -146,9 +152,7 @@ export class HubService implements OnModuleInit {
 
     const startTime = Date.now();
 
-    this.logger.log(
-      `[${requestContext.correlationId}] Exchanging authorization code for user info`
-    );
+    this.logger.log(`[${requestContext.correlationId}] Exchanging authorization code for user info`);
 
     try {
       const result = await this.retryOperation(async () => {
@@ -164,11 +168,11 @@ export class HubService implements OnModuleInit {
           },
           {
             headers: {
-              'Authorization': `Bearer ${this.config.clientSecret}`,
+              Authorization: `Bearer ${this.config.clientSecret}`,
               'X-Correlation-ID': requestContext.correlationId,
               'X-Request-ID': requestContext.requestId || requestContext.correlationId,
             },
-          }
+          },
         );
 
         return response.data;
@@ -176,18 +180,11 @@ export class HubService implements OnModuleInit {
 
       const responseTime = Date.now() - startTime;
 
-      await this.auditService.logCodeExchange(
-        requestContext,
-        true,
-        responseTime
-      );
+      this.auditService.logCodeExchange(requestContext, true, responseTime);
 
-      this.logger.log(
-        `[${requestContext.correlationId}] Code exchange successful in ${responseTime}ms`
-      );
+      this.logger.log(`[${requestContext.correlationId}] Code exchange successful in ${responseTime}ms`);
 
       return result;
-
     } catch (error) {
       const responseTime = Date.now() - startTime;
 
@@ -207,27 +204,23 @@ export class HubService implements OnModuleInit {
         } else {
           thrownError = new BadRequestException('Failed to validate authorization code');
         }
+
+        this.auditService.logCodeExchange(requestContext, false, responseTime, thrownError.message, {
+          errorType: error.constructor.name,
+          statusCode: error.response?.status,
+        });
       } else {
-        this.logger.error(
-          `[${requestContext.correlationId}] Unexpected error during code exchange:`,
-          error
-        );
+        this.logger.error(`[${requestContext.correlationId}] Unexpected error during code exchange:`, error);
         thrownError = new BadGatewayException('Hub service communication error');
+
+        this.auditService.logCodeExchange(requestContext, false, responseTime, thrownError.message, {
+          errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+          statusCode: undefined,
+        });
       }
 
-      await this.auditService.logCodeExchange(
-        requestContext,
-        false,
-        responseTime,
-        thrownError.message,
-        {
-          errorType: error.constructor.name,
-          statusCode: error instanceof AxiosError ? error.response?.status : undefined
-        }
-      );
-
       this.logger.error(
-        `[${requestContext.correlationId}] Code exchange failed in ${responseTime}ms: ${thrownError.message}`
+        `[${requestContext.correlationId}] Code exchange failed in ${responseTime}ms: ${thrownError.message}`,
       );
 
       throw thrownError;

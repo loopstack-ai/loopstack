@@ -1,27 +1,15 @@
 import { Module } from '@nestjs/common';
-import { SchedulerModule } from './scheduler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import {
-  DocumentEntity,
-  NamespaceEntity,
-  PipelineEntity,
-  WorkflowEntity,
-  WorkspaceEntity,
-} from '@loopstack/common';
-import { CommonModule } from './common';
-import { WorkflowProcessorModule } from './workflow-processor';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DocumentEntity, NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
+import { CommonModule } from './common';
+import { SchedulerModule } from './scheduler';
 import { ExecuteWorkflowAsync } from './tools';
+import { WorkflowProcessorModule } from './workflow-processor';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      PipelineEntity,
-      WorkflowEntity,
-      DocumentEntity,
-      WorkspaceEntity,
-      NamespaceEntity,
-    ]),
+    TypeOrmModule.forFeature([PipelineEntity, WorkflowEntity, DocumentEntity, WorkspaceEntity, NamespaceEntity]),
     EventEmitterModule.forRoot({
       global: true,
     }),
@@ -29,9 +17,7 @@ import { ExecuteWorkflowAsync } from './tools';
     WorkflowProcessorModule,
     SchedulerModule,
   ],
-  providers: [
-    ExecuteWorkflowAsync,
-  ],
+  providers: [ExecuteWorkflowAsync],
   exports: [CommonModule, WorkflowProcessorModule, SchedulerModule, ExecuteWorkflowAsync],
 })
 export class LoopCoreModule {}

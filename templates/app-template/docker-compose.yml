@@ -2,7 +2,7 @@ services:
   redis:
     image: redis:8.0-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
@@ -31,7 +31,7 @@ services:
     image: ghcr.io/loopstack-ai/loopstack-studio:latest
     pull_policy: always
     ports:
-      - "3000:3000"
+      - '3000:3000'
     restart: unless-stopped
     networks:
       - monorepo-network

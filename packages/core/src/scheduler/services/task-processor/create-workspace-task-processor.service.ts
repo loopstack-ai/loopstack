@@ -3,9 +3,7 @@ import { WorkspaceService } from '../../../persistence';
 
 @Injectable()
 export class CreateWorkspaceTaskProcessorService {
-  private readonly logger = new Logger(
-    CreateWorkspaceTaskProcessorService.name,
-  );
+  private readonly logger = new Logger(CreateWorkspaceTaskProcessorService.name);
 
   constructor(private readonly workspaceService: WorkspaceService) {}
 

@@ -1,12 +1,6 @@
-import {
-  IsArray,
-  IsInt,
-  IsOptional,
-  Min,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsArray, IsInt, IsOptional, Min, ValidateNested } from 'class-validator';
 import { WorkflowFilterDto } from './workflow-filter.dto';
 import { WorkflowSortByDto } from './workflow-sort-by.dto';
 

@@ -1,7 +1,7 @@
+import { Expose } from 'class-transformer';
 import { NamespaceEntity } from '@loopstack/common';
 import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { BlockStateDto, WorkflowStateDto } from './workflow-state.dto';
-import { Expose } from 'class-transformer';
 
 export class BlockExecutionContextDto<TState extends WorkflowStateDto | BlockStateDto = BlockStateDto> {
   @Expose()
@@ -52,7 +52,6 @@ export class PipelineExecutionContextDto extends BlockExecutionContextDto {
   }
 }
 export class WorkflowExecutionContextDto extends BlockExecutionContextDto<WorkflowStateDto> {
-
   state: WorkflowStateDto;
 
   constructor(data: WorkflowExecutionContextDto) {

@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class TaskInitializationService implements OnApplicationBootstrap {
@@ -56,7 +56,7 @@ export class TaskInitializationService implements OnApplicationBootstrap {
     return this.configService.get<boolean>('runStartupTasks', true);
   }
 
-  async onApplicationBootstrap() {
+  onApplicationBootstrap() {
     if (!this.isEnabled()) {
       this.eventEmitter.emit('tasks.initialized');
       return;

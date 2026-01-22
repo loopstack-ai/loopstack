@@ -19,11 +19,8 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false,
-    "paths": {
-      "@loopstack/core": ["packages/core"],
-    },
+    "noFallthroughCasesInSwitch": false
   },
-  "include": ["./src"],
-  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"],
+  "include": ["./src", "./test"],
+  "exclude": ["node_modules", "dist"]
 }

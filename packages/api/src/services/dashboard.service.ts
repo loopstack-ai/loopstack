@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Repository, Brackets } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  PipelineEntity,
-  PipelineState,
-  WorkflowState,
-} from '@loopstack/common';
+import { Brackets, Repository } from 'typeorm';
+import { PipelineEntity, PipelineState, WorkflowState } from '@loopstack/common';
 
 export interface DashboardStats {
   totalAutomationRuns: number;
@@ -24,43 +20,33 @@ export class DashboardService {
   ) {}
 
   async getDashboardStats(user: string): Promise<DashboardStats> {
-    const baseQuery = this.pipelineRepository
-      .createQueryBuilder('pipeline')
-      .where({
-        createdBy: user,
-      });
+    const baseQuery = this.pipelineRepository.createQueryBuilder('pipeline').where({
+      createdBy: user,
+    });
 
-    const [total, completed, failed, inProgress, recentRuns, recentErrors] =
-      await Promise.all([
-        baseQuery.clone().getCount(),
-        baseQuery
-          .clone()
-          .andWhere({ status: PipelineState.Completed })
-          .getCount(),
-        baseQuery.clone().andWhere({ status: PipelineState.Failed }).getCount(),
-        baseQuery
-          .clone()
-          .andWhere(
-            new Brackets((qb) => {
-              qb.where({ status: PipelineState.Running })
-                .orWhere({ status: PipelineState.Pending })
-                .orWhere({ status: PipelineState.Canceled })
-                .orWhere({ status: PipelineState.Paused });
-            }),
-          )
-          .getCount(),
-        baseQuery
-          .clone()
-          .orderBy('pipeline.updatedAt', 'DESC')
-          .limit(3)
-          .getMany(),
-        baseQuery
-          .clone()
-          .andWhere({ status: WorkflowState.Failed })
-          .orderBy('pipeline.updatedAt', 'DESC')
-          .limit(3)
-          .getMany(),
-      ]);
+    const [total, completed, failed, inProgress, recentRuns, recentErrors] = await Promise.all([
+      baseQuery.clone().getCount(),
+      baseQuery.clone().andWhere({ status: PipelineState.Completed }).getCount(),
+      baseQuery.clone().andWhere({ status: PipelineState.Failed }).getCount(),
+      baseQuery
+        .clone()
+        .andWhere(
+          new Brackets((qb) => {
+            qb.where({ status: PipelineState.Running })
+              .orWhere({ status: PipelineState.Pending })
+              .orWhere({ status: PipelineState.Canceled })
+              .orWhere({ status: PipelineState.Paused });
+          }),
+        )
+        .getCount(),
+      baseQuery.clone().orderBy('pipeline.updatedAt', 'DESC').limit(3).getMany(),
+      baseQuery
+        .clone()
+        .andWhere({ status: WorkflowState.Failed })
+        .orderBy('pipeline.updatedAt', 'DESC')
+        .limit(3)
+        .getMany(),
+    ]);
 
     return {
       totalAutomationRuns: total,

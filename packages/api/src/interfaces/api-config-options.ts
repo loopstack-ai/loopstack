@@ -1,5 +1,5 @@
-import { OpenAPIObject } from '@nestjs/swagger/dist/interfaces';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { OpenAPIObject } from '@nestjs/swagger/dist/interfaces';
 
 export interface LoopstackApiConfigPluginOptions {
   swagger?: {

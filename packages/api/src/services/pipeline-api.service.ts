@@ -1,17 +1,13 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { Repository, In, IsNull } from 'typeorm';
-import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
-import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
+import { In, IsNull, Repository } from 'typeorm';
 import { PipelineEntity, WorkspaceEntity } from '@loopstack/common';
 import { CreatePipelineService } from '@loopstack/core';
+import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
+import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
+import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
+import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
 
 @Injectable()
 export class PipelineApiService {
@@ -43,22 +39,13 @@ export class PipelineApiService {
     page: number;
     limit: number;
   }> {
-    const defaultLimit = this.configService.get<number>(
-      'PIPELINE_DEFAULT_LIMIT',
-      100,
-    );
-    const defaultSortBy = this.configService.get<PipelineSortByDto[]>(
-      'PIPELINE_DEFAULT_SORT_BY',
-      [],
-    );
+    const defaultLimit = this.configService.get<number>('PIPELINE_DEFAULT_LIMIT', 100);
+    const defaultSortBy = this.configService.get<PipelineSortByDto[]>('PIPELINE_DEFAULT_SORT_BY', []);
 
     const queryBuilder = this.pipelineRepository.createQueryBuilder('pipeline');
 
     const transformedFilter = Object.fromEntries(
-      Object.entries(filter).map(([key, value]) => [
-        key,
-        value === null ? IsNull() : value,
-      ]),
+      Object.entries(filter).map(([key, value]) => [key, value === null ? IsNull() : value]),
     );
 
     queryBuilder.where({
@@ -67,9 +54,7 @@ export class PipelineApiService {
     });
 
     if (search?.query && search.columns?.length > 0) {
-      const searchConditions = search.columns.map(
-        (column) => `pipeline.${String(column)} ILIKE :searchQuery`,
-      );
+      const searchConditions = search.columns.map((column) => `pipeline.${String(column)} ILIKE :searchQuery`);
 
       queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
         searchQuery: `%${search.query}%`,
@@ -89,11 +74,7 @@ export class PipelineApiService {
     }
 
     queryBuilder.take(pagination.limit ?? defaultLimit);
-    queryBuilder.skip(
-      pagination.page && pagination.limit
-        ? pagination.page * pagination.limit
-        : 0,
-    );
+    queryBuilder.skip(pagination.page && pagination.limit ? pagination.page * pagination.limit : 0);
 
     const [data, total] = await queryBuilder.getManyAndCount();
 
@@ -125,10 +106,7 @@ export class PipelineApiService {
   /**
    * Creates a new pipeline.
    */
-  async create(
-    pipelineData: PipelineCreateDto,
-    user: string,
-  ): Promise<PipelineEntity> {
+  async create(pipelineData: PipelineCreateDto, user: string): Promise<PipelineEntity> {
     try {
       return this.createPipelineService.create(
         {
@@ -137,7 +115,7 @@ export class PipelineApiService {
         pipelineData,
         user,
       );
-    } catch (e) {
+    } catch {
       throw new BadRequestException(`Pipeline installation failed.`);
     }
   }
@@ -145,11 +123,7 @@ export class PipelineApiService {
   /**
    * Updates an existing pipeline by ID.
    */
-  async update(
-    id: string,
-    pipelineData: PipelineUpdateDto,
-    user: string,
-  ): Promise<PipelineEntity> {
+  async update(id: string, pipelineData: PipelineUpdateDto, user: string): Promise<PipelineEntity> {
     const pipeline = await this.pipelineRepository.findOne({
       where: {
         id,
@@ -157,8 +131,7 @@ export class PipelineApiService {
       },
     });
 
-    if (!pipeline)
-      throw new NotFoundException(`Pipeline with ID ${id} not found`);
+    if (!pipeline) throw new NotFoundException(`Pipeline with ID ${id} not found`);
 
     Object.assign(pipeline, pipelineData);
     return await this.pipelineRepository.save(pipeline);
@@ -175,8 +148,7 @@ export class PipelineApiService {
       },
     });
 
-    if (!pipeline)
-      throw new NotFoundException(`Pipeline with ID ${id} not found`);
+    if (!pipeline) throw new NotFoundException(`Pipeline with ID ${id} not found`);
 
     await this.pipelineRepository.delete(id);
   }
@@ -203,9 +175,7 @@ export class PipelineApiService {
       select: ['id'],
     });
 
-    const existingPipelineIds = existingPipelines.map(
-      (pipeline) => pipeline.id,
-    );
+    const existingPipelineIds = existingPipelines.map((pipeline) => pipeline.id);
     const notFoundIds = ids.filter((id) => !existingPipelineIds.includes(id));
 
     notFoundIds.forEach((id) => {
@@ -240,12 +210,8 @@ export class PipelineApiService {
         });
 
         const remainingIds = remainingPipelines.map((pipeline) => pipeline.id);
-        const actuallyDeleted = existingPipelineIds.filter(
-          (id) => !remainingIds.includes(id),
-        );
-        const failedToDelete = existingPipelineIds.filter((id) =>
-          remainingIds.includes(id),
-        );
+        const actuallyDeleted = existingPipelineIds.filter((id) => !remainingIds.includes(id));
+        const failedToDelete = existingPipelineIds.filter((id) => remainingIds.includes(id));
 
         deleted.push(...actuallyDeleted);
         failedToDelete.forEach((id) => {
@@ -259,7 +225,7 @@ export class PipelineApiService {
       existingPipelineIds.forEach((id) => {
         failed.push({
           id,
-          error: `Database error: ${error.message}`,
+          error: `Database error: ${error instanceof Error ? error.message : String(error)}`,
         });
       });
     }

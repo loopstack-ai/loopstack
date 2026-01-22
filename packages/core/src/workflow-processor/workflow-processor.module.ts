@@ -1,47 +1,31 @@
 import { Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DocumentEntity, NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
 import { CommonModule } from '../common';
+import { PersistenceModule } from '../persistence';
 import {
-  InitialRunValidator,
-  WorkflowDependenciesValidator,
-  WorkflowOptionValidator,
-} from './validators';
-import {
-  StateMachineValidatorRegistry,
-  NamespaceProcessorService,
-  WorkflowStateService,
-  RootProcessorService,
+  BlockProcessor,
   BlockRegistryService,
   ConfigLoaderService,
-  ProcessorFactory,
   FactoryProcessorService,
+  NamespaceProcessorService,
+  ProcessorFactory,
+  RootProcessorService,
   SequenceProcessorService,
-  BlockProcessor,
-  WorkflowProcessorService,
-  StateMachineValidatorService,
   StateMachineProcessorService,
   StateMachineToolCallProcessorService,
+  StateMachineValidatorRegistry,
+  StateMachineValidatorService,
+  WorkflowProcessorService,
+  WorkflowStateService,
 } from './services';
 import { CreatePipelineService } from './services';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import {
-  DocumentEntity,
-  NamespaceEntity,
-  PipelineEntity,
-  WorkflowEntity,
-  WorkspaceEntity,
-} from '@loopstack/common';
-import { PersistenceModule } from '../persistence';
+import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValidator } from './validators';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      PipelineEntity,
-      WorkflowEntity,
-      DocumentEntity,
-      WorkspaceEntity,
-      NamespaceEntity,
-    ]),
+    TypeOrmModule.forFeature([PipelineEntity, WorkflowEntity, DocumentEntity, WorkspaceEntity, NamespaceEntity]),
     PersistenceModule,
     DiscoveryModule,
     CommonModule,

@@ -15,20 +15,14 @@ const createMockRepository = () => ({
   findOne: jest.fn().mockResolvedValue(null),
   findOneBy: jest.fn().mockResolvedValue(null),
   findBy: jest.fn().mockResolvedValue([]),
-  create: jest.fn().mockImplementation((dto) => dto),
-  save: jest
-    .fn()
-    .mockImplementation((entity) =>
-      Promise.resolve({ id: 'mock-id', ...entity }),
-    ),
+  create: jest.fn().mockImplementation((dto: unknown) => dto),
+  save: jest.fn().mockImplementation((entity) => Promise.resolve({ id: 'mock-id', ...entity })),
   update: jest.fn().mockResolvedValue({ affected: 1 }),
   delete: jest.fn().mockResolvedValue({ affected: 1 }),
   remove: jest.fn().mockResolvedValue({}),
 });
 
-export function mockCoreModuleProviders(
-  builder: TestingModuleBuilder,
-): TestingModuleBuilder {
+export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingModuleBuilder {
   return builder
     .overrideProvider(MigrationsService)
     .useValue({

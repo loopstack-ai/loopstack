@@ -1,14 +1,8 @@
-import {
-  IsArray,
-  IsInt,
-  IsOptional,
-  Min,
-  ValidateNested,
-} from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { IsArray, IsInt, IsOptional, Min, ValidateNested } from 'class-validator';
 import { PipelineFilterDto } from './pipeline-filter.dto';
 import { PipelineSortByDto } from './pipeline-sort-by.dto';
-import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PipelineQueryDto {
   @IsOptional()

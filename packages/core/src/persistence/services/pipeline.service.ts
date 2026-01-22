@@ -1,10 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import {
-  PipelineEntity,
-  PipelineState,
-  WorkspaceEntity,
-} from '@loopstack/common';
+import { PipelineEntity, PipelineState, WorkspaceEntity } from '@loopstack/common';
 
 export class PipelineService {
   constructor(
@@ -12,11 +8,7 @@ export class PipelineService {
     private entityRepository: Repository<PipelineEntity>,
   ) {}
 
-  getPipeline(
-    id: string,
-    userId: string,
-    relations: string[] = ['workspace', 'namespaces'],
-  ) {
+  getPipeline(id: string, userId: string, relations: string[] = ['workspace', 'namespaces']) {
     const where: FindOptionsWhere<PipelineEntity> = {
       id,
       createdBy: userId,
@@ -61,7 +53,7 @@ export class PipelineService {
       query.andWhere('pipeline.createdBy = :userId', { userId });
     }
 
-    const result = await query.getRawOne();
+    const result = await query.getRawOne<{ maxRun: number | null }>();
     return result?.maxRun ? Number(result.maxRun) : 0;
   }
 }

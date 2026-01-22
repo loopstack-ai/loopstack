@@ -1,24 +1,14 @@
-import {
-  Injectable,
-} from '@nestjs/common';
-import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
-import type {
-  ScheduledTask,
-} from '@loopstack/contracts/types';
+import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import type { ScheduledTask } from '@loopstack/contracts/types';
 import { TaskSchedulerService } from '@loopstack/core';
+import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
 
 @Injectable()
 export class ProcessorApiService {
-  constructor(
-    private taskSchedulerService: TaskSchedulerService,
-  ) {}
+  constructor(private taskSchedulerService: TaskSchedulerService) {}
 
-  async processPipeline(
-    pipelineId: string,
-    user: string,
-    payload: RunPipelinePayloadDto,
-  ): Promise<any> {
+  async processPipeline(pipelineId: string, user: string, payload: RunPipelinePayloadDto): Promise<any> {
     return this.taskSchedulerService.addTask({
       id: 'manual_pipeline_execution-' + randomUUID(),
       task: {
@@ -28,7 +18,7 @@ export class ProcessorApiService {
           ...payload,
           id: pipelineId,
         },
-        user: user
+        user: user,
       },
     } satisfies ScheduledTask);
   }

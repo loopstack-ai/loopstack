@@ -1,7 +1,7 @@
-import { TestingModule, Test } from '@nestjs/testing';
-import { Type } from '@nestjs/common';
-import { BLOCK_METADATA_KEY } from '@loopstack/common';
+import { Provider, Type } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import { merge } from 'lodash';
+import { BLOCK_METADATA_KEY } from '@loopstack/common';
 import { ToolBase, WorkflowExecution } from '@loopstack/core';
 
 /**
@@ -17,7 +17,7 @@ export interface ToolMock {
  */
 export function createToolMock(): ToolMock {
   return {
-    validate: jest.fn().mockImplementation((v) => v),
+    validate: jest.fn().mockImplementation((v: unknown) => v),
     execute: jest.fn().mockResolvedValue({ data: undefined }),
   };
 }
@@ -25,34 +25,35 @@ export function createToolMock(): ToolMock {
 /**
  * Creates a mock WorkflowExecution context for tool testing
  */
-export function createExecutionContext(
-  overrides?: any
-): WorkflowExecution {
+export function createExecutionContext(overrides?: Partial<WorkflowExecution>): WorkflowExecution {
   // const state = new Map<string, any>();
   // const metadata = new Map<string, any>([['documents', []]]);
 
-  return merge({
-    // state: {
-    //   get: (key: string) => state.get(key),
-    //   getAll: () => Object.fromEntries(state),
-    //   update: (data: any) => Object.entries(data).forEach(([k, v]) => state.set(k, v)),
-    //   getMetadata: (key: string) => metadata.get(key),
-    //   getAllMetadata: () => Object.fromEntries(metadata),
-    //   setMetadata: (key: string, value: any) => metadata.set(key, value),
-    //   updateMetadata: (data: any) => Object.entries(data).forEach(([k, v]) => metadata.set(k, v)),
-    // },
-    runtime: {
-      error: false,
-      stop: false,
-      availableTransitions:[],
-      transition: {
-        id: 'test-transition',
-        from: 'start',
-        to: 'end',
+  return merge(
+    {
+      // state: {
+      //   get: (key: string) => state.get(key),
+      //   getAll: () => Object.fromEntries(state),
+      //   update: (data: any) => Object.entries(data).forEach(([k, v]) => state.set(k, v)),
+      //   getMetadata: (key: string) => metadata.get(key),
+      //   getAllMetadata: () => Object.fromEntries(metadata),
+      //   setMetadata: (key: string, value: any) => metadata.set(key, value),
+      //   updateMetadata: (data: any) => Object.entries(data).forEach(([k, v]) => metadata.set(k, v)),
+      // },
+      runtime: {
+        error: false,
+        stop: false,
+        availableTransitions: [],
+        transition: {
+          id: 'test-transition',
+          from: 'start',
+          to: 'end',
+        },
+        persistenceState: { documentsUpdated: false },
       },
-      persistenceState: { documentsUpdated: false },
     },
-  }, overrides) as WorkflowExecution;
+    overrides,
+  ) as WorkflowExecution;
 }
 
 /**
@@ -69,17 +70,17 @@ export function createExecutionContext(
  * const result = await tool.execute(tool.validate({ a: 1, b: 2 }), createExecutionContext());
  * ```
  */
-export class ToolTestBuilder<TTool extends ToolBase<any> = ToolBase<any>> {
+export class ToolTestBuilder<TTool extends ToolBase<object> = ToolBase<object>> {
   private toolClass?: Type<TTool>;
-  private providers: any[] = [];
-  private overrides = new Map<any, any>();
+  private providers: Provider[] = [];
+  private overrides = new Map<unknown, unknown>();
 
   /**
    * Set the tool class to test
    */
-  forTool<T extends ToolBase<any>>(toolClass: Type<T>): ToolTestBuilder<T> {
+  forTool<T extends ToolBase<object>>(toolClass: Type<T>): ToolTestBuilder<T> {
     this.verifyToolDecorators(toolClass);
-    this.toolClass = toolClass as any;
+    (this.toolClass as Type<unknown> | undefined) = toolClass;
     this.providers.push(toolClass);
     return this as unknown as ToolTestBuilder<T>;
   }
@@ -95,7 +96,7 @@ export class ToolTestBuilder<TTool extends ToolBase<any> = ToolBase<any>> {
   /**
    * Add multiple providers at once
    */
-  withProviders(...providers: any[]): this {
+  withProviders(...providers: Provider[]): this {
     this.providers.push(...providers);
     return this;
   }
@@ -103,7 +104,7 @@ export class ToolTestBuilder<TTool extends ToolBase<any> = ToolBase<any>> {
   /**
    * Mock a provider with a specific value
    */
-  withMock<T>(token: Type<T> | string | symbol, mock: Partial<T> | any): this {
+  withMock<T>(token: Type<T> | string | symbol, mock: Partial<T>): this {
     this.providers.push({
       provide: token,
       useValue: mock,
@@ -114,7 +115,7 @@ export class ToolTestBuilder<TTool extends ToolBase<any> = ToolBase<any>> {
   /**
    * Override a provider (alternative syntax, same as withMock)
    */
-  withOverride<T>(token: Type<T> | string | symbol, mock: Partial<T> | any): this {
+  withOverride<T>(token: Type<T> | string | symbol, mock: Partial<T>): this {
     this.overrides.set(token, mock);
     return this;
   }
@@ -153,11 +154,9 @@ export class ToolTestBuilder<TTool extends ToolBase<any> = ToolBase<any>> {
   }
 
   private verifyToolDecorators<T>(toolClass: Type<T>): void {
-    const blockConfig = Reflect.getMetadata(BLOCK_METADATA_KEY, toolClass);
+    const blockConfig: unknown = Reflect.getMetadata(BLOCK_METADATA_KEY, toolClass);
     if (!blockConfig) {
-      throw new Error(
-        `Tool ${toolClass.name} is not decorated with @BlockConfig`
-      );
+      throw new Error(`Tool ${toolClass.name} is not decorated with @BlockConfig`);
     }
   }
 }

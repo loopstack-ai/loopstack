@@ -1,14 +1,14 @@
-import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { DocumentMetaDto } from './document-meta.dto';
-import { DocumentContentDto } from './document-content.dto';
+import { Expose, plainToInstance } from 'class-transformer';
 import { DocumentEntity } from '@loopstack/common';
 import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
+import { DocumentContentDto } from './document-content.dto';
+import { DocumentMetaDto } from './document-meta.dto';
 
 /**
  * Data Transfer Object for Document entities
  */
-export class DocumentDto<T = unknown> {
+export class DocumentDto {
   /**
    * Unique identifier of the document
    */
@@ -160,8 +160,7 @@ export class DocumentDto<T = unknown> {
   @ApiProperty({
     type: 'array',
     items: { type: 'string' },
-    description:
-      'Tags associated with the document for categorization and filtering',
+    description: 'Tags associated with the document for categorization and filtering',
     example: ['tag1', 'tag2'],
   })
   tags: string[];
@@ -223,9 +222,9 @@ export class DocumentDto<T = unknown> {
    * @param document The document entity to convert
    * @returns A new DocumentDto instance
    */
-  static create<T>(document: DocumentEntity<T>): DocumentDto<T> {
+  static create(document: DocumentEntity): DocumentDto {
     return plainToInstance(DocumentDto, document, {
       excludeExtraneousValues: true,
-    }) as DocumentDto<T>;
+    });
   }
 }

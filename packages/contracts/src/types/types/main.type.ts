@@ -5,7 +5,7 @@ export interface ConfigSourceInterface {
   path: string;
   relativePath: string;
   raw: string;
-  config: any;
+  config: Partial<BlockConfigType>;
 }
 
 export type BlockConfigType = z.infer<typeof BlockConfigSchema>;

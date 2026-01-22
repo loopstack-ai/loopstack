@@ -1,10 +1,6 @@
-import { Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  PipelineState,
-  WorkflowEntity,
-  WorkflowState,
-} from '@loopstack/common';
+import { Expose, plainToInstance } from 'class-transformer';
+import { PipelineState, WorkflowEntity, WorkflowState } from '@loopstack/common';
 
 /**
  * Data Transfer Object representing a workflow item
@@ -46,8 +42,7 @@ export class WorkflowItemDto {
   @ApiProperty({
     type: 'array',
     items: { type: 'string' },
-    description:
-      'Tags associated with the workflow for categorization and filtering',
+    description: 'Tags associated with the workflow for categorization and filtering',
     example: ['frontend', 'featureXY'],
   })
   labels: string[];
@@ -102,8 +97,7 @@ export class WorkflowItemDto {
 
   @Expose()
   @ApiProperty({
-    description:
-      'Unique identifier of the workspace this workflow item belongs to',
+    description: 'Unique identifier of the workspace this workflow item belongs to',
     example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
   })
   workspaceId: string;

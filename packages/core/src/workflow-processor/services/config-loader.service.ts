@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { ConfigSourceInterface } from '@loopstack/contracts/types';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 import { parse } from 'yaml';
+import type { BlockConfigType, ConfigSourceInterface } from '@loopstack/contracts/types';
 
 @Injectable()
 export class ConfigLoaderService {
@@ -13,9 +13,9 @@ export class ConfigLoaderService {
       const raw = fs.readFileSync(filePath, 'utf8');
 
       // Parse YAML with error handling
-      let config: any;
+      let config: Partial<BlockConfigType>;
       try {
-        config = parse(raw);
+        config = parse(raw) as Partial<BlockConfigType>;
       } catch (parseError) {
         this.logger.error(`Error parsing YAML file ${filePath}:`, parseError);
         return null;

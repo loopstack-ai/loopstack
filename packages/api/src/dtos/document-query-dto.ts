@@ -1,14 +1,8 @@
-import {
-  IsArray,
-  IsInt,
-  IsOptional,
-  Min,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { DocumentSortByDto } from './document-sort-by.dto';
+import { Type } from 'class-transformer';
+import { IsArray, IsInt, IsOptional, Min, ValidateNested } from 'class-validator';
 import { DocumentFilterDto } from './document-filter.dto';
+import { DocumentSortByDto } from './document-sort-by.dto';
 
 export class DocumentQueryDto {
   @IsOptional()

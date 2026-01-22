@@ -1,9 +1,9 @@
-import { Command, CommandRunner, Option } from 'nest-commander';
+import axios from 'axios';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
+import { Command, CommandRunner, Option } from 'nest-commander';
 import * as path from 'path';
 import * as readline from 'readline';
-import axios from 'axios';
 
 interface AddCommandOptions {
   dir?: string;
@@ -63,20 +63,18 @@ export class RegistryAddCommand extends CommandRunner {
 
       try {
         fs.mkdirSync(tempPath, { recursive: true });
-      } catch (error) {
+      } catch {
         console.error('Failed to create temp directory');
         process.exit(1);
       }
 
       try {
         // Clone to temp directory using the repo URL from registry
-        await this.cloneItem(registryItem.repositoryUrl, tempPath);
+        this.cloneItem(registryItem.repositoryUrl, tempPath);
 
         // Check if src directory exists in temp
         const tempSrcPath = path.join(tempPath, 'src');
-        const sourceToMove = fs.existsSync(tempSrcPath)
-          ? tempSrcPath
-          : tempPath;
+        const sourceToMove = fs.existsSync(tempSrcPath) ? tempSrcPath : tempPath;
 
         // Copy to target
         fs.mkdirSync(fullTargetPath, { recursive: true });
@@ -86,15 +84,11 @@ export class RegistryAddCommand extends CommandRunner {
         const packageJsonPath = path.join(tempPath, 'package.json');
 
         if (fs.existsSync(packageJsonPath) && !options.skipDeps) {
-          await this.handleDependencies(
-            packageJsonPath,
-            originalDir,
-            options.packageManager,
-          );
+          await this.handleDependencies(packageJsonPath, originalDir, options.packageManager);
         }
 
         console.log(`\nInstalled to: ${targetDir}`);
-      } catch (error) {
+      } catch {
         console.error('Failed to copy source');
         console.log('Possible reasons:');
         console.log('  - Item does not exist in registry');
@@ -106,7 +100,7 @@ export class RegistryAddCommand extends CommandRunner {
         this.cleanup(tempPath);
       }
     } catch (error) {
-      console.error(error.message);
+      console.error(error instanceof Error ? error.message : 'An unknown error occurred');
       process.exit(1);
     }
   }
@@ -138,35 +132,29 @@ export class RegistryAddCommand extends CommandRunner {
     return val;
   }
 
-  private async findRegistryItem(
-    itemName: string,
-  ): Promise<RegistryItem | null> {
+  private async findRegistryItem(itemName: string): Promise<RegistryItem | null> {
     try {
       console.log('Loading registry...');
-      const response = await axios.get<RegistryItem[]>(
-        `${this.registryUrl}?package=${itemName}`,
-      );
+      const response = await axios.get<RegistryItem[]>(`${this.registryUrl}?package=${itemName}`);
       const registry = response.data;
 
       // Search for item by name (case-insensitive)
-      const item = registry.find(
-        (entry) => entry.name.toLowerCase() === itemName.toLowerCase(),
-      );
+      const item = registry.find((entry) => entry.name.toLowerCase() === itemName.toLowerCase());
 
       return item || null;
-    } catch (error) {
+    } catch {
       console.error('Failed to load registry');
       console.log(`Registry URL: ${this.registryUrl}`);
       throw new Error('Could not fetch registry');
     }
   }
 
-  private async cloneItem(repoUrl: string, targetPath: string): Promise<void> {
+  private cloneItem(repoUrl: string, targetPath: string): void {
     try {
       execSync(`npx degit ${repoUrl} "${targetPath}"`, {
         stdio: 'inherit',
       });
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to clone from ${repoUrl}`);
     }
   }
@@ -192,7 +180,7 @@ export class RegistryAddCommand extends CommandRunner {
       if (fs.existsSync(tempPath)) {
         fs.rmSync(tempPath, { recursive: true, force: true });
       }
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   }
@@ -202,9 +190,11 @@ export class RegistryAddCommand extends CommandRunner {
     installDir: string,
     packageManager?: 'npm' | 'pnpm',
   ): Promise<void> {
-    const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+    const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as {
+      dependencies?: Record<string, string>;
+    };
 
-    const deps = pkg.dependencies || {};
+    const deps: Record<string, string> = pkg.dependencies ?? {};
 
     if (Object.keys(deps).length === 0) {
       return;
@@ -212,7 +202,7 @@ export class RegistryAddCommand extends CommandRunner {
 
     console.log('\nDependencies:');
     Object.entries(deps).forEach(([name, version]) => {
-      console.log(`  ${name}@${version}`);
+      console.log(`  ${name}@${String(version)}`);
     });
 
     const shouldAdd = await this.promptForAddDependencies();
@@ -224,9 +214,7 @@ export class RegistryAddCommand extends CommandRunner {
         process.chdir(installDir);
 
         // Add dependencies
-        const depsList = Object.entries(deps).map(
-          ([name, version]) => `${name}@${version}`,
-        );
+        const depsList = Object.entries(deps).map(([name, version]) => `${name}@${String(version)}`);
 
         if (depsList.length > 0) {
           console.log('\nAdding dependencies to package.json...');
@@ -236,22 +224,18 @@ export class RegistryAddCommand extends CommandRunner {
 
         console.log('\nDependencies added to package.json');
         console.log(`Run '${this.getInstallCommand(pm)}' to install them`);
-      } catch (error) {
+      } catch {
         console.warn('Failed to add dependencies');
         const packages = Object.entries(deps)
-          .map(([name, version]) => `${name}@${version}`)
+          .map(([name, version]) => `${name}@${String(version)}`)
           .join(' ');
-        console.log(
-          `You can add them manually: npm install --save ${packages} --package-lock-only`,
-        );
+        console.log(`You can add them manually: npm install --save ${packages} --package-lock-only`);
       }
     } else {
       const packages = Object.entries(deps)
-        .map(([name, version]) => `${name}@${version}`)
+        .map(([name, version]) => `${name}@${String(version)}`)
         .join(' ');
-      console.log(
-        `\nTo add dependencies: npm install --save ${packages} --package-lock-only`,
-      );
+      console.log(`\nTo add dependencies: npm install --save ${packages} --package-lock-only`);
     }
   }
 
@@ -306,9 +290,7 @@ export class RegistryAddCommand extends CommandRunner {
         const pm = answer.trim().toLowerCase() || defaultPM;
 
         if (pm !== 'npm' && pm !== 'pnpm') {
-          console.log(
-            `WARNING: Unsupported package manager '${pm}', using ${defaultPM}`,
-          );
+          console.log(`WARNING: Unsupported package manager '${pm}', using ${defaultPM}`);
           resolve(defaultPM);
         } else {
           resolve(pm);
@@ -349,11 +331,7 @@ export class RegistryAddCommand extends CommandRunner {
     }
   }
 
-  private getAddCommand(
-    pm: 'npm' | 'pnpm',
-    packages: string,
-    isDev: boolean,
-  ): string {
+  private getAddCommand(pm: 'npm' | 'pnpm', packages: string, isDev: boolean): string {
     if (pm === 'npm') {
       const flag = isDev ? '--save-dev' : '--save';
       return `npm install ${flag} ${packages} --package-lock-only --ignore-scripts`;

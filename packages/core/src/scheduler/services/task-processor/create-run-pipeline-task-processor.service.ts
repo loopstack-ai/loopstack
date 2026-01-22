@@ -1,14 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  CreatePipelineService,
-  RootProcessorService,
-} from '../../../workflow-processor';
+import { CreatePipelineService, RootProcessorService } from '../../../workflow-processor';
 
 @Injectable()
 export class CreateRunPipelineTaskProcessorService {
-  private readonly logger = new Logger(
-    CreateRunPipelineTaskProcessorService.name,
-  );
+  private readonly logger = new Logger(CreateRunPipelineTaskProcessorService.name);
 
   constructor(
     private readonly createPipelineService: CreatePipelineService,

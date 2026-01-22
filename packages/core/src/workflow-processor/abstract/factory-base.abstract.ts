@@ -1,9 +1,5 @@
 import { Expose, instanceToPlain } from 'class-transformer';
-import {
-  BlockInterface,
-  BlockStateDto,
-  WorkflowExecutionContextDto,
-} from '../../common';
+import { BlockInterface, BlockStateDto, WorkflowExecutionContextDto } from '../../common';
 import { Block } from './block.abstract';
 
 export abstract class FactoryBase extends Block implements BlockInterface {
@@ -31,9 +27,9 @@ export abstract class FactoryBase extends Block implements BlockInterface {
     });
   }
 
-  #items: Record<string, any> = {};
+  #items: Record<string, unknown> = {};
 
-  addItemResult(key: string, value: any) {
+  addItemResult(key: string, value: unknown) {
     this.#items[key] = value;
   }
 

@@ -14,13 +14,13 @@ export interface HubAuditEvent {
 export class HubAuditService {
   private readonly logger = new Logger(HubAuditService.name);
 
-  async logCodeExchange(
+  logCodeExchange(
     context: RequestContext,
     success: boolean,
     responseTime: number,
     error?: string,
-    metadata?: Record<string, any>
-  ): Promise<void> {
+    metadata?: Record<string, any>,
+  ) {
     const event: HubAuditEvent = {
       action: 'HUB_CODE_EXCHANGE',
       context,

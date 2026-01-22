@@ -1,15 +1,12 @@
-import { BlockConfigType } from '@loopstack/contracts/types';
-import {
-  BlockInterface,
-} from '../../common';
-import { WorkflowExecution } from '../interfaces';
-import { WorkflowBase } from './workflow-base.abstract';
-import { ToolBase } from './tool-base.abstract';
 import { z } from 'zod';
+import { BlockConfigType } from '@loopstack/contracts/types';
+import { BlockInterface } from '../../common';
+import { WorkflowExecution } from '../interfaces';
 import { DocumentBase } from './document-base.abstract';
+import { ToolBase } from './tool-base.abstract';
+import { WorkflowBase } from './workflow-base.abstract';
 
-export abstract class Block<TArgs extends object = any> implements BlockInterface
-{
+export abstract class Block<TArgs extends object = any> implements BlockInterface {
   public type: string = 'undefined';
 
   static readonly blockConfig: BlockConfigType;
@@ -64,7 +61,7 @@ export abstract class Block<TArgs extends object = any> implements BlockInterfac
     return (this.constructor as typeof Block).resultSchema;
   }
 
-  public getTemplateVars(args: any, ctx: WorkflowExecution) {
+  public getTemplateVars(args: unknown, ctx: WorkflowExecution) {
     // todo: restrict / expose ctx.state contents
     return {
       ...ctx.state.getAll(),
@@ -74,24 +71,24 @@ export abstract class Block<TArgs extends object = any> implements BlockInterfac
     };
   }
 
-  validate(args: any): TArgs {
+  validate(args: unknown): TArgs {
     const schema = this.argsSchema;
-    return schema ? schema.parse(args) : args;
+    return schema ? (schema.parse(args) as TArgs) : (args as TArgs);
   }
 
   getWorkflow<T extends WorkflowBase>(name: string): T | undefined {
-    return this.workflows.includes(name) ? this[name] as T : undefined;
+    return this.workflows.includes(name) ? (this[name] as T) : undefined;
   }
 
   getTool<T extends ToolBase>(name: string): T | undefined {
-    return this.tools.includes(name) ? this[name] as T : undefined;
+    return this.tools.includes(name) ? (this[name] as T) : undefined;
   }
 
   getDocument<T extends DocumentBase>(name: string): T | undefined {
-    return this.documents.includes(name) ? this[name] as T : undefined;
+    return this.documents.includes(name) ? (this[name] as T) : undefined;
   }
 
-  getHelper(name: string): Function | undefined {
-    return this.helpers.includes(name) ? this[name] : undefined;
+  getHelper(name: string): ((...args: unknown[]) => unknown) | undefined {
+    return this.helpers.includes(name) ? (this[name] as (...args: unknown[]) => unknown) : undefined;
   }
 }

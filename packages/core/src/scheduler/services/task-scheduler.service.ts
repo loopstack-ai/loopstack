@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
-import { Queue, Job } from 'bullmq';
+import { Injectable, Logger } from '@nestjs/common';
+import { Job, Queue } from 'bullmq';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 
 @Injectable()

@@ -1,24 +1,15 @@
-import {
-  BlockConfig,
-  PipelineEntity,
-  ToolResult,
-  WithArguments,
-} from '@loopstack/common';
-import { z } from 'zod';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  CreatePipelineService,
-  ToolBase,
-  WorkflowExecution,
-} from '../workflow-processor';
-import { TaskSchedulerService } from '../scheduler';
-import { EventSubscriberService } from '../persistence';
 import { randomUUID } from 'node:crypto';
+import { z } from 'zod';
+import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
+import { EventSubscriberService } from '../persistence';
+import { TaskSchedulerService } from '../scheduler';
+import { CreatePipelineService, ToolBase, WorkflowExecution } from '../workflow-processor';
 
 const ExecuteWorkflowAsyncArgsSchema = z.object({
   workflow: z.string(),
-  args: z.any().optional(),
+  args: z.record(z.unknown()).optional(),
   callback: z.object({
     transition: z.string(),
   }),
@@ -44,10 +35,7 @@ export class ExecuteWorkflowAsync extends ToolBase<ExecuteWorkflowAsyncArgs> {
     super();
   }
 
-  async execute(
-    args: ExecuteWorkflowAsyncArgs,
-    ctx: WorkflowExecution,
-  ): Promise<ToolResult> {
+  async execute(args: ExecuteWorkflowAsyncArgs, ctx: WorkflowExecution): Promise<ToolResult> {
     const pipeline = await this.createPipelineService.create(
       {
         id: ctx.context.workspaceId,
@@ -86,7 +74,7 @@ export class ExecuteWorkflowAsync extends ToolBase<ExecuteWorkflowAsyncArgs> {
     } satisfies ScheduledTask);
 
     return {
-      data: job?.data,
+      data: job?.data as ScheduledTask | undefined,
     };
   }
 }

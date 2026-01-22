@@ -1,8 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { SequenceProcessorService } from './processors/sequence-processor.service';
-import { FactoryProcessorService } from './processors/factory-processor.service';
-import { WorkflowProcessorService } from './processors/workflow-processor.service';
 import { Processor } from '../../common';
+import { WorkflowProcessorService } from './processors/workflow-processor.service';
 
 @Injectable()
 export class ProcessorFactory implements OnModuleInit {

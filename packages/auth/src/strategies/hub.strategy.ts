@@ -1,12 +1,12 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-custom';
-import { HubService } from '../services';
-import { Request } from 'express';
-import { UserRepository } from '../repositories';
 import { ConfigService } from '@nestjs/config';
+import { PassportStrategy } from '@nestjs/passport';
+import { Request } from 'express';
+import { Strategy } from 'passport-custom';
 import { UserTypeEnum } from '@loopstack/common';
 import { User } from '@loopstack/common';
+import { UserRepository } from '../repositories';
+import { HubService } from '../services';
 
 @Injectable()
 export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
@@ -39,7 +39,7 @@ export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
   }
 
   private async validateCloudUser(req: Request) {
-    const { code, grantType } = req.body;
+    const { code, grantType } = req.body as { code?: string; grantType?: string };
 
     this.logger.log('Validating SSO token exchange request');
 
@@ -76,7 +76,7 @@ export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
       }
 
       return this.validateCloudUser(req);
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Authentication failed.');
     }
   }

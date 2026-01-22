@@ -1,23 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-
-import {
-  StateMachineValidatorResultInterface,
-  WorkflowEntity,
-} from '@loopstack/common';
+import { StateMachineValidatorResultInterface, WorkflowEntity } from '@loopstack/common';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
 
 @Injectable()
 export class StateMachineValidatorService {
   private readonly logger = new Logger(StateMachineValidatorService.name);
 
-  constructor(
-    private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry,
-  ) {}
+  constructor(private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry) {}
 
-  validate(
-    workflow: WorkflowEntity,
-    args: Record<string, any> | undefined,
-  ): StateMachineValidatorResultInterface {
+  validate(workflow: WorkflowEntity, args: Record<string, any> | undefined): StateMachineValidatorResultInterface {
     const validationResults = this.stateMachineValidatorRegistry
       .getValidators()
       .map((validator) => validator.validate(workflow, args));
@@ -28,7 +19,7 @@ export class StateMachineValidatorService {
         if (curr.target && curr.hash) {
           return {
             ...prev,
-            [curr.target as string]: curr.hash,
+            [curr.target]: curr.hash,
           };
         }
 

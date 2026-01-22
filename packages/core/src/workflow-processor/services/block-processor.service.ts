@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { ProcessorFactory } from './processor.factory';
 import { BlockExecutionContextDto, BlockInterface } from '../../common';
 import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
+import { ProcessorFactory } from './processor.factory';
 
 @Injectable()
 export class BlockProcessor {
-
-  constructor(private readonly processorFactory: ProcessorFactory) {
-  }
+  constructor(private readonly processorFactory: ProcessorFactory) {}
   async processBlock<TInstance extends BlockInterface>(
     block: TInstance,
     args: any,

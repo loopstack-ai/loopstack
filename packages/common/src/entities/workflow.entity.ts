@@ -69,14 +69,14 @@ export class WorkflowEntity {
     name: 'input_data',
     default: {},
   })
-  inputData!: Record<string, any>;
+  inputData!: Record<string, unknown>;
 
   @Column({
     type: 'jsonb',
     name: 'result',
     nullable: true,
   })
-  result!: Record<string, any> | null;
+  result!: Record<string, unknown> | null;
 
   @Column('jsonb', {
     name: 'available_transitions',
@@ -85,7 +85,7 @@ export class WorkflowEntity {
   availableTransitions!: WorkflowTransitionType[] | null;
 
   @Column('jsonb', { name: 'history', nullable: true })
-  history!: any[] | null; //todo should be WorkflowMementoDto[]
+  history!: unknown[] | null; //todo should be WorkflowMementoDto[]
 
   @Column({
     type: 'jsonb',

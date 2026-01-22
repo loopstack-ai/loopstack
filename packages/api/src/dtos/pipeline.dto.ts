@@ -1,5 +1,5 @@
-import { Exclude, Expose, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude, Expose, plainToInstance } from 'class-transformer';
 import { PipelineEntity, PipelineState } from '@loopstack/common';
 import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
 import { PipelineContextDto } from './pipeline-context.dto';
@@ -43,8 +43,7 @@ export class PipelineDto {
   @ApiProperty({
     type: 'array',
     items: { type: 'string' },
-    description:
-      'Tags associated with the pipeline for categorization and filtering',
+    description: 'Tags associated with the pipeline for categorization and filtering',
     example: ['frontend', 'featureXY'],
   })
   labels: string[];

@@ -1,5 +1,5 @@
-import { IsOptional, IsUUID } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class PipelineFilterDto {
   @IsOptional()

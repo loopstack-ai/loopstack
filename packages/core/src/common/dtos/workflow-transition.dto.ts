@@ -1,5 +1,5 @@
-import type { TransitionMetadataInterface } from '@loopstack/contracts/types';
 import { Expose } from 'class-transformer';
+import type { TransitionMetadataInterface } from '@loopstack/contracts/types';
 
 export class WorkflowTransitionDto implements TransitionMetadataInterface {
   @Expose()
@@ -15,7 +15,7 @@ export class WorkflowTransitionDto implements TransitionMetadataInterface {
   onError?: string;
 
   @Expose()
-  payload?: any;
+  payload?: unknown;
 
   constructor(data: Partial<WorkflowTransitionDto>) {
     Object.assign(this, data);

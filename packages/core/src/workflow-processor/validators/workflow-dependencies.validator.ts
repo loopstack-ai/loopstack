@@ -1,15 +1,9 @@
 import { Logger } from '@nestjs/common';
-import {
-  createHash,
-  StateMachineValidator,
-  StateMachineValidatorInterface,
-} from '@loopstack/common';
+import { StateMachineValidator, StateMachineValidatorInterface, createHash } from '@loopstack/common';
 import { WorkflowEntity } from '@loopstack/common';
 
 @StateMachineValidator({ priority: 200 })
-export class WorkflowDependenciesValidator
-  implements StateMachineValidatorInterface
-{
+export class WorkflowDependenciesValidator implements StateMachineValidatorInterface {
   private readonly logger = new Logger(WorkflowDependenciesValidator.name);
 
   createDependenciesHash(workflow: WorkflowEntity) {
@@ -32,9 +26,7 @@ export class WorkflowDependenciesValidator
     if (hash) {
       const dependenciesHash = this.createDependenciesHash(workflow);
 
-      this.logger.debug(
-        `Check valid: ${(hash === dependenciesHash).toString()}`,
-      );
+      this.logger.debug(`Check valid: ${(hash === dependenciesHash).toString()}`);
 
       if (hash !== dependenciesHash) {
         return { valid: false, target: 'dependencies', hash: dependenciesHash };

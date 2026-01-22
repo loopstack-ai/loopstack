@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { WorkflowEntity } from '@loopstack/common';
-import { ClientMessageService } from '../../common/services/client-message.service';
 import { PersistenceState } from '../../common';
+import { ClientMessageService } from '../../common/services/client-message.service';
 
 @Injectable()
 export class WorkflowService {
@@ -36,10 +36,10 @@ export class WorkflowService {
       if (labels.length === 0) {
         queryBuilder.andWhere('array_length(workflow.labels, 1) IS NULL');
       } else {
-        queryBuilder.andWhere(
-          'workflow.labels @> :labels AND array_length(workflow.labels, 1) = :labelCount',
-          { labels, labelCount: labels.length },
-        );
+        queryBuilder.andWhere('workflow.labels @> :labels AND array_length(workflow.labels, 1) = :labelCount', {
+          labels,
+          labelCount: labels.length,
+        });
       }
     }
 
@@ -77,21 +77,13 @@ export class WorkflowService {
   }
 
   async save(entity: WorkflowEntity, persistenceState: PersistenceState) {
-    const savedEntity = await this.workflowRepository.save(
-      entity as WorkflowEntity,
-    );
+    const savedEntity = await this.workflowRepository.save(entity);
 
     // todo: add persistence states for workflow props too or use more specific events
 
-    this.clientMessageService.dispatchWorkflowEvent(
-      'workflow.updated',
-      savedEntity,
-    );
+    this.clientMessageService.dispatchWorkflowEvent('workflow.updated', savedEntity);
     if (persistenceState.documentsUpdated) {
-      this.clientMessageService.dispatchDocumentEvent(
-        'document.created',
-        savedEntity,
-      );
+      this.clientMessageService.dispatchDocumentEvent('document.created', savedEntity);
     }
   }
 }

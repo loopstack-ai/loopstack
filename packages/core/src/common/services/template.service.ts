@@ -3,18 +3,16 @@ import { ObjectExpressionHandler } from './expression-handler/object-expression.
 import { TemplateExOptions, TemplateExpressionHandler } from './expression-handler/template-expression.handler';
 
 export interface TemplateDetector {
-  canHandle(value: any): boolean;
+  canHandle(value: unknown): boolean;
 }
 
 export interface TemplateProcessor {
-  process(value: string, data: any, options?: TemplateExOptions): any;
+  process(value: string, data: Record<string, unknown>, options?: TemplateExOptions): unknown;
 }
 
 @Injectable()
 export class TemplateService {
-  private readonly handlers: ReadonlyArray<
-    TemplateDetector & TemplateProcessor
-  >;
+  private readonly handlers: ReadonlyArray<TemplateDetector & TemplateProcessor>;
 
   constructor(
     private templateExpressionHandler: TemplateExpressionHandler,
@@ -29,7 +27,7 @@ export class TemplateService {
   /**
    * Evaluates a value using the appropriate template handler
    */
-  evaluate(value: any, data: any, options?: TemplateExOptions): any {
+  evaluate(value: unknown, data: Record<string, unknown>, options?: TemplateExOptions): unknown {
     // only handle string values
     if (value == null || typeof value !== 'string') {
       return value;
@@ -49,19 +47,19 @@ export class TemplateService {
   /**
    * Recursively evaluates template expressions in objects and arrays
    */
-  evaluateDeep<T = any>(obj: any, data: any, options?: TemplateExOptions): T {
+  evaluateDeep<T = unknown>(obj: unknown, data: Record<string, unknown>, options?: TemplateExOptions): T {
     if (obj == null) {
-      return obj;
+      return obj as T;
     }
 
     if (Array.isArray(obj)) {
-      return obj.map((item) => {
+      return obj.map((item: unknown) => {
         return this.evaluateDeep(item, data, options);
       }) as T;
     }
 
     if (typeof obj === 'object') {
-      const result: Record<string, any> = {};
+      const result: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(obj)) {
         result[key] = this.evaluateDeep(value, data, options);
       }
