@@ -8,7 +8,7 @@ export const AssignmentSchema = z.record(
     z.string(),
     z.number(),
     z.boolean(),
-    z.record(z.any()),
+    z.record(z.string(), z.any()),
   ]),
 );
 
@@ -20,6 +20,6 @@ export const AssignmentConfigSchema = z.record(
     z.string(),
     z.number(),
     z.boolean(),
-    z.record(z.any()),
+    z.record(z.string(), z.any()),
   ]),
 );

@@ -9,7 +9,7 @@ import { CreatePipelineService, ToolBase, WorkflowExecution } from '../workflow-
 
 const ExecuteWorkflowAsyncArgsSchema = z.object({
   workflow: z.string(),
-  args: z.record(z.unknown()).optional(),
+  args: z.record(z.string(), z.unknown()).optional(),
   callback: z.object({
     transition: z.string(),
   }),

@@ -28,22 +28,18 @@
   "dependencies": {
     "@loopstack/auth": "^0.16.1",
     "@loopstack/common": "^0.17.0",
-    "@loopstack/contracts": "^0.16.0",
+    "@loopstack/contracts": "^0.16.2",
     "@loopstack/core": "^0.17.0",
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/config": "^4.0.0",
-    "@nestjs/core": "^11.0.1",
+    "@nestjs/common": "^11.1.12",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.1.12",
     "@nestjs/event-emitter": "^3.0.1",
-    "@nestjs/swagger": "^11.0.5",
+    "@nestjs/swagger": "^11.2.5",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.1",
+    "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
-    "lodash": "^4.17.21",
-    "rxjs": "^7.8.1"
-  },
-  "peerDependencies": {
-    "@nestjs/typeorm": "^11.0.0",
-    "typeorm": "^0.3.25"
+    "lodash": "^4.17.23",
+    "rxjs": "^7.8.2"
   },
   "jest": {
     "moduleFileExtensions": [

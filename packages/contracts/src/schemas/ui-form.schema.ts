@@ -11,7 +11,7 @@ export const UiFormButtonOptionsSchema = z.object({
   position: z.number().optional(),
   label: z.string().optional(),
   variant: z.string().optional(),
-  props: z.record(z.any()).optional(),
+  props: z.record(z.string(), z.any()).optional(),
 });
 
 export const UiFormButtonSchema = UiFormBaseSchema.extend({
@@ -20,7 +20,7 @@ export const UiFormButtonSchema = UiFormBaseSchema.extend({
     .object({
       position: z.number().optional(),
       label: z.string().optional(),
-      props: z.record(z.any()).optional(),
+      props: z.record(z.string(), z.any()).optional(),
     })
     .optional(),
 });
@@ -30,7 +30,7 @@ export const UiFormCustomSchema = UiFormBaseSchema.extend({
   options: z
     .object({
       label: z.string().optional(),
-      props: z.record(z.any()).optional(),
+      props: z.record(z.string(), z.any()).optional(),
     })
     .optional(),
 });

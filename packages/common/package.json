@@ -20,16 +20,12 @@
     "lint": "eslint .",
     "format": "prettier --write ."
   },
-  "peerDependencies": {
-    "@nestjs/typeorm": "^11.0.0",
-    "typeorm": "^0.3.25"
-  },
   "dependencies": {
-    "@loopstack/contracts": "^0.16.0",
+    "@loopstack/contracts": "^0.16.2",
     "fast-json-stable-stringify": "^2.1.0",
     "murmurhash": "^2.0.1",
     "reflect-metadata": "^0.2.2",
-    "yaml": "^2.8.1",
-    "zod": "^3.25.76"
+    "yaml": "^2.8.2",
+    "zod": "^4.3.5"
   }
 }

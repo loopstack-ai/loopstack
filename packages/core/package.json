@@ -29,30 +29,21 @@
     "lint": "eslint .",
     "format": "prettier --write ."
   },
-  "peerDependencies": {
-    "@nestjs/common": "^11.0.0",
-    "@nestjs/core": "^11.0.0",
-    "@nestjs/platform-express": "^11.0.0",
-    "@nestjs/typeorm": "^11.0.0",
-    "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.0",
-    "typeorm": "^0.3.20"
-  },
   "dependencies": {
     "@loopstack/common": "^0.17.0",
-    "@nestjs/bullmq": "^11.0.3",
-    "@nestjs/config": "^4.0.0",
+    "@nestjs/bullmq": "^11.0.4",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/event-emitter": "^3.0.1",
-    "@nestjs/schedule": "^6.0.0",
-    "bullmq": "^5.56.8",
+    "@nestjs/schedule": "^6.1.0",
+    "bullmq": "^5.66.6",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.1",
+    "class-validator": "^0.14.3",
     "date-fns": "^4.1.0",
     "handlebars": "^4.7.8",
-    "lodash": "^4.17.21",
-    "yaml": "^2.8.1",
-    "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.25.0"
+    "lodash": "^4.17.23",
+    "yaml": "^2.8.2",
+    "zod": "^4.3.5",
+    "zod-to-json-schema": "^3.25.1"
   },
   "jest": {
     "moduleFileExtensions": [
