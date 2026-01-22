@@ -15,7 +15,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "incremental": false,
-    "baseUrl": "./",
+    "baseUrl": "./"
   },
   "exclude": ["node_modules", "dist"],
   "include": ["./src"]

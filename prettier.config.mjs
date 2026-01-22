@@ -11,12 +11,7 @@ export default {
 
   // Import sorting
   plugins: ['@trivago/prettier-plugin-sort-imports'],
-  importOrder: [
-    '<THIRD_PARTY_MODULES>',
-    '^@loopstack/(.*)$',
-    '^@/(.*)$',
-    '^[./]',
-  ],
+  importOrder: ['<THIRD_PARTY_MODULES>', '^@loopstack/(.*)$', '^@/(.*)$', '^[./]'],
   importOrderSortSpecifiers: true,
   importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy'],
 };
