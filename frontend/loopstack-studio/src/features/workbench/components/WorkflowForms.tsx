@@ -1,26 +1,28 @@
 import React from 'react';
-import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
+import { type WorkflowDto, WorkflowState } from '@loopstack/api-client';
+import type { UiWidgetType } from '@loopstack/contracts/types';
 import UiActions from '@/components/ui-widgets/UiActions.tsx';
 
 interface WorkflowFormsProps {
-  workflow: WorkflowInterface;
-  onSubmit: (transition: string, data: any) => void;
+  workflow: WorkflowDto;
+  onSubmit: (transition: string, data: Record<string, unknown>) => void;
 }
 
 const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit }) => {
-  if (!workflow.ui?.actions?.length) {
+  const actions = (workflow.ui as { actions?: unknown[] } | undefined)?.actions;
+  if (!actions?.length) {
     return null;
   }
 
   const availableTransitions =
-    (workflow.availableTransitions as any)?.map((transition: WorkflowTransitionType) => transition.id) ?? [];
+    workflow.availableTransitions?.map((transition) => (transition as { id: string }).id) ?? [];
 
   return (
     <div className="p-4">
       <UiActions
-        actions={workflow.ui.actions}
+        actions={actions as UiWidgetType[]}
         availableTransitions={availableTransitions}
-        disabled={workflow.status === 'completed'}
+        disabled={workflow.status === WorkflowState.Completed}
         onSubmit={onSubmit}
       />
     </div>

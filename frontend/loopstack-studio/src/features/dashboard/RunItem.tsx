@@ -1,9 +1,22 @@
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge.tsx';
 
+export interface Run {
+  id: string;
+  run?: number;
+  index?: number;
+  title?: string;
+  status: string;
+  updatedAt: string | Date;
+}
+
+interface Router {
+  getPipeline: (id: string) => string;
+}
+
 interface RunItemProps {
-  run: any;
-  router: any;
+  run: Run;
+  router: Router;
 }
 
 function RunItem({ run, router }: RunItemProps) {
@@ -28,7 +41,7 @@ function RunItem({ run, router }: RunItemProps) {
       <div className="flex min-w-0 items-start justify-between">
         <div className="min-w-0 flex-1 pr-2">
           <h3 className="text-foreground group-hover:text-primary truncate font-semibold transition-colors">
-            Run #{run.run} {run.title ? `(${run.title})` : ''}
+            Run #{run.run ?? run.index ?? '?'} {run.title ? `(${run.title})` : ''}
           </h3>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Badge className={`rounded-full border px-2 py-1 text-xs whitespace-nowrap ${statusColor}`}>

@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { AxiosResponse } from 'axios';
 import type {
   ApiV1PipelinesApiPipelineControllerCreatePipelineRequest,
   ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest,
+  PipelineConfigDto,
   PipelineSortByDto,
 } from '@loopstack/api-client';
-import { useApiClient } from './useApi.ts';
+import { useApiClient } from './useApi';
 
 export function usePipeline(id: string | undefined) {
   const { envKey, api } = useApiClient();
@@ -72,7 +74,7 @@ export function useCreatePipeline() {
       return api.ApiV1PipelinesApi.pipelineControllerCreatePipeline(pipelineCreateRequest);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
+      void queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
     },
   });
 }
@@ -89,8 +91,8 @@ export function useUpdatePipeline() {
       return api.ApiV1PipelinesApi.pipelineControllerUpdatePipeline(pipelineUpdateRequest);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['pipeline', variables.id, envKey] });
-      queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
+      void queryClient.invalidateQueries({ queryKey: ['pipeline', variables.id, envKey] });
+      void queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
     },
   });
 }
@@ -98,7 +100,7 @@ export function useUpdatePipeline() {
 export function usePipelineConfig(workspaceBlockName: string | undefined, pipelineBlockName: string | undefined) {
   const { envKey, api } = useApiClient();
 
-  return useQuery({
+  return useQuery<AxiosResponse<PipelineConfigDto>, Error, PipelineConfigDto>({
     queryKey: ['pipelineConfig', workspaceBlockName, pipelineBlockName, envKey],
     queryFn: () => {
       if (!api) {
@@ -128,7 +130,7 @@ export function useDeletePipeline() {
     onSuccess: (_, id) => {
       // Remove the pipeline from the cache and invalidate the pipelines list
       queryClient.removeQueries({ queryKey: ['pipeline', id, envKey] });
-      queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
+      void queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
     },
   });
 }
@@ -147,7 +149,7 @@ export function useBatchDeletePipeline() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pipelines'], type: 'all' });
+      void queryClient.invalidateQueries({ queryKey: ['pipelines'], type: 'all' });
     },
   });
 }

@@ -1,19 +1,25 @@
-import React from 'react';
 import { omit } from 'lodash';
-import type { PipelineDto } from '@loopstack/api-client';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import React from 'react';
+import type { DocumentItemDto, PipelineDto, WorkflowDto } from '@loopstack/api-client';
 import type { WorkbenchSettingsInterface } from '../WorkflowList.tsx';
 import DocumentMetadataPills from './DocumentMetadataPills.tsx';
 import DocumentRenderer from './DocumentRenderer.tsx';
 
+interface DocumentMeta {
+  data?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 const DocumentItem: React.FC<{
-  document: DocumentItemInterface;
-  workflow: WorkflowInterface;
+  document: DocumentItemDto;
+  workflow: WorkflowDto;
   pipeline: PipelineDto;
   isActive: boolean;
   isLastItem: boolean;
   settings: WorkbenchSettingsInterface;
 }> = ({ document, workflow, pipeline, isActive, isLastItem, settings }) => {
+  const meta = document.meta as DocumentMeta | undefined;
+
   return (
     <>
       <DocumentRenderer
@@ -26,10 +32,10 @@ const DocumentItem: React.FC<{
       {settings.enableDebugMode ? (
         <DocumentMetadataPills
           metaData={{
-            ...((document.meta as any)?.data ?? {}),
+            ...(meta?.data ?? {}),
             document: {
               ...document,
-              meta: omit((document.meta as any) ?? {}, ['data']),
+              meta: omit(meta ?? {}, ['data']),
             },
           }}
         />

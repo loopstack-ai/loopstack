@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { ArrowDown, ArrowUp, Edit, Eye, Loader2, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import ConfirmDialog from '../data-table/ConfirmDialog';
 import DataTableBatchActions from '../data-table/DataTableBatchAction';
 import DataTableFilters from '../data-table/DataTableFilters';
@@ -10,6 +10,16 @@ import { Card, CardContent } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import type { BatchAction, DataTableProps, RowAction } from './data-table.ts';
+
+/** Safely converts a value to string, handling objects and primitives */
+const safeToString = (value: unknown): string => {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value === 'object') return JSON.stringify(value);
+  // For symbols, functions, bigints, etc.
+  return JSON.stringify(value) ?? '';
+};
 
 export function DataTable<T extends { id: string }>({
   data,
@@ -78,9 +88,9 @@ export function DataTable<T extends { id: string }>({
 
   const handleDeleteConfirm = async () => {
     if (deleteDialog.type === 'single' && deleteDialog.itemId) {
-      await onDelete?.(deleteDialog.itemId);
-    } else if (deleteDialog.type === 'batch') {
-      await onBatchDelete?.(selectedRows);
+      onDelete?.(deleteDialog.itemId);
+    } else if (deleteDialog.type === 'batch' && onBatchDelete) {
+      await Promise.resolve(onBatchDelete(selectedRows));
       clearSelection();
     }
     setDeleteDialog({ isOpen: false, type: 'single' });
@@ -101,11 +111,11 @@ export function DataTable<T extends { id: string }>({
     ...batchActions,
   ];
 
-  const handleBatchAction = async (action: BatchAction) => {
+  const handleBatchAction = (action: BatchAction) => {
     if (action.id === 'delete') {
       handleBatchDeleteClick();
     } else {
-      await action.action(selectedRows);
+      void action.action(selectedRows);
       clearSelection();
     }
   };
@@ -276,8 +286,8 @@ export function DataTable<T extends { id: string }>({
                           }
                         >
                           {column.format
-                            ? column.format((item as any)[column.id], item)
-                            : String((item as any)[column.id] || '')}
+                            ? column.format((item as Record<string, unknown>)[column.id], item)
+                            : safeToString((item as Record<string, unknown>)[column.id])}
                         </TableCell>
                       ))}
                       {showActionsColumn && (
@@ -294,7 +304,7 @@ export function DataTable<T extends { id: string }>({
                                   key={action.id}
                                   variant={action.variant || 'ghost'}
                                   size="sm"
-                                  onClick={() => action.action(item)}
+                                  onClick={() => void action.action(item)}
                                   disabled={action.disabled?.(item)}
                                   title={action.label}
                                   className={action.className}
@@ -325,14 +335,14 @@ export function DataTable<T extends { id: string }>({
 
       <ConfirmDialog
         isOpen={deleteDialog.isOpen}
-        onOpenChange={(open: any) => setDeleteDialog({ ...deleteDialog, isOpen: open })}
+        onOpenChange={(open: boolean) => setDeleteDialog({ ...deleteDialog, isOpen: open })}
         title={deleteDialog.type === 'single' ? 'Delete Item' : 'Delete Items'}
         description={
           deleteDialog.type === 'single'
             ? 'Are you sure you want to delete this item? This action cannot be undone.'
             : `Are you sure you want to delete ${selectedRows.length} items? This action cannot be undone.`
         }
-        onConfirm={handleDeleteConfirm}
+        onConfirm={() => void handleDeleteConfirm()}
         confirmText="Delete"
         cancelText="Cancel"
         variant="destructive"

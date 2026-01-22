@@ -1,5 +1,5 @@
-import { useForm } from 'react-hook-form';
 import { Loader2, Zap } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import type { PipelineConfigInterface } from '@loopstack/contracts/types';
 import Form from '@/components/dynamic-form/Form.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -30,7 +30,7 @@ const ArgumentsView = ({
 
   const handleSubmit = (transition: string) => {
     // use data from react-hook-form
-    form.handleSubmit(handleFormSubmit(transition))();
+    void form.handleSubmit(handleFormSubmit(transition))();
   };
 
   return (
@@ -43,9 +43,9 @@ const ArgumentsView = ({
         onBack={onBack}
       />
 
-      <div className="border-border mb-6 max-h-[400px] overflow-y-auto rounded-md border p-4">
-        {hasArguments && config ? (
-          <Form form={form} schema={config.schema} ui={config.ui?.form} disabled={false} viewOnly={false} />
+      <div className="border-border mb-6 max-h-100 overflow-y-auto rounded-md border p-4">
+        {hasArguments && config && config.schema ? (
+          <Form form={form} schema={config.schema} ui={config.ui} disabled={false} viewOnly={false} />
         ) : (
           <div className="flex items-center justify-center py-12">
             <p className="text-muted-foreground">No additional configuration required.</p>

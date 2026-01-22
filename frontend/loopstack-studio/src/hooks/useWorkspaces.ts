@@ -71,7 +71,7 @@ export function useCreateWorkspace() {
       return api.ApiV1WorkspacesApi.workspaceControllerCreateWorkspace(workspaceCreateRequest);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+      void queryClient.invalidateQueries({ queryKey: ['workspaces'] });
     },
   });
 }
@@ -88,8 +88,8 @@ export function useUpdateWorkspace() {
       return api.ApiV1WorkspacesApi.workspaceControllerUpdateWorkspace(workspaceUpdateRequest);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['workspace', variables.id, envKey] });
-      queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
+      void queryClient.invalidateQueries({ queryKey: ['workspace', variables.id, envKey] });
+      void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
     },
   });
 }
@@ -108,7 +108,7 @@ export function useDeleteWorkspace() {
     onSuccess: (_, id) => {
       // Remove the workspace from the cache and invalidate the workspaces list
       queryClient.removeQueries({ queryKey: ['workspace', id, envKey] });
-      queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
+      void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
     },
   });
 }
@@ -127,7 +127,7 @@ export function useBatchDeleteWorkspaces() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+      void queryClient.invalidateQueries({ queryKey: ['workspaces'] });
     },
   });
 }

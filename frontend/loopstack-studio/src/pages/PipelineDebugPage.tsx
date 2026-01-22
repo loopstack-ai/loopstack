@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { ReactFlowProvider } from '@xyflow/react';
 import { Bug, Home, Loader2 } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout.tsx';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import PipelineDebugHeader from '@/features/debug/components/PipelineDebugHeader.tsx';
@@ -65,7 +65,7 @@ const PipelineDebugPage: React.FC = () => {
         <PipelineDebugHeader
           title={fetchPipeline.data?.title ?? fetchPipeline.data?.blockName ?? 'Pipeline'}
           runNumber={fetchPipeline.data?.run}
-          onBack={() => pipelineId && router.navigateToPipeline(pipelineId)}
+          onBack={() => pipelineId && void router.navigateToPipeline(pipelineId)}
           animationsEnabled={animationsEnabled}
           onToggleAnimations={() => setAnimationsEnabled(!animationsEnabled)}
         />

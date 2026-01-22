@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import type { PipelineConfigDto } from '@loopstack/api-client';
 import { useApiClient } from './useApi';
 
 export function useWorkspaceConfig() {
@@ -32,6 +31,6 @@ export function usePipelineConfig(workspaceBlockName: string | undefined) {
       });
     },
     enabled: !!workspaceBlockName,
-    select: (res) => res.data as PipelineConfigDto[],
+    select: (res) => res.data,
   });
 }

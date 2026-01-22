@@ -41,6 +41,12 @@ const WIDGET_REGISTRY: Record<WidgetType, React.ComponentType<FieldProps & { sch
 
 const WIDGET_NAMES = Object.keys(WIDGET_REGISTRY) as WidgetType[];
 
+interface SchemaWithTypeAndEnum {
+  type?: string;
+  enum?: unknown[];
+  hidden?: boolean;
+}
+
 /**
  * Determines the widget type based on schema properties
  */
@@ -49,12 +55,14 @@ const resolveWidgetType = (schema: UiPropertiesType, uiWidget?: string): WidgetT
     return uiWidget as WidgetType;
   }
 
+  const typedSchema = schema as SchemaWithTypeAndEnum;
+
   // Infer from schema type
-  if (schema.type === 'boolean') {
+  if (typedSchema.type === 'boolean') {
     return 'checkbox';
   }
 
-  if (schema.enum && schema.enum.length > 0) {
+  if (typedSchema.enum && typedSchema.enum.length > 0) {
     return 'select';
   }
 
@@ -65,15 +73,21 @@ const getFieldName = (name: string, parentKey: string | null): string => {
   return parentKey ? `${parentKey}.${name}` : name;
 };
 
+interface UiWithWidget {
+  widget?: string;
+}
+
 export const InputController: React.FC<FieldProps> = (props) => {
   const { name, schema, ui, parentKey } = props;
+  const typedSchema = schema as SchemaWithTypeAndEnum;
+  const typedUi = ui as UiWithWidget | undefined;
 
-  if (schema.hidden) {
+  if (typedSchema.hidden) {
     return null;
   }
 
   const fieldName = getFieldName(name, parentKey);
-  const widgetType = resolveWidgetType(schema, ui?.widget);
+  const widgetType = resolveWidgetType(schema, typedUi?.widget);
 
   const FieldComponent = WIDGET_REGISTRY[widgetType];
 

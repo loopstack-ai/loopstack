@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils.ts';
 import {
   Breadcrumb,
@@ -13,7 +13,7 @@ import {
 export interface BreadCrumbsData {
   label: string;
   href?: string;
-  icon?: any;
+  icon?: React.ReactNode;
   current?: boolean;
 }
 
@@ -25,9 +25,9 @@ interface PageBreadcrumbsProps {
 const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = ({ breadcrumbData, className }) => {
   const navigate = useNavigate();
 
-  const handleClick = (event: any, href: string) => {
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     event.preventDefault();
-    navigate(href);
+    void navigate(href);
   };
 
   return (

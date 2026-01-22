@@ -1,8 +1,13 @@
 import React from 'react';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
 
+type PlainMessageContentType = {
+  text: string;
+};
+
 interface PlainMessageRendererProps {
-  document: any; //TODO: Define a more specific type for document
+  document: Omit<DocumentItemInterface, 'content'> & { content: PlainMessageContentType };
 }
 
 const PlainMessageRenderer: React.FC<PlainMessageRendererProps> = ({ document }) => {

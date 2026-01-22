@@ -20,6 +20,7 @@ export interface RadioFieldSchema {
     value: string;
   }>;
   inline?: boolean;
+  [key: string]: unknown;
 }
 
 interface RadioFieldProps extends FieldProps {
@@ -53,7 +54,7 @@ export const RadioField: React.FC<RadioFieldProps> = ({ name, schema, ui, requir
           helpTextPosition="before" // Show help text before the radio group
         >
           <RadioGroup
-            value={field.value}
+            value={field.value as string}
             onValueChange={config.isReadOnly ? undefined : field.onChange}
             disabled={config.isDisabled}
             required={required}

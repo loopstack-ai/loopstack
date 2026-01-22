@@ -6,20 +6,28 @@ import { InputController } from './InputController.tsx';
 import { ObjectController } from './ObjectController.tsx';
 import type { FormElementProps } from './types.ts';
 
+interface SchemaWithType {
+  type?: string | string[];
+  hidden?: boolean;
+  title?: string;
+}
+
 export const FormElement: React.FC<FormElementProps> = (props) => {
   const { schema, disabled } = props;
+  const typedSchema = schema as SchemaWithType;
 
-  const hidden = !!schema?.hidden;
+  const hidden = !!typedSchema?.hidden;
 
   // type can be an array. remove null option which is for optional properties and select the first type for rendering.
-  const type = Array.isArray(schema.type) ? schema.type.filter((i: string) => i !== 'null').shift() : schema.type;
+  const schemaType = typedSchema.type;
+  const type = Array.isArray(schemaType) ? schemaType.filter((i: string) => i !== 'null').shift() : schemaType;
 
   const renderFormElement = () => {
     switch (type) {
       case 'object':
         return (
           <>
-            <FormElementHeader title={schema.title} disabled={disabled} />
+            <FormElementHeader title={typedSchema.title} disabled={disabled} />
             <ObjectController {...props} />
           </>
         );
@@ -32,7 +40,7 @@ export const FormElement: React.FC<FormElementProps> = (props) => {
           </>
         );
       default:
-        return <InputController {...props} name={props.name || ''} />;
+        return <InputController {...props} name={props.name ?? ''} />;
     }
   };
 

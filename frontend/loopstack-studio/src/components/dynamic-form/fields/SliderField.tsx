@@ -16,6 +16,7 @@ export interface SliderFieldSchema {
   minimum?: number;
   maximum?: number;
   multipleOf?: number;
+  [key: string]: unknown;
 }
 
 interface SliderFieldProps extends FieldProps {

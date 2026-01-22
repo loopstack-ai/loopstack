@@ -12,7 +12,7 @@ export interface Column {
   label: string;
   minWidth?: number;
   align?: 'right' | 'left' | 'center';
-  format?: (value: any) => string;
+  format?: (value: unknown) => string;
 }
 
 export interface OriginalBatchAction {
@@ -23,21 +23,21 @@ export interface OriginalBatchAction {
   action: (selectedIds: string[]) => void | Promise<void>;
 }
 
-export interface OriginalRowAction {
+export interface OriginalRowAction<T extends Item = Item> {
   id: string;
   label: string;
   icon?: React.ReactNode;
-  action: (item: any) => void | Promise<void>;
-  condition?: (item: any) => boolean;
-  disabled?: (item: any) => boolean;
+  action: (item: T) => void | Promise<void>;
+  condition?: (item: T) => boolean;
+  disabled?: (item: T) => boolean;
   className?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
 }
 
-interface ListViewProps {
+interface ListViewProps<T extends Item = Item> {
   loading: boolean;
   error: Error | null;
-  items: any[];
+  items: T[];
   totalItems: number;
   filterConfig?: Record<string, string[]>;
   onClick: (id: string) => void;
@@ -45,7 +45,7 @@ interface ListViewProps {
   setPage: (page: number) => void;
   setRowsPerPage: (rows: number) => void;
   setSearchTerm?: (search: string) => void;
-  setFilters?: (filters: any) => void;
+  setFilters?: (filters: Record<string, string>) => void;
   searchTerm?: string | undefined;
   filters?: Record<string, string>;
   page: number;
@@ -53,12 +53,12 @@ interface ListViewProps {
   batchActions?: OriginalBatchAction[];
   batchDelete?: (ids: string[]) => void | Promise<void>;
   enableBatchActions?: boolean;
-  rowActions?: OriginalRowAction[];
-  itemRenderer?: (item: any) => ReactElement;
+  rowActions?: OriginalRowAction<T>[];
+  itemRenderer?: (item: T) => ReactElement;
   newButtonLabel?: string;
 }
 
-const ListView: React.FC<ListViewProps> = ({
+const ListView = <T extends Item>({
   loading,
   error,
   items,
@@ -80,7 +80,7 @@ const ListView: React.FC<ListViewProps> = ({
   rowActions = [],
   itemRenderer,
   newButtonLabel,
-}) => {
+}: ListViewProps<T>) => {
   const transformedBatchActions: BatchAction[] = batchActions.map((action) => ({
     id: action.id,
     label: action.label,
@@ -132,7 +132,7 @@ const ListView: React.FC<ListViewProps> = ({
   );
 
   const handleRowClick = useCallback(
-    (item: any) => {
+    (item: T) => {
       onClick(item.id);
     },
     [onClick],

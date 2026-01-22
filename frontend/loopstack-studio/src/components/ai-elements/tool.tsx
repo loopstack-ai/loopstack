@@ -1,9 +1,9 @@
 'use client';
 
+import type { DynamicToolUIPart, ToolUIPart } from 'ai';
+import { CheckCircleIcon, ChevronDownIcon, CircleIcon, ClockIcon, WrenchIcon, XCircleIcon } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
 import { isValidElement } from 'react';
-import type { ToolUIPart } from 'ai';
-import { CheckCircleIcon, ChevronDownIcon, CircleIcon, ClockIcon, WrenchIcon, XCircleIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -17,13 +17,15 @@ export const Tool = ({ className, ...props }: ToolProps) => (
 
 export type ToolHeaderProps = {
   title?: string;
-  type: ToolUIPart['type'];
-  state: ToolUIPart['state'];
+  type: ToolUIPart['type'] | DynamicToolUIPart['type'];
+  state: ToolUIPart['state'] | DynamicToolUIPart['state'];
   className?: string;
 };
 
-const getStatusBadge = (status: ToolUIPart['state']) => {
-  const labels: Record<ToolUIPart['state'], string> = {
+type ToolState = ToolUIPart['state'] | DynamicToolUIPart['state'];
+
+const getStatusBadge = (status: ToolState) => {
+  const labels: Record<ToolState, string> = {
     'input-streaming': 'Pending',
     'input-available': 'Running',
     // @ts-ignore
@@ -34,7 +36,7 @@ const getStatusBadge = (status: ToolUIPart['state']) => {
     'output-denied': 'Denied',
   };
 
-  const icons: Record<ToolUIPart['state'], ReactNode> = {
+  const icons: Record<ToolState, ReactNode> = {
     'input-streaming': <CircleIcon className="size-4" />,
     'input-available': <ClockIcon className="size-4 animate-pulse" />,
     // @ts-ignore
@@ -77,7 +79,7 @@ export const ToolContent = ({ className, ...props }: ToolContentProps) => (
 );
 
 export type ToolInputProps = ComponentProps<'div'> & {
-  input: ToolUIPart['input'];
+  input: ToolUIPart['input'] | DynamicToolUIPart['input'];
 };
 
 export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
@@ -90,8 +92,8 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 );
 
 export type ToolOutputProps = ComponentProps<'div'> & {
-  output: ToolUIPart['output'];
-  errorText: ToolUIPart['errorText'];
+  output: ToolUIPart['output'] | DynamicToolUIPart['output'];
+  errorText: ToolUIPart['errorText'] | DynamicToolUIPart['errorText'];
 };
 
 export const ToolOutput = ({ className, output, errorText, ...props }: ToolOutputProps) => {

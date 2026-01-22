@@ -19,16 +19,14 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "inquirer": "^9.3.7"
   },
   "engines": {
     "node": ">=14"
-  },
-  "devDependencies": {
-    "@types/node": "^22.15.29",
-    "typescript": "^5.8.3"
   }
 }

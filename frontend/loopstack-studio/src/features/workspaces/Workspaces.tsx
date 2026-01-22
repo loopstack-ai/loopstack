@@ -58,7 +58,7 @@ const Workspaces = () => {
   };
 
   const handleWorkspaceClick = (id: string) => {
-    router.navigateToWorkspace(id);
+    void router.navigateToWorkspace(id);
   };
 
   const handleEdit = (pipeline: WorkspaceItemDto) => {
@@ -97,7 +97,7 @@ const Workspaces = () => {
         batchDelete={handleBatchDelete}
         columns={
           [
-            { id: 'id', label: 'ID', minWidth: 30, format: (value) => value.slice(0, 6) },
+            { id: 'id', label: 'ID', minWidth: 30, format: (value: string) => value.slice(0, 6) },
             {
               id: 'title',
               label: 'Title',
@@ -138,7 +138,7 @@ const Workspaces = () => {
               id: 'createdAt',
               label: 'Date Created',
               minWidth: 100,
-              format: (value) => new Date(value).toLocaleDateString(),
+              format: (value: string) => new Date(value).toLocaleDateString(),
             },
             // {
             //   id: 'updatedAt',

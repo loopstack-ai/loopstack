@@ -11,7 +11,7 @@ export interface Column {
   label: string;
   minWidth?: number;
   align?: 'right' | 'left' | 'center';
-  format?: (value: any) => string;
+  format?: (value: unknown) => string;
 }
 
 export interface OriginalBatchAction {
@@ -22,34 +22,34 @@ export interface OriginalBatchAction {
   action: (selectedIds: string[]) => void | Promise<void>;
 }
 
-export interface OriginalRowAction {
+export interface OriginalRowAction<T extends Item = Item> {
   id: string;
   label: string;
   icon?: React.ReactNode;
-  action: (item: any) => void | Promise<void>;
-  condition?: (item: any) => boolean;
-  disabled?: (item: any) => boolean;
+  action: (item: T) => void | Promise<void>;
+  condition?: (item: T) => boolean;
+  disabled?: (item: T) => boolean;
   className?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
 }
 
-interface ListViewProps {
+interface ListViewProps<T extends Item = Item> {
   loading: boolean;
   error: Error | null;
-  items: any[];
+  items: T[];
   totalItems: number;
   columns: Column[];
   filterConfig: Record<string, string[]>;
   deleteItem: (id: string) => void;
   onClick: (id: string) => void;
   handleNew: () => void;
-  handleEdit: (item: any) => void;
+  handleEdit: (item: T) => void;
   setPage: (page: number) => void;
   setRowsPerPage: (rows: number) => void;
   setOrderBy: (field: string) => void;
   setOrder: (order: 'asc' | 'desc') => void;
   setSearchTerm: (search: string) => void;
-  setFilters: (filters: any) => void;
+  setFilters: (filters: Record<string, string>) => void;
   orderBy: string;
   order: 'asc' | 'desc';
   searchTerm: string | undefined;
@@ -59,10 +59,10 @@ interface ListViewProps {
   batchActions?: OriginalBatchAction[];
   batchDelete?: (ids: string[]) => void | Promise<void>;
   enableBatchActions?: boolean;
-  rowActions?: OriginalRowAction[];
+  rowActions?: OriginalRowAction<T>[];
 }
 
-const ListView: React.FC<ListViewProps> = ({
+const ListView = <T extends Item>({
   loading,
   error,
   items,
@@ -89,7 +89,7 @@ const ListView: React.FC<ListViewProps> = ({
   batchDelete,
   enableBatchActions = true,
   rowActions = [],
-}) => {
+}: ListViewProps<T>) => {
   const transformedColumns: DataTableColumn[] = columns.map((column) => ({
     id: column.id,
     label: column.label,
@@ -97,7 +97,7 @@ const ListView: React.FC<ListViewProps> = ({
     align: column.align,
     sortable: true,
     format: column.format
-      ? (value: any) => {
+      ? (value: unknown) => {
           const formatted = column.format!(value);
           if (typeof formatted === 'string' && formatted.includes('<')) {
             return <div dangerouslySetInnerHTML={{ __html: formatted }} />;
@@ -166,21 +166,21 @@ const ListView: React.FC<ListViewProps> = ({
   );
 
   const handleRowClick = useCallback(
-    (item: any) => {
+    (item: T) => {
       onClick(item.id);
     },
     [onClick],
   );
 
   const handleEditClick = useCallback(
-    (item: any) => {
+    (item: T) => {
       handleEdit(item);
     },
     [handleEdit],
   );
 
   const handleDeleteClick = useCallback(
-    async (id: string) => {
+    (id: string) => {
       deleteItem(id);
     },
     [deleteItem],

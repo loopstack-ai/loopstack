@@ -1,15 +1,15 @@
-import React from 'react';
 import type { ModelMessage } from 'ai';
+import React from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
 import MessageContentRenderer from './AiMessageContent.tsx';
 
 interface DocumentMessageRendererProps {
-  document: DocumentItemInterface;
+  document: Omit<DocumentItemInterface, 'content'> & { content: ModelMessage };
 }
 
 const DocumentMessageRenderer: React.FC<DocumentMessageRendererProps> = ({ document }) => {
-  const content = document.content as ModelMessage;
+  const content = document.content;
 
   return (
     <CompletionMessagePaper role={content.role} timestamp={new Date(document.createdAt)}>

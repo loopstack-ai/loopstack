@@ -1,7 +1,7 @@
 'use client';
 
-import { type ComponentProps, createContext, useContext } from 'react';
 import { ChevronDownIcon, ExternalLinkIcon, MessageCircleIcon } from 'lucide-react';
+import { type ComponentProps, createContext, useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

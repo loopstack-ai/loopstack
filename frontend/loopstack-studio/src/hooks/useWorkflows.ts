@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AxiosResponse } from 'axios';
-import type { WorkflowItemDto, WorkflowSortByDto } from '@loopstack/api-client';
-import type { WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowDto, WorkflowItemDto, WorkflowSortByDto } from '@loopstack/api-client';
 import { useApiClient } from './useApi.ts';
 
 export function getWorkflowsCacheKey(envKey: string, namespaceId: string) {
@@ -19,7 +18,7 @@ export function getWorkflowsByPipelineCacheKey(envKey: string, pipelineId: strin
 export function useWorkflow(id: string) {
   const { envKey, api } = useApiClient();
 
-  return useQuery<AxiosResponse, Error, WorkflowInterface>({
+  return useQuery<AxiosResponse<WorkflowDto>, Error, WorkflowDto>({
     queryKey: getWorkflowCacheKey(envKey, id),
     queryFn: () => {
       if (!api) {
@@ -101,8 +100,8 @@ export function useDeleteWorkflow() {
     },
     onSuccess: (_, workflow) => {
       queryClient.removeQueries({ queryKey: getWorkflowCacheKey(envKey, workflow.id) });
-      queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey, workflow.namespaceId) });
-      queryClient.invalidateQueries({ queryKey: getWorkflowsByPipelineCacheKey(envKey, workflow.pipelineId) });
+      void queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey, workflow.namespaceId) });
+      void queryClient.invalidateQueries({ queryKey: getWorkflowsByPipelineCacheKey(envKey, workflow.pipelineId) });
     },
   });
 }

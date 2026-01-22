@@ -49,7 +49,7 @@ export function useWorkerAuth() {
       return api.ApiV1AuthApi.authControllerHubLogin(hubLoginRequest);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      void queryClient.invalidateQueries();
     },
   });
 }
@@ -66,7 +66,7 @@ export function useWorkerAuthTokenRefresh() {
       return api.ApiV1AuthApi.authControllerRefresh();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      void queryClient.invalidateQueries();
     },
   });
 }

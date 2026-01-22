@@ -1,7 +1,7 @@
-import * as React from 'react';
-import { useEffect, useState } from 'react';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { Loader2 } from 'lucide-react';
+import * as React from 'react';
+import { useEffect, useState } from 'react';
 import type { WorkspaceConfigDto, WorkspaceItemDto } from '@loopstack/api-client';
 import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
 import { Button } from '../../../components/ui/button.tsx';
@@ -16,34 +16,34 @@ const CreateWorkspace = ({
   workspace,
   onSuccess,
 }: {
-  types: any[];
+  types: WorkspaceConfigDto[];
   workspace?: WorkspaceItemDto;
   onSuccess: () => void;
 }) => {
   const createWorkspace = useCreateWorkspace();
   const updateWorkspace = useUpdateWorkspace();
 
-  const [workspaceType, setWorkspaceType] = useState(types[0]?.name || '');
+  const [workspaceType, setWorkspaceType] = useState(types[0]?.blockName ?? '');
 
   useEffect(() => {
-    setWorkspaceType(types[0]?.name || '');
+    setWorkspaceType(types[0]?.blockName ?? '');
   }, [types]);
 
   const handleWorkspaceTypeChange = (value: string) => {
     setWorkspaceType(value);
   };
 
-  const handleUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleUpdate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const name = data.get('name') as string;
+    const name = data.get('name') as string | null;
     if (!name || !workspace) {
       return;
     }
 
     updateWorkspace.mutate(
       {
-        id: workspace!.id,
+        id: workspace.id,
         workspaceUpdateDto: {
           title: name,
         },
@@ -56,10 +56,10 @@ const CreateWorkspace = ({
     );
   };
 
-  const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCreate = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const name = data.get('name') as string;
+    const name = data.get('name') as string | null;
 
     if (!workspaceType) {
       return;

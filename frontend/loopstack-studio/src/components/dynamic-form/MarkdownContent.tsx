@@ -1,6 +1,6 @@
+import 'katex/dist/katex.min.css';
 import React from 'react';
 import Markdown from 'react-markdown';
-import 'katex/dist/katex.min.css';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';

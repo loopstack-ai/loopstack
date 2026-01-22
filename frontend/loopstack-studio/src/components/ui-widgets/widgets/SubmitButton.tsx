@@ -1,5 +1,5 @@
-import React from 'react';
 import { Loader2 } from 'lucide-react';
+import React from 'react';
 import type { UiFormButtonOptionsType } from '@loopstack/contracts/types';
 import { Button } from '../../ui/button.tsx';
 
@@ -7,7 +7,7 @@ interface SubmitButtonProps {
   transition: string;
   ui?: UiFormButtonOptionsType;
   disabled: boolean;
-  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onClick: () => void;
   isLoading?: boolean;
 }
 

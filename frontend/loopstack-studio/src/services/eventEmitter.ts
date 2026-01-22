@@ -12,7 +12,7 @@ class EventEmitter {
     };
   }
 
-  emit(event: string, ...args: any[]) {
+  emit(event: string, ...args: unknown[]) {
     if (this.events[event]) {
       this.events[event].forEach((listener) => listener(...args));
     }

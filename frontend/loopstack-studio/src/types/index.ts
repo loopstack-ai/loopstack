@@ -5,20 +5,20 @@ export interface Environment {
 }
 
 export interface StudioRouter {
-  navigateToHome(): void;
-  navigateToEnvironmentInfo(): void;
+  navigateToHome(): Promise<void>;
+  navigateToEnvironmentInfo(): Promise<void>;
   getDashboard(): string;
-  navigateToDashboard(): void;
+  navigateToDashboard(): Promise<void>;
   getWorkspaces(): string;
-  navigateToWorkspaces(): void;
+  navigateToWorkspaces(): Promise<void>;
   getWorkspace(workspaceId: string): string;
-  navigateToWorkspace(workspaceId: string): void;
+  navigateToWorkspace(workspaceId: string): Promise<void>;
   getPipeline(pipelineId: string): string;
-  navigateToPipeline(pipelineId: string): void;
+  navigateToPipeline(pipelineId: string): Promise<void>;
   getPipelineDebug(pipelineId: string): string;
-  navigateToPipelineDebug(pipelineId: string): void;
-  navigateToWorkflow(pipelineId: string, workflowId: string, clickId: string | undefined): void;
-  navigateToPipelineNamespace(workspaceId: string, pipelineId: string, namespaceId: string): void;
+  navigateToPipelineDebug(pipelineId: string): Promise<void>;
+  navigateToWorkflow(pipelineId: string, workflowId: string, clickId: string | undefined): Promise<void>;
+  navigateToPipelineNamespace(workspaceId: string, pipelineId: string, namespaceId: string): Promise<void>;
   getCurrentEnvironmentId(): string;
   getTheme(): 'local' | 'cloud';
 }

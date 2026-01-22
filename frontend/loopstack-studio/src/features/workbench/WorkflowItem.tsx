@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import type { DocumentItemDto, PipelineDto } from '@loopstack/api-client';
-import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/contracts/types';
+import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import DocumentList from '@/features/workbench/components/DocumentList.tsx';
 import WorkflowForms from '@/features/workbench/components/WorkflowForms.tsx';
@@ -28,14 +28,14 @@ const WorkflowItem: React.FC<{
     if (paramsWorkflowId === workflowId && fetchWorkflow.isSuccess && fetchDocuments.isSuccess) {
       scrollTo(workflowId);
     }
-  }, [fetchWorkflow.isSuccess, fetchDocuments.isSuccess, workflowId, paramsWorkflowId, clickId]);
+  }, [fetchWorkflow.isSuccess, fetchDocuments.isSuccess, workflowId, paramsWorkflowId, clickId, scrollTo]);
 
   const filterDocuments = useCallback(
     (item: DocumentItemDto) => {
-      let hidden =
-        (item.meta as any)?.['hidden'] ||
-        (item.ui as any)?.hidden ||
-        !!(item.meta as any)?.hideAtPlaces?.includes(fetchWorkflow.data?.place);
+      const meta = item.meta as { hidden?: boolean; hideAtPlaces?: string[] } | undefined;
+      const ui = item.ui as { hidden?: boolean } | undefined;
+
+      let hidden = meta?.hidden || ui?.hidden || !!meta?.hideAtPlaces?.includes(fetchWorkflow.data?.place ?? '');
 
       const isInternalMessage = false; //['tool'].includes(document.content.role);
 
@@ -48,16 +48,16 @@ const WorkflowItem: React.FC<{
     [fetchWorkflow.data, settings.showFullMessageHistory],
   );
 
-  const documents: DocumentItemInterface[] = useMemo(() => {
+  const documents: DocumentItemDto[] = useMemo(() => {
     if (!fetchDocuments.data) {
       return [];
     }
 
     return fetchDocuments.data.filter(filterDocuments);
-  }, [fetchDocuments.data]);
+  }, [fetchDocuments.data, filterDocuments]);
 
   const runPipeline = useRunPipeline();
-  const handleRun = (transition: string, data: any) => {
+  const handleRun = (transition: string, data: Record<string, unknown>) => {
     runPipeline.mutate({
       pipelineId: fetchWorkflow.data!.pipelineId,
       runPipelinePayloadDto: {

@@ -1,13 +1,12 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import type { PipelineDto } from '@loopstack/api-client';
+import type { PipelineDto, WorkflowDto } from '@loopstack/api-client';
 import type {
   DocumentItemInterface,
+  MimeType,
   TransitionPayloadInterface,
-  UiPropertiesType,
   UiWidgetType,
-  WorkflowInterface,
   WorkflowTransitionType,
 } from '@loopstack/contracts/types';
 import Form from '@/components/dynamic-form/Form.tsx';
@@ -16,7 +15,7 @@ import { useRunPipeline } from '@/hooks/useProcessor.ts';
 
 interface DocumentFormRendererProps {
   pipeline: PipelineDto;
-  workflow: WorkflowInterface;
+  workflow: WorkflowDto;
   document: DocumentItemInterface;
   enabled: boolean;
   viewOnly: boolean;
@@ -31,8 +30,11 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
 }) => {
   const runPipeline = useRunPipeline();
 
-  const form = useForm<Record<string, any>>({
-    defaultValues: document.schema.type === 'object' ? document.content : { raw: document.content },
+  const form = useForm<Record<string, unknown>>({
+    defaultValues:
+      document.schema.type === 'object'
+        ? (document.content as Record<string, unknown>)
+        : { raw: document.content as unknown },
     mode: 'onChange',
   });
 
@@ -52,9 +54,9 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
   }, [document.validationError, form]);
 
   const availableTransitions =
-    (workflow.availableTransitions as any)?.map((transition: WorkflowTransitionType) => transition.id) ?? [];
+    workflow.availableTransitions?.map((transition) => (transition as WorkflowTransitionType).id) ?? [];
 
-  const executePipelineRun = (transition: string, payload: any) => {
+  const executePipelineRun = (transition: string, payload: unknown) => {
     if (!availableTransitions.includes(transition)) {
       console.error(`Transition ${transition} not available.`);
       return;
@@ -67,13 +69,12 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
           id: transition,
           workflowId: workflow.id,
           payload: payload,
-          // meta?: any;
         } as TransitionPayloadInterface,
       },
     });
   };
 
-  const handleFormSubmit = (transition: string) => (data: Record<string, any>) => {
+  const handleFormSubmit = (transition: string) => (data: Record<string, unknown>) => {
     if (document.schema.type === 'object') {
       executePipelineRun(transition, data);
     } else {
@@ -83,21 +84,22 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
 
   const handleSubmit = (transition: string) => {
     // use data from react-hook-form
-    form.handleSubmit(handleFormSubmit(transition))();
+    void form.handleSubmit(handleFormSubmit(transition))();
   };
 
-  const ui = document.ui?.form as UiPropertiesType | undefined;
+  const ui = document.ui;
   const schema = document.schema;
-  const disabledProps = !enabled || ui?.disabled || false;
-  const actions = (document.ui?.actions || []) as UiWidgetType[];
+  const formDisabled = (ui?.form as { disabled?: boolean } | undefined)?.disabled;
+  const disabledProps = !enabled || formDisabled || false;
+  const actions: UiWidgetType[] = document.ui?.actions ?? [];
 
   return (
     <div className="flex">
       <Form
         form={form}
         schema={schema}
-        ui={ui}
-        mimeType={document.meta?.mimeType}
+        ui={ui ?? undefined}
+        mimeType={(document.meta as { mimeType?: MimeType } | undefined)?.mimeType}
         disabled={disabledProps}
         viewOnly={viewOnly}
         actions={

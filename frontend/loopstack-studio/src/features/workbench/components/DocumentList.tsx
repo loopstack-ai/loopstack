@@ -1,19 +1,14 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import type { PipelineDto } from '@loopstack/api-client';
-import type {
-  DocumentItemInterface,
-  DocumentType,
-  WorkflowInterface,
-  WorkflowStateType,
-} from '@loopstack/contracts/types';
+import { type DocumentItemDto, type PipelineDto, type WorkflowDto, WorkflowState } from '@loopstack/api-client';
+import type { DocumentType } from '@loopstack/contracts/types';
 import DocumentItem from '@/features/workbench/components/DocumentItem';
 import type { WorkbenchSettingsInterface } from '../WorkflowList.tsx';
 
 const DocumentList: React.FC<{
   pipeline: PipelineDto;
-  workflow: WorkflowInterface;
-  documents: DocumentItemInterface[];
+  workflow: WorkflowDto;
+  documents: DocumentItemDto[];
   scrollTo: (workflowId: string) => void;
   settings: WorkbenchSettingsInterface;
   isLoading: boolean;
@@ -25,13 +20,13 @@ const DocumentList: React.FC<{
     if (paramsWorkflowId === workflow.id) {
       scrollTo(workflow.id);
     }
-  }, [workflow.id, paramsWorkflowId, clickId]);
+  }, [workflow.id, paramsWorkflowId, clickId, scrollTo]);
 
-  const isWorkflowActive = workflow.status === ('waiting' satisfies WorkflowStateType);
+  const isWorkflowActive = workflow.status === WorkflowState.Waiting;
 
   return (
     <div className="flex flex-col gap-8 p-4">
-      {documents.map((item: DocumentItemInterface, documentIndex: number) => {
+      {documents.map((item: DocumentItemDto, documentIndex: number) => {
         const document = item as DocumentType;
 
         // document is active when created at current place

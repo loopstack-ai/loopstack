@@ -5,20 +5,45 @@ import type {
   JSONSchemaConfigType,
   MimeType,
   UiFormType,
-  UiPropertiesType,
   WorkflowInterface,
 } from '@loopstack/contracts/types';
+
+// Local type definitions to avoid `any` from @loopstack/contracts/types
+// Base schema properties that all field schemas share
+export interface BaseSchemaProperties {
+  type?: string | string[];
+  title?: string;
+  description?: string;
+  help?: string;
+  default?: unknown;
+  properties?: Record<string, SchemaProperties>;
+  items?: SchemaProperties;
+  required?: string[];
+  enum?: unknown[];
+  enumOptions?: unknown[];
+  hidden?: boolean;
+  readonly?: boolean;
+  disabled?: boolean;
+  widget?: string;
+  collapsed?: boolean;
+  order?: string[];
+}
+
+// SchemaProperties with index signature for dynamic access
+export interface SchemaProperties extends BaseSchemaProperties {
+  [key: string]: unknown;
+}
 
 export interface DocumentFormProps {
   workflow: WorkflowInterface;
   document: DocumentItemInterface;
-  onSubmit: (transition: string, data: Record<string, any>) => void;
+  onSubmit: (transition: string, data: Record<string, unknown>) => void;
   disabled: boolean;
   viewOnly: boolean;
 }
 
 export interface DynamicFormProps {
-  form: any;
+  form: UseFormReturn;
   schema: JSONSchemaConfigType;
   ui?: UiFormType;
   mimeType?: MimeType;
@@ -29,8 +54,8 @@ export interface DynamicFormProps {
 
 export interface FormBodyProps {
   mimeType?: MimeType;
-  schema: UiPropertiesType;
-  ui: UiPropertiesType | undefined;
+  schema: SchemaProperties;
+  ui: SchemaProperties | undefined;
   form: UseFormReturn;
   disabled: boolean;
   viewOnly: boolean;
@@ -38,8 +63,8 @@ export interface FormBodyProps {
 
 export interface FormElementProps {
   name: string | null;
-  schema: UiPropertiesType;
-  ui: UiPropertiesType | undefined;
+  schema: SchemaProperties;
+  ui: SchemaProperties | undefined;
   required: boolean;
   disabled: boolean;
   viewOnly: boolean;

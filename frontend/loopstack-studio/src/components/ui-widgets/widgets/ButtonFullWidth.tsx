@@ -1,5 +1,5 @@
-import React from 'react';
 import { Loader2 } from 'lucide-react';
+import React from 'react';
 import type { UiFormButtonOptionsType } from '@loopstack/contracts/types';
 import { Button } from '../../ui/button.tsx';
 
@@ -7,18 +7,20 @@ interface SubmitButtonProps {
   transition: string;
   ui?: UiFormButtonOptionsType;
   disabled: boolean;
-  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onClick: () => void;
   isLoading?: boolean;
 }
 
 export const ButtonFullWidth: React.FC<SubmitButtonProps> = ({ transition, ui, disabled, onClick, isLoading }) => {
-  const submitButtonText = ui?.label || transition;
-  const submitButtonProps = ui?.props || {};
+  const submitButtonText = ui?.label ?? transition;
+  const submitButtonProps = ui?.props ?? {};
+  type ButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  const variant: ButtonVariant = (ui?.variant as ButtonVariant) ?? 'default';
 
   return (
     <Button
       type="button"
-      variant={(ui?.variant as any) || 'default'}
+      variant={variant}
       {...submitButtonProps}
       disabled={disabled || isLoading}
       onClick={onClick}

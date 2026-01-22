@@ -16,17 +16,19 @@ export default tseslint.config(
       'apps/**',
       'registry/**',
       '**/src/components/ai-elements/**',
+      '**/vitest.config.ts',
+      '**/vite.config.ts',
     ],
   },
 
-  // Base config for all TS files
+  // Base config for all files
   js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked, // upgraded for consistency
   prettier,
 
-  // Shared TypeScript settings
+  // TypeScript config with type-checked rules (scoped to TS files only)
   {
     files: ['**/*.{ts,tsx}'],
+    extends: [...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       ecmaVersion: 2020,
       sourceType: 'module',
@@ -67,6 +69,17 @@ export default tseslint.config(
     },
     rules: {
       'react-refresh/only-export-components': 'off',
+    },
+  },
+
+  {
+    files: ['cli/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+      sourceType: 'commonjs',
+    },
+    rules: {
+      // Disable TS-specific rules for plain JS
     },
   },
 );

@@ -9,7 +9,7 @@ interface PipelinePropertiesFormContainerProps {
   ui?: UiFormType;
   availableTransitions: string[];
   onSubmit: (transition: string, data: Record<string, any>) => void;
-  defaultValues: any;
+  defaultValues: Record<string, any>;
   isLoading?: boolean;
 }
 

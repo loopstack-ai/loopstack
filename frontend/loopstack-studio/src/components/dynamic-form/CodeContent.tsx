@@ -2,7 +2,7 @@ import React from 'react';
 import Markdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
-const adaptedPrism = {
+const adaptedPrism: Record<string, Record<string, unknown>> = {
   'code[class*="language-"]': {
     color: 'black',
     background: 'none',
@@ -100,7 +100,7 @@ const adaptedPrism = {
     color: '#999',
   },
   namespace: {
-    Opacity: '.7',
+    opacity: 0.7,
   },
   property: {
     color: '#905',
@@ -207,15 +207,26 @@ const CodeContent: React.FC<{ content: string }> = ({ content }) => {
           );
         },
         code({ className, children, ...props }) {
-          const match = /language-(\w+)/.exec(className || '');
+          const match = /language-(\w+)/.exec(className ?? '');
+          const childrenString = Array.isArray(children)
+            ? children.map((c) => (typeof c === 'string' ? c : String(c))).join('')
+            : typeof children === 'string'
+              ? children
+              : '';
           return match ? (
             <>
-              <SyntaxHighlighter style={adaptedPrism} language={match[1]} PreTag="div" {...(props as any)}>
-                {String(children).replace(/\n$/, '')}
+              <SyntaxHighlighter
+                // @ts-expect-error - Prism style objects have complex types that don't match the simplified type definition
+                style={adaptedPrism}
+                language={match[1]}
+                PreTag="div"
+                {...(props as React.HTMLAttributes<HTMLElement>)}
+              >
+                {childrenString.replace(/\n$/, '')}
               </SyntaxHighlighter>
             </>
           ) : (
-            <code className={className} {...(props as any)}>
+            <code className={className} {...(props as React.HTMLAttributes<HTMLElement>)}>
               {children}
             </code>
           );

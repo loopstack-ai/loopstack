@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { CheckCircle, File, Play } from 'lucide-react';
+import * as React from 'react';
 import type { WorkflowItemDto } from '@loopstack/api-client';
 import { cn } from '../../../lib/utils.ts';
 

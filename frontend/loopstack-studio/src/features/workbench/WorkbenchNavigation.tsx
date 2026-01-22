@@ -1,5 +1,5 @@
-import React from 'react';
 import { RectangleHorizontal } from 'lucide-react';
+import React from 'react';
 import type { NamespaceTree } from '@/hooks/useNamespaceTree.ts';
 import { SidebarMenuDiv, SidebarMenuItem, SidebarMenuSub } from '../../components/ui/sidebar.tsx';
 import NavigationItems from './NavigationItems.tsx';

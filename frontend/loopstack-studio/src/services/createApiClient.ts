@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { ApiV1AuthApi, Configuration } from '@loopstack/api-client';
 import { ApiClientEvents } from '../events/api-client-events';
 import type { Environment } from '../types';
@@ -17,14 +17,14 @@ export function createApiClient(environment: Environment) {
   const axiosInstance = axios.create();
   axiosInstance.interceptors.response.use(
     (response) => response,
-    (error) => {
-      if ([401, 403].includes(error.response?.status)) {
+    (error: AxiosError) => {
+      if ([401, 403].includes(error.response?.status as number)) {
         eventBus.emit(ApiClientEvents.UNAUTHORIZED, environment.id);
       }
       if (error.code === 'ERR_NETWORK') {
         eventBus.emit(ApiClientEvents.ERR_NETWORK, environment.id);
       }
-      return Promise.reject(error);
+      return Promise.reject(error as Error);
     },
   );
 

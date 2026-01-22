@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import debounce from 'lodash/debounce';
+import { useEffect, useRef } from 'react';
 import { SseClientEvents } from '@/events';
 import { getDocumentsCacheKey } from '@/hooks/useDocuments.ts';
 import { getNamespacesByPipelineCacheKey } from '@/hooks/useNamespaces.ts';
@@ -10,11 +10,21 @@ import { useStudio } from './StudioProvider';
 
 type DebouncedInvalidator = ReturnType<typeof debounce<() => void>>;
 
+interface WorkflowEventPayload {
+  id?: string;
+  namespaceId?: string;
+  pipelineId?: string;
+}
+
+interface DocumentEventPayload {
+  workflowId?: string;
+}
+
 const DEBOUNCE_MS = 300;
 
 function createDebouncedInvalidator(queryClient: QueryClient, queryKey: unknown[]): DebouncedInvalidator {
   return debounce(() => {
-    queryClient.invalidateQueries({ queryKey });
+    void queryClient.invalidateQueries({ queryKey });
   }, DEBOUNCE_MS);
 }
 
@@ -39,7 +49,7 @@ export function InvalidationEventsProvider() {
       cache.get(keyStr)!();
     }
 
-    const unsubWorkflowCreated = eventBus.on(SseClientEvents.WORKFLOW_CREATED, (payload: any) => {
+    const unsubWorkflowCreated = eventBus.on(SseClientEvents.WORKFLOW_CREATED, (payload: WorkflowEventPayload) => {
       if (payload.namespaceId) {
         invalidate(getWorkflowsCacheKey(envKey, payload.namespaceId));
       }
@@ -49,7 +59,7 @@ export function InvalidationEventsProvider() {
       }
     });
 
-    const unsubWorkflowUpdated = eventBus.on(SseClientEvents.WORKFLOW_UPDATED, (payload: any) => {
+    const unsubWorkflowUpdated = eventBus.on(SseClientEvents.WORKFLOW_UPDATED, (payload: WorkflowEventPayload) => {
       if (payload.id) {
         invalidate(getWorkflowCacheKey(envKey, payload.id));
       }
@@ -62,7 +72,7 @@ export function InvalidationEventsProvider() {
       }
     });
 
-    const unsubDocumentCreated = eventBus.on(SseClientEvents.DOCUMENT_CREATED, (payload: any) => {
+    const unsubDocumentCreated = eventBus.on(SseClientEvents.DOCUMENT_CREATED, (payload: DocumentEventPayload) => {
       if (payload.workflowId) {
         invalidate(getDocumentsCacheKey(envKey, payload.workflowId));
       }

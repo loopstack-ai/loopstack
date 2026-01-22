@@ -54,7 +54,7 @@ export function getLayoutedElements(
   return { nodes: layoutedNodes, edges };
 }
 
-export function getTransitions(obj: any, seen = new Set()): WorkflowTransitionType[] {
+export function getTransitions(obj: unknown, seen = new Set<unknown>()): WorkflowTransitionType[] {
   if (!obj || typeof obj !== 'object' || seen.has(obj)) return [];
 
   try {
@@ -63,27 +63,29 @@ export function getTransitions(obj: any, seen = new Set()): WorkflowTransitionTy
     return [];
   }
 
-  if (Array.isArray(obj.transitions)) return obj.transitions;
+  const record = obj as Record<string, unknown>;
 
-  if (obj.definition) {
-    const fromDef = getTransitions(obj.definition, seen);
+  if (Array.isArray(record.transitions)) return record.transitions as WorkflowTransitionType[];
+
+  if (record.definition) {
+    const fromDef = getTransitions(record.definition, seen);
     if (fromDef.length > 0) return fromDef;
   }
-  if (obj.specification) {
-    const fromSpec = getTransitions(obj.specification, seen);
+  if (record.specification) {
+    const fromSpec = getTransitions(record.specification, seen);
     if (fromSpec.length > 0) return fromSpec;
   }
 
-  for (const key in obj) {
+  for (const key in record) {
     if (key === 'history' || key === 'data') continue;
 
-    const val = obj[key];
+    const val = record[key];
     if (val && typeof val === 'object') {
       const found = getTransitions(val, seen);
       if (found.length > 0) return found;
     } else if (typeof val === 'string' && val.includes('"transitions":')) {
       try {
-        const parsed = JSON.parse(val);
+        const parsed = JSON.parse(val) as unknown;
         const found = getTransitions(parsed, seen);
         if (found.length > 0) return found;
       } catch {
@@ -140,7 +142,8 @@ export function buildWorkflowGraph(
 
   const seenTransitions = new Set<string>();
   transitionsInDefinition = transitionsInDefinition.filter((t) => {
-    const key = `${t.id}-${t.from}-${t.to}`;
+    const fromKey = Array.isArray(t.from) ? t.from.join(',') : t.from;
+    const key = `${t.id}-${fromKey}-${t.to}`;
     if (seenTransitions.has(key)) return false;
     seenTransitions.add(key);
     return true;
@@ -188,6 +191,7 @@ export function buildWorkflowGraph(
 
   transitionsInDefinition.forEach((t) => {
     const fromStates = Array.isArray(t.from) ? t.from : [t.from];
+    const transitionWithCondition = t as WorkflowTransitionType & { if?: string; condition?: string };
     fromStates.forEach((fromState) => {
       statesSet.add(fromState);
       statesSet.add(t.to);
@@ -195,7 +199,7 @@ export function buildWorkflowGraph(
         id: t.id,
         from: fromState,
         to: t.to,
-        condition: (t as any).if || (t as any).condition,
+        condition: transitionWithCondition.if ?? transitionWithCondition.condition,
         trigger: t.trigger,
       });
     });
@@ -293,7 +297,7 @@ export function buildWorkflowGraph(
         fill: 'var(--background)',
         opacity: 0.8,
       },
-      labelBgPadding: [4, 2],
+      labelBgPadding: [4, 2] as [number, number],
       labelShowBg: true,
       markerEnd: {
         type: MarkerType.ArrowClosed,

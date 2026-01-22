@@ -1,5 +1,5 @@
-import React from 'react';
 import { ArrowLeft, PauseCircle, PlayCircle } from 'lucide-react';
+import React from 'react';
 import { Button } from '@/components/ui/button.tsx';
 import PipelineDebugLegend from './PipelineDebugLegend.tsx';
 

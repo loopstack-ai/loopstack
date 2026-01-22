@@ -1,5 +1,5 @@
-import React from 'react';
 import { Code, FileText, Tag } from 'lucide-react';
+import React from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../../../components/ui/accordion.tsx';
 import { Badge } from '../../../../components/ui/badge.tsx';
 import { Card, CardContent } from '../../../../components/ui/card.tsx';
@@ -13,8 +13,8 @@ interface DocumentMeta {
 interface DocumentData {
   id: string;
   name: string;
-  content: string | any;
-  schema: any | string;
+  content: any;
+  schema: any;
   meta?: DocumentMeta;
   isInvalidated: boolean;
   isPendingRemoval: boolean;
@@ -188,7 +188,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data }) => {
             <Card className="bg-gray-50">
               <CardContent className="p-4">
                 <pre
-                  className={`max-h-96 overflow-auto rounded bg-gray-100 p-2 text-xs break-words whitespace-pre-wrap ${
+                  className={`max-h-96 overflow-auto rounded bg-gray-100 p-2 text-xs wrap-break-word whitespace-pre-wrap ${
                     data.meta?.mimeType === 'text/markdown' ? 'font-sans' : 'font-mono'
                   }`}
                 >
@@ -209,7 +209,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data }) => {
           <AccordionContent>
             <Card className="bg-gray-50">
               <CardContent className="p-4">
-                <pre className="rounded bg-gray-100 p-2 font-mono text-xs break-words whitespace-pre-wrap">
+                <pre className="rounded bg-gray-100 p-2 font-mono text-xs wrap-break-word whitespace-pre-wrap">
                   {schemaContent}
                 </pre>
               </CardContent>

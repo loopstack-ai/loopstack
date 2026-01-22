@@ -61,7 +61,7 @@ export class ConfigController {
   getPipelineConfigByName(
     @Param('workspaceBlockName') workspaceBlockName: string,
     @Param('pipelineName') pipelineName: string,
-  ): WorkflowType {
+  ): PipelineConfigDto {
     const workspaceBlock = this.blockRegistryService.getBlock(workspaceBlockName);
     if (!workspaceBlock) {
       throw new BadRequestException(`Config for workspace with name ${workspaceBlockName} not found.`);
@@ -79,7 +79,10 @@ export class ConfigController {
     if (!workflow) {
       throw new BadRequestException(`Workflow with name ${pipelineName} not found in workspace ${workspaceBlockName}.`);
     }
-    return workflow.config as WorkflowType;
+
+    return plainToInstance(PipelineConfigDto, workflow.config, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Get('workspaces/:workspaceBlockName/pipelines')
@@ -114,7 +117,6 @@ export class ConfigController {
 
         let propertiesSchema: any = undefined;
         if (item.instance.argsSchema) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           propertiesSchema = this.blockRegistryService.zodToJsonSchema(item.instance.argsSchema as any) as unknown;
         }
 

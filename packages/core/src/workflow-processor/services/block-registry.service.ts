@@ -1,7 +1,6 @@
 import { Abstract, Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { ZodType } from 'zod/v3';
 import { BLOCK_METADATA_KEY, BlockOptions } from '@loopstack/common';
 import { BlockRegistryItem } from '../../common';
 

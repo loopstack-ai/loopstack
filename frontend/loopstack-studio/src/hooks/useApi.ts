@@ -1,5 +1,5 @@
+import axios, { AxiosError } from 'axios';
 import { useMemo } from 'react';
-import axios from 'axios';
 import {
   ApiV1AuthApi,
   ApiV1ConfigApi,
@@ -34,8 +34,8 @@ export function useApiClient() {
     const axiosInstance = axios.create();
     axiosInstance.interceptors.response.use(
       (response) => response,
-      (error) => {
-        if ([401, 403].includes(error.response?.status)) {
+      (error: AxiosError) => {
+        if (error.response?.status && [401, 403].includes(error.response.status)) {
           eventBus.emit(ApiClientEvents.UNAUTHORIZED, environment.id);
         }
 
@@ -44,7 +44,7 @@ export function useApiClient() {
           eventBus.emit(ApiClientEvents.ERR_NETWORK, environment.id);
         }
 
-        return Promise.reject(error);
+        return Promise.reject(error as Error);
       },
     );
 

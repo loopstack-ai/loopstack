@@ -15,7 +15,7 @@ export function useRunPipeline() {
     },
     onSuccess: () => {
       console.log('success');
-      queryClient.invalidateQueries({ queryKey: ['pipelines'] });
+      void queryClient.invalidateQueries({ queryKey: ['pipelines'] });
     },
     onError: (error) => {
       console.error('Error:', error);

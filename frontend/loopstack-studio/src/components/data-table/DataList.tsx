@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { Loader2, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
@@ -89,11 +89,11 @@ export function DataList<T extends { id: string }>({
     ...batchActions,
   ];
 
-  const handleBatchAction = async (action: BatchAction) => {
+  const handleBatchAction = (action: BatchAction) => {
     if (action.id === 'delete') {
       handleBatchDeleteClick();
     } else {
-      await action.action(selectedRows);
+      void action.action(selectedRows);
       clearSelection();
     }
   };
@@ -178,7 +178,7 @@ export function DataList<T extends { id: string }>({
                       />
                     </div>
                   )}
-                  <Card key={item.id} className="my-2 flex-grow transition-shadow hover:shadow-md">
+                  <Card key={item.id} className="my-2 grow transition-shadow hover:shadow-md">
                     <CardContent className="px-6">
                       <div className="flex items-center justify-between">
                         <div
@@ -206,7 +206,7 @@ export function DataList<T extends { id: string }>({
                               key={action.id}
                               variant={action.variant || 'ghost'}
                               size="sm"
-                              onClick={() => action.action(item)}
+                              onClick={() => void action.action(item)}
                               disabled={action.disabled?.(item)}
                               title={action.label}
                               className={action.className}
@@ -235,14 +235,14 @@ export function DataList<T extends { id: string }>({
 
       <ConfirmDialog
         isOpen={deleteDialog.isOpen}
-        onOpenChange={(open: any) => setDeleteDialog({ ...deleteDialog, isOpen: open })}
+        onOpenChange={(open: boolean) => setDeleteDialog({ ...deleteDialog, isOpen: open })}
         title={deleteDialog.type === 'single' ? 'Delete Item' : 'Delete Items'}
         description={
           deleteDialog.type === 'single'
             ? 'Are you sure you want to delete this item? This action cannot be undone.'
             : `Are you sure you want to delete ${selectedRows.length} items? This action cannot be undone.`
         }
-        onConfirm={handleDeleteConfirm}
+        onConfirm={() => void handleDeleteConfirm()}
         confirmText="Delete"
         cancelText="Cancel"
         variant="destructive"

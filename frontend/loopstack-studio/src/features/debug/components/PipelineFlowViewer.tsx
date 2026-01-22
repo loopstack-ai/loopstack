@@ -1,4 +1,3 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Background,
   BackgroundVariant,
@@ -12,6 +11,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Loader2 } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { PipelineConfigDto, WorkflowItemDto } from '@loopstack/api-client';
 import { usePipeline } from '@/hooks/usePipelines.ts';
 import StateNode, { type StateNodeData } from './pipeline-flow/StateNode.tsx';
@@ -81,7 +81,7 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
   useEffect(() => {
     if (!isLoading && nodes.length > 0 && !hasInitializedRef.current) {
       hasInitializedRef.current = true;
-      const timer = setTimeout(() => fitView({ padding: 0.2 }), 150);
+      const timer = setTimeout(() => void fitView({ padding: 0.2 }), 150);
       return () => clearTimeout(timer);
     }
   }, [isLoading, nodes.length, fitView]);

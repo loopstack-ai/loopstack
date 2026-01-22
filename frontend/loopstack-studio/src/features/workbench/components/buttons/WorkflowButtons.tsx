@@ -1,7 +1,6 @@
-import React from 'react';
 import { LockOpen, Trash2 } from 'lucide-react';
+import React from 'react';
 import type { PipelineDto, WorkflowDto } from '@loopstack/api-client';
-import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +20,7 @@ import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const WorkflowButtons: React.FC<{
   pipeline: PipelineDto;
-  workflow: WorkflowInterface;
+  workflow: WorkflowDto;
 }> = ({ pipeline, workflow }) => {
   const { router } = useStudio();
 
@@ -49,11 +48,11 @@ const WorkflowButtons: React.FC<{
     });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     try {
-      deleteWorkflow.mutate(workflow as unknown as WorkflowDto);
+      deleteWorkflow.mutate(workflow);
       handlePing();
-      router.navigateToPipeline(pipeline.id);
+      void router.navigateToPipeline(pipeline.id);
     } catch (error) {
       // Handle any errors
       console.error('Mutation failed:', error);
@@ -103,7 +102,7 @@ const WorkflowButtons: React.FC<{
           </AlertDialog>
 
           {workflow.place === 'end' &&
-            (workflow.availableTransitions as any)?.find((t: WorkflowTransitionType) => t.id === 'unlock') && (
+            workflow.availableTransitions?.find((t) => (t as { id: string }).id === 'unlock') && (
               <AlertDialog>
                 <Tooltip>
                   <TooltipTrigger asChild>

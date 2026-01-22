@@ -66,7 +66,7 @@ const CompletionMessagePaper: React.FC<CompletionMessagePaperProps> = ({
     >
       <div
         className={cn(
-          'flex min-w-[200px] flex-col',
+          'flex min-w-50 flex-col',
           fullWidth ? 'w-full max-w-full' : 'w-auto max-w-[75%]',
           isUser ? 'items-end' : 'items-start',
         )}
@@ -92,8 +92,12 @@ const CompletionMessagePaper: React.FC<CompletionMessagePaperProps> = ({
           </div>
         )}
 
-        <Card className={cn('relative max-w-full px-5 py-3 break-words shadow-none', fullWidth ? 'w-full' : 'w-auto')}>
-          <div className={cn('leading-relaxed break-words whitespace-pre-wrap', isUser ? 'user' : 'text-foreground')}>
+        <Card
+          className={cn('relative max-w-full px-5 py-3 wrap-break-word shadow-none', fullWidth ? 'w-full' : 'w-auto')}
+        >
+          <div
+            className={cn('leading-relaxed wrap-break-word whitespace-pre-wrap', isUser ? 'user' : 'text-foreground')}
+          >
             <div className="message-content">{children}</div>
           </div>
         </Card>

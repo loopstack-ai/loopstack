@@ -1,5 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import type { DocumentFilterDto, DocumentSortByDto } from '@loopstack/api-client';
+import type { AxiosResponse } from 'axios';
+import type {
+  DocumentControllerGetDocuments200Response,
+  DocumentFilterDto,
+  DocumentItemDto,
+  DocumentSortByDto,
+} from '@loopstack/api-client';
 import { useApiClient } from './useApi.ts';
 
 export function getDocumentCacheKey(envKey: string, documentId: string) {
@@ -42,7 +48,7 @@ export function useFilterDocuments(workflowId: string | undefined) {
     ]),
   };
 
-  return useQuery<any>({
+  return useQuery<AxiosResponse<DocumentControllerGetDocuments200Response>, Error, DocumentItemDto[]>({
     queryKey: getDocumentsCacheKey(envKey, workflowId!),
     queryFn: () => {
       if (!api) {

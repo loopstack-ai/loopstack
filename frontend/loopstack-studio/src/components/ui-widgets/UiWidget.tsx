@@ -6,7 +6,7 @@ import { SubmitButton } from './widgets/SubmitButton';
 
 export interface UiWidgetProps {
   config: UiWidgetType;
-  onSubmit: (data?: Record<string, any>) => void;
+  onSubmit: (data?: Record<string, unknown> | string) => void;
   disabled: boolean;
   isLoading?: boolean;
 }

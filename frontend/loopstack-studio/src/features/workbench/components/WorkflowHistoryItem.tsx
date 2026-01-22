@@ -1,6 +1,6 @@
-import React from 'react';
 import { format } from 'date-fns';
 import { ChevronRight, Clock, Loader2, Play, Wrench } from 'lucide-react';
+import React from 'react';
 import type { WorkflowItemDto } from '@loopstack/api-client';
 import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
@@ -66,7 +66,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
         <CollapsibleContent>
           <SidebarMenuSub className="ml-2 border-none pl-0">
             <div className="relative py-2">
-              <div className="from-primary/60 via-primary/30 to-muted/20 absolute top-7 bottom-3 left-[7px] w-0.5 rounded-full bg-gradient-to-b" />
+              <div className="from-primary/60 via-primary/30 to-muted/20 absolute top-7 bottom-3 left-1.75 w-0.5 rounded-full bg-linear-to-b" />
 
               <div className="group/entry relative flex gap-3 py-1 pl-0">
                 <div className="relative z-10 flex shrink-0 items-center justify-center">

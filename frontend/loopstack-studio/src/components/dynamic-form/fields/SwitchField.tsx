@@ -16,6 +16,7 @@ export interface SwitchFieldSchema {
   default?: boolean;
   const?: boolean;
   enum?: boolean[];
+  [key: string]: unknown;
 }
 
 interface SwitchFieldProps extends FieldProps {
@@ -26,7 +27,11 @@ export const SwitchField: React.FC<SwitchFieldProps> = ({ name, schema, ui, requ
   const config = useFieldConfig(name, schema, ui, disabled);
 
   const validationRules = React.useMemo(() => {
-    const rules: any = {};
+    const rules: {
+      validate?: {
+        mustBeTrue: (value: boolean) => boolean | string;
+      };
+    } = {};
 
     if (schema.const === true) {
       rules.validate = {

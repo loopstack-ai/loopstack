@@ -43,9 +43,9 @@ export function SseProvider() {
       ];
 
       eventTypes.forEach((eventType) => {
-        eventSource?.addEventListener(eventType, (event: MessageEvent) => {
+        eventSource?.addEventListener(eventType, (event: MessageEvent<string>) => {
           try {
-            const payload: any = JSON.parse(event.data);
+            const payload = JSON.parse(event.data) as { type: string };
             eventBus.emit(payload.type, payload);
           } catch (error) {
             console.error(`Error parsing SSE event [${eventType}]:`, error);

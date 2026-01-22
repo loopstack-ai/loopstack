@@ -1,5 +1,6 @@
 'use client';
 
+import { CheckIcon, CopyIcon } from 'lucide-react';
 import {
   type ComponentProps,
   type HTMLAttributes,
@@ -9,7 +10,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { CheckIcon, CopyIcon } from 'lucide-react';
 import { type BundledLanguage, type ShikiTransformer, codeToHtml } from 'shiki';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';

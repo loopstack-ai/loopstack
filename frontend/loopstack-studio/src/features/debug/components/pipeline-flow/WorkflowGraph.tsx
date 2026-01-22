@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
 import { type Edge, type Node } from '@xyflow/react';
+import React, { useEffect, useRef } from 'react';
 import type { PipelineConfigDto, WorkflowItemDto } from '@loopstack/api-client';
 import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';

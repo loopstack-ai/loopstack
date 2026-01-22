@@ -20,6 +20,7 @@ export interface SelectFieldSchema {
   enum?: (string | number)[];
   enumOptions?: (string | EnumOption)[];
   placeholder?: string;
+  [key: string]: unknown;
 }
 
 interface SelectFieldProps extends FieldProps {
@@ -61,7 +62,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({ name, schema, ui, requ
           description={config.description}
         >
           <Select
-            value={field.value?.toString() || ''}
+            value={String(field.value ?? '')}
             onValueChange={config.isReadOnly ? undefined : (value) => field.onChange(value)}
             disabled={config.isDisabled}
             required={required}

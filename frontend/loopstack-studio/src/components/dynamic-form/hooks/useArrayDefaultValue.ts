@@ -1,19 +1,35 @@
-import { type UiPropertiesType } from '@loopstack/contracts/types';
+interface ItemSchema {
+  type?: string | string[];
+  properties?: Record<string, ItemSchema>;
+  default?: unknown;
+  [key: string]: unknown;
+}
+
+// Helper to get primary type from type field that can be string or string[]
+const getPrimaryType = (type: string | string[] | undefined): string | undefined => {
+  if (Array.isArray(type)) {
+    return type[0];
+  }
+  return type;
+};
 
 // Get the default value for a new item in the array
-export const useArrayDefaultValue = (items: UiPropertiesType | undefined) => {
+export const useArrayDefaultValue = (items: ItemSchema | undefined): unknown => {
   if (!items) {
     return '';
   }
 
-  if (items.type === 'object') {
-    const defaultObj: Record<string, any> = {};
+  const itemType = getPrimaryType(items.type);
+
+  if (itemType === 'object') {
+    const defaultObj: Record<string, unknown> = {};
     if (items.properties) {
-      Object.entries(items.properties).forEach(([key, prop]: [string, any]) => {
+      Object.entries(items.properties).forEach(([key, prop]) => {
         if (prop.default !== undefined) {
           defaultObj[key] = prop.default;
         } else {
-          switch (prop.type) {
+          const propType = getPrimaryType(prop.type);
+          switch (propType) {
             case 'string':
               defaultObj[key] = '';
               break;
@@ -39,13 +55,13 @@ export const useArrayDefaultValue = (items: UiPropertiesType | undefined) => {
     return defaultObj;
   }
 
-  if (items.type === 'array') {
+  if (itemType === 'array') {
     return [];
   }
 
   if (items.default !== undefined) return items.default;
 
-  switch (items.type) {
+  switch (itemType) {
     case 'string':
       return '';
     case 'number':

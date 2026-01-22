@@ -32,7 +32,7 @@ const NavigationItems: React.FC<WorkbenchNavigationWorkflowsProps> = ({ namespac
   const handleNavigateTo = (workflowId: string) => {
     setScrollTo(true);
     if (pipelineId) {
-      router.navigateToWorkflow(pipelineId, workflowId, clickId);
+      void router.navigateToWorkflow(pipelineId, workflowId, clickId);
     }
   };
 

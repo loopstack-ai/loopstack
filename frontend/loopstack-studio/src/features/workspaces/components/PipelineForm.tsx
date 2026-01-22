@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import type { WorkspaceDto } from '@loopstack/api-client';
 import type { PipelineConfigInterface } from '@loopstack/contracts/types';
 import ArgumentsView from '@/features/workspaces/components/pipeline-form/ArgumentsView.tsx';
@@ -63,10 +63,10 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
   };
 
   const navigateToPipeline = (pipelineId: string) => {
-    router.navigateToPipeline(pipelineId);
+    void router.navigateToPipeline(pipelineId);
   };
 
-  const createAndRunPipeline = (transition?: string, data?: any) => {
+  const createAndRunPipeline = (transition?: string, data?: Record<string, any>) => {
     createPipeline.mutate(
       {
         pipelineCreateDto: {
@@ -108,7 +108,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
     setCurrentStep('selection');
   };
 
-  const handleSubmit = (transition?: string, data?: any) => {
+  const handleSubmit = (transition?: string, data?: Record<string, any>) => {
     createAndRunPipeline(transition, data);
   };
 
@@ -122,7 +122,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
 
   if (fetchPipelineTypes.isLoading) {
     return (
-      <div className="flex min-h-[200px] items-center justify-center">
+      <div className="flex min-h-50 items-center justify-center">
         <Loader2 className="text-primary h-8 w-8 animate-spin" />
       </div>
     );
@@ -142,7 +142,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
           style={{ transform: `translateX(-${currentStep === 'arguments' ? 100 : 0}%)` }}
         >
           {/* Selection View */}
-          <div className="w-full flex-shrink-0 px-1">
+          <div className="w-full shrink-0 px-1">
             <SelectionView
               title={title}
               pipelineTypes={fetchPipelineTypes.data}
@@ -155,7 +155,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
           </div>
 
           {/* Arguments View */}
-          <div className="w-full flex-shrink-0 px-1">
+          <div className="w-full shrink-0 px-1">
             <ArgumentsView
               key={formData.blockName} // forces remount of the component / form when selection is changed
               config={selectedPipelineConfig}

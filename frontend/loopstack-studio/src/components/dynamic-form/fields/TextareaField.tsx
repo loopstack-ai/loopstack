@@ -10,7 +10,7 @@ import { BaseFieldWrapper } from './BaseFieldWrapper';
 export interface TextareaFieldSchema {
   title?: string;
   type?: string;
-  widget?: 'textarea' | 'textarea-expand' | string;
+  widget?: string;
   maxLength?: number;
   minLength?: number;
   placeholder?: string;
@@ -22,6 +22,7 @@ export interface TextareaFieldSchema {
   readonly?: boolean;
   default?: string;
   pattern?: string;
+  [key: string]: unknown;
 }
 
 interface TextareaFieldProps extends FieldProps {

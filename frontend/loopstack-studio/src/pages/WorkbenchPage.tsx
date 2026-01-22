@@ -1,5 +1,5 @@
-import { useParams } from 'react-router-dom';
 import { Home, Loader2 } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import Workbench from '@/features/workbench/Workbench.tsx';
 import MainLayout from '../components/layout/MainLayout.tsx';

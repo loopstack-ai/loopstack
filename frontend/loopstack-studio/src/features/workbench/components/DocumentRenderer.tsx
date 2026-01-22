@@ -1,6 +1,6 @@
 import React from 'react';
-import type { PipelineDto } from '@loopstack/api-client';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import type { DocumentItemDto, PipelineDto, WorkflowDto } from '@loopstack/api-client';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import AiMessage from '@/features/workbench/components/document-renderer/AiMessage.tsx';
 import LinkMessageRenderer from '@/features/workbench/components/document-renderer/LinkMessageRenderer.tsx';
 import CompletionMessagePaper from '../../../components/messages/CompletionMessagePaper.tsx';
@@ -13,48 +13,50 @@ import PlainMessageRenderer from './document-renderer/PlainMessageRenderer.tsx';
 
 interface DocumentRendererProps {
   pipeline: PipelineDto;
-  workflow: WorkflowInterface;
-  document: DocumentItemInterface;
+  workflow: WorkflowDto;
+  document: DocumentItemDto;
   isActive: boolean;
   isLastItem: boolean;
 }
 
 const DocumentRenderer: React.FC<DocumentRendererProps> = ({ pipeline, workflow, document, isActive, isLastItem }) => {
   const viewOnly = !isActive;
-  const widget = document.ui?.form?.widget ?? 'object-form';
+  // Cast DocumentItemDto to DocumentItemInterface - they have compatible runtime structure
+  const doc = document as unknown as DocumentItemInterface;
+  const widget = (doc.ui?.form as { widget?: string } | undefined)?.widget ?? 'object-form';
 
   const render = () => {
     switch (widget) {
       case 'ai-message':
-        return <AiMessage document={document} isLastItem={isLastItem} />;
+        return <AiMessage document={doc} isLastItem={isLastItem} />;
       case 'debug':
         return (
           <div className="mb-4 flex">
-            <DocumentDebugRenderer document={document} />
+            <DocumentDebugRenderer document={doc} />
           </div>
         );
       case 'object-form':
         return (
-          <CompletionMessagePaper role={'document'} fullWidth={true} timestamp={new Date(document.createdAt)}>
+          <CompletionMessagePaper role={'document'} fullWidth={true} timestamp={new Date(doc.createdAt)}>
             <DocumentFormRenderer
               pipeline={pipeline}
               workflow={workflow}
-              document={document}
+              document={doc}
               enabled={isActive}
               viewOnly={viewOnly}
             />
           </CompletionMessagePaper>
         );
       case 'message':
-        return <DocumentMessageRenderer document={document} />;
+        return <DocumentMessageRenderer document={doc} />;
       case 'error':
-        return <ErrorMessageRenderer document={document} />;
+        return <ErrorMessageRenderer document={doc} />;
       case 'plain':
-        return <PlainMessageRenderer document={document} />;
+        return <PlainMessageRenderer document={doc} />;
       case 'markdown':
-        return <MarkdownMessageRenderer document={document} />;
+        return <MarkdownMessageRenderer document={doc} />;
       case 'link':
-        return <LinkMessageRenderer document={document} />;
+        return <LinkMessageRenderer document={doc} />;
       default:
         return <>unknown document type</>;
     }

@@ -1,15 +1,16 @@
 import React from 'react';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import LinkCard, { type LucideIconName } from '@/components/loopstack-elements/link.tsx';
 
+type LinkMessageContentType = {
+  icon?: string;
+  type?: string;
+  label?: string;
+  href: string;
+};
+
 interface LinkMessageRendererProps {
-  document: {
-    content: {
-      icon?: string;
-      type?: string;
-      label?: string;
-      href: string;
-    };
-  };
+  document: Omit<DocumentItemInterface, 'content'> & { content: LinkMessageContentType };
 }
 
 const LinkMessageRenderer: React.FC<LinkMessageRendererProps> = ({ document }) => {

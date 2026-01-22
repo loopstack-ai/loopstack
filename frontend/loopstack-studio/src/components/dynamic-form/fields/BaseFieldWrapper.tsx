@@ -1,11 +1,15 @@
 import React from 'react';
 import { Label } from '../../ui/label';
 
+interface FieldError {
+  message?: string;
+}
+
 interface BaseFieldWrapperProps {
   name: string;
   label: string;
   required?: boolean;
-  error?: any;
+  error?: FieldError;
   helpText?: string;
   description?: string;
   children: React.ReactNode;

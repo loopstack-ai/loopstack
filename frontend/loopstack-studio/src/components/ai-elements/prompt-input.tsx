@@ -1,5 +1,17 @@
 'use client';
 
+import type { ChatStatus, FileUIPart } from 'ai';
+import {
+  CornerDownLeftIcon,
+  ImageIcon,
+  Loader2Icon,
+  MicIcon,
+  PaperclipIcon,
+  PlusIcon,
+  SquareIcon,
+  XIcon,
+} from 'lucide-react';
+import { nanoid } from 'nanoid';
 import {
   type ChangeEvent,
   type ChangeEventHandler,
@@ -22,18 +34,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { ChatStatus, FileUIPart } from 'ai';
-import {
-  CornerDownLeftIcon,
-  ImageIcon,
-  Loader2Icon,
-  MicIcon,
-  PaperclipIcon,
-  PlusIcon,
-  SquareIcon,
-  XIcon,
-} from 'lucide-react';
-import { nanoid } from 'nanoid';
 import { Button } from '@/components/ui/button';
 import {
   Command,

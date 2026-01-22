@@ -6,7 +6,7 @@ export interface UiActionsProps {
   availableTransitions: string[];
   actions: UiWidgetType[];
   disabled: boolean;
-  onSubmit: (transition: string, data: Record<string, any>) => void;
+  onSubmit: (transition: string, data: Record<string, unknown>) => void;
   isLoading?: boolean;
 }
 
@@ -17,8 +17,8 @@ const UiActions: React.FC<UiActionsProps> = ({ actions, availableTransitions, di
         const isDisabled =
           disabled || config.transition === undefined || !availableTransitions.includes(config.transition);
 
-        const handleSubmit = (data?: Record<string, any>) => {
-          onSubmit(config.transition, data || {});
+        const handleSubmit = (data?: Record<string, unknown> | string) => {
+          onSubmit(config.transition, typeof data === 'object' ? (data ?? {}) : {});
         };
 
         return (

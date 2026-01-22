@@ -40,7 +40,7 @@ const WorkbenchSidebar = ({ namespaceTree, pipeline }: WorkbenchSidebarProps) =>
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => router.navigateToPipelineDebug(pipeline.id)}
+                    onClick={() => void router.navigateToPipelineDebug(pipeline.id)}
                   >
                     <GitGraph className="text-muted-foreground h-4 w-4" />
                   </Button>

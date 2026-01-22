@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { Pill } from 'lucide-react';
+import { useState } from 'react';
 import {
   PromptInput,
   PromptInputBody,
@@ -8,11 +8,22 @@ import {
   PromptInputTextarea,
 } from '@/components/ai-elements/prompt-input';
 
-function AiPromptInput({ transition, onSubmit, disabled, ui }: any) {
+interface AiPromptInputUi {
+  label?: string;
+}
+
+interface AiPromptInputProps {
+  transition: string;
+  onSubmit: (text: string) => void;
+  disabled?: boolean;
+  ui?: AiPromptInputUi;
+}
+
+function AiPromptInput({ transition, onSubmit, disabled, ui }: AiPromptInputProps) {
   const [input, setInput] = useState('');
   const isLoading = false;
 
-  const buttonLabel = ui?.label || transition;
+  const buttonLabel = ui?.label ?? transition;
 
   return (
     <PromptInput

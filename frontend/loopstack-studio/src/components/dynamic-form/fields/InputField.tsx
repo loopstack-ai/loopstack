@@ -52,6 +52,7 @@ export interface InputFieldSchema {
   multipleOf?: number;
   pattern?: string;
   format?: 'email' | 'url' | 'date' | 'time' | 'datetime' | 'phone';
+  [key: string]: unknown;
 }
 
 interface InputFieldProps extends FieldProps {
@@ -111,7 +112,7 @@ export const InputField: React.FC<InputFieldProps> = ({ name, schema, ui, requir
                 field.onChange(e);
               }
             }}
-            value={field.value ?? ''}
+            value={(field.value as string | number) ?? ''}
             type={inputType}
             placeholder={placeholder}
             disabled={config.isDisabled}

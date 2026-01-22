@@ -13,6 +13,7 @@ export interface CheckboxFieldSchema {
   disabled?: boolean;
   readonly?: boolean;
   default?: boolean;
+  [key: string]: unknown;
 }
 
 interface CheckboxFieldProps extends FieldProps {

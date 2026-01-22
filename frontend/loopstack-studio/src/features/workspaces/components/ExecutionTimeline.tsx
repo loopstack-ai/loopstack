@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { format, formatDistanceToNow, isToday, isYesterday, parseISO } from 'date-fns';
 import { Loader2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import type { PipelineItemDto, PipelineStatus, WorkspaceDto } from '@loopstack/api-client';
 import CustomListView from '../../../components/lists/CustomListView.tsx';
 import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
@@ -23,7 +23,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['pipelines'] });
+    void queryClient.invalidateQueries({ queryKey: ['pipelines'] });
   }, [queryClient]);
 
   // Format updated time to show relative time for recent updates using date-fns
@@ -72,7 +72,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
   };
 
   const handlePipelineClick = (id: string) => {
-    router.navigateToPipeline(id);
+    void router.navigateToPipeline(id);
   };
 
   const getPipelineStatusColor = (status: PipelineStatus): string => {

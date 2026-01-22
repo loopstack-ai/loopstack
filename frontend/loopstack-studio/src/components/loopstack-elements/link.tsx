@@ -1,7 +1,7 @@
 'use client';
 
-import type { ComponentProps } from 'react';
 import { ExternalLinkIcon, LinkIcon, icons } from 'lucide-react';
+import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
 export type LucideIconName = keyof typeof icons;

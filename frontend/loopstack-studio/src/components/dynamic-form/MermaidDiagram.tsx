@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
 import mermaid from 'mermaid';
+import React, { useEffect, useRef } from 'react';
 
 interface MermaidDiagramProps {
   chart: string;
@@ -46,7 +46,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, className }) => 
       }
     };
 
-    renderDiagram();
+    void renderDiagram();
   }, [chart]);
 
   return <div ref={ref} className={`my-4 flex justify-center ${className || ''}`} />;

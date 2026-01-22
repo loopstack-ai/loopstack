@@ -1,5 +1,5 @@
-import React from 'react';
 import type { DataContent, FilePart, ImagePart, ModelMessage, TextPart, ToolCallPart, ToolResultPart } from 'ai';
+import React from 'react';
 
 interface ReasoningPart {
   type: 'reasoning';
@@ -96,7 +96,7 @@ const ToolResultPartRenderer: React.FC<{ part: ToolResultPart }> = ({ part }) =>
 
 // Main content renderer component
 const MessageContentRenderer: React.FC<{ message: ModelMessage }> = ({ message }) => {
-  const renderContentPart = (part: any, index: number) => {
+  const renderContentPart = (part: { type: string }, index: number) => {
     switch (part.type) {
       case 'text':
         return <TextPartRenderer key={index} part={part as TextPart} />;

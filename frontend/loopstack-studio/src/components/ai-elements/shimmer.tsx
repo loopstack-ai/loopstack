@@ -1,7 +1,7 @@
 'use client';
 
-import { type CSSProperties, type ElementType, type JSX, memo, useMemo } from 'react';
 import { motion } from 'motion/react';
+import { type CSSProperties, type ElementType, type JSX, memo, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
 export type TextShimmerProps = {

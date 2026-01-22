@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../../components/ui/sheet.tsx';
 import { ApiClientEvents } from '../../events';
 import { useGetHealthInfo, useWorkerAuth, useWorkerAuthTokenRefresh } from '../../hooks/useAuth.ts';
@@ -27,9 +27,9 @@ const LocalHealthCheck = () => {
   const fetchHealthInfo = useGetHealthInfo(false);
   const queryClient = useQueryClient();
 
-  const handleCheckHealth = () => {
-    fetchHealthInfo.refetch();
-  };
+  const handleCheckHealth = useCallback(() => {
+    void fetchHealthInfo.refetch();
+  }, [fetchHealthInfo]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -43,27 +43,27 @@ const LocalHealthCheck = () => {
         clearInterval(interval);
       }
     };
-  }, [escalation]);
+  }, [escalation, handleCheckHealth]);
 
   useEffect(() => {
     if (fetchHealthInfo.data) {
       setEscalation(Escalation.None);
-      queryClient.invalidateQueries();
+      void queryClient.invalidateQueries();
     }
-  }, [fetchHealthInfo.data]);
+  }, [fetchHealthInfo.data, setEscalation, queryClient]);
 
-  const handleTokenRefresh = () => {
+  const handleTokenRefresh = useCallback(() => {
     tokenRefresh.mutate();
-  };
+  }, [tokenRefresh]);
 
-  const handleLogin = () => {
+  const handleLogin = useCallback(() => {
     authenticateWorker.mutate({
       hubLoginRequestDto: {
         code: 'local',
         grantType: 'local',
       },
     });
-  };
+  }, [authenticateWorker]);
 
   useEffect(() => {
     if (tokenRefresh.error) {
@@ -95,7 +95,7 @@ const LocalHealthCheck = () => {
     } else if (escalation === Escalation.Login) {
       handleLogin();
     }
-  }, [escalation]);
+  }, [escalation, handleTokenRefresh, handleLogin]);
 
   // Subscribe to events
   useEffect(() => {
