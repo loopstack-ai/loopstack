@@ -64,7 +64,8 @@
     "installer/*",
     "templates/*",
     "generators/*",
-    "registry/*/*"
+    "registry/*/*",
+    "workspace/*/*"
   ],
   "lint-staged": {
     "*.{ts,tsx}": [

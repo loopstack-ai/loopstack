@@ -13,3 +13,5 @@ pnpm-lock.yaml
 
 # Auto-generated
 src/components/ui
+
+workspace
