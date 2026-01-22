@@ -18,7 +18,7 @@
     "build": "nest build",
     "watch": "nest build --watch",
     "lint": "eslint . --fix",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "dependencies": {
     "@loopstack/common": "^0.17.0",
