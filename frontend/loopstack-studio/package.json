@@ -28,7 +28,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "format": "prettier --write .",
-    "test": "vitest",
+    "test": "vitest run",
     "prepare": "husky"
   },
   "dependencies": {

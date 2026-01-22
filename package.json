@@ -3,27 +3,19 @@
   "displayName": "Loopstack AI Workflow Automation Framework",
   "description": "A monorepo to maintain loopstack core module and demo applications",
   "version": "0.0.3",
+  "packageManager": "npm@10.9.2",
   "main": "index.js",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "turbo run build",
+    "watch": "turbo run watch",
+    "test": "turbo run test",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "prepare": "husky",
-    "setup": "git submodule update --init --recursive && pnpm install",
-    "watch:all": "pnpm --parallel -r run watch",
-    "dev": "pnpm --parallel -r run dev",
-    "test": "pnpm -r test",
-    "docker:push": "pnpm -r run docker:push",
-    "infra:up": "docker compose up --build",
-    "infra:down": "docker compose down",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "tag": "pnpm -r run tag",
-    "release": "changeset publish"
+    "prepare": "husky"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.4",
@@ -54,6 +46,7 @@
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "turbo": "^2.7.5",
     "typeorm": "^0.3.28",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.1"
