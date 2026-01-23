@@ -49,7 +49,6 @@ jobs:
           echo "Found tags at HEAD:"
           echo "$TAGS"
 
-          # Helper function to check if a package tag exists
           check_package() {
             local pkg_name=$1
             local output_var=$2
@@ -62,7 +61,6 @@ jobs:
             fi
           }
 
-          # Check for each package tag
           check_package "common" "common"
           check_package "contracts" "contracts"
           check_package "testing" "testing"
@@ -71,20 +69,25 @@ jobs:
           check_package "cli-module" "cli"
           check_package "api" "api"
           check_package "api-client" "api_client"
-          check_package "hub-client" "hub_client"
-          check_package "server" "server"
-          check_package "cloud-frontend" "cloud_frontend"
           check_package "loopstack-studio" "studio"
 
-      - name: Publish Common
-        if: steps.check-tags.outputs.common == 'true'
-        run: npm publish --workspace=packages/common --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          if echo "$TAGS" | grep -q "create-loopstack-app@"; then
+            echo "create_loopstack_app=true" >> $GITHUB_OUTPUT
+            echo "✅ Found tag for create-loopstack-app"
+          else
+            echo "create_loopstack_app=false" >> $GITHUB_OUTPUT
+            echo "⏭️ No tag for create-loopstack-app"
+          fi
 
       - name: Publish Contracts
         if: steps.check-tags.outputs.contracts == 'true'
         run: npm publish --workspace=packages/contracts --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish Common
+        if: steps.check-tags.outputs.common == 'true'
+        run: npm publish --workspace=packages/common --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -124,21 +127,9 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish Hub Client
-        if: steps.check-tags.outputs.hub_client == 'true'
-        run: npm publish --workspace=apps/loopstack-cloud/hub-client --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish Server
-        if: steps.check-tags.outputs.server == 'true'
-        run: npm publish --workspace=apps/loopstack-cloud/server --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish Cloud Frontend
-        if: steps.check-tags.outputs.cloud_frontend == 'true'
-        run: npm publish --workspace=apps/loopstack-cloud/frontend --access public
+      - name: Publish installer
+        if: steps.check-tags.outputs.create_loopstack_app == 'true'
+        run: npm publish --workspace=installer/create-loopstack-app --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
