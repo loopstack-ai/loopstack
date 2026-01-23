@@ -1,10 +1,6 @@
 {
   "name": "@loopstack/app-template",
   "version": "0.16.3",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/loopstack-ai/app-template"
-  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write .",
