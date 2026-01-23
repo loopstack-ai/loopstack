@@ -5,7 +5,7 @@ COPY package.json package-lock.json* ./
 RUN npm install
 
 COPY . .
-RUN npm run build
+RUN npm run build:prod
 
 FROM node:20-alpine AS production
 WORKDIR /app

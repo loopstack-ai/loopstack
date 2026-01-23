@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig(({ mode }) => {
-  const isLibrary = mode === 'lib';
+  const isLibrary = mode !== 'prod';
 
   return {
     plugins: [

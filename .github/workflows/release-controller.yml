@@ -1,0 +1,140 @@
+name: 'Release Controller'
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+
+jobs:
+  release:
+    name: 'Build & Release Tagged Packages'
+    runs-on: ubuntu-latest
+    outputs:
+      studio: ${{ steps.check-tags.outputs.studio }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Check Formatting
+        run: npx prettier --check .
+
+      - name: Lint Workspace
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm run test
+
+      - name: Build All Workspaces
+        run: npm run build
+
+      - name: Check Tags at HEAD
+        id: check-tags
+        run: |
+          TAGS=$(git tag --points-at HEAD)
+          echo "Found tags at HEAD:"
+          echo "$TAGS"
+
+          check_package() {
+            local pkg_name=$1
+            local output_var=$2
+            if echo "$TAGS" | grep -q "@loopstack/${pkg_name}@"; then
+              echo "$output_var=true" >> $GITHUB_OUTPUT
+              echo "✅ Found tag for $pkg_name"
+            else
+              echo "$output_var=false" >> $GITHUB_OUTPUT
+              echo "⏭️ No tag for $pkg_name"
+            fi
+          }
+
+          check_package "common" "common"
+          check_package "contracts" "contracts"
+          check_package "testing" "testing"
+          check_package "core" "core"
+          check_package "auth" "auth"
+          check_package "cli-module" "cli"
+          check_package "api" "api"
+          check_package "api-client" "api_client"
+          check_package "loopstack-studio" "studio"
+
+          if echo "$TAGS" | grep -q "create-loopstack-app@"; then
+            echo "create_loopstack_app=true" >> $GITHUB_OUTPUT
+            echo "✅ Found tag for create-loopstack-app"
+          else
+            echo "create_loopstack_app=false" >> $GITHUB_OUTPUT
+            echo "⏭️ No tag for create-loopstack-app"
+          fi
+
+      - name: Publish Contracts
+        if: steps.check-tags.outputs.contracts == 'true'
+        run: npm publish --workspace=packages/contracts --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish Common
+        if: steps.check-tags.outputs.common == 'true'
+        run: npm publish --workspace=packages/common --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish Testing
+        if: steps.check-tags.outputs.testing == 'true'
+        run: npm publish --workspace=packages/testing --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish Core
+        if: steps.check-tags.outputs.core == 'true'
+        run: npm publish --workspace=packages/core --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish Auth
+        if: steps.check-tags.outputs.auth == 'true'
+        run: npm publish --workspace=packages/auth --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish CLI
+        if: steps.check-tags.outputs.cli == 'true'
+        run: npm publish --workspace=packages/cli --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish API
+        if: steps.check-tags.outputs.api == 'true'
+        run: npm publish --workspace=packages/api --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish API Client
+        if: steps.check-tags.outputs.api_client == 'true'
+        run: npm publish --workspace=frontend/api-client --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish installer
+        if: steps.check-tags.outputs.create_loopstack_app == 'true'
+        run: npm publish --workspace=installer/create-loopstack-app --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  deploy-studio:
+    needs: release
+    if: needs.release.outputs.studio == 'true'
+    uses: ./.github/workflows/release-studio.yml
+    secrets: inherit

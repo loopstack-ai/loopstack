@@ -16,12 +16,11 @@
   },
   "scripts": {
     "build": "tsc -b && vite build",
-    "build:lib": "tsc -b && vite build --mode lib",
+    "build:prod": "tsc -b && vite build --mode prod",
     "dev": "tsc -b && vite",
-    "format": "prettier --write .",
     "lint": "eslint .",
-    "prepare": "husky",
     "preview": "vite preview",
+    "format": "prettier --write .",
     "test": "vitest run"
   },
   "dependencies": {
@@ -128,11 +127,6 @@
     "*.{json,md,css,yaml,yml}": [
       "prettier --check"
     ]
-  },
-  "pnpm": {
-    "overrides": {
-      "vite": "npm:rolldown-vite@7.3.1"
-    }
   },
   "type": "module"
 }
