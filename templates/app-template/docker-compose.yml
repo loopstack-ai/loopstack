@@ -28,7 +28,7 @@ services:
       - monorepo-network
 
   studio:
-    image: ghcr.io/loopstack-ai/loopstack-studio:latest
+    image: ghcr.io/loopstack-ai/loopstack-studio:${LOOPSTACK_STUDIO_VERSION:-latest}
     pull_policy: always
     ports:
       - '3000:3000'

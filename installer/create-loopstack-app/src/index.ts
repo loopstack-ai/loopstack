@@ -7,8 +7,8 @@ import * as path from 'path';
 // Parse arguments
 const args = process.argv.slice(2);
 let appName: string | undefined;
-let templateName: string = 'app-template';
-let tag: string = 'main';
+let templateName: string = '@loopstack/app-template';
+let tag: string = 'latest';
 
 for (const arg of args) {
   if (arg.startsWith('--template=')) {
@@ -24,11 +24,11 @@ if (!appName) {
   console.error('❌ Please provide a project name.');
   console.error('\nUsage: create-loopstack-app <app-name> [options]');
   console.error('\nOptions:');
-  console.error('  --template=<name>    Template to use (default: app-template)');
-  console.error('  --tag=<tag>          Git tag/branch to use (default: main)');
+  console.error('  --template=<name>    Template to use (default: @loopstack/app-template)');
+  console.error('  --tag=<tag>          Git tag/branch to use (default: latest)');
   console.error('\nExamples:');
   console.error('  create-loopstack-app my-app');
-  console.error('  create-loopstack-app my-app --template=custom-template');
+  console.error('  create-loopstack-app my-app --template=@loopstack/custom-template');
   console.error('  create-loopstack-app my-app --tag=v1.0.0');
   process.exit(1);
 }
@@ -37,7 +37,7 @@ console.log(`Creating Loopstack app: ${appName}`);
 console.log(`Using template: ${templateName}`);
 console.log(`Using tag: ${tag}`);
 
-const templateSource = `github:loopstack-ai/loopstack/templates/${templateName}#${tag}`;
+const templateSource = `github:loopstack-ai/loopstack/templates/${templateName}#${templateName}@${tag}`;
 console.log(`Cloning from: ${templateSource}`);
 
 try {
@@ -56,15 +56,15 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as Reco
 packageJson.name = appName;
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
-// Copy .env.example to .env
-const envExamplePath: string = path.join(process.cwd(), '.env.example');
+// Copy .env.default to .env
+const envDefaultPath: string = path.join(process.cwd(), '.env.default');
 const envPath: string = path.join(process.cwd(), '.env');
 
-if (fs.existsSync(envExamplePath)) {
-  console.log('Creating .env file from .env.example...');
-  fs.copyFileSync(envExamplePath, envPath);
+if (fs.existsSync(envDefaultPath)) {
+  console.log('Creating .env file from .env.default...');
+  fs.copyFileSync(envDefaultPath, envPath);
 } else {
-  console.warn('⚠️  Warning: .env.example not found, skipping .env creation');
+  console.warn('⚠️  Warning: .env.default not found, skipping .env creation');
 }
 
 console.log('Installing dependencies...');

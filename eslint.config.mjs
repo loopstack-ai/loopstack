@@ -16,6 +16,7 @@ export default tseslint.config(
       '**/src/components/ai-elements/**',
       '**/vitest.config.ts',
       '**/vite.config.ts',
+      'scripts/**',
       'apps/**',
       'registry/**',
       'workspace/**',

@@ -21,7 +21,9 @@
     "package:update": "syncpack update",
     "prepare": "husky",
     "test": "turbo run test",
-    "watch": "turbo run watch"
+    "watch": "turbo run watch",
+    "changeset:version": "changeset version && npm run sync-studio-version",
+    "sync-studio-version": "node scripts/sync-studio-version.js"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.8",
