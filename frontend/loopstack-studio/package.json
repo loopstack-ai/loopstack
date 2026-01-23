@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "tsc -b && vite build",
-    "build:lib": "tsc -b && vite build --mode lib",
+    "build:prod": "tsc -b && vite build --mode prod",
     "dev": "tsc -b && vite",
     "format": "prettier --write .",
     "lint": "eslint .",
