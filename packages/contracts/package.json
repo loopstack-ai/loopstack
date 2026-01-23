@@ -10,12 +10,6 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "dependencies": {
-    "zod": "^4.3.5"
-  },
   "exports": {
     "./types": {
       "types": "./dist/types/index.d.ts",
@@ -30,6 +24,19 @@
       "default": "./dist/schemas/index.js"
     }
   },
+  "scripts": {
+    "build": "tsc",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "watch": "tsc --watch"
+  },
+  "dependencies": {
+    "zod": "^4.3.5"
+  },
+  "files": [
+    "dist"
+  ],
   "typesVersions": {
     "*": {
       "types": [
@@ -42,12 +49,5 @@
         "./dist/schemas/index.d.ts"
       ]
     }
-  },
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch",
-    "compile": "tsc --noEmit",
-    "lint": "eslint .",
-    "format": "prettier --write ."
   }
 }

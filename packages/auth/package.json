@@ -3,27 +3,24 @@
   "displayName": "Loopstack Auth Module",
   "description": "The auth module of the loopstack automation framework",
   "version": "0.16.1",
+  "license": "BSL",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "license": "BSL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "nest build",
-    "watch": "nest build --watch",
     "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
     "test": "jest --passWithNoTests",
-    "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "lint": "eslint .",
-    "format": "prettier --write ."
+    "test:watch": "jest --watch",
+    "watch": "nest build --watch"
   },
   "dependencies": {
     "@loopstack/common": "^0.17.0",
@@ -48,6 +45,12 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
+  "devDependencies": {
+    "@types/passport-jwt": "^4.0.1"
+  },
+  "files": [
+    "dist"
+  ],
   "jest": {
     "moduleFileExtensions": [
       "js",
@@ -64,8 +67,5 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  },
-  "devDependencies": {
-    "@types/passport-jwt": "^4.0.1"
   }
 }
