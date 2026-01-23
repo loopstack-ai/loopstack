@@ -10,15 +10,12 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "nest build",
-    "watch": "nest build --watch",
     "compile": "tsc --noEmit",
+    "format": "prettier --write .",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "watch": "nest build --watch"
   },
   "dependencies": {
     "@loopstack/contracts": "^0.16.2",
@@ -27,5 +24,8 @@
     "reflect-metadata": "^0.2.2",
     "yaml": "^2.8.2",
     "zod": "^4.3.5"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }

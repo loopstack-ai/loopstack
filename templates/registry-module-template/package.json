@@ -2,23 +2,20 @@
   "name": "module-name",
   "displayName": "",
   "description": "",
+  "keywords": [],
   "version": "0.17.0",
+  "license": "Apache-2.0",
   "author": {
     "name": "",
     "url": ""
   },
-  "keywords": [],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "nest build",
-    "watch": "nest build --watch",
     "lint": "eslint . --fix",
-    "test": "jest --passWithNoTests"
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
   },
   "dependencies": {
     "@loopstack/common": "^0.17.0",
@@ -39,6 +36,9 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.1"
   },
+  "files": [
+    "dist"
+  ],
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",

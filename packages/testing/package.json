@@ -3,27 +3,27 @@
   "displayName": "Loopstack Testing Utils",
   "description": "Testing utilities for building tests for loopstack components",
   "version": "0.17.0",
+  "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "nest build",
-    "watch": "nest build --watch",
     "compile": "tsc --noEmit",
-    "test": "jest --passWithNoTests",
+    "format": "prettier --write .",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
   },
   "dependencies": {
     "lodash": "^4.17.23"
   },
+  "files": [
+    "dist"
+  ],
   "peerDependenciesMeta": {
     "@nestjs/config": {
       "optional": true
