@@ -38,9 +38,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install additional
-        run: npm install lightningcss-linux-x64-gnu
-
       - name: Build packages
         run: npm run build
 
