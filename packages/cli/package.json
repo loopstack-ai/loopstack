@@ -2,7 +2,7 @@
   "name": "@loopstack/cli-module",
   "displayName": "Loopstack Cli Module",
   "description": "The cli module for Loopstack",
-  "version": "0.16.1",
+  "version": "0.18.0-rc.0",
   "repository": "loopstack-ai/cli",
   "license": "Apache-2.0",
   "author": {
@@ -24,8 +24,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/contracts": "^0.16.2",
-    "@loopstack/core": "^0.17.0",
+    "@loopstack/contracts": "^0.18.0-rc.0",
+    "@loopstack/core": "^0.18.0-rc.0",
     "@nestjs/common": "^11.1.12",
     "@nestjs/core": "^11.1.12",
     "axios": "^1.13.2",

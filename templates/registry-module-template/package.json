@@ -4,7 +4,7 @@
   "displayName": "",
   "description": "",
   "keywords": [],
-  "version": "0.17.0",
+  "version": "0.18.0-rc.0",
   "license": "Apache-2.0",
   "author": {
     "name": "",
@@ -19,13 +19,13 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.17.0",
-    "@loopstack/core": "^0.17.0",
+    "@loopstack/common": "^0.18.0-rc.0",
+    "@loopstack/core": "^0.18.0-rc.0",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@loopstack/testing": "^0.17.0",
+    "@loopstack/testing": "^0.18.0-rc.0",
     "@nestjs/cli": "^11.0.16",
     "@nestjs/testing": "^11.1.12",
     "@types/jest": "^30.0.0",
