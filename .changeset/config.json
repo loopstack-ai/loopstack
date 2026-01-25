@@ -7,7 +7,7 @@
       "@loopstack/contracts",
       "@loopstack/common",
       "@loopstack/core",
-      "@loopstack/cli",
+      "@loopstack/cli-module",
       "@loopstack/testing",
       "@loopstack/auth",
       "@loopstack/api"
