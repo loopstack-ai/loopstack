@@ -18,6 +18,7 @@ npx changeset
 ```
 
 This will prompt you to:
+
 1. Select which packages have changed
 2. Choose the type of version bump (major/minor/patch)
 3. Write a summary of the changes
