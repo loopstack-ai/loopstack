@@ -98,5 +98,4 @@ jobs:
     uses: ./.github/workflows/release-studio-docker.yml
     with:
       version: ${{ needs.release.outputs.studio_version }}
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    secrets: inherit
