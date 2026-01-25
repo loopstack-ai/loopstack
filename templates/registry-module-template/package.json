@@ -1,5 +1,6 @@
 {
-  "name": "module-name",
+  "name": "@loopstack/registry-module-template",
+  "private": true,
   "displayName": "",
   "description": "",
   "keywords": [],
