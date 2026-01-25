@@ -21,11 +21,14 @@
     "package:update": "syncpack update",
     "prepare": "husky",
     "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
     "watch": "turbo run watch",
-    "changeset:version": "changeset version && npm run sync-studio-version",
-    "sync-studio-version": "node scripts/sync-studio-version.js"
+    "changeset": "changeset",
+    "prerelease:enter": "changeset pre enter rc",
+    "prerelease:exit": "changeset pre exit"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.29.8",
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.39.2",
