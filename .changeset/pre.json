@@ -1,0 +1,21 @@
+{
+  "mode": "pre",
+  "tag": "rc",
+  "initialVersions": {
+    "@loopstack/hub-client-generator": "0.2.0",
+    "@loopstack/api-client": "0.17.2",
+    "@loopstack/loopstack-studio": "0.17.1",
+    "@loopstack/api-client-generator": "0.3.0",
+    "create-loopstack-app": "0.15.0",
+    "@loopstack/api": "0.17.0",
+    "@loopstack/auth": "0.16.1",
+    "@loopstack/cli-module": "0.16.1",
+    "@loopstack/common": "0.17.0",
+    "@loopstack/contracts": "0.16.2",
+    "@loopstack/core": "0.17.0",
+    "@loopstack/testing": "0.17.0",
+    "@loopstack/app-template": "0.16.3",
+    "@loopstack/registry-module-template": "0.17.0"
+  },
+  "changesets": []
+}
