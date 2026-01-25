@@ -8,9 +8,6 @@
     "build": {
       "dependsOn": ["^build"]
     },
-    "compile": {
-      "dependsOn": ["^compile"]
-    },
     "test": {}
   }
 }

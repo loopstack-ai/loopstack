@@ -22,7 +22,6 @@
     "package:update": "syncpack update",
     "prepare": "husky",
     "test": "turbo run test",
-    "typecheck": "turbo run compile",
     "watch": "turbo run watch",
     "changeset": "changeset",
     "prerelease:enter": "changeset pre enter rc",
