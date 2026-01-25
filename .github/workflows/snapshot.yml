@@ -14,23 +14,23 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Branch or PR ref to release"
+        description: 'Branch or PR ref to release'
         required: true
         type: string
-        default: "main"
+        default: 'main'
 
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: '20'
 
 jobs:
   snapshot:
     name: Snapshot Release
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: read
       id-token: write
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,8 +41,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-          registry-url: "https://registry.npmjs.org"
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
@@ -56,9 +56,9 @@ jobs:
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           SHORT_SHA=$(git rev-parse --short HEAD)
           SNAPSHOT_TAG="0.0.0-snapshot.${TIMESTAMP}.${SHORT_SHA}"
-          
+
           echo "Publishing snapshot: $SNAPSHOT_TAG"
-          
+
           # Use changeset snapshot for publishing
           npx changeset version --snapshot snapshot
           npx changeset publish --tag snapshot --no-git-tag
@@ -69,7 +69,7 @@ jobs:
       - name: Create snapshot summary
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
-          
+
           echo "## 📸 Snapshot Published" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** \`${{ inputs.branch }}\`" >> $GITHUB_STEP_SUMMARY

@@ -25,7 +25,6 @@ export class CreatePipelineService {
 
     if (data.args && Object.keys(data.args as Record<string, unknown>).length !== 0) {
       const schema = workflow.argsSchema;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       data.args = schema?.parse(data.args);
     }
 

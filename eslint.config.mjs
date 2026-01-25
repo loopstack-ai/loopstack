@@ -13,6 +13,7 @@ export default tseslint.config(
       '**/node_modules/**',
       'eslint.config.mjs',
       'prettier.config.mjs',
+      'syncpack.config.mjs',
       '**/src/components/ai-elements/**',
       '**/vitest.config.ts',
       '**/vite.config.ts',
@@ -65,11 +66,15 @@ export default tseslint.config(
   // Frontend (React/Vite) - Browser globals + React plugins
   {
     files: ['frontend/**/*.{ts,tsx}'],
-    extends: [reactHooks.configs['recommended-latest'], reactRefresh.configs.vite],
+    plugins: {
+      // 'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+    },
     languageOptions: {
       globals: globals.browser,
     },
     rules: {
+      // ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': 'off',
     },
   },

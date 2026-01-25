@@ -1,7 +1,7 @@
 {
   "name": "loopstack",
   "displayName": "Loopstack AI Workflow Automation Framework",
-  "description": "A monorepo to maintain loopstack core module and demo applications",
+  "description": "A monorepo to maintain loopstack core modules, templates and frontend applications",
   "version": "0.17.0",
   "author": {
     "name": "Jakob Klippel",
@@ -11,6 +11,7 @@
   "scripts": {
     "build": "turbo run build",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint .",
     "ncu": "ncu",
     "ncu:interactive": "ncu -i",
@@ -21,11 +22,12 @@
     "package:update": "syncpack update",
     "prepare": "husky",
     "test": "turbo run test",
-    "typecheck": "turbo run typecheck",
+    "typecheck": "turbo run compile",
     "watch": "turbo run watch",
     "changeset": "changeset",
     "prerelease:enter": "changeset pre enter rc",
-    "prerelease:exit": "changeset pre exit"
+    "prerelease:exit": "changeset pre exit",
+    "refresh-lock": "rm package-lock.json && npm install --package-lock-only --include=optional --os=linux --os=darwin --cpu=x64 --cpu=arm64 && npm install"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
