@@ -91,12 +91,12 @@ jobs:
           echo "🎉 Published packages:"
           echo '${{ steps.changesets.outputs.publishedPackages }}' | jq '.'
 
-#  publish-studio-docker:
-#    name: Publish Studio Docker
-#    needs: release
-#    if: needs.release.outputs.studio_published == 'true'
-#    uses: ./.github/workflows/studio-docker.yml
-#    with:
-#      version: ${{ needs.release.outputs.studio_version }}
-#    secrets:
-#      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  publish-studio-docker:
+    name: Publish Studio Docker
+    needs: release
+    if: needs.release.outputs.studio_published == 'true'
+    uses: ./.github/workflows/release-studio-docker.yml
+    with:
+      version: ${{ needs.release.outputs.studio_version }}
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -11,7 +11,7 @@
 # MANUAL TRIGGER:
 # Can rebuild images without republishing to npm.
 
-name: Studio Docker
+name: Release Studio Docker
 
 on:
   workflow_call:
