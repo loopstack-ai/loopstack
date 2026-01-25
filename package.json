@@ -26,7 +26,7 @@
     "changeset": "changeset",
     "prerelease:enter": "changeset pre enter rc",
     "prerelease:exit": "changeset pre exit",
-    "refresh-lock": "rm package-lock.json && npm install --package-lock-only --include=optional --os=linux --os=darwin --cpu=x64 --cpu=arm64 && npm install"
+    "refresh-lock": "rm -rf node_modules package-lock.json && npm install --package-lock-only --include=optional --os=linux --os=darwin --cpu=x64 --cpu=arm64 && npm install"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
