@@ -1,0 +1,83 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindManyOptions, IsNull, Repository } from 'typeorm';
+import { DocumentEntity } from '@loopstack/common';
+import { DocumentFilterDto } from '../dtos/document-filter.dto';
+import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
+
+@Injectable()
+export class DocumentApiService {
+  constructor(
+    @InjectRepository(DocumentEntity)
+    private documentRepository: Repository<DocumentEntity>,
+    private configService: ConfigService,
+  ) {}
+
+  /**
+   * find all documents for the user with optional filters, sorting, and pagination.
+   */
+  async findAll(
+    user: string,
+    filter: DocumentFilterDto,
+    sortBy: DocumentSortByDto[],
+    pagination: {
+      page: number | undefined;
+      limit: number | undefined;
+    },
+  ): Promise<{
+    data: DocumentEntity[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const defaultLimit = this.configService.get<number>('DOCUMENT_DEFAULT_LIMIT', 100);
+    const defaultSortBy = this.configService.get<DocumentSortByDto[]>('DOCUMENT_DEFAULT_SORT_BY', []);
+
+    const transformedFilter = Object.fromEntries(
+      Object.entries(filter).map(([key, value]) => [key, value === null ? IsNull() : value]),
+    );
+
+    const findOptions: FindManyOptions<DocumentEntity> = {
+      where: {
+        createdBy: user,
+        ...transformedFilter,
+      },
+      order: (sortBy ?? defaultSortBy).reduce(
+        (acc, sort) => {
+          acc[sort.field] = sort.order;
+          return acc;
+        },
+        {} as Record<string, 'ASC' | 'DESC'>,
+      ),
+      take: pagination.limit ?? defaultLimit,
+      skip: pagination.page && pagination.limit ? (pagination.page - 1) * pagination.limit : 0,
+    };
+
+    const [data, total] = await this.documentRepository.findAndCount(findOptions);
+
+    return {
+      data,
+      total,
+      page: pagination.page ?? 1,
+      limit: pagination.limit ?? defaultLimit,
+    };
+  }
+
+  /**
+   * Finds a document by ID.
+   */
+  async findOneById(id: string, user: string): Promise<DocumentEntity> {
+    const document = await this.documentRepository.findOne({
+      where: {
+        id,
+        createdBy: user,
+      },
+    });
+
+    if (!document) {
+      throw new NotFoundException(`Document with ID ${id} not found`);
+    }
+    return document;
+  }
+}

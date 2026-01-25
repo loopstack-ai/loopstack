@@ -1,0 +1,57 @@
+{
+  "name": "@loopstack/cli-module",
+  "displayName": "Loopstack Cli Module",
+  "description": "The cli module for Loopstack",
+  "version": "0.16.1",
+  "repository": "loopstack-ai/cli",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:watch": "jest --watch",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/contracts": "^0.16.2",
+    "@loopstack/core": "^0.17.0",
+    "@nestjs/common": "^11.1.12",
+    "@nestjs/core": "^11.1.12",
+    "axios": "^1.13.2",
+    "nest-commander": "^3.20.1",
+    "zod": "^4.3.5",
+    "zod-to-json-schema": "^3.25.1"
+  },
+  "files": [
+    "dist"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1
+  }
+}

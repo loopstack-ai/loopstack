@@ -1,0 +1,63 @@
+{
+  "name": "@loopstack/core",
+  "displayName": "Loopstack Core Module",
+  "description": "The core module of the loopstack automation framework",
+  "version": "0.17.0",
+  "repository": "loopstack-ai/core",
+  "license": "BSL",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel//"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:watch": "jest --watch",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "^0.17.0",
+    "@nestjs/bullmq": "^11.0.4",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/event-emitter": "^3.0.1",
+    "@nestjs/schedule": "^6.1.0",
+    "bullmq": "^5.66.6",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "date-fns": "^4.1.0",
+    "handlebars": "^4.7.8",
+    "lodash": "^4.17.23",
+    "yaml": "^2.8.2",
+    "zod": "^4.3.5",
+    "zod-to-json-schema": "^3.25.1"
+  },
+  "files": [
+    "dist"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1
+  }
+}

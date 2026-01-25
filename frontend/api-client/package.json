@@ -1,0 +1,30 @@
+{
+  "name": "@loopstack/api-client",
+  "description": "OpenAPI client for @loopstack/api-client",
+  "keywords": [
+    "@loopstack/api-client",
+    "axios",
+    "openapi-client",
+    "openapi-generator",
+    "typescript"
+  ],
+  "version": "0.17.2",
+  "repository": "GIT_USER_ID/GIT_REPO_ID.git",
+  "license": "Unlicense",
+  "author": "OpenAPI-Generator Contributors",
+  "main": "./dist/index.js",
+  "module": "./dist/esm/index.js",
+  "scripts": {
+    "build": "tsc && tsc -p tsconfig.esm.json",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "axios": "^1.13.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "typescript": "^5.9.3"
+  },
+  "sideEffects": false,
+  "typings": "./dist/index.d.ts"
+}

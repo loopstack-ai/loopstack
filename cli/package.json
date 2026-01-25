@@ -8,7 +8,10 @@
   "files": [
     "bin"
   ],
-  "keywords": ["loopstack", "cli"],
+  "keywords": [
+    "loopstack",
+    "cli"
+  ],
   "engines": {
     "node": ">=16"
   }

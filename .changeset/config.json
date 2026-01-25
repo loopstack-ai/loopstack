@@ -1,8 +1,21 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
-  "changelog": false,
-  "commit": true,
-  "fixed": [],
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "loopstack-ai/loopstack" }
+  ],
+  "commit": false,
+  "fixed": [
+    [
+      "@loopstack/contracts",
+      "@loopstack/common",
+      "@loopstack/core",
+      "@loopstack/cli",
+      "@loopstack/testing",
+      "@loopstack/auth",
+      "@loopstack/api"
+    ]
+  ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",

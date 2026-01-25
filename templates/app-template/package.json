@@ -1,0 +1,83 @@
+{
+  "name": "@loopstack/app-template",
+  "version": "0.16.3",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "loopstack": "ts-node src/cli.ts",
+    "loopstack:dev": "tsx src/cli.ts",
+    "start": "nest start",
+    "start:debug": "nest start --debug --watch",
+    "start:dev": "nodemon --watch src --ext ts,js,yml,yaml --ignore src/**/*.spec.ts --exec \"nest start\"",
+    "start:prod": "node dist/main",
+    "tag": "git tag -a v$npm_package_version -m \"Release version $npm_package_version\" && git tag -f latest",
+    "test": "jest --passWithNoTests",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@loopstack/api": "^0.17.0",
+    "@loopstack/cli-module": "^0.16.1",
+    "@loopstack/common": "^0.17.0",
+    "@loopstack/core": "^0.17.0",
+    "@loopstack/core-ui-module": "^0.17.0",
+    "@loopstack/create-chat-message-tool": "^0.16.3",
+    "@nestjs/common": "^11.1.12",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.1.12",
+    "@nestjs/typeorm": "^11.0.0",
+    "nest-commander": "^3.20.1",
+    "pg": "^8.17.2",
+    "rxjs": "^7.8.2",
+    "typeorm": "^0.3.28",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^9.39.2",
+    "@nestjs/cli": "^11.0.16",
+    "@nestjs/schematics": "^11.0.9",
+    "@nestjs/testing": "^11.1.12",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.10",
+    "@types/supertest": "^6.0.3",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.0.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.11",
+    "prettier": "^3.8.1",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
+    "ts-loader": "^9.5.4",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.1"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1
+  }
+}

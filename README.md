@@ -1,10 +1,10 @@
 # Loopstack AI
 
-[//]: # ([![Version]&#40;https://img.shields.io/badge/version-alpha-orange&#41;]&#40;https://github.com/loopstack-ai/loopstack/releases&#41;)
+[//]: # '[![Version](https://img.shields.io/badge/version-alpha-orange)](https://github.com/loopstack-ai/loopstack/releases)'
+
 [![Discord](https://img.shields.io/badge/discord-join%20community-7289da)](https://discord.gg/svAHrkxKZg)
 
 A developer-first framework for reliable AI workflow automation that eliminates the complexity of building, testing, and deploying AI-powered applications.
-
 
 Loopstack simplifies AI workflow automation by providing a declarative YAML-based approach to define complex AI operations. Instead of writing boilerplate code for AI integrations, prompt management, and workflow orchestration, you define your logic in configuration files and let Loopstack handle the execution.
 
@@ -17,9 +17,9 @@ It ships with a built-in frontend to execute and control your workflows while pr
 - **🔧 Built-in Studio** - Visual interface for executing and interacting with workflows
 - **🔌 Extensible Architecture** - Custom tools and integrations with TypeScript
 
-[//]: # (- **📊 Production Ready** - Built-in error handling, retries, and observability)
-[//]: # (- **🧪 Testing Framework** - End-to-end testing support for AI workflows)
-[//]: # (- **📚 Developer SDK** - Well-documented API for integration with existing applications)
+[//]: # '- **📊 Production Ready** - Built-in error handling, retries, and observability'
+[//]: # '- **🧪 Testing Framework** - End-to-end testing support for AI workflows'
+[//]: # '- **📚 Developer SDK** - Well-documented API for integration with existing applications'
 
 ## Prerequisites
 
@@ -43,6 +43,7 @@ docker compose up -d
 ```
 
 ### Step 3: Run your app
+
 ```shell
 npm run start:dev
 ```
@@ -53,7 +54,7 @@ http://localhost:3000
 
 ## Additional Setup options
 
-### API Keys 
+### API Keys
 
 To use LLM functionality, edit your local .env file and add API keys (OpenAI, Anthropic, etc.) as needed
 

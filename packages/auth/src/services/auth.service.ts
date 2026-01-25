@@ -1,0 +1,94 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { plainToInstance } from 'class-transformer';
+import { JwtPayloadInterface, User } from '@loopstack/common';
+import { AuthResponseDto } from '../dtos/auth-response.dto';
+import { UserResponseDto } from '../dtos/user-response.dto';
+import { WorkerInfoDto } from '../dtos/worker-info.dto';
+import { UserRepository } from '../repositories';
+import { TokenService } from './token.service';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly configService: ConfigService,
+    private userRepository: UserRepository,
+    private tokenService: TokenService,
+  ) {}
+
+  async login(user: User): Promise<AuthResponseDto> {
+    const workerId = this.configService.get<string>('auth.clientId') ?? '';
+    const payload: JwtPayloadInterface = {
+      sub: user.id,
+      type: user.type,
+      roles: user.roles?.map((role) => role.name) || [],
+      workerId,
+    };
+
+    const tokens = await this.tokenService.generateTokens(payload);
+    return {
+      ...tokens,
+      tokenType: 'Bearer',
+    };
+  }
+
+  async refresh(refreshToken: string): Promise<AuthResponseDto> {
+    try {
+      const payload = this.tokenService.verifyRefreshToken(refreshToken);
+
+      const user = await this.userRepository.findById(payload.sub);
+      if (!user || !user.isActive) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // roles might have changed
+      const newPayload = {
+        sub: payload.sub,
+        type: payload.type,
+        workerId: payload.workerId,
+        roles: user.roles?.map((role) => role.name) || [],
+      };
+
+      const tokens = await this.tokenService.generateTokens(newPayload);
+      return {
+        ...tokens,
+        tokenType: 'Bearer',
+      };
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  mapUserToResponse(user: User): UserResponseDto {
+    return {
+      id: user.id,
+      isActive: user.isActive,
+      roles: user.roles?.map((role) => role.name) || [],
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  async getCurrentUser(userId: string): Promise<UserResponseDto> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return this.mapUserToResponse(user);
+  }
+
+  getWorkerHealthInfo(): WorkerInfoDto {
+    const isLocalMode = this.configService.get<boolean>('app.isLocalMode');
+    return plainToInstance(
+      WorkerInfoDto,
+      {
+        clientId: isLocalMode ? 'local' : this.configService.get<string>('auth.clientId'),
+        isConfigured: isLocalMode || !!this.configService.get<string>('auth.clientSecret'),
+        timestamp: new Date(),
+      },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
+  }
+}

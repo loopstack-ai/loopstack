@@ -2,29 +2,76 @@
   "name": "loopstack",
   "displayName": "Loopstack AI Workflow Automation Framework",
   "description": "A monorepo to maintain loopstack core module and demo applications",
-  "version": "0.0.3",
-  "main": "index.js",
+  "version": "0.17.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
+  "main": "index.js",
   "scripts": {
-    "setup": "git submodule update --init --recursive && pnpm install",
-    "watch:all": "pnpm --parallel -r run watch",
-    "dev": "pnpm --parallel -r run dev",
-    "build": "pnpm -r build",
-    "test": "pnpm -r test",
-    "docker:push": "pnpm -r run docker:push",
-    "infra:up": "docker compose up --build",
-    "infra:down": "docker compose down",
+    "build": "turbo run build",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "ncu": "ncu",
+    "ncu:interactive": "ncu -i",
+    "ncu:update": "ncu -u",
+    "oackage:check": "syncpack list-mismatches",
+    "package:fix": "syncpack fix-mismatches",
+    "package:format": "syncpack format",
+    "package:update": "syncpack update",
+    "prepare": "husky",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "watch": "turbo run watch",
     "changeset": "changeset",
-    "version-packages": "changeset version",
-    "tag": "pnpm -r run tag",
-    "release": "changeset publish"
+    "prerelease:enter": "changeset pre enter rc",
+    "prerelease:exit": "changeset pre exit"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.29.4"
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.29.8",
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^9.39.2",
+    "@nestjs/cli": "^11.0.16",
+    "@nestjs/schematics": "^11.0.9",
+    "@nestjs/testing": "^11.1.12",
+    "@nestjs/typeorm": "^11.0.0",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/lodash": "^4.17.23",
+    "@types/node": "^25.0.10",
+    "@types/supertest": "^6.0.3",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.0.0",
+    "husky": "^9.1.7",
+    "jest": "^30.2.0",
+    "jsdom": "^27.4.0",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.2.2",
+    "syncpack": "^13.0.4",
+    "ts-jest": "^29.4.6",
+    "ts-loader": "^9.5.4",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "turbo": "^2.7.5",
+    "typeorm": "^0.3.28",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.1"
   },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint"
+    ],
+    "*.{json,md,css,yaml,yml}": [
+      "prettier --check"
+    ]
+  },
+  "packageManager": "npm@11.8.0",
   "workspaces": [
     "packages/*",
     "apps/*/*",
@@ -32,6 +79,7 @@
     "installer/*",
     "templates/*",
     "generators/*",
-    "registry/*/*"
+    "registry/*/*",
+    "workspace/*/*"
   ]
 }

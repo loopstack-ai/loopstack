@@ -1,33 +1,3 @@
-[submodule "packages/api"]
-	path = packages/api
-	url = git@github.com:loopstack-ai/api.git
-[submodule "packages/core"]
-	path = packages/core
-	url = git@github.com:loopstack-ai/core.git
-[submodule "packages/common"]
-	path = packages/common
-	url = git@github.com:loopstack-ai/common.git
-[submodule "packages/contracts"]
-	path = packages/contracts
-	url = git@github.com:loopstack-ai/contracts.git
-[submodule "packages/auth"]
-    path = packages/auth
-    url = git@github.com:loopstack-ai/auth.git
-[submodule "packages/cli-module"]
-    path = packages/cli-module
-    url = git@github.com:loopstack-ai/cli.git
-[submodule "templates/app-template"]
-    path = templates/app-template
-    url = git@github.com:loopstack-ai/app-template.git
-[submodule "templates/blank-template"]
-    path = templates/blank-template
-    url = git@github.com:loopstack-ai/blank-template.git
-[submodule "templates/testing-template"]
-    path = templates/testing-template
-    url = git@github.com:loopstack-ai/testing-template.git
-[submodule "frontend/api-client"]
-	path = frontend/api-client
-	url = git@github.com:loopstack-ai/api-client.git
 [submodule "apps/loopstack-cloud/hub-client"]
 	path = apps/loopstack-cloud/hub-client
 	url = git@github.com:loopstack-ai/hub-client.git
@@ -40,10 +10,6 @@
 [submodule "apps/loopstack-cloud/frontend"]
 	path = apps/loopstack-cloud/frontend
 	url = git@github.com:loopstack-ai/loopstack-cloud.git
-[submodule "frontend/loopstack-studio"]
-	path = frontend/loopstack-studio
-	url = git@github.com:loopstack-ai/loopstack-studio.git
-
 [submodule "apps/dev-tools"]
 	path = apps/dev-tools
 	url = git@github.com:loopstack-ai/dev-tools.git

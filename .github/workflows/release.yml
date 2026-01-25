@@ -1,0 +1,102 @@
+# ============================================================================
+# Release Workflow - Stable releases via Changesets
+# ============================================================================
+# This workflow handles:
+# - Creating/updating a "Version Packages" PR when changesets are merged
+# - Publishing to NPM when the version PR is merged
+# - Syncing all package versions automatically
+# ============================================================================
+
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      studio_published: ${{ contains(steps.changesets.outputs.publishedPackages, '@loopstack/studio') }}
+      studio_version: ${{ steps.studio-version.outputs.version }}
+
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history for changeset to analyze
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Create Release PR or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: npx changeset publish
+          commit: "chore: release"
+          title: "chore: release"
+          createGithubReleases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Sync develop with main
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          git fetch origin develop
+          git checkout develop
+          git merge main --no-edit
+          git push origin develop
+
+      - name: Delete changeset-release branch
+        if: steps.changesets.outputs.published == 'true'
+        run: git push origin --delete changeset-release/main || true
+
+      - name: Extract Loopstack Studio Version
+        id: studio-version
+        if: steps.changesets.outputs.published == 'true' && contains(steps.changesets.outputs.publishedPackages, '@loopstack/loopstack-studio')
+        run: |
+          version=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name == "@loopstack/studio") | .version')
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Summary of published packages
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          echo "🎉 Published packages:"
+          echo '${{ steps.changesets.outputs.publishedPackages }}' | jq '.'
+
+  publish-studio-docker:
+    name: Publish Studio Docker
+    needs: release
+    if: needs.release.outputs.studio_published == 'true'
+    uses: ./.github/workflows/release-studio-docker.yml
+    with:
+      version: ${{ needs.release.outputs.studio_version }}
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
