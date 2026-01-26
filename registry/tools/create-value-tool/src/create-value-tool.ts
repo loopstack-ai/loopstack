@@ -13,10 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
-import { z } from 'zod';
 import { Injectable, Logger } from '@nestjs/common';
+import { z } from 'zod';
+import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
 import { ToolBase } from '@loopstack/core';
 
 const InputSchema = z.union([

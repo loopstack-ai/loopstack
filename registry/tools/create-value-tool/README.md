@@ -1,4 +1,5 @@
 # @loopstack/create-value-tool
+
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
 
 This module provides a tool for creating and debugging values in Loopstack workflows with built-in logging and flexible type support.
@@ -61,8 +62,8 @@ Add `CreateValueModule` to your `default.module.ts` (included in the skeleton ap
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
-import { DefaultWorkspace } from './default.workspace';
 import { CreateValueToolModule } from './create-value-tool';
+import { DefaultWorkspace } from './default.workspace';
 
 @Module({
   imports: [LoopCoreModule, CoreUiModule, CreateValueToolModule],
@@ -77,22 +78,22 @@ Inject the tool in your workflow class using the @Tool() decorator:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
+import { z } from 'zod';
 import { BlockConfig, Tool, WithState } from '@loopstack/common';
 import { WorkflowBase } from '@loopstack/core';
 import { CreateValue } from './create-value-tool';
-import { z } from 'zod';
 
 @Injectable()
 @BlockConfig({
   configFile: __dirname + '/my.workflow.yaml',
 })
-@WithState(z.object({
-  config: z.any().optional(),
-}))
+@WithState(
+  z.object({
+    config: z.any().optional(),
+  }),
+)
 export class MyWorkflow extends WorkflowBase {
-  
   @Tool() createValue: CreateValue;
-  
 }
 ```
 

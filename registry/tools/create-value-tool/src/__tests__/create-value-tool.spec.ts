@@ -13,19 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 import { TestingModule } from '@nestjs/testing';
-import { CreateValue } from '../create-value-tool';
 import { createToolTest } from '@loopstack/testing';
+import { CreateValue } from '../create-value-tool';
 
 describe('CreateValue', () => {
   let module: TestingModule;
   let tool: CreateValue;
 
   beforeEach(async () => {
-    module = await createToolTest()
-      .forTool(CreateValue)
-      .compile();
+    module = await createToolTest().forTool(CreateValue).compile();
 
     tool = module.get(CreateValue);
   });
