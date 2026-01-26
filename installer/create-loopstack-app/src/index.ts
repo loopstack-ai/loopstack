@@ -8,7 +8,7 @@ import * as path from 'path';
 const args = process.argv.slice(2);
 let appName: string | undefined;
 let templateName: string = '@loopstack/app-template';
-let tag: string = 'latest';
+let tag: string = 'main';
 
 for (const arg of args) {
   if (arg.startsWith('--template=')) {
@@ -37,7 +37,7 @@ console.log(`Creating Loopstack app: ${appName}`);
 console.log(`Using template: ${templateName}`);
 console.log(`Using tag: ${tag}`);
 
-const templateSource = `github:loopstack-ai/loopstack/templates/${templateName}#${templateName}@${tag}`;
+const templateSource = `github:loopstack-ai/loopstack/templates/${templateName}#${tag}`;
 console.log(`Cloning from: ${templateSource}`);
 
 try {
