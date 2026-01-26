@@ -1,0 +1,60 @@
+{
+  "name": "@loopstack/core-ui-module",
+  "displayName": "Loopstack Core UI Module",
+  "description": "A collection of tools for creating specific UI documents for interaction in the loopstack studio ",
+  "version": "0.17.0",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "keywords": [
+    "loopstack",
+    "tool",
+    "core"
+  ],
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "^0.17.0",
+    "@loopstack/contracts": "^0.16.0",
+    "@loopstack/core": "^0.17.0",
+    "lodash": "^4.17.21",
+    "zod": "^3.24.1",
+    "zod-to-json-schema": "^3.25.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1
+  }
+}
