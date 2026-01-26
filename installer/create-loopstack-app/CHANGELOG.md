@@ -1,5 +1,11 @@
 # create-loopstack-app
 
+## 0.16.0-rc.2
+
+### Minor Changes
+
+- [#19](https://github.com/loopstack-ai/loopstack/pull/19) [`0cb3f6b`](https://github.com/loopstack-ai/loopstack/commit/0cb3f6b46b8620d013f1513579d771412ad8457e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - bump
+
 ## 0.16.0-rc.1
 
 ### Minor Changes
