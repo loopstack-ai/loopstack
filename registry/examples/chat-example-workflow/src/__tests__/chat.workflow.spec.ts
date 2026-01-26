@@ -1,14 +1,10 @@
 import { TestingModule } from '@nestjs/testing';
-import { ChatWorkflow } from '../chat.workflow';
-import {
-  BlockExecutionContextDto,
-  LoopCoreModule,
-  WorkflowProcessorService,
-} from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
-import { AiModule, AiGenerateText } from '@loopstack/ai-module';
+import { AiGenerateText, AiModule } from '@loopstack/ai-module';
 import { generateObjectFingerprint } from '@loopstack/common';
-import { createWorkflowTest, ToolMock } from '@loopstack/testing';
+import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { ChatWorkflow } from '../chat.workflow';
 
 describe('ChatWorkflow', () => {
   let module: TestingModule;
@@ -20,18 +16,22 @@ describe('ChatWorkflow', () => {
 
   const mockSystemPrompt = {
     role: 'system',
-    parts: [{
-      type: 'text',
-      text: expect.stringContaining('Bob'),
-    }],
+    parts: [
+      {
+        type: 'text',
+        text: expect.stringContaining('Bob'),
+      },
+    ],
   };
 
   const mockLlmResponse = {
     role: 'assistant',
-    parts: [{
-      type: 'text',
-      text: 'the initial prompt response',
-    }],
+    parts: [
+      {
+        type: 'text',
+        text: 'the initial prompt response',
+      },
+    ],
   };
 
   beforeEach(async () => {
@@ -129,16 +129,18 @@ describe('ChatWorkflow', () => {
     it('should execute workflow with user input until next manual step', async () => {
       const mockLlmResponse2 = {
         role: 'assistant',
-        parts: [{
-          type: 'text',
-          text: 'the second prompt response',
-        }],
+        parts: [
+          {
+            type: 'text',
+            text: 'the second prompt response',
+          },
+        ],
       };
 
       const previousRun = {
         workflowId: '123',
         args: {},
-      }
+      };
 
       // Create module with existing workflow state
       const moduleWithState = await createWorkflowTest()
@@ -150,7 +152,7 @@ describe('ChatWorkflow', () => {
           id: previousRun.workflowId,
           place: 'waiting_for_user',
           hashRecord: {
-            options: generateObjectFingerprint(previousRun.args),   // previously run with same arguments
+            options: generateObjectFingerprint(previousRun.args), // previously run with same arguments
           },
         })
         .compile();

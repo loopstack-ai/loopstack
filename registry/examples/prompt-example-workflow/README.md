@@ -53,9 +53,9 @@ Add `PromptExampleModule` to your `default.module.ts` (included in the skeleton 
 
 ```typescript
 import { Module } from '@nestjs/common';
+import { AiModule } from '@loopstack/ai-module';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
-import { AiModule } from '@loopstack/ai-module';
 import { DefaultWorkspace } from './default.workspace';
 import { PromptExampleModule } from './prompt-example-workflow';
 

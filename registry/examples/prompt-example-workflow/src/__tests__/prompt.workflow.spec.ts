@@ -1,13 +1,9 @@
 import { TestingModule } from '@nestjs/testing';
-import { PromptWorkflow } from '../prompt.workflow';
-import {
-  BlockExecutionContextDto,
-  LoopCoreModule,
-  WorkflowProcessorService,
-} from '@loopstack/core';
+import { AiGenerateText, AiModule } from '@loopstack/ai-module';
+import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
-import { AiModule, AiGenerateText } from '@loopstack/ai-module';
-import { createWorkflowTest, ToolMock } from '@loopstack/testing';
+import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { PromptWorkflow } from '../prompt.workflow';
 
 describe('PromptWorkflow', () => {
   let module: TestingModule;
@@ -19,10 +15,12 @@ describe('PromptWorkflow', () => {
 
   const mockLlmResponse = {
     role: 'assistant',
-    parts: [{
-      type: 'text',
-      text: 'Cherry blossoms fall\nPink petals dance in the wind\nSpring whispers goodbye',
-    }],
+    parts: [
+      {
+        type: 'text',
+        text: 'Cherry blossoms fall\nPink petals dance in the wind\nSpring whispers goodbye',
+      },
+    ],
   };
 
   beforeEach(async () => {

@@ -5,7 +5,6 @@ transitions:
     from: start
     to: end
     call:
-
       # Create test data and assign the result to the property "message"
       - id: say_hello
         tool: createValue
@@ -18,10 +17,10 @@ transitions:
       - tool: createChatMessage
         args:
           role: 'assistant'
-          content: "Data from state: {{ message }}"
+          content: 'Data from state: {{ message }}'
 
       # Access the data using a helper method of the workflow
       - tool: createChatMessage
         args:
           role: 'assistant'
-          content: "Use workflow helper method: {{ messageInUpperCase message }}"
+          content: 'Use workflow helper method: {{ messageInUpperCase message }}'

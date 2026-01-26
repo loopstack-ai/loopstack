@@ -1,12 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
-import { DynamicRoutingExampleWorkflow } from '../dynamic-routing-example.workflow';
-import {
-  BlockExecutionContextDto,
-  LoopCoreModule,
-  WorkflowProcessorService,
-} from '@loopstack/core';
-import { createWorkflowTest, ToolMock } from '@loopstack/testing';
+import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
+import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { DynamicRoutingExampleWorkflow } from '../dynamic-routing-example.workflow';
 
 describe('DynamicRoutingExampleWorkflow', () => {
   let module: TestingModule;

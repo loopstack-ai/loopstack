@@ -13,7 +13,12 @@ git() {
 # Configuration: Add your subprojects here
 # Format: "repo_url|target_path|branch"
 SUBPROJECTS=(
-    "git@github.com:loopstack-ai/create-value-tool.git|registry/tools/create-value-tool|main"
+#    "git@github.com:loopstack-ai/dynamic-routing-example-workflow.git|registry/examples/dynamic-routing-example-workflow|main"
+#    "git@github.com:loopstack-ai/meeting-notes-example-workflow.git|registry/examples/meeting-notes-example-workflow|main"
+#    "git@github.com:loopstack-ai/prompt-example-workflow.git|registry/examples/prompt-example-workflow|main"
+#    "git@github.com:loopstack-ai/prompt-structured-output-example-workflow.git|registry/examples/prompt-structured-output-example-workflow|main"
+#    "git@github.com:loopstack-ai/tool-call-example-workflow.git|registry/examples/tool-call-example-workflow|main"
+    "git@github.com:loopstack-ai/workflow-state-example-workflow.git|registry/examples/workflow-state-example-workflow|main"
 )
 
 # Base branch to create feature branches from

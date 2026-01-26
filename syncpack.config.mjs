@@ -29,7 +29,7 @@ export default {
     'packages/*/package.json',
     'frontend/*/package.json',
     'templates/*/package.json',
-    'registry/*/*/package.json'
+    'registry/*/*/package.json',
   ],
 
   // Sort package.json keys

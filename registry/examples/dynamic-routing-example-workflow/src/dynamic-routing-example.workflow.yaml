@@ -32,12 +32,12 @@ transitions:
       - tool: createChatMessage
         args:
           role: 'assistant'
-          content: "Analysing value = {{ args.value }}"
+          content: 'Analysing value = {{ args.value }}'
 
   - id: route-to-place-A
     from: prepared
     to: placeA
-    if: "{{ gt args.value 100 }}"
+    if: '{{ gt args.value 100 }}'
 
   - id: route-to-place-B
     from: prepared
@@ -46,7 +46,7 @@ transitions:
   - id: route-to-place-C
     from: placeA
     to: placeC
-    if: "{{ gt args.value 200 }}"
+    if: '{{ gt args.value 200 }}'
 
   - id: route-to-place-D
     from: placeA

@@ -53,11 +53,11 @@ Add `PromptStructuredOutputExampleModule` to your `default.module.ts` (included 
 
 ```typescript
 import { Module } from '@nestjs/common';
+import { AiModule } from '@loopstack/ai-module';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
-import { AiModule } from '@loopstack/ai-module';
-import { DefaultWorkspace } from './default.workspace';
 import { PromptStructuredOutputExampleModule } from './@loopstack/prompt-structured-output-example-workflow';
+import { DefaultWorkspace } from './default.workspace';
 
 @Module({
   imports: [LoopCoreModule, PromptStructuredOutputExampleModule],

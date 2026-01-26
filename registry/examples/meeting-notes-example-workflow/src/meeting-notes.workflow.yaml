@@ -1,6 +1,6 @@
-title: "Human-in-the-loop Demo (Meeting Notes Optimizer)"
+title: 'Human-in-the-loop Demo (Meeting Notes Optimizer)'
 
-description: "A demo workflow to demonstrate how to use AI to structure meeting notes."
+description: 'A demo workflow to demonstrate how to use AI to structure meeting notes.'
 
 ui:
   form:
@@ -23,7 +23,7 @@ transitions:
             content:
               text: |
                 Unstructured Notes:
-                
+
                 {{ args.inputText }}
 
   - id: user_response

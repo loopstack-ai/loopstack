@@ -13,12 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
+import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
 import { ToolBase } from '@loopstack/core';
 import { MathService } from '../services/math.service';
-import { Inject, Injectable } from '@nestjs/common';
 
 const propertiesSchema = z
   .object({
@@ -32,8 +31,7 @@ export type MathSumArgs = z.infer<typeof propertiesSchema>;
 @Injectable()
 @BlockConfig({
   config: {
-    description:
-      'Math tool calculating the sum of two arguments by using an injected service.',
+    description: 'Math tool calculating the sum of two arguments by using an injected service.',
   },
 })
 @WithArguments(propertiesSchema)

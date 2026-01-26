@@ -1,14 +1,10 @@
 import { TestingModule } from '@nestjs/testing';
-import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow';
-import {
-  BlockExecutionContextDto,
-  LoopCoreModule,
-  WorkflowProcessorService,
-} from '@loopstack/core';
+import { AiGenerateDocument, AiModule } from '@loopstack/ai-module';
+import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
-import { AiModule, AiGenerateDocument } from '@loopstack/ai-module';
+import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { FileDocument } from '../documents/file-document';
-import { createWorkflowTest, ToolMock } from '@loopstack/testing';
+import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow';
 
 describe('PromptStructuredOutputWorkflow', () => {
   let module: TestingModule;
@@ -80,10 +76,12 @@ describe('PromptStructuredOutputWorkflow', () => {
           update: {
             content: {
               role: 'assistant',
-              parts: [{
-                type: 'text',
-                text: "Creating a 'Hello, World!' script in python...",
-              }],
+              parts: [
+                {
+                  type: 'text',
+                  text: "Creating a 'Hello, World!' script in python...",
+                },
+              ],
             },
           },
         }),
@@ -129,10 +127,12 @@ describe('PromptStructuredOutputWorkflow', () => {
           update: {
             content: {
               role: 'assistant',
-              parts: [{
-                type: 'text',
-                text: "Creating a 'Hello, World!' script in javascript...",
-              }],
+              parts: [
+                {
+                  type: 'text',
+                  text: "Creating a 'Hello, World!' script in javascript...",
+                },
+              ],
             },
           },
         }),

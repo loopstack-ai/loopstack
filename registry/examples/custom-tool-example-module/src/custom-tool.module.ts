@@ -13,14 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
+import { CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
+import { MathService } from './services/math.service';
 import { MathSumTool } from './tools';
 import { CounterTool } from './tools';
-import { MathService } from './services/math.service';
 import { CustomToolExampleWorkflow } from './workflows';
-import { CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 
 @Module({
   imports: [LoopCoreModule, CreateChatMessageToolModule],

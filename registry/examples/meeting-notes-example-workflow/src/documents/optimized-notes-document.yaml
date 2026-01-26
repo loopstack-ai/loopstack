@@ -33,4 +33,4 @@ ui:
       widget: button
       transition: confirm
       options:
-        label: "Confirm"
+        label: 'Confirm'

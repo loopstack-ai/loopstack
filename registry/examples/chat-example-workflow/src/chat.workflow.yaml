@@ -1,4 +1,4 @@
-title: "LLM Chat Example (Assistant Bob)"
+title: 'LLM Chat Example (Assistant Bob)'
 
 description: An example workflow that demonstrates how to create a simple chat interface. Messages are processed by an LLM to generate responses.
 

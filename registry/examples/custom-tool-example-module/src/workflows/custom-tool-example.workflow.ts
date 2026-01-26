@@ -13,20 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-import { WorkflowBase } from '@loopstack/core';
-import {
-  BlockConfig,
-  Helper,
-  Tool,
-  WithArguments,
-  WithState,
-} from '@loopstack/common';
+import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
+import { BlockConfig, Helper, Tool, WithArguments, WithState } from '@loopstack/common';
+import { WorkflowBase } from '@loopstack/core';
+import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
-import { Injectable } from '@nestjs/common';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
 @Injectable()
 @BlockConfig({

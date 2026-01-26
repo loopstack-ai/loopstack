@@ -13,11 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 import { TestingModule } from '@nestjs/testing';
-import { MathSumTool } from '../math-sum.tool';
-import { MathService } from '../../services/math.service';
 import { createToolTest } from '@loopstack/testing';
+import { MathService } from '../../services/math.service';
+import { MathSumTool } from '../math-sum.tool';
 
 describe('MathSumTool', () => {
   let module: TestingModule;
@@ -25,10 +24,7 @@ describe('MathSumTool', () => {
 
   describe('with real MathService', () => {
     beforeEach(async () => {
-      module = await createToolTest()
-        .forTool(MathSumTool)
-        .withProvider(MathService)
-        .compile();
+      module = await createToolTest().forTool(MathSumTool).withProvider(MathService).compile();
 
       tool = module.get(MathSumTool);
     });
@@ -72,10 +68,7 @@ describe('MathSumTool', () => {
     beforeEach(async () => {
       jest.clearAllMocks();
 
-      module = await createToolTest()
-        .forTool(MathSumTool)
-        .withMock(MathService, mockMathService)
-        .compile();
+      module = await createToolTest().forTool(MathSumTool).withMock(MathService, mockMathService).compile();
 
       tool = module.get(MathSumTool);
     });
@@ -106,10 +99,7 @@ describe('MathSumTool', () => {
 
   describe('validation', () => {
     beforeEach(async () => {
-      module = await createToolTest()
-        .forTool(MathSumTool)
-        .withProvider(MathService)
-        .compile();
+      module = await createToolTest().forTool(MathSumTool).withProvider(MathService).compile();
 
       tool = module.get(MathSumTool);
     });

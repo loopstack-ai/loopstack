@@ -53,11 +53,11 @@ Add `ChatExampleModule` to your `default.module.ts` (included in the skeleton ap
 
 ```typescript
 import { Module } from '@nestjs/common';
+import { AiModule } from '@loopstack/ai-module';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
-import { AiModule } from '@loopstack/ai-module';
-import { DefaultWorkspace } from './default.workspace';
 import { ChatExampleModule } from './@loopstack/chat-example-workflow';
+import { DefaultWorkspace } from './default.workspace';
 
 @Module({
   imports: [LoopCoreModule, CoreUiModule, AiModule, ChatExampleModule],

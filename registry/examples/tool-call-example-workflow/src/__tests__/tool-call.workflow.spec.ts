@@ -1,15 +1,9 @@
 import { TestingModule } from '@nestjs/testing';
-import { ToolCallWorkflow } from '../tool-call.workflow';
-import {
-  BlockExecutionContextDto,
-  WorkflowProcessorService,
-} from '@loopstack/core';
-import {
-  ToolMock,
-  createWorkflowTest,
-} from '@loopstack/testing';
+import { AiGenerateText, AiModule, DelegateToolCall } from '@loopstack/ai-module';
+import { BlockExecutionContextDto, WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
-import { AiModule, AiGenerateText, DelegateToolCall } from '@loopstack/ai-module';
+import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { ToolCallWorkflow } from '../tool-call.workflow';
 import { GetWeather } from '../tools/get-weather.tool';
 
 describe('ToolCallWorkflow', () => {
@@ -76,33 +70,39 @@ describe('ToolCallWorkflow', () => {
     it('should execute workflow with tool call and loop back to ready state', async () => {
       const mockLlmResponseWithToolCall = {
         role: 'assistant',
-        parts: [{
-          type: 'tool-GetWeather',
-          toolCallId: 'tool_call_1',
-          input: { location: 'Berlin' },
-          state: 'input-available',
-        }],
+        parts: [
+          {
+            type: 'tool-GetWeather',
+            toolCallId: 'tool_call_1',
+            input: { location: 'Berlin' },
+            state: 'input-available',
+          },
+        ],
       };
 
       const mockToolCallResult = {
-        parts: [{
-          type: 'tool-GetWeather',
-          toolCallId: 'tool_call_1',
-          input: { location: 'Berlin' },
-          state: 'output-available',
-          output: {
-            type: 'text',
-            value: 'Weather in Berlin: 15°C, partly cloudy',
+        parts: [
+          {
+            type: 'tool-GetWeather',
+            toolCallId: 'tool_call_1',
+            input: { location: 'Berlin' },
+            state: 'output-available',
+            output: {
+              type: 'text',
+              value: 'Weather in Berlin: 15°C, partly cloudy',
+            },
           },
-        }],
+        ],
       };
 
       const mockFinalLlmResponse = {
         role: 'assistant',
-        parts: [{
-          type: 'text',
-          text: 'The weather in Berlin is currently 15°C and partly cloudy.',
-        }],
+        parts: [
+          {
+            type: 'text',
+            text: 'The weather in Berlin is currently 15°C and partly cloudy.',
+          },
+        ],
       };
 
       mockCreateDocument.execute.mockResolvedValue({});
@@ -151,10 +151,12 @@ describe('ToolCallWorkflow', () => {
     it('should go directly to end when no tool calls are needed', async () => {
       const mockLlmResponseNoToolCall = {
         role: 'assistant',
-        parts: [{
-          type: 'text',
-          text: 'I cannot check the weather without access to weather tools.',
-        }],
+        parts: [
+          {
+            type: 'text',
+            text: 'I cannot check the weather without access to weather tools.',
+          },
+        ],
       };
 
       mockCreateDocument.execute.mockResolvedValue({});
@@ -226,10 +228,12 @@ describe('ToolCallWorkflow', () => {
 
       const mockFinalResponse = {
         role: 'assistant',
-        parts: [{
-          type: 'text',
-          text: 'Berlin: 15°C partly cloudy. Munich: 18°C sunny.',
-        }],
+        parts: [
+          {
+            type: 'text',
+            text: 'Berlin: 15°C partly cloudy. Munich: 18°C sunny.',
+          },
+        ],
       };
 
       mockCreateDocument.execute.mockResolvedValue({});

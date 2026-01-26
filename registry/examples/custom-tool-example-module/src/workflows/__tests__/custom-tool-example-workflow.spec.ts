@@ -13,17 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 import { TestingModule } from '@nestjs/testing';
-import { CustomToolExampleWorkflow } from '../custom-tool-example.workflow';
-import {
-  BlockExecutionContextDto,
-  WorkflowProcessorService,
-} from '@loopstack/core';
-import { MathSumTool, CounterTool } from '../../tools';
 import { z } from 'zod';
-import { createWorkflowTest, ToolMock } from '@loopstack/testing';
+import { BlockExecutionContextDto, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
+import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { CounterTool, MathSumTool } from '../../tools';
+import { CustomToolExampleWorkflow } from '../custom-tool-example.workflow';
 
 describe('CustomToolExampleWorkflow', () => {
   let module: TestingModule;
@@ -180,11 +176,7 @@ describe('CustomToolExampleWorkflow', () => {
         .mockResolvedValueOnce({ data: 3 });
 
       // Execute
-      const result = await processor.process(
-        workflow,
-        { a: 10, b: 20 },
-        context,
-      );
+      const result = await processor.process(workflow, { a: 10, b: 20 }, context);
 
       expect(result).toBeDefined();
 
@@ -197,11 +189,7 @@ describe('CustomToolExampleWorkflow', () => {
       expect(result.state.get('count3')).toBe(3);
 
       // Tool calls
-      expect(mockMathSumTool.execute).toHaveBeenCalledWith(
-        { a: 10, b: 20 },
-        expect.anything(),
-        expect.anything(),
-      );
+      expect(mockMathSumTool.execute).toHaveBeenCalledWith({ a: 10, b: 20 }, expect.anything(), expect.anything());
       expect(mockCounterTool.execute).toHaveBeenCalledTimes(3);
       expect(mockCreateChatMessageTool.execute).toHaveBeenCalledTimes(3);
 

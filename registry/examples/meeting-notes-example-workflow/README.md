@@ -54,11 +54,11 @@ Add `MeetingNotesExampleModule` to your `default.module.ts` (included in the ske
 
 ```typescript
 import { Module } from '@nestjs/common';
+import { AiModule } from '@loopstack/ai-module';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
-import { AiModule } from '@loopstack/ai-module';
-import { DefaultWorkspace } from './default.workspace';
 import { MeetingNotesExampleModule } from './@loopstack/meeting-notes-example-workflow';
+import { DefaultWorkspace } from './default.workspace';
 
 @Module({
   imports: [LoopCoreModule, MeetingNotesExampleModule],
@@ -138,7 +138,7 @@ ui:
       widget: button
       transition: user_response
       options:
-        label: "Optimize Notes"
+        label: 'Optimize Notes'
 ```
 
 When clicked, the button triggers the `user_response` transition with the current document content.

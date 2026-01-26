@@ -10,4 +10,4 @@ ui:
       widget: button
       transition: user_response
       options:
-        label: "Optimize Notes"
+        label: 'Optimize Notes'

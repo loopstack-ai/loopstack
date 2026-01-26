@@ -1,5 +1,5 @@
-
 # @loopstack/custom-tool-example-module
+
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
 
 This module provides a complete example demonstrating how to implement and use custom tools in a Loopstack workflow.
@@ -42,7 +42,7 @@ docker compose up -d
 loopstack add @loopstack/custom-tool-example-module
 ```
 
-This copies the source files into your `src` directory. 
+This copies the source files into your `src` directory.
 
 > Using the `loopstack add` command is a great way to explore the code to learn new concepts or add own customizations.
 
@@ -55,8 +55,8 @@ Add `CustomToolModule` to your `default.module.ts` (included in the skeleton app
 ```typescript
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
-import { DefaultWorkspace } from './default.workspace';
 import { CustomToolModule } from './custom-tool-example-module';
+import { DefaultWorkspace } from './default.workspace';
 
 @Module({
   imports: [LoopCoreModule, CustomToolModule],
@@ -70,9 +70,9 @@ export class DefaultModule {}
 Add the workflow to your `default.workspace.ts` or your own workspace:
 
 ```typescript
-import { WorkspaceBase } from '@loopstack/core';
 import { Injectable } from '@nestjs/common';
 import { BlockConfig, Workflow } from '@loopstack/common';
+import { WorkspaceBase } from '@loopstack/core';
 import { CustomToolExampleWorkflow } from './custom-tool-example-module/workflows';
 
 @Injectable()

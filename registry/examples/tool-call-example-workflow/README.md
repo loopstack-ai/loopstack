@@ -54,11 +54,11 @@ Add `ToolCallingExampleModule` to your `default.module.ts` (included in the skel
 
 ```typescript
 import { Module } from '@nestjs/common';
+import { AiModule } from '@loopstack/ai-module';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
-import { AiModule } from '@loopstack/ai-module';
-import { DefaultWorkspace } from './default.workspace';
 import { ToolCallingExampleModule } from './@loopstack/tool-call-example-workflow';
+import { DefaultWorkspace } from './default.workspace';
 
 @Module({
   imports: [LoopCoreModule, ToolCallingExampleModule],
@@ -112,14 +112,16 @@ Define a tool by extending `ToolBase` with a Zod schema for arguments:
     description: 'Retrieve weather information.',
   },
 })
-@WithArguments(z.object({
-  location: z.string(),
-}))
+@WithArguments(
+  z.object({
+    location: z.string(),
+  }),
+)
 export class GetWeather extends ToolBase {
   async execute(): Promise<ToolResult> {
     return {
       type: 'text',
-      data: 'Mostly sunny, 14C, rain in the afternoon.'
+      data: 'Mostly sunny, 14C, rain in the afternoon.',
     };
   }
 }
@@ -174,7 +176,7 @@ Use helpers in transition conditions:
 - id: route_with_tool_calls
   from: prompt_executed
   to: ready
-  if: "{{ isToolCall llmResponse }}"
+  if: '{{ isToolCall llmResponse }}'
 ```
 
 #### 5. Executing Tool Calls
@@ -202,12 +204,12 @@ The workflow implements an agentic loop:
 ```yaml
 - id: route_with_tool_calls
   from: prompt_executed
-  to: ready  # Loop back for another LLM turn
-  if: "{{ isToolCall llmResponse }}"
+  to: ready # Loop back for another LLM turn
+  if: '{{ isToolCall llmResponse }}'
 
 - id: route_without_tool_calls
   from: prompt_executed
-  to: end  # Workflow complete
+  to: end # Workflow complete
 ```
 
 This pattern allows the LLM to make multiple tool calls before providing a final response.

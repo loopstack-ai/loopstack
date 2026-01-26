@@ -1,16 +1,12 @@
 import { TestingModule } from '@nestjs/testing';
-import { MeetingNotesWorkflow } from '../meeting-notes.workflow';
-import {
-  BlockExecutionContextDto,
-  LoopCoreModule,
-  WorkflowProcessorService,
-} from '@loopstack/core';
+import { AiGenerateDocument, AiModule } from '@loopstack/ai-module';
+import { generateObjectFingerprint } from '@loopstack/common';
+import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
-import { AiModule, AiGenerateDocument } from '@loopstack/ai-module';
+import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { MeetingNotesDocument } from '../documents/meeting-notes-document';
 import { OptimizedNotesDocument } from '../documents/optimized-notes-document';
-import { generateObjectFingerprint } from '@loopstack/common';
-import { createWorkflowTest, ToolMock } from '@loopstack/testing';
+import { MeetingNotesWorkflow } from '../meeting-notes.workflow';
 
 describe('MeetingNotesWorkflow', () => {
   let module: TestingModule;
@@ -129,7 +125,7 @@ describe('MeetingNotesWorkflow', () => {
           id: '123',
           place: 'waiting_for_response',
           hashRecord: {
-            options: generateObjectFingerprint(args),   // previously run with same arguments
+            options: generateObjectFingerprint(args), // previously run with same arguments
           },
         })
         .compile();
@@ -158,11 +154,7 @@ describe('MeetingNotesWorkflow', () => {
         },
       });
 
-      const result = await processorWithState.process(
-        workflowWithState,
-        args,
-        contextWithPayload,
-      );
+      const result = await processorWithState.process(workflowWithState, args, contextWithPayload);
 
       // Should execute and stop at notes_optimized (next manual step)
       expect(result.runtime.error).toBe(false);
@@ -225,7 +217,7 @@ describe('MeetingNotesWorkflow', () => {
           id: '123',
           place: 'notes_optimized',
           hashRecord: {
-            options: generateObjectFingerprint(args),   // previously run with same arguments
+            options: generateObjectFingerprint(args), // previously run with same arguments
           },
         })
         .compile();
@@ -250,11 +242,7 @@ describe('MeetingNotesWorkflow', () => {
         },
       });
 
-      const result = await processorWithState.process(
-        workflowWithState,
-        args,
-        contextWithPayload,
-      );
+      const result = await processorWithState.process(workflowWithState, args, contextWithPayload);
 
       // Should complete and reach end state
       expect(result.runtime.error).toBe(false);

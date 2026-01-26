@@ -54,8 +54,8 @@ Add `DynamicRoutingExampleModule` to your `default.module.ts` (included in the s
 ```typescript
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
-import { DefaultWorkspace } from './default.workspace';
 import { DynamicRoutingExampleModule } from './@loopstack/dynamic-routing-example-workflow';
+import { DefaultWorkspace } from './default.workspace';
 
 @Module({
   imports: [LoopCoreModule, DynamicRoutingExampleModule],
@@ -110,7 +110,7 @@ Use the `if` property to define conditions for transitions. The first matching t
 - id: route-to-place-A
   from: prepared
   to: placeA
-  if: "{{ gt args.value 100 }}"
+  if: '{{ gt args.value 100 }}'
 
 - id: route-to-place-B
   from: prepared
@@ -132,7 +132,7 @@ gt(a: number, b: number) {
 Use them in YAML with Handlebars syntax:
 
 ```yaml
-if: "{{ gt args.value 100 }}"
+if: '{{ gt args.value 100 }}'
 ```
 
 #### 4. Multi-Level Branching
@@ -144,13 +144,13 @@ Chain conditional transitions to create decision trees:
 - id: route-to-place-A
   from: prepared
   to: placeA
-  if: "{{ gt args.value 100 }}"
+  if: '{{ gt args.value 100 }}'
 
 # Second level: value > 200?
 - id: route-to-place-C
   from: placeA
   to: placeC
-  if: "{{ gt args.value 200 }}"
+  if: '{{ gt args.value 200 }}'
 
 - id: route-to-place-D
   from: placeA
