@@ -119,5 +119,5 @@ jobs:
     name: Set the templates latest tag.
     needs: release
     if: needs.release.outputs.studio_published == 'true' && needs.release.outputs.prerelease == 'false'
-    uses: ./.github/workflows/set-template-latest-tag.yml
+    uses: ./.github/workflows/set-templates-latest-tag.yml
     secrets: inherit
