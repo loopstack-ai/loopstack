@@ -1,19 +1,11 @@
 import { Module } from '@nestjs/common';
-import { CreateDocument } from './tools';
-import {
-  ErrorDocument, LinkDocument,
-  MarkdownDocument,
-  MessageDocument,
-  PlainDocument,
-} from './documents';
 import { CommonModule, LoopCoreModule } from '@loopstack/core';
+import { ErrorDocument, LinkDocument, MarkdownDocument, MessageDocument, PlainDocument } from './documents';
+import { CreateDocument } from './tools';
 import { TestUiDocumentsWorkflow } from './workflows';
 
 @Module({
-  imports: [
-    CommonModule,
-    LoopCoreModule,
-  ],
+  imports: [CommonModule, LoopCoreModule],
   providers: [
     // Tools
     CreateDocument,
@@ -26,7 +18,7 @@ import { TestUiDocumentsWorkflow } from './workflows';
     LinkDocument,
 
     // Workflows
-    TestUiDocumentsWorkflow
+    TestUiDocumentsWorkflow,
   ],
   exports: [
     CreateDocument,

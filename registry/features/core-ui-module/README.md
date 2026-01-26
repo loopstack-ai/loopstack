@@ -50,8 +50,6 @@ npm install --save @loopstack/core-ui-module
 loopstack add @loopstack/core-ui-module
 ```
 
-
-
 > `loopstack add` copies the source files into your `src` directory. This is a great way to explore the code to learn new concepts or add own customizations.
 
 ## Setup
@@ -83,9 +81,9 @@ import { BlockConfig, Document, Tool } from '@loopstack/common';
 import { WorkflowBase } from '@loopstack/core';
 import {
   CreateDocument,
-  MessageDocument,
-  MarkdownDocument,
   ErrorDocument,
+  MarkdownDocument,
+  MessageDocument,
   PlainDocument,
 } from '@loopstack/core-ui-module';
 
@@ -131,12 +129,12 @@ Creates a document instance that renders as a UI widget in Loopstack Studio.
 
 #### Arguments
 
-| Argument | Type | Required | Description |
-|----------|------|----------|-------------|
-| `document` | string | Yes | Name of the document type to create |
-| `id` | string | No | Custom identifier for the document (auto-generated if not provided) |
-| `validate` | `'strict'` \| `'safe'` \| `'skip'` | No | Schema validation mode (default: `'strict'`) |
-| `update` | object | No | Override document configuration, including content |
+| Argument   | Type                               | Required | Description                                                         |
+| ---------- | ---------------------------------- | -------- | ------------------------------------------------------------------- |
+| `document` | string                             | Yes      | Name of the document type to create                                 |
+| `id`       | string                             | No       | Custom identifier for the document (auto-generated if not provided) |
+| `validate` | `'strict'` \| `'safe'` \| `'skip'` | No       | Schema validation mode (default: `'strict'`)                        |
+| `update`   | object                             | No       | Override document configuration, including content                  |
 
 #### Validation Modes
 
@@ -151,14 +149,16 @@ Creates a document instance that renders as a UI widget in Loopstack Studio.
 Displays a chat-style message with role and content. Useful for conversational interfaces.
 
 **Schema:**
+
 ```typescript
 {
-  role: string;    // e.g., 'assistant', 'user', 'system'
+  role: string; // e.g., 'assistant', 'user', 'system'
   content: string; // The message text
 }
 ```
 
 **Example:**
+
 ```yaml
 - tool: createDocument
   args:
@@ -174,6 +174,7 @@ Displays a chat-style message with role and content. Useful for conversational i
 Renders formatted markdown content with full styling support.
 
 **Schema:**
+
 ```typescript
 {
   markdown: string; // Markdown-formatted text
@@ -181,6 +182,7 @@ Renders formatted markdown content with full styling support.
 ```
 
 **Example:**
+
 ```yaml
 - tool: createDocument
   args:
@@ -189,7 +191,7 @@ Renders formatted markdown content with full styling support.
       content:
         markdown: |
           # Heading
-          
+
           This is **bold** and `code`.
 ```
 
@@ -198,6 +200,7 @@ Renders formatted markdown content with full styling support.
 Displays an error message with error-specific styling.
 
 **Schema:**
+
 ```typescript
 {
   error: string; // Error message text
@@ -205,6 +208,7 @@ Displays an error message with error-specific styling.
 ```
 
 **Example:**
+
 ```yaml
 - tool: createDocument
   args:
@@ -219,6 +223,7 @@ Displays an error message with error-specific styling.
 Displays plain, unformatted text.
 
 **Schema:**
+
 ```typescript
 {
   text: string; // Plain text content
@@ -226,6 +231,7 @@ Displays plain, unformatted text.
 ```
 
 **Example:**
+
 ```yaml
 - tool: createDocument
   args:

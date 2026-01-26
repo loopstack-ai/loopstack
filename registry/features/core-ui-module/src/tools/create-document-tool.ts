@@ -1,16 +1,11 @@
-import {
-  BlockConfig,
-  DocumentEntity,
-  ToolResult,
-  WithArguments,
-} from '@loopstack/common';
 import { Logger } from '@nestjs/common';
-import { DocumentConfigType, DocumentType } from '@loopstack/contracts/types';
 import { merge, omit } from 'lodash';
-import { DocumentSchema } from '@loopstack/contracts/schemas';
-import { zodToJsonSchema } from 'zod-to-json-schema';
-import { z, ZodSchema, ZodError } from 'zod';
 import { randomUUID } from 'node:crypto';
+import { ZodError, ZodSchema, z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
+import { BlockConfig, DocumentEntity, ToolResult, WithArguments } from '@loopstack/common';
+import { DocumentSchema } from '@loopstack/contracts/schemas';
+import { DocumentConfigType, DocumentType } from '@loopstack/contracts/types';
 import {
   Block,
   ConfigTraceError,
@@ -20,10 +15,6 @@ import {
   ToolBase,
   WorkflowExecution,
 } from '@loopstack/core';
-
-interface TemplateContext {
-  args: CreateDocumentInput;
-}
 
 interface ContentValidationResult {
   content: unknown;
@@ -36,9 +27,7 @@ export const CreateDocumentInputSchema = z
   .object({
     id: z.string().optional(),
     document: z.string(),
-    validate: z
-      .union([z.literal('strict'), z.literal('safe'), z.literal('skip')])
-      .default('strict'),
+    validate: z.union([z.literal('strict'), z.literal('safe'), z.literal('skip')]).default('strict'),
     update: DocumentSchema.optional(),
   })
   .strict();
@@ -61,16 +50,10 @@ export class CreateDocument extends ToolBase {
     super();
   }
 
-  async execute(
-    args: CreateDocumentInput,
-    ctx: WorkflowExecution,
-    parent: Block,
-  ): Promise<ToolResult> {
+  execute(args: CreateDocumentInput, ctx: WorkflowExecution, parent: Block): Promise<ToolResult> {
     const document = parent.getDocument(args.document);
     if (!document) {
-      throw new Error(
-        `Document "${args.document}" not found in parent context.`,
-      );
+      return Promise.reject(new Error(`Document "${args.document}" not found in parent context.`));
     }
 
     try {
@@ -81,11 +64,7 @@ export class CreateDocument extends ToolBase {
 
       const documentSkeleton = this.createDocumentSkeleton(mergedTemplateData, templateContext);
 
-      const validationResult = this.validateContent(
-        document.argsSchema,
-        mergedTemplateData.content,
-        args.validate,
-      );
+      const validationResult = this.validateContent(document.argsSchema, mergedTemplateData.content, args.validate);
 
       const messageId = this.resolveMessageId(args.id, templateContext);
 
@@ -102,26 +81,25 @@ export class CreateDocument extends ToolBase {
 
       this.logger.debug(`Created document "${messageId}".`);
 
-      return this.buildResult(documentEntity);
-    } catch (e) {
-      throw new ConfigTraceError(e, document);
+      return Promise.resolve(this.buildResult(documentEntity));
+    } catch (e: unknown) {
+      throw new ConfigTraceError(e instanceof Error ? e : new Error(String(e)), document);
     }
   }
 
-  private mergeTemplateData(
-    config: DocumentConfigType,
-    update?: Partial<DocumentConfigType>,
-  ): DocumentConfigType {
+  private mergeTemplateData(config: DocumentConfigType, update?: Partial<DocumentConfigType>): DocumentConfigType {
     return merge({}, config, update ?? {});
   }
 
   private createDocumentSkeleton(
     templateData: DocumentConfigType,
-    context: TemplateContext,
+    context: Record<string, unknown>,
   ): Omit<DocumentType, 'content'> {
-    return this.templateExpressionEvaluatorService.evaluateTemplate<
-      Omit<DocumentType, 'content'>
-    >(omit(templateData, ['content']), context, { schema: DocumentSchema });
+    return this.templateExpressionEvaluatorService.evaluateTemplate<Omit<DocumentType, 'content'>>(
+      omit(templateData, ['content']),
+      context,
+      { schema: DocumentSchema },
+    );
   }
 
   private validateContent(
@@ -130,9 +108,7 @@ export class CreateDocument extends ToolBase {
     mode: ValidateMode,
   ): ContentValidationResult {
     if (!schema && content !== undefined) {
-      throw new Error(
-        'Document was created with content but no schema is defined.',
-      );
+      throw new Error('Document was created with content but no schema is defined.');
     }
 
     if (!schema || mode === 'skip') {
@@ -144,9 +120,7 @@ export class CreateDocument extends ToolBase {
     if (!result.success) {
       if (mode === 'strict') {
         this.logger.error(result.error);
-        throw new SchemaValidationError(
-          'Document schema validation failed (strict mode)',
-        );
+        throw new SchemaValidationError('Document schema validation failed (strict mode)');
       }
 
       return {
@@ -158,19 +132,14 @@ export class CreateDocument extends ToolBase {
     return { content: result.data };
   }
 
-  private resolveMessageId(
-    idTemplate: string | undefined,
-    context: TemplateContext,
-  ): string {
+  private resolveMessageId(idTemplate: string | undefined, context: Record<string, unknown>): string {
     if (!idTemplate) {
       return randomUUID();
     }
 
-    return this.templateExpressionEvaluatorService.evaluateTemplate<string>(
-      idTemplate,
-      context,
-      { schema: z.string() },
-    );
+    return this.templateExpressionEvaluatorService.evaluateTemplate<string>(idTemplate, context, {
+      schema: z.string(),
+    });
   }
 
   private createJsonSchema(schema: ZodSchema | undefined): unknown {
@@ -178,11 +147,11 @@ export class CreateDocument extends ToolBase {
       return undefined;
     }
 
-    // @ts-ignore
-    const converted = zodToJsonSchema(schema, {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const converted = zodToJsonSchema(schema as any, {
       name: 'documentSchema',
       target: 'jsonSchema7',
-    }) as any;
+    });
 
     return converted?.definitions?.documentSchema;
   }
@@ -201,6 +170,7 @@ export class CreateDocument extends ToolBase {
     const documentData: Partial<DocumentEntity> = {
       ...params.skeleton,
       content: params.content,
+      // @ts-expect-error JSONSchemaConfigType
       schema: params.schema,
       messageId: params.messageId,
       blockName: params.blockName,

@@ -5,7 +5,6 @@ transitions:
     from: start
     to: end
     call:
-
       # Message
       - tool: createDocument
         args:
@@ -31,7 +30,7 @@ transitions:
             content:
               markdown: |
                 # Markdown
-                
+
                 This is `markdown`
 
       # Plain Text

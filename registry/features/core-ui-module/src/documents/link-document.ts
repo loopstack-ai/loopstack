@@ -1,14 +1,16 @@
-import { BlockConfig, WithArguments } from '@loopstack/common';
-import { z } from 'zod';
-import { DocumentBase } from '@loopstack/core';
 import { Injectable } from '@nestjs/common';
+import { z } from 'zod';
+import { BlockConfig, WithArguments } from '@loopstack/common';
+import { DocumentBase } from '@loopstack/core';
 
-const LinkDocumentSchema = z.object({
-  icon: z.string().optional(),
-  type: z.string().optional(),
-  label: z.string().optional(),
-  href: z.string(),
-}).strict();
+const LinkDocumentSchema = z
+  .object({
+    icon: z.string().optional(),
+    type: z.string().optional(),
+    label: z.string().optional(),
+    href: z.string(),
+  })
+  .strict();
 
 @Injectable()
 @BlockConfig({

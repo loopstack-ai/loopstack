@@ -1,13 +1,13 @@
-import { BlockConfig, Tool, Document } from '@loopstack/common';
 import { Injectable } from '@nestjs/common';
-import { CreateDocument } from '../../tools';
-import { ErrorDocument, MarkdownDocument, MessageDocument, PlainDocument } from '../../documents';
+import { BlockConfig, Document, Tool } from '@loopstack/common';
 import { WorkflowBase } from '@loopstack/core';
+import { ErrorDocument, MarkdownDocument, MessageDocument, PlainDocument } from '../../documents';
+import { CreateDocument } from '../../tools';
 
 @Injectable()
 @BlockConfig({
-  config:{
-    description: 'Test the displaying of core ui documents'
+  config: {
+    description: 'Test the displaying of core ui documents',
   },
   configFile: __dirname + '/test-ui-documents.workflow.yaml',
 })

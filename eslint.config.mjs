@@ -19,7 +19,6 @@ export default tseslint.config(
       '**/vite.config.ts',
       'scripts/**',
       'apps/**',
-      'registry/**',
       'workspace/**',
     ],
   },
