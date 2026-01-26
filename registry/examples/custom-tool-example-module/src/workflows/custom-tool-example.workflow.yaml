@@ -1,0 +1,79 @@
+#  Copyright 2025 The Loopstack Authors.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+title: 'Custom Tool'
+
+description: |
+  This workflow demonstrates the usage of custom tools, including both stateless and stateful tools.
+  It performs a simple addition operation using a custom MathSumTool and showcases the behavior of
+  stateless and stateful counter tools.
+
+ui:
+  form:
+    properties:
+      a:
+        title: 'First number (a)'
+      b:
+        title: 'Second number (b)'
+
+transitions:
+  - id: calculate
+    from: start
+    to: end
+    call:
+      # Use a custom tool
+      - id: calculation
+        tool: mathTool
+        args:
+          a: ${ args.a }
+          b: ${ args.b }
+        assign:
+          total: ${ result.data }
+
+      # Display the result
+      - tool: createChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Tool calculation result:
+            {{ args.a }} + {{ args.b }} = {{ total }}
+
+      # Alternatively, use a custom workflow getter function
+      - tool: createChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Alternatively, using workflow getter function:
+            {{ args.a }} + {{ args.b }} = {{ sum args.a args.b }}
+
+      # Use a stateless tool
+      - id: count1
+        tool: counterTool
+        assign:
+          count1: ${ result.data }
+      - id: count2
+        tool: counterTool
+        assign:
+          count2: ${ result.data }
+      - id: count3
+        tool: counterTool
+        assign:
+          count3: ${ result.data }
+      - tool: createChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            Counter tool should count:
+
+            {{ metadata.tools.calculate.count1.data }}, {{ count2 }}, {{ count3 }}
