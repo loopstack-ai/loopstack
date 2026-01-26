@@ -115,7 +115,7 @@ jobs:
       version: ${{ needs.release.outputs.studio_version }}
     secrets: inherit
 
-  publish-studio-docker-stable:
+  set-template-latest-tag:
     name: Set the templates latest tag.
     needs: release
     if: needs.release.outputs.studio_published == 'true' && needs.release.outputs.prerelease == 'false'

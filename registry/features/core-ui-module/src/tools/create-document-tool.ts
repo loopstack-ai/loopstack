@@ -170,7 +170,6 @@ export class CreateDocument extends ToolBase {
     const documentData: Partial<DocumentEntity> = {
       ...params.skeleton,
       content: params.content,
-      // @ts-expect-error JSONSchemaConfigType
       schema: params.schema,
       messageId: params.messageId,
       blockName: params.blockName,
