@@ -14,7 +14,7 @@ describe('ChatWorkflow', () => {
   let mockCreateDocument: ToolMock;
   let mockAiGenerateText: ToolMock;
 
-  const mockSystemPrompt = {
+  const _mockSystemPrompt = {
     role: 'system',
     parts: [
       {
