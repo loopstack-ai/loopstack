@@ -2,7 +2,7 @@
   "name": "@loopstack/api",
   "displayName": "Loopstack Api Module",
   "description": "The api module of the loopstack automation framework",
-  "version": "0.18.0-rc.0",
+  "version": "0.18.0-rc.1",
   "license": "BSL",
   "author": {
     "name": "Jakob Klippel",
@@ -23,10 +23,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/auth": "^0.18.0-rc.0",
-    "@loopstack/common": "^0.18.0-rc.0",
-    "@loopstack/contracts": "^0.18.0-rc.0",
-    "@loopstack/core": "^0.18.0-rc.0",
+    "@loopstack/auth": "^0.18.0-rc.1",
+    "@loopstack/common": "^0.18.0-rc.1",
+    "@loopstack/contracts": "^0.18.0-rc.1",
+    "@loopstack/core": "^0.18.0-rc.1",
     "@nestjs/common": "^11.1.12",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.12",

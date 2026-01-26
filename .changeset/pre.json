@@ -16,7 +16,28 @@
     "@loopstack/testing": "0.17.0",
     "@loopstack/app-template": "0.16.3",
     "@loopstack/registry-module-template": "0.17.0",
-    "@loopstack/core-ui-module": "0.17.0"
+    "@loopstack/core-ui-module": "0.17.0",
+    "@loopstack/accessing-tool-results-example-workflow": "0.17.0",
+    "@loopstack/chat-example-workflow": "0.17.0",
+    "@loopstack/custom-tool-example-module": "0.17.0",
+    "@loopstack/dynamic-routing-example-workflow": "0.17.0",
+    "@loopstack/meeting-notes-example-workflow": "0.17.0",
+    "@loopstack/prompt-example-workflow": "0.17.0",
+    "@loopstack/prompt-structured-output-example-workflow": "0.17.0",
+    "@loopstack/tool-call-example-workflow": "0.17.0",
+    "@loopstack/workflow-state-example-workflow": "0.17.0",
+    "@loopstack/ai-module": "0.17.4",
+    "@loopstack/create-chat-message-tool": "0.17.0",
+    "@loopstack/create-value-tool": "0.17.0"
   },
-  "changesets": ["strong-drinks-camp", "tame-shrimps-glow"]
+  "changesets": [
+    "crisp-rabbits-pay",
+    "fast-chairs-mate",
+    "gold-rings-stare",
+    "heavy-humans-poke",
+    "ninety-lies-sit",
+    "polite-parrots-hug",
+    "strong-drinks-camp",
+    "tame-shrimps-glow"
+  ]
 }
