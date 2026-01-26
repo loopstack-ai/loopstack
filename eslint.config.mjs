@@ -54,12 +54,50 @@ export default tseslint.config(
 
   // Backend (NestJS) - Node globals
   {
-    files: ['packages/**/*.ts'],
+    files: ['packages/**/*.ts', 'registry/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
         ...globals.jest,
       },
+    },
+  },
+
+  // Test files (NestJS) - Relaxed rules for test flexibility
+  {
+    files: [
+      'packages/**/*.spec.ts',
+      'packages/**/*.test.ts',
+      'packages/**/__tests__/**/*.ts',
+      'registry/**/*.spec.ts',
+      'registry/**/*.test.ts',
+      'registry/**/__tests__/**/*.ts',
+    ],
+    rules: {
+      // Allow any types in tests for mocking flexibility
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+
+      // Allow unbound methods (common in Jest spies/mocks)
+      '@typescript-eslint/unbound-method': 'off',
+
+      // Allow non-null assertions in tests
+      '@typescript-eslint/no-non-null-assertion': 'off',
+
+      // Allow empty functions (useful for mock implementations)
+      '@typescript-eslint/no-empty-function': 'off',
+
+      // Allow require imports (sometimes needed for mocking)
+      '@typescript-eslint/no-require-imports': 'off',
+
+      // Relax promise handling for test assertions
+      '@typescript-eslint/no-floating-promises': 'off',
+
+      // Allow unused vars with underscore prefix (common for destructuring in tests)
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
 
