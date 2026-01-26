@@ -13,9 +13,6 @@
 [submodule "apps/dev-tools"]
 	path = apps/dev-tools
 	url = git@github.com:loopstack-ai/dev-tools.git
-[submodule "registry/examples/meeting-notes-example-workflow"]
-	path = registry/examples/meeting-notes-example-workflow
-	url = git@github.com:loopstack-ai/meeting-notes-example-workflow.git
 [submodule "registry/examples/prompt-example-workflow"]
 	path = registry/examples/prompt-example-workflow
 	url = git@github.com:loopstack-ai/prompt-example-workflow.git
