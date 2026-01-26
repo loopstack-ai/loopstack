@@ -31,6 +31,7 @@
     "@loopstack/create-value-tool": "0.17.0"
   },
   "changesets": [
+    "chubby-comics-fly",
     "crisp-rabbits-pay",
     "fast-chairs-mate",
     "gold-rings-stare",
