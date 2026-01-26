@@ -12,7 +12,6 @@ interface WorkflowGraphProps {
   pipelineConfig?: PipelineConfigDto;
   onGraphReady: (workflowId: string, nodes: Node<StateNodeData>[], edges: Edge[]) => void;
   onLoadingChange: (workflowId: string, isLoading: boolean) => void;
-  animationsEnabled: boolean;
 }
 
 const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
@@ -21,7 +20,6 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   pipelineConfig,
   onGraphReady,
   onLoadingChange,
-  animationsEnabled,
 }) => {
   const fetchWorkflow = useWorkflow(workflow.id);
   const workflowData = fetchWorkflow.data as WorkflowInterface | undefined;
@@ -45,21 +43,14 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
       c: configTransitions.length,
       history: workflowData?.history?.length,
       place: workflowData?.place,
-      animationsEnabled,
     });
 
     if (dataKey !== prevDataRef.current) {
       prevDataRef.current = dataKey;
-      const { nodes, edges } = buildWorkflowGraph(
-        pipeline,
-        workflowData,
-        workflow.id,
-        configTransitions,
-        animationsEnabled,
-      );
+      const { nodes, edges } = buildWorkflowGraph(pipeline, workflowData, workflow.id, configTransitions);
       onGraphReady(workflow.id, nodes, edges);
     }
-  }, [pipeline, workflow, workflowData, pipelineConfig, onGraphReady, animationsEnabled]);
+  }, [pipeline, workflow, workflowData, pipelineConfig, onGraphReady]);
 
   return null;
 };

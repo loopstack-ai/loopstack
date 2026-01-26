@@ -54,6 +54,13 @@ export function getLayoutedElements(
   return { nodes: layoutedNodes, edges };
 }
 
+interface TransitionContainer {
+  transitions?: WorkflowTransitionType[];
+  definition?: TransitionContainer;
+  specification?: TransitionContainer;
+  [key: string]: unknown;
+}
+
 export function getTransitions(obj: unknown, seen = new Set<unknown>()): WorkflowTransitionType[] {
   if (!obj || typeof obj !== 'object' || seen.has(obj)) return [];
 
@@ -63,29 +70,29 @@ export function getTransitions(obj: unknown, seen = new Set<unknown>()): Workflo
     return [];
   }
 
-  const record = obj as Record<string, unknown>;
+  const container = obj as TransitionContainer;
 
-  if (Array.isArray(record.transitions)) return record.transitions as WorkflowTransitionType[];
+  if (Array.isArray(container.transitions)) return container.transitions;
 
-  if (record.definition) {
-    const fromDef = getTransitions(record.definition, seen);
+  if (container.definition) {
+    const fromDef = getTransitions(container.definition, seen);
     if (fromDef.length > 0) return fromDef;
   }
-  if (record.specification) {
-    const fromSpec = getTransitions(record.specification, seen);
+  if (container.specification) {
+    const fromSpec = getTransitions(container.specification, seen);
     if (fromSpec.length > 0) return fromSpec;
   }
 
-  for (const key in record) {
+  for (const key in container) {
     if (key === 'history' || key === 'data') continue;
 
-    const val = record[key];
+    const val = container[key];
     if (val && typeof val === 'object') {
       const found = getTransitions(val, seen);
       if (found.length > 0) return found;
     } else if (typeof val === 'string' && val.includes('"transitions":')) {
       try {
-        const parsed = JSON.parse(val) as unknown;
+        const parsed: unknown = JSON.parse(val);
         const found = getTransitions(parsed, seen);
         if (found.length > 0) return found;
       } catch {
@@ -120,11 +127,10 @@ export function formatCondition(condition: string): string {
 }
 
 export function buildWorkflowGraph(
-  pipeline: any,
+  pipeline: unknown,
   workflowData: WorkflowInterface | undefined,
   workflowId: string,
   configTransitions: WorkflowTransitionType[] = [],
-  animationsEnabled: boolean = true,
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
   let transitionsInDefinition: WorkflowTransitionType[] = [];
 
@@ -142,8 +148,8 @@ export function buildWorkflowGraph(
 
   const seenTransitions = new Set<string>();
   transitionsInDefinition = transitionsInDefinition.filter((t) => {
-    const fromKey = Array.isArray(t.from) ? t.from.join(',') : t.from;
-    const key = `${t.id}-${fromKey}-${t.to}`;
+    const fromStr = Array.isArray(t.from) ? t.from.join(',') : t.from;
+    const key = `${t.id}-${fromStr}-${t.to}`;
     if (seenTransitions.has(key)) return false;
     seenTransitions.add(key);
     return true;
@@ -252,7 +258,6 @@ export function buildWorkflowGraph(
       isCurrent: state === currentPlace,
       isVisited: visitedStates.has(state),
       visitCount: stateVisitCount.get(state) ?? 0,
-      animationsEnabled,
     },
   }));
 
@@ -279,7 +284,7 @@ export function buildWorkflowGraph(
       source: `${workflowId}-${t.from}`,
       target: `${workflowId}-${t.to}`,
       type: 'smoothstep',
-      animated: isExecuted && animationsEnabled,
+      animated: false,
       label: edgeLabel,
       style: {
         strokeWidth: isExecuted ? 2.5 : 1.5,
@@ -297,7 +302,7 @@ export function buildWorkflowGraph(
         fill: 'var(--background)',
         opacity: 0.8,
       },
-      labelBgPadding: [4, 2] as [number, number],
+      labelBgPadding: [4, 2],
       labelShowBg: true,
       markerEnd: {
         type: MarkerType.ArrowClosed,

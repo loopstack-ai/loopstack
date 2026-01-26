@@ -1,6 +1,6 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { Bug, Home, Loader2 } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout.tsx';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
@@ -12,7 +12,6 @@ import { useWorkspace } from '@/hooks/useWorkspaces.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const PipelineDebugPage: React.FC = () => {
-  const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const { router } = useStudio();
   const { pipelineId } = useParams<{ pipelineId: string }>();
 
@@ -65,9 +64,11 @@ const PipelineDebugPage: React.FC = () => {
         <PipelineDebugHeader
           title={fetchPipeline.data?.title ?? fetchPipeline.data?.blockName ?? 'Pipeline'}
           runNumber={fetchPipeline.data?.run}
-          onBack={() => pipelineId && void router.navigateToPipeline(pipelineId)}
-          animationsEnabled={animationsEnabled}
-          onToggleAnimations={() => setAnimationsEnabled(!animationsEnabled)}
+          onBack={() => {
+            if (pipelineId) {
+              void router.navigateToPipeline(pipelineId);
+            }
+          }}
         />
 
         <div className="bg-card border-border flex-1 overflow-hidden rounded-2xl border shadow-sm">
@@ -77,7 +78,6 @@ const PipelineDebugPage: React.FC = () => {
                 pipelineId={pipelineId}
                 workflows={workflows}
                 pipelineConfig={fetchPipelineConfig.data}
-                animationsEnabled={animationsEnabled}
               />
             </ReactFlowProvider>
           ) : pipelineId ? (

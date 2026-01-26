@@ -1,5 +1,4 @@
-import { ArrowLeft, PauseCircle, PlayCircle } from 'lucide-react';
-import React from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 import PipelineDebugLegend from './PipelineDebugLegend.tsx';
 
@@ -7,17 +6,9 @@ interface PipelineDebugHeaderProps {
   title: string;
   runNumber?: number;
   onBack: () => void;
-  animationsEnabled: boolean;
-  onToggleAnimations: () => void;
 }
 
-const PipelineDebugHeader: React.FC<PipelineDebugHeaderProps> = ({
-  title,
-  runNumber,
-  onBack,
-  animationsEnabled,
-  onToggleAnimations,
-}) => {
+const PipelineDebugHeader: React.FC<PipelineDebugHeaderProps> = ({ title, runNumber, onBack }) => {
   return (
     <div className="flex items-center justify-between pb-2">
       <div className="flex items-center gap-4">
@@ -34,19 +25,6 @@ const PipelineDebugHeader: React.FC<PipelineDebugHeaderProps> = ({
 
       <div className="hidden items-center gap-6 sm:flex">
         <PipelineDebugLegend />
-        <Button variant="outline" size="sm" onClick={onToggleAnimations} className="h-8 gap-2 text-xs">
-          {animationsEnabled ? (
-            <>
-              <PauseCircle className="h-3.5 w-3.5" />
-              Disable Animations
-            </>
-          ) : (
-            <>
-              <PlayCircle className="h-3.5 w-3.5" />
-              Enable Animations
-            </>
-          )}
-        </Button>
       </div>
     </div>
   );

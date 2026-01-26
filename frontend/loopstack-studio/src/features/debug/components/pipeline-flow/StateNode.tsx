@@ -10,7 +10,6 @@ export type StateNodeData = {
   isCurrent: boolean;
   isVisited: boolean;
   visitCount: number;
-  animationsEnabled?: boolean;
   [key: string]: unknown;
 };
 
@@ -20,7 +19,7 @@ const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
       className={cn(
         'relative flex min-w-32 flex-col items-center gap-2 rounded-xl border px-5 py-3 shadow-sm transition-all duration-300',
         data.isCurrent
-          ? 'border-primary/50 from-primary/10 shadow-primary/20 ring-primary/20 bg-gradient-to-b to-transparent shadow-lg ring-2'
+          ? 'border-primary shadow-primary/20 bg-primary/5 ring-primary/30 z-10 shadow-lg ring-4'
           : data.isEnd
             ? 'border-green-500/30 bg-green-500/10'
             : data.isStart
@@ -30,16 +29,13 @@ const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
                 : 'border-border/40 bg-card/60 opacity-80 hover:opacity-100',
       )}
     >
-      {data.isCurrent && data.animationsEnabled && (
-        <span className="absolute -top-1 -right-1 flex h-3 w-3">
-          <span className="bg-primary/50 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
-          <span className="bg-primary relative inline-flex h-3 w-3 rounded-full"></span>
-        </span>
-      )}
-      {data.isCurrent && !data.animationsEnabled && (
-        <span className="absolute -top-1 -right-1 flex h-3 w-3">
-          <span className="bg-primary border-background ring-primary/30 relative inline-flex h-3 w-3 rounded-full border ring-1"></span>
-        </span>
+      {data.isCurrent && (
+        <>
+          <span className="absolute -top-1 -right-1 flex h-3 w-3">
+            <span className="bg-primary/50 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
+            <span className="bg-primary relative inline-flex h-3 w-3 rounded-full"></span>
+          </span>
+        </>
       )}
 
       <Handle
