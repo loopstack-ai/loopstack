@@ -7,7 +7,7 @@ import * as path from 'path';
 // Parse arguments
 const args = process.argv.slice(2);
 let appName: string | undefined;
-let templateName: string = '@loopstack/app-template';
+let templateName: string = 'app-template';
 let tag: string = 'main';
 
 for (const arg of args) {
