@@ -16,9 +16,6 @@
 [submodule "registry/examples/chat-example-workflow"]
 	path = registry/examples/chat-example-workflow
 	url = git@github.com:loopstack-ai/chat-example-workflow.git
-[submodule "registry/examples/accessing-tool-results-example-workflow"]
-	path = registry/examples/accessing-tool-results-example-workflow
-	url = git@github.com:loopstack-ai/accessing-tool-results-example-workflow.git
 [submodule "registry/examples/custom-tool-example-module"]
 	path = registry/examples/custom-tool-example-module
 	url = git@github.com:loopstack-ai/custom-tool-example-module.git
