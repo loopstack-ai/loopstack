@@ -3,8 +3,8 @@
   "private": true,
   "displayName": "",
   "description": "",
-  "keywords": [],
   "version": "0.18.0-rc.0",
+  "keywords": [],
   "license": "Apache-2.0",
   "author": {
     "name": "",
@@ -12,9 +12,15 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
   "scripts": {
     "build": "nest build",
-    "lint": "eslint . --fix",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
     "test": "jest --passWithNoTests",
     "watch": "nest build --watch"
   },
@@ -24,21 +30,9 @@
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },
-  "devDependencies": {
-    "@loopstack/testing": "^0.18.0-rc.0",
-    "@nestjs/cli": "^11.0.16",
-    "@nestjs/testing": "^11.1.12",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^25.0.10",
-    "eslint": "^9.39.2",
-    "jest": "^30.2.0",
-    "prettier": "^3.8.1",
-    "ts-jest": "^29.4.6",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.1"
-  },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "jest": {
     "testEnvironment": "node",
