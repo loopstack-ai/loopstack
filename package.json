@@ -16,7 +16,7 @@
     "ncu": "ncu",
     "ncu:interactive": "ncu -i",
     "ncu:update": "ncu -u",
-    "oackage:check": "syncpack list-mismatches",
+    "package:check": "syncpack list-mismatches",
     "package:fix": "syncpack fix-mismatches",
     "package:format": "syncpack format",
     "package:update": "syncpack update",
@@ -80,7 +80,6 @@
     "installer/*",
     "templates/*",
     "generators/*",
-    "registry/*/*",
     "workspace/*/*"
   ]
 }

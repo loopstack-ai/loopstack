@@ -28,9 +28,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.17.0",
-    "@loopstack/contracts": "^0.16.0",
-    "@loopstack/core": "^0.17.0",
+    "@loopstack/common": "^0.18.0-rc.0",
+    "@loopstack/contracts": "^0.18.0-rc.0",
+    "@loopstack/core": "^0.18.0-rc.0",
     "lodash": "^4.17.21",
     "zod": "^3.24.1",
     "zod-to-json-schema": "^3.25.0"
