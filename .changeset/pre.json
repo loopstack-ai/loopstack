@@ -17,7 +17,5 @@
     "@loopstack/app-template": "0.16.3",
     "@loopstack/registry-module-template": "0.17.0"
   },
-  "changesets": [
-    "tame-shrimps-glow"
-  ]
+  "changesets": ["tame-shrimps-glow"]
 }

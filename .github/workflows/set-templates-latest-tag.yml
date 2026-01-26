@@ -39,12 +39,12 @@ jobs:
           if git rev-parse "$LATEST_TAG" >/dev/null 2>&1; then
             CURRENT_SHA=$(git rev-list -n 1 "$LATEST_TAG")
             echo "Current $LATEST_TAG points to: $CURRENT_SHA"
-          
+
             if [ "$CURRENT_SHA" = "$COMMIT_SHA" ]; then
               echo "✅ $LATEST_TAG already points to $LATEST_VERSION_TAG"
               exit 0
             fi
-          
+
             echo "Deleting existing $LATEST_TAG"
             git tag -d "$LATEST_TAG"
             git push origin --delete "$LATEST_TAG"
