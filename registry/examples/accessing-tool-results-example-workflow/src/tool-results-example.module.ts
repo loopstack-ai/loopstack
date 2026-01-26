@@ -13,21 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
-import { WorkflowToolResultsWorkflow } from './workflow-tool-results.workflow';
-import { CreateValueToolModule } from '@loopstack/create-value-tool';
 import { CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
+import { CreateValueToolModule } from '@loopstack/create-value-tool';
+import { WorkflowToolResultsWorkflow } from './workflow-tool-results.workflow';
 
 @Module({
   imports: [LoopCoreModule, CoreUiModule, CreateValueToolModule, CreateChatMessageToolModule],
-  providers: [
-    WorkflowToolResultsWorkflow
-  ],
-  exports: [
-    WorkflowToolResultsWorkflow
-  ],
+  providers: [WorkflowToolResultsWorkflow],
+  exports: [WorkflowToolResultsWorkflow],
 })
 export class ToolResultsExampleModule {}

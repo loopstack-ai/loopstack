@@ -55,8 +55,8 @@ Add `AccessingToolResultsExampleModule` to your `default.module.ts` (included in
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
-import { DefaultWorkspace } from './default.workspace';
 import { AccessingToolResultsExampleModule } from './accessing-tool-results-example-workflow';
+import { DefaultWorkspace } from './default.workspace';
 
 @Module({
   imports: [LoopCoreModule, CoreUiModule, AccessingToolResultsExampleModule],
@@ -103,7 +103,7 @@ Assign a unique `id` to a tool call, then reference it via `metadata.tools.<tran
 
 - tool: createChatMessage
   args:
-    content: "{{ metadata.tools.create_some_data.say_hello.data }}"
+    content: '{{ metadata.tools.create_some_data.say_hello.data }}'
 ```
 
 #### 2. Using Call Indices
@@ -113,7 +113,7 @@ Access tool results by their position (zero-indexed) within the transition:
 ```yaml
 - tool: createChatMessage
   args:
-    content: "{{ metadata.tools.create_some_data.0.data }}"
+    content: '{{ metadata.tools.create_some_data.0.data }}'
 ```
 
 #### 3. Across Transitions
@@ -124,7 +124,7 @@ Tool results persist and can be accessed from subsequent transitions using the s
 # In a later transition
 - tool: createChatMessage
   args:
-    content: "{{ metadata.tools.create_some_data.say_hello.data }}"
+    content: '{{ metadata.tools.create_some_data.say_hello.data }}'
 ```
 
 #### 4. Using Helper Functions
@@ -143,7 +143,7 @@ Then use them in your YAML configuration:
 ```yaml
 - tool: createChatMessage
   args:
-    content: "{{ extractMessage metadata }}"
+    content: '{{ extractMessage metadata }}'
 ```
 
 ## Dependencies
