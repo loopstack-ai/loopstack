@@ -45,25 +45,25 @@ export class DelegateToolCall extends ToolBase<DelegateToolCallsToolArgs> {
       if (!tool) {
         throw new Error(`Tool ${toolName} not found.`);
       }
-      const result = await tool.execute(part.input, ctx, parent);
+      const result: ToolResult = await tool.execute(part.input as Record<string, unknown>, ctx, parent);
 
       resultParts.push({
-        type: part.type as any,
+        type: part.type as ToolUIPart['type'],
         toolCallId: part.toolCallId,
         output: {
           type: result.type || 'text',
-          value: result.data,
+          value: result.data as unknown,
         },
-        input: part.input,
+        input: part.input as Record<string, unknown>,
         state: 'output-available',
       } satisfies ToolUIPart);
     }
 
-    const resultMessage = {
+    const resultMessage: UIMessage = {
       id: args.message.id,
       role: 'assistant',
       parts: resultParts,
-    } satisfies UIMessage;
+    };
 
     return {
       data: resultMessage,

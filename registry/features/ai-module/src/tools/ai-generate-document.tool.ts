@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { BlockConfig, Tool, ToolResult, WithArguments } from '@loopstack/common';
-import { Block, ToolBase } from '@loopstack/core';
+import { ToolBase, WorkflowBase } from '@loopstack/core';
 import { CreateDocument } from '@loopstack/core-ui-module';
 import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
 import { AiGenerateObject, AiGenerateObjectArgsType, AiGenerateObjectSchema } from './ai-generate-object.tool';
@@ -24,14 +24,14 @@ export class AiGenerateDocument extends ToolBase<AiGenerateObjectArgsType> {
     return tool;
   }
 
-  async execute(args: AiGenerateObjectArgsType, ctx: WorkflowExecution, parent: Block): Promise<ToolResult> {
+  async execute(args: AiGenerateObjectArgsType, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
     const result = await this.getRequiredTool('aiGenerateObject').execute(args, ctx, parent);
     return this.getRequiredTool('createDocument').execute(
       {
         id: args.response.id,
         document: args.response.document,
         update: {
-          content: result.data,
+          content: result.data as unknown,
         },
       },
       ctx,

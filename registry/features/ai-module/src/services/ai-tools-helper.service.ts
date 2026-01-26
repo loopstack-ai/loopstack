@@ -19,7 +19,7 @@ export class AiToolsHelperService {
         toolDefinitions[toolName] = {
           description: tool.config.description,
           inputSchema,
-        } as any; // using any bc ai sdk types have some nesting issue
+        } as unknown; // using unknown bc ai sdk types have some nesting issue
       }
     }
 

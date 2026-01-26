@@ -12,7 +12,7 @@ export class OpenAiProviderService implements AiProviderInterface {
     });
   }
 
-  getModel(client: any, model: string) {
+  getModel(client: ReturnType<typeof createOpenAI>, model: string) {
     return client(model);
   }
 }

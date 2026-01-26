@@ -1,5 +1,5 @@
 import { ModelMessage } from '@ai-sdk/provider-utils';
-import { GenerateObjectResult, convertToModelMessages, generateObject } from 'ai';
+import { GenerateObjectResult, LanguageModel, generateObject } from 'ai';
 import { z } from 'zod';
 import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
 import { ToolBase, WorkflowBase } from '@loopstack/core';
@@ -36,19 +36,18 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {
-      prompt?: any;
-      messages?: any;
-      schema?: any;
+      prompt?: string;
+      messages?: ModelMessage[];
+      schema?: z.ZodSchema;
     } = {};
 
     if (args.prompt) {
       options.prompt = args.prompt;
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
+      options.messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
         messages: args.messages as ModelMessage[],
         messagesSearchTag: args.messagesSearchTag,
       });
-      options.messages = convertToModelMessages(messages);
     }
 
     const document: Block | undefined = parent.getDocument(args.response.document);
@@ -62,20 +61,27 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
 
     options.schema = responseSchema;
 
-    const response: GenerateObjectResult<any> = await this.handleGenerateObject(model, options);
+    const response = await this.handleGenerateObject(model, options);
 
     return {
       data: response.object,
     };
   }
 
-  private async handleGenerateObject(model: any, options: any): Promise<GenerateObjectResult<any>> {
+  private async handleGenerateObject(
+    model: LanguageModel,
+    options: {
+      prompt?: string;
+      messages?: ModelMessage[];
+      schema?: z.ZodSchema;
+    },
+  ): Promise<GenerateObjectResult<unknown>> {
     const startTime = performance.now();
     try {
       return generateObject({
         model,
         ...options,
-      });
+      } as Parameters<typeof generateObject>[0]);
     } catch (error) {
       const errorResponseTime = performance.now() - startTime;
       console.error(`Request failed after ${errorResponseTime}ms:`, error);

@@ -8,11 +8,14 @@ export class AiMessagesHelperService {
     return documents
       .filter((document) => document.tags?.includes(tag))
       .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf())
-      .map((document) => document.content);
+      .map((document) => document.content as ModelMessage);
   }
 
-  getMessages(documents: DocumentEntity[], args: { messages?: ModelMessage[]; messagesSearchTag?: string }): any[] {
-    let messages: any = args.messages;
+  getMessages(
+    documents: DocumentEntity[],
+    args: { messages?: ModelMessage[]; messagesSearchTag?: string },
+  ): ModelMessage[] {
+    let messages: ModelMessage[] | undefined = args.messages;
     if (!messages?.length) {
       messages = this.searchMessages(documents, args.messagesSearchTag ?? 'message');
     }

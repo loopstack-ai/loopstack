@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { LanguageModel } from 'ai';
 import { AiProviderRegistryService } from './ai-provider-registry.service';
 
 export interface AiProviderModelConfig {
@@ -47,7 +48,7 @@ export class AiProviderModelHelperService {
     return provider;
   }
 
-  getProviderModel(config?: AiProviderModelConfig): any {
+  getProviderModel(config?: AiProviderModelConfig): LanguageModel {
     const modelName = this.getModel(config?.model);
     const providerName = this.getProvider(config?.provider);
     const apiKey = this.getApiKey(config?.envApiKey, providerName);

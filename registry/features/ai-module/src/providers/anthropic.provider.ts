@@ -12,7 +12,7 @@ export class AnthropicProviderService implements AiProviderInterface {
     });
   }
 
-  getModel(client: any, model: string) {
+  getModel(client: ReturnType<typeof createAnthropic>, model: string) {
     return client(model);
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
+import { LanguageModel } from 'ai';
 import {
   AI_PROVIDER_DECORATOR,
   AiProviderDecoratorOptions,
@@ -28,8 +29,11 @@ export class AiProviderRegistryService implements OnModuleInit {
       .filter((wrapper) => wrapper.isDependencyTreeStatic())
       .filter((wrapper) => wrapper.instance)
       .forEach((wrapper) => {
-        const { instance } = wrapper;
-        const metadata = this.reflector.get<AiProviderDecoratorOptions>(AI_PROVIDER_DECORATOR, instance.constructor);
+        const instance = wrapper.instance as AiProviderInterface;
+        const metadata = this.reflector.get<AiProviderDecoratorOptions>(
+          AI_PROVIDER_DECORATOR,
+          (instance as object).constructor,
+        );
 
         if (metadata) {
           this.registerProvider(metadata.name, instance);
@@ -45,7 +49,7 @@ export class AiProviderRegistryService implements OnModuleInit {
     this.providers.set(name.toLowerCase(), provider);
   }
 
-  createModel(providerName: string, options: AiProviderOptions) {
+  createModel(providerName: string, options: AiProviderOptions): LanguageModel {
     const provider = this.providers.get(providerName.toLowerCase());
 
     if (!provider) {
@@ -55,8 +59,8 @@ export class AiProviderRegistryService implements OnModuleInit {
     }
 
     try {
-      const client = provider.createClient(options);
-      return provider.getModel(client, options.model);
+      const client: unknown = provider.createClient(options);
+      return provider.getModel(client, options.model) as LanguageModel;
     } catch (error) {
       this.logger.error(`Failed to create model for provider ${providerName}:`, error);
       throw error;
