@@ -29,10 +29,7 @@ export class AiProviderRegistryService implements OnModuleInit {
       .filter((wrapper) => wrapper.instance)
       .forEach((wrapper) => {
         const { instance } = wrapper;
-        const metadata = this.reflector.get<AiProviderDecoratorOptions>(
-          AI_PROVIDER_DECORATOR,
-          instance.constructor,
-        );
+        const metadata = this.reflector.get<AiProviderDecoratorOptions>(AI_PROVIDER_DECORATOR, instance.constructor);
 
         if (metadata) {
           this.registerProvider(metadata.name, instance);
@@ -61,10 +58,7 @@ export class AiProviderRegistryService implements OnModuleInit {
       const client = provider.createClient(options);
       return provider.getModel(client, options.model);
     } catch (error) {
-      this.logger.error(
-        `Failed to create model for provider ${providerName}:`,
-        error,
-      );
+      this.logger.error(`Failed to create model for provider ${providerName}:`, error);
       throw error;
     }
   }

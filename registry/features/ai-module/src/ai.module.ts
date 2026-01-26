@@ -1,20 +1,15 @@
 import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
-import { AiProviderRegistryService } from './services/ai-provider-registry.service';
-import { OpenAiProviderService } from './providers/openai.provider';
-import { AnthropicProviderService } from './providers/anthropic.provider';
 import { DiscoveryModule } from '@nestjs/core';
+import { LoopCoreModule } from '@loopstack/core';
+import { CoreUiModule } from '@loopstack/core-ui-module';
+import { AiMessageDocument } from './documents';
+import { AnthropicProviderService } from './providers/anthropic.provider';
+import { OpenAiProviderService } from './providers/openai.provider';
 import { AiMessagesHelperService } from './services';
 import { AiProviderModelHelperService } from './services';
 import { AiToolsHelperService } from './services';
-import {
-  AiGenerateDocument,
-  AiGenerateObject,
-  AiGenerateText,
-  DelegateToolCall,
-} from './tools';
-import { AiMessageDocument } from './documents';
-import { CoreUiModule } from '@loopstack/core-ui-module';
+import { AiProviderRegistryService } from './services/ai-provider-registry.service';
+import { AiGenerateDocument, AiGenerateObject, AiGenerateText, DelegateToolCall } from './tools';
 
 @Module({
   imports: [LoopCoreModule, CoreUiModule, DiscoveryModule],
@@ -38,12 +33,6 @@ import { CoreUiModule } from '@loopstack/core-ui-module';
     // documents
     AiMessageDocument,
   ],
-  exports: [
-    AiGenerateDocument,
-    AiGenerateObject,
-    AiGenerateText,
-    DelegateToolCall,
-    AiMessageDocument,
-  ],
+  exports: [AiGenerateDocument, AiGenerateObject, AiGenerateText, DelegateToolCall, AiMessageDocument],
 })
 export class AiModule {}

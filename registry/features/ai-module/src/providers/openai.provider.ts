@@ -1,9 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import {
-  AiProvider,
-  AiProviderInterface,
-  AiProviderOptions,
-} from '@loopstack/common';
+import { AiProvider, AiProviderInterface, AiProviderOptions } from '@loopstack/common';
 
 @AiProvider({
   name: 'openai',

@@ -69,8 +69,8 @@ Add `AiModule` to your `default.module.ts` (included in the skeleton app) or to 
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { AiModule } from '@loopstack/ai-module';
+import { LoopCoreModule } from '@loopstack/core';
 import { DefaultWorkspace } from './default.workspace';
 
 @Module({
@@ -86,15 +86,15 @@ Inject the tools and documents in your workflow class:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { BlockConfig, Document, Tool, Helper } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
 import {
-  AiGenerateText,
-  AiGenerateObject,
   AiGenerateDocument,
-  DelegateToolCall,
+  AiGenerateObject,
+  AiGenerateText,
   AiMessageDocument,
+  DelegateToolCall,
 } from '@loopstack/ai-module';
+import { BlockConfig, Document, Helper, Tool } from '@loopstack/common';
+import { WorkflowBase } from '@loopstack/core';
 
 @Injectable()
 @BlockConfig({
@@ -120,15 +120,15 @@ Generates text using an LLM with optional tool calling support.
 
 #### Arguments
 
-| Argument | Type | Required | Description |
-|----------|------|----------|-------------|
-| `llm.provider` | string | No | Provider name (`openai` or `anthropic`) |
-| `llm.model` | string | No | Model identifier (e.g., `gpt-4o`, `claude-3-sonnet`) |
-| `llm.envApiKey` | string | No | Environment variable name for API key |
-| `prompt` | string | No | Simple text prompt |
-| `messages` | array | No | Array of message objects with `role` and `content` |
-| `messagesSearchTag` | string | No | Tag to search for messages in workflow documents |
-| `tools` | string[] | No | Array of tool names to make available to the LLM |
+| Argument            | Type     | Required | Description                                          |
+| ------------------- | -------- | -------- | ---------------------------------------------------- |
+| `llm.provider`      | string   | No       | Provider name (`openai` or `anthropic`)              |
+| `llm.model`         | string   | No       | Model identifier (e.g., `gpt-4o`, `claude-3-sonnet`) |
+| `llm.envApiKey`     | string   | No       | Environment variable name for API key                |
+| `prompt`            | string   | No       | Simple text prompt                                   |
+| `messages`          | array    | No       | Array of message objects with `role` and `content`   |
+| `messagesSearchTag` | string   | No       | Tag to search for messages in workflow documents     |
+| `tools`             | string[] | No       | Array of tool names to make available to the LLM     |
 
 #### Example
 
@@ -151,15 +151,15 @@ Generates a structured object using an LLM that conforms to a document schema.
 
 #### Arguments
 
-| Argument | Type | Required | Description |
-|----------|------|----------|-------------|
-| `llm.provider` | string | No | Provider name |
-| `llm.model` | string | No | Model identifier |
-| `prompt` | string | No | Simple text prompt |
-| `messages` | array | No | Array of message objects |
-| `messagesSearchTag` | string | No | Tag to search for messages |
-| `response.document` | string | Yes | Document name whose schema defines the output structure |
-| `response.id` | string | No | Custom ID for the generated object |
+| Argument            | Type   | Required | Description                                             |
+| ------------------- | ------ | -------- | ------------------------------------------------------- |
+| `llm.provider`      | string | No       | Provider name                                           |
+| `llm.model`         | string | No       | Model identifier                                        |
+| `prompt`            | string | No       | Simple text prompt                                      |
+| `messages`          | array  | No       | Array of message objects                                |
+| `messagesSearchTag` | string | No       | Tag to search for messages                              |
+| `response.document` | string | Yes      | Document name whose schema defines the output structure |
+| `response.id`       | string | No       | Custom ID for the generated object                      |
 
 #### Example
 
@@ -169,7 +169,7 @@ Generates a structured object using an LLM that conforms to a document schema.
     llm:
       provider: anthropic
       model: claude-3-sonnet
-    prompt: "Extract the key information from this text: {{ inputText }}"
+    prompt: 'Extract the key information from this text: {{ inputText }}'
     response:
       document: infoDocument
   assign:
@@ -203,11 +203,11 @@ Executes tool calls requested by the LLM and returns the results in the expected
 
 #### Arguments
 
-| Argument | Type | Required | Description |
-|----------|------|----------|-------------|
-| `message` | object | Yes | The LLM response message containing tool call parts |
-| `message.id` | string | Yes | Message identifier |
-| `message.parts` | array | Yes | Array of tool call parts with `type`, `input`, and `toolCallId` |
+| Argument        | Type   | Required | Description                                                     |
+| --------------- | ------ | -------- | --------------------------------------------------------------- |
+| `message`       | object | Yes      | The LLM response message containing tool call parts             |
+| `message.id`    | string | Yes      | Message identifier                                              |
+| `message.parts` | array  | Yes      | Array of tool call parts with `type`, `input`, and `toolCallId` |
 
 #### Example
 
@@ -226,6 +226,7 @@ Executes tool calls requested by the LLM and returns the results in the expected
 Represents an AI conversation message with support for multi-part content (text, tool calls, tool results).
 
 **Schema:**
+
 ```typescript
 {
   id?: string;                          // Message identifier
@@ -236,6 +237,7 @@ Represents an AI conversation message with support for multi-part content (text,
 ```
 
 **Example:**
+
 ```yaml
 - tool: createDocument
   args:

@@ -1,8 +1,8 @@
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
+import { ToolUIPart, UIMessage } from 'ai';
 import { z } from 'zod';
+import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
 import { ToolBase, WorkflowBase } from '@loopstack/core';
 import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
-import { ToolUIPart, UIMessage } from 'ai';
 
 const DelegateToolCallsToolSchema = z.object({
   message: z.object({
@@ -26,11 +26,7 @@ type DelegateToolCallsToolArgs = z.infer<typeof DelegateToolCallsToolSchema>;
 })
 @WithArguments(DelegateToolCallsToolSchema)
 export class DelegateToolCall extends ToolBase<DelegateToolCallsToolArgs> {
-  async execute(
-    args: DelegateToolCallsToolArgs,
-    ctx: WorkflowExecution,
-    parent: WorkflowBase,
-  ): Promise<ToolResult> {
+  async execute(args: DelegateToolCallsToolArgs, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
     const parts = args.message.parts;
     const resultParts: ToolUIPart[] = [];
 

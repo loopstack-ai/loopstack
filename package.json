@@ -10,6 +10,7 @@
   "main": "index.js",
   "scripts": {
     "build": "turbo run build",
+    "changeset": "changeset",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
@@ -21,12 +22,11 @@
     "package:format": "syncpack format",
     "package:update": "syncpack update",
     "prepare": "husky",
-    "test": "turbo run test",
-    "watch": "turbo run watch",
-    "changeset": "changeset",
     "prerelease:enter": "changeset pre enter rc",
     "prerelease:exit": "changeset pre exit",
-    "refresh-lock": "rm -rf node_modules package-lock.json && npm install --package-lock-only --include=optional --os=linux --os=darwin --cpu=x64 --cpu=arm64 && npm install"
+    "refresh-lock": "rm -rf node_modules package-lock.json && npm install --package-lock-only --include=optional --os=linux --os=darwin --cpu=x64 --cpu=arm64 && npm install",
+    "test": "turbo run test",
+    "watch": "turbo run watch"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
@@ -80,6 +80,7 @@
     "installer/*",
     "templates/*",
     "generators/*",
+    "registry/*/*",
     "workspace/*/*"
   ]
 }

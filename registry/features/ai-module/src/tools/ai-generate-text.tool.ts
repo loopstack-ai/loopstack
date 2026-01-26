@@ -1,18 +1,13 @@
+import { ModelMessage } from '@ai-sdk/provider-utils';
+import { UIMessage, convertToModelMessages, createUIMessageStream, streamText } from 'ai';
 import { z } from 'zod';
-import { ToolResult, BlockConfig, WithArguments } from '@loopstack/common';
+import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
 import { ToolBase, WorkflowBase } from '@loopstack/core';
+import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
+import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
 import { AiToolsHelperService } from '../services';
-import {
-  convertToModelMessages,
-  createUIMessageStream,
-  streamText,
-  UIMessage,
-} from 'ai';
-import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
-import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
-import { ModelMessage } from '@ai-sdk/provider-utils';
 
 export const AiGenerateTextSchema = AiGenerateToolBaseSchema.extend({
   tools: z.array(z.string()).optional(),
@@ -35,11 +30,7 @@ export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
     super();
   }
 
-  async execute(
-    args: AiGenerateTextArgsType,
-    ctx: WorkflowExecution,
-    parent: WorkflowBase,
-  ): Promise<ToolResult> {
+  async execute(args: AiGenerateTextArgsType, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {
@@ -48,20 +39,15 @@ export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
       tools?: any;
     } = {};
 
-    options.tools = args.tools
-      ? this.aiToolsHelperService.getTools(args.tools, parent)
-      : undefined;
+    options.tools = args.tools ? this.aiToolsHelperService.getTools(args.tools, parent) : undefined;
 
     if (args.prompt) {
       options.prompt = args.prompt;
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(
-        ctx.state.getMetadata('documents'),
-        {
-          messages: args.messages as ModelMessage[],
-          messagesSearchTag: args.messagesSearchTag,
-        },
-      );
+      const messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
+        messages: args.messages as ModelMessage[],
+        messagesSearchTag: args.messagesSearchTag,
+      });
       options.messages = convertToModelMessages(messages, {
         tools: options.tools,
       });
@@ -74,10 +60,7 @@ export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
     };
   }
 
-  private async handleGenerateText(
-    model: any,
-    options: any,
-  ): Promise<UIMessage<any, any>> {
+  private async handleGenerateText(model: any, options: any): Promise<UIMessage<any, any>> {
     const startTime = performance.now();
     try {
       const result = streamText({

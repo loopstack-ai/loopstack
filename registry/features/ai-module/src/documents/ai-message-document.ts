@@ -1,15 +1,11 @@
-import { BlockConfig, WithArguments } from '@loopstack/common';
-import { z } from 'zod';
 import { Injectable } from '@nestjs/common';
+import { z } from 'zod';
+import { BlockConfig, WithArguments } from '@loopstack/common';
 import { DocumentBase } from '@loopstack/core';
 
 const AiMessageDocumentSchema = z.object({
   id: z.string().optional(),
-  role: z.union([
-    z.literal('system'),
-    z.literal('user'),
-    z.literal('assistant'),
-  ]),
+  role: z.union([z.literal('system'), z.literal('user'), z.literal('assistant')]),
   metadata: z.any().optional(),
   parts: z.array(z.any()),
 });

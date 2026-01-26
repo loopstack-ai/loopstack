@@ -12,17 +12,12 @@ export interface AiProviderModelConfig {
 export class AiProviderModelHelperService {
   constructor(private readonly aiProviderRegistry: AiProviderRegistryService) {}
 
-  private getApiKey(
-    envApiKey: string | undefined,
-    providerName: string,
-  ): string {
+  private getApiKey(envApiKey: string | undefined, providerName: string): string {
     const defaultKey = `${providerName.toUpperCase()}_API_KEY`;
     const apiKey = envApiKey ? process.env[envApiKey] : process.env[defaultKey];
 
     if (!apiKey) {
-      throw new Error(
-        `No API key found! Please make sure to provide "${envApiKey ?? defaultKey}" in your .env file.`,
-      );
+      throw new Error(`No API key found! Please make sure to provide "${envApiKey ?? defaultKey}" in your .env file.`);
     }
 
     return apiKey;

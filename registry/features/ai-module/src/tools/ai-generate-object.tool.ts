@@ -1,17 +1,13 @@
+import { ModelMessage } from '@ai-sdk/provider-utils';
+import { GenerateObjectResult, convertToModelMessages, generateObject } from 'ai';
 import { z } from 'zod';
-import { ToolResult, BlockConfig, WithArguments } from '@loopstack/common';
-import {
-  convertToModelMessages,
-  generateObject,
-  GenerateObjectResult,
-} from 'ai';
+import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
 import { ToolBase, WorkflowBase } from '@loopstack/core';
+import { Block } from '@loopstack/core/dist/workflow-processor/abstract/block.abstract';
+import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
+import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
-import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
-import { Block } from '@loopstack/core/dist/workflow-processor/abstract/block.abstract';
-import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
-import { ModelMessage } from '@ai-sdk/provider-utils';
 
 export const AiGenerateObjectSchema = AiGenerateToolBaseSchema.extend({
   response: z.object({
@@ -36,11 +32,7 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
     super();
   }
 
-  async execute(
-    args: AiGenerateObjectArgsType,
-    ctx: WorkflowExecution,
-    parent: WorkflowBase,
-  ): Promise<ToolResult> {
+  async execute(args: AiGenerateObjectArgsType, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {
@@ -52,47 +44,32 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
     if (args.prompt) {
       options.prompt = args.prompt;
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(
-        ctx.state.getMetadata('documents'),
-        {
-          messages: args.messages as ModelMessage[],
-          messagesSearchTag: args.messagesSearchTag,
-        },
-      );
+      const messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
+        messages: args.messages as ModelMessage[],
+        messagesSearchTag: args.messagesSearchTag,
+      });
       options.messages = convertToModelMessages(messages);
     }
 
-    const document: Block | undefined = parent.getDocument(
-      args.response.document,
-    );
+    const document: Block | undefined = parent.getDocument(args.response.document);
     if (!document) {
-      throw new Error(
-        `Document with name "${args.response.document}" not found in tool execution context.`,
-      );
+      throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
     }
     const responseSchema = document.argsSchema;
     if (!responseSchema) {
-      throw new Error(
-        `AI object generation source document must have a schema.`,
-      );
+      throw new Error(`AI object generation source document must have a schema.`);
     }
 
     options.schema = responseSchema;
 
-    const response: GenerateObjectResult<any> = await this.handleGenerateObject(
-      model,
-      options,
-    );
+    const response: GenerateObjectResult<any> = await this.handleGenerateObject(model, options);
 
     return {
       data: response.object,
     };
   }
 
-  private async handleGenerateObject(
-    model: any,
-    options: any,
-  ): Promise<GenerateObjectResult<any>> {
+  private async handleGenerateObject(model: any, options: any): Promise<GenerateObjectResult<any>> {
     const startTime = performance.now();
     try {
       return generateObject({

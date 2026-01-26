@@ -2,17 +2,17 @@
   "name": "@loopstack/core-ui-module",
   "displayName": "Loopstack Core UI Module",
   "description": "A collection of tools for creating specific UI documents for interaction in the loopstack studio ",
+  "keywords": [
+    "core",
+    "loopstack",
+    "tool"
+  ],
   "version": "0.18.0-rc.0",
+  "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "keywords": [
-    "loopstack",
-    "tool",
-    "core"
-  ],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -31,9 +31,9 @@
     "@loopstack/common": "^0.18.0-rc.0",
     "@loopstack/contracts": "^0.18.0-rc.0",
     "@loopstack/core": "^0.18.0-rc.0",
-    "lodash": "^4.17.21",
-    "zod": "^3.24.1",
-    "zod-to-json-schema": "^3.25.0"
+    "lodash": "^4.17.23",
+    "zod": "^4.3.5",
+    "zod-to-json-schema": "^3.25.1"
   },
   "files": [
     "dist",
