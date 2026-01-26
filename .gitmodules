@@ -13,9 +13,6 @@
 [submodule "apps/dev-tools"]
 	path = apps/dev-tools
 	url = git@github.com:loopstack-ai/dev-tools.git
-[submodule "registry/examples/custom-tool-example-module"]
-	path = registry/examples/custom-tool-example-module
-	url = git@github.com:loopstack-ai/custom-tool-example-module.git
 [submodule "registry/examples/dynamic-routing-example-workflow"]
 	path = registry/examples/dynamic-routing-example-workflow
 	url = git@github.com:loopstack-ai/dynamic-routing-example-workflow.git
