@@ -2,7 +2,7 @@
   "name": "@loopstack/common",
   "displayName": "Loopstack Common Module",
   "description": "A collection of utils and dtos shared between nestjs modules",
-  "version": "0.18.0-rc.0",
+  "version": "0.18.0-rc.1",
   "license": "BSL",
   "author": {
     "name": "Jakob Klippel",
@@ -18,7 +18,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/contracts": "^0.18.0-rc.0",
+    "@loopstack/contracts": "^0.18.0-rc.1",
     "fast-json-stable-stringify": "^2.1.0",
     "murmurhash": "^2.0.1",
     "reflect-metadata": "^0.2.2",

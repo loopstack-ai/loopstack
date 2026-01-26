@@ -1,5 +1,12 @@
 # @loopstack/core
 
+## 0.18.0-rc.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.18.0-rc.1
+
 ## 0.18.0-rc.0
 
 ### Minor Changes

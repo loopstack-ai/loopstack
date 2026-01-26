@@ -1,5 +1,16 @@
 # @loopstack/app-template
 
+## 0.17.0-rc.2
+
+### Patch Changes
+
+- Updated dependencies [[`2673ea8`](https://github.com/loopstack-ai/loopstack/commit/2673ea8e9d16e871b7cc82e83bc6c65470c75ee4), [`7a4b01b`](https://github.com/loopstack-ai/loopstack/commit/7a4b01bc127cdb48ea2abcca94ad28c5ef1c8b88)]:
+  - @loopstack/create-chat-message-tool@0.18.0-rc.0
+  - @loopstack/cli-module@0.18.0-rc.1
+  - @loopstack/common@0.18.0-rc.1
+  - @loopstack/core@0.18.0-rc.1
+  - @loopstack/api@0.18.0-rc.1
+
 ## 0.17.0-rc.1
 
 ### Patch Changes
