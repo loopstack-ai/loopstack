@@ -41,8 +41,8 @@ export class MathSumTool extends ToolBase<MathSumArgs> {
 
   async execute(args: MathSumArgs): Promise<ToolResult<number>> {
     const sum = this.mathService.sum(args.a, args.b);
-    return {
+    return await Promise.resolve({
       data: sum,
-    };
+    });
   }
 }

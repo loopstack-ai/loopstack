@@ -28,8 +28,8 @@ export class CounterTool extends ToolBase {
 
   async execute(): Promise<ToolResult> {
     this.count++;
-    return {
+    return await Promise.resolve({
       data: this.count,
-    };
+    });
   }
 }
