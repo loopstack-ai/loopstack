@@ -7,49 +7,64 @@ import * as readline from 'readline';
 
 interface AddCommandOptions {
   dir?: string;
-  skipDeps?: boolean;
-  packageManager?: 'npm' | 'pnpm';
 }
 
 interface RegistryItem {
   name: string;
-  repositoryUrl: string;
   description?: string;
 }
 
 @Command({
   name: 'add',
-  arguments: '<item>',
+  arguments: '<package>',
   description: 'Add an item from the loopstack registry',
 })
 export class RegistryAddCommand extends CommandRunner {
   private readonly registryUrl = 'https://loopstack.ai/r/registry.json';
-  private readonly tempDir = '.loopstack/tmp';
 
   async run(inputs: string[], options: AddCommandOptions): Promise<void> {
-    const [item] = inputs;
+    const [packageArg] = inputs;
 
-    if (!item) {
-      console.error('Please specify an item to install');
-      console.log('Usage: loopstack add <item>');
+    if (!packageArg) {
+      console.error('Please specify a package to install');
+      console.log('Usage: loopstack add <package>');
       process.exit(1);
     }
 
-    const originalDir = process.cwd();
+    const packageName = this.parsePackageName(packageArg);
 
     try {
-      // Load registry and find item
-      const registryItem = await this.findRegistryItem(item);
+      // Validate package exists in registry
+      const registryItem = await this.findRegistryItem(packageName);
 
       if (!registryItem) {
-        console.error(`Item '${item}' not found in registry`);
+        console.error(`Package '${packageName}' not found in registry`);
         console.log(`Check available items at: ${this.registryUrl}`);
         process.exit(1);
       }
 
+      // Check if package is already a dependency in local package.json
+      if (this.isPackageInLocalPackageJson(packageName)) {
+        console.error(`Package '${packageName}' is already listed in package.json.`);
+        console.log(`Please uninstall it first: npm uninstall ${packageName}`);
+        process.exit(1);
+      }
+
+      // Install the npm package temporarily
+      console.log(`Installing ${packageArg}...`);
+      this.installPackage(packageArg);
+
+      // Locate the src directory in the installed package
+      const srcPath = this.getPackageSrcPath(packageName);
+
+      if (!fs.existsSync(srcPath)) {
+        console.error(`Package '${packageName}' does not contain a src directory (${srcPath})`);
+        process.exit(1);
+      }
+
       // Prompt for target directory if not provided
-      const targetDir = options.dir || (await this.promptForDirectory(item));
-      const fullTargetPath = path.resolve(originalDir, targetDir);
+      const targetDir = options.dir || (await this.promptForDirectory(packageName));
+      const fullTargetPath = path.resolve(process.cwd(), targetDir);
 
       // Check if directory already exists
       if (fs.existsSync(fullTargetPath)) {
@@ -57,48 +72,15 @@ export class RegistryAddCommand extends CommandRunner {
         process.exit(1);
       }
 
-      // Create temp directory
-      const tempId = `${item}-${Date.now()}`;
-      const tempPath = path.resolve(originalDir, this.tempDir, tempId);
+      // Copy src contents to target
+      fs.mkdirSync(fullTargetPath, { recursive: true });
+      this.copyRecursive(srcPath, fullTargetPath);
 
-      try {
-        fs.mkdirSync(tempPath, { recursive: true });
-      } catch {
-        console.error('Failed to create temp directory');
-        process.exit(1);
-      }
+      // Uninstall the package to clean up node_modules
+      this.uninstallPackage(packageName);
 
-      try {
-        // Clone to temp directory using the repo URL from registry
-        this.cloneItem(registryItem.repositoryUrl, tempPath);
-
-        // Check if src directory exists in temp
-        const tempSrcPath = path.join(tempPath, 'src');
-        const sourceToMove = fs.existsSync(tempSrcPath) ? tempSrcPath : tempPath;
-
-        // Copy to target
-        fs.mkdirSync(fullTargetPath, { recursive: true });
-        this.copyRecursive(sourceToMove, fullTargetPath);
-
-        // Handle dependencies
-        const packageJsonPath = path.join(tempPath, 'package.json');
-
-        if (fs.existsSync(packageJsonPath) && !options.skipDeps) {
-          await this.handleDependencies(packageJsonPath, originalDir, options.packageManager);
-        }
-
-        console.log(`\nInstalled to: ${targetDir}`);
-      } catch {
-        console.error('Failed to copy source');
-        console.log('Possible reasons:');
-        console.log('  - Item does not exist in registry');
-        console.log('  - Network connection issue');
-        console.log(`  - Invalid repo URL: ${registryItem.repositoryUrl}`);
-        process.exit(1);
-      } finally {
-        // Cleanup temp directory
-        this.cleanup(tempPath);
-      }
+      console.log(`\nInstalled to: ${targetDir}`);
+      process.exit(0);
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'An unknown error occurred');
       process.exit(1);
@@ -113,33 +95,54 @@ export class RegistryAddCommand extends CommandRunner {
     return val;
   }
 
-  @Option({
-    flags: '--skip-deps',
-    description: 'Skip dependency installation',
-  })
-  parseSkipDeps(): boolean {
-    return true;
-  }
+  /**
+   * Strips version constraint from package name.
+   * Examples:
+   *   @loopstack/core-ui-module@rc -> @loopstack/core-ui-module
+   *   @loopstack/core-ui-module@1.0.0 -> @loopstack/core-ui-module
+   *   lodash@4.17.21 -> lodash
+   *   lodash -> lodash
+   */
+  private parsePackageName(packageArg: string): string {
+    // Handle scoped packages (@scope/name@version)
+    if (packageArg.startsWith('@')) {
+      const withoutScope = packageArg.substring(1);
+      const slashIndex = withoutScope.indexOf('/');
 
-  @Option({
-    flags: '-pm, --package-manager <manager>',
-    description: 'Package manager to use (npm or pnpm)',
-  })
-  parsePackageManager(val: string): 'npm' | 'pnpm' {
-    if (val !== 'npm' && val !== 'pnpm') {
-      throw new Error('Package manager must be npm or pnpm');
+      if (slashIndex === -1) {
+        // Invalid scoped package, return as-is
+        return packageArg;
+      }
+
+      const scope = withoutScope.substring(0, slashIndex);
+      const rest = withoutScope.substring(slashIndex + 1);
+      const atIndex = rest.indexOf('@');
+
+      if (atIndex === -1) {
+        return packageArg;
+      }
+
+      return `@${scope}/${rest.substring(0, atIndex)}`;
     }
-    return val;
+
+    // Handle non-scoped packages (name@version)
+    const atIndex = packageArg.indexOf('@');
+
+    if (atIndex === -1) {
+      return packageArg;
+    }
+
+    return packageArg.substring(0, atIndex);
   }
 
-  private async findRegistryItem(itemName: string): Promise<RegistryItem | null> {
+  private async findRegistryItem(packageName: string): Promise<RegistryItem | null> {
     try {
       console.log('Loading registry...');
-      const response = await axios.get<RegistryItem[]>(`${this.registryUrl}?package=${itemName}`);
+      const response = await axios.get<RegistryItem[]>(`${this.registryUrl}?package=${packageName}`);
       const registry = response.data;
 
       // Search for item by name (case-insensitive)
-      const item = registry.find((entry) => entry.name.toLowerCase() === itemName.toLowerCase());
+      const item = registry.find((entry) => entry.name.toLowerCase() === packageName.toLowerCase());
 
       return item || null;
     } catch {
@@ -149,13 +152,61 @@ export class RegistryAddCommand extends CommandRunner {
     }
   }
 
-  private cloneItem(repoUrl: string, targetPath: string): void {
+  private isPackageInLocalPackageJson(packageName: string): boolean {
     try {
-      execSync(`npx degit ${repoUrl} "${targetPath}"`, {
+      const packageJsonPath = path.join(process.cwd(), 'package.json');
+      if (!fs.existsSync(packageJsonPath)) {
+        return false;
+      }
+      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as {
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      };
+      return !!(pkg.dependencies?.[packageName] || pkg.devDependencies?.[packageName]);
+    } catch {
+      return false;
+    }
+  }
+
+  private installPackage(packageArg: string): void {
+    try {
+      execSync(`npm install --no-save --package-lock=false ${packageArg}`, {
         stdio: 'inherit',
       });
     } catch {
-      throw new Error(`Failed to clone from ${repoUrl}`);
+      throw new Error(`Failed to install package: ${packageArg}`);
+    }
+  }
+
+  private uninstallPackage(packageName: string): void {
+    try {
+      execSync(`npm uninstall ${packageName}`, {
+        stdio: 'pipe',
+      });
+    } catch {
+      // Ignore uninstall errors - the source is already copied
+    }
+  }
+
+  private getPackageSrcPath(packageName: string): string {
+    try {
+      // Use npm ls --parseable to get the actual installed package path.
+      // This reliably finds the package regardless of hoisting in monorepos.
+      const result = execSync(`npm ls ${packageName} --parseable`, {
+        encoding: 'utf-8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+      const paths = result.trim().split('\n').filter(Boolean);
+
+      if (paths.length === 0) {
+        throw new Error('Package not found');
+      }
+
+      // Use the first path (top-level installation)
+      const packageRoot = paths[0];
+      return path.join(packageRoot, 'src');
+    } catch {
+      throw new Error(`Could not resolve package '${packageName}'. Make sure it was installed correctly.`);
     }
   }
 
@@ -175,72 +226,10 @@ export class RegistryAddCommand extends CommandRunner {
     }
   }
 
-  private cleanup(tempPath: string): void {
-    try {
-      if (fs.existsSync(tempPath)) {
-        fs.rmSync(tempPath, { recursive: true, force: true });
-      }
-    } catch {
-      // Ignore cleanup errors
-    }
-  }
-
-  private async handleDependencies(
-    packageJsonPath: string,
-    installDir: string,
-    packageManager?: 'npm' | 'pnpm',
-  ): Promise<void> {
-    const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as {
-      dependencies?: Record<string, string>;
-    };
-
-    const deps: Record<string, string> = pkg.dependencies ?? {};
-
-    if (Object.keys(deps).length === 0) {
-      return;
-    }
-
-    console.log('\nDependencies:');
-    Object.entries(deps).forEach(([name, version]) => {
-      console.log(`  ${name}@${String(version)}`);
-    });
-
-    const shouldAdd = await this.promptForAddDependencies();
-
-    if (shouldAdd) {
-      const pm = packageManager || (await this.promptForPackageManager());
-
-      try {
-        process.chdir(installDir);
-
-        // Add dependencies
-        const depsList = Object.entries(deps).map(([name, version]) => `${name}@${String(version)}`);
-
-        if (depsList.length > 0) {
-          console.log('\nAdding dependencies to package.json...');
-          const command = this.getAddCommand(pm, depsList.join(' '), false);
-          execSync(command, { stdio: 'inherit' });
-        }
-
-        console.log('\nDependencies added to package.json');
-        console.log(`Run '${this.getInstallCommand(pm)}' to install them`);
-      } catch {
-        console.warn('Failed to add dependencies');
-        const packages = Object.entries(deps)
-          .map(([name, version]) => `${name}@${String(version)}`)
-          .join(' ');
-        console.log(`You can add them manually: npm install --save ${packages} --package-lock-only`);
-      }
-    } else {
-      const packages = Object.entries(deps)
-        .map(([name, version]) => `${name}@${String(version)}`)
-        .join(' ');
-      console.log(`\nTo add dependencies: npm install --save ${packages} --package-lock-only`);
-    }
-  }
-
-  private async promptForDirectory(item: string): Promise<string> {
-    const defaultDir = `src/${item}`;
+  private async promptForDirectory(packageName: string): Promise<string> {
+    // Extract just the package name without scope for default directory
+    const simpleName = packageName.startsWith('@') ? packageName.split('/')[1] || packageName : packageName;
+    const defaultDir = `src/${simpleName}`;
 
     const rl = readline.createInterface({
       input: process.stdin,
@@ -254,96 +243,5 @@ export class RegistryAddCommand extends CommandRunner {
         resolve(dir);
       });
     });
-  }
-
-  private async promptForAddDependencies(): Promise<boolean> {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-
-    return new Promise((resolve) => {
-      rl.question('\nAdd dependencies to package.json? [Y/n]: ', (answer) => {
-        rl.close();
-        const response = answer.trim().toLowerCase();
-        resolve(response === '' || response === 'y' || response === 'yes');
-      });
-    });
-  }
-
-  private async promptForPackageManager(): Promise<'npm' | 'pnpm'> {
-    const detectedPM = this.detectPackageManager();
-    const defaultPM = detectedPM || 'npm';
-
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-
-    return new Promise((resolve) => {
-      const prompt = detectedPM
-        ? `Package manager (detected: ${detectedPM}) [${defaultPM}]: `
-        : `Package manager [${defaultPM}]: `;
-
-      rl.question(prompt, (answer) => {
-        rl.close();
-        const pm = answer.trim().toLowerCase() || defaultPM;
-
-        if (pm !== 'npm' && pm !== 'pnpm') {
-          console.log(`WARNING: Unsupported package manager '${pm}', using ${defaultPM}`);
-          resolve(defaultPM);
-        } else {
-          resolve(pm);
-        }
-      });
-    });
-  }
-
-  private detectPackageManager(): 'npm' | 'pnpm' | null {
-    let currentDir = process.cwd();
-    const root = path.parse(currentDir).root;
-
-    while (currentDir !== root) {
-      if (fs.existsSync(path.join(currentDir, 'pnpm-lock.yaml'))) {
-        return 'pnpm';
-      }
-      if (fs.existsSync(path.join(currentDir, 'package-lock.json'))) {
-        return 'npm';
-      }
-
-      currentDir = path.dirname(currentDir);
-    }
-
-    // Check which package managers are available
-    if (this.isPackageManagerAvailable('pnpm')) {
-      return 'pnpm';
-    }
-
-    return null;
-  }
-
-  private isPackageManagerAvailable(pm: string): boolean {
-    try {
-      execSync(`${pm} --version`, { stdio: 'pipe' });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  private getAddCommand(pm: 'npm' | 'pnpm', packages: string, isDev: boolean): string {
-    if (pm === 'npm') {
-      const flag = isDev ? '--save-dev' : '--save';
-      return `npm install ${flag} ${packages} --package-lock-only --ignore-scripts`;
-    } else if (pm === 'pnpm') {
-      const flag = isDev ? '--save-dev' : '--save-prod';
-      return `pnpm add ${packages} ${flag} --lockfile-only --ignore-scripts`;
-    }
-
-    return `npm install --save ${packages} --package-lock-only`;
-  }
-
-  private getInstallCommand(pm: 'npm' | 'pnpm'): string {
-    return pm === 'npm' ? 'npm install' : 'pnpm install';
   }
 }

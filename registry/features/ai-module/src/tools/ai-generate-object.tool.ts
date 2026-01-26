@@ -1,0 +1,91 @@
+import { ModelMessage } from '@ai-sdk/provider-utils';
+import { GenerateObjectResult, LanguageModel, generateObject } from 'ai';
+import { z } from 'zod';
+import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
+import { ToolBase, WorkflowBase } from '@loopstack/core';
+import { Block } from '@loopstack/core/dist/workflow-processor/abstract/block.abstract';
+import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
+import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
+import { AiMessagesHelperService } from '../services';
+import { AiProviderModelHelperService } from '../services';
+
+export const AiGenerateObjectSchema = AiGenerateToolBaseSchema.extend({
+  response: z.object({
+    id: z.string().optional(),
+    document: z.string(),
+  }),
+}).strict();
+
+export type AiGenerateObjectArgsType = z.infer<typeof AiGenerateObjectSchema>;
+
+@BlockConfig({
+  config: {
+    description: 'Generates a structured object using a LLM',
+  },
+})
+@WithArguments(AiGenerateObjectSchema)
+export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
+  constructor(
+    private readonly aiMessagesHelperService: AiMessagesHelperService,
+    private readonly aiProviderModelHelperService: AiProviderModelHelperService,
+  ) {
+    super();
+  }
+
+  async execute(args: AiGenerateObjectArgsType, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
+    const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
+
+    const options: {
+      prompt?: string;
+      messages?: ModelMessage[];
+      schema?: z.ZodSchema;
+    } = {};
+
+    if (args.prompt) {
+      options.prompt = args.prompt;
+    } else {
+      options.messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
+        messages: args.messages as ModelMessage[],
+        messagesSearchTag: args.messagesSearchTag,
+      });
+    }
+
+    const document: Block | undefined = parent.getDocument(args.response.document);
+    if (!document) {
+      throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
+    }
+    const responseSchema = document.argsSchema;
+    if (!responseSchema) {
+      throw new Error(`AI object generation source document must have a schema.`);
+    }
+
+    options.schema = responseSchema;
+
+    const response = await this.handleGenerateObject(model, options);
+
+    return {
+      data: response.object,
+    };
+  }
+
+  private async handleGenerateObject(
+    model: LanguageModel,
+    options: {
+      prompt?: string;
+      messages?: ModelMessage[];
+      schema?: z.ZodSchema;
+    },
+  ): Promise<GenerateObjectResult<unknown>> {
+    const startTime = performance.now();
+    try {
+      return generateObject({
+        model,
+        ...options,
+      } as Parameters<typeof generateObject>[0]);
+    } catch (error) {
+      const errorResponseTime = performance.now() - startTime;
+      console.error(`Request failed after ${errorResponseTime}ms:`, error);
+      throw error;
+    }
+  }
+}

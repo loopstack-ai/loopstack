@@ -18,8 +18,5 @@
     "@loopstack/registry-module-template": "0.17.0",
     "@loopstack/core-ui-module": "0.17.0"
   },
-  "changesets": [
-    "strong-drinks-camp",
-    "tame-shrimps-glow"
-  ]
+  "changesets": ["strong-drinks-camp", "tame-shrimps-glow"]
 }

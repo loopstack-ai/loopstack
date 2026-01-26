@@ -18,9 +18,9 @@
     "build": "tsc -b && vite build",
     "build:prod": "tsc -b && vite build --mode prod",
     "dev": "tsc -b && vite",
+    "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "vite preview",
-    "format": "prettier --write .",
     "test": "vitest run"
   },
   "dependencies": {

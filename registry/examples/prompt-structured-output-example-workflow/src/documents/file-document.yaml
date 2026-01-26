@@ -1,0 +1,18 @@
+type: document
+
+ui:
+  form:
+    order:
+      - filename
+      - description
+      - code
+    properties:
+      filename:
+        title: File Name
+        readonly: true
+      description:
+        title: Description
+        readonly: true
+      code:
+        title: Code
+        widget: code-view

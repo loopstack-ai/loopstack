@@ -170,7 +170,8 @@ export class CreateDocument extends ToolBase {
     const documentData: Partial<DocumentEntity> = {
       ...params.skeleton,
       content: params.content,
-      schema: params.schema,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      schema: params.schema as any,
       messageId: params.messageId,
       blockName: params.blockName,
     };

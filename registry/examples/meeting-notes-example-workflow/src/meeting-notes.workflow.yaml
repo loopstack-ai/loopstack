@@ -1,0 +1,79 @@
+title: 'Human-in-the-loop Demo (Meeting Notes Optimizer)'
+
+description: 'A demo workflow to demonstrate how to use AI to structure meeting notes.'
+
+ui:
+  form:
+    properties:
+      inputText:
+        title: 'Text'
+        widget: 'textarea'
+
+transitions:
+  - id: create_form
+    from: start
+    to: waiting_for_response
+    call:
+      - id: form
+        tool: createDocument
+        args:
+          id: input
+          document: meetingNotesDocument
+          update:
+            content:
+              text: |
+                Unstructured Notes:
+
+                {{ args.inputText }}
+
+  - id: user_response
+    from: waiting_for_response
+    to: response_received
+    trigger: manual
+    call:
+      - id: create_response
+        tool: createDocument
+        args:
+          id: input
+          document: meetingNotesDocument
+          update:
+            content: ${ transition.payload }
+        assign:
+          meetingNotes: ${ result.data.content }
+
+  - id: optimize_notes
+    from: response_received
+    to: notes_optimized
+    call:
+      - id: prompt
+        tool: aiGenerateDocument
+        args:
+          llm:
+            provider: openai
+            model: gpt-4o
+          response:
+            id: final
+            document: optimizedNotesDocument
+          prompt: |
+            Extract all information from the provided meeting notes into the structured document.
+
+            <Meeting Notes>
+            {{ meetingNotes.text }}
+            </Meeting Notes>
+        assign:
+          optimizedNotes: ${ result.data.content }
+
+  - id: confirm
+    from: notes_optimized
+    to: end
+    trigger: manual
+    call:
+      - id: create_response
+        tool: createDocument
+        args:
+          id: final
+          document: optimizedNotesDocument
+          update:
+            content: ${ transition.payload }
+        assign:
+          optimizedNotes: ${ result.data.content }

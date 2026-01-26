@@ -1,0 +1,50 @@
+{
+  "name": "@loopstack/custom-tool-example-module",
+  "displayName": "Loopstack Custom Tool Example Module",
+  "description": "A complete example demonstrating how to implement and use a custom tool in a workflow",
+  "version": "0.17.0",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "keywords": [
+    "example",
+    "workflow",
+    "tool",
+    "custom",
+    "integration"
+  ],
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "^0.18.0-rc.0",
+    "@loopstack/core": "^0.18.0-rc.0",
+    "@loopstack/create-chat-message-tool": "^0.17.0",
+    "@nestjs/common": "^11.1.12",
+    "zod": "^4.3.5"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testTimeout": 10000,
+    "forceExit": true,
+    "maxWorkers": 1
+  }
+}

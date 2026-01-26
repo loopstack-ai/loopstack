@@ -1,0 +1,62 @@
+title: 'LLM Tool Calling Example (Berlin Weather)'
+
+description: An example workflow that demonstrates how to use an LLM to call external tools and handle their responses.
+
+transitions:
+  - id: greeting
+    from: start
+    to: ready
+    call:
+      - tool: createDocument
+        args:
+          document: aiMessageDocument
+          update:
+            content:
+              role: user
+              parts:
+                - type: text
+                  text: How is the weather in Berlin?
+
+  - id: llm_turn
+    from: ready
+    to: prompt_executed
+    call:
+      - tool: aiGenerateText
+        args:
+          llm:
+            provider: openai
+            model: gpt-4o
+          messagesSearchTag: message
+          tools:
+            - getWeather
+        assign:
+          llmResponse: ${ result.data }
+
+      - tool: createDocument
+        args:
+          id: ${ llmResponse.id }
+          document: aiMessageDocument
+          update:
+            content: ${ llmResponse }
+
+  - id: route_with_tool_calls
+    from: prompt_executed
+    to: ready
+    if: '{{ isToolCall llmResponse }}'
+    call:
+      - tool: delegateToolCall
+        args:
+          message: ${ llmResponse }
+        assign:
+          toolCallResult: ${ result.data }
+
+      - tool: createDocument
+        args:
+          id: ${ toolCallResult.id }
+          document: aiMessageDocument
+          update:
+            content: ${ toolCallResult }
+
+  - id: route_without_tool_calls
+    from: prompt_executed
+    to: end

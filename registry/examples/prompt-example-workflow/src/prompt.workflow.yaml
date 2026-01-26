@@ -1,0 +1,33 @@
+title: 'Simple Prompt Example (Write a haiku)'
+description: An example workflow that demonstrates how to use a prompt to generate a haiku about a given subject using an LLM.
+
+ui:
+  form:
+    properties:
+      subject:
+        title: 'What should the haiku be about?'
+
+transitions:
+  - id: start
+    from: start
+    to: prompt_executed
+    call:
+      - id: execute_prompt
+        tool: aiGenerateText
+        args:
+          llm:
+            provider: openai
+            model: gpt-4o
+          prompt: Write a haiku about {{ args.subject }}
+        assign:
+          llmResponse: ${ result.data }
+
+  - id: add_response
+    from: prompt_executed
+    to: end
+    call:
+      - tool: createDocument
+        args:
+          document: aiMessageDocument
+          update:
+            content: ${ llmResponse }

@@ -1,0 +1,26 @@
+title: Workflow State
+
+transitions:
+  - id: create_some_data
+    from: start
+    to: end
+    call:
+      # Create test data and assign the result to the property "message"
+      - id: say_hello
+        tool: createValue
+        args:
+          input: 'Hello Again.'
+        assign:
+          message: ${ result.data }
+
+      # Access the data using the custom property
+      - tool: createChatMessage
+        args:
+          role: 'assistant'
+          content: 'Data from state: {{ message }}'
+
+      # Access the data using a helper method of the workflow
+      - tool: createChatMessage
+        args:
+          role: 'assistant'
+          content: 'Use workflow helper method: {{ messageInUpperCase message }}'

@@ -1,0 +1,69 @@
+{
+  "name": "@loopstack/ai-module",
+  "displayName": "Loopstack Ai Module",
+  "description": "A collection of useful tools for performing AI actions using model provider APIs such as OpenAI and Anthropic",
+  "keywords": [
+    "ai",
+    "anthropic",
+    "llm",
+    "loopstack",
+    "openai",
+    "tool"
+  ],
+  "version": "0.17.4",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.23",
+    "@ai-sdk/openai": "^3.0.19",
+    "@ai-sdk/provider-utils": "^4.0.9",
+    "@loopstack/common": "^0.18.0-rc.0",
+    "@loopstack/core": "^0.18.0-rc.0",
+    "@loopstack/core-ui-module": "^0.18.0-rc.0",
+    "@nestjs/common": "^11.1.12",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.1.12",
+    "ai": "^6.0.48",
+    "lodash": "^4.17.23",
+    "zod": "^4.3.5"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1
+  }
+}

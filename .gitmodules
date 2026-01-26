@@ -13,39 +13,3 @@
 [submodule "apps/dev-tools"]
 	path = apps/dev-tools
 	url = git@github.com:loopstack-ai/dev-tools.git
-[submodule "registry/features/ai-module"]
-	path = registry/features/ai-module
-	url = git@github.com:loopstack-ai/ai-module.git
-[submodule "registry/tools/create-value-tool"]
-	path = registry/tools/create-value-tool
-	url = git@github.com:loopstack-ai/create-value-tool.git
-[submodule "registry/tools/create-chat-message-tool"]
-	path = registry/tools/create-chat-message-tool
-	url = git@github.com:loopstack-ai/create-chat-message-tool.git
-[submodule "registry/examples/chat-example-workflow"]
-	path = registry/examples/chat-example-workflow
-	url = git@github.com:loopstack-ai/chat-example-workflow.git
-[submodule "registry/examples/accessing-tool-results-example-workflow"]
-	path = registry/examples/accessing-tool-results-example-workflow
-	url = git@github.com:loopstack-ai/accessing-tool-results-example-workflow.git
-[submodule "registry/examples/custom-tool-example-module"]
-	path = registry/examples/custom-tool-example-module
-	url = git@github.com:loopstack-ai/custom-tool-example-module.git
-[submodule "registry/examples/dynamic-routing-example-workflow"]
-	path = registry/examples/dynamic-routing-example-workflow
-	url = git@github.com:loopstack-ai/dynamic-routing-example-workflow.git
-[submodule "registry/examples/meeting-notes-example-workflow"]
-	path = registry/examples/meeting-notes-example-workflow
-	url = git@github.com:loopstack-ai/meeting-notes-example-workflow.git
-[submodule "registry/examples/prompt-example-workflow"]
-	path = registry/examples/prompt-example-workflow
-	url = git@github.com:loopstack-ai/prompt-example-workflow.git
-[submodule "registry/examples/prompt-structured-output-example-workflow"]
-	path = registry/examples/prompt-structured-output-example-workflow
-	url = git@github.com:loopstack-ai/prompt-structured-output-example-workflow.git
-[submodule "registry/examples/tool-call-example-workflow"]
-	path = registry/examples/tool-call-example-workflow
-	url = git@github.com:loopstack-ai/tool-call-example-workflow.git
-[submodule "registry/examples/workflow-state-example-workflow"]
-	path = registry/examples/workflow-state-example-workflow
-	url = git@github.com:loopstack-ai/workflow-state-example-workflow.git
