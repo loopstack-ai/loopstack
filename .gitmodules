@@ -13,9 +13,6 @@
 [submodule "apps/dev-tools"]
 	path = apps/dev-tools
 	url = git@github.com:loopstack-ai/dev-tools.git
-[submodule "registry/tools/create-chat-message-tool"]
-	path = registry/tools/create-chat-message-tool
-	url = git@github.com:loopstack-ai/create-chat-message-tool.git
 [submodule "registry/examples/chat-example-workflow"]
 	path = registry/examples/chat-example-workflow
 	url = git@github.com:loopstack-ai/chat-example-workflow.git
