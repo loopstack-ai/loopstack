@@ -19,9 +19,9 @@ export class GetWeather extends ToolBase {
     // Wait for 3 seconds for testing
     // await new Promise(resolve => setTimeout(resolve, 3000));
 
-    return {
+    return await Promise.resolve({
       type: 'text',
       data: 'Mostly sunny, 14C, rain in the afternoon.',
-    };
+    });
   }
 }

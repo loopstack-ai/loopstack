@@ -22,7 +22,7 @@ export class ToolCallWorkflow extends WorkflowBase {
   @Document() aiMessageDocument: AiMessageDocument;
 
   @Helper()
-  isToolCall(message: any) {
-    return message?.parts.some((part: any) => part.type.startsWith('tool-'));
+  isToolCall(message: { parts?: { type: string }[] } | null | undefined): boolean {
+    return message?.parts?.some((part) => part.type.startsWith('tool-')) ?? false;
   }
 }
