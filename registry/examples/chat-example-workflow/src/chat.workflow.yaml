@@ -1,0 +1,72 @@
+title: "LLM Chat Example (Assistant Bob)"
+
+description: An example workflow that demonstrates how to create a simple chat interface. Messages are processed by an LLM to generate responses.
+
+ui:
+  actions:
+    - type: custom
+      transition: user_message
+      widget: prompt-input
+      enabledWhen:
+        - ready
+      options:
+        label: Send Message
+
+transitions:
+  - id: greeting
+    from: start
+    to: ready
+    call:
+      - tool: createDocument
+        args:
+          document: aiMessageDocument
+          update:
+            meta:
+              hidden: true
+            content:
+              role: system
+              parts:
+                - type: text
+                  text: |
+                    You are a helpful assistant named Bob.
+                    Always tell the user your name.
+                    Use available tools to help the user with their requests.
+  - id: prompt
+    from: ready
+    to: prompt_executed
+    call:
+      - id: execute_prompt
+        tool: aiGenerateText
+        args:
+          llm:
+            provider: openai
+            model: gpt-4o
+          messagesSearchTag: message
+        assign:
+          llmResponse: ${ result.data }
+
+  - id: add_response
+    from: prompt_executed
+    to: waiting_for_user
+    call:
+      - tool: createDocument
+        args:
+          document: aiMessageDocument
+          update:
+            content: ${ llmResponse }
+
+  - id: user_message
+    from: waiting_for_user
+    to: ready
+    trigger: manual
+    call:
+      - id: prompt_message
+        tool: createDocument
+        args:
+          document: aiMessageDocument
+          update:
+            content:
+              role: user
+              parts:
+                - type: text
+                  text: ${ transition.payload }

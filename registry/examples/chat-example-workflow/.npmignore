@@ -1,0 +1,5 @@
+src/
+test/
+eslint.config.mjs
+nest-cli.json
+tsconfig.json
