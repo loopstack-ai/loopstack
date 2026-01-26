@@ -1,4 +1,5 @@
 # @loopstack/create-chat-message-tool
+
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
 
 This module provides a tool for creating chat messages within workflows, enabling conversational interfaces and message-based interactions.
@@ -59,8 +60,8 @@ Add `CreateChatMessageModule` to your `default.module.ts` (included in the skele
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
-import { DefaultWorkspace } from './default.workspace';
 import { CreateChatMessageModule } from './create-chat-message-tool';
+import { DefaultWorkspace } from './default.workspace';
 
 @Module({
   imports: [LoopCoreModule, CoreUiModule, CreateChatMessageModule],
@@ -75,20 +76,18 @@ Inject the tool in your workflow class using the @Tool() decorator:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
+import { z } from 'zod';
 import { BlockConfig, Tool, WithState } from '@loopstack/common';
 import { WorkflowBase } from '@loopstack/core';
 import { CreateChatMessage } from './create-chat-message-tool';
-import { z } from 'zod';
 
 @Injectable()
 @BlockConfig({
   configFile: __dirname + '/my.workflow.yaml',
 })
 export class MyWorkflow extends WorkflowBase {
-  
   // Tools
   @Tool() createChatMessage: CreateChatMessage;
-  
 }
 ```
 
