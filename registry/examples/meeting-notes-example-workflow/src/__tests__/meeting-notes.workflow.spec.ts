@@ -14,7 +14,6 @@ describe('MeetingNotesWorkflow', () => {
   let processor: WorkflowProcessorService;
 
   let mockCreateDocument: ToolMock;
-  let mockAiGenerateDocument: ToolMock;
 
   const mockInitialNotes = {
     text: `
@@ -38,7 +37,6 @@ describe('MeetingNotesWorkflow', () => {
     processor = module.get(WorkflowProcessorService);
 
     mockCreateDocument = module.get(CreateDocument);
-    mockAiGenerateDocument = module.get(AiGenerateDocument);
   });
 
   afterEach(async () => {
