@@ -5,6 +5,14 @@ import { WorkflowMetadataInterface } from '@loopstack/core/dist/workflow-process
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { CreateValue } from '@loopstack/create-value-tool';
 
+interface WorkflowToolsMetadata {
+  create_some_data: {
+    say_hello: {
+      data: string;
+    };
+  };
+}
+
 @Injectable()
 @BlockConfig({
   configFile: __dirname + '/workflow-tool-results.workflow.yaml',
@@ -15,6 +23,7 @@ export class WorkflowToolResultsWorkflow extends WorkflowBase {
 
   @Helper()
   extractMessage(metadata: WorkflowMetadataInterface): string {
-    return metadata.tools.create_some_data.say_hello.data;
+    const tools = metadata.tools as unknown as WorkflowToolsMetadata;
+    return tools.create_some_data.say_hello.data;
   }
 }
