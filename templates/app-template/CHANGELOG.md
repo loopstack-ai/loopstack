@@ -1,5 +1,12 @@
 # @loopstack/app-template
 
+## 0.17.0-rc.1
+
+### Patch Changes
+
+- Updated dependencies [[`4ee0af1`](https://github.com/loopstack-ai/loopstack/commit/4ee0af1536e7802eb9d69a788c10184e3c5a7a11)]:
+  - @loopstack/core-ui-module@0.18.0-rc.0
+
 ## 0.17.0-rc.0
 
 ### Minor Changes
