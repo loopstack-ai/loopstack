@@ -46,11 +46,11 @@ type InputType = z.infer<typeof InputSchema>;
 export class CreateValue extends ToolBase<{ input: InputType }> {
   protected readonly logger = new Logger(CreateValue.name);
 
-  async execute(args: { input: InputType }): Promise<ToolResult> {
+  execute(args: { input: InputType }): Promise<ToolResult> {
     this.logger.debug(`Created value: ${JSON.stringify(args.input)}`);
 
-    return {
+    return Promise.resolve({
       data: args.input,
-    };
+    });
   }
 }
