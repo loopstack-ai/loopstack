@@ -1,5 +1,11 @@
 # @loopstack/loopstack-studio
 
+## 0.18.2
+
+### Patch Changes
+
+- [#31](https://github.com/loopstack-ai/loopstack/pull/31) [`e2db2f1`](https://github.com/loopstack-ai/loopstack/commit/e2db2f196de072c8f0d1b51ebca21491c80e7499) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Revert nginx config
+
 ## 0.18.1
 
 ### Patch Changes
