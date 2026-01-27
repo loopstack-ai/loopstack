@@ -1,5 +1,17 @@
 # @loopstack/app-template
 
+## 0.17.2
+
+### Patch Changes
+
+- [#29](https://github.com/loopstack-ai/loopstack/pull/29) [`f147ac9`](https://github.com/loopstack-ai/loopstack/commit/f147ac9f2cc107382731f9dad616e08e0e7fe3b2) Thanks [@jakobklippel](https://github.com/jakobklippel)! - revert nginx, installer remove uninstall step, update templates
+
+- Updated dependencies [[`f147ac9`](https://github.com/loopstack-ai/loopstack/commit/f147ac9f2cc107382731f9dad616e08e0e7fe3b2)]:
+  - @loopstack/cli-module@0.18.1
+  - @loopstack/common@0.18.1
+  - @loopstack/core@0.18.1
+  - @loopstack/api@0.18.1
+
 ## 0.17.1
 
 ### Patch Changes
