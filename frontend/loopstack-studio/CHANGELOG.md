@@ -1,5 +1,18 @@
 # @loopstack/loopstack-studio
 
+## 0.18.0-rc.1
+
+### Patch Changes
+
+- [#21](https://github.com/loopstack-ai/loopstack/pull/21) [`655e909`](https://github.com/loopstack-ai/loopstack/commit/655e909944abaa8645a7cd1d2ca2354cdf6a1a45) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add workflow debug view
+
+- [#21](https://github.com/loopstack-ai/loopstack/pull/21) [`4bfe36e`](https://github.com/loopstack-ai/loopstack/commit/4bfe36e6ad0e47b26c756392daf6e3d0bd3ddb2d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - refactor(loopstack-studio): remove animations in workflow visualisation
+
+- [#21](https://github.com/loopstack-ai/loopstack/pull/21) [`e556176`](https://github.com/loopstack-ai/loopstack/commit/e5561769b365218f1ffdc890b887e7b607d06101) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix various bugs, Replace zod to schema package, fic cli npm install
+
+- Updated dependencies []:
+  - @loopstack/contracts@0.18.0-rc.2
+
 ## 0.18.0-rc.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # create-loopstack-app
 
+## 0.16.0-rc.3
+
+### Patch Changes
+
+- [#21](https://github.com/loopstack-ai/loopstack/pull/21) [`e556176`](https://github.com/loopstack-ai/loopstack/commit/e5561769b365218f1ffdc890b887e7b607d06101) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix various bugs, Replace zod to schema package, fic cli npm install
+
 ## 0.16.0-rc.2
 
 ### Minor Changes
