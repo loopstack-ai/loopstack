@@ -31,7 +31,7 @@ services:
     image: ghcr.io/loopstack-ai/loopstack-studio:${LOOPSTACK_STUDIO_VERSION}
     pull_policy: always
     ports:
-      - '3000:3000'
+      - '3000:80'
     restart: unless-stopped
     networks:
       - monorepo-network
