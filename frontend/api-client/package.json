@@ -8,7 +8,7 @@
     "openapi-generator",
     "typescript"
   ],
-  "version": "0.18.0-rc.0",
+  "version": "0.18.0",
   "repository": "GIT_USER_ID/GIT_REPO_ID.git",
   "license": "Unlicense",
   "author": "OpenAPI-Generator Contributors",

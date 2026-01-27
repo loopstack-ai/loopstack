@@ -1,5 +1,21 @@
 # create-loopstack-app
 
+## 0.16.0
+
+### Minor Changes
+
+- [#16](https://github.com/loopstack-ai/loopstack/pull/16) [`dc7d292`](https://github.com/loopstack-ai/loopstack/commit/dc7d292775e78c94d1de4a0bfddc10d257ddd435) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix tag
+
+- [#19](https://github.com/loopstack-ai/loopstack/pull/19) [`0cb3f6b`](https://github.com/loopstack-ai/loopstack/commit/0cb3f6b46b8620d013f1513579d771412ad8457e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - bump
+
+- [#8](https://github.com/loopstack-ai/loopstack/pull/8) [`3fd1db5`](https://github.com/loopstack-ai/loopstack/commit/3fd1db5d0de8ad26e3e22348f7f1593024a74273) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Test Release
+
+- [#23](https://github.com/loopstack-ai/loopstack/pull/23) [`db42541`](https://github.com/loopstack-ai/loopstack/commit/db4254180c2f01d985104d47da6d49aca96112a0) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Use github api to fetch latest release
+
+### Patch Changes
+
+- [#21](https://github.com/loopstack-ai/loopstack/pull/21) [`e556176`](https://github.com/loopstack-ai/loopstack/commit/e5561769b365218f1ffdc890b887e7b607d06101) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix various bugs, Replace zod to schema package, fic cli npm install
+
 ## 0.16.0-rc.3
 
 ### Patch Changes

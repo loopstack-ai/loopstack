@@ -1,5 +1,19 @@
 # @loopstack/meeting-notes-example-workflow
 
+## 0.18.0
+
+### Minor Changes
+
+- [#13](https://github.com/loopstack-ai/loopstack/pull/13) [`13ab1a7`](https://github.com/loopstack-ai/loopstack/commit/13ab1a792a12bc46e0a21cf1ac038a7e69c566df) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Added from external repository
+
+### Patch Changes
+
+- Updated dependencies [[`eea1b9f`](https://github.com/loopstack-ai/loopstack/commit/eea1b9ff10eaf8eda2a1bd4c2042148f964d5a39), [`e556176`](https://github.com/loopstack-ai/loopstack/commit/e5561769b365218f1ffdc890b887e7b607d06101), [`4ee0af1`](https://github.com/loopstack-ai/loopstack/commit/4ee0af1536e7802eb9d69a788c10184e3c5a7a11), [`3fd1db5`](https://github.com/loopstack-ai/loopstack/commit/3fd1db5d0de8ad26e3e22348f7f1593024a74273)]:
+  - @loopstack/ai-module@0.18.0
+  - @loopstack/core-ui-module@0.18.0
+  - @loopstack/core@0.18.0
+  - @loopstack/common@0.18.0
+
 ## 0.18.0-rc.0
 
 ### Minor Changes

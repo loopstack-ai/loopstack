@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/app-template",
-  "version": "0.17.0-rc.2",
+  "version": "0.17.0",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -20,12 +20,12 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@loopstack/api": "^0.18.0-rc.1",
-    "@loopstack/cli-module": "^0.18.0-rc.1",
-    "@loopstack/common": "^0.18.0-rc.1",
-    "@loopstack/core": "^0.18.0-rc.1",
-    "@loopstack/core-ui-module": "^0.18.0-rc.0",
-    "@loopstack/create-chat-message-tool": "^0.18.0-rc.0",
+    "@loopstack/api": "^0.18.0",
+    "@loopstack/cli-module": "^0.18.0",
+    "@loopstack/common": "^0.18.0",
+    "@loopstack/core": "^0.18.0",
+    "@loopstack/core-ui-module": "^0.18.0",
+    "@loopstack/create-chat-message-tool": "^0.18.0",
     "@nestjs/common": "^11.1.12",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.12",
