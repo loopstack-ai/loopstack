@@ -28,14 +28,13 @@ on:
         required: false
         type: string
 
-permissions:
-  contents: read
-  packages: write
-
 jobs:
   publish:
     name: 'Build & Publish'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
