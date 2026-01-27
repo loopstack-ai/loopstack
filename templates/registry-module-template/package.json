@@ -3,7 +3,7 @@
   "displayName": "",
   "description": "",
   "keywords": [],
-  "version": "0.18.0-rc.0",
+  "version": "0.18.0",
   "private": true,
   "license": "Apache-2.0",
   "author": {
@@ -25,8 +25,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.18.0-rc.0",
-    "@loopstack/core": "^0.18.0-rc.0",
+    "@loopstack/common": "^0.18.0",
+    "@loopstack/core": "^0.18.0",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },

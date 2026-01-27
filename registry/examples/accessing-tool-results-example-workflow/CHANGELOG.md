@@ -1,5 +1,20 @@
 # @loopstack/accessing-tool-results-example-workflow
 
+## 0.18.0
+
+### Minor Changes
+
+- [#13](https://github.com/loopstack-ai/loopstack/pull/13) [`4a035d7`](https://github.com/loopstack-ai/loopstack/commit/4a035d7bf8b43a52ed6c0ad6acf9140aa08945e5) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add from external repo
+
+### Patch Changes
+
+- Updated dependencies [[`2673ea8`](https://github.com/loopstack-ai/loopstack/commit/2673ea8e9d16e871b7cc82e83bc6c65470c75ee4), [`91076bd`](https://github.com/loopstack-ai/loopstack/commit/91076bdde9c771ab8a7c99a37d33b339ef8529f9), [`e556176`](https://github.com/loopstack-ai/loopstack/commit/e5561769b365218f1ffdc890b887e7b607d06101), [`4ee0af1`](https://github.com/loopstack-ai/loopstack/commit/4ee0af1536e7802eb9d69a788c10184e3c5a7a11), [`3fd1db5`](https://github.com/loopstack-ai/loopstack/commit/3fd1db5d0de8ad26e3e22348f7f1593024a74273)]:
+  - @loopstack/create-chat-message-tool@0.18.0
+  - @loopstack/create-value-tool@0.18.0
+  - @loopstack/core-ui-module@0.18.0
+  - @loopstack/core@0.18.0
+  - @loopstack/common@0.18.0
+
 ## 0.18.0-rc.0
 
 ### Minor Changes
