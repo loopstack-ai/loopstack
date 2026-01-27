@@ -1,5 +1,11 @@
 # @loopstack/app-template
 
+## 0.17.1
+
+### Patch Changes
+
+- [#26](https://github.com/loopstack-ai/loopstack/pull/26) [`6d94559`](https://github.com/loopstack-ai/loopstack/commit/6d94559b4c4f1ac0f09432eefb4f7b0d32f4ac0d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Use port 80
+
 ## 0.17.0
 
 ### Minor Changes

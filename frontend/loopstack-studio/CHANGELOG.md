@@ -1,5 +1,11 @@
 # @loopstack/loopstack-studio
 
+## 0.18.1
+
+### Patch Changes
+
+- [#28](https://github.com/loopstack-ai/loopstack/pull/28) [`30ab62f`](https://github.com/loopstack-ai/loopstack/commit/30ab62f83e3cdf2f53e9323513e888f26e007335) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Use nginx in dockerfile
+
 ## 0.18.0
 
 ### Minor Changes
