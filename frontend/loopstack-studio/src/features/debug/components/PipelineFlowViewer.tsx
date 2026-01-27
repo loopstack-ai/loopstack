@@ -25,15 +25,9 @@ interface PipelineFlowViewerProps {
   pipelineId: string;
   workflows: WorkflowItemDto[];
   pipelineConfig?: PipelineConfigDto;
-  animationsEnabled: boolean;
 }
 
-const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
-  pipelineId,
-  workflows,
-  pipelineConfig,
-  animationsEnabled,
-}) => {
+const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({ pipelineId, workflows, pipelineConfig }) => {
   const { data: pipeline } = usePipeline(pipelineId);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<StateNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -81,7 +75,9 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
   useEffect(() => {
     if (!isLoading && nodes.length > 0 && !hasInitializedRef.current) {
       hasInitializedRef.current = true;
-      const timer = setTimeout(() => void fitView({ padding: 0.2 }), 150);
+      const timer = setTimeout(() => {
+        void fitView({ padding: 0.2 });
+      }, 150);
       return () => clearTimeout(timer);
     }
   }, [isLoading, nodes.length, fitView]);
@@ -105,7 +101,6 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
             pipelineConfig={pipelineConfig}
             onGraphReady={handleGraphReady}
             onLoadingChange={handleLoadingChange}
-            animationsEnabled={animationsEnabled}
           />
         ))}
 

@@ -30,8 +30,7 @@
     "@nestjs/core": "^11.1.12",
     "axios": "^1.13.2",
     "nest-commander": "^3.20.1",
-    "zod": "^4.3.5",
-    "zod-to-json-schema": "^3.25.1"
+    "zod": "^4.3.5"
   },
   "files": [
     "dist"

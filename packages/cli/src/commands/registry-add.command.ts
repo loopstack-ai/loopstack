@@ -170,7 +170,7 @@ export class RegistryAddCommand extends CommandRunner {
 
   private installPackage(packageArg: string): void {
     try {
-      execSync(`npm install --no-save --package-lock=false ${packageArg}`, {
+      execSync(`npm install ${packageArg}`, {
         stdio: 'inherit',
       });
     } catch {

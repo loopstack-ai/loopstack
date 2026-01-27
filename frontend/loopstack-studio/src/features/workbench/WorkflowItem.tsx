@@ -57,7 +57,7 @@ const WorkflowItem: React.FC<{
   }, [fetchDocuments.data, filterDocuments]);
 
   const runPipeline = useRunPipeline();
-  const handleRun = (transition: string, data: Record<string, unknown>) => {
+  const handleRun = (transition: string, data: Record<string, unknown> | string | undefined) => {
     runPipeline.mutate({
       pipelineId: fetchWorkflow.data!.pipelineId,
       runPipelinePayloadDto: {

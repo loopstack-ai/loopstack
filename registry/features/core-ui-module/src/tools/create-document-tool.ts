@@ -1,8 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { merge, omit } from 'lodash';
 import { randomUUID } from 'node:crypto';
-import { ZodError, ZodSchema, z } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { ZodError, ZodSchema, toJSONSchema, z } from 'zod';
 import { BlockConfig, DocumentEntity, ToolResult, WithArguments } from '@loopstack/common';
 import { DocumentSchema } from '@loopstack/contracts/schemas';
 import { DocumentConfigType, DocumentType } from '@loopstack/contracts/types';
@@ -147,13 +146,7 @@ export class CreateDocument extends ToolBase {
       return undefined;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const converted = zodToJsonSchema(schema as any, {
-      name: 'documentSchema',
-      target: 'jsonSchema7',
-    });
-
-    return converted?.definitions?.documentSchema;
+    return toJSONSchema(schema);
   }
 
   private createDocumentEntity(

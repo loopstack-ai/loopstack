@@ -36,8 +36,7 @@
     "handlebars": "^4.7.8",
     "lodash": "^4.17.23",
     "yaml": "^2.8.2",
-    "zod": "^4.3.5",
-    "zod-to-json-schema": "^3.25.1"
+    "zod": "^4.3.5"
   },
   "files": [
     "dist"

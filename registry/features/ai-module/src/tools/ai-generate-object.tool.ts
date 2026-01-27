@@ -1,5 +1,13 @@
 import { ModelMessage } from '@ai-sdk/provider-utils';
-import { GenerateObjectResult, LanguageModel, generateObject } from 'ai';
+import {
+  GenerateTextResult,
+  LanguageModel,
+  Output,
+  ToolSet,
+  UIMessage,
+  convertToModelMessages,
+  generateText,
+} from 'ai';
 import { z } from 'zod';
 import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
 import { ToolBase, WorkflowBase } from '@loopstack/core';
@@ -36,18 +44,24 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {
-      prompt?: string;
-      messages?: ModelMessage[];
+      messages: ModelMessage[];
       schema?: z.ZodSchema;
-    } = {};
+    } = {
+      messages: [],
+    };
 
     if (args.prompt) {
-      options.prompt = args.prompt;
+      options.messages.push({
+        role: 'user',
+        content: args.prompt,
+      } as ModelMessage);
     } else {
-      options.messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
-        messages: args.messages as ModelMessage[],
+      const messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
+        messages: args.messages as unknown as UIMessage[],
         messagesSearchTag: args.messagesSearchTag,
       });
+
+      options.messages = await convertToModelMessages(messages);
     }
 
     const document: Block | undefined = parent.getDocument(args.response.document);
@@ -63,25 +77,29 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
 
     const response = await this.handleGenerateObject(model, options);
 
+    console.log(response);
+
     return {
-      data: response.object,
+      data: response.output,
     };
   }
 
   private async handleGenerateObject(
     model: LanguageModel,
     options: {
-      prompt?: string;
-      messages?: ModelMessage[];
+      messages: ModelMessage[];
       schema?: z.ZodSchema;
     },
-  ): Promise<GenerateObjectResult<unknown>> {
+  ): Promise<GenerateTextResult<ToolSet, any>> {
     const startTime = performance.now();
     try {
-      return generateObject({
+      console.log(options.schema);
+
+      return generateText({
         model,
-        ...options,
-      } as Parameters<typeof generateObject>[0]);
+        messages: options.messages,
+        ...(options.schema ? { output: Output.object({ schema: options.schema }) } : {}),
+      });
     } catch (error) {
       const errorResponseTime = performance.now() - startTime;
       console.error(`Request failed after ${errorResponseTime}ms:`, error);
