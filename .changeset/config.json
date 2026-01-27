@@ -2,7 +2,8 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
   "changelog": ["@changesets/changelog-github", { "repo": "loopstack-ai/loopstack" }],
   "commit": false,
-  "fixed": [
+  "fixed": [],
+  "linked": [
     [
       "@loopstack/contracts",
       "@loopstack/common",
@@ -13,7 +14,6 @@
       "@loopstack/api"
     ]
   ],
-  "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
