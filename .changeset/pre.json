@@ -1,5 +1,5 @@
 {
-  "mode": "pre",
+  "mode": "exit",
   "tag": "rc",
   "initialVersions": {
     "@loopstack/hub-client-generator": "0.2.0",
