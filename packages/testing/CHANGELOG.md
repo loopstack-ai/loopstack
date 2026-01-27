@@ -1,5 +1,13 @@
 # @loopstack/testing
 
+## 0.18.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.18.1
+  - @loopstack/core@0.18.1
+
 ## 0.18.0
 
 ### Minor Changes

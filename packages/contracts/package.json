@@ -2,7 +2,7 @@
   "name": "@loopstack/contracts",
   "displayName": "Loopstack Contracts",
   "description": "A collection of types and schemas shared between projects",
-  "version": "0.18.0",
+  "version": "0.18.1",
   "license": "BSL",
   "author": {
     "name": "Jakob Klippel",
