@@ -25,7 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       published: ${{ steps.changesets.outputs.published }}
-      prerelease: ${{ steps.check-prerelease.outputs.prerelease }}
       studio_published: ${{ contains(steps.changesets.outputs.publishedPackages, '@loopstack/loopstack-studio') }}
       studio_version: ${{ steps.studio-version.outputs.version }}
 
@@ -40,20 +39,6 @@ jobs:
         with:
           # Fetch all history for changeset to analyze
           fetch-depth: 0
-
-      - name: Check if in prerelease mode
-        id: check-prerelease
-        run: |
-          if [ -f ".changeset/pre.json" ]; then
-            mode=$(jq -r '.mode' .changeset/pre.json)
-            if [ "$mode" = "pre" ]; then
-              echo "prerelease=true" >> $GITHUB_OUTPUT
-            else
-              echo "prerelease=false" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "prerelease=false" >> $GITHUB_OUTPUT
-          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -104,20 +89,15 @@ jobs:
         run: |
           echo "🎉 Published packages:"
           echo '${{ steps.changesets.outputs.publishedPackages }}' | jq '.'
-          echo "Prerelease mode: ${{ steps.check-prerelease.outputs.prerelease }}"
 
   publish-studio-docker:
     name: Publish Studio Docker
     needs: release
     if: needs.release.outputs.studio_published == 'true'
     uses: ./.github/workflows/release-studio-docker.yml
+    permissions:
+      contents: read
+      packages: write
     with:
       version: ${{ needs.release.outputs.studio_version }}
-    secrets: inherit
-
-  set-template-latest-tag:
-    name: Set the templates latest tag.
-    needs: release
-    if: needs.release.outputs.studio_published == 'true' && needs.release.outputs.prerelease == 'false'
-    uses: ./.github/workflows/set-templates-latest-tag.yml
     secrets: inherit
