@@ -45,14 +45,12 @@ export class RegistryAddCommand extends CommandRunner {
 
       // Check if package is already a dependency in local package.json
       if (this.isPackageInLocalPackageJson(packageName)) {
-        console.error(`Package '${packageName}' is already listed in package.json.`);
-        console.log(`Please uninstall it first: npm uninstall ${packageName}`);
-        process.exit(1);
+        console.log(`Package '${packageName}' is already installed, skipping npm install.`);
+      } else {
+        // Install the npm package
+        console.log(`Installing ${packageArg}...`);
+        this.installPackage(packageArg);
       }
-
-      // Install the npm package temporarily
-      console.log(`Installing ${packageArg}...`);
-      this.installPackage(packageArg);
 
       // Locate the src directory in the installed package
       const srcPath = this.getPackageSrcPath(packageName);
@@ -76,10 +74,7 @@ export class RegistryAddCommand extends CommandRunner {
       fs.mkdirSync(fullTargetPath, { recursive: true });
       this.copyRecursive(srcPath, fullTargetPath);
 
-      // Uninstall the package to clean up node_modules
-      this.uninstallPackage(packageName);
-
-      console.log(`\nInstalled to: ${targetDir}`);
+      console.log(`\nSources copied to: ${targetDir}`);
       process.exit(0);
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'An unknown error occurred');
@@ -175,16 +170,6 @@ export class RegistryAddCommand extends CommandRunner {
       });
     } catch {
       throw new Error(`Failed to install package: ${packageArg}`);
-    }
-  }
-
-  private uninstallPackage(packageName: string): void {
-    try {
-      execSync(`npm uninstall ${packageName}`, {
-        stdio: 'pipe',
-      });
-    } catch {
-      // Ignore uninstall errors - the source is already copied
     }
   }
 
