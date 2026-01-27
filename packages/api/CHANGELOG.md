@@ -1,5 +1,15 @@
 # @loopstack/api
 
+## 0.18.0-rc.2
+
+### Patch Changes
+
+- Updated dependencies [[`e556176`](https://github.com/loopstack-ai/loopstack/commit/e5561769b365218f1ffdc890b887e7b607d06101)]:
+  - @loopstack/core@0.18.0-rc.2
+  - @loopstack/contracts@0.18.0-rc.2
+  - @loopstack/common@0.18.0-rc.2
+  - @loopstack/auth@0.18.0-rc.2
+
 ## 0.18.0-rc.1
 
 ### Patch Changes

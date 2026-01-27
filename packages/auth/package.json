@@ -2,7 +2,7 @@
   "name": "@loopstack/auth",
   "displayName": "Loopstack Auth Module",
   "description": "The auth module of the loopstack automation framework",
-  "version": "0.18.0-rc.1",
+  "version": "0.18.0-rc.2",
   "license": "BSL",
   "author": {
     "name": "Jakob Klippel",
@@ -23,9 +23,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.18.0-rc.1",
-    "@loopstack/contracts": "^0.18.0-rc.1",
-    "@loopstack/core": "^0.18.0-rc.1",
+    "@loopstack/common": "^0.18.0-rc.2",
+    "@loopstack/contracts": "^0.18.0-rc.2",
+    "@loopstack/core": "^0.18.0-rc.2",
     "@nestjs/common": "^11.1.12",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.12",
