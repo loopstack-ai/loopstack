@@ -1,6 +1,6 @@
 import { ModelMessage } from '@ai-sdk/provider-utils';
 import { Injectable } from '@nestjs/common';
-import { LanguageModel, UIMessage, createUIMessageStream, streamText } from 'ai';
+import { LanguageModel, ToolSet, UIMessage, convertToModelMessages, createUIMessageStream, streamText } from 'ai';
 import { z } from 'zod';
 import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
 import { ToolBase, WorkflowBase } from '@loopstack/core';
@@ -37,18 +37,27 @@ export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
 
     const options: {
       prompt?: string;
-      messages?: ModelMessage[];
+      messages: ModelMessage[];
       tools?: Record<string, unknown>;
-    } = {};
+    } = {
+      messages: [],
+    };
 
     options.tools = args.tools ? this.aiToolsHelperService.getTools(args.tools, parent) : undefined;
 
     if (args.prompt) {
-      options.prompt = args.prompt;
+      options.messages.push({
+        role: 'user',
+        content: args.prompt,
+      } as ModelMessage);
     } else {
-      options.messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
-        messages: args.messages as ModelMessage[],
+      const messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
+        messages: args.messages as unknown as UIMessage[],
         messagesSearchTag: args.messagesSearchTag,
+      });
+
+      options.messages = await convertToModelMessages(messages, {
+        tools: options.tools as ToolSet,
       });
     }
 

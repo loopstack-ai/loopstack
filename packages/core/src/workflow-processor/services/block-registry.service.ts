@@ -1,6 +1,6 @@
 import { Abstract, Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { toJSONSchema } from 'zod';
 import { BLOCK_METADATA_KEY, BlockOptions } from '@loopstack/common';
 import { BlockRegistryItem } from '../../common';
 
@@ -80,12 +80,6 @@ export class BlockRegistryService implements OnModuleInit {
   }
 
   zodToJsonSchema(properties: any): any {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const jsonSchema = zodToJsonSchema(properties, {
-      name: 'propertiesSchema',
-      target: 'jsonSchema7',
-    });
-
-    return jsonSchema?.definitions?.propertiesSchema;
+    return toJSONSchema(properties);
   }
 }

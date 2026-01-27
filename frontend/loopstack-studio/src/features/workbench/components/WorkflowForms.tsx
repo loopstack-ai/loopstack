@@ -5,7 +5,7 @@ import UiActions from '@/components/ui-widgets/UiActions.tsx';
 
 interface WorkflowFormsProps {
   workflow: WorkflowDto;
-  onSubmit: (transition: string, data: Record<string, unknown>) => void;
+  onSubmit: (transition: string, data: Record<string, unknown> | string | undefined) => void;
 }
 
 const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit }) => {
