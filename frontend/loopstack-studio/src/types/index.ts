@@ -10,6 +10,9 @@ export interface StudioRouter {
   getDashboard(): string;
   navigateToDashboard(): Promise<void>;
   getWorkspaces(): string;
+  getDebugWorkflows(): string;
+  getDebugWorkflow(workflowId: string): string;
+  navigateToDebugWorkflow(workflowId: string): Promise<void>;
   navigateToWorkspaces(): Promise<void>;
   getWorkspace(workspaceId: string): string;
   navigateToWorkspace(workspaceId: string): Promise<void>;

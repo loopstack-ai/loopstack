@@ -31,6 +31,14 @@ export default function Dashboard({ dashboardStats }: DashboardProps) {
                 My Workspaces
               </Link>
             </CardContent>
+            <CardContent className="space-y-3">
+              <Link
+                to={router.getDebugWorkflows()}
+                className="text-primary hover:text-primary/80 hover:bg-muted block rounded p-2 text-sm font-medium transition-colors"
+              >
+                Debug Workflows
+              </Link>
+            </CardContent>
           </Card>
         </div>
 
