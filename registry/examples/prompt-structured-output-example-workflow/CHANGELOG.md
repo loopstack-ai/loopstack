@@ -1,5 +1,11 @@
 # @loopstack/prompt-structured-output-example-workflow
 
+## 0.18.2
+
+### Patch Changes
+
+- [#33](https://github.com/loopstack-ai/loopstack/pull/33) [`b6063fa`](https://github.com/loopstack-ai/loopstack/commit/b6063fa4d2def88801539fafb948289649ef95e5) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add loopstack module config
+
 ## 0.18.1
 
 ### Patch Changes
