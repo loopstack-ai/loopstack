@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/loopstack-studio",
-  "version": "0.18.2",
+  "version": "0.18.3",
   "repository": "loopstack-ai/loopstack-studio",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,7 +26,7 @@
   "dependencies": {
     "@fontsource/roboto": "^5.2.9",
     "@hookform/resolvers": "^5.2.2",
-    "@loopstack/api-client": "^0.18.0",
+    "@loopstack/api-client": "^0.18.1",
     "@loopstack/contracts": "^0.18.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",

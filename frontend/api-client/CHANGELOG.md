@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.18.1
+
+### Patch Changes
+
+- [#34](https://github.com/loopstack-ai/loopstack/pull/34) [`2d23ceb`](https://github.com/loopstack-ai/loopstack/commit/2d23cebfad185b7320becf4d53be5d149136da40) Thanks [@TobeyTG](https://github.com/TobeyTG)! - added debug view
+
 ## 0.18.0
 
 ### Minor Changes

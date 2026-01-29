@@ -2,7 +2,7 @@
   "name": "@loopstack/chat-example-workflow",
   "displayName": "Loopstack Chat Example Workflow",
   "description": "An example chat workflow to interact with an LLM.",
-  "version": "0.18.0",
+  "version": "0.18.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -30,11 +30,11 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.18.0",
+    "@loopstack/ai-module": "^0.18.1",
     "@loopstack/common": "^0.18.0",
     "@loopstack/core": "^0.18.0",
-    "@loopstack/core-ui-module": "^0.18.0",
-    "@loopstack/create-chat-message-tool": "^0.18.0",
+    "@loopstack/core-ui-module": "^0.18.1",
+    "@loopstack/create-chat-message-tool": "^0.18.1",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },

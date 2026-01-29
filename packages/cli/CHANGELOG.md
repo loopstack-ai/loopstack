@@ -1,5 +1,11 @@
 # @loopstack/cli-module
 
+## 0.18.2
+
+### Patch Changes
+
+- [#36](https://github.com/loopstack-ai/loopstack/pull/36) [`9b1f95d`](https://github.com/loopstack-ai/loopstack/commit/9b1f95ddaac3f48889fb4f6ed7b540764a4483c6) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Implement module and workflow install steps
+
 ## 0.18.1
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # @loopstack/tool-call-example-workflow
 
+## 0.18.1
+
+### Patch Changes
+
+- [#36](https://github.com/loopstack-ai/loopstack/pull/36) [`1af9cd4`](https://github.com/loopstack-ai/loopstack/commit/1af9cd4edb37b60e3df677ba450ad22a936f447d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add loopstack-module config and update readme files
+
+- Updated dependencies [[`1af9cd4`](https://github.com/loopstack-ai/loopstack/commit/1af9cd4edb37b60e3df677ba450ad22a936f447d)]:
+  - @loopstack/core-ui-module@0.18.1
+  - @loopstack/ai-module@0.18.1
+
 ## 0.18.0
 
 ### Minor Changes

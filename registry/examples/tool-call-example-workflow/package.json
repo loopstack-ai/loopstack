@@ -2,7 +2,7 @@
   "name": "@loopstack/tool-call-example-workflow",
   "displayName": "Loopstack Tool Calling Example Workflow",
   "description": "A simple workflow showing how to implement tool calling in an agentic loopstack workflow.",
-  "version": "0.18.0",
+  "version": "0.18.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -30,10 +30,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.18.0",
+    "@loopstack/ai-module": "^0.18.1",
     "@loopstack/common": "^0.18.0",
     "@loopstack/core": "^0.18.0",
-    "@loopstack/core-ui-module": "^0.18.0",
+    "@loopstack/core-ui-module": "^0.18.1",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },
