@@ -61,6 +61,10 @@ export default tseslint.config(
         ...globals.jest,
       },
     },
+    rules: {
+      // Allow unused vars with underscore prefix
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    },
   },
 
   // Test files (NestJS) - Relaxed rules for test flexibility

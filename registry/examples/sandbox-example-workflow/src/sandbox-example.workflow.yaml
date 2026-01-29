@@ -1,0 +1,151 @@
+transitions:
+  # Initialize the sandbox container (required before filesystem operations)
+  - id: init_sandbox
+    from: start
+    to: sandbox_ready
+    call:
+      - id: init
+        tool: sandboxInit
+        args:
+          containerId: my-sandbox
+          imageName: node:18
+          containerName: my-filesystem-sandbox
+          projectOutPath: ${ args.outputDir }
+          rootPath: workspace
+        assign:
+          containerId: ${ result.data.containerId }
+      - tool: createChatMessage
+        args:
+          role: assistant
+          content: 'Sandbox initialized successfully. Container ID: {{ metadata.tools.init_sandbox.init.data.containerId }}, Docker ID: {{ metadata.tools.init_sandbox.init.data.dockerId }}'
+
+  # Create a directory
+  - id: create_dir
+    from: sandbox_ready
+    to: dir_created
+    call:
+      - id: mkdir
+        tool: sandboxCreateDirectory
+        args:
+          containerId: ${ containerId }
+          path: /workspace
+          recursive: true
+      - tool: createChatMessage
+        args:
+          role: assistant
+          content: 'Directory created: {{ metadata.tools.create_dir.mkdir.data.path }} (created: {{ metadata.tools.create_dir.mkdir.data.created }})'
+
+  # Write a file
+  - id: write_file
+    from: dir_created
+    to: file_written
+    call:
+      - id: write
+        tool: sandboxWriteFile
+        args:
+          containerId: ${ containerId }
+          path: /workspace/result.txt
+          content: 'Hello from sandbox!'
+          encoding: utf8
+          createParentDirs: true
+      - tool: createChatMessage
+        args:
+          role: assistant
+          content: 'File written: {{ metadata.tools.write_file.write.data.path }} ({{ metadata.tools.write_file.write.data.bytesWritten }} bytes)'
+
+  # Read the file
+  - id: read_file
+    from: file_written
+    to: file_read
+    call:
+      - id: read
+        tool: sandboxReadFile
+        args:
+          containerId: ${ containerId }
+          path: /workspace/result.txt
+          encoding: utf8
+        assign:
+          fileContent: ${ result.data.content }
+      - tool: createChatMessage
+        args:
+          role: assistant
+          content: 'File read successfully. Content: "{{ metadata.tools.read_file.read.data.content }}" (encoding: {{ metadata.tools.read_file.read.data.encoding }})'
+
+  # List directory contents
+  - id: list_dir
+    from: file_read
+    to: dir_listed
+    call:
+      - id: list
+        tool: sandboxListDirectory
+        args:
+          containerId: ${ containerId }
+          path: /workspace
+          recursive: false
+        assign:
+          fileList: ${ result.data.entries }
+      - tool: createChatMessage
+        args:
+          role: assistant
+          content: 'Directory listing for {{ metadata.tools.list_dir.list.data.path }}: {{ formatEntries metadata.tools.list_dir.list.data.entries }}'
+
+  # Check file existence
+  - id: check_exists
+    from: dir_listed
+    to: existence_checked
+    call:
+      - id: exists
+        tool: sandboxExists
+        args:
+          containerId: ${ containerId }
+          path: /workspace/result.txt
+      - tool: createChatMessage
+        args:
+          role: assistant
+          content: 'File existence check: {{ metadata.tools.check_exists.exists.data.path }} exists={{ metadata.tools.check_exists.exists.data.exists }}, type={{ metadata.tools.check_exists.exists.data.type }}'
+
+  # Get file info
+  - id: get_info
+    from: existence_checked
+    to: info_retrieved
+    call:
+      - id: info
+        tool: sandboxFileInfo
+        args:
+          containerId: ${ containerId }
+          path: /workspace/result.txt
+      - tool: createChatMessage
+        args:
+          role: assistant
+          content: 'File info for {{ metadata.tools.get_info.info.data.name }}: type={{ metadata.tools.get_info.info.data.type }}, size={{ metadata.tools.get_info.info.data.size }} bytes, permissions={{ metadata.tools.get_info.info.data.permissions }}, owner={{ metadata.tools.get_info.info.data.owner }}'
+
+  # Delete the file
+  - id: delete_file
+    from: info_retrieved
+    to: file_deleted
+    call:
+      - id: delete
+        tool: sandboxDelete
+        args:
+          containerId: ${ containerId }
+          path: /workspace/result.txt
+          force: true
+      - tool: createChatMessage
+        args:
+          role: assistant
+          content: 'File deleted: {{ metadata.tools.delete_file.delete.data.path }} (deleted: {{ metadata.tools.delete_file.delete.data.deleted }})'
+
+  # Destroy the sandbox container (cleanup)
+  - id: destroy_sandbox
+    from: file_deleted
+    to: end
+    call:
+      - id: destroy
+        tool: sandboxDestroy
+        args:
+          containerId: ${ containerId }
+          removeContainer: true
+      - tool: createChatMessage
+        args:
+          role: assistant
+          content: 'Sandbox destroyed. Container {{ metadata.tools.destroy_sandbox.destroy.data.containerId }} removed={{ metadata.tools.destroy_sandbox.destroy.data.removed }}'
