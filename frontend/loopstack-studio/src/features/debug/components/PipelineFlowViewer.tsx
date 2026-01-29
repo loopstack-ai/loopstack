@@ -16,9 +16,14 @@ import type { PipelineConfigDto, WorkflowItemDto } from '@loopstack/api-client';
 import { usePipeline } from '@/hooks/usePipelines.ts';
 import StateNode, { type StateNodeData } from './pipeline-flow/StateNode.tsx';
 import WorkflowGraph from './pipeline-flow/WorkflowGraph.tsx';
+import WorkflowTransitionEdge from './pipeline-flow/WorkflowTransitionEdge.tsx';
 
 const nodeTypes = {
   stateNode: StateNode,
+};
+
+const edgeTypes = {
+  workflowTransition: WorkflowTransitionEdge,
 };
 
 interface PipelineFlowViewerProps {
@@ -115,6 +120,7 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({ pipelineId, wor
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           fitView
           minZoom={0.1}
           maxZoom={2}

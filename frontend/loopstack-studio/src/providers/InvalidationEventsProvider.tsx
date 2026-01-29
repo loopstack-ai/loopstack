@@ -89,5 +89,29 @@ export function InvalidationEventsProvider() {
     };
   }, [queryClient, environment.id]);
 
+  useEffect(() => {
+    // Whenever the SSE connection is re-established (e.g., after server restart),
+    // we assume the configuration might have changed, so we invalidate global config queries.
+    const unsubSseConnected = eventBus.on(SseClientEvents.SSE_CONNECTED, () => {
+      console.log('SSE Reconnected! Invalidating config queries...');
+      void queryClient.invalidateQueries({
+        queryKey: ['workspace-types'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['pipeline-types'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['pipeline'],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['pipelineConfig'],
+      });
+    });
+
+    return () => {
+      unsubSseConnected();
+    };
+  }, [queryClient]);
+
   return null;
 }

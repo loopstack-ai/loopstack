@@ -1094,6 +1094,31 @@ export const PipelineSortByDtoOrderEnum = {
 export type PipelineSortByDtoOrderEnum = (typeof PipelineSortByDtoOrderEnum)[keyof typeof PipelineSortByDtoOrderEnum];
 
 /**
+ *
+ * @export
+ * @interface PipelineSourceDto
+ */
+export interface PipelineSourceDto {
+  /**
+   *
+   * @type {string}
+   * @memberof PipelineSourceDto
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PipelineSourceDto
+   */
+  filePath: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PipelineSourceDto
+   */
+  raw: string | null;
+}
+/**
  * Current status of the pipeline
  * @export
  * @enum {string}
@@ -2248,6 +2273,46 @@ export const ApiV1ConfigApiAxiosParamCreator = function (configuration?: Configu
     },
     /**
      *
+     * @summary Get the source config of a specific pipeline by name
+     * @param {string} workspaceBlockName The config key of the workspace type
+     * @param {string} pipelineName The name of the pipeline to retrieve
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    configControllerGetPipelineSourceByName: async (
+      workspaceBlockName: string,
+      pipelineName: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'workspaceBlockName' is not null or undefined
+      assertParamExists('configControllerGetPipelineSourceByName', 'workspaceBlockName', workspaceBlockName);
+      // verify required parameter 'pipelineName' is not null or undefined
+      assertParamExists('configControllerGetPipelineSourceByName', 'pipelineName', pipelineName);
+      const localVarPath = `/api/v1/config/workspaces/{workspaceBlockName}/pipelines/{pipelineName}/source`
+        .replace(`{${'workspaceBlockName'}}`, encodeURIComponent(String(workspaceBlockName)))
+        .replace(`{${'pipelineName'}}`, encodeURIComponent(String(pipelineName)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
      * @summary Get all pipeline types available for this workspace
      * @param {string} workspaceBlockName The config key of the workspace type
      * @param {*} [options] Override http request option.
@@ -2353,6 +2418,36 @@ export const ApiV1ConfigApiFp = function (configuration?: Configuration) {
     },
     /**
      *
+     * @summary Get the source config of a specific pipeline by name
+     * @param {string} workspaceBlockName The config key of the workspace type
+     * @param {string} pipelineName The name of the pipeline to retrieve
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async configControllerGetPipelineSourceByName(
+      workspaceBlockName: string,
+      pipelineName: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PipelineSourceDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.configControllerGetPipelineSourceByName(
+        workspaceBlockName,
+        pipelineName,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1ConfigApi.configControllerGetPipelineSourceByName']?.[localVarOperationServerIndex]
+          ?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
      * @summary Get all pipeline types available for this workspace
      * @param {string} workspaceBlockName The config key of the workspace type
      * @param {*} [options] Override http request option.
@@ -2434,6 +2529,25 @@ export const ApiV1ConfigApiFactory = function (
     },
     /**
      *
+     * @summary Get the source config of a specific pipeline by name
+     * @param {ApiV1ConfigApiConfigControllerGetPipelineSourceByNameRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    configControllerGetPipelineSourceByName(
+      requestParameters: ApiV1ConfigApiConfigControllerGetPipelineSourceByNameRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<PipelineSourceDto> {
+      return localVarFp
+        .configControllerGetPipelineSourceByName(
+          requestParameters.workspaceBlockName,
+          requestParameters.pipelineName,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
      * @summary Get all pipeline types available for this workspace
      * @param {ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -2480,6 +2594,19 @@ export interface ApiV1ConfigApiInterface {
 
   /**
    *
+   * @summary Get the source config of a specific pipeline by name
+   * @param {ApiV1ConfigApiConfigControllerGetPipelineSourceByNameRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1ConfigApiInterface
+   */
+  configControllerGetPipelineSourceByName(
+    requestParameters: ApiV1ConfigApiConfigControllerGetPipelineSourceByNameRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<PipelineSourceDto>;
+
+  /**
+   *
    * @summary Get all pipeline types available for this workspace
    * @param {ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
@@ -2523,6 +2650,27 @@ export interface ApiV1ConfigApiConfigControllerGetPipelineConfigByNameRequest {
 }
 
 /**
+ * Request parameters for configControllerGetPipelineSourceByName operation in ApiV1ConfigApi.
+ * @export
+ * @interface ApiV1ConfigApiConfigControllerGetPipelineSourceByNameRequest
+ */
+export interface ApiV1ConfigApiConfigControllerGetPipelineSourceByNameRequest {
+  /**
+   * The config key of the workspace type
+   * @type {string}
+   * @memberof ApiV1ConfigApiConfigControllerGetPipelineSourceByName
+   */
+  readonly workspaceBlockName: string;
+
+  /**
+   * The name of the pipeline to retrieve
+   * @type {string}
+   * @memberof ApiV1ConfigApiConfigControllerGetPipelineSourceByName
+   */
+  readonly pipelineName: string;
+}
+
+/**
  * Request parameters for configControllerGetPipelineTypesByWorkspace operation in ApiV1ConfigApi.
  * @export
  * @interface ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest
@@ -2557,6 +2705,27 @@ export class ApiV1ConfigApi extends BaseAPI implements ApiV1ConfigApiInterface {
   ) {
     return ApiV1ConfigApiFp(this.configuration)
       .configControllerGetPipelineConfigByName(
+        requestParameters.workspaceBlockName,
+        requestParameters.pipelineName,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Get the source config of a specific pipeline by name
+   * @param {ApiV1ConfigApiConfigControllerGetPipelineSourceByNameRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1ConfigApi
+   */
+  public configControllerGetPipelineSourceByName(
+    requestParameters: ApiV1ConfigApiConfigControllerGetPipelineSourceByNameRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1ConfigApiFp(this.configuration)
+      .configControllerGetPipelineSourceByName(
         requestParameters.workspaceBlockName,
         requestParameters.pipelineName,
         options,

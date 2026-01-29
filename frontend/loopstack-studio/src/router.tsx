@@ -7,6 +7,8 @@ import config from './config.ts';
 import LocalHealthCheck from './features/health/LocalHealthCheck.tsx';
 import DashboardPage from './pages/DashboardPage.tsx';
 import DebugPage from './pages/DebugPage.tsx';
+import DebugWorkflowDetailsPage from './pages/DebugWorkflowDetailsPage.tsx';
+import DebugWorkflowsPage from './pages/DebugWorkflowsPage.tsx';
 import PipelineDebugPage from './pages/PipelineDebugPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import WorkspacesPage from './pages/WorkspacesPage.tsx';
@@ -65,6 +67,14 @@ const router = createBrowserRouter([
       {
         path: 'pipelines/:pipelineId/debug',
         element: <PipelineDebugPage />,
+      },
+      {
+        path: 'debug/workflows',
+        element: <DebugWorkflowsPage />,
+      },
+      {
+        path: 'debug/workflows/:workflowId',
+        element: <DebugWorkflowDetailsPage />,
       },
       {
         path: 'pipelines/:pipelineId/workflows/:workflowId/:clickId?',

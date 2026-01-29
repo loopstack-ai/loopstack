@@ -1,7 +1,7 @@
 import { type Edge, type Node } from '@xyflow/react';
 import React, { useEffect, useRef } from 'react';
 import type { PipelineConfigDto, WorkflowItemDto } from '@loopstack/api-client';
-import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
+import type { WorkflowInterface } from '@loopstack/contracts/types';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
 import { buildWorkflowGraph, getTransitions } from '../../lib/flow-utils.ts';
 import type { StateNodeData } from './StateNode.tsx';
@@ -35,7 +35,7 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
       const t = getTransitions(obj);
       return t.length;
     };
-    const configTransitions = (pipelineConfig?.transitions as unknown as WorkflowTransitionType[]) ?? [];
+    const configTransitions = pipelineConfig ? getTransitions(pipelineConfig) : [];
 
     const dataKey = JSON.stringify({
       p: getTransitionsSimple(pipeline),
@@ -47,7 +47,7 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
 
     if (dataKey !== prevDataRef.current) {
       prevDataRef.current = dataKey;
-      const { nodes, edges } = buildWorkflowGraph(pipeline, workflowData, workflow.id, configTransitions);
+      const { nodes, edges } = buildWorkflowGraph(pipeline, workflowData, workflow.id, configTransitions, 'LR');
       onGraphReady(workflow.id, nodes, edges);
     }
   }, [pipeline, workflow, workflowData, pipelineConfig, onGraphReady]);
