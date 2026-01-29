@@ -30,6 +30,18 @@ export class LocalRouter implements StudioRouter {
     return '/workspaces';
   }
 
+  getDebugWorkflows() {
+    return '/debug/workflows';
+  }
+
+  getDebugWorkflow(workflowId: string) {
+    return `/debug/workflows/${workflowId}`;
+  }
+
+  async navigateToDebugWorkflow(workflowId: string) {
+    await this.navigate(this.getDebugWorkflow(workflowId));
+  }
+
   async navigateToWorkspaces() {
     await this.navigate(this.getWorkspaces());
   }

@@ -11,6 +11,8 @@ export type StateNodeData = {
   isVisited: boolean;
   visitCount: number;
   [key: string]: unknown;
+  direction: 'LR' | 'TB';
+  forceVisible?: boolean;
 };
 
 const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
@@ -26,7 +28,7 @@ const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
               ? 'border-blue-500/30 bg-blue-500/10'
               : data.isVisited
                 ? 'border-border/60 bg-muted/40'
-                : 'border-border/40 bg-card/60 opacity-80 hover:opacity-100',
+                : `border-border/40 bg-card/60 ${data.forceVisible ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`,
       )}
     >
       {data.isCurrent && (
@@ -40,7 +42,7 @@ const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
 
       <Handle
         type="target"
-        position={Position.Left}
+        position={data.direction === 'LR' ? Position.Left : Position.Top}
         className="!bg-muted-foreground/30 !h-3 !w-1 !rounded-sm opacity-0"
       />
 
@@ -75,7 +77,7 @@ const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
       </div>
       <Handle
         type="source"
-        position={Position.Right}
+        position={data.direction === 'LR' ? Position.Right : Position.Bottom}
         className="!bg-muted-foreground/30 !h-3 !w-1 !rounded-sm opacity-0"
       />
     </div>

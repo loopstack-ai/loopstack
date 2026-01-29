@@ -131,6 +131,8 @@ export function buildWorkflowGraph(
   workflowData: WorkflowInterface | undefined,
   workflowId: string,
   configTransitions: WorkflowTransitionType[] = [],
+  direction: 'TB' | 'LR',
+  forceVisible: boolean = false,
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
   let transitionsInDefinition: WorkflowTransitionType[] = [];
 
@@ -156,7 +158,7 @@ export function buildWorkflowGraph(
   });
 
   const history = (workflowData?.history ?? []) as unknown as HistoryTransition[];
-  const currentPlace = workflowData?.place ?? 'start';
+  const currentPlace = workflowData?.place;
 
   const statesSet = new Set<string>();
   statesSet.add('start');
@@ -193,7 +195,14 @@ export function buildWorkflowGraph(
     }
   });
 
-  const allTransitions: { id: string; from: string; to: string; condition?: string; trigger?: string }[] = [];
+  const allTransitions: {
+    id: string;
+    from: string;
+    to: string;
+    condition?: string;
+    trigger?: string;
+    call?: { tool: string }[];
+  }[] = [];
 
   transitionsInDefinition.forEach((t) => {
     const fromStates = Array.isArray(t.from) ? t.from : [t.from];
@@ -207,6 +216,7 @@ export function buildWorkflowGraph(
         to: t.to,
         condition: transitionWithCondition.if ?? transitionWithCondition.condition,
         trigger: t.trigger,
+        call: t.call,
       });
     });
   });
@@ -258,6 +268,8 @@ export function buildWorkflowGraph(
       isCurrent: state === currentPlace,
       isVisited: visitedStates.has(state),
       visitCount: stateVisitCount.get(state) ?? 0,
+      direction: direction,
+      forceVisible,
     },
   }));
 
@@ -272,52 +284,32 @@ export function buildWorkflowGraph(
     const isExecuted = !!executedInfo;
     const isAutomatic = t.trigger === 'onEntry';
 
-    let edgeLabel = t.id;
-    if (t.condition) {
-      const formatted = formatCondition(t.condition);
-      const displayCond = formatted.length > 30 ? formatted.substring(0, 27) + '...' : formatted;
-      edgeLabel = `${t.id}\n[if ${displayCond}]`;
-    }
-
     edgeMap.set(edgeKey, {
       id: `edge-${workflowId}-${edgeIndex++}`,
       source: `${workflowId}-${t.from}`,
       target: `${workflowId}-${t.to}`,
-      type: 'smoothstep',
+      type: 'workflowTransition',
       animated: false,
-      label: edgeLabel,
       style: {
         strokeWidth: isExecuted ? 2.5 : 1.5,
         stroke: isExecuted ? 'var(--primary)' : 'var(--muted-foreground)',
         strokeDasharray: isAutomatic ? '4,4' : !isExecuted ? '5,5' : undefined,
-        opacity: isExecuted ? 1 : 0.3,
+        opacity: isExecuted || forceVisible ? 1 : 0.3,
       },
-      labelStyle: {
-        fill: isExecuted ? 'var(--primary)' : 'var(--muted-foreground)',
-        fontWeight: isExecuted ? 600 : 500,
-        fontSize: '11px',
-        opacity: isExecuted ? 1 : 0.7,
-      },
-      labelBgStyle: {
-        fill: 'var(--background)',
-        opacity: 0.8,
-      },
-      labelBgPadding: [4, 2],
-      labelShowBg: true,
       markerEnd: {
         type: MarkerType.ArrowClosed,
         width: 18,
         height: 18,
         color: isExecuted ? 'var(--primary)' : 'var(--muted-foreground)',
       },
-      data: { isExecuted, ...t },
+      data: { isExecuted, ...t, forceVisible },
     });
   });
 
   const edges = Array.from(edgeMap.values());
 
   if (nodes.length > 1) {
-    return getLayoutedElements(nodes, edges);
+    return getLayoutedElements(nodes, edges, direction);
   }
 
   return { nodes, edges };

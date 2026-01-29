@@ -105,3 +105,29 @@ export function useDeleteWorkflow() {
     },
   });
 }
+
+export function useFetchAllWorkflows() {
+  const { envKey, api } = useApiClient();
+
+  const requestParams = {
+    filter: JSON.stringify({}),
+    sortBy: JSON.stringify([
+      {
+        field: 'index',
+        order: 'ASC',
+      } as WorkflowSortByDto,
+    ]),
+  };
+
+  return useQuery({
+    queryKey: ['all-workflows', envKey],
+    queryFn: () => {
+      if (!api) {
+        throw new Error('API not available');
+      }
+      return api.ApiV1WorkflowsApi.workflowControllerGetWorkflows(requestParams);
+    },
+    select: (res) => res.data.data,
+    enabled: true,
+  });
+}
