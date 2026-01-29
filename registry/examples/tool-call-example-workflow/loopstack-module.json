@@ -1,0 +1,4 @@
+{
+  "module": "src/tool-calling-example.module.ts",
+  "workflows": ["src/tool-call.workflow.ts"]
+}

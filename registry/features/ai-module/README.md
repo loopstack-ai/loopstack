@@ -19,35 +19,28 @@ This module is essential for workflows that need natural language processing, co
 
 ## Installation
 
-### Prerequisites
+You can add this module using the `loopstack` cli or via `npm`.
 
-Create a new Loopstack project if you haven't already:
-
-```bash
-npx create-loopstack-app my-project
-cd my-project
-```
-
-Start Environment
+### a) Add Sources via `loopstack add`
 
 ```bash
-cd my-project
-docker compose up -d
+loopstack add @loopstack/ai-module
 ```
 
-### Install the Module
+This command copies the source files into your `src` directory.
 
-#### As Node Dependency via Npm:
+- It is a great way to explore the code to learn new concepts or add own customizations
+- It will set up the module for you, so you do not need to manually update your application
+
+### b) Install via `npm install` (recommended)
 
 ```bash
 npm install --save @loopstack/ai-module
 ```
 
-#### OR: Copy Sources via Loopstack CLI
+Use npm install if you want to use and maintain the module as node dependency.
 
-```bash
-loopstack add @loopstack/ai-module
-```
+- Use this, if you do not need to make changes to the code or want to review the source code.
 
 ### Configure API Keys
 
@@ -63,22 +56,13 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 ## Setup
 
-### 1. Import the Module
+### 1. Manual setup (optional)
 
-Add `AiModule` to your `default.module.ts` (included in the skeleton app) or to your own module:
+> This step is automatically done for you when using the `loopstack add` command.
 
-```typescript
-import { Module } from '@nestjs/common';
-import { AiModule } from '@loopstack/ai-module';
-import { LoopCoreModule } from '@loopstack/core';
-import { DefaultWorkspace } from './default.workspace';
+- Add `AiModule` to the imports of `default.module.ts` or any other custom module.
 
-@Module({
-  imports: [LoopCoreModule, AiModule],
-  providers: [DefaultWorkspace],
-})
-export class DefaultModule {}
-```
+See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
 
 ### 2. Use in Your Workflow
 

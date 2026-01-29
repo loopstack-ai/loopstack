@@ -20,76 +20,36 @@ This is a great starting point before building your own custom tools.
 
 ## Installation
 
-### Prerequisites
+You can add this module using the `loopstack` cli or via `npm`.
 
-Create a new Loopstack project if you haven't already:
-
-```bash
-npx create-loopstack-app my-project
-cd my-project
-```
-
-Start Environment
-
-```bash
-cd my-project
-docker compose up -d
-```
-
-### Add the Module
+### a) Add Sources via `loopstack add` (recommended)
 
 ```bash
 loopstack add @loopstack/custom-tool-example-module
 ```
 
-This copies the source files into your `src` directory.
+This command copies the source files into your `src` directory.
 
-> Using the `loopstack add` command is a great way to explore the code to learn new concepts or add own customizations.
+- It is a great way to explore the code to learn new concepts or add own customizations
+- It will set up the module for you, so you do not need to manually update your application
+
+### b) Install via `npm install`
+
+```bash
+npm install --save @loopstack/custom-tool-example-module
+```
+
+Use npm install if you want to use and maintain the module as node dependency.
+
+- Use this, if you do not need to make changes to the code or want to review the source code.
 
 ## Setup
 
-### 1. Import the Module
+### 1. Manual setup (optional)
 
-Add `CustomToolModule` to your `default.module.ts` (included in the skeleton app) or to your own module:
+> This step is automatically done for you when using the `loopstack add` command.
 
-```typescript
-import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
-import { CustomToolModule } from './custom-tool-example-module';
-import { DefaultWorkspace } from './default.workspace';
+- Add `CustomToolModule` to the imports of `default.module.ts` or any other custom module.
+- Inject the `CustomToolExampleWorkflow` workflow to your workspace class using the `@Workflow()` decorator.
 
-@Module({
-  imports: [LoopCoreModule, CustomToolModule],
-  providers: [DefaultWorkspace],
-})
-export class DefaultModule {}
-```
-
-### 2. Register the Workflow
-
-Add the workflow to your `default.workspace.ts` or your own workspace:
-
-```typescript
-import { Injectable } from '@nestjs/common';
-import { BlockConfig, Workflow } from '@loopstack/common';
-import { WorkspaceBase } from '@loopstack/core';
-import { CustomToolExampleWorkflow } from './custom-tool-example-module/workflows';
-
-@Injectable()
-@BlockConfig({
-  config: {
-    title: 'Default Workspace',
-  },
-})
-export class DefaultWorkspace extends WorkspaceBase {
-  @Workflow() customToolExample: CustomToolExampleWorkflow;
-}
-```
-
-### 3. Run Backend
-
-```bash
-npm run start:dev
-```
-
-Open [localhost:3000](http://localhost:3000) and execute the workflow in the Loopstack Studio.
+See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)

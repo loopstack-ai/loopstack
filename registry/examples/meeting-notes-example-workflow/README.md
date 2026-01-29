@@ -20,82 +20,47 @@ This example is essential for developers building workflows that require human o
 
 ## Installation
 
-### Prerequisites
+You can add this module using the `loopstack` cli or via `npm`.
 
-Create a new Loopstack project if you haven't already:
-
-```bash
-npx create-loopstack-app my-project
-cd my-project
-```
-
-Start Environment
-
-```bash
-cd my-project
-docker compose up -d
-```
-
-### Add the Module
+### a) Add Sources via `loopstack add` (recommended)
 
 ```bash
 loopstack add @loopstack/meeting-notes-example-workflow
 ```
 
-This copies the source files into your `src` directory.
+This command copies the source files into your `src` directory.
 
-> Using the `loopstack add` command is a great way to explore the code to learn new concepts or add own customizations.
+- It is a great way to explore the code to learn new concepts or add own customizations
+- It will set up the module for you, so you do not need to manually update your application
+
+### b) Install via `npm install`
+
+```bash
+npm install --save @loopstack/meeting-notes-example-workflow
+```
+
+Use npm install if you want to use and maintain the module as node dependency.
+
+- Use this, if you do not need to make changes to the code or want to review the source code.
 
 ## Setup
 
-### 1. Import the Module
-
-Add `MeetingNotesExampleModule` to your `default.module.ts` (included in the skeleton app) or to your own module:
-
-```typescript
-import { Module } from '@nestjs/common';
-import { AiModule } from '@loopstack/ai-module';
-import { LoopCoreModule } from '@loopstack/core';
-import { CoreUiModule } from '@loopstack/core-ui-module';
-import { MeetingNotesExampleModule } from './@loopstack/meeting-notes-example-workflow';
-import { DefaultWorkspace } from './default.workspace';
-
-@Module({
-  imports: [LoopCoreModule, MeetingNotesExampleModule],
-  providers: [DefaultWorkspace],
-})
-export class DefaultModule {}
-```
-
-### 2. Register in Your Workspace
-
-Add the workflow to your workspace class using the `@Workflow()` decorator:
-
-```typescript
-import { Injectable } from '@nestjs/common';
-import { BlockConfig, Workflow } from '@loopstack/common';
-import { WorkspaceBase } from '@loopstack/core';
-import { MeetingNotesWorkflow } from './@loopstack/meeting-notes-example-workflow';
-
-@Injectable()
-@BlockConfig({
-  config: {
-    title: 'My Workspace',
-    description: 'A workspace with the meeting notes example workflow',
-  },
-})
-export class MyWorkspace extends WorkspaceBase {
-  @Workflow() meetingNotesWorkflow: MeetingNotesWorkflow;
-}
-```
-
-### 3. Configure API Key
+### 1. Configure API Key
 
 Set your OpenAI API key as an environment variable:
 
 ```bash
 OPENAI_API_KEY=sk-...
 ```
+
+### 2. Manual setup (optional)
+
+> This step is automatically done for you when using the `loopstack add` command.
+
+- Add `MeetingNotesExampleModule` to the imports of `default.module.ts` or any other custom module.
+- Inject the `MeetingNotesWorkflow` workflow to your workspace class using the `@Workflow()` decorator.
+
+See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
 
 ## How It Works
 

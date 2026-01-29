@@ -20,55 +20,38 @@ This tool is essential for workflows that need to communicate with users through
 
 ## Installation
 
-### Prerequisites
+You can add this module using the `loopstack` cli or via `npm`.
 
-Create a new Loopstack project if you haven't already:
-
-```bash
-npx create-loopstack-app my-project
-cd my-project
-```
-
-Start Environment
-
-```bash
-cd my-project
-docker compose up -d
-```
-
-### Install the Module
-
-#### As Node Dependency via Npm:
-
-```bash
-npm install --save @loopstack/create-chat-message-tool
-```
-
-#### OR: Copy Sources via Loopstack CLI
+### a) Add Sources via `loopstack add` (recommended)
 
 ```bash
 loopstack add @loopstack/create-chat-message-tool
 ```
 
+This command copies the source files into your `src` directory.
+
+- It is a great way to explore the code to learn new concepts or add own customizations
+- It will set up the module for you, so you do not need to manually update your application
+
+### b) Install via `npm install`
+
+```bash
+npm install --save @loopstack/create-chat-message-tool
+```
+
+Use npm install if you want to use and maintain the module as node dependency.
+
+- Use this, if you do not need to make changes to the code or want to review the source code.
+
 ## Setup
 
-### 1. Import the Module
+### 1. Manual setup (optional)
 
-Add `CreateChatMessageModule` to your `default.module.ts` (included in the skeleton app) or to your own module:
+> This step is automatically done for you when using the `loopstack add` command.
 
-```typescript
-import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
-import { CoreUiModule } from '@loopstack/core-ui-module';
-import { CreateChatMessageModule } from './create-chat-message-tool';
-import { DefaultWorkspace } from './default.workspace';
+- Add `CreateChatMessageModule` to the imports of `default.module.ts` or any other custom module.
 
-@Module({
-  imports: [LoopCoreModule, CoreUiModule, CreateChatMessageModule],
-  providers: [DefaultWorkspace],
-})
-export class DefaultModule {}
-```
+See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
 
 ### 2. Use in Your Workflow
 
