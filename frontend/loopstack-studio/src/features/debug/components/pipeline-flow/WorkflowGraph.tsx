@@ -47,7 +47,7 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
 
     if (dataKey !== prevDataRef.current) {
       prevDataRef.current = dataKey;
-      const { nodes, edges } = buildWorkflowGraph(pipeline, workflowData, workflow.id, configTransitions);
+      const { nodes, edges } = buildWorkflowGraph(pipeline, workflowData, workflow.id, configTransitions, 'LR');
       onGraphReady(workflow.id, nodes, edges);
     }
   }, [pipeline, workflow, workflowData, pipelineConfig, onGraphReady]);

@@ -11,6 +11,7 @@ export type StateNodeData = {
   isVisited: boolean;
   visitCount: number;
   [key: string]: unknown;
+  direction: 'LR' | 'TB';
 };
 
 const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
@@ -40,7 +41,7 @@ const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
 
       <Handle
         type="target"
-        position={Position.Left}
+        position={data.direction === 'LR' ? Position.Left : Position.Top}
         className="!bg-muted-foreground/30 !h-3 !w-1 !rounded-sm opacity-0"
       />
 
@@ -75,7 +76,7 @@ const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
       </div>
       <Handle
         type="source"
-        position={Position.Right}
+        position={data.direction === 'LR' ? Position.Right : Position.Bottom}
         className="!bg-muted-foreground/30 !h-3 !w-1 !rounded-sm opacity-0"
       />
     </div>

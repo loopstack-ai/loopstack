@@ -54,6 +54,8 @@ export default function DebugWorkflowsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<string>('blockName');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const filteredData = useMemo(() => {
     let result = data;
@@ -81,6 +83,11 @@ export default function DebugWorkflowsPage() {
 
     return result;
   }, [data, searchTerm, sortBy, sortOrder]);
+
+  const paginatedData = useMemo(() => {
+    const start = page * pageSize;
+    return filteredData.slice(start, start + pageSize);
+  }, [filteredData, page, pageSize]);
 
   const columns: DataTableColumn<PipelineTypeRow>[] = [
     {
@@ -123,16 +130,19 @@ export default function DebugWorkflowsPage() {
     <MainLayout breadcrumbsData={breadcrumbsData}>
       <h1 className="mb-4 text-3xl font-bold tracking-tight">Workflow Types</h1>
       <DataTable
-        data={filteredData}
+        data={paginatedData}
         columns={columns}
         loading={isLoading}
         totalItems={filteredData.length}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        page={1}
-        pageSize={filteredData.length > 0 ? filteredData.length : 10}
-        onPageChange={() => {}}
-        onPageSizeChange={() => {}}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={(newPage) => setPage(newPage)}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize);
+          setPage(0);
+        }}
         sortBy={sortBy}
         sortOrder={sortOrder}
         onSortChange={(field, order) => {

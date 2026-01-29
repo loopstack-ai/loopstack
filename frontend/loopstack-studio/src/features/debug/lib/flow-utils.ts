@@ -131,6 +131,7 @@ export function buildWorkflowGraph(
   workflowData: WorkflowInterface | undefined,
   workflowId: string,
   configTransitions: WorkflowTransitionType[] = [],
+  direction: 'TB' | 'LR',
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
   let transitionsInDefinition: WorkflowTransitionType[] = [];
 
@@ -258,6 +259,7 @@ export function buildWorkflowGraph(
       isCurrent: state === currentPlace,
       isVisited: visitedStates.has(state),
       visitCount: stateVisitCount.get(state) ?? 0,
+      direction: direction,
     },
   }));
 
@@ -317,7 +319,7 @@ export function buildWorkflowGraph(
   const edges = Array.from(edgeMap.values());
 
   if (nodes.length > 1) {
-    return getLayoutedElements(nodes, edges);
+    return getLayoutedElements(nodes, edges, direction);
   }
 
   return { nodes, edges };

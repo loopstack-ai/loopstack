@@ -36,7 +36,7 @@ const ConfigFlowViewer: React.FC<ConfigFlowViewerProps> = ({ config }) => {
 
     const transitions = (config.transitions as unknown as WorkflowTransitionType[]) ?? [];
 
-    const { nodes: newNodes, edges: newEdges } = buildWorkflowGraph(config, undefined, 'preview', transitions);
+    const { nodes: newNodes, edges: newEdges } = buildWorkflowGraph(config, undefined, 'preview', transitions, 'TB');
 
     setNodes(newNodes);
     setEdges(newEdges);

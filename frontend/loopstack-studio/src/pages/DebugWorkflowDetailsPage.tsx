@@ -48,6 +48,7 @@ export default function DebugWorkflowDetailsPage() {
       ) : workflow ? (
         <div className="flex h-[calc(100vh-8rem)] flex-col gap-4">
           <h1 className="text-3xl font-bold tracking-tight">{workflow.title || workflow.blockName}</h1>
+          <p className="text-muted-foreground">{workflow.description}</p>
 
           <div className="flex flex-1 gap-4 overflow-hidden">
             <div className="w-1/2 flex flex-col rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
