@@ -5,6 +5,7 @@ import type {
   ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest,
   PipelineConfigDto,
   PipelineSortByDto,
+  PipelineSourceDto,
 } from '@loopstack/api-client';
 import { useApiClient } from './useApi';
 
@@ -151,5 +152,24 @@ export function useBatchDeletePipeline() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['pipelines'], type: 'all' });
     },
+  });
+}
+
+export function usePipelineSource(workspaceBlockName: string | undefined, pipelineBlockName: string | undefined) {
+  const { envKey, api } = useApiClient();
+
+  return useQuery<AxiosResponse<PipelineSourceDto>, Error, PipelineSourceDto>({
+    queryKey: ['pipelineSource', workspaceBlockName, pipelineBlockName, envKey],
+    queryFn: () => {
+      if (!api) {
+        throw new Error('API not available');
+      }
+      return api.ApiV1ConfigApi.configControllerGetPipelineSourceByName({
+        workspaceBlockName: workspaceBlockName!,
+        pipelineName: pipelineBlockName!,
+      });
+    },
+    enabled: !!workspaceBlockName && !!pipelineBlockName,
+    select: (res) => res.data,
   });
 }

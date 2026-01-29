@@ -16,9 +16,14 @@ import type { PipelineConfigDto } from '@loopstack/api-client';
 import type { WorkflowTransitionType } from '@loopstack/contracts/types';
 import { buildWorkflowGraph } from '../lib/flow-utils.ts';
 import StateNode from './pipeline-flow/StateNode.tsx';
+import WorkflowTransitionEdge from './pipeline-flow/WorkflowTransitionEdge.tsx';
 
 const nodeTypes = {
   stateNode: StateNode,
+};
+
+const edgeTypes = {
+  workflowTransition: WorkflowTransitionEdge,
 };
 
 interface ConfigFlowViewerProps {
@@ -36,7 +41,14 @@ const ConfigFlowViewer: React.FC<ConfigFlowViewerProps> = ({ config }) => {
 
     const transitions = (config.transitions as unknown as WorkflowTransitionType[]) ?? [];
 
-    const { nodes: newNodes, edges: newEdges } = buildWorkflowGraph(config, undefined, 'preview', transitions, 'TB');
+    const { nodes: newNodes, edges: newEdges } = buildWorkflowGraph(
+      config,
+      undefined,
+      'preview',
+      transitions,
+      'TB',
+      true,
+    );
 
     setNodes(newNodes);
     setEdges(newEdges);
@@ -76,6 +88,7 @@ const ConfigFlowViewer: React.FC<ConfigFlowViewerProps> = ({ config }) => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         minZoom={0.1}
         maxZoom={2}

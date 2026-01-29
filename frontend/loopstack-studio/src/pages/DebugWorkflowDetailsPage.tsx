@@ -6,7 +6,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import MainLayout from '../components/layout/MainLayout.tsx';
 import ConfigFlowViewer from '../features/debug/components/ConfigFlowViewer.tsx';
-import { usePipelineConfig } from '../hooks/usePipelines.ts';
+import { usePipelineConfig, usePipelineSource } from '../hooks/usePipelines.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
 export default function DebugWorkflowDetailsPage() {
@@ -17,11 +17,12 @@ export default function DebugWorkflowDetailsPage() {
     if (!workflowId) return ['', ''];
     const parts = workflowId.split('::');
     if (parts.length === 2) return parts;
-    return ['', workflowId];
+    return ['default', workflowId];
   }, [workflowId]);
 
-  const { data: workflow, isLoading } = usePipelineConfig(workspaceBlockName, pipelineBlockName);
-
+  const { data: workflow, isLoading: isWorkflowLoading } = usePipelineConfig(workspaceBlockName, pipelineBlockName);
+  const { data: source, isLoading: isSourceLoading } = usePipelineSource(workspaceBlockName, pipelineBlockName);
+  const isLoading = isWorkflowLoading || isSourceLoading;
   const breadcrumbsData = [
     {
       label: 'Dashboard',
@@ -52,15 +53,15 @@ export default function DebugWorkflowDetailsPage() {
 
           <div className="flex flex-1 gap-4 overflow-hidden">
             <div className="w-1/2 flex flex-col rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
-              <div className="border-b bg-muted/50 px-4 py-2 font-medium text-sm">Configuration</div>
+              <div className="border-b bg-muted/50 px-4 py-2 font-medium text-sm">{source?.filePath}</div>
               <div className="flex-1 overflow-auto bg-[#1e1e1e]">
                 <SyntaxHighlighter
-                  language="json"
+                  language={source?.raw ? 'yaml' : 'json'}
                   style={vscDarkPlus}
                   customStyle={{ margin: 0, padding: '1rem', height: '100%', fontSize: '13px' }}
                   showLineNumbers={true}
                 >
-                  {JSON.stringify(workflow, null, 2)}
+                  {source?.raw ? source.raw : JSON.stringify(workflow, null, 2)}
                 </SyntaxHighlighter>
               </div>
             </div>

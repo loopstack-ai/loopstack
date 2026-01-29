@@ -12,6 +12,7 @@ export type StateNodeData = {
   visitCount: number;
   [key: string]: unknown;
   direction: 'LR' | 'TB';
+  forceVisible?: boolean;
 };
 
 const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
@@ -27,7 +28,7 @@ const StateNode: React.FC<NodeProps<Node<StateNodeData>>> = ({ data }) => {
               ? 'border-blue-500/30 bg-blue-500/10'
               : data.isVisited
                 ? 'border-border/60 bg-muted/40'
-                : 'border-border/40 bg-card/60 opacity-80 hover:opacity-100',
+                : `border-border/40 bg-card/60 ${data.forceVisible ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`,
       )}
     >
       {data.isCurrent && (

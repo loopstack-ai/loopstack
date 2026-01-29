@@ -8,15 +8,18 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
+import * as fs from 'fs';
 import { sortBy } from 'lodash';
 import { getWorkflowOptions } from '@loopstack/common';
+import { BLOCK_METADATA_KEY, BlockOptions } from '@loopstack/common';
 import { WorkflowType, WorkspaceType } from '@loopstack/contracts/types';
 import { BlockRegistryItem, BlockRegistryService, WorkflowBase, WorkspaceBase } from '@loopstack/core';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
+import { PipelineSourceDto } from '../dtos/pipeline-source.dto';
 import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
 
 @ApiTags('api/v1/config')
-@ApiExtraModels(WorkspaceConfigDto, PipelineConfigDto)
+@ApiExtraModels(WorkspaceConfigDto, PipelineConfigDto, PipelineSourceDto)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @Controller('api/v1/config')
 export class ConfigController {
@@ -83,6 +86,64 @@ export class ConfigController {
     return plainToInstance(PipelineConfigDto, workflow.config, {
       excludeExtraneousValues: true,
     });
+  }
+
+  @Get('workspaces/:workspaceBlockName/pipelines/:pipelineName/source')
+  @ApiOperation({
+    summary: 'Get the source config of a specific pipeline by name',
+  })
+  @ApiParam({
+    name: 'workspaceBlockName',
+    type: String,
+    description: 'The config key of the workspace type',
+  })
+  @ApiParam({
+    name: 'pipelineName',
+    type: String,
+    description: 'The name of the pipeline to retrieve',
+  })
+  @ApiOkResponse({ type: PipelineSourceDto })
+  @ApiUnauthorizedResponse()
+  getPipelineSourceByName(
+    @Param('workspaceBlockName') workspaceBlockName: string,
+    @Param('pipelineName') pipelineName: string,
+  ): PipelineSourceDto {
+    const workspaceBlock = this.blockRegistryService.getBlock(workspaceBlockName);
+    if (!workspaceBlock) {
+      throw new BadRequestException(`Config for workspace with name ${workspaceBlockName} not found.`);
+    }
+
+    const instance = workspaceBlock.provider.instance as WorkspaceBase;
+
+    if (!instance.workflows.includes(pipelineName)) {
+      throw new BadRequestException(
+        `Pipeline with name ${pipelineName} not found in workspace ${workspaceBlockName}. Available: ${instance.workflows.join(', ')}`,
+      );
+    }
+
+    const workflow = instance.getWorkflow(pipelineName);
+    if (!workflow) {
+      throw new BadRequestException(`Workflow with name ${pipelineName} not found in workspace ${workspaceBlockName}.`);
+    }
+
+    const ctor = workflow.constructor;
+    const metadata = Reflect.getMetadata(BLOCK_METADATA_KEY, ctor) as BlockOptions;
+
+    let raw: string | null = null;
+    let filePath: string | null = null;
+
+    if (metadata && metadata.configFile) {
+      filePath = metadata.configFile;
+      if (fs.existsSync(filePath)) {
+        raw = fs.readFileSync(filePath, 'utf8');
+      }
+    }
+
+    return {
+      name: pipelineName,
+      filePath,
+      raw,
+    };
   }
 
   @Get('workspaces/:workspaceBlockName/pipelines')
