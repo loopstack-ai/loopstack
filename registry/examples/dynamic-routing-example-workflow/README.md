@@ -19,72 +19,39 @@ This example is useful for developers building workflows that require decision t
 
 ## Installation
 
-### Prerequisites
+You can add this module using the `loopstack` cli or via `npm`.
 
-Create a new Loopstack project if you haven't already:
-
-```bash
-npx create-loopstack-app my-project
-cd my-project
-```
-
-Start Environment
-
-```bash
-cd my-project
-docker compose up -d
-```
-
-### Add the Module
+### a) Add Sources via `loopstack add` (recommended)
 
 ```bash
 loopstack add @loopstack/dynamic-routing-example-workflow
 ```
 
-This copies the source files into your `src` directory.
+This command copies the source files into your `src` directory.
 
-> Using the `loopstack add` command is a great way to explore the code to learn new concepts or add own customizations.
+- It is a great way to explore the code to learn new concepts or add own customizations
+- It will set up the module for you, so you do not need to manually update your application
+
+### b) Install via `npm install`
+
+```bash
+npm install --save @loopstack/dynamic-routing-example-workflow
+```
+
+Use npm install if you want to use and maintain the module as node dependency.
+
+- Use this, if you do not need to make changes to the code or want to review the source code.
 
 ## Setup
 
-### 1. Import the Module
+### 1. Manual setup (optional)
 
-Add `DynamicRoutingExampleModule` to your `default.module.ts` (included in the skeleton app) or to your own module:
+> This step is automatically done for you when using the `loopstack add` command.
 
-```typescript
-import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
-import { DynamicRoutingExampleModule } from './@loopstack/dynamic-routing-example-workflow';
-import { DefaultWorkspace } from './default.workspace';
+- Add `DynamicRoutingExampleModule` to the imports of `default.module.ts` or any other custom module.
+- Inject the `DynamicRoutingExampleWorkflow` workflow to your workspace class using the `@Workflow()` decorator.
 
-@Module({
-  imports: [LoopCoreModule, DynamicRoutingExampleModule],
-  providers: [DefaultWorkspace],
-})
-export class DefaultModule {}
-```
-
-### 2. Register in Your Workspace
-
-Add the workflow to your workspace class using the `@Workflow()` decorator:
-
-```typescript
-import { Injectable } from '@nestjs/common';
-import { BlockConfig, Workflow } from '@loopstack/common';
-import { WorkspaceBase } from '@loopstack/core';
-import { DynamicRoutingExampleWorkflow } from './@loopstack/dynamic-routing-example-workflow';
-
-@Injectable()
-@BlockConfig({
-  config: {
-    title: 'My Workspace',
-    description: 'A workspace with the dynamic routing example workflow',
-  },
-})
-export class MyWorkspace extends WorkspaceBase {
-  @Workflow() dynamicRoutingExample: DynamicRoutingExampleWorkflow;
-}
-```
+See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
 
 ## How It Works
 

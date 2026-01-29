@@ -1,0 +1,4 @@
+{
+  "module": "src/meeting-notes-example.module.ts",
+  "workflows": ["src/meeting-notes.workflow.ts"]
+}

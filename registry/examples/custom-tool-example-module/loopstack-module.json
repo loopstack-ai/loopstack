@@ -1,0 +1,4 @@
+{
+  "module": "src/custom-tool.module.ts",
+  "workflows": ["src/workflows/custom-tool-example.workflow.ts"]
+}

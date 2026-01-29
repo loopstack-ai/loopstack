@@ -1,0 +1,4 @@
+{
+  "module": "src/chat-example.module.ts",
+  "workflows": ["src/chat.workflow.ts"]
+}
