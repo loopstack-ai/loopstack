@@ -10,24 +10,13 @@ Loopstack simplifies AI workflow automation by providing a declarative YAML-base
 
 It ships with a built-in frontend to execute and control your workflows while providing a well documented API and developer SDK for integration in your own applications.
 
-## Key Features
+## Getting started:
 
-- **🚀 Zero-config Setup** - Start building AI workflows in minutes
-- **📝 Declarative Workflows** - Define complex AI operations using simple YAML configuration
-- **🔧 Built-in Studio** - Visual interface for executing and interacting with workflows
-- **🔌 Extensible Architecture** - Custom tools and integrations with TypeScript
-
-[//]: # '- **📊 Production Ready** - Built-in error handling, retries, and observability'
-[//]: # '- **🧪 Testing Framework** - End-to-end testing support for AI workflows'
-[//]: # '- **📚 Developer SDK** - Well-documented API for integration with existing applications'
-
-## Prerequisites
+### Prerequisites
 
 - Node.js 18.0+
 - Docker
 - Git
-
-## Getting started:
 
 ### Step 1: Install
 
@@ -52,36 +41,23 @@ Congratulations, your application is now running at:
 
 http://localhost:3000
 
-## Additional Setup options
+### Optional: Running Frontend from source
 
-### API Keys
-
-To use LLM functionality, edit your local .env file and add API keys (OpenAI, Anthropic, etc.) as needed
-
-```dotenv
-OPENAI_API_KEY=your_openai_api_key
-```
-
-### Running from Source (Frontend)
-
-#### 1. Clone the repository
+#### Install
 
 ```shell
-git clone https://github.com/loopstack-ai/loopstack-studio.git
-```
-
-#### 2. Install dependencies
-
-```shell
-cd loopstack-studio
+cd frontend/loopstack-studio
 npm install
 ```
 
-#### 3. Start the frontend
+#### Start
 
 ```shell
 npm run dev
 ```
+
+The dev Environment of Loopstack Studio is running at:
+http://localhost:5173
 
 ## Documentation
 
@@ -91,17 +67,6 @@ npm run dev
 
 - 💬 **Discord Community**: [https://discord.gg/loopstack](https://discord.gg/svAHrkxKZg)
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/loopstack-ai/loopstack/issues)
-
-## Contributing
-
-We're actively preparing Loopstack for full open-source contribution! While we finalize the release of all modules, you can help by:
-
-- 🐛 [Reporting bugs and issues](https://github.com/loopstack-ai/loopstack/issues)
-- 💡 [Suggesting features and improvements](https://github.com/loopstack-ai/loopstack/discussions)
-- 📖 Improving documentation
-- 💬 Joining our [Discord community](https://discord.gg/svAHrkxKZg) to share feedback
-
-**Coming soon**: Full source code access, contribution guidelines, and developer onboarding docs.
 
 ## License
 
