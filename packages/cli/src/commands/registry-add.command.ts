@@ -1,17 +1,15 @@
-import axios from 'axios';
-import { execSync } from 'child_process';
-import * as fs from 'fs';
 import { Command, CommandRunner, Option } from 'nest-commander';
-import * as path from 'path';
-import * as readline from 'readline';
+import { FileSystemService } from '../services/file-system.service';
+import { ModuleInstallerService } from '../services/module-installer.service';
+import { PackageService } from '../services/package.service';
+import { PromptService } from '../services/prompt.service';
+import { RegistryService } from '../services/registry.service';
+import { WorkflowInstallerService } from '../services/workflow-installer.service';
 
 interface AddCommandOptions {
   dir?: string;
-}
-
-interface RegistryItem {
-  name: string;
-  description?: string;
+  module?: string;
+  workspace?: string;
 }
 
 @Command({
@@ -20,7 +18,16 @@ interface RegistryItem {
   description: 'Add an item from the loopstack registry',
 })
 export class RegistryAddCommand extends CommandRunner {
-  private readonly registryUrl = 'https://loopstack.ai/r/registry.json';
+  constructor(
+    private readonly registryService: RegistryService,
+    private readonly packageService: PackageService,
+    private readonly fileSystemService: FileSystemService,
+    private readonly promptService: PromptService,
+    private readonly moduleInstallerService: ModuleInstallerService,
+    private readonly workflowInstallerService: WorkflowInstallerService,
+  ) {
+    super();
+  }
 
   async run(inputs: string[], options: AddCommandOptions): Promise<void> {
     const [packageArg] = inputs;
@@ -31,50 +38,97 @@ export class RegistryAddCommand extends CommandRunner {
       process.exit(1);
     }
 
-    const packageName = this.parsePackageName(packageArg);
+    const packageName = this.packageService.parsePackageName(packageArg);
 
     try {
-      // Validate package exists in registry
-      const registryItem = await this.findRegistryItem(packageName);
+      const registryItem = await this.registryService.findItem(packageName);
 
       if (!registryItem) {
         console.error(`Package '${packageName}' not found in registry`);
-        console.log(`Check available items at: ${this.registryUrl}`);
+        console.log(`Check available items at: ${this.registryService.getRegistryUrl()}`);
         process.exit(1);
       }
 
-      // Check if package is already a dependency in local package.json
-      if (this.isPackageInLocalPackageJson(packageName)) {
+      if (this.packageService.isInstalled(packageName)) {
         console.log(`Package '${packageName}' is already installed, skipping npm install.`);
       } else {
-        // Install the npm package
         console.log(`Installing ${packageArg}...`);
-        this.installPackage(packageArg);
+        this.packageService.install(packageArg);
       }
 
-      // Locate the src directory in the installed package
-      const srcPath = this.getPackageSrcPath(packageName);
+      const srcPath = this.packageService.getSrcPath(packageName);
 
-      if (!fs.existsSync(srcPath)) {
+      if (!this.fileSystemService.exists(srcPath)) {
         console.error(`Package '${packageName}' does not contain a src directory (${srcPath})`);
         process.exit(1);
       }
 
-      // Prompt for target directory if not provided
       const targetDir = options.dir || (await this.promptForDirectory(packageName));
-      const fullTargetPath = path.resolve(process.cwd(), targetDir);
+      const fullTargetPath = this.fileSystemService.resolvePath(process.cwd(), targetDir);
 
-      // Check if directory already exists
-      if (fs.existsSync(fullTargetPath)) {
+      if (this.fileSystemService.exists(fullTargetPath)) {
         console.error(`Directory already exists: ${targetDir}`);
         process.exit(1);
       }
 
-      // Copy src contents to target
-      fs.mkdirSync(fullTargetPath, { recursive: true });
-      this.copyRecursive(srcPath, fullTargetPath);
+      this.fileSystemService.createDirectory(fullTargetPath);
+      this.fileSystemService.copyRecursive(srcPath, fullTargetPath);
 
       console.log(`\nSources copied to: ${targetDir}`);
+
+      const moduleConfig = this.packageService.getModuleConfig(packageName);
+      if (moduleConfig) {
+        let moduleInstallFailed = false;
+        let workflowInstallFailed = false;
+
+        console.log('Found loopstack-module.json, running module installer...');
+        try {
+          await this.moduleInstallerService.install({
+            config: moduleConfig,
+            sourcePath: srcPath,
+            targetPath: fullTargetPath,
+            targetModuleFile: options.module,
+          });
+        } catch (error) {
+          moduleInstallFailed = true;
+          console.error(`Module installation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+
+        if (!moduleInstallFailed && moduleConfig.workflows && moduleConfig.workflows.length > 0) {
+          console.log('Installing workflows...');
+          try {
+            await this.workflowInstallerService.install({
+              workflows: moduleConfig.workflows,
+              targetPath: fullTargetPath,
+              targetWorkspaceFile: options.workspace,
+            });
+          } catch (error) {
+            workflowInstallFailed = true;
+            console.error(`Workflow installation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
+        }
+
+        if (moduleInstallFailed || workflowInstallFailed) {
+          console.log('\nAutomatic registration failed. Please manually:');
+          if (moduleInstallFailed) {
+            console.log(`  - Import and add the module to your target module's imports array`);
+          }
+          if (workflowInstallFailed || moduleInstallFailed) {
+            console.log(`  - Import and add workflows to your workspace class with @Workflow() decorator`);
+          }
+        } else {
+          // Run format script if available
+          if (this.packageService.hasScript('format')) {
+            console.log('Running format...');
+            try {
+              this.packageService.runScript('format');
+            } catch {
+              console.warn('Format script failed, but installation was successful.');
+            }
+          }
+        }
+      }
+
       process.exit(0);
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'An unknown error occurred');
@@ -90,143 +144,25 @@ export class RegistryAddCommand extends CommandRunner {
     return val;
   }
 
-  /**
-   * Strips version constraint from package name.
-   * Examples:
-   *   @loopstack/core-ui-module@rc -> @loopstack/core-ui-module
-   *   @loopstack/core-ui-module@1.0.0 -> @loopstack/core-ui-module
-   *   lodash@4.17.21 -> lodash
-   *   lodash -> lodash
-   */
-  private parsePackageName(packageArg: string): string {
-    // Handle scoped packages (@scope/name@version)
-    if (packageArg.startsWith('@')) {
-      const withoutScope = packageArg.substring(1);
-      const slashIndex = withoutScope.indexOf('/');
-
-      if (slashIndex === -1) {
-        // Invalid scoped package, return as-is
-        return packageArg;
-      }
-
-      const scope = withoutScope.substring(0, slashIndex);
-      const rest = withoutScope.substring(slashIndex + 1);
-      const atIndex = rest.indexOf('@');
-
-      if (atIndex === -1) {
-        return packageArg;
-      }
-
-      return `@${scope}/${rest.substring(0, atIndex)}`;
-    }
-
-    // Handle non-scoped packages (name@version)
-    const atIndex = packageArg.indexOf('@');
-
-    if (atIndex === -1) {
-      return packageArg;
-    }
-
-    return packageArg.substring(0, atIndex);
+  @Option({
+    flags: '-m, --module <module>',
+    description: 'Target module file to register in (e.g., src/default.module.ts)',
+  })
+  parseModule(val: string): string {
+    return val;
   }
 
-  private async findRegistryItem(packageName: string): Promise<RegistryItem | null> {
-    try {
-      console.log('Loading registry...');
-      const response = await axios.get<RegistryItem[]>(`${this.registryUrl}?package=${packageName}`);
-      const registry = response.data;
-
-      // Search for item by name (case-insensitive)
-      const item = registry.find((entry) => entry.name.toLowerCase() === packageName.toLowerCase());
-
-      return item || null;
-    } catch {
-      console.error('Failed to load registry');
-      console.log(`Registry URL: ${this.registryUrl}`);
-      throw new Error('Could not fetch registry');
-    }
-  }
-
-  private isPackageInLocalPackageJson(packageName: string): boolean {
-    try {
-      const packageJsonPath = path.join(process.cwd(), 'package.json');
-      if (!fs.existsSync(packageJsonPath)) {
-        return false;
-      }
-      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as {
-        dependencies?: Record<string, string>;
-        devDependencies?: Record<string, string>;
-      };
-      return !!(pkg.dependencies?.[packageName] || pkg.devDependencies?.[packageName]);
-    } catch {
-      return false;
-    }
-  }
-
-  private installPackage(packageArg: string): void {
-    try {
-      execSync(`npm install ${packageArg}`, {
-        stdio: 'inherit',
-      });
-    } catch {
-      throw new Error(`Failed to install package: ${packageArg}`);
-    }
-  }
-
-  private getPackageSrcPath(packageName: string): string {
-    try {
-      // Use npm ls --parseable to get the actual installed package path.
-      // This reliably finds the package regardless of hoisting in monorepos.
-      const result = execSync(`npm ls ${packageName} --parseable`, {
-        encoding: 'utf-8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
-      const paths = result.trim().split('\n').filter(Boolean);
-
-      if (paths.length === 0) {
-        throw new Error('Package not found');
-      }
-
-      // Use the first path (top-level installation)
-      const packageRoot = paths[0];
-      return path.join(packageRoot, 'src');
-    } catch {
-      throw new Error(`Could not resolve package '${packageName}'. Make sure it was installed correctly.`);
-    }
-  }
-
-  private copyRecursive(src: string, dest: string): void {
-    const entries = fs.readdirSync(src, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const srcPath = path.join(src, entry.name);
-      const destPath = path.join(dest, entry.name);
-
-      if (entry.isDirectory()) {
-        fs.mkdirSync(destPath, { recursive: true });
-        this.copyRecursive(srcPath, destPath);
-      } else {
-        fs.copyFileSync(srcPath, destPath);
-      }
-    }
+  @Option({
+    flags: '-w, --workspace <workspace>',
+    description: 'Target workspace file to register workflows in (e.g., src/default.workspace.ts)',
+  })
+  parseWorkspace(val: string): string {
+    return val;
   }
 
   private async promptForDirectory(packageName: string): Promise<string> {
-    // Extract just the package name without scope for default directory
-    const simpleName = packageName.startsWith('@') ? packageName.split('/')[1] || packageName : packageName;
+    const simpleName = this.packageService.getSimpleName(packageName);
     const defaultDir = `src/${simpleName}`;
-
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-
-    return new Promise((resolve) => {
-      rl.question(`Install directory [${defaultDir}]: `, (answer) => {
-        rl.close();
-        const dir = answer.trim() || defaultDir;
-        resolve(dir);
-      });
-    });
+    return this.promptService.question('Install directory', defaultDir);
   }
 }
