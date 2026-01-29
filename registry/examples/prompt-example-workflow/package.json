@@ -2,7 +2,7 @@
   "name": "@loopstack/prompt-example-workflow",
   "displayName": "Loopstack Prompt Example Workflow",
   "description": "A simple workflow showing how to integrate an LLM using a simple prompt pattern.",
-  "version": "0.18.0",
+  "version": "0.18.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -29,11 +29,11 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.18.0",
+    "@loopstack/ai-module": "^0.18.1",
     "@loopstack/common": "^0.18.0",
     "@loopstack/core": "^0.18.0",
-    "@loopstack/core-ui-module": "^0.18.0",
-    "@loopstack/create-value-tool": "^0.18.0",
+    "@loopstack/core-ui-module": "^0.18.1",
+    "@loopstack/create-value-tool": "^0.18.1",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },
