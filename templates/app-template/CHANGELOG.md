@@ -1,5 +1,11 @@
 # @loopstack/app-template
 
+## 0.17.3
+
+### Patch Changes
+
+- [#41](https://github.com/loopstack-ai/loopstack/pull/41) [`3745f10`](https://github.com/loopstack-ai/loopstack/commit/3745f1043a309e664c176af3334016f35ac0b562) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add Sandbox Tools and Example
+
 ## 0.17.2
 
 ### Patch Changes
