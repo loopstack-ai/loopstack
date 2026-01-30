@@ -2,12 +2,21 @@ import { Logger } from '@nestjs/common';
 import { merge, omit } from 'lodash';
 import { randomUUID } from 'node:crypto';
 import { ZodError, ZodSchema, toJSONSchema, z } from 'zod';
-import { BlockConfig, DocumentEntity, ToolResult, WithArguments } from '@loopstack/common';
+import {
+  BlockConfig,
+  DocumentEntity,
+  ToolResult,
+  WithArguments,
+  getBlockArgsSchema,
+  getBlockConfig,
+  getBlockDocument,
+} from '@loopstack/common';
 import { DocumentSchema } from '@loopstack/contracts/schemas';
 import { DocumentConfigType, DocumentType } from '@loopstack/contracts/types';
 import {
   Block,
   ConfigTraceError,
+  DocumentBase,
   DocumentService,
   SchemaValidationError,
   TemplateExpressionEvaluatorService,
@@ -50,24 +59,31 @@ export class CreateDocument extends ToolBase {
   }
 
   execute(args: CreateDocumentInput, ctx: WorkflowExecution, parent: Block): Promise<ToolResult> {
-    const document = parent.getDocument(args.document);
+    const document = getBlockDocument<DocumentBase>(parent, args.document);
     if (!document) {
       return Promise.reject(new Error(`Document "${args.document}" not found in parent context.`));
     }
 
     try {
-      const config = document.config as DocumentConfigType;
+      const config = getBlockConfig<DocumentConfigType>(document);
+      if (!config) {
+        throw new Error(`Block ${document.name} is missing @BlockConfig decorator`);
+      }
       const templateContext = { args };
 
       const mergedTemplateData = this.mergeTemplateData(config, args.update);
 
       const documentSkeleton = this.createDocumentSkeleton(mergedTemplateData, templateContext);
 
-      const validationResult = this.validateContent(document.argsSchema, mergedTemplateData.content, args.validate);
+      const validationResult = this.validateContent(
+        getBlockArgsSchema(document),
+        mergedTemplateData.content,
+        args.validate,
+      );
 
       const messageId = this.resolveMessageId(args.id, templateContext);
 
-      const jsonSchema = this.createJsonSchema(document.argsSchema);
+      const jsonSchema = this.createJsonSchema(getBlockArgsSchema(document));
 
       const documentEntity = this.createDocumentEntity(ctx, {
         skeleton: documentSkeleton,

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BlockConfig, Tool, ToolResult, WithArguments } from '@loopstack/common';
+import { BlockConfig, Tool, ToolResult, WithArguments, getBlockTool } from '@loopstack/common';
 import { ToolBase, WorkflowBase } from '@loopstack/core';
 import { CreateDocument } from '@loopstack/core-ui-module';
 import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
@@ -17,7 +17,7 @@ export class AiGenerateDocument extends ToolBase<AiGenerateObjectArgsType> {
   @Tool() private createDocument!: CreateDocument;
 
   private getRequiredTool(name: string): ToolBase<any> {
-    const tool = this.getTool(name);
+    const tool = getBlockTool<ToolBase>(this, name);
     if (tool === undefined) {
       throw new Error(`Tool "${name}" is not available`);
     }

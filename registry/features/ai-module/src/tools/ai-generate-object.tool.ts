@@ -9,8 +9,8 @@ import {
   generateText,
 } from 'ai';
 import { z } from 'zod';
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase, WorkflowBase } from '@loopstack/core';
+import { BlockConfig, ToolResult, WithArguments, getBlockArgsSchema, getBlockDocument } from '@loopstack/common';
+import { DocumentBase, ToolBase, WorkflowBase } from '@loopstack/core';
 import { Block } from '@loopstack/core/dist/workflow-processor/abstract/block.abstract';
 import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
@@ -64,11 +64,11 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
       options.messages = await convertToModelMessages(messages);
     }
 
-    const document: Block | undefined = parent.getDocument(args.response.document);
+    const document: Block | undefined = getBlockDocument<DocumentBase>(parent, args.response.document);
     if (!document) {
       throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
     }
-    const responseSchema = document.argsSchema;
+    const responseSchema = getBlockArgsSchema(document);
     if (!responseSchema) {
       throw new Error(`AI object generation source document must have a schema.`);
     }

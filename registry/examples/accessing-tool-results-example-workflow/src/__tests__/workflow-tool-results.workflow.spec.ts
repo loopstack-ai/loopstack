@@ -1,4 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
+import { getBlockHelpers } from '@loopstack/common';
 import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
@@ -38,7 +39,7 @@ describe('WorkflowToolResultsWorkflow', () => {
   });
 
   it('should have extractMessage helper', () => {
-    expect(workflow.helpers).toContain('extractMessage');
+    expect(getBlockHelpers(workflow)).toContain('extractMessage');
   });
 
   describe('tool result access', () => {

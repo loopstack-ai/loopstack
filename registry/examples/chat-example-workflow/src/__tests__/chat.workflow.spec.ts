@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateText, AiModule } from '@loopstack/ai-module';
-import { generateObjectFingerprint } from '@loopstack/common';
+import { generateObjectFingerprint, getBlockTools } from '@loopstack/common';
 import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
@@ -56,8 +56,8 @@ describe('ChatWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(workflow.tools).toContain('createDocument');
-      expect(workflow.tools).toContain('aiGenerateText');
+      expect(getBlockTools(workflow)).toContain('createDocument');
+      expect(getBlockTools(workflow)).toContain('aiGenerateText');
     });
   });
 

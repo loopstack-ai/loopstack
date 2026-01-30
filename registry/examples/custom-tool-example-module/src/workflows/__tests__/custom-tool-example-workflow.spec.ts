@@ -15,6 +15,14 @@ limitations under the License.
 */
 import { TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
+import {
+  getBlockArgsSchema,
+  getBlockConfig,
+  getBlockHelper,
+  getBlockHelpers,
+  getBlockStateSchema,
+  getBlockTools,
+} from '@loopstack/common';
 import { BlockExecutionContextDto, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
@@ -59,26 +67,26 @@ describe('CustomToolExampleWorkflow', () => {
     });
 
     it('should have argsSchema defined', () => {
-      expect(workflow.argsSchema).toBeDefined();
-      expect(workflow.argsSchema).toBeInstanceOf(z.ZodType);
+      expect(getBlockArgsSchema(workflow)).toBeDefined();
+      expect(getBlockArgsSchema(workflow)).toBeInstanceOf(z.ZodType);
     });
 
     it('should have stateSchema defined', () => {
-      expect(workflow.stateSchema).toBeDefined();
-      expect(workflow.stateSchema).toBeInstanceOf(z.ZodType);
+      expect(getBlockStateSchema(workflow)).toBeDefined();
+      expect(getBlockStateSchema(workflow)).toBeInstanceOf(z.ZodType);
     });
 
     it('should have config defined', () => {
-      expect(workflow.config).toBeDefined();
+      expect(getBlockConfig(workflow)).toBeDefined();
     });
 
     it('should have all tools available via workflow.tools', () => {
-      expect(workflow.tools).toBeDefined();
-      expect(Array.isArray(workflow.tools)).toBe(true);
-      expect(workflow.tools).toContain('counterTool');
-      expect(workflow.tools).toContain('createChatMessage');
-      expect(workflow.tools).toContain('mathTool');
-      expect(workflow.tools).toHaveLength(3);
+      expect(getBlockTools(workflow)).toBeDefined();
+      expect(Array.isArray(getBlockTools(workflow))).toBe(true);
+      expect(getBlockTools(workflow)).toContain('counterTool');
+      expect(getBlockTools(workflow)).toContain('createChatMessage');
+      expect(getBlockTools(workflow)).toContain('mathTool');
+      expect(getBlockTools(workflow)).toHaveLength(3);
     });
   });
 
@@ -106,7 +114,7 @@ describe('CustomToolExampleWorkflow', () => {
 
   describe('states', () => {
     it('should have stateSchema with expected properties', () => {
-      const schema = workflow.stateSchema as z.ZodObject<any>;
+      const schema = getBlockArgsSchema(workflow) as z.ZodObject<any>;
       expect(schema).toBeDefined();
 
       const shape = schema.shape;
@@ -117,47 +125,47 @@ describe('CustomToolExampleWorkflow', () => {
     });
 
     it('should validate state with all optional fields', () => {
-      const schema = workflow.stateSchema!;
+      const schema = getBlockArgsSchema(workflow)!;
       const result = schema.parse({});
       expect(result).toEqual({});
     });
 
     it('should validate state with populated fields', () => {
-      const schema = workflow.stateSchema!;
+      const schema = getBlockArgsSchema(workflow)!;
       const state = { total: 100, count1: 1, count2: 2, count3: 3 };
       const result = schema.parse(state);
       expect(result).toEqual(state);
     });
 
     it('should throw error for invalid state field types', () => {
-      const schema = workflow.stateSchema!;
+      const schema = getBlockArgsSchema(workflow)!;
       expect(() => schema.parse({ total: 'not a number' })).toThrow();
     });
   });
 
   describe('helpers', () => {
     it('should have helpers defined', () => {
-      expect(workflow.helpers).toBeDefined();
-      expect(Array.isArray(workflow.helpers)).toBe(true);
+      expect(getBlockHelpers(workflow)).toBeDefined();
+      expect(Array.isArray(getBlockHelpers(workflow))).toBe(true);
     });
 
     it('should have sum helper registered', () => {
-      expect(workflow.helpers).toContain('sum');
+      expect(getBlockHelpers(workflow)).toContain('sum');
     });
 
     it('should get sum helper via getHelper', () => {
-      const sumHelper = workflow.getHelper('sum');
+      const sumHelper = getBlockHelper(workflow, 'sum');
       expect(sumHelper).toBeDefined();
       expect(typeof sumHelper).toBe('function');
     });
 
     it('should return undefined for non-existent helper', () => {
-      const nonExistent = workflow.getHelper('nonExistentHelper');
+      const nonExistent = getBlockHelper(workflow, 'nonExistentHelper');
       expect(nonExistent).toBeUndefined();
     });
 
     it('should execute sum helper correctly', () => {
-      const sumHelper = workflow.getHelper('sum')!;
+      const sumHelper = getBlockHelper(workflow, 'sum')!;
       expect(sumHelper).toBeDefined();
       const result = sumHelper.call(workflow, 5, 3);
       expect(result).toBe(8);

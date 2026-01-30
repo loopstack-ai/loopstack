@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { DocumentEntity, ToolResult, ToolSideEffects } from '@loopstack/common';
+import { DocumentEntity, ToolResult, ToolSideEffects, getBlockTemplateHelpers, getBlockTool } from '@loopstack/common';
 import { WorkflowTransitionSchema } from '@loopstack/contracts/schemas';
 import { AssignmentConfigType, ToolCallType } from '@loopstack/contracts/types';
-import { CustomHelper, TemplateExpressionEvaluatorService } from '../../common';
-import { WorkflowBase } from '../abstract';
+import { TemplateExpressionEvaluatorService } from '../../common';
+import { ToolBase, WorkflowBase } from '../abstract';
 import { WorkflowExecution } from '../interfaces';
 
 @Injectable()
@@ -35,24 +35,17 @@ export class StateMachineToolCallProcessorService {
         for (const toolCall of toolCalls) {
           this.logger.debug(`Call tool ${i} (${toolCall.tool}) on transition ${transition.id}`);
 
-          const tool = block.getTool(toolCall.tool);
+          const tool = getBlockTool<ToolBase>(block, toolCall.tool);
           if (!tool) {
             throw new Error(`Tool with name ${toolCall.tool} not found.`);
           }
-
-          const templateHelpers: CustomHelper[] = block.helpers
-            .map((name: string) => ({
-              name,
-              fn: block.getHelper(name),
-            }))
-            .filter((helper): helper is CustomHelper => helper.fn !== undefined);
 
           const evaluatedArgs = this.templateExpressionEvaluatorService.evaluateTemplate<unknown>(
             toolCall.args,
             block.getTemplateVars(args, ctx),
             {
               cacheKey: block.name,
-              helpers: templateHelpers,
+              helpers: getBlockTemplateHelpers(block),
             },
           );
 
@@ -171,13 +164,6 @@ export class StateMachineToolCallProcessorService {
     result: ToolResult,
   ) {
     if (assign) {
-      const templateHelpers: CustomHelper[] = block.helpers
-        .map((name: string) => ({
-          name,
-          fn: block.getHelper(name),
-        }))
-        .filter((helper): helper is CustomHelper => helper.fn !== undefined);
-
       const update: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(assign)) {
         update[key] = this.templateExpressionEvaluatorService.evaluateTemplateRaw<string>(
@@ -185,7 +171,7 @@ export class StateMachineToolCallProcessorService {
           { result },
           {
             cacheKey: block.name,
-            helpers: templateHelpers,
+            helpers: getBlockTemplateHelpers(block),
             schema: z.array(WorkflowTransitionSchema),
           },
         );

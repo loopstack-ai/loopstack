@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NamespaceEntity, PipelineEntity } from '@loopstack/common';
+import { NamespaceEntity, PipelineEntity, getBlockConfig } from '@loopstack/common';
 import { NamespacePropsSchema } from '@loopstack/contracts/schemas';
-import type { NamespacePropsType } from '@loopstack/contracts/types';
+import type { NamespacePropsType, WorkflowType } from '@loopstack/contracts/types';
 import {
   BlockContextType,
   BlockExecutionContextDto,
@@ -19,7 +19,6 @@ export class NamespaceProcessorService {
   private readonly logger = new Logger(NamespaceProcessorService.name);
 
   constructor(
-    // @Inject(forwardRef(() => NamespacesService))
     private namespacesService: NamespacesService,
     private templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
   ) {}
@@ -41,9 +40,14 @@ export class NamespaceProcessorService {
     block: T,
     ctx: BlockExecutionContextDto,
   ): Promise<BlockExecutionContextDto> {
-    if ('namespace' in block.config && block.config.namespace) {
+    const config = getBlockConfig<WorkflowType>(block);
+    if (!config) {
+      throw new Error(`Block ${block.name} is missing @BlockConfig decorator`);
+    }
+
+    if ('namespace' in config && config.namespace) {
       const namespaceConfig = this.templateExpressionEvaluatorService.evaluateTemplate<NamespacePropsType>(
-        block.config.namespace,
+        config.namespace,
         block.getTemplateVars({}, {} as WorkflowExecution), // todo: fix
         // block,
         // ['pipeline'],

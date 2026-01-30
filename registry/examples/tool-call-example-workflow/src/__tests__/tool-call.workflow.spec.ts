@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateText, AiModule, DelegateToolCall } from '@loopstack/ai-module';
+import { getBlockHelper, getBlockHelpers, getBlockTools } from '@loopstack/common';
 import { BlockExecutionContextDto, WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
@@ -40,17 +41,17 @@ describe('ToolCallWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools and helpers', () => {
       expect(workflow).toBeDefined();
-      expect(workflow.tools).toContain('createDocument');
-      expect(workflow.tools).toContain('aiGenerateText');
-      expect(workflow.tools).toContain('delegateToolCall');
-      expect(workflow.tools).toContain('getWeather');
-      expect(workflow.helpers).toContain('isToolCall');
+      expect(getBlockTools(workflow)).toContain('createDocument');
+      expect(getBlockTools(workflow)).toContain('aiGenerateText');
+      expect(getBlockTools(workflow)).toContain('delegateToolCall');
+      expect(getBlockTools(workflow)).toContain('getWeather');
+      expect(getBlockHelpers(workflow)).toContain('isToolCall');
     });
   });
 
   describe('helpers', () => {
     it('isToolCall should detect tool call parts correctly', () => {
-      const isToolCall = workflow.getHelper('isToolCall')!;
+      const isToolCall = getBlockHelper(workflow, 'isToolCall')!;
 
       const messageWithToolCall = {
         parts: [{ type: 'tool-GetWeather', toolCallId: '123' }],

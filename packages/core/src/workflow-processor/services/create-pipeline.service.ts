@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { FindOptionsWhere } from 'typeorm';
-import { PipelineEntity, WorkspaceEntity } from '@loopstack/common';
+import { PipelineEntity, WorkspaceEntity, getBlockArgsSchema, getBlockWorkflow } from '@loopstack/common';
 import { PipelineService, WorkspaceService } from '../../persistence';
-import { WorkspaceBase } from '../abstract';
+import { WorkflowBase, WorkspaceBase } from '../abstract';
 import { BlockRegistryService } from './block-registry.service';
 
 @Injectable()
@@ -18,13 +18,13 @@ export class CreatePipelineService {
       throw new Error(`blockName is required to create a pipeline.`);
     }
 
-    const workflow = workspace.getWorkflow(data.blockName);
+    const workflow = getBlockWorkflow<WorkflowBase>(workspace, data.blockName);
     if (!workflow) {
       throw new Error(`Workflow ${data.blockName} not available in workspace ${workspace.name}.`);
     }
 
     if (data.args && Object.keys(data.args as Record<string, unknown>).length !== 0) {
-      const schema = workflow.argsSchema;
+      const schema = getBlockArgsSchema(workflow);
       data.args = schema?.parse(data.args);
     }
 

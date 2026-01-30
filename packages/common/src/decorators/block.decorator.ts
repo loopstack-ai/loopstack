@@ -1,7 +1,6 @@
 import { Inject, InjectionToken } from '@nestjs/common';
 import { z } from 'zod';
 import { BlockOptions } from '../interfaces';
-import { buildConfig } from '../utils/block-config.builder';
 
 export const BLOCK_METADATA_KEY = Symbol('block');
 export const INPUT_METADATA_KEY = Symbol('input');
@@ -10,19 +9,9 @@ export const TOOL_METADATA_KEY = Symbol('tool');
 export const DOCUMENT_METADATA_KEY = Symbol('document');
 export const WORKFLOW_METADATA_KEY = Symbol('workflow');
 export const TEMPLATE_HELPER_METADATA_KEY = Symbol('templateHelper');
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-type Constructor = Function & {
-  prototype: object;
-  argsSchema?: z.ZodType;
-  stateSchema?: z.ZodType;
-  resultSchema?: z.ZodType;
-  blockConfig?: ReturnType<typeof buildConfig>;
-  blockTools?: string[];
-  blockDocuments?: string[];
-  blockWorkflows?: string[];
-  blockHelpers?: string[];
-};
+export const ARGS_SCHEMA_METADATA_KEY = Symbol('argsSchema');
+export const STATE_SCHEMA_METADATA_KEY = Symbol('stateSchema');
+export const RESULT_SCHEMA_METADATA_KEY = Symbol('resultSchema');
 
 export interface WorkflowOptions {
   visible?: boolean;
@@ -37,7 +26,7 @@ export const WORKFLOW_OPTIONS_KEY = 'workflow:options';
 
 export function WithArguments<T extends z.ZodType>(schema: T): ClassDecorator {
   return (target) => {
-    (target as Constructor).argsSchema = schema;
+    Reflect.defineMetadata(ARGS_SCHEMA_METADATA_KEY, schema, target);
   };
 }
 
@@ -59,39 +48,15 @@ function validateStateSchema(schema: z.ZodType): void {
 export function WithState<T extends z.ZodType>(schema: T): ClassDecorator {
   return (target) => {
     validateStateSchema(schema);
-    (target as Constructor).stateSchema = schema;
+    Reflect.defineMetadata(STATE_SCHEMA_METADATA_KEY, schema, target);
   };
 }
 
 export function WithResult<T extends z.ZodType>(schema: T): ClassDecorator {
   return (target) => {
     validateStateSchema(schema);
-    (target as Constructor).resultSchema = schema;
+    Reflect.defineMetadata(RESULT_SCHEMA_METADATA_KEY, schema, target);
   };
-}
-
-function getTools(target: Constructor): string[] {
-  const proto = target.prototype as object;
-  const keys = (Reflect.getMetadata(TOOL_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
-}
-
-function getDocuments(target: Constructor): string[] {
-  const proto = target.prototype as object;
-  const keys = (Reflect.getMetadata(DOCUMENT_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
-}
-
-function getWorkflows(target: Constructor): string[] {
-  const proto = target.prototype as object;
-  const keys = (Reflect.getMetadata(WORKFLOW_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
-}
-
-function getHelpers(target: Constructor): string[] {
-  const proto = target.prototype as object;
-  const keys = (Reflect.getMetadata(TEMPLATE_HELPER_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
 }
 
 export function getWorkflowOptions(target: object, propertyKey: string | symbol): WorkflowOptions {
@@ -104,13 +69,6 @@ export function getWorkflowOptions(target: object, propertyKey: string | symbol)
 
 export function BlockConfig(options: BlockOptions): ClassDecorator {
   return (target) => {
-    const ctor = target as Constructor;
-    ctor.blockConfig = buildConfig(options);
-    ctor.blockTools = getTools(ctor);
-    ctor.blockDocuments = getDocuments(ctor);
-    ctor.blockWorkflows = getWorkflows(ctor);
-    ctor.blockHelpers = getHelpers(ctor);
-
     Reflect.defineMetadata(BLOCK_METADATA_KEY, options, target);
   };
 }

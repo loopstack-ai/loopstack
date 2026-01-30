@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { WorkflowEntity } from '@loopstack/common';
+import { WorkflowEntity, getBlockConfig } from '@loopstack/common';
+import { WorkflowType } from '@loopstack/contracts/dist/types';
 import { BlockExecutionContextDto, PersistenceState } from '../../common';
 import { WorkflowService } from '../../persistence';
 import { WorkflowBase } from '../abstract';
@@ -19,7 +20,10 @@ export class WorkflowStateService {
       return workflow;
     }
 
-    const config = block.getConfig();
+    const config = getBlockConfig<WorkflowType>(block) as WorkflowType;
+    if (!config) {
+      throw new Error(`Block ${block.name} is missing @BlockConfig decorator`);
+    }
 
     return this.workflowService.create({
       createdBy: context.userId,

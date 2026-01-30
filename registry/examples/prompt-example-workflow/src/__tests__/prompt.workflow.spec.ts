@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateText, AiModule } from '@loopstack/ai-module';
+import { getBlockTools } from '@loopstack/common';
 import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
@@ -45,8 +46,8 @@ describe('PromptWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(workflow.tools).toContain('aiGenerateText');
-      expect(workflow.tools).toContain('createDocument');
+      expect(getBlockTools(workflow)).toContain('aiGenerateText');
+      expect(getBlockTools(workflow)).toContain('createDocument');
     });
 
     it('should apply default argument value', () => {

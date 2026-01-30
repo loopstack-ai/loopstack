@@ -1,4 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
+import { getBlockHelper, getBlockHelpers, getBlockTools } from '@loopstack/common';
 import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
@@ -31,8 +32,8 @@ describe('DynamicRoutingExampleWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools and helpers', () => {
       expect(workflow).toBeDefined();
-      expect(workflow.tools).toContain('createChatMessage');
-      expect(workflow.helpers).toContain('gt');
+      expect(getBlockTools(workflow)).toContain('createChatMessage');
+      expect(getBlockHelpers(workflow)).toContain('gt');
     });
 
     it('should apply default argument value', () => {
@@ -43,7 +44,7 @@ describe('DynamicRoutingExampleWorkflow', () => {
 
   describe('helpers', () => {
     it('gt should compare numbers correctly', () => {
-      const gt = workflow.getHelper('gt')!;
+      const gt = getBlockHelper(workflow, 'gt')!;
       expect(gt.call(workflow, 101, 100)).toBe(true);
       expect(gt.call(workflow, 100, 100)).toBe(false);
     });

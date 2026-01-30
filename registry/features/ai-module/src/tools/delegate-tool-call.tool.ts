@@ -1,6 +1,6 @@
 import { ToolUIPart, UIMessage } from 'ai';
 import { z } from 'zod';
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
+import { BlockConfig, ToolResult, WithArguments, getBlockTool } from '@loopstack/common';
 import { ToolBase, WorkflowBase } from '@loopstack/core';
 import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
 
@@ -41,7 +41,7 @@ export class DelegateToolCall extends ToolBase<DelegateToolCallsToolArgs> {
 
       const toolName = part.type.replace(/^tool-/, '');
 
-      const tool = parent.getTool(toolName);
+      const tool = getBlockTool<ToolBase>(parent, toolName);
       if (!tool) {
         throw new Error(`Tool ${toolName} not found.`);
       }

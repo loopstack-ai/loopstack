@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { StateMachineValidatorResultInterface } from '@loopstack/common';
+import { StateMachineValidatorResultInterface, getBlockStateSchema } from '@loopstack/common';
 import { WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
 import { BlockExecutionContextDto, Processor } from '../../../common';
 import { WorkflowBase } from '../../abstract';
@@ -30,7 +30,7 @@ export class WorkflowProcessorService implements Processor {
 
     context.workflowId = workflowEntity.id;
 
-    const workflowStateDataSchema = workflow.stateSchema ? workflow.stateSchema : z.object({});
+    const workflowStateDataSchema = getBlockStateSchema(workflow) ?? z.object({});
 
     const workflowStateCaretaker = WorkflowStateCaretaker.deserialize(
       (workflowEntity.history ?? []) as WorkflowMementoData<z.infer<typeof workflowStateDataSchema>>[],

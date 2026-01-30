@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { getBlockConfig } from '@loopstack/common';
 import { PipelineItemConfigType, PipelineSequenceType } from '@loopstack/contracts/types';
 import { BlockExecutionContextDto, Processor, TemplateExpressionEvaluatorService } from '../../../common';
 import { PipelineBase } from '../../abstract';
-import { WorkflowExecution } from '../../interfaces/workflow-execution.interface';
+import { WorkflowExecution } from '../../interfaces';
 import { BlockProcessor } from '../block-processor.service';
 import { NamespaceProcessorService } from '../namespace-processor.service';
 
@@ -31,7 +32,11 @@ export class SequenceProcessorService implements Processor {
 
     this.logger.debug(`Running Sequence: ${block.name}`);
 
-    const config = block.config as unknown as PipelineSequenceType;
+    const config = getBlockConfig<PipelineSequenceType>(block) as PipelineSequenceType;
+    if (!config) {
+      throw new Error(`Block ${block.name} is missing @BlockConfig decorator`);
+    }
+
     const sequence: PipelineItemConfigType[] = config.sequence;
 
     this.logger.debug(`Processing sequence with ${sequence.length} items.`);

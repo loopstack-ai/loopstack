@@ -10,8 +10,15 @@ import {
 import { plainToInstance } from 'class-transformer';
 import * as fs from 'fs';
 import { sortBy } from 'lodash';
-import { getWorkflowOptions } from '@loopstack/common';
+import {
+  getBlockArgsSchema,
+  getBlockConfig,
+  getBlockWorkflow,
+  getBlockWorkflows,
+  getWorkflowOptions,
+} from '@loopstack/common';
 import { BLOCK_METADATA_KEY, BlockOptions } from '@loopstack/common';
+import { JSONSchemaDefinition } from '@loopstack/contracts/dist/schemas';
 import { WorkflowType, WorkspaceType } from '@loopstack/contracts/types';
 import { BlockRegistryItem, BlockRegistryService, WorkflowBase, WorkspaceBase } from '@loopstack/core';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
@@ -33,7 +40,11 @@ export class ConfigController {
     const blocks = this.blockRegistryService.getBlocksByType(WorkspaceBase);
 
     const resolvedConfigs = blocks.map((block: BlockRegistryItem) => {
-      const config = (block.provider.instance as WorkspaceBase).config as WorkspaceType;
+      const config = getBlockConfig<WorkspaceType>(block.provider.instance as WorkspaceBase) as WorkspaceType;
+      if (!config) {
+        throw new Error(`Block ${block.name} is missing @BlockConfig decorator`);
+      }
+
       return {
         blockName: block.name,
         title: config.title ?? block.name,
@@ -72,18 +83,23 @@ export class ConfigController {
 
     const instance = workspaceBlock.provider.instance as WorkspaceBase;
 
-    if (!instance.workflows.includes(pipelineName)) {
+    if (!getBlockWorkflows(instance).includes(pipelineName)) {
       throw new BadRequestException(
-        `Pipeline with name ${pipelineName} not found in workspace ${workspaceBlockName}. Available: ${instance.workflows.join(', ')}`,
+        `Pipeline with name ${pipelineName} not found in workspace ${workspaceBlockName}. Available: ${getBlockWorkflows(instance).join(', ')}`,
       );
     }
 
-    const workflow = instance.getWorkflow(pipelineName);
+    const workflow = getBlockWorkflow<WorkflowBase>(instance, pipelineName);
     if (!workflow) {
       throw new BadRequestException(`Workflow with name ${pipelineName} not found in workspace ${workspaceBlockName}.`);
     }
 
-    return plainToInstance(PipelineConfigDto, workflow.config, {
+    const config = getBlockConfig<WorkflowType>(workflow);
+    if (!config) {
+      throw new Error(`Block ${workflow.name} is missing @BlockConfig decorator`);
+    }
+
+    return plainToInstance(PipelineConfigDto, config, {
       excludeExtraneousValues: true,
     });
   }
@@ -115,13 +131,13 @@ export class ConfigController {
 
     const instance = workspaceBlock.provider.instance as WorkspaceBase;
 
-    if (!instance.workflows.includes(pipelineName)) {
+    if (!getBlockWorkflows(instance).includes(pipelineName)) {
       throw new BadRequestException(
-        `Pipeline with name ${pipelineName} not found in workspace ${workspaceBlockName}. Available: ${instance.workflows.join(', ')}`,
+        `Pipeline with name ${pipelineName} not found in workspace ${workspaceBlockName}. Available: ${getBlockWorkflows(instance).join(', ')}`,
       );
     }
 
-    const workflow = instance.getWorkflow(pipelineName);
+    const workflow = getBlockWorkflow<WorkflowBase>(instance, pipelineName);
     if (!workflow) {
       throw new BadRequestException(`Workflow with name ${pipelineName} not found in workspace ${workspaceBlockName}.`);
     }
@@ -165,27 +181,31 @@ export class ConfigController {
 
     const instance = workspaceBlock.provider.instance as WorkspaceBase;
 
-    const workflows: { name: string; instance: WorkflowBase; hidden: boolean }[] = instance.workflows.map((key) => ({
-      name: key,
-      instance: instance[key] as WorkflowBase,
-      hidden: getWorkflowOptions(instance, key)?.visible === false,
-    }));
+    const workflows: { name: string; instance: WorkflowBase; hidden: boolean }[] = getBlockWorkflows(instance).map(
+      (key) => ({
+        name: key,
+        instance: instance[key] as WorkflowBase,
+        hidden: getWorkflowOptions(instance, key)?.visible === false,
+      }),
+    );
 
     const filtered = workflows
       .filter((item) => !item.hidden)
       .map((item) => {
-        const config = item.instance.config as WorkflowType;
-
-        let propertiesSchema: any = undefined;
-        if (item.instance.argsSchema) {
-          propertiesSchema = this.blockRegistryService.zodToJsonSchema(item.instance.argsSchema as any) as unknown;
+        const config = getBlockConfig<WorkflowType>(item.instance) as WorkflowType;
+        if (!config) {
+          throw new Error(`Block ${item.name} is missing @BlockConfig decorator`);
         }
+
+        const schema = getBlockArgsSchema(item.instance);
+        const propertiesSchema = schema
+          ? (this.blockRegistryService.zodToJsonSchema(schema) as JSONSchemaDefinition)
+          : undefined;
 
         return {
           blockName: item.name,
           title: config.title,
           description: config.description,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           schema: propertiesSchema,
           ui: config.ui,
         } satisfies PipelineConfigDto;

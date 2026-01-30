@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PipelineEntity, PipelineState } from '@loopstack/common';
+import { PipelineEntity, PipelineState, getBlockWorkflow } from '@loopstack/common';
 import { BlockExecutionContextDto, BlockStateDto } from '../../common';
 import { PipelineService } from '../../persistence';
 import { WorkflowBase, WorkspaceBase } from '../abstract';
@@ -58,7 +58,7 @@ export class RootProcessorService {
     }
 
     const workspace = workspaceRegistry.provider.instance as WorkspaceBase;
-    const workflow = workspace.getWorkflow(pipeline.blockName);
+    const workflow = getBlockWorkflow<WorkflowBase>(workspace, pipeline.blockName);
     if (!workflow) {
       throw new Error(`Workflow ${pipeline.blockName} not available in workspace ${pipeline.blockName}`);
     }

@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { omit, uniq } from 'lodash';
 import { z } from 'zod';
+import { getBlockConfig, getBlockResultSchema, getBlockTemplateHelpers } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { WorkflowTransitionSchema } from '@loopstack/contracts/schemas';
-import {
+import type {
   HistoryTransition,
   TransitionInfoInterface,
   TransitionMetadataInterface,
@@ -11,12 +12,7 @@ import {
   WorkflowTransitionType,
   WorkflowType,
 } from '@loopstack/contracts/types';
-import {
-  ConfigTraceError,
-  CustomHelper,
-  TemplateExpressionEvaluatorService,
-  WorkflowTransitionDto,
-} from '../../common';
+import { ConfigTraceError, TemplateExpressionEvaluatorService, WorkflowTransitionDto } from '../../common';
 import { WorkflowBase } from '../abstract';
 import { WorkflowExecution } from '../interfaces';
 import { StateMachineToolCallProcessorService } from './state-machine-tool-call-processor.service';
@@ -35,18 +31,14 @@ export class StateMachineProcessorService {
   getAvailableTransitions(block: WorkflowBase, args: any, ctx: WorkflowExecution): WorkflowTransitionType[] {
     this.logger.debug(`Updating Available Transitions for Place "${ctx.state.getMetadata('place')}"`);
 
-    const config = block.config as WorkflowType;
+    const config = getBlockConfig<WorkflowType>(block) as WorkflowType;
+    if (!config) {
+      throw new Error(`Block ${block.name} is missing @BlockConfig decorator`);
+    }
 
     // exclude call property from transitions eval because this should be only
     // evaluated when called, so it received actual arguments
     const transitionsWithoutCallProperty = config.transitions!.map((transition) => omit(transition, ['call']));
-
-    const templateHelpers: CustomHelper[] = block.helpers
-      .map((name: string) => ({
-        name,
-        fn: block.getHelper(name),
-      }))
-      .filter((helper): helper is CustomHelper => helper.fn !== undefined);
 
     // make (latest) context available within service class
     const evaluatedTransitions = this.templateExpressionEvaluatorService.evaluateTemplate<WorkflowTransitionType[]>(
@@ -54,7 +46,7 @@ export class StateMachineProcessorService {
       block.getTemplateVars(args, ctx),
       {
         cacheKey: block.name,
-        helpers: templateHelpers,
+        helpers: getBlockTemplateHelpers(block),
         schema: z.array(WorkflowTransitionSchema),
       },
     );
@@ -140,7 +132,11 @@ export class StateMachineProcessorService {
     ctx: WorkflowExecution,
     pendingTransitions: TransitionPayloadInterface[],
   ): Promise<WorkflowExecution> {
-    const config = block.config as WorkflowType;
+    const config = getBlockConfig<WorkflowType>(block) as WorkflowType;
+    if (!config) {
+      throw new Error(`Block ${block.name} is missing @BlockConfig decorator`);
+    }
+
     if (!config.transitions) {
       throw new Error(`Workflow ${block.name} does not have any transitions.`);
     }
@@ -188,9 +184,10 @@ export class StateMachineProcessorService {
       ctx.runtime.stop = true;
     } else if (ctx.state.getMetadata('place') === 'end') {
       ctx.entity.status = WorkflowState.Completed;
-      if (block.resultSchema) {
+      const schema = getBlockResultSchema(block);
+      if (schema) {
         const result = block.getResult(ctx, args) as unknown;
-        ctx.entity.result = block.resultSchema.parse(result) as Record<string, unknown>;
+        ctx.entity.result = schema.parse(result) as Record<string, unknown>;
       }
     } else {
       ctx.entity.status = WorkflowState.Waiting;
