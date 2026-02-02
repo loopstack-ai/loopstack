@@ -9,16 +9,18 @@ import PipelineFlowViewer from '@/features/debug/components/PipelineFlowViewer.t
 import { usePipeline, usePipelineConfig } from '@/hooks/usePipelines.ts';
 import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
 import { useWorkspace } from '@/hooks/useWorkspaces.ts';
+import { requireParam } from '@/lib/requireParam.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const PipelineDebugPage: React.FC = () => {
   const { router } = useStudio();
-  const { pipelineId } = useParams<{ pipelineId: string }>();
+  const params = useParams<{ pipelineId: string }>();
+  const pipelineId = requireParam(params, 'pipelineId');
 
   const fetchPipeline = usePipeline(pipelineId);
   const workspaceId = fetchPipeline.data?.workspaceId;
   const fetchWorkspace = useWorkspace(workspaceId);
-  const fetchWorkflows = useFetchWorkflowsByPipeline(pipelineId ?? '');
+  const fetchWorkflows = useFetchWorkflowsByPipeline(pipelineId);
   const workflows = useMemo(() => fetchWorkflows.data ?? [], [fetchWorkflows.data]);
   const workspaceBlockName = fetchWorkspace.data?.blockName;
   const pipelineBlockName = fetchPipeline.data?.blockName;
@@ -34,7 +36,7 @@ const PipelineDebugPage: React.FC = () => {
       },
       {
         label: `Run #${fetchPipeline.data?.run ?? '...'}`,
-        href: pipelineId ? router.getPipeline(pipelineId) : undefined,
+        href: router.getPipeline(pipelineId),
       },
       {
         label: 'Debug Flow',
@@ -64,15 +66,11 @@ const PipelineDebugPage: React.FC = () => {
         <PipelineDebugHeader
           title={fetchPipeline.data?.title ?? fetchPipeline.data?.blockName ?? 'Pipeline'}
           runNumber={fetchPipeline.data?.run}
-          onBack={() => {
-            if (pipelineId) {
-              void router.navigateToPipeline(pipelineId);
-            }
-          }}
+          onBack={() => void router.navigateToPipeline(pipelineId)}
         />
 
         <div className="bg-card border-border flex-1 overflow-hidden rounded-2xl border shadow-sm">
-          {pipelineId && workflows.length > 0 ? (
+          {workflows.length > 0 ? (
             <ReactFlowProvider>
               <PipelineFlowViewer
                 pipelineId={pipelineId}
@@ -80,11 +78,11 @@ const PipelineDebugPage: React.FC = () => {
                 pipelineConfig={fetchPipelineConfig.data}
               />
             </ReactFlowProvider>
-          ) : pipelineId ? (
+          ) : (
             <div className="text-muted-foreground flex h-full items-center justify-center">
               <p className="font-medium">No workflows found for this pipeline</p>
             </div>
-          ) : null}
+          )}
         </div>
       </div>
     </MainLayout>
