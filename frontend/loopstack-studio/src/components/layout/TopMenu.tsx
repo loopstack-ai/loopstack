@@ -1,4 +1,4 @@
-import { Bug, ChevronDown, ChevronLeft, LayoutGrid } from 'lucide-react';
+import { Bug, ChevronDown, ChevronLeft, Code, LayoutGrid } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from '../ui/menubar';
 
@@ -31,6 +31,12 @@ export function TopMenu() {
                 <Link to="/debug/workflows" className="flex w-full cursor-pointer items-center gap-2">
                   <Bug className="h-4 w-4 text-muted-foreground" />
                   <span>Debug Workflows</span>
+                </Link>
+              </MenubarItem>
+              <MenubarItem asChild>
+                <Link to="/code-explorer" className="flex w-full cursor-pointer items-center gap-2">
+                  <Code className="h-4 w-4 text-muted-foreground" />
+                  <span>Code Explorer</span>
                 </Link>
               </MenubarItem>
             </MenubarContent>

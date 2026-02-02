@@ -5,6 +5,7 @@ import WorkerLayout from './app/WorkerLayout.tsx';
 import AppLayout from './components/layout/AppLayout.tsx';
 import config from './config.ts';
 import LocalHealthCheck from './features/health/LocalHealthCheck.tsx';
+import CodeExplorerPage from './pages/CodeExplorerPage.tsx';
 import DashboardPage from './pages/DashboardPage.tsx';
 import DebugPage from './pages/DebugPage.tsx';
 import DebugWorkflowDetailsPage from './pages/DebugWorkflowDetailsPage.tsx';
@@ -51,6 +52,10 @@ const router: DataRouter = createBrowserRouter([
       {
         path: 'dashboard',
         element: <DashboardPage />,
+      },
+      {
+        path: 'code-explorer',
+        element: <CodeExplorerPage />,
       },
       {
         path: 'workspaces',
