@@ -2,19 +2,19 @@
   "name": "@loopstack/dynamic-routing-example-workflow",
   "displayName": "Loopstack Dynamic Routing Example Worflow",
   "description": "A workflow demonstrating how to create dynamic routing an a workflow",
+  "keywords": [
+    "example",
+    "if",
+    "routing",
+    "transition",
+    "workflow"
+  ],
   "version": "0.19.0-rc.1",
+  "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "keywords": [
-    "example",
-    "workflow",
-    "routing",
-    "transition",
-    "if"
-  ],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -39,12 +39,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "module": "src/dynamic-routing-example.module.ts",
-    "workflows": [
-      "src/dynamic-routing-example.workflow.ts"
-    ]
-  },
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",
@@ -55,5 +49,11 @@
     "testTimeout": 10000,
     "forceExit": true,
     "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/dynamic-routing-example.module.ts",
+    "workflows": [
+      "src/dynamic-routing-example.workflow.ts"
+    ]
   }
 }

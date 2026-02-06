@@ -2,21 +2,21 @@
   "name": "@loopstack/sandbox-example-workflow",
   "displayName": "Sandbox Example Workflow",
   "description": "An example workflow demonstrating how to use Docker sandbox containers for secure filesystem operations",
+  "keywords": [
+    "container",
+    "docker",
+    "example",
+    "filesystem",
+    "isolated",
+    "sandbox",
+    "workflow"
+  ],
   "version": "0.3.0-rc.1",
+  "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "keywords": [
-    "example",
-    "workflow",
-    "sandbox",
-    "docker",
-    "filesystem",
-    "container",
-    "isolated"
-  ],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -44,12 +44,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "module": "src/sandbox-example.module.ts",
-    "workflows": [
-      "src/sandbox-example.workflow.ts"
-    ]
-  },
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",
@@ -60,5 +54,11 @@
     "testTimeout": 10000,
     "forceExit": true,
     "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/sandbox-example.module.ts",
+    "workflows": [
+      "src/sandbox-example.workflow.ts"
+    ]
   }
 }

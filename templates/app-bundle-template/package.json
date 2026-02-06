@@ -1,0 +1,20 @@
+{
+  "name": "@loopstack/app-bundle-template",
+  "version": "0.18.0-rc.1",
+  "private": true,
+  "scripts": {
+    "build:all": "npm run build:backend && npm run build:studio",
+    "build:backend": "cd backend && npm run build",
+    "build:studio": "cd studio && npm run build",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:studio\"",
+    "dev:backend": "cd backend && npm run start:dev",
+    "dev:studio": "cd studio && npm run dev",
+    "docker:down": "cd backend && docker compose down",
+    "docker:up": "cd backend && docker compose up -d",
+    "install:all": "npm install && cd backend && npm install && cd ../studio && npm install",
+    "start": "npm run docker:up && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -66,6 +66,7 @@ export class WorkflowInstallerService {
 
       this.addWorkflowToWorkspace(targetWorkspaceFile, workflowClassName, importPath, propertyName);
 
+      console.log(targetWorkspaceFile, workflowClassName, importPath, propertyName);
       console.log(`Registered ${workflowClassName} in ${this.fileSystemService.getFileName(targetWorkspaceFile)}`);
     }
   }
@@ -92,24 +93,9 @@ export class WorkflowInstallerService {
     const sourceFile = this.astService.loadSourceFile(project, workflowPath);
 
     const classes = sourceFile.getClasses();
-
-    for (const classDecl of classes) {
-      const extendsClause = classDecl.getExtends();
-      if (extendsClause?.getText() === 'WorkflowBase') {
-        return classDecl.getName() || null;
-      }
-
-      const blockConfigDecorator = classDecl.getDecorator('BlockConfig');
-      if (blockConfigDecorator) {
-        return classDecl.getName() || null;
-      }
-    }
-
-    for (const classDecl of classes) {
-      const name = classDecl.getName();
-      if (classDecl.isExported() && name?.endsWith('Workflow')) {
-        return name;
-      }
+    const classDecl = classes[0];
+    if (classDecl) {
+      return classDecl.getName() ?? null;
     }
 
     return null;
@@ -132,36 +118,27 @@ export class WorkflowInstallerService {
     this.astService.addNamedImport(sourceFile, workflowClassName, importPath);
 
     const classes = sourceFile.getClasses();
-
-    for (const classDecl of classes) {
-      const extendsClause = classDecl.getExtends();
-      if (extendsClause?.getText() !== 'WorkspaceBase') {
-        continue;
-      }
-
-      const existingProperty = classDecl.getProperty(propertyName);
-      if (existingProperty) {
-        continue;
-      }
-
-      const properties = classDecl.getProperties();
-      const hasWorkflowType = properties.some((prop) => {
-        const typeNode = prop.getTypeNode();
-        return typeNode?.getText() === workflowClassName;
-      });
-
-      if (hasWorkflowType) {
-        continue;
-      }
-
-      classDecl.addProperty({
-        name: propertyName,
-        type: workflowClassName,
-        decorators: [{ name: 'Workflow', arguments: [] }],
-      });
-
-      break;
+    const classDecl = classes[0];
+    const existingProperty = classDecl.getProperty(propertyName);
+    if (existingProperty) {
+      throw new Error(`Property ${propertyName} already exists.`);
     }
+
+    const properties = classDecl.getProperties();
+    const hasWorkflowType = properties.some((prop) => {
+      const typeNode = prop.getTypeNode();
+      return typeNode?.getText() === workflowClassName;
+    });
+
+    if (hasWorkflowType) {
+      throw new Error(`Class already has injected workflow ${workflowClassName}.`);
+    }
+
+    classDecl.addProperty({
+      name: propertyName,
+      type: workflowClassName,
+      decorators: [{ name: 'InjectWorkflow', arguments: [] }],
+    });
 
     this.astService.organizeAndSave(sourceFile);
   }

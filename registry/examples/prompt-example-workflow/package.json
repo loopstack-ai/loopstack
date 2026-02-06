@@ -2,18 +2,18 @@
   "name": "@loopstack/prompt-example-workflow",
   "displayName": "Loopstack Prompt Example Workflow",
   "description": "A simple workflow showing how to integrate an LLM using a simple prompt pattern.",
+  "keywords": [
+    "example",
+    "llm",
+    "prompt",
+    "workflow"
+  ],
   "version": "0.19.0-rc.1",
+  "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "keywords": [
-    "example",
-    "workflow",
-    "llm",
-    "prompt"
-  ],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -40,12 +40,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "module": "src/prompt-example.module.ts",
-    "workflows": [
-      "src/prompt.workflow.ts"
-    ]
-  },
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",
@@ -56,5 +50,11 @@
     "testTimeout": 10000,
     "forceExit": true,
     "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/prompt-example.module.ts",
+    "workflows": [
+      "src/prompt.workflow.ts"
+    ]
   }
 }

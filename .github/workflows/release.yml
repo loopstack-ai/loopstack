@@ -83,15 +83,3 @@ jobs:
         run: |
           echo "🎉 Published packages:"
           echo '${{ steps.changesets.outputs.publishedPackages }}' | jq '.'
-
-  publish-studio-docker:
-    name: Publish Studio Docker
-    needs: release
-    if: needs.release.outputs.studio_published == 'true'
-    uses: ./.github/workflows/release-studio-docker.yml
-    permissions:
-      contents: read
-      packages: write
-    with:
-      version: ${{ needs.release.outputs.studio_version }}
-    secrets: inherit

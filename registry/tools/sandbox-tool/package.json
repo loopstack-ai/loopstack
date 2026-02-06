@@ -2,17 +2,17 @@
   "name": "@loopstack/sandbox-tool",
   "displayName": "Sandbox Tool",
   "description": "Provides isolated execution environments for running untrusted or experimental code within Loopstack workflows",
+  "keywords": [
+    "docker",
+    "isolated-execution",
+    "loopstack",
+    "sandbox"
+  ],
   "version": "0.3.0-rc.1",
+  "license": "Apache-2.0",
   "author": {
     "name": "Tobias Blättermann, Jakob Klippel"
   },
-  "keywords": [
-    "loopstack",
-    "sandbox",
-    "docker",
-    "isolated-execution"
-  ],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -29,8 +29,8 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.19.0-rc.1",
-    "dockerode": "^4.0.4",
     "@nestjs/common": "^11.1.12",
+    "dockerode": "^4.0.4",
     "zod": "^4.3.5"
   },
   "devDependencies": {
@@ -40,9 +40,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "module": "src/sandbox-tool.module.ts"
-  },
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",
@@ -53,5 +50,8 @@
     "testTimeout": 10000,
     "forceExit": true,
     "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/sandbox-tool.module.ts"
   }
 }

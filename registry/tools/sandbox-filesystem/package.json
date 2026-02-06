@@ -2,16 +2,16 @@
   "name": "@loopstack/sandbox-filesystem",
   "displayName": "Sandbox Filesystem",
   "description": "Secure, controlled filesystem operations within Docker sandbox environments",
+  "keywords": [
+    "docker",
+    "filesystem",
+    "sandbox"
+  ],
   "version": "0.3.0-rc.1",
+  "license": "Apache-2.0",
   "author": {
     "name": "Tobias Blättermann, Jakob Klippel"
   },
-  "keywords": [
-    "sandbox",
-    "filesystem",
-    "docker"
-  ],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -36,9 +36,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "module": "src/sandbox-filesystem.module.ts"
-  },
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",
@@ -49,5 +46,8 @@
     "testTimeout": 10000,
     "forceExit": true,
     "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/sandbox-filesystem.module.ts"
   }
 }
