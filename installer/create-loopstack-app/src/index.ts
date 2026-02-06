@@ -136,10 +136,10 @@ async function main() {
   console.log('─'.repeat(50));
 
   console.log('\nLoopstack Studio: http://localhost:5173');
-  console.log('Backend API:      http://localhost:3000');
+  console.log('Backend API:      http://localhost:8000');
 
   console.log('\nStart:');
-  console.log('   cd ${appName} && npm run start');
+  console.log(`   cd ${appName} && npm run start`);
   console.log('─'.repeat(50));
 }
 
