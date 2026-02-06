@@ -37,6 +37,9 @@
     "dist",
     "src"
   ],
+  "loopstack": {
+    "module": "src/create-value-tool.module.ts"
+  },
   "jest": {
     "moduleFileExtensions": [
       "js",

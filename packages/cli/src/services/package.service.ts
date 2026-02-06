@@ -4,10 +4,23 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { LoopstackModuleConfig } from './module-installer.service';
 
-const LOOPSTACK_MODULE_CONFIG_FILE = 'loopstack-module.json';
+interface PackageJson {
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  scripts?: Record<string, string>;
+  loopstack?: LoopstackModuleConfig;
+}
 
 @Injectable()
 export class PackageService {
+  private loadPackageJson(packageJsonPath: string): PackageJson | null {
+    if (!fs.existsSync(packageJsonPath)) {
+      return null;
+    }
+
+    const content = fs.readFileSync(packageJsonPath, 'utf-8');
+    return JSON.parse(content) as PackageJson;
+  }
   /**
    * Strips version constraint from package name.
    * Examples:
@@ -54,14 +67,10 @@ export class PackageService {
 
   isInstalled(packageName: string, cwd: string = process.cwd()): boolean {
     try {
-      const packageJsonPath = path.join(cwd, 'package.json');
-      if (!fs.existsSync(packageJsonPath)) {
+      const pkg = this.loadPackageJson(path.join(cwd, 'package.json'));
+      if (!pkg) {
         return false;
       }
-      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as {
-        dependencies?: Record<string, string>;
-        devDependencies?: Record<string, string>;
-      };
       return !!(pkg.dependencies?.[packageName] || pkg.devDependencies?.[packageName]);
     } catch {
       return false;
@@ -103,30 +112,19 @@ export class PackageService {
 
   getModuleConfig(packageName: string): LoopstackModuleConfig | null {
     const packageRoot = this.getPackageRoot(packageName);
-    const configPath = path.join(packageRoot, LOOPSTACK_MODULE_CONFIG_FILE);
-
-    if (!fs.existsSync(configPath)) {
-      return null;
-    }
 
     try {
-      const content = fs.readFileSync(configPath, 'utf-8');
-      return JSON.parse(content) as LoopstackModuleConfig;
+      const pkg = this.loadPackageJson(path.join(packageRoot, 'package.json'));
+      return pkg?.loopstack ?? null;
     } catch {
-      throw new Error(`Failed to parse ${LOOPSTACK_MODULE_CONFIG_FILE} in package '${packageName}'`);
+      throw new Error(`Failed to parse package.json in package '${packageName}'`);
     }
   }
 
   hasScript(scriptName: string, cwd: string = process.cwd()): boolean {
     try {
-      const packageJsonPath = path.join(cwd, 'package.json');
-      if (!fs.existsSync(packageJsonPath)) {
-        return false;
-      }
-      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as {
-        scripts?: Record<string, string>;
-      };
-      return !!pkg.scripts?.[scriptName];
+      const pkg = this.loadPackageJson(path.join(cwd, 'package.json'));
+      return !!pkg?.scripts?.[scriptName];
     } catch {
       return false;
     }

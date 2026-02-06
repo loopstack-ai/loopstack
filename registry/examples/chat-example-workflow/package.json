@@ -41,6 +41,12 @@
     "dist",
     "src"
   ],
+  "loopstack": {
+    "module": "src/chat-example.module.ts",
+    "workflows": [
+      "src/chat.workflow.ts"
+    ]
+  },
   "jest": {
     "moduleFileExtensions": [
       "js",

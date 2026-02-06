@@ -38,6 +38,9 @@
     "dist",
     "src"
   ],
+  "loopstack": {
+    "module": "src/core-ui.module.ts"
+  },
   "jest": {
     "moduleFileExtensions": [
       "js",
