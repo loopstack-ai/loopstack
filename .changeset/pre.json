@@ -31,10 +31,13 @@
     "@loopstack/sandbox-filesystem": "0.2.0",
     "@loopstack/sandbox-tool": "0.2.0",
     "@loopstack/app-template": "0.17.3",
-    "@loopstack/registry-module-template": "0.18.1"
+    "@loopstack/registry-module-template": "0.18.1",
+    "@loopstack/app-bundle-template": "0.18.0-rc.1"
   },
   "changesets": [
+    "bold-windows-hide",
     "empty-experts-invite",
-    "fiery-snails-do"
+    "fiery-snails-do",
+    "tidy-aliens-add"
   ]
 }
