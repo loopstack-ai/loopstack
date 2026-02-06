@@ -2,7 +2,7 @@
   "name": "@loopstack/sandbox-tool",
   "displayName": "Sandbox Tool",
   "description": "Provides isolated execution environments for running untrusted or experimental code within Loopstack workflows",
-  "version": "0.2.0",
+  "version": "0.3.0-rc.0",
   "author": {
     "name": "Tobias Blättermann, Jakob Klippel"
   },
@@ -28,7 +28,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.18.0",
+    "@loopstack/common": "^0.19.0-rc.0",
     "dockerode": "^4.0.4",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"

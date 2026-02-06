@@ -33,5 +33,7 @@
     "@loopstack/app-template": "0.17.3",
     "@loopstack/registry-module-template": "0.18.1"
   },
-  "changesets": []
+  "changesets": [
+    "empty-experts-invite"
+  ]
 }
