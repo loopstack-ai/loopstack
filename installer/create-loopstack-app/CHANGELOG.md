@@ -1,5 +1,11 @@
 # create-loopstack-app
 
+## 0.17.0-rc.0
+
+### Minor Changes
+
+- [#51](https://github.com/loopstack-ai/loopstack/pull/51) [`af7c484`](https://github.com/loopstack-ai/loopstack/commit/af7c4847fddd024f141fbae73f20d2322de6e344) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Use bundle template as default
+
 ## 0.16.0
 
 ### Minor Changes
