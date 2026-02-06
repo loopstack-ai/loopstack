@@ -1,5 +1,17 @@
 # @loopstack/cli-module
 
+## 0.19.0-rc.0
+
+### Minor Changes
+
+- [#44](https://github.com/loopstack-ai/loopstack/pull/44) [`b20801c`](https://github.com/loopstack-ai/loopstack/commit/b20801ce956557dbd2eae22ae02c8d45954f8bf8) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Replace abstract block classes with interfaces, various bugfixes
+
+### Patch Changes
+
+- Updated dependencies [[`b20801c`](https://github.com/loopstack-ai/loopstack/commit/b20801ce956557dbd2eae22ae02c8d45954f8bf8)]:
+  - @loopstack/contracts@0.19.0-rc.0
+  - @loopstack/core@0.19.0-rc.0
+
 ## 0.18.2
 
 ### Patch Changes

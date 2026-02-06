@@ -2,7 +2,7 @@
   "name": "@loopstack/create-chat-message-tool",
   "displayName": "Loopstack Create Chat Message Tool",
   "description": "A tool to create chat messages from in a workflow",
-  "version": "0.18.1",
+  "version": "0.19.0-rc.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -29,8 +29,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.18.0",
-    "@loopstack/core-ui-module": "^0.18.1",
+    "@loopstack/common": "^0.19.0-rc.0",
+    "@loopstack/core-ui-module": "^0.19.0-rc.0",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },

@@ -2,7 +2,7 @@
   "name": "@loopstack/core",
   "displayName": "Loopstack Core Module",
   "description": "The core module of the loopstack automation framework",
-  "version": "0.18.1",
+  "version": "0.19.0-rc.0",
   "repository": "loopstack-ai/core",
   "license": "BSL",
   "author": {
@@ -24,7 +24,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.18.1",
+    "@loopstack/common": "^0.19.0-rc.0",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/config": "^4.0.2",
     "@nestjs/event-emitter": "^3.0.1",
