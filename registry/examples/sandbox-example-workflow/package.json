@@ -11,7 +11,7 @@
     "sandbox",
     "workflow"
   ],
-  "version": "0.3.0-rc.1",
+  "version": "0.3.0",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -32,11 +32,11 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.19.0-rc.1",
-    "@loopstack/core-ui-module": "^0.19.0-rc.1",
-    "@loopstack/create-chat-message-tool": "^0.19.0-rc.1",
-    "@loopstack/sandbox-filesystem": "^0.3.0-rc.1",
-    "@loopstack/sandbox-tool": "^0.3.0-rc.1",
+    "@loopstack/common": "^0.19.0",
+    "@loopstack/core-ui-module": "^0.19.0",
+    "@loopstack/create-chat-message-tool": "^0.19.0",
+    "@loopstack/sandbox-filesystem": "^0.3.0",
+    "@loopstack/sandbox-tool": "^0.3.0",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },
