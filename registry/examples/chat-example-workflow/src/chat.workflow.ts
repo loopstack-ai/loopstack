@@ -1,10 +1,11 @@
+import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { AiGenerateText, AiMessageDocument } from '@loopstack/ai-module';
-import { BlockConfig, Document, Tool, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { InjectDocument, InjectTool, WithState, Workflow } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core-ui-module';
 
-@BlockConfig({
+@Injectable()
+@Workflow({
   configFile: __dirname + '/chat.workflow.yaml',
 })
 @WithState(
@@ -12,8 +13,8 @@ import { CreateDocument } from '@loopstack/core-ui-module';
     llmResponse: z.any(),
   }),
 )
-export class ChatWorkflow extends WorkflowBase {
-  @Tool() createDocument: CreateDocument;
-  @Tool() aiGenerateText: AiGenerateText;
-  @Document() aiMessageDocument: AiMessageDocument;
+export class ChatWorkflow {
+  @InjectTool() createDocument: CreateDocument;
+  @InjectTool() aiGenerateText: AiGenerateText;
+  @InjectDocument() aiMessageDocument: AiMessageDocument;
 }

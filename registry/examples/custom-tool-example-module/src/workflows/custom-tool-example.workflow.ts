@@ -15,14 +15,13 @@ limitations under the License.
 */
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Helper, Tool, WithArguments, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { DefineHelper, InjectTool, WithArguments, WithState, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 
 @Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/custom-tool-example.workflow.yaml',
 })
 @WithArguments(
@@ -43,12 +42,12 @@ import { CounterTool } from '../tools';
     })
     .strict(),
 )
-export class CustomToolExampleWorkflow extends WorkflowBase {
-  @Tool() private counterTool: CounterTool;
-  @Tool() private createChatMessage: CreateChatMessage;
-  @Tool() private mathTool: MathSumTool;
+export class CustomToolExampleWorkflow {
+  @InjectTool() private counterTool: CounterTool;
+  @InjectTool() private createChatMessage: CreateChatMessage;
+  @InjectTool() private mathTool: MathSumTool;
 
-  @Helper()
+  @DefineHelper()
   sum(a: number, b: number) {
     return a + b;
   }

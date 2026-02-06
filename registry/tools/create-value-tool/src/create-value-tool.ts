@@ -15,8 +15,7 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase } from '@loopstack/core';
+import { Tool, ToolInterface, ToolResult, WithArguments } from '@loopstack/common';
 
 const InputSchema = z.union([
   z.string(),
@@ -30,7 +29,7 @@ const InputSchema = z.union([
 type InputType = z.infer<typeof InputSchema>;
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description:
       'Creates a value from an expression input. This tool is helpful to debug a template expression or value in a workflow. Also it can be used to reassign a value to another using a template expression.',
@@ -43,7 +42,7 @@ type InputType = z.infer<typeof InputSchema>;
     })
     .strict(),
 )
-export class CreateValue extends ToolBase<{ input: InputType }> {
+export class CreateValue implements ToolInterface<{ input: InputType }> {
   protected readonly logger = new Logger(CreateValue.name);
 
   execute(args: { input: InputType }): Promise<ToolResult> {

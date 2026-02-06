@@ -15,8 +15,7 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Tool, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase, WorkflowExecution } from '@loopstack/core';
+import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const propertiesSchema = z
@@ -35,16 +34,16 @@ interface SandboxReadFileResult {
 }
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Read file contents from a sandbox container',
   },
 })
 @WithArguments(propertiesSchema)
-export class SandboxReadFile extends ToolBase<SandboxReadFileArgs> {
+export class SandboxReadFile implements ToolInterface<SandboxReadFileArgs> {
   private readonly logger = new Logger(SandboxReadFile.name);
 
-  @Tool() private sandboxCommand: SandboxCommand;
+  @InjectTool() private sandboxCommand: SandboxCommand;
 
   async execute(args: SandboxReadFileArgs, _ctx: WorkflowExecution): Promise<ToolResult<SandboxReadFileResult>> {
     const { containerId, path, encoding } = args;

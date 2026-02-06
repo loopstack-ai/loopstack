@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Helper, Tool, WithArguments, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { DefineHelper, InjectTool, WithArguments, WithState, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import {
   SandboxCreateDirectory,
@@ -22,7 +21,7 @@ interface FileEntry {
 }
 
 @Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/sandbox-example.workflow.yaml',
 })
 @WithArguments(
@@ -37,24 +36,24 @@ interface FileEntry {
     fileList: z.array(z.any()).optional(),
   }),
 )
-export class SandboxExampleWorkflow extends WorkflowBase {
+export class SandboxExampleWorkflow {
   // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
-  @Tool() sandboxInit: SandboxInit;
-  @Tool() sandboxDestroy: SandboxDestroy;
+  @InjectTool() sandboxInit: SandboxInit;
+  @InjectTool() sandboxDestroy: SandboxDestroy;
 
   // Filesystem tools (from @loopstack/sandbox-filesystem)
-  @Tool() sandboxWriteFile: SandboxWriteFile;
-  @Tool() sandboxReadFile: SandboxReadFile;
-  @Tool() sandboxListDirectory: SandboxListDirectory;
-  @Tool() sandboxCreateDirectory: SandboxCreateDirectory;
-  @Tool() sandboxDelete: SandboxDelete;
-  @Tool() sandboxExists: SandboxExists;
-  @Tool() sandboxFileInfo: SandboxFileInfo;
+  @InjectTool() sandboxWriteFile: SandboxWriteFile;
+  @InjectTool() sandboxReadFile: SandboxReadFile;
+  @InjectTool() sandboxListDirectory: SandboxListDirectory;
+  @InjectTool() sandboxCreateDirectory: SandboxCreateDirectory;
+  @InjectTool() sandboxDelete: SandboxDelete;
+  @InjectTool() sandboxExists: SandboxExists;
+  @InjectTool() sandboxFileInfo: SandboxFileInfo;
 
   // Chat message tool for outputting info to the interface
-  @Tool() createChatMessage: CreateChatMessage;
+  @InjectTool() createChatMessage: CreateChatMessage;
 
-  @Helper()
+  @DefineHelper()
   formatEntries(entries: FileEntry[]): string {
     if (!entries || entries.length === 0) {
       return '(empty)';

@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateText, AiModule, DelegateToolCall } from '@loopstack/ai-module';
-import { getBlockHelper, getBlockHelpers, getBlockTools } from '@loopstack/common';
-import { BlockExecutionContextDto, WorkflowProcessorService } from '@loopstack/core';
+import { BlockExecutionContextDto, getBlockHelper, getBlockHelpers, getBlockTools } from '@loopstack/common';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { ToolCallWorkflow } from '../tool-call.workflow';
@@ -142,7 +142,7 @@ describe('ToolCallWorkflow', () => {
       );
 
       // Verify history contains expected places
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('ready');
       expect(places).toContain('prompt_executed');
@@ -174,7 +174,7 @@ describe('ToolCallWorkflow', () => {
       expect(mockDelegateToolCall.execute).not.toHaveBeenCalled();
 
       // Verify history - should go directly to end
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('ready');
       expect(places).toContain('prompt_executed');
@@ -257,7 +257,7 @@ describe('ToolCallWorkflow', () => {
       );
 
       // Verify workflow completed successfully
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('end');
     });

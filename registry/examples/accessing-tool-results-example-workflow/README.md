@@ -49,7 +49,7 @@ Use npm install if you want to use and maintain the module as node dependency.
 > This step is automatically done for you when using the `loopstack add` command.
 
 - Add `AccessingToolResultsExampleModule` to the imports of `default.module.ts` or any other custom module.
-- Inject the `WorkflowToolResultsWorkflow` workflow to your workspace class using the `@Workflow()` decorator.
+- Inject the `WorkflowToolResultsWorkflow` workflow to your workspace class using the `@InjectWorkflow()` decorator.
 
 See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
 
@@ -98,7 +98,7 @@ Tool results persist and can be accessed from subsequent transitions using the s
 Define custom helper functions in your workflow class for complex data extraction:
 
 ```typescript
-@Helper()
+@DefineHelper()
 extractMessage(metadata: WorkflowMetadataInterface): string {
   return metadata.tools.create_some_data.say_hello.data;
 }

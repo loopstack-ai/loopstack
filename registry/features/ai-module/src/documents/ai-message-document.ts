@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, WithArguments } from '@loopstack/common';
-import { DocumentBase } from '@loopstack/core';
+import { Document, WithArguments } from '@loopstack/common';
 
 const AiMessageDocumentSchema = z.object({
   id: z.string().optional(),
@@ -11,7 +10,7 @@ const AiMessageDocumentSchema = z.object({
 });
 
 @Injectable()
-@BlockConfig({
+@Document({
   config: {
     type: 'document',
     description: 'Ai Message Document.',
@@ -19,4 +18,4 @@ const AiMessageDocumentSchema = z.object({
   configFile: __dirname + '/ai-message-document.yaml',
 })
 @WithArguments(AiMessageDocumentSchema)
-export class AiMessageDocument extends DocumentBase {}
+export class AiMessageDocument {}

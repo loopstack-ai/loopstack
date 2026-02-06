@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { getBlockConfig } from '@loopstack/common';
+import { BlockExecutionContextDto, BlockInterface, WorkflowExecution, getBlockConfig } from '@loopstack/common';
 import { PipelineItemConfigType, PipelineSequenceType } from '@loopstack/contracts/types';
-import { BlockExecutionContextDto, Processor, TemplateExpressionEvaluatorService } from '../../../common';
-import { PipelineBase } from '../../abstract';
-import { WorkflowExecution } from '../../interfaces';
+import { Processor, TemplateExpressionEvaluatorService } from '../../../common';
 import { BlockProcessor } from '../block-processor.service';
 import { NamespaceProcessorService } from '../namespace-processor.service';
 
@@ -26,15 +24,15 @@ export class SequenceProcessorService implements Processor {
     // }
   }
 
-  async process(block: PipelineBase, args: any, ctx: BlockExecutionContextDto): Promise<WorkflowExecution> {
+  async process(block: BlockInterface, args: any, ctx: BlockExecutionContextDto): Promise<WorkflowExecution> {
     // ctx = await this.namespaceProcessorService.initBlockNamespace(block, ctx);
     await this.namespaceProcessorService.initBlockNamespace(block, ctx);
 
-    this.logger.debug(`Running Sequence: ${block.name}`);
+    this.logger.debug(`Running Sequence: ${block.constructor.name}`);
 
     const config = getBlockConfig<PipelineSequenceType>(block) as PipelineSequenceType;
     if (!config) {
-      throw new Error(`Block ${block.name} is missing @BlockConfig decorator`);
+      throw new Error(`Block ${block.constructor.name} is missing @BlockConfig decorator`);
     }
 
     const sequence: PipelineItemConfigType[] = config.sequence;

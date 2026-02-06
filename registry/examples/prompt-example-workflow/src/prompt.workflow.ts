@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { AiGenerateText, AiMessageDocument } from '@loopstack/ai-module';
-import { BlockConfig, Document, Tool, WithArguments, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { InjectDocument, InjectTool, WithArguments, WithState, Workflow } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core-ui-module';
 
 @Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/prompt.workflow.yaml',
 })
 @WithArguments(
@@ -19,8 +18,8 @@ import { CreateDocument } from '@loopstack/core-ui-module';
     llmResponse: z.any().optional(),
   }),
 )
-export class PromptWorkflow extends WorkflowBase {
-  @Tool() private createDocument: CreateDocument;
-  @Tool() private aiGenerateText: AiGenerateText;
-  @Document() private aiMessageDocument: AiMessageDocument;
+export class PromptWorkflow {
+  @InjectTool() private createDocument: CreateDocument;
+  @InjectTool() private aiGenerateText: AiGenerateText;
+  @InjectDocument() private aiMessageDocument: AiMessageDocument;
 }

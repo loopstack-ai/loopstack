@@ -59,7 +59,7 @@ Inject the tool and documents in your workflow class:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { BlockConfig, Document, Tool } from '@loopstack/common';
+import { BlockConfig, Document, InjectTool } from '@loopstack/common';
 import { WorkflowBase } from '@loopstack/core';
 import {
   CreateDocument,
@@ -75,13 +75,13 @@ import {
 })
 export class MyWorkflow extends WorkflowBase {
   // Tool
-  @Tool() createDocument: CreateDocument;
+  @InjectTool() createDocument: CreateDocument;
 
   // Documents
-  @Document() messageDocument: MessageDocument;
-  @Document() markdownDocument: MarkdownDocument;
-  @Document() errorDocument: ErrorDocument;
-  @Document() plainDocument: PlainDocument;
+  @InjectDocument() messageDocument: MessageDocument;
+  @InjectDocument() markdownDocument: MarkdownDocument;
+  @InjectDocument() errorDocument: ErrorDocument;
+  @InjectDocument() plainDocument: PlainDocument;
 }
 ```
 

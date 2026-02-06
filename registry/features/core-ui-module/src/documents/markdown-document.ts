@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, WithArguments } from '@loopstack/common';
-import { DocumentBase } from '@loopstack/core';
+import { Document, DocumentInterface, WithArguments } from '@loopstack/common';
 
 const MarkdownDocumentSchema = z.object({
   markdown: z.string(),
 });
 
 @Injectable()
-@BlockConfig({
+@Document({
   config: {
     type: 'document',
     description: 'Markdown Document.',
@@ -16,4 +15,4 @@ const MarkdownDocumentSchema = z.object({
   configFile: __dirname + '/markdown-document.yaml',
 })
 @WithArguments(MarkdownDocumentSchema)
-export class MarkdownDocument extends DocumentBase {}
+export class MarkdownDocument implements DocumentInterface {}

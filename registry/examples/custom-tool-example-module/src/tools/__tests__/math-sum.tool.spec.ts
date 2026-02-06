@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import { TestingModule } from '@nestjs/testing';
+import { getBlockArgsSchema } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
 import { MathService } from '../../services/math.service';
 import { MathSumTool } from '../math-sum.tool';
@@ -38,23 +39,23 @@ describe('MathSumTool', () => {
     });
 
     it('should have argsSchema defined', () => {
-      expect(tool.argsSchema).toBeDefined();
+      expect(getBlockArgsSchema(tool)).toBeDefined();
     });
 
     it('should calculate sum of two positive numbers', async () => {
-      const args = tool.validate({ a: 2, b: 3 });
+      const args = { a: 2, b: 3 };
       const result = await tool.execute(args);
       expect(result.data).toBe(5);
     });
 
     it('should handle negative numbers', async () => {
-      const args = tool.validate({ a: -5, b: 3 });
+      const args = { a: -5, b: 3 };
       const result = await tool.execute(args);
       expect(result.data).toBe(-2);
     });
 
     it('should handle zero', async () => {
-      const args = tool.validate({ a: 0, b: 0 });
+      const args = { a: 0, b: 0 };
       const result = await tool.execute(args);
       expect(result.data).toBe(0);
     });
@@ -80,7 +81,7 @@ describe('MathSumTool', () => {
     it('should call mathService.sum with correct arguments', async () => {
       mockMathService.sum.mockReturnValue(42);
 
-      const args = tool.validate({ a: 10, b: 32 });
+      const args = { a: 10, b: 32 };
       const result = await tool.execute(args);
 
       expect(mockMathService.sum).toHaveBeenCalledWith(10, 32);
@@ -90,7 +91,7 @@ describe('MathSumTool', () => {
     it('should handle service returning negative values', async () => {
       mockMathService.sum.mockReturnValue(-100);
 
-      const args = tool.validate({ a: 1, b: 1 });
+      const args = { a: 1, b: 1 };
       const result = await tool.execute(args);
 
       expect(result.data).toBe(-100);
@@ -109,20 +110,23 @@ describe('MathSumTool', () => {
     });
 
     it('should validate correct input', () => {
-      const validated = tool.validate({ a: 1, b: 2 });
+      const validated = { a: 1, b: 2 };
       expect(validated).toEqual({ a: 1, b: 2 });
     });
 
     it('should reject non-numeric values', () => {
-      expect(() => tool.validate({ a: 'one', b: 2 })).toThrow();
+      const schema = getBlockArgsSchema(tool);
+      expect(() => schema?.parse({ a: 'one', b: 2 })).toThrow();
     });
 
     it('should reject extra properties (strict mode)', () => {
-      expect(() => tool.validate({ a: 1, b: 2, c: 3 })).toThrow();
+      const schema = getBlockArgsSchema(tool);
+      expect(() => schema?.parse({ a: 1, b: 2, c: 3 })).toThrow();
     });
 
     it('should reject missing required properties', () => {
-      expect(() => tool.validate({ a: 1 })).toThrow();
+      const schema = getBlockArgsSchema(tool);
+      expect(() => schema?.parse({ a: 1 })).toThrow();
     });
   });
 });

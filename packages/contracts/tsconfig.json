@@ -1,22 +1,10 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2023",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
-    "strict": true,
-    "esModuleInterop": true,
-    "declaration": true,
-    "declarationDir": "dist",
-    "preserveConstEnums": true,
-    "outDir": "dist",
-    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
     "rootDir": "./src",
-    "resolveJsonModule": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "incremental": false,
-    "baseUrl": "./"
+    "baseUrl": "."
   },
   "exclude": ["node_modules", "dist"],
-  "include": ["./src"]
+  "include": ["./src", "./test"]
 }

@@ -1,39 +1,21 @@
-import { Expose } from 'class-transformer';
-import { NamespaceEntity } from '@loopstack/common';
 import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
+import { NamespaceEntity } from '../entities';
 import { BlockStateDto, WorkflowStateDto } from './workflow-state.dto';
 
 export class BlockExecutionContextDto<TState extends WorkflowStateDto | BlockStateDto = BlockStateDto> {
-  @Expose()
-  root: string;
-
-  @Expose()
-  index: string;
-
-  @Expose()
-  userId: string;
-
-  @Expose()
-  pipelineId: string;
-
-  @Expose()
-  workspaceId: string;
-
-  @Expose()
+  root!: string;
+  index!: string;
+  userId!: string;
+  pipelineId!: string;
+  workspaceId!: string;
   workflowId?: string;
-
-  @Expose()
-  namespace: NamespaceEntity;
-
-  @Expose()
-  labels: string[];
-
-  @Expose()
+  namespace!: NamespaceEntity;
+  labels!: string[];
   payload?: {
     transition?: TransitionPayloadInterface;
   };
 
-  state: TState;
+  state!: TState;
 
   constructor(data: any) {
     Object.assign(this, data);

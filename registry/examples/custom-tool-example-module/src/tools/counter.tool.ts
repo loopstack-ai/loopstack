@@ -14,16 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import { Injectable } from '@nestjs/common';
-import { BlockConfig, ToolResult } from '@loopstack/common';
-import { ToolBase } from '@loopstack/core';
+import { Tool, ToolInterface, ToolResult } from '@loopstack/common';
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Counter tool.',
   },
 })
-export class CounterTool extends ToolBase {
+export class CounterTool implements ToolInterface {
   count: number = 0;
 
   async execute(): Promise<ToolResult> {

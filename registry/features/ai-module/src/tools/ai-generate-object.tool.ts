@@ -1,4 +1,5 @@
 import { ModelMessage } from '@ai-sdk/provider-utils';
+import { Injectable } from '@nestjs/common';
 import {
   GenerateTextResult,
   LanguageModel,
@@ -9,10 +10,17 @@ import {
   generateText,
 } from 'ai';
 import { z } from 'zod';
-import { BlockConfig, ToolResult, WithArguments, getBlockArgsSchema, getBlockDocument } from '@loopstack/common';
-import { DocumentBase, ToolBase, WorkflowBase } from '@loopstack/core';
-import { Block } from '@loopstack/core/dist/workflow-processor/abstract/block.abstract';
-import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
+import {
+  DocumentInterface,
+  Tool,
+  ToolInterface,
+  ToolResult,
+  WithArguments,
+  WorkflowExecution,
+  WorkflowInterface,
+  getBlockArgsSchema,
+  getBlockDocument,
+} from '@loopstack/common';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
@@ -26,21 +34,24 @@ export const AiGenerateObjectSchema = AiGenerateToolBaseSchema.extend({
 
 export type AiGenerateObjectArgsType = z.infer<typeof AiGenerateObjectSchema>;
 
-@BlockConfig({
+@Injectable()
+@Tool({
   config: {
     description: 'Generates a structured object using a LLM',
   },
 })
 @WithArguments(AiGenerateObjectSchema)
-export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
+export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType> {
   constructor(
     private readonly aiMessagesHelperService: AiMessagesHelperService,
     private readonly aiProviderModelHelperService: AiProviderModelHelperService,
-  ) {
-    super();
-  }
+  ) {}
 
-  async execute(args: AiGenerateObjectArgsType, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
+  async execute(
+    args: AiGenerateObjectArgsType,
+    ctx: WorkflowExecution<any>,
+    parent: WorkflowInterface,
+  ): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {
@@ -64,7 +75,7 @@ export class AiGenerateObject extends ToolBase<AiGenerateObjectArgsType> {
       options.messages = await convertToModelMessages(messages);
     }
 
-    const document: Block | undefined = getBlockDocument<DocumentBase>(parent, args.response.document);
+    const document = getBlockDocument<DocumentInterface>(parent, args.response.document);
     if (!document) {
       throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
     }

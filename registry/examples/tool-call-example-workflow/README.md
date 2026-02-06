@@ -58,7 +58,7 @@ OPENAI_API_KEY=sk-...
 > This step is automatically done for you when using the `loopstack add` command.
 
 - Add `ToolCallingExampleModule` to the imports of `default.module.ts` or any other custom module.
-- Inject the `ToolCallWorkflow` workflow to your workspace class using the `@Workflow()` decorator.
+- Inject the `ToolCallWorkflow` workflow to your workspace class using the `@InjectWorkflow()` decorator.
 
 See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
 
@@ -96,11 +96,11 @@ The `description` in `@BlockConfig` is passed to the LLM to help it understand w
 
 #### 2. Registering Tools in the Workflow
 
-Register custom tools using the `@Tool()` decorator:
+Register custom tools using the `@InjectTool()` decorator:
 
 ```typescript
 export class ToolCallWorkflow extends WorkflowBase {
-  @Tool() getWeather: GetWeather;
+  @InjectTool() getWeather: GetWeather;
   // ...
 }
 ```
@@ -126,10 +126,10 @@ The LLM will decide whether to call a tool based on the user's request.
 
 #### 4. Helper Functions for Routing
 
-Define helper functions using the `@Helper()` decorator for use in conditional expressions:
+Define helper functions using the `@DefineHelper()` decorator for use in conditional expressions:
 
 ```typescript
-@Helper()
+@DefineHelper()
 isToolCall(message: any) {
   return message?.parts.some((part: any) => part.type.startsWith('tool-'));
 }

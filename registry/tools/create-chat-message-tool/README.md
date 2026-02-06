@@ -55,7 +55,7 @@ See here for more information about working with [Modules](https://loopstack.ai/
 
 ### 2. Use in Your Workflow
 
-Inject the tool in your workflow class using the @Tool() decorator:
+Inject the tool in your workflow class using the @InjectTool() decorator:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
@@ -70,7 +70,7 @@ import { CreateChatMessage } from './create-chat-message-tool';
 })
 export class MyWorkflow extends WorkflowBase {
   // Tools
-  @Tool() createChatMessage: CreateChatMessage;
+  @InjectTool() createChatMessage: CreateChatMessage;
 }
 ```
 

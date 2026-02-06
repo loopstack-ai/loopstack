@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
-import { LoopCoreModule } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
 import { AiMessageDocument } from './documents';
 import { AnthropicProviderService } from './providers/anthropic.provider';
@@ -12,7 +11,7 @@ import { AiProviderRegistryService } from './services/ai-provider-registry.servi
 import { AiGenerateDocument, AiGenerateObject, AiGenerateText, DelegateToolCall } from './tools';
 
 @Module({
-  imports: [LoopCoreModule, CoreUiModule, DiscoveryModule],
+  imports: [CoreUiModule, DiscoveryModule],
   providers: [
     // services
     AiMessagesHelperService,

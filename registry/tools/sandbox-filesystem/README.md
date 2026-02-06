@@ -59,7 +59,7 @@ See here for more information about working with [Modules](https://loopstack.ai/
 
 ### 2. Use in Your Workflow
 
-Inject the tools in your workflow class using the @Tool() decorator:
+Inject the tools in your workflow class using the @InjectTool() decorator:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
@@ -95,17 +95,17 @@ import { SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
 )
 export class MyWorkflow extends WorkflowBase {
   // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
-  @Tool() sandboxInit: SandboxInit;
-  @Tool() sandboxDestroy: SandboxDestroy;
+  @InjectTool() sandboxInit: SandboxInit;
+  @InjectTool() sandboxDestroy: SandboxDestroy;
 
   // Filesystem tools (from @loopstack/sandbox-filesystem)
-  @Tool() sandboxWriteFile: SandboxWriteFile;
-  @Tool() sandboxReadFile: SandboxReadFile;
-  @Tool() sandboxListDirectory: SandboxListDirectory;
-  @Tool() sandboxCreateDirectory: SandboxCreateDirectory;
-  @Tool() sandboxDelete: SandboxDelete;
-  @Tool() sandboxExists: SandboxExists;
-  @Tool() sandboxFileInfo: SandboxFileInfo;
+  @InjectTool() sandboxWriteFile: SandboxWriteFile;
+  @InjectTool() sandboxReadFile: SandboxReadFile;
+  @InjectTool() sandboxListDirectory: SandboxListDirectory;
+  @InjectTool() sandboxCreateDirectory: SandboxCreateDirectory;
+  @InjectTool() sandboxDelete: SandboxDelete;
+  @InjectTool() sandboxExists: SandboxExists;
+  @InjectTool() sandboxFileInfo: SandboxFileInfo;
 }
 ```
 

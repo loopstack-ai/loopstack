@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { SandboxToolModule } from '@loopstack/sandbox-tool';
 import { SandboxCreateDirectory } from './tools/sandbox-create-directory.tool';
 import { SandboxDelete } from './tools/sandbox-delete.tool';
@@ -25,7 +24,7 @@ import { SandboxReadFile } from './tools/sandbox-read-file.tool';
 import { SandboxWriteFile } from './tools/sandbox-write-file.tool';
 
 @Module({
-  imports: [LoopCoreModule, SandboxToolModule],
+  imports: [SandboxToolModule],
   providers: [
     SandboxReadFile,
     SandboxWriteFile,

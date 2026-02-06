@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { parse } from 'yaml';
 import { BlockConfigType, type ConfigSourceInterface } from '@loopstack/contracts/types';
-import { BlockOptions } from '../interfaces';
+import { BlockOptions } from '../decorators';
 
 export function buildConfig(options: BlockOptions, type?: string): BlockConfigType {
   const baseConfig: Partial<BlockConfigType> = {

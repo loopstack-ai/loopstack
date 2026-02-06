@@ -16,6 +16,7 @@ limitations under the License.
 import { TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
 import {
+  BlockExecutionContextDto,
   getBlockArgsSchema,
   getBlockConfig,
   getBlockHelper,
@@ -23,7 +24,7 @@ import {
   getBlockStateSchema,
   getBlockTools,
 } from '@loopstack/common';
-import { BlockExecutionContextDto, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { CounterTool, MathSumTool } from '../../tools';
@@ -93,28 +94,34 @@ describe('CustomToolExampleWorkflow', () => {
   describe('arguments', () => {
     it('should validate arguments with correct schema', () => {
       const validArgs = { a: 10, b: 20 };
-      const result = workflow.validate(validArgs);
+
+      const schema = getBlockArgsSchema(workflow);
+      const result = schema?.parse(validArgs);
       expect(result).toEqual(validArgs);
     });
 
     it('should apply default values when arguments are missing', () => {
-      const result = workflow.validate({});
+      const schema = getBlockArgsSchema(workflow);
+      const result = schema?.parse({});
       expect(result).toEqual({ a: 1, b: 2 });
     });
 
     it('should apply partial default values', () => {
-      const result = workflow.validate({ a: 5 });
+      const schema = getBlockArgsSchema(workflow);
+      const result = schema?.parse({ a: 5 });
       expect(result).toEqual({ a: 5, b: 2 });
     });
 
     it('should throw error for invalid argument types', () => {
-      expect(() => workflow.validate({ a: 'not a number', b: 20 })).toThrow();
+      const schema = getBlockArgsSchema(workflow);
+      expect(() => schema?.parse({ a: 'not a number', b: 20 })).toThrow();
     });
   });
 
   describe('states', () => {
     it('should have stateSchema with expected properties', () => {
-      const schema = getBlockArgsSchema(workflow) as z.ZodObject<any>;
+      const schema = getBlockStateSchema(workflow) as z.ZodObject<any>;
+
       expect(schema).toBeDefined();
 
       const shape = schema.shape;
@@ -125,20 +132,20 @@ describe('CustomToolExampleWorkflow', () => {
     });
 
     it('should validate state with all optional fields', () => {
-      const schema = getBlockArgsSchema(workflow)!;
+      const schema = getBlockStateSchema(workflow)!;
       const result = schema.parse({});
       expect(result).toEqual({});
     });
 
     it('should validate state with populated fields', () => {
-      const schema = getBlockArgsSchema(workflow)!;
+      const schema = getBlockStateSchema(workflow)!;
       const state = { total: 100, count1: 1, count2: 2, count3: 3 };
       const result = schema.parse(state);
       expect(result).toEqual(state);
     });
 
     it('should throw error for invalid state field types', () => {
-      const schema = getBlockArgsSchema(workflow)!;
+      const schema = getBlockStateSchema(workflow)!;
       expect(() => schema.parse({ total: 'not a number' })).toThrow();
     });
   });
@@ -202,7 +209,7 @@ describe('CustomToolExampleWorkflow', () => {
       expect(mockCreateChatMessageTool.execute).toHaveBeenCalledTimes(3);
 
       // Transition history
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       expect(history[0].metadata.transition?.transition).toBe('calculate');
       expect(history[0].metadata.place).toBe('end');
     });

@@ -1,18 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NamespaceEntity, PipelineEntity, getBlockConfig } from '@loopstack/common';
-import { NamespacePropsSchema } from '@loopstack/contracts/schemas';
-import type { NamespacePropsType, WorkflowType } from '@loopstack/contracts/types';
 import {
   BlockContextType,
   BlockExecutionContextDto,
   BlockInterface,
   FactoryExecutionContextDto,
+  NamespaceEntity,
+  PipelineEntity,
   PipelineExecutionContextDto,
-  TemplateExpressionEvaluatorService,
+  WorkflowExecution,
   WorkflowExecutionContextDto,
-} from '../../common';
+  getBlockConfig,
+} from '@loopstack/common';
+import { NamespacePropsSchema } from '@loopstack/contracts/schemas';
+import type { NamespacePropsType, WorkflowType } from '@loopstack/contracts/types';
+import { TemplateExpressionEvaluatorService } from '../../common';
 import { NamespacesService } from '../../persistence';
-import { WorkflowExecution } from '../interfaces';
+import { getTemplateVars } from '../utils/template-helper';
 
 @Injectable()
 export class NamespaceProcessorService {
@@ -42,13 +45,13 @@ export class NamespaceProcessorService {
   ): Promise<BlockExecutionContextDto> {
     const config = getBlockConfig<WorkflowType>(block);
     if (!config) {
-      throw new Error(`Block ${block.name} is missing @BlockConfig decorator`);
+      throw new Error(`Block ${block.constructor.name} is missing @BlockConfig decorator`);
     }
 
     if ('namespace' in config && config.namespace) {
       const namespaceConfig = this.templateExpressionEvaluatorService.evaluateTemplate<NamespacePropsType>(
         config.namespace,
-        block.getTemplateVars({}, {} as WorkflowExecution), // todo: fix
+        getTemplateVars({}, {} as WorkflowExecution), // todo: fix
         // block,
         // ['pipeline'],
         { schema: NamespacePropsSchema },

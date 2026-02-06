@@ -1,4 +1,4 @@
-import { WorkflowExecutionContextDto } from '@loopstack/core';
+import { WorkflowExecutionContextDto } from '@loopstack/common';
 
 export function getToolResult(
   ctx: WorkflowExecutionContextDto,

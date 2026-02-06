@@ -2,9 +2,14 @@ import { ModelMessage } from '@ai-sdk/provider-utils';
 import { Injectable } from '@nestjs/common';
 import { LanguageModel, ToolSet, UIMessage, convertToModelMessages, createUIMessageStream, streamText } from 'ai';
 import { z } from 'zod';
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase, WorkflowBase } from '@loopstack/core';
-import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
+import {
+  Tool,
+  ToolInterface,
+  ToolResult,
+  WithArguments,
+  WorkflowExecution,
+  WorkflowInterface,
+} from '@loopstack/common';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
@@ -17,22 +22,24 @@ export const AiGenerateTextSchema = AiGenerateToolBaseSchema.extend({
 type AiGenerateTextArgsType = z.infer<typeof AiGenerateTextSchema>;
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Generates text using a LLM',
   },
 })
 @WithArguments(AiGenerateTextSchema)
-export class AiGenerateText extends ToolBase<AiGenerateTextArgsType> {
+export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
   constructor(
     private readonly aiMessagesHelperService: AiMessagesHelperService,
     private readonly aiToolsHelperService: AiToolsHelperService,
     private readonly aiProviderModelHelperService: AiProviderModelHelperService,
-  ) {
-    super();
-  }
+  ) {}
 
-  async execute(args: AiGenerateTextArgsType, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
+  async execute(
+    args: AiGenerateTextArgsType,
+    ctx: WorkflowExecution<any>,
+    parent: WorkflowInterface,
+  ): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {

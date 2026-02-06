@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DocumentEntity, WorkflowEntity } from '@loopstack/common';
-import { WorkflowExecution } from '../../workflow-processor';
+import { DocumentEntity, WorkflowEntity, WorkflowExecution } from '@loopstack/common';
 
 @Injectable()
 export class DocumentService {

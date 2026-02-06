@@ -2,15 +2,15 @@ import { z } from 'zod';
 import { BlockConfigType } from '@loopstack/contracts/dist/types';
 import {
   ARGS_SCHEMA_METADATA_KEY,
-  BLOCK_METADATA_KEY,
-  DOCUMENT_METADATA_KEY,
+  BLOCK_CONFIG_METADATA_KEY,
+  BlockOptions,
+  INJECTED_DOCUMENTS_METADATA_KEY,
+  INJECTED_TOOLS_METADATA_KEY,
+  INJECTED_WORKFLOWS_METADATA_KEY,
   RESULT_SCHEMA_METADATA_KEY,
   STATE_SCHEMA_METADATA_KEY,
   TEMPLATE_HELPER_METADATA_KEY,
-  TOOL_METADATA_KEY,
-  WORKFLOW_METADATA_KEY,
 } from '../decorators';
-import { BlockOptions } from '../interfaces';
 import { buildConfig } from './block-config.builder.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -43,7 +43,7 @@ function getPrototype(target: object | Constructor): object {
  */
 export function getBlockConfig<T = BlockConfigType>(target: object | Constructor): T | undefined {
   const ctor = getConstructor(target);
-  const options = Reflect.getMetadata(BLOCK_METADATA_KEY, ctor) as BlockOptions | undefined;
+  const options = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions | undefined;
   return options ? (buildConfig(options) as T) : undefined;
 }
 
@@ -52,7 +52,7 @@ export function getBlockConfig<T = BlockConfigType>(target: object | Constructor
  */
 export function getBlockOptions(target: object | Constructor): BlockOptions | undefined {
   const ctor = getConstructor(target);
-  return Reflect.getMetadata(BLOCK_METADATA_KEY, ctor) as BlockOptions | undefined;
+  return Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions | undefined;
 }
 
 /**
@@ -60,7 +60,7 @@ export function getBlockOptions(target: object | Constructor): BlockOptions | un
  */
 export function getBlockTools(target: object | Constructor): string[] {
   const proto = getPrototype(target);
-  const keys = (Reflect.getMetadata(TOOL_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
+  const keys = (Reflect.getMetadata(INJECTED_TOOLS_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
   return keys.map((key) => String(key));
 }
 
@@ -69,7 +69,7 @@ export function getBlockTools(target: object | Constructor): string[] {
  */
 export function getBlockDocuments(target: object | Constructor): string[] {
   const proto = getPrototype(target);
-  const keys = (Reflect.getMetadata(DOCUMENT_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
+  const keys = (Reflect.getMetadata(INJECTED_DOCUMENTS_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
   return keys.map((key) => String(key));
 }
 
@@ -78,7 +78,7 @@ export function getBlockDocuments(target: object | Constructor): string[] {
  */
 export function getBlockWorkflows(target: object | Constructor): string[] {
   const proto = getPrototype(target);
-  const keys = (Reflect.getMetadata(WORKFLOW_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
+  const keys = (Reflect.getMetadata(INJECTED_WORKFLOWS_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
   return keys.map((key) => String(key));
 }
 

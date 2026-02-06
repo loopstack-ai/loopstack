@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, WithArguments } from '@loopstack/common';
-import { DocumentBase } from '@loopstack/core';
+import { Document, DocumentInterface, WithArguments } from '@loopstack/common';
 
 export const MeetingNotesDocumentSchema = z.object({
   text: z.string(),
 });
 
 @Injectable()
-@BlockConfig({
+@Document({
   configFile: __dirname + '/meeting-notes-document.yaml',
 })
 @WithArguments(MeetingNotesDocumentSchema)
-export class MeetingNotesDocument extends DocumentBase {}
+export class MeetingNotesDocument implements DocumentInterface {}

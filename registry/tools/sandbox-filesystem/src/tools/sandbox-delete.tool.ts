@@ -15,8 +15,7 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Tool, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase, WorkflowExecution } from '@loopstack/core';
+import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const propertiesSchema = z
@@ -36,16 +35,16 @@ interface SandboxDeleteResult {
 }
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Delete a file or directory in a sandbox container',
   },
 })
 @WithArguments(propertiesSchema)
-export class SandboxDelete extends ToolBase<SandboxDeleteArgs> {
+export class SandboxDelete implements ToolInterface<SandboxDeleteArgs> {
   private readonly logger = new Logger(SandboxDelete.name);
 
-  @Tool() private sandboxCommand: SandboxCommand;
+  @InjectTool() private sandboxCommand: SandboxCommand;
 
   async execute(args: SandboxDeleteArgs, _ctx: WorkflowExecution): Promise<ToolResult<SandboxDeleteResult>> {
     const { containerId, path: targetPath, recursive, force } = args;

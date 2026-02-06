@@ -1,12 +1,12 @@
 import { WorkflowTransitionType } from '@loopstack/contracts/types';
-import { WorkflowTransitionDto } from '../../common';
+import { WorkflowTransitionDto } from './workflow-transition.dto';
 
 export class ExecutionContext {
-  error: boolean;
-  stop: boolean;
+  error!: boolean;
+  stop!: boolean;
   transition?: WorkflowTransitionDto;
-  availableTransitions: WorkflowTransitionType[];
-  persistenceState: {
+  availableTransitions!: WorkflowTransitionType[];
+  persistenceState!: {
     documentsUpdated: boolean;
   };
   nextPlace?: string;

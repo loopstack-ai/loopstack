@@ -20,7 +20,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "jest --passWithNoTests --detectOpenHandles",
     "watch": "nest build --watch"
   },
   "dependencies": {

@@ -15,8 +15,7 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Tool, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase, WorkflowExecution } from '@loopstack/core';
+import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const propertiesSchema = z
@@ -42,16 +41,16 @@ interface SandboxFileInfoResult {
 }
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Get detailed information about a file or directory in a sandbox container',
   },
 })
 @WithArguments(propertiesSchema)
-export class SandboxFileInfo extends ToolBase<SandboxFileInfoArgs> {
+export class SandboxFileInfo implements ToolInterface<SandboxFileInfoArgs> {
   private readonly logger = new Logger(SandboxFileInfo.name);
 
-  @Tool() private sandboxCommand: SandboxCommand;
+  @InjectTool() private sandboxCommand: SandboxCommand;
 
   async execute(args: SandboxFileInfoArgs, _ctx: WorkflowExecution): Promise<ToolResult<SandboxFileInfoResult>> {
     const { containerId, path: targetPath } = args;

@@ -1,18 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { WorkflowEntity, getBlockConfig } from '@loopstack/common';
+import {
+  BlockExecutionContextDto,
+  PersistenceState,
+  WorkflowEntity,
+  WorkflowExecution,
+  WorkflowInterface,
+  getBlockConfig,
+} from '@loopstack/common';
 import { WorkflowType } from '@loopstack/contracts/dist/types';
-import { BlockExecutionContextDto, PersistenceState } from '../../common';
 import { WorkflowService } from '../../persistence';
-import { WorkflowBase } from '../abstract';
-import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
 
 @Injectable()
 export class WorkflowStateService {
   constructor(private workflowService: WorkflowService) {}
 
-  async getWorkflowState(block: WorkflowBase, context: BlockExecutionContextDto): Promise<WorkflowEntity> {
+  async getWorkflowState(block: WorkflowInterface, context: BlockExecutionContextDto): Promise<WorkflowEntity> {
     const workflow = await this.workflowService.findOneByQuery(context.namespace?.id, {
-      blockName: block.name,
+      blockName: block.constructor.name,
       labels: context.labels,
     });
 
@@ -22,7 +26,7 @@ export class WorkflowStateService {
 
     const config = getBlockConfig<WorkflowType>(block) as WorkflowType;
     if (!config) {
-      throw new Error(`Block ${block.name} is missing @BlockConfig decorator`);
+      throw new Error(`Block ${block.constructor.name} is missing @BlockConfig decorator`);
     }
 
     return this.workflowService.create({
@@ -30,8 +34,8 @@ export class WorkflowStateService {
       labels: context.labels,
       namespace: context.namespace ?? undefined,
       pipelineId: context.pipelineId,
-      blockName: block.name,
-      title: config.title ?? block.name,
+      blockName: block.constructor.name,
+      title: config.title ?? block.constructor.name,
       ui: config.ui ?? null,
       index: context.index,
       place: 'start',
@@ -43,7 +47,7 @@ export class WorkflowStateService {
   }
 
   async saveExecutionState(ctx: WorkflowExecution) {
-    ctx.entity.history = ctx.state.caretaker.serialize();
+    ctx.entity.history = ctx.state.serialize();
 
     // save selected info to entity directly
     ctx.entity.place = ctx.state.getMetadata('place');

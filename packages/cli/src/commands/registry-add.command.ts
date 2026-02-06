@@ -114,7 +114,7 @@ export class RegistryAddCommand extends CommandRunner {
             console.log(`  - Import and add the module to your target module's imports array`);
           }
           if (workflowInstallFailed || moduleInstallFailed) {
-            console.log(`  - Import and add workflows to your workspace class with @Workflow() decorator`);
+            console.log(`  - Import and add workflows to your workspace class with @InjectWorkflow() decorator`);
           }
         } else {
           // Run format script if available

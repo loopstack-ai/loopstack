@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
-import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { BlockExecutionContextDto, getBlockHelper } from '@loopstack/common';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { CreateValue, CreateValueToolModule } from '@loopstack/create-value-tool';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
@@ -16,7 +17,7 @@ describe('WorkflowStateWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(WorkflowStateWorkflow)
-      .withImports(LoopCoreModule, CreateValueToolModule, CreateChatMessageToolModule)
+      .withImports(CreateValueToolModule, CreateChatMessageToolModule)
       .withToolOverride(CreateValue)
       .withToolOverride(CreateChatMessage)
       .compile();
@@ -37,7 +38,7 @@ describe('WorkflowStateWorkflow', () => {
   });
 
   it('should have messageInUpperCase helper', () => {
-    const helper = workflow.getHelper('messageInUpperCase');
+    const helper = getBlockHelper(workflow, 'messageInUpperCase');
     expect(helper).toBeDefined();
     expect(helper!.call(workflow, 'hello')).toBe('HELLO');
   });

@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { AiGenerateDocument, AiMessageDocument } from '@loopstack/ai-module';
-import { Document, Tool, WithArguments } from '@loopstack/common';
-import { BlockConfig, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { InjectDocument, InjectTool, WithArguments, Workflow } from '@loopstack/common';
+import { WithState } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core-ui-module';
 import { FileDocument, FileDocumentSchema } from './documents/file-document';
 
 @Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/prompt-structured-output.workflow.yaml',
 })
 @WithArguments(
@@ -21,10 +20,10 @@ import { FileDocument, FileDocumentSchema } from './documents/file-document';
     file: FileDocumentSchema,
   }),
 )
-export class PromptStructuredOutputWorkflow extends WorkflowBase {
-  @Tool() createDocument: CreateDocument;
-  @Tool() aiGenerateDocument: AiGenerateDocument;
+export class PromptStructuredOutputWorkflow {
+  @InjectTool() createDocument: CreateDocument;
+  @InjectTool() aiGenerateDocument: AiGenerateDocument;
 
-  @Document() aiMessageDocument: AiMessageDocument;
-  @Document() fileDocument: FileDocument;
+  @InjectDocument() aiMessageDocument: AiMessageDocument;
+  @InjectDocument() fileDocument: FileDocument;
 }

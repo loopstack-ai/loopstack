@@ -15,12 +15,11 @@ limitations under the License.
 */
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Helper, Tool, WithArguments } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { DefineHelper, InjectTool, WithArguments, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
 @Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/dynamic-routing-example.workflow.yaml',
 })
 @WithArguments(
@@ -30,10 +29,10 @@ import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
     })
     .strict(),
 )
-export class DynamicRoutingExampleWorkflow extends WorkflowBase {
-  @Tool() private createChatMessage: CreateChatMessage;
+export class DynamicRoutingExampleWorkflow {
+  @InjectTool() private createChatMessage: CreateChatMessage;
 
-  @Helper()
+  @DefineHelper()
   gt(a: number, b: number) {
     return a > b;
   }

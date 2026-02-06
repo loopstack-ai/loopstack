@@ -1,4 +1,3 @@
-import { WorkflowExecution } from '../../workflow-processor';
 import {
   DocumentExecutionContextDto,
   FactoryExecutionContextDto,
@@ -13,11 +12,3 @@ export type BlockContextType =
   | PipelineExecutionContextDto
   | WorkspaceExecutionContextDto
   | FactoryExecutionContextDto;
-
-export interface BlockInterface {
-  type: string;
-
-  get name(): string;
-
-  getTemplateVars(args: unknown, ctx: WorkflowExecution): Record<string, unknown>;
-}

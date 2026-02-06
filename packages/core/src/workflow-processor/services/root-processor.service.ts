@@ -1,11 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PipelineEntity, PipelineState, getBlockWorkflow } from '@loopstack/common';
-import { BlockExecutionContextDto, BlockStateDto } from '../../common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BlockExecutionContextDto,
+  BlockStateDto,
+  PipelineEntity,
+  PipelineState,
+  WorkflowExecution,
+  WorkflowInterface,
+  getBlockWorkflow,
+} from '@loopstack/common';
 import { PipelineService } from '../../persistence';
-import { WorkflowBase, WorkspaceBase } from '../abstract';
-import { WorkflowExecution } from '../interfaces/workflow-execution.interface';
+import { BlockDiscoveryService } from './block-discovery.service';
 import { BlockProcessor } from './block-processor.service';
-import { BlockRegistryService } from './block-registry.service';
 import { NamespaceProcessorService } from './namespace-processor.service';
 
 @Injectable()
@@ -13,14 +18,14 @@ export class RootProcessorService {
   private readonly logger = new Logger(RootProcessorService.name);
 
   constructor(
-    private pipelineService: PipelineService,
+    private readonly pipelineService: PipelineService,
     private readonly namespaceProcessorService: NamespaceProcessorService,
-    private readonly blockRegistryService: BlockRegistryService,
     private readonly blockProcessor: BlockProcessor,
+    private readonly blockDiscoveryService: BlockDiscoveryService,
   ) {}
 
   private async processRootPipeline(
-    workflow: WorkflowBase,
+    workflow: WorkflowInterface,
     pipeline: PipelineEntity,
     payload: BlockExecutionContextDto['payload'],
     args?: any,
@@ -52,13 +57,12 @@ export class RootProcessorService {
     pipeline: PipelineEntity,
     payload: BlockExecutionContextDto['payload'],
   ): Promise<WorkflowExecution> {
-    const workspaceRegistry = this.blockRegistryService.getBlock(pipeline.workspace.blockName);
-    if (!workspaceRegistry) {
-      throw new Error(`Config for workspace ${pipeline.workspace.blockName} not found.`);
+    const workspaceInstance = this.blockDiscoveryService.getWorkspace(pipeline.workspace.blockName);
+    if (!workspaceInstance) {
+      throw new BadRequestException(`Config for workspace with name ${pipeline.workspace.blockName} not found.`);
     }
 
-    const workspace = workspaceRegistry.provider.instance as WorkspaceBase;
-    const workflow = getBlockWorkflow<WorkflowBase>(workspace, pipeline.blockName);
+    const workflow = getBlockWorkflow<WorkflowInterface>(workspaceInstance, pipeline.blockName);
     if (!workflow) {
       throw new Error(`Workflow ${pipeline.blockName} not available in workspace ${pipeline.blockName}`);
     }
