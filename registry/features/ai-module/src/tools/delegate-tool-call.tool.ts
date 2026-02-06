@@ -1,8 +1,15 @@
+import { Injectable } from '@nestjs/common';
 import { ToolUIPart, UIMessage } from 'ai';
 import { z } from 'zod';
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase, WorkflowBase } from '@loopstack/core';
-import { WorkflowExecution } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-execution.interface';
+import {
+  Tool,
+  ToolInterface,
+  ToolResult,
+  WithArguments,
+  WorkflowExecution,
+  WorkflowInterface,
+  getBlockTool,
+} from '@loopstack/common';
 
 const DelegateToolCallsToolSchema = z.object({
   message: z.object({
@@ -19,14 +26,19 @@ const DelegateToolCallsToolSchema = z.object({
 
 type DelegateToolCallsToolArgs = z.infer<typeof DelegateToolCallsToolSchema>;
 
-@BlockConfig({
+@Injectable()
+@Tool({
   config: {
     description: 'Delegate a tool call.',
   },
 })
 @WithArguments(DelegateToolCallsToolSchema)
-export class DelegateToolCall extends ToolBase<DelegateToolCallsToolArgs> {
-  async execute(args: DelegateToolCallsToolArgs, ctx: WorkflowExecution, parent: WorkflowBase): Promise<ToolResult> {
+export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs> {
+  async execute(
+    args: DelegateToolCallsToolArgs,
+    ctx: WorkflowExecution<any>,
+    parent: WorkflowInterface,
+  ): Promise<ToolResult> {
     const parts = args.message.parts;
     const resultParts: ToolUIPart[] = [];
 
@@ -41,7 +53,7 @@ export class DelegateToolCall extends ToolBase<DelegateToolCallsToolArgs> {
 
       const toolName = part.type.replace(/^tool-/, '');
 
-      const tool = parent.getTool(toolName);
+      const tool = getBlockTool<ToolInterface>(parent, toolName);
       if (!tool) {
         throw new Error(`Tool ${toolName} not found.`);
       }

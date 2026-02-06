@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { WorkflowEntity } from '@loopstack/common';
-import { PersistenceState } from '../../common';
+import { PersistenceState, WorkflowEntity } from '@loopstack/common';
 import { ClientMessageService } from '../../common/services/client-message.service';
 
 @Injectable()

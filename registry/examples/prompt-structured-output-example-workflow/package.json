@@ -34,7 +34,6 @@
   "dependencies": {
     "@loopstack/ai-module": "^0.18.0",
     "@loopstack/common": "^0.18.1",
-    "@loopstack/core": "^0.18.1",
     "@loopstack/core-ui-module": "^0.18.0",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"

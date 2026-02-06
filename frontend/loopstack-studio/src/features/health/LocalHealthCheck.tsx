@@ -1,11 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ApiClientEvents } from '@/events';
+import { useGetHealthInfo, useWorkerAuth, useWorkerAuthTokenRefresh } from '@/hooks/useAuth.ts';
+import { eventBus } from '@/services';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../../components/ui/sheet.tsx';
-import { ApiClientEvents } from '../../events';
-import { useGetHealthInfo, useWorkerAuth, useWorkerAuthTokenRefresh } from '../../hooks/useAuth.ts';
 import { useStudio } from '../../providers/StudioProvider.tsx';
-import { eventBus } from '../../services';
 
 export const Escalation = {
   None: 0,
@@ -27,68 +27,78 @@ const LocalHealthCheck = () => {
   const fetchHealthInfo = useGetHealthInfo(false);
   const queryClient = useQueryClient();
 
+  // Stabilize mutation references to avoid infinite loops.
+  const tokenRefreshRef = useRef(tokenRefresh);
+  tokenRefreshRef.current = tokenRefresh;
+
+  const authenticateWorkerRef = useRef(authenticateWorker);
+  authenticateWorkerRef.current = authenticateWorker;
+
+  const fetchHealthInfoRef = useRef(fetchHealthInfo);
+  fetchHealthInfoRef.current = fetchHealthInfo;
+
   const handleCheckHealth = useCallback(() => {
-    void fetchHealthInfo.refetch();
-  }, [fetchHealthInfo]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (escalation === Escalation.Connection) {
-      interval = setInterval(() => {
-        handleCheckHealth();
-      }, 5000);
-    }
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [escalation, handleCheckHealth]);
-
-  useEffect(() => {
-    if (fetchHealthInfo.data) {
-      setEscalation(Escalation.None);
-      void queryClient.invalidateQueries();
-    }
-  }, [fetchHealthInfo.data, setEscalation, queryClient]);
+    void fetchHealthInfoRef.current.refetch();
+  }, []);
 
   const handleTokenRefresh = useCallback(() => {
-    tokenRefresh.mutate();
-  }, [tokenRefresh]);
+    tokenRefreshRef.current.mutate();
+  }, []);
 
   const handleLogin = useCallback(() => {
-    authenticateWorker.mutate({
+    authenticateWorkerRef.current.mutate({
       hubLoginRequestDto: {
         code: 'local',
         grantType: 'local',
       },
     });
-  }, [authenticateWorker]);
+  }, []);
 
+  // Poll health endpoint when in Connection escalation
+  useEffect(() => {
+    if (escalation !== Escalation.Connection) return;
+
+    const interval = setInterval(handleCheckHealth, 5000);
+    return () => clearInterval(interval);
+  }, [escalation, handleCheckHealth]);
+
+  // Reset escalation when health check succeeds
+  useEffect(() => {
+    if (fetchHealthInfo.data) {
+      setEscalation(Escalation.None);
+      void queryClient.invalidateQueries();
+    }
+  }, [fetchHealthInfo.data, queryClient]);
+
+  // Token refresh error → escalate to Login
   useEffect(() => {
     if (tokenRefresh.error) {
       setEscalation(Escalation.Login);
     }
   }, [tokenRefresh.error]);
 
+  // Token refresh success → clear escalation
   useEffect(() => {
     if (tokenRefresh.data?.status === 200) {
       setEscalation(Escalation.None);
     }
   }, [tokenRefresh.data]);
 
+  // Login error → escalate to Debug
   useEffect(() => {
     if (authenticateWorker.error) {
       setEscalation(Escalation.Debug);
     }
   }, [authenticateWorker.error]);
 
+  // Login success → clear escalation
   useEffect(() => {
     if (authenticateWorker.data?.status === 200) {
       setEscalation(Escalation.None);
     }
   }, [authenticateWorker.data]);
 
+  // Act on escalation level changes
   useEffect(() => {
     if (escalation === Escalation.Refresh) {
       handleTokenRefresh();
@@ -99,16 +109,12 @@ const LocalHealthCheck = () => {
 
   // Subscribe to events
   useEffect(() => {
-    const handleUnauthorized = () => {
+    const unsubscribe1 = eventBus.on(ApiClientEvents.UNAUTHORIZED, () => {
       setEscalation(Escalation.Refresh);
-    };
-
-    const handleConnectionRefused = () => {
+    });
+    const unsubscribe2 = eventBus.on(ApiClientEvents.ERR_NETWORK, () => {
       setEscalation(Escalation.Connection);
-    };
-
-    const unsubscribe1 = eventBus.on(ApiClientEvents.UNAUTHORIZED, handleUnauthorized);
-    const unsubscribe2 = eventBus.on(ApiClientEvents.ERR_NETWORK, handleConnectionRefused);
+    });
     return () => {
       unsubscribe1();
       unsubscribe2();

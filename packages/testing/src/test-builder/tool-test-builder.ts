@@ -1,8 +1,7 @@
 import { Provider, Type } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { merge } from 'lodash';
-import { BLOCK_METADATA_KEY } from '@loopstack/common';
-import { ToolBase, WorkflowExecution } from '@loopstack/core';
+import { BLOCK_CONFIG_METADATA_KEY, ToolInterface, WorkflowExecution } from '@loopstack/common';
 
 /**
  * Mock for Tool classes - provides standard jest mock functions
@@ -70,7 +69,7 @@ export function createExecutionContext(overrides?: Partial<WorkflowExecution>): 
  * const result = await tool.execute(tool.validate({ a: 1, b: 2 }), createExecutionContext());
  * ```
  */
-export class ToolTestBuilder<TTool extends ToolBase<object> = ToolBase<object>> {
+export class ToolTestBuilder<TTool extends ToolInterface<object> = ToolInterface<object>> {
   private toolClass?: Type<TTool>;
   private providers: Provider[] = [];
   private overrides = new Map<unknown, unknown>();
@@ -78,7 +77,7 @@ export class ToolTestBuilder<TTool extends ToolBase<object> = ToolBase<object>> 
   /**
    * Set the tool class to test
    */
-  forTool<T extends ToolBase<object>>(toolClass: Type<T>): ToolTestBuilder<T> {
+  forTool<T extends ToolInterface<object>>(toolClass: Type<T>): ToolTestBuilder<T> {
     this.verifyToolDecorators(toolClass);
     (this.toolClass as Type<unknown> | undefined) = toolClass;
     this.providers.push(toolClass);
@@ -154,7 +153,7 @@ export class ToolTestBuilder<TTool extends ToolBase<object> = ToolBase<object>> 
   }
 
   private verifyToolDecorators<T>(toolClass: Type<T>): void {
-    const blockConfig: unknown = Reflect.getMetadata(BLOCK_METADATA_KEY, toolClass);
+    const blockConfig: unknown = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, toolClass);
     if (!blockConfig) {
       throw new Error(`Tool ${toolClass.name} is not decorated with @BlockConfig`);
     }

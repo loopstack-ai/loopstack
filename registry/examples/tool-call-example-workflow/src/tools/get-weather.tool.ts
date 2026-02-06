@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase } from '@loopstack/core';
+import { Tool, ToolInterface, ToolResult, WithArguments } from '@loopstack/common';
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Retrieve weather information.',
   },
@@ -14,7 +13,7 @@ import { ToolBase } from '@loopstack/core';
     location: z.string(),
   }),
 )
-export class GetWeather extends ToolBase {
+export class GetWeather implements ToolInterface {
   async execute(): Promise<ToolResult> {
     // Wait for 3 seconds for testing
     // await new Promise(resolve => setTimeout(resolve, 3000));

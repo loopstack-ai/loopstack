@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.18.0",
-    "@loopstack/core": "^0.18.0",
     "dockerode": "^4.0.4",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"

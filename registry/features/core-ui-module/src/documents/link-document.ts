@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, WithArguments } from '@loopstack/common';
-import { DocumentBase } from '@loopstack/core';
+import { Document, DocumentInterface, WithArguments } from '@loopstack/common';
 
 const LinkDocumentSchema = z
   .object({
@@ -13,7 +12,7 @@ const LinkDocumentSchema = z
   .strict();
 
 @Injectable()
-@BlockConfig({
+@Document({
   config: {
     type: 'document',
     description: 'Link Document.',
@@ -21,4 +20,4 @@ const LinkDocumentSchema = z
   configFile: __dirname + '/link-document.yaml',
 })
 @WithArguments(LinkDocumentSchema)
-export class LinkDocument extends DocumentBase {}
+export class LinkDocument implements DocumentInterface {}

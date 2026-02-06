@@ -77,7 +77,7 @@ import {
   AiMessageDocument,
   DelegateToolCall,
 } from '@loopstack/ai-module';
-import { BlockConfig, Document, Helper, Tool } from '@loopstack/common';
+import { BlockConfig, DefineHelper, InjectDocument, InjectTool } from '@loopstack/common';
 import { WorkflowBase } from '@loopstack/core';
 
 @Injectable()
@@ -86,13 +86,13 @@ import { WorkflowBase } from '@loopstack/core';
 })
 export class MyWorkflow extends WorkflowBase {
   // Tools
-  @Tool() aiGenerateText: AiGenerateText;
-  @Tool() aiGenerateObject: AiGenerateObject;
-  @Tool() aiGenerateDocument: AiGenerateDocument;
-  @Tool() delegateToolCall: DelegateToolCall;
+  @InjectTool() aiGenerateText: AiGenerateText;
+  @InjectTool() aiGenerateObject: AiGenerateObject;
+  @InjectTool() aiGenerateDocument: AiGenerateDocument;
+  @InjectTool() delegateToolCall: DelegateToolCall;
 
   // Documents
-  @Document() aiMessageDocument: AiMessageDocument;
+  @InjectDocument() aiMessageDocument: AiMessageDocument;
 }
 ```
 

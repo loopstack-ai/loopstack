@@ -30,7 +30,7 @@ export class HubService implements OnModuleInit {
 
   private initialize(): void {
     try {
-      this.config = this.loadConfiguration();
+      this.config = this.getConfig();
 
       if (!this.configService.get<boolean>('app.isLocalMode')) {
         this.validateConfiguration();
@@ -53,7 +53,7 @@ export class HubService implements OnModuleInit {
     }
   }
 
-  private loadConfiguration(): HubConfig {
+  private getConfig(): HubConfig {
     return {
       authCallback: this.configService.get<string>('auth.authCallback') ?? '',
       clientId: this.configService.get<string>('auth.clientId') ?? '',

@@ -15,8 +15,7 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase } from '@loopstack/core';
+import { Tool, ToolInterface, ToolResult, WithArguments } from '@loopstack/common';
 import { CommandExecutionResult, DockerContainerManagerService } from '../services/docker-container-manager.service';
 
 const propertiesSchema = z
@@ -33,18 +32,16 @@ const propertiesSchema = z
 type SandboxCommandArgs = z.infer<typeof propertiesSchema>;
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Execute a command in the sandbox environment',
   },
 })
 @WithArguments(propertiesSchema)
-export class SandboxCommand extends ToolBase<SandboxCommandArgs> {
+export class SandboxCommand implements ToolInterface<SandboxCommandArgs> {
   private readonly logger = new Logger(SandboxCommand.name);
 
-  constructor(private readonly containerManager: DockerContainerManagerService) {
-    super();
-  }
+  constructor(private readonly containerManager: DockerContainerManagerService) {}
 
   async execute(args: SandboxCommandArgs): Promise<ToolResult<CommandExecutionResult>> {
     const argsStr = args.args?.length ? ` ${args.args.join(' ')}` : '';

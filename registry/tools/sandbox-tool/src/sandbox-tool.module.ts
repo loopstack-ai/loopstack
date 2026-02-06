@@ -14,14 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { DockerContainerManagerService } from './services/docker-container-manager.service';
 import { SandboxCommand } from './tools/sandbox-command.tool';
 import { SandboxDestroy } from './tools/sandbox-destroy.tool';
 import { SandboxInit } from './tools/sandbox-init.tool';
 
 @Module({
-  imports: [LoopCoreModule],
+  imports: [],
   providers: [DockerContainerManagerService, SandboxInit, SandboxDestroy, SandboxCommand],
   exports: [DockerContainerManagerService, SandboxInit, SandboxDestroy, SandboxCommand],
 })

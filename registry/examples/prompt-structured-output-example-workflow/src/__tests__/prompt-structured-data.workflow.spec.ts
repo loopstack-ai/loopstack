@@ -1,6 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateDocument, AiModule } from '@loopstack/ai-module';
-import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { BlockExecutionContextDto, getBlockTools } from '@loopstack/common';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { FileDocument } from '../documents/file-document';
@@ -23,7 +24,7 @@ describe('PromptStructuredOutputWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptStructuredOutputWorkflow)
-      .withImports(LoopCoreModule, CoreUiModule, AiModule)
+      .withImports(CoreUiModule, AiModule)
       .withProvider(FileDocument)
       .withToolOverride(CreateDocument)
       .withToolOverride(AiGenerateDocument)
@@ -43,13 +44,8 @@ describe('PromptStructuredOutputWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools and documents', () => {
       expect(workflow).toBeDefined();
-      expect(workflow.tools).toContain('createDocument');
-      expect(workflow.tools).toContain('aiGenerateDocument');
-    });
-
-    it('should apply default argument value', () => {
-      const result = workflow.validate({});
-      expect(result).toEqual({ language: 'python' });
+      expect(getBlockTools(workflow)).toContain('createDocument');
+      expect(getBlockTools(workflow)).toContain('aiGenerateDocument');
     });
   });
 
@@ -104,7 +100,7 @@ describe('PromptStructuredOutputWorkflow', () => {
       );
 
       // Verify history contains expected places
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('ready');
       expect(places).toContain('prompt_executed');

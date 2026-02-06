@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.18.1",
-    "@loopstack/core": "^0.18.1",
     "@loopstack/core-ui-module": "^0.18.0",
     "@loopstack/create-chat-message-tool": "^0.18.0",
     "@loopstack/sandbox-filesystem": "^0.2.0",

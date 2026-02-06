@@ -1,9 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { omit, uniq } from 'lodash';
 import { z } from 'zod';
+import {
+  WorkflowExecution,
+  WorkflowInterface,
+  WorkflowTransitionDto,
+  getBlockConfig,
+  getBlockResultSchema,
+  getBlockTemplateHelpers,
+} from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { WorkflowTransitionSchema } from '@loopstack/contracts/schemas';
-import {
+import type {
   HistoryTransition,
   TransitionInfoInterface,
   TransitionMetadataInterface,
@@ -11,14 +19,8 @@ import {
   WorkflowTransitionType,
   WorkflowType,
 } from '@loopstack/contracts/types';
-import {
-  ConfigTraceError,
-  CustomHelper,
-  TemplateExpressionEvaluatorService,
-  WorkflowTransitionDto,
-} from '../../common';
-import { WorkflowBase } from '../abstract';
-import { WorkflowExecution } from '../interfaces';
+import { ConfigTraceError, TemplateExpressionEvaluatorService } from '../../common';
+import { getTemplateVars } from '../utils/template-helper';
 import { StateMachineToolCallProcessorService } from './state-machine-tool-call-processor.service';
 import { WorkflowStateService } from './workflow-state.service';
 
@@ -32,29 +34,25 @@ export class StateMachineProcessorService {
     private readonly stateMachineToolCallProcessorService: StateMachineToolCallProcessorService,
   ) {}
 
-  getAvailableTransitions(block: WorkflowBase, args: any, ctx: WorkflowExecution): WorkflowTransitionType[] {
+  getAvailableTransitions(block: WorkflowInterface, args: any, ctx: WorkflowExecution): WorkflowTransitionType[] {
     this.logger.debug(`Updating Available Transitions for Place "${ctx.state.getMetadata('place')}"`);
 
-    const config = block.config as WorkflowType;
+    const config = getBlockConfig<WorkflowType>(block) as WorkflowType;
+    if (!config) {
+      throw new Error(`Block ${block.constructor.name} is missing @BlockConfig decorator`);
+    }
 
     // exclude call property from transitions eval because this should be only
     // evaluated when called, so it received actual arguments
     const transitionsWithoutCallProperty = config.transitions!.map((transition) => omit(transition, ['call']));
 
-    const templateHelpers: CustomHelper[] = block.helpers
-      .map((name: string) => ({
-        name,
-        fn: block.getHelper(name),
-      }))
-      .filter((helper): helper is CustomHelper => helper.fn !== undefined);
-
     // make (latest) context available within service class
     const evaluatedTransitions = this.templateExpressionEvaluatorService.evaluateTemplate<WorkflowTransitionType[]>(
       transitionsWithoutCallProperty,
-      block.getTemplateVars(args, ctx),
+      getTemplateVars(args, ctx),
       {
-        cacheKey: block.name,
-        helpers: templateHelpers,
+        cacheKey: block.constructor.name,
+        helpers: getBlockTemplateHelpers(block),
         schema: z.array(WorkflowTransitionSchema),
       },
     );
@@ -81,7 +79,7 @@ export class StateMachineProcessorService {
   }
 
   getNextTransition(
-    ctx: WorkflowExecution,
+    ctx: WorkflowExecution<any>,
     pendingTransition: TransitionPayloadInterface | undefined,
   ): WorkflowTransitionDto | undefined {
     if (!ctx.runtime.availableTransitions.length) {
@@ -135,14 +133,18 @@ export class StateMachineProcessorService {
   }
 
   async processStateMachine(
-    block: WorkflowBase,
+    block: WorkflowInterface,
     args: any,
     ctx: WorkflowExecution,
     pendingTransitions: TransitionPayloadInterface[],
   ): Promise<WorkflowExecution> {
-    const config = block.config as WorkflowType;
+    const config = getBlockConfig<WorkflowType>(block) as WorkflowType;
+    if (!config) {
+      throw new Error(`Block ${block.constructor.name} is missing @BlockConfig decorator`);
+    }
+
     if (!config.transitions) {
-      throw new Error(`Workflow ${block.name} does not have any transitions.`);
+      throw new Error(`Workflow ${block.constructor.name} does not have any transitions.`);
     }
 
     try {
@@ -188,9 +190,10 @@ export class StateMachineProcessorService {
       ctx.runtime.stop = true;
     } else if (ctx.state.getMetadata('place') === 'end') {
       ctx.entity.status = WorkflowState.Completed;
-      if (block.resultSchema) {
+      const schema = getBlockResultSchema(block);
+      if (schema && block.getResult) {
         const result = block.getResult(ctx, args) as unknown;
-        ctx.entity.result = block.resultSchema.parse(result) as Record<string, unknown>;
+        ctx.entity.result = schema.parse(result) as Record<string, unknown>;
       }
     } else {
       ctx.entity.status = WorkflowState.Waiting;

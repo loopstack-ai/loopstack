@@ -58,7 +58,7 @@ OPENAI_API_KEY=sk-...
 > This step is automatically done for you when using the `loopstack add` command.
 
 - Add `MeetingNotesExampleModule` to the imports of `default.module.ts` or any other custom module.
-- Inject the `MeetingNotesWorkflow` workflow to your workspace class using the `@Workflow()` decorator.
+- Inject the `MeetingNotesWorkflow` workflow to your workspace class using the `@InjectWorkflow()` decorator.
 
 See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
 

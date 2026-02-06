@@ -1,23 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { WorkflowBase } from '@loopstack/core';
+import { ToolInterface, WorkflowInterface, getBlockArgsSchema, getBlockConfig, getBlockTool } from '@loopstack/common';
+import { WorkflowType } from '@loopstack/contracts/dist/types';
 
 @Injectable()
 export class AiToolsHelperService {
-  getTools(tools: string[], parent: WorkflowBase): Record<string, any> | undefined {
+  getTools(tools: string[], parent: WorkflowInterface): Record<string, any> | undefined {
     // using any instead of ToolSet bc ai sdk types have some nesting issue
     const toolDefinitions: Record<string, any> = {};
 
     for (const toolName of tools) {
-      const tool = parent.getTool(toolName);
+      const tool = getBlockTool<ToolInterface>(parent, toolName);
       if (!tool) {
         throw new Error(`Tool with name ${toolName} not available in Workflow context.`);
       }
 
-      const inputSchema = tool.argsSchema;
+      const inputSchema = getBlockArgsSchema(tool);
+
+      const config = getBlockConfig<WorkflowType>(tool);
+      if (!config) {
+        throw new Error(`Block ${tool.constructor.name} is missing @BlockConfig decorator`);
+      }
 
       if (inputSchema) {
         toolDefinitions[toolName] = {
-          description: tool.config.description,
+          description: config.description,
           inputSchema,
         } as unknown; // using unknown bc ai sdk types have some nesting issue
       }

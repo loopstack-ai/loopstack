@@ -55,12 +55,12 @@ See here for more information about working with [Modules](https://loopstack.ai/
 
 ### 2. Use in Your Workflow
 
-Inject the tool in your workflow class using the @Tool() decorator:
+Inject the tool in your workflow class using the @InjectTool() decorator:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Tool, WithState } from '@loopstack/common';
+import { BlockConfig, InjectTool, WithState } from '@loopstack/common';
 import { WorkflowBase } from '@loopstack/core';
 import { CreateValue } from './create-value-tool';
 
@@ -74,7 +74,7 @@ import { CreateValue } from './create-value-tool';
   }),
 )
 export class MyWorkflow extends WorkflowBase {
-  @Tool() createValue: CreateValue;
+  @InjectTool() createValue: CreateValue;
 }
 ```
 

@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Helper, Tool, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { DefineHelper, InjectTool, WithState, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { CreateValue } from '@loopstack/create-value-tool';
 
 @Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/workflow-state.workflow.yaml',
 })
 @WithState(
@@ -14,11 +13,11 @@ import { CreateValue } from '@loopstack/create-value-tool';
     message: z.string().optional(),
   }),
 )
-export class WorkflowStateWorkflow extends WorkflowBase {
-  @Tool() private createValue: CreateValue;
-  @Tool() private createChatMessage: CreateChatMessage;
+export class WorkflowStateWorkflow {
+  @InjectTool() private createValue: CreateValue;
+  @InjectTool() private createChatMessage: CreateChatMessage;
 
-  @Helper()
+  @DefineHelper()
   messageInUpperCase(message: string) {
     return message?.toUpperCase();
   }

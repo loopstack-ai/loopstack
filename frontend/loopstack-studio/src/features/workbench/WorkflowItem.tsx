@@ -9,7 +9,7 @@ import { useFilterDocuments } from '@/hooks/useDocuments.ts';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
 import LoadingCentered from '../../components/LoadingCentered.tsx';
-import BasicErrorComponent from '../../components/content/errorAlert.tsx';
+import BasicErrorComponent from '../../components/content/ErrorAlert.tsx';
 import type { WorkbenchSettingsInterface } from './WorkflowList.tsx';
 import WorkflowButtons from './components/buttons/WorkflowButtons.tsx';
 

@@ -2,17 +2,26 @@ import { Logger } from '@nestjs/common';
 import { merge, omit } from 'lodash';
 import { randomUUID } from 'node:crypto';
 import { ZodError, ZodSchema, toJSONSchema, z } from 'zod';
-import { BlockConfig, DocumentEntity, ToolResult, WithArguments } from '@loopstack/common';
+import {
+  DocumentEntity,
+  DocumentInterface,
+  Tool,
+  ToolInterface,
+  ToolResult,
+  WithArguments,
+  WorkflowExecution,
+  WorkflowInterface,
+  getBlockArgsSchema,
+  getBlockConfig,
+  getBlockDocument,
+} from '@loopstack/common';
 import { DocumentSchema } from '@loopstack/contracts/schemas';
 import { DocumentConfigType, DocumentType } from '@loopstack/contracts/types';
 import {
-  Block,
   ConfigTraceError,
   DocumentService,
   SchemaValidationError,
   TemplateExpressionEvaluatorService,
-  ToolBase,
-  WorkflowExecution,
 } from '@loopstack/core';
 
 interface ContentValidationResult {
@@ -33,41 +42,51 @@ export const CreateDocumentInputSchema = z
 
 export type CreateDocumentInput = z.infer<typeof CreateDocumentInputSchema>;
 
-@BlockConfig({
+@Tool({
   config: {
     description: 'Create a document.',
   },
 })
 @WithArguments(CreateDocumentInputSchema)
-export class CreateDocument extends ToolBase {
+export class CreateDocument implements ToolInterface {
   protected readonly logger = new Logger(CreateDocument.name);
 
   constructor(
     private readonly documentService: DocumentService,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-  ) {
-    super();
-  }
+  ) {}
 
-  execute(args: CreateDocumentInput, ctx: WorkflowExecution, parent: Block): Promise<ToolResult> {
-    const document = parent.getDocument(args.document);
+  execute(
+    args: CreateDocumentInput,
+    ctx: WorkflowExecution,
+    parent: WorkflowInterface | ToolInterface,
+  ): Promise<ToolResult> {
+    const document = getBlockDocument<DocumentInterface>(parent, args.document);
     if (!document) {
       return Promise.reject(new Error(`Document "${args.document}" not found in parent context.`));
     }
 
+    const config = getBlockConfig<DocumentConfigType>(document);
+    if (!config) {
+      throw new Error(`Block ${document.constructor.name} is missing @BlockConfig decorator`);
+    }
+
     try {
-      const config = document.config as DocumentConfigType;
       const templateContext = { args };
 
       const mergedTemplateData = this.mergeTemplateData(config, args.update);
 
       const documentSkeleton = this.createDocumentSkeleton(mergedTemplateData, templateContext);
 
-      const validationResult = this.validateContent(document.argsSchema, mergedTemplateData.content, args.validate);
+      const validationResult = this.validateContent(
+        getBlockArgsSchema(document),
+        mergedTemplateData.content,
+        args.validate,
+      );
 
       const messageId = this.resolveMessageId(args.id, templateContext);
 
-      const jsonSchema = this.createJsonSchema(document.argsSchema);
+      const jsonSchema = this.createJsonSchema(getBlockArgsSchema(document));
 
       const documentEntity = this.createDocumentEntity(ctx, {
         skeleton: documentSkeleton,
@@ -75,7 +94,7 @@ export class CreateDocument extends ToolBase {
         error: validationResult.error,
         schema: jsonSchema,
         messageId,
-        blockName: document.name,
+        blockName: document.constructor.name,
       });
 
       this.logger.debug(`Created document "${messageId}".`);

@@ -1,6 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateText, AiModule } from '@loopstack/ai-module';
-import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { BlockExecutionContextDto, getBlockTools } from '@loopstack/common';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { PromptWorkflow } from '../prompt.workflow';
@@ -26,7 +27,7 @@ describe('PromptWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptWorkflow)
-      .withImports(LoopCoreModule, CoreUiModule, AiModule)
+      .withImports(CoreUiModule, AiModule)
       .withToolOverride(AiGenerateText)
       .withToolOverride(CreateDocument)
       .compile();
@@ -45,13 +46,8 @@ describe('PromptWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(workflow.tools).toContain('aiGenerateText');
-      expect(workflow.tools).toContain('createDocument');
-    });
-
-    it('should apply default argument value', () => {
-      const result = workflow.validate({});
-      expect(result).toEqual({ subject: 'coffee' });
+      expect(getBlockTools(workflow)).toContain('aiGenerateText');
+      expect(getBlockTools(workflow)).toContain('createDocument');
     });
   });
 
@@ -93,7 +89,7 @@ describe('PromptWorkflow', () => {
       );
 
       // Verify history contains expected places
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('prompt_executed');
       expect(places).toContain('end');

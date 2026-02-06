@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { WorkflowMementoData } from '../../interfaces';
+import { WorkflowMementoData } from '@loopstack/common';
 
 export class WorkflowStateCaretaker<TData> {
   private mementos: WorkflowMementoData<TData>[] = [];

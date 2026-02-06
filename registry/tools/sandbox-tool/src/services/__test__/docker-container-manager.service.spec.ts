@@ -231,9 +231,7 @@ describe('DockerContainerManagerService', () => {
       service.registerContainer('test-id', testConfig);
       mockContainer.inspect.mockResolvedValue({ State: { Running: true } });
 
-      const calls: number[] = [];
       mockDocker.createContainer.mockImplementation(async () => {
-        calls.push(Date.now());
         await new Promise((r) => setTimeout(r, 10));
         return mockContainer;
       });

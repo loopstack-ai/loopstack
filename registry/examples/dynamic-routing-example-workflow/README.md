@@ -49,7 +49,7 @@ Use npm install if you want to use and maintain the module as node dependency.
 > This step is automatically done for you when using the `loopstack add` command.
 
 - Add `DynamicRoutingExampleModule` to the imports of `default.module.ts` or any other custom module.
-- Inject the `DynamicRoutingExampleWorkflow` workflow to your workspace class using the `@Workflow()` decorator.
+- Inject the `DynamicRoutingExampleWorkflow` workflow to your workspace class using the `@InjectWorkflow()` decorator.
 
 See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
 
@@ -90,7 +90,7 @@ Use the `if` property to define conditions for transitions. The first matching t
 Define custom helper functions in your workflow class for comparison logic:
 
 ```typescript
-@Helper()
+@DefineHelper()
 gt(a: number, b: number) {
   return a > b;
 }

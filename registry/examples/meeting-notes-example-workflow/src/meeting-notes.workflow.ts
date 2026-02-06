@@ -1,12 +1,13 @@
+import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { AiGenerateDocument } from '@loopstack/ai-module';
-import { BlockConfig, Document, Tool, WithArguments, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { InjectDocument, InjectTool, WithArguments, WithState, Workflow } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core-ui-module';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
 
-@BlockConfig({
+@Injectable()
+@Workflow({
   configFile: __dirname + '/meeting-notes.workflow.yaml',
 })
 @WithArguments(
@@ -24,9 +25,9 @@ import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './d
     optimizedNotes: OptimizedMeetingNotesDocumentSchema.optional(),
   }),
 )
-export class MeetingNotesWorkflow extends WorkflowBase {
-  @Tool() aiGenerateDocument: AiGenerateDocument;
-  @Tool() createDocument: CreateDocument;
-  @Document() meetingNotesDocument: MeetingNotesDocument;
-  @Document() optimizedNotesDocument: OptimizedNotesDocument;
+export class MeetingNotesWorkflow {
+  @InjectTool() aiGenerateDocument: AiGenerateDocument;
+  @InjectTool() createDocument: CreateDocument;
+  @InjectDocument() meetingNotesDocument: MeetingNotesDocument;
+  @InjectDocument() optimizedNotesDocument: OptimizedNotesDocument;
 }

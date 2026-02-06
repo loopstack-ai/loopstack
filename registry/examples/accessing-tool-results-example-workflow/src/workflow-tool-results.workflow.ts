@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BlockConfig, Helper, Tool } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
-import { WorkflowMetadataInterface } from '@loopstack/core/dist/workflow-processor/interfaces/workflow-metadata.interface';
+import { DefineHelper, InjectTool, Workflow, WorkflowMetadataInterface } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { CreateValue } from '@loopstack/create-value-tool';
 
@@ -14,14 +12,14 @@ interface WorkflowToolsMetadata {
 }
 
 @Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/workflow-tool-results.workflow.yaml',
 })
-export class WorkflowToolResultsWorkflow extends WorkflowBase {
-  @Tool() private createValue: CreateValue;
-  @Tool() private createChatMessage: CreateChatMessage;
+export class WorkflowToolResultsWorkflow {
+  @InjectTool() private createValue: CreateValue;
+  @InjectTool() private createChatMessage: CreateChatMessage;
 
-  @Helper()
+  @DefineHelper()
   extractMessage(metadata: WorkflowMetadataInterface): string {
     const tools = metadata.tools as unknown as WorkflowToolsMetadata;
     return tools.create_some_data.say_hello.data;

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { SseClientEvents } from '@/events';
+// import { SseClientEvents } from '@/events';
 import { useMe } from '../hooks/useAuth.ts';
 import { eventBus } from '../services';
 import { useStudio } from './StudioProvider.tsx';
@@ -26,13 +26,13 @@ export function SseProvider() {
       eventSource.onopen = () => {
         console.log('SSE connection established');
         hasConnected.current = true;
-        eventBus.emit(SseClientEvents.SSE_CONNECTED);
+        // eventBus.emit(SseClientEvents.SSE_CONNECTED);
       };
 
       eventSource.onerror = () => {
-        if (eventSource?.readyState === EventSource.CONNECTING) {
-          return;
-        }
+        // if (eventSource?.readyState === EventSource.CONNECTING) {
+        //   return;
+        // }
 
         if (eventSource?.readyState === EventSource.CLOSED) {
           console.warn('SSE connection closed. Refresh the page if it does not recover.');

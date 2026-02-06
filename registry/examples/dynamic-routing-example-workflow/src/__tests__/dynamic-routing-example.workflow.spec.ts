@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
-import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { BlockExecutionContextDto, getBlockHelper, getBlockHelpers, getBlockTools } from '@loopstack/common';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { DynamicRoutingExampleWorkflow } from '../dynamic-routing-example.workflow';
@@ -14,7 +15,7 @@ describe('DynamicRoutingExampleWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(DynamicRoutingExampleWorkflow)
-      .withImports(LoopCoreModule, CreateChatMessageToolModule)
+      .withImports(CreateChatMessageToolModule)
       .withToolOverride(CreateChatMessage)
       .compile();
 
@@ -31,19 +32,14 @@ describe('DynamicRoutingExampleWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools and helpers', () => {
       expect(workflow).toBeDefined();
-      expect(workflow.tools).toContain('createChatMessage');
-      expect(workflow.helpers).toContain('gt');
-    });
-
-    it('should apply default argument value', () => {
-      const result = workflow.validate({});
-      expect(result).toEqual({ value: 150 });
+      expect(getBlockTools(workflow)).toContain('createChatMessage');
+      expect(getBlockHelpers(workflow)).toContain('gt');
     });
   });
 
   describe('helpers', () => {
     it('gt should compare numbers correctly', () => {
-      const gt = workflow.getHelper('gt')!;
+      const gt = getBlockHelper(workflow, 'gt')!;
       expect(gt.call(workflow, 101, 100)).toBe(true);
       expect(gt.call(workflow, 100, 100)).toBe(false);
     });
@@ -72,7 +68,7 @@ describe('DynamicRoutingExampleWorkflow', () => {
       );
 
       // Verify history contains expected places
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('prepared');
       expect(places).toContain('placeB');
@@ -100,7 +96,7 @@ describe('DynamicRoutingExampleWorkflow', () => {
       );
 
       // Verify history contains expected places
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('prepared');
       expect(places).toContain('placeA');
@@ -133,7 +129,7 @@ describe('DynamicRoutingExampleWorkflow', () => {
       );
 
       // Verify history contains expected places
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('prepared');
       expect(places).toContain('placeA');

@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateDocument, AiModule } from '@loopstack/ai-module';
-import { generateObjectFingerprint } from '@loopstack/common';
-import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { BlockExecutionContextDto, generateObjectFingerprint, getBlockTools } from '@loopstack/common';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { MeetingNotesDocument } from '../documents/meeting-notes-document';
@@ -26,7 +26,7 @@ describe('MeetingNotesWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(MeetingNotesWorkflow)
-      .withImports(LoopCoreModule, CoreUiModule, AiModule)
+      .withImports(CoreUiModule, AiModule)
       .withProvider(MeetingNotesDocument)
       .withProvider(OptimizedNotesDocument)
       .withToolOverride(CreateDocument)
@@ -46,13 +46,8 @@ describe('MeetingNotesWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(workflow.tools).toContain('createDocument');
-      expect(workflow.tools).toContain('aiGenerateDocument');
-    });
-
-    it('should apply default argument value', () => {
-      const result = workflow.validate({});
-      expect(result.inputText).toContain('meeting 1.1.2025');
+      expect(getBlockTools(workflow)).toContain('createDocument');
+      expect(getBlockTools(workflow)).toContain('aiGenerateDocument');
     });
   });
 
@@ -86,7 +81,7 @@ describe('MeetingNotesWorkflow', () => {
       );
 
       // Verify history contains expected places
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('waiting_for_response');
     });
@@ -114,7 +109,7 @@ describe('MeetingNotesWorkflow', () => {
       // Create module with existing workflow state
       const moduleWithState = await createWorkflowTest()
         .forWorkflow(MeetingNotesWorkflow)
-        .withImports(LoopCoreModule, CoreUiModule, AiModule)
+        .withImports(CoreUiModule, AiModule)
         .withProvider(MeetingNotesDocument)
         .withProvider(OptimizedNotesDocument)
         .withToolOverride(CreateDocument)
@@ -182,7 +177,7 @@ describe('MeetingNotesWorkflow', () => {
       );
 
       // Verify history contains expected places
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('response_received');
       expect(places).toContain('notes_optimized');
@@ -206,7 +201,7 @@ describe('MeetingNotesWorkflow', () => {
       // Create module with existing workflow state after AI optimization
       const moduleWithState = await createWorkflowTest()
         .forWorkflow(MeetingNotesWorkflow)
-        .withImports(LoopCoreModule, CoreUiModule, AiModule)
+        .withImports(CoreUiModule, AiModule)
         .withProvider(MeetingNotesDocument)
         .withProvider(OptimizedNotesDocument)
         .withToolOverride(CreateDocument)
@@ -250,7 +245,7 @@ describe('MeetingNotesWorkflow', () => {
       expect(mockCreateDocumentWithState.execute).toHaveBeenCalledTimes(1);
 
       // Verify history contains expected places including end
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('end');
 

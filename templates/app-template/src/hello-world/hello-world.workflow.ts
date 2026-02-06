@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { BlockConfig, Tool } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { InjectTool, Workflow, WorkflowInterface } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
 @Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/hello-world.workflow.yaml',
 })
-export class HelloWorldWorkflow extends WorkflowBase {
-  @Tool() private createChatMessage: CreateChatMessage;
+export class HelloWorldWorkflow implements WorkflowInterface {
+  @InjectTool() private createChatMessage: CreateChatMessage;
 }

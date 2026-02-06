@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { BlockConfig, Workflow } from '@loopstack/common';
-import { WorkspaceBase } from '@loopstack/core';
+import { InjectWorkflow, Workspace, WorkspaceInterface } from '@loopstack/common';
 import { HelloWorldWorkflow } from './hello-world/hello-world.workflow';
 
 @Injectable()
-@BlockConfig({
+@Workspace({
   config: {
     title: 'Default Workspace',
   },
 })
-export class DefaultWorkspace extends WorkspaceBase {
-  @Workflow() helloWorld: HelloWorldWorkflow;
+export class DefaultWorkspace implements WorkspaceInterface {
+  @InjectWorkflow() helloWorld: HelloWorldWorkflow;
 
   // Add your workflows here
 }

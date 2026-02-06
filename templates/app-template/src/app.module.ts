@@ -25,6 +25,7 @@ import { loopstackConfig } from './loopstack.config';
         password: configService.get('DATABASE_PASSWORD', 'admin'),
         autoLoadEntities: true,
         synchronize: configService.get('NODE_ENV') !== 'production',
+        migrationsRun: false,
       }),
     }),
     LoopCoreModule,

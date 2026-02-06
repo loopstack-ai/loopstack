@@ -1,14 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PipelineFactoryIteratorType } from '@loopstack/contracts/types';
 import {
   BlockContextType,
   BlockExecutionContextDto,
+  BlockInterface,
   PipelineExecutionContextDto,
-  Processor,
-  TemplateExpressionEvaluatorService,
-} from '../../../common';
-import { FactoryBase } from '../../abstract/factory-base.abstract';
-import { WorkflowExecution } from '../../interfaces/workflow-execution.interface';
+  WorkflowExecution,
+} from '@loopstack/common';
+import { PipelineFactoryIteratorType } from '@loopstack/contracts/types';
+import { Processor, TemplateExpressionEvaluatorService } from '../../../common';
 import { BlockProcessor } from '../block-processor.service';
 import { NamespaceProcessorService } from '../namespace-processor.service';
 
@@ -62,7 +61,7 @@ export class FactoryProcessorService implements Processor {
     // }
   }
 
-  async process(block: FactoryBase, args: any, ctx: BlockExecutionContextDto): Promise<WorkflowExecution> {
+  async process(block: BlockInterface, args: any, ctx: BlockExecutionContextDto): Promise<WorkflowExecution> {
     // ctx = await this.namespaceProcessorService.initBlockNamespace(block, ctx);
     await this.namespaceProcessorService.initBlockNamespace(block, ctx);
 

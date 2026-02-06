@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateText, AiModule } from '@loopstack/ai-module';
-import { generateObjectFingerprint } from '@loopstack/common';
-import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { BlockExecutionContextDto, generateObjectFingerprint, getBlockTools } from '@loopstack/common';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { ChatWorkflow } from '../chat.workflow';
@@ -37,7 +37,7 @@ describe('ChatWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ChatWorkflow)
-      .withImports(LoopCoreModule, CoreUiModule, AiModule)
+      .withImports(CoreUiModule, AiModule)
       .withToolOverride(CreateDocument)
       .withToolOverride(AiGenerateText)
       .compile();
@@ -56,8 +56,8 @@ describe('ChatWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(workflow.tools).toContain('createDocument');
-      expect(workflow.tools).toContain('aiGenerateText');
+      expect(getBlockTools(workflow)).toContain('createDocument');
+      expect(getBlockTools(workflow)).toContain('aiGenerateText');
     });
   });
 
@@ -117,7 +117,7 @@ describe('ChatWorkflow', () => {
       );
 
       // Verify history contains expected places
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       const places = history.map((h) => h.metadata?.place);
       expect(places).toContain('ready');
       expect(places).toContain('prompt_executed');
@@ -145,7 +145,7 @@ describe('ChatWorkflow', () => {
       // Create module with existing workflow state
       const moduleWithState = await createWorkflowTest()
         .forWorkflow(ChatWorkflow)
-        .withImports(LoopCoreModule, CoreUiModule, AiModule)
+        .withImports(CoreUiModule, AiModule)
         .withToolOverride(CreateDocument)
         .withToolOverride(AiGenerateText)
         .withExistingWorkflow({
@@ -230,7 +230,7 @@ describe('ChatWorkflow', () => {
       );
 
       // Verify history contains expected places for full flow
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       expect(history[0].metadata.transition?.from).toBe('waiting_for_user');
       const places = history.map((h) => h.metadata?.place);
       expect(places).toStrictEqual(['ready', 'prompt_executed', 'waiting_for_user']);

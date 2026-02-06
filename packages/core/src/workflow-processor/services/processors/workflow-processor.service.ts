@@ -1,12 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { StateMachineValidatorResultInterface } from '@loopstack/common';
+import {
+  BlockExecutionContextDto,
+  ExecutionContext,
+  StateMachineValidatorResultInterface,
+  WorkflowExecution,
+  WorkflowInterface,
+  WorkflowMementoData,
+  getBlockArgsSchema,
+  getBlockStateSchema,
+} from '@loopstack/common';
 import { WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
-import { BlockExecutionContextDto, Processor } from '../../../common';
-import { WorkflowBase } from '../../abstract';
-import { ExecutionContext } from '../../dtos/execution-context';
-import { WorkflowExecution } from '../../interfaces/workflow-execution.interface';
-import { WorkflowMementoData } from '../../interfaces/workflow-memento-data.interfate';
+import { Processor } from '../../../common';
 import { StateMachineProcessorService } from '../state-machine-processor.service';
 import { StateMachineValidatorService } from '../state-machine-validator.service';
 import { WorkflowStateCaretaker } from '../state/workflow-state-caretaker';
@@ -23,14 +28,24 @@ export class WorkflowProcessorService implements Processor {
     private readonly stateMachineProcessorService: StateMachineProcessorService,
   ) {}
 
-  async process(workflow: WorkflowBase, args: any, context: BlockExecutionContextDto): Promise<WorkflowExecution> {
-    const validArgs = workflow.validate(args) as Record<string, unknown> | undefined;
+  async process(
+    workflow: WorkflowInterface,
+    args: Record<string, unknown> | undefined,
+    context: BlockExecutionContextDto,
+  ): Promise<WorkflowExecution> {
+    let validArgs: Record<string, unknown> | undefined = undefined;
+    if (workflow.validate) {
+      validArgs = workflow.validate(args);
+    } else {
+      const schema = getBlockArgsSchema(workflow);
+      validArgs = schema ? (schema.parse(args) as Record<string, unknown> | undefined) : args;
+    }
 
     const workflowEntity = await this.workflowStateService.getWorkflowState(workflow, context);
 
     context.workflowId = workflowEntity.id;
 
-    const workflowStateDataSchema = workflow.stateSchema ? workflow.stateSchema : z.object({});
+    const workflowStateDataSchema = getBlockStateSchema(workflow) ?? z.object({});
 
     const workflowStateCaretaker = WorkflowStateCaretaker.deserialize(
       (workflowEntity.history ?? []) as WorkflowMementoData<z.infer<typeof workflowStateDataSchema>>[],
@@ -77,7 +92,7 @@ export class WorkflowProcessorService implements Processor {
       return ctx;
     }
 
-    this.logger.debug(`Process state machine for workflow ${workflow.name}`);
+    this.logger.debug(`Process state machine for workflow ${workflow.constructor.name}`);
 
     this.initStateMachine(ctx, validatorResult);
 

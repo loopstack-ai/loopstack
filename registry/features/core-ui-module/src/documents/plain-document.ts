@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, WithArguments } from '@loopstack/common';
-import { DocumentBase } from '@loopstack/core';
+import { Document, DocumentInterface, WithArguments } from '@loopstack/common';
 
 const PlainDocumentSchema = z.object({
   text: z.string(),
 });
 
 @Injectable()
-@BlockConfig({
+@Document({
   config: {
     type: 'document',
     description: 'Plain Document.',
@@ -16,4 +15,4 @@ const PlainDocumentSchema = z.object({
   configFile: __dirname + '/plain-document.yaml',
 })
 @WithArguments(PlainDocumentSchema)
-export class PlainDocument extends DocumentBase {}
+export class PlainDocument implements DocumentInterface {}

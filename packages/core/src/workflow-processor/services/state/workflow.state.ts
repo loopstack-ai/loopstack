@@ -1,15 +1,16 @@
 import { merge } from 'lodash';
 import { z } from 'zod';
-import { WorkflowMementoData } from '../../interfaces/workflow-memento-data.interfate';
-import { WorkflowMetadataInterface } from '../../interfaces/workflow-metadata.interface';
+import type { WorkflowMementoData, WorkflowMetadataInterface, WorkflowStateInterface } from '@loopstack/common';
 import { WorkflowStateCaretaker } from './workflow-state-caretaker';
 
-export class WorkflowState<TData extends z.ZodType, TInferred = z.infer<TData>> {
+export class WorkflowState<TData extends z.ZodType, TInferred = z.infer<TData>> implements WorkflowStateInterface<
+  TData,
+  TInferred
+> {
   private data: TInferred;
   private metadata: WorkflowMetadataInterface;
   private version: number;
-
-  public readonly caretaker: WorkflowStateCaretaker<TInferred>;
+  private caretaker: WorkflowStateCaretaker<TInferred>;
 
   constructor(
     private readonly schema: TData,
@@ -67,6 +68,14 @@ export class WorkflowState<TData extends z.ZodType, TInferred = z.infer<TData>> 
       version: this.version++,
     };
     this.caretaker.save(memento);
+  }
+
+  serialize(): WorkflowMementoData<TInferred>[] {
+    return this.caretaker.serialize();
+  }
+
+  getHistory(): WorkflowMementoData<TInferred>[] {
+    return this.caretaker.getHistory();
   }
 
   restoreToLatest(): boolean {

@@ -16,8 +16,7 @@ limitations under the License.
 import { Injectable, Logger } from '@nestjs/common';
 import * as path from 'path';
 import { z } from 'zod';
-import { BlockConfig, Tool, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase, WorkflowExecution } from '@loopstack/core';
+import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const propertiesSchema = z
@@ -38,16 +37,16 @@ interface SandboxWriteFileResult {
 }
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Write content to a file in a sandbox container',
   },
 })
 @WithArguments(propertiesSchema)
-export class SandboxWriteFile extends ToolBase<SandboxWriteFileArgs> {
+export class SandboxWriteFile implements ToolInterface<SandboxWriteFileArgs> {
   private readonly logger = new Logger(SandboxWriteFile.name);
 
-  @Tool() private sandboxCommand: SandboxCommand;
+  @InjectTool() private sandboxCommand: SandboxCommand;
 
   async execute(args: SandboxWriteFileArgs, _ctx: WorkflowExecution): Promise<ToolResult<SandboxWriteFileResult>> {
     const { containerId, path: filePath, content, encoding, createParentDirs } = args;

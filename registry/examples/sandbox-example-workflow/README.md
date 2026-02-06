@@ -52,7 +52,7 @@ Use npm install if you want to use and maintain the module as node dependency.
 > This step is automatically done for you when using the `loopstack add` command.
 
 - Add `SandboxExampleModule` to the imports of `default.module.ts` or any other custom module.
-- Inject the `SandboxExampleWorkflow` workflow to your workspace class using the `@Workflow()` decorator.
+- Inject the `SandboxExampleWorkflow` workflow to your workspace class using the `@InjectWorkflow()` decorator.
 
 See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
 

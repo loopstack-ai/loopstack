@@ -1,43 +1,68 @@
 import { Inject, InjectionToken } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockOptions } from '../interfaces';
-import { buildConfig } from '../utils/block-config.builder';
+import type { BlockConfigType } from '@loopstack/contracts/types';
 
-export const BLOCK_METADATA_KEY = Symbol('block');
-export const INPUT_METADATA_KEY = Symbol('input');
-export const OUTPUT_METADATA_KEY = Symbol('output');
-export const TOOL_METADATA_KEY = Symbol('tool');
-export const DOCUMENT_METADATA_KEY = Symbol('document');
-export const WORKFLOW_METADATA_KEY = Symbol('workflow');
+export const BLOCK_CONFIG_METADATA_KEY = Symbol('blockConfig');
+export const BLOCK_TYPE_METADATA_KEY = Symbol('blockType');
+export const INJECTED_TOOLS_METADATA_KEY = Symbol('injectedTools');
+export const INJECTED_DOCUMENTS_METADATA_KEY = Symbol('injectedDocuments');
+export const INJECTED_WORKFLOWS_METADATA_KEY = Symbol('injectedWorkflows');
+export const INJECTED_WORKFLOW_OPTIONS_KEY = Symbol('injectedWorkflowOptions');
 export const TEMPLATE_HELPER_METADATA_KEY = Symbol('templateHelper');
+export const ARGS_SCHEMA_METADATA_KEY = Symbol('argsSchema');
+export const STATE_SCHEMA_METADATA_KEY = Symbol('stateSchema');
+export const RESULT_SCHEMA_METADATA_KEY = Symbol('resultSchema');
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-type Constructor = Function & {
-  prototype: object;
-  argsSchema?: z.ZodType;
-  stateSchema?: z.ZodType;
-  resultSchema?: z.ZodType;
-  blockConfig?: ReturnType<typeof buildConfig>;
-  blockTools?: string[];
-  blockDocuments?: string[];
-  blockWorkflows?: string[];
-  blockHelpers?: string[];
-};
-
-export interface WorkflowOptions {
+export interface InjectedWorkflowOptions {
   visible?: boolean;
 }
 
-export interface WorkflowDecoratorOptions {
+export interface InjectWorkflowDecoratorOptions {
   token?: InjectionToken;
-  options?: WorkflowOptions;
+  options?: InjectedWorkflowOptions;
 }
 
-export const WORKFLOW_OPTIONS_KEY = 'workflow:options';
+// Block Type Class Decorators
+export type BlockType = 'workflow' | 'tool' | 'document' | 'workspace';
 
+export interface BlockOptions {
+  config?: Partial<BlockConfigType>;
+  configFile?: string;
+}
+
+export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
+  return (target) => {
+    Reflect.defineMetadata(BLOCK_TYPE_METADATA_KEY, type, target);
+    if (options) {
+      Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, options, target);
+    }
+  };
+}
+
+export function Workflow(options?: BlockOptions): ClassDecorator {
+  return Block('workflow', options);
+}
+
+export function Tool(options?: BlockOptions): ClassDecorator {
+  return Block('tool', options);
+}
+
+export function Document(options?: BlockOptions): ClassDecorator {
+  return Block('document', options);
+}
+
+export function Workspace(options?: BlockOptions): ClassDecorator {
+  return Block('workspace', options);
+}
+
+export function getBlockType(target: object): BlockType | undefined {
+  return Reflect.getMetadata(BLOCK_TYPE_METADATA_KEY, target.constructor) as BlockType | undefined;
+}
+
+// Schema Decorators
 export function WithArguments<T extends z.ZodType>(schema: T): ClassDecorator {
   return (target) => {
-    (target as Constructor).argsSchema = schema;
+    Reflect.defineMetadata(ARGS_SCHEMA_METADATA_KEY, schema, target);
   };
 }
 
@@ -59,63 +84,30 @@ function validateStateSchema(schema: z.ZodType): void {
 export function WithState<T extends z.ZodType>(schema: T): ClassDecorator {
   return (target) => {
     validateStateSchema(schema);
-    (target as Constructor).stateSchema = schema;
+    Reflect.defineMetadata(STATE_SCHEMA_METADATA_KEY, schema, target);
   };
 }
 
 export function WithResult<T extends z.ZodType>(schema: T): ClassDecorator {
   return (target) => {
     validateStateSchema(schema);
-    (target as Constructor).resultSchema = schema;
+    Reflect.defineMetadata(RESULT_SCHEMA_METADATA_KEY, schema, target);
   };
 }
 
-function getTools(target: Constructor): string[] {
-  const proto = target.prototype as object;
-  const keys = (Reflect.getMetadata(TOOL_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
-}
-
-function getDocuments(target: Constructor): string[] {
-  const proto = target.prototype as object;
-  const keys = (Reflect.getMetadata(DOCUMENT_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
-}
-
-function getWorkflows(target: Constructor): string[] {
-  const proto = target.prototype as object;
-  const keys = (Reflect.getMetadata(WORKFLOW_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
-}
-
-function getHelpers(target: Constructor): string[] {
-  const proto = target.prototype as object;
-  const keys = (Reflect.getMetadata(TEMPLATE_HELPER_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
-}
-
-export function getWorkflowOptions(target: object, propertyKey: string | symbol): WorkflowOptions {
+// Config Helpers
+export function getWorkflowOptions(target: object, propertyKey: string | symbol): InjectedWorkflowOptions {
   return (
-    (Reflect.getMetadata(WORKFLOW_OPTIONS_KEY, target, propertyKey) as WorkflowOptions | undefined) ?? {
+    (Reflect.getMetadata(INJECTED_WORKFLOW_OPTIONS_KEY, target, propertyKey) as
+      | InjectedWorkflowOptions
+      | undefined) ?? {
       visible: true,
     }
   );
 }
 
-export function BlockConfig(options: BlockOptions): ClassDecorator {
-  return (target) => {
-    const ctor = target as Constructor;
-    ctor.blockConfig = buildConfig(options);
-    ctor.blockTools = getTools(ctor);
-    ctor.blockDocuments = getDocuments(ctor);
-    ctor.blockWorkflows = getWorkflows(ctor);
-    ctor.blockHelpers = getHelpers(ctor);
-
-    Reflect.defineMetadata(BLOCK_METADATA_KEY, options, target);
-  };
-}
-
-export function Tool(token?: InjectionToken): PropertyDecorator & MethodDecorator {
+// Injection Property Decorators
+export function InjectTool(token?: InjectionToken): PropertyDecorator & MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     const type = token ?? (Reflect.getMetadata('design:type', target, propertyKey) as InjectionToken | undefined);
 
@@ -123,12 +115,13 @@ export function Tool(token?: InjectionToken): PropertyDecorator & MethodDecorato
       Inject(type)(target, propertyKey);
     }
 
-    const existingTools = (Reflect.getMetadata(TOOL_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(TOOL_METADATA_KEY, [...existingTools, propertyKey], target);
+    const existingTools =
+      (Reflect.getMetadata(INJECTED_TOOLS_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
+    Reflect.defineMetadata(INJECTED_TOOLS_METADATA_KEY, [...existingTools, propertyKey], target);
   };
 }
 
-export function Document(token?: InjectionToken): PropertyDecorator & MethodDecorator {
+export function InjectDocument(token?: InjectionToken): PropertyDecorator & MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     const type = token ?? (Reflect.getMetadata('design:type', target, propertyKey) as InjectionToken | undefined);
 
@@ -137,15 +130,15 @@ export function Document(token?: InjectionToken): PropertyDecorator & MethodDeco
     }
 
     const existingDocuments =
-      (Reflect.getMetadata(DOCUMENT_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(DOCUMENT_METADATA_KEY, [...existingDocuments, propertyKey], target);
+      (Reflect.getMetadata(INJECTED_DOCUMENTS_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
+    Reflect.defineMetadata(INJECTED_DOCUMENTS_METADATA_KEY, [...existingDocuments, propertyKey], target);
   };
 }
 
-export function Workflow(options?: WorkflowDecoratorOptions): PropertyDecorator & MethodDecorator {
+export function InjectWorkflow(options?: InjectWorkflowDecoratorOptions): PropertyDecorator & MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     const token = options?.token;
-    const config: WorkflowOptions = {
+    const config: InjectedWorkflowOptions = {
       visible: true,
       ...options?.options,
     };
@@ -157,31 +150,18 @@ export function Workflow(options?: WorkflowDecoratorOptions): PropertyDecorator 
     }
 
     const existingWorkflows =
-      (Reflect.getMetadata(WORKFLOW_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(WORKFLOW_METADATA_KEY, [...existingWorkflows, propertyKey], target);
+      (Reflect.getMetadata(INJECTED_WORKFLOWS_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
+    Reflect.defineMetadata(INJECTED_WORKFLOWS_METADATA_KEY, [...existingWorkflows, propertyKey], target);
 
-    Reflect.defineMetadata(WORKFLOW_OPTIONS_KEY, config, target, propertyKey);
+    Reflect.defineMetadata(INJECTED_WORKFLOW_OPTIONS_KEY, config, target, propertyKey);
   };
 }
 
-export function Helper(): MethodDecorator {
+// Method Decorators
+export function DefineHelper(): MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     const existing =
       (Reflect.getMetadata(TEMPLATE_HELPER_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
     Reflect.defineMetadata(TEMPLATE_HELPER_METADATA_KEY, [...existing, propertyKey], target);
-  };
-}
-
-export function Input(): PropertyDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    const existingInputs = (Reflect.getMetadata(INPUT_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(INPUT_METADATA_KEY, [...existingInputs, propertyKey], target);
-  };
-}
-
-export function Output(): PropertyDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    const existingOutputs = (Reflect.getMetadata(OUTPUT_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(OUTPUT_METADATA_KEY, [...existingOutputs, propertyKey], target);
   };
 }

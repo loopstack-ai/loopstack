@@ -1,4 +1,4 @@
-import { Navigate, createBrowserRouter } from 'react-router-dom';
+import { type DataRouter, Navigate, createBrowserRouter } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import WorkbenchPage from '@/pages/WorkbenchPage.tsx';
 import WorkerLayout from './app/WorkerLayout.tsx';
@@ -35,7 +35,7 @@ function AppRoot() {
   );
 }
 
-const router = createBrowserRouter([
+const router: DataRouter = createBrowserRouter([
   {
     path: '/',
     element: <AppRoot />,

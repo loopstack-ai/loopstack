@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
+import { Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { EventSubscriberService } from '../persistence';
 import { TaskSchedulerService } from '../scheduler';
-import { CreatePipelineService, ToolBase, WorkflowExecution } from '../workflow-processor';
+import { CreatePipelineService } from '../workflow-processor';
 
 const ExecuteWorkflowAsyncArgsSchema = z.object({
   workflow: z.string(),
@@ -18,22 +18,20 @@ const ExecuteWorkflowAsyncArgsSchema = z.object({
 type ExecuteWorkflowAsyncArgs = z.infer<typeof ExecuteWorkflowAsyncArgsSchema>;
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: '',
   },
 })
 @WithArguments(ExecuteWorkflowAsyncArgsSchema.strict())
-export class ExecuteWorkflowAsync extends ToolBase<ExecuteWorkflowAsyncArgs> {
+export class ExecuteWorkflowAsync implements ToolInterface<ExecuteWorkflowAsyncArgs> {
   protected readonly logger = new Logger(ExecuteWorkflowAsync.name);
 
   constructor(
     private readonly createPipelineService: CreatePipelineService,
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly eventSubscriberService: EventSubscriberService,
-  ) {
-    super();
-  }
+  ) {}
 
   async execute(args: ExecuteWorkflowAsyncArgs, ctx: WorkflowExecution): Promise<ToolResult> {
     const pipeline = await this.createPipelineService.create(

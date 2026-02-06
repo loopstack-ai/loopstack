@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
-import { BlockExecutionContextDto, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { BlockExecutionContextDto, getBlockHelpers } from '@loopstack/common';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { CreateValue, CreateValueToolModule } from '@loopstack/create-value-tool';
@@ -17,7 +18,7 @@ describe('WorkflowToolResultsWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(WorkflowToolResultsWorkflow)
-      .withImports(LoopCoreModule, CoreUiModule, CreateValueToolModule, CreateChatMessageToolModule)
+      .withImports(CoreUiModule, CreateValueToolModule, CreateChatMessageToolModule)
       .withToolOverride(CreateValue)
       .withToolOverride(CreateChatMessage)
       .compile();
@@ -38,7 +39,7 @@ describe('WorkflowToolResultsWorkflow', () => {
   });
 
   it('should have extractMessage helper', () => {
-    expect(workflow.helpers).toContain('extractMessage');
+    expect(getBlockHelpers(workflow)).toContain('extractMessage');
   });
 
   describe('tool result access', () => {
@@ -84,7 +85,7 @@ describe('WorkflowToolResultsWorkflow', () => {
       const result = await processor.process(workflow, {}, context);
 
       // Should complete both transitions
-      const history = result.state.caretaker.getHistory();
+      const history = result.state.getHistory();
       expect(history.some((h) => h.metadata.transition?.transition === 'create_some_data')).toBe(true);
       expect(history.some((h) => h.metadata.transition?.transition === 'access_data')).toBe(true);
 

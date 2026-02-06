@@ -1,7 +1,6 @@
-import { Expose } from 'class-transformer';
-import { DocumentEntity, ToolResultLookup, TransitionResultLookup } from '@loopstack/common';
 import type { HistoryTransition, WorkflowTransitionType } from '@loopstack/contracts/types';
-import { PersistenceState } from '../interfaces';
+import { DocumentEntity } from '../entities';
+import { PersistenceState, ToolResultLookup, TransitionResultLookup } from '../interfaces';
 import { WorkflowTransitionDto } from './workflow-transition.dto';
 
 interface BlockStateInterface {
@@ -11,13 +10,8 @@ interface BlockStateInterface {
 }
 
 export class BlockStateDto implements BlockStateInterface {
-  @Expose()
-  id: string;
-
-  @Expose()
+  id!: string;
   error?: boolean;
-
-  @Expose()
   stop?: boolean;
 
   constructor(data: Partial<BlockStateDto>) {
@@ -28,34 +22,16 @@ export class BlockStateDto implements BlockStateInterface {
 export type InitWorkflowState = Omit<WorkflowStateDto, 'addDocuments' | 'addDocument' | 'updateDocument'>;
 
 export class WorkflowStateDto implements BlockStateInterface {
-  @Expose()
-  id: string;
-
-  @Expose()
-  error: boolean;
-
-  @Expose()
-  stop: boolean;
-
-  @Expose()
-  history: HistoryTransition[];
-
-  @Expose()
+  id!: string;
+  error!: boolean;
+  stop!: boolean;
+  history!: HistoryTransition[];
   transition?: WorkflowTransitionDto;
-
-  @Expose()
-  place: string;
-
-  @Expose()
-  transitionResults: TransitionResultLookup | null;
-
-  @Expose()
-  currentTransitionResults: ToolResultLookup | null;
-
-  @Expose()
-  availableTransitions: WorkflowTransitionType[] | null;
-
-  documents: DocumentEntity[];
+  place!: string;
+  transitionResults?: TransitionResultLookup | null;
+  currentTransitionResults?: ToolResultLookup | null;
+  availableTransitions?: WorkflowTransitionType[] | null;
+  documents!: DocumentEntity[];
 
   persistenceState: PersistenceState = {
     documentsUpdated: false,

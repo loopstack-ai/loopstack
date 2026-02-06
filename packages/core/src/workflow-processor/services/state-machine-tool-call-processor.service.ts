@@ -1,11 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { DocumentEntity, ToolResult, ToolSideEffects } from '@loopstack/common';
+import {
+  DocumentEntity,
+  ToolInterface,
+  ToolResult,
+  ToolSideEffects,
+  WorkflowExecution,
+  WorkflowInterface,
+  getBlockArgsSchema,
+  getBlockTemplateHelpers,
+  getBlockTool,
+} from '@loopstack/common';
 import { WorkflowTransitionSchema } from '@loopstack/contracts/schemas';
 import { AssignmentConfigType, ToolCallType } from '@loopstack/contracts/types';
-import { CustomHelper, TemplateExpressionEvaluatorService } from '../../common';
-import { WorkflowBase } from '../abstract';
-import { WorkflowExecution } from '../interfaces';
+import { TemplateExpressionEvaluatorService } from '../../common';
+import { getTemplateVars } from '../utils/template-helper';
 
 @Injectable()
 export class StateMachineToolCallProcessorService {
@@ -14,7 +23,7 @@ export class StateMachineToolCallProcessorService {
   constructor(private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService) {}
 
   async processToolCalls(
-    block: WorkflowBase,
+    block: WorkflowInterface,
     toolCalls: ToolCallType[] | undefined,
     args: any,
     ctx: WorkflowExecution,
@@ -35,28 +44,27 @@ export class StateMachineToolCallProcessorService {
         for (const toolCall of toolCalls) {
           this.logger.debug(`Call tool ${i} (${toolCall.tool}) on transition ${transition.id}`);
 
-          const tool = block.getTool(toolCall.tool);
+          const tool = getBlockTool<ToolInterface>(block, toolCall.tool);
           if (!tool) {
             throw new Error(`Tool with name ${toolCall.tool} not found.`);
           }
 
-          const templateHelpers: CustomHelper[] = block.helpers
-            .map((name: string) => ({
-              name,
-              fn: block.getHelper(name),
-            }))
-            .filter((helper): helper is CustomHelper => helper.fn !== undefined);
-
           const evaluatedArgs = this.templateExpressionEvaluatorService.evaluateTemplate<unknown>(
             toolCall.args,
-            block.getTemplateVars(args, ctx),
+            getTemplateVars(args, ctx),
             {
-              cacheKey: block.name,
-              helpers: templateHelpers,
+              cacheKey: block.constructor.name,
+              helpers: getBlockTemplateHelpers(block),
             },
-          );
+          ) as Record<string, unknown> | undefined;
 
-          const parsedArgs: unknown = tool.validate(evaluatedArgs);
+          let parsedArgs: Record<string, unknown> | undefined = undefined;
+          if (tool.validate) {
+            parsedArgs = tool.validate<Record<string, unknown>>(evaluatedArgs);
+          } else {
+            const schema = getBlockArgsSchema(tool);
+            parsedArgs = schema ? (schema.parse(evaluatedArgs) as Record<string, unknown> | undefined) : evaluatedArgs;
+          }
 
           const toolCallResult: ToolResult = await tool.execute(parsedArgs, ctx, block);
 
@@ -165,27 +173,20 @@ export class StateMachineToolCallProcessorService {
   }
 
   assignToTargetBlock(
-    block: WorkflowBase,
+    block: WorkflowInterface,
     assign: AssignmentConfigType | undefined,
     ctx: WorkflowExecution,
     result: ToolResult,
   ) {
     if (assign) {
-      const templateHelpers: CustomHelper[] = block.helpers
-        .map((name: string) => ({
-          name,
-          fn: block.getHelper(name),
-        }))
-        .filter((helper): helper is CustomHelper => helper.fn !== undefined);
-
       const update: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(assign)) {
         update[key] = this.templateExpressionEvaluatorService.evaluateTemplateRaw<string>(
           value,
           { result },
           {
-            cacheKey: block.name,
-            helpers: templateHelpers,
+            cacheKey: block.constructor.name,
+            helpers: getBlockTemplateHelpers(block),
             schema: z.array(WorkflowTransitionSchema),
           },
         );

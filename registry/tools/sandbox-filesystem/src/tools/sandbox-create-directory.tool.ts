@@ -15,8 +15,7 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Tool, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase, WorkflowExecution } from '@loopstack/core';
+import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const propertiesSchema = z
@@ -35,16 +34,16 @@ interface SandboxCreateDirectoryResult {
 }
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Create a directory in a sandbox container',
   },
 })
 @WithArguments(propertiesSchema)
-export class SandboxCreateDirectory extends ToolBase<SandboxCreateDirectoryArgs> {
+export class SandboxCreateDirectory implements ToolInterface<SandboxCreateDirectoryArgs> {
   private readonly logger = new Logger(SandboxCreateDirectory.name);
 
-  @Tool() private sandboxCommand: SandboxCommand;
+  @InjectTool() private sandboxCommand: SandboxCommand;
 
   async execute(
     args: SandboxCreateDirectoryArgs,

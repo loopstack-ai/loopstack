@@ -1,4 +1,4 @@
-import { BlockInterface } from '../interfaces/block.interface';
+import { BlockInterface } from '@loopstack/common';
 
 export class ConfigTraceError extends Error {
   public readonly name = 'ConfigTraceError';

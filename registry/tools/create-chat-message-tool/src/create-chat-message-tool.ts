@@ -1,7 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Document, DocumentEntity, Tool, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase, WorkflowExecution } from '@loopstack/core';
+import {
+  DocumentEntity,
+  InjectDocument,
+  InjectTool,
+  Tool,
+  ToolInterface,
+  ToolResult,
+  WithArguments,
+  WorkflowExecution,
+} from '@loopstack/common';
 import { CreateDocument, MessageDocument } from '@loopstack/core-ui-module';
 
 const MessageSchema = z.object({
@@ -14,17 +22,17 @@ const CreateChatMessageInputSchema = z.union([MessageSchema, z.array(MessageSche
 type CreateChatMessageInput = z.infer<typeof CreateChatMessageInputSchema>;
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Create chat message(s).',
   },
 })
 @WithArguments(CreateChatMessageInputSchema)
-export class CreateChatMessage extends ToolBase<CreateChatMessageInput> {
+export class CreateChatMessage implements ToolInterface<CreateChatMessageInput> {
   protected readonly logger = new Logger(CreateChatMessage.name);
 
-  @Tool() private createDocument: CreateDocument;
-  @Document() private messageDocument: MessageDocument;
+  @InjectTool() private createDocument: CreateDocument;
+  @InjectDocument() private messageDocument: MessageDocument;
 
   async execute(args: CreateChatMessageInput, ctx: WorkflowExecution): Promise<ToolResult> {
     const items = !Array.isArray(args) ? [args] : args;

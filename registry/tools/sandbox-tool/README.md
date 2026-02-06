@@ -55,7 +55,7 @@ See here for more information about working with [Modules](https://loopstack.ai/
 
 ### 2. Use in Your Workflow
 
-Inject the tools in your workflow class using the @Tool() decorator:
+Inject the tools in your workflow class using the @InjectTool() decorator:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
@@ -75,9 +75,9 @@ import { SandboxCommand, SandboxDestroy, SandboxInit } from './sandbox-tool';
   }),
 )
 export class MyWorkflow extends WorkflowBase {
-  @Tool() sandboxInit: SandboxInit;
-  @Tool() sandboxCommand: SandboxCommand;
-  @Tool() sandboxDestroy: SandboxDestroy;
+  @InjectTool() sandboxInit: SandboxInit;
+  @InjectTool() sandboxCommand: SandboxCommand;
+  @InjectTool() sandboxDestroy: SandboxDestroy;
 }
 ```
 

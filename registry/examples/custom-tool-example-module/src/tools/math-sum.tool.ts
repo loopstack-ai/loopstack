@@ -15,8 +15,7 @@ limitations under the License.
 */
 import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, ToolResult, WithArguments } from '@loopstack/common';
-import { ToolBase } from '@loopstack/core';
+import { Tool, ToolInterface, ToolResult, WithArguments } from '@loopstack/common';
 import { MathService } from '../services/math.service';
 
 const propertiesSchema = z
@@ -29,13 +28,13 @@ const propertiesSchema = z
 export type MathSumArgs = z.infer<typeof propertiesSchema>;
 
 @Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Math tool calculating the sum of two arguments by using an injected service.',
   },
 })
 @WithArguments(propertiesSchema)
-export class MathSumTool extends ToolBase<MathSumArgs> {
+export class MathSumTool implements ToolInterface {
   @Inject()
   private mathService: MathService;
 

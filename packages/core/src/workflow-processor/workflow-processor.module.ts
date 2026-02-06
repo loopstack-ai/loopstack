@@ -5,9 +5,8 @@ import { DocumentEntity, NamespaceEntity, PipelineEntity, WorkflowEntity, Worksp
 import { CommonModule } from '../common';
 import { PersistenceModule } from '../persistence';
 import {
+  BlockDiscoveryService,
   BlockProcessor,
-  BlockRegistryService,
-  ConfigLoaderService,
   FactoryProcessorService,
   NamespaceProcessorService,
   ProcessorFactory,
@@ -47,6 +46,7 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     FactoryProcessorService,
     SequenceProcessorService,
     WorkflowProcessorService,
+    BlockDiscoveryService,
 
     WorkflowStateService,
     NamespaceProcessorService,
@@ -58,17 +58,14 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     StateMachineProcessorService,
     StateMachineToolCallProcessorService,
     CreatePipelineService,
-
-    ConfigLoaderService,
-    BlockRegistryService,
   ],
   exports: [
     PersistenceModule,
     RootProcessorService,
     CreatePipelineService,
-    BlockRegistryService,
     BlockProcessor,
     WorkflowProcessorService,
+    BlockDiscoveryService,
   ],
 })
 export class WorkflowProcessorModule {}
