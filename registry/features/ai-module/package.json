@@ -47,9 +47,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "module": "src/ai.module.ts"
-  },
   "jest": {
     "moduleFileExtensions": [
       "js",
@@ -67,5 +64,8 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/ai.module.ts"
   }
 }

@@ -31,14 +31,17 @@ async function getLatestReleaseTag(packageName: string): Promise<string> {
 async function main() {
   const args = process.argv.slice(2);
   let appName: string | undefined;
-  let templateName = 'app-template';
+  let templateName = 'app-bundle-template';
   let tag: string | undefined;
+  let skipStudio = false;
 
   for (const arg of args) {
     if (arg.startsWith('--template=')) {
       templateName = arg.split('=')[1];
     } else if (arg.startsWith('--tag=')) {
       tag = arg.split('=')[1];
+    } else if (arg === '--skip-studio') {
+      skipStudio = true;
     } else if (!arg.startsWith('--')) {
       appName = arg;
     }
@@ -48,12 +51,13 @@ async function main() {
     console.error('❌ Please provide a project name.');
     console.error('\nUsage: create-loopstack-app <app-name> [options]');
     console.error('\nOptions:');
-    console.error('  --template=<name>    Template to use (default: app-template)');
+    console.error('  --template=<name>    Template to use (default: app-bundle-template)');
     console.error('  --tag=<tag>          Git tag/branch to use (default: latest release)');
+    console.error('  --skip-studio        Skip Loopstack Studio installation');
     console.error('\nExamples:');
     console.error('  create-loopstack-app my-app');
-    console.error('  create-loopstack-app my-app --template=custom-template');
-    console.error('  create-loopstack-app my-app --tag=@loopstack/app-template@1.0.0');
+    console.error('  create-loopstack-app my-app --skip-studio');
+    console.error('  create-loopstack-app my-app --tag=@loopstack/app-bundle-template@1.0.0');
     process.exit(1);
   }
 
@@ -71,8 +75,9 @@ async function main() {
     }
   }
 
+  // Clone the bundle template (includes backend, package.json, README, docker-compose)
   const templateSource = `github:loopstack-ai/loopstack/templates/${templateName}#${tag}`;
-  console.log(`Cloning from: ${templateSource}`);
+  console.log(`\nCloning template from: ${templateSource}`);
 
   try {
     execSync(`npx giget@latest ${templateSource} ${appName} --force`, {
@@ -84,31 +89,57 @@ async function main() {
     process.exit(1);
   }
 
-  process.chdir(appName);
+  const projectRoot = path.resolve(appName);
+  process.chdir(projectRoot);
 
-  const packageJsonPath = path.join(process.cwd(), 'package.json');
+  // Update root package.json with project name
+  const packageJsonPath = path.join(projectRoot, 'package.json');
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as Record<string, unknown>;
   packageJson.name = appName;
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
-  const envDefaultPath = path.join(process.cwd(), '.env.default');
-  const envPath = path.join(process.cwd(), '.env');
+  // Handle .env file for backend
+  const envDefaultPath = path.join(projectRoot, 'backend', '.env.default');
+  const envPath = path.join(projectRoot, 'backend', '.env');
 
   if (fs.existsSync(envDefaultPath)) {
-    console.log('Creating .env file from .env.default...');
+    console.log('Creating backend .env file from .env.default...');
     fs.copyFileSync(envDefaultPath, envPath);
-  } else {
-    console.warn('⚠️  Warning: .env.default not found, skipping .env creation');
   }
 
-  console.log('Installing dependencies...');
-  execSync('npm install', { stdio: 'inherit' });
+  if (!skipStudio) {
+    const studioPath = path.join(projectRoot, 'studio');
+    const studioSource = `github:loopstack-ai/loopstack/frontend/loopstack-studio#${tag}`;
+    console.log(`\nCloning Loopstack Studio from: ${studioSource}`);
 
-  console.log('\nLoopstack project created successfully!\n');
-  console.log('Next steps to get started:');
-  console.log(`   1. cd ${appName}`);
-  console.log('   2. docker compose up -d');
-  console.log('   3. npm run start:dev');
+    try {
+      execSync(`npx giget@latest ${studioSource} ${studioPath} --force`, {
+        stdio: 'inherit',
+      });
+
+      console.log('✓ Loopstack Studio added successfully');
+    } catch {
+      console.error('⚠️  Warning: Could not clone Loopstack Studio, continuing with backend only');
+    }
+  } else {
+    console.log('\n⊘ Skipping Loopstack Studio installation');
+  }
+
+  // Install root dependencies
+  console.log('\nInstalling dependencies...');
+  execSync('npm run install:all', { stdio: 'inherit' });
+
+  // Return to project root
+  process.chdir(projectRoot);
+
+  console.log('\n✅ Loopstack project created successfully!\n');
+  console.log('─'.repeat(50));
+
+  console.log('\nLoopstack Studio: http://localhost:5173');
+  console.log('Backend API:      http://localhost:3000');
+
+  console.log('\nStart:');
+  console.log('   cd ${appName} && npm run start');
   console.log('─'.repeat(50));
 }
 

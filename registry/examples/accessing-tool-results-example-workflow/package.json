@@ -2,20 +2,20 @@
   "name": "@loopstack/accessing-tool-results-example-workflow",
   "displayName": "Loopstack Tool Results Example",
   "description": "A simple workflow showing different methods of how to access tool results in a subsequent workflow step.",
+  "keywords": [
+    "assign",
+    "example",
+    "helper",
+    "results",
+    "tool",
+    "workflow"
+  ],
   "version": "0.19.0-rc.1",
+  "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "keywords": [
-    "example",
-    "tool",
-    "results",
-    "workflow",
-    "helper",
-    "assign"
-  ],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -42,12 +42,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "module": "src/tool-results-example.module.ts",
-    "workflows": [
-      "src/workflow-tool-results.workflow.ts"
-    ]
-  },
   "jest": {
     "moduleFileExtensions": [
       "js",
@@ -67,5 +61,11 @@
     "maxWorkers": 1,
     "testTimeout": 10000,
     "forceExit": true
+  },
+  "loopstack": {
+    "module": "src/tool-results-example.module.ts",
+    "workflows": [
+      "src/workflow-tool-results.workflow.ts"
+    ]
   }
 }

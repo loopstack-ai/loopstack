@@ -2,18 +2,18 @@
   "name": "@loopstack/create-value-tool",
   "displayName": "Loopstack Create Value Tool",
   "description": "A simple tool that logs and returns a value of a loopstack workflow. This is useful for debugging or initializing workflow context variables.",
+  "keywords": [
+    "context",
+    "debug",
+    "tool",
+    "variable"
+  ],
   "version": "0.19.0-rc.1",
+  "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "keywords": [
-    "tool",
-    "debug",
-    "variable",
-    "context"
-  ],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -37,9 +37,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "module": "src/create-value-tool.module.ts"
-  },
   "jest": {
     "moduleFileExtensions": [
       "js",
@@ -57,5 +54,8 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/create-value-tool.module.ts"
   }
 }

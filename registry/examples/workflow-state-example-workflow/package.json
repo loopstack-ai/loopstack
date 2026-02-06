@@ -2,19 +2,19 @@
   "name": "@loopstack/workflow-state-example-workflow",
   "displayName": "Loopstack State Interaction Example Worflow",
   "description": "A workflow demonstrating how to interact with custom state of a workflow",
+  "keywords": [
+    "assign",
+    "example",
+    "helper",
+    "state",
+    "workflow"
+  ],
   "version": "0.19.0-rc.1",
+  "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "keywords": [
-    "example",
-    "workflow",
-    "state",
-    "helper",
-    "assign"
-  ],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -40,12 +40,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "module": "src/workflow-state-example.module.ts",
-    "workflows": [
-      "src/workflow-state.workflow.ts"
-    ]
-  },
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",
@@ -56,5 +50,11 @@
     "testTimeout": 10000,
     "forceExit": true,
     "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/workflow-state-example.module.ts",
+    "workflows": [
+      "src/workflow-state.workflow.ts"
+    ]
   }
 }

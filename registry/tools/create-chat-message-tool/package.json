@@ -2,18 +2,18 @@
   "name": "@loopstack/create-chat-message-tool",
   "displayName": "Loopstack Create Chat Message Tool",
   "description": "A tool to create chat messages from in a workflow",
+  "keywords": [
+    "chat",
+    "loopstack",
+    "messages",
+    "tool"
+  ],
   "version": "0.19.0-rc.1",
+  "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
-  "keywords": [
-    "loopstack",
-    "tool",
-    "chat",
-    "messages"
-  ],
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -38,9 +38,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "module": "src/create-chat-message-tool.module.ts"
-  },
   "jest": {
     "moduleFileExtensions": [
       "js",
@@ -58,5 +55,8 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/create-chat-message-tool.module.ts"
   }
 }
