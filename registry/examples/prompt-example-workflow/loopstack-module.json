@@ -1,4 +1,0 @@
-{
-  "module": "src/prompt-example.module.ts",
-  "workflows": ["src/prompt.workflow.ts"]
-}

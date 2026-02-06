@@ -47,6 +47,9 @@
     "dist",
     "src"
   ],
+  "loopstack": {
+    "module": "src/ai.module.ts"
+  },
   "jest": {
     "moduleFileExtensions": [
       "js",

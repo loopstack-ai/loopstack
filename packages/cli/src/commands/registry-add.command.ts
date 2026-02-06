@@ -81,7 +81,7 @@ export class RegistryAddCommand extends CommandRunner {
         let moduleInstallFailed = false;
         let workflowInstallFailed = false;
 
-        console.log('Found loopstack-module.json, running module installer...');
+        console.log('Found loopstack config in package.json, running module installer...');
         try {
           await this.moduleInstallerService.install({
             config: moduleConfig,

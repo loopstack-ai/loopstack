@@ -42,6 +42,12 @@
     "dist",
     "src"
   ],
+  "loopstack": {
+    "module": "src/tool-results-example.module.ts",
+    "workflows": [
+      "src/workflow-tool-results.workflow.ts"
+    ]
+  },
   "jest": {
     "moduleFileExtensions": [
       "js",

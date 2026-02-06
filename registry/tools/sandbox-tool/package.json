@@ -36,6 +36,13 @@
   "devDependencies": {
     "@types/dockerode": "^3.3.34"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "loopstack": {
+    "module": "src/sandbox-tool.module.ts"
+  },
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",

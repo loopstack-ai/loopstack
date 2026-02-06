@@ -40,6 +40,16 @@
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "loopstack": {
+    "module": "src/sandbox-example.module.ts",
+    "workflows": [
+      "src/sandbox-example.workflow.ts"
+    ]
+  },
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",

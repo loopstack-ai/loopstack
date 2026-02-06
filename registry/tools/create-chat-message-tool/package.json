@@ -38,6 +38,9 @@
     "dist",
     "src"
   ],
+  "loopstack": {
+    "module": "src/create-chat-message-tool.module.ts"
+  },
   "jest": {
     "moduleFileExtensions": [
       "js",

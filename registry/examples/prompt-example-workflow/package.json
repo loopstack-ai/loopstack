@@ -36,6 +36,16 @@
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "loopstack": {
+    "module": "src/prompt-example.module.ts",
+    "workflows": [
+      "src/prompt.workflow.ts"
+    ]
+  },
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",

@@ -36,6 +36,9 @@
     "dist",
     "src"
   ],
+  "loopstack": {
+    "module": "src/sandbox-filesystem.module.ts"
+  },
   "jest": {
     "testEnvironment": "node",
     "rootDir": "src",
