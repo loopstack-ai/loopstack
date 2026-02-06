@@ -2,7 +2,7 @@
   "name": "@loopstack/sandbox-example-workflow",
   "displayName": "Sandbox Example Workflow",
   "description": "An example workflow demonstrating how to use Docker sandbox containers for secure filesystem operations",
-  "version": "0.3.0-rc.0",
+  "version": "0.3.0-rc.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -32,11 +32,11 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.19.0-rc.0",
-    "@loopstack/core-ui-module": "^0.19.0-rc.0",
-    "@loopstack/create-chat-message-tool": "^0.19.0-rc.0",
-    "@loopstack/sandbox-filesystem": "^0.3.0-rc.0",
-    "@loopstack/sandbox-tool": "^0.3.0-rc.0",
+    "@loopstack/common": "^0.19.0-rc.1",
+    "@loopstack/core-ui-module": "^0.19.0-rc.1",
+    "@loopstack/create-chat-message-tool": "^0.19.0-rc.1",
+    "@loopstack/sandbox-filesystem": "^0.3.0-rc.1",
+    "@loopstack/sandbox-tool": "^0.3.0-rc.1",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },

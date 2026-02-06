@@ -2,7 +2,7 @@
   "name": "@loopstack/dynamic-routing-example-workflow",
   "displayName": "Loopstack Dynamic Routing Example Worflow",
   "description": "A workflow demonstrating how to create dynamic routing an a workflow",
-  "version": "0.19.0-rc.0",
+  "version": "0.19.0-rc.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -30,8 +30,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.19.0-rc.0",
-    "@loopstack/create-chat-message-tool": "^0.19.0-rc.0",
+    "@loopstack/common": "^0.19.0-rc.1",
+    "@loopstack/create-chat-message-tool": "^0.19.0-rc.1",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },
