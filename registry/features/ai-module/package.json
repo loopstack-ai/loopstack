@@ -10,7 +10,7 @@
     "openai",
     "tool"
   ],
-  "version": "0.19.0",
+  "version": "0.20.0",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -34,8 +34,8 @@
     "@ai-sdk/anthropic": "^3.0.23",
     "@ai-sdk/openai": "^3.0.19",
     "@ai-sdk/provider-utils": "^4.0.9",
-    "@loopstack/common": "^0.19.0",
-    "@loopstack/core-ui-module": "^0.19.0",
+    "@loopstack/common": "^0.20.0",
+    "@loopstack/core-ui-module": "^0.20.0",
     "@nestjs/common": "^11.1.12",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.12",
