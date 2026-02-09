@@ -1,5 +1,11 @@
 # @loopstack/app-bundle-template
 
+## 0.19.0
+
+### Minor Changes
+
+- [#61](https://github.com/loopstack-ai/loopstack/pull/61) [`1b75e75`](https://github.com/loopstack-ai/loopstack/commit/1b75e75679166a9d12e3960ec52c2bea8bc9e614) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add bundle template
+
 ## 0.18.0
 
 ### Minor Changes
