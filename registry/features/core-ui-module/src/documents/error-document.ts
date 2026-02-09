@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { Document, DocumentInterface, WithArguments } from '@loopstack/common';
+import { Document, DocumentInterface, Input } from '@loopstack/common';
 
-const ErrorDocumentSchema = z.object({
-  error: z.string(),
-});
+const ErrorDocumentSchema = z
+  .object({
+    error: z.string(),
+  })
+  .strict();
 
-@Injectable()
 @Document({
   config: {
     type: 'document',
@@ -14,5 +14,9 @@ const ErrorDocumentSchema = z.object({
   },
   configFile: __dirname + '/error-document.yaml',
 })
-@WithArguments(ErrorDocumentSchema)
-export class ErrorDocument implements DocumentInterface {}
+export class ErrorDocument implements DocumentInterface {
+  @Input({
+    schema: ErrorDocumentSchema,
+  })
+  content: z.infer<typeof ErrorDocumentSchema>;
+}

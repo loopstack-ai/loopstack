@@ -1,21 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  BlockContextType,
-  BlockExecutionContextDto,
-  BlockInterface,
-  FactoryExecutionContextDto,
-  NamespaceEntity,
-  PipelineEntity,
-  PipelineExecutionContextDto,
-  WorkflowExecution,
-  WorkflowExecutionContextDto,
-  getBlockConfig,
-} from '@loopstack/common';
+import { BlockInterface, NamespaceEntity, PipelineEntity, RunContext, getBlockConfig } from '@loopstack/common';
 import { NamespacePropsSchema } from '@loopstack/contracts/schemas';
 import type { NamespacePropsType, WorkflowType } from '@loopstack/contracts/types';
 import { TemplateExpressionEvaluatorService } from '../../common';
 import { NamespacesService } from '../../persistence';
-import { getTemplateVars } from '../utils/template-helper';
 
 @Injectable()
 export class NamespaceProcessorService {
@@ -39,10 +27,7 @@ export class NamespaceProcessorService {
     });
   }
 
-  async initBlockNamespace<T extends BlockInterface>(
-    block: T,
-    ctx: BlockExecutionContextDto,
-  ): Promise<BlockExecutionContextDto> {
+  async initBlockNamespace<T extends BlockInterface>(block: T, ctx: RunContext): Promise<RunContext> {
     const config = getBlockConfig<WorkflowType>(block);
     if (!config) {
       throw new Error(`Block ${block.constructor.name} is missing @BlockConfig decorator`);
@@ -51,7 +36,7 @@ export class NamespaceProcessorService {
     if ('namespace' in config && config.namespace) {
       const namespaceConfig = this.templateExpressionEvaluatorService.evaluateTemplate<NamespacePropsType>(
         config.namespace,
-        getTemplateVars({}, {} as WorkflowExecution), // todo: fix
+        {}, //getTemplateVars({}), // todo: fix
         // block,
         // ['pipeline'],
         { schema: NamespacePropsSchema },
@@ -64,10 +49,7 @@ export class NamespaceProcessorService {
     return ctx;
   }
 
-  async createNamespace(
-    ctx: WorkflowExecutionContextDto | PipelineExecutionContextDto | FactoryExecutionContextDto,
-    props: NamespacePropsType,
-  ): Promise<NamespaceEntity> {
+  async createNamespace(ctx: RunContext, props: NamespacePropsType): Promise<NamespaceEntity> {
     return this.namespacesService.create({
       name: props.label ?? 'Group',
       pipelineId: ctx.pipelineId,
@@ -77,16 +59,13 @@ export class NamespaceProcessorService {
     });
   }
 
-  async cleanupNamespace(
-    parentBlockCtx: PipelineExecutionContextDto | FactoryExecutionContextDto,
-    validBlockContexts: BlockContextType[],
-  ) {
-    const newChildNamespaceIds = validBlockContexts.map((item) => item.namespace?.id).filter((v) => !!v);
-    const originalChildNamespaces = await this.namespacesService.getChildNamespaces(parentBlockCtx.namespace.id);
-    const danglingNamespaces = originalChildNamespaces.filter((item) => !newChildNamespaceIds.includes(item.id));
-    if (danglingNamespaces.length) {
-      await this.namespacesService.delete(danglingNamespaces);
-      this.logger.debug(`Removed ${danglingNamespaces.length} dangling namespaces.`);
-    }
-  }
+  // async cleanupNamespace(parentBlockCtx: RunContext, validBlockContexts: BlockContextType[]) {
+  //   const newChildNamespaceIds = validBlockContexts.map((item) => item.namespace?.id).filter((v) => !!v);
+  //   const originalChildNamespaces = await this.namespacesService.getChildNamespaces(parentBlockCtx.namespace.id);
+  //   const danglingNamespaces = originalChildNamespaces.filter((item) => !newChildNamespaceIds.includes(item.id));
+  //   if (danglingNamespaces.length) {
+  //     await this.namespacesService.delete(danglingNamespaces);
+  //     this.logger.debug(`Removed ${danglingNamespaces.length} dangling namespaces.`);
+  //   }
+  // }
 }

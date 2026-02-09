@@ -3,25 +3,9 @@ import { DocumentEntity } from '../entities';
 import { PersistenceState, ToolResultLookup, TransitionResultLookup } from '../interfaces';
 import { WorkflowTransitionDto } from './workflow-transition.dto';
 
-interface BlockStateInterface {
-  id: string;
-  error?: boolean;
-  stop?: boolean;
-}
-
-export class BlockStateDto implements BlockStateInterface {
-  id!: string;
-  error?: boolean;
-  stop?: boolean;
-
-  constructor(data: Partial<BlockStateDto>) {
-    Object.assign(this, data);
-  }
-}
-
 export type InitWorkflowState = Omit<WorkflowStateDto, 'addDocuments' | 'addDocument' | 'updateDocument'>;
 
-export class WorkflowStateDto implements BlockStateInterface {
+export class WorkflowStateDto {
   id!: string;
   error!: boolean;
   stop!: boolean;

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { StateMachineValidatorResultInterface, WorkflowEntity } from '@loopstack/common';
+import { WorkflowExecutionContextManager } from '../utils/execution-context-manager';
 import { StateMachineValidatorRegistry } from './state-machine-validator.registry';
 
 @Injectable()
@@ -8,10 +9,10 @@ export class StateMachineValidatorService {
 
   constructor(private readonly stateMachineValidatorRegistry: StateMachineValidatorRegistry) {}
 
-  validate(workflow: WorkflowEntity, args: Record<string, any> | undefined): StateMachineValidatorResultInterface {
+  validate(workflowEntity: WorkflowEntity, ctx: WorkflowExecutionContextManager): StateMachineValidatorResultInterface {
     const validationResults = this.stateMachineValidatorRegistry
       .getValidators()
-      .map((validator) => validator.validate(workflow, args));
+      .map((validator) => validator.validate(workflowEntity, ctx.getArgs()));
 
     return {
       valid: validationResults.every((item) => item.valid),

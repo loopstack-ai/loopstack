@@ -13,12 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Tool, ToolInterface, ToolResult, WithArguments } from '@loopstack/common';
+import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { DockerContainerManagerService } from '../services/docker-container-manager.service';
 
-const propertiesSchema = z
+const inputSchema = z
   .object({
     containerId: z.string().describe('The ID of the container to destroy'),
     removeContainer: z
@@ -28,7 +28,7 @@ const propertiesSchema = z
   })
   .strict();
 
-type SandboxDestroyArgs = z.infer<typeof propertiesSchema>;
+type SandboxDestroyArgs = z.infer<typeof inputSchema>;
 
 interface SandboxDestroyResult {
   containerId: string;
@@ -41,11 +41,14 @@ interface SandboxDestroyResult {
     description: 'Stop and destroy a sandbox container',
   },
 })
-@WithArguments(propertiesSchema)
 export class SandboxDestroy implements ToolInterface<SandboxDestroyArgs> {
   private readonly logger = new Logger(SandboxDestroy.name);
 
-  constructor(private readonly containerManager: DockerContainerManagerService) {}
+  @Inject()
+  private readonly containerManager: DockerContainerManagerService;
+
+  @Input({ schema: inputSchema })
+  args: SandboxDestroyArgs;
 
   async execute(args: SandboxDestroyArgs): Promise<ToolResult<SandboxDestroyResult>> {
     const { containerId, removeContainer } = args;

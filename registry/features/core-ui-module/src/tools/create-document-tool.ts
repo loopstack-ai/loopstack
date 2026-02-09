@@ -1,16 +1,17 @@
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { merge, omit } from 'lodash';
 import { randomUUID } from 'node:crypto';
 import { ZodError, ZodSchema, toJSONSchema, z } from 'zod';
 import {
   DocumentEntity,
   DocumentInterface,
+  Input,
+  RunContext,
   Tool,
   ToolInterface,
   ToolResult,
-  WithArguments,
-  WorkflowExecution,
   WorkflowInterface,
+  WorkflowMetadataInterface,
   getBlockArgsSchema,
   getBlockConfig,
   getBlockDocument,
@@ -47,19 +48,23 @@ export type CreateDocumentInput = z.infer<typeof CreateDocumentInputSchema>;
     description: 'Create a document.',
   },
 })
-@WithArguments(CreateDocumentInputSchema)
 export class CreateDocument implements ToolInterface {
   protected readonly logger = new Logger(CreateDocument.name);
 
-  constructor(
-    private readonly documentService: DocumentService,
-    private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
-  ) {}
+  @Input({ schema: CreateDocumentInputSchema })
+  private readonly args: CreateDocumentInput;
+
+  @Inject()
+  private readonly documentService: DocumentService;
+
+  @Inject()
+  private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService;
 
   execute(
     args: CreateDocumentInput,
-    ctx: WorkflowExecution,
+    context: RunContext,
     parent: WorkflowInterface | ToolInterface,
+    metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
     const document = getBlockDocument<DocumentInterface>(parent, args.document);
     if (!document) {
@@ -88,7 +93,7 @@ export class CreateDocument implements ToolInterface {
 
       const jsonSchema = this.createJsonSchema(getBlockArgsSchema(document));
 
-      const documentEntity = this.createDocumentEntity(ctx, {
+      const documentEntity = this.createDocumentEntity(context, metadata, {
         skeleton: documentSkeleton,
         content: validationResult.content,
         error: validationResult.error,
@@ -169,7 +174,8 @@ export class CreateDocument implements ToolInterface {
   }
 
   private createDocumentEntity(
-    ctx: WorkflowExecution,
+    context: RunContext,
+    metadata: WorkflowMetadataInterface,
     params: {
       skeleton: Omit<DocumentType, 'content'>;
       content: unknown;
@@ -192,7 +198,7 @@ export class CreateDocument implements ToolInterface {
       documentData.error = params.error;
     }
 
-    return this.documentService.create(ctx, documentData);
+    return this.documentService.create(context, metadata, documentData);
   }
 
   private buildResult(documentEntity: DocumentEntity): ToolResult {

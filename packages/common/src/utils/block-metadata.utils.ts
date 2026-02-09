@@ -1,14 +1,21 @@
 import { z } from 'zod';
 import { BlockConfigType } from '@loopstack/contracts/dist/types';
 import {
-  ARGS_SCHEMA_METADATA_KEY,
   BLOCK_CONFIG_METADATA_KEY,
   BlockOptions,
+  CONTEXT_METADATA_KEY,
+  ContextMetadata,
   INJECTED_DOCUMENTS_METADATA_KEY,
   INJECTED_TOOLS_METADATA_KEY,
   INJECTED_WORKFLOWS_METADATA_KEY,
-  RESULT_SCHEMA_METADATA_KEY,
-  STATE_SCHEMA_METADATA_KEY,
+  INPUT_METADATA_KEY,
+  InputMetadata,
+  OUTPUT_METADATA_KEY,
+  OutputMetadata,
+  RUNTIME_METADATA_KEY,
+  RuntimeMetadata,
+  STATE_METADATA_KEY,
+  StateMetadata,
   TEMPLATE_HELPER_METADATA_KEY,
 } from '../decorators';
 import { buildConfig } from './block-config.builder.js';
@@ -92,27 +99,64 @@ export function getBlockHelpers(target: object | Constructor): string[] {
 }
 
 /**
+ * Gets the full input metadata from the decorator
+ */
+export function getBlockInputMetadata(target: object | Constructor): InputMetadata | undefined {
+  const ctor = getConstructor(target);
+  return Reflect.getMetadata(INPUT_METADATA_KEY, ctor) as InputMetadata | undefined;
+}
+
+/**
+ * Gets the full context metadata from the decorator
+ */
+export function getBlockContextMetadata(target: object | Constructor): ContextMetadata | undefined {
+  const ctor = getConstructor(target);
+  return Reflect.getMetadata(CONTEXT_METADATA_KEY, ctor) as ContextMetadata | undefined;
+}
+
+/**
+ * Gets the full runtime metadata from the decorator
+ */
+export function getBlockRuntimeMetadata(target: object | Constructor): RuntimeMetadata | undefined {
+  const ctor = getConstructor(target);
+  return Reflect.getMetadata(RUNTIME_METADATA_KEY, ctor) as RuntimeMetadata | undefined;
+}
+
+/**
  * Gets the args schema from the decorator metadata
  */
 export function getBlockArgsSchema(target: object | Constructor): z.ZodType | undefined {
+  return getBlockInputMetadata(target)?.schema;
+}
+
+/**
+ * Gets the full state metadata from the decorator
+ */
+export function getBlockStateMetadata(target: object | Constructor): StateMetadata | undefined {
   const ctor = getConstructor(target);
-  return Reflect.getMetadata(ARGS_SCHEMA_METADATA_KEY, ctor) as z.ZodType | undefined;
+  return Reflect.getMetadata(STATE_METADATA_KEY, ctor) as StateMetadata | undefined;
 }
 
 /**
  * Gets the state schema from the decorator metadata
  */
 export function getBlockStateSchema(target: object | Constructor): z.ZodType | undefined {
+  return getBlockStateMetadata(target)?.schema;
+}
+
+/**
+ * Gets the full output metadata from the decorator
+ */
+export function getBlockOutputMetadata(target: object | Constructor): OutputMetadata | undefined {
   const ctor = getConstructor(target);
-  return Reflect.getMetadata(STATE_SCHEMA_METADATA_KEY, ctor) as z.ZodType | undefined;
+  return Reflect.getMetadata(OUTPUT_METADATA_KEY, ctor) as OutputMetadata | undefined;
 }
 
 /**
  * Gets the result schema from the decorator metadata
  */
 export function getBlockResultSchema(target: object | Constructor): z.ZodType | undefined {
-  const ctor = getConstructor(target);
-  return Reflect.getMetadata(RESULT_SCHEMA_METADATA_KEY, ctor) as z.ZodType | undefined;
+  return getBlockOutputMetadata(target)?.schema;
 }
 
 /**

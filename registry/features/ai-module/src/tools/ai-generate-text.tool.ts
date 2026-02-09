@@ -1,14 +1,15 @@
 import { ModelMessage } from '@ai-sdk/provider-utils';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { LanguageModel, ToolSet, UIMessage, convertToModelMessages, createUIMessageStream, streamText } from 'ai';
 import { z } from 'zod';
 import {
+  Input,
+  RunContext,
   Tool,
   ToolInterface,
   ToolResult,
-  WithArguments,
-  WorkflowExecution,
   WorkflowInterface,
+  WorkflowMetadataInterface,
 } from '@loopstack/common';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 import { AiMessagesHelperService } from '../services';
@@ -27,18 +28,24 @@ type AiGenerateTextArgsType = z.infer<typeof AiGenerateTextSchema>;
     description: 'Generates text using a LLM',
   },
 })
-@WithArguments(AiGenerateTextSchema)
 export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
-  constructor(
-    private readonly aiMessagesHelperService: AiMessagesHelperService,
-    private readonly aiToolsHelperService: AiToolsHelperService,
-    private readonly aiProviderModelHelperService: AiProviderModelHelperService,
-  ) {}
+  @Inject()
+  private readonly aiMessagesHelperService: AiMessagesHelperService;
+  @Inject()
+  private readonly aiToolsHelperService: AiToolsHelperService;
+  @Inject()
+  private readonly aiProviderModelHelperService: AiProviderModelHelperService;
+
+  @Input({
+    schema: AiGenerateTextSchema,
+  })
+  args: AiGenerateTextArgsType;
 
   async execute(
     args: AiGenerateTextArgsType,
-    ctx: WorkflowExecution<any>,
+    ctx: RunContext,
     parent: WorkflowInterface,
+    runtime: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
@@ -58,7 +65,7 @@ export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
         content: args.prompt,
       } as ModelMessage);
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
+      const messages = this.aiMessagesHelperService.getMessages(runtime.documents, {
         messages: args.messages as unknown as UIMessage[],
         messagesSearchTag: args.messagesSearchTag,
       });

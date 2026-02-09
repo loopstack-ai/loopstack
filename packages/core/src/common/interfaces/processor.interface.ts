@@ -1,5 +1,5 @@
-import { WorkflowExecution } from '@loopstack/common';
+import { WorkflowMetadataInterface } from '@loopstack/common';
 
 export interface Processor {
-  process(block: any, args: any, ctx: any): Promise<WorkflowExecution>;
+  process(block: any, args: any, ctx: any): Promise<WorkflowMetadataInterface>;
 }

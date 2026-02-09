@@ -15,10 +15,10 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
+import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
-const propertiesSchema = z
+const inputSchema = z
   .object({
     containerId: z.string().describe('The ID of the container to list the directory from'),
     path: z.string().describe('The path to the directory to list'),
@@ -26,7 +26,7 @@ const propertiesSchema = z
   })
   .strict();
 
-type SandboxListDirectoryArgs = z.infer<typeof propertiesSchema>;
+type SandboxListDirectoryArgs = z.infer<typeof inputSchema>;
 
 interface FileEntry {
   name: string;
@@ -46,16 +46,15 @@ interface SandboxListDirectoryResult {
     description: 'List files and directories in a sandbox container',
   },
 })
-@WithArguments(propertiesSchema)
 export class SandboxListDirectory implements ToolInterface<SandboxListDirectoryArgs> {
   private readonly logger = new Logger(SandboxListDirectory.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
 
-  async execute(
-    args: SandboxListDirectoryArgs,
-    _ctx: WorkflowExecution,
-  ): Promise<ToolResult<SandboxListDirectoryResult>> {
+  @Input({ schema: inputSchema })
+  args: SandboxListDirectoryArgs;
+
+  async execute(args: SandboxListDirectoryArgs): Promise<ToolResult<SandboxListDirectoryResult>> {
     const { containerId, path: dirPath, recursive } = args;
 
     this.logger.debug(`Listing directory ${dirPath} in container ${containerId} (recursive: ${recursive})`);

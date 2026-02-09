@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { ToolUIPart, UIMessage } from 'ai';
 import { z } from 'zod';
 import {
+  Input,
+  RunContext,
   Tool,
   ToolInterface,
   ToolResult,
-  WithArguments,
-  WorkflowExecution,
   WorkflowInterface,
+  WorkflowMetadataInterface,
   getBlockTool,
 } from '@loopstack/common';
 
@@ -32,12 +33,17 @@ type DelegateToolCallsToolArgs = z.infer<typeof DelegateToolCallsToolSchema>;
     description: 'Delegate a tool call.',
   },
 })
-@WithArguments(DelegateToolCallsToolSchema)
 export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs> {
+  @Input({
+    schema: DelegateToolCallsToolSchema,
+  })
+  args: DelegateToolCallsToolArgs;
+
   async execute(
     args: DelegateToolCallsToolArgs,
-    ctx: WorkflowExecution<any>,
+    ctx: RunContext,
     parent: WorkflowInterface,
+    runtime: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
     const parts = args.message.parts;
     const resultParts: ToolUIPart[] = [];
@@ -57,7 +63,7 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
       if (!tool) {
         throw new Error(`Tool ${toolName} not found.`);
       }
-      const result: ToolResult = await tool.execute(part.input as Record<string, unknown>, ctx, parent);
+      const result: ToolResult = await tool.execute(part.input as Record<string, unknown>, ctx, parent, runtime);
 
       resultParts.push({
         type: part.type as ToolUIPart['type'],

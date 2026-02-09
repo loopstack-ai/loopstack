@@ -14,7 +14,7 @@ import {
 import { z } from 'zod';
 import type { JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '@loopstack/contracts/types';
 import { WorkflowState } from '../enums';
-import { TransitionResultLookup } from '../interfaces';
+import { TransitionResultLookup, WorkflowMementoData } from '../interfaces';
 import { StableJsonTransformer } from '../utils';
 import { DocumentEntity } from './document.entity';
 import { NamespaceEntity } from './namespace.entity';
@@ -85,7 +85,7 @@ export class WorkflowEntity {
   availableTransitions!: WorkflowTransitionType[] | null;
 
   @Column('jsonb', { name: 'history', nullable: true })
-  history!: unknown[] | null; //todo should be WorkflowMementoDto[]
+  history!: WorkflowMementoData<any, any>[] | null;
 
   @Column({
     type: 'jsonb',

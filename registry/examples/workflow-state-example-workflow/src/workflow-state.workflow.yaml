@@ -9,7 +9,7 @@ transitions:
       - id: say_hello
         tool: createValue
         args:
-          input: 'Hello Again.'
+          input: 'Hello :)'
         assign:
           message: ${ result.data }
 
@@ -17,10 +17,16 @@ transitions:
       - tool: createChatMessage
         args:
           role: 'assistant'
-          content: 'Data from state: {{ message }}'
+          content: 'Data from runtime: {{ runtime.tools.create_some_data.say_hello.data }}'
+
+      # Access the data using the custom property
+      - tool: createChatMessage
+        args:
+          role: 'assistant'
+          content: 'Data from state: {{ state.message }}'
 
       # Access the data using a helper method of the workflow
       - tool: createChatMessage
         args:
           role: 'assistant'
-          content: 'Use workflow helper method: {{ messageInUpperCase message }}'
+          content: 'Use workflow helper method: {{ messageInUpperCase state.message }}'

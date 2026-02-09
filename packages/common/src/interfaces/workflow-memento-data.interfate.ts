@@ -1,8 +1,6 @@
-import { WorkflowMetadataInterface } from './workflow-metadata.interface';
-
-export interface WorkflowMementoData<TData> {
+export interface WorkflowMementoData<TState, TData> {
+  state: Readonly<TState>;
   data: Readonly<TData>;
-  metadata: Readonly<WorkflowMetadataInterface>;
   timestamp: Date;
   version: number;
 }

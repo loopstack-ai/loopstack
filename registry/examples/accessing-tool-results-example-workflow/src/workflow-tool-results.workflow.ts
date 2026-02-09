@@ -1,15 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { DefineHelper, InjectTool, Workflow, WorkflowMetadataInterface } from '@loopstack/common';
+import { DefineHelper, InjectTool, Runtime, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { CreateValue } from '@loopstack/create-value-tool';
-
-interface WorkflowToolsMetadata {
-  create_some_data: {
-    say_hello: {
-      data: string;
-    };
-  };
-}
 
 @Injectable()
 @Workflow({
@@ -19,9 +11,19 @@ export class WorkflowToolResultsWorkflow {
   @InjectTool() private createValue: CreateValue;
   @InjectTool() private createChatMessage: CreateChatMessage;
 
+  @Runtime()
+  runtime: {
+    tools: {
+      create_some_data: {
+        say_hello: {
+          data: string;
+        };
+      };
+    };
+  };
+
   @DefineHelper()
-  extractMessage(metadata: WorkflowMetadataInterface): string {
-    const tools = metadata.tools as unknown as WorkflowToolsMetadata;
-    return tools.create_some_data.say_hello.data;
+  theMessage(): string {
+    return this.runtime.tools.create_some_data.say_hello.data;
   }
 }

@@ -16,10 +16,10 @@ limitations under the License.
 import { Injectable, Logger } from '@nestjs/common';
 import * as path from 'path';
 import { z } from 'zod';
-import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
+import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
-const propertiesSchema = z
+const inputSchema = z
   .object({
     containerId: z.string().describe('The ID of the container to write the file to'),
     path: z.string().describe('The path where the file should be written'),
@@ -29,7 +29,7 @@ const propertiesSchema = z
   })
   .strict();
 
-type SandboxWriteFileArgs = z.infer<typeof propertiesSchema>;
+type SandboxWriteFileArgs = z.infer<typeof inputSchema>;
 
 interface SandboxWriteFileResult {
   path: string;
@@ -42,13 +42,15 @@ interface SandboxWriteFileResult {
     description: 'Write content to a file in a sandbox container',
   },
 })
-@WithArguments(propertiesSchema)
 export class SandboxWriteFile implements ToolInterface<SandboxWriteFileArgs> {
   private readonly logger = new Logger(SandboxWriteFile.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
 
-  async execute(args: SandboxWriteFileArgs, _ctx: WorkflowExecution): Promise<ToolResult<SandboxWriteFileResult>> {
+  @Input({ schema: inputSchema })
+  args: SandboxWriteFileArgs;
+
+  async execute(args: SandboxWriteFileArgs): Promise<ToolResult<SandboxWriteFileResult>> {
     const { containerId, path: filePath, content, encoding, createParentDirs } = args;
 
     this.logger.debug(`Writing file ${filePath} to container ${containerId} (encoding: ${encoding})`);

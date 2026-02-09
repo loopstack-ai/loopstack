@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { Document, DocumentInterface, WithArguments } from '@loopstack/common';
+import { Document, DocumentInterface, Input } from '@loopstack/common';
 
 const LinkDocumentSchema = z
   .object({
@@ -11,7 +10,6 @@ const LinkDocumentSchema = z
   })
   .strict();
 
-@Injectable()
 @Document({
   config: {
     type: 'document',
@@ -19,5 +17,9 @@ const LinkDocumentSchema = z
   },
   configFile: __dirname + '/link-document.yaml',
 })
-@WithArguments(LinkDocumentSchema)
-export class LinkDocument implements DocumentInterface {}
+export class LinkDocument implements DocumentInterface {
+  @Input({
+    schema: LinkDocumentSchema,
+  })
+  content: z.infer<typeof LinkDocumentSchema>;
+}

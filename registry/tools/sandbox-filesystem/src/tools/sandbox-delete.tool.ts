@@ -15,10 +15,10 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
+import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
-const propertiesSchema = z
+const inputSchema = z
   .object({
     containerId: z.string().describe('The ID of the container to delete the file/directory from'),
     path: z.string().describe('The path to the file or directory to delete'),
@@ -27,7 +27,7 @@ const propertiesSchema = z
   })
   .strict();
 
-type SandboxDeleteArgs = z.infer<typeof propertiesSchema>;
+type SandboxDeleteArgs = z.infer<typeof inputSchema>;
 
 interface SandboxDeleteResult {
   path: string;
@@ -40,13 +40,15 @@ interface SandboxDeleteResult {
     description: 'Delete a file or directory in a sandbox container',
   },
 })
-@WithArguments(propertiesSchema)
 export class SandboxDelete implements ToolInterface<SandboxDeleteArgs> {
   private readonly logger = new Logger(SandboxDelete.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
 
-  async execute(args: SandboxDeleteArgs, _ctx: WorkflowExecution): Promise<ToolResult<SandboxDeleteResult>> {
+  @Input({ schema: inputSchema })
+  args: SandboxDeleteArgs;
+
+  async execute(args: SandboxDeleteArgs): Promise<ToolResult<SandboxDeleteResult>> {
     const { containerId, path: targetPath, recursive, force } = args;
 
     this.logger.debug(`Deleting ${targetPath} in container ${containerId} (recursive: ${recursive}, force: ${force})`);

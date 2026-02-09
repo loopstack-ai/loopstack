@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { Document, DocumentInterface, WithArguments } from '@loopstack/common';
+import { Document, DocumentInterface, Input } from '@loopstack/common';
 
-const MessageDocumentSchema = z.object({
-  role: z.string(),
-  content: z.string(),
-});
+const MessageDocumentSchema = z
+  .object({
+    role: z.string(),
+    content: z.string(),
+  })
+  .strict();
 
-@Injectable()
 @Document({
   config: {
     type: 'document',
@@ -15,5 +15,9 @@ const MessageDocumentSchema = z.object({
   },
   configFile: __dirname + '/message-document.yaml',
 })
-@WithArguments(MessageDocumentSchema)
-export class MessageDocument implements DocumentInterface {}
+export class MessageDocument implements DocumentInterface {
+  @Input({
+    schema: MessageDocumentSchema,
+  })
+  content: z.infer<typeof MessageDocumentSchema>;
+}

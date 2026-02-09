@@ -1,25 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { omit, uniq } from 'lodash';
 import { z } from 'zod';
-import {
-  WorkflowExecution,
-  WorkflowInterface,
-  WorkflowTransitionDto,
-  getBlockConfig,
-  getBlockResultSchema,
-  getBlockTemplateHelpers,
-} from '@loopstack/common';
-import { WorkflowState } from '@loopstack/contracts/enums';
+import { WorkflowEntity, getBlockConfig, getBlockTemplateHelpers } from '@loopstack/common';
 import { WorkflowTransitionSchema } from '@loopstack/contracts/schemas';
 import type {
   HistoryTransition,
   TransitionInfoInterface,
-  TransitionMetadataInterface,
   TransitionPayloadInterface,
   WorkflowTransitionType,
   WorkflowType,
 } from '@loopstack/contracts/types';
-import { ConfigTraceError, TemplateExpressionEvaluatorService } from '../../common';
+import { TemplateExpressionEvaluatorService } from '../../common';
+import { WorkflowExecutionContextManager } from '../utils/execution-context-manager';
 import { getTemplateVars } from '../utils/template-helper';
 import { StateMachineToolCallProcessorService } from './state-machine-tool-call-processor.service';
 import { WorkflowStateService } from './workflow-state.service';
@@ -34,12 +26,12 @@ export class StateMachineProcessorService {
     private readonly stateMachineToolCallProcessorService: StateMachineToolCallProcessorService,
   ) {}
 
-  getAvailableTransitions(block: WorkflowInterface, args: any, ctx: WorkflowExecution): WorkflowTransitionType[] {
-    this.logger.debug(`Updating Available Transitions for Place "${ctx.state.getMetadata('place')}"`);
+  getAvailableTransitions(ctx: WorkflowExecutionContextManager): WorkflowTransitionType[] {
+    this.logger.debug(`Updating Available Transitions for Place "${ctx.getManager().getData('place')}"`);
 
-    const config = getBlockConfig<WorkflowType>(block) as WorkflowType;
+    const config = getBlockConfig<WorkflowType>(ctx.getInstance()) as WorkflowType;
     if (!config) {
-      throw new Error(`Block ${block.constructor.name} is missing @BlockConfig decorator`);
+      throw new Error(`Block ${ctx.getInstance().constructor.name} is missing @Workflow decorator`);
     }
 
     // exclude call property from transitions eval because this should be only
@@ -49,10 +41,10 @@ export class StateMachineProcessorService {
     // make (latest) context available within service class
     const evaluatedTransitions = this.templateExpressionEvaluatorService.evaluateTemplate<WorkflowTransitionType[]>(
       transitionsWithoutCallProperty,
-      getTemplateVars(args, ctx),
+      getTemplateVars(ctx),
       {
-        cacheKey: block.constructor.name,
-        helpers: getBlockTemplateHelpers(block),
+        cacheKey: ctx.getInstance().constructor.name,
+        helpers: getBlockTemplateHelpers(ctx.getInstance()),
         schema: z.array(WorkflowTransitionSchema),
       },
     );
@@ -60,8 +52,8 @@ export class StateMachineProcessorService {
     const validPlaces = uniq(['start', 'end', ...(config.transitions?.map((t) => t.from).flat() ?? [])]);
 
     const isValidFromPlace = (from: string | string[]) =>
-      (typeof from === 'string' && (from === '*' || from === ctx.state.getMetadata('place'))) ||
-      (Array.isArray(from) && (from.includes('*') || from.includes(ctx.state.getMetadata('place'))));
+      (typeof from === 'string' && (from === '*' || from === ctx.getManager().getData('place'))) ||
+      (Array.isArray(from) && (from.includes('*') || from.includes(ctx.getManager().getData('place'))));
 
     const isValidToPlace = (to: string) => validPlaces.includes(to);
 
@@ -79,24 +71,26 @@ export class StateMachineProcessorService {
   }
 
   getNextTransition(
-    ctx: WorkflowExecution<any>,
+    ctx: WorkflowExecutionContextManager,
     pendingTransition: TransitionPayloadInterface | undefined,
-  ): WorkflowTransitionDto | undefined {
-    if (!ctx.runtime.availableTransitions.length) {
+  ): HistoryTransition | undefined {
+    const availableTransitions: WorkflowTransitionType[] = ctx.getManager().getData('availableTransitions');
+
+    if (!availableTransitions.length) {
       this.logger.debug(`No transitions available.`);
       return undefined;
     }
 
     let nextTransition: WorkflowTransitionType | undefined;
 
-    this.logger.debug(`Available Transitions: ${ctx.runtime.availableTransitions.map((t) => t.id).join(', ')}`);
+    this.logger.debug(`Available Transitions: ${availableTransitions.map((t) => t.id).join(', ')}`);
 
     if (pendingTransition) {
-      nextTransition = ctx.runtime.availableTransitions.find((item) => item.id === pendingTransition.id);
+      nextTransition = availableTransitions.find((item) => item.id === pendingTransition.id);
     }
 
     if (!nextTransition) {
-      nextTransition = ctx.runtime.availableTransitions.find(
+      nextTransition = availableTransitions.find(
         (item) =>
           (undefined === item.trigger || item.trigger === 'onEntry') && (undefined === item.if || item.if === 'true'),
       );
@@ -106,101 +100,82 @@ export class StateMachineProcessorService {
       return undefined;
     }
 
-    return new WorkflowTransitionDto({
+    return {
       id: nextTransition.id,
-      from: ctx.state.getMetadata('place'),
+      from: ctx.getManager().getData('place'),
       to: nextTransition.to,
       onError: nextTransition.onError,
       payload: nextTransition.id === pendingTransition?.id ? (pendingTransition?.payload as unknown) : null,
-    });
+    };
   }
 
-  commitWorkflowTransition(ctx: WorkflowExecution, nextTransition: TransitionMetadataInterface) {
-    const place = ctx.runtime.nextPlace ?? nextTransition.to;
+  commitWorkflowTransition(ctx: WorkflowExecutionContextManager, nextPlace?: string) {
+    const currentTransition = ctx.getManager().getData('transition')!;
 
-    const historyItem: HistoryTransition = {
-      transition: nextTransition.id,
-      from: nextTransition.from,
-      to: place,
-    };
+    if (nextPlace) {
+      if (nextPlace !== currentTransition.to && nextPlace !== currentTransition.onError) {
+        throw new Error(`Transition to place ${nextPlace} not allowed.`);
+      }
 
-    this.validateTransition(nextTransition, historyItem);
+      currentTransition.to = nextPlace;
+      ctx.getManager().setData('transition', currentTransition);
+    }
 
-    ctx.state.setMetadata('place', historyItem.to);
-    ctx.state.setMetadata('transition', historyItem);
-
-    ctx.state.checkpoint();
+    ctx.getManager().setData('place', currentTransition.to);
+    ctx.getManager().checkpoint();
   }
 
   async processStateMachine(
-    block: WorkflowInterface,
-    args: any,
-    ctx: WorkflowExecution,
+    workflowEntity: WorkflowEntity,
+    ctx: WorkflowExecutionContextManager,
     pendingTransitions: TransitionPayloadInterface[],
-  ): Promise<WorkflowExecution> {
-    const config = getBlockConfig<WorkflowType>(block) as WorkflowType;
+  ): Promise<WorkflowExecutionContextManager> {
+    const config = getBlockConfig<WorkflowType>(ctx.getInstance()) as WorkflowType;
     if (!config) {
-      throw new Error(`Block ${block.constructor.name} is missing @BlockConfig decorator`);
+      throw new Error(`Block ${ctx.getInstance().constructor.name} is missing @BlockConfig decorator`);
     }
 
     if (!config.transitions) {
-      throw new Error(`Workflow ${block.constructor.name} does not have any transitions.`);
+      throw new Error(`Workflow ${ctx.getInstance().constructor.name} does not have any transitions.`);
     }
 
-    try {
-      while (true) {
-        this.logger.debug('------------ NEXT TRANSITION');
+    while (true) {
+      this.logger.debug('------------ NEXT TRANSITION');
 
-        const nextPendingTransition = pendingTransitions.shift();
+      const nextPendingTransition = pendingTransitions.shift();
 
-        this.logger.debug(`next pending transition: ${nextPendingTransition?.id ?? 'none'}`);
+      this.logger.debug(`next pending transition: ${nextPendingTransition?.id ?? 'none'}`);
 
-        ctx.runtime.nextPlace = undefined;
-        ctx.runtime.availableTransitions = this.getAvailableTransitions(block, args, ctx);
-        ctx.runtime.transition = this.getNextTransition(ctx, nextPendingTransition);
+      ctx.getManager().setData('nextPlace', undefined);
+      ctx.getManager().setData('availableTransitions', this.getAvailableTransitions(ctx));
+      ctx.getManager().setData('transition', this.getNextTransition(ctx, nextPendingTransition));
 
-        // persist workflow for state and added documents of previous loop iteration
-        await this.workflowStateService.saveExecutionState(ctx);
+      // persist workflow for state and added documents of previous loop iteration
+      await this.workflowStateService.saveExecutionState(workflowEntity, ctx);
 
-        // no more transitions?
-        if (!ctx.runtime.transition) {
-          this.logger.debug('stop');
-          break;
+      // no more transitions?
+      const currentTransition = ctx.getManager().getData('transition');
+      if (!currentTransition) {
+        this.logger.debug('stop');
+        break;
+      }
+
+      this.logger.debug(`Applying next transition: ${currentTransition.id}`);
+
+      // get tool calls for transition
+      const toolCalls = config.transitions.find((transition) => transition.id === currentTransition.id)?.call;
+
+      try {
+        ctx = await this.stateMachineToolCallProcessorService.processToolCalls(ctx, toolCalls);
+        this.commitWorkflowTransition(ctx);
+      } catch (e: unknown) {
+        if (currentTransition.onError) {
+          this.commitWorkflowTransition(ctx, currentTransition.onError);
         }
 
-        this.logger.debug(`Applying next transition: ${ctx.runtime.transition.id}`);
-
-        // get tool calls for transition
-        const toolCalls = config.transitions.find((transition) => transition.id === ctx.runtime.transition!.id)?.call;
-
-        ctx = await this.stateMachineToolCallProcessorService.processToolCalls(block, toolCalls, args, ctx);
-
-        this.commitWorkflowTransition(ctx, ctx.runtime.transition!);
+        throw e;
       }
-    } catch (e) {
-      const error = e instanceof Error ? e : new Error(String(e));
-      this.logger.error(new ConfigTraceError(error, block));
-      ctx.entity.errorMessage = error.message;
-      ctx.entity.hasError = true;
     }
-
-    if (ctx.entity.hasError) {
-      ctx.entity.status = WorkflowState.Failed;
-      ctx.runtime.error = true;
-      ctx.runtime.stop = true;
-    } else if (ctx.state.getMetadata('place') === 'end') {
-      ctx.entity.status = WorkflowState.Completed;
-      const schema = getBlockResultSchema(block);
-      if (schema && block.getResult) {
-        const result = block.getResult(ctx, args) as unknown;
-        ctx.entity.result = schema.parse(result) as Record<string, unknown>;
-      }
-    } else {
-      ctx.entity.status = WorkflowState.Waiting;
-      ctx.runtime.stop = true;
-    }
-
-    await this.workflowStateService.saveExecutionState(ctx);
     return ctx;
   }
 }

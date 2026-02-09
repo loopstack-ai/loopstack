@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import {
   InjectTool,
+  Input,
+  RunContext,
   Tool,
   ToolInterface,
   ToolResult,
-  WithArguments,
-  WorkflowExecution,
   WorkflowInterface,
+  WorkflowMetadataInterface,
   getBlockTool,
 } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core-ui-module';
@@ -18,10 +19,14 @@ import { AiGenerateObject, AiGenerateObjectArgsType, AiGenerateObjectSchema } fr
     description: 'Generates a structured object using a LLM and creates it as document',
   },
 })
-@WithArguments(AiGenerateObjectSchema)
 export class AiGenerateDocument implements ToolInterface<AiGenerateObjectArgsType> {
   @InjectTool() private aiGenerateObject!: AiGenerateObject;
   @InjectTool() private createDocument!: CreateDocument;
+
+  @Input({
+    schema: AiGenerateObjectSchema,
+  })
+  args: AiGenerateObjectArgsType;
 
   private getRequiredTool(name: string): ToolInterface {
     const tool = getBlockTool<ToolInterface>(this, name);
@@ -33,10 +38,11 @@ export class AiGenerateDocument implements ToolInterface<AiGenerateObjectArgsTyp
 
   async execute(
     args: AiGenerateObjectArgsType,
-    ctx: WorkflowExecution<any>,
+    ctx: RunContext,
     parent: WorkflowInterface,
+    metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
-    const result = await this.getRequiredTool('aiGenerateObject').execute(args, ctx, parent);
+    const result = await this.getRequiredTool('aiGenerateObject').execute(args, ctx, parent, metadata);
     return this.getRequiredTool('createDocument').execute(
       {
         id: args.response.id,
@@ -47,6 +53,7 @@ export class AiGenerateDocument implements ToolInterface<AiGenerateObjectArgsTyp
       },
       ctx,
       parent,
+      metadata,
     );
   }
 }

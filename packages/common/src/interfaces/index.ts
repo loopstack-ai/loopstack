@@ -12,7 +12,6 @@ export * from './state-machine-validator-result.interface.js';
 export * from './jwt-payload.interface.js';
 export * from './current-user.interface.js';
 export * from './persistence-state.interface.js';
-export * from './block-context.type.js';
 export * from './workflow-execution.interface.js';
 export * from './workflow-memento-data.interfate.js';
 export * from './workflow-metadata.interface.js';

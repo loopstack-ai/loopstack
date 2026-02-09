@@ -15,10 +15,10 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
+import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
-const propertiesSchema = z
+const inputSchema = z
   .object({
     containerId: z.string().describe('The ID of the container to read the file from'),
     path: z.string().describe('The path to the file to read'),
@@ -26,7 +26,7 @@ const propertiesSchema = z
   })
   .strict();
 
-type SandboxReadFileArgs = z.infer<typeof propertiesSchema>;
+type SandboxReadFileArgs = z.infer<typeof inputSchema>;
 
 interface SandboxReadFileResult {
   content: string;
@@ -39,13 +39,15 @@ interface SandboxReadFileResult {
     description: 'Read file contents from a sandbox container',
   },
 })
-@WithArguments(propertiesSchema)
 export class SandboxReadFile implements ToolInterface<SandboxReadFileArgs> {
   private readonly logger = new Logger(SandboxReadFile.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
 
-  async execute(args: SandboxReadFileArgs, _ctx: WorkflowExecution): Promise<ToolResult<SandboxReadFileResult>> {
+  @Input({ schema: inputSchema })
+  args: SandboxReadFileArgs;
+
+  async execute(args: SandboxReadFileArgs): Promise<ToolResult<SandboxReadFileResult>> {
     const { containerId, path, encoding } = args;
 
     this.logger.debug(`Reading file ${path} from container ${containerId} (encoding: ${encoding})`);

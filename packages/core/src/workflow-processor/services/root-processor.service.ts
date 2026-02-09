@@ -1,14 +1,15 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
-  BlockExecutionContextDto,
-  BlockStateDto,
   PipelineEntity,
   PipelineState,
-  WorkflowExecution,
+  RunContext,
   WorkflowInterface,
+  WorkflowMetadataInterface,
   getBlockWorkflow,
 } from '@loopstack/common';
-import { PipelineService } from '../../persistence';
+import { WorkflowState } from '@loopstack/contracts/enums';
+import { type PipelineEventPayload, PipelineService } from '../../persistence';
 import { BlockDiscoveryService } from './block-discovery.service';
 import { BlockProcessor } from './block-processor.service';
 import { NamespaceProcessorService } from './namespace-processor.service';
@@ -22,19 +23,20 @@ export class RootProcessorService {
     private readonly namespaceProcessorService: NamespaceProcessorService,
     private readonly blockProcessor: BlockProcessor,
     private readonly blockDiscoveryService: BlockDiscoveryService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   private async processRootPipeline(
     workflow: WorkflowInterface,
     pipeline: PipelineEntity,
-    payload: BlockExecutionContextDto['payload'],
+    payload: RunContext['payload'],
     args?: any,
-  ): Promise<WorkflowExecution> {
+  ): Promise<WorkflowMetadataInterface> {
     const namespace = await this.namespaceProcessorService.createRootNamespace(pipeline);
 
     this.logger.debug(`Running Root Pipeline: ${pipeline.blockName}`);
 
-    const ctx = new BlockExecutionContextDto<BlockStateDto>({
+    const ctx = new RunContext({
       root: pipeline.blockName,
       index: pipeline.index,
       userId: pipeline.createdBy,
@@ -43,20 +45,12 @@ export class RootProcessorService {
       labels: [...pipeline.labels, namespace.name],
       namespace: namespace,
       payload: payload,
-      state: new BlockStateDto({
-        id: pipeline.blockName,
-        error: false,
-        stop: false,
-      }),
     });
 
     return this.blockProcessor.processBlock(workflow, args, ctx);
   }
 
-  async runPipeline(
-    pipeline: PipelineEntity,
-    payload: BlockExecutionContextDto['payload'],
-  ): Promise<WorkflowExecution> {
+  async runPipeline(pipeline: PipelineEntity, payload: RunContext['payload']): Promise<WorkflowMetadataInterface> {
     const workspaceInstance = this.blockDiscoveryService.getWorkspace(pipeline.workspace.blockName);
     if (!workspaceInstance) {
       throw new BadRequestException(`Config for workspace with name ${pipeline.workspace.blockName} not found.`);
@@ -69,16 +63,27 @@ export class RootProcessorService {
 
     await this.pipelineService.setPipelineStatus(pipeline, PipelineState.Running);
 
-    const ctx = await this.processRootPipeline(workflow, pipeline, payload, pipeline.args);
+    const executionMeta = await this.processRootPipeline(workflow, pipeline, payload, pipeline.args);
 
-    const status = ctx.runtime.error
+    const status = executionMeta.error
       ? PipelineState.Failed
-      : ctx.runtime.stop
+      : executionMeta.stop
         ? PipelineState.Paused
         : PipelineState.Completed;
 
     await this.pipelineService.setPipelineStatus(pipeline, status);
 
-    return ctx;
+    if (executionMeta.status === WorkflowState.Completed) {
+      this.logger.log(`Root pipeline execution completed.`);
+
+      this.eventEmitter.emit('pipeline.event', {
+        eventPipelineId: pipeline.id,
+        eventName: 'completed',
+        workspaceId: pipeline.workspaceId,
+        data: executionMeta.result,
+      } satisfies PipelineEventPayload);
+    }
+
+    return executionMeta;
   }
 }

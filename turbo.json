@@ -3,11 +3,13 @@
   "tasks": {
     "watch": {
       "persistent": true,
-      "cache": false
+      "cache": false,
+      "dependsOn": ["^build"]
     },
     "build": {
       "dependsOn": ["^build"]
     },
     "test": {}
-  }
+  },
+  "concurrency": "25"
 }

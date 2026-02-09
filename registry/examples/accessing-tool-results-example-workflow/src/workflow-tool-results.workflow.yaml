@@ -15,13 +15,13 @@ transitions:
       - tool: createChatMessage
         args:
           role: 'assistant'
-          content: 'Data from specific call id: {{ metadata.tools.create_some_data.say_hello.data }}'
+          content: 'Data from specific call id: {{ runtime.tools.create_some_data.say_hello.data }}'
 
       # Access the data using the call index
       - tool: createChatMessage
         args:
           role: 'assistant'
-          content: 'Data from first tool call: {{ metadata.tools.create_some_data.0.data }}'
+          content: 'Data from first tool call: {{ runtime.tools.create_some_data.0.data }}'
 
   - id: access_data
     from: data_created
@@ -31,10 +31,10 @@ transitions:
       - tool: createChatMessage
         args:
           role: 'assistant'
-          content: 'Data from previous transition: {{ metadata.tools.create_some_data.say_hello.data }}'
+          content: 'Data from previous transition: {{ runtime.tools.create_some_data.say_hello.data }}'
 
       # Access the data using a custom helper function of the workflow
       - tool: createChatMessage
         args:
           role: 'assistant'
-          content: 'Data access using custom helper: {{ extractMessage metadata }}'
+          content: 'Data access using custom helper: {{ theMessage }}'

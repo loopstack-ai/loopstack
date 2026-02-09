@@ -13,12 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Tool, ToolInterface, ToolResult, WithArguments } from '@loopstack/common';
+import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { CommandExecutionResult, DockerContainerManagerService } from '../services/docker-container-manager.service';
 
-const propertiesSchema = z
+const inputSchema = z
   .object({
     containerId: z.string().describe('The ID of the registered container to execute the command in'),
     executable: z.string().describe("The executable to run (e.g., 'npm', 'node', 'python')"),
@@ -29,7 +29,7 @@ const propertiesSchema = z
   })
   .strict();
 
-type SandboxCommandArgs = z.infer<typeof propertiesSchema>;
+type SandboxCommandArgs = z.infer<typeof inputSchema>;
 
 @Injectable()
 @Tool({
@@ -37,11 +37,14 @@ type SandboxCommandArgs = z.infer<typeof propertiesSchema>;
     description: 'Execute a command in the sandbox environment',
   },
 })
-@WithArguments(propertiesSchema)
 export class SandboxCommand implements ToolInterface<SandboxCommandArgs> {
   private readonly logger = new Logger(SandboxCommand.name);
 
-  constructor(private readonly containerManager: DockerContainerManagerService) {}
+  @Inject()
+  private readonly containerManager: DockerContainerManagerService;
+
+  @Input({ schema: inputSchema })
+  args: SandboxCommandArgs;
 
   async execute(args: SandboxCommandArgs): Promise<ToolResult<CommandExecutionResult>> {
     const argsStr = args.args?.length ? ` ${args.args.join(' ')}` : '';

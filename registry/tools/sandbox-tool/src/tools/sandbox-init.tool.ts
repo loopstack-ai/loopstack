@@ -13,12 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Tool, ToolInterface, ToolResult, WithArguments } from '@loopstack/common';
+import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { DockerContainerManagerService } from '../services/docker-container-manager.service';
 
-const propertiesSchema = z
+const inputSchema = z
   .object({
     containerId: z.string().describe('A unique identifier for this container instance'),
     imageName: z.string().describe("The Docker image to use (e.g., 'node:18', 'python:3.11')"),
@@ -28,7 +28,7 @@ const propertiesSchema = z
   })
   .strict();
 
-type SandboxInitArgs = z.infer<typeof propertiesSchema>;
+type SandboxInitArgs = z.infer<typeof inputSchema>;
 
 interface SandboxInitResult {
   containerId: string;
@@ -41,11 +41,14 @@ interface SandboxInitResult {
     description: 'Initialize a new sandbox container',
   },
 })
-@WithArguments(propertiesSchema)
 export class SandboxInit implements ToolInterface<SandboxInitArgs> {
   private readonly logger = new Logger(SandboxInit.name);
 
-  constructor(private readonly containerManager: DockerContainerManagerService) {}
+  @Inject()
+  private readonly containerManager: DockerContainerManagerService;
+
+  @Input({ schema: inputSchema })
+  args: SandboxInitArgs;
 
   async execute(args: SandboxInitArgs): Promise<ToolResult<SandboxInitResult>> {
     const { containerId, imageName, containerName, projectOutPath, rootPath } = args;

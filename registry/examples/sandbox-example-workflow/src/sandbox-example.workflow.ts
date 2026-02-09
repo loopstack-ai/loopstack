@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { DefineHelper, InjectTool, WithArguments, WithState, Workflow } from '@loopstack/common';
+import { DefineHelper, InjectTool, Input, Runtime, State, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import {
   SandboxCreateDirectory,
@@ -24,19 +24,34 @@ interface FileEntry {
 @Workflow({
   configFile: __dirname + '/sandbox-example.workflow.yaml',
 })
-@WithArguments(
-  z.object({
-    outputDir: z.string().default(process.cwd() + '/out'),
-  }),
-)
-@WithState(
-  z.object({
-    containerId: z.string().optional(),
-    fileContent: z.string().optional(),
-    fileList: z.array(z.any()).optional(),
-  }),
-)
 export class SandboxExampleWorkflow {
+  @Input({
+    schema: z.object({
+      outputDir: z.string().default(process.cwd() + '/out'),
+    }),
+  })
+  args: {
+    outputDir: string;
+  };
+
+  @State({
+    schema: z.object({
+      containerId: z.string().optional(),
+      fileContent: z.string().optional(),
+      fileList: z.array(z.any()).optional(),
+    }),
+  })
+  state: {
+    containerId: string;
+    fileContent: string;
+    fileList: string;
+  };
+
+  @Runtime()
+  runtime: {
+    tools: Record<string, Record<string, any>>;
+  };
+
   // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
   @InjectTool() sandboxInit: SandboxInit;
   @InjectTool() sandboxDestroy: SandboxDestroy;

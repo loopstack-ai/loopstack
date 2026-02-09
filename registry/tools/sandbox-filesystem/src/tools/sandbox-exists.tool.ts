@@ -15,17 +15,17 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
+import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
-const propertiesSchema = z
+const inputSchema = z
   .object({
     containerId: z.string().describe('The ID of the container to check for file existence'),
     path: z.string().describe('The path to check for existence'),
   })
   .strict();
 
-type SandboxExistsArgs = z.infer<typeof propertiesSchema>;
+type SandboxExistsArgs = z.infer<typeof inputSchema>;
 
 interface SandboxExistsResult {
   path: string;
@@ -39,14 +39,16 @@ interface SandboxExistsResult {
     description: 'Check if a file or directory exists in a sandbox container',
   },
 })
-@WithArguments(propertiesSchema)
 export class SandboxExists implements ToolInterface<SandboxExistsArgs> {
   private readonly logger = new Logger(SandboxExists.name);
 
   @InjectTool()
   private sandboxCommand: SandboxCommand;
 
-  async execute(args: SandboxExistsArgs, _ctx: WorkflowExecution): Promise<ToolResult<SandboxExistsResult>> {
+  @Input({ schema: inputSchema })
+  args: SandboxExistsArgs;
+
+  async execute(args: SandboxExistsArgs): Promise<ToolResult<SandboxExistsResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Checking existence of ${targetPath} in container ${containerId}`);

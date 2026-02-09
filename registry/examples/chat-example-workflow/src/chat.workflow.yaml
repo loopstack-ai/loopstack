@@ -35,15 +35,13 @@ transitions:
     from: ready
     to: prompt_executed
     call:
-      - id: execute_prompt
+      - id: llm_call
         tool: aiGenerateText
         args:
           llm:
             provider: openai
             model: gpt-4o
           messagesSearchTag: message
-        assign:
-          llmResponse: ${ result.data }
 
   - id: add_response
     from: prompt_executed
@@ -53,7 +51,7 @@ transitions:
         args:
           document: aiMessageDocument
           update:
-            content: ${ llmResponse }
+            content: ${ runtime.tools.prompt.llm_call.data }
 
   - id: user_message
     from: waiting_for_user
