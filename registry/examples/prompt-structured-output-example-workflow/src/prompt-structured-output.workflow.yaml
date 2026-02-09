@@ -29,7 +29,8 @@ transitions:
     from: ready
     to: prompt_executed
     call:
-      - tool: aiGenerateDocument
+      - id: llm_call
+        tool: aiGenerateDocument
         args:
           llm:
             provider: openai
@@ -39,8 +40,6 @@ transitions:
           prompt: |
             Create a {{ args.language }} script that prints 'Hello, World!' to the console.
             Wrap the code in triple-backticks.
-        assign:
-          file: ${ result.data.content }
 
   - id: add_message
     from: prompt_executed
@@ -56,4 +55,4 @@ transitions:
               parts:
                 - type: text
                   text: |
-                    Successfully generated: {{ file.description }}
+                    Successfully generated: {{ runtime.tools.prompt.llm_call.data.content.description }}

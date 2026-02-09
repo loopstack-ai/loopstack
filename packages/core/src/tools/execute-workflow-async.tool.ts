@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
+import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { EventSubscriberService } from '../persistence';
 import { TaskSchedulerService } from '../scheduler';
@@ -23,7 +23,6 @@ type ExecuteWorkflowAsyncArgs = z.infer<typeof ExecuteWorkflowAsyncArgsSchema>;
     description: '',
   },
 })
-@WithArguments(ExecuteWorkflowAsyncArgsSchema.strict())
 export class ExecuteWorkflowAsync implements ToolInterface<ExecuteWorkflowAsyncArgs> {
   protected readonly logger = new Logger(ExecuteWorkflowAsync.name);
 
@@ -33,30 +32,35 @@ export class ExecuteWorkflowAsync implements ToolInterface<ExecuteWorkflowAsyncA
     private readonly eventSubscriberService: EventSubscriberService,
   ) {}
 
-  async execute(args: ExecuteWorkflowAsyncArgs, ctx: WorkflowExecution): Promise<ToolResult> {
+  @Input({
+    schema: ExecuteWorkflowAsyncArgsSchema.strict(),
+  })
+  args: any;
+
+  async execute(args: ExecuteWorkflowAsyncArgs, context: RunContext): Promise<ToolResult> {
     const pipeline = await this.createPipelineService.create(
       {
-        id: ctx.context.workspaceId,
+        id: context.workspaceId,
       },
       {
         blockName: args.workflow,
-        workspaceId: ctx.context.workspaceId,
+        workspaceId: context.workspaceId,
         args: {
           ...args.args,
         },
       },
-      ctx.context.userId,
-      ctx.context.pipelineId,
+      context.userId,
+      context.pipelineId,
     );
 
     await this.eventSubscriberService.registerSubscriber(
-      ctx.context.pipelineId,
-      ctx.entity.id,
+      context.pipelineId,
+      context.workflowId!,
       args.callback.transition,
       pipeline.id,
       'completed',
-      ctx.context.userId,
-      ctx.context.workspaceId,
+      context.userId,
+      context.workspaceId,
     );
 
     const job = await this.taskSchedulerService.addTask({

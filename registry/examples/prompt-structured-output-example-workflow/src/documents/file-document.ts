@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { Document, DocumentInterface, WithArguments } from '@loopstack/common';
+import { Document, DocumentInterface, Input } from '@loopstack/common';
 
 export const FileDocumentSchema = z
   .object({
@@ -10,9 +10,13 @@ export const FileDocumentSchema = z
   })
   .strict();
 
+export type FileDocumentType = z.infer<typeof FileDocumentSchema>;
+
 @Injectable()
 @Document({
   configFile: __dirname + '/file-document.yaml',
 })
-@WithArguments(FileDocumentSchema)
-export class FileDocument implements DocumentInterface {}
+export class FileDocument implements DocumentInterface {
+  @Input({ schema: FileDocumentSchema })
+  content: FileDocumentType;
+}

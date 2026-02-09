@@ -15,17 +15,17 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
+import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
-const propertiesSchema = z
+const inputSchema = z
   .object({
     containerId: z.string().describe('The ID of the container to get file info from'),
     path: z.string().describe('The path to the file or directory'),
   })
   .strict();
 
-type SandboxFileInfoArgs = z.infer<typeof propertiesSchema>;
+type SandboxFileInfoArgs = z.infer<typeof inputSchema>;
 
 interface SandboxFileInfoResult {
   path: string;
@@ -46,13 +46,15 @@ interface SandboxFileInfoResult {
     description: 'Get detailed information about a file or directory in a sandbox container',
   },
 })
-@WithArguments(propertiesSchema)
 export class SandboxFileInfo implements ToolInterface<SandboxFileInfoArgs> {
   private readonly logger = new Logger(SandboxFileInfo.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
 
-  async execute(args: SandboxFileInfoArgs, _ctx: WorkflowExecution): Promise<ToolResult<SandboxFileInfoResult>> {
+  @Input({ schema: inputSchema })
+  args: SandboxFileInfoArgs;
+
+  async execute(args: SandboxFileInfoArgs): Promise<ToolResult<SandboxFileInfoResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Getting file info for ${targetPath} in container ${containerId}`);

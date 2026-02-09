@@ -1,5 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
-import { BlockExecutionContextDto, getBlockHelpers } from '@loopstack/common';
+import { RunContext, getBlockHelpers } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule } from '@loopstack/core-ui-module';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
@@ -39,12 +39,12 @@ describe('WorkflowToolResultsWorkflow', () => {
   });
 
   it('should have extractMessage helper', () => {
-    expect(getBlockHelpers(workflow)).toContain('extractMessage');
+    expect(getBlockHelpers(workflow)).toContain('theMessage');
   });
 
   describe('tool result access', () => {
     it('should access tool results by call id and index in same transition', async () => {
-      const context = new BlockExecutionContextDto({});
+      const context = {} as RunContext;
       mockCreateValue.execute.mockResolvedValue({ data: 'Hello World.' });
       mockCreateChatMessage.execute.mockResolvedValue({ data: undefined });
 
@@ -53,6 +53,7 @@ describe('WorkflowToolResultsWorkflow', () => {
       // Verify CreateValue was called
       expect(mockCreateValue.execute).toHaveBeenCalledWith(
         { input: 'Hello World.' },
+        expect.anything(),
         expect.anything(),
         expect.anything(),
       );
@@ -65,6 +66,7 @@ describe('WorkflowToolResultsWorkflow', () => {
         },
         expect.anything(),
         expect.anything(),
+        expect.anything(),
       );
 
       expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
@@ -74,20 +76,16 @@ describe('WorkflowToolResultsWorkflow', () => {
         },
         expect.anything(),
         expect.anything(),
+        expect.anything(),
       );
     });
 
     it('should access tool results from previous transition', async () => {
-      const context = new BlockExecutionContextDto({});
+      const context = {} as RunContext;
       mockCreateValue.execute.mockResolvedValue({ data: 'Hello World.' });
       mockCreateChatMessage.execute.mockResolvedValue({ data: undefined });
 
-      const result = await processor.process(workflow, {}, context);
-
-      // Should complete both transitions
-      const history = result.state.getHistory();
-      expect(history.some((h) => h.metadata.transition?.transition === 'create_some_data')).toBe(true);
-      expect(history.some((h) => h.metadata.transition?.transition === 'access_data')).toBe(true);
+      await processor.process(workflow, {}, context);
 
       expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
         {
@@ -96,11 +94,12 @@ describe('WorkflowToolResultsWorkflow', () => {
         },
         expect.anything(),
         expect.anything(),
+        expect.anything(),
       );
     });
 
     it('should access tool results using custom helper', async () => {
-      const context = new BlockExecutionContextDto({});
+      const context = {} as RunContext;
       mockCreateValue.execute.mockResolvedValue({ data: 'Hello World.' });
       mockCreateChatMessage.execute.mockResolvedValue({ data: undefined });
 
@@ -111,6 +110,7 @@ describe('WorkflowToolResultsWorkflow', () => {
           role: 'assistant',
           content: 'Data access using custom helper: Hello World.',
         },
+        expect.anything(),
         expect.anything(),
         expect.anything(),
       );

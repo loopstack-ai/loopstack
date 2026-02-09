@@ -1,5 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
-import { BlockExecutionContextDto, getBlockHelper } from '@loopstack/common';
+import { RunContext, getBlockHelper } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { CreateValue, CreateValueToolModule } from '@loopstack/create-value-tool';
@@ -44,34 +44,42 @@ describe('WorkflowStateWorkflow', () => {
   });
 
   it('should execute workflow and pass state between tool calls', async () => {
-    const context = new BlockExecutionContextDto({});
+    const context = new RunContext({} as RunContext);
 
-    mockCreateValue.execute.mockResolvedValue({ data: 'Hello Again.' });
+    mockCreateValue.execute.mockResolvedValue({ data: 'Hello :)' });
 
     const result = await processor.process(workflow, {}, context);
 
-    expect(result.runtime.error).toBe(false);
-    expect(result.state.get('message')).toBe('Hello Again.');
+    expect(result.error).toBe(false);
 
     // Verify createValue was called
     expect(mockCreateValue.execute).toHaveBeenCalledWith(
-      { input: 'Hello Again.' },
+      { input: 'Hello :)' },
+      expect.anything(),
       expect.anything(),
       expect.anything(),
     );
 
     // Verify createChatMessage was called twice with interpolated state
-    expect(mockCreateChatMessage.execute).toHaveBeenCalledTimes(2);
+    expect(mockCreateChatMessage.execute).toHaveBeenCalledTimes(3);
     expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
-      { role: 'assistant', content: 'Data from state: Hello Again.' },
+      { role: 'assistant', content: 'Data from runtime: Hello :)' },
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    );
+    expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
+      { role: 'assistant', content: 'Data from state: Hello :)' },
+      expect.anything(),
       expect.anything(),
       expect.anything(),
     );
     expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
       {
         role: 'assistant',
-        content: 'Use workflow helper method: HELLO AGAIN.',
+        content: 'Use workflow helper method: HELLO :)',
       },
+      expect.anything(),
       expect.anything(),
       expect.anything(),
     );

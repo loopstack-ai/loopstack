@@ -1,4 +1,4 @@
-import { Inject, InjectionToken } from '@nestjs/common';
+import { Inject, Injectable, InjectionToken } from '@nestjs/common';
 import { z } from 'zod';
 import type { BlockConfigType } from '@loopstack/contracts/types';
 
@@ -9,9 +9,11 @@ export const INJECTED_DOCUMENTS_METADATA_KEY = Symbol('injectedDocuments');
 export const INJECTED_WORKFLOWS_METADATA_KEY = Symbol('injectedWorkflows');
 export const INJECTED_WORKFLOW_OPTIONS_KEY = Symbol('injectedWorkflowOptions');
 export const TEMPLATE_HELPER_METADATA_KEY = Symbol('templateHelper');
-export const ARGS_SCHEMA_METADATA_KEY = Symbol('argsSchema');
-export const STATE_SCHEMA_METADATA_KEY = Symbol('stateSchema');
-export const RESULT_SCHEMA_METADATA_KEY = Symbol('resultSchema');
+export const INPUT_METADATA_KEY = Symbol('input');
+export const CONTEXT_METADATA_KEY = Symbol('context');
+export const RUNTIME_METADATA_KEY = Symbol('runtime');
+export const STATE_METADATA_KEY = Symbol('state');
+export const OUTPUT_METADATA_KEY = Symbol('output');
 
 export interface InjectedWorkflowOptions {
   visible?: boolean;
@@ -32,6 +34,7 @@ export interface BlockOptions {
 
 export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
   return (target) => {
+    Injectable()(target);
     Reflect.defineMetadata(BLOCK_TYPE_METADATA_KEY, type, target);
     if (options) {
       Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, options, target);
@@ -60,9 +63,45 @@ export function getBlockType(target: object): BlockType | undefined {
 }
 
 // Schema Decorators
-export function WithArguments<T extends z.ZodType>(schema: T): ClassDecorator {
-  return (target) => {
-    Reflect.defineMetadata(ARGS_SCHEMA_METADATA_KEY, schema, target);
+export interface InputOptions {
+  schema?: z.ZodType;
+}
+
+export interface InputMetadata extends InputOptions {
+  name: string | symbol;
+}
+
+export function Input(options: InputOptions): PropertyDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    Reflect.defineMetadata(INPUT_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
+  };
+}
+
+export interface ContextOptions {
+  schema?: z.ZodType;
+}
+
+export interface ContextMetadata extends ContextOptions {
+  name: string | symbol;
+}
+
+export function Context(options?: ContextOptions): PropertyDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    Reflect.defineMetadata(CONTEXT_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
+  };
+}
+
+export interface RuntimeOptions {
+  schema?: z.ZodType;
+}
+
+export interface RuntimeMetadata extends ContextOptions {
+  name: string | symbol;
+}
+
+export function Runtime(options?: RuntimeOptions): PropertyDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    Reflect.defineMetadata(RUNTIME_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
   };
 }
 
@@ -81,17 +120,34 @@ function validateStateSchema(schema: z.ZodType): void {
   }
 }
 
-export function WithState<T extends z.ZodType>(schema: T): ClassDecorator {
-  return (target) => {
-    validateStateSchema(schema);
-    Reflect.defineMetadata(STATE_SCHEMA_METADATA_KEY, schema, target);
+export interface StateOptions {
+  schema?: z.ZodType;
+}
+
+export interface StateMetadata extends StateOptions {
+  name: string | symbol;
+}
+
+export function State(options?: StateOptions): PropertyDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    if (options?.schema) {
+      validateStateSchema(options.schema);
+    }
+    Reflect.defineMetadata(STATE_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
   };
 }
 
-export function WithResult<T extends z.ZodType>(schema: T): ClassDecorator {
-  return (target) => {
-    validateStateSchema(schema);
-    Reflect.defineMetadata(RESULT_SCHEMA_METADATA_KEY, schema, target);
+export interface OutputOptions {
+  schema?: z.ZodType;
+}
+
+export interface OutputMetadata extends OutputOptions {
+  name: string | symbol;
+}
+
+export function Output(options?: OutputOptions): MethodDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    Reflect.defineMetadata(OUTPUT_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
   };
 }
 

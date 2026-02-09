@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { Document, DocumentInterface, WithArguments } from '@loopstack/common';
+import { Document, DocumentInterface, Input } from '@loopstack/common';
 
 export const OptimizedMeetingNotesDocumentSchema = z.object({
   date: z.string(),
@@ -14,5 +14,9 @@ export const OptimizedMeetingNotesDocumentSchema = z.object({
 @Document({
   configFile: __dirname + '/optimized-notes-document.yaml',
 })
-@WithArguments(OptimizedMeetingNotesDocumentSchema)
-export class OptimizedNotesDocument implements DocumentInterface {}
+export class OptimizedNotesDocument implements DocumentInterface {
+  @Input({
+    schema: OptimizedMeetingNotesDocumentSchema,
+  })
+  content: z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
+}

@@ -19,16 +19,16 @@ export interface HistoryTransitionMetadata {
   tools: Record<string, Record<string, unknown>>;
   documents: DocumentItemInterface[];
   transition: {
-    transition: string;
+    id: string;
     from: string | null;
     to: string;
   };
 }
 
 export interface HistoryTransition {
-  data: Record<string, unknown>;
+  state: Record<string, unknown>;
   version: number;
-  metadata: HistoryTransitionMetadata;
+  data: HistoryTransitionMetadata;
   timestamp: string;
 }
 
@@ -80,12 +80,13 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
               </div>
 
               {history.map((entry: HistoryTransition, index: number) => {
-                const transition = entry.metadata?.transition;
-                const toolNames = Object.keys(entry.metadata?.tools ?? {});
+                console.log(entry);
+                const transition = entry.data?.transition;
+                const toolNames = Object.keys(entry.data?.tools ?? {});
                 const isLast = index === history.length - 1;
 
-                const place = entry.metadata?.place ?? transition?.to ?? 'unknown';
-                const transitionName = transition?.transition;
+                const place = entry.data?.place ?? transition?.to ?? 'unknown';
+                const transitionName = transition?.id;
 
                 return (
                   <div key={entry.version} className="group/entry relative flex gap-3 py-1 pl-0">

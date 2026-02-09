@@ -21,7 +21,8 @@ transitions:
     from: ready
     to: prompt_executed
     call:
-      - tool: aiGenerateText
+      - id: llm_call
+        tool: aiGenerateText
         args:
           llm:
             provider: openai
@@ -29,33 +30,30 @@ transitions:
           messagesSearchTag: message
           tools:
             - getWeather
-        assign:
-          llmResponse: ${ result.data }
 
       - tool: createDocument
         args:
-          id: ${ llmResponse.id }
+          id: ${ runtime.tools.llm_turn.llm_call.data.id }
           document: aiMessageDocument
           update:
-            content: ${ llmResponse }
+            content: ${ runtime.tools.llm_turn.llm_call.data }
 
   - id: route_with_tool_calls
     from: prompt_executed
     to: ready
-    if: '{{ isToolCall llmResponse }}'
+    if: '{{ isToolCall runtime.tools.llm_turn.llm_call.data }}'
     call:
-      - tool: delegateToolCall
+      - id: delegate
+        tool: delegateToolCall
         args:
-          message: ${ llmResponse }
-        assign:
-          toolCallResult: ${ result.data }
+          message: ${ runtime.tools.llm_turn.llm_call.data }
 
       - tool: createDocument
         args:
-          id: ${ toolCallResult.id }
+          id: ${ runtime.tools.route_with_tool_calls.delegate.data.id }
           document: aiMessageDocument
           update:
-            content: ${ toolCallResult }
+            content: ${ runtime.tools.route_with_tool_calls.delegate.data }
 
   - id: route_without_tool_calls
     from: prompt_executed

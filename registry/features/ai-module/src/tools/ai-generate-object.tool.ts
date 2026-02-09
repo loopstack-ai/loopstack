@@ -1,5 +1,5 @@
 import { ModelMessage } from '@ai-sdk/provider-utils';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   GenerateTextResult,
   LanguageModel,
@@ -12,12 +12,13 @@ import {
 import { z } from 'zod';
 import {
   DocumentInterface,
+  Input,
+  RunContext,
   Tool,
   ToolInterface,
   ToolResult,
-  WithArguments,
-  WorkflowExecution,
   WorkflowInterface,
+  WorkflowMetadataInterface,
   getBlockArgsSchema,
   getBlockDocument,
 } from '@loopstack/common';
@@ -40,17 +41,23 @@ export type AiGenerateObjectArgsType = z.infer<typeof AiGenerateObjectSchema>;
     description: 'Generates a structured object using a LLM',
   },
 })
-@WithArguments(AiGenerateObjectSchema)
 export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType> {
-  constructor(
-    private readonly aiMessagesHelperService: AiMessagesHelperService,
-    private readonly aiProviderModelHelperService: AiProviderModelHelperService,
-  ) {}
+  @Inject()
+  private readonly aiMessagesHelperService: AiMessagesHelperService;
+
+  @Inject()
+  private readonly aiProviderModelHelperService: AiProviderModelHelperService;
+
+  @Input({
+    schema: AiGenerateObjectSchema,
+  })
+  args: AiGenerateObjectArgsType;
 
   async execute(
     args: AiGenerateObjectArgsType,
-    ctx: WorkflowExecution<any>,
+    ctx: RunContext,
     parent: WorkflowInterface,
+    metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
@@ -67,7 +74,7 @@ export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType>
         content: args.prompt,
       } as ModelMessage);
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(ctx.state.getMetadata('documents'), {
+      const messages = this.aiMessagesHelperService.getMessages(metadata.documents, {
         messages: args.messages as unknown as UIMessage[],
         messagesSearchTag: args.messagesSearchTag,
       });
@@ -87,8 +94,6 @@ export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType>
     options.schema = responseSchema;
 
     const response = await this.handleGenerateObject(model, options);
-
-    console.log(response);
 
     return {
       data: response.output,

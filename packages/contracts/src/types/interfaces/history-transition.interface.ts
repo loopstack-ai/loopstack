@@ -1,5 +1,8 @@
+// todo rename
 export interface HistoryTransition {
-  transition: string;
+  id: string;
   from: string | null;
   to: string;
+  onError?: string;
+  payload: any;
 }

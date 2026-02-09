@@ -17,7 +17,7 @@ transitions:
       - tool: createChatMessage
         args:
           role: assistant
-          content: 'Sandbox initialized successfully. Container ID: {{ metadata.tools.init_sandbox.init.data.containerId }}, Docker ID: {{ metadata.tools.init_sandbox.init.data.dockerId }}'
+          content: 'Sandbox initialized successfully. Container ID: {{ runtime.tools.init_sandbox.init.data.containerId }}, Docker ID: {{ runtime.tools.init_sandbox.init.data.dockerId }}'
 
   # Create a directory
   - id: create_dir
@@ -27,13 +27,13 @@ transitions:
       - id: mkdir
         tool: sandboxCreateDirectory
         args:
-          containerId: ${ containerId }
+          containerId: ${ state.containerId }
           path: /workspace
           recursive: true
       - tool: createChatMessage
         args:
           role: assistant
-          content: 'Directory created: {{ metadata.tools.create_dir.mkdir.data.path }} (created: {{ metadata.tools.create_dir.mkdir.data.created }})'
+          content: 'Directory created: {{ runtime.tools.create_dir.mkdir.data.path }} (created: {{ runtime.tools.create_dir.mkdir.data.created }})'
 
   # Write a file
   - id: write_file
@@ -43,7 +43,7 @@ transitions:
       - id: write
         tool: sandboxWriteFile
         args:
-          containerId: ${ containerId }
+          containerId: ${ state.containerId }
           path: /workspace/result.txt
           content: 'Hello from sandbox!'
           encoding: utf8
@@ -51,7 +51,7 @@ transitions:
       - tool: createChatMessage
         args:
           role: assistant
-          content: 'File written: {{ metadata.tools.write_file.write.data.path }} ({{ metadata.tools.write_file.write.data.bytesWritten }} bytes)'
+          content: 'File written: {{ runtime.tools.write_file.write.data.path }} ({{ runtime.tools.write_file.write.data.bytesWritten }} bytes)'
 
   # Read the file
   - id: read_file
@@ -61,7 +61,7 @@ transitions:
       - id: read
         tool: sandboxReadFile
         args:
-          containerId: ${ containerId }
+          containerId: ${ state.containerId }
           path: /workspace/result.txt
           encoding: utf8
         assign:
@@ -69,7 +69,7 @@ transitions:
       - tool: createChatMessage
         args:
           role: assistant
-          content: 'File read successfully. Content: "{{ metadata.tools.read_file.read.data.content }}" (encoding: {{ metadata.tools.read_file.read.data.encoding }})'
+          content: 'File read successfully. Content: "{{ runtime.tools.read_file.read.data.content }}" (encoding: {{ runtime.tools.read_file.read.data.encoding }})'
 
   # List directory contents
   - id: list_dir
@@ -79,7 +79,7 @@ transitions:
       - id: list
         tool: sandboxListDirectory
         args:
-          containerId: ${ containerId }
+          containerId: ${ state.containerId }
           path: /workspace
           recursive: false
         assign:
@@ -87,7 +87,7 @@ transitions:
       - tool: createChatMessage
         args:
           role: assistant
-          content: 'Directory listing for {{ metadata.tools.list_dir.list.data.path }}: {{ formatEntries metadata.tools.list_dir.list.data.entries }}'
+          content: 'Directory listing for {{ runtime.tools.list_dir.list.data.path }}: {{ formatEntries runtime.tools.list_dir.list.data.entries }}'
 
   # Check file existence
   - id: check_exists
@@ -97,12 +97,12 @@ transitions:
       - id: exists
         tool: sandboxExists
         args:
-          containerId: ${ containerId }
+          containerId: ${ state.containerId }
           path: /workspace/result.txt
       - tool: createChatMessage
         args:
           role: assistant
-          content: 'File existence check: {{ metadata.tools.check_exists.exists.data.path }} exists={{ metadata.tools.check_exists.exists.data.exists }}, type={{ metadata.tools.check_exists.exists.data.type }}'
+          content: 'File existence check: {{ runtime.tools.check_exists.exists.data.path }} exists={{ runtime.tools.check_exists.exists.data.exists }}, type={{ metadata.tools.check_exists.exists.data.type }}'
 
   # Get file info
   - id: get_info
@@ -112,12 +112,12 @@ transitions:
       - id: info
         tool: sandboxFileInfo
         args:
-          containerId: ${ containerId }
+          containerId: ${ state.containerId }
           path: /workspace/result.txt
       - tool: createChatMessage
         args:
           role: assistant
-          content: 'File info for {{ metadata.tools.get_info.info.data.name }}: type={{ metadata.tools.get_info.info.data.type }}, size={{ metadata.tools.get_info.info.data.size }} bytes, permissions={{ metadata.tools.get_info.info.data.permissions }}, owner={{ metadata.tools.get_info.info.data.owner }}'
+          content: 'File info for {{ runtime.tools.get_info.info.data.name }}: type={{ runtime.tools.get_info.info.data.type }}, size={{ metadata.tools.get_info.info.data.size }} bytes, permissions={{ metadata.tools.get_info.info.data.permissions }}, owner={{ metadata.tools.get_info.info.data.owner }}'
 
   # Delete the file
   - id: delete_file
@@ -127,13 +127,13 @@ transitions:
       - id: delete
         tool: sandboxDelete
         args:
-          containerId: ${ containerId }
+          containerId: ${ state.containerId }
           path: /workspace/result.txt
           force: true
       - tool: createChatMessage
         args:
           role: assistant
-          content: 'File deleted: {{ metadata.tools.delete_file.delete.data.path }} (deleted: {{ metadata.tools.delete_file.delete.data.deleted }})'
+          content: 'File deleted: {{ runtime.tools.delete_file.delete.data.path }} (deleted: {{ runtime.tools.delete_file.delete.data.deleted }})'
 
   # Destroy the sandbox container (cleanup)
   - id: destroy_sandbox
@@ -143,9 +143,9 @@ transitions:
       - id: destroy
         tool: sandboxDestroy
         args:
-          containerId: ${ containerId }
+          containerId: ${ state.containerId }
           removeContainer: true
       - tool: createChatMessage
         args:
           role: assistant
-          content: 'Sandbox destroyed. Container {{ metadata.tools.destroy_sandbox.destroy.data.containerId }} removed={{ metadata.tools.destroy_sandbox.destroy.data.removed }}'
+          content: 'Sandbox destroyed. Container {{ runtime.tools.destroy_sandbox.destroy.data.containerId }} removed={{ runtime.tools.destroy_sandbox.destroy.data.removed }}'

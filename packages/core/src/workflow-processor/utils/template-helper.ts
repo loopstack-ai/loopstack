@@ -1,11 +1,31 @@
-import { WorkflowExecution } from '@loopstack/common';
+import { WorkflowExecutionContextManager } from './execution-context-manager';
 
-export function getTemplateVars(args: unknown, ctx: WorkflowExecution) {
-  // todo: restrict / expose ctx.state contents
-  return {
-    ...ctx.state.getAll(),
-    metadata: ctx.state.getAllMetadata(),
-    transition: ctx.runtime.transition,
-    args,
+export function getTemplateVars(ctx: WorkflowExecutionContextManager) {
+  const metadata = ctx.getMetadata();
+
+  const templateVars: Record<string | symbol, unknown> = {
+    transition: ctx.getManager().getData('transition'),
   };
+
+  const argsKey = metadata.args?.name;
+  if (argsKey) {
+    templateVars[argsKey] = ctx.getArgs();
+  }
+
+  const contextKey = metadata.context?.name;
+  if (contextKey) {
+    templateVars[contextKey] = ctx.getContext();
+  }
+
+  const stateKey = metadata.state?.name;
+  if (stateKey) {
+    templateVars[stateKey] = ctx.getState();
+  }
+
+  const runtimeKey = metadata.runtime?.name;
+  if (runtimeKey) {
+    templateVars[runtimeKey] = ctx.getData();
+  }
+
+  return templateVars;
 }

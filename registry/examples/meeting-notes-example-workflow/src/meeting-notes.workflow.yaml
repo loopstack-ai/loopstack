@@ -37,7 +37,7 @@ transitions:
           id: input
           document: meetingNotesDocument
           update:
-            content: ${ transition.payload }
+            content: ${ runtime.transition.payload }
         assign:
           meetingNotes: ${ result.data.content }
 
@@ -58,10 +58,8 @@ transitions:
             Extract all information from the provided meeting notes into the structured document.
 
             <Meeting Notes>
-            {{ meetingNotes.text }}
+            {{ state.meetingNotes.text }}
             </Meeting Notes>
-        assign:
-          optimizedNotes: ${ result.data.content }
 
   - id: confirm
     from: notes_optimized
@@ -74,6 +72,6 @@ transitions:
           id: final
           document: optimizedNotesDocument
           update:
-            content: ${ transition.payload }
+            content: ${ runtime.transition.payload }
         assign:
           optimizedNotes: ${ result.data.content }

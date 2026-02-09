@@ -1,7 +1,6 @@
 import { DocumentEntity } from '../entities';
 
 export interface ToolSideEffects {
-  setTransitionPlace?: string;
   addWorkflowDocuments?: DocumentEntity[];
 }
 

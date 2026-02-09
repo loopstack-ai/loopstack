@@ -1,14 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
   DocumentEntity,
   InjectDocument,
   InjectTool,
+  Input,
+  RunContext,
   Tool,
   ToolInterface,
   ToolResult,
-  WithArguments,
-  WorkflowExecution,
+  WorkflowInterface,
+  WorkflowMetadataInterface,
 } from '@loopstack/common';
 import { CreateDocument, MessageDocument } from '@loopstack/core-ui-module';
 
@@ -21,20 +23,28 @@ const CreateChatMessageInputSchema = z.union([MessageSchema, z.array(MessageSche
 
 type CreateChatMessageInput = z.infer<typeof CreateChatMessageInputSchema>;
 
-@Injectable()
 @Tool({
   config: {
     description: 'Create chat message(s).',
   },
 })
-@WithArguments(CreateChatMessageInputSchema)
 export class CreateChatMessage implements ToolInterface<CreateChatMessageInput> {
   protected readonly logger = new Logger(CreateChatMessage.name);
+
+  @Input({
+    schema: CreateChatMessageInputSchema,
+  })
+  content: CreateChatMessageInput;
 
   @InjectTool() private createDocument: CreateDocument;
   @InjectDocument() private messageDocument: MessageDocument;
 
-  async execute(args: CreateChatMessageInput, ctx: WorkflowExecution): Promise<ToolResult> {
+  async execute(
+    args: CreateChatMessageInput,
+    ctx: RunContext,
+    parent: WorkflowInterface | ToolInterface,
+    metadata: WorkflowMetadataInterface,
+  ): Promise<ToolResult> {
     const items = !Array.isArray(args) ? [args] : args;
 
     const createdDocuments: DocumentEntity[] = [];
@@ -50,7 +60,7 @@ export class CreateChatMessage implements ToolInterface<CreateChatMessageInput> 
         validate: 'strict' as const,
       };
 
-      const result = await this.createDocument.execute(createDocumentArgs, ctx, this);
+      const result = await this.createDocument.execute(createDocumentArgs, ctx, this, metadata);
       createdDocuments.push(result.data as DocumentEntity);
     }
 

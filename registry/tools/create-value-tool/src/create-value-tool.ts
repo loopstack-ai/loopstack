@@ -15,16 +15,13 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Tool, ToolInterface, ToolResult, WithArguments } from '@loopstack/common';
+import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 
-const InputSchema = z.union([
-  z.string(),
-  z.number(),
-  z.object({}).passthrough(),
-  z.array(z.unknown()),
-  z.null(),
-  z.boolean(),
-]);
+const InputSchema = z
+  .object({
+    input: z.union([z.string(), z.number(), z.object({}).passthrough(), z.array(z.unknown()), z.null(), z.boolean()]),
+  })
+  .strict();
 
 type InputType = z.infer<typeof InputSchema>;
 
@@ -35,17 +32,15 @@ type InputType = z.infer<typeof InputSchema>;
       'Creates a value from an expression input. This tool is helpful to debug a template expression or value in a workflow. Also it can be used to reassign a value to another using a template expression.',
   },
 })
-@WithArguments(
-  z
-    .object({
-      input: InputSchema,
-    })
-    .strict(),
-)
-export class CreateValue implements ToolInterface<{ input: InputType }> {
+export class CreateValue implements ToolInterface<InputType> {
   protected readonly logger = new Logger(CreateValue.name);
 
-  execute(args: { input: InputType }): Promise<ToolResult> {
+  @Input({
+    schema: InputSchema,
+  })
+  content: InputType;
+
+  execute(args: InputType): Promise<ToolResult> {
     this.logger.debug(`Created value: ${JSON.stringify(args.input)}`);
 
     return Promise.resolve({

@@ -7,16 +7,16 @@ export interface HistoryTransitionMetadata {
   place: string;
   tools: Record<string, Record<string, unknown>>;
   transition?: {
-    transition: string;
+    id: string;
     from: string | null;
     to: string;
   };
 }
 
 export interface HistoryTransition {
-  data: Record<string, unknown>;
+  state: Record<string, unknown>;
   version: number;
-  metadata: HistoryTransitionMetadata;
+  data: HistoryTransitionMetadata;
   timestamp: string;
 }
 
@@ -169,8 +169,8 @@ export function buildWorkflowGraph(
   const executedTransitions = new Map<string, { from: string; to: string; count: number }>();
 
   history.forEach((entry) => {
-    const place = entry.metadata?.place;
-    const transition = entry.metadata?.transition;
+    const place = entry.data?.place;
+    const transition = entry.data?.transition;
 
     if (place) {
       statesSet.add(place);
@@ -180,7 +180,7 @@ export function buildWorkflowGraph(
     if (transition) {
       const from = transition.from ?? 'start';
       const to = transition.to;
-      const transitionId = transition.transition;
+      const transitionId = transition.id;
 
       statesSet.add(from);
       statesSet.add(to);
@@ -222,15 +222,13 @@ export function buildWorkflowGraph(
   });
 
   history.forEach((entry) => {
-    const transition = entry.metadata?.transition;
-    if (transition && transition.transition) {
+    const transition = entry.data?.transition;
+    if (transition && transition.id) {
       const from = transition.from ?? 'start';
-      const exists = allTransitions.some(
-        (t) => t.from === from && t.to === transition.to && t.id === transition.transition,
-      );
+      const exists = allTransitions.some((t) => t.from === from && t.to === transition.to && t.id === transition.id);
       if (!exists) {
         allTransitions.push({
-          id: transition.transition,
+          id: transition.id,
           from,
           to: transition.to,
         });
@@ -251,9 +249,9 @@ export function buildWorkflowGraph(
   const visitedStates = new Set<string>();
   visitedStates.add('start');
   history.forEach((entry) => {
-    const place = entry.metadata?.place;
+    const place = entry.data?.place;
     if (place) visitedStates.add(place);
-    const to = entry.metadata?.transition?.to;
+    const to = entry.data?.transition?.to;
     if (to) visitedStates.add(to);
   });
 

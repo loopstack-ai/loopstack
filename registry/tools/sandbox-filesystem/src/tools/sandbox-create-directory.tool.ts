@@ -15,10 +15,10 @@ limitations under the License.
 */
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Tool, ToolInterface, ToolResult, WithArguments, WorkflowExecution } from '@loopstack/common';
+import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
-const propertiesSchema = z
+const inputSchema = z
   .object({
     containerId: z.string().describe('The ID of the container to create the directory in'),
     path: z.string().describe('The path of the directory to create'),
@@ -26,7 +26,7 @@ const propertiesSchema = z
   })
   .strict();
 
-type SandboxCreateDirectoryArgs = z.infer<typeof propertiesSchema>;
+type SandboxCreateDirectoryArgs = z.infer<typeof inputSchema>;
 
 interface SandboxCreateDirectoryResult {
   path: string;
@@ -39,16 +39,15 @@ interface SandboxCreateDirectoryResult {
     description: 'Create a directory in a sandbox container',
   },
 })
-@WithArguments(propertiesSchema)
 export class SandboxCreateDirectory implements ToolInterface<SandboxCreateDirectoryArgs> {
   private readonly logger = new Logger(SandboxCreateDirectory.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
 
-  async execute(
-    args: SandboxCreateDirectoryArgs,
-    _ctx: WorkflowExecution,
-  ): Promise<ToolResult<SandboxCreateDirectoryResult>> {
+  @Input({ schema: inputSchema })
+  args: SandboxCreateDirectoryArgs;
+
+  async execute(args: SandboxCreateDirectoryArgs): Promise<ToolResult<SandboxCreateDirectoryResult>> {
     const { containerId, path: dirPath, recursive } = args;
 
     this.logger.debug(`Creating directory ${dirPath} in container ${containerId} (recursive: ${recursive})`);

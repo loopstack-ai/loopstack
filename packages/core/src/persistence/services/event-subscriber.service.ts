@@ -7,7 +7,7 @@ export interface PipelineEventPayload {
   eventPipelineId: string;
   eventName: string;
   workspaceId: string;
-  data: any;
+  data: Record<string, unknown> | undefined;
 }
 
 @Injectable()

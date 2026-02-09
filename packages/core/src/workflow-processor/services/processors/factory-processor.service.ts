@@ -1,12 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  BlockContextType,
-  BlockExecutionContextDto,
-  BlockInterface,
-  PipelineExecutionContextDto,
-  WorkflowExecution,
-} from '@loopstack/common';
-import { PipelineFactoryIteratorType } from '@loopstack/contracts/types';
+import { BlockInterface, RunContext, WorkflowMetadataInterface } from '@loopstack/common';
 import { Processor, TemplateExpressionEvaluatorService } from '../../../common';
 import { BlockProcessor } from '../block-processor.service';
 import { NamespaceProcessorService } from '../namespace-processor.service';
@@ -27,30 +20,30 @@ export class FactoryProcessorService implements Processor {
     return parts.map((part) => part.toString().padStart(4, '0')).join('.');
   }
 
-  async prepareAllContexts(
-    ctx: PipelineExecutionContextDto,
-    iterator: PipelineFactoryIteratorType,
-  ): Promise<Record<string, BlockContextType>> {
-    //create a new index level
-    const index = `${ctx.index}.0`;
-
-    const executionContexts: Record<string, BlockContextType> = {};
-    for (let i = 0; i < iterator.source.length; i++) {
-      const item = iterator.source[i];
-
-      // create a new namespace for each child
-      const namespace = await this.namespaceProcessorService.createNamespace(ctx, { label: `${item} (${i + 1})` });
-
-      executionContexts[item] = {
-        ...ctx,
-        namespace,
-        labels: [...ctx.labels, namespace.name],
-        index: this.createIndex(index, i + 1),
-      };
-    }
-
-    return executionContexts;
-  }
+  // async prepareAllContexts(
+  //   ctx: PipelineExecutionContextDto,
+  //   iterator: PipelineFactoryIteratorType,
+  // ): Promise<Record<string, BlockContextType>> {
+  //   //create a new index level
+  //   const index = `${ctx.index}.0`;
+  //
+  //   const executionContexts: Record<string, BlockContextType> = {};
+  //   for (let i = 0; i < iterator.source.length; i++) {
+  //     const item = iterator.source[i];
+  //
+  //     // create a new namespace for each child
+  //     const namespace = await this.namespaceProcessorService.createNamespace(ctx, { label: `${item} (${i + 1})` });
+  //
+  //     executionContexts[item] = {
+  //       ...ctx,
+  //       namespace,
+  //       labels: [...ctx.labels, namespace.name],
+  //       index: this.createIndex(index, i + 1),
+  //     };
+  //   }
+  //
+  //   return executionContexts;
+  // }
 
   private validateAvailable() {
     // name: string, parentBlock: BlockInterface
@@ -61,7 +54,7 @@ export class FactoryProcessorService implements Processor {
     // }
   }
 
-  async process(block: BlockInterface, args: any, ctx: BlockExecutionContextDto): Promise<WorkflowExecution> {
+  async process(block: BlockInterface, args: any, ctx: RunContext): Promise<WorkflowMetadataInterface> {
     // ctx = await this.namespaceProcessorService.initBlockNamespace(block, ctx);
     await this.namespaceProcessorService.initBlockNamespace(block, ctx);
 
@@ -170,6 +163,6 @@ export class FactoryProcessorService implements Processor {
     //   block.state.error = true;
     // }
 
-    return {} as WorkflowExecution;
+    return {} as WorkflowMetadataInterface;
   }
 }

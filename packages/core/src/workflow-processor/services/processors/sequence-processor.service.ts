@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BlockExecutionContextDto, BlockInterface, WorkflowExecution, getBlockConfig } from '@loopstack/common';
+import { BlockInterface, RunContext, WorkflowMetadataInterface, getBlockConfig } from '@loopstack/common';
 import { PipelineItemConfigType, PipelineSequenceType } from '@loopstack/contracts/types';
 import { Processor, TemplateExpressionEvaluatorService } from '../../../common';
 import { BlockProcessor } from '../block-processor.service';
@@ -24,7 +24,7 @@ export class SequenceProcessorService implements Processor {
     // }
   }
 
-  async process(block: BlockInterface, args: any, ctx: BlockExecutionContextDto): Promise<WorkflowExecution> {
+  async process(block: BlockInterface, args: any, ctx: RunContext): Promise<WorkflowMetadataInterface> {
     // ctx = await this.namespaceProcessorService.initBlockNamespace(block, ctx);
     await this.namespaceProcessorService.initBlockNamespace(block, ctx);
 
@@ -100,6 +100,6 @@ export class SequenceProcessorService implements Processor {
     // }
 
     this.logger.debug(`Processed all sequence items.`);
-    return {} as WorkflowExecution;
+    return {} as WorkflowMetadataInterface;
   }
 }

@@ -8,19 +8,17 @@ ui:
         title: 'What should the haiku be about?'
 
 transitions:
-  - id: start
+  - id: prompt
     from: start
     to: prompt_executed
     call:
-      - id: execute_prompt
+      - id: llm_call
         tool: aiGenerateText
         args:
           llm:
             provider: openai
             model: gpt-4o
           prompt: Write a haiku about {{ args.subject }}
-        assign:
-          llmResponse: ${ result.data }
 
   - id: add_response
     from: prompt_executed
@@ -30,4 +28,4 @@ transitions:
         args:
           document: aiMessageDocument
           update:
-            content: ${ llmResponse }
+            content: ${ runtime.tools.prompt.llm_call.data }
