@@ -1,5 +1,17 @@
 # @loopstack/custom-tool-example-module
 
+## 0.20.0
+
+### Minor Changes
+
+- [#58](https://github.com/loopstack-ai/loopstack/pull/58) [`fa32ec4`](https://github.com/loopstack-ai/loopstack/commit/fa32ec48d3b511586ff1e7746f1d63b72d7c5570) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Implement property decorators to replace class decorators With\*
+
+### Patch Changes
+
+- Updated dependencies [[`fa32ec4`](https://github.com/loopstack-ai/loopstack/commit/fa32ec48d3b511586ff1e7746f1d63b72d7c5570)]:
+  - @loopstack/create-chat-message-tool@0.20.0
+  - @loopstack/common@0.20.0
+
 ## 0.19.0
 
 ### Minor Changes

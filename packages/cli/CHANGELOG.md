@@ -1,5 +1,13 @@
 # @loopstack/cli-module
 
+## 0.20.0
+
+### Patch Changes
+
+- Updated dependencies [[`fa32ec4`](https://github.com/loopstack-ai/loopstack/commit/fa32ec48d3b511586ff1e7746f1d63b72d7c5570)]:
+  - @loopstack/contracts@0.20.0
+  - @loopstack/core@0.20.0
+
 ## 0.19.0
 
 ### Minor Changes
