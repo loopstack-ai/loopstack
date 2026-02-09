@@ -11,10 +11,10 @@ services:
       - monorepo-network
 
   postgres:
-    image: postgres:16.9-alpine
+    image: ghcr.io/loopstack-ai/postgres:16.9-alpine
     restart: unless-stopped
     env_file:
-      - ./.env
+      - ./backend/.env
     environment:
       POSTGRES_DB: ${DATABASE_NAME:-postgres}
       POSTGRES_USER: ${DATABASE_USERNAME:-postgres}
@@ -23,7 +23,6 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts:/docker-entrypoint-initdb.d
     networks:
       - monorepo-network
 

@@ -21,11 +21,6 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "useUnknownInCatchVariables": false,
-    "allowJs": false,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "baseUrl": "."
-  },
-  "exclude": ["node_modules", "dist"],
-  "include": ["./src", "./test"]
+    "allowJs": false
+  }
 }

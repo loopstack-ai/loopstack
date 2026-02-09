@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 async function getLatestReleaseTag(packageName: string): Promise<string> {
-  const prefix = `@loopstack/${packageName}@`;
+  const prefix = `${packageName}@`;
 
   const response = await fetch('https://api.github.com/repos/loopstack-ai/loopstack/releases');
 
@@ -31,17 +31,12 @@ async function getLatestReleaseTag(packageName: string): Promise<string> {
 async function main() {
   const args = process.argv.slice(2);
   let appName: string | undefined;
-  let templateName = 'app-bundle-template';
+  const bundleTemplateName = '@loopstack/app-bundle-template';
   let tag: string | undefined;
-  let skipStudio = false;
 
   for (const arg of args) {
-    if (arg.startsWith('--template=')) {
-      templateName = arg.split('=')[1];
-    } else if (arg.startsWith('--tag=')) {
+    if (arg.startsWith('--tag=')) {
       tag = arg.split('=')[1];
-    } else if (arg === '--skip-studio') {
-      skipStudio = true;
     } else if (!arg.startsWith('--')) {
       appName = arg;
     }
@@ -51,23 +46,19 @@ async function main() {
     console.error('❌ Please provide a project name.');
     console.error('\nUsage: create-loopstack-app <app-name> [options]');
     console.error('\nOptions:');
-    console.error('  --template=<name>    Template to use (default: app-bundle-template)');
     console.error('  --tag=<tag>          Git tag/branch to use (default: latest release)');
-    console.error('  --skip-studio        Skip Loopstack Studio installation');
     console.error('\nExamples:');
     console.error('  create-loopstack-app my-app');
-    console.error('  create-loopstack-app my-app --skip-studio');
     console.error('  create-loopstack-app my-app --tag=@loopstack/app-bundle-template@1.0.0');
     process.exit(1);
   }
 
   console.log(`Creating Loopstack app: ${appName}`);
-  console.log(`Using template: ${templateName}`);
 
   if (!tag) {
     try {
       console.log('Fetching latest release...');
-      tag = await getLatestReleaseTag(templateName);
+      tag = await getLatestReleaseTag(bundleTemplateName);
       console.log(`Found latest release: ${tag}`);
     } catch {
       console.error('⚠️  Could not fetch latest release, falling back to main branch');
@@ -75,16 +66,15 @@ async function main() {
     }
   }
 
-  // Clone the bundle template (includes backend, package.json, README, docker-compose)
-  const templateSource = `github:loopstack-ai/loopstack/templates/${templateName}#${tag}`;
-  console.log(`\nCloning template from: ${templateSource}`);
+  const bundleSource = `github:loopstack-ai/loopstack/templates/app-bundle-template#${tag}`;
+  console.log(`\nCloning bundle template from: ${bundleSource}`);
 
   try {
-    execSync(`npx giget@latest ${templateSource} ${appName} --force`, {
+    execSync(`npx giget@latest ${bundleSource} ${appName} --force`, {
       stdio: 'inherit',
     });
   } catch {
-    console.error(`❌ Error: Could not clone template "${templateName}" with tag "${tag}"`);
+    console.error(`❌ Error: Could not clone bundle template "${bundleTemplateName}" with tag "${tag}"`);
     console.error('Please verify that the template name and tag are correct.');
     process.exit(1);
   }
@@ -98,32 +88,8 @@ async function main() {
   packageJson.name = appName;
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
-  // Handle .env file for backend
-  const envDefaultPath = path.join(projectRoot, 'backend', '.env.default');
-  const envPath = path.join(projectRoot, 'backend', '.env');
-
-  if (fs.existsSync(envDefaultPath)) {
-    console.log('Creating backend .env file from .env.default...');
-    fs.copyFileSync(envDefaultPath, envPath);
-  }
-
-  if (!skipStudio) {
-    const studioPath = path.join(projectRoot, 'studio');
-    const studioSource = `github:loopstack-ai/loopstack/frontend/loopstack-studio#${tag}`;
-    console.log(`\nCloning Loopstack Studio from: ${studioSource}`);
-
-    try {
-      execSync(`npx giget@latest ${studioSource} ${studioPath} --force`, {
-        stdio: 'inherit',
-      });
-
-      console.log('✓ Loopstack Studio added successfully');
-    } catch {
-      console.error('⚠️  Warning: Could not clone Loopstack Studio, continuing with backend only');
-    }
-  } else {
-    console.log('\n⊘ Skipping Loopstack Studio installation');
-  }
+  console.log('\nSetting up project...');
+  execSync('npm run setup', { stdio: 'inherit' });
 
   // Install root dependencies
   console.log('\nInstalling dependencies...');
@@ -135,11 +101,10 @@ async function main() {
   console.log('\n✅ Loopstack project created successfully!\n');
   console.log('─'.repeat(50));
 
+  console.log(`\nStart:            👉 cd ${appName} && npm run start`);
   console.log('\nLoopstack Studio: http://localhost:5173');
   console.log('Backend API:      http://localhost:8000');
 
-  console.log('\nStart:');
-  console.log(`   cd ${appName} && npm run start`);
   console.log('─'.repeat(50));
 }
 

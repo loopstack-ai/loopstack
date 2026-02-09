@@ -11,6 +11,7 @@
     "docker:down": "cd backend && docker compose down",
     "docker:up": "cd backend && docker compose up -d",
     "install:all": "npm install && cd backend && npm install && cd ../studio && npm install",
+    "setup": "bash scripts/setup.sh",
     "start": "npm run docker:up && npm run dev"
   },
   "devDependencies": {
