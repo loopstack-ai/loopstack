@@ -1,7 +1,6 @@
 {
   "name": "@loopstack/app-bundle-template",
   "version": "0.18.0",
-  "private": true,
   "scripts": {
     "build:all": "npm run build:backend && npm run build:studio",
     "build:backend": "cd backend && npm run build",
