@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/app-template",
-  "version": "0.18.1",
+  "version": "0.18.2",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write .",
