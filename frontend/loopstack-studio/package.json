@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/loopstack-studio",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "repository": "loopstack-ai/loopstack-studio",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
