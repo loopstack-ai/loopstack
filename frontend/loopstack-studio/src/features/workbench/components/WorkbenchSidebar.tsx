@@ -1,4 +1,4 @@
-import { GitGraph } from 'lucide-react';
+import { Code, GitGraph } from 'lucide-react';
 import type { PipelineDto } from '@loopstack/api-client';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/sidebar.tsx';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.tsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip.tsx';
+import { CodeExplorer } from '@/features/code-explorer/CodeExplorer';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 import WorkbenchNavigation from '../WorkbenchNavigation.tsx';
 import PipelineHistoryList from './PipelineHistoryList.tsx';
@@ -55,15 +56,23 @@ const WorkbenchSidebar = ({ namespaceTree, pipeline }: WorkbenchSidebarProps) =>
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="flex h-full flex-col">
           {open && (
-            <Tabs defaultValue="pipelineNavigation" className="w-full">
-              <TabsList className="w-full">
+            <Tabs defaultValue="codeExplorer" className="flex h-full w-full flex-col">
+              <TabsList className="w-full shrink-0">
+                <TabsTrigger value="codeExplorer" className="flex items-center gap-1.5">
+                  <Code className="h-3.5 w-3.5" />
+                  Code
+                </TabsTrigger>
                 <TabsTrigger value="pipelineNavigation">Navigation</TabsTrigger>
                 <TabsTrigger value="pipelineHistory">History</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="pipelineNavigation">
+              <TabsContent value="codeExplorer" className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
+                <CodeExplorer pipelineId={pipeline?.id} />
+              </TabsContent>
+
+              <TabsContent value="pipelineNavigation" className="mt-2">
                 <SidebarGroupLabel>Pipeline Navigation</SidebarGroupLabel>
                 <SidebarMenu>
                   {pipeline && namespaceTree.length ? (
@@ -72,7 +81,7 @@ const WorkbenchSidebar = ({ namespaceTree, pipeline }: WorkbenchSidebarProps) =>
                 </SidebarMenu>
               </TabsContent>
 
-              <TabsContent value="pipelineHistory">
+              <TabsContent value="pipelineHistory" className="mt-2">
                 <SidebarGroupLabel>Run History</SidebarGroupLabel>
                 <SidebarMenu>
                   <PipelineHistoryList pipeline={pipeline} />
