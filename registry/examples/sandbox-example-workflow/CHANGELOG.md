@@ -1,5 +1,17 @@
 # @loopstack/sandbox-example-workflow
 
+## 0.4.1
+
+### Patch Changes
+
+- [#65](https://github.com/loopstack-ai/loopstack/pull/65) [`ee9a033`](https://github.com/loopstack-ai/loopstack/commit/ee9a033fbbd7640ce951546d7593914e0cac852d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add JEXL support, update template expression syntax
+
+- Updated dependencies [[`ee9a033`](https://github.com/loopstack-ai/loopstack/commit/ee9a033fbbd7640ce951546d7593914e0cac852d)]:
+  - @loopstack/create-chat-message-tool@0.20.1
+  - @loopstack/sandbox-filesystem@0.4.1
+  - @loopstack/core-ui-module@0.20.1
+  - @loopstack/sandbox-tool@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes
