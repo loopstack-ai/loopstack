@@ -3,15 +3,19 @@ import React, { useEffect, useRef } from 'react';
 import type { PipelineConfigDto, WorkflowItemDto } from '@loopstack/api-client';
 import type { WorkflowInterface } from '@loopstack/contracts/types';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
+import type { StateNodeData } from '../../lib/flow-types.ts';
 import { buildWorkflowGraph, getTransitions } from '../../lib/flow-utils.ts';
-import type { StateNodeData } from './StateNode.tsx';
 
 interface WorkflowGraphProps {
-  pipeline: any;
+  pipeline: unknown;
   workflow: WorkflowItemDto;
   pipelineConfig?: PipelineConfigDto;
   onGraphReady: (workflowId: string, nodes: Node<StateNodeData>[], edges: Edge[]) => void;
   onLoadingChange: (workflowId: string, isLoading: boolean) => void;
+}
+
+function countTransitions(obj: unknown): number {
+  return obj ? getTransitions(obj).length : 0;
 }
 
 const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
@@ -30,16 +34,11 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   }, [workflow.id, fetchWorkflow.isLoading, onLoadingChange]);
 
   useEffect(() => {
-    const getTransitionsSimple = (obj: any) => {
-      if (!obj) return 0;
-      const t = getTransitions(obj);
-      return t.length;
-    };
     const configTransitions = pipelineConfig ? getTransitions(pipelineConfig) : [];
 
     const dataKey = JSON.stringify({
-      p: getTransitionsSimple(pipeline),
-      w: getTransitionsSimple(workflowData),
+      p: countTransitions(pipeline),
+      w: countTransitions(workflowData),
       c: configTransitions.length,
       history: workflowData?.history?.length,
       place: workflowData?.place,
