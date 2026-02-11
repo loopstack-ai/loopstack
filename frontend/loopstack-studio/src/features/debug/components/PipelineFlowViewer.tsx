@@ -14,7 +14,8 @@ import { Loader2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { PipelineConfigDto, WorkflowItemDto } from '@loopstack/api-client';
 import { usePipeline } from '@/hooks/usePipelines.ts';
-import StateNode, { type StateNodeData } from './pipeline-flow/StateNode.tsx';
+import type { StateNodeData } from '../lib/flow-types.ts';
+import StateNode from './pipeline-flow/StateNode.tsx';
 import WorkflowGraph from './pipeline-flow/WorkflowGraph.tsx';
 import WorkflowTransitionEdge from './pipeline-flow/WorkflowTransitionEdge.tsx';
 
