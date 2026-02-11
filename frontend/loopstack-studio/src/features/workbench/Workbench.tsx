@@ -29,7 +29,7 @@ export default function Workbench({ pipeline }: { pipeline: PipelineDto }) {
 
   return (
     <WorkbenchContextProvider.Provider value={contextValue}>
-      <SidebarProvider defaultOpen={true} className="workbench-sidebar">
+      <SidebarProvider defaultOpen={true} className="workbench-sidebar min-h-0">
         <SidebarTrigger className="fixed top-0 right-0 z-40 flex h-8 w-8 items-center justify-center p-8 hover:cursor-pointer md:hidden" />
         <SidebarInsetDiv>
           <div className="flex-1">

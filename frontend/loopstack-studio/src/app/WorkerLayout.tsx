@@ -7,7 +7,7 @@ const WorkerLayout = () => {
   const { router } = useStudio();
 
   return (
-    <div className="flex min-h-screen flex-1 flex-col p-2">
+    <div className="flex min-h-0 flex-1 flex-col p-2">
       <ErrorBoundary key={location.pathname} onRetry={() => void router.navigateToDashboard()}>
         <Outlet />
       </ErrorBoundary>
