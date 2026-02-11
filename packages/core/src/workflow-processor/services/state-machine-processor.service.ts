@@ -92,7 +92,7 @@ export class StateMachineProcessorService {
     if (!nextTransition) {
       nextTransition = availableTransitions.find(
         (item) =>
-          (undefined === item.trigger || item.trigger === 'onEntry') && (undefined === item.if || item.if === 'true'),
+          (undefined === item.trigger || item.trigger === 'onEntry') && (undefined === item.if || item.if === true),
       );
     }
 

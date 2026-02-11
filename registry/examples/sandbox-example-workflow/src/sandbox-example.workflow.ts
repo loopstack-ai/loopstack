@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { DefineHelper, InjectTool, Input, Runtime, State, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
@@ -20,7 +19,6 @@ interface FileEntry {
   path: string;
 }
 
-@Injectable()
 @Workflow({
   configFile: __dirname + '/sandbox-example.workflow.yaml',
 })

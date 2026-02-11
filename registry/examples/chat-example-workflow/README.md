@@ -14,6 +14,7 @@ By using this workflow as a reference, you'll learn how to:
 - Process user messages through an LLM
 - Create a message loop for continuous conversation
 - Configure custom UI actions for user input
+- Access LLM results via the `runtime` object
 
 This example is useful for developers building chatbots, virtual assistants, or any conversational AI interface.
 
@@ -87,28 +88,44 @@ The workflow begins by creating a hidden system message that defines the assista
                 text: |
                   You are a helpful assistant named Bob.
                   Always tell the user your name.
+                  Use available tools to help the user with their requests.
 ```
 
 #### 2. LLM Response Generation
 
-When the workflow reaches the `ready` state, it calls the LLM to generate a response based on the conversation history:
+When the workflow reaches the `ready` state, it calls the LLM to generate a response based on the conversation history. The tool call is given an `id` so its result can be referenced later via the `runtime` object:
 
 ```yaml
 - id: prompt
   from: ready
   to: prompt_executed
   call:
-    - tool: aiGenerateText
+    - id: llm_call
+      tool: aiGenerateText
       args:
         llm:
           provider: openai
           model: gpt-4o
         messagesSearchTag: message
-      assign:
-        llmResponse: ${ result.data }
 ```
 
-#### 3. Custom UI Actions
+#### 3. Storing the LLM Response
+
+After the LLM generates a response, the result is stored as a document. The response data is accessed through `runtime.tools.prompt.llm_call.data`, which references the result of the `llm_call` tool in the `prompt` transition:
+
+```yaml
+- id: add_response
+  from: prompt_executed
+  to: waiting_for_user
+  call:
+    - tool: createDocument
+      args:
+        document: aiMessageDocument
+        update:
+          content: ${{ runtime.tools.prompt.llm_call.data }}
+```
+
+#### 4. Custom UI Actions
 
 The workflow defines a custom UI action that allows users to send messages:
 
@@ -124,7 +141,7 @@ ui:
         label: Send Message
 ```
 
-#### 4. Manual Trigger for User Input
+#### 5. Manual Trigger for User Input
 
 User messages are handled through a manually triggered transition that captures the input payload:
 
@@ -134,7 +151,8 @@ User messages are handled through a manually triggered transition that captures 
   to: ready
   trigger: manual
   call:
-    - tool: createDocument
+    - id: prompt_message
+      tool: createDocument
       args:
         document: aiMessageDocument
         update:
@@ -142,8 +160,30 @@ User messages are handled through a manually triggered transition that captures 
             role: user
             parts:
               - type: text
-                text: ${ transition.payload }
+                text: ${{ transition.payload }}
 ```
+
+### Workflow Class
+
+The TypeScript workflow class declares the tools, documents, and runtime types used in the YAML definition:
+
+```typescript
+@Workflow({
+  configFile: __dirname + '/chat.workflow.yaml',
+})
+export class ChatWorkflow {
+  @InjectTool() createDocument: CreateDocument;
+  @InjectTool() aiGenerateText: AiGenerateText;
+  @InjectDocument() aiMessageDocument: AiMessageDocument;
+
+  @Runtime()
+  runtime: {
+    tools: Record<'prompt', Record<'llm_call', AiMessageDocumentContentType>>;
+  };
+}
+```
+
+The `@Runtime()` decorator provides typed access to tool results. Here, `runtime.tools.prompt.llm_call` gives access to the result of the `llm_call` tool executed in the `prompt` transition.
 
 ## Dependencies
 

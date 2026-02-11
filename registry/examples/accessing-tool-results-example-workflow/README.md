@@ -10,10 +10,10 @@ The Tool Results Example Workflow shows how to retrieve and use data returned by
 
 By using this workflow as a reference, you'll learn how to:
 
-- Access tool results using call IDs
+- Access tool results using call IDs via `runtime.tools`
 - Access tool results using call indices
 - Retrieve data from previous transitions
-- Create custom helper functions for data extraction
+- Create custom helper functions that access `runtime` for data extraction
 
 This example is useful for developers learning to build data-driven workflows that need to pass information between steps.
 
@@ -48,18 +48,48 @@ Use npm install if you want to use and maintain the module as node dependency.
 
 > This step is automatically done for you when using the `loopstack add` command.
 
-- Add `AccessingToolResultsExampleModule` to the imports of `default.module.ts` or any other custom module.
+- Add `ToolResultsExampleModule` to the imports of `default.module.ts` or any other custom module.
 - Inject the `WorkflowToolResultsWorkflow` workflow to your workspace class using the `@InjectWorkflow()` decorator.
 
 See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
 
 ## How It Works
 
+### Workflow Class
+
+The workflow declares tools, typed runtime, and a helper function:
+
+```typescript
+@Workflow({
+  configFile: __dirname + '/workflow-tool-results.workflow.yaml',
+})
+export class WorkflowToolResultsWorkflow {
+  @InjectTool() private createValue: CreateValue;
+  @InjectTool() private createChatMessage: CreateChatMessage;
+
+  @Runtime()
+  runtime: {
+    tools: {
+      create_some_data: {
+        say_hello: {
+          data: string;
+        };
+      };
+    };
+  };
+
+  @DefineHelper()
+  theMessage(): string {
+    return this.runtime.tools.create_some_data.say_hello.data;
+  }
+}
+```
+
 ### Accessing Tool Results
 
 #### 1. Using Call IDs
 
-Assign a unique `id` to a tool call, then reference it via `metadata.tools.<transition_id>.<call_id>.data`:
+Assign a unique `id` to a tool call, then reference it via `runtime.tools.<transition_id>.<call_id>.data`:
 
 ```yaml
 - id: say_hello
@@ -69,7 +99,8 @@ Assign a unique `id` to a tool call, then reference it via `metadata.tools.<tran
 
 - tool: createChatMessage
   args:
-    content: '{{ metadata.tools.create_some_data.say_hello.data }}'
+    role: 'assistant'
+    content: 'Data from specific call id: {{ runtime.tools.create_some_data.say_hello.data }}'
 ```
 
 #### 2. Using Call Indices
@@ -79,37 +110,44 @@ Access tool results by their position (zero-indexed) within the transition:
 ```yaml
 - tool: createChatMessage
   args:
-    content: '{{ metadata.tools.create_some_data.0.data }}'
+    role: 'assistant'
+    content: 'Data from first tool call: {{ runtime.tools.create_some_data.0.data }}'
 ```
 
 #### 3. Across Transitions
 
-Tool results persist and can be accessed from subsequent transitions using the same patterns:
+Tool results persist and can be accessed from subsequent transitions using the same `runtime.tools` patterns:
 
 ```yaml
 # In a later transition
-- tool: createChatMessage
-  args:
-    content: '{{ metadata.tools.create_some_data.say_hello.data }}'
+- id: access_data
+  from: data_created
+  to: end
+  call:
+    - tool: createChatMessage
+      args:
+        role: 'assistant'
+        content: 'Data from previous transition: {{ runtime.tools.create_some_data.say_hello.data }}'
 ```
 
 #### 4. Using Helper Functions
 
-Define custom helper functions in your workflow class for complex data extraction:
+Define custom helper functions in your workflow class that access `this.runtime` directly:
 
 ```typescript
 @DefineHelper()
-extractMessage(metadata: WorkflowMetadataInterface): string {
-  return metadata.tools.create_some_data.say_hello.data;
+theMessage(): string {
+  return this.runtime.tools.create_some_data.say_hello.data;
 }
 ```
 
-Then use them in your YAML configuration:
+Then use them in your YAML configuration (no arguments needed):
 
 ```yaml
 - tool: createChatMessage
   args:
-    content: '{{ extractMessage metadata }}'
+    role: 'assistant'
+    content: 'Data access using custom helper: {{ theMessage }}'
 ```
 
 ## Dependencies
@@ -117,7 +155,7 @@ Then use them in your YAML configuration:
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/core` - Core framework functionality
-- `@loopstack/core-ui-module` - Provides `CreateChatMessage` tool
+- `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool
 - `@loopstack/create-value-tool` - Provides `CreateValue` tool
 
 ## About

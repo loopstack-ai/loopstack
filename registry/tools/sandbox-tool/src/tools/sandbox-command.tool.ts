@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { CommandExecutionResult, DockerContainerManagerService } from '../services/docker-container-manager.service';
@@ -31,7 +31,6 @@ const inputSchema = z
 
 type SandboxCommandArgs = z.infer<typeof inputSchema>;
 
-@Injectable()
 @Tool({
   config: {
     description: 'Execute a command in the sandbox environment',

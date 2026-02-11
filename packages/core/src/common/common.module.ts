@@ -4,6 +4,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
   DateFormatterHelperService,
   HandlebarsProcessor,
+  JexlExpressionHandler,
   ObjectExpressionHandler,
   OperatorsHelperService,
   TemplateExpressionEvaluatorService,
@@ -18,6 +19,7 @@ import { ClientMessageService } from './services/client-message.service';
     ClientMessageService,
     TemplateService,
     ObjectExpressionHandler,
+    JexlExpressionHandler,
     TemplateExpressionHandler,
     HandlebarsProcessor,
     DateFormatterHelperService,

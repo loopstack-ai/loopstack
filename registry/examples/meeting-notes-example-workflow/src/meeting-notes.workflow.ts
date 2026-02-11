@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { AiGenerateDocument } from '@loopstack/ai-module';
 import { InjectDocument, InjectTool, Input, Runtime, State, Workflow } from '@loopstack/common';
@@ -6,7 +5,6 @@ import { CreateDocument } from '@loopstack/core-ui-module';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
 
-@Injectable()
 @Workflow({
   configFile: __dirname + '/meeting-notes.workflow.yaml',
 })

@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   InjectTool,
   Input,
@@ -13,7 +12,6 @@ import {
 import { CreateDocument } from '@loopstack/core-ui-module';
 import { AiGenerateObject, AiGenerateObjectArgsType, AiGenerateObjectSchema } from './ai-generate-object.tool';
 
-@Injectable()
 @Tool({
   config: {
     description: 'Generates a structured object using a LLM and creates it as document',

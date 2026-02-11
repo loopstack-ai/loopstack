@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { Document, DocumentInterface, Input } from '@loopstack/common';
 
@@ -12,7 +11,6 @@ export const FileDocumentSchema = z
 
 export type FileDocumentType = z.infer<typeof FileDocumentSchema>;
 
-@Injectable()
 @Document({
   configFile: __dirname + '/file-document.yaml',
 })

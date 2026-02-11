@@ -28,4 +28,4 @@ transitions:
         args:
           document: aiMessageDocument
           update:
-            content: ${ runtime.tools.prompt.llm_call.data }
+            content: ${{ runtime.tools.prompt.llm_call.data }}

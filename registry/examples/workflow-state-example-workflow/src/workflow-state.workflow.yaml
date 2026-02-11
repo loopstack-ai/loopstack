@@ -11,7 +11,7 @@ transitions:
         args:
           input: 'Hello :)'
         assign:
-          message: ${ result.data }
+          message: ${{ result.data }}
 
       # Access the data using the custom property
       - tool: createChatMessage

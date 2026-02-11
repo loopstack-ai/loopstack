@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { Document, DocumentInterface, Input } from '@loopstack/common';
 
@@ -10,7 +9,6 @@ export const OptimizedMeetingNotesDocumentSchema = z.object({
   actionItems: z.array(z.string()),
 });
 
-@Injectable()
 @Document({
   configFile: __dirname + '/optimized-notes-document.yaml',
 })

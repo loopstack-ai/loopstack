@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { ToolUIPart, UIMessage } from 'ai';
 import { z } from 'zod';
 import {
@@ -27,7 +26,6 @@ const DelegateToolCallsToolSchema = z.object({
 
 type DelegateToolCallsToolArgs = z.infer<typeof DelegateToolCallsToolSchema>;
 
-@Injectable()
 @Tool({
   config: {
     description: 'Delegate a tool call.',

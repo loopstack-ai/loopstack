@@ -14,6 +14,7 @@ By using this workflow as a reference, you'll learn how to:
 - Pass tools to the LLM using the `tools` parameter
 - Use helper functions for conditional routing
 - Handle tool call responses with `delegateToolCall`
+- Access tool results via the `runtime` object
 - Build agentic loops that continue until the LLM has a final answer
 
 This example is essential for developers building AI agents that need to interact with external systems or APIs.
@@ -68,61 +69,75 @@ See here for more information about working with [Modules](https://loopstack.ai/
 
 #### 1. Creating Custom Tools
 
-Define a tool by extending `ToolBase` with a Zod schema for arguments:
+Define a tool using the `@Tool` decorator with a description and `@Input` for the argument schema:
 
 ```typescript
-@Injectable()
-@BlockConfig({
+@Tool({
   config: {
     description: 'Retrieve weather information.',
   },
 })
-@WithArguments(
-  z.object({
-    location: z.string(),
-  }),
-)
-export class GetWeather extends ToolBase {
+export class GetWeather implements ToolInterface {
+  @Input({
+    schema: z.object({
+      location: z.string(),
+    }),
+  })
   async execute(): Promise<ToolResult> {
-    return {
+    return Promise.resolve({
       type: 'text',
       data: 'Mostly sunny, 14C, rain in the afternoon.',
-    };
+    });
   }
 }
 ```
 
-The `description` in `@BlockConfig` is passed to the LLM to help it understand when to use the tool.
+The `description` in `@Tool` config is passed to the LLM to help it understand when to use the tool.
 
 #### 2. Registering Tools in the Workflow
 
 Register custom tools using the `@InjectTool()` decorator:
 
 ```typescript
-export class ToolCallWorkflow extends WorkflowBase {
+@Workflow({
+  configFile: __dirname + '/tool-call.workflow.yaml',
+})
+export class ToolCallWorkflow {
   @InjectTool() getWeather: GetWeather;
+  @InjectTool() aiGenerateText: AiGenerateText;
+  @InjectTool() delegateToolCall: DelegateToolCall;
   // ...
 }
 ```
 
 #### 3. Passing Tools to the LLM
 
-Provide tools to the LLM via the `tools` parameter:
+Provide tools to the LLM via the `tools` parameter. The tool call is given an `id` so its result can be referenced through the `runtime` object. Multiple calls within the same transition can reference earlier results:
 
 ```yaml
-- tool: aiGenerateText
-  args:
-    llm:
-      provider: openai
-      model: gpt-4o
-    messagesSearchTag: message
-    tools:
-      - getWeather
-  assign:
-    llmResponse: ${ result.data }
+- id: llm_turn
+  from: ready
+  to: prompt_executed
+  call:
+    - id: llm_call
+      tool: aiGenerateText
+      args:
+        llm:
+          provider: openai
+          model: gpt-4o
+        messagesSearchTag: message
+        tools:
+          - getWeather
+
+    - tool: createDocument
+      args:
+        id: ${{ runtime.tools.llm_turn.llm_call.data.id }}
+        document: aiMessageDocument
+        update:
+          content: ${{ runtime.tools.llm_turn.llm_call.data }}
 ```
 
-The LLM will decide whether to call a tool based on the user's request.
+The LLM will decide whether to call a tool based on the user's request. The LLM response is immediately stored as a document using `runtime.tools.llm_turn.llm_call.data`.
 
 #### 4. Helper Functions for Routing
 
@@ -130,35 +145,62 @@ Define helper functions using the `@DefineHelper()` decorator for use in conditi
 
 ```typescript
 @DefineHelper()
-isToolCall(message: any) {
-  return message?.parts.some((part: any) => part.type.startsWith('tool-'));
+isToolCall(message: { parts?: { type: string }[] } | null | undefined): boolean {
+  return message?.parts?.some((part) => part.type.startsWith('tool-')) ?? false;
 }
 ```
 
-Use helpers in transition conditions:
+Use helpers in transition conditions, passing runtime references:
 
 ```yaml
 - id: route_with_tool_calls
   from: prompt_executed
   to: ready
-  if: '{{ isToolCall llmResponse }}'
+  if: '{{ isToolCall runtime.tools.llm_turn.llm_call.data }}'
 ```
 
 #### 5. Executing Tool Calls
 
-Use `delegateToolCall` to execute the tool the LLM requested:
+Use `delegateToolCall` to execute the tool the LLM requested. The result is stored via `runtime` and immediately saved as a document:
 
 ```yaml
-- tool: delegateToolCall
-  args:
-    message: ${ llmResponse }
-  assign:
-    toolCallResult: ${ result.data }
+- id: route_with_tool_calls
+  from: prompt_executed
+  to: ready
+  if: '{{ isToolCall runtime.tools.llm_turn.llm_call.data }}'
+  call:
+    - id: delegate
+      tool: delegateToolCall
+      args:
+        message: ${{ runtime.tools.llm_turn.llm_call.data }}
+
+    - tool: createDocument
+      args:
+        id: ${{ runtime.tools.route_with_tool_calls.delegate.data.id }}
+        document: aiMessageDocument
+        update:
+          content: ${{ runtime.tools.route_with_tool_calls.delegate.data }}
 ```
 
-This automatically routes to the correct tool based on the LLM's response.
+#### 6. Runtime Type Declarations
 
-#### 6. Agentic Loop Pattern
+The `@Runtime()` decorator provides typed access to tool results across transitions:
+
+```typescript
+@Runtime()
+runtime: {
+  tools: {
+    llm_turn: {
+      llm_call: AiMessageDocumentContentType;
+    };
+    route_with_tool_calls: {
+      delegate: AiMessageDocumentContentType;
+    };
+  };
+};
+```
+
+#### 7. Agentic Loop Pattern
 
 The workflow implements an agentic loop:
 
@@ -170,7 +212,7 @@ The workflow implements an agentic loop:
 - id: route_with_tool_calls
   from: prompt_executed
   to: ready # Loop back for another LLM turn
-  if: '{{ isToolCall llmResponse }}'
+  if: '{{ isToolCall runtime.tools.llm_turn.llm_call.data }}'
 
 - id: route_without_tool_calls
   from: prompt_executed

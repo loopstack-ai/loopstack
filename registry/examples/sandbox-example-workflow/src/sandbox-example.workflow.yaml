@@ -10,10 +10,10 @@ transitions:
           containerId: my-sandbox
           imageName: node:18
           containerName: my-filesystem-sandbox
-          projectOutPath: ${ args.outputDir }
+          projectOutPath: ${{ args.outputDir }}
           rootPath: workspace
         assign:
-          containerId: ${ result.data.containerId }
+          containerId: ${{ result.data.containerId }}
       - tool: createChatMessage
         args:
           role: assistant
@@ -27,7 +27,7 @@ transitions:
       - id: mkdir
         tool: sandboxCreateDirectory
         args:
-          containerId: ${ state.containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace
           recursive: true
       - tool: createChatMessage
@@ -43,7 +43,7 @@ transitions:
       - id: write
         tool: sandboxWriteFile
         args:
-          containerId: ${ state.containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace/result.txt
           content: 'Hello from sandbox!'
           encoding: utf8
@@ -61,11 +61,11 @@ transitions:
       - id: read
         tool: sandboxReadFile
         args:
-          containerId: ${ state.containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace/result.txt
           encoding: utf8
         assign:
-          fileContent: ${ result.data.content }
+          fileContent: ${{ result.data.content }}
       - tool: createChatMessage
         args:
           role: assistant
@@ -79,11 +79,11 @@ transitions:
       - id: list
         tool: sandboxListDirectory
         args:
-          containerId: ${ state.containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace
           recursive: false
         assign:
-          fileList: ${ result.data.entries }
+          fileList: ${{ result.data.entries }}
       - tool: createChatMessage
         args:
           role: assistant
@@ -97,7 +97,7 @@ transitions:
       - id: exists
         tool: sandboxExists
         args:
-          containerId: ${ state.containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace/result.txt
       - tool: createChatMessage
         args:
@@ -112,7 +112,7 @@ transitions:
       - id: info
         tool: sandboxFileInfo
         args:
-          containerId: ${ state.containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace/result.txt
       - tool: createChatMessage
         args:
@@ -127,7 +127,7 @@ transitions:
       - id: delete
         tool: sandboxDelete
         args:
-          containerId: ${ state.containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace/result.txt
           force: true
       - tool: createChatMessage
@@ -143,7 +143,7 @@ transitions:
       - id: destroy
         tool: sandboxDestroy
         args:
-          containerId: ${ state.containerId }
+          containerId: ${{ state.containerId }}
           removeContainer: true
       - tool: createChatMessage
         args:

@@ -13,7 +13,7 @@ By using this workflow as a reference, you'll learn how to:
 - Define custom document schemas with Zod for structured LLM output
 - Use the `aiGenerateDocument` tool to generate typed responses
 - Create custom documents with form configuration
-- Store structured data in workflow state using `@WithState`
+- Access structured results via the `runtime` object
 
 This example builds on the basic prompt pattern and is ideal for developers who need typed, structured responses from LLMs.
 
@@ -70,22 +70,27 @@ See here for more information about working with [Modules](https://loopstack.ai/
 Define a Zod schema for the structured output:
 
 ```typescript
-export const FileDocumentSchema = z.object({
-  filename: z.string(),
-  description: z.string().optional(),
-  code: z.string(),
-});
+export const FileDocumentSchema = z
+  .object({
+    filename: z.string(),
+    description: z.string(),
+    code: z.string(),
+  })
+  .strict();
+
+export type FileDocumentType = z.infer<typeof FileDocumentSchema>;
 ```
 
-Create a document class that uses this schema:
+Create a document class that uses this schema with the `@Document` decorator and `@Input` for the content:
 
 ```typescript
-@Injectable()
-@BlockConfig({
+@Document({
   configFile: __dirname + '/file-document.yaml',
 })
-@WithArguments(FileDocumentSchema)
-export class FileDocument extends DocumentBase {}
+export class FileDocument implements DocumentInterface {
+  @Input({ schema: FileDocumentSchema })
+  content: FileDocumentType;
+}
 ```
 
 #### 2. Document UI Configuration
@@ -118,9 +123,14 @@ ui:
 Use Zod enums to provide a dropdown selection in the UI:
 
 ```typescript
-@WithArguments(z.object({
-  language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
-}))
+@Input({
+  schema: z.object({
+    language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
+  }),
+})
+args: {
+  language: string;
+};
 ```
 
 Configure the select widget in YAML:
@@ -136,40 +146,57 @@ ui:
 
 #### 4. Generating Structured Output
 
-Use `aiGenerateDocument` with a `response.document` to get typed output:
+Use `aiGenerateDocument` with a `response.document` to get typed output. The tool call is given an `id` so its result can be referenced later:
 
 ```yaml
-- tool: aiGenerateDocument
-  args:
-    llm:
-      provider: openai
-      model: gpt-4o
-    response:
-      document: fileDocument
-    prompt: |
-      Create a {{ args.language }} script that prints 'Hello, World!' to the console.
-      Wrap the code in triple-backticks.
-  assign:
-    file: ${ result.data.content }
+- id: prompt
+  from: ready
+  to: prompt_executed
+  call:
+    - id: llm_call
+      tool: aiGenerateDocument
+      args:
+        llm:
+          provider: openai
+          model: gpt-4o
+        response:
+          document: fileDocument
+        prompt: |
+          Create a {{ args.language }} script that prints 'Hello, World!' to the console.
+          Wrap the code in triple-backticks.
 ```
 
 The LLM response is automatically parsed into the `FileDocument` schema.
 
-#### 5. Workflow State
+#### 5. Accessing Results via Runtime
 
-Use `@WithState` to define typed state that persists across transitions:
-
-```typescript
-@WithState(z.object({
-  file: FileDocumentSchema,
-}))
-```
-
-Access state values in subsequent transitions:
+Instead of using `assign` to save results to workflow state, tool results are accessed through the `runtime` object. The path follows the pattern `runtime.tools.<transitionId>.<toolCallId>.data`:
 
 ```yaml
-text: |
-  Successfully generated: {{ file.description }}
+- id: add_message
+  from: prompt_executed
+  to: end
+  call:
+    - tool: createDocument
+      args:
+        id: status
+        document: aiMessageDocument
+        update:
+          content:
+            role: assistant
+            parts:
+              - type: text
+                text: |
+                  Successfully generated: {{ runtime.tools.prompt.llm_call.data.content.description }}
+```
+
+The TypeScript class declares the runtime types with the `@Runtime()` decorator:
+
+```typescript
+@Runtime()
+runtime: {
+  tools: Record<'prompt', Record<'llm_call', DocumentEntity<FileDocumentType>>>;
+};
 ```
 
 ## Dependencies

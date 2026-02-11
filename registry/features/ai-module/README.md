@@ -69,7 +69,6 @@ See here for more information about working with [Modules](https://loopstack.ai/
 Inject the tools and documents in your workflow class:
 
 ```typescript
-import { Injectable } from '@nestjs/common';
 import {
   AiGenerateDocument,
   AiGenerateObject,
@@ -77,14 +76,12 @@ import {
   AiMessageDocument,
   DelegateToolCall,
 } from '@loopstack/ai-module';
-import { BlockConfig, DefineHelper, InjectDocument, InjectTool } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { BlockConfig, DefineHelper, InjectDocument, InjectTool, Workflow } from '@loopstack/common';
 
-@Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/my.workflow.yaml',
 })
-export class MyWorkflow extends WorkflowBase {
+export class MyWorkflow {
   // Tools
   @InjectTool() aiGenerateText: AiGenerateText;
   @InjectTool() aiGenerateObject: AiGenerateObject;

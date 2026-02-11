@@ -58,26 +58,25 @@ See here for more information about working with [Modules](https://loopstack.ai/
 Inject the tools in your workflow class using the @InjectTool() decorator:
 
 ```typescript
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Tool, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { InjectTool, State, Workflow } from '@loopstack/common';
 import { SandboxCommand, SandboxDestroy, SandboxInit } from './sandbox-tool';
 
-@Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/my.workflow.yaml',
 })
-@WithState(
-  z.object({
-    containerId: z.string().optional(),
-    result: z.any().optional(),
-  }),
-)
-export class MyWorkflow extends WorkflowBase {
+export class MyWorkflow {
   @InjectTool() sandboxInit: SandboxInit;
   @InjectTool() sandboxCommand: SandboxCommand;
   @InjectTool() sandboxDestroy: SandboxDestroy;
+
+  @State({
+    schema: z.object({
+      containerId: z.string().optional(),
+      result: z.any().optional(),
+    }),
+  })
+  state: { containerId: string; result: any };
 }
 ```
 
@@ -99,7 +98,7 @@ transitions:
           projectOutPath: /tmp/workspace
           rootPath: workspace
         assign:
-          containerId: ${ result.data.containerId }
+          containerId: ${{ result.data.containerId }}
 
   # Execute a Node.js command
   - id: run_code
@@ -108,7 +107,7 @@ transitions:
     call:
       - tool: sandboxCommand
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           executable: node
           args:
             - -e
@@ -116,7 +115,7 @@ transitions:
           workingDirectory: /workspace
           timeout: 30000
         assign:
-          result: ${ result.data }
+          result: ${{ result.data }}
 
   # Clean up the sandbox
   - id: cleanup
@@ -125,7 +124,7 @@ transitions:
     call:
       - tool: sandboxDestroy
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           removeContainer: true
 ```
 
@@ -216,7 +215,7 @@ transitions:
           projectOutPath: /tmp/python-workspace
           rootPath: workspace
         assign:
-          containerId: ${ result.data.containerId }
+          containerId: ${{ result.data.containerId }}
 
   - id: execute_script
     from: sandbox_ready
@@ -224,7 +223,7 @@ transitions:
     call:
       - tool: sandboxCommand
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           executable: python
           args:
             - -c
@@ -235,7 +234,7 @@ transitions:
           workingDirectory: /workspace
           timeout: 10000
         assign:
-          output: ${ result.data }
+          output: ${{ result.data }}
 
   - id: cleanup_sandbox
     from: script_executed
@@ -243,7 +242,7 @@ transitions:
     call:
       - tool: sandboxDestroy
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           removeContainer: true
 ```
 

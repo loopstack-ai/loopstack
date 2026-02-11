@@ -58,23 +58,22 @@ See here for more information about working with [Modules](https://loopstack.ai/
 Inject the tool in your workflow class using the @InjectTool() decorator:
 
 ```typescript
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, InjectTool, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { InjectTool, State, Workflow } from '@loopstack/common';
 import { CreateValue } from './create-value-tool';
 
-@Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/my.workflow.yaml',
 })
-@WithState(
-  z.object({
-    config: z.any().optional(),
-  }),
-)
-export class MyWorkflow extends WorkflowBase {
+export class MyWorkflow {
   @InjectTool() createValue: CreateValue;
+
+  @State({
+    schema: z.object({
+      config: z.any().optional(),
+    }),
+  })
+  state: { config: any };
 }
 ```
 
@@ -90,7 +89,7 @@ transitions:
     call:
       - tool: createValue
         args:
-          input: ${ args.userId }
+          input: ${{ args.userId }}
 
   # Initialize a complex object
   - id: create_config
@@ -107,7 +106,7 @@ transitions:
               - https://api.example.com
               - https://backup.example.com
         assign:
-          config: ${ result.data }
+          config: ${{ result.data }}
 ```
 
 ## About

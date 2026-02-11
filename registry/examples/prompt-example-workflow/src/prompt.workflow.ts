@@ -1,10 +1,8 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { AiGenerateText, AiMessageDocument, AiMessageDocumentContentType } from '@loopstack/ai-module';
 import { InjectDocument, InjectTool, Input, Runtime, Workflow } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core-ui-module';
 
-@Injectable()
 @Workflow({
   configFile: __dirname + '/prompt.workflow.yaml',
 })

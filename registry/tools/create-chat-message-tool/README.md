@@ -58,18 +58,13 @@ See here for more information about working with [Modules](https://loopstack.ai/
 Inject the tool in your workflow class using the @InjectTool() decorator:
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { z } from 'zod';
-import { BlockConfig, Tool, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { InjectTool, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from './create-chat-message-tool';
 
-@Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/my.workflow.yaml',
 })
-export class MyWorkflow extends WorkflowBase {
-  // Tools
+export class MyWorkflow {
   @InjectTool() createChatMessage: CreateChatMessage;
 }
 ```

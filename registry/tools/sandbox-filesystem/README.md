@@ -62,10 +62,8 @@ See here for more information about working with [Modules](https://loopstack.ai/
 Inject the tools in your workflow class using the @InjectTool() decorator:
 
 ```typescript
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BlockConfig, Tool, WithArguments, WithState } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { InjectTool, Input, State, Workflow } from '@loopstack/common';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
@@ -77,23 +75,26 @@ import {
 } from '@loopstack/sandbox-filesystem';
 import { SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
 
-@Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/my.workflow.yaml',
 })
-@WithArguments(
-  z.object({
-    outputDir: z.string().default(process.cwd() + '/out'),
-  }),
-)
-@WithState(
-  z.object({
-    containerId: z.string().optional(),
-    fileContent: z.string().optional(),
-    fileList: z.array(z.any()).optional(),
-  }),
-)
-export class MyWorkflow extends WorkflowBase {
+export class MyWorkflow {
+  @Input({
+    schema: z.object({
+      outputDir: z.string().default(process.cwd() + '/out'),
+    }),
+  })
+  args: { outputDir: string };
+
+  @State({
+    schema: z.object({
+      containerId: z.string().optional(),
+      fileContent: z.string().optional(),
+      fileList: z.array(z.any()).optional(),
+    }),
+  })
+  state: { containerId: string; fileContent: string; fileList: any[] };
+
   // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
   @InjectTool() sandboxInit: SandboxInit;
   @InjectTool() sandboxDestroy: SandboxDestroy;
@@ -124,10 +125,10 @@ transitions:
           containerId: my-sandbox
           imageName: node:18
           containerName: my-filesystem-sandbox
-          projectOutPath: ${ args.outputDir }
+          projectOutPath: ${{ args.outputDir }}
           rootPath: workspace
         assign:
-          containerId: ${ result.data.containerId }
+          containerId: ${{ result.data.containerId }}
 
   # Create a directory
   - id: create_dir
@@ -136,7 +137,7 @@ transitions:
     call:
       - tool: sandboxCreateDirectory
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace
           recursive: true
 
@@ -147,7 +148,7 @@ transitions:
     call:
       - tool: sandboxWriteFile
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace/result.txt
           content: 'Hello from sandbox!'
           encoding: utf8
@@ -160,11 +161,11 @@ transitions:
     call:
       - tool: sandboxReadFile
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace/result.txt
           encoding: utf8
         assign:
-          fileContent: ${ result.data.content }
+          fileContent: ${{ result.data.content }}
 
   # List directory contents
   - id: list_dir
@@ -173,11 +174,11 @@ transitions:
     call:
       - tool: sandboxListDirectory
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace
           recursive: false
         assign:
-          fileList: ${ result.data.entries }
+          fileList: ${{ result.data.entries }}
 
   # Check file existence
   - id: check_exists
@@ -186,7 +187,7 @@ transitions:
     call:
       - tool: sandboxExists
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace/result.txt
 
   # Get file info
@@ -196,7 +197,7 @@ transitions:
     call:
       - tool: sandboxFileInfo
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace/result.txt
 
   # Delete the file
@@ -206,7 +207,7 @@ transitions:
     call:
       - tool: sandboxDelete
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           path: /workspace/result.txt
           force: true
 
@@ -217,7 +218,7 @@ transitions:
     call:
       - tool: sandboxDestroy
         args:
-          containerId: ${ containerId }
+          containerId: ${{ state.containerId }}
           removeContainer: true
 ```
 

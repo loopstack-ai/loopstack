@@ -17,8 +17,8 @@ export type MessageProps = HTMLAttributes<HTMLDivElement> & {
 export const Message = ({ className, from, ...props }: MessageProps) => (
   <div
     className={cn(
-      'group flex w-full max-w-[80%] flex-col gap-2',
-      from === 'user' ? 'is-user ml-auto justify-end' : 'is-assistant',
+      'group relative flex w-full flex-col gap-2 rounded-lg transition-colors',
+      from === 'user' ? 'is-user ml-auto max-w-[80%] justify-end' : 'is-assistant',
       className,
     )}
     {...props}
@@ -30,7 +30,7 @@ export type MessageContentProps = HTMLAttributes<HTMLDivElement>;
 export const MessageContent = ({ children, className, ...props }: MessageContentProps) => (
   <div
     className={cn(
-      'is-user:dark flex w-fit flex-col gap-2 overflow-hidden text-sm',
+      'is-user:dark flex w-fit flex-col gap-2 overflow-hidden',
       'group-[.is-user]:bg-secondary group-[.is-user]:text-foreground group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:px-4 group-[.is-user]:py-3',
       'group-[.is-assistant]:text-foreground',
       className,
@@ -44,7 +44,13 @@ export const MessageContent = ({ children, className, ...props }: MessageContent
 export type MessageActionsProps = ComponentProps<'div'>;
 
 export const MessageActions = ({ className, children, ...props }: MessageActionsProps) => (
-  <div className={cn('flex items-center gap-1', className)} {...props}>
+  <div
+    className={cn(
+      'absolute top-0 right-0 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100',
+      className,
+    )}
+    {...props}
+  >
     {children}
   </div>
 );

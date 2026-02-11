@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import * as path from 'path';
 import { z } from 'zod';
 import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
@@ -36,7 +36,6 @@ interface SandboxWriteFileResult {
   bytesWritten: number;
 }
 
-@Injectable()
 @Tool({
   config: {
     description: 'Write content to a file in a sandbox container',

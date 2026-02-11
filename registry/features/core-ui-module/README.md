@@ -58,9 +58,7 @@ See here for more information about working with [Modules](https://loopstack.ai/
 Inject the tool and documents in your workflow class:
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { BlockConfig, Document, InjectTool } from '@loopstack/common';
-import { WorkflowBase } from '@loopstack/core';
+import { BlockConfig, Document, InjectTool, Workflow } from '@loopstack/common';
 import {
   CreateDocument,
   ErrorDocument,
@@ -69,11 +67,10 @@ import {
   PlainDocument,
 } from '@loopstack/core-ui-module';
 
-@Injectable()
-@BlockConfig({
+@Workflow({
   configFile: __dirname + '/my.workflow.yaml',
 })
-export class MyWorkflow extends WorkflowBase {
+export class MyWorkflow {
   // Tool
   @InjectTool() createDocument: CreateDocument;
 

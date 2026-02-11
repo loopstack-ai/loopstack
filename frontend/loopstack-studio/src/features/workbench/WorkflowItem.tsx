@@ -73,7 +73,7 @@ const WorkflowItem: React.FC<{
   const isLoading = runPipeline.isPending || fetchWorkflow.data?.status === 'running';
 
   return (
-    <div className="flex flex-col gap-8 p-4">
+    <div className="flex min-h-[calc(100vh-16rem)] flex-col p-4">
       <LoadingCentered loading={fetchWorkflow.isLoading || fetchDocuments.isLoading} />
       <ErrorSnackbar error={fetchDocuments.error} />
 
@@ -93,10 +93,10 @@ const WorkflowItem: React.FC<{
       <LoadingCentered loading={isLoading} />
 
       {!!fetchWorkflow.data && (
-        <>
+        <div className="mt-auto flex flex-col gap-6 pt-12">
           <WorkflowForms workflow={fetchWorkflow.data} onSubmit={handleRun} />
           <WorkflowButtons pipeline={pipeline} workflow={fetchWorkflow.data} />
-        </>
+        </div>
       )}
     </div>
   );
