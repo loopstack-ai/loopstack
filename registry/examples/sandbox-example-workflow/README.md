@@ -16,7 +16,8 @@ By using this workflow as a reference, you'll learn how to:
 - List directory contents and retrieve file metadata
 - Check file existence and get detailed file information
 - Use helper functions to format tool output
-- Access tool result metadata in chat messages
+- Access tool results via the `runtime` object
+- Manage workflow state with `@State` and `@Input`
 
 This example is useful for developers building workflows that need to execute code or manipulate files in isolated environments, such as code execution sandboxes, build pipelines, or secure file processing systems.
 
@@ -58,9 +59,49 @@ See here for more information about working with [Modules](https://loopstack.ai/
 
 ## How It Works
 
+### Workflow Class
+
+The workflow class declares inputs, state, runtime types, tools, and helpers:
+
+```typescript
+@Workflow({
+  configFile: __dirname + '/sandbox-example.workflow.yaml',
+})
+export class SandboxExampleWorkflow {
+  @Input({
+    schema: z.object({
+      outputDir: z.string().default(process.cwd() + '/out'),
+    }),
+  })
+  args: { outputDir: string };
+
+  @State({
+    schema: z.object({
+      containerId: z.string().optional(),
+      fileContent: z.string().optional(),
+      fileList: z.array(z.any()).optional(),
+    }),
+  })
+  state: { containerId: string; fileContent: string; fileList: string };
+
+  @Runtime()
+  runtime: { tools: Record<string, Record<string, any>> };
+
+  @InjectTool() sandboxInit: SandboxInit;
+  @InjectTool() sandboxDestroy: SandboxDestroy;
+  @InjectTool() sandboxWriteFile: SandboxWriteFile;
+  // ... other tools
+
+  @DefineHelper()
+  formatEntries(entries: FileEntry[]): string {
+    return entries.map((e) => `${e.name} (${e.type}, ${e.size} bytes)`).join(', ');
+  }
+}
+```
+
 ### Sandbox Lifecycle
 
-Initialize a Docker container before performing filesystem operations:
+Initialize a Docker container before performing filesystem operations. The `assign` block saves the container ID to workflow state, while `runtime.tools` provides access to the full result for chat messages:
 
 ```yaml
 - id: init_sandbox
@@ -73,52 +114,88 @@ Initialize a Docker container before performing filesystem operations:
         containerId: my-sandbox
         imageName: node:18
         containerName: my-filesystem-sandbox
-        projectOutPath: ${ args.outputDir }
+        projectOutPath: ${{ args.outputDir }}
         rootPath: workspace
       assign:
-        containerId: ${ result.data.containerId }
+        containerId: ${{ result.data.containerId }}
+    - tool: createChatMessage
+      args:
+        role: assistant
+        content: 'Sandbox initialized. Container ID: {{ runtime.tools.init_sandbox.init.data.containerId }}'
 ```
 
-Always destroy the sandbox when finished:
+Always destroy the sandbox when finished. Note how `state.containerId` references the value saved via `assign`:
 
 ```yaml
 - id: destroy_sandbox
   from: file_deleted
   to: end
   call:
-    - tool: sandboxDestroy
+    - id: destroy
+      tool: sandboxDestroy
       args:
-        containerId: ${ containerId }
+        containerId: ${{ state.containerId }}
         removeContainer: true
+    - tool: createChatMessage
+      args:
+        role: assistant
+        content: 'Sandbox destroyed. Container {{ runtime.tools.destroy_sandbox.destroy.data.containerId }} removed={{ runtime.tools.destroy_sandbox.destroy.data.removed }}'
 ```
 
 ### Filesystem Operations
 
-Perform various file operations within the sandbox:
+Perform various file operations within the sandbox, referencing state for the container ID and runtime for tool results:
 
 ```yaml
 # Write a file
-- tool: sandboxWriteFile
-  args:
-    containerId: ${ containerId }
-    path: /workspace/result.txt
-    content: 'Hello from sandbox!'
-    encoding: utf8
-    createParentDirs: true
+- id: write_file
+  from: dir_created
+  to: file_written
+  call:
+    - id: write
+      tool: sandboxWriteFile
+      args:
+        containerId: ${{ state.containerId }}
+        path: /workspace/result.txt
+        content: 'Hello from sandbox!'
+        encoding: utf8
+        createParentDirs: true
+    - tool: createChatMessage
+      args:
+        role: assistant
+        content: 'File written: {{ runtime.tools.write_file.write.data.path }} ({{ runtime.tools.write_file.write.data.bytesWritten }} bytes)'
 
 # Read a file
-- tool: sandboxReadFile
-  args:
-    containerId: ${ containerId }
-    path: /workspace/result.txt
-    encoding: utf8
+- id: read_file
+  from: file_written
+  to: file_read
+  call:
+    - id: read
+      tool: sandboxReadFile
+      args:
+        containerId: ${{ state.containerId }}
+        path: /workspace/result.txt
+        encoding: utf8
+      assign:
+        fileContent: ${{ result.data.content }}
 
 # List directory contents
-- tool: sandboxListDirectory
-  args:
-    containerId: ${ containerId }
-    path: /workspace
-    recursive: false
+- id: list_dir
+  from: file_read
+  to: dir_listed
+  call:
+    - id: list
+      tool: sandboxListDirectory
+      args:
+        containerId: ${{ state.containerId }}
+        path: /workspace
+        recursive: false
+      assign:
+        fileList: ${{ result.data.entries }}
+    - tool: createChatMessage
+      args:
+        role: assistant
+        content: 'Directory listing: {{ formatEntries runtime.tools.list_dir.list.data.entries }}'
 ```
 
 ## Workflow Steps

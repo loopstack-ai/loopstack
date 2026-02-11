@@ -18,7 +18,7 @@ const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit }) => 
     workflow.availableTransitions?.map((transition) => (transition as { id: string }).id) ?? [];
 
   return (
-    <div className="p-4">
+    <div>
       <UiActions
         actions={actions as UiWidgetType[]}
         availableTransitions={availableTransitions}

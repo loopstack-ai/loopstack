@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
@@ -40,7 +40,6 @@ interface SandboxListDirectoryResult {
   entries: FileEntry[];
 }
 
-@Injectable()
 @Tool({
   config: {
     description: 'List files and directories in a sandbox container',

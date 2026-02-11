@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
@@ -34,7 +34,6 @@ interface SandboxDeleteResult {
   deleted: boolean;
 }
 
-@Injectable()
 @Tool({
   config: {
     description: 'Delete a file or directory in a sandbox container',

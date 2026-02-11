@@ -1,9 +1,7 @@
-import { Injectable } from '@nestjs/common';
 import { DefineHelper, InjectTool, Runtime, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { CreateValue } from '@loopstack/create-value-tool';
 
-@Injectable()
 @Workflow({
   configFile: __dirname + '/workflow-tool-results.workflow.yaml',
 })

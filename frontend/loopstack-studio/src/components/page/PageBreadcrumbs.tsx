@@ -31,7 +31,7 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = ({ breadcrumbData, class
   };
 
   return (
-    <div className={cn('mb-6', className)}>
+    <div className={cn('ml-3 mb-2', className)}>
       <Breadcrumb>
         <BreadcrumbList>
           {breadcrumbData.map((item, index) => {
@@ -41,7 +41,7 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = ({ breadcrumbData, class
               <div key={index} className="contents">
                 <BreadcrumbItem>
                   {isLast || item.current ? (
-                    <BreadcrumbPage className="flex items-center gap-1">
+                    <BreadcrumbPage className="flex items-center gap-2">
                       {item.icon}
                       {item.label}
                     </BreadcrumbPage>
@@ -49,7 +49,7 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = ({ breadcrumbData, class
                     <BreadcrumbLink
                       href={item.href}
                       onClick={(e) => item.href && handleClick(e, item.href)}
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-2"
                     >
                       {item.icon}
                       {item.label}

@@ -25,7 +25,7 @@ const DocumentList: React.FC<{
   const isWorkflowActive = workflow.status === WorkflowState.Waiting;
 
   return (
-    <div className="flex flex-col gap-8 p-4">
+    <div className="flex flex-col gap-6">
       {documents.map((item: DocumentItemDto, documentIndex: number) => {
         const document = item as DocumentType;
 

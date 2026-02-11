@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { type ReactElement } from 'react';
 import PageBreadcrumbs from '../page/PageBreadcrumbs.tsx';
 import type { BreadCrumbsData } from '../page/PageBreadcrumbs.tsx';
 

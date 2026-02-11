@@ -1,6 +1,6 @@
 import type { UIMessage } from 'ai';
 import { getToolOrDynamicToolName, isReasoningUIPart, isTextUIPart, isToolOrDynamicToolUIPart } from 'ai';
-import { CopyIcon, RefreshCcwIcon } from 'lucide-react';
+import { CopyIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import {
@@ -14,7 +14,7 @@ import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-e
 import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources.tsx';
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/ai-elements/tool.tsx';
 
-const AiMessage = ({ document, isLastItem }: { document: DocumentItemInterface; isLastItem: boolean }) => {
+const AiMessage = ({ document }: { document: DocumentItemInterface; isLastItem: boolean }) => {
   const message = document.content as UIMessage;
 
   const sourceParts = message.parts?.filter((part) => part.type === 'source-url') ?? [];
@@ -38,15 +38,8 @@ const AiMessage = ({ document, isLastItem }: { document: DocumentItemInterface; 
               <MessageContent>
                 <MessageResponse>{part.text}</MessageResponse>
               </MessageContent>
-              {message.role === 'assistant' && isLastItem && (
+              {message.role === 'assistant' && (
                 <MessageActions>
-                  <MessageAction
-                    onClick={() => {}}
-                    // onClick={() => regenerate()}
-                    label="Retry"
-                  >
-                    <RefreshCcwIcon className="size-3" />
-                  </MessageAction>
                   <MessageAction onClick={() => void navigator.clipboard.writeText(part.text)} label="Copy">
                     <CopyIcon className="size-3" />
                   </MessageAction>

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ObjectExpressionHandler } from './expression-handler/object-expression.handler';
+import { JexlExpressionHandler } from './expression-handler/jexl-expression.handler';
 import { TemplateExOptions, TemplateExpressionHandler } from './expression-handler/template-expression.handler';
 
 export interface TemplateDetector {
@@ -16,10 +16,12 @@ export class TemplateService {
 
   constructor(
     private templateExpressionHandler: TemplateExpressionHandler,
-    private objectExpressionHandler: ObjectExpressionHandler,
+    // private objectExpressionHandler: ObjectExpressionHandler,
+    private jexlExpressionHandler: JexlExpressionHandler,
   ) {
     this.handlers = Object.freeze([
-      this.objectExpressionHandler, // ${ } expressions for arguments and schema validated types
+      this.jexlExpressionHandler, // ${{ }} expressions for powerful JEXL evaluations
+      // this.objectExpressionHandler, // ${ } expressions for arguments and schema validated types
       this.templateExpressionHandler, // {{ }} expressions for templates and string result
     ]);
   }

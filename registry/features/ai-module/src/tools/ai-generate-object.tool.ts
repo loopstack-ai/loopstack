@@ -1,5 +1,5 @@
 import { ModelMessage } from '@ai-sdk/provider-utils';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import {
   GenerateTextResult,
   LanguageModel,
@@ -35,7 +35,6 @@ export const AiGenerateObjectSchema = AiGenerateToolBaseSchema.extend({
 
 export type AiGenerateObjectArgsType = z.infer<typeof AiGenerateObjectSchema>;
 
-@Injectable()
 @Tool({
   config: {
     description: 'Generates a structured object using a LLM',

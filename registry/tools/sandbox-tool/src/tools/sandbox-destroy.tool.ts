@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { DockerContainerManagerService } from '../services/docker-container-manager.service';
@@ -35,7 +35,6 @@ interface SandboxDestroyResult {
   removed: boolean;
 }
 
-@Injectable()
 @Tool({
   config: {
     description: 'Stop and destroy a sandbox container',

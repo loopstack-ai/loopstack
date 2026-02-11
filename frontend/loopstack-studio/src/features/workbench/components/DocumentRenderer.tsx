@@ -62,7 +62,7 @@ const DocumentRenderer: React.FC<DocumentRendererProps> = ({ pipeline, workflow,
     }
   };
 
-  return <div className="mx-12">{render()}</div>;
+  return <div>{render()}</div>;
 };
 
 export default DocumentRenderer;

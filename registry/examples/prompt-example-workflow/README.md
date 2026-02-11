@@ -10,9 +10,10 @@ The Prompt Example Workflow shows the most basic way to call an LLM in Loopstack
 
 By using this workflow as a reference, you'll learn how to:
 
-- Define workflow arguments with default values
+- Define workflow input arguments with default values
 - Use the `prompt` parameter for simple LLM calls
-- Interpolate arguments into prompts using Handlebars syntax
+- Interpolate arguments into prompts using template syntax
+- Access tool results via the `runtime` object
 - Display LLM responses as documents
 
 This example is the ideal starting point for developers new to LLM integration in Loopstack.
@@ -65,14 +66,19 @@ See here for more information about working with [Modules](https://loopstack.ai/
 
 ### Key Concepts
 
-#### 1. Workflow Arguments
+#### 1. Workflow Input
 
-Define input parameters with default values using `@WithArguments`:
+Define input parameters with default values using `@Input`:
 
 ```typescript
-@WithArguments(z.object({
-  subject: z.string().default("coffee"),
-}))
+@Input({
+  schema: z.object({
+    subject: z.string().default('coffee'),
+  }),
+})
+args: {
+  subject: string;
+};
 ```
 
 Configure the UI form in YAML:
@@ -87,39 +93,53 @@ ui:
 
 #### 2. Simple Prompt Pattern
 
-Use the `prompt` parameter for straightforward LLM calls without conversation history:
+Use the `prompt` parameter for straightforward LLM calls without conversation history. The tool call is given an `id` so its result can be referenced later:
 
 ```yaml
-- tool: aiGenerateText
-  args:
-    llm:
-      provider: openai
-      model: gpt-4o
-    prompt: Write a haiku about {{ args.subject }}
+- id: prompt
+  from: start
+  to: prompt_executed
+  call:
+    - id: llm_call
+      tool: aiGenerateText
+      args:
+        llm:
+          provider: openai
+          model: gpt-4o
+        prompt: Write a haiku about {{ args.subject }}
 ```
 
-#### 3. Argument Interpolation
+#### 3. Accessing Results via Runtime
+
+Instead of using `assign` to save results to workflow state, tool results are accessed through the `runtime` object. The path follows the pattern `runtime.tools.<transitionId>.<toolCallId>.data`:
+
+```yaml
+- id: add_response
+  from: prompt_executed
+  to: end
+  call:
+    - tool: createDocument
+      args:
+        document: aiMessageDocument
+        update:
+          content: ${{ runtime.tools.prompt.llm_call.data }}
+```
+
+The TypeScript class declares the runtime types with the `@Runtime()` decorator:
+
+```typescript
+@Runtime()
+runtime: {
+  tools: Record<'prompt', Record<'llm_call', AiMessageDocumentContentType>>;
+};
+```
+
+#### 4. Argument Interpolation
 
 Access workflow arguments in templates using `args.<name>`:
 
 ```yaml
 prompt: Write a haiku about {{ args.subject }}
-```
-
-#### 4. Storing Results in State
-
-Use `assign` to save tool results to workflow state:
-
-```yaml
-assign:
-  llmResponse: ${ result.data }
-```
-
-Then reference the state in subsequent transitions:
-
-```yaml
-update:
-  content: ${ llmResponse }
 ```
 
 ## Dependencies

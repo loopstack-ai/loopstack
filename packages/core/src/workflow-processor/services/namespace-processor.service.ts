@@ -16,7 +16,7 @@ export class NamespaceProcessorService {
 
   async createRootNamespace(pipeline: PipelineEntity): Promise<NamespaceEntity> {
     return this.namespacesService.create({
-      name: 'Root',
+      name: 'Project',
       pipelineId: pipeline.id,
       workspaceId: pipeline.workspaceId,
       metadata: {

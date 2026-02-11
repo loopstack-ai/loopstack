@@ -12,7 +12,7 @@ export interface UiActionsProps {
 
 const UiActions: React.FC<UiActionsProps> = ({ actions, availableTransitions, disabled, onSubmit, isLoading }) => {
   return (
-    <div className="mt-4 flex w-full justify-end">
+    <div className="flex w-full flex-col items-end gap-4">
       {actions.map((config: UiWidgetType, index: number) => {
         const isDisabled =
           disabled || config.transition === undefined || !availableTransitions.includes(config.transition);

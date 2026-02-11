@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { MathService } from '../services/math.service';
@@ -8,7 +8,6 @@ export type MathSumArgs = {
   b: number;
 };
 
-@Injectable()
 @Tool({
   config: {
     description: 'Math tool calculating the sum of two arguments by using an injected service.',

@@ -10,10 +10,10 @@ The Dynamic Routing Example Workflow shows how to create branching logic in work
 
 By using this workflow as a reference, you'll learn how to:
 
-- Define conditional transitions using the `if` property
-- Create helper functions for custom comparison logic
+- Define conditional transitions using the `if` property with expression syntax
 - Build multi-level branching structures
 - Implement fallback routes when conditions aren't met
+- Use `@Input` for workflow arguments with UI form configuration
 
 This example is useful for developers building workflows that require decision trees, validation flows, or any logic that branches based on data.
 
@@ -55,29 +55,41 @@ See here for more information about working with [Modules](https://loopstack.ai/
 
 ## How It Works
 
-### Key Concepts
+### Workflow Class
 
-#### 1. Workflow Arguments
-
-The workflow accepts a numeric input value with a default:
+The workflow class declares input arguments using `@Input`:
 
 ```typescript
-@WithArguments(
-  z.object({
-    value: z.number().default(150),
-  }).strict(),
-)
+@Workflow({
+  configFile: __dirname + '/dynamic-routing-example.workflow.yaml',
+})
+export class DynamicRoutingExampleWorkflow {
+  @InjectTool() private createChatMessage: CreateChatMessage;
+
+  @Input({
+    schema: z
+      .object({
+        value: z.number().default(150),
+      })
+      .strict(),
+  })
+  args: {
+    value: number;
+  };
+}
 ```
 
-#### 2. Conditional Transitions
+### Key Concepts
 
-Use the `if` property to define conditions for transitions. The first matching transition is taken:
+#### 1. Conditional Transitions
+
+Use the `if` property with expression syntax (`${{ }}`) to define conditions for transitions. The first matching transition from a given state is taken:
 
 ```yaml
 - id: route-to-place-A
   from: prepared
   to: placeA
-  if: '{{ gt args.value 100 }}'
+  if: ${{ args.value > 100 }}
 
 - id: route-to-place-B
   from: prepared
@@ -85,24 +97,9 @@ Use the `if` property to define conditions for transitions. The first matching t
   # No condition = fallback route
 ```
 
-#### 3. Helper Functions for Conditions
+The expression syntax `${{ }}` supports JavaScript-like comparison operators (`>`, `<`, `>=`, `<=`, `==`, etc.) directly, without needing helper functions.
 
-Define custom helper functions in your workflow class for comparison logic:
-
-```typescript
-@DefineHelper()
-gt(a: number, b: number) {
-  return a > b;
-}
-```
-
-Use them in YAML with Handlebars syntax:
-
-```yaml
-if: '{{ gt args.value 100 }}'
-```
-
-#### 4. Multi-Level Branching
+#### 2. Multi-Level Branching
 
 Chain conditional transitions to create decision trees:
 
@@ -111,19 +108,44 @@ Chain conditional transitions to create decision trees:
 - id: route-to-place-A
   from: prepared
   to: placeA
-  if: '{{ gt args.value 100 }}'
+  if: ${{ args.value > 100 }}
+
+- id: route-to-place-B
+  from: prepared
+  to: placeB
+  # Fallback: value <= 100
 
 # Second level: value > 200?
 - id: route-to-place-C
   from: placeA
   to: placeC
-  if: '{{ gt args.value 200 }}'
+  if: ${{ args.value > 200 }}
 
 - id: route-to-place-D
   from: placeA
   to: placeD
-  # Fallback for 100 < value <= 200
+  # Fallback: 100 < value <= 200
 ```
+
+#### 3. UI Form Configuration
+
+Configure the input form in YAML:
+
+```yaml
+ui:
+  form:
+    properties:
+      value:
+        title: 'A number between 0 and 300'
+```
+
+#### 4. Complete Routing Flow
+
+The workflow routes through different states based on the input value:
+
+- **value <= 100** -> placeB -> "Value is less or equal 100"
+- **100 < value <= 200** -> placeA -> placeD -> "Value is less or equal 200, but greater than 100"
+- **value > 200** -> placeA -> placeC -> "Value is greater than 200"
 
 ## Dependencies
 

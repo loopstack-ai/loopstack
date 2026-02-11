@@ -1,16 +1,26 @@
 import Dagre from '@dagrejs/dagre';
 import { type Edge, MarkerType, type Node, Position } from '@xyflow/react';
 import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
-import type { StateNodeData } from '../components/pipeline-flow/StateNode.tsx';
+import type { FlowDirection, ResolvedTransition, StateNodeData, TransitionEdgeData } from './flow-types.ts';
+
+export type { StateNodeData } from './flow-types.ts';
+
+const NODE_WIDTH = 130;
+const NODE_HEIGHT = 70;
+
+const CONDITION_OPERATORS: Record<string, string> = {
+  gt: '>',
+  lt: '<',
+  eq: '==',
+  ne: '!=',
+  ge: '>=',
+  le: '<=',
+};
 
 export interface HistoryTransitionMetadata {
   place: string;
   tools: Record<string, Record<string, unknown>>;
-  transition?: {
-    id: string;
-    from: string | null;
-    to: string;
-  };
+  transition?: { id: string; from: string | null; to: string };
 }
 
 export interface HistoryTransition {
@@ -23,31 +33,27 @@ export interface HistoryTransition {
 export function getLayoutedElements(
   nodes: Node<StateNodeData>[],
   edges: Edge[],
-  direction: 'TB' | 'LR' = 'LR',
+  direction: FlowDirection = 'LR',
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
   g.setGraph({ rankdir: direction, nodesep: 100, ranksep: 200 });
 
-  nodes.forEach((node) => {
-    g.setNode(node.id, { width: 130, height: 70 });
-  });
-
-  edges.forEach((edge) => {
+  for (const node of nodes) {
+    g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+  }
+  for (const edge of edges) {
     g.setEdge(edge.source, edge.target);
-  });
+  }
 
   Dagre.layout(g);
 
   const layoutedNodes = nodes.map((node) => {
-    const nodeWithPosition = g.node(node.id);
+    const pos = g.node(node.id);
     return {
       ...node,
       targetPosition: direction === 'LR' ? Position.Left : Position.Top,
       sourcePosition: direction === 'LR' ? Position.Right : Position.Bottom,
-      position: {
-        x: nodeWithPosition.x - 65,
-        y: nodeWithPosition.y - 35,
-      },
+      position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - NODE_HEIGHT / 2 },
     };
   });
 
@@ -63,7 +69,6 @@ interface TransitionContainer {
 
 export function getTransitions(obj: unknown, seen = new Set<unknown>()): WorkflowTransitionType[] {
   if (!obj || typeof obj !== 'object' || seen.has(obj)) return [];
-
   try {
     seen.add(obj);
   } catch {
@@ -73,30 +78,27 @@ export function getTransitions(obj: unknown, seen = new Set<unknown>()): Workflo
   const container = obj as TransitionContainer;
 
   if (Array.isArray(container.transitions)) return container.transitions;
-
   if (container.definition) {
-    const fromDef = getTransitions(container.definition, seen);
-    if (fromDef.length > 0) return fromDef;
+    const result = getTransitions(container.definition, seen);
+    if (result.length > 0) return result;
   }
   if (container.specification) {
-    const fromSpec = getTransitions(container.specification, seen);
-    if (fromSpec.length > 0) return fromSpec;
+    const result = getTransitions(container.specification, seen);
+    if (result.length > 0) return result;
   }
 
   for (const key in container) {
     if (key === 'history' || key === 'data') continue;
-
     const val = container[key];
     if (val && typeof val === 'object') {
-      const found = getTransitions(val, seen);
-      if (found.length > 0) return found;
+      const result = getTransitions(val, seen);
+      if (result.length > 0) return result;
     } else if (typeof val === 'string' && val.includes('"transitions":')) {
       try {
-        const parsed: unknown = JSON.parse(val);
-        const found = getTransitions(parsed, seen);
-        if (found.length > 0) return found;
+        const result = getTransitions(JSON.parse(val) as unknown, seen);
+        if (result.length > 0) return result;
       } catch {
-        console.error('Failed to parse transitions', val);
+        // Skip malformed JSON
       }
     }
   }
@@ -110,19 +112,9 @@ export function formatCondition(condition: string): string {
   const parts = clean.split(/\s+/);
   if (parts.length === 3) {
     const [op, left, right] = parts;
-    const map: Record<string, string> = {
-      gt: '>',
-      lt: '<',
-      eq: '==',
-      ne: '!=',
-      ge: '>=',
-      le: '<=',
-    };
-    if (map[op]) {
-      return `${left} ${map[op]} ${right}`;
-    }
+    const symbol = CONDITION_OPERATORS[op];
+    if (symbol) return `${left} ${symbol} ${right}`;
   }
-
   return clean;
 }
 
@@ -131,184 +123,257 @@ export function buildWorkflowGraph(
   workflowData: WorkflowInterface | undefined,
   workflowId: string,
   configTransitions: WorkflowTransitionType[] = [],
-  direction: 'TB' | 'LR',
-  forceVisible: boolean = false,
+  direction: FlowDirection,
+  forceVisible = false,
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
-  let transitionsInDefinition: WorkflowTransitionType[] = [];
+  const transitions = collectTransitions(pipeline, workflowData, configTransitions);
+  const history = extractHistory(workflowData);
 
-  if (configTransitions.length > 0) {
-    transitionsInDefinition.push(...configTransitions);
-  }
+  const states = collectStates(transitions, history);
+  const executedMap = buildExecutedMap(history);
 
-  if (pipeline) {
-    transitionsInDefinition.push(...getTransitions(pipeline));
-  }
+  const allTransitions = resolveTransitions(transitions, history);
+  const endStates = findEndStates(states, allTransitions);
+  const visitedStates = findVisitedStates(history);
+  const stateRanks = computeStateRanks(allTransitions);
 
-  if (workflowData) {
-    transitionsInDefinition.push(...getTransitions(workflowData));
-  }
+  const nodes = buildNodes(states, {
+    workflowId,
+    currentPlace: workflowData?.place,
+    endStates,
+    visitedStates,
+    visitCounts: buildVisitCounts(history),
+    direction,
+    forceVisible,
+  });
 
-  const seenTransitions = new Set<string>();
-  transitionsInDefinition = transitionsInDefinition.filter((t) => {
+  const edges = buildEdges(allTransitions, {
+    workflowId,
+    executedMap,
+    stateRanks,
+    forceVisible,
+  });
+
+  return nodes.length > 1 ? getLayoutedElements(nodes, edges, direction) : { nodes, edges };
+}
+
+function collectTransitions(
+  pipeline: unknown,
+  workflowData: WorkflowInterface | undefined,
+  configTransitions: WorkflowTransitionType[],
+): WorkflowTransitionType[] {
+  const all = [...configTransitions];
+  if (pipeline) all.push(...getTransitions(pipeline));
+  if (workflowData) all.push(...getTransitions(workflowData));
+
+  const seen = new Set<string>();
+  return all.filter((t) => {
     const fromStr = Array.isArray(t.from) ? t.from.join(',') : t.from;
     const key = `${t.id}-${fromStr}-${t.to}`;
-    if (seenTransitions.has(key)) return false;
-    seenTransitions.add(key);
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
+}
 
-  const history = (workflowData?.history ?? []) as unknown as HistoryTransition[];
-  const currentPlace = workflowData?.place;
+function extractHistory(workflowData: WorkflowInterface | undefined): HistoryTransition[] {
+  return (workflowData?.history ?? []) as unknown as HistoryTransition[];
+}
 
-  const statesSet = new Set<string>();
-  statesSet.add('start');
+function collectStates(transitions: WorkflowTransitionType[], history: HistoryTransition[]): Set<string> {
+  const states = new Set<string>(['start']);
 
-  const stateVisitCount = new Map<string, number>();
-  stateVisitCount.set('start', 1);
-
-  const executedTransitions = new Map<string, { from: string; to: string; count: number }>();
-
-  history.forEach((entry) => {
-    const place = entry.data?.place;
-    const transition = entry.data?.transition;
-
-    if (place) {
-      statesSet.add(place);
-      stateVisitCount.set(place, (stateVisitCount.get(place) ?? 0) + 1);
-    }
-
-    if (transition) {
-      const from = transition.from ?? 'start';
-      const to = transition.to;
-      const transitionId = transition.id;
-
-      statesSet.add(from);
-      statesSet.add(to);
-
-      const key = `${from}->${to}:${transitionId}`;
-      const existing = executedTransitions.get(key);
-      if (existing) {
-        existing.count++;
-      } else {
-        executedTransitions.set(key, { from, to, count: 1 });
-      }
-    }
-  });
-
-  const allTransitions: {
-    id: string;
-    from: string;
-    to: string;
-    condition?: string;
-    trigger?: string;
-    call?: { tool: string }[];
-  }[] = [];
-
-  transitionsInDefinition.forEach((t) => {
+  for (const t of transitions) {
     const fromStates = Array.isArray(t.from) ? t.from : [t.from];
-    const transitionWithCondition = t as WorkflowTransitionType & { if?: string; condition?: string };
-    fromStates.forEach((fromState) => {
-      statesSet.add(fromState);
-      statesSet.add(t.to);
-      allTransitions.push({
+    for (const f of fromStates) states.add(f ?? 'start');
+    states.add(t.to);
+  }
+
+  for (const entry of history) {
+    if (entry.data?.place) states.add(entry.data.place);
+    if (entry.data?.transition) {
+      states.add(entry.data.transition.from ?? 'start');
+      states.add(entry.data.transition.to);
+    }
+  }
+
+  return states;
+}
+
+function buildVisitCounts(history: HistoryTransition[]): Map<string, number> {
+  const counts = new Map<string, number>([['start', 1]]);
+  for (const entry of history) {
+    const place = entry.data?.place;
+    if (place) counts.set(place, (counts.get(place) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function buildExecutedMap(history: HistoryTransition[]): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const entry of history) {
+    const t = entry.data?.transition;
+    if (!t) continue;
+    const key = `${t.from ?? 'start'}->${t.to}:${t.id}`;
+    map.set(key, (map.get(key) ?? 0) + 1);
+  }
+  return map;
+}
+
+function resolveTransitions(definitions: WorkflowTransitionType[], history: HistoryTransition[]): ResolvedTransition[] {
+  const result: ResolvedTransition[] = [];
+
+  for (const t of definitions) {
+    const fromStates = Array.isArray(t.from) ? t.from : [t.from];
+    const withCondition = t as WorkflowTransitionType & { if?: string; condition?: string };
+    for (const fromState of fromStates) {
+      result.push({
         id: t.id,
-        from: fromState,
+        from: fromState ?? 'start',
         to: t.to,
-        condition: transitionWithCondition.if ?? transitionWithCondition.condition,
+        condition: withCondition.if ?? withCondition.condition,
         trigger: t.trigger,
         call: t.call,
       });
-    });
-  });
+    }
+  }
 
-  history.forEach((entry) => {
-    const transition = entry.data?.transition;
-    if (transition && transition.id) {
-      const from = transition.from ?? 'start';
-      const exists = allTransitions.some((t) => t.from === from && t.to === transition.to && t.id === transition.id);
-      if (!exists) {
-        allTransitions.push({
-          id: transition.id,
-          from,
-          to: transition.to,
-        });
+  for (const entry of history) {
+    const t = entry.data?.transition;
+    if (!t?.id) continue;
+    const from = t.from ?? 'start';
+    const exists = result.some((r) => r.from === from && r.to === t.to && r.id === t.id);
+    if (!exists) {
+      result.push({ id: t.id, from, to: t.to });
+    }
+  }
+
+  return result;
+}
+
+function findEndStates(states: Set<string>, transitions: ResolvedTransition[]): Set<string> {
+  const withOutgoing = new Set(transitions.map((t) => t.from));
+  const ends = new Set<string>();
+  for (const s of states) {
+    if (!withOutgoing.has(s) && s !== 'start') ends.add(s);
+  }
+  return ends;
+}
+
+function findVisitedStates(history: HistoryTransition[]): Set<string> {
+  const visited = new Set<string>(['start']);
+  for (const entry of history) {
+    if (entry.data?.place) visited.add(entry.data.place);
+    if (entry.data?.transition?.to) visited.add(entry.data.transition.to);
+  }
+  return visited;
+}
+
+function computeStateRanks(transitions: ResolvedTransition[]): Map<string, number> {
+  const adjacency = new Map<string, string[]>();
+  for (const t of transitions) {
+    if (t.from === t.to) continue;
+    const neighbors = adjacency.get(t.from) ?? [];
+    neighbors.push(t.to);
+    adjacency.set(t.from, neighbors);
+  }
+
+  const ranks = new Map<string, number>([['start', 0]]);
+  const queue = ['start'];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const rank = ranks.get(current)!;
+    for (const neighbor of adjacency.get(current) ?? []) {
+      if (!ranks.has(neighbor)) {
+        ranks.set(neighbor, rank + 1);
+        queue.push(neighbor);
       }
     }
-  });
+  }
 
-  const statesWithOutgoing = new Set<string>();
-  allTransitions.forEach((t) => statesWithOutgoing.add(t.from));
+  return ranks;
+}
 
-  const endStates = new Set<string>();
-  statesSet.forEach((s) => {
-    if (!statesWithOutgoing.has(s) && s !== 'start') {
-      endStates.add(s);
-    }
-  });
+interface NodeBuildContext {
+  workflowId: string;
+  currentPlace: string | undefined;
+  endStates: Set<string>;
+  visitedStates: Set<string>;
+  visitCounts: Map<string, number>;
+  direction: FlowDirection;
+  forceVisible: boolean;
+}
 
-  const visitedStates = new Set<string>();
-  visitedStates.add('start');
-  history.forEach((entry) => {
-    const place = entry.data?.place;
-    if (place) visitedStates.add(place);
-    const to = entry.data?.transition?.to;
-    if (to) visitedStates.add(to);
-  });
-
-  const nodes: Node<StateNodeData>[] = Array.from(statesSet).map((state) => ({
-    id: `${workflowId}-${state}`,
+function buildNodes(states: Set<string>, ctx: NodeBuildContext): Node<StateNodeData>[] {
+  return Array.from(states).map((state) => ({
+    id: `${ctx.workflowId}-${state}`,
     type: 'stateNode',
     position: { x: 0, y: 0 },
     data: {
       label: state,
       isStart: state === 'start',
-      isEnd: endStates.has(state),
-      isCurrent: state === currentPlace,
-      isVisited: visitedStates.has(state),
-      visitCount: stateVisitCount.get(state) ?? 0,
-      direction: direction,
-      forceVisible,
+      isEnd: ctx.endStates.has(state),
+      isCurrent: state === ctx.currentPlace,
+      isVisited: ctx.visitedStates.has(state),
+      visitCount: ctx.visitCounts.get(state) ?? 0,
+      direction: ctx.direction,
+      forceVisible: ctx.forceVisible,
     },
   }));
+}
 
-  const edgeMap = new Map<string, Edge>();
-  let edgeIndex = 0;
+interface EdgeBuildContext {
+  workflowId: string;
+  executedMap: Map<string, number>;
+  stateRanks: Map<string, number>;
+  forceVisible: boolean;
+}
 
-  allTransitions.forEach((t) => {
-    const edgeKey = `${t.from}->${t.to}:${t.id}`;
-    if (edgeMap.has(edgeKey)) return;
+function buildEdges(transitions: ResolvedTransition[], ctx: EdgeBuildContext): Edge[] {
+  const seen = new Set<string>();
+  const edges: Edge[] = [];
+  let index = 0;
 
-    const executedInfo = executedTransitions.get(edgeKey);
-    const isExecuted = !!executedInfo;
+  for (const t of transitions) {
+    const key = `${t.from}->${t.to}:${t.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const isExecuted = ctx.executedMap.has(key);
     const isAutomatic = t.trigger === 'onEntry';
+    const isSelfLoop = t.from === t.to;
+    const fromRank = ctx.stateRanks.get(t.from) ?? 0;
+    const toRank = ctx.stateRanks.get(t.to) ?? 0;
+    const isBackEdge = !isSelfLoop && toRank <= fromRank;
 
-    edgeMap.set(edgeKey, {
-      id: `edge-${workflowId}-${edgeIndex++}`,
-      source: `${workflowId}-${t.from}`,
-      target: `${workflowId}-${t.to}`,
+    const color = isExecuted ? 'var(--primary)' : 'var(--muted-foreground)';
+
+    const data: TransitionEdgeData = {
+      ...t,
+      isExecuted,
+      isSelfLoop,
+      isBackEdge,
+      forceVisible: ctx.forceVisible,
+    };
+
+    edges.push({
+      id: `edge-${ctx.workflowId}-${index++}`,
+      source: `${ctx.workflowId}-${t.from}`,
+      target: `${ctx.workflowId}-${t.to}`,
+      ...(isBackEdge && { sourceHandle: 'bottom-source', targetHandle: 'bottom-target' }),
       type: 'workflowTransition',
       animated: false,
       style: {
         strokeWidth: isExecuted ? 2.5 : 1.5,
-        stroke: isExecuted ? 'var(--primary)' : 'var(--muted-foreground)',
+        stroke: color,
         strokeDasharray: isAutomatic ? '4,4' : !isExecuted ? '5,5' : undefined,
-        opacity: isExecuted || forceVisible ? 1 : 0.3,
+        opacity: isExecuted || ctx.forceVisible ? 1 : 0.3,
       },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 18,
-        height: 18,
-        color: isExecuted ? 'var(--primary)' : 'var(--muted-foreground)',
-      },
-      data: { isExecuted, ...t, forceVisible },
+      markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color },
+      data,
     });
-  });
-
-  const edges = Array.from(edgeMap.values());
-
-  if (nodes.length > 1) {
-    return getLayoutedElements(nodes, edges, direction);
   }
 
-  return { nodes, edges };
+  return edges;
 }

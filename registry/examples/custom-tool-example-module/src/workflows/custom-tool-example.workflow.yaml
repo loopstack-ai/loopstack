@@ -22,10 +22,10 @@ transitions:
       - id: calculation
         tool: mathTool
         args:
-          a: ${ args.a }
-          b: ${ args.b }
+          a: ${{ args.a }}
+          b: ${{ args.b }}
         assign:
-          total: ${ result.data }
+          total: ${{ result.data }}
 
       # Display the result
       - tool: createChatMessage
@@ -47,15 +47,15 @@ transitions:
       - id: count1
         tool: counterTool
         assign:
-          count1: ${ result.data }
+          count1: ${{ result.data }}
       - id: count2
         tool: counterTool
         assign:
-          count2: ${ result.data }
+          count2: ${{ result.data }}
       - id: count3
         tool: counterTool
         assign:
-          count3: ${ result.data }
+          count3: ${{ result.data }}
       - tool: createChatMessage
         args:
           role: 'assistant'

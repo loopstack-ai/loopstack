@@ -1,4 +1,5 @@
 export * from './template.service';
+export * from './expression-handler/jexl-expression.handler';
 export * from './expression-handler/object-expression.handler';
 export * from './expression-handler/template-expression.handler';
 export * from './handlebars-processor.service';

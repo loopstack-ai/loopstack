@@ -37,9 +37,9 @@ transitions:
           id: input
           document: meetingNotesDocument
           update:
-            content: ${ runtime.transition.payload }
+            content: ${{ runtime.transition.payload }}
         assign:
-          meetingNotes: ${ result.data.content }
+          meetingNotes: ${{ result.data.content }}
 
   - id: optimize_notes
     from: response_received
@@ -72,6 +72,6 @@ transitions:
           id: final
           document: optimizedNotesDocument
           update:
-            content: ${ runtime.transition.payload }
+            content: ${{ runtime.transition.payload }}
         assign:
-          optimizedNotes: ${ result.data.content }
+          optimizedNotes: ${{ result.data.content }}

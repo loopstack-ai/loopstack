@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import { Tool, ToolInterface, ToolResult } from '@loopstack/common';
 
-@Injectable()
 @Tool({
   config: {
     description: 'Counter tool.',

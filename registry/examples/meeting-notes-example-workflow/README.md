@@ -12,9 +12,11 @@ By using this workflow as a reference, you'll learn how to:
 
 - Use manual triggers to pause workflows for user input
 - Create interactive documents with action buttons
-- Handle transition payloads from user interactions
+- Handle transition payloads from user interactions via `runtime.transition.payload`
 - Transform unstructured text into structured data with AI
 - Build review-and-confirm patterns for AI outputs
+- Use `@State` to manage workflow state with schemas
+- Use `@Input` to define workflow arguments and document content schemas
 
 This example is essential for developers building workflows that require human oversight or approval steps.
 
@@ -66,7 +68,7 @@ See here for more information about working with [Modules](https://loopstack.ai/
 
 ### Workflow Flow
 
-1. **Start** - User provides unstructured meeting notes
+1. **Start** - User provides unstructured meeting notes via the input form
 2. **Wait for Input** - User can edit the notes, then clicks "Optimize Notes"
 3. **AI Processing** - LLM extracts structured information into a formatted document
 4. **Review** - User reviews and can edit the structured output
@@ -74,7 +76,37 @@ See here for more information about working with [Modules](https://loopstack.ai/
 
 ### Key Concepts
 
-#### 1. Manual Triggers
+#### 1. Workflow Input and State
+
+Define input parameters with `@Input` and workflow state with `@State`:
+
+```typescript
+@Input({
+  schema: z.object({
+    inputText: z
+      .string()
+      .default(
+        '- meeting 1.1.2025\n- budget: need 2 cut costs sarah said\n...',
+      ),
+  }),
+})
+args: {
+  inputText: string;
+};
+
+@State({
+  schema: z.object({
+    meetingNotes: MeetingNotesDocumentSchema.optional(),
+    optimizedNotes: OptimizedMeetingNotesDocumentSchema.optional(),
+  }),
+})
+state: {
+  meetingNotes?: z.infer<typeof MeetingNotesDocumentSchema>;
+  optimizedNotes?: z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
+};
+```
+
+#### 2. Manual Triggers
 
 Use `trigger: manual` to pause the workflow and wait for user interaction:
 
@@ -87,11 +119,13 @@ Use `trigger: manual` to pause the workflow and wait for user interaction:
 
 The workflow pauses at `waiting_for_response` until the user triggers the transition.
 
-#### 2. Document Actions with Buttons
+#### 3. Document Actions with Buttons
 
-Add action buttons to documents that trigger transitions:
+Add action buttons to documents that trigger transitions. These are defined in the document's YAML config:
 
 ```yaml
+# meeting-notes-document.yaml
+type: document
 ui:
   form:
     properties:
@@ -108,25 +142,52 @@ ui:
 
 When clicked, the button triggers the `user_response` transition with the current document content.
 
-#### 3. Transition Payloads
+#### 4. Transition Payloads
 
-Access user input from the transition payload:
+Access user input from the transition payload using `runtime.transition.payload`:
 
 ```yaml
 - id: user_response
+  from: waiting_for_response
+  to: response_received
   trigger: manual
   call:
-    - tool: createDocument
+    - id: create_response
+      tool: createDocument
       args:
+        id: input
+        document: meetingNotesDocument
         update:
-          content: ${ transition.payload }
+          content: ${{ runtime.transition.payload }}
       assign:
-        meetingNotes: ${ result.data.content }
+        meetingNotes: ${{ result.data.content }}
 ```
 
-The `transition.payload` contains the document content when the user clicked the button.
+The `runtime.transition.payload` contains the document content when the user clicked the button. The result is saved to workflow state via `assign`.
 
-#### 4. Structured Output Documents
+#### 5. Custom Document Schemas
+
+Define document content schemas using `@Input` on the `content` property:
+
+```typescript
+export const MeetingNotesDocumentSchema = z.object({
+  text: z.string(),
+});
+
+@Document({
+  configFile: __dirname + '/meeting-notes-document.yaml',
+})
+export class MeetingNotesDocument implements DocumentInterface {
+  @Input({
+    schema: MeetingNotesDocumentSchema,
+  })
+  content: {
+    text: string;
+  };
+}
+```
+
+#### 6. Structured Output Documents
 
 Define complex document schemas for structured AI output:
 
@@ -140,14 +201,25 @@ export const OptimizedMeetingNotesDocumentSchema = z.object({
 });
 ```
 
-#### 5. Array Fields with Collapsible UI
-
-Configure array fields with custom item titles and collapsed display:
+Configure the document UI with ordering, collapsible arrays, and confirm button:
 
 ```yaml
+# optimized-notes-document.yaml
+type: document
 ui:
   form:
+    order:
+      - date
+      - summary
+      - participants
+      - decisions
+      - actionItems
     properties:
+      date:
+        title: Date
+      summary:
+        title: Summary
+        widget: textarea
       participants:
         title: Participants
         collapsed: true
@@ -158,32 +230,39 @@ ui:
         collapsed: true
         items:
           title: Action Item
+  actions:
+    - type: button
+      widget: button
+      transition: confirm
+      options:
+        label: 'Confirm'
 ```
 
-#### 6. AI Document Generation
+#### 7. AI Document Generation
 
-Use `aiGenerateDocument` to populate a structured document:
+Use `aiGenerateDocument` to populate a structured document. Reference state values with `state.<name>`:
 
 ```yaml
-- tool: aiGenerateDocument
-  args:
-    llm:
-      provider: openai
-      model: gpt-4o
-    response:
-      id: final
-      document: optimizedNotesDocument
-    prompt: |
-      Extract all information from the provided meeting notes into the structured document.
+- id: optimize_notes
+  from: response_received
+  to: notes_optimized
+  call:
+    - id: prompt
+      tool: aiGenerateDocument
+      args:
+        llm:
+          provider: openai
+          model: gpt-4o
+        response:
+          id: final
+          document: optimizedNotesDocument
+        prompt: |
+          Extract all information from the provided meeting notes into the structured document.
 
-      <Meeting Notes>
-      {{ meetingNotes.text }}
-      </Meeting Notes>
-  assign:
-    optimizedNotes: ${ result.data.content }
+          <Meeting Notes>
+          {{ state.meetingNotes.text }}
+          </Meeting Notes>
 ```
-
-The LLM automatically fills in the document fields based on the schema.
 
 ## Dependencies
 
