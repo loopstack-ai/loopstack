@@ -8,6 +8,7 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:studio\"",
     "dev:backend": "cd backend && npm run start:dev",
     "dev:studio": "cd studio && npm run dev",
+    "docker:build:postgres": "cd docker && make deploy",
     "docker:down": "cd backend && docker compose down",
     "docker:up": "cd backend && docker compose up -d",
     "install:all": "npm install && cd backend && npm install && cd ../studio && npm install",
