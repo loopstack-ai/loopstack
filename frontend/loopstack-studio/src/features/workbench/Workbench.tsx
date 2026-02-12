@@ -11,7 +11,7 @@ import { WorkbenchContextProvider } from './providers/WorkbenchContextProvider.t
 import type { WorkbenchState } from './providers/WorkbenchContextProvider.tsx';
 
 function WorkbenchContent({ pipeline }: { pipeline: PipelineDto }) {
-  const { selectedFile, fileContent, isLoading } = useCodeExplorerContext();
+  const { selectedFile, fileContent, isContentLoading } = useCodeExplorerContext();
 
   return (
     <div className="flex h-full flex-col">
@@ -30,7 +30,7 @@ function WorkbenchContent({ pipeline }: { pipeline: PipelineDto }) {
             <FileContentViewer
               selectedFile={selectedFile}
               content={fileContent}
-              isLoading={isLoading && selectedFile !== null}
+              isLoading={isContentLoading}
               className="h-full"
             />
           </div>

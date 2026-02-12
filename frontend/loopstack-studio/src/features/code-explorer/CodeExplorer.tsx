@@ -8,7 +8,7 @@ interface CodeExplorerProps {
 }
 
 export function CodeExplorer({ className }: CodeExplorerProps) {
-  const { fileTree, isLoading, error, searchQuery, setSearchQuery, selectFile, selectedFile, clearSelection } =
+  const { fileTree, isTreeLoading, error, searchQuery, setSearchQuery, selectFile, selectedFile, clearSelection } =
     useCodeExplorerContext();
 
   return (
@@ -31,7 +31,7 @@ export function CodeExplorer({ className }: CodeExplorerProps) {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border bg-background">
-          {isLoading ? (
+          {isTreeLoading ? (
             <div className="flex flex-1 items-center justify-center p-4">
               <p className="text-xs text-muted-foreground">Loading file tree...</p>
             </div>

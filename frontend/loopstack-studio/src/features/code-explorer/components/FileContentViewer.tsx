@@ -1,4 +1,4 @@
-import { FileText, X } from 'lucide-react';
+import { FileText, Loader2, X } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import MarkdownContent from '@/components/dynamic-form/MarkdownContent';
@@ -136,8 +136,8 @@ export function FileContentViewer({ selectedFile, content, isLoading = false, cl
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex flex-1 items-center justify-center p-8">
-          <p className="text-sm text-muted-foreground">Loading...</p>
+        <div className="flex justify-center p-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       </div>
     );

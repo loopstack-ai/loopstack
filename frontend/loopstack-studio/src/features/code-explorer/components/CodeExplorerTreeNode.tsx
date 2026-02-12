@@ -1,5 +1,4 @@
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -13,6 +12,8 @@ interface CodeExplorerTreeNodeProps {
   onClearSelection?: () => void;
   isSelected?: boolean;
   selectedFileId?: string;
+  expandedFolders?: Set<string>;
+  toggleFolder?: (folderId: string) => void;
 }
 
 const INDENT_PX = 16;
@@ -25,8 +26,10 @@ export function CodeExplorerTreeNode({
   onClearSelection,
   isSelected = false,
   selectedFileId,
+  expandedFolders = new Set(),
+  toggleFolder,
 }: CodeExplorerTreeNodeProps) {
-  const [open, setOpen] = useState(false);
+  const isOpen = expandedFolders.has(node.id);
   const paddingLeft = depth * INDENT_PX + BASE_PADDING_PX;
 
   const nodeIsSelected = selectedFileId === node.id || isSelected;
@@ -73,10 +76,16 @@ export function CodeExplorerTreeNode({
   }
 
   const hasChildren = node.children && node.children.length > 0;
-  const FolderIcon = getFolderIcon(open);
+  const FolderIcon = getFolderIcon(isOpen);
+
+  const handleToggle = () => {
+    if (toggleFolder) {
+      toggleFolder(node.id);
+    }
+  };
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={isOpen} onOpenChange={handleToggle}>
       <CollapsibleTrigger
         className={cn(
           'flex w-full min-w-0 items-center gap-1 rounded-sm py-1 text-left text-sm hover:bg-muted',
@@ -85,10 +94,10 @@ export function CodeExplorerTreeNode({
         )}
         style={{ paddingLeft }}
         disabled={!hasChildren}
-        aria-label={`${open ? 'Collapse' : 'Expand'} folder ${node.name}`}
+        aria-label={`${isOpen ? 'Collapse' : 'Expand'} folder ${node.name}`}
       >
         {hasChildren ? (
-          open ? (
+          isOpen ? (
             <ChevronDown className="h-4 w-4 shrink-0" aria-hidden />
           ) : (
             <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
@@ -109,6 +118,8 @@ export function CodeExplorerTreeNode({
               onSelectFile={onSelectFile}
               onClearSelection={onClearSelection}
               selectedFileId={selectedFileId}
+              expandedFolders={expandedFolders}
+              toggleFolder={toggleFolder}
             />
           ))}
         </CollapsibleContent>

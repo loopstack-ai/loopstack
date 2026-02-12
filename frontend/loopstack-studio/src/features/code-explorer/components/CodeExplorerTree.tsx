@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useCodeExplorerContext } from '../providers/CodeExplorerProvider';
 import type { FileExplorerNode } from '../types';
 import { CodeExplorerTreeNode } from './CodeExplorerTreeNode';
 
@@ -23,7 +24,7 @@ function filterNode(node: FileExplorerNode, query: string): FileExplorerNode | n
   if (matchesSelf || filteredChildren.length > 0) {
     return {
       ...node,
-      children: filteredChildren.length > 0 ? filteredChildren : node.children,
+      children: filteredChildren,
     };
   }
 
@@ -46,6 +47,7 @@ export function CodeExplorerTree({
   selectedFileId,
 }: CodeExplorerTreeProps) {
   const filteredNodes = useMemo(() => filterTree(nodes, searchQuery), [nodes, searchQuery]);
+  const { expandedFolders, toggleFolder } = useCodeExplorerContext();
 
   return (
     <ScrollArea className="h-full w-full">
@@ -61,6 +63,8 @@ export function CodeExplorerTree({
               onSelectFile={onSelectFile}
               onClearSelection={onClearSelection}
               selectedFileId={selectedFileId}
+              expandedFolders={expandedFolders}
+              toggleFolder={toggleFolder}
             />
           ))
         )}

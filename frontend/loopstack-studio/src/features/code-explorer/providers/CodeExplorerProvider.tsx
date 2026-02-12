@@ -1,18 +1,22 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { codeExplorerService } from '../services/codeExplorerService';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { FileExplorerNodeDto } from '@loopstack/api-client';
+import { useFileContent, useFileTree } from '@/hooks/useFiles';
 import type { FileExplorerNode } from '../types';
 
 interface CodeExplorerContextValue {
   fileTree: FileExplorerNode[];
   selectedFile: FileExplorerNode | null;
   fileContent: string | null;
-  isLoading: boolean;
+  isTreeLoading: boolean;
+  isContentLoading: boolean;
   error: Error | null;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   selectFile: (node: FileExplorerNode) => void;
   clearSelection: () => void;
   refresh: () => Promise<void>;
+  expandedFolders: Set<string>;
+  toggleFolder: (folderId: string) => void;
 }
 
 const CodeExplorerContext = createContext<CodeExplorerContextValue | null>(null);
@@ -23,114 +27,109 @@ interface CodeExplorerProviderProps {
   initialSelectedPath?: string;
 }
 
+function mapDtoToNode(dto: FileExplorerNodeDto): FileExplorerNode {
+  return {
+    id: dto.id,
+    name: dto.name,
+    path: dto.path,
+    type: dto.type as 'file' | 'folder',
+    children: dto.children?.map(mapDtoToNode),
+  };
+}
+
 export function CodeExplorerProvider({ children, pipelineId, initialSelectedPath }: CodeExplorerProviderProps) {
-  const [fileTree, setFileTree] = useState<FileExplorerNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileExplorerNode | null>(null);
-  const [fileContent, setFileContent] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
-  const loadFileTree = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const tree = await codeExplorerService.getFileTree(pipelineId);
-      setFileTree(tree);
+  const fileTreeQuery = useFileTree(pipelineId);
+  const fileContentQuery = useFileContent(pipelineId, selectedFile?.path);
 
-      if (initialSelectedPath && tree.length > 0) {
-        const findNodeByPath = (nodes: FileExplorerNode[], path: string): FileExplorerNode | null => {
-          for (const node of nodes) {
-            if (node.path === path) {
-              return node;
-            }
-            if (node.children) {
-              const found = findNodeByPath(node.children, path);
-              if (found) return found;
-            }
+  const fileTree = useMemo(() => {
+    if (!fileTreeQuery.data) return [];
+    return fileTreeQuery.data.map(mapDtoToNode);
+  }, [fileTreeQuery.data]);
+
+  const fileContent = useMemo(() => {
+    return fileContentQuery.data?.content ?? null;
+  }, [fileContentQuery.data]);
+
+  const isTreeLoading = fileTreeQuery.isLoading && !fileTreeQuery.data;
+  const isContentLoading = fileContentQuery.isLoading && selectedFile !== null && !fileContentQuery.data;
+  const error = fileTreeQuery.error || fileContentQuery.error || null;
+
+  useEffect(() => {
+    if (initialSelectedPath && fileTree.length > 0 && !selectedFile) {
+      const findNodeByPath = (nodes: FileExplorerNode[], path: string): FileExplorerNode | null => {
+        for (const node of nodes) {
+          if (node.path === path) {
+            return node;
           }
-          return null;
-        };
-
-        const node = findNodeByPath(tree, initialSelectedPath);
-        if (node && node.type === 'file') {
-          setSelectedFile(node);
+          if (node.children) {
+            const found = findNodeByPath(node.children, path);
+            if (found) return found;
+          }
         }
+        return null;
+      };
+
+      const node = findNodeByPath(fileTree, initialSelectedPath);
+      if (node && node.type === 'file') {
+        setSelectedFile(node);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load file tree'));
-    } finally {
-      setIsLoading(false);
     }
-  }, [pipelineId, initialSelectedPath]);
-
-  const loadFileContent = useCallback(
-    async (node: FileExplorerNode) => {
-      if (node.type !== 'file') {
-        setFileContent(null);
-        return;
-      }
-
-      try {
-        setError(null);
-        const content = await codeExplorerService.getFileContent(node.path, pipelineId);
-        setFileContent(content?.content ?? null);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error(`Failed to load file: ${node.path}`));
-        setFileContent(null);
-      }
-    },
-    [pipelineId],
-  );
+  }, [initialSelectedPath, fileTree, selectedFile]);
 
   const selectFile = useCallback(
     (node: FileExplorerNode) => {
       if (node.type === 'file') {
         if (selectedFile?.id === node.id) {
           setSelectedFile(null);
-          setFileContent(null);
         } else {
           setSelectedFile(node);
-          void loadFileContent(node);
         }
       }
     },
-    [loadFileContent, selectedFile],
+    [selectedFile],
   );
 
   const clearSelection = useCallback(() => {
     setSelectedFile(null);
-    setFileContent(null);
   }, []);
 
   const refresh = useCallback(async () => {
-    await loadFileTree();
+    await fileTreeQuery.refetch();
     if (selectedFile) {
-      await loadFileContent(selectedFile);
+      await fileContentQuery.refetch();
     }
-  }, [loadFileTree, loadFileContent, selectedFile]);
+  }, [fileTreeQuery, fileContentQuery, selectedFile]);
 
-  useEffect(() => {
-    void loadFileTree();
-  }, [loadFileTree]);
-
-  useEffect(() => {
-    if (selectedFile && selectedFile.type === 'file') {
-      void loadFileContent(selectedFile);
-    }
-  }, [selectedFile, loadFileContent]);
+  const toggleFolder = useCallback((folderId: string) => {
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    });
+  }, []);
 
   const value: CodeExplorerContextValue = {
     fileTree,
     selectedFile,
     fileContent,
-    isLoading,
+    isTreeLoading,
+    isContentLoading,
     error,
     searchQuery,
     setSearchQuery,
     selectFile,
     clearSelection,
     refresh,
+    expandedFolders,
+    toggleFolder,
   };
 
   return <CodeExplorerContext.Provider value={value}>{children}</CodeExplorerContext.Provider>;
