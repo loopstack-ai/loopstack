@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { AiGenerateDocument, AiMessageDocument } from '@loopstack/ai-module';
-import { DocumentEntity, InjectDocument, InjectTool, Input, Runtime, Workflow } from '@loopstack/common';
+import { DocumentEntity, InjectDocument, InjectTool, Input, Runtime, ToolResult, Workflow } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core-ui-module';
 import { FileDocument, FileDocumentType } from './documents/file-document';
 
@@ -25,6 +25,6 @@ export class PromptStructuredOutputWorkflow {
 
   @Runtime()
   runtime: {
-    tools: Record<'prompt', Record<'llm_call', DocumentEntity<FileDocumentType>>>;
+    tools: Record<'prompt', Record<'llm_call', ToolResult<DocumentEntity<FileDocumentType>>>>;
   };
 }

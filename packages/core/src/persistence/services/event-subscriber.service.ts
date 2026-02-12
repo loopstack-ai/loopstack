@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { EventSubscriberEntity } from '@loopstack/common';
 
 export interface PipelineEventPayload {
-  eventPipelineId: string;
+  pipelineId: string;
   eventName: string;
   workspaceId: string;
   data: Record<string, unknown> | undefined;

@@ -6,3 +6,5 @@ export const TransitionPayloadSchema = z.object({
   payload: z.any().optional(),
   meta: z.any().optional(),
 });
+
+export type TransitionPayload = z.infer<typeof TransitionPayloadSchema>;

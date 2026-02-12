@@ -3,9 +3,7 @@ import { WorkflowExecutionContextManager } from './execution-context-manager';
 export function getTemplateVars(ctx: WorkflowExecutionContextManager) {
   const metadata = ctx.getMetadata();
 
-  const templateVars: Record<string | symbol, unknown> = {
-    transition: ctx.getManager().getData('transition'),
-  };
+  const templateVars: Record<string | symbol, unknown> = {};
 
   const argsKey = metadata.args?.name;
   if (argsKey) {

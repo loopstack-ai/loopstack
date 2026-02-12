@@ -160,7 +160,7 @@ User messages are handled through a manually triggered transition that captures 
             role: user
             parts:
               - type: text
-                text: ${{ transition.payload }}
+                text: ${{ runtime.transition.payload }}
 ```
 
 ### Workflow Class
@@ -168,6 +168,8 @@ User messages are handled through a manually triggered transition that captures 
 The TypeScript workflow class declares the tools, documents, and runtime types used in the YAML definition:
 
 ```typescript
+import { ToolResult } from '@loopstack/common';
+
 @Workflow({
   configFile: __dirname + '/chat.workflow.yaml',
 })
@@ -178,7 +180,7 @@ export class ChatWorkflow {
 
   @Runtime()
   runtime: {
-    tools: Record<'prompt', Record<'llm_call', AiMessageDocumentContentType>>;
+    tools: Record<'prompt', Record<'llm_call', ToolResult<AiMessageDocumentContentType>>>;
   };
 }
 ```

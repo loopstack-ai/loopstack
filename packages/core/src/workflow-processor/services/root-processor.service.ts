@@ -9,6 +9,7 @@ import {
   getBlockWorkflow,
 } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
+import { RunPayload } from '@loopstack/contracts/schemas';
 import { type PipelineEventPayload, PipelineService } from '../../persistence';
 import { BlockDiscoveryService } from './block-discovery.service';
 import { BlockProcessor } from './block-processor.service';
@@ -29,7 +30,7 @@ export class RootProcessorService {
   private async processRootPipeline(
     workflow: WorkflowInterface,
     pipeline: PipelineEntity,
-    payload: RunContext['payload'],
+    payload: RunPayload,
     args?: any,
   ): Promise<WorkflowMetadataInterface> {
     const namespace = await this.namespaceProcessorService.createRootNamespace(pipeline);
@@ -50,7 +51,7 @@ export class RootProcessorService {
     return this.blockProcessor.processBlock(workflow, args, ctx);
   }
 
-  async runPipeline(pipeline: PipelineEntity, payload: RunContext['payload']): Promise<WorkflowMetadataInterface> {
+  async runPipeline(pipeline: PipelineEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {
     const workspaceInstance = this.blockDiscoveryService.getWorkspace(pipeline.workspace.blockName);
     if (!workspaceInstance) {
       throw new BadRequestException(`Config for workspace with name ${pipeline.workspace.blockName} not found.`);
@@ -77,7 +78,7 @@ export class RootProcessorService {
       this.logger.log(`Root pipeline execution completed.`);
 
       this.eventEmitter.emit('pipeline.event', {
-        eventPipelineId: pipeline.id,
+        pipelineId: pipeline.id,
         eventName: 'completed',
         workspaceId: pipeline.workspaceId,
         data: executionMeta.result,

@@ -67,4 +67,4 @@ transitions:
               role: user
               parts:
                 - type: text
-                  text: ${{ transition.payload }}
+                  text: ${{ runtime.transition.payload }}

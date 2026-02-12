@@ -13,7 +13,7 @@ By using this example as a reference, you'll learn how to:
 - Use `ExecuteWorkflowAsync` to start child workflows asynchronously
 - Set up callback transitions to handle sub-workflow completion
 - Define workflow results using `@Output` and `getResult()`
-- Access child workflow results via `transition.payload` in the callback
+- Access child workflow results via `runtime.transition.payload` in the callback
 - Hide sub-workflows from direct execution using `visible: false`
 - Display real-time status updates using the `LinkDocument`
 - Compose complex workflows from smaller, reusable workflow components
@@ -176,7 +176,7 @@ The `@Output` decorator on `getResult()` defines the schema for the workflow's o
 
 #### 5. Handling the Callback and Accessing Results
 
-Define a callback transition that fires when the sub-workflow completes. Access the child workflow's result via `transition.payload`:
+Define a callback transition that fires when the sub-workflow completes. Access the child workflow's result via `runtime.transition.payload`:
 
 ```yaml
 - id: sub_workflow_callback
@@ -200,10 +200,10 @@ Define a callback transition that fires when the sub-workflow completes. Access 
         content: |
           A message from the child workflow:
 
-          {{ transition.payload.message }}
+          {{ runtime.transition.payload.message }}
 ```
 
-The `trigger: manual` ensures this transition only fires when called by the callback, not automatically. The `transition.payload` contains the result returned by the child workflow's `getResult()` method, decorated with `@Output`.
+The `trigger: manual` ensures this transition only fires when called by the callback, not automatically. The `runtime.transition.payload` contains the result returned by the child workflow's `getResult()` method, decorated with `@Output`.
 
 #### 6. Hiding Sub-Workflows from Direct Execution
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { AiGenerateText, AiMessageDocument, AiMessageDocumentContentType } from '@loopstack/ai-module';
-import { InjectDocument, InjectTool, Input, Runtime, Workflow } from '@loopstack/common';
+import { InjectDocument, InjectTool, Input, Runtime, ToolResult, Workflow } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core-ui-module';
 
 @Workflow({
@@ -22,6 +22,6 @@ export class PromptWorkflow {
 
   @Runtime()
   runtime: {
-    tools: Record<'prompt', Record<'llm_call', AiMessageDocumentContentType>>;
+    tools: Record<'prompt', Record<'llm_call', ToolResult<AiMessageDocumentContentType>>>;
   };
 }

@@ -106,6 +106,7 @@ export class StateMachineProcessorService {
       to: nextTransition.to,
       onError: nextTransition.onError,
       payload: nextTransition.id === pendingTransition?.id ? (pendingTransition?.payload as unknown) : null,
+      meta: nextTransition.id === pendingTransition?.id ? (pendingTransition?.meta as unknown) : null,
     };
   }
 

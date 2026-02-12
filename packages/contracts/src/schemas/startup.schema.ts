@@ -43,12 +43,16 @@ export const BaseStartupTaskSchema = z.object({
   schedule: JobsScheduleSchema.optional(),
 });
 
+export const RunPayloadSchema = z.object({
+  id: z.string(),
+  transition: TransitionPayloadSchema.optional(),
+});
+
+export type RunPayload = z.infer<typeof RunPayloadSchema>;
+
 export const RunPipelineTaskSchema = BaseStartupTaskSchema.extend({
   type: z.literal('run_pipeline'),
-  payload: z.object({
-    id: z.string(),
-    transition: TransitionPayloadSchema.optional(),
-  }),
+  payload: RunPayloadSchema,
 });
 
 // export const CreateRunPipelineTaskSchema = BaseStartupTaskSchema.extend({

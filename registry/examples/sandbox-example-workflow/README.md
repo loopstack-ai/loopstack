@@ -64,6 +64,8 @@ See here for more information about working with [Modules](https://loopstack.ai/
 The workflow class declares inputs, state, runtime types, tools, and helpers:
 
 ```typescript
+import { ToolResult } from '@loopstack/common';
+
 @Workflow({
   configFile: __dirname + '/sandbox-example.workflow.yaml',
 })
@@ -85,11 +87,12 @@ export class SandboxExampleWorkflow {
   state: { containerId: string; fileContent: string; fileList: string };
 
   @Runtime()
-  runtime: { tools: Record<string, Record<string, any>> };
+  runtime: { tools: Record<string, Record<string, ToolResult<any>>> };
 
   @InjectTool() sandboxInit: SandboxInit;
   @InjectTool() sandboxDestroy: SandboxDestroy;
   @InjectTool() sandboxWriteFile: SandboxWriteFile;
+
   // ... other tools
 
   @DefineHelper()

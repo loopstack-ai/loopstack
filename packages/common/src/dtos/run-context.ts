@@ -1,4 +1,4 @@
-import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
+import { RunPayload } from '@loopstack/contracts/schemas';
 import { NamespaceEntity } from '../entities';
 
 export class RunContext {
@@ -10,9 +10,7 @@ export class RunContext {
   workflowId?: string;
   namespace!: NamespaceEntity;
   labels!: string[];
-  payload?: {
-    transition?: TransitionPayloadInterface;
-  };
+  payload?: RunPayload;
 
   constructor(data: RunContext) {
     Object.assign(this, data);

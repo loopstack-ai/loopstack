@@ -53,9 +53,17 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/prompt-structured-output-example.module.ts",
+    "module": "src/run-sub-workflow-example.module.ts",
     "workflows": [
-      "src/prompt-structured-output.workflow.ts"
+      "src/run-sub-workflow-example-parent.workflow.ts",
+      {
+        "path": "src/run-sub-workflow-example-sub.workflow.ts",
+        "options": {
+          "options": {
+            "visible": false
+          }
+        }
+      }
     ]
   }
 }

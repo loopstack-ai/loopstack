@@ -130,7 +130,7 @@ The TypeScript class declares the runtime types with the `@Runtime()` decorator:
 ```typescript
 @Runtime()
 runtime: {
-  tools: Record<'prompt', Record<'llm_call', AiMessageDocumentContentType>>;
+  tools: Record<'prompt', Record<'llm_call', ToolResult<AiMessageDocumentContentType>>>;
 };
 ```
 

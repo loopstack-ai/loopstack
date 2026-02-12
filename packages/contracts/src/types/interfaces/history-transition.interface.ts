@@ -5,4 +5,5 @@ export interface HistoryTransition {
   to: string;
   onError?: string;
   payload: any;
+  meta?: any;
 }

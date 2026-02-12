@@ -4,9 +4,20 @@ import { FileSystemService } from './file-system.service';
 import { PromptService } from './prompt.service';
 import { TypeScriptAstService } from './typescript-ast.service';
 
+export interface WorkflowEntryOptions {
+  options?: Record<string, unknown>;
+}
+
+export interface WorkflowObjectEntry {
+  path: string;
+  options?: WorkflowEntryOptions;
+}
+
+export type WorkflowEntry = string | WorkflowObjectEntry;
+
 export interface LoopstackModuleConfig {
   module: string;
-  workflows?: string[];
+  workflows?: WorkflowEntry[];
 }
 
 export interface ModuleInstallOptions {
