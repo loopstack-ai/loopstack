@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { randomUUID } from 'node:crypto';
-import { EventSubscriberService } from 'src/persistence';
 import type { ScheduledTask } from '@loopstack/contracts/types';
+import { EventSubscriberService } from '../../persistence';
 import { TaskSchedulerService } from './task-scheduler.service';
 
 export interface PipelineEventPayload {

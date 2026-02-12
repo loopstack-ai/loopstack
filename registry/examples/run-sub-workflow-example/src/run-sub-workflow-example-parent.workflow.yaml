@@ -1,0 +1,52 @@
+title: 'Run Sub Workflow Example'
+
+transitions:
+  - id: run_workflow
+    from: start
+    to: sub_workflow_started
+    call:
+      - tool: createChatMessage
+        args:
+          - role: assistant
+            content: 'Starting Sub-Workflow...'
+
+      - tool: executeWorkflowAsync
+        id: job
+        args:
+          workflow: runSubWorkflowExampleSubWorkflow
+          args: {}
+          callback:
+            transition: sub_workflow_callback
+
+      - tool: createDocument
+        args:
+          document: linkDocument
+          id: subWorkflow_link
+          update:
+            content:
+              icon: 'Clock'
+              label: 'Executing Sub-Workflow...'
+              href: '/pipelines/{{ metadata.tools.run_workflow.job.data.task.payload.id }}'
+
+  - id: sub_workflow_callback
+    from: sub_workflow_started
+    to: end
+    trigger: manual
+    call:
+      - tool: createDocument
+        args:
+          document: linkDocument
+          id: subWorkflow_link
+          update:
+            content:
+              icon: 'CircleCheck'
+              label: 'Sub-Workflow completed'
+              href: '/pipelines/{{ metadata.tools.run_workflow.job.data.task.payload.id }}'
+
+      - tool: createChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            A message from the child workflow:
+
+            {{ transition.payload.message }}
