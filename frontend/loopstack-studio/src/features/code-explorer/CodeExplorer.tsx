@@ -1,17 +1,15 @@
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { CodeExplorerTree } from './components/CodeExplorerTree';
-import { FileContentViewer } from './components/FileContentViewer';
-import { useCodeExplorer } from './hooks/useCodeExplorer';
+import { useCodeExplorerContext } from './providers/CodeExplorerProvider';
 
 interface CodeExplorerProps {
-  pipelineId?: string;
   className?: string;
 }
 
-export function CodeExplorer({ pipelineId, className }: CodeExplorerProps) {
-  const { fileTree, selectedFile, fileContent, isLoading, error, searchQuery, setSearchQuery, selectFile } =
-    useCodeExplorer({ pipelineId });
+export function CodeExplorer({ className }: CodeExplorerProps) {
+  const { fileTree, isLoading, error, searchQuery, setSearchQuery, selectFile, selectedFile, clearSelection } =
+    useCodeExplorerContext();
 
   return (
     <div className={cn('flex h-full w-full flex-col gap-2 overflow-hidden', className)}>
@@ -31,13 +29,8 @@ export function CodeExplorer({ pipelineId, className }: CodeExplorerProps) {
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
-        <div
-          className={cn(
-            'flex min-h-0 flex-col overflow-hidden rounded-md border bg-background',
-            selectedFile ? 'flex-[2]' : 'flex-1',
-          )}
-        >
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border bg-background">
           {isLoading ? (
             <div className="flex flex-1 items-center justify-center p-4">
               <p className="text-xs text-muted-foreground">Loading file tree...</p>
@@ -47,21 +40,11 @@ export function CodeExplorer({ pipelineId, className }: CodeExplorerProps) {
               nodes={fileTree}
               searchQuery={searchQuery}
               onSelectFile={selectFile}
+              onClearSelection={clearSelection}
               selectedFileId={selectedFile?.id}
             />
           )}
         </div>
-
-        {selectedFile && (
-          <div className="flex min-h-0 flex-[3] flex-col overflow-hidden rounded-md border bg-background">
-            <FileContentViewer
-              selectedFile={selectedFile}
-              content={fileContent}
-              isLoading={isLoading && selectedFile !== null}
-              className="h-full"
-            />
-          </div>
-        )}
       </div>
     </div>
   );

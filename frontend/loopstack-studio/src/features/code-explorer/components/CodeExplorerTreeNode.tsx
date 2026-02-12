@@ -1,5 +1,6 @@
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, X } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import type { FileExplorerNode } from '../types';
@@ -9,6 +10,7 @@ interface CodeExplorerTreeNodeProps {
   node: FileExplorerNode;
   depth: number;
   onSelectFile?: (node: FileExplorerNode) => void;
+  onClearSelection?: () => void;
   isSelected?: boolean;
   selectedFileId?: string;
 }
@@ -20,6 +22,7 @@ export function CodeExplorerTreeNode({
   node,
   depth,
   onSelectFile,
+  onClearSelection,
   isSelected = false,
   selectedFileId,
 }: CodeExplorerTreeNodeProps) {
@@ -31,20 +34,41 @@ export function CodeExplorerTreeNode({
   if (node.type === 'file') {
     const Icon = getFileIcon(node.name);
     return (
-      <button
-        type="button"
+      <div
         className={cn(
-          'flex w-full min-w-0 items-center gap-2 rounded-sm py-1 text-left text-sm hover:bg-muted',
-          'text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'flex w-full min-w-0 items-center gap-2 rounded-sm py-1 group',
+          'text-muted-foreground',
           nodeIsSelected && 'bg-muted',
         )}
         style={{ paddingLeft }}
-        onClick={() => onSelectFile?.(node)}
-        aria-label={`Select file ${node.name}`}
       >
-        <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-        <span className="truncate">{node.name}</span>
-      </button>
+        <button
+          type="button"
+          className={cn(
+            'flex flex-1 min-w-0 items-center gap-2 rounded-sm text-left text-sm hover:bg-muted/50',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          )}
+          onClick={() => onSelectFile?.(node)}
+          aria-label={`Select file ${node.name}`}
+        >
+          <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+          <span className="truncate">{node.name}</span>
+        </button>
+        {nodeIsSelected && onClearSelection && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClearSelection();
+            }}
+            aria-label="Close file"
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
     );
   }
 
@@ -83,6 +107,7 @@ export function CodeExplorerTreeNode({
               node={child}
               depth={depth + 1}
               onSelectFile={onSelectFile}
+              onClearSelection={onClearSelection}
               selectedFileId={selectedFileId}
             />
           ))}

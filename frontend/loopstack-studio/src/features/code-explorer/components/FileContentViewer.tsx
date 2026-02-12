@@ -1,8 +1,12 @@
-import { FileText } from 'lucide-react';
+import { FileText, X } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import MarkdownContent from '@/components/dynamic-form/MarkdownContent';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { useCodeExplorerContext } from '../providers/CodeExplorerProvider';
 import type { FileExplorerNode } from '../types';
 
 const BINARY_EXTENSIONS = new Set([
@@ -75,6 +79,8 @@ interface FileContentViewerProps {
 }
 
 export function FileContentViewer({ selectedFile, content, isLoading = false, className }: FileContentViewerProps) {
+  const { clearSelection } = useCodeExplorerContext();
+
   if (!selectedFile) {
     return (
       <div
@@ -96,8 +102,17 @@ export function FileContentViewer({ selectedFile, content, isLoading = false, cl
   if (isBinary && content == null) {
     return (
       <div className={cn('flex flex-1 flex-col rounded-lg border bg-background', className)}>
-        <div className="border-b bg-muted/50 px-3 py-2 text-sm font-medium">
-          {selectedFile.path ?? selectedFile.name}
+        <div className="border-b bg-muted/50 px-3 py-2 text-sm font-medium flex items-center justify-between">
+          <span className="truncate flex-1">{selectedFile.path ?? selectedFile.name}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0 ml-2 opacity-70 hover:opacity-100"
+            onClick={clearSelection}
+            aria-label="Close file"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
         <div className="flex flex-1 items-center justify-center p-8">
           <p className="text-sm text-muted-foreground">Binary file — preview not available</p>
@@ -109,8 +124,17 @@ export function FileContentViewer({ selectedFile, content, isLoading = false, cl
   if (isLoading) {
     return (
       <div className={cn('flex flex-1 flex-col rounded-lg border bg-background', className)}>
-        <div className="border-b bg-muted/50 px-3 py-2 text-sm font-medium">
-          {selectedFile.path ?? selectedFile.name}
+        <div className="border-b bg-muted/50 px-3 py-2 text-sm font-medium flex items-center justify-between">
+          <span className="truncate flex-1">{selectedFile.path ?? selectedFile.name}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0 ml-2 opacity-70 hover:opacity-100"
+            onClick={clearSelection}
+            aria-label="Close file"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
         <div className="flex flex-1 items-center justify-center p-8">
           <p className="text-sm text-muted-foreground">Loading...</p>
@@ -120,24 +144,64 @@ export function FileContentViewer({ selectedFile, content, isLoading = false, cl
   }
 
   const language = getLanguageForFileName(selectedFile.name);
+  const isMarkdown = language === 'markdown' || selectedFile.name.endsWith('.md') || selectedFile.name.endsWith('.mdx');
 
   return (
     <div className={cn('flex h-full flex-col overflow-hidden rounded-lg border bg-background', className)}>
-      <div className="shrink-0 border-b bg-muted/50 px-3 py-2 text-sm font-medium">
-        {selectedFile.path ?? selectedFile.name}
-      </div>
-      <ScrollArea className="flex-1 min-h-0">
-        <SyntaxHighlighter
-          language={language}
-          style={vscDarkPlus}
-          customStyle={{ margin: 0, padding: '1rem', fontSize: '13px' }}
-          showLineNumbers
-          PreTag="div"
-          codeTagProps={{ style: { fontFamily: 'inherit' } }}
+      <div className="shrink-0 border-b bg-muted/50 px-3 py-2 text-sm font-medium flex items-center justify-between">
+        <span className="truncate flex-1">{selectedFile.path ?? selectedFile.name}</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 shrink-0 ml-2 opacity-70 hover:opacity-100"
+          onClick={clearSelection}
+          aria-label="Close file"
         >
-          {displayContent ?? ''}
-        </SyntaxHighlighter>
-      </ScrollArea>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+      {isMarkdown && displayContent ? (
+        <Tabs defaultValue="rendered" className="flex h-full flex-col overflow-hidden">
+          <TabsList className="shrink-0 mx-2 mt-2">
+            <TabsTrigger value="rendered">Rendered</TabsTrigger>
+            <TabsTrigger value="unrendered">Unrendered</TabsTrigger>
+          </TabsList>
+          <TabsContent value="rendered" className="flex-1 min-h-0 overflow-hidden mt-2">
+            <ScrollArea className="h-full">
+              <div className="p-4">
+                <MarkdownContent content={displayContent} />
+              </div>
+            </ScrollArea>
+          </TabsContent>
+          <TabsContent value="unrendered" className="flex-1 min-h-0 overflow-hidden mt-0">
+            <ScrollArea className="flex-1 min-h-0">
+              <SyntaxHighlighter
+                language={language}
+                style={vscDarkPlus}
+                customStyle={{ margin: 0, padding: '1rem', fontSize: '13px' }}
+                showLineNumbers
+                PreTag="div"
+                codeTagProps={{ style: { fontFamily: 'inherit' } }}
+              >
+                {displayContent ?? ''}
+              </SyntaxHighlighter>
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <ScrollArea className="flex-1 min-h-0">
+          <SyntaxHighlighter
+            language={language}
+            style={vscDarkPlus}
+            customStyle={{ margin: 0, padding: '1rem', fontSize: '13px' }}
+            showLineNumbers
+            PreTag="div"
+            codeTagProps={{ style: { fontFamily: 'inherit' } }}
+          >
+            {displayContent ?? ''}
+          </SyntaxHighlighter>
+        </ScrollArea>
+      )}
     </div>
   );
 }

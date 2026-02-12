@@ -62,14 +62,14 @@ const WorkbenchSidebar = ({ namespaceTree, pipeline }: WorkbenchSidebarProps) =>
               <TabsList className="w-full shrink-0">
                 <TabsTrigger value="codeExplorer" className="flex items-center gap-1.5">
                   <Code className="h-3.5 w-3.5" />
-                  Code
+                  Files
                 </TabsTrigger>
                 <TabsTrigger value="pipelineNavigation">Navigation</TabsTrigger>
                 <TabsTrigger value="pipelineHistory">History</TabsTrigger>
               </TabsList>
 
               <TabsContent value="codeExplorer" className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden">
-                <CodeExplorer pipelineId={pipeline?.id} />
+                <CodeExplorer />
               </TabsContent>
 
               <TabsContent value="pipelineNavigation" className="mt-2">
