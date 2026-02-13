@@ -50,7 +50,7 @@ describe('WorkflowStateWorkflow', () => {
 
     const result = await processor.process(workflow, {}, context);
 
-    expect(result.error).toBe(false);
+    expect(result.hasError).toBe(false);
 
     // Verify createValue was called
     expect(mockCreateValue.execute).toHaveBeenCalledWith(

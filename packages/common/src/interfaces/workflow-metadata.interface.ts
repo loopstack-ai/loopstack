@@ -4,7 +4,7 @@ import { HistoryTransition } from '@loopstack/contracts/types';
 import { DocumentEntity } from '../entities';
 
 export interface WorkflowMetadataInterface {
-  error: boolean;
+  hasError: boolean;
   errorMessage?: string;
   stop: boolean;
   status: WorkflowState;
@@ -18,6 +18,7 @@ export interface WorkflowMetadataInterface {
   place: string;
   tools: Record<string, any>;
   transition?: HistoryTransition;
+  hashRecord: Record<string, string | null> | null;
 
-  result?: Record<string, unknown>;
+  result: Record<string, unknown> | null;
 }

@@ -60,7 +60,7 @@ describe('PromptWorkflow', () => {
 
       const result = await processor.process(workflow, { subject: 'spring' }, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // Verify AiGenerateText was called with correct arguments
       expect(mockAiGenerateText.execute).toHaveBeenCalledTimes(1);
@@ -103,7 +103,7 @@ describe('PromptWorkflow', () => {
 
       const result = await processor.process(workflow, {}, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // Verify AiGenerateText was called with default subject "coffee"
       expect(mockAiGenerateText.execute).toHaveBeenCalledWith(

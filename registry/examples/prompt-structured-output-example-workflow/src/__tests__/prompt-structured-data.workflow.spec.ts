@@ -60,7 +60,7 @@ describe('PromptStructuredOutputWorkflow', () => {
 
       const result = await processor.process(workflow, { language: 'python' }, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // Verify CreateDocument was called twice (status message + success message)
       expect(mockCreateDocument.execute).toHaveBeenCalledTimes(2);
@@ -117,7 +117,7 @@ describe('PromptStructuredOutputWorkflow', () => {
 
       const result = await processor.process(workflow, { language: 'javascript' }, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // Verify status message mentions javascript
       expect(mockCreateDocument.execute).toHaveBeenCalledWith(
@@ -158,7 +158,7 @@ describe('PromptStructuredOutputWorkflow', () => {
 
       const result = await processor.process(workflow, {}, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // Verify AiGenerateDocument was called with default language "python"
       expect(mockAiGenerateDocument.execute).toHaveBeenCalledWith(

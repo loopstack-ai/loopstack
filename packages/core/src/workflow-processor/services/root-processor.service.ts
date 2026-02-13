@@ -1,12 +1,14 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
+  InjectedWorkflowOptions,
   PipelineEntity,
   PipelineState,
   RunContext,
   WorkflowInterface,
   WorkflowMetadataInterface,
   getBlockWorkflow,
+  getWorkflowOptions,
 } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { RunPayload } from '@loopstack/contracts/schemas';
@@ -31,7 +33,8 @@ export class RootProcessorService {
     workflow: WorkflowInterface,
     pipeline: PipelineEntity,
     payload: RunPayload,
-    args?: any,
+    args: any,
+    options: InjectedWorkflowOptions,
   ): Promise<WorkflowMetadataInterface> {
     const namespace = await this.namespaceProcessorService.createRootNamespace(pipeline);
 
@@ -45,7 +48,8 @@ export class RootProcessorService {
       workspaceId: pipeline.workspaceId,
       labels: [...pipeline.labels, namespace.name],
       namespace: namespace,
-      payload: payload,
+      payload,
+      options,
     });
 
     return this.blockProcessor.processBlock(workflow, args, ctx);
@@ -62,11 +66,13 @@ export class RootProcessorService {
       throw new Error(`Workflow ${pipeline.blockName} not available in workspace ${pipeline.blockName}`);
     }
 
+    const options = getWorkflowOptions(workspaceInstance, pipeline.blockName);
+
     await this.pipelineService.setPipelineStatus(pipeline, PipelineState.Running);
 
-    const executionMeta = await this.processRootPipeline(workflow, pipeline, payload, pipeline.args);
+    const executionMeta = await this.processRootPipeline(workflow, pipeline, payload, pipeline.args, options);
 
-    const status = executionMeta.error
+    const status = executionMeta.hasError
       ? PipelineState.Failed
       : executionMeta.stop
         ? PipelineState.Paused

@@ -71,7 +71,7 @@ describe('ChatWorkflow', () => {
       const result = await processor.process(workflow, {}, context);
 
       // Should execute without errors and stop at waiting_for_user (before manual step)
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
 
       // Verify CreateDocument was called twice (system message + llm response)
@@ -188,7 +188,7 @@ describe('ChatWorkflow', () => {
 
       // Should execute without errors and stop at waiting_for_user again
       expect(result.place).toBe('waiting_for_user');
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
 
       // Verify CreateDocument was called twice (user message + llm response 2)

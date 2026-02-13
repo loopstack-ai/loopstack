@@ -28,12 +28,14 @@ export class WorkflowEntity {
   @Index()
   blockName!: string;
 
+  /** @deprecated to be moved out of entity */
   @Column({ type: 'varchar', nullable: true })
   title!: string;
 
   @Column('ltree', { default: '1' })
   index!: string;
 
+  /** @deprecated unused */
   @Column({ default: 0 })
   progress!: number;
 
@@ -59,12 +61,14 @@ export class WorkflowEntity {
   @Column({ type: 'varchar' })
   place!: string;
 
+  /** @deprecated unused */
   @Column('jsonb', {
     name: 'transition_results',
     nullable: true,
   })
   transitionResults!: TransitionResultLookup | null;
 
+  /** @deprecated unused */
   @Column('jsonb', {
     name: 'input_data',
     default: {},
@@ -87,6 +91,7 @@ export class WorkflowEntity {
   @Column('jsonb', { name: 'history', nullable: true })
   history!: WorkflowMementoData<any, any>[] | null;
 
+  /** @deprecated to be moved out of entity */
   @Column({
     type: 'jsonb',
     transformer: new StableJsonTransformer(),
@@ -95,9 +100,11 @@ export class WorkflowEntity {
   })
   schema!: JSONSchemaConfigType | null;
 
+  /** @deprecated unused */
   @Column('jsonb', { nullable: true, name: 'error' })
   error!: z.ZodError | null;
 
+  /** @deprecated to be moved out of entity */
   @Column({
     type: 'jsonb',
     transformer: new StableJsonTransformer(),

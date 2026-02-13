@@ -44,7 +44,7 @@ describe('DynamicRoutingExampleWorkflow', () => {
 
       const result = await processor.process(workflow, { value: 50 }, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // Verify createChatMessage calls
       expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
@@ -74,7 +74,7 @@ describe('DynamicRoutingExampleWorkflow', () => {
 
       const result = await processor.process(workflow, { value: 250 }, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // Verify createChatMessage calls
       expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
@@ -106,7 +106,7 @@ describe('DynamicRoutingExampleWorkflow', () => {
 
       const result = await processor.process(workflow, { value: 150 }, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // Verify createChatMessage calls
       expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(

@@ -181,7 +181,7 @@ describe('CustomToolExampleWorkflow', () => {
       expect(result).toBeDefined();
 
       // Runtime
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
       expect(result.stop).toBe(false);
 
       // Final state

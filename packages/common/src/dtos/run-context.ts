@@ -1,4 +1,5 @@
 import { RunPayload } from '@loopstack/contracts/schemas';
+import { InjectedWorkflowOptions } from '../decorators';
 import { NamespaceEntity } from '../entities';
 
 export class RunContext {
@@ -10,7 +11,8 @@ export class RunContext {
   workflowId?: string;
   namespace!: NamespaceEntity;
   labels!: string[];
-  payload?: RunPayload;
+  payload: RunPayload;
+  options: InjectedWorkflowOptions;
 
   constructor(data: RunContext) {
     Object.assign(this, data);

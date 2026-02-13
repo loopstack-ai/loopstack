@@ -46,9 +46,10 @@ export class WorkflowStateService {
     workflowEntity.place = ctx.getManager().getData('place');
     workflowEntity.documents = ctx.getManager().getData('documents');
     workflowEntity.availableTransitions = ctx.getManager().getData('availableTransitions') || null;
-    workflowEntity.hasError = ctx.getManager().getData('error');
+    workflowEntity.hasError = ctx.getManager().getData('hasError');
     workflowEntity.errorMessage = ctx.getManager().getData('errorMessage') || null;
     workflowEntity.result = ctx.getManager().getData('result') as Record<string, unknown>;
+    workflowEntity.hashRecord = ctx.getManager().getData('hashRecord');
 
     await this.saveWorkflowState(workflowEntity, ctx.getManager().getData('persistenceState'));
   }

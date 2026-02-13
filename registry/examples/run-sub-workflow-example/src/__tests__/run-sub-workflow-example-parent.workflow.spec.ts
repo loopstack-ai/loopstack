@@ -85,7 +85,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       const result = await processor.process(workflow, {}, context);
 
       expect(result).toBeDefined();
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
 
       expect(mockCreateChatMessageTool.execute).toHaveBeenCalledTimes(1);
@@ -152,7 +152,7 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
     const result = await processor.process(workflow, args, context);
 
     expect(result).toBeDefined();
-    expect(result.error).toBe(false);
+    expect(result.hasError).toBe(false);
     expect(result.place).toBe('end');
 
     expect(mockCreateDocument.execute).toHaveBeenCalledTimes(1);

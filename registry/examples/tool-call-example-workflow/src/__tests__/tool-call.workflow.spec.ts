@@ -114,7 +114,7 @@ describe('ToolCallWorkflow', () => {
 
       const result = await processor.process(workflow, {}, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // Should call AiGenerateText twice (initial + after tool response)
       expect(mockAiGenerateText.execute).toHaveBeenCalledTimes(2);
@@ -167,7 +167,7 @@ describe('ToolCallWorkflow', () => {
 
       const result = await processor.process(workflow, {}, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // Should call AiGenerateText once
       expect(mockAiGenerateText.execute).toHaveBeenCalledTimes(1);
@@ -247,7 +247,7 @@ describe('ToolCallWorkflow', () => {
 
       const result = await processor.process(workflow, {}, context);
 
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
 
       // DelegateToolCall should receive message with multiple tool calls
       expect(mockDelegateToolCall.execute).toHaveBeenCalledWith(
