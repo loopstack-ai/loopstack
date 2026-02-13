@@ -17,7 +17,6 @@ export const OUTPUT_METADATA_KEY = Symbol('output');
 
 export interface InjectedWorkflowOptions {
   visible?: boolean;
-  stateless?: boolean;
 }
 
 export interface InjectWorkflowDecoratorOptions {
@@ -159,7 +158,6 @@ export function getWorkflowOptions(target: object, propertyKey: string | symbol)
       | InjectedWorkflowOptions
       | undefined) ?? {
       visible: true,
-      stateless: false,
     }
   );
 }

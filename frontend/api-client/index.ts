@@ -1,3 +1,4 @@
+/* tslint:disable */
 /**
  * Loopstack API Documentation
  * Loopstack API Documentation

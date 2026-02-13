@@ -5,13 +5,8 @@ transitions:
     from: start
     to: sub_workflow_started
     call:
-      - tool: createChatMessage
-        args:
-          - role: assistant
-            content: 'Starting Sub-Workflow...'
-
       - tool: executeWorkflowAsync
-        id: execute
+        id: executeStateful
         args:
           workflow: runSubWorkflowExampleSubWorkflow
           args: {}
@@ -26,11 +21,11 @@ transitions:
             content:
               icon: 'Clock'
               label: 'Executing Sub-Workflow...'
-              href: '/pipelines/{{ runtime.tools.run_workflow.execute.data.task.payload.id }}'
+              href: '/pipelines/{{ runtime.tools.run_workflow.executeStateful.data.task.pipelineId }}'
 
   - id: sub_workflow_callback
     from: sub_workflow_started
-    to: end
+    to: sub_workflow_ended
     trigger: manual
     call:
       - tool: createDocument
@@ -40,13 +35,54 @@ transitions:
           update:
             content:
               icon: 'CircleCheck'
-              label: 'Sub-Workflow completed'
-              href: '/pipelines/{{ runtime.transition.meta.event.pipelineId }}'
+              label: 'Sub-Workflow {{ runtime.transition.payload.status }}'
+              href: '/pipelines/{{ runtime.transition.payload.pipelineId }}'
 
       - tool: createChatMessage
         args:
           role: 'assistant'
           content: |
-            A message from the child workflow:
+            A message from sub workflow 1: {{ runtime.transition.payload.result.message }}
 
-            {{ runtime.transition.payload.message }}
+  - id: run_workflow2
+    from: sub_workflow_ended
+    to: sub_workflow2_started
+    call:
+      - tool: executeWorkflowAsync
+        id: executeStateful
+        args:
+          workflow: runSubWorkflowExampleSubWorkflow
+          args: {}
+          callback:
+            transition: sub_workflow2_callback
+          options:
+            runStateless: false
+
+      - tool: createDocument
+        args:
+          document: linkDocument
+          id: subWorkflow2_link
+          update:
+            content:
+              icon: 'Clock'
+              label: 'Executing Stateless Sub-Workflow...'
+
+  - id: sub_workflow2_callback
+    from: sub_workflow2_started
+    to: end
+    trigger: manual
+    call:
+      - tool: createDocument
+        args:
+          document: linkDocument
+          id: subWorkflow2_link
+          update:
+            content:
+              icon: 'CircleCheck'
+              label: 'Stateless Sub-Workflow {{ runtime.transition.payload.status }}'
+
+      - tool: createChatMessage
+        args:
+          role: 'assistant'
+          content: |
+            A message from sub workflow 2: {{ runtime.transition.payload.result.message }}

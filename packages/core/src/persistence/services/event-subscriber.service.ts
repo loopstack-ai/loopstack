@@ -2,12 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EventSubscriberEntity } from '@loopstack/common';
+import { WorkflowState } from '@loopstack/contracts/enums';
 
 export interface PipelineEventPayload {
-  pipelineId: string;
+  correlationId: string;
   eventName: string;
   workspaceId: string;
-  data: Record<string, unknown> | null;
+  data: {
+    pipelineId: string | undefined;
+    status: WorkflowState;
+    result: Record<string, unknown> | null;
+  };
 }
 
 @Injectable()
@@ -20,20 +25,19 @@ export class EventSubscriberService {
   ) {}
 
   async registerSubscriber(
-    subscriberPipelineId: string,
+    subscriberPipelineId: string | undefined,
     subscriberWorkflowId: string,
     subscriberTransition: string,
-    eventPipelineId: string,
+    eventCorrelationId: string,
     eventName: string,
     userId: string,
     workspaceId?: string,
   ): Promise<EventSubscriberEntity> {
     const existing = await this.entityRepository.findOne({
       where: {
-        subscriberPipelineId,
         subscriberWorkflowId,
         subscriberTransition,
-        eventPipelineId,
+        eventCorrelationId,
         eventName,
       },
     });
@@ -46,7 +50,7 @@ export class EventSubscriberService {
       subscriberPipelineId,
       subscriberWorkflowId,
       subscriberTransition,
-      eventPipelineId,
+      eventCorrelationId,
       eventName,
       userId,
       workspaceId,
@@ -56,13 +60,13 @@ export class EventSubscriberService {
   }
 
   async findSubscribers(
-    eventPipelineId: string,
+    eventCorrelationId: string,
     eventName: string,
     workspaceId: string,
   ): Promise<EventSubscriberEntity[]> {
     return this.entityRepository.find({
       where: {
-        eventPipelineId,
+        eventCorrelationId,
         eventName,
         workspaceId,
       },

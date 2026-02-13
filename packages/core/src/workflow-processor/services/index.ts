@@ -10,7 +10,5 @@ export * from './block-discovery.service';
 
 export * from './block-processor.service';
 export * from './processor.factory';
-export * from './processors/sequence-processor.service';
-export * from './processors/factory-processor.service';
 export * from './processors/workflow-processor.service';
 export * from './processor.factory';

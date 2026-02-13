@@ -111,6 +111,14 @@ export class PipelineDto {
   })
   parentId: string | null;
 
+  @Expose()
+  @ApiProperty({
+    type: 'number',
+    description: 'Number of child pipelines',
+    example: 0,
+  })
+  hasChildren: number;
+
   @Exclude()
   createdBy: string | null;
 

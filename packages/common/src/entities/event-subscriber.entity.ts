@@ -12,7 +12,7 @@ import { PipelineEntity } from './pipeline.entity';
 import { WorkspaceEntity } from './workspace.entity';
 
 @Entity({ name: 'core_event_subscriber' })
-@Index(['eventPipelineId', 'eventName'])
+@Index(['eventCorrelationId', 'eventName'])
 @Index(['subscriberPipelineId', 'subscriberWorkflowId', 'subscriberTransition'])
 export class EventSubscriberEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -24,7 +24,7 @@ export class EventSubscriberEntity {
 
   @Column({ type: 'uuid', name: 'subscriber_pipeline_id' })
   @Index()
-  subscriberPipelineId!: string;
+  subscriberPipelineId: string;
 
   @Column({ type: 'uuid', name: 'subscriber_workflow_id' })
   subscriberWorkflowId!: string;
@@ -32,9 +32,9 @@ export class EventSubscriberEntity {
   @Column({ type: 'varchar', name: 'subscriber_transition' })
   subscriberTransition!: string;
 
-  @Column({ type: 'uuid', name: 'event_pipeline_id' })
+  @Column({ type: 'varchar', name: 'event_correlation_id' })
   @Index()
-  eventPipelineId!: string;
+  eventCorrelationId!: string;
 
   @Column({ type: 'varchar', name: 'event_name' })
   @Index()

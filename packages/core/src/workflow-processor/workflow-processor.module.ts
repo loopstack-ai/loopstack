@@ -7,11 +7,9 @@ import { PersistenceModule } from '../persistence';
 import {
   BlockDiscoveryService,
   BlockProcessor,
-  FactoryProcessorService,
   NamespaceProcessorService,
   ProcessorFactory,
   RootProcessorService,
-  SequenceProcessorService,
   StateMachineProcessorService,
   StateMachineToolCallProcessorService,
   StateMachineValidatorRegistry,
@@ -43,8 +41,6 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     RootProcessorService,
     BlockProcessor,
     ProcessorFactory,
-    FactoryProcessorService,
-    SequenceProcessorService,
     WorkflowProcessorService,
     BlockDiscoveryService,
 

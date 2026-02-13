@@ -1,18 +1,19 @@
 import { RunPayload } from '@loopstack/contracts/schemas';
-import { InjectedWorkflowOptions } from '../decorators';
 import { NamespaceEntity } from '../entities';
 
 export class RunContext {
   root!: string;
   index!: string;
   userId!: string;
-  pipelineId!: string;
+  pipelineId?: string;
   workspaceId!: string;
   workflowId?: string;
-  namespace!: NamespaceEntity;
+  namespace?: NamespaceEntity;
   labels!: string[];
   payload: RunPayload;
-  options: InjectedWorkflowOptions;
+  options: {
+    stateless: boolean;
+  };
 
   constructor(data: RunContext) {
     Object.assign(this, data);

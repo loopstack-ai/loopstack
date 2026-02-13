@@ -114,6 +114,7 @@ export class WorkflowProcessorService implements Processor {
       this.logger.error(new ConfigTraceError(error, ctx.getInstance()));
       ctx.getManager().setData('errorMessage', error.message);
       ctx.getManager().setData('hasError', true);
+      ctx.getManager().setData('place', 'error');
     }
 
     if (ctx.getManager().getData('hasError')) {

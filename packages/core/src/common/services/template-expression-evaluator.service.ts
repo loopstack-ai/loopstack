@@ -29,21 +29,7 @@ export class TemplateExpressionEvaluatorService {
       return obj as T;
     }
 
-    // const selfProperties = instanceToPlain(variables, {
-    //   strategy: 'exposeAll',
-    //   groups,
-    //   excludeExtraneousValues: true,
-    // });
-
-    // console.log('selfProperties', selfProperties);
-
     const result = this.evaluateTemplateRaw<T>(obj, variables, options);
-
-    // this.logger.debug(`Evaluated ${obj} to ${result}`);
-    // if (typeof result === 'object') {
-    //   this.logger.debug(result);
-    // }
-
     return options?.schema ? this.validateResult(result, options.schema as z.ZodType<T>) : result;
   }
 

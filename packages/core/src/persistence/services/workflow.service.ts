@@ -13,7 +13,7 @@ export class WorkflowService {
   ) {}
 
   private createFindQuery(
-    namespaceId: string,
+    namespaceId?: string,
     options?: {
       blockName?: string;
       labels?: string[];
@@ -21,9 +21,13 @@ export class WorkflowService {
   ): SelectQueryBuilder<WorkflowEntity> {
     const { blockName, labels } = options || {};
 
-    const queryBuilder = this.workflowRepository
-      .createQueryBuilder('workflow')
-      .where('workflow.namespace_id = :namespaceId', { namespaceId })
+    const queryBuilder = this.workflowRepository.createQueryBuilder('workflow');
+
+    if (namespaceId) {
+      queryBuilder.where('workflow.namespace_id = :namespaceId', { namespaceId });
+    }
+
+    queryBuilder
       .leftJoinAndSelect('workflow.documents', 'document')
       .leftJoinAndSelect('workflow.dependencies', 'dependencies');
 
@@ -46,7 +50,7 @@ export class WorkflowService {
   }
 
   async findOneByQuery(
-    namespaceId: string,
+    namespaceId?: string,
     options?: {
       blockName?: string;
       labels?: string[];

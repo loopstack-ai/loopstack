@@ -76,7 +76,6 @@
   "packageManager": "npm@11.8.0",
   "workspaces": [
     "packages/*",
-    "apps/*/*",
     "frontend/*",
     "installer/*",
     "templates/*",

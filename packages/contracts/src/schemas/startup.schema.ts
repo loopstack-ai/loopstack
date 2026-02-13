@@ -44,7 +44,6 @@ export const BaseStartupTaskSchema = z.object({
 });
 
 export const RunPayloadSchema = z.object({
-  id: z.string(),
   transition: TransitionPayloadSchema.optional(),
 });
 
@@ -52,6 +51,11 @@ export type RunPayload = z.infer<typeof RunPayloadSchema>;
 
 export const RunPipelineTaskSchema = BaseStartupTaskSchema.extend({
   type: z.literal('run_pipeline'),
+  workspaceId: z.string().optional(),
+  pipelineId: z.string().optional(),
+  correlationId: z.string().optional(),
+  blockName: z.string().optional(),
+  args: z.record(z.string(), z.any()).optional(),
   payload: RunPayloadSchema,
 });
 

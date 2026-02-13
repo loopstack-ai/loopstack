@@ -24,6 +24,10 @@ describe('ExecuteWorkflowAsync', () => {
     workflowId: 'workflow-1',
     namespace: { id: 'ns-1' } as any,
     labels: [],
+    payload: {},
+    options: {
+      stateless: false,
+    },
   } as RunContext;
 
   const mockPipeline = {
@@ -79,6 +83,7 @@ describe('ExecuteWorkflowAsync', () => {
         { id: 'workspace-1' },
         {
           blockName: 'my-workflow',
+          eventCorrelationId: 'test-uuid-1234',
           workspaceId: 'workspace-1',
           args: {},
         },
@@ -99,6 +104,7 @@ describe('ExecuteWorkflowAsync', () => {
         { id: 'workspace-1' },
         {
           blockName: 'my-workflow',
+          eventCorrelationId: 'test-uuid-1234',
           workspaceId: 'workspace-1',
           args: { key: 'value', nested: { foo: 'bar' } },
         },
@@ -114,14 +120,14 @@ describe('ExecuteWorkflowAsync', () => {
         'pipeline-1',
         'workflow-1',
         'on-complete',
-        'new-pipeline-1',
-        'completed',
+        'test-uuid-1234',
+        'workflow.completed',
         'user-1',
         'workspace-1',
       );
     });
 
-    it('should schedule a task with the created pipeline id', async () => {
+    it('should schedule a task with the created pipeline id and correlationId', async () => {
       await tool.execute(baseArgs, mockContext);
 
       expect(taskSchedulerService.addTask).toHaveBeenCalledWith({
@@ -129,9 +135,12 @@ describe('ExecuteWorkflowAsync', () => {
         task: {
           name: 'manual_execution',
           type: 'run_pipeline',
-          payload: {
-            id: 'new-pipeline-1',
-          },
+          pipelineId: 'new-pipeline-1',
+          payload: {},
+          blockName: 'my-workflow',
+          correlationId: 'test-uuid-1234',
+          workspaceId: 'workspace-1',
+          args: {},
           user: 'user-1',
         },
       });
@@ -167,6 +176,7 @@ describe('ExecuteWorkflowAsync', () => {
         { id: 'workspace-1' },
         {
           blockName: 'my-workflow',
+          eventCorrelationId: 'test-uuid-1234',
           workspaceId: 'workspace-1',
           args: {},
         },

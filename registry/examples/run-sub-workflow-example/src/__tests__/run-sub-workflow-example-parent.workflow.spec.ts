@@ -17,7 +17,6 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
   let workflow: RunSubWorkflowExampleParentWorkflow;
   let processor: WorkflowProcessorService;
 
-  let mockCreateChatMessageTool: ToolMock;
   let mockExecuteWorkflowAsyncTool: ToolMock;
   let mockCreateDocumentTool: ToolMock;
 
@@ -33,7 +32,6 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
     workflow = module.get(RunSubWorkflowExampleParentWorkflow);
     processor = module.get(WorkflowProcessorService);
 
-    mockCreateChatMessageTool = module.get(CreateChatMessage);
     mockExecuteWorkflowAsyncTool = module.get(ExecuteWorkflowAsync);
     mockCreateDocumentTool = module.get(CreateDocument);
   });
@@ -88,7 +86,6 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
 
-      expect(mockCreateChatMessageTool.execute).toHaveBeenCalledTimes(1);
       expect(mockExecuteWorkflowAsyncTool.execute).toHaveBeenCalledTimes(1);
       expect(mockExecuteWorkflowAsyncTool.execute).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -137,6 +134,7 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
     const workflow = module.get(RunSubWorkflowExampleParentWorkflow);
     const processor = module.get(WorkflowProcessorService);
     const mockCreateChatMessage: ToolMock = module.get(CreateChatMessage);
+    const mockExecuteWorkflowAsync: ToolMock = module.get(ExecuteWorkflowAsync);
     const mockCreateDocument: ToolMock = module.get(CreateDocument);
 
     const context = {
@@ -145,6 +143,66 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
           id: 'sub_workflow_callback',
           workflowId,
           payload: { message: 'Hi mom!' },
+        },
+      },
+    } as unknown as RunContext;
+
+    const result = await processor.process(workflow, args, context);
+
+    expect(result).toBeDefined();
+    expect(result.hasError).toBe(false);
+    expect(result.stop).toBe(true);
+    expect(result.place).toBe('sub_workflow2_started');
+
+    // sub_workflow_callback calls createDocument + createChatMessage,
+    // then run_workflow2 fires automatically and calls executeWorkflowAsync + createDocument
+    expect(mockCreateDocument.execute).toHaveBeenCalledTimes(2);
+    expect(mockCreateChatMessage.execute).toHaveBeenCalledTimes(1);
+    expect(mockExecuteWorkflowAsync.execute).toHaveBeenCalledTimes(1);
+    expect(mockExecuteWorkflowAsync.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflow: 'runSubWorkflowExampleSubWorkflow',
+        args: {},
+        callback: { transition: 'sub_workflow2_callback' },
+        options: { runStateless: false },
+      }),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  it('should execute sub_workflow2_callback transition when resumed from sub_workflow2_started', async () => {
+    const workflowId = '00000000-0000-0000-0000-000000000001';
+    const args = {};
+
+    module = await createWorkflowTest()
+      .forWorkflow(RunSubWorkflowExampleParentWorkflow)
+      .withImports(CoreUiModule, CreateChatMessageToolModule)
+      .withToolOverride(CreateChatMessage)
+      .withToolOverride(ExecuteWorkflowAsync)
+      .withToolOverride(CreateDocument)
+      .withExistingWorkflow({
+        place: 'sub_workflow2_started',
+        inputData: args,
+        id: workflowId,
+        hashRecord: {
+          options: generateObjectFingerprint(args),
+        },
+      })
+      .compile();
+
+    const workflow = module.get(RunSubWorkflowExampleParentWorkflow);
+    const processor = module.get(WorkflowProcessorService);
+    const mockCreateChatMessage: ToolMock = module.get(CreateChatMessage);
+    const mockCreateDocument: ToolMock = module.get(CreateDocument);
+
+    const context = {
+      payload: {
+        transition: {
+          id: 'sub_workflow2_callback',
+          workflowId,
+          payload: { message: 'Hello from sub workflow 2!' },
         },
       },
     } as unknown as RunContext;

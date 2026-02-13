@@ -16,9 +16,9 @@ export class EventProcessorService {
 
   @OnEvent('pipeline.event')
   async handlePipelineEvent(payload: PipelineEventPayload): Promise<void> {
-    const { pipelineId, eventName, workspaceId, data } = payload;
+    const { correlationId, eventName, workspaceId, data } = payload;
 
-    const subscribers = await this.eventSubscriberService.findSubscribers(pipelineId, eventName, workspaceId);
+    const subscribers = await this.eventSubscriberService.findSubscribers(correlationId, eventName, workspaceId);
 
     for (const subscriber of subscribers) {
       this.logger.log(
@@ -32,18 +32,12 @@ export class EventProcessorService {
           task: {
             name: 'event_subscriber_execution',
             type: 'run_pipeline',
+            pipelineId: subscriber.subscriberPipelineId,
             payload: {
-              id: subscriber.subscriberPipelineId,
               transition: {
                 id: subscriber.subscriberTransition,
                 workflowId: subscriber.subscriberWorkflowId,
                 payload: data,
-                meta: {
-                  event: {
-                    eventName,
-                    pipelineId,
-                  },
-                },
               },
             },
             user: subscriber.userId,

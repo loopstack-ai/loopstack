@@ -42,7 +42,9 @@ export class PipelineApiService {
     const defaultLimit = this.configService.get<number>('PIPELINE_DEFAULT_LIMIT', 100);
     const defaultSortBy = this.configService.get<PipelineSortByDto[]>('PIPELINE_DEFAULT_SORT_BY', []);
 
-    const queryBuilder = this.pipelineRepository.createQueryBuilder('pipeline');
+    const queryBuilder = this.pipelineRepository
+      .createQueryBuilder('pipeline')
+      .loadRelationCountAndMap('pipeline.hasChildren', 'pipeline.children');
 
     const transformedFilter = Object.fromEntries(
       Object.entries(filter).map(([key, value]) => [key, value === null ? IsNull() : value]),
@@ -90,12 +92,11 @@ export class PipelineApiService {
    * Finds a pipeline by ID.
    */
   async findOneById(id: string, user: string): Promise<PipelineEntity> {
-    const pipeline = await this.pipelineRepository.findOne({
-      where: {
-        id,
-        createdBy: user,
-      },
-    });
+    const pipeline = await this.pipelineRepository
+      .createQueryBuilder('pipeline')
+      .loadRelationCountAndMap('pipeline.hasChildren', 'pipeline.children')
+      .where({ id, createdBy: user })
+      .getOne();
 
     if (!pipeline) {
       throw new NotFoundException(`Pipeline with ID ${id} not found`);

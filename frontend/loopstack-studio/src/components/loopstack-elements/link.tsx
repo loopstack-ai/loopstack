@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 export type LucideIconName = keyof typeof icons;
 
 export type LinkCardProps = ComponentProps<'a'> & {
-  href: string;
+  href?: string;
   label?: string;
   icon?: LucideIconName;
   iconClassName?: string;
@@ -21,6 +21,7 @@ export const LinkCard = ({ className, href, label, icon, iconClassName, ...props
   const displayLabel =
     label ||
     (() => {
+      if (!href) return '';
       try {
         const url = new URL(href);
         return url.hostname.replace('www.', '');
@@ -35,7 +36,7 @@ export const LinkCard = ({ className, href, label, icon, iconClassName, ...props
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        'not-prose mb-4 flex w-full items-center gap-3 rounded-md border p-3',
+        'not-prose flex w-full items-center gap-3 rounded-md border p-3',
         'bg-background hover:bg-muted/50 transition-colors',
         'group cursor-pointer',
         className,

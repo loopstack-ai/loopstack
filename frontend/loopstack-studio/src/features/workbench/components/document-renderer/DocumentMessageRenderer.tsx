@@ -12,7 +12,7 @@ const DocumentMessageRenderer: React.FC<DocumentMessageRendererProps> = ({ docum
   const content = document.content;
 
   return (
-    <CompletionMessagePaper role={content.role} timestamp={new Date(document.createdAt)}>
+    <CompletionMessagePaper>
       <MessageContentRenderer message={content} />
     </CompletionMessagePaper>
   );
