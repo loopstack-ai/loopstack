@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { FileExplorerNodeDto } from '@loopstack/api-client';
+import type { FileExplorerNodeDto, PipelineConfigDto } from '@loopstack/api-client';
 import { useFileContent, useFileTree } from '@/hooks/useFiles';
 import type { FileExplorerNode } from '../types';
 
@@ -7,6 +7,7 @@ interface CodeExplorerContextValue {
   fileTree: FileExplorerNode[];
   selectedFile: FileExplorerNode | null;
   fileContent: string | null;
+  workflowConfig: PipelineConfigDto | null;
   isTreeLoading: boolean;
   isContentLoading: boolean;
   error: Error | null;
@@ -52,6 +53,10 @@ export function CodeExplorerProvider({ children, pipelineId, initialSelectedPath
 
   const fileContent = useMemo(() => {
     return fileContentQuery.data?.content ?? null;
+  }, [fileContentQuery.data]);
+
+  const workflowConfig = useMemo(() => {
+    return fileContentQuery.data?.workflowConfig ?? null;
   }, [fileContentQuery.data]);
 
   const isTreeLoading = fileTreeQuery.isLoading && !fileTreeQuery.data;
@@ -120,6 +125,7 @@ export function CodeExplorerProvider({ children, pipelineId, initialSelectedPath
     fileTree,
     selectedFile,
     fileContent,
+    workflowConfig,
     isTreeLoading,
     isContentLoading,
     error,

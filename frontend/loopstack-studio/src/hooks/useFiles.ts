@@ -38,10 +38,9 @@ export function useFileContent(pipelineId: string | undefined, filePath: string 
       if (!pipelineId || !filePath) {
         throw new Error('Pipeline ID and file path are required');
       }
-      const encodedPath = encodeURIComponent(filePath);
       return api.ApiV1PipelinesApi.fileControllerGetFileContent({
         pipelineId,
-        filePath: encodedPath,
+        filePath,
       });
     },
     enabled: !!pipelineId && !!filePath,

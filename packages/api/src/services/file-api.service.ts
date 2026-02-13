@@ -2,9 +2,11 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as path from 'path';
 import { Repository } from 'typeorm';
+import { parse } from 'yaml';
 import { PipelineEntity } from '@loopstack/common';
 import { FileContentDto } from '../dtos/file-content.dto';
 import { FileExplorerNodeDto } from '../dtos/file-tree.dto';
+import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
 import { FileSystemService } from './file-system.service';
 
 @Injectable()
@@ -78,9 +80,48 @@ export class FileApiService {
       throw new NotFoundException(`Could not read file: ${filePath}`);
     }
 
-    return {
+    const result: FileContentDto = {
       path: filePath,
       content,
     };
+
+    if (filePath.endsWith('.yaml') || filePath.endsWith('.yml')) {
+      try {
+        const parsed: unknown = parse(content);
+        const isWorkflowConfig = (
+          obj: unknown,
+        ): obj is {
+          title?: string;
+          description?: string;
+          transitions: unknown[];
+          ui?: unknown;
+          schema?: unknown;
+        } => {
+          return (
+            typeof obj === 'object' &&
+            obj !== null &&
+            'transitions' in obj &&
+            Array.isArray((obj as { transitions?: unknown }).transitions)
+          );
+        };
+
+        if (isWorkflowConfig(parsed)) {
+          const blockName = path.basename(filePath, path.extname(filePath));
+          result.workflowConfig = {
+            blockName,
+            title: parsed.title,
+            description: parsed.description,
+            transitions: parsed.transitions,
+            ui: parsed.ui,
+            schema: parsed.schema,
+          } as PipelineConfigDto;
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.debug(`Failed to parse YAML file ${filePath} as workflow config: ${errorMessage}`);
+      }
+    }
+
+    return result;
   }
 }

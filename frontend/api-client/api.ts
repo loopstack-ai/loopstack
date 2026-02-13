@@ -475,6 +475,12 @@ export interface FileContentDto {
    * @memberof FileContentDto
    */
   content: string;
+  /**
+   * Parsed workflow configuration if the file is a YAML workflow file
+   * @type {PipelineConfigDto}
+   * @memberof FileContentDto
+   */
+  workflowConfig?: PipelineConfigDto;
 }
 /**
  *

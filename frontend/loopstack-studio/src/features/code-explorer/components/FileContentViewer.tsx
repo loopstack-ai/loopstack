@@ -1,3 +1,4 @@
+import { ReactFlowProvider } from '@xyflow/react';
 import { FileText, Loader2, X } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -5,6 +6,7 @@ import MarkdownContent from '@/components/dynamic-form/MarkdownContent';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ConfigFlowViewer from '@/features/debug/components/ConfigFlowViewer';
 import { cn } from '@/lib/utils';
 import { useCodeExplorerContext } from '../providers/CodeExplorerProvider';
 import type { FileExplorerNode } from '../types';
@@ -79,7 +81,7 @@ interface FileContentViewerProps {
 }
 
 export function FileContentViewer({ selectedFile, content, isLoading = false, className }: FileContentViewerProps) {
-  const { clearSelection } = useCodeExplorerContext();
+  const { clearSelection, workflowConfig } = useCodeExplorerContext();
 
   if (!selectedFile) {
     return (
@@ -145,6 +147,8 @@ export function FileContentViewer({ selectedFile, content, isLoading = false, cl
 
   const language = getLanguageForFileName(selectedFile.name);
   const isMarkdown = language === 'markdown' || selectedFile.name.endsWith('.md') || selectedFile.name.endsWith('.mdx');
+  const isYaml = language === 'yaml' || selectedFile.name.endsWith('.yaml') || selectedFile.name.endsWith('.yml');
+  const isYamlWorkflow = isYaml && workflowConfig !== null;
 
   return (
     <div className={cn('flex h-full flex-col overflow-hidden rounded-lg border bg-background', className)}>
@@ -186,6 +190,34 @@ export function FileContentViewer({ selectedFile, content, isLoading = false, cl
                 {displayContent ?? ''}
               </SyntaxHighlighter>
             </ScrollArea>
+          </TabsContent>
+        </Tabs>
+      ) : isYamlWorkflow && workflowConfig ? (
+        <Tabs defaultValue="code" className="flex h-full flex-col overflow-hidden">
+          <TabsList className="shrink-0 mx-2 mt-2">
+            <TabsTrigger value="code">Code</TabsTrigger>
+            <TabsTrigger value="flow">Flow Diagram</TabsTrigger>
+          </TabsList>
+          <TabsContent value="code" className="flex-1 min-h-0 overflow-hidden mt-0">
+            <ScrollArea className="flex-1 min-h-0">
+              <SyntaxHighlighter
+                language={language}
+                style={vscDarkPlus}
+                customStyle={{ margin: 0, padding: '1rem', fontSize: '13px' }}
+                showLineNumbers
+                PreTag="div"
+                codeTagProps={{ style: { fontFamily: 'inherit' } }}
+              >
+                {displayContent ?? ''}
+              </SyntaxHighlighter>
+            </ScrollArea>
+          </TabsContent>
+          <TabsContent value="flow" className="flex-1 min-h-0 overflow-hidden mt-0">
+            <div className="h-full w-full">
+              <ReactFlowProvider>
+                <ConfigFlowViewer config={workflowConfig} />
+              </ReactFlowProvider>
+            </div>
           </TabsContent>
         </Tabs>
       ) : (
