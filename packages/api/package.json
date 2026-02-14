@@ -42,7 +42,8 @@
     "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
     "lodash": "^4.17.23",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10"
