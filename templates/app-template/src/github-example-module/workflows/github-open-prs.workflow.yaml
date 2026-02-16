@@ -1,0 +1,86 @@
+title: 'GitHub Open PRs'
+
+description: |
+  Lists open pull requests involving the authenticated user across
+  personal and organization repositories.
+  If not authenticated, prompts the user to authenticate via GitHub OAuth and retry.
+
+ui:
+  form:
+    properties:
+      orgs:
+        title: 'Organizations'
+        collapsed: true
+        items:
+          title: Name
+
+transitions:
+  - id: fetch_prs
+    from: start
+    to: prs_fetched
+    call:
+      - tool: gitHubOpenPRs
+        id: prs_fetch
+        args:
+          orgs: ${{ args.orgs }}
+          perPage: 25
+        assign:
+          requiresAuthentication: ${{ result.data.error == "unauthorized" }}
+          prs: ${{ result.data.prs }}
+          total: ${{ result.data.total }}
+
+  - id: auth_required
+    from: prs_fetched
+    to: awaiting_retry
+    if: ${{ state.requiresAuthentication }}
+    call:
+      - tool: createDocument
+        args:
+          id: authStatus
+          document: authRequiredDocument
+          update:
+            content:
+              provider: github
+              message: 'GitHub authentication required to list your pull requests. Please authenticate and then click Retry.'
+              workflowName: oauth
+              workspaceId: ${{ context.workspaceId }}
+              scopes:
+                - 'repo'
+
+  - id: retry
+    from: awaiting_retry
+    to: start
+    trigger: manual
+    call:
+      - tool: createDocument
+        args:
+          id: authStatus
+          document: linkDocument
+          update:
+            content:
+              icon: 'ShieldCheck'
+              type: 'success'
+              label: 'GitHub authentication completed'
+              caption: 'You can now access your GitHub pull requests.'
+              href: '/pipelines/{{ runtime.transition.payload.pipelineId }}'
+
+  - id: display_results
+    from: prs_fetched
+    to: end
+    call:
+      - tool: createDocument
+        args:
+          document: markdown
+          update:
+            content:
+              markdown: |
+                You have **{{ state.total }}** open pull requests:
+
+                {{#each state.prs}}
+                - {{#if this.draft}}*(draft)* {{/if}}**{{ this.repo }}#{{ this.number }}** — {{ this.title }}
+                  by @{{ this.author }}, updated {{ this.updatedAt }}
+                {{/each}}
+
+                {{#unless state.prs}}
+                No open pull requests found.
+                {{/unless}}

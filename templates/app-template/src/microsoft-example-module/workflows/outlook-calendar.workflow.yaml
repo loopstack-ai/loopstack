@@ -1,36 +1,25 @@
-title: 'Google Calendar Summary'
+title: 'Outlook Calendar'
 
 description: |
-  Fetches upcoming events from Google Calendar and displays a summary.
-  If not authenticated, prompts the user to authenticate via the
-  Google OAuth workflow and retry.
-
-ui:
-  form:
-    properties:
-      calendarId:
-        title: 'Calendar ID'
-        placeholder: 'primary'
+  Fetches upcoming events from Outlook Calendar and displays a summary.
+  If not authenticated, prompts the user to authenticate via Microsoft OAuth and retry.
 
 transitions:
-  # Fetch events from Google Calendar
   - id: fetch_events
     from: start
-    to: calendar_fetched
+    to: events_fetched
     call:
-      - tool: googleCalendarFetchEvents
-        id: calendar_fetch
+      - tool: outlookFetchEvents
+        id: outlook_fetch
         args:
-          calendarId: ${{ args.calendarId }}
           timeMin: ${{ now() }}
           timeMax: ${{ endOfWeek() }}
         assign:
           requiresAuthentication: ${{ result.data.error == "unauthorized" }}
           events: ${{ result.data.events }}
 
-  # If unauthorized → show auth-required document
   - id: auth_required
-    from: calendar_fetched
+    from: events_fetched
     to: awaiting_retry
     if: ${{ state.requiresAuthentication }}
     call:
@@ -40,14 +29,16 @@ transitions:
           document: authRequiredDocument
           update:
             content:
-              provider: google
-              message: 'Google authentication required to access your calendar. Please authenticate and then click Retry.'
+              provider: microsoft
+              message: 'Microsoft authentication required to access your Outlook calendar. Please authenticate and then click Retry.'
               workflowName: oauth
               workspaceId: ${{ context.workspaceId }}
               scopes:
-                - 'https://www.googleapis.com/auth/calendar.readonly'
+                - 'openid'
+                - 'profile'
+                - 'offline_access'
+                - 'Calendars.Read'
 
-  # User clicks Retry after authenticating in the separate workflow
   - id: retry
     from: awaiting_retry
     to: start
@@ -61,13 +52,12 @@ transitions:
             content:
               icon: 'ShieldCheck'
               type: 'success'
-              label: 'Google authentication completed'
-              caption: 'Google authentication required to access your calendar. Please authenticate and then click Retry.'
+              label: 'Microsoft authentication completed'
+              caption: 'You can now access your Outlook calendar.'
               href: '/pipelines/{{ runtime.transition.payload.pipelineId }}'
 
-  # Success → store events and display summary
   - id: display_results
-    from: calendar_fetched
+    from: events_fetched
     to: end
     call:
       - tool: createDocument
@@ -76,7 +66,7 @@ transitions:
           update:
             content:
               markdown: |
-                Here are your upcoming events:
+                Here are your upcoming Outlook events:
 
                 {{#each state.events}}
                 - **{{ this.summary }}** — {{ this.start }} to {{ this.end }}

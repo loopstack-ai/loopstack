@@ -1,13 +1,15 @@
-title: 'Google OAuth'
+title: 'OAuth'
 
 description: |
-  Authenticate with Google using OAuth 2.0.
+  Authenticate with an OAuth 2.0 provider.
   Can be run standalone to pre-authenticate, or invoked from
   other workflows when authentication is required.
 
 ui:
   form:
     properties:
+      provider:
+        title: 'Provider'
       scopes:
         title: 'OAuth Scopes'
         collapsed: true
@@ -18,8 +20,9 @@ transitions:
     to: awaiting_auth
     call:
       - id: build_url
-        tool: buildGoogleOAuthUrl
+        tool: buildOAuthUrl
         args:
+          provider: ${{ args.provider }}
           scopes: ${{ args.scopes }}
         assign:
           oauthState: ${{ result.data.state }}
@@ -31,7 +34,7 @@ transitions:
           document: oauthPromptDocument
           update:
             content:
-              provider: google
+              provider: ${{ args.provider }}
               authUrl: ${{ state.authUrl }}
               state: ${{ state.oauthState }}
               status: pending
@@ -41,8 +44,9 @@ transitions:
     to: end
     trigger: manual
     call:
-      - tool: exchangeGoogleOAuthToken
+      - tool: exchangeOAuthToken
         args:
+          provider: ${{ args.provider }}
           code: ${{ runtime.transition.payload.code }}
           state: ${{ runtime.transition.payload.state }}
           expectedState: ${{ state.oauthState }}
@@ -53,8 +57,8 @@ transitions:
           document: oauthPromptDocument
           update:
             content:
-              provider: google
+              provider: ${{ args.provider }}
               authUrl: ${{ state.authUrl }}
               state: ${{ state.oauthState }}
               status: success
-              message: 'Successfully connected to Google.'
+              message: 'Successfully connected.'

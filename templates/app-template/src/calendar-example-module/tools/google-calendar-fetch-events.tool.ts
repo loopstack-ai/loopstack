@@ -9,7 +9,7 @@ import {
   WorkflowInterface,
   WorkflowMetadataInterface,
 } from '@loopstack/common';
-import { GoogleAuthService } from '../../google-oauth-module';
+import { OAuthTokenStore } from '../../oauth-module';
 
 export type GoogleCalendarFetchEventsArgs = {
   timeMin: string;
@@ -38,7 +38,7 @@ export class GoogleCalendarFetchEventsTool implements ToolInterface {
   private readonly logger = new Logger(GoogleCalendarFetchEventsTool.name);
 
   @Inject()
-  private googleAuthService: GoogleAuthService;
+  private tokenStore: OAuthTokenStore;
 
   @Input({
     schema: z
@@ -57,7 +57,7 @@ export class GoogleCalendarFetchEventsTool implements ToolInterface {
     parent: WorkflowInterface | ToolInterface,
     metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
-    const accessToken = await this.googleAuthService.getValidAccessToken(ctx.userId);
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
       console.log('unauthorized');

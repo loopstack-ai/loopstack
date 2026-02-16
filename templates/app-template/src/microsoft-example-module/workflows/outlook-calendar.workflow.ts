@@ -5,7 +5,6 @@ import {
   DefineHelper,
   InjectDocument,
   InjectTool,
-  Input,
   Runtime,
   State,
   Workflow,
@@ -14,30 +13,19 @@ import {
 import { CreateDocument, LinkDocument, MarkdownDocument } from '@loopstack/core-ui-module';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { AuthRequiredDocument } from '../../oauth-module';
-import { GoogleCalendarFetchEventsTool } from '../tools';
+import { OutlookFetchEventsTool } from '../tools';
 
 @Injectable()
 @Workflow({
-  configFile: __dirname + '/calendar-summary.workflow.yaml',
+  configFile: __dirname + '/outlook-calendar.workflow.yaml',
 })
-export class CalendarSummaryWorkflow implements WorkflowInterface {
-  @InjectTool() private googleCalendarFetchEvents: GoogleCalendarFetchEventsTool;
+export class OutlookCalendarWorkflow implements WorkflowInterface {
+  @InjectTool() private outlookFetchEvents: OutlookFetchEventsTool;
   @InjectTool() private createDocument: CreateDocument;
   @InjectTool() private createChatMessage: CreateChatMessage;
   @InjectDocument() private authRequiredDocument: AuthRequiredDocument;
   @InjectDocument() private linkDocument: LinkDocument;
   @InjectDocument() private markdown: MarkdownDocument;
-
-  @Input({
-    schema: z
-      .object({
-        calendarId: z.string().default('primary'),
-      })
-      .strict(),
-  })
-  args: {
-    calendarId: string;
-  };
 
   @Context()
   context: any;
@@ -75,7 +63,6 @@ export class CalendarSummaryWorkflow implements WorkflowInterface {
   endOfWeek() {
     const now = new Date();
     const dayOfWeek = now.getDay();
-    // If today is Sunday (0), go to next Sunday (7 days); otherwise go to the coming Sunday
     const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek;
     const endOfWeek = new Date(now);
     endOfWeek.setDate(now.getDate() + daysUntilSunday);

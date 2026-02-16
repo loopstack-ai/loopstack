@@ -75,7 +75,10 @@ const AuthRequiredRenderer: React.FC<AuthRequiredRendererProps> = ({ pipeline, w
           blockName: content.workflowName,
           title: null,
           workspaceId: content.workspaceId,
-          args: content.scopes?.length ? { scopes: content.scopes } : undefined,
+          args: {
+            provider: content.provider,
+            ...(content.scopes?.length ? { scopes: content.scopes } : {}),
+          },
         },
       },
       {
@@ -98,7 +101,7 @@ const AuthRequiredRenderer: React.FC<AuthRequiredRendererProps> = ({ pipeline, w
         },
       },
     );
-  }, [content.workflowName, content.workspaceId, content.scopes, createPipeline, pingPipeline]);
+  }, [content.provider, content.workflowName, content.workspaceId, content.scopes, createPipeline, pingPipeline]);
 
   // Listen for messages from embedded auth workflow — stable deps, no triggerRetry
   useEffect(() => {

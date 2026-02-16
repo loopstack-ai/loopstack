@@ -13,16 +13,15 @@ import {
 import { CreateDocument } from '@loopstack/core-ui-module';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { OAuthPromptDocument } from '../documents';
-import { BuildGoogleOAuthUrlTool } from '../tools';
-import { ExchangeGoogleOAuthTokenTool } from '../tools';
+import { BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools';
 
 @Injectable()
 @Workflow({
-  configFile: __dirname + '/google-oauth.workflow.yaml',
+  configFile: __dirname + '/oauth.workflow.yaml',
 })
-export class GoogleOAuthWorkflow implements WorkflowInterface {
-  @InjectTool() private buildGoogleOAuthUrl: BuildGoogleOAuthUrlTool;
-  @InjectTool() private exchangeGoogleOAuthToken: ExchangeGoogleOAuthTokenTool;
+export class OAuthWorkflow implements WorkflowInterface {
+  @InjectTool() private buildOAuthUrl: BuildOAuthUrlTool;
+  @InjectTool() private exchangeOAuthToken: ExchangeOAuthTokenTool;
   @InjectTool() private createDocument: CreateDocument;
   @InjectTool() private createChatMessage: CreateChatMessage;
   @InjectDocument() private oauthPromptDocument: OAuthPromptDocument;
@@ -30,17 +29,13 @@ export class GoogleOAuthWorkflow implements WorkflowInterface {
   @Input({
     schema: z
       .object({
-        scopes: z
-          .array(z.string())
-          .default([
-            'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile',
-            'https://www.googleapis.com/auth/calendar.readonly',
-          ]),
+        provider: z.string(),
+        scopes: z.array(z.string()).default([]),
       })
       .strict(),
   })
   args: {
+    provider: string;
     scopes: string[];
   };
 
