@@ -1,9 +1,0 @@
-tags:
-  - oauth
-ui:
-  form:
-    widget: oauth-prompt
-  actions:
-    - type: custom
-      widget: oauth-callback
-      transition: exchange_token

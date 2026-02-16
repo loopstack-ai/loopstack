@@ -1,0 +1,63 @@
+{
+  "name": "@loopstack/google-oauth-calendar-example",
+  "displayName": "Google OAuth Calendar Example",
+  "description": "An example module demonstrating how to fetch Google Calendar events with OAuth authentication using the Loopstack automation framework. Shows the sub-workflow pattern for handling OAuth flows.",
+  "keywords": [
+    "oauth",
+    "google",
+    "calendar",
+    "loopstack",
+    "example"
+  ],
+  "version": "0.1.0",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://github.com/loopstack-ai"
+  },
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/core": "^0.20.0",
+    "@loopstack/common": "^0.20.0",
+    "@loopstack/oauth-module": "^0.1.0",
+    "@loopstack/google-oauth-module": "^0.1.0",
+    "@loopstack/core-ui-module": "^0.20.0",
+    "@loopstack/create-chat-message-tool": "^0.20.0",
+    "@nestjs/common": "^11.1.12",
+    "zod": "^4.3.5"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "testEnvironment": "node",
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testTimeout": 10000,
+    "forceExit": true,
+    "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/calendar-example.module.ts",
+    "workflows": [
+      "src/workflows/calendar-summary.workflow.ts"
+    ]
+  }
+}

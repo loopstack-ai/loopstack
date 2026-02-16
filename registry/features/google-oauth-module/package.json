@@ -1,0 +1,61 @@
+{
+  "name": "@loopstack/google-oauth-module",
+  "displayName": "Google OAuth Module",
+  "description": "Google OAuth 2.0 provider for the Loopstack OAuth module. Implements the OAuthProviderInterface for Google, handling authorization URL generation, token exchange, and token refresh.",
+  "keywords": [
+    "oauth",
+    "authentication",
+    "google",
+    "loopstack",
+    "module"
+  ],
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/oauth-module": "^0.1.0",
+    "zod": "^4.3.5"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1
+  },
+  "loopstack": {
+    "module": "src/google-oauth.module.ts"
+  }
+}

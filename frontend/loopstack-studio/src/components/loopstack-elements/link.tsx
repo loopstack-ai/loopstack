@@ -14,14 +14,26 @@ export type LinkCardProps = {
   caption?: string;
   icon?: LucideIconName;
   type?: string;
+  embed?: boolean;
+  defaultExpanded?: boolean;
   iconClassName?: string;
   className?: string;
 };
 
 const PIPELINE_HREF_PATTERN = /^\/pipelines\/([a-zA-Z0-9_-]+)$/;
 
-export const LinkCard = ({ className, href, label, caption, icon, type, iconClassName }: LinkCardProps) => {
-  const [expanded, setExpanded] = useState(false);
+export const LinkCard = ({
+  className,
+  href,
+  label,
+  caption,
+  icon,
+  type,
+  embed,
+  defaultExpanded,
+  iconClassName,
+}: LinkCardProps) => {
+  const [expanded, setExpanded] = useState(defaultExpanded ?? false);
   const [iframeHeight, setIframeHeight] = useState(0);
 
   // Get the icon component from lucide-react icons object
@@ -45,7 +57,8 @@ export const LinkCard = ({ className, href, label, caption, icon, type, iconClas
   // Check if href points to an internal pipeline
   const pipelineMatch = href?.match(PIPELINE_HREF_PATTERN);
   const pipelineId = pipelineMatch?.[1] ?? null;
-  const embedSrc = pipelineId ? `/embed/pipelines/${pipelineId}` : null;
+  const canEmbed = embed === true && pipelineId != null;
+  const embedSrc = canEmbed ? `/embed/pipelines/${pipelineId}` : null;
 
   // Listen for resize messages from the embedded iframe
   useEffect(() => {

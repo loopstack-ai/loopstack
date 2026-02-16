@@ -13,8 +13,7 @@ By using this module, you'll be able to:
 - Run an OAuth 2.0 authorization code flow for any registered provider
 - Store and retrieve access/refresh tokens per user and provider
 - Automatically refresh expired tokens
-- Display provider-agnostic auth prompts and auth-required documents in Loopstack Studio
-- Trigger authentication from any workflow via the auth-required pattern
+- Trigger authentication from any workflow via the sub-workflow pattern using `ExecuteWorkflowAsync`
 
 ## Installation
 
@@ -45,10 +44,10 @@ oauth-module (generic)          provider module (e.g. google)
 │ ExchangeOAuthTokenTool  │     └──────────────────────────┘
 │ OAuthWorkflow           │
 │ OAuthPromptDocument     │     consumer workflow
-│ AuthRequiredDocument    │     ┌──────────────────────────┐
-└─────────────────────────┘     │ uses OAuthTokenStore     │
-                                │ creates AuthRequired doc │
-                                │ to trigger auth flow     │
+└─────────────────────────┘     ┌──────────────────────────┐
+                                │ uses OAuthTokenStore     │
+                                │ launches OAuthWorkflow   │
+                                │ via ExecuteWorkflowAsync │
                                 └──────────────────────────┘
 ```
 
@@ -191,11 +190,12 @@ interface OAuthTokenSet {
 
 ## Using the OAuth Workflow in a Custom Use Case
 
-The typical pattern is "try, then authenticate on failure":
+The typical pattern is "try, then authenticate on failure" using `ExecuteWorkflowAsync` to launch the OAuth workflow as a sub-workflow:
 
 1. Your tool attempts an API call using a token from `OAuthTokenStore`
-2. If no token exists (or it's rejected), your workflow creates an `AuthRequiredDocument`
-3. The frontend renders the auth-required UI, launches the generic OAuth workflow, and auto-retries after success
+2. If no token exists (or it's rejected), your workflow launches the OAuth workflow as a sub-workflow via `ExecuteWorkflowAsync`
+3. The OAuth sub-workflow handles the full auth flow (popup, code exchange, token storage)
+4. On completion, the parent workflow is automatically resumed via the callback transition
 
 ### Step 1: Inject `OAuthTokenStore` in your tool
 
@@ -225,7 +225,7 @@ export class MyApiTool implements ToolInterface {
 }
 ```
 
-### Step 2: Handle the auth-required flow in your workflow YAML
+### Step 2: Handle the auth flow in your workflow YAML
 
 ```yaml
 transitions:
@@ -239,28 +239,39 @@ transitions:
           requiresAuth: ${{ result.data.error == "unauthorized" }}
           items: ${{ result.data.items }}
 
-  # 2. If unauthorized, show auth-required prompt
+  # 2. If unauthorized, launch OAuth as a sub-workflow
   - id: auth_required
     from: data_fetched
-    to: awaiting_retry
+    to: awaiting_auth
     if: ${{ state.requiresAuth }}
     call:
+      - tool: executeWorkflowAsync
+        id: launchAuth
+        args:
+          workflow: oAuthWorkflow
+          args:
+            provider: 'github'
+            scopes:
+              - 'repo'
+          callback:
+            transition: auth_completed
+
       - tool: createDocument
         args:
           id: authStatus
-          document: authRequiredDocument
+          document: linkDocument
           update:
             content:
-              provider: github
-              message: 'Authentication required. Please sign in and click Retry.'
-              workflowName: oauth     # References the generic OAuth workflow
-              workspaceId: ${{ context.workspaceId }}
-              scopes:
-                - 'repo'
+              icon: 'LockKeyhole'
+              label: 'GitHub authentication required'
+              caption: 'Complete sign-in to continue'
+              href: '/pipelines/{{ runtime.tools.auth_required.launchAuth.data.task.pipelineId }}'
+              embed: true
+              expanded: true
 
-  # 3. Retry after authentication completes
-  - id: retry
-    from: awaiting_retry
+  # 3. Auth sub-workflow completed — resume from start
+  - id: auth_completed
+    from: awaiting_auth
     to: start
     trigger: manual
     call:
@@ -273,6 +284,7 @@ transitions:
               icon: 'ShieldCheck'
               type: 'success'
               label: 'Authentication completed'
+              href: '/pipelines/{{ runtime.transition.payload.pipelineId }}'
 
   # 4. Success path
   - id: display_results
@@ -285,22 +297,24 @@ transitions:
           content: 'Here is your data: ...'
 ```
 
+The `embed: true` and `expanded: true` flags on the link document cause the OAuth sub-workflow to render inline as an iframe, so the user can complete authentication without leaving the page. Omit these flags to show a plain link instead.
+
 ### Step 3: Wire up the workflow class
 
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { InjectDocument, InjectTool, Context, Runtime, State, Workflow, WorkflowInterface } from '@loopstack/common';
+import { ExecuteWorkflowAsync } from '@loopstack/core';
 import { CreateDocument, LinkDocument } from '@loopstack/core-ui-module';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
-import { AuthRequiredDocument } from '@loopstack/oauth-module';
 import { MyApiTool } from './my-api.tool';
 
 @Workflow({ configFile: __dirname + '/my.workflow.yaml' })
 export class MyWorkflow implements WorkflowInterface {
   @InjectTool() private myApiTool: MyApiTool;
+  @InjectTool() private executeWorkflowAsync: ExecuteWorkflowAsync;
   @InjectTool() private createDocument: CreateDocument;
   @InjectTool() private createChatMessage: CreateChatMessage;
-  @InjectDocument() private authRequiredDocument: AuthRequiredDocument;
   @InjectDocument() private linkDocument: LinkDocument;
 
   @Context() context: any;
@@ -310,15 +324,20 @@ export class MyWorkflow implements WorkflowInterface {
 }
 ```
 
-### Key fields in `AuthRequiredDocument`
+Your module must import `LoopCoreModule` (for `ExecuteWorkflowAsync`) and the relevant provider module:
 
-| Field          | Type       | Description                                                      |
-| -------------- | ---------- | ---------------------------------------------------------------- |
-| `provider`     | `string`   | Provider ID matching a registered `OAuthProviderInterface`       |
-| `message`      | `string`   | Human-readable message shown to the user                         |
-| `workflowName` | `string`   | Name of the OAuth workflow in the workspace (typically `'oauth'`) |
-| `workspaceId`  | `string`   | Current workspace ID, use `${{ context.workspaceId }}`           |
-| `scopes`       | `string[]` | OAuth scopes to request (optional, falls back to provider defaults) |
+```typescript
+import { Module } from '@nestjs/common';
+import { LoopCoreModule } from '@loopstack/core';
+import { CoreUiModule } from '@loopstack/core-ui-module';
+import { GitHubOAuthModule } from '../github-oauth-module';
+
+@Module({
+  imports: [LoopCoreModule, CoreUiModule, GitHubOAuthModule],
+  providers: [MyApiTool, MyWorkflow],
+})
+export class MyModule {}
+```
 
 ## Service Reference
 
@@ -347,7 +366,7 @@ Stores and retrieves OAuth tokens per user and provider. Currently uses an in-me
 
 ### OAuthPromptDocument
 
-Rendered by the `oauth-prompt` widget. Used internally by the OAuth workflow to show the sign-in prompt.
+Rendered by the `oauth-prompt` widget. Used internally by the OAuth workflow to show the sign-in prompt with a popup-based authentication flow.
 
 | Field      | Type     | Description                        |
 | ---------- | -------- | ---------------------------------- |
@@ -356,18 +375,6 @@ Rendered by the `oauth-prompt` widget. Used internally by the OAuth workflow to 
 | `state`    | `string` | CSRF state parameter               |
 | `status`   | `string` | `'pending'`, `'success'`, `'error'` |
 | `message`  | `string` | Optional status message            |
-
-### AuthRequiredDocument
-
-Rendered by the `auth-required` widget. Used by consumer workflows to trigger the OAuth flow.
-
-| Field          | Type       | Description                              |
-| -------------- | ---------- | ---------------------------------------- |
-| `provider`     | `string`   | Provider ID                              |
-| `message`      | `string`   | Message shown to the user                |
-| `workflowName` | `string`   | OAuth workflow name in the workspace     |
-| `workspaceId`  | `string`   | Current workspace ID                     |
-| `scopes`       | `string[]` | OAuth scopes to request (optional)       |
 
 ## About
 

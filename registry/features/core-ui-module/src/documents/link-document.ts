@@ -8,6 +8,8 @@ const LinkDocumentSchema = z
     label: z.string().optional(),
     caption: z.string().optional(),
     href: z.string().optional(),
+    embed: z.boolean().optional(),
+    expanded: z.boolean().optional(),
   })
   .strict();
 

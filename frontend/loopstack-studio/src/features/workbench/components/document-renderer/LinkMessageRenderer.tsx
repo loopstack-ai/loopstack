@@ -8,6 +8,8 @@ type LinkMessageContentType = {
   label?: string;
   caption?: string;
   href: string;
+  embed?: boolean;
+  expanded?: boolean;
 };
 
 interface LinkMessageRendererProps {
@@ -15,9 +17,19 @@ interface LinkMessageRendererProps {
 }
 
 const LinkMessageRenderer: React.FC<LinkMessageRendererProps> = ({ document }) => {
-  const { icon, type, label, caption, href } = document.content;
+  const { icon, type, label, caption, href, embed, expanded } = document.content;
 
-  return <LinkCard href={href} label={label} caption={caption} icon={icon as LucideIconName} type={type} />;
+  return (
+    <LinkCard
+      href={href}
+      label={label}
+      caption={caption}
+      icon={icon as LucideIconName}
+      type={type}
+      embed={embed}
+      defaultExpanded={expanded}
+    />
+  );
 };
 
 export default LinkMessageRenderer;
