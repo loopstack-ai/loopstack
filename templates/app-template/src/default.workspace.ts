@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectWorkflow, Workspace, WorkspaceInterface } from '@loopstack/common';
+import { CalendarSummaryWorkflow } from './calendar-example-module';
+import { GoogleOAuthWorkflow } from './google-oauth-module';
 import { HelloWorldWorkflow } from './hello-world/hello-world.workflow';
 
 @Injectable()
@@ -10,6 +12,6 @@ import { HelloWorldWorkflow } from './hello-world/hello-world.workflow';
 })
 export class DefaultWorkspace implements WorkspaceInterface {
   @InjectWorkflow() helloWorld: HelloWorldWorkflow;
-
-  // Add your workflows here
+  @InjectWorkflow() googleOAuth: GoogleOAuthWorkflow;
+  @InjectWorkflow() calendarSummary: CalendarSummaryWorkflow;
 }

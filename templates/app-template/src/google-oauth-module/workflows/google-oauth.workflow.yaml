@@ -1,0 +1,60 @@
+title: 'Google OAuth'
+
+description: |
+  Authenticate with Google using OAuth 2.0.
+  Can be run standalone to pre-authenticate, or invoked from
+  other workflows when authentication is required.
+
+ui:
+  form:
+    properties:
+      scopes:
+        title: 'OAuth Scopes'
+        collapsed: true
+
+transitions:
+  - id: initiate_oauth
+    from: start
+    to: awaiting_auth
+    call:
+      - id: build_url
+        tool: buildGoogleOAuthUrl
+        args:
+          scopes: ${{ args.scopes }}
+        assign:
+          oauthState: ${{ result.data.state }}
+          authUrl: ${{ result.data.authUrl }}
+
+      - tool: createDocument
+        args:
+          id: oauthPrompt
+          document: oauthPromptDocument
+          update:
+            content:
+              provider: google
+              authUrl: ${{ state.authUrl }}
+              state: ${{ state.oauthState }}
+              status: pending
+
+  - id: exchange_token
+    from: awaiting_auth
+    to: end
+    trigger: manual
+    call:
+      - tool: exchangeGoogleOAuthToken
+        args:
+          code: ${{ runtime.transition.payload.code }}
+          state: ${{ runtime.transition.payload.state }}
+          expectedState: ${{ state.oauthState }}
+
+      - tool: createDocument
+        args:
+          id: oauthPrompt
+          document: oauthPromptDocument
+          update:
+            content:
+              provider: google
+              authUrl: ${{ state.authUrl }}
+              state: ${{ state.oauthState }}
+              status: success
+              message: 'Successfully connected to Google.'
