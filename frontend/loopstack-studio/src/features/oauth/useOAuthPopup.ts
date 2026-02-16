@@ -130,7 +130,9 @@ export function useOAuthPopup() {
           if (pollRef.current) clearInterval(pollRef.current);
           pollRef.current = null;
           // Only set error if we haven't already received a result
-          setResult((prev) => (prev.status === 'pending' ? { status: 'error', error: 'Authentication window was closed.' } : prev));
+          setResult((prev) =>
+            prev.status === 'pending' ? { status: 'error', error: 'Authentication window was closed.' } : prev,
+          );
           cleanup();
         }
       }, POPUP_POLL_INTERVAL_MS);

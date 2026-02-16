@@ -49,8 +49,8 @@ export class ExchangeOAuthTokenTool implements ToolInterface {
   async execute(
     args: ExchangeOAuthTokenArgs,
     ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
+    _parent: WorkflowInterface | ToolInterface,
+    _metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
     if (args.state !== args.expectedState) {
       throw new Error('OAuth state mismatch. Possible CSRF attack.');

@@ -80,7 +80,7 @@ export default function EmbedWorkbenchPage() {
           ? fetchWorkflows.data.map((workflow) => (
               <WorkflowItem
                 key={workflow.id}
-                pipeline={fetchPipeline.data!}
+                pipeline={fetchPipeline.data}
                 workflowId={workflow.id}
                 scrollTo={scrollTo}
                 settings={settings}

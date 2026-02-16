@@ -35,7 +35,7 @@ export class SseEventService {
     this.connections.get(key)!.push({ id, workerId, userId, subject });
 
     // Attach the connection id so the controller can pass it back on unregister
-    (subject as any).__sseConnectionId = id;
+    (subject as Subject<ClientMessageInterface> & { __sseConnectionId: string }).__sseConnectionId = id;
 
     return subject;
   }

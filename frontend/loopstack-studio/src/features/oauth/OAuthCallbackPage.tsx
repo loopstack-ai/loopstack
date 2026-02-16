@@ -23,10 +23,15 @@ const OAuthCallbackPage: React.FC = () => {
     // Validate opener origin matches our own origin
     try {
       const message = error
-        ? { type: OAUTH_MESSAGE_TYPE, error, errorDescription: errorDescription ?? undefined, state: state ?? undefined }
+        ? {
+            type: OAUTH_MESSAGE_TYPE,
+            error,
+            errorDescription: errorDescription ?? undefined,
+            state: state ?? undefined,
+          }
         : { type: OAUTH_MESSAGE_TYPE, code, state };
 
-      window.opener.postMessage(message, window.location.origin);
+      (window.opener as Window).postMessage(message, window.location.origin);
       setStatus('sent');
 
       setTimeout(() => {
@@ -38,7 +43,15 @@ const OAuthCallbackPage: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        fontFamily: 'system-ui, sans-serif',
+      }}
+    >
       <div style={{ textAlign: 'center', maxWidth: 400, padding: 24 }}>
         {status === 'sending' && <p>Processing authentication...</p>}
         {status === 'sent' && (

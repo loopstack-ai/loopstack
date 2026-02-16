@@ -64,12 +64,13 @@ export const LinkCard = ({
   useEffect(() => {
     if (!pipelineId || !expanded) return;
 
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = (event: MessageEvent<unknown>) => {
       if (event.origin !== window.location.origin) return;
-      if (event.data?.type !== EMBED_RESIZE_MESSAGE_TYPE) return;
-      if (event.data?.pipelineId !== pipelineId) return;
+      const data = event.data as Record<string, unknown> | null;
+      if (data?.type !== EMBED_RESIZE_MESSAGE_TYPE) return;
+      if (data?.pipelineId !== pipelineId) return;
 
-      const height = event.data?.height;
+      const height = data?.height;
       if (typeof height === 'number' && height > 0) {
         setIframeHeight(height);
       }

@@ -62,9 +62,9 @@ Add `CalendarExampleModule` to your `default.module.ts`:
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { OAuthModule } from '@loopstack/oauth-module';
-import { GoogleOAuthModule } from './google-oauth-module';
 import { CalendarExampleModule } from './@loopstack/google-oauth-calendar-example';
 import { DefaultWorkspace } from './default.workspace';
+import { GoogleOAuthModule } from './google-oauth-module';
 
 @Module({
   imports: [LoopCoreModule, OAuthModule, GoogleOAuthModule, CalendarExampleModule],

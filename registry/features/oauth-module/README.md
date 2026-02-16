@@ -172,8 +172,8 @@ That's it. The generic OAuth workflow will now handle `provider: 'github'` autom
 
 ```typescript
 interface OAuthProviderInterface {
-  readonly providerId: string;       // Unique identifier, e.g. 'google', 'github'
-  readonly defaultScopes: string[];  // Fallback scopes when none are specified
+  readonly providerId: string; // Unique identifier, e.g. 'google', 'github'
+  readonly defaultScopes: string[]; // Fallback scopes when none are specified
 
   buildAuthUrl(scopes: string[], state: string): string;
   exchangeCode(code: string): Promise<OAuthTokenSet>;
@@ -183,7 +183,7 @@ interface OAuthProviderInterface {
 interface OAuthTokenSet {
   accessToken: string;
   refreshToken?: string;
-  expiresIn: number;    // Seconds until expiry
+  expiresIn: number; // Seconds until expiry
   scope: string;
 }
 ```
@@ -201,7 +201,7 @@ The typical pattern is "try, then authenticate on failure" using `ExecuteWorkflo
 
 ```typescript
 import { Inject } from '@nestjs/common';
-import { Tool, ToolInterface, ToolResult, RunContext } from '@loopstack/common';
+import { RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 @Tool({ config: { description: 'Fetches data from an API that requires OAuth.' } })
@@ -303,7 +303,7 @@ The `embed: true` and `expanded: true` flags on the link document cause the OAut
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { InjectDocument, InjectTool, Context, Runtime, State, Workflow, WorkflowInterface } from '@loopstack/common';
+import { Context, InjectDocument, InjectTool, Runtime, State, Workflow, WorkflowInterface } from '@loopstack/common';
 import { ExecuteWorkflowAsync } from '@loopstack/core';
 import { CreateDocument, LinkDocument } from '@loopstack/core-ui-module';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
@@ -345,22 +345,22 @@ export class MyModule {}
 
 Manages registered OAuth providers.
 
-| Method                  | Description                              |
-| ----------------------- | ---------------------------------------- |
-| `register(provider)`   | Register a provider instance             |
-| `get(providerId)`      | Get a provider by ID (throws if missing) |
-| `has(providerId)`      | Check if a provider is registered        |
+| Method               | Description                              |
+| -------------------- | ---------------------------------------- |
+| `register(provider)` | Register a provider instance             |
+| `get(providerId)`    | Get a provider by ID (throws if missing) |
+| `has(providerId)`    | Check if a provider is registered        |
 
 ### OAuthTokenStore
 
 Stores and retrieves OAuth tokens per user and provider. Currently uses an in-memory store.
 
-| Method                                         | Description                                                            |
-| ---------------------------------------------- | ---------------------------------------------------------------------- |
-| `storeTokens(userId, providerId, tokens)`     | Store tokens for a user/provider pair                                  |
-| `storeFromTokenSet(userId, providerId, set)`  | Store tokens from an `OAuthTokenSet` (auto-calculates expiry)         |
-| `getTokens(userId, providerId)`               | Get stored tokens (may be expired)                                     |
-| `getValidAccessToken(userId, providerId)`     | Get a valid access token, auto-refreshing if expired and possible      |
+| Method                                       | Description                                                       |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| `storeTokens(userId, providerId, tokens)`    | Store tokens for a user/provider pair                             |
+| `storeFromTokenSet(userId, providerId, set)` | Store tokens from an `OAuthTokenSet` (auto-calculates expiry)     |
+| `getTokens(userId, providerId)`              | Get stored tokens (may be expired)                                |
+| `getValidAccessToken(userId, providerId)`    | Get a valid access token, auto-refreshing if expired and possible |
 
 ## Document Types
 
@@ -368,13 +368,13 @@ Stores and retrieves OAuth tokens per user and provider. Currently uses an in-me
 
 Rendered by the `oauth-prompt` widget. Used internally by the OAuth workflow to show the sign-in prompt with a popup-based authentication flow.
 
-| Field      | Type     | Description                        |
-| ---------- | -------- | ---------------------------------- |
-| `provider` | `string` | Provider ID                        |
-| `authUrl`  | `string` | The OAuth authorization URL        |
-| `state`    | `string` | CSRF state parameter               |
+| Field      | Type     | Description                         |
+| ---------- | -------- | ----------------------------------- |
+| `provider` | `string` | Provider ID                         |
+| `authUrl`  | `string` | The OAuth authorization URL         |
+| `state`    | `string` | CSRF state parameter                |
 | `status`   | `string` | `'pending'`, `'success'`, `'error'` |
-| `message`  | `string` | Optional status message            |
+| `message`  | `string` | Optional status message             |
 
 ## About
 

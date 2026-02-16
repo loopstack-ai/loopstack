@@ -28,7 +28,7 @@ export class BuildOAuthUrlTool implements ToolInterface {
   })
   args: BuildOAuthUrlArgs;
 
-  async execute(args: BuildOAuthUrlArgs): Promise<ToolResult> {
+  execute(args: BuildOAuthUrlArgs): ToolResult {
     const provider = this.providerRegistry.get(args.provider);
     const state = randomBytes(32).toString('hex');
     const scopes = args.scopes?.length ? args.scopes : provider.defaultScopes;

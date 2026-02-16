@@ -28,9 +28,9 @@ This module requires `@loopstack/oauth-module` as a peer dependency.
 
 | Variable                    | Required | Default           | Description                     |
 | --------------------------- | -------- | ----------------- | ------------------------------- |
-| `GOOGLE_CLIENT_ID`         | Yes      | —                 | Your Google OAuth client ID     |
-| `GOOGLE_CLIENT_SECRET`     | Yes      | —                 | Your Google OAuth client secret |
-| `GOOGLE_OAUTH_REDIRECT_URI`| No       | `/oauth/callback` | The OAuth redirect URI          |
+| `GOOGLE_CLIENT_ID`          | Yes      | —                 | Your Google OAuth client ID     |
+| `GOOGLE_CLIENT_SECRET`      | Yes      | —                 | Your Google OAuth client secret |
+| `GOOGLE_OAUTH_REDIRECT_URI` | No       | `/oauth/callback` | The OAuth redirect URI          |
 
 You can obtain client credentials from the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
 
@@ -40,8 +40,8 @@ Add `GoogleOAuthModule` alongside `OAuthModule` in your application module:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { OAuthModule } from '@loopstack/oauth-module';
 import { GoogleOAuthModule } from '@loopstack/google-oauth-module';
+import { OAuthModule } from '@loopstack/oauth-module';
 
 @Module({
   imports: [OAuthModule, GoogleOAuthModule],
@@ -67,13 +67,13 @@ After registration, the generic `OAuthWorkflow` from `@loopstack/oauth-module` c
 
 ### Provider Details
 
-| Property        | Value                                                     |
-| --------------- | --------------------------------------------------------- |
-| `providerId`    | `'google'`                                                |
-| `defaultScopes` | `userinfo.email`, `userinfo.profile`                     |
-| Auth endpoint   | `https://accounts.google.com/o/oauth2/v2/auth`           |
-| Token endpoint  | `https://oauth2.googleapis.com/token`                     |
-| Access type     | `offline` (requests refresh tokens)                       |
+| Property        | Value                                          |
+| --------------- | ---------------------------------------------- |
+| `providerId`    | `'google'`                                     |
+| `defaultScopes` | `userinfo.email`, `userinfo.profile`           |
+| Auth endpoint   | `https://accounts.google.com/o/oauth2/v2/auth` |
+| Token endpoint  | `https://oauth2.googleapis.com/token`          |
+| Access type     | `offline` (requests refresh tokens)            |
 
 ### Supported Operations
 
