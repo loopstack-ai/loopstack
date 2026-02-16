@@ -1,14 +1,13 @@
 import { ReactFlowProvider } from '@xyflow/react';
-import { FileText, Loader2, X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import type { PipelineConfigDto } from '@loopstack/api-client';
 import MarkdownContent from '@/components/dynamic-form/MarkdownContent';
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ConfigFlowViewer from '@/features/debug/components/ConfigFlowViewer';
 import { cn } from '@/lib/utils';
-import { useCodeExplorerContext } from '../providers/CodeExplorerProvider';
 import type { FileExplorerNode } from '../types';
 
 const BINARY_EXTENSIONS = new Set([
@@ -76,23 +75,22 @@ function getLanguageForFileName(name: string): string {
 interface FileContentViewerProps {
   selectedFile: FileExplorerNode | null;
   content: string | null;
+  workflowConfig?: PipelineConfigDto | null;
   isLoading?: boolean;
   className?: string;
 }
 
-export function FileContentViewer({ selectedFile, content, isLoading = false, className }: FileContentViewerProps) {
-  const { clearSelection, workflowConfig } = useCodeExplorerContext();
-
+export function FileContentViewer({
+  selectedFile,
+  content,
+  workflowConfig = null,
+  isLoading = false,
+  className,
+}: FileContentViewerProps) {
   if (!selectedFile) {
     return (
-      <div
-        className={cn(
-          'flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed bg-muted/30 p-8 text-center',
-          className,
-        )}
-      >
-        <FileText className="mb-4 h-12 w-12 text-muted-foreground" aria-hidden />
-        <p className="text-sm text-muted-foreground">Select a file to view its content</p>
+      <div className={cn('flex flex-1 items-center justify-center bg-background', className)}>
+        <p className="text-sm text-muted-foreground">Select a tab to view its content</p>
       </div>
     );
   }
@@ -104,18 +102,6 @@ export function FileContentViewer({ selectedFile, content, isLoading = false, cl
   if (isBinary && content == null) {
     return (
       <div className={cn('flex flex-1 flex-col rounded-lg border bg-background', className)}>
-        <div className="border-b bg-muted/50 px-3 py-2 text-sm font-medium flex items-center justify-between">
-          <span className="truncate flex-1">{selectedFile.path ?? selectedFile.name}</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0 ml-2 opacity-70 hover:opacity-100"
-            onClick={clearSelection}
-            aria-label="Close file"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
         <div className="flex flex-1 items-center justify-center p-8">
           <p className="text-sm text-muted-foreground">Binary file — preview not available</p>
         </div>
@@ -126,18 +112,6 @@ export function FileContentViewer({ selectedFile, content, isLoading = false, cl
   if (isLoading) {
     return (
       <div className={cn('flex flex-1 flex-col rounded-lg border bg-background', className)}>
-        <div className="border-b bg-muted/50 px-3 py-2 text-sm font-medium flex items-center justify-between">
-          <span className="truncate flex-1">{selectedFile.path ?? selectedFile.name}</span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0 ml-2 opacity-70 hover:opacity-100"
-            onClick={clearSelection}
-            aria-label="Close file"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
         <div className="flex justify-center p-8">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -152,18 +126,6 @@ export function FileContentViewer({ selectedFile, content, isLoading = false, cl
 
   return (
     <div className={cn('flex h-full flex-col overflow-hidden rounded-lg border bg-background', className)}>
-      <div className="shrink-0 border-b bg-muted/50 px-3 py-2 text-sm font-medium flex items-center justify-between">
-        <span className="truncate flex-1">{selectedFile.path ?? selectedFile.name}</span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 shrink-0 ml-2 opacity-70 hover:opacity-100"
-          onClick={clearSelection}
-          aria-label="Close file"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
       {isMarkdown && displayContent ? (
         <Tabs defaultValue="rendered" className="flex h-full flex-col overflow-hidden">
           <TabsList className="shrink-0 mx-2 mt-2">

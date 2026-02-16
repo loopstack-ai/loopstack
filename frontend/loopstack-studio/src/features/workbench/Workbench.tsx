@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { PipelineDto } from '@loopstack/api-client';
 import { FileContentViewer } from '@/features/code-explorer/components/FileContentViewer';
+import { FileTabsBar } from '@/features/code-explorer/components/FileTabsBar';
 import { CodeExplorerProvider, useCodeExplorerContext } from '@/features/code-explorer/providers/CodeExplorerProvider';
 import { SidebarInsetDiv, SidebarProvider, SidebarTrigger } from '../../components/ui/sidebar.tsx';
 import { useNamespaceTree } from '../../hooks/useNamespaceTree.ts';
@@ -11,7 +12,7 @@ import { WorkbenchContextProvider } from './providers/WorkbenchContextProvider.t
 import type { WorkbenchState } from './providers/WorkbenchContextProvider.tsx';
 
 function WorkbenchContent({ pipeline }: { pipeline: PipelineDto }) {
-  const { selectedFile, fileContent, isContentLoading } = useCodeExplorerContext();
+  const { openFiles, selectedFile, fileContent, workflowConfig, isContentLoading } = useCodeExplorerContext();
 
   return (
     <div className="flex h-full flex-col">
@@ -25,14 +26,18 @@ function WorkbenchContent({ pipeline }: { pipeline: PipelineDto }) {
             </div>
           </ScrollProvider>
         </div>
-        {selectedFile && (
-          <div className="w-full md:w-1/2 shrink-0 overflow-hidden">
-            <FileContentViewer
-              selectedFile={selectedFile}
-              content={fileContent}
-              isLoading={isContentLoading}
-              className="h-full"
-            />
+        {openFiles.length > 0 && (
+          <div className="w-full md:w-1/2 shrink-0 overflow-hidden flex flex-col">
+            <FileTabsBar />
+            <div className="flex-1 overflow-hidden">
+              <FileContentViewer
+                selectedFile={selectedFile}
+                content={fileContent}
+                workflowConfig={workflowConfig}
+                isLoading={isContentLoading}
+                className="h-full"
+              />
+            </div>
           </div>
         )}
       </div>

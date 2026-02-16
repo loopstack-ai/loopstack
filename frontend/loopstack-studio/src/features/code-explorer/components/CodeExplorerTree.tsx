@@ -36,6 +36,7 @@ interface CodeExplorerTreeProps {
   searchQuery?: string;
   onSelectFile?: (node: FileExplorerNode) => void;
   onClearSelection?: () => void;
+  onCloseFile?: (node: FileExplorerNode) => void;
   selectedFileId?: string;
 }
 
@@ -44,6 +45,7 @@ export function CodeExplorerTree({
   searchQuery = '',
   onSelectFile,
   onClearSelection,
+  onCloseFile,
   selectedFileId,
 }: CodeExplorerTreeProps) {
   const filteredNodes = useMemo(() => filterTree(nodes, searchQuery), [nodes, searchQuery]);
@@ -62,6 +64,7 @@ export function CodeExplorerTree({
               depth={0}
               onSelectFile={onSelectFile}
               onClearSelection={onClearSelection}
+              onCloseFile={onCloseFile}
               selectedFileId={selectedFileId}
               expandedFolders={expandedFolders}
               toggleFolder={toggleFolder}

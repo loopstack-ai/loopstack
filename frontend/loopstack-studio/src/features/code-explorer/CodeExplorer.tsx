@@ -8,8 +8,17 @@ interface CodeExplorerProps {
 }
 
 export function CodeExplorer({ className }: CodeExplorerProps) {
-  const { fileTree, isTreeLoading, error, searchQuery, setSearchQuery, selectFile, selectedFile, clearSelection } =
-    useCodeExplorerContext();
+  const {
+    fileTree,
+    isTreeLoading,
+    error,
+    searchQuery,
+    setSearchQuery,
+    selectFile,
+    selectedFile,
+    clearSelection,
+    closeFile,
+  } = useCodeExplorerContext();
 
   return (
     <div className={cn('flex h-full w-full flex-col gap-2 overflow-hidden', className)}>
@@ -41,6 +50,7 @@ export function CodeExplorer({ className }: CodeExplorerProps) {
               searchQuery={searchQuery}
               onSelectFile={selectFile}
               onClearSelection={clearSelection}
+              onCloseFile={closeFile}
               selectedFileId={selectedFile?.id}
             />
           )}

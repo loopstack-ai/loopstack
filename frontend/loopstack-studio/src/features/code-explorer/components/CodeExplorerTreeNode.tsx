@@ -10,6 +10,7 @@ interface CodeExplorerTreeNodeProps {
   depth: number;
   onSelectFile?: (node: FileExplorerNode) => void;
   onClearSelection?: () => void;
+  onCloseFile?: (node: FileExplorerNode) => void;
   isSelected?: boolean;
   selectedFileId?: string;
   expandedFolders?: Set<string>;
@@ -24,6 +25,7 @@ export function CodeExplorerTreeNode({
   depth,
   onSelectFile,
   onClearSelection,
+  onCloseFile,
   isSelected = false,
   selectedFileId,
   expandedFolders = new Set(),
@@ -57,14 +59,18 @@ export function CodeExplorerTreeNode({
           <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
           <span className="truncate">{node.name}</span>
         </button>
-        {nodeIsSelected && onClearSelection && (
+        {nodeIsSelected && (onCloseFile || onClearSelection) && (
           <Button
             variant="ghost"
             size="icon"
             className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={(e) => {
               e.stopPropagation();
-              onClearSelection();
+              if (onCloseFile) {
+                onCloseFile(node);
+              } else if (onClearSelection) {
+                onClearSelection();
+              }
             }}
             aria-label="Close file"
           >
@@ -117,6 +123,7 @@ export function CodeExplorerTreeNode({
               depth={depth + 1}
               onSelectFile={onSelectFile}
               onClearSelection={onClearSelection}
+              onCloseFile={onCloseFile}
               selectedFileId={selectedFileId}
               expandedFolders={expandedFolders}
               toggleFolder={toggleFolder}

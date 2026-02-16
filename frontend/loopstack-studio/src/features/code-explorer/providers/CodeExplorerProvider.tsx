@@ -5,6 +5,7 @@ import type { FileExplorerNode } from '../types';
 
 interface CodeExplorerContextValue {
   fileTree: FileExplorerNode[];
+  openFiles: FileExplorerNode[];
   selectedFile: FileExplorerNode | null;
   fileContent: string | null;
   workflowConfig: PipelineConfigDto | null;
@@ -15,6 +16,11 @@ interface CodeExplorerContextValue {
   setSearchQuery: (query: string) => void;
   selectFile: (node: FileExplorerNode) => void;
   clearSelection: () => void;
+  closeFile: (node: FileExplorerNode) => void;
+  closeAll: () => void;
+  closeOthers: (node: FileExplorerNode) => void;
+  closeToLeft: (node: FileExplorerNode) => void;
+  closeToRight: (node: FileExplorerNode) => void;
   refresh: () => Promise<void>;
   expandedFolders: Set<string>;
   toggleFolder: (folderId: string) => void;
@@ -39,6 +45,7 @@ function mapDtoToNode(dto: FileExplorerNodeDto): FileExplorerNode {
 }
 
 export function CodeExplorerProvider({ children, pipelineId, initialSelectedPath }: CodeExplorerProviderProps) {
+  const [openFiles, setOpenFiles] = useState<FileExplorerNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileExplorerNode | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
@@ -64,7 +71,7 @@ export function CodeExplorerProvider({ children, pipelineId, initialSelectedPath
   const error = fileTreeQuery.error || fileContentQuery.error || null;
 
   useEffect(() => {
-    if (initialSelectedPath && fileTree.length > 0 && !selectedFile) {
+    if (initialSelectedPath && fileTree.length > 0 && !selectedFile && openFiles.length === 0) {
       const findNodeByPath = (nodes: FileExplorerNode[], path: string): FileExplorerNode | null => {
         for (const node of nodes) {
           if (node.path === path) {
@@ -80,27 +87,105 @@ export function CodeExplorerProvider({ children, pipelineId, initialSelectedPath
 
       const node = findNodeByPath(fileTree, initialSelectedPath);
       if (node && node.type === 'file') {
+        setOpenFiles([node]);
         setSelectedFile(node);
       }
     }
-  }, [initialSelectedPath, fileTree, selectedFile]);
+  }, [initialSelectedPath, fileTree, selectedFile, openFiles.length]);
 
-  const selectFile = useCallback(
-    (node: FileExplorerNode) => {
-      if (node.type === 'file') {
-        if (selectedFile?.id === node.id) {
-          setSelectedFile(null);
-        } else {
+  const selectFile = useCallback((node: FileExplorerNode) => {
+    if (node.type === 'file') {
+      setOpenFiles((prev) => {
+        const existingIndex = prev.findIndex((f) => f.path === node.path);
+        if (existingIndex >= 0) {
           setSelectedFile(node);
+          return prev;
+        } else {
+          const updated = [...prev, node];
+          setSelectedFile(node);
+          return updated;
         }
-      }
+      });
+    }
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    if (selectedFile) {
+      setOpenFiles((prev) => {
+        const updated = prev.filter((f) => f.path !== selectedFile.path);
+        if (updated.length > 0) {
+          const currentIndex = prev.findIndex((f) => f.path === selectedFile.path);
+          const newIndex = currentIndex > 0 ? currentIndex - 1 : 0;
+          setSelectedFile(updated[newIndex]);
+        } else {
+          setSelectedFile(null);
+        }
+        return updated;
+      });
+    }
+  }, [selectedFile]);
+
+  const closeFile = useCallback(
+    (node: FileExplorerNode) => {
+      setOpenFiles((prev) => {
+        const updated = prev.filter((f) => f.path !== node.path);
+        if (selectedFile?.path === node.path) {
+          if (updated.length > 0) {
+            const currentIndex = prev.findIndex((f) => f.path === node.path);
+            const newIndex = currentIndex > 0 ? currentIndex - 1 : 0;
+            setSelectedFile(updated[newIndex]);
+          } else {
+            setSelectedFile(null);
+          }
+        }
+        return updated;
+      });
     },
     [selectedFile],
   );
 
-  const clearSelection = useCallback(() => {
+  const closeAll = useCallback(() => {
+    setOpenFiles([]);
     setSelectedFile(null);
   }, []);
+
+  const closeOthers = useCallback((node: FileExplorerNode) => {
+    setOpenFiles([node]);
+    setSelectedFile(node);
+  }, []);
+
+  const closeToLeft = useCallback(
+    (node: FileExplorerNode) => {
+      setOpenFiles((prev) => {
+        const nodeIndex = prev.findIndex((f) => f.path === node.path);
+        if (nodeIndex <= 0) return prev;
+
+        const updated = prev.slice(nodeIndex);
+        if (selectedFile && prev.findIndex((f) => f.path === selectedFile.path) < nodeIndex) {
+          setSelectedFile(node);
+        }
+        return updated;
+      });
+    },
+    [selectedFile],
+  );
+
+  const closeToRight = useCallback(
+    (node: FileExplorerNode) => {
+      setOpenFiles((prev) => {
+        const nodeIndex = prev.findIndex((f) => f.path === node.path);
+        if (nodeIndex < 0 || nodeIndex >= prev.length - 1) return prev;
+
+        const updated = prev.slice(0, nodeIndex + 1);
+
+        if (selectedFile && prev.findIndex((f) => f.path === selectedFile.path) > nodeIndex) {
+          setSelectedFile(node);
+        }
+        return updated;
+      });
+    },
+    [selectedFile],
+  );
 
   const refresh = useCallback(async () => {
     await fileTreeQuery.refetch();
@@ -123,6 +208,7 @@ export function CodeExplorerProvider({ children, pipelineId, initialSelectedPath
 
   const value: CodeExplorerContextValue = {
     fileTree,
+    openFiles,
     selectedFile,
     fileContent,
     workflowConfig,
@@ -133,6 +219,11 @@ export function CodeExplorerProvider({ children, pipelineId, initialSelectedPath
     setSearchQuery,
     selectFile,
     clearSelection,
+    closeFile,
+    closeAll,
+    closeOthers,
+    closeToLeft,
+    closeToRight,
     refresh,
     expandedFolders,
     toggleFolder,
