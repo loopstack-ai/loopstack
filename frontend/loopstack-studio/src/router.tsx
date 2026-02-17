@@ -5,10 +5,12 @@ import WorkerLayout from './app/WorkerLayout.tsx';
 import AppLayout from './components/layout/AppLayout.tsx';
 import config from './config.ts';
 import LocalHealthCheck from './features/health/LocalHealthCheck.tsx';
+import { OAuthCallbackPage } from './features/oauth';
 import DashboardPage from './pages/DashboardPage.tsx';
 import DebugPage from './pages/DebugPage.tsx';
 import DebugWorkflowDetailsPage from './pages/DebugWorkflowDetailsPage.tsx';
 import DebugWorkflowsPage from './pages/DebugWorkflowsPage.tsx';
+import EmbedWorkbenchPage from './pages/EmbedWorkbenchPage.tsx';
 import PipelineDebugPage from './pages/PipelineDebugPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import WorkspacesPage from './pages/WorkspacesPage.tsx';
@@ -35,7 +37,34 @@ function AppRoot() {
   );
 }
 
+function EmbedRoot() {
+  const router = useRouter(config.environment.id);
+  return (
+    <QueryProvider>
+      <StudioProvider router={router} environment={config.environment}>
+        <SseProvider />
+        <InvalidationEventsProvider />
+        <WorkerLayout />
+      </StudioProvider>
+    </QueryProvider>
+  );
+}
+
 const router: DataRouter = createBrowserRouter([
+  {
+    path: '/oauth/callback',
+    element: <OAuthCallbackPage />,
+  },
+  {
+    path: '/embed',
+    element: <EmbedRoot />,
+    children: [
+      {
+        path: 'pipelines/:pipelineId',
+        element: <EmbedWorkbenchPage />,
+      },
+    ],
+  },
   {
     path: '/',
     element: <AppRoot />,

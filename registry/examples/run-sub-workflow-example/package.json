@@ -64,6 +64,10 @@
           }
         }
       }
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

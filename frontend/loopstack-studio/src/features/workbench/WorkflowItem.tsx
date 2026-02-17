@@ -8,6 +8,7 @@ import WorkflowForms from '@/features/workbench/components/WorkflowForms.tsx';
 import { useFilterDocuments } from '@/hooks/useDocuments.ts';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
+import { cn } from '@/lib/utils';
 import LoadingCentered from '../../components/LoadingCentered.tsx';
 import BasicErrorComponent from '../../components/content/ErrorAlert.tsx';
 import type { WorkbenchSettingsInterface } from './WorkflowList.tsx';
@@ -18,7 +19,8 @@ const WorkflowItem: React.FC<{
   workflowId: string;
   scrollTo: (workflowId: string) => void;
   settings: WorkbenchSettingsInterface;
-}> = ({ pipeline, workflowId, scrollTo, settings }) => {
+  embed?: boolean;
+}> = ({ pipeline, workflowId, scrollTo, settings, embed }) => {
   const { workflowId: paramsWorkflowId, clickId } = useParams();
   const fetchWorkflow = useWorkflow(workflowId);
   const fetchDocuments = useFilterDocuments(workflowId);
@@ -73,7 +75,7 @@ const WorkflowItem: React.FC<{
   const isLoading = runPipeline.isPending || fetchWorkflow.data?.status === 'running';
 
   return (
-    <div className="flex min-h-[calc(100vh-16rem)] flex-col p-4">
+    <div className={cn('flex flex-col', embed ? 'p-0' : 'min-h-[calc(100vh-16rem)] p-4')}>
       <LoadingCentered loading={fetchWorkflow.isLoading || fetchDocuments.isLoading} />
       <ErrorSnackbar error={fetchDocuments.error} />
 
@@ -92,7 +94,7 @@ const WorkflowItem: React.FC<{
 
       <LoadingCentered loading={isLoading} />
 
-      {!!fetchWorkflow.data && (
+      {!!fetchWorkflow.data && !embed && (
         <div className="mt-auto flex flex-col gap-6 pt-12">
           <WorkflowForms workflow={fetchWorkflow.data} onSubmit={handleRun} />
           <WorkflowButtons pipeline={pipeline} workflow={fetchWorkflow.data} />

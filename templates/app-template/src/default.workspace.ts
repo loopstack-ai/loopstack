@@ -10,6 +10,4 @@ import { HelloWorldWorkflow } from './hello-world/hello-world.workflow';
 })
 export class DefaultWorkspace implements WorkspaceInterface {
   @InjectWorkflow() helloWorld: HelloWorldWorkflow;
-
-  // Add your workflows here
 }
