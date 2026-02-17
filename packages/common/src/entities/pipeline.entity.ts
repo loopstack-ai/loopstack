@@ -44,6 +44,9 @@ export class PipelineEntity {
   })
   status!: PipelineState;
 
+  @Column({ type: 'varchar', name: 'event_correlation_id', nullable: true })
+  eventCorrelationId!: string | null;
+
   @Column('jsonb', { default: {} })
   args!: any;
 

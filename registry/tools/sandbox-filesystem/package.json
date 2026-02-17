@@ -48,6 +48,10 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/sandbox-filesystem.module.ts"
+    "module": "src/sandbox-filesystem.module.ts",
+    "installModes": [
+      "add",
+      "install"
+    ]
   }
 }

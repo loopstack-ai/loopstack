@@ -1,17 +1,18 @@
-import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
+import { RunPayload } from '@loopstack/contracts/schemas';
 import { NamespaceEntity } from '../entities';
 
 export class RunContext {
   root!: string;
   index!: string;
   userId!: string;
-  pipelineId!: string;
+  pipelineId?: string;
   workspaceId!: string;
   workflowId?: string;
-  namespace!: NamespaceEntity;
+  namespace?: NamespaceEntity;
   labels!: string[];
-  payload?: {
-    transition?: TransitionPayloadInterface;
+  payload: RunPayload;
+  options: {
+    stateless: boolean;
   };
 
   constructor(data: RunContext) {

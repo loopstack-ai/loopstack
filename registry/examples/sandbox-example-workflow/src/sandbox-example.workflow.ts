@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DefineHelper, InjectTool, Input, Runtime, State, Workflow } from '@loopstack/common';
+import { DefineHelper, InjectTool, Input, Runtime, State, ToolResult, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import {
   SandboxCreateDirectory,
@@ -47,7 +47,7 @@ export class SandboxExampleWorkflow {
 
   @Runtime()
   runtime: {
-    tools: Record<string, Record<string, any>>;
+    tools: Record<string, Record<string, ToolResult<any>>>;
   };
 
   // Sandbox lifecycle tools (from @loopstack/sandbox-tool)

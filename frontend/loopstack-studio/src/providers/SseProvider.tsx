@@ -4,37 +4,31 @@ import { useMe } from '../hooks/useAuth.ts';
 import { eventBus } from '../services';
 import { useStudio } from './StudioProvider.tsx';
 
-let eventSource: EventSource | null = null;
-
 export function SseProvider() {
   const { environment } = useStudio();
   const { data: user, isSuccess: isAuthenticated } = useMe();
-  const hasConnected = useRef(false);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
     if (environment.url && isAuthenticated && user) {
-      if (eventSource) {
-        eventSource.close();
-        eventSource = null;
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
       const sseUrl = `${environment.url}/api/v1/sse/stream`;
 
-      eventSource = new EventSource(sseUrl, {
+      const es = new EventSource(sseUrl, {
         withCredentials: true,
       });
+      eventSourceRef.current = es;
 
-      eventSource.onopen = () => {
+      es.onopen = () => {
         console.log('SSE connection established');
-        hasConnected.current = true;
         // eventBus.emit(SseClientEvents.SSE_CONNECTED);
       };
 
-      eventSource.onerror = () => {
-        // if (eventSource?.readyState === EventSource.CONNECTING) {
-        //   return;
-        // }
-
-        if (eventSource?.readyState === EventSource.CLOSED) {
+      es.onerror = () => {
+        if (es.readyState === EventSource.CLOSED) {
           console.warn('SSE connection closed. Refresh the page if it does not recover.');
         }
       };
@@ -48,7 +42,7 @@ export function SseProvider() {
       ];
 
       eventTypes.forEach((eventType) => {
-        eventSource?.addEventListener(eventType, (event: MessageEvent<string>) => {
+        es.addEventListener(eventType, (event: MessageEvent<string>) => {
           try {
             const payload = JSON.parse(event.data) as { type: string };
             eventBus.emit(payload.type, payload);
@@ -59,10 +53,8 @@ export function SseProvider() {
       });
 
       return () => {
-        if (eventSource) {
-          eventSource.close();
-          eventSource = null;
-        }
+        es.close();
+        eventSourceRef.current = null;
       };
     }
   }, [environment.url, isAuthenticated, user]);

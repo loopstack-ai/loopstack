@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { omit, uniq } from 'lodash';
 import { z } from 'zod';
-import { WorkflowEntity, getBlockConfig, getBlockTemplateHelpers } from '@loopstack/common';
+import { getBlockConfig, getBlockTemplateHelpers } from '@loopstack/common';
 import { WorkflowTransitionSchema } from '@loopstack/contracts/schemas';
 import type {
   HistoryTransition,
@@ -14,14 +14,12 @@ import { TemplateExpressionEvaluatorService } from '../../common';
 import { WorkflowExecutionContextManager } from '../utils/execution-context-manager';
 import { getTemplateVars } from '../utils/template-helper';
 import { StateMachineToolCallProcessorService } from './state-machine-tool-call-processor.service';
-import { WorkflowStateService } from './workflow-state.service';
 
 @Injectable()
 export class StateMachineProcessorService {
   private readonly logger = new Logger(StateMachineProcessorService.name);
 
   constructor(
-    private readonly workflowStateService: WorkflowStateService,
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private readonly stateMachineToolCallProcessorService: StateMachineToolCallProcessorService,
   ) {}
@@ -106,6 +104,7 @@ export class StateMachineProcessorService {
       to: nextTransition.to,
       onError: nextTransition.onError,
       payload: nextTransition.id === pendingTransition?.id ? (pendingTransition?.payload as unknown) : null,
+      meta: nextTransition.id === pendingTransition?.id ? (pendingTransition?.meta as unknown) : null,
     };
   }
 
@@ -125,11 +124,10 @@ export class StateMachineProcessorService {
     ctx.getManager().checkpoint();
   }
 
-  async processStateMachine(
-    workflowEntity: WorkflowEntity,
+  async *processStateMachine(
     ctx: WorkflowExecutionContextManager,
     pendingTransitions: TransitionPayloadInterface[],
-  ): Promise<WorkflowExecutionContextManager> {
+  ): AsyncGenerator<WorkflowExecutionContextManager, WorkflowExecutionContextManager> {
     const config = getBlockConfig<WorkflowType>(ctx.getInstance()) as WorkflowType;
     if (!config) {
       throw new Error(`Block ${ctx.getInstance().constructor.name} is missing @BlockConfig decorator`);
@@ -150,8 +148,8 @@ export class StateMachineProcessorService {
       ctx.getManager().setData('availableTransitions', this.getAvailableTransitions(ctx));
       ctx.getManager().setData('transition', this.getNextTransition(ctx, nextPendingTransition));
 
-      // persist workflow for state and added documents of previous loop iteration
-      await this.workflowStateService.saveExecutionState(workflowEntity, ctx);
+      // yield to caller for persistence before executing transition
+      yield ctx;
 
       // no more transitions?
       const currentTransition = ctx.getManager().getData('transition');

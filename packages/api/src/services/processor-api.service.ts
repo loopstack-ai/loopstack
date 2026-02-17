@@ -14,9 +14,9 @@ export class ProcessorApiService {
       task: {
         name: 'manual_execution',
         type: 'run_pipeline',
+        pipelineId,
         payload: {
           ...payload,
-          id: pipelineId,
         },
         user: user,
       },

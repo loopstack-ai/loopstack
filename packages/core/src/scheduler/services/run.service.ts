@@ -63,9 +63,8 @@ export class RunService {
       task: {
         name: 'manual_execution',
         type: 'run_pipeline',
-        payload: {
-          id: pipeline.id,
-        },
+        pipelineId: pipeline.id,
+        payload: {},
         user: userId,
       },
     } satisfies ScheduledTask);

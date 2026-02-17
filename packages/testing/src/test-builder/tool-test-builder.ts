@@ -40,7 +40,7 @@ export function createExecutionContext(overrides?: Partial<WorkflowExecution>): 
       //   updateMetadata: (data: any) => Object.entries(data).forEach(([k, v]) => metadata.set(k, v)),
       // },
       runtime: {
-        error: false,
+        hasError: false,
         stop: false,
         availableTransitions: [],
         transition: {

@@ -62,7 +62,7 @@ describe('MeetingNotesWorkflow', () => {
       const result = await processor.process(workflow, {}, context);
 
       // Should execute without errors and stop at waiting_for_response (manual step)
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
 
       // Should call CreateDocument once for the initial form
@@ -151,7 +151,7 @@ describe('MeetingNotesWorkflow', () => {
       const result = await processorWithState.process(workflowWithState, args, contextWithPayload);
 
       // Should execute and stop at notes_optimized (next manual step)
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
 
       // Should call CreateDocument once for user response
@@ -241,7 +241,7 @@ describe('MeetingNotesWorkflow', () => {
       const result = await processorWithState.process(workflowWithState, args, contextWithPayload);
 
       // Should complete and reach end state
-      expect(result.error).toBe(false);
+      expect(result.hasError).toBe(false);
       expect(result.stop).toBe(false);
 
       // Should call CreateDocument once for final confirmation

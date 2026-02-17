@@ -57,6 +57,10 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/core-ui.module.ts"
+    "module": "src/core-ui.module.ts",
+    "installModes": [
+      "add",
+      "install"
+    ]
   }
 }

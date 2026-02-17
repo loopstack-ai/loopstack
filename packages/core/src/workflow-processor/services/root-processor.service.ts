@@ -8,7 +8,7 @@ import {
   WorkflowMetadataInterface,
   getBlockWorkflow,
 } from '@loopstack/common';
-import { WorkflowState } from '@loopstack/contracts/enums';
+import { RunPayload } from '@loopstack/contracts/schemas';
 import { type PipelineEventPayload, PipelineService } from '../../persistence';
 import { BlockDiscoveryService } from './block-discovery.service';
 import { BlockProcessor } from './block-processor.service';
@@ -26,15 +26,72 @@ export class RootProcessorService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  private async processRootPipeline(
-    workflow: WorkflowInterface,
-    pipeline: PipelineEntity,
-    payload: RunContext['payload'],
-    args?: any,
-  ): Promise<WorkflowMetadataInterface> {
-    const namespace = await this.namespaceProcessorService.createRootNamespace(pipeline);
+  private resolveWorkflow(workspaceName: string, blockName: string) {
+    const workspaceInstance = this.blockDiscoveryService.getWorkspace(workspaceName);
+    if (!workspaceInstance) {
+      throw new BadRequestException(`Config for workspace with name ${workspaceName} not found.`);
+    }
 
-    this.logger.debug(`Running Root Pipeline: ${pipeline.blockName}`);
+    const workflow = getBlockWorkflow<WorkflowInterface>(workspaceInstance, blockName);
+    if (!workflow) {
+      throw new Error(`Workflow ${blockName} not available in workspace ${workspaceName}`);
+    }
+
+    return workflow;
+  }
+
+  private emitCompletionEvent(payload: PipelineEventPayload): void {
+    this.logger.log(`Root pipeline execution completed.`);
+    this.eventEmitter.emit('pipeline.event', payload);
+  }
+
+  async runStateless(
+    params: {
+      workspaceName: string;
+      blockName: string;
+      userId: string;
+      workspaceId: string;
+      correlationId?: string;
+      args?: Record<string, unknown>;
+    },
+    payload: RunPayload,
+  ): Promise<WorkflowMetadataInterface> {
+    const workflow = this.resolveWorkflow(params.workspaceName, params.blockName);
+
+    const ctx = new RunContext({
+      root: params.blockName,
+      index: '0001',
+      userId: params.userId,
+      workspaceId: params.workspaceId,
+      labels: [],
+      payload,
+      options: { stateless: true },
+    });
+
+    this.logger.debug(`Running stateless workflow: ${params.blockName}`);
+
+    const executionMeta = await this.blockProcessor.processBlock(workflow, params.args, ctx);
+
+    if (params.correlationId) {
+      this.emitCompletionEvent({
+        correlationId: params.correlationId,
+        eventName: `workflow.${executionMeta.status}`,
+        workspaceId: params.workspaceId,
+        data: {
+          pipelineId: undefined,
+          status: executionMeta.status,
+          result: executionMeta.result ?? null,
+        },
+      });
+    }
+
+    return executionMeta;
+  }
+
+  async runPipeline(pipeline: PipelineEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {
+    const workflow = this.resolveWorkflow(pipeline.workspace.blockName, pipeline.blockName);
+
+    const namespace = await this.namespaceProcessorService.createRootNamespace(pipeline);
 
     const ctx = new RunContext({
       root: pipeline.blockName,
@@ -43,29 +100,18 @@ export class RootProcessorService {
       pipelineId: pipeline.id,
       workspaceId: pipeline.workspaceId,
       labels: [...pipeline.labels, namespace.name],
-      namespace: namespace,
-      payload: payload,
+      namespace,
+      payload,
+      options: { stateless: false },
     });
-
-    return this.blockProcessor.processBlock(workflow, args, ctx);
-  }
-
-  async runPipeline(pipeline: PipelineEntity, payload: RunContext['payload']): Promise<WorkflowMetadataInterface> {
-    const workspaceInstance = this.blockDiscoveryService.getWorkspace(pipeline.workspace.blockName);
-    if (!workspaceInstance) {
-      throw new BadRequestException(`Config for workspace with name ${pipeline.workspace.blockName} not found.`);
-    }
-
-    const workflow = getBlockWorkflow<WorkflowInterface>(workspaceInstance, pipeline.blockName);
-    if (!workflow) {
-      throw new Error(`Workflow ${pipeline.blockName} not available in workspace ${pipeline.blockName}`);
-    }
 
     await this.pipelineService.setPipelineStatus(pipeline, PipelineState.Running);
 
-    const executionMeta = await this.processRootPipeline(workflow, pipeline, payload, pipeline.args);
+    this.logger.debug(`Running Root Pipeline: ${pipeline.blockName}`);
 
-    const status = executionMeta.error
+    const executionMeta = await this.blockProcessor.processBlock(workflow, pipeline.args, ctx);
+
+    const status = executionMeta.hasError
       ? PipelineState.Failed
       : executionMeta.stop
         ? PipelineState.Paused
@@ -73,15 +119,17 @@ export class RootProcessorService {
 
     await this.pipelineService.setPipelineStatus(pipeline, status);
 
-    if (executionMeta.status === WorkflowState.Completed) {
-      this.logger.log(`Root pipeline execution completed.`);
-
-      this.eventEmitter.emit('pipeline.event', {
-        eventPipelineId: pipeline.id,
-        eventName: 'completed',
+    if (pipeline.eventCorrelationId) {
+      this.emitCompletionEvent({
+        correlationId: pipeline.eventCorrelationId,
+        eventName: `workflow.${executionMeta.status}`,
         workspaceId: pipeline.workspaceId,
-        data: executionMeta.result,
-      } satisfies PipelineEventPayload);
+        data: {
+          pipelineId: pipeline.id,
+          status: executionMeta.status,
+          result: executionMeta.result ?? null,
+        },
+      });
     }
 
     return executionMeta;

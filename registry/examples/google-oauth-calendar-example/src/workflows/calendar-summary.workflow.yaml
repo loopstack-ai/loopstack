@@ -1,0 +1,98 @@
+title: 'Google Calendar Summary'
+
+description: |
+  Fetches upcoming events from Google Calendar and displays a summary.
+  If not authenticated, launches the OAuth workflow as a sub-workflow
+  and retries automatically after authentication completes.
+
+ui:
+  form:
+    properties:
+      calendarId:
+        title: 'Calendar ID'
+        placeholder: 'primary'
+
+transitions:
+  # Fetch events from Google Calendar
+  - id: fetch_events
+    from: start
+    to: calendar_fetched
+    call:
+      - tool: googleCalendarFetchEvents
+        id: calendar_fetch
+        args:
+          calendarId: ${{ args.calendarId }}
+          timeMin: ${{ now() }}
+          timeMax: ${{ endOfWeek() }}
+        assign:
+          requiresAuthentication: ${{ result.data.error == "unauthorized" }}
+          events: ${{ result.data.events }}
+
+  # If unauthorized → launch OAuth as sub-workflow
+  - id: auth_required
+    from: calendar_fetched
+    to: awaiting_auth
+    if: ${{ state.requiresAuthentication }}
+    call:
+      - tool: executeWorkflowAsync
+        id: launchAuth
+        args:
+          workflow: oauth
+          args:
+            provider: 'google'
+            scopes:
+              - 'https://www.googleapis.com/auth/calendar.readonly'
+          callback:
+            transition: auth_completed
+
+      - tool: createDocument
+        args:
+          id: authStatus
+          document: linkDocument
+          update:
+            content:
+              icon: 'LockKeyhole'
+              label: 'Google authentication required'
+              caption: 'Complete sign-in to continue'
+              href: '/pipelines/{{ runtime.tools.auth_required.launchAuth.data.task.pipelineId }}'
+              embed: true
+              expanded: true
+
+  # Auth sub-workflow completed → retry from start
+  - id: auth_completed
+    from: awaiting_auth
+    to: start
+    trigger: manual
+    call:
+      - tool: createDocument
+        args:
+          id: authStatus
+          document: linkDocument
+          update:
+            content:
+              icon: 'ShieldCheck'
+              type: 'success'
+              label: 'Google authentication completed'
+              caption: 'Google authentication required to access your calendar.'
+              href: '/pipelines/{{ runtime.transition.payload.pipelineId }}'
+
+  # Success → display summary
+  - id: display_results
+    from: calendar_fetched
+    to: end
+    call:
+      - tool: createDocument
+        args:
+          document: markdown
+          update:
+            content:
+              markdown: |
+                Here are your upcoming events:
+
+                {{#each state.events}}
+                - **{{ this.summary }}** — {{ this.start }} to {{ this.end }}
+                {{/each}}
+
+                {{#unless state.events}}
+                No upcoming events found.
+                {{/unless}}

@@ -950,6 +950,12 @@ export interface PipelineDto {
    * @memberof PipelineDto
    */
   parentId: object;
+  /**
+   * Number of child pipelines
+   * @type {number}
+   * @memberof PipelineDto
+   */
+  hasChildren: number;
 }
 
 /**
@@ -1043,6 +1049,12 @@ export interface PipelineItemDto {
    * @memberof PipelineItemDto
    */
   parentId: object;
+  /**
+   * Number of child pipelines
+   * @type {number}
+   * @memberof PipelineItemDto
+   */
+  hasChildren: number;
 }
 
 /**
@@ -1073,6 +1085,7 @@ export const PipelineSortByDtoFieldEnum = {
   Labels: 'labels',
   Index: 'index',
   Status: 'status',
+  EventCorrelationId: 'eventCorrelationId',
   Args: 'args',
   Context: 'context',
   Schema: 'schema',

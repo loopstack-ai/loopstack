@@ -1,6 +1,7 @@
 import React from 'react';
 import type { DocumentItemDto, PipelineDto, WorkflowDto } from '@loopstack/api-client';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
+import { OAuthPromptRenderer } from '@/features/oauth';
 import AiMessage from '@/features/workbench/components/document-renderer/AiMessage.tsx';
 import LinkMessageRenderer from '@/features/workbench/components/document-renderer/LinkMessageRenderer.tsx';
 import CompletionMessagePaper from '../../../components/messages/CompletionMessagePaper.tsx';
@@ -57,6 +58,8 @@ const DocumentRenderer: React.FC<DocumentRendererProps> = ({ pipeline, workflow,
         return <MarkdownMessageRenderer document={doc} />;
       case 'link':
         return <LinkMessageRenderer document={doc} />;
+      case 'oauth-prompt':
+        return <OAuthPromptRenderer pipeline={pipeline} workflow={workflow} document={doc} isActive={isActive} />;
       default:
         return <>unknown document type</>;
     }

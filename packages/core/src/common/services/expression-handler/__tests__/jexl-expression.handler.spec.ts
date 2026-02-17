@@ -155,8 +155,20 @@ describe('JexlExpressionHandler', () => {
       expect(result).toBe('Hello Alice');
     });
 
-    it('should evaluate the "in" operator', () => {
-      expect(handler.process('${{ "admin" == user.role }}', mockVariables)).toBe(true);
+    it('should evaluate the "in" operator for arrays', () => {
+      expect(handler.process('${{ "vip" in user.tags }}', mockVariables)).toBe(true);
+      expect(handler.process('${{ "unknown" in user.tags }}', mockVariables)).toBe(false);
+    });
+
+    it('should evaluate the "in" operator for substrings', () => {
+      expect(handler.process('${{ "Ali" in name }}', mockVariables)).toBe(true);
+      expect(handler.process('${{ "Bob" in name }}', mockVariables)).toBe(false);
+    });
+
+    it('should evaluate string equality', () => {
+      expect(handler.process('${{ name == "Alice" }}', mockVariables)).toBe(true);
+      expect(handler.process('${{ name == "Bob" }}', mockVariables)).toBe(false);
+      expect(handler.process('${{ user.role == "admin" }}', mockVariables)).toBe(true);
     });
 
     it('should evaluate object literals', () => {

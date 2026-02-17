@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { Input, PipelineEntity, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { WorkflowState } from '@loopstack/contracts/enums';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { EventSubscriberService } from '../persistence';
 import { TaskSchedulerService } from '../scheduler';
@@ -13,6 +14,11 @@ const ExecuteWorkflowAsyncArgsSchema = z.object({
   callback: z.object({
     transition: z.string(),
   }),
+  options: z
+    .object({
+      runStateless: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 type ExecuteWorkflowAsyncArgs = z.infer<typeof ExecuteWorkflowAsyncArgsSchema>;
@@ -38,27 +44,39 @@ export class ExecuteWorkflowAsync implements ToolInterface<ExecuteWorkflowAsyncA
   args: any;
 
   async execute(args: ExecuteWorkflowAsyncArgs, context: RunContext): Promise<ToolResult> {
-    const pipeline = await this.createPipelineService.create(
-      {
-        id: context.workspaceId,
-      },
-      {
-        blockName: args.workflow,
-        workspaceId: context.workspaceId,
-        args: {
-          ...args.args,
+    if (context.options.stateless) {
+      throw new Error(
+        `ExecuteWorkflowAsync tool can only be executed in stateful workflows! Make sure to execute the workflow with stateless=false or omit the option.`,
+      );
+    }
+
+    const correlationId = randomUUID();
+
+    let pipeline: PipelineEntity | undefined;
+    if (!args.options?.runStateless) {
+      pipeline = await this.createPipelineService.create(
+        {
+          id: context.workspaceId,
         },
-      },
-      context.userId,
-      context.pipelineId,
-    );
+        {
+          blockName: args.workflow,
+          workspaceId: context.workspaceId,
+          args: {
+            ...args.args,
+          },
+          eventCorrelationId: correlationId,
+        },
+        context.userId,
+        context.pipelineId,
+      );
+    }
 
     await this.eventSubscriberService.registerSubscriber(
       context.pipelineId,
       context.workflowId!,
       args.callback.transition,
-      pipeline.id,
-      'completed',
+      correlationId,
+      `workflow.${WorkflowState.Completed}`,
       context.userId,
       context.workspaceId,
     );
@@ -68,10 +86,15 @@ export class ExecuteWorkflowAsync implements ToolInterface<ExecuteWorkflowAsyncA
       task: {
         name: 'manual_execution',
         type: 'run_pipeline',
-        payload: {
-          id: pipeline.id,
+        user: context.userId,
+        workspaceId: context.workspaceId,
+        pipelineId: pipeline?.id,
+        correlationId,
+        blockName: args.workflow,
+        args: {
+          ...args.args,
         },
-        user: pipeline.createdBy,
+        payload: {},
       },
     } satisfies ScheduledTask);
 

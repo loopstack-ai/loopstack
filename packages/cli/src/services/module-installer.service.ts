@@ -4,9 +4,23 @@ import { FileSystemService } from './file-system.service';
 import { PromptService } from './prompt.service';
 import { TypeScriptAstService } from './typescript-ast.service';
 
+export interface WorkflowEntryOptions {
+  options?: Record<string, unknown>;
+}
+
+export interface WorkflowObjectEntry {
+  path: string;
+  options?: WorkflowEntryOptions;
+}
+
+export type WorkflowEntry = string | WorkflowObjectEntry;
+
+export type InstallMode = 'add' | 'install';
+
 export interface LoopstackModuleConfig {
   module: string;
-  workflows?: string[];
+  workflows?: WorkflowEntry[];
+  installModes?: InstallMode[];
 }
 
 export interface ModuleInstallOptions {
@@ -14,6 +28,9 @@ export interface ModuleInstallOptions {
   sourcePath: string;
   targetPath: string;
   targetModuleFile?: string;
+  resolvedTargetModuleFile?: string;
+  importPath?: string;
+  moduleSearchRoot?: string;
 }
 
 const MODULE_FILE_PATTERN = /\.module\.ts$/;
@@ -26,27 +43,37 @@ export class ModuleInstallerService {
     private readonly astService: TypeScriptAstService,
   ) {}
 
-  async install(options: ModuleInstallOptions): Promise<void> {
-    const { config, targetPath, targetModuleFile: specifiedModuleFile } = options;
-
-    let targetModuleFile: string;
+  async resolveTargetModule(options: { targetModuleFile?: string; moduleSearchRoot: string }): Promise<string> {
+    const { targetModuleFile: specifiedModuleFile, moduleSearchRoot } = options;
 
     if (specifiedModuleFile) {
-      targetModuleFile = this.fileSystemService.resolvePath(process.cwd(), specifiedModuleFile);
+      const resolved = this.fileSystemService.resolvePath(process.cwd(), specifiedModuleFile);
 
-      if (!this.fileSystemService.exists(targetModuleFile)) {
+      if (!this.fileSystemService.exists(resolved)) {
         throw new Error(`Specified module file not found: ${specifiedModuleFile}`);
       }
-    } else {
-      const targetRoot = this.fileSystemService.dirname(targetPath);
-      const moduleFiles = this.fileSystemService.findFiles(targetRoot, MODULE_FILE_PATTERN);
 
-      if (moduleFiles.length === 0) {
-        throw new Error(`No .module.ts files found in ${targetRoot}. Cannot register the module.`);
-      }
-
-      targetModuleFile = await this.selectTargetModule(moduleFiles);
+      return resolved;
     }
+
+    const moduleFiles = this.fileSystemService.findFiles(moduleSearchRoot, MODULE_FILE_PATTERN);
+
+    if (moduleFiles.length === 0) {
+      throw new Error(`No .module.ts files found in ${moduleSearchRoot}. Cannot register the module.`);
+    }
+
+    return this.selectTargetModule(moduleFiles);
+  }
+
+  async install(options: ModuleInstallOptions): Promise<void> {
+    const { config, targetPath } = options;
+
+    const targetModuleFile =
+      options.resolvedTargetModuleFile ??
+      (await this.resolveTargetModule({
+        targetModuleFile: options.targetModuleFile,
+        moduleSearchRoot: options.moduleSearchRoot ?? this.fileSystemService.dirname(targetPath),
+      }));
 
     const sourceModulePath = this.fileSystemService.resolvePath(targetPath, config.module.replace(/^src\//, ''));
     const sourceModuleClassName = this.extractModuleClassName(sourceModulePath);
@@ -55,7 +82,7 @@ export class ModuleInstallerService {
       throw new Error(`Could not find module class in ${sourceModulePath}`);
     }
 
-    const importPath = this.astService.calculateImportPath(targetModuleFile, sourceModulePath);
+    const importPath = options.importPath ?? this.astService.calculateImportPath(targetModuleFile, sourceModulePath);
 
     this.addModuleImport(targetModuleFile, sourceModuleClassName, importPath);
 
@@ -63,21 +90,17 @@ export class ModuleInstallerService {
   }
 
   private async selectTargetModule(moduleFiles: string[]): Promise<string> {
-    const defaultModule = moduleFiles.find((f) => f.endsWith('default.module.ts'));
-    if (defaultModule && moduleFiles.length === 1) {
-      return defaultModule;
-    }
-
-    const appModule = moduleFiles.find((f) => f.endsWith('app.module.ts'));
-
     if (moduleFiles.length === 1) {
       return moduleFiles[0];
     }
 
+    const defaultModule = moduleFiles.find((f) => f.endsWith('default.module.ts'));
+    const appModule = moduleFiles.find((f) => f.endsWith('app.module.ts'));
     const defaultSelection = defaultModule || appModule || moduleFiles[0];
 
+    const cwd = process.cwd();
     const options = moduleFiles.map((file) => ({
-      label: this.fileSystemService.getFileName(file),
+      label: this.fileSystemService.relativePath(cwd, file),
       value: file,
     }));
 

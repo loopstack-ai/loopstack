@@ -6,7 +6,10 @@ const LinkDocumentSchema = z
     icon: z.string().optional(),
     type: z.string().optional(),
     label: z.string().optional(),
-    href: z.string(),
+    caption: z.string().optional(),
+    href: z.string().optional(),
+    embed: z.boolean().optional(),
+    expanded: z.boolean().optional(),
   })
   .strict();
 

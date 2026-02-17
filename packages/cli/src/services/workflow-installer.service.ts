@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { FileSystemService } from './file-system.service';
+import { WorkflowEntry, WorkflowEntryOptions } from './module-installer.service';
 import { PromptService } from './prompt.service';
 import { TypeScriptAstService } from './typescript-ast.service';
 
 export interface WorkflowInstallOptions {
-  workflows: string[];
+  workflows: WorkflowEntry[];
   targetPath: string;
   targetWorkspaceFile?: string;
+  importPath?: string;
+  workspaceSearchRoot?: string;
 }
 
 const WORKSPACE_FILE_PATTERN = /\.workspace\.ts$/;
@@ -35,7 +38,7 @@ export class WorkflowInstallerService {
         throw new Error(`Specified workspace file not found: ${specifiedWorkspaceFile}`);
       }
     } else {
-      const targetRoot = this.fileSystemService.dirname(targetPath);
+      const targetRoot = options.workspaceSearchRoot ?? this.fileSystemService.dirname(targetPath);
       const workspaceFiles = this.fileSystemService.findFiles(targetRoot, WORKSPACE_FILE_PATTERN);
 
       if (workspaceFiles.length === 0) {
@@ -46,7 +49,10 @@ export class WorkflowInstallerService {
       targetWorkspaceFile = await this.selectTargetWorkspace(workspaceFiles);
     }
 
-    for (const workflowPath of workflows) {
+    for (const workflowEntry of workflows) {
+      const workflowPath = typeof workflowEntry === 'string' ? workflowEntry : workflowEntry.path;
+      const decoratorOptions = typeof workflowEntry === 'string' ? undefined : workflowEntry.options;
+
       const sourceWorkflowPath = this.fileSystemService.resolvePath(targetPath, workflowPath.replace(/^src\//, ''));
 
       if (!this.fileSystemService.exists(sourceWorkflowPath)) {
@@ -61,10 +67,11 @@ export class WorkflowInstallerService {
         continue;
       }
 
-      const importPath = this.astService.calculateImportPath(targetWorkspaceFile, sourceWorkflowPath);
+      const importPath =
+        options.importPath ?? this.astService.calculateImportPath(targetWorkspaceFile, sourceWorkflowPath);
       const propertyName = this.classNameToPropertyName(workflowClassName);
 
-      this.addWorkflowToWorkspace(targetWorkspaceFile, workflowClassName, importPath, propertyName);
+      this.addWorkflowToWorkspace(targetWorkspaceFile, workflowClassName, importPath, propertyName, decoratorOptions);
 
       console.log(targetWorkspaceFile, workflowClassName, importPath, propertyName);
       console.log(`Registered ${workflowClassName} in ${this.fileSystemService.getFileName(targetWorkspaceFile)}`);
@@ -72,16 +79,16 @@ export class WorkflowInstallerService {
   }
 
   private async selectTargetWorkspace(workspaceFiles: string[]): Promise<string> {
-    const defaultWorkspace = workspaceFiles.find((f) => f.endsWith('default.workspace.ts'));
-
     if (workspaceFiles.length === 1) {
       return workspaceFiles[0];
     }
 
+    const defaultWorkspace = workspaceFiles.find((f) => f.endsWith('default.workspace.ts'));
     const defaultSelection = defaultWorkspace || workspaceFiles[0];
 
+    const cwd = process.cwd();
     const options = workspaceFiles.map((file) => ({
-      label: this.fileSystemService.getFileName(file),
+      label: this.fileSystemService.relativePath(cwd, file),
       value: file,
     }));
 
@@ -111,6 +118,7 @@ export class WorkflowInstallerService {
     workflowClassName: string,
     importPath: string,
     propertyName: string,
+    decoratorOptions?: WorkflowEntryOptions,
   ): void {
     const project = this.astService.createProject();
     const sourceFile = this.astService.loadSourceFile(project, targetWorkspaceFile);
@@ -134,10 +142,12 @@ export class WorkflowInstallerService {
       throw new Error(`Class already has injected workflow ${workflowClassName}.`);
     }
 
+    const decoratorArgs = decoratorOptions ? [JSON.stringify(decoratorOptions)] : [];
+
     classDecl.addProperty({
       name: propertyName,
       type: workflowClassName,
-      decorators: [{ name: 'InjectWorkflow', arguments: [] }],
+      decorators: [{ name: 'InjectWorkflow', arguments: decoratorArgs }],
     });
 
     this.astService.organizeAndSave(sourceFile);

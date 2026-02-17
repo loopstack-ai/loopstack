@@ -90,6 +90,14 @@ export class PipelineItemDto {
   })
   parentId: string | null;
 
+  @Expose()
+  @ApiProperty({
+    type: 'number',
+    description: 'Number of child pipelines',
+    example: 0,
+  })
+  hasChildren: number;
+
   /**
    * Creates a PipelineItemDto instance from a PipelineEntity
    * @param pipeline The source PipelineEntity to transform

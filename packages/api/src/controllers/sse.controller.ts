@@ -26,9 +26,10 @@ export class SseController {
     const userId = user.userId;
 
     const messageSubject = this.sseEventService.registerConnection(workerId, userId);
+    const connectionId = (messageSubject as typeof messageSubject & { __sseConnectionId: string }).__sseConnectionId;
 
     request.on('close', () => {
-      this.sseEventService.unregisterConnection(workerId, userId);
+      this.sseEventService.unregisterConnection(workerId, userId, connectionId);
     });
 
     return messageSubject.pipe(

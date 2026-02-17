@@ -55,6 +55,10 @@
     "module": "src/workflow-state-example.module.ts",
     "workflows": [
       "src/workflow-state.workflow.ts"
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

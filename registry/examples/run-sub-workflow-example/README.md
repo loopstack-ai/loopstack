@@ -13,7 +13,7 @@ By using this example as a reference, you'll learn how to:
 - Use `ExecuteWorkflowAsync` to start child workflows asynchronously
 - Set up callback transitions to handle sub-workflow completion
 - Define workflow results using `@Output` and `getResult()`
-- Access child workflow results via `transition.payload` in the callback
+- Access child workflow results via `runtime.transition.payload` in the callback
 - Hide sub-workflows from direct execution using `visible: false`
 - Display real-time status updates using the `LinkDocument`
 - Compose complex workflows from smaller, reusable workflow components
@@ -22,76 +22,7 @@ This example is essential for developers building workflows that need to orchest
 
 ## Installation
 
-### Prerequisites
-
-Create a new Loopstack project if you haven't already:
-
-```bash
-npx create-loopstack-app my-project
-cd my-project
-```
-
-Start Environment
-
-```bash
-cd my-project
-docker compose up -d
-```
-
-### Add the Module
-
-```bash
-loopstack add @loopstack/run-sub-workflow-example
-```
-
-This copies the source files into your `src` directory.
-
-> Using the `loopstack add` command is a great way to explore the code to learn new concepts or add own customizations.
-
-## Setup
-
-### 1. Import the Module
-
-Add `RunSubWorkflowExampleModule` to your `default.module.ts` (included in the skeleton app) or to your own module:
-
-```typescript
-import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
-import { RunSubWorkflowExampleModule } from './@loopstack/run-sub-workflow-example';
-import { DefaultWorkspace } from './default.workspace';
-
-@Module({
-  imports: [LoopCoreModule, RunSubWorkflowExampleModule],
-  providers: [DefaultWorkspace],
-})
-export class DefaultModule {}
-```
-
-### 2. Register in Your Workspace
-
-Add the workflows to your workspace class using the `@Workflow()` decorator:
-
-```typescript
-import { Injectable } from '@nestjs/common';
-import { BlockConfig, Workflow } from '@loopstack/common';
-import { WorkspaceBase } from '@loopstack/core';
-import {
-  RunSubWorkflowExampleParentWorkflow,
-  RunSubWorkflowExampleSubWorkflow,
-} from './@loopstack/run-sub-workflow-example';
-
-@Injectable()
-@BlockConfig({
-  config: {
-    title: 'My Workspace',
-    description: 'A workspace with the run sub workflow example',
-  },
-})
-export class MyWorkspace extends WorkspaceBase {
-  @Workflow() runSubWorkflowExampleParentWorkflow: RunSubWorkflowExampleParentWorkflow;
-  @Workflow({ options: { visible: false } }) runSubWorkflowExampleSubWorkflow: RunSubWorkflowExampleSubWorkflow;
-}
-```
+See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## How It Works
 
@@ -176,7 +107,7 @@ The `@Output` decorator on `getResult()` defines the schema for the workflow's o
 
 #### 5. Handling the Callback and Accessing Results
 
-Define a callback transition that fires when the sub-workflow completes. Access the child workflow's result via `transition.payload`:
+Define a callback transition that fires when the sub-workflow completes. Access the child workflow's result via `runtime.transition.payload`:
 
 ```yaml
 - id: sub_workflow_callback
@@ -200,10 +131,10 @@ Define a callback transition that fires when the sub-workflow completes. Access 
         content: |
           A message from the child workflow:
 
-          {{ transition.payload.message }}
+          {{ runtime.transition.payload.message }}
 ```
 
-The `trigger: manual` ensures this transition only fires when called by the callback, not automatically. The `transition.payload` contains the result returned by the child workflow's `getResult()` method, decorated with `@Output`.
+The `trigger: manual` ensures this transition only fires when called by the callback, not automatically. The `runtime.transition.payload` contains the result returned by the child workflow's `getResult()` method, decorated with `@Output`.
 
 #### 6. Hiding Sub-Workflows from Direct Execution
 

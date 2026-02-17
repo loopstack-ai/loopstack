@@ -39,17 +39,29 @@ export class FileSystemService {
       return results;
     }
 
+    this.findFilesRecursive(directory, pattern, results);
+
+    results.sort((a, b) => {
+      const depthA = path.relative(directory, a).split(path.sep).length;
+      const depthB = path.relative(directory, b).split(path.sep).length;
+      return depthA - depthB;
+    });
+
+    return results;
+  }
+
+  private findFilesRecursive(directory: string, pattern: RegExp, results: string[]): void {
     const entries = fs.readdirSync(directory, { withFileTypes: true });
 
     for (const entry of entries) {
       const fullPath = path.join(directory, entry.name);
 
-      if (entry.isFile() && pattern.test(entry.name)) {
+      if (entry.isDirectory()) {
+        this.findFilesRecursive(fullPath, pattern, results);
+      } else if (entry.isFile() && pattern.test(entry.name)) {
         results.push(fullPath);
       }
     }
-
-    return results;
   }
 
   getFileName(filePath: string): string {

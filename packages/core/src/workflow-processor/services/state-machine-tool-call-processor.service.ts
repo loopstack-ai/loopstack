@@ -53,8 +53,7 @@ export class StateMachineToolCallProcessorService {
             helpers: getBlockTemplateHelpers(ctx.getInstance()),
           },
         ) as Record<string, unknown> | undefined;
-
-        let parsedArgs: Record<string, unknown> | undefined = undefined;
+        let parsedArgs: Record<string, unknown> | undefined;
         if (tool.validate) {
           parsedArgs = tool.validate<Record<string, unknown>>(evaluatedArgs);
         } else {

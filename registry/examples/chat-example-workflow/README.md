@@ -20,47 +20,7 @@ This example is useful for developers building chatbots, virtual assistants, or 
 
 ## Installation
 
-You can add this module using the `loopstack` cli or via `npm`.
-
-### a) Add Sources via `loopstack add` (recommended)
-
-```bash
-loopstack add @loopstack/chat-example-workflow
-```
-
-This command copies the source files into your `src` directory.
-
-- It is a great way to explore the code to learn new concepts or add own customizations
-- It will set up the module for you, so you do not need to manually update your application
-
-### b) Install via `npm install`
-
-```bash
-npm install --save @loopstack/chat-example-workflow
-```
-
-Use npm install if you want to use and maintain the module as node dependency.
-
-- Use this, if you do not need to make changes to the code or want to review the source code.
-
-## Setup
-
-### 1. Configure API Key
-
-Set your OpenAI API key as an environment variable:
-
-```bash
-OPENAI_API_KEY=sk-...
-```
-
-### 2. Manual setup (optional)
-
-> This step is automatically done for you when using the `loopstack add` command.
-
-- Add `ChatExampleModule` to the imports of `default.module.ts` or any other custom module.
-- Inject the `ChatWorkflow` workflow to your workspace class using the `@InjectWorkflow()` decorator.
-
-See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
+See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## How It Works
 
@@ -160,7 +120,7 @@ User messages are handled through a manually triggered transition that captures 
             role: user
             parts:
               - type: text
-                text: ${{ transition.payload }}
+                text: ${{ runtime.transition.payload }}
 ```
 
 ### Workflow Class
@@ -168,6 +128,8 @@ User messages are handled through a manually triggered transition that captures 
 The TypeScript workflow class declares the tools, documents, and runtime types used in the YAML definition:
 
 ```typescript
+import { ToolResult } from '@loopstack/common';
+
 @Workflow({
   configFile: __dirname + '/chat.workflow.yaml',
 })
@@ -178,7 +140,7 @@ export class ChatWorkflow {
 
   @Runtime()
   runtime: {
-    tools: Record<'prompt', Record<'llm_call', AiMessageDocumentContentType>>;
+    tools: Record<'prompt', Record<'llm_call', ToolResult<AiMessageDocumentContentType>>>;
   };
 }
 ```

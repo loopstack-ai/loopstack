@@ -17,8 +17,8 @@ const CreatePipelineDialog = ({ isOpen, onOpenChange, workspace, onSuccess }: Cr
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTitle>Run Pipeline</DialogTitle>
       <DialogContent className="max-h-[80vh] min-h-[300px] !max-w-2xl">
+        <DialogTitle>Run Pipeline</DialogTitle>
         <div className="mt-4 overflow-y-auto">
           <PipelineForm title="Run Pipeline" workspace={workspace} onSuccess={handleSuccess} />
         </div>

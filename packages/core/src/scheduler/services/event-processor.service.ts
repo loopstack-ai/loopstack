@@ -2,15 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { randomUUID } from 'node:crypto';
 import type { ScheduledTask } from '@loopstack/contracts/types';
-import { EventSubscriberService } from '../../persistence';
+import { EventSubscriberService, PipelineEventPayload } from '../../persistence';
 import { TaskSchedulerService } from './task-scheduler.service';
-
-export interface PipelineEventPayload {
-  eventPipelineId: string;
-  eventName: string;
-  workspaceId: string;
-  data: unknown;
-}
 
 @Injectable()
 export class EventProcessorService {
@@ -23,9 +16,9 @@ export class EventProcessorService {
 
   @OnEvent('pipeline.event')
   async handlePipelineEvent(payload: PipelineEventPayload): Promise<void> {
-    const { eventPipelineId, eventName, workspaceId, data } = payload;
+    const { correlationId, eventName, workspaceId, data } = payload;
 
-    const subscribers = await this.eventSubscriberService.findSubscribers(eventPipelineId, eventName, workspaceId);
+    const subscribers = await this.eventSubscriberService.findSubscribers(correlationId, eventName, workspaceId);
 
     for (const subscriber of subscribers) {
       this.logger.log(
@@ -39,8 +32,8 @@ export class EventProcessorService {
           task: {
             name: 'event_subscriber_execution',
             type: 'run_pipeline',
+            pipelineId: subscriber.subscriberPipelineId,
             payload: {
-              id: subscriber.subscriberPipelineId,
               transition: {
                 id: subscriber.subscriberTransition,
                 workflowId: subscriber.subscriberWorkflowId,

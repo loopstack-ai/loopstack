@@ -155,6 +155,27 @@ export function useBatchDeletePipeline() {
   });
 }
 
+export function useChildPipelines(parentId: string | undefined, enabled: boolean) {
+  const { envKey, api } = useApiClient();
+
+  return useQuery({
+    queryKey: ['pipelines', 'children', parentId, envKey],
+    queryFn: () => {
+      if (!api) {
+        throw new Error('API not available');
+      }
+      return api.ApiV1PipelinesApi.pipelineControllerGetPipelines({
+        filter: JSON.stringify({ parentId }),
+        sortBy: JSON.stringify([{ field: 'createdAt', order: 'ASC' } as PipelineSortByDto]),
+        page: 0,
+        limit: 100,
+      });
+    },
+    enabled: enabled && !!parentId,
+    select: (res) => res.data,
+  });
+}
+
 export function usePipelineSource(workspaceBlockName: string | undefined, pipelineBlockName: string | undefined) {
   const { envKey, api } = useApiClient();
 
