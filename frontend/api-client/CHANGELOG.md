@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.18.2
+
+### Patch Changes
+
+- [#75](https://github.com/loopstack-ai/loopstack/pull/75) [`e49ea39`](https://github.com/loopstack-ai/loopstack/commit/e49ea392fc736048f165e8dfaab79d97125ec77c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix sub workflow execution flow and improve ui
+
 ## 0.18.1
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @loopstack/core-ui-module
 
+## 0.1.1
+
+### Patch Changes
+
+- [#73](https://github.com/loopstack-ai/loopstack/pull/73) [`fd4eb8d`](https://github.com/loopstack-ai/loopstack/commit/fd4eb8d09f510c37fe931484ae58a1b40715cf65) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add standardized install mode handling for using loopstack cli
+
+- Updated dependencies [[`fd4eb8d`](https://github.com/loopstack-ai/loopstack/commit/fd4eb8d09f510c37fe931484ae58a1b40715cf65)]:
+  - @loopstack/oauth-module@0.1.1
+
 ## 0.20.0
 
 ### Minor Changes

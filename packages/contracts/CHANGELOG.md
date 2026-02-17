@@ -1,5 +1,13 @@
 # @loopstack/contracts
 
+## 0.20.3
+
+### Patch Changes
+
+- [#75](https://github.com/loopstack-ai/loopstack/pull/75) [`e4945ab`](https://github.com/loopstack-ai/loopstack/commit/e4945ab0596cd074213923f38d1d8fe239fb6ceb) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix sub workflow execution, remove transition from template vars and in favour for use with runtime object
+
+- [#75](https://github.com/loopstack-ai/loopstack/pull/75) [`e49ea39`](https://github.com/loopstack-ai/loopstack/commit/e49ea392fc736048f165e8dfaab79d97125ec77c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix sub workflow execution flow and improve ui
+
 ## 0.20.1
 
 ### Patch Changes
