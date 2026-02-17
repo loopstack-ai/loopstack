@@ -19,52 +19,9 @@ This module is essential for workflows that need natural language processing, co
 
 ## Installation
 
-You can add this module using the `loopstack` cli or via `npm`.
+See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
-### a) Add Sources via `loopstack add`
-
-```bash
-loopstack add @loopstack/ai-module
-```
-
-This command copies the source files into your `src` directory.
-
-- It is a great way to explore the code to learn new concepts or add own customizations
-- It will set up the module for you, so you do not need to manually update your application
-
-### b) Install via `npm install` (recommended)
-
-```bash
-npm install --save @loopstack/ai-module
-```
-
-Use npm install if you want to use and maintain the module as node dependency.
-
-- Use this, if you do not need to make changes to the code or want to review the source code.
-
-### Configure API Keys
-
-Set your provider API keys as environment variables:
-
-```bash
-# OpenAI
-OPENAI_API_KEY=sk-...
-
-# Anthropic
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-## Setup
-
-### 1. Manual setup (optional)
-
-> This step is automatically done for you when using the `loopstack add` command.
-
-- Add `AiModule` to the imports of `default.module.ts` or any other custom module.
-
-See here for more information about working with [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces)
-
-### 2. Use in Your Workflow
+## Usage
 
 Inject the tools and documents in your workflow class:
 

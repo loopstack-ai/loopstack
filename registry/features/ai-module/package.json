@@ -66,6 +66,10 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/ai.module.ts"
+    "module": "src/ai.module.ts",
+    "installModes": [
+      "add",
+      "install"
+    ]
   }
 }

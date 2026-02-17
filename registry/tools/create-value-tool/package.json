@@ -56,6 +56,10 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/create-value-tool.module.ts"
+    "module": "src/create-value-tool.module.ts",
+    "installModes": [
+      "add",
+      "install"
+    ]
   }
 }

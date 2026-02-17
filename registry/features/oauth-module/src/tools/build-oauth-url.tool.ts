@@ -28,14 +28,14 @@ export class BuildOAuthUrlTool implements ToolInterface {
   })
   args: BuildOAuthUrlArgs;
 
-  execute(args: BuildOAuthUrlArgs): ToolResult {
+  execute(args: BuildOAuthUrlArgs): Promise<ToolResult> {
     const provider = this.providerRegistry.get(args.provider);
     const state = randomBytes(32).toString('hex');
     const scopes = args.scopes?.length ? args.scopes : provider.defaultScopes;
     const authUrl = provider.buildAuthUrl(scopes, state);
 
-    return {
+    return Promise.resolve({
       data: { authUrl, state },
-    };
+    });
   }
 }

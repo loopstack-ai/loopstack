@@ -1,11 +1,13 @@
 {
-  "name": "@loopstack/google-oauth-module",
-  "displayName": "Google OAuth Module",
-  "description": "Google OAuth 2.0 provider for the Loopstack OAuth module. Implements the OAuthProviderInterface for Google, handling authorization URL generation, token exchange, and token refresh.",
+  "name": "@loopstack/google-workspace-module",
+  "displayName": "Google Workspace Module",
+  "description": "Google Workspace integration for the Loopstack automation framework. Provides a Google OAuth 2.0 provider and tools for Google Workspace services such as Calendar, Drive, and Gmail.",
   "keywords": [
     "oauth",
     "authentication",
     "google",
+    "google-workspace",
+    "calendar",
     "loopstack",
     "module"
   ],
@@ -56,6 +58,10 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/google-oauth.module.ts"
+    "module": "src/google-workspace.module.ts",
+    "installModes": [
+      "add",
+      "install"
+    ]
   }
 }

@@ -54,6 +54,10 @@
     "module": "src/dynamic-routing-example.module.ts",
     "workflows": [
       "src/dynamic-routing-example.workflow.ts"
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

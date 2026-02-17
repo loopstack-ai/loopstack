@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { OAuthProviderInterface, OAuthProviderRegistry, OAuthTokenSet } from '@loopstack/oauth-module';
 
 @Injectable()
-export class GoogleOAuthProvider implements OAuthProviderInterface, OnModuleInit {
-  private readonly logger = new Logger(GoogleOAuthProvider.name);
+export class GoogleWorkspaceOAuthProvider implements OAuthProviderInterface, OnModuleInit {
+  private readonly logger = new Logger(GoogleWorkspaceOAuthProvider.name);
 
   readonly providerId = 'google';
   readonly defaultScopes = [

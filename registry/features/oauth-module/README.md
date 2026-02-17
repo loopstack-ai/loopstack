@@ -15,30 +15,16 @@ By using this module, you'll be able to:
 - Automatically refresh expired tokens
 - Trigger authentication from any workflow via the sub-workflow pattern using `ExecuteWorkflowAsync`
 
-## Installation
+## Installation and Setup
 
-```bash
-npm install --save @loopstack/oauth-module
-```
-
-Then add `OAuthModule` to the imports of your application module:
-
-```typescript
-import { Module } from '@nestjs/common';
-import { OAuthModule } from '@loopstack/oauth-module';
-
-@Module({
-  imports: [OAuthModule],
-})
-export class AppModule {}
-```
+See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## Architecture
 
 ```
 oauth-module (generic)          provider module (e.g. google)
 ┌─────────────────────────┐     ┌──────────────────────────┐
-│ OAuthProviderRegistry   │◄────│ GoogleOAuthProvider       │
+│ OAuthProviderRegistry   │◄────│ GoogleWorkspaceOAuthProvider │
 │ OAuthTokenStore         │     │ (implements interface,    │
 │ BuildOAuthUrlTool       │     │  registers on init)       │
 │ ExchangeOAuthTokenTool  │     └──────────────────────────┘

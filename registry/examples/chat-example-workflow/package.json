@@ -65,6 +65,10 @@
     "module": "src/chat-example.module.ts",
     "workflows": [
       "src/chat.workflow.ts"
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

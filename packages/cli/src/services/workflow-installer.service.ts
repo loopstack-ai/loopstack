@@ -8,6 +8,8 @@ export interface WorkflowInstallOptions {
   workflows: WorkflowEntry[];
   targetPath: string;
   targetWorkspaceFile?: string;
+  importPath?: string;
+  workspaceSearchRoot?: string;
 }
 
 const WORKSPACE_FILE_PATTERN = /\.workspace\.ts$/;
@@ -36,7 +38,7 @@ export class WorkflowInstallerService {
         throw new Error(`Specified workspace file not found: ${specifiedWorkspaceFile}`);
       }
     } else {
-      const targetRoot = this.fileSystemService.dirname(targetPath);
+      const targetRoot = options.workspaceSearchRoot ?? this.fileSystemService.dirname(targetPath);
       const workspaceFiles = this.fileSystemService.findFiles(targetRoot, WORKSPACE_FILE_PATTERN);
 
       if (workspaceFiles.length === 0) {
@@ -65,7 +67,8 @@ export class WorkflowInstallerService {
         continue;
       }
 
-      const importPath = this.astService.calculateImportPath(targetWorkspaceFile, sourceWorkflowPath);
+      const importPath =
+        options.importPath ?? this.astService.calculateImportPath(targetWorkspaceFile, sourceWorkflowPath);
       const propertyName = this.classNameToPropertyName(workflowClassName);
 
       this.addWorkflowToWorkspace(targetWorkspaceFile, workflowClassName, importPath, propertyName, decoratorOptions);
@@ -76,16 +79,16 @@ export class WorkflowInstallerService {
   }
 
   private async selectTargetWorkspace(workspaceFiles: string[]): Promise<string> {
-    const defaultWorkspace = workspaceFiles.find((f) => f.endsWith('default.workspace.ts'));
-
     if (workspaceFiles.length === 1) {
       return workspaceFiles[0];
     }
 
+    const defaultWorkspace = workspaceFiles.find((f) => f.endsWith('default.workspace.ts'));
     const defaultSelection = defaultWorkspace || workspaceFiles[0];
 
+    const cwd = process.cwd();
     const options = workspaceFiles.map((file) => ({
-      label: this.fileSystemService.getFileName(file),
+      label: this.fileSystemService.relativePath(cwd, file),
       value: file,
     }));
 

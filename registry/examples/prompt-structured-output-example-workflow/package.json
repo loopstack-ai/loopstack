@@ -57,6 +57,10 @@
     "module": "src/prompt-structured-output-example.module.ts",
     "workflows": [
       "src/prompt-structured-output.workflow.ts"
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

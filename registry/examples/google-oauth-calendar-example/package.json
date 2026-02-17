@@ -33,7 +33,7 @@
     "@loopstack/core": "^0.20.0",
     "@loopstack/common": "^0.20.0",
     "@loopstack/oauth-module": "^0.1.0",
-    "@loopstack/google-oauth-module": "^0.1.0",
+    "@loopstack/google-workspace-module": "^0.1.0",
     "@loopstack/core-ui-module": "^0.20.0",
     "@loopstack/create-chat-message-tool": "^0.20.0",
     "@nestjs/common": "^11.1.12",
@@ -58,6 +58,10 @@
     "module": "src/calendar-example.module.ts",
     "workflows": [
       "src/workflows/calendar-summary.workflow.ts"
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

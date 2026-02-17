@@ -60,6 +60,10 @@
     "module": "src/oauth.module.ts",
     "workflows": [
       "src/workflows/oauth.workflow.ts"
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

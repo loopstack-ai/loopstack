@@ -1,61 +1,30 @@
-# @loopstack/google-oauth-module
+# @loopstack/google-workspace-module
 
-> Google OAuth 2.0 provider for the [Loopstack AI](https://loopstack.ai) automation framework.
+> Google Workspace integration for the [Loopstack AI](https://loopstack.ai) automation framework.
 
-This module registers a Google OAuth provider with `@loopstack/oauth-module`, enabling Google authentication in any Loopstack workflow. It handles authorization URL generation, authorization code exchange, and token refresh using Google's OAuth 2.0 endpoints.
+This module provides a Google OAuth 2.0 provider and tools for Google Workspace services. It registers a Google OAuth provider with `@loopstack/oauth-module`, enabling Google authentication in any Loopstack workflow, and provides tools for interacting with Google Workspace APIs such as Calendar, Drive, and Gmail.
 
 ## Overview
 
-The Google OAuth Module is a **provider implementation** for `@loopstack/oauth-module`. It implements the `OAuthProviderInterface` and self-registers with the `OAuthProviderRegistry` on startup. Once registered, the generic OAuth workflow can handle `provider: 'google'` automatically.
+The Google Workspace Module includes a **provider implementation** for `@loopstack/oauth-module`. It implements the `OAuthProviderInterface` and self-registers with the `OAuthProviderRegistry` on startup. Once registered, the generic OAuth workflow can handle `provider: 'google'` automatically.
 
 By using this module, you'll be able to:
 
 - Authenticate users with their Google account via OAuth 2.0
-- Request access to Google APIs (Calendar, Gmail, Drive, etc.) with configurable scopes
+- Request access to Google Workspace APIs (Calendar, Gmail, Drive, etc.) with configurable scopes
 - Automatically refresh expired Google access tokens using refresh tokens
 
 ## Installation
 
-```bash
-npm install --save @loopstack/google-oauth-module
-```
+See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 This module requires `@loopstack/oauth-module` as a peer dependency.
-
-## Setup
-
-### 1. Configure Environment Variables
-
-| Variable                    | Required | Default           | Description                     |
-| --------------------------- | -------- | ----------------- | ------------------------------- |
-| `GOOGLE_CLIENT_ID`          | Yes      | —                 | Your Google OAuth client ID     |
-| `GOOGLE_CLIENT_SECRET`      | Yes      | —                 | Your Google OAuth client secret |
-| `GOOGLE_OAUTH_REDIRECT_URI` | No       | `/oauth/callback` | The OAuth redirect URI          |
-
-You can obtain client credentials from the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
-
-### 2. Import the Module
-
-Add `GoogleOAuthModule` alongside `OAuthModule` in your application module:
-
-```typescript
-import { Module } from '@nestjs/common';
-import { GoogleOAuthModule } from '@loopstack/google-oauth-module';
-import { OAuthModule } from '@loopstack/oauth-module';
-
-@Module({
-  imports: [OAuthModule, GoogleOAuthModule],
-})
-export class AppModule {}
-```
-
-The `GoogleOAuthProvider` automatically registers itself with the `OAuthProviderRegistry` on module initialization.
 
 ## How It Works
 
 ### Provider Registration
 
-The `GoogleOAuthProvider` implements `OnModuleInit` and registers itself with the `OAuthProviderRegistry` at startup:
+The `GoogleWorkspaceOAuthProvider` implements `OnModuleInit` and registers itself with the `OAuthProviderRegistry` at startup:
 
 ```typescript
 onModuleInit(): void {
