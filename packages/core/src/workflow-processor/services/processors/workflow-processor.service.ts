@@ -59,7 +59,7 @@ export class WorkflowProcessorService implements Processor {
     args: Record<string, unknown> | undefined,
     context: RunContext,
   ): Promise<WorkflowMetadataInterface> {
-    let validArgs: Record<string, unknown> | undefined = undefined;
+    let validArgs: Record<string, unknown> | undefined;
     if (workflow.validate) {
       validArgs = workflow.validate(args);
     } else {
