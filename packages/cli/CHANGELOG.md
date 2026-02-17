@@ -1,5 +1,17 @@
 # @loopstack/cli-module
 
+## 0.20.3
+
+### Patch Changes
+
+- [#73](https://github.com/loopstack-ai/loopstack/pull/73) [`fd4eb8d`](https://github.com/loopstack-ai/loopstack/commit/fd4eb8d09f510c37fe931484ae58a1b40715cf65) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add standardized install mode handling for using loopstack cli
+
+- [#75](https://github.com/loopstack-ai/loopstack/pull/75) [`e4945ab`](https://github.com/loopstack-ai/loopstack/commit/e4945ab0596cd074213923f38d1d8fe239fb6ceb) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix sub workflow execution, remove transition from template vars and in favour for use with runtime object
+
+- Updated dependencies [[`d14b367`](https://github.com/loopstack-ai/loopstack/commit/d14b36797f68201c1cc59c9d976ff83935e7aac8), [`e4945ab`](https://github.com/loopstack-ai/loopstack/commit/e4945ab0596cd074213923f38d1d8fe239fb6ceb), [`e49ea39`](https://github.com/loopstack-ai/loopstack/commit/e49ea392fc736048f165e8dfaab79d97125ec77c)]:
+  - @loopstack/core@0.20.3
+  - @loopstack/contracts@0.20.3
+
 ## 0.20.0
 
 ### Patch Changes

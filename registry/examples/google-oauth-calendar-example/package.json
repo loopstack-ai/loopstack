@@ -9,7 +9,7 @@
     "loopstack",
     "example"
   ],
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://github.com/loopstack-ai"
@@ -30,12 +30,12 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/core": "^0.20.0",
-    "@loopstack/common": "^0.20.0",
-    "@loopstack/oauth-module": "^0.1.0",
-    "@loopstack/google-workspace-module": "^0.1.0",
-    "@loopstack/core-ui-module": "^0.20.0",
-    "@loopstack/create-chat-message-tool": "^0.20.0",
+    "@loopstack/core": "^0.20.3",
+    "@loopstack/common": "^0.20.3",
+    "@loopstack/oauth-module": "^0.1.1",
+    "@loopstack/google-workspace-module": "^0.1.1",
+    "@loopstack/core-ui-module": "^0.20.2",
+    "@loopstack/create-chat-message-tool": "^0.20.2",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },

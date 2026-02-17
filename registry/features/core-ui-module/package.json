@@ -7,7 +7,7 @@
     "loopstack",
     "tool"
   ],
-  "version": "0.20.1",
+  "version": "0.20.2",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -28,9 +28,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.20.0",
-    "@loopstack/contracts": "^0.20.1",
-    "@loopstack/core": "^0.20.1",
+    "@loopstack/common": "^0.20.3",
+    "@loopstack/contracts": "^0.20.3",
+    "@loopstack/core": "^0.20.3",
     "lodash": "^4.17.23",
     "zod": "^4.3.5"
   },
