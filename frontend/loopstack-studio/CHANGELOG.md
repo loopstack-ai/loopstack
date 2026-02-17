@@ -1,5 +1,20 @@
 # @loopstack/loopstack-studio
 
+## 0.20.2
+
+### Patch Changes
+
+- [#67](https://github.com/loopstack-ai/loopstack/pull/67) [`c70108c`](https://github.com/loopstack-ai/loopstack/commit/c70108cd3ff3e1245d0883de34738b72e9bde0f4) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Bugfixes
+
+## 0.20.1
+
+### Patch Changes
+
+- [#65](https://github.com/loopstack-ai/loopstack/pull/65) [`ee9a033`](https://github.com/loopstack-ai/loopstack/commit/ee9a033fbbd7640ce951546d7593914e0cac852d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add JEXL support, update template expression syntax
+
+- Updated dependencies [[`ee9a033`](https://github.com/loopstack-ai/loopstack/commit/ee9a033fbbd7640ce951546d7593914e0cac852d)]:
+  - @loopstack/contracts@0.20.1
+
 ## 0.20.0
 
 ### Minor Changes

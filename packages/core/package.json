@@ -2,7 +2,7 @@
   "name": "@loopstack/core",
   "displayName": "Loopstack Core Module",
   "description": "The core module of the loopstack automation framework",
-  "version": "0.20.0",
+  "version": "0.20.2",
   "repository": "loopstack-ai/core",
   "license": "BSL",
   "author": {

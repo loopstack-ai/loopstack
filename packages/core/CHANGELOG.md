@@ -1,5 +1,17 @@
 # @loopstack/core
 
+## 0.20.2
+
+### Patch Changes
+
+- [#69](https://github.com/loopstack-ai/loopstack/pull/69) [`bbdaef3`](https://github.com/loopstack-ai/loopstack/commit/bbdaef3ebe7bfdf57a1d4c63b901639255ed3f2a) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add Sub Workflow Example and Tests
+
+## 0.20.1
+
+### Patch Changes
+
+- [#65](https://github.com/loopstack-ai/loopstack/pull/65) [`ee9a033`](https://github.com/loopstack-ai/loopstack/commit/ee9a033fbbd7640ce951546d7593914e0cac852d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add JEXL support, update template expression syntax
+
 ## 0.20.0
 
 ### Minor Changes

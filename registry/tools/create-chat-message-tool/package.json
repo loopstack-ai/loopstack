@@ -8,7 +8,7 @@
     "messages",
     "tool"
   ],
-  "version": "0.20.0",
+  "version": "0.20.1",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.20.0",
-    "@loopstack/core-ui-module": "^0.20.0",
+    "@loopstack/core-ui-module": "^0.20.1",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },
