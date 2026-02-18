@@ -52,7 +52,12 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/sandbox-tool.module.ts",
+    "modules": [
+      {
+        "path": "src/sandbox-tool.module.ts",
+        "className": "SandboxToolModule"
+      }
+    ],
     "installModes": [
       "add",
       "install"

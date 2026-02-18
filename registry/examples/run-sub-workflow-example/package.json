@@ -53,21 +53,32 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/run-sub-workflow-example.module.ts",
+    "installModes": [
+      "add",
+      "install"
+    ],
+    "modules": [
+      {
+        "path": "src/run-sub-workflow-example.module.ts",
+        "className": "RunSubWorkflowExampleModule"
+      }
+    ],
     "workflows": [
-      "src/run-sub-workflow-example-parent.workflow.ts",
+      {
+        "path": "src/run-sub-workflow-example-parent.workflow.ts",
+        "className": "RunSubWorkflowExampleParentWorkflow",
+        "propertyName": "runSubWorkflowExampleParent"
+      },
       {
         "path": "src/run-sub-workflow-example-sub.workflow.ts",
+        "className": "RunSubWorkflowExampleSubWorkflow",
+        "propertyName": "runSubWorkflowExampleSub",
         "options": {
           "options": {
             "visible": false
           }
         }
       }
-    ],
-    "installModes": [
-      "add",
-      "install"
     ]
   }
 }

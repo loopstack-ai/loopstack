@@ -43,8 +43,10 @@ export class RegistryAddCommand extends CommandRunner {
       }
 
       let resolvedTargetModuleFile: string | undefined;
-      if (resolved.moduleConfig && !options.module) {
-        resolvedTargetModuleFile = await this.registryCommandService.resolveTargetModule();
+      if (resolved.moduleConfig) {
+        resolvedTargetModuleFile = options.module
+          ? this.fileSystemService.resolvePath(process.cwd(), options.module)
+          : await this.registryCommandService.resolveTargetModule();
       }
 
       const moduleDir = resolvedTargetModuleFile ? this.fileSystemService.dirname(resolvedTargetModuleFile) : undefined;
@@ -64,7 +66,6 @@ export class RegistryAddCommand extends CommandRunner {
       if (resolved.moduleConfig && resolvedTargetModuleFile) {
         await this.registryCommandService.registerModule({
           moduleConfig: resolved.moduleConfig,
-          sourcePath: resolved.srcPath,
           targetPath: fullTargetPath,
           resolvedTargetModuleFile,
           targetWorkspaceFile: options.workspace,

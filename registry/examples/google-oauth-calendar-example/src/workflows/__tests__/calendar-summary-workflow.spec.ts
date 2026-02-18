@@ -229,7 +229,7 @@ describe('CalendarSummaryWorkflow', () => {
       expect(mockExecuteWorkflowAsyncTool.execute).toHaveBeenCalledTimes(1);
       expect(mockExecuteWorkflowAsyncTool.execute).toHaveBeenCalledWith(
         expect.objectContaining({
-          workflow: 'oauth',
+          workflow: 'oAuth',
           args: expect.objectContaining({
             provider: 'google',
             scopes: ['https://www.googleapis.com/auth/calendar.readonly'],

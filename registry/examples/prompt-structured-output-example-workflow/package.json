@@ -54,13 +54,22 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/prompt-structured-output-example.module.ts",
-    "workflows": [
-      "src/prompt-structured-output.workflow.ts"
-    ],
     "installModes": [
       "add",
       "install"
+    ],
+    "modules": [
+      {
+        "path": "src/prompt-structured-output-example.module.ts",
+        "className": "PromptStructuredOutputExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/prompt-structured-output.workflow.ts",
+        "className": "PromptStructuredOutputWorkflow",
+        "propertyName": "promptStructuredOutput"
+      }
     ]
   }
 }

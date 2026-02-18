@@ -14,7 +14,6 @@ export interface ResolvedPackage {
 
 export interface RegisterModuleOptions {
   moduleConfig: LoopstackModuleConfig;
-  sourcePath: string;
   targetPath: string;
   resolvedTargetModuleFile: string;
   importPath?: string;
@@ -78,9 +77,8 @@ export class RegistryCommandService {
 
     console.log('Found loopstack config in package.json, running module installer...');
     try {
-      await this.moduleInstallerService.install({
+      this.moduleInstallerService.install({
         config: moduleConfig,
-        sourcePath: options.sourcePath,
         targetPath: options.targetPath,
         resolvedTargetModuleFile,
         importPath: options.importPath,

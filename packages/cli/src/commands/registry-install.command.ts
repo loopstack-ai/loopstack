@@ -37,7 +37,6 @@ export class RegistryInstallCommand extends CommandRunner {
 
       await this.registryCommandService.registerModule({
         moduleConfig: resolved.moduleConfig,
-        sourcePath: resolved.srcPath,
         targetPath: resolved.srcPath,
         resolvedTargetModuleFile,
         importPath: resolved.packageName,

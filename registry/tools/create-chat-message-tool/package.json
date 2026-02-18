@@ -57,7 +57,12 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/create-chat-message-tool.module.ts",
+    "modules": [
+      {
+        "path": "src/create-chat-message-tool.module.ts",
+        "className": "CreateChatMessageToolModule"
+      }
+    ],
     "installModes": [
       "add",
       "install"

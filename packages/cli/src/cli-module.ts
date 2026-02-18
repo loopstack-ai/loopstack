@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
 import { GenerateSchemaCommand } from './commands/generate-schema.command';
 import { RegistryAddCommand } from './commands/registry-add.command';
+import { RegistryConfigureCommand } from './commands/registry-configure.command';
 import { RegistryInstallCommand } from './commands/registry-install.command';
 import { DynamicSchemaGeneratorService } from './services/dynamic-schema-generator.service';
 import { FileSystemService } from './services/file-system.service';
@@ -19,6 +20,7 @@ import { WorkflowInstallerService } from './services/workflow-installer.service'
   providers: [
     GenerateSchemaCommand,
     RegistryAddCommand,
+    RegistryConfigureCommand,
     RegistryInstallCommand,
     JsonSchemaGeneratorService,
     DynamicSchemaGeneratorService,

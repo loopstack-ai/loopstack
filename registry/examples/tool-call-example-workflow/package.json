@@ -52,13 +52,22 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/tool-calling-example.module.ts",
-    "workflows": [
-      "src/tool-call.workflow.ts"
-    ],
     "installModes": [
       "add",
       "install"
+    ],
+    "modules": [
+      {
+        "path": "src/tool-calling-example.module.ts",
+        "className": "ToolCallingExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/tool-call.workflow.ts",
+        "className": "ToolCallWorkflow",
+        "propertyName": "toolCall"
+      }
     ]
   }
 }

@@ -62,13 +62,22 @@
     "forceExit": true
   },
   "loopstack": {
-    "module": "src/chat-example.module.ts",
-    "workflows": [
-      "src/chat.workflow.ts"
-    ],
     "installModes": [
       "add",
       "install"
+    ],
+    "modules": [
+      {
+        "path": "src/chat-example.module.ts",
+        "className": "ChatExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/chat.workflow.ts",
+        "className": "ChatWorkflow",
+        "propertyName": "chat"
+      }
     ]
   }
 }

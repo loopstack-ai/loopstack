@@ -55,13 +55,35 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/calendar-example.module.ts",
-    "workflows": [
-      "src/workflows/calendar-summary.workflow.ts"
-    ],
     "installModes": [
       "add",
       "install"
+    ],
+    "modules": [
+      {
+        "path": "src/calendar-example.module.ts",
+        "className": "CalendarExampleModule"
+      },
+      {
+        "package": "@loopstack/oauth-module",
+        "className": "OAuthModule"
+      },
+      {
+        "package": "@loopstack/google-workspace-module",
+        "className": "GoogleWorkspaceModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/workflows/calendar-summary.workflow.ts",
+        "className": "CalendarSummaryWorkflow",
+        "propertyName": "calendarSummary"
+      },
+      {
+        "package": "@loopstack/oauth-module",
+        "className": "OAuthWorkflow",
+        "propertyName": "oAuth"
+      }
     ]
   }
 }

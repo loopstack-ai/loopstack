@@ -60,7 +60,7 @@ If authentication is required, the workflow uses `ExecuteWorkflowAsync` to launc
     - tool: executeWorkflowAsync
       id: launchAuth
       args:
-        workflow: oauth
+        workflow: oAuth
         args:
           provider: 'google'
           scopes:

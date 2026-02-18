@@ -57,6 +57,22 @@ export class DefaultWorkspace {
 }
 ```
 
+## Add oauth workflow
+
+Additionally to the installation above, you need to add `OAuthWorkflow` to your workspace (e.g. `default.workspace.ts`):
+This enables the workflow to execute the authentication flow when needed.
+
+```typescript
+import { OAuthWorkflow } from '@loopstack/oauth-module';
+
+@Workspace({
+  workflows: [],
+})
+export class DefaultWorkspace {
+  @InjectWorkflow() oAuth: OAuthWorkflow;
+}
+```
+
 See [Modules](https://loopstack.ai/docs/building-with-loopstack/creating-a-module) and [Workspaces](https://loopstack.ai/docs/building-with-loopstack/creating-workspaces) for more information.
 
 ## Configure Google OAuth

@@ -56,13 +56,22 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/sandbox-example.module.ts",
-    "workflows": [
-      "src/sandbox-example.workflow.ts"
-    ],
     "installModes": [
       "add",
       "install"
+    ],
+    "modules": [
+      {
+        "path": "src/sandbox-example.module.ts",
+        "className": "SandboxExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/sandbox-example.workflow.ts",
+        "className": "SandboxExampleWorkflow",
+        "propertyName": "sandboxExample"
+      }
     ]
   }
 }
