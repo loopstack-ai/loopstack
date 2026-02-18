@@ -4,7 +4,7 @@ const config = {
   environment: {
     id: 'local',
     name: 'Local Environment',
-    url: 'http://localhost:8000',
+    url: (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000',
   } as Environment,
 };
 
