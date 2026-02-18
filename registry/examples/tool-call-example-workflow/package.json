@@ -9,7 +9,7 @@
     "tool calling",
     "workflow"
   ],
-  "version": "0.20.2",
+  "version": "0.20.3",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -30,9 +30,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.20.2",
+    "@loopstack/ai-module": "^0.20.3",
     "@loopstack/common": "^0.20.3",
-    "@loopstack/core-ui-module": "^0.20.2",
+    "@loopstack/core-ui-module": "^0.20.3",
     "@nestjs/common": "^11.1.12",
     "zod": "^4.3.5"
   },
