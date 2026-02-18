@@ -1,5 +1,15 @@
 # @loopstack/run-sub-workflow-example
 
+## 0.20.3
+
+### Patch Changes
+
+- [#77](https://github.com/loopstack-ai/loopstack/pull/77) [`e2e993b`](https://github.com/loopstack-ai/loopstack/commit/e2e993b9c970683257cae79526e5f86ac5169503) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Create dependent packages auto configuration through cli
+
+- Updated dependencies [[`e2e993b`](https://github.com/loopstack-ai/loopstack/commit/e2e993b9c970683257cae79526e5f86ac5169503)]:
+  - @loopstack/create-chat-message-tool@0.20.3
+  - @loopstack/core-ui-module@0.20.3
+
 ## 0.20.2
 
 ### Patch Changes
