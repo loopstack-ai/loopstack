@@ -3,7 +3,7 @@
   "version": "0.18.3",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write .",
+    "format": "prettier --write --log-level warn .",
     "lint": "eslint .",
     "loopstack": "ts-node src/cli.ts",
     "loopstack:dev": "tsx src/cli.ts",
