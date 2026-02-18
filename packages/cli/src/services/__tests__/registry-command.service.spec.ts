@@ -211,7 +211,9 @@ describe('RegistryCommandService', () => {
     });
 
     it('should skip workflows when module install fails', async () => {
-      moduleInstallerService.install.mockRejectedValue(new Error('Module install failed'));
+      moduleInstallerService.install.mockImplementation(() => {
+        throw new Error('Module install failed');
+      });
 
       await service.registerModule({
         moduleConfig,
