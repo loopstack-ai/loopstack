@@ -57,9 +57,18 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/oauth.module.ts",
+    "modules": [
+      {
+        "path": "src/oauth.module.ts",
+        "className": "OAuthModule"
+      }
+    ],
     "workflows": [
-      "src/workflows/oauth.workflow.ts"
+      {
+        "path": "src/workflows/oauth.workflow.ts",
+        "className": "OAuthWorkflow",
+        "propertyName": "oAuth"
+      }
     ],
     "installModes": [
       "add",

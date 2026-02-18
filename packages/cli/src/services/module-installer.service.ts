@@ -4,33 +4,47 @@ import { FileSystemService } from './file-system.service';
 import { PromptService } from './prompt.service';
 import { TypeScriptAstService } from './typescript-ast.service';
 
-export interface WorkflowEntryOptions {
+export type InstallMode = 'add' | 'install';
+
+export interface LocalModuleEntry {
+  path: string;
+  className: string;
+}
+
+export interface DependencyModuleEntry {
+  package: string;
+  className: string;
+}
+
+export type ModuleEntry = LocalModuleEntry | DependencyModuleEntry;
+
+export interface LocalWorkflowEntry {
+  path: string;
+  className: string;
+  propertyName: string;
   options?: Record<string, unknown>;
 }
 
-export interface WorkflowObjectEntry {
-  path: string;
-  options?: WorkflowEntryOptions;
+export interface DependencyWorkflowEntry {
+  package: string;
+  className: string;
+  propertyName: string;
+  options?: Record<string, unknown>;
 }
 
-export type WorkflowEntry = string | WorkflowObjectEntry;
-
-export type InstallMode = 'add' | 'install';
+export type WorkflowEntry = LocalWorkflowEntry | DependencyWorkflowEntry;
 
 export interface LoopstackModuleConfig {
-  module: string;
+  modules: ModuleEntry[];
   workflows?: WorkflowEntry[];
   installModes?: InstallMode[];
 }
 
 export interface ModuleInstallOptions {
   config: LoopstackModuleConfig;
-  sourcePath: string;
   targetPath: string;
-  targetModuleFile?: string;
-  resolvedTargetModuleFile?: string;
+  resolvedTargetModuleFile: string;
   importPath?: string;
-  moduleSearchRoot?: string;
 }
 
 const MODULE_FILE_PATTERN = /\.module\.ts$/;
@@ -65,28 +79,31 @@ export class ModuleInstallerService {
     return this.selectTargetModule(moduleFiles);
   }
 
-  async install(options: ModuleInstallOptions): Promise<void> {
-    const { config, targetPath } = options;
+  install(options: ModuleInstallOptions): void {
+    const { config, targetPath, resolvedTargetModuleFile } = options;
 
-    const targetModuleFile =
-      options.resolvedTargetModuleFile ??
-      (await this.resolveTargetModule({
-        targetModuleFile: options.targetModuleFile,
-        moduleSearchRoot: options.moduleSearchRoot ?? this.fileSystemService.dirname(targetPath),
-      }));
+    for (const moduleEntry of config.modules) {
+      let importPath: string;
 
-    const sourceModulePath = this.fileSystemService.resolvePath(targetPath, config.module.replace(/^src\//, ''));
-    const sourceModuleClassName = this.extractModuleClassName(sourceModulePath);
+      if (this.isDependencyEntry(moduleEntry)) {
+        importPath = moduleEntry.package;
+      } else {
+        const sourceModulePath = this.fileSystemService.resolvePath(targetPath, moduleEntry.path.replace(/^src\//, ''));
+        importPath =
+          options.importPath ?? this.astService.calculateImportPath(resolvedTargetModuleFile, sourceModulePath);
+      }
 
-    if (!sourceModuleClassName) {
-      throw new Error(`Could not find module class in ${sourceModulePath}`);
+      this.addModuleImport(resolvedTargetModuleFile, moduleEntry.className, importPath);
+      console.log(
+        `Registered ${moduleEntry.className} in ${this.fileSystemService.getFileName(resolvedTargetModuleFile)}`,
+      );
     }
+  }
 
-    const importPath = options.importPath ?? this.astService.calculateImportPath(targetModuleFile, sourceModulePath);
-
-    this.addModuleImport(targetModuleFile, sourceModuleClassName, importPath);
-
-    console.log(`Registered ${sourceModuleClassName} in ${this.fileSystemService.getFileName(targetModuleFile)}`);
+  private isDependencyEntry(
+    entry: ModuleEntry | WorkflowEntry,
+  ): entry is DependencyModuleEntry | DependencyWorkflowEntry {
+    return 'package' in entry;
   }
 
   private async selectTargetModule(moduleFiles: string[]): Promise<string> {
@@ -105,28 +122,6 @@ export class ModuleInstallerService {
     }));
 
     return this.promptService.select('Select target module to register in:', options, defaultSelection);
-  }
-
-  private extractModuleClassName(modulePath: string): string | null {
-    const project = this.astService.createProject();
-    const sourceFile = this.astService.loadSourceFile(project, modulePath);
-
-    const classes = sourceFile.getClasses();
-
-    for (const classDecl of classes) {
-      const moduleDecorator = classDecl.getDecorator('Module');
-      if (moduleDecorator) {
-        return classDecl.getName() || null;
-      }
-    }
-
-    for (const classDecl of classes) {
-      if (classDecl.isExported()) {
-        return classDecl.getName() || null;
-      }
-    }
-
-    return null;
   }
 
   private addModuleImport(targetModuleFile: string, moduleClassName: string, importPath: string): void {

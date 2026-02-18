@@ -57,7 +57,12 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/core-ui.module.ts",
+    "modules": [
+      {
+        "path": "src/core-ui.module.ts",
+        "className": "CoreUiModule"
+      }
+    ],
     "installModes": [
       "add",
       "install"

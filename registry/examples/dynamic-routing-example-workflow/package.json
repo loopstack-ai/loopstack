@@ -51,13 +51,22 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/dynamic-routing-example.module.ts",
-    "workflows": [
-      "src/dynamic-routing-example.workflow.ts"
-    ],
     "installModes": [
       "add",
       "install"
+    ],
+    "modules": [
+      {
+        "path": "src/dynamic-routing-example.module.ts",
+        "className": "DynamicRoutingExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/dynamic-routing-example.workflow.ts",
+        "className": "DynamicRoutingExampleWorkflow",
+        "propertyName": "dynamicRoutingExample"
+      }
     ]
   }
 }

@@ -56,7 +56,12 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/create-value-tool.module.ts",
+    "modules": [
+      {
+        "path": "src/create-value-tool.module.ts",
+        "className": "CreateValueToolModule"
+      }
+    ],
     "installModes": [
       "add",
       "install"

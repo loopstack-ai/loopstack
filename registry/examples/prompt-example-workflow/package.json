@@ -52,13 +52,22 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/prompt-example.module.ts",
-    "workflows": [
-      "src/prompt.workflow.ts"
-    ],
     "installModes": [
       "add",
       "install"
+    ],
+    "modules": [
+      {
+        "path": "src/prompt-example.module.ts",
+        "className": "PromptExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/prompt.workflow.ts",
+        "className": "PromptWorkflow",
+        "propertyName": "prompt"
+      }
     ]
   }
 }

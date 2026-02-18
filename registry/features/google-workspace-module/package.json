@@ -58,7 +58,23 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/google-workspace.module.ts",
+    "modules": [
+      {
+        "path": "src/google-workspace.module.ts",
+        "className": "GoogleWorkspaceModule"
+      },
+      {
+        "package": "@loopstack/oauth-module",
+        "className": "OAuthModule"
+      }
+    ],
+    "workflows": [
+      {
+        "package": "@loopstack/oauth-module",
+        "className": "OAuthWorkflow",
+        "propertyName": "oAuth"
+      }
+    ],
     "installModes": [
       "add",
       "install"

@@ -51,13 +51,22 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/custom-tool.module.ts",
-    "workflows": [
-      "src/workflows/custom-tool-example.workflow.ts"
-    ],
     "installModes": [
       "add",
       "install"
+    ],
+    "modules": [
+      {
+        "path": "src/custom-tool.module.ts",
+        "className": "CustomToolModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/workflows/custom-tool-example.workflow.ts",
+        "className": "CustomToolExampleWorkflow",
+        "propertyName": "customToolExample"
+      }
     ]
   }
 }

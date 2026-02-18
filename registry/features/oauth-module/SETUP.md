@@ -56,7 +56,7 @@ import { OAuthWorkflow } from '@loopstack/oauth-module';
   workflows: [],
 })
 export class DefaultWorkspace {
-  @InjectWorkflow() oAuthWorkflow: OAuthWorkflow;
+  @InjectWorkflow() oAuth: OAuthWorkflow;
 }
 ```
 

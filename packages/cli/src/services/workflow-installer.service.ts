@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { FileSystemService } from './file-system.service';
-import { WorkflowEntry, WorkflowEntryOptions } from './module-installer.service';
+import { DependencyWorkflowEntry, WorkflowEntry } from './module-installer.service';
 import { PromptService } from './prompt.service';
 import { TypeScriptAstService } from './typescript-ast.service';
 
@@ -50,31 +50,35 @@ export class WorkflowInstallerService {
     }
 
     for (const workflowEntry of workflows) {
-      const workflowPath = typeof workflowEntry === 'string' ? workflowEntry : workflowEntry.path;
-      const decoratorOptions = typeof workflowEntry === 'string' ? undefined : workflowEntry.options;
+      let importPath: string;
 
-      const sourceWorkflowPath = this.fileSystemService.resolvePath(targetPath, workflowPath.replace(/^src\//, ''));
+      if (this.isDependencyEntry(workflowEntry)) {
+        importPath = workflowEntry.package;
+      } else {
+        const sourceWorkflowPath = this.fileSystemService.resolvePath(
+          targetPath,
+          workflowEntry.path.replace(/^src\//, ''),
+        );
 
-      if (!this.fileSystemService.exists(sourceWorkflowPath)) {
-        console.warn(`Workflow file not found: ${sourceWorkflowPath}, skipping...`);
-        continue;
+        if (!this.fileSystemService.exists(sourceWorkflowPath)) {
+          console.warn(`Workflow file not found: ${sourceWorkflowPath}, skipping...`);
+          continue;
+        }
+
+        importPath = options.importPath ?? this.astService.calculateImportPath(targetWorkspaceFile, sourceWorkflowPath);
       }
 
-      const workflowClassName = this.extractWorkflowClassName(sourceWorkflowPath);
+      this.addWorkflowToWorkspace(
+        targetWorkspaceFile,
+        workflowEntry.className,
+        importPath,
+        workflowEntry.propertyName,
+        workflowEntry.options,
+      );
 
-      if (!workflowClassName) {
-        console.warn(`Could not find workflow class in ${sourceWorkflowPath}, skipping...`);
-        continue;
-      }
-
-      const importPath =
-        options.importPath ?? this.astService.calculateImportPath(targetWorkspaceFile, sourceWorkflowPath);
-      const propertyName = this.classNameToPropertyName(workflowClassName);
-
-      this.addWorkflowToWorkspace(targetWorkspaceFile, workflowClassName, importPath, propertyName, decoratorOptions);
-
-      console.log(targetWorkspaceFile, workflowClassName, importPath, propertyName);
-      console.log(`Registered ${workflowClassName} in ${this.fileSystemService.getFileName(targetWorkspaceFile)}`);
+      console.log(
+        `Registered ${workflowEntry.className} in ${this.fileSystemService.getFileName(targetWorkspaceFile)}`,
+      );
     }
   }
 
@@ -95,22 +99,8 @@ export class WorkflowInstallerService {
     return this.promptService.select('Select target workspace to register workflows in:', options, defaultSelection);
   }
 
-  private extractWorkflowClassName(workflowPath: string): string | null {
-    const project = this.astService.createProject();
-    const sourceFile = this.astService.loadSourceFile(project, workflowPath);
-
-    const classes = sourceFile.getClasses();
-    const classDecl = classes[0];
-    if (classDecl) {
-      return classDecl.getName() ?? null;
-    }
-
-    return null;
-  }
-
-  private classNameToPropertyName(className: string): string {
-    const withoutSuffix = className.replace(/Workflow$/, '');
-    return withoutSuffix.charAt(0).toLowerCase() + withoutSuffix.slice(1);
+  private isDependencyEntry(entry: WorkflowEntry): entry is DependencyWorkflowEntry {
+    return 'package' in entry;
   }
 
   private addWorkflowToWorkspace(
@@ -118,7 +108,7 @@ export class WorkflowInstallerService {
     workflowClassName: string,
     importPath: string,
     propertyName: string,
-    decoratorOptions?: WorkflowEntryOptions,
+    decoratorOptions?: Record<string, unknown>,
   ): void {
     const project = this.astService.createProject();
     const sourceFile = this.astService.loadSourceFile(project, targetWorkspaceFile);

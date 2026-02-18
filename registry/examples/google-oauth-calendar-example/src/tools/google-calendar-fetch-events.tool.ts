@@ -47,7 +47,6 @@ export class GoogleCalendarFetchEventsTool implements ToolInterface {
     const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
-      console.log('unauthorized');
       return {
         data: {
           error: 'unauthorized',
@@ -73,7 +72,6 @@ export class GoogleCalendarFetchEventsTool implements ToolInterface {
 
     if (response.status === 401 || response.status === 403) {
       this.logger.warn(`Google Calendar API returned ${response.status} for user ${ctx.userId}`);
-      console.log('unauthorized');
       return {
         data: {
           error: '401',
@@ -95,9 +93,6 @@ export class GoogleCalendarFetchEventsTool implements ToolInterface {
     }
 
     const data: GoogleCalendarListResponse = (await response.json()) as GoogleCalendarListResponse;
-
-    console.log('events', data);
-
     const events = data.items.map((event) => ({
       id: event.id,
       summary: event.summary,

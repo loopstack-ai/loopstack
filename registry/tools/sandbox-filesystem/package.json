@@ -48,7 +48,12 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/sandbox-filesystem.module.ts",
+    "modules": [
+      {
+        "path": "src/sandbox-filesystem.module.ts",
+        "className": "SandboxFilesystemModule"
+      }
+    ],
     "installModes": [
       "add",
       "install"

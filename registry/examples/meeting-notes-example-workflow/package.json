@@ -52,13 +52,22 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "module": "src/meeting-notes-example.module.ts",
-    "workflows": [
-      "src/meeting-notes.workflow.ts"
-    ],
     "installModes": [
       "add",
       "install"
+    ],
+    "modules": [
+      {
+        "path": "src/meeting-notes-example.module.ts",
+        "className": "MeetingNotesExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/meeting-notes.workflow.ts",
+        "className": "MeetingNotesWorkflow",
+        "propertyName": "meetingNotes"
+      }
     ]
   }
 }
