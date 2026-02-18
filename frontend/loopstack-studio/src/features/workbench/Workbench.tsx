@@ -3,6 +3,7 @@ import type { PipelineDto } from '@loopstack/api-client';
 import { FileContentViewer } from '@/features/code-explorer/components/FileContentViewer';
 import { FileTabsBar } from '@/features/code-explorer/components/FileTabsBar';
 import { CodeExplorerProvider, useCodeExplorerContext } from '@/features/code-explorer/providers/CodeExplorerProvider';
+import { useWorkspace } from '@/hooks/useWorkspaces.ts';
 import { SidebarInsetDiv, SidebarProvider, SidebarTrigger } from '../../components/ui/sidebar.tsx';
 import { useNamespaceTree } from '../../hooks/useNamespaceTree.ts';
 import WorkflowList from './WorkflowList.tsx';
@@ -47,6 +48,8 @@ function WorkbenchContent({ pipeline }: { pipeline: PipelineDto }) {
 
 export default function Workbench({ pipeline }: { pipeline: PipelineDto }) {
   const namespaceTree = useNamespaceTree(pipeline?.id);
+  const workspaceId = pipeline?.workspaceId;
+  const fetchWorkspace = useWorkspace(workspaceId);
 
   const [workbenchState, setWorkbenchState] = useState<WorkbenchState>({
     activeSectionId: null,
@@ -74,7 +77,18 @@ export default function Workbench({ pipeline }: { pipeline: PipelineDto }) {
               <WorkbenchContent pipeline={pipeline} />
             </div>
           </SidebarInsetDiv>
-          <WorkbenchSidebar namespaceTree={namespaceTree} pipeline={pipeline} />
+          <WorkbenchSidebar
+            namespaceTree={namespaceTree}
+            pipeline={pipeline}
+            workspaceConfig={
+              fetchWorkspace.data
+                ? {
+                    volumes: fetchWorkspace.data.volumes,
+                    features: fetchWorkspace.data.features,
+                  }
+                : undefined
+            }
+          />
         </SidebarProvider>
       </CodeExplorerProvider>
     </WorkbenchContextProvider.Provider>

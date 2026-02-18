@@ -31,18 +31,24 @@ export function CodeExplorer({ className }: CodeExplorerProps) {
           className="h-8 w-full"
           aria-label="Search files"
         />
-        {error && (
-          <div>
-            <p className="text-xs text-destructive">Error: {error.message}</p>
-          </div>
-        )}
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border bg-background">
-          {isTreeLoading ? (
+          {error ? (
+            <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
+              <div className="rounded-lg border border-destructive bg-destructive/10 p-4 max-w-md">
+                <p className="text-sm font-semibold text-destructive mb-2">File Explorer Error</p>
+                <p className="text-xs text-destructive/90">{error.message}</p>
+              </div>
+            </div>
+          ) : isTreeLoading ? (
             <div className="flex flex-1 items-center justify-center p-4">
               <p className="text-xs text-muted-foreground">Loading file tree...</p>
+            </div>
+          ) : fileTree.length === 0 ? (
+            <div className="flex flex-1 items-center justify-center p-4">
+              <p className="text-xs text-muted-foreground">No files found</p>
             </div>
           ) : (
             <CodeExplorerTree

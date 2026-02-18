@@ -1,7 +1,26 @@
+import type { AxiosError } from 'axios';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { FileExplorerNodeDto, PipelineConfigDto } from '@loopstack/api-client';
 import { useFileContent, useFileTree } from '@/hooks/useFiles';
 import type { FileExplorerNode } from '../types';
+
+function extractErrorMessage(error: Error | null): Error | null {
+  if (!error) return null;
+
+  if ('isAxiosError' in error && error.isAxiosError) {
+    const axiosError = error as AxiosError<{ message?: string } | string>;
+    const responseData = axiosError.response?.data;
+
+    if (typeof responseData === 'object' && responseData !== null && 'message' in responseData) {
+      return new Error(String(responseData.message));
+    }
+    if (typeof responseData === 'string') {
+      return new Error(responseData);
+    }
+  }
+
+  return error;
+}
 
 interface CodeExplorerContextValue {
   fileTree: FileExplorerNode[];
@@ -68,7 +87,8 @@ export function CodeExplorerProvider({ children, pipelineId, initialSelectedPath
 
   const isTreeLoading = fileTreeQuery.isLoading && !fileTreeQuery.data;
   const isContentLoading = fileContentQuery.isLoading && selectedFile !== null && !fileContentQuery.data;
-  const error = fileTreeQuery.error || fileContentQuery.error || null;
+
+  const error = extractErrorMessage(fileTreeQuery.error) || extractErrorMessage(fileContentQuery.error) || null;
 
   useEffect(() => {
     if (initialSelectedPath && fileTree.length > 0 && !selectedFile && openFiles.length === 0) {

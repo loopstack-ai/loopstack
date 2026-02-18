@@ -460,6 +460,43 @@ export type DocumentSortByDtoOrderEnum = (typeof DocumentSortByDtoOrderEnum)[key
 /**
  *
  * @export
+ * @interface FeaturesDto
+ */
+export interface FeaturesDto {
+  /**
+   * Sidebar feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  sidebar?: SidebarFeatureDto;
+  /**
+   * Workflow history feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  workflowHistory?: SidebarFeatureDto;
+  /**
+   * Workflow navigation feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  workflowNavigation?: SidebarFeatureDto;
+  /**
+   * Debug workflow feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  debugWorkflow?: SidebarFeatureDto;
+  /**
+   * File explorer feature configuration
+   * @type {FileExplorerFeatureDto}
+   * @memberof FeaturesDto
+   */
+  fileExplorer?: FileExplorerFeatureDto;
+}
+/**
+ *
+ * @export
  * @interface FileContentDto
  */
 export interface FileContentDto {
@@ -481,6 +518,31 @@ export interface FileContentDto {
    * @memberof FileContentDto
    */
   workflowConfig?: PipelineConfigDto;
+}
+/**
+ *
+ * @export
+ * @interface FileExplorerFeatureDto
+ */
+export interface FileExplorerFeatureDto {
+  /**
+   * Whether the file explorer feature is enabled
+   * @type {boolean}
+   * @memberof FileExplorerFeatureDto
+   */
+  enabled?: boolean;
+  /**
+   * Volume name to use for file explorer
+   * @type {string}
+   * @memberof FileExplorerFeatureDto
+   */
+  volume?: string;
+  /**
+   * Additional options for file explorer
+   * @type {object}
+   * @memberof FileExplorerFeatureDto
+   */
+  options?: object;
 }
 /**
  *
@@ -1241,6 +1303,46 @@ export interface RunPipelinePayloadDto {
 /**
  *
  * @export
+ * @interface SidebarFeatureDto
+ */
+export interface SidebarFeatureDto {
+  /**
+   * Whether the sidebar feature is enabled
+   * @type {boolean}
+   * @memberof SidebarFeatureDto
+   */
+  enabled?: boolean;
+}
+/**
+ *
+ * @export
+ * @interface VolumeDto
+ */
+export interface VolumeDto {
+  /**
+   * Path of the volume
+   * @type {string}
+   * @memberof VolumeDto
+   */
+  path: string;
+  /**
+   * Permissions for the volume
+   * @type {Array<string>}
+   * @memberof VolumeDto
+   */
+  permissions: Array<VolumeDtoPermissionsEnum>;
+}
+
+export const VolumeDtoPermissionsEnum = {
+  Read: 'read',
+  Write: 'write',
+} as const;
+
+export type VolumeDtoPermissionsEnum = (typeof VolumeDtoPermissionsEnum)[keyof typeof VolumeDtoPermissionsEnum];
+
+/**
+ *
+ * @export
  * @interface WorkerInfoDto
  */
 export interface WorkerInfoDto {
@@ -1617,6 +1719,18 @@ export interface WorkspaceConfigDto {
    * @memberof WorkspaceConfigDto
    */
   title?: string;
+  /**
+   * Volumes configuration
+   * @type {{ [key: string]: any; }}
+   * @memberof WorkspaceConfigDto
+   */
+  volumes?: { [key: string]: any };
+  /**
+   * Features configuration
+   * @type {FeaturesDto}
+   * @memberof WorkspaceConfigDto
+   */
+  features?: FeaturesDto;
 }
 /**
  *
@@ -1742,6 +1856,18 @@ export interface WorkspaceDto {
    * @memberof WorkspaceDto
    */
   updatedAt: string;
+  /**
+   * Volumes configuration
+   * @type {{ [key: string]: any; }}
+   * @memberof WorkspaceDto
+   */
+  volumes?: { [key: string]: any };
+  /**
+   * Features configuration
+   * @type {FeaturesDto}
+   * @memberof WorkspaceDto
+   */
+  features?: FeaturesDto;
 }
 /**
  *
@@ -2421,6 +2547,43 @@ export const ApiV1ConfigApiAxiosParamCreator = function (configuration?: Configu
     },
     /**
      *
+     * @summary Get the full config of a specific workspace by block name
+     * @param {string} workspaceBlockName The config key of the workspace type
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    configControllerGetWorkspaceConfigByName: async (
+      workspaceBlockName: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'workspaceBlockName' is not null or undefined
+      assertParamExists('configControllerGetWorkspaceConfigByName', 'workspaceBlockName', workspaceBlockName);
+      const localVarPath = `/api/v1/config/workspaces/{workspaceBlockName}`.replace(
+        `{${'workspaceBlockName'}}`,
+        encodeURIComponent(String(workspaceBlockName)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
      * @summary Get all models available for this workspace
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2546,6 +2709,33 @@ export const ApiV1ConfigApiFp = function (configuration?: Configuration) {
     },
     /**
      *
+     * @summary Get the full config of a specific workspace by block name
+     * @param {string} workspaceBlockName The config key of the workspace type
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async configControllerGetWorkspaceConfigByName(
+      workspaceBlockName: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceConfigDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.configControllerGetWorkspaceConfigByName(
+        workspaceBlockName,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1ConfigApi.configControllerGetWorkspaceConfigByName']?.[localVarOperationServerIndex]
+          ?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
      * @summary Get all models available for this workspace
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2634,6 +2824,21 @@ export const ApiV1ConfigApiFactory = function (
     },
     /**
      *
+     * @summary Get the full config of a specific workspace by block name
+     * @param {ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    configControllerGetWorkspaceConfigByName(
+      requestParameters: ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<WorkspaceConfigDto> {
+      return localVarFp
+        .configControllerGetWorkspaceConfigByName(requestParameters.workspaceBlockName, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
      * @summary Get all models available for this workspace
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2688,6 +2893,19 @@ export interface ApiV1ConfigApiInterface {
     requestParameters: ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest,
     options?: RawAxiosRequestConfig,
   ): AxiosPromise<Array<PipelineConfigDto>>;
+
+  /**
+   *
+   * @summary Get the full config of a specific workspace by block name
+   * @param {ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1ConfigApiInterface
+   */
+  configControllerGetWorkspaceConfigByName(
+    requestParameters: ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<WorkspaceConfigDto>;
 
   /**
    *
@@ -2756,6 +2974,20 @@ export interface ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceReques
 }
 
 /**
+ * Request parameters for configControllerGetWorkspaceConfigByName operation in ApiV1ConfigApi.
+ * @export
+ * @interface ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest
+ */
+export interface ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest {
+  /**
+   * The config key of the workspace type
+   * @type {string}
+   * @memberof ApiV1ConfigApiConfigControllerGetWorkspaceConfigByName
+   */
+  readonly workspaceBlockName: string;
+}
+
+/**
  * ApiV1ConfigApi - object-oriented interface
  * @export
  * @class ApiV1ConfigApi
@@ -2818,6 +3050,23 @@ export class ApiV1ConfigApi extends BaseAPI implements ApiV1ConfigApiInterface {
   ) {
     return ApiV1ConfigApiFp(this.configuration)
       .configControllerGetPipelineTypesByWorkspace(requestParameters.workspaceBlockName, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Get the full config of a specific workspace by block name
+   * @param {ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1ConfigApi
+   */
+  public configControllerGetWorkspaceConfigByName(
+    requestParameters: ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1ConfigApiFp(this.configuration)
+      .configControllerGetWorkspaceConfigByName(requestParameters.workspaceBlockName, options)
       .then((request) => request(this.axios, this.basePath));
   }
 

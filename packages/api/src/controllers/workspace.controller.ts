@@ -23,9 +23,12 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
+import { CurrentUser, CurrentUserInterface, WorkspaceEntity, getBlockConfig } from '@loopstack/common';
+import { WorkspaceType } from '@loopstack/contracts/types';
+import { BlockDiscoveryService } from '@loopstack/core';
 import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
 import { PaginatedDto } from '../dtos/paginated.dto';
+import { FeaturesDto, VolumeDto } from '../dtos/workspace-config.dto';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
 import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
@@ -35,11 +38,14 @@ import { WorkspaceDto } from '../dtos/workspace.dto';
 import { WorkspaceApiService } from '../services/workspace-api.service';
 
 @ApiTags('api/v1/workspaces')
-@ApiExtraModels(WorkspaceDto, WorkspaceItemDto, WorkspaceCreateDto, WorkspaceUpdateDto)
+@ApiExtraModels(WorkspaceDto, WorkspaceItemDto, WorkspaceCreateDto, WorkspaceUpdateDto, VolumeDto, FeaturesDto)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 @Controller('api/v1/workspaces')
 export class WorkspaceController {
-  constructor(private readonly workspaceService: WorkspaceApiService) {}
+  constructor(
+    private readonly workspaceService: WorkspaceApiService,
+    private readonly blockDiscoveryService: BlockDiscoveryService,
+  ) {}
 
   /**
    * Retrieves all workspaces for the authenticated user with optional filters, sorting, and pagination.
@@ -163,7 +169,25 @@ export class WorkspaceController {
   @ApiUnauthorizedResponse()
   async getWorkspaceById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<WorkspaceDto> {
     const workspace = await this.workspaceService.findOneById(id, user.userId);
-    return WorkspaceDto.create(workspace);
+
+    let volumes: Record<string, VolumeDto> | undefined;
+    let features: FeaturesDto | undefined;
+
+    if (workspace.blockName) {
+      const workspaceBlock = this.blockDiscoveryService.getWorkspace(workspace.blockName);
+      if (workspaceBlock) {
+        const config = getBlockConfig<WorkspaceType>(workspaceBlock) as WorkspaceType;
+        if (config) {
+          volumes = config.volumes;
+          features = config.features;
+        }
+      }
+    }
+
+    const workspaceDto = WorkspaceDto.create(workspace);
+    workspaceDto.volumes = volumes;
+    workspaceDto.features = features;
+    return workspaceDto;
   }
 
   /**
