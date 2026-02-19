@@ -1,5 +1,15 @@
 # @loopstack/loopstack-studio
 
+## 0.20.3
+
+### Patch Changes
+
+- [#75](https://github.com/loopstack-ai/loopstack/pull/75) [`e49ea39`](https://github.com/loopstack-ai/loopstack/commit/e49ea392fc736048f165e8dfaab79d97125ec77c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix sub workflow execution flow and improve ui
+
+- Updated dependencies [[`e4945ab`](https://github.com/loopstack-ai/loopstack/commit/e4945ab0596cd074213923f38d1d8fe239fb6ceb), [`e49ea39`](https://github.com/loopstack-ai/loopstack/commit/e49ea392fc736048f165e8dfaab79d97125ec77c)]:
+  - @loopstack/contracts@0.20.3
+  - @loopstack/api-client@0.18.2
+
 ## 0.20.2
 
 ### Patch Changes

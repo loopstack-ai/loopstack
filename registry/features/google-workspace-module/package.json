@@ -11,7 +11,7 @@
     "loopstack",
     "module"
   ],
-  "version": "0.1.0",
+  "version": "0.1.2",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -32,7 +32,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/oauth-module": "^0.1.0",
+    "@loopstack/oauth-module": "^0.1.2",
     "zod": "^4.3.5"
   },
   "files": [
