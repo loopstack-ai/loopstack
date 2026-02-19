@@ -11,6 +11,7 @@ import { LoopCoreModule } from '@loopstack/core';
 import { ConfigController } from './controllers/config.controller';
 import { DashboardController } from './controllers/dashboard.controller';
 import { DocumentController } from './controllers/document.controller';
+import { FileController } from './controllers/file.controller';
 import { NamespaceController } from './controllers/namespace.controller';
 import { PipelineController } from './controllers/pipeline.controller';
 import { ProcessorController } from './controllers/processor.controller';
@@ -22,6 +23,8 @@ import { ConfigurableModuleClass } from './loop-api.module-definition';
 import { UserService } from './services';
 import { DashboardService } from './services/dashboard.service';
 import { DocumentApiService } from './services/document-api.service';
+import { FileApiService } from './services/file-api.service';
+import { FileSystemService } from './services/file-system.service';
 import { NamespaceApiService } from './services/namespace-api.service';
 import { PipelineApiService } from './services/pipeline-api.service';
 import { ProcessorApiService } from './services/processor-api.service';
@@ -46,6 +49,7 @@ import { WorkspaceApiService } from './services/workspace-api.service';
     ConfigController,
     DashboardController,
     SseController,
+    FileController,
   ],
   providers: [
     {
@@ -61,6 +65,8 @@ import { WorkspaceApiService } from './services/workspace-api.service';
     NamespaceApiService,
     DashboardService,
     UserService,
+    FileSystemService,
+    FileApiService,
   ],
   exports: [
     PipelineApiService,

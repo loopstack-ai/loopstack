@@ -460,6 +460,139 @@ export type DocumentSortByDtoOrderEnum = (typeof DocumentSortByDtoOrderEnum)[key
 /**
  *
  * @export
+ * @interface FeaturesDto
+ */
+export interface FeaturesDto {
+  /**
+   * Sidebar feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  sidebar?: SidebarFeatureDto;
+  /**
+   * Workflow history feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  workflowHistory?: SidebarFeatureDto;
+  /**
+   * Workflow navigation feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  workflowNavigation?: SidebarFeatureDto;
+  /**
+   * Debug workflow feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  debugWorkflow?: SidebarFeatureDto;
+  /**
+   * File explorer feature configuration
+   * @type {FileExplorerFeatureDto}
+   * @memberof FeaturesDto
+   */
+  fileExplorer?: FileExplorerFeatureDto;
+}
+/**
+ *
+ * @export
+ * @interface FileContentDto
+ */
+export interface FileContentDto {
+  /**
+   * Path of the file relative to workspace root
+   * @type {string}
+   * @memberof FileContentDto
+   */
+  path: string;
+  /**
+   * Content of the file
+   * @type {string}
+   * @memberof FileContentDto
+   */
+  content: string;
+  /**
+   * Parsed workflow configuration if the file is a YAML workflow file
+   * @type {PipelineConfigDto}
+   * @memberof FileContentDto
+   */
+  workflowConfig?: PipelineConfigDto;
+}
+/**
+ *
+ * @export
+ * @interface FileExplorerFeatureDto
+ */
+export interface FileExplorerFeatureDto {
+  /**
+   * Whether the file explorer feature is enabled
+   * @type {boolean}
+   * @memberof FileExplorerFeatureDto
+   */
+  enabled?: boolean;
+  /**
+   * Volume name to use for file explorer
+   * @type {string}
+   * @memberof FileExplorerFeatureDto
+   */
+  volume?: string;
+  /**
+   * Additional options for file explorer
+   * @type {object}
+   * @memberof FileExplorerFeatureDto
+   */
+  options?: object;
+}
+/**
+ *
+ * @export
+ * @interface FileExplorerNodeDto
+ */
+export interface FileExplorerNodeDto {
+  /**
+   * Unique identifier for the file/folder node
+   * @type {string}
+   * @memberof FileExplorerNodeDto
+   */
+  id: string;
+  /**
+   * Name of the file or folder
+   * @type {string}
+   * @memberof FileExplorerNodeDto
+   */
+  name: string;
+  /**
+   * Full path of the file or folder relative to workspace root
+   * @type {string}
+   * @memberof FileExplorerNodeDto
+   */
+  path: string;
+  /**
+   * Type of the node
+   * @type {string}
+   * @memberof FileExplorerNodeDto
+   */
+  type: FileExplorerNodeDtoTypeEnum;
+  /**
+   * Child nodes (only present for folders)
+   * @type {Array<FileExplorerNodeDto>}
+   * @memberof FileExplorerNodeDto
+   */
+  children?: Array<FileExplorerNodeDto>;
+}
+
+export const FileExplorerNodeDtoTypeEnum = {
+  File: 'file',
+  Folder: 'folder',
+} as const;
+
+export type FileExplorerNodeDtoTypeEnum =
+  (typeof FileExplorerNodeDtoTypeEnum)[keyof typeof FileExplorerNodeDtoTypeEnum];
+
+/**
+ *
+ * @export
  * @interface HubLoginRequestDto
  */
 export interface HubLoginRequestDto {
@@ -1183,6 +1316,46 @@ export interface RunPipelinePayloadDto {
 /**
  *
  * @export
+ * @interface SidebarFeatureDto
+ */
+export interface SidebarFeatureDto {
+  /**
+   * Whether the sidebar feature is enabled
+   * @type {boolean}
+   * @memberof SidebarFeatureDto
+   */
+  enabled?: boolean;
+}
+/**
+ *
+ * @export
+ * @interface VolumeDto
+ */
+export interface VolumeDto {
+  /**
+   * Path of the volume
+   * @type {string}
+   * @memberof VolumeDto
+   */
+  path: string;
+  /**
+   * Permissions for the volume
+   * @type {Array<string>}
+   * @memberof VolumeDto
+   */
+  permissions: Array<VolumeDtoPermissionsEnum>;
+}
+
+export const VolumeDtoPermissionsEnum = {
+  Read: 'read',
+  Write: 'write',
+} as const;
+
+export type VolumeDtoPermissionsEnum = (typeof VolumeDtoPermissionsEnum)[keyof typeof VolumeDtoPermissionsEnum];
+
+/**
+ *
+ * @export
  * @interface WorkerInfoDto
  */
 export interface WorkerInfoDto {
@@ -1559,6 +1732,18 @@ export interface WorkspaceConfigDto {
    * @memberof WorkspaceConfigDto
    */
   title?: string;
+  /**
+   * Volumes configuration
+   * @type {{ [key: string]: any; }}
+   * @memberof WorkspaceConfigDto
+   */
+  volumes?: { [key: string]: any };
+  /**
+   * Features configuration
+   * @type {FeaturesDto}
+   * @memberof WorkspaceConfigDto
+   */
+  features?: FeaturesDto;
 }
 /**
  *
@@ -1684,6 +1869,18 @@ export interface WorkspaceDto {
    * @memberof WorkspaceDto
    */
   updatedAt: string;
+  /**
+   * Volumes configuration
+   * @type {{ [key: string]: any; }}
+   * @memberof WorkspaceDto
+   */
+  volumes?: { [key: string]: any };
+  /**
+   * Features configuration
+   * @type {FeaturesDto}
+   * @memberof WorkspaceDto
+   */
+  features?: FeaturesDto;
 }
 /**
  *
@@ -2363,6 +2560,43 @@ export const ApiV1ConfigApiAxiosParamCreator = function (configuration?: Configu
     },
     /**
      *
+     * @summary Get the full config of a specific workspace by block name
+     * @param {string} workspaceBlockName The config key of the workspace type
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    configControllerGetWorkspaceConfigByName: async (
+      workspaceBlockName: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'workspaceBlockName' is not null or undefined
+      assertParamExists('configControllerGetWorkspaceConfigByName', 'workspaceBlockName', workspaceBlockName);
+      const localVarPath = `/api/v1/config/workspaces/{workspaceBlockName}`.replace(
+        `{${'workspaceBlockName'}}`,
+        encodeURIComponent(String(workspaceBlockName)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
      * @summary Get all models available for this workspace
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2488,6 +2722,33 @@ export const ApiV1ConfigApiFp = function (configuration?: Configuration) {
     },
     /**
      *
+     * @summary Get the full config of a specific workspace by block name
+     * @param {string} workspaceBlockName The config key of the workspace type
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async configControllerGetWorkspaceConfigByName(
+      workspaceBlockName: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceConfigDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.configControllerGetWorkspaceConfigByName(
+        workspaceBlockName,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1ConfigApi.configControllerGetWorkspaceConfigByName']?.[localVarOperationServerIndex]
+          ?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
      * @summary Get all models available for this workspace
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2576,6 +2837,21 @@ export const ApiV1ConfigApiFactory = function (
     },
     /**
      *
+     * @summary Get the full config of a specific workspace by block name
+     * @param {ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    configControllerGetWorkspaceConfigByName(
+      requestParameters: ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<WorkspaceConfigDto> {
+      return localVarFp
+        .configControllerGetWorkspaceConfigByName(requestParameters.workspaceBlockName, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
      * @summary Get all models available for this workspace
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2630,6 +2906,19 @@ export interface ApiV1ConfigApiInterface {
     requestParameters: ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceRequest,
     options?: RawAxiosRequestConfig,
   ): AxiosPromise<Array<PipelineConfigDto>>;
+
+  /**
+   *
+   * @summary Get the full config of a specific workspace by block name
+   * @param {ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1ConfigApiInterface
+   */
+  configControllerGetWorkspaceConfigByName(
+    requestParameters: ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<WorkspaceConfigDto>;
 
   /**
    *
@@ -2698,6 +2987,20 @@ export interface ApiV1ConfigApiConfigControllerGetPipelineTypesByWorkspaceReques
 }
 
 /**
+ * Request parameters for configControllerGetWorkspaceConfigByName operation in ApiV1ConfigApi.
+ * @export
+ * @interface ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest
+ */
+export interface ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest {
+  /**
+   * The config key of the workspace type
+   * @type {string}
+   * @memberof ApiV1ConfigApiConfigControllerGetWorkspaceConfigByName
+   */
+  readonly workspaceBlockName: string;
+}
+
+/**
  * ApiV1ConfigApi - object-oriented interface
  * @export
  * @class ApiV1ConfigApi
@@ -2760,6 +3063,23 @@ export class ApiV1ConfigApi extends BaseAPI implements ApiV1ConfigApiInterface {
   ) {
     return ApiV1ConfigApiFp(this.configuration)
       .configControllerGetPipelineTypesByWorkspace(requestParameters.workspaceBlockName, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Get the full config of a specific workspace by block name
+   * @param {ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1ConfigApi
+   */
+  public configControllerGetWorkspaceConfigByName(
+    requestParameters: ApiV1ConfigApiConfigControllerGetWorkspaceConfigByNameRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1ConfigApiFp(this.configuration)
+      .configControllerGetWorkspaceConfigByName(requestParameters.workspaceBlockName, options)
       .then((request) => request(this.axios, this.basePath));
   }
 
@@ -3604,6 +3924,83 @@ export class ApiV1NamespacesApi extends BaseAPI implements ApiV1NamespacesApiInt
 export const ApiV1PipelinesApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
+     * Returns the content of a specific file in the pipeline\'s workspace
+     * @summary Get file content
+     * @param {string} pipelineId The unique identifier of the pipeline
+     * @param {string} filePath File path relative to workspace root (URL encoded, supports nested paths)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    fileControllerGetFileContent: async (
+      pipelineId: string,
+      filePath: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'pipelineId' is not null or undefined
+      assertParamExists('fileControllerGetFileContent', 'pipelineId', pipelineId);
+      // verify required parameter 'filePath' is not null or undefined
+      assertParamExists('fileControllerGetFileContent', 'filePath', filePath);
+      const localVarPath = `/api/v1/pipelines/{pipelineId}/files/{filePath}`
+        .replace(`{${'pipelineId'}}`, encodeURIComponent(String(pipelineId)))
+        .replace(`{${'filePath'}}`, encodeURIComponent(String(filePath)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Returns the file tree structure of files in the pipeline\'s workspace directory
+     * @summary Get file tree for a pipeline
+     * @param {string} pipelineId The unique identifier of the pipeline
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    fileControllerGetFileTree: async (
+      pipelineId: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'pipelineId' is not null or undefined
+      assertParamExists('fileControllerGetFileTree', 'pipelineId', pipelineId);
+      const localVarPath = `/api/v1/pipelines/{pipelineId}/files`.replace(
+        `{${'pipelineId'}}`,
+        encodeURIComponent(String(pipelineId)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
      *
      * @summary Delete multiple pipelines by IDs
      * @param {PipelineControllerBatchDeletePipelinesRequest} pipelineControllerBatchDeletePipelinesRequest Array of pipeline IDs to delete
@@ -3868,6 +4265,58 @@ export const ApiV1PipelinesApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = ApiV1PipelinesApiAxiosParamCreator(configuration);
   return {
     /**
+     * Returns the content of a specific file in the pipeline\'s workspace
+     * @summary Get file content
+     * @param {string} pipelineId The unique identifier of the pipeline
+     * @param {string} filePath File path relative to workspace root (URL encoded, supports nested paths)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async fileControllerGetFileContent(
+      pipelineId: string,
+      filePath: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FileContentDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.fileControllerGetFileContent(
+        pipelineId,
+        filePath,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1PipelinesApi.fileControllerGetFileContent']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Returns the file tree structure of files in the pipeline\'s workspace directory
+     * @summary Get file tree for a pipeline
+     * @param {string} pipelineId The unique identifier of the pipeline
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async fileControllerGetFileTree(
+      pipelineId: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<FileExplorerNodeDto>>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.fileControllerGetFileTree(pipelineId, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1PipelinesApi.fileControllerGetFileTree']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
      *
      * @summary Delete multiple pipelines by IDs
      * @param {PipelineControllerBatchDeletePipelinesRequest} pipelineControllerBatchDeletePipelinesRequest Array of pipeline IDs to delete
@@ -4053,6 +4502,36 @@ export const ApiV1PipelinesApiFactory = function (
   const localVarFp = ApiV1PipelinesApiFp(configuration);
   return {
     /**
+     * Returns the content of a specific file in the pipeline\'s workspace
+     * @summary Get file content
+     * @param {ApiV1PipelinesApiFileControllerGetFileContentRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    fileControllerGetFileContent(
+      requestParameters: ApiV1PipelinesApiFileControllerGetFileContentRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<FileContentDto> {
+      return localVarFp
+        .fileControllerGetFileContent(requestParameters.pipelineId, requestParameters.filePath, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Returns the file tree structure of files in the pipeline\'s workspace directory
+     * @summary Get file tree for a pipeline
+     * @param {ApiV1PipelinesApiFileControllerGetFileTreeRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    fileControllerGetFileTree(
+      requestParameters: ApiV1PipelinesApiFileControllerGetFileTreeRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<Array<FileExplorerNodeDto>> {
+      return localVarFp
+        .fileControllerGetFileTree(requestParameters.pipelineId, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
      *
      * @summary Delete multiple pipelines by IDs
      * @param {ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest} requestParameters Request parameters.
@@ -4163,6 +4642,32 @@ export const ApiV1PipelinesApiFactory = function (
  */
 export interface ApiV1PipelinesApiInterface {
   /**
+   * Returns the content of a specific file in the pipeline\'s workspace
+   * @summary Get file content
+   * @param {ApiV1PipelinesApiFileControllerGetFileContentRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1PipelinesApiInterface
+   */
+  fileControllerGetFileContent(
+    requestParameters: ApiV1PipelinesApiFileControllerGetFileContentRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<FileContentDto>;
+
+  /**
+   * Returns the file tree structure of files in the pipeline\'s workspace directory
+   * @summary Get file tree for a pipeline
+   * @param {ApiV1PipelinesApiFileControllerGetFileTreeRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1PipelinesApiInterface
+   */
+  fileControllerGetFileTree(
+    requestParameters: ApiV1PipelinesApiFileControllerGetFileTreeRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<Array<FileExplorerNodeDto>>;
+
+  /**
    *
    * @summary Delete multiple pipelines by IDs
    * @param {ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest} requestParameters Request parameters.
@@ -4239,6 +4744,41 @@ export interface ApiV1PipelinesApiInterface {
     requestParameters: ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest,
     options?: RawAxiosRequestConfig,
   ): AxiosPromise<PipelineDto>;
+}
+
+/**
+ * Request parameters for fileControllerGetFileContent operation in ApiV1PipelinesApi.
+ * @export
+ * @interface ApiV1PipelinesApiFileControllerGetFileContentRequest
+ */
+export interface ApiV1PipelinesApiFileControllerGetFileContentRequest {
+  /**
+   * The unique identifier of the pipeline
+   * @type {string}
+   * @memberof ApiV1PipelinesApiFileControllerGetFileContent
+   */
+  readonly pipelineId: string;
+
+  /**
+   * File path relative to workspace root (URL encoded, supports nested paths)
+   * @type {string}
+   * @memberof ApiV1PipelinesApiFileControllerGetFileContent
+   */
+  readonly filePath: string;
+}
+
+/**
+ * Request parameters for fileControllerGetFileTree operation in ApiV1PipelinesApi.
+ * @export
+ * @interface ApiV1PipelinesApiFileControllerGetFileTreeRequest
+ */
+export interface ApiV1PipelinesApiFileControllerGetFileTreeRequest {
+  /**
+   * The unique identifier of the pipeline
+   * @type {string}
+   * @memberof ApiV1PipelinesApiFileControllerGetFileTree
+   */
+  readonly pipelineId: string;
 }
 
 /**
@@ -4374,6 +4914,40 @@ export interface ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest {
  * @extends {BaseAPI}
  */
 export class ApiV1PipelinesApi extends BaseAPI implements ApiV1PipelinesApiInterface {
+  /**
+   * Returns the content of a specific file in the pipeline\'s workspace
+   * @summary Get file content
+   * @param {ApiV1PipelinesApiFileControllerGetFileContentRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1PipelinesApi
+   */
+  public fileControllerGetFileContent(
+    requestParameters: ApiV1PipelinesApiFileControllerGetFileContentRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1PipelinesApiFp(this.configuration)
+      .fileControllerGetFileContent(requestParameters.pipelineId, requestParameters.filePath, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Returns the file tree structure of files in the pipeline\'s workspace directory
+   * @summary Get file tree for a pipeline
+   * @param {ApiV1PipelinesApiFileControllerGetFileTreeRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1PipelinesApi
+   */
+  public fileControllerGetFileTree(
+    requestParameters: ApiV1PipelinesApiFileControllerGetFileTreeRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1PipelinesApiFp(this.configuration)
+      .fileControllerGetFileTree(requestParameters.pipelineId, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
   /**
    *
    * @summary Delete multiple pipelines by IDs

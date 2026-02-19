@@ -1,6 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Expose, plainToInstance } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Expose, Type, plainToInstance } from 'class-transformer';
 import { WorkspaceEntity } from '@loopstack/common';
+import { FeaturesDto, VolumeDto } from './workspace-config.dto';
 
 /**
  * Data Transfer Object for Workspace entity
@@ -64,6 +65,22 @@ export class WorkspaceDto {
     example: '2023-01-01T12:00:00Z',
   })
   updatedAt: Date;
+
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'Volumes configuration',
+    type: 'object',
+    additionalProperties: true,
+  })
+  volumes?: Record<string, VolumeDto>;
+
+  @Expose()
+  @Type(() => FeaturesDto)
+  @ApiPropertyOptional({
+    description: 'Features configuration',
+    type: FeaturesDto,
+  })
+  features?: FeaturesDto;
 
   /**
    * Creates a WorkspaceDto instance from a WorkspaceEntity
