@@ -24,10 +24,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.20.0",
-    "@loopstack/core": "^0.20.0",
-    "@nestjs/common": "^11.1.12",
-    "zod": "^4.3.5"
+    "@loopstack/common": "^0.20.3",
+    "@loopstack/core": "^0.20.3",
+    "@nestjs/common": "^11.1.14",
+    "zod": "^4.3.6"
   },
   "files": [
     "dist",

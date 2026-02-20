@@ -3,10 +3,10 @@
   "displayName": "Loopstack OAuth Module",
   "description": "A provider-agnostic OAuth 2.0 module for the Loopstack automation framework. Provides a generic OAuth workflow, token storage, and a provider registry so any OAuth provider (Google, Microsoft, GitHub, etc.) can be plugged in.",
   "keywords": [
-    "oauth",
     "authentication",
     "loopstack",
-    "module"
+    "module",
+    "oauth"
   ],
   "version": "0.1.2",
   "license": "Apache-2.0",
@@ -32,7 +32,7 @@
     "@loopstack/common": "^0.20.3",
     "@loopstack/core-ui-module": "^0.20.3",
     "@loopstack/create-chat-message-tool": "^0.20.3",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "files": [
     "dist",

@@ -21,10 +21,10 @@
   "dependencies": {
     "@loopstack/common": "^0.20.3",
     "@loopstack/core": "^0.20.3",
-    "@nestjs/common": "^11.1.12",
-    "@nestjs/config": "^4.0.2",
-    "@nestjs/core": "^11.1.12",
-    "@nestjs/testing": "^11.1.12",
+    "@nestjs/common": "^11.1.14",
+    "@nestjs/config": "^4.0.3",
+    "@nestjs/core": "^11.1.14",
+    "@nestjs/testing": "^11.1.14",
     "@nestjs/typeorm": "^11.0.0",
     "jest": "^30.2.0",
     "lodash": "^4.17.23"

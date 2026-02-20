@@ -29,12 +29,12 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.20.3",
-    "@nestjs/common": "^11.1.12",
-    "dockerode": "^4.0.4",
-    "zod": "^4.3.5"
+    "@nestjs/common": "^11.1.14",
+    "dockerode": "^4.0.9",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/dockerode": "^3.3.34"
+    "@types/dockerode": "^4.0.1"
   },
   "files": [
     "dist",

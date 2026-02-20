@@ -26,12 +26,12 @@
   "dependencies": {
     "@loopstack/contracts": "^0.20.3",
     "@loopstack/core": "^0.20.3",
-    "@nestjs/common": "^11.1.12",
-    "@nestjs/core": "^11.1.12",
-    "axios": "^1.13.2",
+    "@nestjs/common": "^11.1.14",
+    "@nestjs/core": "^11.1.14",
+    "axios": "^1.13.5",
     "nest-commander": "^3.20.1",
-    "ts-morph": "^25.0.0",
-    "zod": "^4.3.5"
+    "ts-morph": "^27.0.2",
+    "zod": "^4.3.6"
   },
   "files": [
     "dist"

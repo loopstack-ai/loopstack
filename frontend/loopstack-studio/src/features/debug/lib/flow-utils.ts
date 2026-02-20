@@ -48,7 +48,7 @@ export function getLayoutedElements(
   Dagre.layout(g);
 
   const layoutedNodes = nodes.map((node) => {
-    const pos = g.node(node.id);
+    const pos = g.node(node.id) as Dagre.Node;
     return {
       ...node,
       targetPosition: direction === 'LR' ? Position.Left : Position.Top,

@@ -17,3 +17,6 @@ src/components/ui
 apps
 workspace
 .changeset
+
+platform/website/src/content
+.next
