@@ -1,4 +1,4 @@
-import { Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { Shared, Tool, ToolInterface, ToolResult } from '@loopstack/common';
 
 @Tool({
   config: {
@@ -6,7 +6,7 @@ import { Tool, ToolInterface, ToolResult } from '@loopstack/common';
   },
 })
 export class CounterTool implements ToolInterface {
-  count: number = 0;
+  @Shared() count: number = 0;
 
   async execute(): Promise<ToolResult> {
     this.count++;

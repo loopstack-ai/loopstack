@@ -1,7 +1,10 @@
 import {
   BlockInterface,
+  ToolInterface,
   getBlockContextMetadata,
   getBlockInputMetadata,
+  getBlockRuntimeMetadata,
+  getBlockSharedProperties,
   getBlockStateMetadata,
 } from '@loopstack/common';
 import { ExecutionContextManager } from './execution-context-manager';
@@ -13,6 +16,8 @@ export function wrapBlockProxy<TInput = any, TState = any>(
   const stateMeta = getBlockStateMetadata(instance.constructor);
   const argsMeta = getBlockInputMetadata(instance.constructor);
   const contextMeta = getBlockContextMetadata(instance.constructor);
+  const runtimeMeta = getBlockRuntimeMetadata(instance.constructor);
+  const sharedProps = new Set(getBlockSharedProperties(instance));
 
   return new Proxy(instance, {
     get(target, prop, receiver) {
@@ -31,11 +36,12 @@ export function wrapBlockProxy<TInput = any, TState = any>(
         return runtimeContext.getContext();
       }
 
-      const value: unknown = Reflect.get(target, prop, receiver);
-      // if (typeof value === 'function') {
-      //   return value.bind(target) as unknown;
-      // }
-      return value;
+      // Intercept runtime access
+      if (prop === runtimeMeta?.name) {
+        return runtimeContext.getData();
+      }
+
+      return Reflect.get(target, prop, receiver) as unknown;
     },
 
     set(target, prop, value: TState, receiver) {
@@ -52,7 +58,40 @@ export function wrapBlockProxy<TInput = any, TState = any>(
         throw new Error('Cannot modify workflow arguments');
       }
 
-      return Reflect.set(target, prop, value, receiver);
+      if (prop === runtimeMeta?.name) {
+        throw new Error('Cannot modify workflow runtime');
+      }
+
+      // Allow writes to @Shared() properties
+      if (sharedProps.has(prop)) {
+        return Reflect.set(target, prop, value, receiver);
+      }
+
+      throw new Error(
+        `Cannot set property "${String(prop)}" on block during execution. ` +
+          `Use @State() for per-execution data or @Shared() for intentionally shared singleton data.`,
+      );
+    },
+  });
+}
+
+export function wrapToolProxy(instance: ToolInterface): ToolInterface {
+  const sharedProps = new Set(getBlockSharedProperties(instance));
+
+  return new Proxy(instance, {
+    get(target, prop, receiver) {
+      return Reflect.get(target, prop, receiver) as unknown;
+    },
+
+    set(target, prop, value, receiver) {
+      if (sharedProps.has(prop)) {
+        return Reflect.set(target, prop, value, receiver);
+      }
+
+      throw new Error(
+        `Cannot set property "${String(prop)}" on tool during execution. ` +
+          `Use @Shared() to mark properties that are intentionally shared across executions.`,
+      );
     },
   });
 }

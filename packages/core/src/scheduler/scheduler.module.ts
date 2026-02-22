@@ -10,6 +10,7 @@ import { CleanupPipelineTaskProcessorService } from './services/task-processor/c
 import { CreateRunPipelineTaskProcessorService } from './services/task-processor/create-run-pipeline-task-processor.service';
 import { CreateWorkspaceTaskProcessorService } from './services/task-processor/create-workspace-task-processor.service';
 import { RunPipelineTaskProcessorService } from './services/task-processor/run-pipeline-task-processor.service';
+import { WorkspaceLockService } from './services/workspace-lock.service';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { RunPipelineTaskProcessorService } from './services/task-processor/run-p
     CreateWorkspaceTaskProcessorService,
     RunService,
     EventProcessorService,
+    WorkspaceLockService,
   ],
   exports: [TaskSchedulerService, RunService],
 })

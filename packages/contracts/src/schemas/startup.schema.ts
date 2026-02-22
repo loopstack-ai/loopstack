@@ -99,5 +99,6 @@ export const StartupTaskSchema = z.discriminatedUnion('type', [
 
 export const ScheduledTaskSchema = z.object({
   id: z.string().min(1, 'id is required'),
+  workspaceId: z.string().min(1, 'workspaceId is required'),
   task: StartupTaskSchema,
 });

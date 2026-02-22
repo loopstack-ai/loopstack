@@ -14,6 +14,7 @@ import { AssignmentConfigType, ToolCallType } from '@loopstack/contracts/types';
 import { TemplateExpressionEvaluatorService } from '../../common';
 import { ExecutionContextManager, WorkflowExecutionContextManager } from '../utils/execution-context-manager';
 import { getTemplateVars } from '../utils/template-helper';
+import { wrapToolProxy } from '../utils/wrap-block-proxy';
 
 @Injectable()
 export class StateMachineToolCallProcessorService {
@@ -40,10 +41,11 @@ export class StateMachineToolCallProcessorService {
       for (const toolCall of toolCalls) {
         this.logger.debug(`Call tool ${i} (${toolCall.tool}) on transition ${transition.id}`);
 
-        const tool = getBlockTool<ToolInterface>(ctx.getInstance(), toolCall.tool);
-        if (!tool) {
+        const rawTool = getBlockTool<ToolInterface>(ctx.getInstance(), toolCall.tool);
+        if (!rawTool) {
           throw new Error(`Tool with name ${toolCall.tool} not found.`);
         }
+        const tool = wrapToolProxy(rawTool);
 
         const evaluatedArgs = this.templateExpressionEvaluatorService.evaluateTemplate<unknown>(
           toolCall.args,
