@@ -7,6 +7,7 @@ import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
 import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
+import { getEntityColumns } from '../utils/get-entity-columns.util';
 
 @Injectable()
 export class WorkspaceApiService {
@@ -27,10 +28,7 @@ export class WorkspaceApiService {
       page: number | undefined;
       limit: number | undefined;
     },
-    search?: {
-      query: string | undefined;
-      columns: (keyof WorkspaceEntity)[];
-    },
+    search?: string,
   ): Promise<{
     data: WorkspaceEntity[];
     total: number;
@@ -47,16 +45,19 @@ export class WorkspaceApiService {
     );
 
     queryBuilder.where({
-      createdBy: user,
       ...transformedFilter,
+      createdBy: user,
     });
 
-    if (search?.query && search.columns?.length > 0) {
-      const searchConditions = search.columns.map((column) => `workspace.${String(column)} ILIKE :searchQuery`);
-
-      queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
-        searchQuery: `%${search.query}%`,
-      });
+    if (search) {
+      const allowedColumns = getEntityColumns(WorkspaceEntity);
+      const searchColumns = ['title', 'blockName'].filter((col) => allowedColumns.includes(col));
+      if (searchColumns.length > 0) {
+        const searchConditions = searchColumns.map((column) => `workspace.${column} ILIKE :searchQuery`);
+        queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
+          searchQuery: `%${search}%`,
+        });
+      }
     }
 
     const orderBy = (sortBy ?? defaultSortBy).reduce(
@@ -145,7 +146,7 @@ export class WorkspaceApiService {
 
     if (!workspace) throw new NotFoundException(`Workspace with ID ${id} not found`);
 
-    await this.workspaceRepository.delete(id);
+    await this.workspaceRepository.delete({ id, createdBy: user });
   }
 
   async batchDelete(

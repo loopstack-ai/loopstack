@@ -1,13 +1,4 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ApiExtraModels,
   ApiOkResponse,
@@ -25,6 +16,8 @@ import { DocumentItemDto } from '../dtos/document-item.dto';
 import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
 import { DocumentDto } from '../dtos/document.dto';
 import { PaginatedDto } from '../dtos/paginated.dto';
+import { ParseFilterPipe } from '../pipes/parse-filter.pipe';
+import { ParseSortByPipe } from '../pipes/parse-sort-by.pipe';
 import { DocumentApiService } from '../services/document-api.service';
 
 @ApiTags('api/v1/documents')
@@ -76,29 +69,11 @@ export class DocumentController {
   @ApiUnauthorizedResponse()
   async getDocuments(
     @CurrentUser() user: CurrentUserInterface,
+    @Query('filter', new ParseFilterPipe(DocumentFilterDto)) filter: DocumentFilterDto,
+    @Query('sortBy', new ParseSortByPipe(DocumentSortByDto)) sortBy: DocumentSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('filter') filterParam?: string,
-    @Query('sortBy') sortByParam?: string,
   ): Promise<PaginatedDto<DocumentItemDto>> {
-    let filter: DocumentFilterDto = {};
-    if (filterParam) {
-      try {
-        filter = JSON.parse(filterParam) as DocumentFilterDto;
-      } catch {
-        throw new BadRequestException('Invalid filter format');
-      }
-    }
-
-    let sortBy: DocumentSortByDto[] = [];
-    if (sortByParam) {
-      try {
-        sortBy = JSON.parse(sortByParam) as DocumentSortByDto[];
-      } catch {
-        throw new BadRequestException('Invalid sortBy format');
-      }
-    }
-
     const result = await this.documentService.findAll(user.userId, filter, sortBy, {
       page,
       limit,

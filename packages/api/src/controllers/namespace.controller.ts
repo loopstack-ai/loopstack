@@ -1,13 +1,4 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ApiExtraModels,
   ApiOkResponse,
@@ -25,6 +16,8 @@ import { NamespaceItemDto } from '../dtos/namespace-item.dto';
 import { NamespaceSortByDto } from '../dtos/namespace-sort-by.dto';
 import { NamespaceDto } from '../dtos/namespace.dto';
 import { PaginatedDto } from '../dtos/paginated.dto';
+import { ParseFilterPipe } from '../pipes/parse-filter.pipe';
+import { ParseSortByPipe } from '../pipes/parse-sort-by.pipe';
 import { NamespaceApiService } from '../services/namespace-api.service';
 
 @ApiTags('api/v1/namespaces')
@@ -76,29 +69,11 @@ export class NamespaceController {
   @ApiUnauthorizedResponse()
   async getWorkflows(
     @CurrentUser() user: CurrentUserInterface,
+    @Query('filter', new ParseFilterPipe(NamespaceFilterDto)) filter: NamespaceFilterDto,
+    @Query('sortBy', new ParseSortByPipe(NamespaceSortByDto)) sortBy: NamespaceSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('filter') filterParam?: string,
-    @Query('sortBy') sortByParam?: string,
   ): Promise<PaginatedDto<NamespaceItemDto>> {
-    let filter: NamespaceFilterDto = {};
-    if (filterParam) {
-      try {
-        filter = JSON.parse(filterParam) as NamespaceFilterDto;
-      } catch {
-        throw new BadRequestException('Invalid filter format');
-      }
-    }
-
-    let sortBy: NamespaceSortByDto[] = [];
-    if (sortByParam) {
-      try {
-        sortBy = JSON.parse(sortByParam) as NamespaceSortByDto[];
-      } catch {
-        throw new BadRequestException('Invalid sortBy format');
-      }
-    }
-
     const result = await this.namespaceApiService.findAll(user.userId, filter, sortBy, {
       page,
       limit,

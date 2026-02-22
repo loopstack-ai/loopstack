@@ -40,8 +40,8 @@ export class DocumentApiService {
 
     const findOptions: FindManyOptions<DocumentEntity> = {
       where: {
-        createdBy: user,
         ...transformedFilter,
+        createdBy: user,
       },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {

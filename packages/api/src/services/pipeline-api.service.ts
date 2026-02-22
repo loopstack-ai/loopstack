@@ -2,12 +2,13 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
-import { PipelineEntity, WorkspaceEntity } from '@loopstack/common';
+import { PipelineEntity } from '@loopstack/common';
 import { CreatePipelineService } from '@loopstack/core';
 import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
 import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
 import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
 import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
+import { getEntityColumns } from '../utils/get-entity-columns.util';
 
 @Injectable()
 export class PipelineApiService {
@@ -29,10 +30,7 @@ export class PipelineApiService {
       page: number | undefined;
       limit: number | undefined;
     },
-    search?: {
-      query: string | undefined;
-      columns: (keyof WorkspaceEntity)[];
-    },
+    search?: string,
   ): Promise<{
     data: PipelineEntity[];
     total: number;
@@ -51,16 +49,19 @@ export class PipelineApiService {
     );
 
     queryBuilder.where({
-      createdBy: user,
       ...transformedFilter,
+      createdBy: user,
     });
 
-    if (search?.query && search.columns?.length > 0) {
-      const searchConditions = search.columns.map((column) => `pipeline.${String(column)} ILIKE :searchQuery`);
-
-      queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
-        searchQuery: `%${search.query}%`,
-      });
+    if (search) {
+      const allowedColumns = getEntityColumns(PipelineEntity);
+      const searchColumns = ['title', 'blockName'].filter((col) => allowedColumns.includes(col));
+      if (searchColumns.length > 0) {
+        const searchConditions = searchColumns.map((column) => `pipeline.${column} ILIKE :searchQuery`);
+        queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
+          searchQuery: `%${search}%`,
+        });
+      }
     }
 
     const orderBy = (sortBy ?? defaultSortBy).reduce(
@@ -151,7 +152,7 @@ export class PipelineApiService {
 
     if (!pipeline) throw new NotFoundException(`Pipeline with ID ${id} not found`);
 
-    await this.pipelineRepository.delete(id);
+    await this.pipelineRepository.delete({ id, createdBy: user });
   }
 
   async batchDelete(

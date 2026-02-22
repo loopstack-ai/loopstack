@@ -150,6 +150,11 @@ export class ConfigController {
     let raw: string | null = null;
     let filePath: string | null = null;
 
+    // SECURITY: metadata.configFile originates from the @BlockConfig decorator applied at
+    // compile time and is not influenced by user input. If this assumption ever changes (e.g.
+    // configFile becomes user-configurable or stored in the database), a path traversal check
+    // must be added here to ensure filePath resolves within an allowed base directory.
+    // See FileSystemService.validatePath() for a reference implementation.
     if (metadata && metadata.configFile) {
       filePath = metadata.configFile;
       if (fs.existsSync(filePath)) {

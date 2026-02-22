@@ -1,14 +1,4 @@
-import {
-  BadRequestException,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Controller, Delete, Get, Param, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ApiExtraModels,
   ApiOkResponse,
@@ -26,6 +16,8 @@ import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
 import { WorkflowItemDto } from '../dtos/workflow-item.dto';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
 import { WorkflowDto } from '../dtos/workflow.dto';
+import { ParseFilterPipe } from '../pipes/parse-filter.pipe';
+import { ParseSortByPipe } from '../pipes/parse-sort-by.pipe';
 import { WorkflowApiService } from '../services/workflow-api.service';
 
 @ApiTags('api/v1/workflows')
@@ -77,29 +69,11 @@ export class WorkflowController {
   @ApiUnauthorizedResponse()
   async getWorkflows(
     @CurrentUser() user: CurrentUserInterface,
+    @Query('filter', new ParseFilterPipe(WorkflowFilterDto)) filter: WorkflowFilterDto,
+    @Query('sortBy', new ParseSortByPipe(WorkflowSortByDto)) sortBy: WorkflowSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('filter') filterParam?: string,
-    @Query('sortBy') sortByParam?: string,
   ): Promise<PaginatedDto<WorkflowItemDto>> {
-    let filter: WorkflowFilterDto = {};
-    if (filterParam) {
-      try {
-        filter = JSON.parse(filterParam) as WorkflowFilterDto;
-      } catch {
-        throw new BadRequestException('Invalid filter format');
-      }
-    }
-
-    let sortBy: WorkflowSortByDto[] = [];
-    if (sortByParam) {
-      try {
-        sortBy = JSON.parse(sortByParam) as WorkflowSortByDto[];
-      } catch {
-        throw new BadRequestException('Invalid sortBy format');
-      }
-    }
-
     const result = await this.workflowService.findAll(user.userId, filter, sortBy, {
       page,
       limit,

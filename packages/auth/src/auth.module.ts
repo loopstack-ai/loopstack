@@ -5,8 +5,9 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import type { StringValue } from 'ms';
 import { Permission, Role, User } from '@loopstack/common';
+import { AssignRoleCommand } from './commands/assign-role.command';
 import { AuthController } from './controllers';
-import { JwtAuthGuard } from './guards';
+import { JwtAuthGuard, RolesGuard } from './guards';
 import { UserRepository } from './repositories';
 import { AuthService, HubService, TokenService } from './services';
 import { ConfigValidationService } from './services/config-validation.service';
@@ -46,8 +47,10 @@ export class AuthModule {
         HubStrategy,
         HubAuditService,
         JwtAuthGuard,
+        RolesGuard,
+        AssignRoleCommand,
       ],
-      exports: [AuthService, UserRepository, JwtAuthGuard],
+      exports: [AuthService, UserRepository, JwtAuthGuard, RolesGuard],
     };
   }
 }

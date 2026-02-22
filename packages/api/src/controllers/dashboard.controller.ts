@@ -23,6 +23,6 @@ export class DashboardController {
     type: DashboardStatsDto,
   })
   async getDashboardStats(@CurrentUser() user: CurrentUserInterface): Promise<DashboardStats> {
-    return this.dashboardService.getDashboardStats(user?.userId);
+    return this.dashboardService.getDashboardStats(user.userId);
   }
 }

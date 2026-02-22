@@ -5,7 +5,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import cookieParser from 'cookie-parser';
-import { AuthModule, JwtAuthGuard } from '@loopstack/auth';
+import { AuthModule, JwtAuthGuard, RolesGuard } from '@loopstack/auth';
 import { DocumentEntity, NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { ConfigController } from './controllers/config.controller';
@@ -55,6 +55,10 @@ import { WorkspaceApiService } from './services/workspace-api.service';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
     SseEventService,
     PipelineApiService,
