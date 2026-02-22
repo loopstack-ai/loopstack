@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoopstackApiModule } from '@loopstack/api';
 import { CliModule } from '@loopstack/cli-module';
@@ -14,22 +15,26 @@ import { loopstackConfig } from './loopstack.config';
       envFilePath: '.env',
       load: loopstackConfig,
     }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DATABASE_HOST', 'localhost'),
-        port: configService.get('DATABASE_PORT', 5432),
-        username: configService.get('DATABASE_USERNAME', 'postgres'),
-        database: configService.get('DATABASE_NAME', 'postgres'),
-        password: configService.get('DATABASE_PASSWORD', 'admin'),
-        autoLoadEntities: true,
-        synchronize: configService.get('NODE_ENV') !== 'production',
-        migrationsRun: false,
-      }),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DATABASE_HOST || 'localhost',
+      port: Number(process.env.DATABASE_PORT) || 5432,
+      username: process.env.DATABASE_USERNAME || 'postgres',
+      database: process.env.DATABASE_NAME || 'postgres',
+      password: process.env.DATABASE_PASSWORD || 'admin',
+      autoLoadEntities: true,
+      synchronize: process.env.NODE_ENV !== 'production',
+      migrationsRun: false,
     }),
+    EventEmitterModule.forRoot(),
     LoopCoreModule,
-    LoopstackApiModule,
+    LoopstackApiModule.register({
+      swagger: { enabled: process.env.SWAGGER_ENABLED !== 'false' },
+      cors: {
+        enabled: process.env.CORS_ENABLED !== 'false',
+        options: process.env.CORS_ORIGIN ? { origin: process.env.CORS_ORIGIN, credentials: true } : undefined,
+      },
+    }),
     CliModule,
 
     // Custom Workflow Modules:

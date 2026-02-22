@@ -1,7 +1,6 @@
-import { INestApplication, Module, ValidationPipe } from '@nestjs/common';
+import { DynamicModule, INestApplication, Module, ValidationPipe } from '@nestjs/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { APP_GUARD } from '@nestjs/core';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import cookieParser from 'cookie-parser';
@@ -18,7 +17,7 @@ import { ProcessorController } from './controllers/processor.controller';
 import { SseController } from './controllers/sse.controller';
 import { WorkflowController } from './controllers/workflow.controller';
 import { WorkspaceController } from './controllers/workspace.controller';
-import { LoopstackApiConfigPluginOptions } from './interfaces';
+import { ModuleOptionsInterface } from './interfaces';
 import { ConfigurableModuleClass } from './loop-api.module-definition';
 import { UserService } from './services';
 import { DashboardService } from './services/dashboard.service';
@@ -35,7 +34,6 @@ import { WorkspaceApiService } from './services/workspace-api.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([PipelineEntity, WorkspaceEntity, WorkflowEntity, DocumentEntity, NamespaceEntity]),
-    EventEmitterModule.forRoot(),
     LoopCoreModule,
     AuthModule.forRoot(),
   ],
@@ -82,11 +80,20 @@ import { WorkspaceApiService } from './services/workspace-api.service';
   ],
 })
 export class LoopstackApiModule extends ConfigurableModuleClass {
-  static setup(app: INestApplication, options: LoopstackApiConfigPluginOptions = {}): void {
-    const corsEnabled = options.cors?.enabled ?? true;
+  private static options: ModuleOptionsInterface = {};
+
+  static override register(options: ModuleOptionsInterface): DynamicModule {
+    this.options = options;
+    return super.register(options);
+  }
+
+  static setup(app: INestApplication): void {
+    const { cors, swagger } = this.options;
+
+    const corsEnabled = cors?.enabled ?? true;
     if (corsEnabled) {
       app.enableCors(
-        options.cors?.options ??
+        cors?.options ??
           ({
             origin: true,
             credentials: true,
@@ -94,10 +101,10 @@ export class LoopstackApiModule extends ConfigurableModuleClass {
       );
     }
 
-    const swaggerEnabled = options.swagger?.enabled ?? true;
+    const swaggerEnabled = swagger?.enabled ?? true;
     if (swaggerEnabled) {
       const config =
-        options.swagger?.config ??
+        swagger?.config ??
         new DocumentBuilder()
           .setTitle('Loopstack API Documentation')
           .setDescription('Loopstack API Documentation')
@@ -108,7 +115,6 @@ export class LoopstackApiModule extends ConfigurableModuleClass {
       SwaggerModule.setup('api', app, documentFactory);
     }
 
-    // todo: what does/change
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
