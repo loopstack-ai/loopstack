@@ -1,12 +1,23 @@
-import { DynamicModule, INestApplication, Module, ValidationPipe } from '@nestjs/common';
+import { DynamicModule, INestApplication, Module } from '@nestjs/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { APP_GUARD } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import cookieParser from 'cookie-parser';
 import { AuthModule, JwtAuthGuard, RolesGuard } from '@loopstack/auth';
-import { DocumentEntity, NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
+import {
+  DocumentEntity,
+  NamespaceEntity,
+  PipelineEntity,
+  Role,
+  User,
+  WorkflowEntity,
+  WorkspaceEntity,
+} from '@loopstack/common';
 import { LoopCoreModule } from '@loopstack/core';
+import { AdminRoleController } from './controllers/admin-role.controller';
+import { AdminSystemController } from './controllers/admin-system.controller';
+import { AdminUserController } from './controllers/admin-user.controller';
 import { ConfigController } from './controllers/config.controller';
 import { DashboardController } from './controllers/dashboard.controller';
 import { DocumentController } from './controllers/document.controller';
@@ -20,6 +31,9 @@ import { WorkspaceController } from './controllers/workspace.controller';
 import { ModuleOptionsInterface } from './interfaces';
 import { ConfigurableModuleClass } from './loop-api.module-definition';
 import { UserService } from './services';
+import { AdminRoleApiService } from './services/admin-role-api.service';
+import { AdminSystemApiService } from './services/admin-system-api.service';
+import { AdminUserApiService } from './services/admin-user-api.service';
 import { DashboardService } from './services/dashboard.service';
 import { DocumentApiService } from './services/document-api.service';
 import { FileApiService } from './services/file-api.service';
@@ -33,11 +47,22 @@ import { WorkspaceApiService } from './services/workspace-api.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PipelineEntity, WorkspaceEntity, WorkflowEntity, DocumentEntity, NamespaceEntity]),
+    TypeOrmModule.forFeature([
+      PipelineEntity,
+      WorkspaceEntity,
+      WorkflowEntity,
+      DocumentEntity,
+      NamespaceEntity,
+      User,
+      Role,
+    ]),
     LoopCoreModule,
     AuthModule.forRoot(),
   ],
   controllers: [
+    AdminRoleController,
+    AdminSystemController,
+    AdminUserController,
     PipelineController,
     WorkspaceController,
     ProcessorController,
@@ -58,6 +83,9 @@ import { WorkspaceApiService } from './services/workspace-api.service';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    AdminRoleApiService,
+    AdminSystemApiService,
+    AdminUserApiService,
     SseEventService,
     PipelineApiService,
     WorkspaceApiService,
@@ -114,13 +142,6 @@ export class LoopstackApiModule extends ConfigurableModuleClass {
       const documentFactory = () => SwaggerModule.createDocument(app, config);
       SwaggerModule.setup('api', app, documentFactory);
     }
-
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        transform: true,
-      }),
-    );
 
     app.use(cookieParser());
   }

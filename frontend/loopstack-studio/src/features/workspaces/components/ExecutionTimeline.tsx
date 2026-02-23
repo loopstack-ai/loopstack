@@ -110,7 +110,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
     undefined, // no search
     { workspaceId: workspace.id, parentId: null }, // only workspace filter
     'createdAt', // default ordering
-    'desc', // newest first
+    'DESC', // newest first
     page,
     rowsPerPage,
   );

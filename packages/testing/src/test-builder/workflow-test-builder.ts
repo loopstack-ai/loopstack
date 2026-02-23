@@ -1,6 +1,6 @@
 import { DynamicModule, ForwardReference, Provider, Type } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { WorkflowEntity, WorkflowState } from '@loopstack/common';
+import { User, WorkflowEntity, WorkflowState } from '@loopstack/common';
 import { WorkflowService } from '@loopstack/core';
 import { mockCoreModuleProviders } from './core-module-mock';
 import { createTestingModule } from './create-testing-module';
@@ -32,6 +32,7 @@ export const DEFAULT_WORKFLOW_ENTITY: Omit<WorkflowEntity, 'namespace'> = {
   labels: [],
   hashRecord: null,
   createdBy: '',
+  creator: {} as User,
   documents: [],
   dependencies: [],
   result: null,

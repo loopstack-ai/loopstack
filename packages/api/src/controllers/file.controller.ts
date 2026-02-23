@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ApiExtraModels,
   ApiOkResponse,
@@ -15,6 +15,7 @@ import { FileApiService } from '../services/file-api.service';
 
 @ApiTags('api/v1/pipelines')
 @ApiExtraModels(FileExplorerNodeDto, FileContentDto)
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/pipelines')
 export class FileController {
   constructor(private readonly fileApiService: FileApiService) {}

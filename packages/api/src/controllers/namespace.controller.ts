@@ -16,13 +16,12 @@ import { NamespaceItemDto } from '../dtos/namespace-item.dto';
 import { NamespaceSortByDto } from '../dtos/namespace-sort-by.dto';
 import { NamespaceDto } from '../dtos/namespace.dto';
 import { PaginatedDto } from '../dtos/paginated.dto';
-import { ParseFilterPipe } from '../pipes/parse-filter.pipe';
-import { ParseSortByPipe } from '../pipes/parse-sort-by.pipe';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe';
 import { NamespaceApiService } from '../services/namespace-api.service';
 
 @ApiTags('api/v1/namespaces')
 @ApiExtraModels(NamespaceDto, NamespaceItemDto)
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/namespaces')
 export class NamespaceController {
   constructor(private readonly namespaceApiService: NamespaceApiService) {}
@@ -69,8 +68,8 @@ export class NamespaceController {
   @ApiUnauthorizedResponse()
   async getWorkflows(
     @CurrentUser() user: CurrentUserInterface,
-    @Query('filter', new ParseFilterPipe(NamespaceFilterDto)) filter: NamespaceFilterDto,
-    @Query('sortBy', new ParseSortByPipe(NamespaceSortByDto)) sortBy: NamespaceSortByDto[],
+    @Query('filter', new ParseJsonPipe(NamespaceFilterDto)) filter: NamespaceFilterDto,
+    @Query('sortBy', new ParseJsonPipe(NamespaceSortByDto)) sortBy: NamespaceSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
   ): Promise<PaginatedDto<NamespaceItemDto>> {

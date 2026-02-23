@@ -31,7 +31,7 @@ import { FeaturesDto, VolumeDto, WorkspaceConfigDto } from '../dtos/workspace-co
 
 @ApiTags('api/v1/config')
 @ApiExtraModels(WorkspaceConfigDto, PipelineConfigDto, PipelineSourceDto, VolumeDto, FeaturesDto)
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/config')
 export class ConfigController {
   constructor(private readonly blockDiscoveryService: BlockDiscoveryService) {}

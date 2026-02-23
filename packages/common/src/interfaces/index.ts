@@ -1,6 +1,5 @@
 export * from './state-machine-validator.interface.js';
 export * from './handler.interface.js';
-export * from './permission.interface.js';
 export * from './role.interface.js';
 export * from './user.interface.js';
 export * from './ai-provider.interface.js';

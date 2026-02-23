@@ -1,10 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 import { DashboardStatsDto } from '../dtos/dashboard.dto';
 import { DashboardService, DashboardStats } from '../services/dashboard.service';
 
 @ApiTags('api/v1/dashboard')
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/dashboard')
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}

@@ -4,7 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import type { StringValue } from 'ms';
-import { Permission, Role, User } from '@loopstack/common';
+import { Role, User } from '@loopstack/common';
 import { AssignRoleCommand } from './commands/assign-role.command';
 import { AuthController } from './controllers';
 import { JwtAuthGuard, RolesGuard } from './guards';
@@ -34,7 +34,7 @@ export class AuthModule {
           }),
           inject: [ConfigService],
         }),
-        TypeOrmModule.forFeature([User, Permission, Role]),
+        TypeOrmModule.forFeature([User, Role]),
       ],
       controllers: [AuthController],
       providers: [

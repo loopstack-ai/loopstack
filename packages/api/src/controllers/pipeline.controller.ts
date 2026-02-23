@@ -32,13 +32,12 @@ import { PipelineItemDto } from '../dtos/pipeline-item.dto';
 import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
 import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
 import { PipelineDto } from '../dtos/pipeline.dto';
-import { ParseFilterPipe } from '../pipes/parse-filter.pipe';
-import { ParseSortByPipe } from '../pipes/parse-sort-by.pipe';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe';
 import { PipelineApiService } from '../services/pipeline-api.service';
 
 @ApiTags('api/v1/pipelines')
 @ApiExtraModels(PipelineDto, PipelineItemDto, PipelineCreateDto, PipelineUpdateDto)
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/pipelines')
 export class PipelineController {
   constructor(private readonly pipelineApiService: PipelineApiService) {}
@@ -90,8 +89,8 @@ export class PipelineController {
   @ApiPaginatedResponse(PipelineItemDto)
   async getPipelines(
     @CurrentUser() user: CurrentUserInterface,
-    @Query('filter', new ParseFilterPipe(PipelineFilterDto)) filter: PipelineFilterDto,
-    @Query('sortBy', new ParseSortByPipe(PipelineSortByDto)) sortBy: PipelineSortByDto[],
+    @Query('filter', new ParseJsonPipe(PipelineFilterDto)) filter: PipelineFilterDto,
+    @Query('sortBy', new ParseJsonPipe(PipelineSortByDto)) sortBy: PipelineSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('search') search?: string,

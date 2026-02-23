@@ -26,14 +26,16 @@ export function useFilterWorkspaces(
   searchTerm: string | undefined,
   filter: Record<string, string>,
   sortBy: string = 'id',
-  order: string = 'desc',
+  order: string = 'DESC',
   page: number = 0,
   limit: number = 10,
 ) {
   const { envKey, api } = useApiClient();
 
+  const hasFilter = Object.keys(filter).length > 0;
+
   const requestParams = {
-    filter: JSON.stringify(filter),
+    ...(hasFilter && { filter: JSON.stringify(filter) }),
     sortBy: JSON.stringify([
       {
         field: sortBy,
@@ -42,8 +44,7 @@ export function useFilterWorkspaces(
     ]),
     page,
     limit,
-    search: searchTerm,
-    searchColumns: JSON.stringify(['title']),
+    ...(searchTerm && { search: searchTerm, searchColumns: JSON.stringify(['title']) }),
   };
 
   return useQuery({

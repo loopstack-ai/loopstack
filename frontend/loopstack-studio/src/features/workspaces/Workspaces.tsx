@@ -20,7 +20,7 @@ const Workspaces = () => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [orderBy, setOrderBy] = useState<string>('createdAt');
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+  const [order, setOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [searchTerm, setSearchTerm] = useState<string | undefined>();
   const [filters, setFilters] = useState<Record<string, string>>({});
   const debouncedSearchTerm = useDebounce(searchTerm, 500);

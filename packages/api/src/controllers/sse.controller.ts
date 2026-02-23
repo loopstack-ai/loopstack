@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, MessageEvent, Req, Sse } from '@nestjs/common';
+import { Controller, Get, Logger, MessageEvent, Req, Sse, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
@@ -7,6 +7,7 @@ import { CurrentUser, CurrentUserInterface, RoleName, Roles } from '@loopstack/c
 import { SseEventService } from '../services/sse-event.service';
 
 @ApiTags('api/v1/sse')
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/sse')
 export class SseController {
   private readonly logger = new Logger(SseController.name);

@@ -16,13 +16,12 @@ import { DocumentItemDto } from '../dtos/document-item.dto';
 import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
 import { DocumentDto } from '../dtos/document.dto';
 import { PaginatedDto } from '../dtos/paginated.dto';
-import { ParseFilterPipe } from '../pipes/parse-filter.pipe';
-import { ParseSortByPipe } from '../pipes/parse-sort-by.pipe';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe';
 import { DocumentApiService } from '../services/document-api.service';
 
 @ApiTags('api/v1/documents')
 @ApiExtraModels(DocumentDto, DocumentItemDto)
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/documents')
 export class DocumentController {
   constructor(private readonly documentService: DocumentApiService) {}
@@ -69,8 +68,8 @@ export class DocumentController {
   @ApiUnauthorizedResponse()
   async getDocuments(
     @CurrentUser() user: CurrentUserInterface,
-    @Query('filter', new ParseFilterPipe(DocumentFilterDto)) filter: DocumentFilterDto,
-    @Query('sortBy', new ParseSortByPipe(DocumentSortByDto)) sortBy: DocumentSortByDto[],
+    @Query('filter', new ParseJsonPipe(DocumentFilterDto)) filter: DocumentFilterDto,
+    @Query('sortBy', new ParseJsonPipe(DocumentSortByDto)) sortBy: DocumentSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
   ): Promise<PaginatedDto<DocumentItemDto>> {

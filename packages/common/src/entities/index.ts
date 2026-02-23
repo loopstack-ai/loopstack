@@ -3,7 +3,6 @@ export * from './document.entity.js';
 export * from './workflow.entity.js';
 export * from './workspace.entity.js';
 export * from './namespace.entity.js';
-export * from './permission.entity.js';
 export * from './role.entity.js';
 export * from './user.entity.js';
 export * from './event-subscriber.entity.js';

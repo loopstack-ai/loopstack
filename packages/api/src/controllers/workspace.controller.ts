@@ -35,13 +35,12 @@ import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
 import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
 import { WorkspaceDto } from '../dtos/workspace.dto';
-import { ParseFilterPipe } from '../pipes/parse-filter.pipe';
-import { ParseSortByPipe } from '../pipes/parse-sort-by.pipe';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe';
 import { WorkspaceApiService } from '../services/workspace-api.service';
 
 @ApiTags('api/v1/workspaces')
 @ApiExtraModels(WorkspaceDto, WorkspaceItemDto, WorkspaceCreateDto, WorkspaceUpdateDto, VolumeDto, FeaturesDto)
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces')
 export class WorkspaceController {
   constructor(
@@ -97,8 +96,8 @@ export class WorkspaceController {
   @ApiUnauthorizedResponse()
   async getWorkspaces(
     @CurrentUser() user: CurrentUserInterface,
-    @Query('filter', new ParseFilterPipe(WorkspaceFilterDto)) filter: WorkspaceFilterDto,
-    @Query('sortBy', new ParseSortByPipe(WorkspaceSortByDto)) sortBy: WorkspaceSortByDto[],
+    @Query('filter', new ParseJsonPipe(WorkspaceFilterDto)) filter: WorkspaceFilterDto,
+    @Query('sortBy', new ParseJsonPipe(WorkspaceSortByDto)) sortBy: WorkspaceSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('search') search?: string,

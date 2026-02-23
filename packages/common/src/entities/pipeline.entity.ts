@@ -14,6 +14,7 @@ import type { JSONSchemaConfigType } from '@loopstack/contracts/types';
 import { PipelineState } from '../enums';
 import { StableJsonTransformer } from '../utils';
 import { NamespaceEntity } from './namespace.entity';
+import { User } from './user.entity';
 import { WorkspaceEntity } from './workspace.entity';
 
 @Entity({ name: 'core_pipeline' })
@@ -84,10 +85,15 @@ export class PipelineEntity {
   @JoinColumn({ name: 'workspace_id' })
   workspace!: WorkspaceEntity;
 
-  @Column({ name: 'workspace_id', nullable: true })
+  @Column({ name: 'workspace_id' })
   workspaceId!: string;
 
+  @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'created_by' })
+  creator!: User;
+
   @Column({ name: 'created_by', type: 'uuid' })
+  @Index()
   createdBy!: string;
 
   @OneToMany(() => NamespaceEntity, (namespace) => namespace.pipeline)

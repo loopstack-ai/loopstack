@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { PipelineEntity } from './pipeline.entity';
+import { User } from './user.entity';
 import { WorkspaceEntity } from './workspace.entity';
 
 @Entity({ name: 'core_event_subscriber' })
@@ -53,7 +54,12 @@ export class EventSubscriberEntity {
   @Column({ name: 'workspace_id', nullable: true })
   workspaceId!: string;
 
+  @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'user_id' })
+  user!: User;
+
   @Column({ name: 'user_id', type: 'uuid' })
+  @Index()
   userId!: string;
 
   @Column({ name: 'once', type: 'boolean', default: true })

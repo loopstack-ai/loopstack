@@ -16,13 +16,12 @@ import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
 import { WorkflowItemDto } from '../dtos/workflow-item.dto';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
 import { WorkflowDto } from '../dtos/workflow.dto';
-import { ParseFilterPipe } from '../pipes/parse-filter.pipe';
-import { ParseSortByPipe } from '../pipes/parse-sort-by.pipe';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe';
 import { WorkflowApiService } from '../services/workflow-api.service';
 
 @ApiTags('api/v1/workflows')
 @ApiExtraModels(WorkflowDto, WorkflowItemDto)
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workflows')
 export class WorkflowController {
   constructor(private readonly workflowService: WorkflowApiService) {}
@@ -69,8 +68,8 @@ export class WorkflowController {
   @ApiUnauthorizedResponse()
   async getWorkflows(
     @CurrentUser() user: CurrentUserInterface,
-    @Query('filter', new ParseFilterPipe(WorkflowFilterDto)) filter: WorkflowFilterDto,
-    @Query('sortBy', new ParseSortByPipe(WorkflowSortByDto)) sortBy: WorkflowSortByDto[],
+    @Query('filter', new ParseJsonPipe(WorkflowFilterDto)) filter: WorkflowFilterDto,
+    @Query('sortBy', new ParseJsonPipe(WorkflowSortByDto)) sortBy: WorkflowSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
   ): Promise<PaginatedDto<WorkflowItemDto>> {
