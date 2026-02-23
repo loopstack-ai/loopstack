@@ -14,7 +14,7 @@ export class UserRepository {
   async findById(id: string): Promise<User | null> {
     return this.repository.findOne({
       where: { id },
-      relations: ['roles', 'roles.permissions'],
+      relations: ['roles'],
     });
   }
 
@@ -23,7 +23,7 @@ export class UserRepository {
       where: {
         type: UserTypeEnum.Local,
       },
-      relations: ['roles', 'roles.permissions'],
+      relations: ['roles'],
     });
   }
 

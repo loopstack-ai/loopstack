@@ -1,14 +1,4 @@
-import {
-  BadRequestException,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Controller, Delete, Get, Param, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ApiExtraModels,
   ApiOkResponse,
@@ -26,11 +16,12 @@ import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
 import { WorkflowItemDto } from '../dtos/workflow-item.dto';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
 import { WorkflowDto } from '../dtos/workflow.dto';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe';
 import { WorkflowApiService } from '../services/workflow-api.service';
 
 @ApiTags('api/v1/workflows')
 @ApiExtraModels(WorkflowDto, WorkflowItemDto)
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workflows')
 export class WorkflowController {
   constructor(private readonly workflowService: WorkflowApiService) {}
@@ -58,6 +49,7 @@ export class WorkflowController {
   @ApiQuery({
     name: 'sortBy',
     required: false,
+    type: String,
     schema: {
       type: 'string',
       example: '[{"field":"createdAt","order":"DESC"}]',
@@ -67,6 +59,7 @@ export class WorkflowController {
   @ApiQuery({
     name: 'filter',
     required: false,
+    type: String,
     schema: {
       type: 'string',
       example: '{"pipelineId":"123e4567-e89b-12d3-a456-426614174000"}',
@@ -77,29 +70,11 @@ export class WorkflowController {
   @ApiUnauthorizedResponse()
   async getWorkflows(
     @CurrentUser() user: CurrentUserInterface,
+    @Query('filter', new ParseJsonPipe(WorkflowFilterDto)) filter: WorkflowFilterDto,
+    @Query('sortBy', new ParseJsonPipe(WorkflowSortByDto)) sortBy: WorkflowSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('filter') filterParam?: string,
-    @Query('sortBy') sortByParam?: string,
   ): Promise<PaginatedDto<WorkflowItemDto>> {
-    let filter: WorkflowFilterDto = {};
-    if (filterParam) {
-      try {
-        filter = JSON.parse(filterParam) as WorkflowFilterDto;
-      } catch {
-        throw new BadRequestException('Invalid filter format');
-      }
-    }
-
-    let sortBy: WorkflowSortByDto[] = [];
-    if (sortByParam) {
-      try {
-        sortBy = JSON.parse(sortByParam) as WorkflowSortByDto[];
-      } catch {
-        throw new BadRequestException('Invalid sortBy format');
-      }
-    }
-
     const result = await this.workflowService.findAll(user.userId, filter, sortBy, {
       page,
       limit,

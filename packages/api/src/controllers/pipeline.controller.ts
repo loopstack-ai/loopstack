@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -23,8 +22,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
+import { BatchDeleteDto } from '../dtos/batch-delete.dto';
 import { PaginatedDto } from '../dtos/paginated.dto';
 import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
 import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
@@ -32,11 +32,12 @@ import { PipelineItemDto } from '../dtos/pipeline-item.dto';
 import { PipelineSortByDto } from '../dtos/pipeline-sort-by.dto';
 import { PipelineUpdateDto } from '../dtos/pipeline-update.dto';
 import { PipelineDto } from '../dtos/pipeline.dto';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe';
 import { PipelineApiService } from '../services/pipeline-api.service';
 
 @ApiTags('api/v1/pipelines')
 @ApiExtraModels(PipelineDto, PipelineItemDto, PipelineCreateDto, PipelineUpdateDto)
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/pipelines')
 export class PipelineController {
   constructor(private readonly pipelineApiService: PipelineApiService) {}
@@ -64,6 +65,7 @@ export class PipelineController {
   @ApiQuery({
     name: 'sortBy',
     required: false,
+    type: String,
     schema: {
       type: 'string',
       example: '[{"field":"createdAt","order":"DESC"}]',
@@ -73,6 +75,7 @@ export class PipelineController {
   @ApiQuery({
     name: 'filter',
     required: false,
+    type: String,
     schema: {
       type: 'string',
       example: '{"workspaceId":"123e4567-e89b-12d3-a456-426614174000"}',
@@ -85,52 +88,15 @@ export class PipelineController {
     type: String,
     description: 'Search term to filter workspaces by title or other searchable fields',
   })
-  @ApiQuery({
-    name: 'searchColumns',
-    required: false,
-    schema: {
-      type: 'string',
-      example: '["title","description"]',
-    },
-    description: 'JSON string array of columns to search in (defaults to title and type if not specified)',
-  })
   @ApiPaginatedResponse(PipelineItemDto)
   async getPipelines(
     @CurrentUser() user: CurrentUserInterface,
+    @Query('filter', new ParseJsonPipe(PipelineFilterDto)) filter: PipelineFilterDto,
+    @Query('sortBy', new ParseJsonPipe(PipelineSortByDto)) sortBy: PipelineSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('filter') filterParam?: string,
-    @Query('sortBy') sortByParam?: string,
     @Query('search') search?: string,
-    @Query('searchColumns') searchColumnsParam?: string,
   ): Promise<PaginatedDto<PipelineItemDto>> {
-    let filter: PipelineFilterDto = {};
-    if (filterParam) {
-      try {
-        filter = JSON.parse(filterParam) as PipelineFilterDto;
-      } catch {
-        throw new BadRequestException('Invalid filter format');
-      }
-    }
-
-    let sortBy: PipelineSortByDto[] = [];
-    if (sortByParam) {
-      try {
-        sortBy = JSON.parse(sortByParam) as PipelineSortByDto[];
-      } catch {
-        throw new BadRequestException('Invalid sortBy format');
-      }
-    }
-
-    let searchColumns: (keyof WorkspaceEntity)[] = [];
-    if (searchColumnsParam) {
-      try {
-        searchColumns = JSON.parse(searchColumnsParam) as (keyof WorkspaceEntity)[];
-      } catch {
-        throw new BadRequestException('Invalid searchColumns format');
-      }
-    }
-
     const result = await this.pipelineApiService.findAll(
       user.userId,
       filter,
@@ -139,10 +105,7 @@ export class PipelineController {
         page,
         limit,
       },
-      {
-        query: search,
-        columns: searchColumns,
-      },
+      search,
     );
     return PaginatedDto.create(PipelineItemDto, result);
   }
@@ -259,7 +222,7 @@ export class PipelineController {
   @ApiResponse({ status: 400, description: 'Invalid request body' })
   @ApiUnauthorizedResponse()
   async batchDeletePipelines(
-    @Body() batchDeleteDto: { ids: string[] },
+    @Body() batchDeleteDto: BatchDeleteDto,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<{
     deleted: string[];

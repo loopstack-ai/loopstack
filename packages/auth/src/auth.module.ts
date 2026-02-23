@@ -4,13 +4,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import type { StringValue } from 'ms';
-import { Permission, Role, User } from '@loopstack/common';
+import { Role, User } from '@loopstack/common';
+import { AssignRoleCommand } from './commands/assign-role.command';
 import { AuthController } from './controllers';
-import { JwtAuthGuard } from './guards';
+import { JwtAuthGuard, RolesGuard } from './guards';
 import { UserRepository } from './repositories';
-import { AuthService, HubService, TokenService } from './services';
+import { AuthService, TokenService } from './services';
 import { ConfigValidationService } from './services/config-validation.service';
-import { HubAuditService } from './services/hub-audit.service';
 import { HubStrategy, JwtStrategy } from './strategies';
 
 @Module({})
@@ -33,7 +33,7 @@ export class AuthModule {
           }),
           inject: [ConfigService],
         }),
-        TypeOrmModule.forFeature([User, Permission, Role]),
+        TypeOrmModule.forFeature([User, Role]),
       ],
       controllers: [AuthController],
       providers: [
@@ -42,12 +42,12 @@ export class AuthModule {
         UserRepository,
         TokenService,
         JwtStrategy,
-        HubService,
         HubStrategy,
-        HubAuditService,
         JwtAuthGuard,
+        RolesGuard,
+        AssignRoleCommand,
       ],
-      exports: [AuthService, UserRepository, JwtAuthGuard],
+      exports: [AuthService, UserRepository, JwtAuthGuard, RolesGuard],
     };
   }
 }

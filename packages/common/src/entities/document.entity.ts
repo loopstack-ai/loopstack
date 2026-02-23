@@ -12,6 +12,7 @@ import {
 import { z } from 'zod';
 import type { JSONSchemaConfigType } from '@loopstack/contracts/types';
 import { StableJsonTransformer } from '../utils';
+import { User } from './user.entity';
 import { WorkflowEntity } from './workflow.entity';
 
 @Entity({ name: 'core_document' })
@@ -107,6 +108,11 @@ export class DocumentEntity<T = any> {
   })
   dependentStates!: WorkflowEntity[];
 
+  @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'created_by' })
+  creator!: User;
+
   @Column({ name: 'created_by', type: 'uuid' })
+  @Index()
   createdBy!: string;
 }

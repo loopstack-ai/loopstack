@@ -29,14 +29,16 @@ export function useFilterPipelines(
   searchTerm: string | undefined,
   filter: Record<string, string | null>,
   sortBy: string = 'id',
-  order: string = 'desc',
+  order: string = 'DESC',
   page: number = 0,
   limit: number = 10,
 ) {
   const { envKey, api } = useApiClient();
 
+  const hasFilter = Object.values(filter).some((v) => v != null);
+
   const requestParams = {
-    filter: JSON.stringify(filter),
+    ...(hasFilter && { filter: JSON.stringify(filter) }),
     sortBy: JSON.stringify([
       {
         field: sortBy,
@@ -45,8 +47,7 @@ export function useFilterPipelines(
     ]),
     page,
     limit,
-    search: searchTerm,
-    searchColumns: JSON.stringify(['title', 'model']),
+    ...(searchTerm && { search: searchTerm, searchColumns: JSON.stringify(['title', 'model']) }),
   };
 
   return useQuery({

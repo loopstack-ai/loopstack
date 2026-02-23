@@ -14,6 +14,7 @@ import {
   OutputMetadata,
   RUNTIME_METADATA_KEY,
   RuntimeMetadata,
+  SHARED_METADATA_KEY,
   STATE_METADATA_KEY,
   StateMetadata,
   TEMPLATE_HELPER_METADATA_KEY,
@@ -96,6 +97,14 @@ export function getBlockHelpers(target: object | Constructor): string[] {
   const proto = getPrototype(target);
   const keys = (Reflect.getMetadata(TEMPLATE_HELPER_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
   return keys.map((key) => String(key));
+}
+
+/**
+ * Gets the list of shared property names from the decorator metadata
+ */
+export function getBlockSharedProperties(target: object | Constructor): (string | symbol)[] {
+  const ctor = getConstructor(target);
+  return (Reflect.getMetadata(SHARED_METADATA_KEY, ctor) as (string | symbol)[] | undefined) ?? [];
 }
 
 /**

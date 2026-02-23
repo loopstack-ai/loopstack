@@ -3,10 +3,6 @@
   "version": "0.18.2",
   "description": "OpenAPI client for @loopstack/api-client",
   "author": "OpenAPI-Generator Contributors",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/GIT_USER_ID/GIT_REPO_ID.git"
-  },
   "keywords": [
     "axios",
     "typescript",

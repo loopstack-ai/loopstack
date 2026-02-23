@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Param, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ApiBody,
   ApiOperation,
@@ -16,6 +16,7 @@ import { ProcessorApiService } from '../services/processor-api.service';
  * Controller handling pipeline processor operations
  */
 @ApiTags('api/v1/processor')
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/processor')
 export class ProcessorController {
   constructor(private readonly processorApiService: ProcessorApiService) {}

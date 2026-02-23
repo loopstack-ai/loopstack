@@ -40,8 +40,8 @@ export class WorkflowApiService {
 
     const findOptions: FindManyOptions<WorkflowEntity> = {
       where: {
-        createdBy: user,
         ...transformedFilter,
+        createdBy: user,
       },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {
@@ -94,6 +94,6 @@ export class WorkflowApiService {
 
     if (!workflow) throw new NotFoundException(`Workflow with ID ${id} not found`);
 
-    await this.workflowRepository.delete(id);
+    await this.workflowRepository.delete({ id, createdBy: user });
   }
 }

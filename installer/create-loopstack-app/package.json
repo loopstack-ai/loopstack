@@ -24,7 +24,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "inquirer": "^9.3.7"
+    "inquirer": "^13.2.5"
   },
   "engines": {
     "node": ">=14"

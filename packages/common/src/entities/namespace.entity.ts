@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { PipelineEntity } from './pipeline.entity';
+import { User } from './user.entity';
 import { WorkflowEntity } from './workflow.entity';
 
 @Entity('core_namespace')
@@ -62,6 +63,11 @@ export class NamespaceEntity {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
 
+  @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'created_by' })
+  creator!: User;
+
   @Column({ name: 'created_by', type: 'uuid' })
+  @Index()
   createdBy!: string;
 }

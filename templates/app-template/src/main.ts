@@ -7,11 +7,7 @@ process.env.TZ = 'UTC';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  LoopstackApiModule.setup(app, {
-    swagger: {
-      enabled: true,
-    },
-  });
+  LoopstackApiModule.setup(app);
 
   await app.listen(process.env.PORT ?? 8000);
 }

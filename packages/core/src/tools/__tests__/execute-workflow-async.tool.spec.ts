@@ -132,6 +132,7 @@ describe('ExecuteWorkflowAsync', () => {
 
       expect(taskSchedulerService.addTask).toHaveBeenCalledWith({
         id: 'sub_pipeline_execution-test-uuid-1234',
+        workspaceId: 'workspace-1',
         task: {
           name: 'manual_execution',
           type: 'run_pipeline',

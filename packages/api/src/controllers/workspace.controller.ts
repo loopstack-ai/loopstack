@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -23,23 +22,31 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
+import { CurrentUser, CurrentUserInterface, getBlockConfig } from '@loopstack/common';
+import { WorkspaceType } from '@loopstack/contracts/types';
+import { BlockDiscoveryService } from '@loopstack/core';
 import { ApiPaginatedResponse } from '../decorators/api-paginated-response.decorator';
+import { BatchDeleteDto } from '../dtos/batch-delete.dto';
 import { PaginatedDto } from '../dtos/paginated.dto';
+import { FeaturesDto, VolumeDto } from '../dtos/workspace-config.dto';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
 import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
 import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
 import { WorkspaceDto } from '../dtos/workspace.dto';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe';
 import { WorkspaceApiService } from '../services/workspace-api.service';
 
 @ApiTags('api/v1/workspaces')
-@ApiExtraModels(WorkspaceDto, WorkspaceItemDto, WorkspaceCreateDto, WorkspaceUpdateDto)
-@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+@ApiExtraModels(WorkspaceDto, WorkspaceItemDto, WorkspaceCreateDto, WorkspaceUpdateDto, VolumeDto, FeaturesDto)
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces')
 export class WorkspaceController {
-  constructor(private readonly workspaceService: WorkspaceApiService) {}
+  constructor(
+    private readonly workspaceService: WorkspaceApiService,
+    private readonly blockDiscoveryService: BlockDiscoveryService,
+  ) {}
 
   /**
    * Retrieves all workspaces for the authenticated user with optional filters, sorting, and pagination.
@@ -64,6 +71,7 @@ export class WorkspaceController {
   @ApiQuery({
     name: 'sortBy',
     required: false,
+    type: String,
     schema: {
       type: 'string',
       example: '[{"field":"createdAt","order":"DESC"}]',
@@ -73,6 +81,7 @@ export class WorkspaceController {
   @ApiQuery({
     name: 'filter',
     required: false,
+    type: String,
     schema: {
       type: 'string',
       example: '{"name":"MyWorkspace"}',
@@ -85,53 +94,16 @@ export class WorkspaceController {
     type: String,
     description: 'Search term to filter workspaces by title or other searchable fields',
   })
-  @ApiQuery({
-    name: 'searchColumns',
-    required: false,
-    schema: {
-      type: 'string',
-      example: '["title","description"]',
-    },
-    description: 'JSON string array of columns to search in (defaults to title and type if not specified)',
-  })
   @ApiPaginatedResponse(WorkspaceItemDto)
   @ApiUnauthorizedResponse()
   async getWorkspaces(
     @CurrentUser() user: CurrentUserInterface,
+    @Query('filter', new ParseJsonPipe(WorkspaceFilterDto)) filter: WorkspaceFilterDto,
+    @Query('sortBy', new ParseJsonPipe(WorkspaceSortByDto)) sortBy: WorkspaceSortByDto[],
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('filter') filterParam?: string,
-    @Query('sortBy') sortByParam?: string,
     @Query('search') search?: string,
-    @Query('searchColumns') searchColumnsParam?: string,
   ): Promise<PaginatedDto<WorkspaceItemDto>> {
-    let filter: WorkspaceFilterDto = {};
-    if (filterParam) {
-      try {
-        filter = JSON.parse(filterParam) as WorkspaceFilterDto;
-      } catch {
-        throw new BadRequestException('Invalid filter format');
-      }
-    }
-
-    let sortBy: WorkspaceSortByDto[] = [];
-    if (sortByParam) {
-      try {
-        sortBy = JSON.parse(sortByParam) as WorkspaceSortByDto[];
-      } catch {
-        throw new BadRequestException('Invalid sortBy format');
-      }
-    }
-
-    let searchColumns: (keyof WorkspaceEntity)[] = [];
-    if (searchColumnsParam) {
-      try {
-        searchColumns = JSON.parse(searchColumnsParam) as (keyof WorkspaceEntity)[];
-      } catch {
-        throw new BadRequestException('Invalid searchColumns format');
-      }
-    }
-
     const result = await this.workspaceService.findAll(
       user.userId,
       filter,
@@ -140,10 +112,7 @@ export class WorkspaceController {
         page,
         limit,
       },
-      {
-        query: search,
-        columns: searchColumns,
-      },
+      search,
     );
     return PaginatedDto.create(WorkspaceItemDto, result);
   }
@@ -163,7 +132,25 @@ export class WorkspaceController {
   @ApiUnauthorizedResponse()
   async getWorkspaceById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<WorkspaceDto> {
     const workspace = await this.workspaceService.findOneById(id, user.userId);
-    return WorkspaceDto.create(workspace);
+
+    let volumes: Record<string, VolumeDto> | undefined;
+    let features: FeaturesDto | undefined;
+
+    if (workspace.blockName) {
+      const workspaceBlock = this.blockDiscoveryService.getWorkspace(workspace.blockName);
+      if (workspaceBlock) {
+        const config = getBlockConfig<WorkspaceType>(workspaceBlock) as WorkspaceType;
+        if (config) {
+          volumes = config.volumes;
+          features = config.features;
+        }
+      }
+    }
+
+    const workspaceDto = WorkspaceDto.create(workspace);
+    workspaceDto.volumes = volumes;
+    workspaceDto.features = features;
+    return workspaceDto;
   }
 
   /**
@@ -272,7 +259,7 @@ export class WorkspaceController {
   @ApiResponse({ status: 400, description: 'Invalid request body' })
   @ApiUnauthorizedResponse()
   async batchDeleteWorkspaces(
-    @Body() batchDeleteDto: { ids: string[] },
+    @Body() batchDeleteDto: BatchDeleteDto,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<{
     deleted: string[];

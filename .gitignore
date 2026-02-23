@@ -59,3 +59,4 @@ __backup__
 .claude
 .turbo
 *.tsbuildinfo
+turbo-build.log

@@ -72,9 +72,9 @@ export function DataTable<T extends { id: string }>({
 
   const handleSort = (columnId: string) => {
     if (sortBy === columnId) {
-      onSortChange(columnId, sortOrder === 'asc' ? 'desc' : 'asc');
+      onSortChange(columnId, sortOrder === 'ASC' ? 'DESC' : 'ASC');
     } else {
-      onSortChange(columnId, 'asc');
+      onSortChange(columnId, 'ASC');
     }
   };
 
@@ -122,7 +122,7 @@ export function DataTable<T extends { id: string }>({
 
   const getSortIcon = (columnId: string) => {
     if (sortBy !== columnId) return null;
-    return sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
+    return sortOrder === 'ASC' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
   };
 
   const activeFilterCount = Object.values(filters).filter(Boolean).length;

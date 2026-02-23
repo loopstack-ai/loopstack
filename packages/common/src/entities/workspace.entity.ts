@@ -1,6 +1,16 @@
-import { Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { PipelineEntity } from './pipeline.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'core_workspace' })
 export class WorkspaceEntity {
@@ -26,6 +36,11 @@ export class WorkspaceEntity {
   })
   pipelines!: PipelineEntity[];
 
+  @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'created_by' })
+  creator!: User;
+
   @Column({ name: 'created_by', type: 'uuid' })
+  @Index()
   createdBy!: string;
 }

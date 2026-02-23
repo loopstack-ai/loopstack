@@ -40,8 +40,8 @@ export class NamespaceApiService {
 
     const findOptions: FindManyOptions<NamespaceEntity> = {
       where: {
-        createdBy: user,
         ...transformedFilter,
+        createdBy: user,
       },
       order: (sortBy ?? defaultSortBy).reduce(
         (acc, sort) => {

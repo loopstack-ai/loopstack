@@ -60,6 +60,7 @@ export class RunService {
 
     await this.taskSchedulerService.addTask({
       id: 'manual_pipeline_execution-' + randomUUID(),
+      workspaceId: workspace.id,
       task: {
         name: 'manual_execution',
         type: 'run_pipeline',

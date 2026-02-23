@@ -18,8 +18,8 @@
     "ncu": "ncu",
     "ncu:interactive": "ncu -i",
     "ncu:update": "ncu -u",
-    "package:check": "syncpack list-mismatches",
-    "package:fix": "syncpack fix-mismatches",
+    "package:check": "syncpack lint",
+    "package:fix": "syncpack fix",
     "package:format": "syncpack format",
     "package:update": "syncpack update",
     "prepare": "husky",
@@ -38,11 +38,13 @@
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.14",
     "@nestjs/typeorm": "^11.0.0",
+    "@swc/cli": "^0.7.0",
+    "@swc/core": "^1.15.11",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.23",
-    "@types/node": "^25.2.3",
+    "@types/node": "^25.3.0",
     "@types/supertest": "^6.0.3",
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
@@ -60,7 +62,7 @@
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "turbo": "^2.8.9",
+    "turbo": "^2.8.10",
     "typeorm": "^0.3.28",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.0"
@@ -81,6 +83,7 @@
     "templates/*",
     "generators/*",
     "registry/*/*",
-    "workspace/*/*"
+    "workspace/*/*",
+    "platform/*"
   ]
 }

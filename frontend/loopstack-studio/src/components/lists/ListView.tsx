@@ -47,11 +47,11 @@ interface ListViewProps<T extends Item = Item> {
   setPage: (page: number) => void;
   setRowsPerPage: (rows: number) => void;
   setOrderBy: (field: string) => void;
-  setOrder: (order: 'asc' | 'desc') => void;
+  setOrder: (order: 'ASC' | 'DESC') => void;
   setSearchTerm: (search: string) => void;
   setFilters: (filters: Record<string, string>) => void;
   orderBy: string;
-  order: 'asc' | 'desc';
+  order: 'ASC' | 'DESC';
   searchTerm: string | undefined;
   filters: Record<string, string>;
   page: number;
@@ -142,7 +142,7 @@ const ListView = <T extends Item>({
   );
 
   const handleSortChange = useCallback(
-    (field: string, sortOrder: 'asc' | 'desc') => {
+    (field: string, sortOrder: 'ASC' | 'DESC') => {
       setOrderBy(field);
       setOrder(sortOrder);
     },

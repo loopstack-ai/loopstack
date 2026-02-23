@@ -29,6 +29,7 @@ export class EventProcessorService {
       try {
         await this.taskSchedulerService.addTask({
           id: 'event_subscriber_execution-' + randomUUID(),
+          workspaceId,
           task: {
             name: 'event_subscriber_execution',
             type: 'run_pipeline',

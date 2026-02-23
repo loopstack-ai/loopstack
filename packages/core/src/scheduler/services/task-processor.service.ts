@@ -4,9 +4,10 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { Job } from 'bullmq';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { RunPipelineTaskProcessorService } from './task-processor/run-pipeline-task-processor.service';
+import { WorkspaceLockService } from './workspace-lock.service';
 
 @Processor('task-queue', {
-  concurrency: 1, // One job at a time
+  concurrency: 10,
   autorun: false, // Start after tasks are initialized
 })
 export class TaskProcessorService extends WorkerHost {
@@ -14,6 +15,7 @@ export class TaskProcessorService extends WorkerHost {
 
   constructor(
     private readonly runPipelineTaskProcessorService: RunPipelineTaskProcessorService,
+    private readonly workspaceLockService: WorkspaceLockService,
     // private readonly createRunPipelineTaskProcessorService: CreateRunPipelineTaskProcessorService,
     // private readonly cleanupPipelineTaskProcessorService: CleanupPipelineTaskProcessorService,
     // private readonly createWorkspaceTaskProcessorService: CreateWorkspaceTaskProcessorService,
@@ -33,8 +35,11 @@ export class TaskProcessorService extends WorkerHost {
   }
 
   async process(job: Job<ScheduledTask>) {
-    const { id, task } = job.data;
+    const { id, workspaceId, task } = job.data;
     this.logger.debug(`Processing task ${id}`);
+
+    this.logger.debug(`Acquiring workspace lock for ${workspaceId}`);
+    const release = await this.workspaceLockService.acquire(workspaceId);
 
     try {
       await job.updateProgress(0);
@@ -67,6 +72,8 @@ export class TaskProcessorService extends WorkerHost {
     } catch (error) {
       this.logger.error(`Task ${id} failed:`, error);
       throw error;
+    } finally {
+      release();
     }
   }
 

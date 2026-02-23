@@ -3,18 +3,18 @@
   "displayName": "Google OAuth Calendar Example",
   "description": "An example module demonstrating how to fetch Google Calendar events with OAuth authentication using the Loopstack automation framework. Shows the sub-workflow pattern for handling OAuth flows.",
   "keywords": [
-    "oauth",
-    "google",
     "calendar",
+    "example",
+    "google",
     "loopstack",
-    "example"
+    "oauth"
   ],
   "version": "0.1.2",
+  "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://github.com/loopstack-ai"
   },
-  "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -30,14 +30,14 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/core": "^0.20.3",
     "@loopstack/common": "^0.20.3",
-    "@loopstack/oauth-module": "^0.1.2",
-    "@loopstack/google-workspace-module": "^0.1.2",
+    "@loopstack/core": "^0.20.3",
     "@loopstack/core-ui-module": "^0.20.3",
     "@loopstack/create-chat-message-tool": "^0.20.3",
-    "@nestjs/common": "^11.1.12",
-    "zod": "^4.3.5"
+    "@loopstack/google-workspace-module": "^0.1.2",
+    "@loopstack/oauth-module": "^0.1.2",
+    "@nestjs/common": "^11.1.14",
+    "zod": "^4.3.6"
   },
   "files": [
     "dist",

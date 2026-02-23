@@ -42,8 +42,8 @@ export interface DataTableProps<T = any> {
 
   // Sorting
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-  onSortChange: (field: string, order: 'asc' | 'desc') => void;
+  sortOrder?: 'ASC' | 'DESC';
+  onSortChange: (field: string, order: 'ASC' | 'DESC') => void;
 
   // Search & Filters
   searchTerm?: string;

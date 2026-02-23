@@ -1,12 +1,13 @@
-import { Controller, Get, Logger, MessageEvent, Req, Sse } from '@nestjs/common';
+import { Controller, Get, Logger, MessageEvent, Req, Sse, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { CurrentUser, CurrentUserInterface, RoleName, Roles } from '@loopstack/common';
 import { SseEventService } from '../services/sse-event.service';
 
 @ApiTags('api/v1/sse')
+@UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/sse')
 export class SseController {
   private readonly logger = new Logger(SseController.name);
@@ -41,9 +42,10 @@ export class SseController {
   }
 
   @Get('health')
+  @Roles(RoleName.ADMIN)
   @ApiOperation({
     summary: 'SSE health check',
-    description: 'Returns the number of active SSE connections',
+    description: 'Returns the number of active SSE connections. Requires ADMIN role.',
   })
   @ApiOkResponse({
     description: 'Health check response',

@@ -54,7 +54,11 @@ export class StateManager<TState = any, TData = any> implements WorkflowStateInt
   }
 
   getData<K extends keyof TData>(key: K): TData[K] {
-    return this.data[key];
+    const value = this.data[key];
+    if (value !== null && typeof value === 'object') {
+      return structuredClone(value);
+    }
+    return value;
   }
 
   setData<K extends keyof TData>(key: K, value: TData[K]): void {

@@ -32,7 +32,7 @@
     "@loopstack/contracts": "^0.20.3",
     "@loopstack/core": "^0.20.3",
     "lodash": "^4.17.23",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "files": [
     "dist",

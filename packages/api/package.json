@@ -33,16 +33,17 @@
     "@loopstack/common": "^0.20.3",
     "@loopstack/contracts": "^0.20.3",
     "@loopstack/core": "^0.20.3",
-    "@nestjs/common": "^11.1.12",
-    "@nestjs/config": "^4.0.2",
-    "@nestjs/core": "^11.1.12",
+    "@nestjs/common": "^11.1.14",
+    "@nestjs/config": "^4.0.3",
+    "@nestjs/core": "^11.1.14",
     "@nestjs/event-emitter": "^3.0.1",
-    "@nestjs/swagger": "^11.2.5",
+    "@nestjs/swagger": "^11.2.6",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
     "lodash": "^4.17.23",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10"

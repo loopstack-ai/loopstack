@@ -3,13 +3,13 @@
   "displayName": "Google Workspace Module",
   "description": "Google Workspace integration for the Loopstack automation framework. Provides a Google OAuth 2.0 provider and tools for Google Workspace services such as Calendar, Drive, and Gmail.",
   "keywords": [
-    "oauth",
     "authentication",
+    "calendar",
     "google",
     "google-workspace",
-    "calendar",
     "loopstack",
-    "module"
+    "module",
+    "oauth"
   ],
   "version": "0.1.2",
   "license": "Apache-2.0",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@loopstack/oauth-module": "^0.1.2",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "files": [
     "dist",

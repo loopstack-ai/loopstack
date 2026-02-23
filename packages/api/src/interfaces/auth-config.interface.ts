@@ -6,6 +6,8 @@ export interface AuthConfig {
     refreshExpiresIn: string;
   };
   clientId: string;
-  clientSecret: string;
-  authCallback: string;
+  hub?: {
+    issuer: string;
+    jwksUri: string;
+  };
 }

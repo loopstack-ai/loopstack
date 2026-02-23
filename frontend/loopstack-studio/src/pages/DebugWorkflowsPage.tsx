@@ -53,7 +53,7 @@ export default function DebugWorkflowsPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<string>('blockName');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
@@ -76,8 +76,8 @@ export default function DebugWorkflowsPage() {
       const valA = (a[key] || '').toLowerCase();
       const valB = (b[key] || '').toLowerCase();
 
-      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      if (valA < valB) return sortOrder === 'ASC' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'ASC' ? 1 : -1;
       return 0;
     });
 

@@ -83,6 +83,7 @@ export class ExecuteWorkflowAsync implements ToolInterface<ExecuteWorkflowAsyncA
 
     const job = await this.taskSchedulerService.addTask({
       id: 'sub_pipeline_execution-' + randomUUID(),
+      workspaceId: context.workspaceId,
       task: {
         name: 'manual_execution',
         type: 'run_pipeline',

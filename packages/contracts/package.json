@@ -32,7 +32,7 @@
     "watch": "tsc --watch"
   },
   "dependencies": {
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "files": [
     "dist"

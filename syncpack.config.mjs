@@ -2,17 +2,6 @@
 export default {
   formatRepository: false,
 
-  // Local packages should use workspace protocol
-  semverGroups: [
-    {
-      label: 'Local packages use workspace protocol',
-      packages: ['**'],
-      dependencies: ['@loopstack/**'],
-      dependencyTypes: ['prod', 'dev', 'peer'],
-      policy: 'workspace',
-    },
-  ],
-
   // Version groups to enforce consistency
   versionGroups: [
     {
@@ -29,6 +18,7 @@ export default {
     'packages/*/package.json',
     'frontend/*/package.json',
     'templates/*/package.json',
+    'platform/*/package.json',
     'registry/*/*/package.json',
   ],
 

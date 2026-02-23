@@ -13,6 +13,7 @@ export const INPUT_METADATA_KEY = Symbol('input');
 export const CONTEXT_METADATA_KEY = Symbol('context');
 export const RUNTIME_METADATA_KEY = Symbol('runtime');
 export const STATE_METADATA_KEY = Symbol('state');
+export const SHARED_METADATA_KEY = Symbol('shared');
 export const OUTPUT_METADATA_KEY = Symbol('output');
 
 export interface InjectedWorkflowOptions {
@@ -148,6 +149,14 @@ export interface OutputMetadata extends OutputOptions {
 export function Output(options?: OutputOptions): MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     Reflect.defineMetadata(OUTPUT_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
+  };
+}
+
+export function Shared(): PropertyDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    const existing =
+      (Reflect.getMetadata(SHARED_METADATA_KEY, target.constructor) as (string | symbol)[] | undefined) ?? [];
+    Reflect.defineMetadata(SHARED_METADATA_KEY, [...existing, propertyKey], target.constructor);
   };
 }
 

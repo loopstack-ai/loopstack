@@ -18,6 +18,7 @@ import { TransitionResultLookup, WorkflowMementoData } from '../interfaces';
 import { StableJsonTransformer } from '../utils';
 import { DocumentEntity } from './document.entity';
 import { NamespaceEntity } from './namespace.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'core_workflow' })
 export class WorkflowEntity {
@@ -153,6 +154,11 @@ export class WorkflowEntity {
   })
   documents!: DocumentEntity[];
 
+  @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'created_by' })
+  creator!: User;
+
   @Column({ name: 'created_by', type: 'uuid' })
+  @Index()
   createdBy!: string;
 }

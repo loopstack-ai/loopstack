@@ -10,7 +10,7 @@ export class UserService {
   async findOneBy(where: FindOptionsWhere<User>): Promise<User | null> {
     return this.userRepository.getRepository().findOne({
       where,
-      relations: ['roles', 'roles.permissions'],
+      relations: ['roles'],
     });
   }
 }

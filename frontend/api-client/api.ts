@@ -35,6 +35,330 @@ import type { Configuration } from './configuration';
 /**
  *
  * @export
+ * @interface AdminRoleCreateDto
+ */
+export interface AdminRoleCreateDto {
+  /**
+   * Unique role name
+   * @type {string}
+   * @memberof AdminRoleCreateDto
+   */
+  name: string;
+  /**
+   * Human-readable description of the role
+   * @type {string}
+   * @memberof AdminRoleCreateDto
+   */
+  description?: string;
+}
+/**
+ *
+ * @export
+ * @interface AdminRoleDto
+ */
+export interface AdminRoleDto {
+  /**
+   * Unique identifier of the role
+   * @type {string}
+   * @memberof AdminRoleDto
+   */
+  id: string;
+  /**
+   * Role name
+   * @type {string}
+   * @memberof AdminRoleDto
+   */
+  name: string;
+  /**
+   * Human-readable description
+   * @type {string}
+   * @memberof AdminRoleDto
+   */
+  description?: string;
+  /**
+   * Number of users assigned to this role
+   * @type {number}
+   * @memberof AdminRoleDto
+   */
+  userCount?: number;
+}
+/**
+ *
+ * @export
+ * @interface AdminRoleItemDto
+ */
+export interface AdminRoleItemDto {
+  /**
+   * Unique identifier of the role
+   * @type {string}
+   * @memberof AdminRoleItemDto
+   */
+  id: string;
+  /**
+   * Role name
+   * @type {string}
+   * @memberof AdminRoleItemDto
+   */
+  name: string;
+  /**
+   * Human-readable description
+   * @type {string}
+   * @memberof AdminRoleItemDto
+   */
+  description?: string;
+  /**
+   * Number of users assigned to this role
+   * @type {number}
+   * @memberof AdminRoleItemDto
+   */
+  userCount: number;
+}
+/**
+ *
+ * @export
+ * @interface AdminRoleUpdateDto
+ */
+export interface AdminRoleUpdateDto {
+  /**
+   * Unique role name
+   * @type {string}
+   * @memberof AdminRoleUpdateDto
+   */
+  name?: string;
+  /**
+   * Human-readable description of the role
+   * @type {string}
+   * @memberof AdminRoleUpdateDto
+   */
+  description?: string;
+}
+/**
+ *
+ * @export
+ * @interface AdminUserAssignRolesDto
+ */
+export interface AdminUserAssignRolesDto {
+  /**
+   * Array of role UUIDs to assign to the user (replaces existing roles)
+   * @type {Array<string>}
+   * @memberof AdminUserAssignRolesDto
+   */
+  roleIds: Array<string>;
+}
+/**
+ *
+ * @export
+ * @interface AdminUserControllerGetUsers200Response
+ */
+export interface AdminUserControllerGetUsers200Response {
+  /**
+   *
+   * @type {Array<AdminUserItemDto>}
+   * @memberof AdminUserControllerGetUsers200Response
+   */
+  data: Array<AdminUserItemDto>;
+  /**
+   *
+   * @type {number}
+   * @memberof AdminUserControllerGetUsers200Response
+   */
+  total: number;
+  /**
+   *
+   * @type {number}
+   * @memberof AdminUserControllerGetUsers200Response
+   */
+  page: number;
+  /**
+   *
+   * @type {number}
+   * @memberof AdminUserControllerGetUsers200Response
+   */
+  limit: number;
+}
+/**
+ *
+ * @export
+ * @interface AdminUserDto
+ */
+export interface AdminUserDto {
+  /**
+   * Unique identifier of the user
+   * @type {string}
+   * @memberof AdminUserDto
+   */
+  id: string;
+  /**
+   * Type of user account
+   * @type {string}
+   * @memberof AdminUserDto
+   */
+  type: AdminUserDtoTypeEnum;
+  /**
+   * Whether the user account is active
+   * @type {boolean}
+   * @memberof AdminUserDto
+   */
+  isActive: boolean;
+  /**
+   * Roles assigned to this user
+   * @type {Array<AdminRoleDto>}
+   * @memberof AdminUserDto
+   */
+  roles: Array<AdminRoleDto>;
+  /**
+   * Timestamp when the user was created
+   * @type {string}
+   * @memberof AdminUserDto
+   */
+  createdAt: string;
+  /**
+   * Timestamp when the user was last updated
+   * @type {string}
+   * @memberof AdminUserDto
+   */
+  updatedAt: string;
+}
+
+export const AdminUserDtoTypeEnum = {
+  Local: 'local',
+  Cloud: 'cloud',
+} as const;
+
+export type AdminUserDtoTypeEnum = (typeof AdminUserDtoTypeEnum)[keyof typeof AdminUserDtoTypeEnum];
+
+/**
+ *
+ * @export
+ * @interface AdminUserFilterDto
+ */
+export interface AdminUserFilterDto {
+  /**
+   *
+   * @type {string}
+   * @memberof AdminUserFilterDto
+   */
+  type?: AdminUserFilterDtoTypeEnum;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AdminUserFilterDto
+   */
+  isActive?: boolean;
+}
+
+export const AdminUserFilterDtoTypeEnum = {
+  Local: 'local',
+  Cloud: 'cloud',
+} as const;
+
+export type AdminUserFilterDtoTypeEnum = (typeof AdminUserFilterDtoTypeEnum)[keyof typeof AdminUserFilterDtoTypeEnum];
+
+/**
+ *
+ * @export
+ * @interface AdminUserItemDto
+ */
+export interface AdminUserItemDto {
+  /**
+   * Unique identifier of the user
+   * @type {string}
+   * @memberof AdminUserItemDto
+   */
+  id: string;
+  /**
+   * Type of user account
+   * @type {string}
+   * @memberof AdminUserItemDto
+   */
+  type: AdminUserItemDtoTypeEnum;
+  /**
+   * Whether the user account is active
+   * @type {boolean}
+   * @memberof AdminUserItemDto
+   */
+  isActive: boolean;
+  /**
+   * Role names assigned to this user
+   * @type {Array<string>}
+   * @memberof AdminUserItemDto
+   */
+  roleNames: Array<string>;
+  /**
+   * Timestamp when the user was created
+   * @type {string}
+   * @memberof AdminUserItemDto
+   */
+  createdAt: string;
+  /**
+   * Timestamp when the user was last updated
+   * @type {string}
+   * @memberof AdminUserItemDto
+   */
+  updatedAt: string;
+}
+
+export const AdminUserItemDtoTypeEnum = {
+  Local: 'local',
+  Cloud: 'cloud',
+} as const;
+
+export type AdminUserItemDtoTypeEnum = (typeof AdminUserItemDtoTypeEnum)[keyof typeof AdminUserItemDtoTypeEnum];
+
+/**
+ *
+ * @export
+ * @interface AdminUserSortByDto
+ */
+export interface AdminUserSortByDto {
+  /**
+   *
+   * @type {string}
+   * @memberof AdminUserSortByDto
+   */
+  field: AdminUserSortByDtoFieldEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof AdminUserSortByDto
+   */
+  order: AdminUserSortByDtoOrderEnum;
+}
+
+export const AdminUserSortByDtoFieldEnum = {
+  Id: 'id',
+  Type: 'type',
+  IsActive: 'isActive',
+  CreatedAt: 'createdAt',
+  UpdatedAt: 'updatedAt',
+} as const;
+
+export type AdminUserSortByDtoFieldEnum =
+  (typeof AdminUserSortByDtoFieldEnum)[keyof typeof AdminUserSortByDtoFieldEnum];
+export const AdminUserSortByDtoOrderEnum = {
+  Asc: 'ASC',
+  Desc: 'DESC',
+} as const;
+
+export type AdminUserSortByDtoOrderEnum =
+  (typeof AdminUserSortByDtoOrderEnum)[keyof typeof AdminUserSortByDtoOrderEnum];
+
+/**
+ *
+ * @export
+ * @interface AdminUserUpdateStatusDto
+ */
+export interface AdminUserUpdateStatusDto {
+  /**
+   * Whether the user account should be active
+   * @type {boolean}
+   * @memberof AdminUserUpdateStatusDto
+   */
+  isActive: boolean;
+}
+/**
+ *
+ * @export
  * @interface DashboardStatsDto
  */
 export interface DashboardStatsDto {
@@ -460,21 +784,148 @@ export type DocumentSortByDtoOrderEnum = (typeof DocumentSortByDtoOrderEnum)[key
 /**
  *
  * @export
+ * @interface FeaturesDto
+ */
+export interface FeaturesDto {
+  /**
+   * Sidebar feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  sidebar?: SidebarFeatureDto;
+  /**
+   * Workflow history feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  workflowHistory?: SidebarFeatureDto;
+  /**
+   * Workflow navigation feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  workflowNavigation?: SidebarFeatureDto;
+  /**
+   * Debug workflow feature configuration
+   * @type {SidebarFeatureDto}
+   * @memberof FeaturesDto
+   */
+  debugWorkflow?: SidebarFeatureDto;
+  /**
+   * File explorer feature configuration
+   * @type {FileExplorerFeatureDto}
+   * @memberof FeaturesDto
+   */
+  fileExplorer?: FileExplorerFeatureDto;
+}
+/**
+ *
+ * @export
+ * @interface FileContentDto
+ */
+export interface FileContentDto {
+  /**
+   * Path of the file relative to workspace root
+   * @type {string}
+   * @memberof FileContentDto
+   */
+  path: string;
+  /**
+   * Content of the file
+   * @type {string}
+   * @memberof FileContentDto
+   */
+  content: string;
+  /**
+   * Parsed workflow configuration if the file is a YAML workflow file
+   * @type {PipelineConfigDto}
+   * @memberof FileContentDto
+   */
+  workflowConfig?: PipelineConfigDto;
+}
+/**
+ *
+ * @export
+ * @interface FileExplorerFeatureDto
+ */
+export interface FileExplorerFeatureDto {
+  /**
+   * Whether the file explorer feature is enabled
+   * @type {boolean}
+   * @memberof FileExplorerFeatureDto
+   */
+  enabled?: boolean;
+  /**
+   * Volume name to use for file explorer
+   * @type {string}
+   * @memberof FileExplorerFeatureDto
+   */
+  volume?: string;
+  /**
+   * Additional options for file explorer
+   * @type {object}
+   * @memberof FileExplorerFeatureDto
+   */
+  options?: object;
+}
+/**
+ *
+ * @export
+ * @interface FileExplorerNodeDto
+ */
+export interface FileExplorerNodeDto {
+  /**
+   * Unique identifier for the file/folder node
+   * @type {string}
+   * @memberof FileExplorerNodeDto
+   */
+  id: string;
+  /**
+   * Name of the file or folder
+   * @type {string}
+   * @memberof FileExplorerNodeDto
+   */
+  name: string;
+  /**
+   * Full path of the file or folder relative to workspace root
+   * @type {string}
+   * @memberof FileExplorerNodeDto
+   */
+  path: string;
+  /**
+   * Type of the node
+   * @type {string}
+   * @memberof FileExplorerNodeDto
+   */
+  type: FileExplorerNodeDtoTypeEnum;
+  /**
+   * Child nodes (only present for folders)
+   * @type {Array<FileExplorerNodeDto>}
+   * @memberof FileExplorerNodeDto
+   */
+  children?: Array<FileExplorerNodeDto>;
+}
+
+export const FileExplorerNodeDtoTypeEnum = {
+  File: 'file',
+  Folder: 'folder',
+} as const;
+
+export type FileExplorerNodeDtoTypeEnum =
+  (typeof FileExplorerNodeDtoTypeEnum)[keyof typeof FileExplorerNodeDtoTypeEnum];
+
+/**
+ *
+ * @export
  * @interface HubLoginRequestDto
  */
 export interface HubLoginRequestDto {
   /**
-   * The authorization code
+   * Hub-signed ID token
    * @type {string}
    * @memberof HubLoginRequestDto
    */
-  code: string;
-  /**
-   * The grant type
-   * @type {string}
-   * @memberof HubLoginRequestDto
-   */
-  grantType: string;
+  idToken: string;
 }
 /**
  *
@@ -1183,6 +1634,46 @@ export interface RunPipelinePayloadDto {
 /**
  *
  * @export
+ * @interface SidebarFeatureDto
+ */
+export interface SidebarFeatureDto {
+  /**
+   * Whether the sidebar feature is enabled
+   * @type {boolean}
+   * @memberof SidebarFeatureDto
+   */
+  enabled?: boolean;
+}
+/**
+ *
+ * @export
+ * @interface VolumeDto
+ */
+export interface VolumeDto {
+  /**
+   * Path of the volume
+   * @type {string}
+   * @memberof VolumeDto
+   */
+  path: string;
+  /**
+   * Permissions for the volume
+   * @type {Array<string>}
+   * @memberof VolumeDto
+   */
+  permissions: Array<VolumeDtoPermissionsEnum>;
+}
+
+export const VolumeDtoPermissionsEnum = {
+  Read: 'read',
+  Write: 'write',
+} as const;
+
+export type VolumeDtoPermissionsEnum = (typeof VolumeDtoPermissionsEnum)[keyof typeof VolumeDtoPermissionsEnum];
+
+/**
+ *
+ * @export
  * @interface WorkerInfoDto
  */
 export interface WorkerInfoDto {
@@ -1559,6 +2050,18 @@ export interface WorkspaceConfigDto {
    * @memberof WorkspaceConfigDto
    */
   title?: string;
+  /**
+   * Volumes configuration
+   * @type {{ [key: string]: any; }}
+   * @memberof WorkspaceConfigDto
+   */
+  volumes?: { [key: string]: any };
+  /**
+   * Features configuration
+   * @type {FeaturesDto}
+   * @memberof WorkspaceConfigDto
+   */
+  features?: FeaturesDto;
 }
 /**
  *
@@ -1684,6 +2187,18 @@ export interface WorkspaceDto {
    * @memberof WorkspaceDto
    */
   updatedAt: string;
+  /**
+   * Volumes configuration
+   * @type {{ [key: string]: any; }}
+   * @memberof WorkspaceDto
+   */
+  volumes?: { [key: string]: any };
+  /**
+   * Features configuration
+   * @type {FeaturesDto}
+   * @memberof WorkspaceDto
+   */
+  features?: FeaturesDto;
 }
 /**
  *
@@ -1773,6 +2288,1661 @@ export interface WorkspaceUpdateDto {
    * @memberof WorkspaceUpdateDto
    */
   title?: string;
+}
+
+/**
+ * ApiV1AdminRolesApi - axios parameter creator
+ * @export
+ */
+export const ApiV1AdminRolesApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Requires ADMIN role.
+     * @summary Create a new role
+     * @param {AdminRoleCreateDto} adminRoleCreateDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminRoleControllerCreateRole: async (
+      adminRoleCreateDto: AdminRoleCreateDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'adminRoleCreateDto' is not null or undefined
+      assertParamExists('adminRoleControllerCreateRole', 'adminRoleCreateDto', adminRoleCreateDto);
+      const localVarPath = `/api/v1/admin/roles`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      localVarHeaderParameter['Content-Type'] = 'application/json';
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(adminRoleCreateDto, localVarRequestOptions, configuration);
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Requires ADMIN role. Cannot delete the ADMIN role or roles assigned to users.
+     * @summary Delete a role
+     * @param {string} id The UUID of the role
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminRoleControllerDeleteRole: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('adminRoleControllerDeleteRole', 'id', id);
+      const localVarPath = `/api/v1/admin/roles/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Requires ADMIN role. Returns role details including user count.
+     * @summary Get a role by ID
+     * @param {string} id The UUID of the role
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminRoleControllerGetRoleById: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('adminRoleControllerGetRoleById', 'id', id);
+      const localVarPath = `/api/v1/admin/roles/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Requires ADMIN role. Returns all roles with user counts.
+     * @summary List all roles
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminRoleControllerGetRoles: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+      const localVarPath = `/api/v1/admin/roles`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Requires ADMIN role.
+     * @summary Update a role
+     * @param {string} id The UUID of the role
+     * @param {AdminRoleUpdateDto} adminRoleUpdateDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminRoleControllerUpdateRole: async (
+      id: string,
+      adminRoleUpdateDto: AdminRoleUpdateDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('adminRoleControllerUpdateRole', 'id', id);
+      // verify required parameter 'adminRoleUpdateDto' is not null or undefined
+      assertParamExists('adminRoleControllerUpdateRole', 'adminRoleUpdateDto', adminRoleUpdateDto);
+      const localVarPath = `/api/v1/admin/roles/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      localVarHeaderParameter['Content-Type'] = 'application/json';
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(adminRoleUpdateDto, localVarRequestOptions, configuration);
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
+};
+
+/**
+ * ApiV1AdminRolesApi - functional programming interface
+ * @export
+ */
+export const ApiV1AdminRolesApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = ApiV1AdminRolesApiAxiosParamCreator(configuration);
+  return {
+    /**
+     * Requires ADMIN role.
+     * @summary Create a new role
+     * @param {AdminRoleCreateDto} adminRoleCreateDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminRoleControllerCreateRole(
+      adminRoleCreateDto: AdminRoleCreateDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminRoleDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminRoleControllerCreateRole(
+        adminRoleCreateDto,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminRolesApi.adminRoleControllerCreateRole']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Requires ADMIN role. Cannot delete the ADMIN role or roles assigned to users.
+     * @summary Delete a role
+     * @param {string} id The UUID of the role
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminRoleControllerDeleteRole(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminRoleControllerDeleteRole(id, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminRolesApi.adminRoleControllerDeleteRole']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Requires ADMIN role. Returns role details including user count.
+     * @summary Get a role by ID
+     * @param {string} id The UUID of the role
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminRoleControllerGetRoleById(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminRoleDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminRoleControllerGetRoleById(id, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminRolesApi.adminRoleControllerGetRoleById']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Requires ADMIN role. Returns all roles with user counts.
+     * @summary List all roles
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminRoleControllerGetRoles(
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<AdminRoleItemDto>>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminRoleControllerGetRoles(options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminRolesApi.adminRoleControllerGetRoles']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Requires ADMIN role.
+     * @summary Update a role
+     * @param {string} id The UUID of the role
+     * @param {AdminRoleUpdateDto} adminRoleUpdateDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminRoleControllerUpdateRole(
+      id: string,
+      adminRoleUpdateDto: AdminRoleUpdateDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminRoleDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminRoleControllerUpdateRole(
+        id,
+        adminRoleUpdateDto,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminRolesApi.adminRoleControllerUpdateRole']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
+};
+
+/**
+ * ApiV1AdminRolesApi - factory interface
+ * @export
+ */
+export const ApiV1AdminRolesApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = ApiV1AdminRolesApiFp(configuration);
+  return {
+    /**
+     * Requires ADMIN role.
+     * @summary Create a new role
+     * @param {ApiV1AdminRolesApiAdminRoleControllerCreateRoleRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminRoleControllerCreateRole(
+      requestParameters: ApiV1AdminRolesApiAdminRoleControllerCreateRoleRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<AdminRoleDto> {
+      return localVarFp
+        .adminRoleControllerCreateRole(requestParameters.adminRoleCreateDto, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Requires ADMIN role. Cannot delete the ADMIN role or roles assigned to users.
+     * @summary Delete a role
+     * @param {ApiV1AdminRolesApiAdminRoleControllerDeleteRoleRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminRoleControllerDeleteRole(
+      requestParameters: ApiV1AdminRolesApiAdminRoleControllerDeleteRoleRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .adminRoleControllerDeleteRole(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Requires ADMIN role. Returns role details including user count.
+     * @summary Get a role by ID
+     * @param {ApiV1AdminRolesApiAdminRoleControllerGetRoleByIdRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminRoleControllerGetRoleById(
+      requestParameters: ApiV1AdminRolesApiAdminRoleControllerGetRoleByIdRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<AdminRoleDto> {
+      return localVarFp
+        .adminRoleControllerGetRoleById(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Requires ADMIN role. Returns all roles with user counts.
+     * @summary List all roles
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminRoleControllerGetRoles(options?: RawAxiosRequestConfig): AxiosPromise<Array<AdminRoleItemDto>> {
+      return localVarFp.adminRoleControllerGetRoles(options).then((request) => request(axios, basePath));
+    },
+    /**
+     * Requires ADMIN role.
+     * @summary Update a role
+     * @param {ApiV1AdminRolesApiAdminRoleControllerUpdateRoleRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminRoleControllerUpdateRole(
+      requestParameters: ApiV1AdminRolesApiAdminRoleControllerUpdateRoleRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<AdminRoleDto> {
+      return localVarFp
+        .adminRoleControllerUpdateRole(requestParameters.id, requestParameters.adminRoleUpdateDto, options)
+        .then((request) => request(axios, basePath));
+    },
+  };
+};
+
+/**
+ * ApiV1AdminRolesApi - interface
+ * @export
+ * @interface ApiV1AdminRolesApi
+ */
+export interface ApiV1AdminRolesApiInterface {
+  /**
+   * Requires ADMIN role.
+   * @summary Create a new role
+   * @param {ApiV1AdminRolesApiAdminRoleControllerCreateRoleRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminRolesApiInterface
+   */
+  adminRoleControllerCreateRole(
+    requestParameters: ApiV1AdminRolesApiAdminRoleControllerCreateRoleRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<AdminRoleDto>;
+
+  /**
+   * Requires ADMIN role. Cannot delete the ADMIN role or roles assigned to users.
+   * @summary Delete a role
+   * @param {ApiV1AdminRolesApiAdminRoleControllerDeleteRoleRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminRolesApiInterface
+   */
+  adminRoleControllerDeleteRole(
+    requestParameters: ApiV1AdminRolesApiAdminRoleControllerDeleteRoleRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
+
+  /**
+   * Requires ADMIN role. Returns role details including user count.
+   * @summary Get a role by ID
+   * @param {ApiV1AdminRolesApiAdminRoleControllerGetRoleByIdRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminRolesApiInterface
+   */
+  adminRoleControllerGetRoleById(
+    requestParameters: ApiV1AdminRolesApiAdminRoleControllerGetRoleByIdRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<AdminRoleDto>;
+
+  /**
+   * Requires ADMIN role. Returns all roles with user counts.
+   * @summary List all roles
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminRolesApiInterface
+   */
+  adminRoleControllerGetRoles(options?: RawAxiosRequestConfig): AxiosPromise<Array<AdminRoleItemDto>>;
+
+  /**
+   * Requires ADMIN role.
+   * @summary Update a role
+   * @param {ApiV1AdminRolesApiAdminRoleControllerUpdateRoleRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminRolesApiInterface
+   */
+  adminRoleControllerUpdateRole(
+    requestParameters: ApiV1AdminRolesApiAdminRoleControllerUpdateRoleRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<AdminRoleDto>;
+}
+
+/**
+ * Request parameters for adminRoleControllerCreateRole operation in ApiV1AdminRolesApi.
+ * @export
+ * @interface ApiV1AdminRolesApiAdminRoleControllerCreateRoleRequest
+ */
+export interface ApiV1AdminRolesApiAdminRoleControllerCreateRoleRequest {
+  /**
+   *
+   * @type {AdminRoleCreateDto}
+   * @memberof ApiV1AdminRolesApiAdminRoleControllerCreateRole
+   */
+  readonly adminRoleCreateDto: AdminRoleCreateDto;
+}
+
+/**
+ * Request parameters for adminRoleControllerDeleteRole operation in ApiV1AdminRolesApi.
+ * @export
+ * @interface ApiV1AdminRolesApiAdminRoleControllerDeleteRoleRequest
+ */
+export interface ApiV1AdminRolesApiAdminRoleControllerDeleteRoleRequest {
+  /**
+   * The UUID of the role
+   * @type {string}
+   * @memberof ApiV1AdminRolesApiAdminRoleControllerDeleteRole
+   */
+  readonly id: string;
+}
+
+/**
+ * Request parameters for adminRoleControllerGetRoleById operation in ApiV1AdminRolesApi.
+ * @export
+ * @interface ApiV1AdminRolesApiAdminRoleControllerGetRoleByIdRequest
+ */
+export interface ApiV1AdminRolesApiAdminRoleControllerGetRoleByIdRequest {
+  /**
+   * The UUID of the role
+   * @type {string}
+   * @memberof ApiV1AdminRolesApiAdminRoleControllerGetRoleById
+   */
+  readonly id: string;
+}
+
+/**
+ * Request parameters for adminRoleControllerUpdateRole operation in ApiV1AdminRolesApi.
+ * @export
+ * @interface ApiV1AdminRolesApiAdminRoleControllerUpdateRoleRequest
+ */
+export interface ApiV1AdminRolesApiAdminRoleControllerUpdateRoleRequest {
+  /**
+   * The UUID of the role
+   * @type {string}
+   * @memberof ApiV1AdminRolesApiAdminRoleControllerUpdateRole
+   */
+  readonly id: string;
+
+  /**
+   *
+   * @type {AdminRoleUpdateDto}
+   * @memberof ApiV1AdminRolesApiAdminRoleControllerUpdateRole
+   */
+  readonly adminRoleUpdateDto: AdminRoleUpdateDto;
+}
+
+/**
+ * ApiV1AdminRolesApi - object-oriented interface
+ * @export
+ * @class ApiV1AdminRolesApi
+ * @extends {BaseAPI}
+ */
+export class ApiV1AdminRolesApi extends BaseAPI implements ApiV1AdminRolesApiInterface {
+  /**
+   * Requires ADMIN role.
+   * @summary Create a new role
+   * @param {ApiV1AdminRolesApiAdminRoleControllerCreateRoleRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminRolesApi
+   */
+  public adminRoleControllerCreateRole(
+    requestParameters: ApiV1AdminRolesApiAdminRoleControllerCreateRoleRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1AdminRolesApiFp(this.configuration)
+      .adminRoleControllerCreateRole(requestParameters.adminRoleCreateDto, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Requires ADMIN role. Cannot delete the ADMIN role or roles assigned to users.
+   * @summary Delete a role
+   * @param {ApiV1AdminRolesApiAdminRoleControllerDeleteRoleRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminRolesApi
+   */
+  public adminRoleControllerDeleteRole(
+    requestParameters: ApiV1AdminRolesApiAdminRoleControllerDeleteRoleRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1AdminRolesApiFp(this.configuration)
+      .adminRoleControllerDeleteRole(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Requires ADMIN role. Returns role details including user count.
+   * @summary Get a role by ID
+   * @param {ApiV1AdminRolesApiAdminRoleControllerGetRoleByIdRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminRolesApi
+   */
+  public adminRoleControllerGetRoleById(
+    requestParameters: ApiV1AdminRolesApiAdminRoleControllerGetRoleByIdRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1AdminRolesApiFp(this.configuration)
+      .adminRoleControllerGetRoleById(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Requires ADMIN role. Returns all roles with user counts.
+   * @summary List all roles
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminRolesApi
+   */
+  public adminRoleControllerGetRoles(options?: RawAxiosRequestConfig) {
+    return ApiV1AdminRolesApiFp(this.configuration)
+      .adminRoleControllerGetRoles(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Requires ADMIN role.
+   * @summary Update a role
+   * @param {ApiV1AdminRolesApiAdminRoleControllerUpdateRoleRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminRolesApi
+   */
+  public adminRoleControllerUpdateRole(
+    requestParameters: ApiV1AdminRolesApiAdminRoleControllerUpdateRoleRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1AdminRolesApiFp(this.configuration)
+      .adminRoleControllerUpdateRole(requestParameters.id, requestParameters.adminRoleUpdateDto, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+}
+
+/**
+ * ApiV1AdminSystemApi - axios parameter creator
+ * @export
+ */
+export const ApiV1AdminSystemApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Requires ADMIN role. Returns the list of active SSE connections.
+     * @summary Active SSE connections
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminSystemControllerGetConnections: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+      const localVarPath = `/api/v1/admin/system/connections`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Requires ADMIN role. Returns system health including DB connectivity, memory usage, and uptime.
+     * @summary System health check
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminSystemControllerGetHealth: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+      const localVarPath = `/api/v1/admin/system/health`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Requires ADMIN role. Returns aggregate counts for users, workspaces, pipelines, and workflows.
+     * @summary System-wide statistics
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminSystemControllerGetStats: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+      const localVarPath = `/api/v1/admin/system/stats`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
+};
+
+/**
+ * ApiV1AdminSystemApi - functional programming interface
+ * @export
+ */
+export const ApiV1AdminSystemApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = ApiV1AdminSystemApiAxiosParamCreator(configuration);
+  return {
+    /**
+     * Requires ADMIN role. Returns the list of active SSE connections.
+     * @summary Active SSE connections
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminSystemControllerGetConnections(
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminSystemControllerGetConnections(options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminSystemApi.adminSystemControllerGetConnections']?.[localVarOperationServerIndex]
+          ?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Requires ADMIN role. Returns system health including DB connectivity, memory usage, and uptime.
+     * @summary System health check
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminSystemControllerGetHealth(
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminSystemControllerGetHealth(options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminSystemApi.adminSystemControllerGetHealth']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Requires ADMIN role. Returns aggregate counts for users, workspaces, pipelines, and workflows.
+     * @summary System-wide statistics
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminSystemControllerGetStats(
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminSystemControllerGetStats(options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminSystemApi.adminSystemControllerGetStats']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
+};
+
+/**
+ * ApiV1AdminSystemApi - factory interface
+ * @export
+ */
+export const ApiV1AdminSystemApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = ApiV1AdminSystemApiFp(configuration);
+  return {
+    /**
+     * Requires ADMIN role. Returns the list of active SSE connections.
+     * @summary Active SSE connections
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminSystemControllerGetConnections(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+      return localVarFp.adminSystemControllerGetConnections(options).then((request) => request(axios, basePath));
+    },
+    /**
+     * Requires ADMIN role. Returns system health including DB connectivity, memory usage, and uptime.
+     * @summary System health check
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminSystemControllerGetHealth(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+      return localVarFp.adminSystemControllerGetHealth(options).then((request) => request(axios, basePath));
+    },
+    /**
+     * Requires ADMIN role. Returns aggregate counts for users, workspaces, pipelines, and workflows.
+     * @summary System-wide statistics
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminSystemControllerGetStats(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+      return localVarFp.adminSystemControllerGetStats(options).then((request) => request(axios, basePath));
+    },
+  };
+};
+
+/**
+ * ApiV1AdminSystemApi - interface
+ * @export
+ * @interface ApiV1AdminSystemApi
+ */
+export interface ApiV1AdminSystemApiInterface {
+  /**
+   * Requires ADMIN role. Returns the list of active SSE connections.
+   * @summary Active SSE connections
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminSystemApiInterface
+   */
+  adminSystemControllerGetConnections(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
+  /**
+   * Requires ADMIN role. Returns system health including DB connectivity, memory usage, and uptime.
+   * @summary System health check
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminSystemApiInterface
+   */
+  adminSystemControllerGetHealth(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
+  /**
+   * Requires ADMIN role. Returns aggregate counts for users, workspaces, pipelines, and workflows.
+   * @summary System-wide statistics
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminSystemApiInterface
+   */
+  adminSystemControllerGetStats(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+}
+
+/**
+ * ApiV1AdminSystemApi - object-oriented interface
+ * @export
+ * @class ApiV1AdminSystemApi
+ * @extends {BaseAPI}
+ */
+export class ApiV1AdminSystemApi extends BaseAPI implements ApiV1AdminSystemApiInterface {
+  /**
+   * Requires ADMIN role. Returns the list of active SSE connections.
+   * @summary Active SSE connections
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminSystemApi
+   */
+  public adminSystemControllerGetConnections(options?: RawAxiosRequestConfig) {
+    return ApiV1AdminSystemApiFp(this.configuration)
+      .adminSystemControllerGetConnections(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Requires ADMIN role. Returns system health including DB connectivity, memory usage, and uptime.
+   * @summary System health check
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminSystemApi
+   */
+  public adminSystemControllerGetHealth(options?: RawAxiosRequestConfig) {
+    return ApiV1AdminSystemApiFp(this.configuration)
+      .adminSystemControllerGetHealth(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Requires ADMIN role. Returns aggregate counts for users, workspaces, pipelines, and workflows.
+   * @summary System-wide statistics
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminSystemApi
+   */
+  public adminSystemControllerGetStats(options?: RawAxiosRequestConfig) {
+    return ApiV1AdminSystemApiFp(this.configuration)
+      .adminSystemControllerGetStats(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+}
+
+/**
+ * ApiV1AdminUsersApi - axios parameter creator
+ * @export
+ */
+export const ApiV1AdminUsersApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Requires ADMIN role. Replaces all existing role assignments.
+     * @summary Assign roles to a user
+     * @param {string} id The UUID of the user
+     * @param {AdminUserAssignRolesDto} adminUserAssignRolesDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminUserControllerAssignRoles: async (
+      id: string,
+      adminUserAssignRolesDto: AdminUserAssignRolesDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('adminUserControllerAssignRoles', 'id', id);
+      // verify required parameter 'adminUserAssignRolesDto' is not null or undefined
+      assertParamExists('adminUserControllerAssignRoles', 'adminUserAssignRolesDto', adminUserAssignRolesDto);
+      const localVarPath = `/api/v1/admin/users/{id}/roles`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      localVarHeaderParameter['Content-Type'] = 'application/json';
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        adminUserAssignRolesDto,
+        localVarRequestOptions,
+        configuration,
+      );
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Requires ADMIN role. Returns user details including roles and permissions.
+     * @summary Get a user by ID
+     * @param {string} id The UUID of the user
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminUserControllerGetUserById: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('adminUserControllerGetUserById', 'id', id);
+      const localVarPath = `/api/v1/admin/users/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Requires ADMIN role. Returns all users across the system.
+     * @summary List all users with filters, sorting, and pagination
+     * @param {string} [filter] JSON string of AdminUserFilterDto object
+     * @param {string} [sortBy] JSON string array of AdminUserSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminUserControllerGetUsers: async (
+      filter?: string,
+      sortBy?: string,
+      page?: number,
+      limit?: number,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/api/v1/admin/users`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      if (filter !== undefined) {
+        localVarQueryParameter['filter'] = filter;
+      }
+
+      if (sortBy !== undefined) {
+        localVarQueryParameter['sortBy'] = sortBy;
+      }
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page;
+      }
+
+      if (limit !== undefined) {
+        localVarQueryParameter['limit'] = limit;
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Requires ADMIN role.
+     * @summary Remove a role from a user
+     * @param {string} id The UUID of the user
+     * @param {string} roleId The UUID of the role to remove
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminUserControllerRemoveRole: async (
+      id: string,
+      roleId: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('adminUserControllerRemoveRole', 'id', id);
+      // verify required parameter 'roleId' is not null or undefined
+      assertParamExists('adminUserControllerRemoveRole', 'roleId', roleId);
+      const localVarPath = `/api/v1/admin/users/{id}/roles/{roleId}`
+        .replace(`{${'id'}}`, encodeURIComponent(String(id)))
+        .replace(`{${'roleId'}}`, encodeURIComponent(String(roleId)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Requires ADMIN role. Cannot deactivate yourself.
+     * @summary Activate or deactivate a user
+     * @param {string} id The UUID of the user
+     * @param {AdminUserUpdateStatusDto} adminUserUpdateStatusDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminUserControllerUpdateUserStatus: async (
+      id: string,
+      adminUserUpdateStatusDto: AdminUserUpdateStatusDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('adminUserControllerUpdateUserStatus', 'id', id);
+      // verify required parameter 'adminUserUpdateStatusDto' is not null or undefined
+      assertParamExists('adminUserControllerUpdateUserStatus', 'adminUserUpdateStatusDto', adminUserUpdateStatusDto);
+      const localVarPath = `/api/v1/admin/users/{id}/status`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      localVarHeaderParameter['Content-Type'] = 'application/json';
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        adminUserUpdateStatusDto,
+        localVarRequestOptions,
+        configuration,
+      );
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
+};
+
+/**
+ * ApiV1AdminUsersApi - functional programming interface
+ * @export
+ */
+export const ApiV1AdminUsersApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = ApiV1AdminUsersApiAxiosParamCreator(configuration);
+  return {
+    /**
+     * Requires ADMIN role. Replaces all existing role assignments.
+     * @summary Assign roles to a user
+     * @param {string} id The UUID of the user
+     * @param {AdminUserAssignRolesDto} adminUserAssignRolesDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminUserControllerAssignRoles(
+      id: string,
+      adminUserAssignRolesDto: AdminUserAssignRolesDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminUserDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminUserControllerAssignRoles(
+        id,
+        adminUserAssignRolesDto,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminUsersApi.adminUserControllerAssignRoles']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Requires ADMIN role. Returns user details including roles and permissions.
+     * @summary Get a user by ID
+     * @param {string} id The UUID of the user
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminUserControllerGetUserById(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminUserDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminUserControllerGetUserById(id, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminUsersApi.adminUserControllerGetUserById']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Requires ADMIN role. Returns all users across the system.
+     * @summary List all users with filters, sorting, and pagination
+     * @param {string} [filter] JSON string of AdminUserFilterDto object
+     * @param {string} [sortBy] JSON string array of AdminUserSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminUserControllerGetUsers(
+      filter?: string,
+      sortBy?: string,
+      page?: number,
+      limit?: number,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminUserControllerGetUsers200Response>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminUserControllerGetUsers(
+        filter,
+        sortBy,
+        page,
+        limit,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminUsersApi.adminUserControllerGetUsers']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Requires ADMIN role.
+     * @summary Remove a role from a user
+     * @param {string} id The UUID of the user
+     * @param {string} roleId The UUID of the role to remove
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminUserControllerRemoveRole(
+      id: string,
+      roleId: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminUserDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminUserControllerRemoveRole(id, roleId, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminUsersApi.adminUserControllerRemoveRole']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Requires ADMIN role. Cannot deactivate yourself.
+     * @summary Activate or deactivate a user
+     * @param {string} id The UUID of the user
+     * @param {AdminUserUpdateStatusDto} adminUserUpdateStatusDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async adminUserControllerUpdateUserStatus(
+      id: string,
+      adminUserUpdateStatusDto: AdminUserUpdateStatusDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdminUserDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.adminUserControllerUpdateUserStatus(
+        id,
+        adminUserUpdateStatusDto,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1AdminUsersApi.adminUserControllerUpdateUserStatus']?.[localVarOperationServerIndex]
+          ?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
+};
+
+/**
+ * ApiV1AdminUsersApi - factory interface
+ * @export
+ */
+export const ApiV1AdminUsersApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = ApiV1AdminUsersApiFp(configuration);
+  return {
+    /**
+     * Requires ADMIN role. Replaces all existing role assignments.
+     * @summary Assign roles to a user
+     * @param {ApiV1AdminUsersApiAdminUserControllerAssignRolesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminUserControllerAssignRoles(
+      requestParameters: ApiV1AdminUsersApiAdminUserControllerAssignRolesRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<AdminUserDto> {
+      return localVarFp
+        .adminUserControllerAssignRoles(requestParameters.id, requestParameters.adminUserAssignRolesDto, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Requires ADMIN role. Returns user details including roles and permissions.
+     * @summary Get a user by ID
+     * @param {ApiV1AdminUsersApiAdminUserControllerGetUserByIdRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminUserControllerGetUserById(
+      requestParameters: ApiV1AdminUsersApiAdminUserControllerGetUserByIdRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<AdminUserDto> {
+      return localVarFp
+        .adminUserControllerGetUserById(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Requires ADMIN role. Returns all users across the system.
+     * @summary List all users with filters, sorting, and pagination
+     * @param {ApiV1AdminUsersApiAdminUserControllerGetUsersRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminUserControllerGetUsers(
+      requestParameters: ApiV1AdminUsersApiAdminUserControllerGetUsersRequest = {},
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<AdminUserControllerGetUsers200Response> {
+      return localVarFp
+        .adminUserControllerGetUsers(
+          requestParameters.filter,
+          requestParameters.sortBy,
+          requestParameters.page,
+          requestParameters.limit,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Requires ADMIN role.
+     * @summary Remove a role from a user
+     * @param {ApiV1AdminUsersApiAdminUserControllerRemoveRoleRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminUserControllerRemoveRole(
+      requestParameters: ApiV1AdminUsersApiAdminUserControllerRemoveRoleRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<AdminUserDto> {
+      return localVarFp
+        .adminUserControllerRemoveRole(requestParameters.id, requestParameters.roleId, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Requires ADMIN role. Cannot deactivate yourself.
+     * @summary Activate or deactivate a user
+     * @param {ApiV1AdminUsersApiAdminUserControllerUpdateUserStatusRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    adminUserControllerUpdateUserStatus(
+      requestParameters: ApiV1AdminUsersApiAdminUserControllerUpdateUserStatusRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<AdminUserDto> {
+      return localVarFp
+        .adminUserControllerUpdateUserStatus(requestParameters.id, requestParameters.adminUserUpdateStatusDto, options)
+        .then((request) => request(axios, basePath));
+    },
+  };
+};
+
+/**
+ * ApiV1AdminUsersApi - interface
+ * @export
+ * @interface ApiV1AdminUsersApi
+ */
+export interface ApiV1AdminUsersApiInterface {
+  /**
+   * Requires ADMIN role. Replaces all existing role assignments.
+   * @summary Assign roles to a user
+   * @param {ApiV1AdminUsersApiAdminUserControllerAssignRolesRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminUsersApiInterface
+   */
+  adminUserControllerAssignRoles(
+    requestParameters: ApiV1AdminUsersApiAdminUserControllerAssignRolesRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<AdminUserDto>;
+
+  /**
+   * Requires ADMIN role. Returns user details including roles and permissions.
+   * @summary Get a user by ID
+   * @param {ApiV1AdminUsersApiAdminUserControllerGetUserByIdRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminUsersApiInterface
+   */
+  adminUserControllerGetUserById(
+    requestParameters: ApiV1AdminUsersApiAdminUserControllerGetUserByIdRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<AdminUserDto>;
+
+  /**
+   * Requires ADMIN role. Returns all users across the system.
+   * @summary List all users with filters, sorting, and pagination
+   * @param {ApiV1AdminUsersApiAdminUserControllerGetUsersRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminUsersApiInterface
+   */
+  adminUserControllerGetUsers(
+    requestParameters?: ApiV1AdminUsersApiAdminUserControllerGetUsersRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<AdminUserControllerGetUsers200Response>;
+
+  /**
+   * Requires ADMIN role.
+   * @summary Remove a role from a user
+   * @param {ApiV1AdminUsersApiAdminUserControllerRemoveRoleRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminUsersApiInterface
+   */
+  adminUserControllerRemoveRole(
+    requestParameters: ApiV1AdminUsersApiAdminUserControllerRemoveRoleRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<AdminUserDto>;
+
+  /**
+   * Requires ADMIN role. Cannot deactivate yourself.
+   * @summary Activate or deactivate a user
+   * @param {ApiV1AdminUsersApiAdminUserControllerUpdateUserStatusRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminUsersApiInterface
+   */
+  adminUserControllerUpdateUserStatus(
+    requestParameters: ApiV1AdminUsersApiAdminUserControllerUpdateUserStatusRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<AdminUserDto>;
+}
+
+/**
+ * Request parameters for adminUserControllerAssignRoles operation in ApiV1AdminUsersApi.
+ * @export
+ * @interface ApiV1AdminUsersApiAdminUserControllerAssignRolesRequest
+ */
+export interface ApiV1AdminUsersApiAdminUserControllerAssignRolesRequest {
+  /**
+   * The UUID of the user
+   * @type {string}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerAssignRoles
+   */
+  readonly id: string;
+
+  /**
+   *
+   * @type {AdminUserAssignRolesDto}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerAssignRoles
+   */
+  readonly adminUserAssignRolesDto: AdminUserAssignRolesDto;
+}
+
+/**
+ * Request parameters for adminUserControllerGetUserById operation in ApiV1AdminUsersApi.
+ * @export
+ * @interface ApiV1AdminUsersApiAdminUserControllerGetUserByIdRequest
+ */
+export interface ApiV1AdminUsersApiAdminUserControllerGetUserByIdRequest {
+  /**
+   * The UUID of the user
+   * @type {string}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerGetUserById
+   */
+  readonly id: string;
+}
+
+/**
+ * Request parameters for adminUserControllerGetUsers operation in ApiV1AdminUsersApi.
+ * @export
+ * @interface ApiV1AdminUsersApiAdminUserControllerGetUsersRequest
+ */
+export interface ApiV1AdminUsersApiAdminUserControllerGetUsersRequest {
+  /**
+   * JSON string of AdminUserFilterDto object
+   * @type {string}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerGetUsers
+   */
+  readonly filter?: string;
+
+  /**
+   * JSON string array of AdminUserSortByDto objects
+   * @type {string}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerGetUsers
+   */
+  readonly sortBy?: string;
+
+  /**
+   * Page number for pagination (starts at 1)
+   * @type {number}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerGetUsers
+   */
+  readonly page?: number;
+
+  /**
+   * Number of items per page
+   * @type {number}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerGetUsers
+   */
+  readonly limit?: number;
+}
+
+/**
+ * Request parameters for adminUserControllerRemoveRole operation in ApiV1AdminUsersApi.
+ * @export
+ * @interface ApiV1AdminUsersApiAdminUserControllerRemoveRoleRequest
+ */
+export interface ApiV1AdminUsersApiAdminUserControllerRemoveRoleRequest {
+  /**
+   * The UUID of the user
+   * @type {string}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerRemoveRole
+   */
+  readonly id: string;
+
+  /**
+   * The UUID of the role to remove
+   * @type {string}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerRemoveRole
+   */
+  readonly roleId: string;
+}
+
+/**
+ * Request parameters for adminUserControllerUpdateUserStatus operation in ApiV1AdminUsersApi.
+ * @export
+ * @interface ApiV1AdminUsersApiAdminUserControllerUpdateUserStatusRequest
+ */
+export interface ApiV1AdminUsersApiAdminUserControllerUpdateUserStatusRequest {
+  /**
+   * The UUID of the user
+   * @type {string}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerUpdateUserStatus
+   */
+  readonly id: string;
+
+  /**
+   *
+   * @type {AdminUserUpdateStatusDto}
+   * @memberof ApiV1AdminUsersApiAdminUserControllerUpdateUserStatus
+   */
+  readonly adminUserUpdateStatusDto: AdminUserUpdateStatusDto;
+}
+
+/**
+ * ApiV1AdminUsersApi - object-oriented interface
+ * @export
+ * @class ApiV1AdminUsersApi
+ * @extends {BaseAPI}
+ */
+export class ApiV1AdminUsersApi extends BaseAPI implements ApiV1AdminUsersApiInterface {
+  /**
+   * Requires ADMIN role. Replaces all existing role assignments.
+   * @summary Assign roles to a user
+   * @param {ApiV1AdminUsersApiAdminUserControllerAssignRolesRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminUsersApi
+   */
+  public adminUserControllerAssignRoles(
+    requestParameters: ApiV1AdminUsersApiAdminUserControllerAssignRolesRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1AdminUsersApiFp(this.configuration)
+      .adminUserControllerAssignRoles(requestParameters.id, requestParameters.adminUserAssignRolesDto, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Requires ADMIN role. Returns user details including roles and permissions.
+   * @summary Get a user by ID
+   * @param {ApiV1AdminUsersApiAdminUserControllerGetUserByIdRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminUsersApi
+   */
+  public adminUserControllerGetUserById(
+    requestParameters: ApiV1AdminUsersApiAdminUserControllerGetUserByIdRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1AdminUsersApiFp(this.configuration)
+      .adminUserControllerGetUserById(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Requires ADMIN role. Returns all users across the system.
+   * @summary List all users with filters, sorting, and pagination
+   * @param {ApiV1AdminUsersApiAdminUserControllerGetUsersRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminUsersApi
+   */
+  public adminUserControllerGetUsers(
+    requestParameters: ApiV1AdminUsersApiAdminUserControllerGetUsersRequest = {},
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1AdminUsersApiFp(this.configuration)
+      .adminUserControllerGetUsers(
+        requestParameters.filter,
+        requestParameters.sortBy,
+        requestParameters.page,
+        requestParameters.limit,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Requires ADMIN role.
+   * @summary Remove a role from a user
+   * @param {ApiV1AdminUsersApiAdminUserControllerRemoveRoleRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminUsersApi
+   */
+  public adminUserControllerRemoveRole(
+    requestParameters: ApiV1AdminUsersApiAdminUserControllerRemoveRoleRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1AdminUsersApiFp(this.configuration)
+      .adminUserControllerRemoveRole(requestParameters.id, requestParameters.roleId, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Requires ADMIN role. Cannot deactivate yourself.
+   * @summary Activate or deactivate a user
+   * @param {ApiV1AdminUsersApiAdminUserControllerUpdateUserStatusRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1AdminUsersApi
+   */
+  public adminUserControllerUpdateUserStatus(
+    requestParameters: ApiV1AdminUsersApiAdminUserControllerUpdateUserStatusRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1AdminUsersApiFp(this.configuration)
+      .adminUserControllerUpdateUserStatus(requestParameters.id, requestParameters.adminUserUpdateStatusDto, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 }
 
 /**
@@ -2949,18 +5119,18 @@ export const ApiV1DocumentsApiAxiosParamCreator = function (configuration?: Conf
     /**
      *
      * @summary Retrieve documents with filters, sorting, and pagination
-     * @param {number} [page] Page number for pagination (starts at 1)
-     * @param {number} [limit] Number of items per page
      * @param {string} [filter] JSON string of DocumentFilterDto object
      * @param {string} [sortBy] JSON string array of DocumentSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     documentControllerGetDocuments: async (
-      page?: number,
-      limit?: number,
       filter?: string,
       sortBy?: string,
+      page?: number,
+      limit?: number,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/api/v1/documents`;
@@ -2975,20 +5145,20 @@ export const ApiV1DocumentsApiAxiosParamCreator = function (configuration?: Conf
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
-      if (page !== undefined) {
-        localVarQueryParameter['page'] = page;
-      }
-
-      if (limit !== undefined) {
-        localVarQueryParameter['limit'] = limit;
-      }
-
       if (filter !== undefined) {
         localVarQueryParameter['filter'] = filter;
       }
 
       if (sortBy !== undefined) {
         localVarQueryParameter['sortBy'] = sortBy;
+      }
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page;
+      }
+
+      if (limit !== undefined) {
+        localVarQueryParameter['limit'] = limit;
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -3036,25 +5206,25 @@ export const ApiV1DocumentsApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Retrieve documents with filters, sorting, and pagination
-     * @param {number} [page] Page number for pagination (starts at 1)
-     * @param {number} [limit] Number of items per page
      * @param {string} [filter] JSON string of DocumentFilterDto object
      * @param {string} [sortBy] JSON string array of DocumentSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async documentControllerGetDocuments(
-      page?: number,
-      limit?: number,
       filter?: string,
       sortBy?: string,
+      page?: number,
+      limit?: number,
       options?: RawAxiosRequestConfig,
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentControllerGetDocuments200Response>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.documentControllerGetDocuments(
-        page,
-        limit,
         filter,
         sortBy,
+        page,
+        limit,
         options,
       );
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -3110,10 +5280,10 @@ export const ApiV1DocumentsApiFactory = function (
     ): AxiosPromise<DocumentControllerGetDocuments200Response> {
       return localVarFp
         .documentControllerGetDocuments(
-          requestParameters.page,
-          requestParameters.limit,
           requestParameters.filter,
           requestParameters.sortBy,
+          requestParameters.page,
+          requestParameters.limit,
           options,
         )
         .then((request) => request(axios, basePath));
@@ -3175,20 +5345,6 @@ export interface ApiV1DocumentsApiDocumentControllerGetDocumentByIdRequest {
  */
 export interface ApiV1DocumentsApiDocumentControllerGetDocumentsRequest {
   /**
-   * Page number for pagination (starts at 1)
-   * @type {number}
-   * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
-   */
-  readonly page?: number;
-
-  /**
-   * Number of items per page
-   * @type {number}
-   * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
-   */
-  readonly limit?: number;
-
-  /**
    * JSON string of DocumentFilterDto object
    * @type {string}
    * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
@@ -3201,6 +5357,20 @@ export interface ApiV1DocumentsApiDocumentControllerGetDocumentsRequest {
    * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
    */
   readonly sortBy?: string;
+
+  /**
+   * Page number for pagination (starts at 1)
+   * @type {number}
+   * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
+   */
+  readonly page?: number;
+
+  /**
+   * Number of items per page
+   * @type {number}
+   * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
+   */
+  readonly limit?: number;
 }
 
 /**
@@ -3241,10 +5411,10 @@ export class ApiV1DocumentsApi extends BaseAPI implements ApiV1DocumentsApiInter
   ) {
     return ApiV1DocumentsApiFp(this.configuration)
       .documentControllerGetDocuments(
-        requestParameters.page,
-        requestParameters.limit,
         requestParameters.filter,
         requestParameters.sortBy,
+        requestParameters.page,
+        requestParameters.limit,
         options,
       )
       .then((request) => request(this.axios, this.basePath));
@@ -3294,18 +5464,18 @@ export const ApiV1NamespacesApiAxiosParamCreator = function (configuration?: Con
     /**
      *
      * @summary Retrieve namespaces with filters, sorting, and pagination
-     * @param {number} [page] Page number for pagination (starts at 1)
-     * @param {number} [limit] Number of items per page
      * @param {string} [filter] JSON string of NamespaceFilterDto object
      * @param {string} [sortBy] JSON string array of NamespaceSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     namespaceControllerGetWorkflows: async (
-      page?: number,
-      limit?: number,
       filter?: string,
       sortBy?: string,
+      page?: number,
+      limit?: number,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/api/v1/namespaces`;
@@ -3320,20 +5490,20 @@ export const ApiV1NamespacesApiAxiosParamCreator = function (configuration?: Con
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
-      if (page !== undefined) {
-        localVarQueryParameter['page'] = page;
-      }
-
-      if (limit !== undefined) {
-        localVarQueryParameter['limit'] = limit;
-      }
-
       if (filter !== undefined) {
         localVarQueryParameter['filter'] = filter;
       }
 
       if (sortBy !== undefined) {
         localVarQueryParameter['sortBy'] = sortBy;
+      }
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page;
+      }
+
+      if (limit !== undefined) {
+        localVarQueryParameter['limit'] = limit;
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -3382,25 +5552,25 @@ export const ApiV1NamespacesApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Retrieve namespaces with filters, sorting, and pagination
-     * @param {number} [page] Page number for pagination (starts at 1)
-     * @param {number} [limit] Number of items per page
      * @param {string} [filter] JSON string of NamespaceFilterDto object
      * @param {string} [sortBy] JSON string array of NamespaceSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async namespaceControllerGetWorkflows(
-      page?: number,
-      limit?: number,
       filter?: string,
       sortBy?: string,
+      page?: number,
+      limit?: number,
       options?: RawAxiosRequestConfig,
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<NamespaceControllerGetWorkflows200Response>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.namespaceControllerGetWorkflows(
-        page,
-        limit,
         filter,
         sortBy,
+        page,
+        limit,
         options,
       );
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -3456,10 +5626,10 @@ export const ApiV1NamespacesApiFactory = function (
     ): AxiosPromise<NamespaceControllerGetWorkflows200Response> {
       return localVarFp
         .namespaceControllerGetWorkflows(
-          requestParameters.page,
-          requestParameters.limit,
           requestParameters.filter,
           requestParameters.sortBy,
+          requestParameters.page,
+          requestParameters.limit,
           options,
         )
         .then((request) => request(axios, basePath));
@@ -3521,20 +5691,6 @@ export interface ApiV1NamespacesApiNamespaceControllerGetWorkflowByIdRequest {
  */
 export interface ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest {
   /**
-   * Page number for pagination (starts at 1)
-   * @type {number}
-   * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
-   */
-  readonly page?: number;
-
-  /**
-   * Number of items per page
-   * @type {number}
-   * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
-   */
-  readonly limit?: number;
-
-  /**
    * JSON string of NamespaceFilterDto object
    * @type {string}
    * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
@@ -3547,6 +5703,20 @@ export interface ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest {
    * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
    */
   readonly sortBy?: string;
+
+  /**
+   * Page number for pagination (starts at 1)
+   * @type {number}
+   * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
+   */
+  readonly page?: number;
+
+  /**
+   * Number of items per page
+   * @type {number}
+   * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
+   */
+  readonly limit?: number;
 }
 
 /**
@@ -3587,10 +5757,10 @@ export class ApiV1NamespacesApi extends BaseAPI implements ApiV1NamespacesApiInt
   ) {
     return ApiV1NamespacesApiFp(this.configuration)
       .namespaceControllerGetWorkflows(
-        requestParameters.page,
-        requestParameters.limit,
         requestParameters.filter,
         requestParameters.sortBy,
+        requestParameters.page,
+        requestParameters.limit,
         options,
       )
       .then((request) => request(this.axios, this.basePath));
@@ -3603,6 +5773,83 @@ export class ApiV1NamespacesApi extends BaseAPI implements ApiV1NamespacesApiInt
  */
 export const ApiV1PipelinesApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
+    /**
+     * Returns the content of a specific file in the pipeline\'s workspace
+     * @summary Get file content
+     * @param {string} pipelineId The unique identifier of the pipeline
+     * @param {string} filePath File path relative to workspace root (URL encoded, supports nested paths)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    fileControllerGetFileContent: async (
+      pipelineId: string,
+      filePath: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'pipelineId' is not null or undefined
+      assertParamExists('fileControllerGetFileContent', 'pipelineId', pipelineId);
+      // verify required parameter 'filePath' is not null or undefined
+      assertParamExists('fileControllerGetFileContent', 'filePath', filePath);
+      const localVarPath = `/api/v1/pipelines/{pipelineId}/files/{filePath}`
+        .replace(`{${'pipelineId'}}`, encodeURIComponent(String(pipelineId)))
+        .replace(`{${'filePath'}}`, encodeURIComponent(String(filePath)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Returns the file tree structure of files in the pipeline\'s workspace directory
+     * @summary Get file tree for a pipeline
+     * @param {string} pipelineId The unique identifier of the pipeline
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    fileControllerGetFileTree: async (
+      pipelineId: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'pipelineId' is not null or undefined
+      assertParamExists('fileControllerGetFileTree', 'pipelineId', pipelineId);
+      const localVarPath = `/api/v1/pipelines/{pipelineId}/files`.replace(
+        `{${'pipelineId'}}`,
+        encodeURIComponent(String(pipelineId)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
     /**
      *
      * @summary Delete multiple pipelines by IDs
@@ -3753,22 +6000,20 @@ export const ApiV1PipelinesApiAxiosParamCreator = function (configuration?: Conf
     /**
      *
      * @summary Retrieve pipelines with filters, sorting, pagination, and search
-     * @param {number} [page] Page number for pagination (starts at 1)
-     * @param {number} [limit] Number of items per page
      * @param {string} [filter] JSON string of PipelineFilterDto object
      * @param {string} [sortBy] JSON string array of PipelineSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
      * @param {string} [search] Search term to filter workspaces by title or other searchable fields
-     * @param {string} [searchColumns] JSON string array of columns to search in (defaults to title and type if not specified)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     pipelineControllerGetPipelines: async (
-      page?: number,
-      limit?: number,
       filter?: string,
       sortBy?: string,
+      page?: number,
+      limit?: number,
       search?: string,
-      searchColumns?: string,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/api/v1/pipelines`;
@@ -3783,14 +6028,6 @@ export const ApiV1PipelinesApiAxiosParamCreator = function (configuration?: Conf
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
-      if (page !== undefined) {
-        localVarQueryParameter['page'] = page;
-      }
-
-      if (limit !== undefined) {
-        localVarQueryParameter['limit'] = limit;
-      }
-
       if (filter !== undefined) {
         localVarQueryParameter['filter'] = filter;
       }
@@ -3799,12 +6036,16 @@ export const ApiV1PipelinesApiAxiosParamCreator = function (configuration?: Conf
         localVarQueryParameter['sortBy'] = sortBy;
       }
 
-      if (search !== undefined) {
-        localVarQueryParameter['search'] = search;
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page;
       }
 
-      if (searchColumns !== undefined) {
-        localVarQueryParameter['searchColumns'] = searchColumns;
+      if (limit !== undefined) {
+        localVarQueryParameter['limit'] = limit;
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search;
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -3867,6 +6108,58 @@ export const ApiV1PipelinesApiAxiosParamCreator = function (configuration?: Conf
 export const ApiV1PipelinesApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = ApiV1PipelinesApiAxiosParamCreator(configuration);
   return {
+    /**
+     * Returns the content of a specific file in the pipeline\'s workspace
+     * @summary Get file content
+     * @param {string} pipelineId The unique identifier of the pipeline
+     * @param {string} filePath File path relative to workspace root (URL encoded, supports nested paths)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async fileControllerGetFileContent(
+      pipelineId: string,
+      filePath: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FileContentDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.fileControllerGetFileContent(
+        pipelineId,
+        filePath,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1PipelinesApi.fileControllerGetFileContent']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Returns the file tree structure of files in the pipeline\'s workspace directory
+     * @summary Get file tree for a pipeline
+     * @param {string} pipelineId The unique identifier of the pipeline
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async fileControllerGetFileTree(
+      pipelineId: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<FileExplorerNodeDto>>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.fileControllerGetFileTree(pipelineId, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1PipelinesApi.fileControllerGetFileTree']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
     /**
      *
      * @summary Delete multiple pipelines by IDs
@@ -3971,31 +6264,28 @@ export const ApiV1PipelinesApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Retrieve pipelines with filters, sorting, pagination, and search
-     * @param {number} [page] Page number for pagination (starts at 1)
-     * @param {number} [limit] Number of items per page
      * @param {string} [filter] JSON string of PipelineFilterDto object
      * @param {string} [sortBy] JSON string array of PipelineSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
      * @param {string} [search] Search term to filter workspaces by title or other searchable fields
-     * @param {string} [searchColumns] JSON string array of columns to search in (defaults to title and type if not specified)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async pipelineControllerGetPipelines(
-      page?: number,
-      limit?: number,
       filter?: string,
       sortBy?: string,
+      page?: number,
+      limit?: number,
       search?: string,
-      searchColumns?: string,
       options?: RawAxiosRequestConfig,
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PipelineControllerGetPipelines200Response>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.pipelineControllerGetPipelines(
-        page,
-        limit,
         filter,
         sortBy,
+        page,
+        limit,
         search,
-        searchColumns,
         options,
       );
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -4052,6 +6342,36 @@ export const ApiV1PipelinesApiFactory = function (
 ) {
   const localVarFp = ApiV1PipelinesApiFp(configuration);
   return {
+    /**
+     * Returns the content of a specific file in the pipeline\'s workspace
+     * @summary Get file content
+     * @param {ApiV1PipelinesApiFileControllerGetFileContentRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    fileControllerGetFileContent(
+      requestParameters: ApiV1PipelinesApiFileControllerGetFileContentRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<FileContentDto> {
+      return localVarFp
+        .fileControllerGetFileContent(requestParameters.pipelineId, requestParameters.filePath, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Returns the file tree structure of files in the pipeline\'s workspace directory
+     * @summary Get file tree for a pipeline
+     * @param {ApiV1PipelinesApiFileControllerGetFileTreeRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    fileControllerGetFileTree(
+      requestParameters: ApiV1PipelinesApiFileControllerGetFileTreeRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<Array<FileExplorerNodeDto>> {
+      return localVarFp
+        .fileControllerGetFileTree(requestParameters.pipelineId, options)
+        .then((request) => request(axios, basePath));
+    },
     /**
      *
      * @summary Delete multiple pipelines by IDs
@@ -4128,12 +6448,11 @@ export const ApiV1PipelinesApiFactory = function (
     ): AxiosPromise<PipelineControllerGetPipelines200Response> {
       return localVarFp
         .pipelineControllerGetPipelines(
-          requestParameters.page,
-          requestParameters.limit,
           requestParameters.filter,
           requestParameters.sortBy,
+          requestParameters.page,
+          requestParameters.limit,
           requestParameters.search,
-          requestParameters.searchColumns,
           options,
         )
         .then((request) => request(axios, basePath));
@@ -4162,6 +6481,32 @@ export const ApiV1PipelinesApiFactory = function (
  * @interface ApiV1PipelinesApi
  */
 export interface ApiV1PipelinesApiInterface {
+  /**
+   * Returns the content of a specific file in the pipeline\'s workspace
+   * @summary Get file content
+   * @param {ApiV1PipelinesApiFileControllerGetFileContentRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1PipelinesApiInterface
+   */
+  fileControllerGetFileContent(
+    requestParameters: ApiV1PipelinesApiFileControllerGetFileContentRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<FileContentDto>;
+
+  /**
+   * Returns the file tree structure of files in the pipeline\'s workspace directory
+   * @summary Get file tree for a pipeline
+   * @param {ApiV1PipelinesApiFileControllerGetFileTreeRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1PipelinesApiInterface
+   */
+  fileControllerGetFileTree(
+    requestParameters: ApiV1PipelinesApiFileControllerGetFileTreeRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<Array<FileExplorerNodeDto>>;
+
   /**
    *
    * @summary Delete multiple pipelines by IDs
@@ -4242,6 +6587,41 @@ export interface ApiV1PipelinesApiInterface {
 }
 
 /**
+ * Request parameters for fileControllerGetFileContent operation in ApiV1PipelinesApi.
+ * @export
+ * @interface ApiV1PipelinesApiFileControllerGetFileContentRequest
+ */
+export interface ApiV1PipelinesApiFileControllerGetFileContentRequest {
+  /**
+   * The unique identifier of the pipeline
+   * @type {string}
+   * @memberof ApiV1PipelinesApiFileControllerGetFileContent
+   */
+  readonly pipelineId: string;
+
+  /**
+   * File path relative to workspace root (URL encoded, supports nested paths)
+   * @type {string}
+   * @memberof ApiV1PipelinesApiFileControllerGetFileContent
+   */
+  readonly filePath: string;
+}
+
+/**
+ * Request parameters for fileControllerGetFileTree operation in ApiV1PipelinesApi.
+ * @export
+ * @interface ApiV1PipelinesApiFileControllerGetFileTreeRequest
+ */
+export interface ApiV1PipelinesApiFileControllerGetFileTreeRequest {
+  /**
+   * The unique identifier of the pipeline
+   * @type {string}
+   * @memberof ApiV1PipelinesApiFileControllerGetFileTree
+   */
+  readonly pipelineId: string;
+}
+
+/**
  * Request parameters for pipelineControllerBatchDeletePipelines operation in ApiV1PipelinesApi.
  * @export
  * @interface ApiV1PipelinesApiPipelineControllerBatchDeletePipelinesRequest
@@ -4304,20 +6684,6 @@ export interface ApiV1PipelinesApiPipelineControllerGetPipelineByIdRequest {
  */
 export interface ApiV1PipelinesApiPipelineControllerGetPipelinesRequest {
   /**
-   * Page number for pagination (starts at 1)
-   * @type {number}
-   * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
-   */
-  readonly page?: number;
-
-  /**
-   * Number of items per page
-   * @type {number}
-   * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
-   */
-  readonly limit?: number;
-
-  /**
    * JSON string of PipelineFilterDto object
    * @type {string}
    * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
@@ -4332,18 +6698,25 @@ export interface ApiV1PipelinesApiPipelineControllerGetPipelinesRequest {
   readonly sortBy?: string;
 
   /**
+   * Page number for pagination (starts at 1)
+   * @type {number}
+   * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
+   */
+  readonly page?: number;
+
+  /**
+   * Number of items per page
+   * @type {number}
+   * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
+   */
+  readonly limit?: number;
+
+  /**
    * Search term to filter workspaces by title or other searchable fields
    * @type {string}
    * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
    */
   readonly search?: string;
-
-  /**
-   * JSON string array of columns to search in (defaults to title and type if not specified)
-   * @type {string}
-   * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
-   */
-  readonly searchColumns?: string;
 }
 
 /**
@@ -4374,6 +6747,40 @@ export interface ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest {
  * @extends {BaseAPI}
  */
 export class ApiV1PipelinesApi extends BaseAPI implements ApiV1PipelinesApiInterface {
+  /**
+   * Returns the content of a specific file in the pipeline\'s workspace
+   * @summary Get file content
+   * @param {ApiV1PipelinesApiFileControllerGetFileContentRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1PipelinesApi
+   */
+  public fileControllerGetFileContent(
+    requestParameters: ApiV1PipelinesApiFileControllerGetFileContentRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1PipelinesApiFp(this.configuration)
+      .fileControllerGetFileContent(requestParameters.pipelineId, requestParameters.filePath, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Returns the file tree structure of files in the pipeline\'s workspace directory
+   * @summary Get file tree for a pipeline
+   * @param {ApiV1PipelinesApiFileControllerGetFileTreeRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1PipelinesApi
+   */
+  public fileControllerGetFileTree(
+    requestParameters: ApiV1PipelinesApiFileControllerGetFileTreeRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1PipelinesApiFp(this.configuration)
+      .fileControllerGetFileTree(requestParameters.pipelineId, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
   /**
    *
    * @summary Delete multiple pipelines by IDs
@@ -4456,12 +6863,11 @@ export class ApiV1PipelinesApi extends BaseAPI implements ApiV1PipelinesApiInter
   ) {
     return ApiV1PipelinesApiFp(this.configuration)
       .pipelineControllerGetPipelines(
-        requestParameters.page,
-        requestParameters.limit,
         requestParameters.filter,
         requestParameters.sortBy,
+        requestParameters.page,
+        requestParameters.limit,
         requestParameters.search,
-        requestParameters.searchColumns,
         options,
       )
       .then((request) => request(this.axios, this.basePath));
@@ -4705,7 +7111,7 @@ export class ApiV1ProcessorApi extends BaseAPI implements ApiV1ProcessorApiInter
 export const ApiV1SseApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
-     * Returns the number of active SSE connections
+     * Returns the number of active SSE connections. Requires ADMIN role.
      * @summary SSE health check
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -4771,7 +7177,7 @@ export const ApiV1SseApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = ApiV1SseApiAxiosParamCreator(configuration);
   return {
     /**
-     * Returns the number of active SSE connections
+     * Returns the number of active SSE connections. Requires ADMIN role.
      * @summary SSE health check
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -4823,7 +7229,7 @@ export const ApiV1SseApiFactory = function (configuration?: Configuration, baseP
   const localVarFp = ApiV1SseApiFp(configuration);
   return {
     /**
-     * Returns the number of active SSE connections
+     * Returns the number of active SSE connections. Requires ADMIN role.
      * @summary SSE health check
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -4850,7 +7256,7 @@ export const ApiV1SseApiFactory = function (configuration?: Configuration, baseP
  */
 export interface ApiV1SseApiInterface {
   /**
-   * Returns the number of active SSE connections
+   * Returns the number of active SSE connections. Requires ADMIN role.
    * @summary SSE health check
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -4876,7 +7282,7 @@ export interface ApiV1SseApiInterface {
  */
 export class ApiV1SseApi extends BaseAPI implements ApiV1SseApiInterface {
   /**
-   * Returns the number of active SSE connections
+   * Returns the number of active SSE connections. Requires ADMIN role.
    * @summary SSE health check
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -4976,18 +7382,18 @@ export const ApiV1WorkflowsApiAxiosParamCreator = function (configuration?: Conf
     /**
      *
      * @summary Retrieve workflows with filters, sorting, and pagination
-     * @param {number} [page] Page number for pagination (starts at 1)
-     * @param {number} [limit] Number of items per page
      * @param {string} [filter] JSON string of WorkflowFilterDto object
      * @param {string} [sortBy] JSON string array of WorkflowSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     workflowControllerGetWorkflows: async (
-      page?: number,
-      limit?: number,
       filter?: string,
       sortBy?: string,
+      page?: number,
+      limit?: number,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/api/v1/workflows`;
@@ -5002,20 +7408,20 @@ export const ApiV1WorkflowsApiAxiosParamCreator = function (configuration?: Conf
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
-      if (page !== undefined) {
-        localVarQueryParameter['page'] = page;
-      }
-
-      if (limit !== undefined) {
-        localVarQueryParameter['limit'] = limit;
-      }
-
       if (filter !== undefined) {
         localVarQueryParameter['filter'] = filter;
       }
 
       if (sortBy !== undefined) {
         localVarQueryParameter['sortBy'] = sortBy;
+      }
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page;
+      }
+
+      if (limit !== undefined) {
+        localVarQueryParameter['limit'] = limit;
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -5086,25 +7492,25 @@ export const ApiV1WorkflowsApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Retrieve workflows with filters, sorting, and pagination
-     * @param {number} [page] Page number for pagination (starts at 1)
-     * @param {number} [limit] Number of items per page
      * @param {string} [filter] JSON string of WorkflowFilterDto object
      * @param {string} [sortBy] JSON string array of WorkflowSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async workflowControllerGetWorkflows(
-      page?: number,
-      limit?: number,
       filter?: string,
       sortBy?: string,
+      page?: number,
+      limit?: number,
       options?: RawAxiosRequestConfig,
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkflowControllerGetWorkflows200Response>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.workflowControllerGetWorkflows(
-        page,
-        limit,
         filter,
         sortBy,
+        page,
+        limit,
         options,
       );
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -5175,10 +7581,10 @@ export const ApiV1WorkflowsApiFactory = function (
     ): AxiosPromise<WorkflowControllerGetWorkflows200Response> {
       return localVarFp
         .workflowControllerGetWorkflows(
-          requestParameters.page,
-          requestParameters.limit,
           requestParameters.filter,
           requestParameters.sortBy,
+          requestParameters.page,
+          requestParameters.limit,
           options,
         )
         .then((request) => request(axios, basePath));
@@ -5267,20 +7673,6 @@ export interface ApiV1WorkflowsApiWorkflowControllerGetWorkflowByIdRequest {
  */
 export interface ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest {
   /**
-   * Page number for pagination (starts at 1)
-   * @type {number}
-   * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
-   */
-  readonly page?: number;
-
-  /**
-   * Number of items per page
-   * @type {number}
-   * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
-   */
-  readonly limit?: number;
-
-  /**
    * JSON string of WorkflowFilterDto object
    * @type {string}
    * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
@@ -5293,6 +7685,20 @@ export interface ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest {
    * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
    */
   readonly sortBy?: string;
+
+  /**
+   * Page number for pagination (starts at 1)
+   * @type {number}
+   * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
+   */
+  readonly page?: number;
+
+  /**
+   * Number of items per page
+   * @type {number}
+   * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
+   */
+  readonly limit?: number;
 }
 
 /**
@@ -5350,10 +7756,10 @@ export class ApiV1WorkflowsApi extends BaseAPI implements ApiV1WorkflowsApiInter
   ) {
     return ApiV1WorkflowsApiFp(this.configuration)
       .workflowControllerGetWorkflows(
-        requestParameters.page,
-        requestParameters.limit,
         requestParameters.filter,
         requestParameters.sortBy,
+        requestParameters.page,
+        requestParameters.limit,
         options,
       )
       .then((request) => request(this.axios, this.basePath));
@@ -5519,22 +7925,20 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
     /**
      *
      * @summary Retrieve workspaces with filters, sorting, pagination, and search
-     * @param {number} [page] Page number for pagination (starts at 1)
-     * @param {number} [limit] Number of items per page
      * @param {string} [filter] JSON string of WorkspaceFilterDto object
      * @param {string} [sortBy] JSON string array of WorkspaceSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
      * @param {string} [search] Search term to filter workspaces by title or other searchable fields
-     * @param {string} [searchColumns] JSON string array of columns to search in (defaults to title and type if not specified)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     workspaceControllerGetWorkspaces: async (
-      page?: number,
-      limit?: number,
       filter?: string,
       sortBy?: string,
+      page?: number,
+      limit?: number,
       search?: string,
-      searchColumns?: string,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/api/v1/workspaces`;
@@ -5549,14 +7953,6 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
-      if (page !== undefined) {
-        localVarQueryParameter['page'] = page;
-      }
-
-      if (limit !== undefined) {
-        localVarQueryParameter['limit'] = limit;
-      }
-
       if (filter !== undefined) {
         localVarQueryParameter['filter'] = filter;
       }
@@ -5565,12 +7961,16 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
         localVarQueryParameter['sortBy'] = sortBy;
       }
 
-      if (search !== undefined) {
-        localVarQueryParameter['search'] = search;
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page;
       }
 
-      if (searchColumns !== undefined) {
-        localVarQueryParameter['searchColumns'] = searchColumns;
+      if (limit !== undefined) {
+        localVarQueryParameter['limit'] = limit;
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search;
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -5741,33 +8141,30 @@ export const ApiV1WorkspacesApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Retrieve workspaces with filters, sorting, pagination, and search
-     * @param {number} [page] Page number for pagination (starts at 1)
-     * @param {number} [limit] Number of items per page
      * @param {string} [filter] JSON string of WorkspaceFilterDto object
      * @param {string} [sortBy] JSON string array of WorkspaceSortByDto objects
+     * @param {number} [page] Page number for pagination (starts at 1)
+     * @param {number} [limit] Number of items per page
      * @param {string} [search] Search term to filter workspaces by title or other searchable fields
-     * @param {string} [searchColumns] JSON string array of columns to search in (defaults to title and type if not specified)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async workspaceControllerGetWorkspaces(
-      page?: number,
-      limit?: number,
       filter?: string,
       sortBy?: string,
+      page?: number,
+      limit?: number,
       search?: string,
-      searchColumns?: string,
       options?: RawAxiosRequestConfig,
     ): Promise<
       (axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceControllerGetWorkspaces200Response>
     > {
       const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerGetWorkspaces(
-        page,
-        limit,
         filter,
         sortBy,
+        page,
+        limit,
         search,
-        searchColumns,
         options,
       );
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -5901,12 +8298,11 @@ export const ApiV1WorkspacesApiFactory = function (
     ): AxiosPromise<WorkspaceControllerGetWorkspaces200Response> {
       return localVarFp
         .workspaceControllerGetWorkspaces(
-          requestParameters.page,
-          requestParameters.limit,
           requestParameters.filter,
           requestParameters.sortBy,
+          requestParameters.page,
+          requestParameters.limit,
           requestParameters.search,
-          requestParameters.searchColumns,
           options,
         )
         .then((request) => request(axios, basePath));
@@ -6077,20 +8473,6 @@ export interface ApiV1WorkspacesApiWorkspaceControllerGetWorkspaceByIdRequest {
  */
 export interface ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest {
   /**
-   * Page number for pagination (starts at 1)
-   * @type {number}
-   * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
-   */
-  readonly page?: number;
-
-  /**
-   * Number of items per page
-   * @type {number}
-   * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
-   */
-  readonly limit?: number;
-
-  /**
    * JSON string of WorkspaceFilterDto object
    * @type {string}
    * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
@@ -6105,18 +8487,25 @@ export interface ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest {
   readonly sortBy?: string;
 
   /**
+   * Page number for pagination (starts at 1)
+   * @type {number}
+   * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
+   */
+  readonly page?: number;
+
+  /**
+   * Number of items per page
+   * @type {number}
+   * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
+   */
+  readonly limit?: number;
+
+  /**
    * Search term to filter workspaces by title or other searchable fields
    * @type {string}
    * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
    */
   readonly search?: string;
-
-  /**
-   * JSON string array of columns to search in (defaults to title and type if not specified)
-   * @type {string}
-   * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
-   */
-  readonly searchColumns?: string;
 }
 
 /**
@@ -6232,12 +8621,11 @@ export class ApiV1WorkspacesApi extends BaseAPI implements ApiV1WorkspacesApiInt
   ) {
     return ApiV1WorkspacesApiFp(this.configuration)
       .workspaceControllerGetWorkspaces(
-        requestParameters.page,
-        requestParameters.limit,
         requestParameters.filter,
         requestParameters.sortBy,
+        requestParameters.page,
+        requestParameters.limit,
         requestParameters.search,
-        requestParameters.searchColumns,
         options,
       )
       .then((request) => request(this.axios, this.basePath));

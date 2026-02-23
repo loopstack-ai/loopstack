@@ -31,17 +31,17 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.23",
-    "@ai-sdk/openai": "^3.0.19",
-    "@ai-sdk/provider-utils": "^4.0.9",
+    "@ai-sdk/anthropic": "^3.0.45",
+    "@ai-sdk/openai": "^3.0.30",
+    "@ai-sdk/provider-utils": "^4.0.15",
     "@loopstack/common": "^0.20.3",
     "@loopstack/core-ui-module": "^0.20.3",
-    "@nestjs/common": "^11.1.12",
-    "@nestjs/config": "^4.0.2",
-    "@nestjs/core": "^11.1.12",
-    "ai": "^6.0.48",
+    "@nestjs/common": "^11.1.14",
+    "@nestjs/config": "^4.0.3",
+    "@nestjs/core": "^11.1.14",
+    "ai": "^6.0.91",
     "lodash": "^4.17.23",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "files": [
     "dist",
