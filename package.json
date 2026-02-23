@@ -83,7 +83,6 @@
     "templates/*",
     "generators/*",
     "registry/*/*",
-    "workspace/*/*",
-    "platform/*"
+    "client/*"
   ]
 }

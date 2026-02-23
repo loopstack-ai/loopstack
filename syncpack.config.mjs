@@ -18,7 +18,6 @@ export default {
     'packages/*/package.json',
     'frontend/*/package.json',
     'templates/*/package.json',
-    'platform/*/package.json',
     'registry/*/*/package.json',
   ],
 

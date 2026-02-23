@@ -1,6 +1,0 @@
-[submodule "apps/dev-tools"]
-	path = apps/dev-tools
-	url = git@github.com:loopstack-ai/dev-tools.git
-[submodule "platform"]
-	path = platform
-	url = git@github.com:loopstack-ai/platform.git

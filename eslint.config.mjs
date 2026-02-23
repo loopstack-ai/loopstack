@@ -19,10 +19,8 @@ export default tseslint.config(
       '**/vitest.config.ts',
       '**/vite.config.ts',
       '**/__backup__/**',
-      'scripts/**',
-      'apps/**',
-      'workspace/**',
-      'platform/website',
+      'client',
+      'utils',
     ],
   },
 
@@ -56,7 +54,7 @@ export default tseslint.config(
 
   // Backend (NestJS) - Node globals
   {
-    files: ['packages/**/*.ts', 'registry/**/*.ts', 'platform/app-builder/**/*.ts', 'platform/hub-backend/**/*.ts'],
+    files: ['packages/**/*.ts', 'registry/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -109,7 +107,7 @@ export default tseslint.config(
 
   // Frontend (React/Vite) - Browser globals + React plugins
   {
-    files: ['frontend/**/*.{ts,tsx}', 'platform/cloud-frontend/**/*.{ts,tsx}', 'platform/hub-client/**/*.{ts,tsx}'],
+    files: ['frontend/**/*.{ts,tsx}'],
     plugins: {
       // 'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
