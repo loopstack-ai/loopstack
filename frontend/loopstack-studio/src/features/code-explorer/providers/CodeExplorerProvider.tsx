@@ -51,6 +51,7 @@ interface CodeExplorerProviderProps {
   children: React.ReactNode;
   pipelineId?: string;
   initialSelectedPath?: string;
+  fileExplorerEnabled?: boolean;
 }
 
 function mapDtoToNode(dto: FileExplorerNodeDto): FileExplorerNode {
@@ -63,14 +64,19 @@ function mapDtoToNode(dto: FileExplorerNodeDto): FileExplorerNode {
   };
 }
 
-export function CodeExplorerProvider({ children, pipelineId, initialSelectedPath }: CodeExplorerProviderProps) {
+export function CodeExplorerProvider({
+  children,
+  pipelineId,
+  initialSelectedPath,
+  fileExplorerEnabled = false,
+}: CodeExplorerProviderProps) {
   const [openFiles, setOpenFiles] = useState<FileExplorerNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileExplorerNode | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
-  const fileTreeQuery = useFileTree(pipelineId);
-  const fileContentQuery = useFileContent(pipelineId, selectedFile?.path);
+  const fileTreeQuery = useFileTree(pipelineId, fileExplorerEnabled);
+  const fileContentQuery = useFileContent(pipelineId, selectedFile?.path, fileExplorerEnabled);
 
   const fileTree = useMemo(() => {
     if (!fileTreeQuery.data) return [];

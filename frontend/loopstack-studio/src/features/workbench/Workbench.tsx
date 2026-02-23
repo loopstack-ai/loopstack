@@ -67,9 +67,11 @@ export default function Workbench({ pipeline }: { pipeline: PipelineDto }) {
     [workbenchState, handleSetActiveSectionId],
   );
 
+  const fileExplorerEnabled = fetchWorkspace.data?.features?.fileExplorer?.enabled ?? false;
+
   return (
     <WorkbenchContextProvider.Provider value={contextValue}>
-      <CodeExplorerProvider pipelineId={pipeline?.id}>
+      <CodeExplorerProvider pipelineId={pipeline?.id} fileExplorerEnabled={fileExplorerEnabled}>
         <SidebarProvider defaultOpen={true} className="workbench-sidebar min-h-0">
           <SidebarTrigger className="fixed top-0 right-0 z-40 flex h-8 w-8 items-center justify-center p-8 hover:cursor-pointer md:hidden" />
           <SidebarInsetDiv>

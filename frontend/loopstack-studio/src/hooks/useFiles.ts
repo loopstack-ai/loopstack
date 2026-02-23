@@ -1,9 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
+import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import type { AxiosResponse } from 'axios';
 import type { FileContentDto, FileExplorerNodeDto } from '@loopstack/api-client';
 import { useApiClient } from './useApi';
 
-export function useFileTree(pipelineId: string | undefined) {
+export function useFileTree(
+  pipelineId: string | undefined,
+  fileExplorerEnabled = true,
+): UseQueryResult<FileExplorerNodeDto[], Error> {
   const { envKey, api } = useApiClient();
 
   return useQuery<AxiosResponse<FileExplorerNodeDto[]>, Error, FileExplorerNodeDto[]>({
@@ -17,7 +20,7 @@ export function useFileTree(pipelineId: string | undefined) {
       }
       return api.ApiV1PipelinesApi.fileControllerGetFileTree({ pipelineId });
     },
-    enabled: !!pipelineId,
+    enabled: !!pipelineId && fileExplorerEnabled,
     select: (res) => res.data,
     staleTime: 5 * 60 * 1000,
     refetchOnMount: false,
@@ -26,7 +29,11 @@ export function useFileTree(pipelineId: string | undefined) {
   });
 }
 
-export function useFileContent(pipelineId: string | undefined, filePath: string | undefined) {
+export function useFileContent(
+  pipelineId: string | undefined,
+  filePath: string | undefined,
+  fileExplorerEnabled = true,
+): UseQueryResult<FileContentDto, Error> {
   const { envKey, api } = useApiClient();
 
   return useQuery<AxiosResponse<FileContentDto>, Error, FileContentDto>({
@@ -43,7 +50,7 @@ export function useFileContent(pipelineId: string | undefined, filePath: string 
         filePath,
       });
     },
-    enabled: !!pipelineId && !!filePath,
+    enabled: !!pipelineId && !!filePath && fileExplorerEnabled,
     select: (res) => res.data,
   });
 }
