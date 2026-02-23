@@ -43,5 +43,8 @@
     "@loopstack/app-template": "0.18.3",
     "@loopstack/registry-module-template": "0.19.2"
   },
-  "changesets": []
+  "changesets": [
+    "small-ends-doubt",
+    "twelve-sheep-happen"
+  ]
 }
