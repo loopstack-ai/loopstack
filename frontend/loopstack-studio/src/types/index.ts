@@ -2,6 +2,7 @@ export interface Environment {
   id: string;
   name: string;
   url: string;
+  getIdToken?: () => Promise<string>;
 }
 
 export interface StudioRouter {

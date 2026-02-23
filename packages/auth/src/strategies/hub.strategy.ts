@@ -2,22 +2,33 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
+import { JWTVerifyGetKey, createRemoteJWKSet, jwtVerify } from 'jose';
 import { Strategy } from 'passport-custom';
 import { UserTypeEnum } from '@loopstack/common';
 import { User } from '@loopstack/common';
 import { UserRepository } from '../repositories';
-import { HubService } from '../services';
 
 @Injectable()
 export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
   private readonly logger = new Logger(HubStrategy.name);
+  private jwks: JWTVerifyGetKey | null = null;
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly hubService: HubService,
     private readonly userRepository: UserRepository,
   ) {
     super();
+  }
+
+  private getJwks(): JWTVerifyGetKey {
+    if (!this.jwks) {
+      const jwksUri = this.configService.get<string>('auth.hub.jwksUri');
+      if (!jwksUri) {
+        throw new UnauthorizedException('Hub JWKS URI not configured');
+      }
+      this.jwks = createRemoteJWKSet(new URL(jwksUri));
+    }
+    return this.jwks;
   }
 
   private async validateLocalUser() {
@@ -39,31 +50,37 @@ export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
   }
 
   private async validateCloudUser(req: Request) {
-    const { code, grantType } = req.body as { code?: string; grantType?: string };
+    const { idToken } = req.body as { idToken?: string };
 
-    this.logger.log('Validating SSO token exchange request');
-
-    if (!code || grantType !== 'authorization_code') {
-      throw new UnauthorizedException('Invalid grant type or missing code');
+    if (!idToken) {
+      throw new UnauthorizedException('Missing ID token');
     }
 
-    const validateCodeResponse = await this.hubService.exchangeCodeForUserInfo(code);
-    if (!validateCodeResponse.data?.id) {
-      throw new UnauthorizedException('Code exchange failed');
+    const issuer = this.configService.get<string>('auth.hub.issuer');
+    const clientId = this.configService.get<string>('auth.clientId');
+
+    const { payload } = await jwtVerify(idToken, this.getJwks(), {
+      issuer,
+      audience: clientId,
+    });
+
+    if (!payload.sub) {
+      throw new UnauthorizedException('ID token missing sub claim');
     }
 
-    const existingUser = await this.userRepository.findById(validateCodeResponse.data?.id);
+    const existingUser = await this.userRepository.findById(payload.sub);
     if (existingUser) {
       return existingUser;
     }
 
     const user = await this.userRepository.create({
-      id: validateCodeResponse.data?.id,
+      id: payload.sub,
+      type: UserTypeEnum.Cloud,
       isActive: true,
       roles: [],
     });
 
-    this.logger.log(`SSO authentication successful for user ${user.id}`);
+    this.logger.log(`Hub ID token authentication successful for user ${user.id}`);
 
     return user;
   }
@@ -75,8 +92,12 @@ export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
         return this.validateLocalUser();
       }
 
-      return this.validateCloudUser(req);
-    } catch {
+      return await this.validateCloudUser(req);
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      this.logger.error(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw new UnauthorizedException('Authentication failed.');
     }
   }

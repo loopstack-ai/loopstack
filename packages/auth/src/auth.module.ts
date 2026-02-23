@@ -9,9 +9,8 @@ import { AssignRoleCommand } from './commands/assign-role.command';
 import { AuthController } from './controllers';
 import { JwtAuthGuard, RolesGuard } from './guards';
 import { UserRepository } from './repositories';
-import { AuthService, HubService, TokenService } from './services';
+import { AuthService, TokenService } from './services';
 import { ConfigValidationService } from './services/config-validation.service';
-import { HubAuditService } from './services/hub-audit.service';
 import { HubStrategy, JwtStrategy } from './strategies';
 
 @Module({})
@@ -43,9 +42,7 @@ export class AuthModule {
         UserRepository,
         TokenService,
         JwtStrategy,
-        HubService,
         HubStrategy,
-        HubAuditService,
         JwtAuthGuard,
         RolesGuard,
         AssignRoleCommand,

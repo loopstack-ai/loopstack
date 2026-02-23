@@ -83,7 +83,7 @@ export class AuthService {
       WorkerInfoDto,
       {
         clientId: isLocalMode ? 'local' : this.configService.get<string>('auth.clientId'),
-        isConfigured: isLocalMode || !!this.configService.get<string>('auth.clientSecret'),
+        isConfigured: isLocalMode || !!this.configService.get<string>('auth.hub.jwksUri'),
         timestamp: new Date(),
       },
       {

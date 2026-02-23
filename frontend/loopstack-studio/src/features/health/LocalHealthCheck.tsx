@@ -45,14 +45,19 @@ const LocalHealthCheck = () => {
     tokenRefreshRef.current.mutate();
   }, []);
 
-  const handleLogin = useCallback(() => {
-    authenticateWorkerRef.current.mutate({
-      hubLoginRequestDto: {
-        code: 'local',
-        grantType: 'local',
-      },
-    });
-  }, []);
+  const handleLogin = useCallback(async () => {
+    try {
+      let idToken = 'local';
+      if (environment.getIdToken) {
+        idToken = await environment.getIdToken();
+      }
+      authenticateWorkerRef.current.mutate({
+        hubLoginRequestDto: { idToken },
+      });
+    } catch {
+      setEscalation(Escalation.Debug);
+    }
+  }, [environment]);
 
   // Poll health endpoint when in Connection escalation
   useEffect(() => {
@@ -103,7 +108,7 @@ const LocalHealthCheck = () => {
     if (escalation === Escalation.Refresh) {
       handleTokenRefresh();
     } else if (escalation === Escalation.Login) {
-      handleLogin();
+      void handleLogin();
     }
   }, [escalation, handleTokenRefresh, handleLogin]);
 

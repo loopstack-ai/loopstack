@@ -7,6 +7,8 @@ export interface AuthConfig {
     cookieDomain?: string;
   };
   clientId?: string;
-  clientSecret?: string;
-  authCallback?: string;
+  hub?: {
+    issuer: string;
+    jwksUri: string;
+  };
 }

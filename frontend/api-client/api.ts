@@ -921,17 +921,11 @@ export type FileExplorerNodeDtoTypeEnum =
  */
 export interface HubLoginRequestDto {
   /**
-   * The authorization code
+   * Hub-signed ID token
    * @type {string}
    * @memberof HubLoginRequestDto
    */
-  code: string;
-  /**
-   * The grant type
-   * @type {string}
-   * @memberof HubLoginRequestDto
-   */
-  grantType: string;
+  idToken: string;
 }
 /**
  *

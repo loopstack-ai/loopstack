@@ -5,7 +5,6 @@ export * from './user.interface.js';
 export * from './ai-provider.interface.js';
 export * from './block.interface.js';
 export * from './transition-results.types.js';
-export * from './sso-validate-code.interface.js';
 export * from './sso-response.interface.js';
 export * from './state-machine-validator-result.interface.js';
 export * from './jwt-payload.interface.js';
