@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 /**
  * Loopstack API Documentation
  * Loopstack API Documentation

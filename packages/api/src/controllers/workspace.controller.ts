@@ -71,6 +71,7 @@ export class WorkspaceController {
   @ApiQuery({
     name: 'sortBy',
     required: false,
+    type: String,
     schema: {
       type: 'string',
       example: '[{"field":"createdAt","order":"DESC"}]',
@@ -80,6 +81,7 @@ export class WorkspaceController {
   @ApiQuery({
     name: 'filter',
     required: false,
+    type: String,
     schema: {
       type: 'string',
       example: '{"name":"MyWorkspace"}',

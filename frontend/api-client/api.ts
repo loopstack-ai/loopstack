@@ -3282,16 +3282,16 @@ export const ApiV1AdminUsersApiAxiosParamCreator = function (configuration?: Con
     /**
      * Requires ADMIN role. Returns all users across the system.
      * @summary List all users with filters, sorting, and pagination
-     * @param {AdminUserFilterDto} [filter] JSON string of AdminUserFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of AdminUserSortByDto objects
+     * @param {string} [filter] JSON string of AdminUserFilterDto object
+     * @param {string} [sortBy] JSON string array of AdminUserSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     adminUserControllerGetUsers: async (
-      filter?: AdminUserFilterDto,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       options: RawAxiosRequestConfig = {},
@@ -3309,12 +3309,10 @@ export const ApiV1AdminUsersApiAxiosParamCreator = function (configuration?: Con
       const localVarQueryParameter = {} as any;
 
       if (filter !== undefined) {
-        for (const [key, value] of Object.entries(filter)) {
-          localVarQueryParameter[key] = value;
-        }
+        localVarQueryParameter['filter'] = filter;
       }
 
-      if (sortBy) {
+      if (sortBy !== undefined) {
         localVarQueryParameter['sortBy'] = sortBy;
       }
 
@@ -3485,16 +3483,16 @@ export const ApiV1AdminUsersApiFp = function (configuration?: Configuration) {
     /**
      * Requires ADMIN role. Returns all users across the system.
      * @summary List all users with filters, sorting, and pagination
-     * @param {AdminUserFilterDto} [filter] JSON string of AdminUserFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of AdminUserSortByDto objects
+     * @param {string} [filter] JSON string of AdminUserFilterDto object
+     * @param {string} [sortBy] JSON string array of AdminUserSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async adminUserControllerGetUsers(
-      filter?: AdminUserFilterDto,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       options?: RawAxiosRequestConfig,
@@ -3785,17 +3783,17 @@ export interface ApiV1AdminUsersApiAdminUserControllerGetUserByIdRequest {
 export interface ApiV1AdminUsersApiAdminUserControllerGetUsersRequest {
   /**
    * JSON string of AdminUserFilterDto object
-   * @type {AdminUserFilterDto}
+   * @type {string}
    * @memberof ApiV1AdminUsersApiAdminUserControllerGetUsers
    */
-  readonly filter?: AdminUserFilterDto;
+  readonly filter?: string;
 
   /**
    * JSON string array of AdminUserSortByDto objects
-   * @type {Array<string>}
+   * @type {string}
    * @memberof ApiV1AdminUsersApiAdminUserControllerGetUsers
    */
-  readonly sortBy?: Array<string>;
+  readonly sortBy?: string;
 
   /**
    * Page number for pagination (starts at 1)
@@ -5127,16 +5125,16 @@ export const ApiV1DocumentsApiAxiosParamCreator = function (configuration?: Conf
     /**
      *
      * @summary Retrieve documents with filters, sorting, and pagination
-     * @param {DocumentFilterDto} [filter] JSON string of DocumentFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of DocumentSortByDto objects
+     * @param {string} [filter] JSON string of DocumentFilterDto object
+     * @param {string} [sortBy] JSON string array of DocumentSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     documentControllerGetDocuments: async (
-      filter?: DocumentFilterDto,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       options: RawAxiosRequestConfig = {},
@@ -5154,12 +5152,10 @@ export const ApiV1DocumentsApiAxiosParamCreator = function (configuration?: Conf
       const localVarQueryParameter = {} as any;
 
       if (filter !== undefined) {
-        for (const [key, value] of Object.entries(filter)) {
-          localVarQueryParameter[key] = value;
-        }
+        localVarQueryParameter['filter'] = filter;
       }
 
-      if (sortBy) {
+      if (sortBy !== undefined) {
         localVarQueryParameter['sortBy'] = sortBy;
       }
 
@@ -5216,16 +5212,16 @@ export const ApiV1DocumentsApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Retrieve documents with filters, sorting, and pagination
-     * @param {DocumentFilterDto} [filter] JSON string of DocumentFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of DocumentSortByDto objects
+     * @param {string} [filter] JSON string of DocumentFilterDto object
+     * @param {string} [sortBy] JSON string array of DocumentSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async documentControllerGetDocuments(
-      filter?: DocumentFilterDto,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       options?: RawAxiosRequestConfig,
@@ -5356,17 +5352,17 @@ export interface ApiV1DocumentsApiDocumentControllerGetDocumentByIdRequest {
 export interface ApiV1DocumentsApiDocumentControllerGetDocumentsRequest {
   /**
    * JSON string of DocumentFilterDto object
-   * @type {DocumentFilterDto}
+   * @type {string}
    * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
    */
-  readonly filter?: DocumentFilterDto;
+  readonly filter?: string;
 
   /**
    * JSON string array of DocumentSortByDto objects
-   * @type {Array<string>}
+   * @type {string}
    * @memberof ApiV1DocumentsApiDocumentControllerGetDocuments
    */
-  readonly sortBy?: Array<string>;
+  readonly sortBy?: string;
 
   /**
    * Page number for pagination (starts at 1)
@@ -5474,16 +5470,16 @@ export const ApiV1NamespacesApiAxiosParamCreator = function (configuration?: Con
     /**
      *
      * @summary Retrieve namespaces with filters, sorting, and pagination
-     * @param {NamespaceFilterDto} [filter] JSON string of NamespaceFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of NamespaceSortByDto objects
+     * @param {string} [filter] JSON string of NamespaceFilterDto object
+     * @param {string} [sortBy] JSON string array of NamespaceSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     namespaceControllerGetWorkflows: async (
-      filter?: NamespaceFilterDto,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       options: RawAxiosRequestConfig = {},
@@ -5501,12 +5497,10 @@ export const ApiV1NamespacesApiAxiosParamCreator = function (configuration?: Con
       const localVarQueryParameter = {} as any;
 
       if (filter !== undefined) {
-        for (const [key, value] of Object.entries(filter)) {
-          localVarQueryParameter[key] = value;
-        }
+        localVarQueryParameter['filter'] = filter;
       }
 
-      if (sortBy) {
+      if (sortBy !== undefined) {
         localVarQueryParameter['sortBy'] = sortBy;
       }
 
@@ -5564,16 +5558,16 @@ export const ApiV1NamespacesApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Retrieve namespaces with filters, sorting, and pagination
-     * @param {NamespaceFilterDto} [filter] JSON string of NamespaceFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of NamespaceSortByDto objects
+     * @param {string} [filter] JSON string of NamespaceFilterDto object
+     * @param {string} [sortBy] JSON string array of NamespaceSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async namespaceControllerGetWorkflows(
-      filter?: NamespaceFilterDto,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       options?: RawAxiosRequestConfig,
@@ -5704,17 +5698,17 @@ export interface ApiV1NamespacesApiNamespaceControllerGetWorkflowByIdRequest {
 export interface ApiV1NamespacesApiNamespaceControllerGetWorkflowsRequest {
   /**
    * JSON string of NamespaceFilterDto object
-   * @type {NamespaceFilterDto}
+   * @type {string}
    * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
    */
-  readonly filter?: NamespaceFilterDto;
+  readonly filter?: string;
 
   /**
    * JSON string array of NamespaceSortByDto objects
-   * @type {Array<string>}
+   * @type {string}
    * @memberof ApiV1NamespacesApiNamespaceControllerGetWorkflows
    */
-  readonly sortBy?: Array<string>;
+  readonly sortBy?: string;
 
   /**
    * Page number for pagination (starts at 1)
@@ -6012,8 +6006,8 @@ export const ApiV1PipelinesApiAxiosParamCreator = function (configuration?: Conf
     /**
      *
      * @summary Retrieve pipelines with filters, sorting, pagination, and search
-     * @param {PipelineFilterDto} [filter] JSON string of PipelineFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of PipelineSortByDto objects
+     * @param {string} [filter] JSON string of PipelineFilterDto object
+     * @param {string} [sortBy] JSON string array of PipelineSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {string} [search] Search term to filter workspaces by title or other searchable fields
@@ -6021,8 +6015,8 @@ export const ApiV1PipelinesApiAxiosParamCreator = function (configuration?: Conf
      * @throws {RequiredError}
      */
     pipelineControllerGetPipelines: async (
-      filter?: PipelineFilterDto,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       search?: string,
@@ -6041,12 +6035,10 @@ export const ApiV1PipelinesApiAxiosParamCreator = function (configuration?: Conf
       const localVarQueryParameter = {} as any;
 
       if (filter !== undefined) {
-        for (const [key, value] of Object.entries(filter)) {
-          localVarQueryParameter[key] = value;
-        }
+        localVarQueryParameter['filter'] = filter;
       }
 
-      if (sortBy) {
+      if (sortBy !== undefined) {
         localVarQueryParameter['sortBy'] = sortBy;
       }
 
@@ -6278,8 +6270,8 @@ export const ApiV1PipelinesApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Retrieve pipelines with filters, sorting, pagination, and search
-     * @param {PipelineFilterDto} [filter] JSON string of PipelineFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of PipelineSortByDto objects
+     * @param {string} [filter] JSON string of PipelineFilterDto object
+     * @param {string} [sortBy] JSON string array of PipelineSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {string} [search] Search term to filter workspaces by title or other searchable fields
@@ -6287,8 +6279,8 @@ export const ApiV1PipelinesApiFp = function (configuration?: Configuration) {
      * @throws {RequiredError}
      */
     async pipelineControllerGetPipelines(
-      filter?: PipelineFilterDto,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       search?: string,
@@ -6699,17 +6691,17 @@ export interface ApiV1PipelinesApiPipelineControllerGetPipelineByIdRequest {
 export interface ApiV1PipelinesApiPipelineControllerGetPipelinesRequest {
   /**
    * JSON string of PipelineFilterDto object
-   * @type {PipelineFilterDto}
+   * @type {string}
    * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
    */
-  readonly filter?: PipelineFilterDto;
+  readonly filter?: string;
 
   /**
    * JSON string array of PipelineSortByDto objects
-   * @type {Array<string>}
+   * @type {string}
    * @memberof ApiV1PipelinesApiPipelineControllerGetPipelines
    */
-  readonly sortBy?: Array<string>;
+  readonly sortBy?: string;
 
   /**
    * Page number for pagination (starts at 1)
@@ -7396,16 +7388,16 @@ export const ApiV1WorkflowsApiAxiosParamCreator = function (configuration?: Conf
     /**
      *
      * @summary Retrieve workflows with filters, sorting, and pagination
-     * @param {WorkflowFilterDto} [filter] JSON string of WorkflowFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of WorkflowSortByDto objects
+     * @param {string} [filter] JSON string of WorkflowFilterDto object
+     * @param {string} [sortBy] JSON string array of WorkflowSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     workflowControllerGetWorkflows: async (
-      filter?: WorkflowFilterDto,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       options: RawAxiosRequestConfig = {},
@@ -7423,12 +7415,10 @@ export const ApiV1WorkflowsApiAxiosParamCreator = function (configuration?: Conf
       const localVarQueryParameter = {} as any;
 
       if (filter !== undefined) {
-        for (const [key, value] of Object.entries(filter)) {
-          localVarQueryParameter[key] = value;
-        }
+        localVarQueryParameter['filter'] = filter;
       }
 
-      if (sortBy) {
+      if (sortBy !== undefined) {
         localVarQueryParameter['sortBy'] = sortBy;
       }
 
@@ -7508,16 +7498,16 @@ export const ApiV1WorkflowsApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Retrieve workflows with filters, sorting, and pagination
-     * @param {WorkflowFilterDto} [filter] JSON string of WorkflowFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of WorkflowSortByDto objects
+     * @param {string} [filter] JSON string of WorkflowFilterDto object
+     * @param {string} [sortBy] JSON string array of WorkflowSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async workflowControllerGetWorkflows(
-      filter?: WorkflowFilterDto,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       options?: RawAxiosRequestConfig,
@@ -7690,17 +7680,17 @@ export interface ApiV1WorkflowsApiWorkflowControllerGetWorkflowByIdRequest {
 export interface ApiV1WorkflowsApiWorkflowControllerGetWorkflowsRequest {
   /**
    * JSON string of WorkflowFilterDto object
-   * @type {WorkflowFilterDto}
+   * @type {string}
    * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
    */
-  readonly filter?: WorkflowFilterDto;
+  readonly filter?: string;
 
   /**
    * JSON string array of WorkflowSortByDto objects
-   * @type {Array<string>}
+   * @type {string}
    * @memberof ApiV1WorkflowsApiWorkflowControllerGetWorkflows
    */
-  readonly sortBy?: Array<string>;
+  readonly sortBy?: string;
 
   /**
    * Page number for pagination (starts at 1)
@@ -7941,8 +7931,8 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
     /**
      *
      * @summary Retrieve workspaces with filters, sorting, pagination, and search
-     * @param {object} [filter] JSON string of WorkspaceFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of WorkspaceSortByDto objects
+     * @param {string} [filter] JSON string of WorkspaceFilterDto object
+     * @param {string} [sortBy] JSON string array of WorkspaceSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {string} [search] Search term to filter workspaces by title or other searchable fields
@@ -7950,8 +7940,8 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
      * @throws {RequiredError}
      */
     workspaceControllerGetWorkspaces: async (
-      filter?: object,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       search?: string,
@@ -7970,12 +7960,10 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
       const localVarQueryParameter = {} as any;
 
       if (filter !== undefined) {
-        for (const [key, value] of Object.entries(filter)) {
-          localVarQueryParameter[key] = value;
-        }
+        localVarQueryParameter['filter'] = filter;
       }
 
-      if (sortBy) {
+      if (sortBy !== undefined) {
         localVarQueryParameter['sortBy'] = sortBy;
       }
 
@@ -8159,8 +8147,8 @@ export const ApiV1WorkspacesApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Retrieve workspaces with filters, sorting, pagination, and search
-     * @param {object} [filter] JSON string of WorkspaceFilterDto object
-     * @param {Array<string>} [sortBy] JSON string array of WorkspaceSortByDto objects
+     * @param {string} [filter] JSON string of WorkspaceFilterDto object
+     * @param {string} [sortBy] JSON string array of WorkspaceSortByDto objects
      * @param {number} [page] Page number for pagination (starts at 1)
      * @param {number} [limit] Number of items per page
      * @param {string} [search] Search term to filter workspaces by title or other searchable fields
@@ -8168,8 +8156,8 @@ export const ApiV1WorkspacesApiFp = function (configuration?: Configuration) {
      * @throws {RequiredError}
      */
     async workspaceControllerGetWorkspaces(
-      filter?: object,
-      sortBy?: Array<string>,
+      filter?: string,
+      sortBy?: string,
       page?: number,
       limit?: number,
       search?: string,
@@ -8492,17 +8480,17 @@ export interface ApiV1WorkspacesApiWorkspaceControllerGetWorkspaceByIdRequest {
 export interface ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest {
   /**
    * JSON string of WorkspaceFilterDto object
-   * @type {object}
+   * @type {string}
    * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
    */
-  readonly filter?: object;
+  readonly filter?: string;
 
   /**
    * JSON string array of WorkspaceSortByDto objects
-   * @type {Array<string>}
+   * @type {string}
    * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
    */
-  readonly sortBy?: Array<string>;
+  readonly sortBy?: string;
 
   /**
    * Page number for pagination (starts at 1)

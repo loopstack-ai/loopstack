@@ -49,6 +49,7 @@ export class WorkflowController {
   @ApiQuery({
     name: 'sortBy',
     required: false,
+    type: String,
     schema: {
       type: 'string',
       example: '[{"field":"createdAt","order":"DESC"}]',
@@ -58,6 +59,7 @@ export class WorkflowController {
   @ApiQuery({
     name: 'filter',
     required: false,
+    type: String,
     schema: {
       type: 'string',
       example: '{"pipelineId":"123e4567-e89b-12d3-a456-426614174000"}',
