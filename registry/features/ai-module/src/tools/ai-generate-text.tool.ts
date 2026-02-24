@@ -74,10 +74,11 @@ export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
       });
     }
 
-    const uiMessage = await this.handleGenerateText(model, options);
+    const { uiMessage, usage } = await this.handleGenerateText(model, options);
 
     return {
       data: uiMessage,
+      metadata: { usage },
     };
   }
 
@@ -88,7 +89,7 @@ export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
       messages?: ModelMessage[];
       tools?: Record<string, unknown>;
     },
-  ): Promise<UIMessage> {
+  ): Promise<{ uiMessage: UIMessage; usage: { inputTokens: number; outputTokens: number } }> {
     const startTime = performance.now();
     try {
       const result = streamText({
@@ -96,7 +97,7 @@ export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
         ...options,
       } as Parameters<typeof streamText>[0]);
 
-      return new Promise((resolve, reject) => {
+      const uiMessage = await new Promise<UIMessage>((resolve, reject) => {
         const stream = createUIMessageStream({
           execute({ writer }) {
             writer.merge(
@@ -123,6 +124,16 @@ export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
           }
         })();
       });
+
+      const resultUsage = await result.usage;
+
+      return {
+        uiMessage,
+        usage: {
+          inputTokens: resultUsage.inputTokens ?? 0,
+          outputTokens: resultUsage.outputTokens ?? 0,
+        },
+      };
     } catch (error) {
       const errorResponseTime = performance.now() - startTime;
       console.error(`Request failed after ${errorResponseTime}ms:`, error);

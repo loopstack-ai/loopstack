@@ -40,18 +40,23 @@ export class AiGenerateDocument implements ToolInterface<AiGenerateObjectArgsTyp
     parent: WorkflowInterface,
     metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
-    const result = await this.getRequiredTool('aiGenerateObject').execute(args, ctx, parent, metadata);
-    return this.getRequiredTool('createDocument').execute(
+    const generateResult = await this.getRequiredTool('aiGenerateObject').execute(args, ctx, parent, metadata);
+    const documentResult = await this.getRequiredTool('createDocument').execute(
       {
         id: args.response.id,
         document: args.response.document,
         update: {
-          content: result.data as unknown,
+          content: generateResult.data as unknown,
         },
       },
       ctx,
       parent,
       metadata,
     );
+
+    return {
+      ...documentResult,
+      metadata: generateResult.metadata,
+    };
   }
 }

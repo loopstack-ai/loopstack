@@ -14,6 +14,7 @@ import {
   StateMachineToolCallProcessorService,
   StateMachineValidatorRegistry,
   StateMachineValidatorService,
+  ToolExecutionInterceptorService,
   WorkflowProcessorService,
   WorkflowStateService,
 } from './services';
@@ -53,6 +54,7 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     StateMachineValidatorService,
     StateMachineProcessorService,
     StateMachineToolCallProcessorService,
+    ToolExecutionInterceptorService,
     CreatePipelineService,
   ],
   exports: [

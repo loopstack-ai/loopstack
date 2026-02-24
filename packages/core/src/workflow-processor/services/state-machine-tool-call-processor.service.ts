@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
   DocumentEntity,
+  ToolExecutionContext,
   ToolInterface,
   ToolResult,
   ToolSideEffects,
@@ -15,12 +16,16 @@ import { TemplateExpressionEvaluatorService } from '../../common';
 import { ExecutionContextManager, WorkflowExecutionContextManager } from '../utils/execution-context-manager';
 import { getTemplateVars } from '../utils/template-helper';
 import { wrapToolProxy } from '../utils/wrap-block-proxy';
+import { ToolExecutionInterceptorService } from './tool-execution-interceptor.service';
 
 @Injectable()
 export class StateMachineToolCallProcessorService {
   private readonly logger = new Logger(StateMachineToolCallProcessorService.name);
 
-  constructor(private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService) {}
+  constructor(
+    private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
+    private readonly toolExecutionInterceptorService: ToolExecutionInterceptorService,
+  ) {}
 
   async processToolCalls(
     ctx: WorkflowExecutionContextManager,
@@ -63,12 +68,26 @@ export class StateMachineToolCallProcessorService {
           parsedArgs = schema ? (schema.parse(evaluatedArgs) as Record<string, unknown> | undefined) : evaluatedArgs;
         }
 
-        const toolCallResult: ToolResult = await tool.execute(
-          parsedArgs,
-          ctx.getContext(),
-          ctx.getInstance(),
-          ctx.getData(),
-        );
+        const execContext: ToolExecutionContext = {
+          tool,
+          args: parsedArgs,
+          runContext: ctx.getContext(),
+        };
+
+        await this.toolExecutionInterceptorService.beforeExecute(execContext);
+
+        let toolCallResult: ToolResult;
+        const startTime = performance.now();
+        try {
+          toolCallResult = await tool.execute(parsedArgs, ctx.getContext(), ctx.getInstance(), ctx.getData());
+        } catch (error) {
+          execContext.metrics = { durationMs: Math.round(performance.now() - startTime) };
+          await this.toolExecutionInterceptorService.onError(execContext, error);
+          throw error;
+        }
+        execContext.metrics = { durationMs: Math.round(performance.now() - startTime) };
+
+        await this.toolExecutionInterceptorService.afterExecute(execContext, toolCallResult);
 
         this.assignToTargetBlock(ctx, toolCall.assign as AssignmentConfigType, toolCallResult);
 
