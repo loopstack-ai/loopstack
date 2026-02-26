@@ -1,5 +1,11 @@
 # @loopstack/contracts
 
+## 0.21.0
+
+### Patch Changes
+
+- [#80](https://github.com/loopstack-ai/loopstack/pull/80) [`73fb724`](https://github.com/loopstack-ai/loopstack/commit/73fb72413231eb8502de143abdc6c840a38e12b1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Various security related updates
+
 ## 0.21.0-rc.0
 
 ### Patch Changes
