@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/app-template",
-  "version": "0.18.4-rc.0",
+  "version": "0.18.4",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write --log-level warn .",
@@ -20,12 +20,12 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@loopstack/api": "^0.21.0-rc.0",
-    "@loopstack/cli-module": "^0.21.0-rc.0",
-    "@loopstack/common": "^0.21.0-rc.0",
-    "@loopstack/core": "^0.21.0-rc.0",
-    "@loopstack/core-ui-module": "^0.20.4-rc.0",
-    "@loopstack/create-chat-message-tool": "^0.20.4-rc.0",
+    "@loopstack/api": "^0.21.0",
+    "@loopstack/cli-module": "^0.21.0",
+    "@loopstack/common": "^0.21.0",
+    "@loopstack/core": "^0.21.0",
+    "@loopstack/core-ui-module": "^0.20.4",
+    "@loopstack/create-chat-message-tool": "^0.20.4",
     "@nestjs/common": "^11.1.14",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.14",
@@ -39,7 +39,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^10.0.1",
-    "@loopstack/testing": "^0.21.0-rc.0",
+    "@loopstack/testing": "^0.21.0",
     "@nestjs/cli": "^11.0.16",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.14",

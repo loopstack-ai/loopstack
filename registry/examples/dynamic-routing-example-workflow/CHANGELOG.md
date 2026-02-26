@@ -1,5 +1,15 @@
 # @loopstack/dynamic-routing-example-workflow
 
+## 0.20.4
+
+### Patch Changes
+
+- [#80](https://github.com/loopstack-ai/loopstack/pull/80) [`73fb724`](https://github.com/loopstack-ai/loopstack/commit/73fb72413231eb8502de143abdc6c840a38e12b1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Various security related updates
+
+- Updated dependencies [[`65fbbee`](https://github.com/loopstack-ai/loopstack/commit/65fbbeef7bda3a328327adf0fa451052c4ce86ba), [`73fb724`](https://github.com/loopstack-ai/loopstack/commit/73fb72413231eb8502de143abdc6c840a38e12b1), [`37df097`](https://github.com/loopstack-ai/loopstack/commit/37df0972404fc9601906619a7b64fa088395e0ee)]:
+  - @loopstack/common@0.21.0
+  - @loopstack/create-chat-message-tool@0.20.4
+
 ## 0.20.4-rc.0
 
 ### Patch Changes
