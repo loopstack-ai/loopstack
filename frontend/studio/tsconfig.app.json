@@ -29,7 +29,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@loopstack/contracts": ["packages/contracts"],
-      "@loopstack/api-client": ["frontend/api-client"]
+      "@loopstack/api-client": ["client/api-client"]
     },
 
     /* For library */

@@ -3,6 +3,7 @@ export * from './hooks';
 export * from './services';
 export * from './providers/StudioProvider';
 export * from './routing/LocalRouter';
+export * from './components';
 
 export { default as DebugPage } from './pages/DebugPage';
 export { default as WorkspacesPage } from './pages/WorkspacesPage';

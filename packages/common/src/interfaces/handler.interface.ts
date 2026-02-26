@@ -9,4 +9,5 @@ export type ToolResult<TData = any> = {
   data?: TData;
   error?: string;
   effects?: ToolSideEffects;
+  metadata?: Record<string, unknown>;
 };

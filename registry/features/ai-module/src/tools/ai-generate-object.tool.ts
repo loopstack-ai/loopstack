@@ -96,6 +96,12 @@ export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType>
 
     return {
       data: response.output,
+      metadata: {
+        usage: {
+          inputTokens: response.usage.inputTokens ?? 0,
+          outputTokens: response.usage.outputTokens ?? 0,
+        },
+      },
     };
   }
 
