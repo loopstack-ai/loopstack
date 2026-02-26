@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "prepare": "husky",
     "test": "turbo run test",
-    "watch": "turbo run watch"
+    "watch": "turbo run watch",
+    "changeset:version": "changeset version && npm install --package-lock-only --prefer-offline"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
