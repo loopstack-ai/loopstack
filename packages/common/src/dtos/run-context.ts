@@ -11,6 +11,7 @@ export class RunContext {
   namespace?: NamespaceEntity;
   labels!: string[];
   payload: RunPayload;
+  pipelineContext?: Record<string, any>;
   options: {
     stateless: boolean;
   };

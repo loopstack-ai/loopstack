@@ -102,6 +102,7 @@ export class RootProcessorService {
       labels: [...pipeline.labels, namespace.name],
       namespace,
       payload,
+      pipelineContext: pipeline.context,
       options: { stateless: false },
     });
 
