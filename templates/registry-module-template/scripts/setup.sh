@@ -6,17 +6,14 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_DIR"
 
-[ -f .env.default ] && cp .env.default .env || true
-
 npm install
 
 echo ""
-echo "✅ Loopstack app created successfully!"
+echo "✅ Loopstack module created successfully!"
 echo ""
 echo "──────────────────────────────────────────────────"
 echo ""
-echo "Start:            👉 cd $(basename "$PROJECT_DIR") && npm run start:dev"
-echo ""
-echo "Backend API:      http://localhost:8000"
+echo "Build:            👉 cd $(basename "$PROJECT_DIR") && npm run build"
+echo "Test:             👉 cd $(basename "$PROJECT_DIR") && npm run test"
 echo ""
 echo "──────────────────────────────────────────────────"
