@@ -53,6 +53,12 @@ export default defineConfig(({ mode }) => {
               'clsx',
               'tailwind-merge',
               'class-variance-authority',
+              'zustand',
+              /^zustand\/.*/,
+              'use-sync-external-store',
+              /^use-sync-external-store\/.*/,
+              'framer-motion',
+              /^framer-motion\/.*/,
             ],
             output: {
               format: 'es',

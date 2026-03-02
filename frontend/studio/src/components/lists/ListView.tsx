@@ -11,7 +11,7 @@ export interface Column {
   label: string;
   minWidth?: number;
   align?: 'right' | 'left' | 'center';
-  format?: (value: unknown) => string;
+  format?: (value: unknown) => React.ReactNode;
 }
 
 export interface OriginalBatchAction {
@@ -40,10 +40,10 @@ interface ListViewProps<T extends Item = Item> {
   totalItems: number;
   columns: Column[];
   filterConfig: Record<string, string[]>;
-  deleteItem: (id: string) => void;
-  onClick: (id: string) => void;
+  deleteItem?: (id: string) => void;
+  onClick?: (id: string) => void;
   handleNew: () => void;
-  handleEdit: (item: T) => void;
+  handleEdit?: (item: T) => void;
   setPage: (page: number) => void;
   setRowsPerPage: (rows: number) => void;
   setOrderBy: (field: string) => void;
@@ -60,6 +60,9 @@ interface ListViewProps<T extends Item = Item> {
   batchDelete?: (ids: string[]) => void | Promise<void>;
   enableBatchActions?: boolean;
   rowActions?: OriginalRowAction<T>[];
+  deleteConfirmTitle?: (itemId: string) => string;
+  deleteConfirmDescription?: (itemId: string) => string;
+  newButtonLabel?: string;
 }
 
 const ListView = <T extends Item>({
@@ -89,6 +92,9 @@ const ListView = <T extends Item>({
   batchDelete,
   enableBatchActions = true,
   rowActions = [],
+  deleteConfirmTitle,
+  deleteConfirmDescription,
+  newButtonLabel,
 }: ListViewProps<T>) => {
   const transformedColumns: DataTableColumn[] = columns.map((column) => ({
     id: column.id,
@@ -167,21 +173,21 @@ const ListView = <T extends Item>({
 
   const handleRowClick = useCallback(
     (item: T) => {
-      onClick(item.id);
+      onClick?.(item.id);
     },
     [onClick],
   );
 
   const handleEditClick = useCallback(
     (item: T) => {
-      handleEdit(item);
+      handleEdit?.(item);
     },
     [handleEdit],
   );
 
   const handleDeleteClick = useCallback(
     (id: string) => {
-      deleteItem(id);
+      deleteItem?.(id);
     },
     [deleteItem],
   );
@@ -215,14 +221,17 @@ const ListView = <T extends Item>({
         filters={filters}
         filterConfig={filterConfig}
         onFiltersChange={handleFiltersChange}
-        onRowClick={handleRowClick}
-        onEdit={handleEditClick}
-        onDelete={handleDeleteClick}
+        onRowClick={onClick ? handleRowClick : undefined}
+        onEdit={handleEdit ? handleEditClick : undefined}
+        onDelete={deleteItem ? handleDeleteClick : undefined}
         onNew={handleNew}
+        newButtonLabel={newButtonLabel}
         enableBatchActions={enableBatchActions}
         batchActions={transformedBatchActions}
         onBatchDelete={handleBatchDelete}
         rowActions={transformedRowActions}
+        deleteConfirmTitle={deleteConfirmTitle}
+        deleteConfirmDescription={deleteConfirmDescription}
       />
     </div>
   );

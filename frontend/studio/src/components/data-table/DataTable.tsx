@@ -43,10 +43,13 @@ export function DataTable<T extends { id: string }>({
   onEdit,
   onDelete,
   onNew,
+  newButtonLabel,
   enableBatchActions = true,
   batchActions = [],
   onBatchDelete,
   rowActions = [],
+  deleteConfirmTitle,
+  deleteConfirmDescription,
 }: DataTableProps<T>) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -177,6 +180,7 @@ export function DataTable<T extends { id: string }>({
         onSearchChange={onSearchChange}
         onFilterToggle={() => setIsFilterOpen(!isFilterOpen)}
         onNew={onNew}
+        newButtonLabel={newButtonLabel}
         filterCount={activeFilterCount}
         isFilterOpen={isFilterOpen}
         showFilter={!!onFiltersChange && Object.keys(filterConfig).length > 0}
@@ -206,124 +210,122 @@ export function DataTable<T extends { id: string }>({
         </Card>
       )}
 
-      <Card>
-        <CardContent className="px-6 py-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {enableBatchActions && (
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={selectedRows.length === data.length && data.length > 0}
-                        onCheckedChange={toggleSelectAll}
-                        aria-label="Select all rows"
-                      />
-                    </TableHead>
-                  )}
-                  {columns.map((column) => (
-                    <TableHead
-                      key={column.id}
-                      className={`${
-                        column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : ''
-                      }`}
-                      style={{ minWidth: column.minWidth }}
-                    >
-                      {column.sortable !== false ? (
-                        <Button
-                          variant="ghost"
-                          onClick={() => handleSort(column.id)}
-                          className="h-auto p-0 font-semibold hover:bg-transparent"
-                        >
-                          {column.label}
-                          {getSortIcon(column.id)}
-                        </Button>
-                      ) : (
-                        <span className="font-semibold">{column.label}</span>
-                      )}
-                    </TableHead>
-                  ))}
-                  {showActionsColumn && <TableHead className="text-center">Actions</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length + (enableBatchActions ? 1 : 0) + (showActionsColumn ? 1 : 0)}
-                      className="text-muted-foreground py-8 text-center"
-                    >
-                      No items found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  data.map((item) => (
-                    <TableRow
-                      key={item.id}
-                      className={`${onRowClick ? 'cursor-pointer' : ''} ${
-                        selectedRows.includes(item.id) ? 'bg-muted/50' : ''
-                      }`}
-                      onClick={onRowClick ? () => onRowClick(item) : undefined}
-                    >
-                      {enableBatchActions && (
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Checkbox
-                            checked={selectedRows.includes(item.id)}
-                            onCheckedChange={() => toggleSelectRow(item.id)}
-                            aria-label={`Select row ${item.id}`}
-                          />
-                        </TableCell>
-                      )}
-                      {columns.map((column) => (
-                        <TableCell
-                          key={column.id}
-                          className={
-                            column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : ''
-                          }
-                        >
-                          {column.format
-                            ? column.format((item as Record<string, unknown>)[column.id], item)
-                            : safeToString((item as Record<string, unknown>)[column.id])}
-                        </TableCell>
-                      ))}
-                      {showActionsColumn && (
-                        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center gap-1">
-                            {allRowActions.map((action) => {
-                              // Check if action should be shown based on condition
-                              const shouldShow = action.condition ? action.condition(item) : true;
-
-                              if (!shouldShow) return null;
-
-                              return (
-                                <Button
-                                  key={action.id}
-                                  variant={action.variant || 'ghost'}
-                                  size="sm"
-                                  onClick={() => void action.action(item)}
-                                  disabled={action.disabled?.(item)}
-                                  title={action.label}
-                                  className={action.className}
-                                >
-                                  {action.icon}
-                                </Button>
-                              );
-                            })}
-                          </div>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))
+      <div className="w-full">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {enableBatchActions && (
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedRows.length === data.length && data.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Select all rows"
+                    />
+                  </TableHead>
                 )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                {columns.map((column) => (
+                  <TableHead
+                    key={column.id}
+                    className={`${
+                      column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : ''
+                    }`}
+                    style={{ minWidth: column.minWidth }}
+                  >
+                    {column.sortable !== false ? (
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort(column.id)}
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                      >
+                        {column.label}
+                        {getSortIcon(column.id)}
+                      </Button>
+                    ) : (
+                      <span className="font-semibold">{column.label}</span>
+                    )}
+                  </TableHead>
+                ))}
+                {showActionsColumn && <TableHead className="text-center">Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length + (enableBatchActions ? 1 : 0) + (showActionsColumn ? 1 : 0)}
+                    className="text-muted-foreground py-8 text-center"
+                  >
+                    No items found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.map((item) => (
+                  <TableRow
+                    key={item.id}
+                    className={`${onRowClick ? 'cursor-pointer' : ''} ${
+                      selectedRows.includes(item.id) ? 'bg-muted/50' : ''
+                    }`}
+                    onClick={onRowClick ? () => onRowClick(item) : undefined}
+                  >
+                    {enableBatchActions && (
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedRows.includes(item.id)}
+                          onCheckedChange={() => toggleSelectRow(item.id)}
+                          aria-label={`Select row ${item.id}`}
+                        />
+                      </TableCell>
+                    )}
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        className={
+                          column.align === 'center' ? 'text-center' : column.align === 'right' ? 'text-right' : ''
+                        }
+                      >
+                        {column.format
+                          ? column.format((item as Record<string, unknown>)[column.id], item)
+                          : safeToString((item as Record<string, unknown>)[column.id])}
+                      </TableCell>
+                    ))}
+                    {showActionsColumn && (
+                      <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-center gap-1">
+                          {allRowActions.map((action) => {
+                            // Check if action should be shown based on condition
+                            const shouldShow = action.condition ? action.condition(item) : true;
+
+                            if (!shouldShow) return null;
+
+                            return (
+                              <Button
+                                key={action.id}
+                                variant={action.variant || 'ghost'}
+                                size="sm"
+                                onClick={() => void action.action(item)}
+                                disabled={action.disabled?.(item)}
+                                title={action.label}
+                                className={action.className}
+                              >
+                                {action.icon}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </div>
 
       <DataTablePagination
         page={page}
@@ -336,10 +338,15 @@ export function DataTable<T extends { id: string }>({
       <ConfirmDialog
         isOpen={deleteDialog.isOpen}
         onOpenChange={(open: boolean) => setDeleteDialog({ ...deleteDialog, isOpen: open })}
-        title={deleteDialog.type === 'single' ? 'Delete Item' : 'Delete Items'}
+        title={
+          deleteDialog.type === 'single'
+            ? (deleteDialog.itemId && deleteConfirmTitle?.(deleteDialog.itemId)) || 'Delete Item'
+            : 'Delete Items'
+        }
         description={
           deleteDialog.type === 'single'
-            ? 'Are you sure you want to delete this item? This action cannot be undone.'
+            ? (deleteDialog.itemId && deleteConfirmDescription?.(deleteDialog.itemId)) ||
+              'Are you sure you want to delete this item? This action cannot be undone.'
             : `Are you sure you want to delete ${selectedRows.length} items? This action cannot be undone.`
         }
         onConfirm={() => void handleDeleteConfirm()}

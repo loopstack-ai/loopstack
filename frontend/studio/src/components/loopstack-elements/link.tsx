@@ -3,6 +3,7 @@
 import { ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon, LinkIcon, icons } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useStudio } from '@/providers/StudioProvider';
 
 const EMBED_RESIZE_MESSAGE_TYPE = 'loopstack:embed:resize';
 
@@ -33,6 +34,7 @@ export const LinkCard = ({
   defaultExpanded,
   iconClassName,
 }: LinkCardProps) => {
+  const { router } = useStudio();
   const [expanded, setExpanded] = useState(defaultExpanded ?? false);
   const [iframeHeight, setIframeHeight] = useState(0);
 
@@ -58,7 +60,7 @@ export const LinkCard = ({
   const pipelineMatch = href?.match(PIPELINE_HREF_PATTERN);
   const pipelineId = pipelineMatch?.[1] ?? null;
   const canEmbed = embed === true && pipelineId != null;
-  const embedSrc = canEmbed ? `/embed/pipelines/${pipelineId}` : null;
+  const embedSrc = canEmbed ? router.getEmbedPipeline(pipelineId) : null;
 
   // Listen for resize messages from the embedded iframe
   useEffect(() => {
