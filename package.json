@@ -70,7 +70,6 @@
     "frontend/*",
     "installer/*",
     "templates/*",
-    "generators/*",
     "registry/*/*",
     "client/*"
   ]
