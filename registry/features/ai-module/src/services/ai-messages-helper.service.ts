@@ -9,8 +9,8 @@ export class AiMessagesHelperService {
     tag: string,
   ): Omit<UIMessage<unknown, UIDataTypes, UITools>, 'id'>[] {
     return documents
-      .filter((document) => document.tags?.includes(tag))
-      .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf())
+      .filter((document) => !document.isInvalidated && document.tags?.includes(tag))
+      .sort((a, b) => a.index - b.index)
       .map((document) => document.content as Omit<UIMessage<unknown, UIDataTypes, UITools>, 'id'>);
   }
 
@@ -22,6 +22,8 @@ export class AiMessagesHelperService {
     if (!messages?.length) {
       messages = this.searchMessages(documents, args.messagesSearchTag ?? 'message');
     }
+
+    console.log(JSON.stringify(messages, null, 2));
 
     return messages;
   }

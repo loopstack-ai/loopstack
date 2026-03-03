@@ -67,8 +67,8 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
         type: part.type as ToolUIPart['type'],
         toolCallId: part.toolCallId,
         output: {
-          type: result.type || 'text',
-          value: result.data as unknown,
+          type: 'text',
+          value: JSON.stringify(result.data, null, 2),
         },
         input: part.input as Record<string, unknown>,
         state: 'output-available',
