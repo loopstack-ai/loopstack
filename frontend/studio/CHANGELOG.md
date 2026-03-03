@@ -1,5 +1,15 @@
 # @loopstack/loopstack-studio
 
+## 0.21.1
+
+### Patch Changes
+
+- [#86](https://github.com/loopstack-ai/loopstack/pull/86) [`ddc7333`](https://github.com/loopstack-ai/loopstack/commit/ddc733304f2bc4d5e68ff51286233ead066cfe59) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Improve module compatibility
+
+- Updated dependencies [[`34f00b1`](https://github.com/loopstack-ai/loopstack/commit/34f00b18ed5d76745a0c73980964713136dc5c38), [`34f00b1`](https://github.com/loopstack-ai/loopstack/commit/34f00b18ed5d76745a0c73980964713136dc5c38)]:
+  - @loopstack/contracts@0.22.0
+  - @loopstack/api-client@0.20.0
+
 ## 0.21.0
 
 ### Minor Changes

@@ -1,5 +1,19 @@
 # @loopstack/api
 
+## 0.22.0
+
+### Minor Changes
+
+- [#86](https://github.com/loopstack-ai/loopstack/pull/86) [`34f00b1`](https://github.com/loopstack-ai/loopstack/commit/34f00b18ed5d76745a0c73980964713136dc5c38) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add workspace environments and favourites feature
+
+### Patch Changes
+
+- Updated dependencies [[`34f00b1`](https://github.com/loopstack-ai/loopstack/commit/34f00b18ed5d76745a0c73980964713136dc5c38), [`2606b29`](https://github.com/loopstack-ai/loopstack/commit/2606b29d3bcf893f41b2d5e7d47fb1c5323e4135)]:
+  - @loopstack/contracts@0.22.0
+  - @loopstack/common@0.22.0
+  - @loopstack/core@0.22.0
+  - @loopstack/auth@0.22.0
+
 ## 0.21.0
 
 ### Minor Changes

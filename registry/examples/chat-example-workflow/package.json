@@ -9,7 +9,7 @@
     "llm",
     "workflow"
   ],
-  "version": "0.20.4",
+  "version": "0.20.5",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -30,10 +30,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.20.4",
-    "@loopstack/common": "^0.21.0",
-    "@loopstack/core-ui-module": "^0.20.4",
-    "@loopstack/create-chat-message-tool": "^0.20.4",
+    "@loopstack/ai-module": "^0.20.5",
+    "@loopstack/common": "^0.22.0",
+    "@loopstack/core-ui-module": "^0.20.5",
+    "@loopstack/create-chat-message-tool": "^0.20.5",
     "@nestjs/common": "^11.1.14",
     "zod": "^4.3.6"
   },
