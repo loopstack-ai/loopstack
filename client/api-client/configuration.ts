@@ -99,7 +99,7 @@ export class Configuration {
     this.baseOptions = {
       headers: {
         ...param.baseOptions?.headers,
-        'User-Agent': 'OpenAPI-Generator/0.18.3/typescript-axios',
+        'User-Agent': 'OpenAPI-Generator/1.0/typescript-axios',
       },
       ...param.baseOptions,
     };

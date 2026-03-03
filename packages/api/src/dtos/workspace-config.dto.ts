@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
+import { EnvironmentType } from '@loopstack/contracts/enums';
 
 export class VolumeDto {
   @Expose()
@@ -53,6 +54,40 @@ export class FileExplorerFeatureDto {
   options?: Record<string, unknown>;
 }
 
+export class FlyInstanceFeatureDto {
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'Whether the fly instance feature is enabled',
+    example: false,
+    default: false,
+  })
+  enabled?: boolean;
+}
+
+export class EnvironmentConfigDto {
+  @Expose()
+  @ApiProperty({
+    description: 'Logical identifier for this environment slot',
+    example: 'primary',
+  })
+  id: string;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Type of environment required',
+    enum: EnvironmentType,
+    example: EnvironmentType.Sandbox,
+  })
+  type: EnvironmentType;
+
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'Display title for this environment slot',
+    example: 'Primary Environment',
+  })
+  title?: string;
+}
+
 export class FeaturesDto {
   @Expose()
   @Type(() => SidebarFeatureDto)
@@ -93,6 +128,14 @@ export class FeaturesDto {
     type: FileExplorerFeatureDto,
   })
   fileExplorer?: FileExplorerFeatureDto;
+
+  @Expose()
+  @Type(() => FlyInstanceFeatureDto)
+  @ApiPropertyOptional({
+    description: 'Fly instance feature configuration',
+    type: FlyInstanceFeatureDto,
+  })
+  flyInstance?: FlyInstanceFeatureDto;
 }
 
 export class WorkspaceConfigDto {
@@ -128,4 +171,13 @@ export class WorkspaceConfigDto {
     type: FeaturesDto,
   })
   features?: FeaturesDto;
+
+  @Expose()
+  @Type(() => EnvironmentConfigDto)
+  @ApiPropertyOptional({
+    description: 'Required environment slots for this workspace',
+    type: EnvironmentConfigDto,
+    isArray: true,
+  })
+  environments?: EnvironmentConfigDto[];
 }

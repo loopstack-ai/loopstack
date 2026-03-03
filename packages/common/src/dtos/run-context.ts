@@ -1,5 +1,6 @@
 import { RunPayload } from '@loopstack/contracts/schemas';
 import { NamespaceEntity } from '../entities';
+import { WorkspaceEnvironmentContextDto } from './workspace-environment-context.dto';
 
 export class RunContext {
   root!: string;
@@ -12,6 +13,7 @@ export class RunContext {
   labels!: string[];
   payload: RunPayload;
   pipelineContext?: Record<string, any>;
+  workspaceEnvironments?: WorkspaceEnvironmentContextDto[];
   options: {
     stateless: boolean;
   };

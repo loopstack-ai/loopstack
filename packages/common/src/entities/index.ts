@@ -2,6 +2,7 @@ export * from './pipeline.entity.js';
 export * from './document.entity.js';
 export * from './workflow.entity.js';
 export * from './workspace.entity.js';
+export * from './workspace-environment.entity.js';
 export * from './namespace.entity.js';
 export * from './role.entity.js';
 export * from './user.entity.js';

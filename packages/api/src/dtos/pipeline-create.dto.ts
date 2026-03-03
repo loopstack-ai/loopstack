@@ -4,6 +4,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsNotEmpty,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
@@ -91,4 +92,15 @@ export class PipelineCreateDto {
     nullable: true,
   })
   args: any;
+
+  @Expose()
+  @IsOptional()
+  @IsObject()
+  @ApiPropertyOptional({
+    type: 'object',
+    additionalProperties: true,
+    description: 'Pipeline context (e.g. flyInstances for Fly.io integration)',
+    nullable: true,
+  })
+  context?: Record<string, any>;
 }

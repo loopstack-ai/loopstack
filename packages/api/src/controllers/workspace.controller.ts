@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -30,6 +31,8 @@ import { BatchDeleteDto } from '../dtos/batch-delete.dto';
 import { PaginatedDto } from '../dtos/paginated.dto';
 import { FeaturesDto, VolumeDto } from '../dtos/workspace-config.dto';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
+import { WorkspaceEnvironmentDto } from '../dtos/workspace-environment.dto';
+import { WorkspaceFavouriteDto } from '../dtos/workspace-favourite.dto';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
 import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
@@ -39,7 +42,16 @@ import { ParseJsonPipe } from '../pipes/parse-json.pipe';
 import { WorkspaceApiService } from '../services/workspace-api.service';
 
 @ApiTags('api/v1/workspaces')
-@ApiExtraModels(WorkspaceDto, WorkspaceItemDto, WorkspaceCreateDto, WorkspaceUpdateDto, VolumeDto, FeaturesDto)
+@ApiExtraModels(
+  WorkspaceDto,
+  WorkspaceItemDto,
+  WorkspaceCreateDto,
+  WorkspaceUpdateDto,
+  WorkspaceFavouriteDto,
+  VolumeDto,
+  FeaturesDto,
+  WorkspaceEnvironmentDto,
+)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces')
 export class WorkspaceController {
@@ -190,6 +202,29 @@ export class WorkspaceController {
   ): Promise<WorkspaceDto> {
     const workspace = await this.workspaceService.update(id, workspaceData, user.userId);
     return WorkspaceDto.create(workspace);
+  }
+
+  /**
+   * Sets the favourite status of a workspace.
+   */
+  @Patch(':id/favourite')
+  @ApiOperation({ summary: 'Set favourite status for a workspace' })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'The ID of the workspace',
+  })
+  @ApiBody({ type: WorkspaceFavouriteDto })
+  @ApiResponse({ status: 404, description: 'Workspace not found' })
+  @ApiOkResponse({ type: WorkspaceItemDto })
+  @ApiUnauthorizedResponse()
+  async setFavourite(
+    @Param('id') id: string,
+    @Body() body: WorkspaceFavouriteDto,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<WorkspaceItemDto> {
+    const workspace = await this.workspaceService.setFavourite(id, body.isFavourite, user.userId);
+    return WorkspaceItemDto.create(workspace);
   }
 
   /**

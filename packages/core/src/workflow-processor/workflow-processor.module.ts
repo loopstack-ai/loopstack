@@ -1,7 +1,14 @@
 import { Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DocumentEntity, NamespaceEntity, PipelineEntity, WorkflowEntity, WorkspaceEntity } from '@loopstack/common';
+import {
+  DocumentEntity,
+  NamespaceEntity,
+  PipelineEntity,
+  WorkflowEntity,
+  WorkspaceEntity,
+  WorkspaceEnvironmentEntity,
+} from '@loopstack/common';
 import { CommonModule } from '../common';
 import { PersistenceModule } from '../persistence';
 import {
@@ -23,7 +30,14 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PipelineEntity, WorkflowEntity, DocumentEntity, WorkspaceEntity, NamespaceEntity]),
+    TypeOrmModule.forFeature([
+      PipelineEntity,
+      WorkflowEntity,
+      DocumentEntity,
+      WorkspaceEntity,
+      WorkspaceEnvironmentEntity,
+      NamespaceEntity,
+    ]),
     PersistenceModule,
     DiscoveryModule,
     CommonModule,

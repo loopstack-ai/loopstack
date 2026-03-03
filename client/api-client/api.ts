@@ -784,6 +784,40 @@ export type DocumentSortByDtoOrderEnum = (typeof DocumentSortByDtoOrderEnum)[key
 /**
  *
  * @export
+ * @interface EnvironmentConfigDto
+ */
+export interface EnvironmentConfigDto {
+  /**
+   * Logical identifier for this environment slot
+   * @type {string}
+   * @memberof EnvironmentConfigDto
+   */
+  id: string;
+  /**
+   * Type of environment required
+   * @type {string}
+   * @memberof EnvironmentConfigDto
+   */
+  type: EnvironmentConfigDtoTypeEnum;
+  /**
+   * Display title for this environment slot
+   * @type {string}
+   * @memberof EnvironmentConfigDto
+   */
+  title?: string;
+}
+
+export const EnvironmentConfigDtoTypeEnum = {
+  Sandbox: 'sandbox',
+  Production: 'production',
+} as const;
+
+export type EnvironmentConfigDtoTypeEnum =
+  (typeof EnvironmentConfigDtoTypeEnum)[keyof typeof EnvironmentConfigDtoTypeEnum];
+
+/**
+ *
+ * @export
  * @interface FeaturesDto
  */
 export interface FeaturesDto {
@@ -817,6 +851,12 @@ export interface FeaturesDto {
    * @memberof FeaturesDto
    */
   fileExplorer?: FileExplorerFeatureDto;
+  /**
+   * Fly instance feature configuration
+   * @type {FlyInstanceFeatureDto}
+   * @memberof FeaturesDto
+   */
+  flyInstance?: FlyInstanceFeatureDto;
 }
 /**
  *
@@ -914,6 +954,19 @@ export const FileExplorerNodeDtoTypeEnum = {
 export type FileExplorerNodeDtoTypeEnum =
   (typeof FileExplorerNodeDtoTypeEnum)[keyof typeof FileExplorerNodeDtoTypeEnum];
 
+/**
+ *
+ * @export
+ * @interface FlyInstanceFeatureDto
+ */
+export interface FlyInstanceFeatureDto {
+  /**
+   * Whether the fly instance feature is enabled
+   * @type {boolean}
+   * @memberof FlyInstanceFeatureDto
+   */
+  enabled?: boolean;
+}
 /**
  *
  * @export
@@ -1310,6 +1363,12 @@ export interface PipelineCreateDto {
    * @memberof PipelineCreateDto
    */
   args?: { [key: string]: any } | null;
+  /**
+   * Pipeline context (e.g. flyInstances for Fly.io integration)
+   * @type {{ [key: string]: any; }}
+   * @memberof PipelineCreateDto
+   */
+  context?: { [key: string]: any } | null;
 }
 /**
  *
@@ -2062,6 +2121,12 @@ export interface WorkspaceConfigDto {
    * @memberof WorkspaceConfigDto
    */
   features?: FeaturesDto;
+  /**
+   * Required environment slots for this workspace
+   * @type {Array<EnvironmentConfigDto>}
+   * @memberof WorkspaceConfigDto
+   */
+  environments?: Array<EnvironmentConfigDto>;
 }
 /**
  *
@@ -2144,6 +2209,18 @@ export interface WorkspaceCreateDto {
    * @memberof WorkspaceCreateDto
    */
   blockName: string;
+  /**
+   * Whether the workspace should be marked as favourite
+   * @type {boolean}
+   * @memberof WorkspaceCreateDto
+   */
+  isFavourite?: boolean;
+  /**
+   * Environment assignments for this workspace
+   * @type {Array<WorkspaceEnvironmentDto>}
+   * @memberof WorkspaceCreateDto
+   */
+  environments?: Array<WorkspaceEnvironmentDto>;
 }
 /**
  *
@@ -2176,6 +2253,12 @@ export interface WorkspaceDto {
    */
   isLocked: boolean;
   /**
+   * Whether the workspace is marked as favourite
+   * @type {boolean}
+   * @memberof WorkspaceDto
+   */
+  isFavourite: boolean;
+  /**
    * Timestamp when the workspace was created
    * @type {string}
    * @memberof WorkspaceDto
@@ -2199,6 +2282,68 @@ export interface WorkspaceDto {
    * @memberof WorkspaceDto
    */
   features?: FeaturesDto;
+  /**
+   * Environment assignments for this workspace
+   * @type {Array<WorkspaceEnvironmentDto>}
+   * @memberof WorkspaceDto
+   */
+  environments?: Array<WorkspaceEnvironmentDto>;
+}
+/**
+ *
+ * @export
+ * @interface WorkspaceEnvironmentDto
+ */
+export interface WorkspaceEnvironmentDto {
+  /**
+   * Logical slot identifier from workspace config
+   * @type {string}
+   * @memberof WorkspaceEnvironmentDto
+   */
+  slotId: string;
+  /**
+   * Environment type (e.g., sandbox, production)
+   * @type {string}
+   * @memberof WorkspaceEnvironmentDto
+   */
+  type: string;
+  /**
+   * Remote environment ID from hub-backend
+   * @type {string}
+   * @memberof WorkspaceEnvironmentDto
+   */
+  remoteEnvironmentId: string;
+  /**
+   * Provider application name
+   * @type {string}
+   * @memberof WorkspaceEnvironmentDto
+   */
+  providerAppName?: string;
+  /**
+   * Connection URL for the environment
+   * @type {string}
+   * @memberof WorkspaceEnvironmentDto
+   */
+  connectionUrl?: string;
+  /**
+   * Agent URL for the environment
+   * @type {string}
+   * @memberof WorkspaceEnvironmentDto
+   */
+  agentUrl?: string;
+}
+/**
+ *
+ * @export
+ * @interface WorkspaceFavouriteDto
+ */
+export interface WorkspaceFavouriteDto {
+  /**
+   * Whether the workspace should be marked as favourite
+   * @type {boolean}
+   * @memberof WorkspaceFavouriteDto
+   */
+  isFavourite: boolean;
 }
 /**
  *
@@ -2225,6 +2370,12 @@ export interface WorkspaceItemDto {
    */
   title: string;
   /**
+   * Whether the workspace is marked as favourite
+   * @type {boolean}
+   * @memberof WorkspaceItemDto
+   */
+  isFavourite: boolean;
+  /**
    * Timestamp when the workspace item was created
    * @type {string}
    * @memberof WorkspaceItemDto
@@ -2236,6 +2387,12 @@ export interface WorkspaceItemDto {
    * @memberof WorkspaceItemDto
    */
   updatedAt: string;
+  /**
+   * Environment assignments for this workspace
+   * @type {Array<WorkspaceEnvironmentDto>}
+   * @memberof WorkspaceItemDto
+   */
+  environments?: Array<WorkspaceEnvironmentDto>;
 }
 /**
  *
@@ -2261,6 +2418,7 @@ export const WorkspaceSortByDtoFieldEnum = {
   Id: 'id',
   Title: 'title',
   BlockName: 'blockName',
+  IsFavourite: 'isFavourite',
   CreatedAt: 'createdAt',
   UpdatedAt: 'updatedAt',
   CreatedBy: 'createdBy',
@@ -2288,6 +2446,18 @@ export interface WorkspaceUpdateDto {
    * @memberof WorkspaceUpdateDto
    */
   title?: string;
+  /**
+   * Whether the workspace is marked as favourite
+   * @type {boolean}
+   * @memberof WorkspaceUpdateDto
+   */
+  isFavourite?: boolean;
+  /**
+   * Environment assignments for this workspace
+   * @type {Array<WorkspaceEnvironmentDto>}
+   * @memberof WorkspaceUpdateDto
+   */
+  environments?: Array<WorkspaceEnvironmentDto>;
 }
 
 /**
@@ -7984,6 +8154,47 @@ export const ApiV1WorkspacesApiAxiosParamCreator = function (configuration?: Con
     },
     /**
      *
+     * @summary Set favourite status for a workspace
+     * @param {string} id The ID of the workspace
+     * @param {WorkspaceFavouriteDto} workspaceFavouriteDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    workspaceControllerSetFavourite: async (
+      id: string,
+      workspaceFavouriteDto: WorkspaceFavouriteDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('workspaceControllerSetFavourite', 'id', id);
+      // verify required parameter 'workspaceFavouriteDto' is not null or undefined
+      assertParamExists('workspaceControllerSetFavourite', 'workspaceFavouriteDto', workspaceFavouriteDto);
+      const localVarPath = `/api/v1/workspaces/{id}/favourite`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      localVarHeaderParameter['Content-Type'] = 'application/json';
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(workspaceFavouriteDto, localVarRequestOptions, configuration);
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
      * @summary Update a workspace by ID
      * @param {string} id The ID of the workspace
      * @param {WorkspaceUpdateDto} workspaceUpdateDto Updated workspace data
@@ -8180,6 +8391,35 @@ export const ApiV1WorkspacesApiFp = function (configuration?: Configuration) {
     },
     /**
      *
+     * @summary Set favourite status for a workspace
+     * @param {string} id The ID of the workspace
+     * @param {WorkspaceFavouriteDto} workspaceFavouriteDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async workspaceControllerSetFavourite(
+      id: string,
+      workspaceFavouriteDto: WorkspaceFavouriteDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WorkspaceItemDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.workspaceControllerSetFavourite(
+        id,
+        workspaceFavouriteDto,
+        options,
+      );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap['ApiV1WorkspacesApi.workspaceControllerSetFavourite']?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
      * @summary Update a workspace by ID
      * @param {string} id The ID of the workspace
      * @param {WorkspaceUpdateDto} workspaceUpdateDto Updated workspace data
@@ -8309,6 +8549,21 @@ export const ApiV1WorkspacesApiFactory = function (
     },
     /**
      *
+     * @summary Set favourite status for a workspace
+     * @param {ApiV1WorkspacesApiWorkspaceControllerSetFavouriteRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    workspaceControllerSetFavourite(
+      requestParameters: ApiV1WorkspacesApiWorkspaceControllerSetFavouriteRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<WorkspaceItemDto> {
+      return localVarFp
+        .workspaceControllerSetFavourite(requestParameters.id, requestParameters.workspaceFavouriteDto, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
      * @summary Update a workspace by ID
      * @param {ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -8395,6 +8650,19 @@ export interface ApiV1WorkspacesApiInterface {
     requestParameters?: ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest,
     options?: RawAxiosRequestConfig,
   ): AxiosPromise<WorkspaceControllerGetWorkspaces200Response>;
+
+  /**
+   *
+   * @summary Set favourite status for a workspace
+   * @param {ApiV1WorkspacesApiWorkspaceControllerSetFavouriteRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1WorkspacesApiInterface
+   */
+  workspaceControllerSetFavourite(
+    requestParameters: ApiV1WorkspacesApiWorkspaceControllerSetFavouriteRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<WorkspaceItemDto>;
 
   /**
    *
@@ -8506,6 +8774,27 @@ export interface ApiV1WorkspacesApiWorkspaceControllerGetWorkspacesRequest {
    * @memberof ApiV1WorkspacesApiWorkspaceControllerGetWorkspaces
    */
   readonly search?: string;
+}
+
+/**
+ * Request parameters for workspaceControllerSetFavourite operation in ApiV1WorkspacesApi.
+ * @export
+ * @interface ApiV1WorkspacesApiWorkspaceControllerSetFavouriteRequest
+ */
+export interface ApiV1WorkspacesApiWorkspaceControllerSetFavouriteRequest {
+  /**
+   * The ID of the workspace
+   * @type {string}
+   * @memberof ApiV1WorkspacesApiWorkspaceControllerSetFavourite
+   */
+  readonly id: string;
+
+  /**
+   *
+   * @type {WorkspaceFavouriteDto}
+   * @memberof ApiV1WorkspacesApiWorkspaceControllerSetFavourite
+   */
+  readonly workspaceFavouriteDto: WorkspaceFavouriteDto;
 }
 
 /**
@@ -8628,6 +8917,23 @@ export class ApiV1WorkspacesApi extends BaseAPI implements ApiV1WorkspacesApiInt
         requestParameters.search,
         options,
       )
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Set favourite status for a workspace
+   * @param {ApiV1WorkspacesApiWorkspaceControllerSetFavouriteRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ApiV1WorkspacesApi
+   */
+  public workspaceControllerSetFavourite(
+    requestParameters: ApiV1WorkspacesApiWorkspaceControllerSetFavouriteRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ApiV1WorkspacesApiFp(this.configuration)
+      .workspaceControllerSetFavourite(requestParameters.id, requestParameters.workspaceFavouriteDto, options)
       .then((request) => request(this.axios, this.basePath));
   }
 

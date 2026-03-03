@@ -8,7 +8,7 @@ export class PipelineService {
     private entityRepository: Repository<PipelineEntity>,
   ) {}
 
-  getPipeline(id: string, userId: string, relations: string[] = ['workspace', 'namespaces']) {
+  getPipeline(id: string, userId: string, relations: string[] = ['workspace', 'workspace.environments', 'namespaces']) {
     const where: FindOptionsWhere<PipelineEntity> = {
       id,
       createdBy: userId,

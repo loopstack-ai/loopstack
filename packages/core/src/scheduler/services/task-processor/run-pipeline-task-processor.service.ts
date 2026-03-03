@@ -18,7 +18,7 @@ export class RunPipelineTaskProcessorService {
       const pipeline = await this.pipelineService.getPipeline(
         task.pipelineId,
         task.user,
-        ['workspace'], // todo: processing fails when loading namespaces relation. why?
+        ['workspace', 'workspace.environments'], // todo: processing fails when loading namespaces relation. why?
       );
 
       if (!pipeline) {

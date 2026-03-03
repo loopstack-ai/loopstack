@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@loopstack/contracts": "^0.21.0",
+    "class-transformer": "^0.5.1",
     "fast-json-stable-stringify": "^2.1.0",
     "murmurhash": "^2.0.1",
     "reflect-metadata": "^0.2.2",
