@@ -7,6 +7,7 @@ import {
   PipelineEntity,
   WorkflowEntity,
   WorkspaceEntity,
+  WorkspaceEnvironmentEntity,
 } from '@loopstack/common';
 import { MigrationsService } from '@loopstack/core';
 
@@ -40,5 +41,7 @@ export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingM
     .overrideProvider(getRepositoryToken(NamespaceEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(EventSubscriberEntity))
+    .useValue(createMockRepository())
+    .overrideProvider(getRepositoryToken(WorkspaceEnvironmentEntity))
     .useValue(createMockRepository());
 }
