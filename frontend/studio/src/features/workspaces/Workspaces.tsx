@@ -1,18 +1,27 @@
+import { Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { WorkspaceItemDto } from '@loopstack/api-client';
 import ItemListView from '../../components/lists/ListView.tsx';
-import type { Column } from '../../components/lists/ListView.tsx';
+import type { Column, OriginalRowAction } from '../../components/lists/ListView.tsx';
 import { Badge } from '../../components/ui/badge.tsx';
 import { Dialog, DialogContent } from '../../components/ui/dialog.tsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip.tsx';
 import { useWorkspaceConfig } from '../../hooks/useConfig.ts';
 import { useDebounce } from '../../hooks/useDebounce.ts';
-import { useBatchDeleteWorkspaces, useDeleteWorkspace, useFilterWorkspaces } from '../../hooks/useWorkspaces.ts';
+import {
+  useBatchDeleteWorkspaces,
+  useDeleteWorkspace,
+  useFilterWorkspaces,
+  useSetFavouriteWorkspace,
+} from '../../hooks/useWorkspaces.ts';
+import { useComponentOverrides } from '../../providers/ComponentOverridesProvider.tsx';
 import { useStudio } from '../../providers/StudioProvider.tsx';
-import CreateWorkspace from './components/CreateWorkspace.tsx';
+import DefaultCreateWorkspace from './components/CreateWorkspace.tsx';
 
 const Workspaces = () => {
+  const { CreateWorkspace: CreateWorkspaceOverride } = useComponentOverrides();
+  const CreateWorkspace = CreateWorkspaceOverride ?? DefaultCreateWorkspace;
   const { router } = useStudio();
 
   const [searchParams] = useSearchParams();
@@ -40,6 +49,7 @@ const Workspaces = () => {
 
   const deletePipeline = useDeleteWorkspace();
   const batchDeletePipelines = useBatchDeleteWorkspaces();
+  const setFavourite = useSetFavouriteWorkspace();
 
   const handleDelete = (id: string) => {
     deletePipeline.mutate(id);
@@ -135,6 +145,27 @@ const Workspaces = () => {
             //   )
             // },
             {
+              id: 'environments',
+              label: 'Environments',
+              minWidth: 150,
+              format: (value: unknown) => {
+                const envs = value as
+                  | Array<{ remoteEnvironmentId: string; providerAppName?: string; type?: string }>
+                  | undefined;
+                if (!envs || envs.length === 0) return '—';
+                return (
+                  <div className="flex flex-wrap gap-1">
+                    {envs.map((env) => (
+                      <Badge key={env.remoteEnvironmentId} variant="secondary">
+                        {env.providerAppName ?? env.remoteEnvironmentId.slice(0, 8)}
+                        {env.type && <span className="text-muted-foreground ml-1">({env.type})</span>}
+                      </Badge>
+                    ))}
+                  </div>
+                );
+              },
+            },
+            {
               id: 'createdAt',
               label: 'Date Created',
               minWidth: 100,
@@ -149,6 +180,28 @@ const Workspaces = () => {
           ] as Column[]
         }
         filterConfig={{}}
+        rowActions={
+          [
+            {
+              id: 'add-favourite',
+              label: 'Add to favourites',
+              icon: <Star className="h-4 w-4" />,
+              condition: (item: WorkspaceItemDto) => !item.isFavourite,
+              action: (item: WorkspaceItemDto) => {
+                setFavourite.mutate({ id: item.id, isFavourite: true });
+              },
+            },
+            {
+              id: 'remove-favourite',
+              label: 'Remove from favourites',
+              icon: <Star className="h-4 w-4 fill-current" />,
+              condition: (item: WorkspaceItemDto) => !!item.isFavourite,
+              action: (item: WorkspaceItemDto) => {
+                setFavourite.mutate({ id: item.id, isFavourite: false });
+              },
+            },
+          ] as OriginalRowAction<WorkspaceItemDto>[]
+        }
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
