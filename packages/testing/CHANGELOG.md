@@ -1,5 +1,15 @@
 # @loopstack/testing
 
+## 0.22.0
+
+### Patch Changes
+
+- [#86](https://github.com/loopstack-ai/loopstack/pull/86) [`ebf5580`](https://github.com/loopstack-ai/loopstack/commit/ebf5580b7906a02589e143edc1cdf24e3860873e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix missing entity mock
+
+- Updated dependencies [[`2606b29`](https://github.com/loopstack-ai/loopstack/commit/2606b29d3bcf893f41b2d5e7d47fb1c5323e4135)]:
+  - @loopstack/common@0.22.0
+  - @loopstack/core@0.22.0
+
 ## 0.21.0
 
 ### Patch Changes
