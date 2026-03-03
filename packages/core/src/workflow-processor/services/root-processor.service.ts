@@ -6,6 +6,7 @@ import {
   RunContext,
   WorkflowInterface,
   WorkflowMetadataInterface,
+  WorkspaceEnvironmentContextDto,
   getBlockWorkflow,
 } from '@loopstack/common';
 import { RunPayload } from '@loopstack/contracts/schemas';
@@ -102,6 +103,10 @@ export class RootProcessorService {
       labels: [...pipeline.labels, namespace.name],
       namespace,
       payload,
+      pipelineContext: pipeline.context,
+      workspaceEnvironments: pipeline.workspace?.environments
+        ? WorkspaceEnvironmentContextDto.fromEntities(pipeline.workspace.environments)
+        : undefined,
       options: { stateless: false },
     });
 

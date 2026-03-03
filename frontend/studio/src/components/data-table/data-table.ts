@@ -57,6 +57,11 @@ export interface DataTableProps<T = any> {
   onEdit?: (item: T) => void;
   onDelete?: (id: string) => void;
   onNew?: () => void;
+  newButtonLabel?: string;
+
+  // Delete confirm dialog customisation
+  deleteConfirmTitle?: (itemId: string) => string;
+  deleteConfirmDescription?: (itemId: string) => string;
 
   // Custom row actions
   rowActions?: RowAction<T>[];

@@ -217,7 +217,8 @@ export function getBlockTemplateHelpers(target: object): TemplateHelper[] {
     const name = String(key);
     const fn = targetRecord[name];
     if (typeof fn === 'function') {
-      helpers.push({ name, fn: fn as (...args: unknown[]) => unknown });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-function-type
+      helpers.push({ name, fn: (fn as Function).bind(target) });
     }
   }
   return helpers;

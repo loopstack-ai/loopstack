@@ -31,12 +31,14 @@ async function getLatestReleaseTag(packageName: string): Promise<string> {
 async function main() {
   const args = process.argv.slice(2);
   let appName: string | undefined;
-  const bundleTemplateName = '@loopstack/app-bundle-template';
+  let template = 'app-bundle-template';
   let tag: string | undefined;
 
   for (const arg of args) {
     if (arg.startsWith('--tag=')) {
       tag = arg.split('=')[1];
+    } else if (arg.startsWith('--template=')) {
+      template = arg.split('=')[1];
     } else if (!arg.startsWith('--')) {
       appName = arg;
     }
@@ -46,19 +48,23 @@ async function main() {
     console.error('❌ Please provide a project name.');
     console.error('\nUsage: create-loopstack-app <app-name> [options]');
     console.error('\nOptions:');
+    console.error('  --template=<name>    Template to use (default: app-bundle-template)');
     console.error('  --tag=<tag>          Git tag/branch to use (default: latest release)');
     console.error('\nExamples:');
     console.error('  create-loopstack-app my-app');
+    console.error('  create-loopstack-app my-app --template=app-template');
     console.error('  create-loopstack-app my-app --tag=@loopstack/app-bundle-template@1.0.0');
     process.exit(1);
   }
 
-  console.log(`Creating Loopstack app: ${appName}`);
+  const templatePackageName = `@loopstack/${template}`;
+
+  console.log(`Creating Loopstack app: ${appName} (template: ${template})`);
 
   if (!tag) {
     try {
       console.log('Fetching latest release...');
-      tag = await getLatestReleaseTag(bundleTemplateName);
+      tag = await getLatestReleaseTag(templatePackageName);
       console.log(`Found latest release: ${tag}`);
     } catch {
       console.error('⚠️  Could not fetch latest release, falling back to main branch');
@@ -66,15 +72,15 @@ async function main() {
     }
   }
 
-  const bundleSource = `github:loopstack-ai/loopstack/templates/app-bundle-template#${tag}`;
-  console.log(`\nCloning bundle template from: ${bundleSource}`);
+  const templateSource = `github:loopstack-ai/loopstack/templates/${template}#${tag}`;
+  console.log(`\nCloning template from: ${templateSource}`);
 
   try {
-    execSync(`npx giget@latest ${bundleSource} ${appName} --force`, {
+    execSync(`npx giget@latest ${templateSource} ${appName} --force`, {
       stdio: 'inherit',
     });
   } catch {
-    console.error(`❌ Error: Could not clone bundle template "${bundleTemplateName}" with tag "${tag}"`);
+    console.error(`❌ Error: Could not clone template "${templatePackageName}" with tag "${tag}"`);
     console.error('Please verify that the template name and tag are correct.');
     process.exit(1);
   }
@@ -89,23 +95,7 @@ async function main() {
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
   console.log('\nSetting up project...');
-  execSync('npm run setup', { stdio: 'inherit' });
-
-  // Install root dependencies
-  console.log('\nInstalling dependencies...');
-  execSync('npm run install:all', { stdio: 'inherit' });
-
-  // Return to project root
-  process.chdir(projectRoot);
-
-  console.log('\n✅ Loopstack project created successfully!\n');
-  console.log('─'.repeat(50));
-
-  console.log(`\nStart:            👉 cd ${appName} && npm run start`);
-  console.log('\nLoopstack Studio: http://localhost:5173');
-  console.log('Backend API:      http://localhost:8000');
-
-  console.log('─'.repeat(50));
+  execSync('bash scripts/setup.sh', { stdio: 'inherit' });
 }
 
 void main();

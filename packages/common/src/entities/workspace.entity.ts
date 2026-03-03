@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { PipelineEntity } from './pipeline.entity';
 import { User } from './user.entity';
+import { WorkspaceEnvironmentEntity } from './workspace-environment.entity';
 
 @Entity({ name: 'core_workspace' })
 export class WorkspaceEntity {
@@ -24,6 +25,9 @@ export class WorkspaceEntity {
   @Index()
   blockName!: string;
 
+  @Column({ name: 'is_favourite', default: false })
+  isFavourite!: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
@@ -35,6 +39,12 @@ export class WorkspaceEntity {
     onDelete: 'CASCADE',
   })
   pipelines!: PipelineEntity[];
+
+  @OneToMany(() => WorkspaceEnvironmentEntity, (env) => env.workspace, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  environments!: WorkspaceEnvironmentEntity[];
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by' })

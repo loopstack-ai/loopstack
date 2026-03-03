@@ -13,6 +13,7 @@ import {
   User,
   WorkflowEntity,
   WorkspaceEntity,
+  WorkspaceEnvironmentEntity,
 } from '@loopstack/common';
 import { LoopCoreModule } from '@loopstack/core';
 import { AdminRoleController } from './controllers/admin-role.controller';
@@ -50,6 +51,7 @@ import { WorkspaceApiService } from './services/workspace-api.service';
     TypeOrmModule.forFeature([
       PipelineEntity,
       WorkspaceEntity,
+      WorkspaceEnvironmentEntity,
       WorkflowEntity,
       DocumentEntity,
       NamespaceEntity,

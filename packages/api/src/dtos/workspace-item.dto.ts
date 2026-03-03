@@ -1,6 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Expose, plainToInstance } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Expose, Type, plainToInstance } from 'class-transformer';
 import { WorkspaceEntity } from '@loopstack/common';
+import { WorkspaceEnvironmentDto } from './workspace-environment.dto';
 
 /**
  * Data Transfer Object for Workspace Item
@@ -33,6 +34,13 @@ export class WorkspaceItemDto {
   })
   title: string;
 
+  @Expose()
+  @ApiProperty({
+    description: 'Whether the workspace is marked as favourite',
+    example: false,
+  })
+  isFavourite: boolean;
+
   /**
    * Timestamp when the workspace item was created
    */
@@ -54,6 +62,15 @@ export class WorkspaceItemDto {
     example: '2023-01-01T12:00:00Z',
   })
   updatedAt: Date;
+
+  @Expose()
+  @Type(() => WorkspaceEnvironmentDto)
+  @ApiPropertyOptional({
+    description: 'Environment assignments for this workspace',
+    type: WorkspaceEnvironmentDto,
+    isArray: true,
+  })
+  environments?: WorkspaceEnvironmentDto[];
 
   /**
    * Creates a WorkspaceItemDto instance from a WorkspaceEntity

@@ -1,5 +1,5 @@
 import { DialogTitle } from '@radix-ui/react-dialog';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Star } from 'lucide-react';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import type { WorkspaceConfigDto, WorkspaceItemDto } from '@loopstack/api-client';
@@ -11,19 +11,18 @@ import { Label } from '../../../components/ui/label.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select.tsx';
 import { useCreateWorkspace, useUpdateWorkspace } from '../../../hooks/useWorkspaces.ts';
 
-const CreateWorkspace = ({
-  types,
-  workspace,
-  onSuccess,
-}: {
+export interface CreateWorkspaceProps {
   types: WorkspaceConfigDto[];
   workspace?: WorkspaceItemDto;
   onSuccess: () => void;
-}) => {
+}
+
+const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) => {
   const createWorkspace = useCreateWorkspace();
   const updateWorkspace = useUpdateWorkspace();
 
   const [workspaceType, setWorkspaceType] = useState(types[0]?.blockName ?? '');
+  const [isFavourite, setIsFavourite] = useState(workspace?.isFavourite ?? false);
 
   useEffect(() => {
     setWorkspaceType(types[0]?.blockName ?? '');
@@ -46,6 +45,7 @@ const CreateWorkspace = ({
         id: workspace.id,
         workspaceUpdateDto: {
           title: name,
+          isFavourite,
         },
       },
       {
@@ -70,6 +70,7 @@ const CreateWorkspace = ({
         workspaceCreateDto: {
           title: name || undefined,
           blockName: workspaceType,
+          isFavourite: isFavourite || undefined,
         },
       },
       {
@@ -88,16 +89,16 @@ const CreateWorkspace = ({
       <ErrorSnackbar error={createWorkspace.error} />
       <ErrorSnackbar error={updateWorkspace.error} />
 
-      <div className="my-4">
+      <div className="mb-4">
         <DialogHeader className="space-y-1">
           <DialogTitle className="mb-4 text-lg leading-none font-semibold">
             {workspace ? 'Edit' : 'Add'} Workspace
           </DialogTitle>
         </DialogHeader>
-        <div>
-          <form onSubmit={workspace ? handleUpdate : handleCreate} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Workspace Name</Label>
+        <form onSubmit={workspace ? handleUpdate : handleCreate} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Workspace Name</Label>
+            <div className="flex items-center gap-2">
               <Input
                 id="name"
                 name="name"
@@ -105,32 +106,43 @@ const CreateWorkspace = ({
                 placeholder={'Enter workspace name (optional)'}
                 autoFocus
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="shrink-0"
+                onClick={() => setIsFavourite((f) => !f)}
+              >
+                <Star
+                  className={`h-4 w-4 ${isFavourite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`}
+                />
+              </Button>
             </div>
+          </div>
 
-            {!workspace && (
-              <div className="space-y-2">
-                <Label htmlFor="blockName">Type</Label>
-                <Select name="blockName" value={workspaceType} onValueChange={handleWorkspaceTypeChange}>
-                  <SelectTrigger id="blockName" className="w-full">
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {types.map((item: WorkspaceConfigDto) => (
-                      <SelectItem key={item.blockName} value={item.blockName}>
-                        {item.title ?? item.blockName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+          {!workspace && types.length > 1 && (
+            <div className="space-y-2">
+              <Label htmlFor="blockName">Type</Label>
+              <Select name="blockName" value={workspaceType} onValueChange={handleWorkspaceTypeChange}>
+                <SelectTrigger id="blockName" className="w-full">
+                  <SelectValue placeholder="Select a type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {types.map((item: WorkspaceConfigDto) => (
+                    <SelectItem key={item.blockName} value={item.blockName}>
+                      {item.title ?? item.blockName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {workspace ? 'Save' : 'Create'}
-            </Button>
-          </form>
-        </div>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {workspace ? 'Save' : 'Create'}
+          </Button>
+        </form>
       </div>
     </div>
   );

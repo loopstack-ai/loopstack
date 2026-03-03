@@ -1,4 +1,4 @@
-import { type ReactElement } from 'react';
+import type { ReactNode } from 'react';
 import PageBreadcrumbs from '../page/PageBreadcrumbs.tsx';
 import type { BreadCrumbsData } from '../page/PageBreadcrumbs.tsx';
 
@@ -7,9 +7,9 @@ const MainLayout = ({
   breadcrumbsData,
   headerMenu,
 }: {
-  children: ReactElement | ReactElement[];
+  children: ReactNode;
   breadcrumbsData: BreadCrumbsData[];
-  headerMenu?: ReactElement;
+  headerMenu?: ReactNode;
 }) => {
   return (
     <div className="px-4">

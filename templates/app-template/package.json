@@ -7,7 +7,6 @@
     "lint": "eslint .",
     "loopstack": "ts-node src/cli.ts",
     "loopstack:dev": "tsx src/cli.ts",
-    "setup": "bash scripts/setup.sh",
     "start": "nest start",
     "start:debug": "nest start --debug --watch",
     "start:dev": "nodemon --watch src --ext ts,js,yml,yaml --ignore src/**/*.spec.ts --exec \"nest start\"",
@@ -37,20 +36,20 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/eslintrc": "^3.3.4",
     "@eslint/js": "^10.0.1",
     "@loopstack/testing": "^0.21.0",
     "@nestjs/cli": "^11.0.16",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.14",
     "@swc/cli": "^0.7.0",
-    "@swc/core": "^1.15.11",
+    "@swc/core": "^1.15.13",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.3.0",
     "@types/supertest": "^6.0.3",
-    "eslint": "^10.0.0",
+    "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.3.0",
@@ -64,7 +63,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.0"
+    "typescript-eslint": "^8.56.1"
   },
   "jest": {
     "moduleFileExtensions": [

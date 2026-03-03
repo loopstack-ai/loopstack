@@ -4,7 +4,6 @@
   "description": "OpenAPI client for @loopstack/api-client",
   "author": "OpenAPI-Generator Contributors",
   "keywords": [
-    "axios",
     "typescript",
     "openapi-client",
     "openapi-generator",

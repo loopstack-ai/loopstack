@@ -78,6 +78,10 @@ export class LocalRouter implements StudioRouter {
     await this.navigate(`/workspaces/${workspaceId}/pipelines/${pipelineId}/namespaces/${namespaceId}`);
   }
 
+  getEmbedPipeline(pipelineId: string) {
+    return `/embed/pipelines/${pipelineId}`;
+  }
+
   getCurrentEnvironmentId() {
     return this.envId;
   }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BlockSchema } from './block.schema';
+import { EnvironmentConfigSchema } from './environment-config.schema';
 
 const VolumeSchema = z.object({
   path: z.string(),
@@ -42,4 +43,5 @@ export const WorkspaceSchema = BlockSchema.extend({
   description: z.string().optional(),
   volumes: z.record(z.string(), VolumeSchema).optional(),
   features: FeaturesSchema.optional(),
+  environments: z.array(EnvironmentConfigSchema).optional(),
 });

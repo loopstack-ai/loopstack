@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
-import { WorkspaceEntity } from '@loopstack/common';
+import { WorkspaceEntity, WorkspaceEnvironmentEntity } from '@loopstack/common';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
 import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
@@ -14,6 +14,8 @@ export class WorkspaceApiService {
   constructor(
     @InjectRepository(WorkspaceEntity)
     private workspaceRepository: Repository<WorkspaceEntity>,
+    @InjectRepository(WorkspaceEnvironmentEntity)
+    private workspaceEnvironmentRepository: Repository<WorkspaceEnvironmentEntity>,
     private configService: ConfigService,
   ) {}
 
@@ -38,10 +40,14 @@ export class WorkspaceApiService {
     const defaultLimit = this.configService.get<number>('WORKSPACE_DEFAULT_LIMIT', 100);
     const defaultSortBy = this.configService.get<WorkspaceSortByDto[]>('WORKSPACE_DEFAULT_SORT_BY', []);
 
-    const queryBuilder = this.workspaceRepository.createQueryBuilder('workspace');
+    const queryBuilder = this.workspaceRepository
+      .createQueryBuilder('workspace')
+      .leftJoinAndSelect('workspace.environments', 'environments');
 
     const transformedFilter = Object.fromEntries(
-      Object.entries(filter).map(([key, value]) => [key, value === null ? IsNull() : value]),
+      Object.entries(filter ?? {})
+        .filter(([, value]) => value !== undefined)
+        .map(([key, value]) => [key, value === null ? IsNull() : value]),
     );
 
     queryBuilder.where({
@@ -94,6 +100,7 @@ export class WorkspaceApiService {
         id,
         createdBy: user,
       },
+      relations: ['environments'],
     });
 
     if (!workspace) {
@@ -107,12 +114,18 @@ export class WorkspaceApiService {
    */
   async create(workspaceData: WorkspaceCreateDto, user: string): Promise<WorkspaceEntity> {
     const title = workspaceData.title || `${workspaceData.blockName}`;
+    const { environments: envDtos, ...rest } = workspaceData;
 
     const workspace = this.workspaceRepository.create({
-      ...workspaceData,
+      ...rest,
       title,
       createdBy: user,
     });
+
+    if (envDtos && envDtos.length > 0) {
+      workspace.environments = envDtos.map((dto) => this.workspaceEnvironmentRepository.create(dto));
+    }
+
     return await this.workspaceRepository.save(workspace);
   }
 
@@ -125,11 +138,36 @@ export class WorkspaceApiService {
         id,
         createdBy: user,
       },
+      relations: ['environments'],
     });
 
     if (!workspace) throw new NotFoundException(`Workspace with ID ${id} not found`);
 
-    Object.assign(workspace, workspaceData);
+    const { environments: envDtos, ...rest } = workspaceData;
+    Object.assign(workspace, rest);
+
+    if (envDtos !== undefined) {
+      // Remove existing environments and replace with new ones
+      await this.workspaceEnvironmentRepository.delete({ workspaceId: id });
+      workspace.environments = envDtos.map((dto) =>
+        this.workspaceEnvironmentRepository.create({ ...dto, workspaceId: id }),
+      );
+    }
+
+    return await this.workspaceRepository.save(workspace);
+  }
+
+  /**
+   * Sets the favourite status of a workspace.
+   */
+  async setFavourite(id: string, isFavourite: boolean, user: string): Promise<WorkspaceEntity> {
+    const workspace = await this.workspaceRepository.findOne({
+      where: { id, createdBy: user },
+    });
+
+    if (!workspace) throw new NotFoundException(`Workspace with ID ${id} not found`);
+
+    workspace.isFavourite = isFavourite;
     return await this.workspaceRepository.save(workspace);
   }
 

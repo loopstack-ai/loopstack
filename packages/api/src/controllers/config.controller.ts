@@ -27,10 +27,10 @@ import { WorkflowType, WorkspaceType } from '@loopstack/contracts/types';
 import { BlockDiscoveryService } from '@loopstack/core';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
 import { PipelineSourceDto } from '../dtos/pipeline-source.dto';
-import { FeaturesDto, VolumeDto, WorkspaceConfigDto } from '../dtos/workspace-config.dto';
+import { EnvironmentConfigDto, FeaturesDto, VolumeDto, WorkspaceConfigDto } from '../dtos/workspace-config.dto';
 
 @ApiTags('api/v1/config')
-@ApiExtraModels(WorkspaceConfigDto, PipelineConfigDto, PipelineSourceDto, VolumeDto, FeaturesDto)
+@ApiExtraModels(WorkspaceConfigDto, PipelineConfigDto, PipelineSourceDto, VolumeDto, FeaturesDto, EnvironmentConfigDto)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/config')
 export class ConfigController {
@@ -54,6 +54,7 @@ export class ConfigController {
         title: config.title ?? workspace.constructor.name,
         volumes: config.volumes,
         features: config.features,
+        environments: config.environments,
       };
     });
 

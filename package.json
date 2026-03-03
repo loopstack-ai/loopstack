@@ -19,8 +19,8 @@
     "changeset:version": "changeset version && npm install --package-lock-only --prefer-offline"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.2",
-    "@changesets/cli": "^2.29.8",
+    "@changesets/changelog-github": "^0.6.0",
+    "@changesets/cli": "^2.30.0",
     "@eslint/eslintrc": "^3.3.4",
     "@eslint/js": "^10.0.1",
     "@nestjs/cli": "^11.0.16",
@@ -28,21 +28,21 @@
     "@nestjs/testing": "^11.1.14",
     "@nestjs/typeorm": "^11.0.0",
     "@swc/cli": "^0.7.0",
-    "@swc/core": "^1.15.13",
+    "@swc/core": "^1.15.18",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.24",
-    "@types/node": "^25.3.0",
-    "@types/supertest": "^6.0.3",
+    "@types/node": "^25.3.3",
+    "@types/supertest": "^7.2.0",
     "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
-    "globals": "^17.3.0",
+    "globals": "^17.4.0",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
     "jsdom": "^28.1.0",
-    "lint-staged": "^16.2.7",
+    "lint-staged": "^16.3.1",
     "prettier": "^3.8.1",
     "source-map-support": "^0.5.21",
     "supertest": "^7.2.2",
@@ -51,7 +51,7 @@
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "turbo": "^2.8.10",
+    "turbo": "^2.8.12",
     "typeorm": "^0.3.28",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1"
@@ -64,13 +64,12 @@
       "prettier --check"
     ]
   },
-  "packageManager": "npm@11.10.1",
+  "packageManager": "npm@11.11.0",
   "workspaces": [
     "packages/*",
     "frontend/*",
     "installer/*",
     "templates/*",
-    "generators/*",
     "registry/*/*",
     "client/*"
   ]

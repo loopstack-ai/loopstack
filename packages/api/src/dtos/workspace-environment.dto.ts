@@ -1,0 +1,48 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Expose, plainToInstance } from 'class-transformer';
+import { IsOptional, IsString } from 'class-validator';
+import { WorkspaceEnvironmentEntity } from '@loopstack/common';
+
+export class WorkspaceEnvironmentDto {
+  @Expose()
+  @IsString()
+  @ApiProperty({ description: 'Logical slot identifier from workspace config', example: 'primary' })
+  slotId: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({ description: 'Environment type (e.g., sandbox, production)', example: 'sandbox' })
+  type: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({
+    description: 'Remote environment ID from hub-backend',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  remoteEnvironmentId: string;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ description: 'Provider application name', example: 'my-app-xyz' })
+  providerAppName?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ description: 'Connection URL for the environment', example: 'https://my-app-xyz.fly.dev' })
+  connectionUrl?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ description: 'Agent URL for the environment', example: 'https://my-app-xyz.fly.dev/agent' })
+  agentUrl?: string;
+
+  static create(entity: WorkspaceEnvironmentEntity): WorkspaceEnvironmentDto {
+    return plainToInstance(WorkspaceEnvironmentDto, entity, {
+      excludeExtraneousValues: true,
+    });
+  }
+}
