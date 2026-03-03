@@ -1,5 +1,19 @@
 # @loopstack/app-template
 
+## 0.18.5
+
+### Patch Changes
+
+- [#86](https://github.com/loopstack-ai/loopstack/pull/86) [`2606b29`](https://github.com/loopstack-ai/loopstack/commit/2606b29d3bcf893f41b2d5e7d47fb1c5323e4135) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Allow using different templates via args in installer
+
+- Updated dependencies [[`2606b29`](https://github.com/loopstack-ai/loopstack/commit/2606b29d3bcf893f41b2d5e7d47fb1c5323e4135), [`34f00b1`](https://github.com/loopstack-ai/loopstack/commit/34f00b18ed5d76745a0c73980964713136dc5c38)]:
+  - @loopstack/common@0.22.0
+  - @loopstack/core@0.22.0
+  - @loopstack/api@0.22.0
+  - @loopstack/cli-module@0.22.0
+  - @loopstack/core-ui-module@0.20.5
+  - @loopstack/create-chat-message-tool@0.20.5
+
 ## 0.18.4
 
 ### Patch Changes

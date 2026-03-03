@@ -1,5 +1,12 @@
 # @loopstack/sandbox-tool
 
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [[`2606b29`](https://github.com/loopstack-ai/loopstack/commit/2606b29d3bcf893f41b2d5e7d47fb1c5323e4135)]:
+  - @loopstack/common@0.22.0
+
 ## 0.4.4
 
 ### Patch Changes

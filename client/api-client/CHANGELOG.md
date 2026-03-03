@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.20.0
+
+### Minor Changes
+
+- [#86](https://github.com/loopstack-ai/loopstack/pull/86) [`34f00b1`](https://github.com/loopstack-ai/loopstack/commit/34f00b18ed5d76745a0c73980964713136dc5c38) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add workspace environments and favourites feature
+
 ## 0.19.0
 
 ### Minor Changes

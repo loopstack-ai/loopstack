@@ -1,5 +1,11 @@
 # @loopstack/contracts
 
+## 0.22.0
+
+### Minor Changes
+
+- [#86](https://github.com/loopstack-ai/loopstack/pull/86) [`34f00b1`](https://github.com/loopstack-ai/loopstack/commit/34f00b18ed5d76745a0c73980964713136dc5c38) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add environment type enum and config schema
+
 ## 0.21.0
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @loopstack/custom-tool-example-module
 
+## 0.20.5
+
+### Patch Changes
+
+- Updated dependencies [[`2606b29`](https://github.com/loopstack-ai/loopstack/commit/2606b29d3bcf893f41b2d5e7d47fb1c5323e4135)]:
+  - @loopstack/common@0.22.0
+  - @loopstack/create-chat-message-tool@0.20.5
+
 ## 0.20.4
 
 ### Patch Changes
