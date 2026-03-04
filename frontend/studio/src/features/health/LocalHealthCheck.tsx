@@ -1,10 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiClientEvents } from '@/events';
 import { useGetHealthInfo, useWorkerAuth, useWorkerAuthTokenRefresh } from '@/hooks/useAuth.ts';
 import { eventBus } from '@/services';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../../components/ui/sheet.tsx';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 
 export const Escalation = {
@@ -126,37 +125,54 @@ const LocalHealthCheck = () => {
     };
   }, []);
 
-  return (
-    <Sheet open={escalation >= Escalation.Debug}>
-      <SheetContent side="bottom">
-        <SheetHeader>
-          <div className="flex w-full flex-row items-center justify-between">
-            <div>
-              <SheetTitle>Connection issues detected</SheetTitle>
-              <SheetDescription>
-                Please make sure the environment{' '}
-                <strong>
-                  {environment.name} ({environment.id})
-                </strong>{' '}
-                is properly configured and running.
-              </SheetDescription>
-            </div>
+  const [dismissed, setDismissed] = useState(false);
+  const isVisible = escalation >= Escalation.Debug && !dismissed;
 
-            {escalation === Escalation.Connection && (
-              <div className="mr-10">
-                <button
-                  onClick={handleCheckHealth}
-                  className="bg-primary flex items-center gap-2 rounded-md px-4 py-2 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <RefreshCw className={`h-3 w-3 ${fetchHealthInfo.isLoading ? 'animate-spin' : ''}`} />
-                  Retry
-                </button>
-              </div>
-            )}
+  // Reset dismissed state when escalation clears
+  useEffect(() => {
+    if (escalation < Escalation.Debug) {
+      setDismissed(false);
+    }
+  }, [escalation]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="bg-destructive/10 border-destructive/30 fixed inset-x-0 bottom-0 z-50 border-t px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-destructive h-2 w-2 rounded-full" />
+          <div>
+            <p className="text-foreground text-sm font-semibold">Connection issues detected</p>
+            <p className="text-muted-foreground text-xs">
+              Please make sure the environment{' '}
+              <strong>
+                {environment.name} ({environment.id})
+              </strong>{' '}
+              is properly configured and running.
+            </p>
           </div>
-        </SheetHeader>
-      </SheetContent>
-    </Sheet>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {escalation === Escalation.Connection && (
+            <button
+              onClick={handleCheckHealth}
+              className="bg-primary flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3 w-3 ${fetchHealthInfo.isLoading ? 'animate-spin' : ''}`} />
+              Retry
+            </button>
+          )}
+          <button
+            onClick={() => setDismissed(true)}
+            className="text-muted-foreground hover:text-foreground rounded-xs p-1 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

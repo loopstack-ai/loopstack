@@ -18,16 +18,14 @@ env:
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
-  # CI - Quality checks, build, and tests in a single job
+  # Build & Test - Build all packages, then run tests
   # ──────────────────────────────────────────────────────────────────────────
-  ci:
-    name: CI
+  build-and-test:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -35,17 +33,26 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            turbo-${{ runner.os }}-
+
       - name: Install dependencies
         run: npm ci
 
       - name: Build packages
         run: npm run build
-
-      - name: Lint
-        run: npm run lint --if-present
-
-      - name: Check formatting
-        run: npm run format:check --if-present
 
       - name: Run tests
         run: npm test --if-present
@@ -56,3 +63,34 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Lint & Format - Check code quality (runs in parallel with build)
+  # ──────────────────────────────────────────────────────────────────────────
+  lint-and-format:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Check formatting
+        run: npm run format:check --if-present
