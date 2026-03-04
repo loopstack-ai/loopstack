@@ -9,6 +9,9 @@ async function bootstrap() {
 
   LoopstackApiModule.setup(app);
 
-  await app.listen(process.env.PORT ?? 8000);
+  const port = process.env.PORT ?? 8000;
+  const host = process.env.HOST ?? 'localhost';
+  await app.listen(port, host);
+  process.send?.('ready');
 }
 void bootstrap();
