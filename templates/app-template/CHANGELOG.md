@@ -1,5 +1,11 @@
 # @loopstack/app-template
 
+## 0.18.6
+
+### Patch Changes
+
+- [#89](https://github.com/loopstack-ai/loopstack/pull/89) [`5c8bcf4`](https://github.com/loopstack-ai/loopstack/commit/5c8bcf4c6f0e5b960b52023106ee7de80df38531) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add configurable HOST env var and process ready signal
+
 ## 0.18.5
 
 ### Patch Changes
