@@ -8,7 +8,7 @@ transitions:
       - tool: executeWorkflowAsync
         id: executeStateful
         args:
-          workflow: runSubWorkflowExampleSubWorkflow
+          workflow: runSubWorkflowExampleSub
           args: {}
           callback:
             transition: sub_workflow_callback
