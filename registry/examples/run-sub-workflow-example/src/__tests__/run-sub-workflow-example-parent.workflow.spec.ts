@@ -89,7 +89,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(mockExecuteWorkflowAsyncTool.execute).toHaveBeenCalledTimes(1);
       expect(mockExecuteWorkflowAsyncTool.execute).toHaveBeenCalledWith(
         expect.objectContaining({
-          workflow: 'runSubWorkflowExampleSubWorkflow',
+          workflow: 'runSubWorkflowExampleSub',
           args: {},
           callback: { transition: 'sub_workflow_callback' },
         }),
