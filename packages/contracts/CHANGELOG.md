@@ -1,5 +1,11 @@
 # @loopstack/contracts
 
+## 0.22.1
+
+### Patch Changes
+
+- [#91](https://github.com/loopstack-ai/loopstack/pull/91) [`49cdfcb`](https://github.com/loopstack-ai/loopstack/commit/49cdfcb20b776fddfe8e19da9cc597735ed64b18) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Accept unknown environment types in EnvironmentConfigSchema
+
 ## 0.22.0
 
 ### Minor Changes

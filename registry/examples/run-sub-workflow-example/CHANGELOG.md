@@ -1,5 +1,11 @@
 # @loopstack/run-sub-workflow-example
 
+## 0.20.6
+
+### Patch Changes
+
+- [#91](https://github.com/loopstack-ai/loopstack/pull/91) [`bc48dc9`](https://github.com/loopstack-ai/loopstack/commit/bc48dc961f90e84cf9fd3b253683556494328613) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix sub-workflow name reference in parent workflow
+
 ## 0.20.5
 
 ### Patch Changes
