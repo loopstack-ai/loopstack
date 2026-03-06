@@ -18,3 +18,4 @@ export { default as EmbedWorkbenchPage } from './pages/EmbedWorkbenchPage';
 export { default as LocalHealthCheck } from './features/health/LocalHealthCheck';
 
 export type { CreateWorkspaceProps } from './features/workspaces/components/CreateWorkspace';
+export type { EditWorkspaceProps } from './providers/ComponentOverridesProvider';
