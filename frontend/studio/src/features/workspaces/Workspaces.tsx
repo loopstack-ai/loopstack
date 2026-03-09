@@ -20,8 +20,9 @@ import { useStudio } from '../../providers/StudioProvider.tsx';
 import DefaultCreateWorkspace from './components/CreateWorkspace.tsx';
 
 const Workspaces = () => {
-  const { CreateWorkspace: CreateWorkspaceOverride } = useComponentOverrides();
+  const { CreateWorkspace: CreateWorkspaceOverride, EditWorkspace: EditWorkspaceOverride } = useComponentOverrides();
   const CreateWorkspace = CreateWorkspaceOverride ?? DefaultCreateWorkspace;
+  const EditWorkspace = EditWorkspaceOverride ?? DefaultCreateWorkspace;
   const { router } = useStudio();
 
   const [searchParams] = useSearchParams();
@@ -212,7 +213,9 @@ const Workspaces = () => {
 
       <Dialog open={!!openEdit} onOpenChange={(open) => !open && handleEditClose()}>
         <DialogContent className="max-w-2xl">
-          <CreateWorkspace types={fetchWorkspaceTypes.data ?? []} workspace={openEdit} onSuccess={handleEditClose} />
+          {openEdit && (
+            <EditWorkspace types={fetchWorkspaceTypes.data ?? []} workspace={openEdit} onSuccess={handleEditClose} />
+          )}
         </DialogContent>
       </Dialog>
     </>

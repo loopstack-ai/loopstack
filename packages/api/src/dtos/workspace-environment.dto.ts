@@ -40,6 +40,18 @@ export class WorkspaceEnvironmentDto {
   @ApiPropertyOptional({ description: 'Agent URL for the environment', example: 'https://my-app-xyz.fly.dev/agent' })
   agentUrl?: string;
 
+  @Expose()
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ description: 'Worker ID associated with this environment' })
+  workerId?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ description: 'Worker URL for this environment' })
+  workerUrl?: string;
+
   static create(entity: WorkspaceEnvironmentEntity): WorkspaceEnvironmentDto {
     return plainToInstance(WorkspaceEnvironmentDto, entity, {
       excludeExtraneousValues: true,

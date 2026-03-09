@@ -3,6 +3,8 @@ export * from './hooks';
 export * from './services';
 export * from './providers/StudioProvider';
 export * from './providers/ComponentOverridesProvider';
+export { SseProvider } from './providers/SseProvider';
+export { InvalidationEventsProvider } from './providers/InvalidationEventsProvider';
 export * from './routing/LocalRouter';
 export * from './components';
 
@@ -18,3 +20,4 @@ export { default as EmbedWorkbenchPage } from './pages/EmbedWorkbenchPage';
 export { default as LocalHealthCheck } from './features/health/LocalHealthCheck';
 
 export type { CreateWorkspaceProps } from './features/workspaces/components/CreateWorkspace';
+export type { EditWorkspaceProps } from './providers/ComponentOverridesProvider';
