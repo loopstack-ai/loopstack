@@ -1,5 +1,14 @@
 # @loopstack/loopstack-studio
 
+## 0.21.2
+
+### Patch Changes
+
+- [#93](https://github.com/loopstack-ai/loopstack/pull/93) [`4ab4d8d`](https://github.com/loopstack-ai/loopstack/commit/4ab4d8de97e8bab1bc8da6d08af3d571e9a906d5) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add EditWorkspace component override and exported EditWorkspaceProps type
+
+- Updated dependencies [[`66f16db`](https://github.com/loopstack-ai/loopstack/commit/66f16db846c3a765ba2ca2d6206d3a17ac7e782b)]:
+  - @loopstack/api-client@0.20.1
+
 ## 0.21.1
 
 ### Patch Changes
