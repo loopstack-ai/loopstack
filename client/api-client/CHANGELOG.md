@@ -1,5 +1,11 @@
 # @loopstack/api-client
 
+## 0.20.1
+
+### Patch Changes
+
+- [#93](https://github.com/loopstack-ai/loopstack/pull/93) [`66f16db`](https://github.com/loopstack-ai/loopstack/commit/66f16db846c3a765ba2ca2d6206d3a17ac7e782b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Regenerate API client from updated OpenAPI spec
+
 ## 0.20.0
 
 ### Minor Changes
