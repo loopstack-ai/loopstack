@@ -17,6 +17,12 @@ export class WorkspaceEnvironmentContextDto {
   @Expose()
   agentUrl?: string;
 
+  @Expose()
+  workerId?: string;
+
+  @Expose()
+  workerUrl?: string;
+
   static fromEntities(entities: WorkspaceEnvironmentEntity[]): WorkspaceEnvironmentContextDto[] {
     return entities.map((entity) =>
       plainToInstance(WorkspaceEnvironmentContextDto, entity, {

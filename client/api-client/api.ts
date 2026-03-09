@@ -794,27 +794,24 @@ export interface EnvironmentConfigDto {
    */
   id: string;
   /**
-   * Type of environment required
-   * @type {string}
-   * @memberof EnvironmentConfigDto
-   */
-  type: EnvironmentConfigDtoTypeEnum;
-  /**
    * Display title for this environment slot
    * @type {string}
    * @memberof EnvironmentConfigDto
    */
   title?: string;
+  /**
+   * Environment type that this slot requires (e.g. sandbox, production)
+   * @type {string}
+   * @memberof EnvironmentConfigDto
+   */
+  type?: string;
+  /**
+   * Whether this environment slot is optional
+   * @type {boolean}
+   * @memberof EnvironmentConfigDto
+   */
+  optional?: boolean;
 }
-
-export const EnvironmentConfigDtoTypeEnum = {
-  Sandbox: 'sandbox',
-  Production: 'production',
-} as const;
-
-export type EnvironmentConfigDtoTypeEnum =
-  (typeof EnvironmentConfigDtoTypeEnum)[keyof typeof EnvironmentConfigDtoTypeEnum];
-
 /**
  *
  * @export
@@ -2331,6 +2328,18 @@ export interface WorkspaceEnvironmentDto {
    * @memberof WorkspaceEnvironmentDto
    */
   agentUrl?: string;
+  /**
+   * Worker ID associated with this environment
+   * @type {string}
+   * @memberof WorkspaceEnvironmentDto
+   */
+  workerId?: string;
+  /**
+   * Worker URL for this environment
+   * @type {string}
+   * @memberof WorkspaceEnvironmentDto
+   */
+  workerUrl?: string;
 }
 /**
  *

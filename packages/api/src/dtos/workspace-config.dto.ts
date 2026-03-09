@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { EnvironmentType } from '@loopstack/contracts/enums';
 
 export class VolumeDto {
   @Expose()
@@ -73,19 +72,25 @@ export class EnvironmentConfigDto {
   id: string;
 
   @Expose()
-  @ApiProperty({
-    description: 'Type of environment required',
-    enum: EnvironmentType,
-    example: EnvironmentType.Sandbox,
-  })
-  type: EnvironmentType;
-
-  @Expose()
   @ApiPropertyOptional({
     description: 'Display title for this environment slot',
     example: 'Primary Environment',
   })
   title?: string;
+
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'Environment type that this slot requires (e.g. sandbox, production)',
+    example: 'sandbox',
+  })
+  type?: string;
+
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'Whether this environment slot is optional',
+    example: false,
+  })
+  optional?: boolean;
 }
 
 export class FeaturesDto {

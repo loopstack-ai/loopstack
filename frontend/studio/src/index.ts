@@ -3,6 +3,8 @@ export * from './hooks';
 export * from './services';
 export * from './providers/StudioProvider';
 export * from './providers/ComponentOverridesProvider';
+export { SseProvider } from './providers/SseProvider';
+export { InvalidationEventsProvider } from './providers/InvalidationEventsProvider';
 export * from './routing/LocalRouter';
 export * from './components';
 

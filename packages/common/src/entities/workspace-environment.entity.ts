@@ -34,6 +34,12 @@ export class WorkspaceEnvironmentEntity {
   @Column({ type: 'varchar', name: 'agent_url', nullable: true })
   agentUrl?: string;
 
+  @Column({ type: 'varchar', name: 'worker_id', nullable: true })
+  workerId?: string;
+
+  @Column({ type: 'varchar', name: 'worker_url', nullable: true })
+  workerUrl?: string;
+
   @ManyToOne(() => WorkspaceEntity, (workspace) => workspace.environments, {
     onDelete: 'CASCADE',
   })
