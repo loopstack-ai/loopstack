@@ -2,7 +2,7 @@
   "name": "@loopstack/api",
   "displayName": "Loopstack Api Module",
   "description": "The api module of the loopstack automation framework",
-  "version": "0.22.0",
+  "version": "0.22.2",
   "license": "BSL",
   "author": {
     "name": "Jakob Klippel",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@loopstack/auth": "^0.22.0",
-    "@loopstack/common": "^0.22.0",
+    "@loopstack/common": "^0.22.2",
     "@loopstack/contracts": "^0.22.0",
     "@loopstack/core": "^0.22.0",
     "@nestjs/common": "^11.1.14",

@@ -1,5 +1,11 @@
 # @loopstack/common
 
+## 0.22.2
+
+### Patch Changes
+
+- [#93](https://github.com/loopstack-ai/loopstack/pull/93) [`66f16db`](https://github.com/loopstack-ai/loopstack/commit/66f16db846c3a765ba2ca2d6206d3a17ac7e782b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add workerId and workerUrl fields to workspace environment DTOs and entity
+
 ## 0.22.0
 
 ### Patch Changes
