@@ -46,7 +46,15 @@ function WorkbenchContent({ pipeline }: { pipeline: PipelineDto }) {
   );
 }
 
-export default function Workbench({ pipeline }: { pipeline: PipelineDto }) {
+export default function Workbench({
+  pipeline,
+  sidebarOpen,
+  onSidebarOpenChange,
+}: {
+  pipeline: PipelineDto;
+  sidebarOpen?: boolean;
+  onSidebarOpenChange?: (open: boolean) => void;
+}) {
   const namespaceTree = useNamespaceTree(pipeline?.id);
   const workspaceId = pipeline?.workspaceId;
   const fetchWorkspace = useWorkspace(workspaceId);
@@ -72,7 +80,12 @@ export default function Workbench({ pipeline }: { pipeline: PipelineDto }) {
   return (
     <WorkbenchContextProvider.Provider value={contextValue}>
       <CodeExplorerProvider pipelineId={pipeline?.id} fileExplorerEnabled={fileExplorerEnabled}>
-        <SidebarProvider defaultOpen={true} className="workbench-sidebar min-h-0">
+        <SidebarProvider
+          {...(sidebarOpen !== undefined
+            ? { open: sidebarOpen, onOpenChange: onSidebarOpenChange }
+            : { defaultOpen: true })}
+          className="workbench-sidebar min-h-0"
+        >
           <SidebarTrigger className="fixed top-0 right-0 z-40 flex h-8 w-8 items-center justify-center p-8 hover:cursor-pointer md:hidden" />
           <SidebarInsetDiv>
             <div className="flex-1">

@@ -9,7 +9,13 @@ import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { requireParam } from '../lib/requireParam.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
-export default function WorkbenchPage() {
+export default function WorkbenchPage({
+  sidebarOpen,
+  onSidebarOpenChange,
+}: {
+  sidebarOpen?: boolean;
+  onSidebarOpenChange?: (open: boolean) => void;
+} = {}) {
   const { router } = useStudio();
   const params = useParams<{ pipelineId: string }>();
   const pipelineId = requireParam(params, 'pipelineId');
@@ -35,7 +41,11 @@ export default function WorkbenchPage() {
       <ErrorSnackbar error={fetchPipeline.error} />
       <LoadingCentered loading={fetchPipeline.isLoading}>
         {fetchPipeline.data ? (
-          <Workbench pipeline={fetchPipeline.data} />
+          <Workbench
+            pipeline={fetchPipeline.data}
+            sidebarOpen={sidebarOpen}
+            onSidebarOpenChange={onSidebarOpenChange}
+          />
         ) : !fetchPipeline.isLoading && !fetchPipeline.error ? (
           <p className="text-muted-foreground py-8 text-center text-sm">Pipeline not found.</p>
         ) : null}
