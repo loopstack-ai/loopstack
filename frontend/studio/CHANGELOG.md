@@ -1,5 +1,11 @@
 # @loopstack/loopstack-studio
 
+## 0.21.3
+
+### Patch Changes
+
+- [#96](https://github.com/loopstack-ai/loopstack/pull/96) [`567bdbf`](https://github.com/loopstack-ai/loopstack/commit/567bdbf7c41ed94e1ff51c66fb2723dce87bc6e4) Thanks [@jakobklippel](https://github.com/jakobklippel)! - fix form input backgrounds to use background token instead of transparent
+
 ## 0.21.2
 
 ### Patch Changes
