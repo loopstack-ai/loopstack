@@ -82,6 +82,10 @@ export class LocalRouter implements StudioRouter {
     return `/embed/pipelines/${pipelineId}`;
   }
 
+  getPreviewPipeline(pipelineId: string) {
+    return `/embed/preview/pipelines/${pipelineId}`;
+  }
+
   getCurrentEnvironmentId() {
     return this.envId;
   }

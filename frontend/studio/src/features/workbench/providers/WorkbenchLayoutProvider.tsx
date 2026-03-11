@@ -1,0 +1,172 @@
+import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
+import type { PipelineDto, WorkspaceDto } from '@loopstack/api-client';
+
+export type FloatingPanelId = 'navigation' | 'history';
+export type SidePanelId = 'preview' | 'flow';
+export type PreviewTab = 'preview' | 'flow' | 'history';
+
+export interface WorkbenchLayoutContextType {
+  // Pipeline & derived state
+  pipeline: PipelineDto;
+  previewPanelEnabled: boolean;
+  isDeveloperMode: boolean;
+  workspaceConfig?: Pick<WorkspaceDto, 'volumes' | 'features'>;
+  getPreviewUrl?: (pipelineId: string) => string;
+
+  // Floating panel state (navigation, history)
+  activeFloatingPanel: FloatingPanelId | null;
+  toggleFloatingPanel: (id: FloatingPanelId) => void;
+  closeFloatingPanel: () => void;
+
+  // Side panel state (preview, flow — takes half width)
+  activeSidePanel: SidePanelId | null;
+  toggleSidePanel: (id: SidePanelId) => void;
+  closeSidePanel: () => void;
+
+  // Legacy aliases
+  previewPanelOpen: boolean;
+  togglePreviewPanel: () => void;
+  activePreviewTab: PreviewTab;
+  setActivePreviewTab: (tab: PreviewTab) => void;
+
+  // Section state (from old WorkbenchContextProvider)
+  activeSectionId: string | null;
+  setActiveSectionId: (id: string | null) => void;
+}
+
+const WorkbenchLayoutContext = createContext<WorkbenchLayoutContextType | null>(null);
+
+export interface WorkbenchLayoutProviderProps {
+  children: ReactNode;
+  pipeline: PipelineDto;
+  isDeveloperMode?: boolean;
+  workspaceConfig?: Pick<WorkspaceDto, 'volumes' | 'features'>;
+  getPreviewUrl?: (pipelineId: string) => string;
+  previewPanelOpen?: boolean;
+  onPreviewPanelOpenChange?: (open: boolean) => void;
+}
+
+export function WorkbenchLayoutProvider({
+  children,
+  pipeline,
+  isDeveloperMode = false,
+  workspaceConfig,
+  getPreviewUrl,
+  previewPanelOpen: controlledPreviewOpen,
+  onPreviewPanelOpenChange,
+}: WorkbenchLayoutProviderProps) {
+  const [activeFloatingPanel, setActiveFloatingPanel] = useState<FloatingPanelId | null>(null);
+  const [uncontrolledSidePanel, setUncontrolledSidePanel] = useState<SidePanelId | null>(null);
+  const [activePreviewTab, setActivePreviewTab] = useState<PreviewTab>('preview');
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+
+  const isControlled = controlledPreviewOpen !== undefined;
+  const activeSidePanel: SidePanelId | null = isControlled
+    ? controlledPreviewOpen
+      ? (uncontrolledSidePanel ?? 'preview')
+      : null
+    : uncontrolledSidePanel;
+
+  const previewPanelEnabled = workspaceConfig?.features?.previewPanel?.enabled ?? false;
+  const previewPanelOpen = activeSidePanel !== null;
+
+  const setSidePanel = useCallback(
+    (panel: SidePanelId | null) => {
+      if (isControlled) {
+        onPreviewPanelOpenChange?.(panel !== null);
+      }
+      setUncontrolledSidePanel(panel);
+    },
+    [isControlled, onPreviewPanelOpenChange],
+  );
+
+  const toggleFloatingPanel = useCallback(
+    (id: FloatingPanelId) => {
+      setActiveFloatingPanel((prev) => (prev === id ? null : id));
+      // Close side panel when opening a floating panel
+      setSidePanel(null);
+    },
+    [setSidePanel],
+  );
+
+  const closeFloatingPanel = useCallback(() => {
+    setActiveFloatingPanel(null);
+  }, []);
+
+  const toggleSidePanel = useCallback(
+    (id: SidePanelId) => {
+      const next = activeSidePanel === id ? null : id;
+      setSidePanel(next);
+      // Close floating panel when opening a side panel
+      if (next) {
+        setActiveFloatingPanel(null);
+      }
+    },
+    [activeSidePanel, setSidePanel],
+  );
+
+  const closeSidePanel = useCallback(() => {
+    setSidePanel(null);
+  }, [setSidePanel]);
+
+  const togglePreviewPanel = useCallback(() => {
+    toggleSidePanel('preview');
+  }, [toggleSidePanel]);
+
+  const value = useMemo<WorkbenchLayoutContextType>(
+    () => ({
+      pipeline,
+      previewPanelEnabled,
+      isDeveloperMode,
+      workspaceConfig,
+      getPreviewUrl,
+      activeFloatingPanel,
+      toggleFloatingPanel,
+      closeFloatingPanel,
+      activeSidePanel,
+      toggleSidePanel,
+      closeSidePanel,
+      previewPanelOpen,
+      togglePreviewPanel,
+      activePreviewTab,
+      setActivePreviewTab,
+      activeSectionId,
+      setActiveSectionId,
+    }),
+    [
+      pipeline,
+      previewPanelEnabled,
+      isDeveloperMode,
+      workspaceConfig,
+      getPreviewUrl,
+      activeFloatingPanel,
+      toggleFloatingPanel,
+      closeFloatingPanel,
+      activeSidePanel,
+      toggleSidePanel,
+      closeSidePanel,
+      previewPanelOpen,
+      togglePreviewPanel,
+      activePreviewTab,
+      setActivePreviewTab,
+      activeSectionId,
+      setActiveSectionId,
+    ],
+  );
+
+  return <WorkbenchLayoutContext.Provider value={value}>{children}</WorkbenchLayoutContext.Provider>;
+}
+
+export function useWorkbenchLayout(): WorkbenchLayoutContextType {
+  const ctx = useContext(WorkbenchLayoutContext);
+  if (!ctx) {
+    throw new Error('useWorkbenchLayout must be used within a WorkbenchLayoutProvider');
+  }
+  return ctx;
+}
+
+// Backward-compatible context for NavigationItems that still uses the old context shape
+export const WorkbenchContextProvider = createContext<{
+  state: { activeSectionId: string | null };
+  setActiveSectionId: (id: string | null) => void;
+} | null>(null);

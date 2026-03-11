@@ -1,20 +1,24 @@
 import { Home } from 'lucide-react';
 import { useParams } from 'react-router-dom';
+import PageBreadcrumbs from '@/components/page/PageBreadcrumbs.tsx';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import Workbench from '@/features/workbench/Workbench.tsx';
 import LoadingCentered from '../components/LoadingCentered.tsx';
-import MainLayout from '../components/layout/MainLayout.tsx';
 import { usePipeline } from '../hooks/usePipelines.ts';
 import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { requireParam } from '../lib/requireParam.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
 export default function WorkbenchPage({
-  sidebarOpen,
-  onSidebarOpenChange,
+  previewPanelOpen,
+  onPreviewPanelOpenChange,
+  isDeveloperMode,
+  getPreviewUrl,
 }: {
-  sidebarOpen?: boolean;
-  onSidebarOpenChange?: (open: boolean) => void;
+  previewPanelOpen?: boolean;
+  onPreviewPanelOpenChange?: (open: boolean) => void;
+  isDeveloperMode?: boolean;
+  getPreviewUrl?: (pipelineId: string) => string;
 } = {}) {
   const { router } = useStudio();
   const params = useParams<{ pipelineId: string }>();
@@ -37,19 +41,28 @@ export default function WorkbenchPage({
   ];
 
   return (
-    <MainLayout breadcrumbsData={breadcrumbData}>
-      <ErrorSnackbar error={fetchPipeline.error} />
-      <LoadingCentered loading={fetchPipeline.isLoading}>
-        {fetchPipeline.data ? (
-          <Workbench
-            pipeline={fetchPipeline.data}
-            sidebarOpen={sidebarOpen}
-            onSidebarOpenChange={onSidebarOpenChange}
-          />
-        ) : !fetchPipeline.isLoading && !fetchPipeline.error ? (
-          <p className="text-muted-foreground py-8 text-center text-sm">Pipeline not found.</p>
-        ) : null}
-      </LoadingCentered>
-    </MainLayout>
+    <div className="flex h-full flex-col">
+      <div className="bg-sidebar border-b shrink-0 px-4">
+        <div className="flex h-12 items-center">
+          <PageBreadcrumbs breadcrumbData={breadcrumbData} />
+        </div>
+      </div>
+      <div className="flex-1 overflow-hidden">
+        <ErrorSnackbar error={fetchPipeline.error} />
+        <LoadingCentered loading={fetchPipeline.isLoading}>
+          {fetchPipeline.data ? (
+            <Workbench
+              pipeline={fetchPipeline.data}
+              previewPanelOpen={previewPanelOpen}
+              onPreviewPanelOpenChange={onPreviewPanelOpenChange}
+              isDeveloperMode={isDeveloperMode}
+              getPreviewUrl={getPreviewUrl}
+            />
+          ) : !fetchPipeline.isLoading && !fetchPipeline.error ? (
+            <p className="text-muted-foreground py-8 text-center text-sm">Pipeline not found.</p>
+          ) : null}
+        </LoadingCentered>
+      </div>
+    </div>
   );
 }

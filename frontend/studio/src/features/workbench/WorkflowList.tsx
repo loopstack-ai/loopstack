@@ -6,7 +6,7 @@ import WorkflowItem from '@/features/workbench/WorkflowItem.tsx';
 import { useScrollToBottom } from '@/features/workbench/hooks/useAutoScrollBottom.ts';
 import { useIntersectionObserver } from '@/features/workbench/hooks/useIntersectionObserver.ts';
 import { useScrollToListItem } from '@/features/workbench/hooks/useScrollToListItem.ts';
-import { WorkbenchContextProvider } from '@/features/workbench/providers/WorkbenchContextProvider.tsx';
+import { WorkbenchContextProvider } from '@/features/workbench/providers/WorkbenchLayoutProvider.tsx';
 import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
 import { cn } from '@/lib/utils.ts';
 import LoadingCentered from '../../components/LoadingCentered.tsx';

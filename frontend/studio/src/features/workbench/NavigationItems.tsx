@@ -8,7 +8,7 @@ import { useFetchWorkflowsByNamespace } from '../../hooks/useWorkflows.ts';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 import NavigationItem from './components/NavigationItem.tsx';
 import { useScroll } from './providers/ScrollProvider.tsx';
-import { WorkbenchContextProvider } from './providers/WorkbenchContextProvider.tsx';
+import { WorkbenchContextProvider } from './providers/WorkbenchLayoutProvider.tsx';
 
 interface WorkbenchNavigationWorkflowsProps {
   namespace: NamespaceTree;
