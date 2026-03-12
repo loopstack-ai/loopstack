@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { AxiosResponse } from 'axios';
-import type { WorkflowDto, WorkflowItemDto, WorkflowSortByDto } from '@loopstack/api-client';
+import type { WorkflowItemInterface, WorkflowSortByInterface } from '@loopstack/contracts/api';
+import type { WorkflowInterface } from '@loopstack/contracts/types';
 import { useApiClient } from './useApi.ts';
 
 export function getWorkflowsCacheKey(envKey: string, namespaceId: string) {
@@ -18,16 +18,10 @@ export function getWorkflowsByPipelineCacheKey(envKey: string, pipelineId: strin
 export function useWorkflow(id: string) {
   const { envKey, api } = useApiClient();
 
-  return useQuery<AxiosResponse<WorkflowDto>, Error, WorkflowDto>({
+  return useQuery<WorkflowInterface>({
     queryKey: getWorkflowCacheKey(envKey, id),
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkflowsApi.workflowControllerGetWorkflowById({ id });
-    },
+    queryFn: () => api.workflows.getById({ id }),
     enabled: !!id,
-    select: (res) => res.data,
   });
 }
 
@@ -42,19 +36,14 @@ export function useFetchWorkflowsByPipeline(pipelineId: string) {
       {
         field: 'index',
         order: 'ASC',
-      } as WorkflowSortByDto,
+      } as WorkflowSortByInterface,
     ]),
   };
 
   return useQuery({
     queryKey: getWorkflowsByPipelineCacheKey(envKey, pipelineId),
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkflowsApi.workflowControllerGetWorkflows(requestParams);
-    },
-    select: (res) => res.data.data,
+    queryFn: () => api.workflows.getAll(requestParams),
+    select: (res) => res.data,
     enabled: true,
   });
 }
@@ -70,19 +59,14 @@ export function useFetchWorkflowsByNamespace(namespaceId: string) {
       {
         field: 'index',
         order: 'ASC',
-      } as WorkflowSortByDto,
+      } as WorkflowSortByInterface,
     ]),
   };
 
   return useQuery({
     queryKey: getWorkflowsCacheKey(envKey, namespaceId),
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkflowsApi.workflowControllerGetWorkflows(requestParams);
-    },
-    select: (res) => res.data.data,
+    queryFn: () => api.workflows.getAll(requestParams),
+    select: (res) => res.data,
     enabled: true,
   });
 }
@@ -92,16 +76,15 @@ export function useDeleteWorkflow() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (workflow: WorkflowItemDto) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkflowsApi.workflowControllerDeleteWorkflow({ id: workflow.id });
-    },
+    mutationFn: (workflow: WorkflowItemInterface) => api.workflows.delete({ id: workflow.id }),
     onSuccess: (_, workflow) => {
       queryClient.removeQueries({ queryKey: getWorkflowCacheKey(envKey, workflow.id) });
-      void queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey, workflow.namespaceId) });
-      void queryClient.invalidateQueries({ queryKey: getWorkflowsByPipelineCacheKey(envKey, workflow.pipelineId) });
+      void queryClient.invalidateQueries({
+        queryKey: getWorkflowsCacheKey(envKey, workflow.namespaceId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: getWorkflowsByPipelineCacheKey(envKey, workflow.pipelineId),
+      });
     },
   });
 }
@@ -115,19 +98,14 @@ export function useFetchAllWorkflows() {
       {
         field: 'index',
         order: 'ASC',
-      } as WorkflowSortByDto,
+      } as WorkflowSortByInterface,
     ]),
   };
 
   return useQuery({
     queryKey: ['all-workflows', envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkflowsApi.workflowControllerGetWorkflows(requestParams);
-    },
-    select: (res) => res.data.data,
+    queryFn: () => api.workflows.getAll(requestParams),
+    select: (res) => res.data,
     enabled: true,
   });
 }

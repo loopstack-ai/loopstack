@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
+import type { WorkerInfoInterface } from '@loopstack/contracts/api';
 
-export class WorkerInfoDto {
+export class WorkerInfoDto implements WorkerInfoInterface {
   @Expose()
   @ApiPropertyOptional({
     description: 'Worker Client ID',

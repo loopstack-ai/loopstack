@@ -134,12 +134,12 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (p
           onSuccess: (createdPipeline) => {
             runPipeline.mutate(
               {
-                pipelineId: createdPipeline.data.id,
+                pipelineId: createdPipeline.id,
                 runPipelinePayloadDto: {},
                 force: true,
               },
               {
-                onSuccess: () => onSuccess(createdPipeline.data.id),
+                onSuccess: () => onSuccess(createdPipeline.id),
               },
             );
           },

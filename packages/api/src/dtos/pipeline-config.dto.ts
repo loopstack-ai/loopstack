@@ -1,8 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
+import type { PipelineConfigInterface } from '@loopstack/contracts/api';
 import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
 
-export class PipelineConfigDto {
+export class PipelineConfigDto implements PipelineConfigInterface {
   @Expose()
   @ApiProperty({
     description: 'The config Key of the pipeline',

@@ -83,7 +83,7 @@ const LocalHealthCheck = () => {
 
   // Token refresh success → clear escalation
   useEffect(() => {
-    if (tokenRefresh.data?.status === 200) {
+    if ((tokenRefresh.data as { status?: number } | undefined)?.status === 200) {
       setEscalation(Escalation.None);
     }
   }, [tokenRefresh.data]);
@@ -97,7 +97,7 @@ const LocalHealthCheck = () => {
 
   // Login success → clear escalation
   useEffect(() => {
-    if (authenticateWorker.data?.status === 200) {
+    if ((authenticateWorker.data as { status?: number } | undefined)?.status === 200) {
       setEscalation(Escalation.None);
     }
   }, [authenticateWorker.data]);

@@ -1,11 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ArrayNotEmpty, IsArray, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
+import type { PipelineUpdateInterface } from '@loopstack/contracts/api';
 
 /**
  * Data Transfer Object for updating an existing pipeline
  */
-export class PipelineUpdateDto {
+export class PipelineUpdateDto implements PipelineUpdateInterface {
   /**
    * Human-readable title for the pipeline
    * @example "My Updated Pipeline"

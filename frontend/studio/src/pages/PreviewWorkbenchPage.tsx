@@ -3,8 +3,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ChevronDown, ChevronRight, ListOrdered, Loader2, Navigation, Play, ScrollText, Workflow } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { PipelineDto } from '@loopstack/api-client';
-import type { PipelineItemDto, WorkflowItemDto } from '@loopstack/api-client';
+import type { PipelineInterface, PipelineItemInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
+import { WorkflowState } from '@loopstack/contracts/enums';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
@@ -86,7 +86,8 @@ function PreviewWorkbenchContent({
   useEffect(() => {
     if (!fetchWorkflows.data || notifiedRef.current) return;
 
-    const allCompleted = fetchWorkflows.data.length > 0 && fetchWorkflows.data.every((w) => w.status === 'completed');
+    const allCompleted =
+      fetchWorkflows.data.length > 0 && fetchWorkflows.data.every((w) => w.status === WorkflowState.Completed);
 
     if (allCompleted && window.parent !== window) {
       notifiedRef.current = true;
@@ -313,7 +314,7 @@ function PreviewEmptyState({
   );
 }
 
-function RecentRunItem({ pipeline, onClick }: { pipeline: PipelineItemDto; onClick: () => void }) {
+function RecentRunItem({ pipeline, onClick }: { pipeline: PipelineItemInterface; onClick: () => void }) {
   const dotColor = STATUS_DOT_COLORS[pipeline.status] ?? 'bg-muted-foreground';
 
   return (
@@ -337,8 +338,8 @@ function EmbedWorkflowSection({
   collapsible,
   children,
 }: {
-  workflow: WorkflowItemDto;
-  pipeline: PipelineDto;
+  workflow: WorkflowItemInterface;
+  pipeline: PipelineInterface;
   collapsible: boolean;
   children: React.ReactNode;
 }) {

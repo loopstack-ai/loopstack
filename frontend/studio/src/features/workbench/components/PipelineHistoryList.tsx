@@ -1,11 +1,11 @@
 import { Clock, Loader2 } from 'lucide-react';
 import React, { useMemo } from 'react';
-import type { PipelineDto, WorkflowItemDto } from '@loopstack/api-client';
+import type { PipelineInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
 import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
 import WorkflowHistoryItem from './WorkflowHistoryItem.tsx';
 
 interface PipelineHistoryListProps {
-  pipeline: PipelineDto | undefined;
+  pipeline: PipelineInterface | undefined;
 }
 
 const PipelineHistoryList: React.FC<PipelineHistoryListProps> = ({ pipeline }) => {
@@ -41,7 +41,7 @@ const PipelineHistoryList: React.FC<PipelineHistoryListProps> = ({ pipeline }) =
 
   return (
     <div className="flex flex-col gap-1 py-2">
-      {workflows.map((workflow: WorkflowItemDto) => (
+      {workflows.map((workflow: WorkflowItemInterface) => (
         <WorkflowHistoryItem key={workflow.id} workflowId={workflow.id} workflow={workflow} />
       ))}
     </div>

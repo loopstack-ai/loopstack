@@ -1,11 +1,11 @@
-import type { WorkspaceDto } from '@loopstack/api-client';
+import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog.tsx';
 import PipelineForm from './PipelineForm.tsx';
 
 interface CreatePipelineDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  workspace: WorkspaceDto;
+  workspace: WorkspaceInterface;
   onSuccess: () => void;
 }
 

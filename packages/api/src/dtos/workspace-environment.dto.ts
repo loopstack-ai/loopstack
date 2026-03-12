@@ -2,8 +2,9 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, plainToInstance } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';
 import { WorkspaceEnvironmentEntity } from '@loopstack/common';
+import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 
-export class WorkspaceEnvironmentDto {
+export class WorkspaceEnvironmentDto implements WorkspaceEnvironmentInterface {
   @Expose()
   @IsString()
   @ApiProperty({ description: 'Logical slot identifier from workspace config', example: 'primary' })

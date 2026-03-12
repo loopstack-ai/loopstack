@@ -6,13 +6,7 @@ export function useWorkspaceConfig() {
 
   return useQuery({
     queryKey: ['workspace-types', envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1ConfigApi.configControllerGetWorkspaceTypes();
-    },
-    select: (res) => res.data,
+    queryFn: () => api.config.getWorkspaceTypes(),
     enabled: true,
   });
 }
@@ -22,15 +16,10 @@ export function usePipelineConfig(workspaceBlockName: string | undefined) {
 
   return useQuery({
     queryKey: ['pipeline-types', workspaceBlockName, envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1ConfigApi.configControllerGetPipelineTypesByWorkspace({
+    queryFn: () =>
+      api.config.getPipelineTypesByWorkspace({
         workspaceBlockName: workspaceBlockName!,
-      });
-    },
+      }),
     enabled: !!workspaceBlockName,
-    select: (res) => res.data,
   });
 }

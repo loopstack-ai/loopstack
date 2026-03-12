@@ -1,21 +1,21 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import type { PipelineDto, WorkflowDto } from '@loopstack/api-client';
+import type { PipelineInterface } from '@loopstack/contracts/api';
 import type {
   DocumentItemInterface,
   MimeType,
   TransitionPayloadInterface,
   UiWidgetType,
-  WorkflowTransitionType,
+  WorkflowInterface,
 } from '@loopstack/contracts/types';
 import Form from '@/components/dynamic-form/Form.tsx';
 import UiActions from '@/components/ui-widgets/UiActions.tsx';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
 
 interface DocumentFormRendererProps {
-  pipeline: PipelineDto;
-  workflow: WorkflowDto;
+  pipeline: PipelineInterface;
+  workflow: WorkflowInterface;
   document: DocumentItemInterface;
   enabled: boolean;
   viewOnly: boolean;
@@ -53,8 +53,7 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
     }
   }, [document.validationError, form]);
 
-  const availableTransitions =
-    workflow.availableTransitions?.map((transition) => (transition as WorkflowTransitionType).id) ?? [];
+  const availableTransitions = workflow.availableTransitions?.map((transition) => transition.id) ?? [];
 
   const executePipelineRun = (transition: string, payload: unknown) => {
     if (!availableTransitions.includes(transition)) {

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsIn } from 'class-validator';
 import { NamespaceEntity } from '@loopstack/common';
-import { SortOrder } from '../enums/sort-order.enum';
+import { SortOrder } from '@loopstack/contracts/enums';
 import { getEntityColumns } from '../utils/get-entity-columns.util';
 
 const sortFields = getEntityColumns(NamespaceEntity);

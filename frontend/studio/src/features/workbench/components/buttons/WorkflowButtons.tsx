@@ -1,6 +1,6 @@
 import { LockOpen, Repeat } from 'lucide-react';
 import React from 'react';
-import type { PipelineDto } from '@loopstack/api-client';
+import type { PipelineInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +19,7 @@ import { useDeleteWorkflow, useWorkflow } from '@/hooks/useWorkflows.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const WorkflowButtons: React.FC<{
-  pipeline: PipelineDto;
+  pipeline: PipelineInterface;
   workflowId: string;
 }> = ({ pipeline, workflowId }) => {
   const { router } = useStudio();
@@ -54,7 +54,7 @@ const WorkflowButtons: React.FC<{
   const handleDelete = () => {
     if (!workflow) return;
     try {
-      deleteWorkflow.mutate(workflow);
+      deleteWorkflow.mutate(workflow as unknown as WorkflowItemInterface);
       handlePing();
       void router.navigateToPipeline(pipeline.id);
     } catch (error) {

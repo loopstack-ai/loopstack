@@ -2,7 +2,7 @@ import { DialogTitle } from '@radix-ui/react-dialog';
 import { Loader2, Star } from 'lucide-react';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import type { WorkspaceConfigDto, WorkspaceItemDto } from '@loopstack/api-client';
+import type { WorkspaceConfigInterface, WorkspaceItemInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
 import { Button } from '../../../components/ui/button.tsx';
 import { DialogHeader } from '../../../components/ui/dialog.tsx';
@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useCreateWorkspace, useUpdateWorkspace } from '../../../hooks/useWorkspaces.ts';
 
 export interface CreateWorkspaceProps {
-  types: WorkspaceConfigDto[];
-  workspace?: WorkspaceItemDto;
+  types: WorkspaceConfigInterface[];
+  workspace?: WorkspaceItemInterface;
   onSuccess: () => void;
 }
 
@@ -128,7 +128,7 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {types.map((item: WorkspaceConfigDto) => (
+                  {types.map((item: WorkspaceConfigInterface) => (
                     <SelectItem key={item.blockName} value={item.blockName}>
                       {item.title ?? item.blockName}
                     </SelectItem>

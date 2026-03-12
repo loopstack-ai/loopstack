@@ -1,15 +1,14 @@
 import { type Edge, type Node } from '@xyflow/react';
 import React, { useEffect, useRef } from 'react';
-import type { PipelineConfigDto, WorkflowItemDto } from '@loopstack/api-client';
-import type { WorkflowInterface } from '@loopstack/contracts/types';
+import type { PipelineConfigInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
 import type { StateNodeData } from '../../lib/flow-types.ts';
 import { buildWorkflowGraph, getTransitions } from '../../lib/flow-utils.ts';
 
 interface WorkflowGraphProps {
   pipeline: unknown;
-  workflow: WorkflowItemDto;
-  pipelineConfig?: PipelineConfigDto;
+  workflow: WorkflowItemInterface;
+  pipelineConfig?: PipelineConfigInterface;
   onGraphReady: (workflowId: string, nodes: Node<StateNodeData>[], edges: Edge[]) => void;
   onLoadingChange: (workflowId: string, isLoading: boolean) => void;
 }
@@ -26,7 +25,7 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   onLoadingChange,
 }) => {
   const fetchWorkflow = useWorkflow(workflow.id);
-  const workflowData = fetchWorkflow.data as WorkflowInterface | undefined;
+  const workflowData = fetchWorkflow.data;
   const prevDataRef = useRef<string | null>(null);
 
   useEffect(() => {

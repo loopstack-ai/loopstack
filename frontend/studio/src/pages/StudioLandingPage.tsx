@@ -1,7 +1,7 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ChevronDown, Loader2, Play } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import type { PipelineItemDto } from '@loopstack/api-client';
+import type { PipelineItemInterface } from '@loopstack/contracts/api';
 import { Button } from '@/components/ui/button.tsx';
 import { NewRunDialog } from '@/features/workbench/components/NewRunDialog.tsx';
 import { useFilterPipelines } from '@/hooks/usePipelines.ts';
@@ -96,7 +96,7 @@ export default function StudioLandingPage() {
   );
 }
 
-function RecentRunItem({ pipeline, onClick }: { pipeline: PipelineItemDto; onClick: () => void }) {
+function RecentRunItem({ pipeline, onClick }: { pipeline: PipelineItemInterface; onClick: () => void }) {
   const dotColor = STATUS_DOT_COLORS[pipeline.status] ?? 'bg-muted-foreground';
 
   return (

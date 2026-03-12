@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ApiV1ProcessorApiProcessorControllerRunPipelineRequest } from '@loopstack/api-client';
+import type { RunPipelinePayloadInterface } from '@loopstack/contracts/api';
 import { useApiClient } from './useApi.ts';
 
 export function useRunPipeline() {
@@ -7,12 +7,8 @@ export function useRunPipeline() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (pipelineRunRequest: ApiV1ProcessorApiProcessorControllerRunPipelineRequest) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1ProcessorApi.processorControllerRunPipeline(pipelineRunRequest);
-    },
+    mutationFn: (params: { pipelineId: string; runPipelinePayloadDto: RunPipelinePayloadInterface; force?: boolean }) =>
+      api.processor.runPipeline(params),
     onSuccess: () => {
       console.log('success');
       void queryClient.invalidateQueries({ queryKey: ['pipelines'] });

@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { AxiosResponse } from 'axios';
 import type {
-  ApiV1PipelinesApiPipelineControllerCreatePipelineRequest,
-  ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest,
-  PipelineConfigDto,
-  PipelineSortByDto,
-  PipelineSourceDto,
-} from '@loopstack/api-client';
+  PipelineConfigInterface,
+  PipelineCreateInterface,
+  PipelineSortByInterface,
+  PipelineSourceInterface,
+  PipelineUpdateInterface,
+} from '@loopstack/contracts/api';
 import { useApiClient } from './useApi';
 
 export function usePipeline(id: string | undefined) {
@@ -14,14 +13,8 @@ export function usePipeline(id: string | undefined) {
 
   return useQuery({
     queryKey: ['pipeline', id, envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1PipelinesApi.pipelineControllerGetPipelineById({ id: id! });
-    },
+    queryFn: () => api.pipelines.getById({ id: id! }),
     enabled: !!id,
-    select: (res) => res.data,
   });
 }
 
@@ -43,7 +36,7 @@ export function useFilterPipelines(
       {
         field: sortBy,
         order: order,
-      } as PipelineSortByDto,
+      } as PipelineSortByInterface,
     ]),
     page,
     limit,
@@ -52,29 +45,17 @@ export function useFilterPipelines(
 
   return useQuery({
     queryKey: ['pipelines', requestParams, envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1PipelinesApi.pipelineControllerGetPipelines(requestParams);
-    },
-    select: (res) => res.data,
+    queryFn: () => api.pipelines.getAll(requestParams),
     enabled: true,
   });
 }
 
 export function useCreatePipeline() {
   const { envKey, api } = useApiClient();
-
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (pipelineCreateRequest: ApiV1PipelinesApiPipelineControllerCreatePipelineRequest) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1PipelinesApi.pipelineControllerCreatePipeline(pipelineCreateRequest);
-    },
+    mutationFn: (params: { pipelineCreateDto: PipelineCreateInterface }) => api.pipelines.create(params),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
     },
@@ -86,12 +67,7 @@ export function useUpdatePipeline() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (pipelineUpdateRequest: ApiV1PipelinesApiPipelineControllerUpdatePipelineRequest) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1PipelinesApi.pipelineControllerUpdatePipeline(pipelineUpdateRequest);
-    },
+    mutationFn: (params: { id: string; pipelineUpdateDto: PipelineUpdateInterface }) => api.pipelines.update(params),
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: ['pipeline', variables.id, envKey] });
       void queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
@@ -102,19 +78,14 @@ export function useUpdatePipeline() {
 export function usePipelineConfig(workspaceBlockName: string | undefined, pipelineBlockName: string | undefined) {
   const { envKey, api } = useApiClient();
 
-  return useQuery<AxiosResponse<PipelineConfigDto>, Error, PipelineConfigDto>({
+  return useQuery<PipelineConfigInterface>({
     queryKey: ['pipelineConfig', workspaceBlockName, pipelineBlockName, envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1ConfigApi.configControllerGetPipelineConfigByName({
+    queryFn: () =>
+      api.config.getPipelineConfigByName({
         workspaceBlockName: workspaceBlockName!,
         pipelineName: pipelineBlockName!,
-      });
-    },
+      }),
     enabled: !!workspaceBlockName && !!pipelineBlockName,
-    select: (res) => res.data,
   });
 }
 
@@ -123,14 +94,8 @@ export function useDeletePipeline() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1PipelinesApi.pipelineControllerDeletePipeline({ id });
-    },
+    mutationFn: (id: string) => api.pipelines.delete({ id }),
     onSuccess: (_, id) => {
-      // Remove the pipeline from the cache and invalidate the pipelines list
       queryClient.removeQueries({ queryKey: ['pipeline', id, envKey] });
       void queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
     },
@@ -142,14 +107,7 @@ export function useBatchDeletePipeline() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (ids: string[]) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1PipelinesApi.pipelineControllerBatchDeletePipelines({
-        pipelineControllerBatchDeletePipelinesRequest: { ids },
-      });
-    },
+    mutationFn: (ids: string[]) => api.pipelines.batchDelete({ ids }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['pipelines'], type: 'all' });
     },
@@ -161,37 +119,27 @@ export function useChildPipelines(parentId: string | undefined, enabled: boolean
 
   return useQuery({
     queryKey: ['pipelines', 'children', parentId, envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1PipelinesApi.pipelineControllerGetPipelines({
+    queryFn: () =>
+      api.pipelines.getAll({
         filter: JSON.stringify({ parentId }),
-        sortBy: JSON.stringify([{ field: 'createdAt', order: 'ASC' } as PipelineSortByDto]),
+        sortBy: JSON.stringify([{ field: 'createdAt', order: 'ASC' } as PipelineSortByInterface]),
         page: 0,
         limit: 100,
-      });
-    },
+      }),
     enabled: enabled && !!parentId,
-    select: (res) => res.data,
   });
 }
 
 export function usePipelineSource(workspaceBlockName: string | undefined, pipelineBlockName: string | undefined) {
   const { envKey, api } = useApiClient();
 
-  return useQuery<AxiosResponse<PipelineSourceDto>, Error, PipelineSourceDto>({
+  return useQuery<PipelineSourceInterface>({
     queryKey: ['pipelineSource', workspaceBlockName, pipelineBlockName, envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1ConfigApi.configControllerGetPipelineSourceByName({
+    queryFn: () =>
+      api.config.getPipelineSourceByName({
         workspaceBlockName: workspaceBlockName!,
         pipelineName: pipelineBlockName!,
-      });
-    },
+      }),
     enabled: !!workspaceBlockName && !!pipelineBlockName,
-    select: (res) => res.data,
   });
 }

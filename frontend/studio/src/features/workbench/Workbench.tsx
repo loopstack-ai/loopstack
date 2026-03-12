@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { PipelineDto, WorkspaceDto, WorkspaceEnvironmentDto } from '@loopstack/api-client';
+import type { PipelineInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 import PageBreadcrumbs, { type BreadCrumbsData } from '@/components/page/PageBreadcrumbs.tsx';
 import { FileContentViewer } from '@/features/code-explorer/components/FileContentViewer';
 import { FileTabsBar } from '@/features/code-explorer/components/FileTabsBar';
@@ -17,7 +17,13 @@ import {
   useWorkbenchLayout,
 } from './providers/WorkbenchLayoutProvider.tsx';
 
-function WorkbenchContent({ pipeline, breadcrumbData }: { pipeline: PipelineDto; breadcrumbData?: BreadCrumbsData[] }) {
+function WorkbenchContent({
+  pipeline,
+  breadcrumbData,
+}: {
+  pipeline: PipelineInterface;
+  breadcrumbData?: BreadCrumbsData[];
+}) {
   const { openFiles, selectedFile, fileContent, workflowConfig, isContentLoading } = useCodeExplorerContext();
 
   return (
@@ -56,7 +62,13 @@ function WorkbenchContent({ pipeline, breadcrumbData }: { pipeline: PipelineDto;
   );
 }
 
-function WorkbenchInner({ pipeline, breadcrumbData }: { pipeline: PipelineDto; breadcrumbData?: BreadCrumbsData[] }) {
+function WorkbenchInner({
+  pipeline,
+  breadcrumbData,
+}: {
+  pipeline: PipelineInterface;
+  breadcrumbData?: BreadCrumbsData[];
+}) {
   const { activeSidePanel, activeSectionId, setActiveSectionId } = useWorkbenchLayout();
 
   // Backward-compatible context value for NavigationItems
@@ -95,21 +107,21 @@ export default function Workbench({
   getEnvironmentPreviewUrl,
   environments,
 }: {
-  pipeline: PipelineDto;
+  pipeline: PipelineInterface;
   breadcrumbData?: BreadCrumbsData[];
   previewPanelOpen?: boolean;
   onPreviewPanelOpenChange?: (open: boolean) => void;
   isDeveloperMode?: boolean;
   getPreviewUrl?: (pipelineId: string) => string;
   getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
-  environments?: WorkspaceEnvironmentDto[];
+  environments?: WorkspaceEnvironmentInterface[];
 }) {
   const workspaceId = pipeline?.workspaceId;
   const fetchWorkspace = useWorkspace(workspaceId);
 
   const fileExplorerEnabled = fetchWorkspace.data?.features?.fileExplorer?.enabled ?? false;
 
-  const workspaceConfig: Pick<WorkspaceDto, 'volumes' | 'features'> | undefined = fetchWorkspace.data
+  const workspaceConfig: Pick<WorkspaceInterface, 'volumes' | 'features'> | undefined = fetchWorkspace.data
     ? {
         volumes: fetchWorkspace.data.volumes,
         features: fetchWorkspace.data.features,

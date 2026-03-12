@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ClassConstructor, plainToInstance } from 'class-transformer';
+import type { PaginatedInterface } from '@loopstack/contracts/api';
 
-export class PaginatedDto<T> {
+export class PaginatedDto<T> implements PaginatedInterface<T> {
   @ApiProperty({
     type: 'array',
     items: { type: 'object' },

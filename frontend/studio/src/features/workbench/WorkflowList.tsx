@@ -1,6 +1,6 @@
 import { ArrowDownIcon, ChevronRightIcon, Play } from 'lucide-react';
 import React, { useContext, useEffect, useState } from 'react';
-import type { PipelineDto } from '@loopstack/api-client';
+import type { PipelineInterface } from '@loopstack/contracts/api';
 import { Button } from '@/components/ui/button.tsx';
 import WorkflowItem from '@/features/workbench/WorkflowItem.tsx';
 import { useScrollToBottom } from '@/features/workbench/hooks/useAutoScrollBottom.ts';
@@ -20,7 +20,7 @@ export interface WorkbenchSettingsInterface {
 }
 
 interface WorkbenchMainContainerProps {
-  pipeline: PipelineDto;
+  pipeline: PipelineInterface;
 }
 
 const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {

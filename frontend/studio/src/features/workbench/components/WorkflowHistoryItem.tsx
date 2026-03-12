@@ -1,8 +1,8 @@
 import { format } from 'date-fns';
 import { ChevronRight, Clock, Loader2, Play, Wrench } from 'lucide-react';
 import React from 'react';
-import type { WorkflowItemDto } from '@loopstack/api-client';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowItemInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils.ts';
 
 interface WorkflowHistoryItemProps {
   workflowId: string;
-  workflow: WorkflowItemDto;
+  workflow: WorkflowItemInterface;
 }
 
 export interface HistoryTransitionMetadata {
@@ -33,7 +33,7 @@ export interface HistoryTransition {
 
 const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, workflow }) => {
   const fetchWorkflow = useWorkflow(workflowId);
-  const workflowData = fetchWorkflow.data as WorkflowInterface | undefined;
+  const workflowData = fetchWorkflow.data;
   const history = workflowData?.history as unknown as HistoryTransition[] | undefined;
 
   if (fetchWorkflow.isLoading) {

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import { WorkflowState } from '@loopstack/contracts/enums';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import WorkflowItem from '@/features/workbench/WorkflowItem.tsx';
 import LoadingCentered from '../components/LoadingCentered.tsx';
@@ -23,7 +24,8 @@ export default function EmbedWorkbenchPage() {
   useEffect(() => {
     if (!fetchWorkflows.data || notifiedRef.current) return;
 
-    const allCompleted = fetchWorkflows.data.length > 0 && fetchWorkflows.data.every((w) => w.status === 'completed');
+    const allCompleted =
+      fetchWorkflows.data.length > 0 && fetchWorkflows.data.every((w) => w.status === WorkflowState.Completed);
 
     if (allCompleted && window.parent !== window) {
       notifiedRef.current = true;

@@ -1,5 +1,5 @@
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
-import type { PipelineDto, WorkspaceDto, WorkspaceEnvironmentDto } from '@loopstack/api-client';
+import type { PipelineInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 
 export type FloatingPanelId = 'navigation' | 'history';
 export type SidePanelId = 'preview' | 'flow';
@@ -7,14 +7,14 @@ export type PreviewTab = 'preview' | 'flow' | 'history';
 
 export interface WorkbenchLayoutContextType {
   // Pipeline & derived state
-  pipeline: PipelineDto;
+  pipeline: PipelineInterface;
   previewPanelEnabled: boolean;
   isDeveloperMode: boolean;
-  workspaceConfig?: Pick<WorkspaceDto, 'volumes' | 'features'>;
+  workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
   getPreviewUrl?: (pipelineId: string) => string;
   getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
-  environments?: WorkspaceEnvironmentDto[];
+  environments?: WorkspaceEnvironmentInterface[];
 
   // Floating panel state (navigation, history)
   activeFloatingPanel: FloatingPanelId | null;
@@ -46,13 +46,13 @@ const WorkbenchLayoutContext = createContext<WorkbenchLayoutContextType | null>(
 
 export interface WorkbenchLayoutProviderProps {
   children: ReactNode;
-  pipeline: PipelineDto;
+  pipeline: PipelineInterface;
   isDeveloperMode?: boolean;
-  workspaceConfig?: Pick<WorkspaceDto, 'volumes' | 'features'>;
+  workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
   getPreviewUrl?: (pipelineId: string) => string;
   getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
-  environments?: WorkspaceEnvironmentDto[];
+  environments?: WorkspaceEnvironmentInterface[];
   previewPanelOpen?: boolean;
   onPreviewPanelOpenChange?: (open: boolean) => void;
 }

@@ -26,7 +26,6 @@
   "dependencies": {
     "@fontsource/roboto": "^5.2.10",
     "@hookform/resolvers": "^5.2.2",
-    "@loopstack/api-client": "^0.20.1",
     "@loopstack/contracts": "^0.22.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",

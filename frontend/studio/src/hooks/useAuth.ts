@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ApiV1AuthApiAuthControllerHubLoginRequest } from '@loopstack/api-client';
+import type { HubLoginRequestInterface } from '@loopstack/contracts/api';
 import { useApiClient } from './useApi.ts';
 
 export function useMe(enabled = true) {
@@ -7,13 +7,7 @@ export function useMe(enabled = true) {
 
   return useQuery({
     queryKey: ['me', envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1AuthApi.authControllerMe();
-    },
-    select: (res) => res.data,
+    queryFn: () => api.auth.me(),
     retry: false,
     staleTime: 5 * 60 * 1000,
     enabled: enabled,
@@ -25,13 +19,7 @@ export function useGetHealthInfo(enabled = true) {
 
   return useQuery({
     queryKey: ['health', envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1AuthApi.authControllerGetInfo();
-    },
-    select: (res) => res.data,
+    queryFn: () => api.auth.getInfo(),
     staleTime: 5 * 60 * 1000,
     enabled: enabled,
   });
@@ -42,12 +30,7 @@ export function useWorkerAuth() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (hubLoginRequest: ApiV1AuthApiAuthControllerHubLoginRequest) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1AuthApi.authControllerHubLogin(hubLoginRequest);
-    },
+    mutationFn: (params: { hubLoginRequestDto: HubLoginRequestInterface }) => api.auth.hubLogin(params),
     onSuccess: () => {
       void queryClient.invalidateQueries();
     },
@@ -59,12 +42,7 @@ export function useWorkerAuthTokenRefresh() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1AuthApi.authControllerRefresh();
-    },
+    mutationFn: () => api.auth.refresh(),
     onSuccess: () => {
       void queryClient.invalidateQueries();
     },

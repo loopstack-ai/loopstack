@@ -1,6 +1,6 @@
 import { Home } from 'lucide-react';
 import { useParams } from 'react-router-dom';
-import type { WorkspaceEnvironmentDto } from '@loopstack/api-client';
+import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import Workbench from '@/features/workbench/Workbench.tsx';
 import LoadingCentered from '../components/LoadingCentered.tsx';
@@ -22,7 +22,7 @@ export default function WorkbenchPage({
   isDeveloperMode?: boolean;
   getPreviewUrl?: (pipelineId: string) => string;
   getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
-  environments?: WorkspaceEnvironmentDto[];
+  environments?: WorkspaceEnvironmentInterface[];
 } = {}) {
   const { router } = useStudio();
   const params = useParams<{ pipelineId: string }>();

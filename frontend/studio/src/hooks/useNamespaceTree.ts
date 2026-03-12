@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
-import type { NamespaceItemDto } from '@loopstack/api-client';
+import type { NamespaceItemInterface } from '@loopstack/contracts/api';
 import { useFilterNamespaces } from './useNamespaces.ts';
 
-export interface NamespaceTree extends NamespaceItemDto {
+export interface NamespaceTree extends NamespaceItemInterface {
   childNodes: NamespaceTree[];
 }
 
 /**
- * Builds a hierarchical tree structure from a flat list of NamespaceItemDto objects
+ * Builds a hierarchical tree structure from a flat list of NamespaceItemInterface objects
  */
-function buildNamespaceTree(namespaces: NamespaceItemDto[]): NamespaceTree[] {
+function buildNamespaceTree(namespaces: NamespaceItemInterface[]): NamespaceTree[] {
   const namespaceMap = new Map<string, NamespaceTree>();
 
   namespaces.forEach((namespace) => {
