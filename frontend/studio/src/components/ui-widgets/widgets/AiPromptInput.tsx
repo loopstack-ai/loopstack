@@ -13,17 +13,16 @@ interface AiPromptInputUi {
 }
 
 interface AiPromptInputProps {
-  transition: string;
   onSubmit: (text: string) => void;
   disabled?: boolean;
   ui?: AiPromptInputUi;
 }
 
-function AiPromptInput({ transition, onSubmit, disabled, ui }: AiPromptInputProps) {
+function AiPromptInput({ onSubmit, disabled, ui }: AiPromptInputProps) {
   const [input, setInput] = useState('');
   const isLoading = false;
 
-  const buttonLabel = ui?.label ?? transition;
+  const buttonLabel = ui?.label ?? 'Submit';
 
   return (
     <PromptInput

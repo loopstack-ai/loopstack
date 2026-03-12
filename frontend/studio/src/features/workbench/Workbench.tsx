@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import type { PipelineDto, WorkspaceDto } from '@loopstack/api-client';
+import type { PipelineDto, WorkspaceDto, WorkspaceEnvironmentDto } from '@loopstack/api-client';
+import PageBreadcrumbs, { type BreadCrumbsData } from '@/components/page/PageBreadcrumbs.tsx';
 import { FileContentViewer } from '@/features/code-explorer/components/FileContentViewer';
 import { FileTabsBar } from '@/features/code-explorer/components/FileTabsBar';
 import { CodeExplorerProvider, useCodeExplorerContext } from '@/features/code-explorer/providers/CodeExplorerProvider';
@@ -16,21 +17,23 @@ import {
   useWorkbenchLayout,
 } from './providers/WorkbenchLayoutProvider.tsx';
 
-function WorkbenchContent({ pipeline }: { pipeline: PipelineDto }) {
+function WorkbenchContent({ pipeline, breadcrumbData }: { pipeline: PipelineDto; breadcrumbData?: BreadCrumbsData[] }) {
   const { openFiles, selectedFile, fileContent, workflowConfig, isContentLoading } = useCodeExplorerContext();
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-1 gap-4 overflow-hidden md:flex-row flex-col">
         <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="border-b flex h-12 shrink-0 items-center px-3">
-            <span className="text-sm font-medium">Workflows</span>
+          <div className="border-b flex h-12 shrink-0 items-center">
+            {breadcrumbData ? (
+              <PageBreadcrumbs breadcrumbData={breadcrumbData} />
+            ) : (
+              <span className="px-3 text-sm font-medium">Workflows</span>
+            )}
           </div>
           <ScrollProvider>
-            <div className="flex h-full flex-col">
-              <div className="flex-1 overflow-hidden">
-                <WorkflowList pipeline={pipeline} />
-              </div>
+            <div className="flex-1 overflow-auto">
+              <WorkflowList pipeline={pipeline} />
             </div>
           </ScrollProvider>
         </div>
@@ -53,7 +56,7 @@ function WorkbenchContent({ pipeline }: { pipeline: PipelineDto }) {
   );
 }
 
-function WorkbenchInner({ pipeline }: { pipeline: PipelineDto }) {
+function WorkbenchInner({ pipeline, breadcrumbData }: { pipeline: PipelineDto; breadcrumbData?: BreadCrumbsData[] }) {
   const { activeSidePanel, activeSectionId, setActiveSectionId } = useWorkbenchLayout();
 
   // Backward-compatible context value for NavigationItems
@@ -70,7 +73,7 @@ function WorkbenchInner({ pipeline }: { pipeline: PipelineDto }) {
       <div className="flex h-full w-full">
         <div className="relative flex flex-1 overflow-hidden">
           <div className={activeSidePanel ? 'w-1/2 overflow-hidden' : 'w-full overflow-hidden'}>
-            <WorkbenchContent pipeline={pipeline} />
+            <WorkbenchContent pipeline={pipeline} breadcrumbData={breadcrumbData} />
           </div>
           {activeSidePanel === 'preview' && <WorkbenchPreviewPanel />}
           {activeSidePanel === 'flow' && <WorkbenchFlowPanel />}
@@ -84,16 +87,22 @@ function WorkbenchInner({ pipeline }: { pipeline: PipelineDto }) {
 
 export default function Workbench({
   pipeline,
+  breadcrumbData,
   previewPanelOpen,
   onPreviewPanelOpenChange,
   isDeveloperMode,
   getPreviewUrl,
+  getEnvironmentPreviewUrl,
+  environments,
 }: {
   pipeline: PipelineDto;
+  breadcrumbData?: BreadCrumbsData[];
   previewPanelOpen?: boolean;
   onPreviewPanelOpenChange?: (open: boolean) => void;
   isDeveloperMode?: boolean;
   getPreviewUrl?: (pipelineId: string) => string;
+  getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
+  environments?: WorkspaceEnvironmentDto[];
 }) {
   const workspaceId = pipeline?.workspaceId;
   const fetchWorkspace = useWorkspace(workspaceId);
@@ -107,17 +116,21 @@ export default function Workbench({
       }
     : undefined;
 
+  const resolvedEnvironments = environments ?? fetchWorkspace.data?.environments;
+
   return (
     <WorkbenchLayoutProvider
       pipeline={pipeline}
       isDeveloperMode={isDeveloperMode}
       workspaceConfig={workspaceConfig}
       getPreviewUrl={getPreviewUrl}
+      getEnvironmentPreviewUrl={getEnvironmentPreviewUrl}
+      environments={resolvedEnvironments}
       previewPanelOpen={previewPanelOpen}
       onPreviewPanelOpenChange={onPreviewPanelOpenChange}
     >
       <CodeExplorerProvider pipelineId={pipeline?.id} fileExplorerEnabled={fileExplorerEnabled}>
-        <WorkbenchInner pipeline={pipeline} />
+        <WorkbenchInner pipeline={pipeline} breadcrumbData={breadcrumbData} />
       </CodeExplorerProvider>
     </WorkbenchLayoutProvider>
   );

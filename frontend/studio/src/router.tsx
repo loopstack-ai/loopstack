@@ -13,6 +13,7 @@ import DebugWorkflowsPage from './pages/DebugWorkflowsPage.tsx';
 import EmbedWorkbenchPage from './pages/EmbedWorkbenchPage.tsx';
 import PipelineDebugPage from './pages/PipelineDebugPage.tsx';
 import PreviewWorkbenchPage from './pages/PreviewWorkbenchPage.tsx';
+import RunsListPage from './pages/RunsListPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import WorkspacesPage from './pages/WorkspacesPage.tsx';
 import { InvalidationEventsProvider } from './providers/InvalidationEventsProvider.tsx';
@@ -65,6 +66,10 @@ const router: DataRouter = createBrowserRouter([
         element: <EmbedWorkbenchPage />,
       },
       {
+        path: 'preview',
+        element: <PreviewWorkbenchPage />,
+      },
+      {
         path: 'preview/pipelines/:pipelineId',
         element: <PreviewWorkbenchPage />,
       },
@@ -85,6 +90,10 @@ const router: DataRouter = createBrowserRouter([
       {
         path: 'dashboard',
         element: <DashboardPage />,
+      },
+      {
+        path: 'runs',
+        element: <RunsListPage />,
       },
       {
         path: 'workspaces',

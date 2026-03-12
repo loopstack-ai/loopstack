@@ -8,6 +8,8 @@ export interface Environment {
 export interface StudioRouter {
   navigateToHome(): Promise<void>;
   navigateToEnvironmentInfo(): Promise<void>;
+  getRuns(): string;
+  getRunsActionRequired(): string;
   getDashboard(): string;
   navigateToDashboard(): Promise<void>;
   getWorkspaces(): string;

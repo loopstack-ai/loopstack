@@ -35,7 +35,7 @@ export function useFilterPipelines(
 ) {
   const { envKey, api } = useApiClient();
 
-  const hasFilter = Object.values(filter).some((v) => v != null);
+  const hasFilter = Object.keys(filter).length > 0;
 
   const requestParams = {
     ...(hasFilter && { filter: JSON.stringify(filter) }),

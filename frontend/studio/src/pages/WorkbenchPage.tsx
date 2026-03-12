@@ -1,6 +1,6 @@
 import { Home } from 'lucide-react';
 import { useParams } from 'react-router-dom';
-import PageBreadcrumbs from '@/components/page/PageBreadcrumbs.tsx';
+import type { WorkspaceEnvironmentDto } from '@loopstack/api-client';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import Workbench from '@/features/workbench/Workbench.tsx';
 import LoadingCentered from '../components/LoadingCentered.tsx';
@@ -14,11 +14,15 @@ export default function WorkbenchPage({
   onPreviewPanelOpenChange,
   isDeveloperMode,
   getPreviewUrl,
+  getEnvironmentPreviewUrl,
+  environments,
 }: {
   previewPanelOpen?: boolean;
   onPreviewPanelOpenChange?: (open: boolean) => void;
   isDeveloperMode?: boolean;
   getPreviewUrl?: (pipelineId: string) => string;
+  getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
+  environments?: WorkspaceEnvironmentDto[];
 } = {}) {
   const { router } = useStudio();
   const params = useParams<{ pipelineId: string }>();
@@ -41,22 +45,20 @@ export default function WorkbenchPage({
   ];
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="bg-sidebar border-b shrink-0 px-4">
-        <div className="flex h-12 items-center">
-          <PageBreadcrumbs breadcrumbData={breadcrumbData} />
-        </div>
-      </div>
+    <div className="flex h-svh flex-col">
       <div className="flex-1 overflow-hidden">
         <ErrorSnackbar error={fetchPipeline.error} />
         <LoadingCentered loading={fetchPipeline.isLoading}>
           {fetchPipeline.data ? (
             <Workbench
               pipeline={fetchPipeline.data}
+              breadcrumbData={breadcrumbData}
               previewPanelOpen={previewPanelOpen}
               onPreviewPanelOpenChange={onPreviewPanelOpenChange}
               isDeveloperMode={isDeveloperMode}
               getPreviewUrl={getPreviewUrl}
+              getEnvironmentPreviewUrl={getEnvironmentPreviewUrl}
+              environments={environments}
             />
           ) : !fetchPipeline.isLoading && !fetchPipeline.error ? (
             <p className="text-muted-foreground py-8 text-center text-sm">Pipeline not found.</p>

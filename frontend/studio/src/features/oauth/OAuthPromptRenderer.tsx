@@ -29,7 +29,9 @@ interface OAuthPromptRendererProps {
 const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ pipeline, workflow, document, isActive }) => {
   const content = document.content as OAuthPromptContent;
   const actions: UiWidgetType[] = document.ui?.actions ?? [];
-  const transitionId = actions.find((a) => a.transition)?.transition;
+  const transitionId = actions
+    .map((a) => (a.options as { transition?: string } | undefined)?.transition)
+    .find((t) => !!t);
 
   const runPipeline = useRunPipeline();
   const { result, open, reset } = useOAuthPopup();

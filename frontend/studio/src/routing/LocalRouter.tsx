@@ -18,6 +18,14 @@ export class LocalRouter implements StudioRouter {
     await this.navigate('/info');
   }
 
+  getRuns() {
+    return '/runs';
+  }
+
+  getRunsActionRequired() {
+    return '/runs/action-required';
+  }
+
   getDashboard() {
     return '/dashboard';
   }

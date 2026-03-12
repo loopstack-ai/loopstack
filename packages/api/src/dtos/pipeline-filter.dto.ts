@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class PipelineFilterDto {
   @IsOptional()
@@ -10,4 +10,9 @@ export class PipelineFilterDto {
   @IsOptional()
   @ApiPropertyOptional()
   parentId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional()
+  status?: string;
 }

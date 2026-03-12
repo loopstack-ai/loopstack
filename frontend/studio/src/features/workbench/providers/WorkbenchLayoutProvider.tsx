@@ -1,5 +1,5 @@
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
-import type { PipelineDto, WorkspaceDto } from '@loopstack/api-client';
+import type { PipelineDto, WorkspaceDto, WorkspaceEnvironmentDto } from '@loopstack/api-client';
 
 export type FloatingPanelId = 'navigation' | 'history';
 export type SidePanelId = 'preview' | 'flow';
@@ -11,7 +11,10 @@ export interface WorkbenchLayoutContextType {
   previewPanelEnabled: boolean;
   isDeveloperMode: boolean;
   workspaceConfig?: Pick<WorkspaceDto, 'volumes' | 'features'>;
+
   getPreviewUrl?: (pipelineId: string) => string;
+  getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
+  environments?: WorkspaceEnvironmentDto[];
 
   // Floating panel state (navigation, history)
   activeFloatingPanel: FloatingPanelId | null;
@@ -22,6 +25,11 @@ export interface WorkbenchLayoutContextType {
   activeSidePanel: SidePanelId | null;
   toggleSidePanel: (id: SidePanelId) => void;
   closeSidePanel: () => void;
+
+  // Preview environment selection
+  selectedSlotId: string;
+  setSelectedSlotId: (slotId: string) => void;
+  openPreviewWithEnvironment: (slotId: string) => void;
 
   // Legacy aliases
   previewPanelOpen: boolean;
@@ -41,7 +49,10 @@ export interface WorkbenchLayoutProviderProps {
   pipeline: PipelineDto;
   isDeveloperMode?: boolean;
   workspaceConfig?: Pick<WorkspaceDto, 'volumes' | 'features'>;
+
   getPreviewUrl?: (pipelineId: string) => string;
+  getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
+  environments?: WorkspaceEnvironmentDto[];
   previewPanelOpen?: boolean;
   onPreviewPanelOpenChange?: (open: boolean) => void;
 }
@@ -51,7 +62,10 @@ export function WorkbenchLayoutProvider({
   pipeline,
   isDeveloperMode = false,
   workspaceConfig,
+
   getPreviewUrl,
+  getEnvironmentPreviewUrl,
+  environments,
   previewPanelOpen: controlledPreviewOpen,
   onPreviewPanelOpenChange,
 }: WorkbenchLayoutProviderProps) {
@@ -59,6 +73,7 @@ export function WorkbenchLayoutProvider({
   const [uncontrolledSidePanel, setUncontrolledSidePanel] = useState<SidePanelId | null>(null);
   const [activePreviewTab, setActivePreviewTab] = useState<PreviewTab>('preview');
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [selectedSlotId, setSelectedSlotId] = useState<string>('');
 
   const isControlled = controlledPreviewOpen !== undefined;
   const activeSidePanel: SidePanelId | null = isControlled
@@ -67,7 +82,9 @@ export function WorkbenchLayoutProvider({
       : null
     : uncontrolledSidePanel;
 
-  const previewPanelEnabled = workspaceConfig?.features?.previewPanel?.enabled ?? false;
+  const featureEnabled = workspaceConfig?.features?.previewPanel?.enabled ?? false;
+  const hasConnectableEnvs = environments === undefined || environments.some((e) => !!e.connectionUrl && !!e.workerId);
+  const previewPanelEnabled = featureEnabled && hasConnectableEnvs;
   const previewPanelOpen = activeSidePanel !== null;
 
   const setSidePanel = useCallback(
@@ -109,6 +126,15 @@ export function WorkbenchLayoutProvider({
     setSidePanel(null);
   }, [setSidePanel]);
 
+  const openPreviewWithEnvironment = useCallback(
+    (slotId: string) => {
+      setSelectedSlotId(slotId);
+      setSidePanel('preview');
+      setActiveFloatingPanel(null);
+    },
+    [setSidePanel],
+  );
+
   const togglePreviewPanel = useCallback(() => {
     toggleSidePanel('preview');
   }, [toggleSidePanel]);
@@ -119,13 +145,19 @@ export function WorkbenchLayoutProvider({
       previewPanelEnabled,
       isDeveloperMode,
       workspaceConfig,
+
       getPreviewUrl,
+      getEnvironmentPreviewUrl,
+      environments,
       activeFloatingPanel,
       toggleFloatingPanel,
       closeFloatingPanel,
       activeSidePanel,
       toggleSidePanel,
       closeSidePanel,
+      selectedSlotId,
+      setSelectedSlotId,
+      openPreviewWithEnvironment,
       previewPanelOpen,
       togglePreviewPanel,
       activePreviewTab,
@@ -138,13 +170,18 @@ export function WorkbenchLayoutProvider({
       previewPanelEnabled,
       isDeveloperMode,
       workspaceConfig,
+
       getPreviewUrl,
+      getEnvironmentPreviewUrl,
+      environments,
       activeFloatingPanel,
       toggleFloatingPanel,
       closeFloatingPanel,
       activeSidePanel,
       toggleSidePanel,
       closeSidePanel,
+      selectedSlotId,
+      openPreviewWithEnvironment,
       previewPanelOpen,
       togglePreviewPanel,
       activePreviewTab,

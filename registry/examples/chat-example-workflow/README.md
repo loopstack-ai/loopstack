@@ -93,11 +93,11 @@ The workflow defines a custom UI action that allows users to send messages:
 ui:
   actions:
     - type: custom
-      transition: user_message
       widget: prompt-input
       enabledWhen:
         - ready
       options:
+        transition: user_message
         label: Send Message
 ```
 

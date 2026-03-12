@@ -18,6 +18,9 @@ export { default as DebugWorkflowsPage } from './pages/DebugWorkflowsPage';
 export { default as DebugWorkflowDetailsPage } from './pages/DebugWorkflowDetailsPage';
 export { default as EmbedWorkbenchPage } from './pages/EmbedWorkbenchPage';
 export { default as PreviewWorkbenchPage } from './pages/PreviewWorkbenchPage';
+export { default as RunsPage } from './pages/RunsPage';
+export { default as RunsListPage } from './pages/RunsListPage';
+export { default as StudioLandingPage } from './pages/StudioLandingPage';
 export { default as LocalHealthCheck } from './features/health/LocalHealthCheck';
 
 export type { CreateWorkspaceProps } from './features/workspaces/components/CreateWorkspace';

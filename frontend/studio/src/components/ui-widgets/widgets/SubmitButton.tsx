@@ -4,15 +4,14 @@ import type { UiFormButtonOptionsType } from '@loopstack/contracts/types';
 import { Button } from '../../ui/button.tsx';
 
 interface SubmitButtonProps {
-  transition: string;
   ui?: UiFormButtonOptionsType;
   disabled: boolean;
   onClick: () => void;
   isLoading?: boolean;
 }
 
-export const SubmitButton: React.FC<SubmitButtonProps> = ({ transition, ui, disabled, onClick, isLoading }) => {
-  const submitButtonText = ui?.label || transition;
+export const SubmitButton: React.FC<SubmitButtonProps> = ({ ui, disabled, onClick, isLoading }) => {
+  const submitButtonText = ui?.label || 'Submit';
   const submitButtonProps = ui?.props || {};
 
   return (

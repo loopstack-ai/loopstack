@@ -5,11 +5,11 @@ description: An example workflow that demonstrates how to create a simple chat i
 ui:
   actions:
     - type: custom
-      transition: user_message
       widget: prompt-input
       enabledWhen:
         - ready
       options:
+        transition: user_message
         label: Send Message
 
 transitions:

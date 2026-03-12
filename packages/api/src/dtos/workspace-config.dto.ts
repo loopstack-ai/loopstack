@@ -141,6 +141,14 @@ export class FeaturesDto {
     type: FlyInstanceFeatureDto,
   })
   flyInstance?: FlyInstanceFeatureDto;
+
+  @Expose()
+  @Type(() => SidebarFeatureDto)
+  @ApiPropertyOptional({
+    description: 'Preview panel feature configuration',
+    type: SidebarFeatureDto,
+  })
+  previewPanel?: SidebarFeatureDto;
 }
 
 export class WorkspaceConfigDto {

@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 import LoadingCentered from '../../components/LoadingCentered.tsx';
 import BasicErrorComponent from '../../components/content/ErrorAlert.tsx';
 import type { WorkbenchSettingsInterface } from './WorkflowList.tsx';
-import WorkflowButtons from './components/buttons/WorkflowButtons.tsx';
 
 const WorkflowItem: React.FC<{
   pipeline: PipelineDto;
@@ -75,7 +74,7 @@ const WorkflowItem: React.FC<{
   const isLoading = runPipeline.isPending || fetchWorkflow.data?.status === 'running';
 
   return (
-    <div className={cn('flex flex-col', embed ? 'p-0' : 'min-h-[calc(100vh-16rem)] p-4')}>
+    <div className={cn('flex flex-col', embed ? 'p-0' : 'p-4')}>
       <LoadingCentered loading={fetchWorkflow.isLoading || fetchDocuments.isLoading} />
       <ErrorSnackbar error={fetchDocuments.error} />
 
@@ -95,9 +94,8 @@ const WorkflowItem: React.FC<{
       <LoadingCentered loading={isLoading} />
 
       {!!fetchWorkflow.data && !embed && (
-        <div className="mt-auto flex flex-col gap-6 pt-12">
+        <div className="mt-6">
           <WorkflowForms workflow={fetchWorkflow.data} onSubmit={handleRun} />
-          <WorkflowButtons pipeline={pipeline} workflow={fetchWorkflow.data} />
         </div>
       )}
     </div>

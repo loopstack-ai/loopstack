@@ -2,10 +2,19 @@ import { X } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import type { FilterOption } from './data-table';
+
+function getOptionValue(option: FilterOption): string {
+  return typeof option === 'string' ? option : option.value;
+}
+
+function getOptionLabel(option: FilterOption): string {
+  return typeof option === 'string' ? option : option.label;
+}
 
 interface DataTableFiltersProps {
   filters: Record<string, string>;
-  filterConfig: Record<string, string[]>;
+  filterConfig: Record<string, FilterOption[]>;
   onFiltersChange?: (filters: Record<string, string>) => void;
   isOpen: boolean;
 }
@@ -30,6 +39,13 @@ const DataTableFilters: React.FC<DataTableFiltersProps> = ({ filters, filterConf
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const activeFilters = Object.entries(filters).filter(([_, value]) => value);
 
+  const getActiveFilterLabel = (key: string, value: string): string => {
+    const options = filterConfig[key];
+    if (!options) return value;
+    const option = options.find((o) => getOptionValue(o) === value);
+    return option ? getOptionLabel(option) : value;
+  };
+
   return (
     <div className="flex flex-wrap gap-4">
       {Object.entries(filterConfig).map(([key, options]) => (
@@ -41,8 +57,8 @@ const DataTableFilters: React.FC<DataTableFiltersProps> = ({ filters, filterConf
             <SelectContent>
               <SelectItem value="all">All {key}</SelectItem>
               {options.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
+                <SelectItem key={getOptionValue(option)} value={getOptionValue(option)}>
+                  {getOptionLabel(option)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -53,7 +69,7 @@ const DataTableFilters: React.FC<DataTableFiltersProps> = ({ filters, filterConf
         <div className="flex flex-wrap gap-2">
           {activeFilters.map(([key, value]) => (
             <Badge key={key} variant="secondary" className="flex items-center gap-1">
-              {key}: {value}
+              {key}: {getActiveFilterLabel(key, value)}
               <button
                 onClick={() => {
                   handleFilterChange(key, 'all');

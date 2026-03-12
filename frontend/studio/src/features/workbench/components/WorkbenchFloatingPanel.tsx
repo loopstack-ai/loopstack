@@ -7,8 +7,8 @@ import { type FloatingPanelId, useWorkbenchLayout } from '../providers/Workbench
 import PipelineHistoryList from './PipelineHistoryList.tsx';
 
 const PANEL_TITLES: Record<FloatingPanelId, string> = {
-  navigation: 'Navigation',
-  history: 'History',
+  navigation: 'Navigate',
+  history: 'Run Log',
 };
 
 function NavigationContent() {

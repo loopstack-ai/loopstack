@@ -38,7 +38,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
 
   if (fetchWorkflow.isLoading) {
     return (
-      <li className="group/menu-item relative">
+      <li className="group/menu-item relative list-none">
         <div className="flex w-full items-center gap-2 rounded-md p-2 text-sm opacity-50">
           <Loader2 className="h-3 w-3 animate-spin" />
           <span className="text-sm">Loading...</span>
@@ -53,7 +53,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
 
   return (
     <Collapsible defaultOpen className="group/collapsible">
-      <li className="group/menu-item relative">
+      <li className="group/menu-item relative list-none">
         <CollapsibleTrigger asChild>
           <button className="hover:bg-accent hover:text-accent-foreground group/trigger flex w-full items-center gap-2 rounded-md p-2 text-left text-sm font-medium">
             <Play className="text-primary h-3.5 w-3.5 fill-current" />

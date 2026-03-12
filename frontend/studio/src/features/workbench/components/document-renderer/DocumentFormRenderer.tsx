@@ -107,6 +107,7 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
             actions={actions}
             onSubmit={handleSubmit}
             availableTransitions={availableTransitions}
+            currentPlace={workflow.place}
             disabled={disabledProps}
             isLoading={runPipeline.isPending}
           />

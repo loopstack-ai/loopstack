@@ -8,6 +8,6 @@ ui:
   actions:
     - type: button
       widget: button
-      transition: user_response
       options:
+        transition: user_response
         label: 'Optimize Notes'

@@ -22,6 +22,7 @@ const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit }) => 
       <UiActions
         actions={actions as UiWidgetType[]}
         availableTransitions={availableTransitions}
+        currentPlace={workflow.place}
         disabled={workflow.status === WorkflowState.Completed}
         onSubmit={onSubmit}
       />

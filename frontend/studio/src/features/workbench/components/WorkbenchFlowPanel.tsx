@@ -18,7 +18,7 @@ export function WorkbenchFlowPanel() {
   return (
     <div className="border-l bg-background flex w-1/2 shrink-0 flex-col">
       <div className="border-b flex h-12 shrink-0 items-center justify-between px-3">
-        <span className="text-sm font-medium">Flow Chart</span>
+        <span className="text-sm font-medium">Graph</span>
         <button
           onClick={closeSidePanel}
           className="text-muted-foreground hover:text-foreground flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:cursor-pointer"

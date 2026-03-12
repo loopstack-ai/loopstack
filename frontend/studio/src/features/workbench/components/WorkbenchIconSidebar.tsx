@@ -1,4 +1,4 @@
-import { Clock, GitGraph, MonitorPlay, Navigation } from 'lucide-react';
+import { ListOrdered, MonitorPlay, Navigation, Workflow } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { cn } from '@/lib/utils';
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
@@ -55,14 +55,14 @@ export function WorkbenchIconSidebar() {
       {isDeveloperMode && (
         <>
           <IconButton
-            icon={<GitGraph className="h-5 w-5" />}
-            label="Flow Chart"
+            icon={<Workflow className="h-5 w-5" />}
+            label="Graph"
             active={activeSidePanel === 'flow'}
             onClick={() => toggleSidePanel('flow')}
           />
           <IconButton
-            icon={<Clock className="h-5 w-5" />}
-            label="History"
+            icon={<ListOrdered className="h-5 w-5" />}
+            label="Run Log"
             active={activeFloatingPanel === 'history'}
             onClick={() => toggleFloatingPanel('history')}
           />
@@ -71,7 +71,7 @@ export function WorkbenchIconSidebar() {
 
       <IconButton
         icon={<Navigation className="h-5 w-5" />}
-        label="Navigation"
+        label="Navigate"
         active={activeFloatingPanel === 'navigation'}
         onClick={() => toggleFloatingPanel('navigation')}
       />

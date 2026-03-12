@@ -6,4 +6,5 @@ ui:
   actions:
     - type: custom
       widget: oauth-callback
-      transition: exchange_token
+      options:
+        transition: exchange_token

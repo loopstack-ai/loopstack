@@ -1,4 +1,4 @@
-import { Bug, ChevronDown, ChevronLeft, LayoutGrid } from 'lucide-react';
+import { Bug, ChevronDown, ChevronLeft, LayoutGrid, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from '../ui/menubar';
 
@@ -25,6 +25,12 @@ export function TopMenu() {
                 <Link to="/workspaces" className="flex w-full cursor-pointer items-center gap-2">
                   <LayoutGrid className="h-4 w-4 text-muted-foreground" />
                   <span>My Workspaces</span>
+                </Link>
+              </MenubarItem>
+              <MenubarItem asChild>
+                <Link to="/runs" className="flex w-full cursor-pointer items-center gap-2">
+                  <Play className="h-4 w-4 text-muted-foreground" />
+                  <span>Runs</span>
                 </Link>
               </MenubarItem>
               <MenubarItem asChild>
