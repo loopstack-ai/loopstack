@@ -20,7 +20,7 @@ export const SandboxRun: React.FC<SandboxRunProps> = ({ ui, disabled }) => {
   const slotId = ui?.slotId;
   const env = slotId ? environments?.find((e) => e.slotId === slotId) : undefined;
   const envExists = !!env;
-  const tooltipLabel = env?.providerAppName ? `Open ${env.providerAppName}` : 'Open Sandbox';
+  const tooltipLabel = env?.envName ? `Open ${env.envName}` : 'Open Sandbox';
 
   const handleClick = () => {
     if (slotId) {

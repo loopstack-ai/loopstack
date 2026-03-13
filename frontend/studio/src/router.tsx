@@ -1,6 +1,7 @@
 import { type DataRouter, Navigate, createBrowserRouter } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import WorkbenchPage from '@/pages/WorkbenchPage.tsx';
+import EnvironmentEmbedRoot from './app/EnvironmentEmbedRoot.tsx';
 import WorkerLayout from './app/WorkerLayout.tsx';
 import AppLayout from './components/layout/AppLayout.tsx';
 import config from './config.ts';
@@ -58,21 +59,20 @@ const router: DataRouter = createBrowserRouter([
     element: <OAuthCallbackPage />,
   },
   {
+    path: '/embed/env',
+    element: <EnvironmentEmbedRoot />,
+    children: [
+      { path: 'preview', element: <PreviewWorkbenchPage /> },
+      { path: 'preview/pipelines/:pipelineId', element: <PreviewWorkbenchPage /> },
+    ],
+  },
+  {
     path: '/embed',
     element: <EmbedRoot />,
     children: [
-      {
-        path: 'pipelines/:pipelineId',
-        element: <EmbedWorkbenchPage />,
-      },
-      {
-        path: 'preview',
-        element: <PreviewWorkbenchPage />,
-      },
-      {
-        path: 'preview/pipelines/:pipelineId',
-        element: <PreviewWorkbenchPage />,
-      },
+      { path: 'pipelines/:pipelineId', element: <EmbedWorkbenchPage /> },
+      { path: 'preview', element: <PreviewWorkbenchPage /> },
+      { path: 'preview/pipelines/:pipelineId', element: <PreviewWorkbenchPage /> },
     ],
   },
   {

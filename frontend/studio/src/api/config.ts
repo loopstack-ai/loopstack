@@ -1,6 +1,10 @@
 import type { AxiosInstance } from 'axios';
-import type { PipelineConfigInterface, WorkspaceConfigInterface } from '@loopstack/contracts/api';
-import type { PipelineSourceInterface } from '@loopstack/contracts/api';
+import type {
+  AvailableEnvironmentInterface,
+  PipelineConfigInterface,
+  PipelineSourceInterface,
+  WorkspaceConfigInterface,
+} from '@loopstack/contracts/api';
 
 export function createConfigApi(http: AxiosInstance) {
   return {
@@ -33,5 +37,8 @@ export function createConfigApi(http: AxiosInstance) {
           `/api/v1/config/workspaces/${encodeURIComponent(params.workspaceBlockName)}/pipelines/${encodeURIComponent(params.pipelineName)}/source`,
         )
         .then((res) => res.data),
+
+    getAvailableEnvironments: (): Promise<AvailableEnvironmentInterface[]> =>
+      http.get<AvailableEnvironmentInterface[]>('/api/v1/config/environments').then((res) => res.data),
   };
 }

@@ -12,7 +12,7 @@ export function WorkbenchPreviewPanel() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const connectableEnvironments = useMemo(
-    () => (environments ?? []).filter((e) => !!e.connectionUrl && !!e.workerId),
+    () => (environments ?? []).filter((e) => !!e.connectionUrl && (!!e.workerId || e.local)),
     [environments],
   );
 
@@ -31,9 +31,9 @@ export function WorkbenchPreviewPanel() {
   );
 
   const previewUrl = useMemo(() => {
-    if (!getEnvironmentPreviewUrl || !selectedEnv?.workerId) return undefined;
-    return getEnvironmentPreviewUrl(selectedEnv.workerId, previewPipelineId ?? undefined);
-  }, [getEnvironmentPreviewUrl, selectedEnv?.workerId, previewPipelineId]);
+    if (!getEnvironmentPreviewUrl || !selectedEnv) return undefined;
+    return getEnvironmentPreviewUrl(selectedEnv, previewPipelineId ?? undefined);
+  }, [getEnvironmentPreviewUrl, selectedEnv, previewPipelineId]);
 
   // Reset pipeline when environment changes
   const handleEnvironmentChange = (slotId: string) => {
@@ -108,14 +108,14 @@ export function WorkbenchPreviewPanel() {
               <SelectContent>
                 {connectableEnvironments.map((env) => (
                   <SelectItem key={env.slotId} value={env.slotId}>
-                    {env.providerAppName || env.slotId}
+                    {env.envName || env.slotId}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
           {connectableEnvironments.length === 1 && selectedEnv && (
-            <span className="text-xs text-zinc-400">{selectedEnv.providerAppName || selectedEnv.slotId}</span>
+            <span className="text-xs text-zinc-400">{selectedEnv.envName || selectedEnv.slotId}</span>
           )}
         </div>
         <div className="flex items-center gap-1">

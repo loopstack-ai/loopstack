@@ -1,4 +1,13 @@
-import { BadRequestException, Controller, Get, Param, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Inject,
+  Optional,
+  Param,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import {
   ApiExtraModels,
   ApiOkResponse,
@@ -22,19 +31,35 @@ import {
   getWorkflowOptions,
 } from '@loopstack/common';
 import { BlockOptions } from '@loopstack/common';
+import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
 import { JSONSchemaDefinition } from '@loopstack/contracts/dist/schemas';
 import { WorkflowType, WorkspaceType } from '@loopstack/contracts/types';
 import { BlockDiscoveryService } from '@loopstack/core';
+import { AvailableEnvironmentDto } from '../dtos/available-environment.dto';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
 import { PipelineSourceDto } from '../dtos/pipeline-source.dto';
 import { EnvironmentConfigDto, FeaturesDto, VolumeDto, WorkspaceConfigDto } from '../dtos/workspace-config.dto';
+import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from '../tokens';
 
 @ApiTags('api/v1/config')
-@ApiExtraModels(WorkspaceConfigDto, PipelineConfigDto, PipelineSourceDto, VolumeDto, FeaturesDto, EnvironmentConfigDto)
+@ApiExtraModels(
+  WorkspaceConfigDto,
+  PipelineConfigDto,
+  PipelineSourceDto,
+  VolumeDto,
+  FeaturesDto,
+  EnvironmentConfigDto,
+  AvailableEnvironmentDto,
+)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/config')
 export class ConfigController {
-  constructor(private readonly blockDiscoveryService: BlockDiscoveryService) {}
+  constructor(
+    private readonly blockDiscoveryService: BlockDiscoveryService,
+    @Optional()
+    @Inject(LOOPSTACK_AVAILABLE_ENVIRONMENTS)
+    private readonly availableEnvironments: AvailableEnvironmentInterface[] = [],
+  ) {}
 
   @Get('workspaces')
   @ApiOperation({ summary: 'Get all models available for this workspace' })
@@ -59,6 +84,16 @@ export class ConfigController {
     });
 
     return plainToInstance(WorkspaceConfigDto, resolvedConfigs, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Get('environments')
+  @ApiOperation({ summary: 'Get available environments configured for this backend' })
+  @ApiOkResponse({ type: AvailableEnvironmentDto, isArray: true })
+  @ApiUnauthorizedResponse()
+  getAvailableEnvironments(): AvailableEnvironmentDto[] {
+    return plainToInstance(AvailableEnvironmentDto, this.availableEnvironments, {
       excludeExtraneousValues: true,
     });
   }

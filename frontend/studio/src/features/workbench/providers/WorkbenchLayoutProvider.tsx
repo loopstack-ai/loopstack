@@ -13,7 +13,7 @@ export interface WorkbenchLayoutContextType {
   workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
   getPreviewUrl?: (pipelineId: string) => string;
-  getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
+  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, pipelineId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
 
   // Floating panel state (navigation, history)
@@ -51,7 +51,7 @@ export interface WorkbenchLayoutProviderProps {
   workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
   getPreviewUrl?: (pipelineId: string) => string;
-  getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
+  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, pipelineId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
   previewPanelOpen?: boolean;
   onPreviewPanelOpenChange?: (open: boolean) => void;

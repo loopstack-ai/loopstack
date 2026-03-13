@@ -84,11 +84,12 @@ export interface WorkspaceEnvironmentInterface {
   slotId: string;
   type?: string;
   remoteEnvironmentId: string;
-  providerAppName?: string;
+  envName?: string;
   connectionUrl?: string;
   agentUrl?: string;
   workerId?: string;
   workerUrl?: string;
+  local?: boolean;
 }
 
 export interface WorkspaceFavouriteInterface {
@@ -97,6 +98,14 @@ export interface WorkspaceFavouriteInterface {
 
 export interface WorkspaceFilterInterface {
   isFavourite?: boolean;
+}
+
+export interface AvailableEnvironmentInterface {
+  type: string;
+  name: string;
+  connectionUrl: string;
+  agentUrl?: string;
+  local?: boolean;
 }
 
 export type WorkspaceSortByInterface = SortByInterface;

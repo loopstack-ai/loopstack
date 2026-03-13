@@ -113,7 +113,7 @@ export default function Workbench({
   onPreviewPanelOpenChange?: (open: boolean) => void;
   isDeveloperMode?: boolean;
   getPreviewUrl?: (pipelineId: string) => string;
-  getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
+  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, pipelineId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
 }) {
   const workspaceId = pipeline?.workspaceId;

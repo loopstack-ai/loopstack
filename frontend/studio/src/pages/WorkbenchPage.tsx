@@ -1,4 +1,5 @@
 import { Home } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
@@ -21,7 +22,7 @@ export default function WorkbenchPage({
   onPreviewPanelOpenChange?: (open: boolean) => void;
   isDeveloperMode?: boolean;
   getPreviewUrl?: (pipelineId: string) => string;
-  getEnvironmentPreviewUrl?: (workerId: string, pipelineId?: string) => string;
+  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, pipelineId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
 } = {}) {
   const { router } = useStudio();
@@ -31,6 +32,23 @@ export default function WorkbenchPage({
   const fetchPipeline = usePipeline(pipelineId);
   const workspaceId = fetchPipeline.data?.workspaceId;
   const fetchWorkspace = useWorkspace(workspaceId);
+
+  const resolvedEnvironments = useMemo(
+    () => environments ?? fetchWorkspace.data?.environments,
+    [environments, fetchWorkspace.data?.environments],
+  );
+
+  const defaultGetEnvironmentPreviewUrl = useCallback((env: WorkspaceEnvironmentInterface, pipelineId?: string) => {
+    if (!env.connectionUrl) return '';
+    const params = new URLSearchParams({
+      url: env.connectionUrl,
+      name: env.envName || env.workerId || '',
+    });
+    const base = `/embed/env/preview`;
+    return pipelineId ? `${base}/pipelines/${pipelineId}?${params}` : `${base}?${params}`;
+  }, []);
+
+  const resolvedGetEnvironmentPreviewUrl = getEnvironmentPreviewUrl ?? defaultGetEnvironmentPreviewUrl;
 
   const breadcrumbData = [
     { label: 'Dashboard', href: router.getDashboard(), icon: <Home className="h-4 w-4" /> },
@@ -57,8 +75,8 @@ export default function WorkbenchPage({
               onPreviewPanelOpenChange={onPreviewPanelOpenChange}
               isDeveloperMode={isDeveloperMode}
               getPreviewUrl={getPreviewUrl}
-              getEnvironmentPreviewUrl={getEnvironmentPreviewUrl}
-              environments={environments}
+              getEnvironmentPreviewUrl={resolvedGetEnvironmentPreviewUrl}
+              environments={resolvedEnvironments}
             />
           ) : !fetchPipeline.isLoading && !fetchPipeline.error ? (
             <p className="text-muted-foreground py-8 text-center text-sm">Pipeline not found.</p>

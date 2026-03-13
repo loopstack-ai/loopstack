@@ -23,3 +23,13 @@ export function usePipelineConfig(workspaceBlockName: string | undefined) {
     enabled: !!workspaceBlockName,
   });
 }
+
+export function useAvailableEnvironments(options?: { enabled?: boolean }) {
+  const { envKey, api } = useApiClient();
+
+  return useQuery({
+    queryKey: ['available-environments', envKey],
+    queryFn: () => api.config.getAvailableEnvironments(),
+    enabled: options?.enabled ?? true,
+  });
+}

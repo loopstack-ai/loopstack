@@ -22,6 +22,9 @@ export { default as RunsPage } from './pages/RunsPage';
 export { default as RunsListPage } from './pages/RunsListPage';
 export { default as StudioLandingPage } from './pages/StudioLandingPage';
 export { default as LocalHealthCheck } from './features/health/LocalHealthCheck';
+export { default as EnvironmentEmbedRoot } from './app/EnvironmentEmbedRoot';
 
 export type { CreateWorkspaceProps } from './features/workspaces/components/CreateWorkspace';
 export type { EditWorkspaceProps } from './providers/ComponentOverridesProvider';
+export { EnvironmentSlotSelector } from './features/workspaces/components/EnvironmentSlotSelector';
+export type { EnvironmentOption } from './features/workspaces/components/EnvironmentSlotSelector';
