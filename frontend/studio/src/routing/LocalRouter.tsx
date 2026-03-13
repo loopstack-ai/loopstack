@@ -4,10 +4,12 @@ import type { StudioRouter } from '../types';
 export class LocalRouter implements StudioRouter {
   private navigate: ReturnType<typeof useNavigate>;
   private envId: string;
+  private embedPrefix: string;
 
-  constructor(navigate: ReturnType<typeof useNavigate>, envId: string) {
+  constructor(navigate: ReturnType<typeof useNavigate>, envId: string, embedPrefix: string = '/embed') {
     this.navigate = navigate;
     this.envId = envId;
+    this.embedPrefix = embedPrefix;
   }
 
   async navigateToHome() {
@@ -87,11 +89,11 @@ export class LocalRouter implements StudioRouter {
   }
 
   getEmbedPipeline(pipelineId: string) {
-    return `/embed/pipelines/${pipelineId}`;
+    return `${this.embedPrefix}/pipelines/${pipelineId}`;
   }
 
   getPreviewPipeline(pipelineId: string) {
-    return `/embed/preview/pipelines/${pipelineId}`;
+    return `${this.embedPrefix}/preview/pipelines/${pipelineId}`;
   }
 
   getCurrentEnvironmentId() {
@@ -103,7 +105,7 @@ export class LocalRouter implements StudioRouter {
   }
 }
 
-export const useRouter = (envId: string): StudioRouter => {
+export const useRouter = (envId: string, embedPrefix?: string): StudioRouter => {
   const navigate = useNavigate();
-  return new LocalRouter(navigate, envId);
+  return new LocalRouter(navigate, envId, embedPrefix);
 };

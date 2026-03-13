@@ -83,7 +83,8 @@ export function WorkbenchLayoutProvider({
     : uncontrolledSidePanel;
 
   const featureEnabled = workspaceConfig?.features?.previewPanel?.enabled ?? false;
-  const hasConnectableEnvs = environments === undefined || environments.some((e) => !!e.connectionUrl && !!e.workerId);
+  const hasConnectableEnvs =
+    environments === undefined || environments.some((e) => !!e.connectionUrl && (!!e.workerId || e.local));
   const previewPanelEnabled = featureEnabled && hasConnectableEnvs;
   const previewPanelOpen = activeSidePanel !== null;
 

@@ -20,6 +20,7 @@ import LoadingCentered from '../components/LoadingCentered.tsx';
 import { useFilterPipelines, usePipeline, usePipelineConfig } from '../hooks/usePipelines.ts';
 import { useFetchWorkflowsByPipeline } from '../hooks/useWorkflows.ts';
 import { useWorkspace } from '../hooks/useWorkspaces.ts';
+import { useStudio } from '../providers/StudioProvider.tsx';
 
 type PreviewTab = 'output' | 'graph' | 'run-log' | 'navigate';
 
@@ -262,6 +263,7 @@ function PreviewEmptyState({
   onNewRunSuccess: (pipelineId: string) => void;
 }) {
   const navigate = useNavigate();
+  const { router } = useStudio();
   const [limit, setLimit] = useState(3);
   const fetchPipelines = useFilterPipelines(undefined, { parentId: null }, 'createdAt', 'DESC', 0, limit);
   const pipelines = fetchPipelines.data?.data ?? [];
@@ -291,7 +293,7 @@ function PreviewEmptyState({
                   <RecentRunItem
                     key={pipeline.id}
                     pipeline={pipeline}
-                    onClick={() => void navigate(`/embed/preview/pipelines/${pipeline.id}`)}
+                    onClick={() => void navigate(router.getPreviewPipeline(pipeline.id))}
                   />
                 ))}
               </div>
