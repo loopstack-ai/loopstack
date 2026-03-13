@@ -16,8 +16,12 @@ export class LocalRouter implements StudioRouter {
     await this.navigate('/');
   }
 
+  getEnvironmentInfo() {
+    return '/info';
+  }
+
   async navigateToEnvironmentInfo() {
-    await this.navigate('/info');
+    await this.navigate(this.getEnvironmentInfo());
   }
 
   getRuns() {

@@ -12,6 +12,8 @@ export interface EditWorkspaceProps {
 export interface ComponentOverrides {
   CreateWorkspace?: ComponentType<CreateWorkspaceProps>;
   EditWorkspace?: ComponentType<EditWorkspaceProps>;
+  SidebarHeader?: ComponentType;
+  SidebarFooter?: ComponentType;
 }
 
 const ComponentOverridesContext = createContext<ComponentOverrides>({});

@@ -23,6 +23,7 @@ export { default as RunsListPage } from './pages/RunsListPage';
 export { default as StudioLandingPage } from './pages/StudioLandingPage';
 export { default as LocalHealthCheck } from './features/health/LocalHealthCheck';
 export { default as EnvironmentEmbedRoot } from './app/EnvironmentEmbedRoot';
+export { StudioSidebar } from './components/layout/StudioSidebar';
 
 export type { CreateWorkspaceProps } from './features/workspaces/components/CreateWorkspace';
 export type { EditWorkspaceProps } from './providers/ComponentOverridesProvider';

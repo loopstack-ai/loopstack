@@ -3,7 +3,8 @@ import { Toaster } from 'sonner';
 import WorkbenchPage from '@/pages/WorkbenchPage.tsx';
 import EnvironmentEmbedRoot from './app/EnvironmentEmbedRoot.tsx';
 import WorkerLayout from './app/WorkerLayout.tsx';
-import AppLayout from './components/layout/AppLayout.tsx';
+import { StudioSidebar } from './components/layout/StudioSidebar.tsx';
+import { SidebarInset, SidebarProvider } from './components/ui/sidebar.tsx';
 import config from './config.ts';
 import LocalHealthCheck from './features/health/LocalHealthCheck.tsx';
 import { OAuthCallbackPage } from './features/oauth';
@@ -15,6 +16,7 @@ import EmbedWorkbenchPage from './pages/EmbedWorkbenchPage.tsx';
 import PipelineDebugPage from './pages/PipelineDebugPage.tsx';
 import PreviewWorkbenchPage from './pages/PreviewWorkbenchPage.tsx';
 import RunsListPage from './pages/RunsListPage.tsx';
+import RunsPage from './pages/RunsPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import WorkspacesPage from './pages/WorkspacesPage.tsx';
 import { InvalidationEventsProvider } from './providers/InvalidationEventsProvider.tsx';
@@ -27,15 +29,18 @@ function AppRoot() {
   const router = useRouter(config.environment.id);
   return (
     <QueryProvider>
-      <AppLayout>
-        <Toaster richColors />
-        <StudioProvider router={router} environment={config.environment}>
-          <LocalHealthCheck />
-          <SseProvider />
-          <InvalidationEventsProvider />
-          <WorkerLayout />
-        </StudioProvider>
-      </AppLayout>
+      <Toaster richColors />
+      <StudioProvider router={router} environment={config.environment}>
+        <LocalHealthCheck />
+        <SseProvider />
+        <InvalidationEventsProvider />
+        <SidebarProvider>
+          <StudioSidebar />
+          <SidebarInset>
+            <WorkerLayout />
+          </SidebarInset>
+        </SidebarProvider>
+      </StudioProvider>
     </QueryProvider>
   );
 }
@@ -94,6 +99,10 @@ const router: DataRouter = createBrowserRouter([
       {
         path: 'runs',
         element: <RunsListPage />,
+      },
+      {
+        path: 'runs/action-required',
+        element: <RunsPage />,
       },
       {
         path: 'workspaces',

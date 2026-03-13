@@ -28,3 +28,7 @@ export const useStudio = () => {
   }
   return context;
 };
+
+export const useStudioOptional = () => {
+  return useContext(StudioContext);
+};
