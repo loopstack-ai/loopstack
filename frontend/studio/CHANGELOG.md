@@ -1,5 +1,22 @@
 # @loopstack/loopstack-studio
 
+## 0.22.0
+
+### Minor Changes
+
+- [#98](https://github.com/loopstack-ai/loopstack/pull/98) [`4f88d3f`](https://github.com/loopstack-ai/loopstack/commit/4f88d3f5b9990b425e7dcb83f28c042b10881d29) Thanks [@jakobklippel](https://github.com/jakobklippel)! - add runs management pages, landing dashboard, new run dialog, and sandbox preview widget
+
+### Patch Changes
+
+- Updated dependencies [[`4f88d3f`](https://github.com/loopstack-ai/loopstack/commit/4f88d3f5b9990b425e7dcb83f28c042b10881d29)]:
+  - @loopstack/contracts@0.23.0
+
+## 0.21.3
+
+### Patch Changes
+
+- [#96](https://github.com/loopstack-ai/loopstack/pull/96) [`567bdbf`](https://github.com/loopstack-ai/loopstack/commit/567bdbf7c41ed94e1ff51c66fb2723dce87bc6e4) Thanks [@jakobklippel](https://github.com/jakobklippel)! - fix form input backgrounds to use background token instead of transparent
+
 ## 0.21.2
 
 ### Patch Changes

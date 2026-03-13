@@ -1,5 +1,16 @@
 # @loopstack/sandbox-example-workflow
 
+## 0.4.6
+
+### Patch Changes
+
+- Updated dependencies [[`07e62db`](https://github.com/loopstack-ai/loopstack/commit/07e62db4140f6c22c3fd4ecd6b88a32f82ffb0ed)]:
+  - @loopstack/common@0.23.0
+  - @loopstack/core-ui-module@0.20.6
+  - @loopstack/create-chat-message-tool@0.20.6
+  - @loopstack/sandbox-filesystem@0.4.6
+  - @loopstack/sandbox-tool@0.4.6
+
 ## 0.4.5
 
 ### Patch Changes
