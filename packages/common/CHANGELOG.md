@@ -1,5 +1,16 @@
 # @loopstack/common
 
+## 0.23.0
+
+### Minor Changes
+
+- [#98](https://github.com/loopstack-ai/loopstack/pull/98) [`07e62db`](https://github.com/loopstack-ai/loopstack/commit/07e62db4140f6c22c3fd4ecd6b88a32f82ffb0ed) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Rename providerAppName to envName and add local property to workspace environment
+
+### Patch Changes
+
+- Updated dependencies [[`4f88d3f`](https://github.com/loopstack-ai/loopstack/commit/4f88d3f5b9990b425e7dcb83f28c042b10881d29)]:
+  - @loopstack/contracts@0.23.0
+
 ## 0.22.2
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @loopstack/create-value-tool
 
+## 0.20.6
+
+### Patch Changes
+
+- Updated dependencies [[`07e62db`](https://github.com/loopstack-ai/loopstack/commit/07e62db4140f6c22c3fd4ecd6b88a32f82ffb0ed)]:
+  - @loopstack/common@0.23.0
+
 ## 0.20.5
 
 ### Patch Changes
