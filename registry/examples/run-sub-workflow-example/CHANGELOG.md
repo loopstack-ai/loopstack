@@ -1,5 +1,14 @@
 # @loopstack/run-sub-workflow-example
 
+## 0.20.7
+
+### Patch Changes
+
+- Updated dependencies [[`07e62db`](https://github.com/loopstack-ai/loopstack/commit/07e62db4140f6c22c3fd4ecd6b88a32f82ffb0ed)]:
+  - @loopstack/common@0.23.0
+  - @loopstack/core-ui-module@0.20.6
+  - @loopstack/create-chat-message-tool@0.20.6
+
 ## 0.20.6
 
 ### Patch Changes
