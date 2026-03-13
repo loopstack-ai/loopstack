@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import type { WorkspaceDto } from '@loopstack/api-client';
+import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import type { PipelineConfigInterface } from '@loopstack/contracts/types';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import ArgumentsView from '@/features/workspaces/components/pipeline-form/ArgumentsView.tsx';
@@ -12,7 +12,7 @@ import { useStudio } from '@/providers/StudioProvider.tsx';
 
 interface PipelineFormProps {
   title: string;
-  workspace: WorkspaceDto;
+  workspace: WorkspaceInterface;
   onSuccess?: () => void;
 }
 
@@ -73,7 +73,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
           blockName: formData.blockName,
           title: formData.name || null,
           workspaceId: workspace.id,
-          transition,
+          transition: transition ?? null,
           args: data,
         },
       },
@@ -81,12 +81,12 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
         onSuccess: (createdPipeline) => {
           pingPipeline.mutate(
             {
-              pipelineId: createdPipeline.data.id,
+              pipelineId: createdPipeline.id,
               runPipelinePayloadDto: {},
               force: true,
             },
             {
-              onSuccess: () => navigateToPipeline(createdPipeline.data.id),
+              onSuccess: () => navigateToPipeline(createdPipeline.id),
             },
           );
         },

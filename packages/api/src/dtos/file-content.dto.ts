@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { FileContentInterface } from '@loopstack/contracts/api';
 import { PipelineConfigDto } from './pipeline-config.dto';
 
-export class FileContentDto {
+export class FileContentDto implements FileContentInterface {
   @ApiProperty({
     description: 'Path of the file relative to workspace root',
     example: 'src/components/Button.tsx',

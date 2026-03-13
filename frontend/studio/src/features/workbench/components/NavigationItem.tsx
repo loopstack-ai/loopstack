@@ -1,10 +1,10 @@
 import { CheckCircle, File, Play } from 'lucide-react';
 import * as React from 'react';
-import type { WorkflowItemDto } from '@loopstack/api-client';
+import type { WorkflowItemInterface } from '@loopstack/contracts/api';
 import { cn } from '../../../lib/utils.ts';
 
 interface WorkbenchNavigationWorkflowItemProps {
-  workflow: WorkflowItemDto;
+  workflow: WorkflowItemInterface;
   isSelected: boolean;
   navigateTo: (workflowId: string) => void;
 }

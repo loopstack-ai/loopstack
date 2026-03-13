@@ -1,12 +1,12 @@
 import { Hammer } from 'lucide-react';
 import React from 'react';
-import type { PipelineDto } from '@loopstack/api-client';
+import type { PipelineInterface } from '@loopstack/contracts/api';
 import { Button } from '../../../../components/ui/button.tsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../../../components/ui/tooltip.tsx';
 import { useRunPipeline } from '../../../../hooks/useProcessor.ts';
 
 interface PipelineButtonsProps {
-  pipeline: PipelineDto;
+  pipeline: PipelineInterface;
 }
 
 const PipelineButtons: React.FC<PipelineButtonsProps> = ({ pipeline }) => {

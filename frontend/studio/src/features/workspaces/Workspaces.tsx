@@ -1,7 +1,7 @@
 import { Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { WorkspaceItemDto } from '@loopstack/api-client';
+import type { WorkspaceItemInterface } from '@loopstack/contracts/api';
 import ItemListView from '../../components/lists/ListView.tsx';
 import type { Column, OriginalRowAction } from '../../components/lists/ListView.tsx';
 import { Badge } from '../../components/ui/badge.tsx';
@@ -36,7 +36,7 @@ const Workspaces = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const [open, setOpen] = useState(false);
-  const [openEdit, setOpenEdit] = useState<WorkspaceItemDto | undefined>(undefined);
+  const [openEdit, setOpenEdit] = useState<WorkspaceItemInterface | undefined>(undefined);
 
   useEffect(() => {
     if (searchParams.get('create') === 'true') {
@@ -72,7 +72,7 @@ const Workspaces = () => {
     void router.navigateToWorkspace(id);
   };
 
-  const handleEdit = (pipeline: WorkspaceItemDto) => {
+  const handleEdit = (pipeline: WorkspaceItemInterface) => {
     setOpenEdit(pipeline);
   };
 
@@ -151,14 +151,14 @@ const Workspaces = () => {
               minWidth: 150,
               format: (value: unknown) => {
                 const envs = value as
-                  | Array<{ remoteEnvironmentId: string; providerAppName?: string; type?: string }>
+                  | Array<{ remoteEnvironmentId: string; envName?: string; type?: string }>
                   | undefined;
                 if (!envs || envs.length === 0) return '—';
                 return (
                   <div className="flex flex-wrap gap-1">
                     {envs.map((env) => (
                       <Badge key={env.remoteEnvironmentId} variant="secondary">
-                        {env.providerAppName ?? env.remoteEnvironmentId.slice(0, 8)}
+                        {env.envName ?? env.remoteEnvironmentId.slice(0, 8)}
                         {env.type && <span className="text-muted-foreground ml-1">({env.type})</span>}
                       </Badge>
                     ))}
@@ -187,8 +187,8 @@ const Workspaces = () => {
               id: 'add-favourite',
               label: 'Add to favourites',
               icon: <Star className="h-4 w-4" />,
-              condition: (item: WorkspaceItemDto) => !item.isFavourite,
-              action: (item: WorkspaceItemDto) => {
+              condition: (item: WorkspaceItemInterface) => !item.isFavourite,
+              action: (item: WorkspaceItemInterface) => {
                 setFavourite.mutate({ id: item.id, isFavourite: true });
               },
             },
@@ -196,12 +196,12 @@ const Workspaces = () => {
               id: 'remove-favourite',
               label: 'Remove from favourites',
               icon: <Star className="h-4 w-4 fill-current" />,
-              condition: (item: WorkspaceItemDto) => !!item.isFavourite,
-              action: (item: WorkspaceItemDto) => {
+              condition: (item: WorkspaceItemInterface) => !!item.isFavourite,
+              action: (item: WorkspaceItemInterface) => {
                 setFavourite.mutate({ id: item.id, isFavourite: false });
               },
             },
-          ] as OriginalRowAction<WorkspaceItemDto>[]
+          ] as OriginalRowAction<WorkspaceItemInterface>[]
         }
       />
 

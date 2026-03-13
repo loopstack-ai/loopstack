@@ -1,6 +1,6 @@
 import type { AxiosError } from 'axios';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { FileExplorerNodeDto, PipelineConfigDto } from '@loopstack/api-client';
+import type { FileExplorerNodeInterface, PipelineConfigInterface } from '@loopstack/contracts/api';
 import { useFileContent, useFileTree } from '@/hooks/useFiles';
 import type { FileExplorerNode } from '../types';
 
@@ -27,7 +27,7 @@ interface CodeExplorerContextValue {
   openFiles: FileExplorerNode[];
   selectedFile: FileExplorerNode | null;
   fileContent: string | null;
-  workflowConfig: PipelineConfigDto | null;
+  workflowConfig: PipelineConfigInterface | null;
   isTreeLoading: boolean;
   isContentLoading: boolean;
   error: Error | null;
@@ -54,12 +54,12 @@ interface CodeExplorerProviderProps {
   fileExplorerEnabled?: boolean;
 }
 
-function mapDtoToNode(dto: FileExplorerNodeDto): FileExplorerNode {
+function mapDtoToNode(dto: FileExplorerNodeInterface): FileExplorerNode {
   return {
     id: dto.id,
     name: dto.name,
     path: dto.path,
-    type: dto.type as 'file' | 'folder',
+    type: dto.type,
     children: dto.children?.map(mapDtoToNode),
   };
 }

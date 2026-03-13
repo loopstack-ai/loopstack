@@ -1,11 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, plainToInstance } from 'class-transformer';
 import { NamespaceEntity } from '@loopstack/common';
+import type { NamespaceItemInterface } from '@loopstack/contracts/api';
 
 /**
  * Data Transfer Object representing a namespace
  */
-export class NamespaceItemDto {
+export class NamespaceItemDto implements NamespaceItemInterface {
   @Expose()
   @ApiProperty({
     description: 'Unique identifier of the namespace',

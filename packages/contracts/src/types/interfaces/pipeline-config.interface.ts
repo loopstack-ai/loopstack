@@ -6,4 +6,5 @@ export interface PipelineConfigInterface {
   description?: string;
   schema?: JSONSchemaConfigType;
   ui?: UiFormType;
+  transitions?: any[];
 }

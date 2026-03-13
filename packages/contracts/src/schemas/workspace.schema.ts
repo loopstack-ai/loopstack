@@ -35,6 +35,11 @@ const FeaturesSchema = z.object({
       options: z.record(z.string(), z.any()).optional(),
     })
     .optional(),
+  previewPanel: z
+    .object({
+      enabled: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export const WorkspaceSchema = BlockSchema.extend({

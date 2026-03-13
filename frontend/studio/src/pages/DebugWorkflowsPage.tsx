@@ -1,7 +1,7 @@
 import { useQueries } from '@tanstack/react-query';
 import { Home } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import type { PipelineConfigDto } from '@loopstack/api-client';
+import type { PipelineConfigInterface } from '@loopstack/contracts/api';
 import { DataTable } from '@/components/data-table/DataTable';
 import type { DataTableColumn } from '@/components/data-table/data-table';
 import MainLayout from '@/components/layout/MainLayout';
@@ -10,7 +10,7 @@ import { useApiClient } from '@/hooks/useApi';
 import { useWorkspaceConfig } from '@/hooks/useConfig';
 import { useStudio } from '@/providers/StudioProvider';
 
-interface PipelineTypeRow extends PipelineConfigDto {
+interface PipelineTypeRow extends PipelineConfigInterface {
   id: string;
   workspaceBlockName: string;
 }
@@ -24,11 +24,10 @@ export default function DebugWorkflowsPage() {
     queries: (workspaceTypes ?? []).map((wt) => ({
       queryKey: ['pipeline-types', wt.blockName, envKey],
       queryFn: async () => {
-        if (!api) throw new Error('API not available');
-        const res = await api.ApiV1ConfigApi.configControllerGetPipelineTypesByWorkspace({
+        const types = await api.config.getPipelineTypesByWorkspace({
           workspaceBlockName: wt.blockName,
         });
-        return { workspaceBlockName: wt.blockName, types: res.data };
+        return { workspaceBlockName: wt.blockName, types };
       },
       enabled: !!workspaceTypes?.length,
     })),

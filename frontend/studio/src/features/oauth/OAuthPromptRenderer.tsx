@@ -1,11 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import type { PipelineDto, WorkflowDto } from '@loopstack/api-client';
-import type {
-  DocumentItemInterface,
-  TransitionPayloadInterface,
-  UiWidgetType,
-  WorkflowTransitionType,
-} from '@loopstack/contracts/types';
+import type { PipelineInterface } from '@loopstack/contracts/api';
+import type { WorkflowInterface } from '@loopstack/contracts/types';
+import type { DocumentItemInterface, TransitionPayloadInterface, UiWidgetType } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
 import { useOAuthPopup } from './useOAuthPopup.ts';
@@ -20,8 +16,8 @@ interface OAuthPromptContent {
 }
 
 interface OAuthPromptRendererProps {
-  pipeline: PipelineDto;
-  workflow: WorkflowDto;
+  pipeline: PipelineInterface;
+  workflow: WorkflowInterface;
   document: DocumentItemInterface;
   isActive: boolean;
 }
@@ -29,13 +25,15 @@ interface OAuthPromptRendererProps {
 const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ pipeline, workflow, document, isActive }) => {
   const content = document.content as OAuthPromptContent;
   const actions: UiWidgetType[] = document.ui?.actions ?? [];
-  const transitionId = actions.find((a) => a.transition)?.transition;
+  const transitionId = actions
+    .map((a) => (a.options as { transition?: string } | undefined)?.transition)
+    .find((t) => !!t);
 
   const runPipeline = useRunPipeline();
   const { result, open, reset } = useOAuthPopup();
   const submittedRef = useRef(false);
 
-  const availableTransitions = workflow.availableTransitions?.map((t) => (t as WorkflowTransitionType).id) ?? [];
+  const availableTransitions = workflow.availableTransitions?.map((t) => t.id) ?? [];
 
   const triggerTransition = useCallback(
     (code: string, state: string) => {

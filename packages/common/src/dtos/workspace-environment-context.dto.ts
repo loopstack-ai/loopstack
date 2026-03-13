@@ -9,7 +9,7 @@ export class WorkspaceEnvironmentContextDto {
   type: string;
 
   @Expose()
-  providerAppName?: string;
+  envName?: string;
 
   @Expose()
   connectionUrl?: string;

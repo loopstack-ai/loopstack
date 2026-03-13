@@ -4,25 +4,42 @@ import UiWidget from '@/components/ui-widgets/UiWidget.tsx';
 
 export interface UiActionsProps {
   availableTransitions: string[];
+  currentPlace?: string;
   actions: UiWidgetType[];
   disabled: boolean;
   onSubmit: (transition: string, data: Record<string, unknown> | string | undefined) => void;
   isLoading?: boolean;
 }
 
-const UiActions: React.FC<UiActionsProps> = ({ actions, availableTransitions, disabled, onSubmit, isLoading }) => {
+const UiActions: React.FC<UiActionsProps> = ({
+  actions,
+  availableTransitions,
+  currentPlace,
+  disabled,
+  onSubmit,
+  isLoading,
+}) => {
   return (
     <div className="flex w-full flex-col items-end gap-4">
       {actions.map((config: UiWidgetType, index: number) => {
+        const { enabledWhen } = config;
+        const transition = (config.options as { transition?: string } | undefined)?.transition;
+
         const isDisabled =
-          disabled || config.transition === undefined || !availableTransitions.includes(config.transition);
+          disabled ||
+          (enabledWhen !== undefined && (!currentPlace || !enabledWhen.includes(currentPlace))) ||
+          (transition !== undefined && !availableTransitions.includes(transition));
 
         const handleSubmit = (data?: Record<string, unknown> | string) => {
-          onSubmit(config.transition, data);
+          if (!transition) {
+            console.error(`[UiActions] Widget "${config.widget ?? config.type}" has no transition configured.`);
+            return;
+          }
+          onSubmit(transition, data);
         };
 
         return (
-          <Fragment key={`ui-widget-${index}-${config.transition}`}>
+          <Fragment key={`ui-widget-${index}-${transition ?? config.widget}`}>
             <UiWidget config={config} onSubmit={handleSubmit} disabled={isDisabled} isLoading={isLoading} />
           </Fragment>
         );

@@ -31,7 +31,7 @@ const PageBreadcrumbs: React.FC<PageBreadcrumbsProps> = ({ breadcrumbData, class
   };
 
   return (
-    <div className={cn('ml-3 mb-2', className)}>
+    <div className={cn('ml-3', className)}>
       <Breadcrumb>
         <BreadcrumbList>
           {breadcrumbData.map((item, index) => {

@@ -1,9 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import type { WorkspaceCreateInterface } from '@loopstack/contracts/api';
 import { WorkspaceEnvironmentDto } from './workspace-environment.dto';
 
-export class WorkspaceCreateDto {
+export class WorkspaceCreateDto implements WorkspaceCreateInterface {
   @IsOptional()
   @IsString({ message: 'Workspace title must be a string' })
   @MaxLength(200, { message: 'Workspace title must not exceed 200 characters' })

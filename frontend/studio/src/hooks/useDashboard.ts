@@ -6,13 +6,7 @@ export function useDashboardStats() {
 
   return useQuery({
     queryKey: ['dashboard', 'stats', envKey],
-    queryFn: async () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      const res = await api.ApiV1DashboardApi.dashboardControllerGetDashboardStats();
-      return res.data;
-    },
+    queryFn: () => api.dashboard.getStats(),
     enabled: true,
   });
 }

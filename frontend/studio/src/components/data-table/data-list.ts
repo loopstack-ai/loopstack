@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import type { FilterOption } from './data-table';
 
 export interface BatchAction {
   id: string;
@@ -36,7 +37,7 @@ export interface DataListProps<T = any> {
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
   filters?: Record<string, string>;
-  filterConfig?: Record<string, string[]>;
+  filterConfig?: Record<string, FilterOption[]>;
   onFiltersChange?: (filters: Record<string, string>) => void;
 
   // Actions

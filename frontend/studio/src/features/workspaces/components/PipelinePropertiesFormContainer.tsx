@@ -39,8 +39,8 @@ const PipelinePropertiesFormContainer: React.FC<PipelinePropertiesFormContainerP
     {
       type: 'button',
       widget: 'button-full-w',
-      transition: '',
       options: {
+        transition: '',
         label: 'Run Now',
       },
     } satisfies UiWidgetType,

@@ -1,6 +1,7 @@
 import { type DataRouter, Navigate, createBrowserRouter } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import WorkbenchPage from '@/pages/WorkbenchPage.tsx';
+import EnvironmentEmbedRoot from './app/EnvironmentEmbedRoot.tsx';
 import WorkerLayout from './app/WorkerLayout.tsx';
 import AppLayout from './components/layout/AppLayout.tsx';
 import config from './config.ts';
@@ -12,6 +13,8 @@ import DebugWorkflowDetailsPage from './pages/DebugWorkflowDetailsPage.tsx';
 import DebugWorkflowsPage from './pages/DebugWorkflowsPage.tsx';
 import EmbedWorkbenchPage from './pages/EmbedWorkbenchPage.tsx';
 import PipelineDebugPage from './pages/PipelineDebugPage.tsx';
+import PreviewWorkbenchPage from './pages/PreviewWorkbenchPage.tsx';
+import RunsListPage from './pages/RunsListPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import WorkspacesPage from './pages/WorkspacesPage.tsx';
 import { InvalidationEventsProvider } from './providers/InvalidationEventsProvider.tsx';
@@ -56,13 +59,20 @@ const router: DataRouter = createBrowserRouter([
     element: <OAuthCallbackPage />,
   },
   {
+    path: '/embed/env',
+    element: <EnvironmentEmbedRoot />,
+    children: [
+      { path: 'preview', element: <PreviewWorkbenchPage /> },
+      { path: 'preview/pipelines/:pipelineId', element: <PreviewWorkbenchPage /> },
+    ],
+  },
+  {
     path: '/embed',
     element: <EmbedRoot />,
     children: [
-      {
-        path: 'pipelines/:pipelineId',
-        element: <EmbedWorkbenchPage />,
-      },
+      { path: 'pipelines/:pipelineId', element: <EmbedWorkbenchPage /> },
+      { path: 'preview', element: <PreviewWorkbenchPage /> },
+      { path: 'preview/pipelines/:pipelineId', element: <PreviewWorkbenchPage /> },
     ],
   },
   {
@@ -80,6 +90,10 @@ const router: DataRouter = createBrowserRouter([
       {
         path: 'dashboard',
         element: <DashboardPage />,
+      },
+      {
+        path: 'runs',
+        element: <RunsListPage />,
       },
       {
         path: 'workspaces',

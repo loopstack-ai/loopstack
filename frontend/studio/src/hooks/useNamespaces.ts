@@ -14,14 +14,8 @@ export function useNamespace(id: string) {
 
   return useQuery({
     queryKey: getNamespaceCacheKey(envKey, id),
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1NamespacesApi.namespaceControllerGetWorkflowById({ id });
-    },
+    queryFn: () => api.namespaces.getById({ id }),
     enabled: !!id,
-    select: (res) => res.data,
   });
 }
 
@@ -36,13 +30,8 @@ export function useFilterNamespaces(pipelineId?: string) {
 
   return useQuery({
     queryKey: getNamespacesByPipelineCacheKey(envKey, pipelineId!),
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1NamespacesApi.namespaceControllerGetWorkflows(requestParams);
-    },
+    queryFn: () => api.namespaces.getAll(requestParams),
+    select: (res) => res.data,
     enabled: !!pipelineId,
-    select: (res) => res.data.data,
   });
 }

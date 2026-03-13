@@ -22,6 +22,10 @@
     "./schemas": {
       "types": "./dist/schemas/index.d.ts",
       "default": "./dist/schemas/index.js"
+    },
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "default": "./dist/api/index.js"
     }
   },
   "scripts": {
@@ -47,6 +51,9 @@
       ],
       "schemas": [
         "./dist/schemas/index.d.ts"
+      ],
+      "api": [
+        "./dist/api/index.d.ts"
       ]
     }
   }

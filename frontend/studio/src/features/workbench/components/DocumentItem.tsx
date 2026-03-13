@@ -1,6 +1,7 @@
 import { omit } from 'lodash';
 import React from 'react';
-import type { DocumentItemDto, PipelineDto, WorkflowDto } from '@loopstack/api-client';
+import type { PipelineInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
 import type { WorkbenchSettingsInterface } from '../WorkflowList.tsx';
 import DocumentMetadataPills from './DocumentMetadataPills.tsx';
 import DocumentRenderer from './DocumentRenderer.tsx';
@@ -11,9 +12,9 @@ interface DocumentMeta {
 }
 
 const DocumentItem: React.FC<{
-  document: DocumentItemDto;
-  workflow: WorkflowDto;
-  pipeline: PipelineDto;
+  document: DocumentItemInterface;
+  workflow: WorkflowInterface;
+  pipeline: PipelineInterface;
   isActive: boolean;
   isLastItem: boolean;
   settings: WorkbenchSettingsInterface;

@@ -2,6 +2,7 @@ import React from 'react';
 import type { UiFormButtonOptionsType, UiWidgetType } from '@loopstack/contracts/types';
 import AiPromptInput from '@/components/ui-widgets/widgets/AiPromptInput';
 import { ButtonFullWidth } from '@/components/ui-widgets/widgets/ButtonFullWidth.tsx';
+import { SandboxRun } from '@/components/ui-widgets/widgets/SandboxRun.tsx';
 import { SubmitButton } from './widgets/SubmitButton';
 
 export interface UiWidgetProps {
@@ -12,16 +13,15 @@ export interface UiWidgetProps {
 }
 
 const UiWidget: React.FC<UiWidgetProps> = ({ config, onSubmit, disabled, isLoading }) => {
+  const options = config.options as Record<string, unknown> | undefined;
+
   switch (config.widget) {
     case 'prompt-input':
-      return (
-        <AiPromptInput transition={config.transition} disabled={disabled} onSubmit={onSubmit} ui={config.options} />
-      );
+      return <AiPromptInput disabled={disabled} onSubmit={onSubmit} ui={options} />;
     case 'button':
       return (
         <SubmitButton
-          transition={config.transition}
-          ui={config.options as UiFormButtonOptionsType}
+          ui={options as UiFormButtonOptionsType}
           disabled={disabled}
           onClick={onSubmit}
           isLoading={isLoading}
@@ -30,13 +30,14 @@ const UiWidget: React.FC<UiWidgetProps> = ({ config, onSubmit, disabled, isLoadi
     case 'button-full-w':
       return (
         <ButtonFullWidth
-          transition={config.transition}
-          ui={config.options as UiFormButtonOptionsType}
+          ui={options as UiFormButtonOptionsType}
           disabled={disabled}
           onClick={onSubmit}
           isLoading={isLoading}
         />
       );
+    case 'sandbox-run':
+      return <SandboxRun ui={options as { slotId?: string; label?: string }} disabled={disabled} />;
   }
 
   return <></>;

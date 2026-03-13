@@ -1,11 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import type { AxiosResponse } from 'axios';
-import type {
-  DocumentControllerGetDocuments200Response,
-  DocumentFilterDto,
-  DocumentItemDto,
-  DocumentSortByDto,
-} from '@loopstack/api-client';
+import type { DocumentFilterInterface, DocumentSortByInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import { useApiClient } from './useApi.ts';
 
 export function getDocumentCacheKey(envKey: string, documentId: string) {
@@ -21,14 +16,8 @@ export function useDocument(id: string) {
 
   return useQuery({
     queryKey: ['document', id, envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1DocumentsApi.documentControllerGetDocumentById({ id });
-    },
+    queryFn: () => api.documents.getById({ id }),
     enabled: !!id,
-    select: (res) => res.data,
   });
 }
 
@@ -39,24 +28,18 @@ export function useFilterDocuments(workflowId: string | undefined) {
     filter: JSON.stringify({
       workflowId: workflowId,
       isInvalidated: false,
-    } as DocumentFilterDto),
+    } as DocumentFilterInterface),
     sortBy: JSON.stringify([
       {
         field: 'index',
         order: 'ASC',
-      } as DocumentSortByDto,
+      } as DocumentSortByInterface,
     ]),
   };
 
-  return useQuery<AxiosResponse<DocumentControllerGetDocuments200Response>, Error, DocumentItemDto[]>({
+  return useQuery<DocumentItemInterface[]>({
     queryKey: getDocumentsCacheKey(envKey, workflowId!),
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1DocumentsApi.documentControllerGetDocuments(requestParams);
-    },
+    queryFn: () => api.documents.getAll(requestParams).then((res) => res.data),
     enabled: !!workflowId,
-    select: (res) => res.data.data,
   });
 }

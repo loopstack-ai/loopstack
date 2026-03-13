@@ -12,7 +12,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Loader2 } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
-import type { PipelineConfigDto } from '@loopstack/api-client';
+import type { PipelineConfigInterface } from '@loopstack/contracts/api';
 import type { WorkflowTransitionType } from '@loopstack/contracts/types';
 import { buildWorkflowGraph } from '../lib/flow-utils.ts';
 import StateNode from './pipeline-flow/StateNode.tsx';
@@ -27,7 +27,7 @@ const edgeTypes = {
 };
 
 interface ConfigFlowViewerProps {
-  config: PipelineConfigDto;
+  config: PipelineConfigInterface;
 }
 
 const ConfigFlowViewer: React.FC<ConfigFlowViewerProps> = ({ config }) => {

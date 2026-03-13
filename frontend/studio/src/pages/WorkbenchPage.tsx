@@ -1,15 +1,30 @@
 import { Home } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import Workbench from '@/features/workbench/Workbench.tsx';
 import LoadingCentered from '../components/LoadingCentered.tsx';
-import MainLayout from '../components/layout/MainLayout.tsx';
 import { usePipeline } from '../hooks/usePipelines.ts';
 import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { requireParam } from '../lib/requireParam.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
-export default function WorkbenchPage() {
+export default function WorkbenchPage({
+  previewPanelOpen,
+  onPreviewPanelOpenChange,
+  isDeveloperMode,
+  getPreviewUrl,
+  getEnvironmentPreviewUrl,
+  environments,
+}: {
+  previewPanelOpen?: boolean;
+  onPreviewPanelOpenChange?: (open: boolean) => void;
+  isDeveloperMode?: boolean;
+  getPreviewUrl?: (pipelineId: string) => string;
+  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, pipelineId?: string) => string;
+  environments?: WorkspaceEnvironmentInterface[];
+} = {}) {
   const { router } = useStudio();
   const params = useParams<{ pipelineId: string }>();
   const pipelineId = requireParam(params, 'pipelineId');
@@ -17,6 +32,23 @@ export default function WorkbenchPage() {
   const fetchPipeline = usePipeline(pipelineId);
   const workspaceId = fetchPipeline.data?.workspaceId;
   const fetchWorkspace = useWorkspace(workspaceId);
+
+  const resolvedEnvironments = useMemo(
+    () => environments ?? fetchWorkspace.data?.environments,
+    [environments, fetchWorkspace.data?.environments],
+  );
+
+  const defaultGetEnvironmentPreviewUrl = useCallback((env: WorkspaceEnvironmentInterface, pipelineId?: string) => {
+    if (!env.connectionUrl) return '';
+    const params = new URLSearchParams({
+      url: env.connectionUrl,
+      name: env.envName || env.workerId || '',
+    });
+    const base = `/embed/env/preview`;
+    return pipelineId ? `${base}/pipelines/${pipelineId}?${params}` : `${base}?${params}`;
+  }, []);
+
+  const resolvedGetEnvironmentPreviewUrl = getEnvironmentPreviewUrl ?? defaultGetEnvironmentPreviewUrl;
 
   const breadcrumbData = [
     { label: 'Dashboard', href: router.getDashboard(), icon: <Home className="h-4 w-4" /> },
@@ -31,15 +63,26 @@ export default function WorkbenchPage() {
   ];
 
   return (
-    <MainLayout breadcrumbsData={breadcrumbData}>
-      <ErrorSnackbar error={fetchPipeline.error} />
-      <LoadingCentered loading={fetchPipeline.isLoading}>
-        {fetchPipeline.data ? (
-          <Workbench pipeline={fetchPipeline.data} />
-        ) : !fetchPipeline.isLoading && !fetchPipeline.error ? (
-          <p className="text-muted-foreground py-8 text-center text-sm">Pipeline not found.</p>
-        ) : null}
-      </LoadingCentered>
-    </MainLayout>
+    <div className="flex h-svh flex-col">
+      <div className="flex-1 overflow-hidden">
+        <ErrorSnackbar error={fetchPipeline.error} />
+        <LoadingCentered loading={fetchPipeline.isLoading}>
+          {fetchPipeline.data ? (
+            <Workbench
+              pipeline={fetchPipeline.data}
+              breadcrumbData={breadcrumbData}
+              previewPanelOpen={previewPanelOpen}
+              onPreviewPanelOpenChange={onPreviewPanelOpenChange}
+              isDeveloperMode={isDeveloperMode}
+              getPreviewUrl={getPreviewUrl}
+              getEnvironmentPreviewUrl={resolvedGetEnvironmentPreviewUrl}
+              environments={resolvedEnvironments}
+            />
+          ) : !fetchPipeline.isLoading && !fetchPipeline.error ? (
+            <p className="text-muted-foreground py-8 text-center text-sm">Pipeline not found.</p>
+          ) : null}
+        </LoadingCentered>
+      </div>
+    </div>
   );
 }

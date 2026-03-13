@@ -45,6 +45,7 @@ import { ProcessorApiService } from './services/processor-api.service';
 import { SseEventService } from './services/sse-event.service';
 import { WorkflowApiService } from './services/workflow-api.service';
 import { WorkspaceApiService } from './services/workspace-api.service';
+import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
 
 @Module({
   imports: [
@@ -99,6 +100,10 @@ import { WorkspaceApiService } from './services/workspace-api.service';
     UserService,
     FileSystemService,
     FileApiService,
+    {
+      provide: LOOPSTACK_AVAILABLE_ENVIRONMENTS,
+      useValue: [],
+    },
   ],
   exports: [
     PipelineApiService,
@@ -107,6 +112,7 @@ import { WorkspaceApiService } from './services/workspace-api.service';
     DashboardService,
     UserService,
     SseEventService,
+    LOOPSTACK_AVAILABLE_ENVIRONMENTS,
   ],
 })
 export class LoopstackApiModule extends ConfigurableModuleClass {
@@ -114,7 +120,19 @@ export class LoopstackApiModule extends ConfigurableModuleClass {
 
   static override register(options: ModuleOptionsInterface): DynamicModule {
     this.options = options;
-    return super.register(options);
+    const dynamicModule = super.register(options);
+
+    if (options.availableEnvironments) {
+      dynamicModule.providers = [
+        ...(dynamicModule.providers ?? []),
+        {
+          provide: LOOPSTACK_AVAILABLE_ENVIRONMENTS,
+          useValue: options.availableEnvironments,
+        },
+      ];
+    }
+
+    return dynamicModule;
   }
 
   static setup(app: INestApplication): void {

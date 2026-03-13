@@ -1,6 +1,6 @@
 import React from 'react';
-import type { DocumentItemDto, PipelineDto, WorkflowDto } from '@loopstack/api-client';
-import type { DocumentItemInterface } from '@loopstack/contracts/types';
+import type { PipelineInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
 import { OAuthPromptRenderer } from '@/features/oauth';
 import AiMessage from '@/features/workbench/components/document-renderer/AiMessage.tsx';
 import LinkMessageRenderer from '@/features/workbench/components/document-renderer/LinkMessageRenderer.tsx';
@@ -13,16 +13,16 @@ import MarkdownMessageRenderer from './document-renderer/MarkdownMessageRenderer
 import PlainMessageRenderer from './document-renderer/PlainMessageRenderer.tsx';
 
 interface DocumentRendererProps {
-  pipeline: PipelineDto;
-  workflow: WorkflowDto;
-  document: DocumentItemDto;
+  pipeline: PipelineInterface;
+  workflow: WorkflowInterface;
+  document: DocumentItemInterface;
   isActive: boolean;
   isLastItem: boolean;
 }
 
 const DocumentRenderer: React.FC<DocumentRendererProps> = ({ pipeline, workflow, document, isActive, isLastItem }) => {
   const viewOnly = !isActive;
-  // Cast DocumentItemDto to DocumentItemInterface - they have compatible runtime structure
+  // Cast DocumentItemInterface to DocumentItemInterface - they have compatible runtime structure
   const doc = document as unknown as DocumentItemInterface;
   const widget = (doc.ui?.form as { widget?: string } | undefined)?.widget ?? 'object-form';
 

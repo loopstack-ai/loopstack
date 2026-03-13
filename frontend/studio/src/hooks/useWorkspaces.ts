@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
-  ApiV1WorkspacesApiWorkspaceControllerCreateWorkspaceRequest,
-  ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest,
-  WorkspaceSortByDto,
-} from '@loopstack/api-client';
+  WorkspaceCreateInterface,
+  WorkspaceSortByInterface,
+  WorkspaceUpdateInterface,
+} from '@loopstack/contracts/api';
 import { useApiClient } from './useApi.ts';
 
 export function useWorkspace(id: string | undefined) {
@@ -11,14 +11,8 @@ export function useWorkspace(id: string | undefined) {
 
   return useQuery({
     queryKey: ['workspace', id, envKey],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkspacesApi.workspaceControllerGetWorkspaceById({ id: id! });
-    },
+    queryFn: () => api.workspaces.getById({ id: id! }),
     enabled: !!id,
-    select: (res) => res.data,
   });
 }
 
@@ -40,7 +34,7 @@ export function useFilterWorkspaces(
       {
         field: sortBy,
         order: order,
-      } as WorkspaceSortByDto,
+      } as WorkspaceSortByInterface,
     ]),
     page,
     limit,
@@ -49,13 +43,7 @@ export function useFilterWorkspaces(
 
   return useQuery({
     queryKey: ['workspaces', envKey, requestParams],
-    queryFn: () => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkspacesApi.workspaceControllerGetWorkspaces(requestParams);
-    },
-    select: (res) => res.data,
+    queryFn: () => api.workspaces.getAll(requestParams),
     enabled: true,
   });
 }
@@ -65,12 +53,7 @@ export function useCreateWorkspace() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (workspaceCreateRequest: ApiV1WorkspacesApiWorkspaceControllerCreateWorkspaceRequest) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkspacesApi.workspaceControllerCreateWorkspace(workspaceCreateRequest);
-    },
+    mutationFn: (params: { workspaceCreateDto: WorkspaceCreateInterface }) => api.workspaces.create(params),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
     },
@@ -82,12 +65,7 @@ export function useUpdateWorkspace() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (workspaceUpdateRequest: ApiV1WorkspacesApiWorkspaceControllerUpdateWorkspaceRequest) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkspacesApi.workspaceControllerUpdateWorkspace(workspaceUpdateRequest);
-    },
+    mutationFn: (params: { id: string; workspaceUpdateDto: WorkspaceUpdateInterface }) => api.workspaces.update(params),
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: ['workspace', variables.id, envKey] });
       void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
@@ -100,14 +78,8 @@ export function useDeleteWorkspace() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkspacesApi.workspaceControllerDeleteWorkspace({ id });
-    },
+    mutationFn: (id: string) => api.workspaces.delete({ id }),
     onSuccess: (_, id) => {
-      // Remove the workspace from the cache and invalidate the workspaces list
       queryClient.removeQueries({ queryKey: ['workspace', id, envKey] });
       void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
     },
@@ -119,15 +91,11 @@ export function useSetFavouriteWorkspace() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, isFavourite }: { id: string; isFavourite: boolean }) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkspacesApi.workspaceControllerSetFavourite({
+    mutationFn: ({ id, isFavourite }: { id: string; isFavourite: boolean }) =>
+      api.workspaces.setFavourite({
         id,
         workspaceFavouriteDto: { isFavourite },
-      });
-    },
+      }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
     },
@@ -139,14 +107,7 @@ export function useBatchDeleteWorkspaces() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (ids: string[]) => {
-      if (!api) {
-        throw new Error('API not available');
-      }
-      return api.ApiV1WorkspacesApi.workspaceControllerBatchDeleteWorkspaces({
-        workspaceControllerBatchDeleteWorkspacesRequest: { ids },
-      });
-    },
+    mutationFn: (ids: string[]) => api.workspaces.batchDelete({ ids }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
     },

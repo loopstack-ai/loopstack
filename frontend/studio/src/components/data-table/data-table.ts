@@ -1,3 +1,5 @@
+export type FilterOption = string | { label: string; value: string };
+
 export interface DataTableColumn<T = any> {
   id: string;
   label: string;
@@ -49,7 +51,7 @@ export interface DataTableProps<T = any> {
   searchTerm?: string;
   onSearchChange: (term: string) => void;
   filters?: Record<string, string>;
-  filterConfig?: Record<string, string[]>;
+  filterConfig?: Record<string, FilterOption[]>;
   onFiltersChange: (filters: Record<string, string>) => void;
 
   // Actions

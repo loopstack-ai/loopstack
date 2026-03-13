@@ -18,6 +18,14 @@ export class LocalRouter implements StudioRouter {
     await this.navigate('/info');
   }
 
+  getRuns() {
+    return '/runs';
+  }
+
+  getRunsActionRequired() {
+    return '/runs/action-required';
+  }
+
   getDashboard() {
     return '/dashboard';
   }
@@ -80,6 +88,10 @@ export class LocalRouter implements StudioRouter {
 
   getEmbedPipeline(pipelineId: string) {
     return `/embed/pipelines/${pipelineId}`;
+  }
+
+  getPreviewPipeline(pipelineId: string) {
+    return `/embed/preview/pipelines/${pipelineId}`;
   }
 
   getCurrentEnvironmentId() {

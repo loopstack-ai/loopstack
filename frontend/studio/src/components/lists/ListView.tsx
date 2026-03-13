@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { DataTable } from '../data-table/DataTable';
-import type { BatchAction, DataTableColumn, RowAction } from '../data-table/data-table';
+import type { BatchAction, DataTableColumn, FilterOption, RowAction } from '../data-table/data-table';
 
 export interface Item {
   id: string;
@@ -39,10 +39,10 @@ interface ListViewProps<T extends Item = Item> {
   items: T[];
   totalItems: number;
   columns: Column[];
-  filterConfig: Record<string, string[]>;
+  filterConfig: Record<string, FilterOption[]>;
   deleteItem?: (id: string) => void;
   onClick?: (id: string) => void;
-  handleNew: () => void;
+  handleNew?: () => void;
   handleEdit?: (item: T) => void;
   setPage: (page: number) => void;
   setRowsPerPage: (rows: number) => void;

@@ -28,8 +28,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@loopstack/contracts": ["packages/contracts"],
-      "@loopstack/api-client": ["client/api-client"]
+      "@loopstack/contracts": ["packages/contracts"]
     },
 
     /* For library */

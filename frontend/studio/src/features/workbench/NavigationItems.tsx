@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import type { WorkflowItemDto } from '@loopstack/api-client';
+import type { WorkflowItemInterface } from '@loopstack/contracts/api';
 import { SidebarMenuSubItem } from '../../components/ui/sidebar.tsx';
 import { Skeleton } from '../../components/ui/skeleton.tsx';
 import type { NamespaceTree } from '../../hooks/useNamespaceTree.ts';
@@ -8,7 +8,7 @@ import { useFetchWorkflowsByNamespace } from '../../hooks/useWorkflows.ts';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 import NavigationItem from './components/NavigationItem.tsx';
 import { useScroll } from './providers/ScrollProvider.tsx';
-import { WorkbenchContextProvider } from './providers/WorkbenchContextProvider.tsx';
+import { WorkbenchContextProvider } from './providers/WorkbenchLayoutProvider.tsx';
 
 interface WorkbenchNavigationWorkflowsProps {
   namespace: NamespaceTree;
@@ -67,7 +67,7 @@ const NavigationItems: React.FC<WorkbenchNavigationWorkflowsProps> = ({ namespac
 
   return (
     <>
-      {fetchWorkflows.data.map((item: WorkflowItemDto) => (
+      {fetchWorkflows.data.map((item: WorkflowItemInterface) => (
         <SidebarMenuSubItem key={`wf-${item.id}`}>
           <NavigationItem
             workflow={item}

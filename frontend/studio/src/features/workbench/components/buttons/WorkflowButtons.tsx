@@ -1,6 +1,6 @@
-import { LockOpen, Trash2 } from 'lucide-react';
+import { LockOpen, Repeat } from 'lucide-react';
 import React from 'react';
-import type { PipelineDto, WorkflowDto } from '@loopstack/api-client';
+import type { PipelineInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,15 +13,19 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
-import { useDeleteWorkflow } from '@/hooks/useWorkflows.ts';
+import { useDeleteWorkflow, useWorkflow } from '@/hooks/useWorkflows.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const WorkflowButtons: React.FC<{
-  pipeline: PipelineDto;
-  workflow: WorkflowDto;
-}> = ({ pipeline, workflow }) => {
+  pipeline: PipelineInterface;
+  workflowId: string;
+}> = ({ pipeline, workflowId }) => {
   const { router } = useStudio();
+
+  const fetchWorkflow = useWorkflow(workflowId);
+  const workflow = fetchWorkflow.data;
 
   const deleteWorkflow = useDeleteWorkflow();
   const runPipeline = useRunPipeline();
@@ -40,7 +44,7 @@ const WorkflowButtons: React.FC<{
       runPipelinePayloadDto: {
         transition: {
           name: 'unlock',
-          workflowId: workflow.id,
+          workflowId: workflowId,
         },
       },
       force: false,
@@ -48,72 +52,78 @@ const WorkflowButtons: React.FC<{
   };
 
   const handleDelete = () => {
+    if (!workflow) return;
     try {
-      deleteWorkflow.mutate(workflow);
+      deleteWorkflow.mutate(workflow as unknown as WorkflowItemInterface);
       handlePing();
       void router.navigateToPipeline(pipeline.id);
     } catch (error) {
-      // Handle any errors
       console.error('Mutation failed:', error);
     }
   };
 
-  return (
-    <div>
-      <div className="flex">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="sm" disabled={deleteWorkflow.isPending}>
-              {deleteWorkflow.isPending ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-              Delete and Repeat Workflow
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the workflow.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-white" onClick={handleDelete}>
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+  if (!workflow) return null;
 
-        {workflow.place === 'end' &&
-          workflow.availableTransitions?.find((t) => (t as { id: string }).id === 'unlock') && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" disabled={runPipeline.isPending}>
-                  {runPipeline.isPending ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : (
-                    <LockOpen className="h-4 w-4" />
-                  )}
-                  Unlock Step
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Unlock workflow</AlertDialogTitle>
-                  <AlertDialogDescription>Are you sure you want to unlock this workflow?</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleUnlock}>Unlock</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-      </div>
+  return (
+    <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+      <AlertDialog>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={deleteWorkflow.isPending}>
+                {deleteWorkflow.isPending ? (
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Repeat className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            </AlertDialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Repeat</TooltipContent>
+        </Tooltip>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Repeat workflow</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete the current workflow run and re-trigger the pipeline.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Repeat</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {workflow.place === 'end' &&
+        workflow.availableTransitions?.find((t) => (t as { id: string }).id === 'unlock') && (
+          <AlertDialog>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" disabled={runPipeline.isPending}>
+                    {runPipeline.isPending ? (
+                      <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      <LockOpen className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Unlock Step</TooltipContent>
+            </Tooltip>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Unlock workflow</AlertDialogTitle>
+                <AlertDialogDescription>Are you sure you want to unlock this workflow?</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleUnlock}>Unlock</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
     </div>
   );
 };

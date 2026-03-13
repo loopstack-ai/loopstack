@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import type { DocumentItemDto, PipelineDto } from '@loopstack/api-client';
+import type { PipelineInterface } from '@loopstack/contracts/api';
+import { WorkflowState } from '@loopstack/contracts/enums';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
 import DocumentList from '@/features/workbench/components/DocumentList.tsx';
@@ -12,10 +14,9 @@ import { cn } from '@/lib/utils';
 import LoadingCentered from '../../components/LoadingCentered.tsx';
 import BasicErrorComponent from '../../components/content/ErrorAlert.tsx';
 import type { WorkbenchSettingsInterface } from './WorkflowList.tsx';
-import WorkflowButtons from './components/buttons/WorkflowButtons.tsx';
 
 const WorkflowItem: React.FC<{
-  pipeline: PipelineDto;
+  pipeline: PipelineInterface;
   workflowId: string;
   scrollTo: (workflowId: string) => void;
   settings: WorkbenchSettingsInterface;
@@ -33,7 +34,7 @@ const WorkflowItem: React.FC<{
   }, [fetchWorkflow.isSuccess, fetchDocuments.isSuccess, workflowId, paramsWorkflowId, clickId, scrollTo]);
 
   const filterDocuments = useCallback(
-    (item: DocumentItemDto) => {
+    (item: DocumentItemInterface) => {
       const meta = item.meta as { hidden?: boolean; hideAtPlaces?: string[] } | undefined;
       const ui = item.ui as { hidden?: boolean } | undefined;
 
@@ -50,7 +51,7 @@ const WorkflowItem: React.FC<{
     [fetchWorkflow.data, settings.showFullMessageHistory],
   );
 
-  const documents: DocumentItemDto[] = useMemo(() => {
+  const documents: DocumentItemInterface[] = useMemo(() => {
     if (!fetchDocuments.data) {
       return [];
     }
@@ -72,10 +73,10 @@ const WorkflowItem: React.FC<{
     });
   };
 
-  const isLoading = runPipeline.isPending || fetchWorkflow.data?.status === 'running';
+  const isLoading = runPipeline.isPending || fetchWorkflow.data?.status === WorkflowState.Running;
 
   return (
-    <div className={cn('flex flex-col', embed ? 'p-0' : 'min-h-[calc(100vh-16rem)] p-4')}>
+    <div className={cn('flex flex-col', embed ? 'p-0' : 'p-4')}>
       <LoadingCentered loading={fetchWorkflow.isLoading || fetchDocuments.isLoading} />
       <ErrorSnackbar error={fetchDocuments.error} />
 
@@ -95,9 +96,8 @@ const WorkflowItem: React.FC<{
       <LoadingCentered loading={isLoading} />
 
       {!!fetchWorkflow.data && !embed && (
-        <div className="mt-auto flex flex-col gap-6 pt-12">
+        <div className="mt-6">
           <WorkflowForms workflow={fetchWorkflow.data} onSubmit={handleRun} />
-          <WorkflowButtons pipeline={pipeline} workflow={fetchWorkflow.data} />
         </div>
       )}
     </div>

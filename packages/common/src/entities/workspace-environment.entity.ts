@@ -26,7 +26,7 @@ export class WorkspaceEnvironmentEntity {
   remoteEnvironmentId!: string;
 
   @Column({ type: 'varchar', name: 'provider_app_name', nullable: true })
-  providerAppName?: string;
+  envName?: string;
 
   @Column({ type: 'varchar', name: 'connection_url', nullable: true })
   connectionUrl?: string;
@@ -39,6 +39,9 @@ export class WorkspaceEnvironmentEntity {
 
   @Column({ type: 'varchar', name: 'worker_url', nullable: true })
   workerUrl?: string;
+
+  @Column({ type: 'boolean', default: false })
+  local!: boolean;
 
   @ManyToOne(() => WorkspaceEntity, (workspace) => workspace.environments, {
     onDelete: 'CASCADE',

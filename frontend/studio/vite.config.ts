@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
         : []),
     ],
     optimizeDeps: {
-      include: ['@loopstack/contracts/types', '@loopstack/api-client'],
+      include: ['@loopstack/contracts/types'],
     },
     build: isLibrary
       ? {
@@ -39,7 +39,6 @@ export default defineConfig(({ mode }) => {
               'react-dom',
               'react/jsx-runtime',
               'react/compiler-runtime',
-              '@loopstack/api-client',
               '@loopstack/contracts',
               /^@radix-ui\/.*/,
               /^@tanstack\/.*/,

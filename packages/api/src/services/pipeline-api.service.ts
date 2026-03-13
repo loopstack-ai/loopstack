@@ -45,7 +45,9 @@ export class PipelineApiService {
       .loadRelationCountAndMap('pipeline.hasChildren', 'pipeline.children');
 
     const transformedFilter = Object.fromEntries(
-      Object.entries(filter).map(([key, value]) => [key, value === null ? IsNull() : value]),
+      Object.entries(filter ?? {})
+        .filter(([, value]) => value !== undefined)
+        .map(([key, value]) => [key, value === null ? IsNull() : value]),
     );
 
     queryBuilder.where({

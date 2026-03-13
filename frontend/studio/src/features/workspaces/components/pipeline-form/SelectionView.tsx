@@ -1,5 +1,5 @@
 import { Loader2, Play } from 'lucide-react';
-import type { PipelineConfigDto } from '@loopstack/api-client';
+import type { PipelineConfigInterface } from '@loopstack/contracts/api';
 import { Button } from '@/components/ui/button.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import HeaderSection from '@/features/workspaces/components/pipeline-form/HeaderSection.tsx';
@@ -14,7 +14,7 @@ const SelectionView = ({
   onNext,
 }: {
   title: string;
-  pipelineTypes: PipelineConfigDto[];
+  pipelineTypes: PipelineConfigInterface[];
   formData: { blockName: string };
   errors: { blockName: string };
   isLoading: boolean;

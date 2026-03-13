@@ -1,17 +1,16 @@
 import { format } from 'date-fns';
 import { ChevronRight, Clock, Loader2, Play, Wrench } from 'lucide-react';
 import React from 'react';
-import type { WorkflowItemDto } from '@loopstack/api-client';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowItemInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
-import { SidebarMenuButton, SidebarMenuItem, SidebarMenuSub } from '@/components/ui/sidebar.tsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
 import { cn } from '@/lib/utils.ts';
 
 interface WorkflowHistoryItemProps {
   workflowId: string;
-  workflow: WorkflowItemDto;
+  workflow: WorkflowItemInterface;
 }
 
 export interface HistoryTransitionMetadata {
@@ -34,17 +33,17 @@ export interface HistoryTransition {
 
 const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, workflow }) => {
   const fetchWorkflow = useWorkflow(workflowId);
-  const workflowData = fetchWorkflow.data as WorkflowInterface | undefined;
+  const workflowData = fetchWorkflow.data;
   const history = workflowData?.history as unknown as HistoryTransition[] | undefined;
 
   if (fetchWorkflow.isLoading) {
     return (
-      <SidebarMenuItem>
-        <SidebarMenuButton className="opacity-50">
+      <li className="group/menu-item relative list-none">
+        <div className="flex w-full items-center gap-2 rounded-md p-2 text-sm opacity-50">
           <Loader2 className="h-3 w-3 animate-spin" />
           <span className="text-sm">Loading...</span>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
+        </div>
+      </li>
     );
   }
 
@@ -54,17 +53,17 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
 
   return (
     <Collapsible defaultOpen className="group/collapsible">
-      <SidebarMenuItem>
+      <li className="group/menu-item relative list-none">
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton className="group/trigger font-medium">
+          <button className="hover:bg-accent hover:text-accent-foreground group/trigger flex w-full items-center gap-2 rounded-md p-2 text-left text-sm font-medium">
             <Play className="text-primary h-3.5 w-3.5 fill-current" />
             <span className="truncate text-sm">{workflow.title ?? workflow.blockName}</span>
             <ChevronRight className="text-muted-foreground ml-auto h-3.5 w-3.5 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-          </SidebarMenuButton>
+          </button>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <SidebarMenuSub className="ml-2 border-none pl-0">
+          <ul className="ml-2 flex min-w-0 flex-col gap-1 pl-0">
             <div className="relative py-2">
               <div className="from-primary/60 via-primary/30 to-muted/20 absolute top-7 bottom-3 left-1.75 w-0.5 rounded-full bg-linear-to-b" />
 
@@ -144,9 +143,9 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
                 );
               })}
             </div>
-          </SidebarMenuSub>
+          </ul>
         </CollapsibleContent>
-      </SidebarMenuItem>
+      </li>
     </Collapsible>
   );
 };

@@ -1,7 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
+import type {
+  EnvironmentConfigInterface,
+  FeaturesInterface,
+  FileExplorerFeatureInterface,
+  FlyInstanceFeatureInterface,
+  SidebarFeatureInterface,
+  VolumeInterface,
+  WorkspaceConfigInterface,
+} from '@loopstack/contracts/api';
 
-export class VolumeDto {
+export class VolumeDto implements VolumeInterface {
   @Expose()
   @ApiProperty({
     description: 'Path of the volume',
@@ -19,7 +28,7 @@ export class VolumeDto {
   permissions: ('read' | 'write')[];
 }
 
-export class SidebarFeatureDto {
+export class SidebarFeatureDto implements SidebarFeatureInterface {
   @Expose()
   @ApiPropertyOptional({
     description: 'Whether the sidebar feature is enabled',
@@ -29,7 +38,7 @@ export class SidebarFeatureDto {
   enabled?: boolean;
 }
 
-export class FileExplorerFeatureDto {
+export class FileExplorerFeatureDto implements FileExplorerFeatureInterface {
   @Expose()
   @ApiPropertyOptional({
     description: 'Whether the file explorer feature is enabled',
@@ -53,7 +62,7 @@ export class FileExplorerFeatureDto {
   options?: Record<string, unknown>;
 }
 
-export class FlyInstanceFeatureDto {
+export class FlyInstanceFeatureDto implements FlyInstanceFeatureInterface {
   @Expose()
   @ApiPropertyOptional({
     description: 'Whether the fly instance feature is enabled',
@@ -63,7 +72,7 @@ export class FlyInstanceFeatureDto {
   enabled?: boolean;
 }
 
-export class EnvironmentConfigDto {
+export class EnvironmentConfigDto implements EnvironmentConfigInterface {
   @Expose()
   @ApiProperty({
     description: 'Logical identifier for this environment slot',
@@ -93,7 +102,7 @@ export class EnvironmentConfigDto {
   optional?: boolean;
 }
 
-export class FeaturesDto {
+export class FeaturesDto implements FeaturesInterface {
   @Expose()
   @Type(() => SidebarFeatureDto)
   @ApiPropertyOptional({
@@ -141,9 +150,17 @@ export class FeaturesDto {
     type: FlyInstanceFeatureDto,
   })
   flyInstance?: FlyInstanceFeatureDto;
+
+  @Expose()
+  @Type(() => SidebarFeatureDto)
+  @ApiPropertyOptional({
+    description: 'Preview panel feature configuration',
+    type: SidebarFeatureDto,
+  })
+  previewPanel?: SidebarFeatureDto;
 }
 
-export class WorkspaceConfigDto {
+export class WorkspaceConfigDto implements WorkspaceConfigInterface {
   /**
    * Config Key of the workspace
    */

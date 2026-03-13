@@ -2,7 +2,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { format, formatDistanceToNow, isToday, isYesterday, parseISO } from 'date-fns';
 import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import type { PipelineItemDto, PipelineStatus, WorkspaceDto } from '@loopstack/api-client';
+import type { PipelineItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
+import { PipelineState } from '@loopstack/contracts/enums';
 import CustomListView from '../../../components/lists/CustomListView.tsx';
 import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
 import { Badge } from '../../../components/ui/badge.tsx';
@@ -13,9 +14,9 @@ import CreatePipelineDialog from './NewPipelineRunDialog.tsx';
 const ChildPipelineList: React.FC<{
   parentId: string;
   formatUpdatedTime: (updatedAt: string) => string;
-  getPipelineStatusColor: (status: PipelineStatus) => string;
+  getPipelineStateColor: (status: PipelineState) => string;
   onChildClick: (id: string) => void;
-}> = ({ parentId, formatUpdatedTime, getPipelineStatusColor, onChildClick }) => {
+}> = ({ parentId, formatUpdatedTime, getPipelineStateColor, onChildClick }) => {
   const { data, isPending } = useChildPipelines(parentId, true);
 
   if (isPending) {
@@ -50,7 +51,7 @@ const ChildPipelineList: React.FC<{
             <p className="text-xs text-gray-500">{child.blockName}</p>
             <p className="text-xs text-gray-400">{formatUpdatedTime(child.updatedAt)}</p>
           </div>
-          <Badge variant="default" className={getPipelineStatusColor(child.status)}>
+          <Badge variant="default" className={getPipelineStateColor(child.status)}>
             {child.status}
           </Badge>
         </div>
@@ -60,7 +61,7 @@ const ChildPipelineList: React.FC<{
 };
 
 interface PipelinesProps {
-  workspace: WorkspaceDto;
+  workspace: WorkspaceInterface;
 }
 
 const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
@@ -138,17 +139,17 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
     void router.navigateToPipeline(id);
   };
 
-  const getPipelineStatusColor = (status: PipelineStatus): string => {
+  const getPipelineStateColor = (status: PipelineState): string => {
     switch (status) {
-      case 'completed':
+      case PipelineState.Completed:
         return 'bg-green-600';
-      case 'paused':
+      case PipelineState.Paused:
         return 'bg-yellow-600';
-      case 'failed':
+      case PipelineState.Failed:
         return 'bg-red-600';
-      case 'canceled':
-      case 'pending':
-      case 'running':
+      case PipelineState.Canceled:
+      case PipelineState.Pending:
+      case PipelineState.Running:
         return 'bg-black';
     }
   };
@@ -156,7 +157,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
   const pipelines = fetchPipelines.data?.data ?? [];
   const totalItems = fetchPipelines.data?.total ?? 0;
 
-  const renderItem = (item: PipelineItemDto) => (
+  const renderItem = (item: PipelineItemInterface) => (
     <div>
       <div className="flex items-center justify-between space-x-3">
         <div>
@@ -175,7 +176,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
           )}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <Badge variant="default" className={getPipelineStatusColor(item.status)}>
+          <Badge variant="default" className={getPipelineStateColor(item.status)}>
             {item.status}
           </Badge>
           <span className="text-xs text-gray-400">{formatUpdatedTime(item.updatedAt)}</span>
@@ -185,7 +186,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
         <ChildPipelineList
           parentId={item.id}
           formatUpdatedTime={formatUpdatedTime}
-          getPipelineStatusColor={getPipelineStatusColor}
+          getPipelineStateColor={getPipelineStateColor}
           onChildClick={handlePipelineClick}
         />
       )}
@@ -224,7 +225,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
         //     label: 'Delete',
         //     icon: <Trash2 className="h-4 w-4" />,
         //     variant: 'ghost' as const,
-        //     action: (item: PipelineItemDto) => handleDelete(item.id)
+        //     action: (item: PipelineItemInterface) => handleDelete(item.id)
         //   }
         // ]}
         newButtonLabel="Run"

@@ -1,17 +1,18 @@
-import { ArrowDownIcon, ChevronDownIcon, ChevronRightIcon, LayersIcon } from 'lucide-react';
+import { ArrowDownIcon, ChevronRightIcon, Play } from 'lucide-react';
 import React, { useContext, useEffect, useState } from 'react';
-import type { PipelineDto } from '@loopstack/api-client';
+import type { PipelineInterface } from '@loopstack/contracts/api';
 import { Button } from '@/components/ui/button.tsx';
 import WorkflowItem from '@/features/workbench/WorkflowItem.tsx';
 import { useScrollToBottom } from '@/features/workbench/hooks/useAutoScrollBottom.ts';
 import { useIntersectionObserver } from '@/features/workbench/hooks/useIntersectionObserver.ts';
 import { useScrollToListItem } from '@/features/workbench/hooks/useScrollToListItem.ts';
-import { WorkbenchContextProvider } from '@/features/workbench/providers/WorkbenchContextProvider.tsx';
+import { WorkbenchContextProvider } from '@/features/workbench/providers/WorkbenchLayoutProvider.tsx';
 import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
 import { cn } from '@/lib/utils.ts';
 import LoadingCentered from '../../components/LoadingCentered.tsx';
 import ErrorSnackbar from '../../components/snackbars/ErrorSnackbar.tsx';
 import WorkbenchSettingsModal from './components/WorkbenchSettingsModal.tsx';
+import WorkflowButtons from './components/buttons/WorkflowButtons.tsx';
 
 export interface WorkbenchSettingsInterface {
   enableDebugMode: boolean;
@@ -19,7 +20,7 @@ export interface WorkbenchSettingsInterface {
 }
 
 interface WorkbenchMainContainerProps {
-  pipeline: PipelineDto;
+  pipeline: PipelineInterface;
 }
 
 const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
@@ -98,37 +99,35 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
             {fetchWorkflows.data.map((item) => {
               const sectionId = `section-${item.index}-${item.id}`;
               const isActive = activeId === sectionId;
+              const isSingle = fetchWorkflows.data.length === 1;
+              const isExpanded = isSingle || expandedSections[sectionId];
 
               return (
-                <div
-                  ref={(el: any) => observe(el as HTMLElement)}
-                  key={item.id}
-                  data-id={sectionId}
-                  className="space-y-0"
-                >
+                <div ref={(el: any) => observe(el as HTMLElement)} key={item.id} data-id={sectionId}>
                   <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 backdrop-blur">
                     <div
-                      className="mb-4 flex items-center gap-2 py-2 px-3 cursor-pointer border-b border-border bg-muted/50 rounded-t-sm"
-                      onClick={() => toggleSection(sectionId)}
-                    >
-                      {expandedSections[sectionId] ? (
-                        <ChevronDownIcon
-                          className={cn('size-4', isActive ? 'text-primary' : 'text-muted-foreground')}
-                        />
-                      ) : (
-                        <ChevronRightIcon
-                          className={cn('size-4', isActive ? 'text-primary' : 'text-muted-foreground')}
-                        />
+                      role="button"
+                      tabIndex={isSingle ? undefined : 0}
+                      className={cn(
+                        'flex w-full items-center gap-2 rounded-md p-2 px-3 text-left text-sm font-medium',
+                        !isSingle && 'hover:bg-accent hover:text-accent-foreground cursor-pointer',
+                        isSingle && 'cursor-default',
                       )}
-                      <LayersIcon className={cn('size-4', isActive ? 'text-primary' : 'text-muted-foreground')} />
-                      <span
-                        className={cn(
-                          'text-base font-medium transition-colors flex-1',
-                          isActive ? 'text-primary' : 'text-muted-foreground text-gray-400',
-                        )}
-                      >
-                        {item.title ?? item.blockName}
-                      </span>
+                      onClick={isSingle ? undefined : () => toggleSection(sectionId)}
+                      onKeyDown={
+                        isSingle
+                          ? undefined
+                          : (e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                toggleSection(sectionId);
+                              }
+                            }
+                      }
+                    >
+                      <Play className="text-primary h-3.5 w-3.5 fill-current" />
+                      <span className="flex-1 truncate text-sm">{item.title ?? item.blockName}</span>
+                      <WorkflowButtons pipeline={pipeline} workflowId={item.id} />
                       {isActive && (
                         <WorkbenchSettingsModal
                           settings={settings}
@@ -137,10 +136,18 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
                           onOpenChange={setOpenSettingsModal}
                         />
                       )}
+                      {!isSingle && (
+                        <ChevronRightIcon
+                          className={cn(
+                            'text-muted-foreground h-3.5 w-3.5 transition-transform',
+                            isExpanded && 'rotate-90',
+                          )}
+                        />
+                      )}
                     </div>
                   </div>
-                  {expandedSections[sectionId] && (
-                    <div className="max-w-4xl pl-9">
+                  {isExpanded && (
+                    <div className="max-w-4xl py-1">
                       <WorkflowItem pipeline={pipeline} workflowId={item.id} scrollTo={scrollTo} settings={settings} />
                     </div>
                   )}

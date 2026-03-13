@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import type { DashboardStatsDto } from '@loopstack/api-client';
+import type { DashboardStatsInterface } from '@loopstack/contracts/api';
 import RunsList from '@/features/dashboard/RunList.tsx';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card.tsx';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 
 interface DashboardProps {
-  dashboardStats?: DashboardStatsDto;
+  dashboardStats?: DashboardStatsInterface;
 }
 
 export default function Dashboard({ dashboardStats }: DashboardProps) {

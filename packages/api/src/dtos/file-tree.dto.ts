@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import type { FileExplorerNodeInterface } from '@loopstack/contracts/api';
 
-export class FileExplorerNodeDto {
+export class FileExplorerNodeDto implements FileExplorerNodeInterface {
   @ApiProperty({
     description: 'Unique identifier for the file/folder node',
     example: 'src/components/Button.tsx',

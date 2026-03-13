@@ -32,9 +32,6 @@
                       {
                         "type": "object",
                         "properties": {
-                          "transition": {
-                            "type": "string"
-                          },
                           "widget": {
                             "type": "string"
                           },
@@ -51,6 +48,9 @@
                           "options": {
                             "type": "object",
                             "properties": {
+                              "transition": {
+                                "type": "string"
+                              },
                               "position": {
                                 "type": "number"
                               },
@@ -65,15 +65,12 @@
                             "additionalProperties": false
                           }
                         },
-                        "required": ["transition", "type"],
+                        "required": ["type"],
                         "additionalProperties": false
                       },
                       {
                         "type": "object",
                         "properties": {
-                          "transition": {
-                            "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/actions/items/anyOf/0/properties/transition"
-                          },
                           "widget": {
                             "$ref": "#/definitions/MainSchema/anyOf/0/properties/ui/properties/actions/items/anyOf/0/properties/widget"
                           },
@@ -87,6 +84,9 @@
                           "options": {
                             "type": "object",
                             "properties": {
+                              "transition": {
+                                "type": "string"
+                              },
                               "label": {
                                 "type": "string"
                               },
@@ -98,7 +98,7 @@
                             "additionalProperties": false
                           }
                         },
-                        "required": ["transition", "type"],
+                        "required": ["type"],
                         "additionalProperties": false
                       }
                     ]

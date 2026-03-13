@@ -11,11 +11,12 @@ import {
   MaxLength,
   ValidateIf,
 } from 'class-validator';
+import type { PipelineCreateInterface } from '@loopstack/contracts/api';
 
 /**
  * Data Transfer Object for creating a new pipeline
  */
-export class PipelineCreateDto {
+export class PipelineCreateDto implements PipelineCreateInterface {
   /**
    * Unique identifier for the pipeline
    * @example "file.yaml:my-pipeline"
