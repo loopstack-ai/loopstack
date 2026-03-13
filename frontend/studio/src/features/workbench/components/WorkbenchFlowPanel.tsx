@@ -1,8 +1,8 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
-import PipelineFlowViewer from '@/features/debug/components/PipelineFlowViewer.tsx';
-import { usePipeline, usePipelineConfig } from '@/hooks/usePipelines.ts';
+import { PipelineFlowViewer } from '@/features/debug';
+import { usePipeline, usePipelineConfigByName } from '@/hooks/usePipelines.ts';
 import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
 import { useWorkspace } from '@/hooks/useWorkspaces.ts';
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
@@ -12,7 +12,7 @@ export function WorkbenchFlowPanel() {
   const fetchPipeline = usePipeline(pipeline.id);
   const fetchWorkspace = useWorkspace(pipeline.workspaceId);
   const fetchWorkflows = useFetchWorkflowsByPipeline(pipeline.id);
-  const fetchPipelineConfig = usePipelineConfig(fetchWorkspace.data?.blockName, fetchPipeline.data?.blockName);
+  const fetchPipelineConfig = usePipelineConfigByName(fetchWorkspace.data?.blockName, fetchPipeline.data?.blockName);
   const workflows = useMemo(() => fetchWorkflows.data ?? [], [fetchWorkflows.data]);
 
   return (

@@ -7,7 +7,7 @@ import type {
   WorkspaceEnvironmentInterface,
   WorkspaceItemInterface,
 } from '@loopstack/contracts/api';
-import ErrorSnackbar from '../../../components/snackbars/ErrorSnackbar.tsx';
+import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import { Button } from '../../../components/ui/button.tsx';
 import { DialogHeader } from '../../../components/ui/dialog.tsx';
 import { Input } from '../../../components/ui/input.tsx';

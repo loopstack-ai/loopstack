@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { WorkflowState } from '@loopstack/contracts/enums';
-import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
-import WorkflowItem from '@/features/workbench/WorkflowItem.tsx';
-import LoadingCentered from '../components/LoadingCentered.tsx';
+import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
+import LoadingCentered from '@/components/feedback/LoadingCentered';
+import { WorkflowItem } from '@/features/workbench';
 import { usePipeline } from '../hooks/usePipelines.ts';
 import { useFetchWorkflowsByPipeline } from '../hooks/useWorkflows.ts';
 import { requireParam } from '../lib/requireParam.ts';

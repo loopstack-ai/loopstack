@@ -1,8 +1,8 @@
 import { Code, FileText, Tag } from 'lucide-react';
 import React from 'react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../../../components/ui/accordion.tsx';
-import { Badge } from '../../../../components/ui/badge.tsx';
-import { Card, CardContent } from '../../../../components/ui/card.tsx';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion.tsx';
+import { Badge } from '@/components/ui/badge.tsx';
+import { Card, CardContent } from '@/components/ui/card.tsx';
 
 interface DocumentMeta {
   mimeType?: string;

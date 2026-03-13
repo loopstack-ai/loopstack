@@ -6,7 +6,7 @@ import WorkerLayout from './app/WorkerLayout.tsx';
 import { StudioSidebar } from './components/layout/StudioSidebar.tsx';
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar.tsx';
 import config from './config.ts';
-import LocalHealthCheck from './features/health/LocalHealthCheck.tsx';
+import { LocalHealthCheck } from './features/health';
 import { OAuthCallbackPage } from './features/oauth';
 import DashboardPage from './pages/DashboardPage.tsx';
 import DebugPage from './pages/DebugPage.tsx';

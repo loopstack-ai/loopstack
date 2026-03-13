@@ -6,7 +6,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import MainLayout from '../components/layout/MainLayout.tsx';
 import ConfigFlowViewer from '../features/debug/components/ConfigFlowViewer.tsx';
-import { usePipelineConfig, usePipelineSource } from '../hooks/usePipelines.ts';
+import { usePipelineConfigByName, usePipelineSource } from '../hooks/usePipelines.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
 export default function DebugWorkflowDetailsPage() {
@@ -20,7 +20,10 @@ export default function DebugWorkflowDetailsPage() {
     return ['default', workflowId];
   }, [workflowId]);
 
-  const { data: workflow, isLoading: isWorkflowLoading } = usePipelineConfig(workspaceBlockName, pipelineBlockName);
+  const { data: workflow, isLoading: isWorkflowLoading } = usePipelineConfigByName(
+    workspaceBlockName,
+    pipelineBlockName,
+  );
   const { data: source, isLoading: isSourceLoading } = usePipelineSource(workspaceBlockName, pipelineBlockName);
   const isLoading = isWorkflowLoading || isSourceLoading;
   const breadcrumbsData = [

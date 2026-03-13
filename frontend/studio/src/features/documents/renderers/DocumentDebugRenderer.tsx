@@ -1,7 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 import React from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../../components/ui/collapsible.tsx';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
 
 interface DocumentDebugRendererProps {
   document: DocumentItemInterface;

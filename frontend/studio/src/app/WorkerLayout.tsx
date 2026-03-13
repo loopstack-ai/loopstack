@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/feedback/ErrorBoundary';
 import { useStudio } from '@/providers/StudioProvider';
 
 const WorkerLayout = () => {

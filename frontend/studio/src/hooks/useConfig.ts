@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import { getAvailableEnvironmentsCacheKey, getPipelineTypesCacheKey, getWorkspaceTypesCacheKey } from './query-keys';
 import { useApiClient } from './useApi';
 
 export function useWorkspaceConfig() {
   const { envKey, api } = useApiClient();
 
   return useQuery({
-    queryKey: ['workspace-types', envKey],
+    queryKey: getWorkspaceTypesCacheKey(envKey),
     queryFn: () => api.config.getWorkspaceTypes(),
-    enabled: true,
   });
 }
 
@@ -15,7 +15,7 @@ export function usePipelineConfig(workspaceBlockName: string | undefined) {
   const { envKey, api } = useApiClient();
 
   return useQuery({
-    queryKey: ['pipeline-types', workspaceBlockName, envKey],
+    queryKey: getPipelineTypesCacheKey(envKey, workspaceBlockName!),
     queryFn: () =>
       api.config.getPipelineTypesByWorkspace({
         workspaceBlockName: workspaceBlockName!,
@@ -28,7 +28,7 @@ export function useAvailableEnvironments(options?: { enabled?: boolean }) {
   const { envKey, api } = useApiClient();
 
   return useQuery({
-    queryKey: ['available-environments', envKey],
+    queryKey: getAvailableEnvironmentsCacheKey(envKey),
     queryFn: () => api.config.getAvailableEnvironments(),
     enabled: options?.enabled ?? true,
   });

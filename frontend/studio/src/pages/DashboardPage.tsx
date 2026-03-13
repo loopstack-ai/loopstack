@@ -1,5 +1,5 @@
 import { Home } from 'lucide-react';
-import LoadingCentered from '../components/LoadingCentered.tsx';
+import LoadingCentered from '@/components/feedback/LoadingCentered';
 import MainLayout from '../components/layout/MainLayout.tsx';
 import { Alert } from '../components/ui/alert.tsx';
 import Dashboard from '../features/dashboard/Dashboard.tsx';

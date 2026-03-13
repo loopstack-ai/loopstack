@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import type { PipelineConfigInterface } from '@loopstack/contracts/types';
-import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
+import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import ArgumentsView from '@/features/workspaces/components/pipeline-form/ArgumentsView.tsx';
 import SelectionView from '@/features/workspaces/components/pipeline-form/SelectionView.tsx';
 import { usePipelineConfig } from '@/hooks/useConfig.ts';

@@ -2,9 +2,13 @@ import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import debounce from 'lodash/debounce';
 import { useEffect, useRef } from 'react';
 import { SseClientEvents } from '@/events';
-import { getDocumentsCacheKey } from '@/hooks/useDocuments.ts';
-import { getNamespacesByPipelineCacheKey } from '@/hooks/useNamespaces.ts';
-import { getWorkflowCacheKey, getWorkflowsByPipelineCacheKey, getWorkflowsCacheKey } from '@/hooks/useWorkflows.ts';
+import {
+  getDocumentsCacheKey,
+  getNamespacesByPipelineCacheKey,
+  getWorkflowCacheKey,
+  getWorkflowsByPipelineCacheKey,
+  getWorkflowsCacheKey,
+} from '@/hooks/query-keys';
 import { eventBus } from '@/services';
 import { useStudio } from './StudioProvider';
 
@@ -88,30 +92,6 @@ export function InvalidationEventsProvider() {
       cache.clear();
     };
   }, [queryClient, environment.id]);
-
-  // useEffect(() => {
-  //   // Whenever the SSE connection is re-established (e.g., after server restart),
-  //   // we assume the configuration might have changed, so we invalidate global config queries.
-  //   const unsubSseConnected = eventBus.on(SseClientEvents.SSE_CONNECTED, () => {
-  //     console.log('SSE Reconnected! Invalidating config queries...');
-  //     void queryClient.invalidateQueries({
-  //       queryKey: ['workspace-types'],
-  //     });
-  //     void queryClient.invalidateQueries({
-  //       queryKey: ['pipeline-types'],
-  //     });
-  //     void queryClient.invalidateQueries({
-  //       queryKey: ['pipeline'],
-  //     });
-  //     void queryClient.invalidateQueries({
-  //       queryKey: ['pipelineConfig'],
-  //     });
-  //   });
-  //
-  //   return () => {
-  //     unsubSseConnected();
-  //   };
-  // }, [queryClient]);
 
   return null;
 }

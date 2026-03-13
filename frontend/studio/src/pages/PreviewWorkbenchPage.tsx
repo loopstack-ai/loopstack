@@ -5,19 +5,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { PipelineInterface, PipelineItemInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
 import { WorkflowState } from '@loopstack/contracts/enums';
-import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
+import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
+import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { Button } from '@/components/ui/button.tsx';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
 import { SidebarMenu, SidebarProvider } from '@/components/ui/sidebar.tsx';
-import PipelineFlowViewer from '@/features/debug/components/PipelineFlowViewer.tsx';
-import WorkbenchNavigation from '@/features/workbench/WorkbenchNavigation.tsx';
-import WorkflowItem from '@/features/workbench/WorkflowItem.tsx';
-import { NewRunDialog } from '@/features/workbench/components/NewRunDialog.tsx';
-import PipelineHistoryList from '@/features/workbench/components/PipelineHistoryList.tsx';
-import WorkflowButtons from '@/features/workbench/components/buttons/WorkflowButtons.tsx';
+import { PipelineFlowViewer } from '@/features/debug';
+import {
+  NewRunDialog,
+  PipelineHistoryList,
+  WorkbenchNavigation,
+  WorkflowButtons,
+  WorkflowItem,
+} from '@/features/workbench';
 import { useNamespaceTree } from '@/hooks/useNamespaceTree.ts';
-import LoadingCentered from '../components/LoadingCentered.tsx';
-import { useFilterPipelines, usePipeline, usePipelineConfig } from '../hooks/usePipelines.ts';
+import { useFilterPipelines, usePipeline, usePipelineConfigByName } from '../hooks/usePipelines.ts';
 import { useFetchWorkflowsByPipeline } from '../hooks/useWorkflows.ts';
 import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
@@ -81,7 +83,7 @@ function PreviewWorkbenchContent({
   const fetchWorkspace = useWorkspace(workspaceId);
   const workspaceBlockName = fetchWorkspace.data?.blockName;
   const pipelineBlockName = fetchPipeline.data?.blockName;
-  const fetchPipelineConfig = usePipelineConfig(workspaceBlockName, pipelineBlockName);
+  const fetchPipelineConfig = usePipelineConfigByName(workspaceBlockName, pipelineBlockName);
 
   // Notify parent when all workflows have completed
   useEffect(() => {

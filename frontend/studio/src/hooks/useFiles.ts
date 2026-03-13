@@ -1,5 +1,6 @@
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import type { FileContentInterface, FileExplorerNodeInterface } from '@loopstack/contracts/api';
+import { getFileContentCacheKey, getFileTreeCacheKey } from './query-keys';
 import { useApiClient } from './useApi';
 
 export function useFileTree(
@@ -9,7 +10,7 @@ export function useFileTree(
   const { envKey, api } = useApiClient();
 
   return useQuery<FileExplorerNodeInterface[], Error>({
-    queryKey: ['fileTree', pipelineId, envKey],
+    queryKey: getFileTreeCacheKey(envKey, pipelineId!),
     queryFn: () => {
       if (!pipelineId) {
         throw new Error('Pipeline ID is required');
@@ -32,7 +33,7 @@ export function useFileContent(
   const { envKey, api } = useApiClient();
 
   return useQuery<FileContentInterface, Error>({
-    queryKey: ['fileContent', pipelineId, filePath, envKey],
+    queryKey: getFileContentCacheKey(envKey, pipelineId!, filePath!),
     queryFn: () => {
       if (!pipelineId || !filePath) {
         throw new Error('Pipeline ID and file path are required');

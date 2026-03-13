@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import type { WorkflowItemInterface } from '@loopstack/contracts/api';
 import { SidebarMenuSubItem } from '../../components/ui/sidebar.tsx';
@@ -8,7 +8,7 @@ import { useFetchWorkflowsByNamespace } from '../../hooks/useWorkflows.ts';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 import NavigationItem from './components/NavigationItem.tsx';
 import { useScroll } from './providers/ScrollProvider.tsx';
-import { WorkbenchContextProvider } from './providers/WorkbenchLayoutProvider.tsx';
+import { useWorkbenchLayout } from './providers/WorkbenchLayoutProvider.tsx';
 
 interface WorkbenchNavigationWorkflowsProps {
   namespace: NamespaceTree;
@@ -23,7 +23,7 @@ const NavigationItems: React.FC<WorkbenchNavigationWorkflowsProps> = ({ namespac
     clickId: string;
   }>();
 
-  const workbenchContext = useContext(WorkbenchContextProvider);
+  const { activeSectionId } = useWorkbenchLayout();
 
   const fetchWorkflows = useFetchWorkflowsByNamespace(namespace.id);
 
@@ -71,7 +71,7 @@ const NavigationItems: React.FC<WorkbenchNavigationWorkflowsProps> = ({ namespac
         <SidebarMenuSubItem key={`wf-${item.id}`}>
           <NavigationItem
             workflow={item}
-            isSelected={workbenchContext?.state.activeSectionId?.endsWith(item.id) ?? false}
+            isSelected={activeSectionId?.endsWith(item.id) ?? false}
             navigateTo={handleNavigateTo}
           />
         </SidebarMenuSubItem>

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Badge } from '../../../components/ui/badge.tsx';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog.tsx';
-import DocumentDetails from './document-details/DocumentDetails.tsx';
-import PromptDetails from './document-details/PromptDetails.tsx';
+import { Badge } from '@/components/ui/badge.tsx';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog.tsx';
+import DocumentDetails from '../document-details/DocumentDetails.tsx';
+import PromptDetails from '../document-details/PromptDetails.tsx';
 
 // Component to render standard metadata values (non-prompt)
 const DefaultMetadataRenderer = ({ data }: { data: unknown }) => {

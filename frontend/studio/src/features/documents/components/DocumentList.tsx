@@ -4,8 +4,8 @@ import type { PipelineInterface } from '@loopstack/contracts/api';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
 import type { DocumentType } from '@loopstack/contracts/types';
-import DocumentItem from '@/features/workbench/components/DocumentItem';
-import type { WorkbenchSettingsInterface } from '../WorkflowList.tsx';
+import type { WorkbenchSettingsInterface } from '@/features/workbench';
+import DocumentItem from './DocumentItem.tsx';
 
 const DocumentList: React.FC<{
   pipeline: PipelineInterface;

@@ -1,7 +1,7 @@
 import { Home, Loader2 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
+import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import MainLayout from '../components/layout/MainLayout.tsx';
-import ErrorSnackbar from '../components/snackbars/ErrorSnackbar.tsx';
 import ExecutionTimeline from '../features/workspaces/components/ExecutionTimeline.tsx';
 import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';

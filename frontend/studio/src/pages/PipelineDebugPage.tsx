@@ -2,11 +2,10 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { Bug, Home, Loader2 } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import MainLayout from '@/components/layout/MainLayout.tsx';
-import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
-import PipelineDebugHeader from '@/features/debug/components/PipelineDebugHeader.tsx';
-import PipelineFlowViewer from '@/features/debug/components/PipelineFlowViewer.tsx';
-import { usePipeline, usePipelineConfig } from '@/hooks/usePipelines.ts';
+import { PipelineDebugHeader, PipelineFlowViewer } from '@/features/debug';
+import { usePipeline, usePipelineConfigByName } from '@/hooks/usePipelines.ts';
 import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
 import { useWorkspace } from '@/hooks/useWorkspaces.ts';
 import { requireParam } from '@/lib/requireParam.ts';
@@ -24,7 +23,7 @@ const PipelineDebugPage: React.FC = () => {
   const workflows = useMemo(() => fetchWorkflows.data ?? [], [fetchWorkflows.data]);
   const workspaceBlockName = fetchWorkspace.data?.blockName;
   const pipelineBlockName = fetchPipeline.data?.blockName;
-  const fetchPipelineConfig = usePipelineConfig(workspaceBlockName, pipelineBlockName);
+  const fetchPipelineConfig = usePipelineConfigByName(workspaceBlockName, pipelineBlockName);
 
   const breadcrumbData = useMemo(
     () => [

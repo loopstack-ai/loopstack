@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface BasicErrorComponentProps {
   error?: string | null;
