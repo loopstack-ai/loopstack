@@ -1,9 +1,9 @@
-import { useCodeExplorerContext } from '../providers/CodeExplorerProvider';
-import { FileTabsBarBase } from './FileTabsBarBase';
+import { FileTabsBarBase } from '../../code-explorer/components/FileTabsBarBase';
+import { useRemoteFileExplorer } from '../providers/RemoteFileExplorerProvider';
 
-export function FileTabsBar() {
+export function RemoteFileTabsBar() {
   const { openFiles, selectedFile, selectFile, closeFile, closeAll, closeOthers, closeToLeft, closeToRight } =
-    useCodeExplorerContext();
+    useRemoteFileExplorer();
 
   return (
     <FileTabsBarBase

@@ -11,7 +11,7 @@ export interface SidebarFeatureInterface {
 
 export interface FileExplorerFeatureInterface {
   enabled?: boolean;
-  volume?: string;
+  environments?: string[];
   options?: Record<string, unknown>;
 }
 

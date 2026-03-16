@@ -2,7 +2,7 @@ import { type ReactNode, createContext, useCallback, useContext, useMemo, useSta
 import type { PipelineInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 
 export type FloatingPanelId = 'navigation' | 'history';
-export type SidePanelId = 'preview' | 'flow';
+export type SidePanelId = 'preview' | 'flow' | 'files';
 export type PreviewTab = 'preview' | 'flow' | 'history';
 
 export interface WorkbenchLayoutContextType {
