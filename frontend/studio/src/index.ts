@@ -21,10 +21,11 @@ export { default as PreviewWorkbenchPage } from './pages/PreviewWorkbenchPage';
 export { default as RunsPage } from './pages/RunsPage';
 export { default as RunsListPage } from './pages/RunsListPage';
 export { default as StudioLandingPage } from './pages/StudioLandingPage';
-export { default as LocalHealthCheck } from './features/health/LocalHealthCheck';
 export { default as EnvironmentEmbedRoot } from './app/EnvironmentEmbedRoot';
+export { StudioSidebar } from './components/layout/StudioSidebar';
 
-export type { CreateWorkspaceProps } from './features/workspaces/components/CreateWorkspace';
+// Feature re-exports
+export { LocalHealthCheck } from './features/health';
+export { CreateWorkspace, EnvironmentSlotSelector } from './features/workspaces';
+export type { CreateWorkspaceProps, EnvironmentOption } from './features/workspaces';
 export type { EditWorkspaceProps } from './providers/ComponentOverridesProvider';
-export { EnvironmentSlotSelector } from './features/workspaces/components/EnvironmentSlotSelector';
-export type { EnvironmentOption } from './features/workspaces/components/EnvironmentSlotSelector';

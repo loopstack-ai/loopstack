@@ -1,9 +1,6 @@
-import { useMemo } from 'react';
 import type { PipelineInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 import PageBreadcrumbs, { type BreadCrumbsData } from '@/components/page/PageBreadcrumbs.tsx';
-import { FileContentViewer } from '@/features/code-explorer/components/FileContentViewer';
-import { FileTabsBar } from '@/features/code-explorer/components/FileTabsBar';
-import { CodeExplorerProvider, useCodeExplorerContext } from '@/features/code-explorer/providers/CodeExplorerProvider';
+import { CodeExplorerProvider, FileContentViewer, FileTabsBar, useCodeExplorerContext } from '@/features/code-explorer';
 import { useWorkspace } from '@/hooks/useWorkspaces.ts';
 import WorkflowList from './WorkflowList.tsx';
 import { WorkbenchFloatingPanel } from './components/WorkbenchFloatingPanel.tsx';
@@ -11,11 +8,7 @@ import { WorkbenchFlowPanel } from './components/WorkbenchFlowPanel.tsx';
 import { WorkbenchIconSidebar } from './components/WorkbenchIconSidebar.tsx';
 import { WorkbenchPreviewPanel } from './components/WorkbenchPreviewPanel.tsx';
 import { ScrollProvider } from './providers/ScrollProvider.tsx';
-import {
-  WorkbenchContextProvider,
-  WorkbenchLayoutProvider,
-  useWorkbenchLayout,
-} from './providers/WorkbenchLayoutProvider.tsx';
+import { WorkbenchLayoutProvider, useWorkbenchLayout } from './providers/WorkbenchLayoutProvider.tsx';
 
 function WorkbenchContent({
   pipeline,
@@ -69,31 +62,20 @@ function WorkbenchInner({
   pipeline: PipelineInterface;
   breadcrumbData?: BreadCrumbsData[];
 }) {
-  const { activeSidePanel, activeSectionId, setActiveSectionId } = useWorkbenchLayout();
-
-  // Backward-compatible context value for NavigationItems
-  const legacyContextValue = useMemo(
-    () => ({
-      state: { activeSectionId },
-      setActiveSectionId,
-    }),
-    [activeSectionId, setActiveSectionId],
-  );
+  const { activeSidePanel } = useWorkbenchLayout();
 
   return (
-    <WorkbenchContextProvider.Provider value={legacyContextValue}>
-      <div className="flex h-full w-full">
-        <div className="relative flex flex-1 overflow-hidden">
-          <div className={activeSidePanel ? 'w-1/2 overflow-hidden' : 'w-full overflow-hidden'}>
-            <WorkbenchContent pipeline={pipeline} breadcrumbData={breadcrumbData} />
-          </div>
-          {activeSidePanel === 'preview' && <WorkbenchPreviewPanel />}
-          {activeSidePanel === 'flow' && <WorkbenchFlowPanel />}
-          <WorkbenchFloatingPanel />
+    <div className="flex h-full w-full">
+      <div className="relative flex flex-1 overflow-hidden">
+        <div className={activeSidePanel ? 'w-1/2 overflow-hidden' : 'w-full overflow-hidden'}>
+          <WorkbenchContent pipeline={pipeline} breadcrumbData={breadcrumbData} />
         </div>
-        <WorkbenchIconSidebar />
+        {activeSidePanel === 'preview' && <WorkbenchPreviewPanel />}
+        {activeSidePanel === 'flow' && <WorkbenchFlowPanel />}
+        <WorkbenchFloatingPanel />
       </div>
-    </WorkbenchContextProvider.Provider>
+      <WorkbenchIconSidebar />
+    </div>
   );
 }
 

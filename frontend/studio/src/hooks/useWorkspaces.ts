@@ -4,13 +4,14 @@ import type {
   WorkspaceSortByInterface,
   WorkspaceUpdateInterface,
 } from '@loopstack/contracts/api';
+import { getWorkspaceCacheKey, getWorkspacesCacheKey } from './query-keys.ts';
 import { useApiClient } from './useApi.ts';
 
 export function useWorkspace(id: string | undefined) {
   const { envKey, api } = useApiClient();
 
   return useQuery({
-    queryKey: ['workspace', id, envKey],
+    queryKey: getWorkspaceCacheKey(envKey, id!),
     queryFn: () => api.workspaces.getById({ id: id! }),
     enabled: !!id,
   });
@@ -27,9 +28,10 @@ export function useFilterWorkspaces(
   const { envKey, api } = useApiClient();
 
   const hasFilter = Object.keys(filter).length > 0;
+  const filterStr = hasFilter ? JSON.stringify(filter) : undefined;
 
   const requestParams = {
-    ...(hasFilter && { filter: JSON.stringify(filter) }),
+    ...(filterStr && { filter: filterStr }),
     sortBy: JSON.stringify([
       {
         field: sortBy,
@@ -42,9 +44,8 @@ export function useFilterWorkspaces(
   };
 
   return useQuery({
-    queryKey: ['workspaces', envKey, requestParams],
+    queryKey: [...getWorkspacesCacheKey(envKey), 'list', searchTerm ?? '', filterStr ?? '', sortBy, order, page, limit],
     queryFn: () => api.workspaces.getAll(requestParams),
-    enabled: true,
   });
 }
 
@@ -55,7 +56,7 @@ export function useCreateWorkspace() {
   return useMutation({
     mutationFn: (params: { workspaceCreateDto: WorkspaceCreateInterface }) => api.workspaces.create(params),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
+      void queryClient.invalidateQueries({ queryKey: getWorkspacesCacheKey(envKey) });
     },
   });
 }
@@ -67,8 +68,8 @@ export function useUpdateWorkspace() {
   return useMutation({
     mutationFn: (params: { id: string; workspaceUpdateDto: WorkspaceUpdateInterface }) => api.workspaces.update(params),
     onSuccess: (_, variables) => {
-      void queryClient.invalidateQueries({ queryKey: ['workspace', variables.id, envKey] });
-      void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
+      void queryClient.invalidateQueries({ queryKey: getWorkspaceCacheKey(envKey, variables.id) });
+      void queryClient.invalidateQueries({ queryKey: getWorkspacesCacheKey(envKey) });
     },
   });
 }
@@ -80,8 +81,8 @@ export function useDeleteWorkspace() {
   return useMutation({
     mutationFn: (id: string) => api.workspaces.delete({ id }),
     onSuccess: (_, id) => {
-      queryClient.removeQueries({ queryKey: ['workspace', id, envKey] });
-      void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
+      queryClient.removeQueries({ queryKey: getWorkspaceCacheKey(envKey, id) });
+      void queryClient.invalidateQueries({ queryKey: getWorkspacesCacheKey(envKey) });
     },
   });
 }
@@ -97,7 +98,7 @@ export function useSetFavouriteWorkspace() {
         workspaceFavouriteDto: { isFavourite },
       }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
+      void queryClient.invalidateQueries({ queryKey: getWorkspacesCacheKey(envKey) });
     },
   });
 }
@@ -109,7 +110,7 @@ export function useBatchDeleteWorkspaces() {
   return useMutation({
     mutationFn: (ids: string[]) => api.workspaces.batchDelete({ ids }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['workspaces', envKey] });
+      void queryClient.invalidateQueries({ queryKey: getWorkspacesCacheKey(envKey) });
     },
   });
 }

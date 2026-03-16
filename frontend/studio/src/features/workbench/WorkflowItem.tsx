@@ -1,19 +1,14 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import type { PipelineInterface } from '@loopstack/contracts/api';
-import { WorkflowState } from '@loopstack/contracts/enums';
-import type { DocumentItemInterface } from '@loopstack/contracts/types';
-import type { TransitionPayloadInterface } from '@loopstack/contracts/types';
-import ErrorSnackbar from '@/components/snackbars/ErrorSnackbar.tsx';
-import DocumentList from '@/features/workbench/components/DocumentList.tsx';
+import BasicErrorComponent from '@/components/feedback/ErrorAlert';
+import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
+import LoadingCentered from '@/components/feedback/LoadingCentered';
+import { DocumentList } from '@/features/documents';
 import WorkflowForms from '@/features/workbench/components/WorkflowForms.tsx';
-import { useFilterDocuments } from '@/hooks/useDocuments.ts';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
-import { useWorkflow } from '@/hooks/useWorkflows.ts';
 import { cn } from '@/lib/utils';
-import LoadingCentered from '../../components/LoadingCentered.tsx';
-import BasicErrorComponent from '../../components/content/ErrorAlert.tsx';
 import type { WorkbenchSettingsInterface } from './WorkflowList.tsx';
+import { useWorkflowData } from './hooks/useWorkflowData.ts';
 
 const WorkflowItem: React.FC<{
   pipeline: PipelineInterface;
@@ -23,69 +18,38 @@ const WorkflowItem: React.FC<{
   embed?: boolean;
 }> = ({ pipeline, workflowId, scrollTo, settings, embed }) => {
   const { workflowId: paramsWorkflowId, clickId } = useParams();
-  const fetchWorkflow = useWorkflow(workflowId);
-  const fetchDocuments = useFilterDocuments(workflowId);
+
+  const {
+    workflow,
+    workflowLoading,
+    workflowReady,
+    workflowError,
+    documents,
+    documentsLoading,
+    documentsReady,
+    documentsError,
+    isLoading,
+    handleRun,
+  } = useWorkflowData({ workflowId, showFullMessageHistory: settings.showFullMessageHistory });
 
   // auto scroll to the item on a navigation event (clickId) but only after element is fully loaded
   useEffect(() => {
-    if (paramsWorkflowId === workflowId && fetchWorkflow.isSuccess && fetchDocuments.isSuccess) {
+    if (paramsWorkflowId === workflowId && workflowReady && documentsReady) {
       scrollTo(workflowId);
     }
-  }, [fetchWorkflow.isSuccess, fetchDocuments.isSuccess, workflowId, paramsWorkflowId, clickId, scrollTo]);
-
-  const filterDocuments = useCallback(
-    (item: DocumentItemInterface) => {
-      const meta = item.meta as { hidden?: boolean; hideAtPlaces?: string[] } | undefined;
-      const ui = item.ui as { hidden?: boolean } | undefined;
-
-      let hidden = meta?.hidden || ui?.hidden || !!meta?.hideAtPlaces?.includes(fetchWorkflow.data?.place ?? '');
-
-      const isInternalMessage = false; //['tool'].includes(document.content.role);
-
-      if (!settings.showFullMessageHistory && (isInternalMessage || item.tags?.includes('internal'))) {
-        hidden = true;
-      }
-
-      return !hidden;
-    },
-    [fetchWorkflow.data, settings.showFullMessageHistory],
-  );
-
-  const documents: DocumentItemInterface[] = useMemo(() => {
-    if (!fetchDocuments.data) {
-      return [];
-    }
-
-    return fetchDocuments.data.filter(filterDocuments);
-  }, [fetchDocuments.data, filterDocuments]);
-
-  const runPipeline = useRunPipeline();
-  const handleRun = (transition: string, data: Record<string, unknown> | string | undefined) => {
-    runPipeline.mutate({
-      pipelineId: fetchWorkflow.data!.pipelineId,
-      runPipelinePayloadDto: {
-        transition: {
-          id: transition,
-          workflowId: workflowId,
-          payload: data,
-        } as TransitionPayloadInterface,
-      },
-    });
-  };
-
-  const isLoading = runPipeline.isPending || fetchWorkflow.data?.status === WorkflowState.Running;
+  }, [workflowReady, documentsReady, workflowId, paramsWorkflowId, clickId, scrollTo]);
 
   return (
     <div className={cn('flex flex-col', embed ? 'p-0' : 'p-4')}>
-      <LoadingCentered loading={fetchWorkflow.isLoading || fetchDocuments.isLoading} />
-      <ErrorSnackbar error={fetchDocuments.error} />
+      <LoadingCentered loading={workflowLoading || documentsLoading} />
+      <ErrorSnackbar error={documentsError} />
 
-      <BasicErrorComponent error={fetchWorkflow.data?.errorMessage} />
+      <BasicErrorComponent error={workflowError} />
 
-      {fetchWorkflow.isSuccess && (
+      {workflowReady && workflow && (
         <DocumentList
           pipeline={pipeline}
-          workflow={fetchWorkflow.data}
+          workflow={workflow}
           documents={documents}
           scrollTo={scrollTo}
           settings={settings}
@@ -95,9 +59,9 @@ const WorkflowItem: React.FC<{
 
       <LoadingCentered loading={isLoading} />
 
-      {!!fetchWorkflow.data && !embed && (
+      {!!workflow && !embed && (
         <div className="mt-6">
-          <WorkflowForms workflow={fetchWorkflow.data} onSubmit={handleRun} />
+          <WorkflowForms workflow={workflow} onSubmit={handleRun} />
         </div>
       )}
     </div>

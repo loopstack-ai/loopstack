@@ -1,19 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { WorkflowItemInterface, WorkflowSortByInterface } from '@loopstack/contracts/api';
 import type { WorkflowInterface } from '@loopstack/contracts/types';
+import {
+  getAllWorkflowsCacheKey,
+  getWorkflowCacheKey,
+  getWorkflowsByPipelineCacheKey,
+  getWorkflowsCacheKey,
+} from './query-keys.ts';
 import { useApiClient } from './useApi.ts';
-
-export function getWorkflowsCacheKey(envKey: string, namespaceId: string) {
-  return ['workflows', envKey, namespaceId];
-}
-
-export function getWorkflowCacheKey(envKey: string, workflowId: string) {
-  return ['workflow', envKey, workflowId];
-}
-
-export function getWorkflowsByPipelineCacheKey(envKey: string, pipelineId: string) {
-  return ['workflows-by-pipeline', envKey, pipelineId];
-}
 
 export function useWorkflow(id: string) {
   const { envKey, api } = useApiClient();
@@ -44,7 +38,6 @@ export function useFetchWorkflowsByPipeline(pipelineId: string) {
     queryKey: getWorkflowsByPipelineCacheKey(envKey, pipelineId),
     queryFn: () => api.workflows.getAll(requestParams),
     select: (res) => res.data,
-    enabled: true,
   });
 }
 
@@ -67,7 +60,6 @@ export function useFetchWorkflowsByNamespace(namespaceId: string) {
     queryKey: getWorkflowsCacheKey(envKey, namespaceId),
     queryFn: () => api.workflows.getAll(requestParams),
     select: (res) => res.data,
-    enabled: true,
   });
 }
 
@@ -103,9 +95,8 @@ export function useFetchAllWorkflows() {
   };
 
   return useQuery({
-    queryKey: ['all-workflows', envKey],
+    queryKey: getAllWorkflowsCacheKey(envKey),
     queryFn: () => api.workflows.getAll(requestParams),
     select: (res) => res.data,
-    enabled: true,
   });
 }

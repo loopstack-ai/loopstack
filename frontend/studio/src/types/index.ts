@@ -7,6 +7,7 @@ export interface Environment {
 
 export interface StudioRouter {
   navigateToHome(): Promise<void>;
+  getEnvironmentInfo(): string;
   navigateToEnvironmentInfo(): Promise<void>;
   getRuns(): string;
   getRunsActionRequired(): string;

@@ -3,7 +3,7 @@ import { ChevronDown, Loader2, Play } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import type { PipelineItemInterface } from '@loopstack/contracts/api';
 import { Button } from '@/components/ui/button.tsx';
-import { NewRunDialog } from '@/features/workbench/components/NewRunDialog.tsx';
+import { NewRunDialog } from '@/features/workbench';
 import { useFilterPipelines } from '@/hooks/usePipelines.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 

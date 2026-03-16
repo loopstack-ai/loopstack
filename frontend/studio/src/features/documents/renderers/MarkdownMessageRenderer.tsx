@@ -1,7 +1,7 @@
 import React from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
-import MarkdownContent from '../../../../components/dynamic-form/MarkdownContent.tsx';
-import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
+import MarkdownContent from '@/components/dynamic-form/MarkdownContent.tsx';
+import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 
 type MarkdownMessageContentType = {
   markdown: string;

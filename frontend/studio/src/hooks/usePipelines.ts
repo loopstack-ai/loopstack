@@ -6,13 +6,20 @@ import type {
   PipelineSourceInterface,
   PipelineUpdateInterface,
 } from '@loopstack/contracts/api';
+import {
+  getPipelineCacheKey,
+  getPipelineConfigCacheKey,
+  getPipelineSourceCacheKey,
+  getPipelinesCacheKey,
+  getPipelinesChildrenCacheKey,
+} from './query-keys';
 import { useApiClient } from './useApi';
 
 export function usePipeline(id: string | undefined) {
   const { envKey, api } = useApiClient();
 
   return useQuery({
-    queryKey: ['pipeline', id, envKey],
+    queryKey: getPipelineCacheKey(envKey, id!),
     queryFn: () => api.pipelines.getById({ id: id! }),
     enabled: !!id,
   });
@@ -29,9 +36,10 @@ export function useFilterPipelines(
   const { envKey, api } = useApiClient();
 
   const hasFilter = Object.keys(filter).length > 0;
+  const filterStr = hasFilter ? JSON.stringify(filter) : undefined;
 
   const requestParams = {
-    ...(hasFilter && { filter: JSON.stringify(filter) }),
+    ...(filterStr && { filter: filterStr }),
     sortBy: JSON.stringify([
       {
         field: sortBy,
@@ -44,9 +52,8 @@ export function useFilterPipelines(
   };
 
   return useQuery({
-    queryKey: ['pipelines', requestParams, envKey],
+    queryKey: [...getPipelinesCacheKey(envKey), 'list', searchTerm ?? '', filterStr ?? '', sortBy, order, page, limit],
     queryFn: () => api.pipelines.getAll(requestParams),
-    enabled: true,
   });
 }
 
@@ -57,7 +64,7 @@ export function useCreatePipeline() {
   return useMutation({
     mutationFn: (params: { pipelineCreateDto: PipelineCreateInterface }) => api.pipelines.create(params),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
+      void queryClient.invalidateQueries({ queryKey: getPipelinesCacheKey(envKey) });
     },
   });
 }
@@ -69,17 +76,17 @@ export function useUpdatePipeline() {
   return useMutation({
     mutationFn: (params: { id: string; pipelineUpdateDto: PipelineUpdateInterface }) => api.pipelines.update(params),
     onSuccess: (_, variables) => {
-      void queryClient.invalidateQueries({ queryKey: ['pipeline', variables.id, envKey] });
-      void queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
+      void queryClient.invalidateQueries({ queryKey: getPipelineCacheKey(envKey, variables.id) });
+      void queryClient.invalidateQueries({ queryKey: getPipelinesCacheKey(envKey) });
     },
   });
 }
 
-export function usePipelineConfig(workspaceBlockName: string | undefined, pipelineBlockName: string | undefined) {
+export function usePipelineConfigByName(workspaceBlockName: string | undefined, pipelineBlockName: string | undefined) {
   const { envKey, api } = useApiClient();
 
   return useQuery<PipelineConfigInterface>({
-    queryKey: ['pipelineConfig', workspaceBlockName, pipelineBlockName, envKey],
+    queryKey: getPipelineConfigCacheKey(envKey, workspaceBlockName!, pipelineBlockName!),
     queryFn: () =>
       api.config.getPipelineConfigByName({
         workspaceBlockName: workspaceBlockName!,
@@ -96,20 +103,20 @@ export function useDeletePipeline() {
   return useMutation({
     mutationFn: (id: string) => api.pipelines.delete({ id }),
     onSuccess: (_, id) => {
-      queryClient.removeQueries({ queryKey: ['pipeline', id, envKey] });
-      void queryClient.invalidateQueries({ queryKey: ['pipelines', envKey] });
+      queryClient.removeQueries({ queryKey: getPipelineCacheKey(envKey, id) });
+      void queryClient.invalidateQueries({ queryKey: getPipelinesCacheKey(envKey) });
     },
   });
 }
 
 export function useBatchDeletePipeline() {
-  const { api } = useApiClient();
+  const { envKey, api } = useApiClient();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (ids: string[]) => api.pipelines.batchDelete({ ids }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['pipelines'], type: 'all' });
+      void queryClient.invalidateQueries({ queryKey: getPipelinesCacheKey(envKey) });
     },
   });
 }
@@ -118,7 +125,7 @@ export function useChildPipelines(parentId: string | undefined, enabled: boolean
   const { envKey, api } = useApiClient();
 
   return useQuery({
-    queryKey: ['pipelines', 'children', parentId, envKey],
+    queryKey: getPipelinesChildrenCacheKey(envKey, parentId!),
     queryFn: () =>
       api.pipelines.getAll({
         filter: JSON.stringify({ parentId }),
@@ -134,7 +141,7 @@ export function usePipelineSource(workspaceBlockName: string | undefined, pipeli
   const { envKey, api } = useApiClient();
 
   return useQuery<PipelineSourceInterface>({
-    queryKey: ['pipelineSource', workspaceBlockName, pipelineBlockName, envKey],
+    queryKey: getPipelineSourceCacheKey(envKey, workspaceBlockName!, pipelineBlockName!),
     queryFn: () =>
       api.config.getPipelineSourceByName({
         workspaceBlockName: workspaceBlockName!,

@@ -56,9 +56,5 @@ export { default as CustomItemListView } from './lists/CustomListView';
 // Messages
 export { default as CompletionMessagePaper } from './messages/CompletionMessagePaper';
 
-// Snackbars
-export { default as ErrorSnackbar } from './snackbars/ErrorSnackbar';
-export { default as Snackbar } from './snackbars/Snackbar';
-
-// Loading
-export { default as LoadingCentered } from './LoadingCentered';
+// Feedback (error boundaries, loading, snackbars, alerts)
+export * from './feedback';

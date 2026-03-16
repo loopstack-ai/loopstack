@@ -6,7 +6,7 @@ import type { PipelineConfigInterface } from '@loopstack/contracts/api';
 import MarkdownContent from '@/components/dynamic-form/MarkdownContent';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ConfigFlowViewer from '@/features/debug/components/ConfigFlowViewer';
+import { ConfigFlowViewer } from '@/features/debug';
 import { cn } from '@/lib/utils';
 import type { FileExplorerNode } from '../types';
 

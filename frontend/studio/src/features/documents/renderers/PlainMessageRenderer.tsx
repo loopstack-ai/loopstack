@@ -1,6 +1,6 @@
 import React from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
-import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
+import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 
 type PlainMessageContentType = {
   text: string;

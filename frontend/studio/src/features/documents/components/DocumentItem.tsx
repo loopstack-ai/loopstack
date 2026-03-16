@@ -2,9 +2,9 @@ import { omit } from 'lodash';
 import React from 'react';
 import type { PipelineInterface } from '@loopstack/contracts/api';
 import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
-import type { WorkbenchSettingsInterface } from '../WorkflowList.tsx';
+import type { WorkbenchSettingsInterface } from '@/features/workbench';
+import DocumentRenderer from '../DocumentRenderer.tsx';
 import DocumentMetadataPills from './DocumentMetadataPills.tsx';
-import DocumentRenderer from './DocumentRenderer.tsx';
 
 interface DocumentMeta {
   data?: Record<string, unknown>;

@@ -1,10 +1,14 @@
-import { Home } from 'lucide-react';
+import { Home, Play } from 'lucide-react';
+import { useState } from 'react';
 import MainLayout from '../components/layout/MainLayout.tsx';
+import { Button } from '../components/ui/button.tsx';
 import Runs from '../features/runs/Runs.tsx';
+import { NewRunDialog } from '../features/workbench/components/NewRunDialog.tsx';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
 export default function RunsListPage() {
   const { router } = useStudio();
+  const [newRunDialogOpen, setNewRunDialogOpen] = useState(false);
 
   const breadcrumbsData = [
     {
@@ -17,8 +21,22 @@ export default function RunsListPage() {
 
   return (
     <MainLayout breadcrumbsData={breadcrumbsData}>
-      <h1 className="mb-4 text-3xl font-bold tracking-tight">Runs</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Runs</h1>
+        <Button variant="default" size="sm" className="gap-1.5" onClick={() => setNewRunDialogOpen(true)}>
+          <Play className="h-3.5 w-3.5" />
+          New Run
+        </Button>
+      </div>
       <Runs />
+      <NewRunDialog
+        open={newRunDialogOpen}
+        onOpenChange={setNewRunDialogOpen}
+        onSuccess={(pipelineId) => {
+          setNewRunDialogOpen(false);
+          void router.navigateToPipeline(pipelineId);
+        }}
+      />
     </MainLayout>
   );
 }

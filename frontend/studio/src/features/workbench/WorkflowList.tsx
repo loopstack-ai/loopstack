@@ -1,18 +1,15 @@
 import { ArrowDownIcon, ChevronRightIcon, Play } from 'lucide-react';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import type { PipelineInterface } from '@loopstack/contracts/api';
+import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
+import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { Button } from '@/components/ui/button.tsx';
 import WorkflowItem from '@/features/workbench/WorkflowItem.tsx';
-import { useScrollToBottom } from '@/features/workbench/hooks/useAutoScrollBottom.ts';
-import { useIntersectionObserver } from '@/features/workbench/hooks/useIntersectionObserver.ts';
-import { useScrollToListItem } from '@/features/workbench/hooks/useScrollToListItem.ts';
-import { WorkbenchContextProvider } from '@/features/workbench/providers/WorkbenchLayoutProvider.tsx';
 import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
 import { cn } from '@/lib/utils.ts';
-import LoadingCentered from '../../components/LoadingCentered.tsx';
-import ErrorSnackbar from '../../components/snackbars/ErrorSnackbar.tsx';
 import WorkbenchSettingsModal from './components/WorkbenchSettingsModal.tsx';
 import WorkflowButtons from './components/buttons/WorkflowButtons.tsx';
+import { useWorkflowListState } from './hooks/useWorkflowListState.ts';
 
 export interface WorkbenchSettingsInterface {
   enableDebugMode: boolean;
@@ -27,56 +24,13 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
   const fetchWorkflows = useFetchWorkflowsByPipeline(pipeline.id);
 
   const [openSettingsModal, setOpenSettingsModal] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
-
   const [settings, setSettings] = useState<WorkbenchSettingsInterface>({
     enableDebugMode: false,
     showFullMessageHistory: false,
   });
 
-  const { activeId, observe } = useIntersectionObserver('0px 0px 0px 0px');
-  const { listRef, scrollTo } = useScrollToListItem();
-  const { canScrollDown, scrollToBottom } = useScrollToBottom();
-
-  const workbenchContext = useContext(WorkbenchContextProvider);
-
-  useEffect(() => {
-    if (
-      workbenchContext &&
-      workbenchContext.setActiveSectionId &&
-      workbenchContext.state.activeSectionId !== activeId
-    ) {
-      workbenchContext.setActiveSectionId(activeId);
-
-      // Expand the active section
-      if (activeId) {
-        setExpandedSections((prev) => ({ ...prev, [activeId]: true }));
-      }
-    }
-  }, [activeId, workbenchContext]);
-
-  // Initialize expanded sections when data loads
-  useEffect(() => {
-    if (fetchWorkflows.data && fetchWorkflows.data.length > 0) {
-      const lastWorkflowIndex = fetchWorkflows.data.length - 1;
-      const lastWorkflow = fetchWorkflows.data[lastWorkflowIndex];
-      const lastSectionId = `section-${lastWorkflow.index}-${lastWorkflow.id}`;
-
-      // Set last workflow to be expanded by default
-      setExpandedSections({
-        [lastSectionId]: true,
-        // If activeId exists and isn't the last section, also expand it
-        ...(activeId && activeId !== lastSectionId ? { [activeId]: true } : {}),
-      });
-    }
-  }, [fetchWorkflows.data, activeId]);
-
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [sectionId]: !prev[sectionId],
-    }));
-  };
+  const { activeId, expandedSections, observe, listRef, scrollTo, canScrollDown, scrollToBottom, toggleSection } =
+    useWorkflowListState(fetchWorkflows.data);
 
   return (
     <div>
@@ -155,8 +109,6 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
               );
             })}
           </div>
-          {/*<Separator className="my-6" />*/}
-          {/*<PipelineButtons pipeline={pipeline} />*/}
         </div>
       ) : null}
     </div>

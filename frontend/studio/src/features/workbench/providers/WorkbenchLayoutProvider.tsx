@@ -37,7 +37,7 @@ export interface WorkbenchLayoutContextType {
   activePreviewTab: PreviewTab;
   setActivePreviewTab: (tab: PreviewTab) => void;
 
-  // Section state (from old WorkbenchContextProvider)
+  // Active workflow section (for navigation highlight sync)
   activeSectionId: string | null;
   setActiveSectionId: (id: string | null) => void;
 }
@@ -83,7 +83,8 @@ export function WorkbenchLayoutProvider({
     : uncontrolledSidePanel;
 
   const featureEnabled = workspaceConfig?.features?.previewPanel?.enabled ?? false;
-  const hasConnectableEnvs = environments === undefined || environments.some((e) => !!e.connectionUrl && !!e.workerId);
+  const hasConnectableEnvs =
+    environments === undefined || environments.some((e) => !!e.connectionUrl && (!!e.workerId || e.local));
   const previewPanelEnabled = featureEnabled && hasConnectableEnvs;
   const previewPanelOpen = activeSidePanel !== null;
 
@@ -201,9 +202,3 @@ export function useWorkbenchLayout(): WorkbenchLayoutContextType {
   }
   return ctx;
 }
-
-// Backward-compatible context for NavigationItems that still uses the old context shape
-export const WorkbenchContextProvider = createContext<{
-  state: { activeSectionId: string | null };
-  setActiveSectionId: (id: string | null) => void;
-} | null>(null);

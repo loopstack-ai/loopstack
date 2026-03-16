@@ -25,7 +25,12 @@ export default defineConfig(({ mode }) => {
         : []),
     ],
     optimizeDeps: {
-      include: ['@loopstack/contracts/types'],
+      include: [
+        '@loopstack/contracts/types',
+        '@loopstack/contracts/enums',
+        '@loopstack/contracts/schemas',
+        '@loopstack/contracts/api',
+      ],
     },
     build: isLibrary
       ? {

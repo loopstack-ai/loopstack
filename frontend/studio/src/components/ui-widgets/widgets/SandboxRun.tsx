@@ -1,6 +1,6 @@
 import { MonitorPlay } from 'lucide-react';
 import React from 'react';
-import { useWorkbenchLayout } from '@/features/workbench/providers/WorkbenchLayoutProvider.tsx';
+import { useWorkbenchLayout } from '@/features/workbench';
 import { Button } from '../../ui/button.tsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip';
 

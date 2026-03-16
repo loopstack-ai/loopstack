@@ -16,14 +16,11 @@ import { Button } from '@/components/ui/button.tsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { useRunPipeline } from '@/hooks/useProcessor.ts';
 import { useDeleteWorkflow, useWorkflow } from '@/hooks/useWorkflows.ts';
-import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const WorkflowButtons: React.FC<{
   pipeline: PipelineInterface;
   workflowId: string;
 }> = ({ pipeline, workflowId }) => {
-  const { router } = useStudio();
-
   const fetchWorkflow = useWorkflow(workflowId);
   const workflow = fetchWorkflow.data;
 
@@ -56,7 +53,6 @@ const WorkflowButtons: React.FC<{
     try {
       deleteWorkflow.mutate(workflow as unknown as WorkflowItemInterface);
       handlePing();
-      void router.navigateToPipeline(pipeline.id);
     } catch (error) {
       console.error('Mutation failed:', error);
     }

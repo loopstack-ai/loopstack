@@ -1,7 +1,7 @@
 import React from 'react';
-import CompletionMessagePaper from '../../../../components/messages/CompletionMessagePaper.tsx';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../../../components/ui/accordion.tsx';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card.tsx';
+import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion.tsx';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 
 type MessageRole = 'system' | 'user' | 'assistant' | 'tool' | 'error' | 'document';
 
