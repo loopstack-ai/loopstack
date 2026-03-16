@@ -9,6 +9,7 @@ export interface WorkbenchLayoutContextType {
   // Pipeline & derived state
   pipeline: PipelineInterface;
   previewPanelEnabled: boolean;
+  fileExplorerEnabled: boolean;
   isDeveloperMode: boolean;
   workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
@@ -86,6 +87,9 @@ export function WorkbenchLayoutProvider({
   const hasConnectableEnvs =
     environments === undefined || environments.some((e) => !!e.connectionUrl && (!!e.workerId || e.local));
   const previewPanelEnabled = featureEnabled && hasConnectableEnvs;
+  const fileExplorerEnabled =
+    workspaceConfig?.features?.fileExplorer?.enabled &&
+    workspaceConfig?.features?.fileExplorer?.environments?.includes(environments?.[0]?.slotId ?? '');
   const previewPanelOpen = activeSidePanel !== null;
 
   const setSidePanel = useCallback(
@@ -144,6 +148,7 @@ export function WorkbenchLayoutProvider({
     () => ({
       pipeline,
       previewPanelEnabled,
+      fileExplorerEnabled: fileExplorerEnabled ?? false,
       isDeveloperMode,
       workspaceConfig,
 
@@ -169,6 +174,7 @@ export function WorkbenchLayoutProvider({
     [
       pipeline,
       previewPanelEnabled,
+      fileExplorerEnabled,
       isDeveloperMode,
       workspaceConfig,
 

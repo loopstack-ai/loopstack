@@ -1,6 +1,5 @@
 import type { PipelineInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 import PageBreadcrumbs, { type BreadCrumbsData } from '@/components/page/PageBreadcrumbs.tsx';
-import { CodeExplorerProvider, FileContentViewer, FileTabsBar, useCodeExplorerContext } from '@/features/code-explorer';
 import { useWorkspace } from '@/hooks/useWorkspaces.ts';
 import WorkflowList from './WorkflowList.tsx';
 import { WorkbenchFilesPanel } from './components/WorkbenchFilesPanel.tsx';
@@ -19,8 +18,6 @@ function WorkbenchContent({
   pipeline: PipelineInterface;
   breadcrumbData?: BreadCrumbsData[];
 }) {
-  const { openFiles, selectedFile, fileContent, workflowConfig, isContentLoading } = useCodeExplorerContext();
-
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-1 gap-4 overflow-hidden md:flex-row flex-col">
@@ -38,20 +35,6 @@ function WorkbenchContent({
             </div>
           </ScrollProvider>
         </div>
-        {openFiles.length > 0 && (
-          <div className="w-full md:w-1/2 shrink-0 overflow-hidden flex flex-col">
-            <FileTabsBar />
-            <div className="flex-1 overflow-hidden">
-              <FileContentViewer
-                selectedFile={selectedFile}
-                content={fileContent}
-                workflowConfig={workflowConfig}
-                isLoading={isContentLoading}
-                className="h-full"
-              />
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -128,15 +111,13 @@ export default function Workbench({
       previewPanelOpen={previewPanelOpen}
       onPreviewPanelOpenChange={onPreviewPanelOpenChange}
     >
-      <CodeExplorerProvider pipelineId={pipeline?.id} fileExplorerEnabled={fileExplorerEnabled}>
-        {fileExplorerEnabled ? (
-          <RemoteFileExplorerProvider>
-            <WorkbenchInner pipeline={pipeline} breadcrumbData={breadcrumbData} />
-          </RemoteFileExplorerProvider>
-        ) : (
+      {fileExplorerEnabled ? (
+        <RemoteFileExplorerProvider>
           <WorkbenchInner pipeline={pipeline} breadcrumbData={breadcrumbData} />
-        )}
-      </CodeExplorerProvider>
+        </RemoteFileExplorerProvider>
+      ) : (
+        <WorkbenchInner pipeline={pipeline} breadcrumbData={breadcrumbData} />
+      )}
     </WorkbenchLayoutProvider>
   );
 }

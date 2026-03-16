@@ -217,6 +217,7 @@ function PreviewWorkbenchContent({
                     pipelineId={pipelineId}
                     workflows={workflows}
                     pipelineConfig={fetchPipelineConfig.data}
+                    direction="TB"
                   />
                 </ReactFlowProvider>
               ) : (

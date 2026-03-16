@@ -31,9 +31,15 @@ interface PipelineFlowViewerProps {
   pipelineId: string;
   workflows: WorkflowItemInterface[];
   pipelineConfig?: PipelineConfigInterface;
+  direction?: 'LR' | 'TB';
 }
 
-const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({ pipelineId, workflows, pipelineConfig }) => {
+const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
+  pipelineId,
+  workflows,
+  pipelineConfig,
+  direction = 'LR',
+}) => {
   const { data: pipeline } = usePipeline(pipelineId);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<StateNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -107,6 +113,7 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({ pipelineId, wor
             pipelineConfig={pipelineConfig}
             onGraphReady={handleGraphReady}
             onLoadingChange={handleLoadingChange}
+            direction={direction}
           />
         ))}
 

@@ -34,13 +34,13 @@ function IconButton({ icon, label, active, onClick }: IconButtonProps) {
 export function WorkbenchIconSidebar() {
   const {
     previewPanelEnabled,
+    fileExplorerEnabled,
     isDeveloperMode,
     activeFloatingPanel,
     toggleFloatingPanel,
     activeSidePanel,
     toggleSidePanel,
   } = useWorkbenchLayout();
-
   return (
     <div className="border-l bg-background flex w-12 shrink-0 flex-col items-center gap-1 py-2">
       {previewPanelEnabled && (
@@ -75,12 +75,14 @@ export function WorkbenchIconSidebar() {
         active={activeFloatingPanel === 'navigation'}
         onClick={() => toggleFloatingPanel('navigation')}
       />
-      <IconButton
-        icon={<Files className="h-5 w-5" />}
-        label="Files"
-        active={activeSidePanel === 'files'}
-        onClick={() => toggleSidePanel('files')}
-      />
+      {fileExplorerEnabled && (
+        <IconButton
+          icon={<Files className="h-5 w-5" />}
+          label="Files"
+          active={activeSidePanel === 'files'}
+          onClick={() => toggleSidePanel('files')}
+        />
+      )}
     </div>
   );
 }

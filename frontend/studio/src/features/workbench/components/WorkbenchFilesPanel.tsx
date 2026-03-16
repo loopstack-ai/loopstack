@@ -6,8 +6,12 @@ import { RemoteFileTabsBar } from './RemoteFileTabsBar';
 import RemoteFileTree from './RemoteFileTree';
 
 export function WorkbenchFilesPanel() {
-  const { closeSidePanel } = useWorkbenchLayout();
+  const { closeSidePanel, fileExplorerEnabled } = useWorkbenchLayout();
   const remoteExplorer = useOptionalRemoteFileExplorer();
+
+  if (!fileExplorerEnabled) {
+    return null;
+  }
 
   return (
     <div className="border-l bg-background flex w-2/3 shrink-0 flex-col">
