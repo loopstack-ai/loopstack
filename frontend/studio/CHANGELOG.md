@@ -1,5 +1,15 @@
 # @loopstack/loopstack-studio
 
+## 0.23.0
+
+### Minor Changes
+
+- [#101](https://github.com/loopstack-ai/loopstack/pull/101) [`faac66e`](https://github.com/loopstack-ai/loopstack/commit/faac66eea4b7aa80e4f17b4575bccef347bbde29) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add sidebar navigation, new run dialog on runs overview, and action required page
+
+### Patch Changes
+
+- [#101](https://github.com/loopstack-ai/loopstack/pull/101) [`2b208fb`](https://github.com/loopstack-ai/loopstack/commit/2b208fb877c2614519915990d99320f16556000e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add configurable embed prefix to router, local environment health check, and local connectable env support
+
 ## 0.22.0
 
 ### Minor Changes
