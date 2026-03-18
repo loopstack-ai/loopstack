@@ -1,6 +1,17 @@
+import { useQuery } from '@tanstack/react-query';
 import { ReactFlowProvider } from '@xyflow/react';
 import { formatDistanceToNow } from 'date-fns';
-import { ChevronDown, ChevronRight, ListOrdered, Loader2, Navigation, Play, ScrollText, Workflow } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  ListOrdered,
+  Loader2,
+  Navigation,
+  Play,
+  RefreshCw,
+  ScrollText,
+  Workflow,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { PipelineInterface, PipelineItemInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
@@ -24,7 +35,7 @@ import { useFetchWorkflowsByPipeline } from '../hooks/useWorkflows.ts';
 import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
-type PreviewTab = 'output' | 'graph' | 'run-log' | 'navigate';
+type PreviewTab = 'output' | 'graph' | 'run-log' | 'navigate' | 'logs';
 
 const EMBED_MESSAGE_TYPE = 'loopstack:embed:workflow-completed';
 const EMBED_RESIZE_MESSAGE_TYPE = 'loopstack:embed:resize';
@@ -150,6 +161,7 @@ function PreviewWorkbenchContent({
     { value: 'output', label: 'Output', icon: <ScrollText className="h-3.5 w-3.5" /> },
     { value: 'graph', label: 'Graph', icon: <Workflow className="h-3.5 w-3.5" /> },
     { value: 'run-log', label: 'Run Log', icon: <ListOrdered className="h-3.5 w-3.5" /> },
+    { value: 'logs', label: 'Logs', icon: <ScrollText className="h-3.5 w-3.5" /> },
     // { value: 'navigate', label: 'Navigate', icon: <Navigation className="h-3.5 w-3.5" /> },
   ];
 
@@ -240,6 +252,8 @@ function PreviewWorkbenchContent({
             <EmbedNavigationContent pipelineId={pipelineId} />
           </div>
         )}
+
+        {activeTab === 'logs' && <EmbedLogsContent />}
       </div>
 
       <NewRunDialog open={newRunDialogOpen} onOpenChange={setNewRunDialogOpen} onSuccess={handleNewRunSuccess} />
@@ -375,6 +389,111 @@ function EmbedWorkflowSection({
         <div className="py-1">{children}</div>
       </CollapsibleContent>
     </Collapsible>
+  );
+}
+
+interface LogsResponse {
+  stdout: string;
+  stderr: string;
+}
+
+function stripAnsi(str: string): string {
+  // eslint-disable-next-line no-control-regex
+  return str.replace(/\x1b\[[0-9;]*m/g, '');
+}
+
+function LogLine({ line, index }: { line: string; index: number }) {
+  const clean = stripAnsi(line);
+  const isError = /\bERROR\b/.test(clean);
+  const isWarn = /\bWARN\b/.test(clean) || /\b(Warning|WARNING|DeprecationWarning)\b/.test(clean);
+
+  return (
+    <div
+      className={`group flex border-b border-border/30 hover:bg-accent/30 ${
+        isError ? 'bg-destructive/5' : isWarn ? 'bg-yellow-500/5' : ''
+      }`}
+    >
+      <span className="w-10 shrink-0 select-none border-r border-border/30 px-2 py-0.5 text-right text-[10px] text-muted-foreground/50">
+        {index + 1}
+      </span>
+      <span
+        className={`flex-1 px-3 py-0.5 text-[11px] leading-5 font-mono ${
+          isError ? 'text-destructive' : isWarn ? 'text-yellow-600 dark:text-yellow-400' : ''
+        }`}
+      >
+        {clean}
+      </span>
+    </div>
+  );
+}
+
+function EmbedLogsContent() {
+  const base = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8000';
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const logsQuery = useQuery({
+    queryKey: ['remote-agent-app-logs'],
+    queryFn: async (): Promise<LogsResponse> => {
+      const res = await fetch(`${base}/api/v1/app/logs?lines=200`, { credentials: 'include' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Failed to fetch logs (${res.status}): ${text}`);
+      }
+      return (await res.json()) as LogsResponse;
+    },
+    refetchInterval: 5000,
+  });
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [logsQuery.data]);
+
+  const lines = useMemo(() => {
+    const parts: string[] = [];
+    if (logsQuery.data?.stdout) parts.push(logsQuery.data.stdout);
+    if (logsQuery.data?.stderr) parts.push(logsQuery.data.stderr);
+    return parts
+      .join('\n')
+      .split('\n')
+      .filter((l) => l.length > 0);
+  }, [logsQuery.data]);
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex h-9 shrink-0 items-center justify-between border-b bg-muted/30 px-3">
+        <span className="text-xs font-medium text-muted-foreground">Application Logs</span>
+        <button
+          onClick={() => void logsQuery.refetch()}
+          className={`text-muted-foreground hover:text-foreground rounded-md p-1 transition-colors hover:cursor-pointer ${logsQuery.isFetching ? 'animate-spin' : ''}`}
+        >
+          <RefreshCw className="h-3 w-3" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-auto bg-background">
+        {logsQuery.isLoading && !logsQuery.data ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
+          </div>
+        ) : logsQuery.error ? (
+          <div className="px-4 py-3">
+            <p className="text-sm text-destructive">Error: {logsQuery.error.message}</p>
+          </div>
+        ) : lines.length > 0 ? (
+          <div className="font-mono">
+            {lines.map((line, i) => (
+              <LogLine key={i} line={line} index={i} />
+            ))}
+            <div ref={bottomRef} />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-2 py-8 text-muted-foreground">
+            <ScrollText className="h-5 w-5" />
+            <span className="text-xs">No logs available</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
