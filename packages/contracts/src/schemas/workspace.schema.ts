@@ -42,6 +42,15 @@ const FeaturesSchema = z.object({
     .optional(),
 });
 
+const WorkspaceActionSchema = z.object({
+  widget: z.string(),
+  options: z.record(z.string(), z.any()).optional(),
+});
+
+const WorkspaceUiSchema = z.object({
+  actions: z.array(WorkspaceActionSchema).optional(),
+});
+
 export const WorkspaceSchema = BlockSchema.extend({
   type: z.literal('workspace').default('workspace'),
   title: z.string().optional(),
@@ -49,4 +58,5 @@ export const WorkspaceSchema = BlockSchema.extend({
   volumes: z.record(z.string(), VolumeSchema).optional(),
   features: FeaturesSchema.optional(),
   environments: z.array(EnvironmentConfigSchema).optional(),
+  ui: WorkspaceUiSchema.optional(),
 });

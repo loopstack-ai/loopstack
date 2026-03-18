@@ -18,6 +18,7 @@ import PreviewWorkbenchPage from './pages/PreviewWorkbenchPage.tsx';
 import RunsListPage from './pages/RunsListPage.tsx';
 import RunsPage from './pages/RunsPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
+import WorkspaceRunsPage from './pages/WorkspaceRunsPage.tsx';
 import WorkspacesPage from './pages/WorkspacesPage.tsx';
 import { InvalidationEventsProvider } from './providers/InvalidationEventsProvider.tsx';
 import { QueryProvider } from './providers/QueryProvider.tsx';
@@ -111,6 +112,10 @@ const router: DataRouter = createBrowserRouter([
       {
         path: 'workspaces/:workspaceId',
         element: <WorkspacePage />,
+      },
+      {
+        path: 'workspaces/:workspaceId/runs',
+        element: <WorkspaceRunsPage />,
       },
       {
         path: 'pipelines/:pipelineId',

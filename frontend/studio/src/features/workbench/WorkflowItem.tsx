@@ -59,7 +59,7 @@ const WorkflowItem: React.FC<{
 
       <LoadingCentered loading={isLoading} />
 
-      {!!workflow && !embed && (
+      {!!workflow && (
         <div className="mt-6">
           <WorkflowForms workflow={workflow} onSubmit={handleRun} />
         </div>
