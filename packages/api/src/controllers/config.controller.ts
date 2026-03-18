@@ -111,7 +111,6 @@ export class ConfigController {
       return {
         blockName: workspace.constructor.name,
         title: config.title ?? workspace.constructor.name,
-        volumes: config.volumes,
         features: config.features,
         environments: config.environments,
         ui: resolvedUi,
