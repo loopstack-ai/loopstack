@@ -2,11 +2,6 @@ import { z } from 'zod';
 import { BlockSchema } from './block.schema';
 import { EnvironmentConfigSchema } from './environment-config.schema';
 
-const VolumeSchema = z.object({
-  path: z.string(),
-  permissions: z.array(z.enum(['read', 'write'])),
-});
-
 const FeaturesSchema = z.object({
   sidebar: z
     .object({
@@ -31,7 +26,7 @@ const FeaturesSchema = z.object({
   fileExplorer: z
     .object({
       enabled: z.boolean().optional(),
-      volume: z.string().optional(),
+      environments: z.array(z.string()).optional(),
       options: z.record(z.string(), z.any()).optional(),
     })
     .optional(),
@@ -55,7 +50,6 @@ export const WorkspaceSchema = BlockSchema.extend({
   type: z.literal('workspace').default('workspace'),
   title: z.string().optional(),
   description: z.string().optional(),
-  volumes: z.record(z.string(), VolumeSchema).optional(),
   features: FeaturesSchema.optional(),
   environments: z.array(EnvironmentConfigSchema).optional(),
   ui: WorkspaceUiSchema.optional(),

@@ -11,6 +11,7 @@ interface WorkflowGraphProps {
   pipelineConfig?: PipelineConfigInterface;
   onGraphReady: (workflowId: string, nodes: Node<StateNodeData>[], edges: Edge[]) => void;
   onLoadingChange: (workflowId: string, isLoading: boolean) => void;
+  direction?: 'LR' | 'TB';
 }
 
 function countTransitions(obj: unknown): number {
@@ -23,6 +24,7 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   pipelineConfig,
   onGraphReady,
   onLoadingChange,
+  direction = 'LR',
 }) => {
   const fetchWorkflow = useWorkflow(workflow.id);
   const workflowData = fetchWorkflow.data;
@@ -45,7 +47,7 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
 
     if (dataKey !== prevDataRef.current) {
       prevDataRef.current = dataKey;
-      const { nodes, edges } = buildWorkflowGraph(pipeline, workflowData, workflow.id, configTransitions, 'LR');
+      const { nodes, edges } = buildWorkflowGraph(pipeline, workflowData, workflow.id, configTransitions, direction);
       onGraphReady(workflow.id, nodes, edges);
     }
   }, [pipeline, workflow, workflowData, pipelineConfig, onGraphReady]);
