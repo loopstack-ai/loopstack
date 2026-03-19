@@ -141,11 +141,13 @@ Executes tool calls requested by the LLM and returns the results in the expected
 
 #### Arguments
 
-| Argument        | Type   | Required | Description                                                     |
-| --------------- | ------ | -------- | --------------------------------------------------------------- |
-| `message`       | object | Yes      | The LLM response message containing tool call parts             |
-| `message.id`    | string | Yes      | Message identifier                                              |
-| `message.parts` | array  | Yes      | Array of tool call parts with `type`, `input`, and `toolCallId` |
+| Argument              | Type    | Required | Description                                                               |
+| --------------------- | ------- | -------- | ------------------------------------------------------------------------- |
+| `message`             | object  | Yes      | The LLM response message containing tool call parts                       |
+| `message.id`          | string  | Yes      | Message identifier                                                        |
+| `message.parts`       | array   | Yes      | Array of tool call parts with `type`, `input`, and `toolCallId`           |
+| `document`            | string  | No       | Document name to auto-create with tool results (e.g. `aiMessageDocument`) |
+| `skipResponseMessage` | boolean | No       | When `true`, skip automatic document creation even if `document` is set   |
 
 #### Example
 
@@ -153,6 +155,7 @@ Executes tool calls requested by the LLM and returns the results in the expected
 - tool: delegateToolCall
   args:
     message: ${ llmResponse }
+    document: aiMessageDocument
   assign:
     toolCallResult: ${ result.data }
 ```

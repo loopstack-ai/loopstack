@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ToolUIPart, UIMessage } from 'ai';
 import { z } from 'zod';
 import {
@@ -22,6 +23,8 @@ const DelegateToolCallsToolSchema = z.object({
       }),
     ),
   }),
+  document: z.string().optional(),
+  skipResponseMessage: z.boolean().optional(),
 });
 
 type DelegateToolCallsToolArgs = z.infer<typeof DelegateToolCallsToolSchema>;
@@ -32,6 +35,8 @@ type DelegateToolCallsToolArgs = z.infer<typeof DelegateToolCallsToolSchema>;
   },
 })
 export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs> {
+  private readonly logger = new Logger(DelegateToolCall.name);
+
   @Input({
     schema: DelegateToolCallsToolSchema,
   })
@@ -61,18 +66,32 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
       if (!tool) {
         throw new Error(`Tool ${toolName} not found.`);
       }
-      const result: ToolResult = await tool.execute(part.input as Record<string, unknown>, ctx, parent, runtime);
 
-      resultParts.push({
-        type: part.type as ToolUIPart['type'],
-        toolCallId: part.toolCallId,
-        output: {
-          type: 'text',
-          value: JSON.stringify(result.data, null, 2),
-        },
-        input: part.input as Record<string, unknown>,
-        state: 'output-available',
-      } satisfies ToolUIPart);
+      try {
+        const result: ToolResult = await tool.execute(part.input as Record<string, unknown>, ctx, parent, runtime);
+
+        resultParts.push({
+          type: part.type as ToolUIPart['type'],
+          toolCallId: part.toolCallId,
+          output: {
+            type: 'text',
+            value: JSON.stringify(result.data, null, 2),
+          },
+          input: part.input as Record<string, unknown>,
+          state: 'output-available',
+        } satisfies ToolUIPart);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Tool "${toolName}" failed: ${errorMessage}`);
+
+        resultParts.push({
+          type: part.type as ToolUIPart['type'],
+          toolCallId: part.toolCallId,
+          input: part.input as Record<string, unknown>,
+          state: 'output-error',
+          errorText: errorMessage,
+        } as ToolUIPart);
+      }
     }
 
     const resultMessage: UIMessage = {
@@ -81,8 +100,41 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
       parts: resultParts,
     };
 
+    if (args.document && !args.skipResponseMessage) {
+      const docResult = await this.createResponseMessage(args, resultMessage, ctx, parent, runtime);
+
+      return {
+        data: resultMessage,
+        effects: docResult.effects,
+      };
+    }
+
     return {
       data: resultMessage,
     };
+  }
+
+  private async createResponseMessage(
+    args: DelegateToolCallsToolArgs,
+    resultMessage: UIMessage,
+    ctx: RunContext,
+    parent: WorkflowInterface,
+    runtime: WorkflowMetadataInterface,
+  ): Promise<ToolResult> {
+    const createDocumentTool = getBlockTool<ToolInterface>(parent, 'createDocument');
+    if (!createDocumentTool) {
+      throw new Error('createDocument tool not found in parent context.');
+    }
+
+    return createDocumentTool.execute(
+      {
+        id: args.message.id,
+        document: args.document,
+        update: { content: resultMessage },
+      },
+      ctx,
+      parent,
+      runtime,
+    );
   }
 }
