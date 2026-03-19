@@ -161,38 +161,10 @@ export class FileApiService {
       );
     }
 
-    const volumeName = fileExplorer.volume ?? 'default';
-
-    if (!('volumes' in config) || !config.volumes) {
-      throw new BadRequestException(
-        `Volumes are not configured for workspace ${workspaceBlockName}. Please configure volumes in the workspace config.`,
-      );
-    }
-
-    const volumes = config.volumes;
-    if (!volumes[volumeName]) {
-      throw new BadRequestException(
-        `Volume '${volumeName}' is not configured for workspace ${workspaceBlockName}. Please configure it in the workspace config.`,
-      );
-    }
-
-    const volume = volumes[volumeName];
-    if (!volume || !volume.path) {
-      throw new BadRequestException(
-        `Volume '${volumeName}' does not have a path configured for workspace ${workspaceBlockName}.`,
-      );
-    }
-
-    if (!volume.permissions || !Array.isArray(volume.permissions) || volume.permissions.length === 0) {
-      throw new BadRequestException(
-        `Volume '${volumeName}' does not have permissions configured for workspace ${workspaceBlockName}.`,
-      );
-    }
-
     return {
-      path: volume.path,
-      permissions: volume.permissions,
-      volumeName,
+      path: 'deprecated',
+      permissions: ['read', 'write'],
+      volumeName: 'deprecated',
     };
   }
 
