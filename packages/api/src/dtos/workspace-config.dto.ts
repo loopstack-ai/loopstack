@@ -7,7 +7,9 @@ import type {
   FlyInstanceFeatureInterface,
   SidebarFeatureInterface,
   VolumeInterface,
+  WorkspaceActionInterface,
   WorkspaceConfigInterface,
+  WorkspaceUiInterface,
 } from '@loopstack/contracts/api';
 
 export class VolumeDto implements VolumeInterface {
@@ -160,6 +162,32 @@ export class FeaturesDto implements FeaturesInterface {
   previewPanel?: SidebarFeatureDto;
 }
 
+export class WorkspaceActionDto implements WorkspaceActionInterface {
+  @Expose()
+  @ApiProperty({
+    description: 'Widget type for this action',
+    example: 'start-form',
+  })
+  widget: string;
+
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'Options for this action widget',
+  })
+  options?: Record<string, any>;
+}
+
+export class WorkspaceUiDto implements WorkspaceUiInterface {
+  @Expose()
+  @Type(() => WorkspaceActionDto)
+  @ApiPropertyOptional({
+    description: 'UI actions for this workspace',
+    type: WorkspaceActionDto,
+    isArray: true,
+  })
+  actions?: WorkspaceActionDto[];
+}
+
 export class WorkspaceConfigDto implements WorkspaceConfigInterface {
   /**
    * Config Key of the workspace
@@ -202,4 +230,12 @@ export class WorkspaceConfigDto implements WorkspaceConfigInterface {
     isArray: true,
   })
   environments?: EnvironmentConfigDto[];
+
+  @Expose()
+  @Type(() => WorkspaceUiDto)
+  @ApiPropertyOptional({
+    description: 'UI configuration for this workspace',
+    type: WorkspaceUiDto,
+  })
+  ui?: WorkspaceUiDto;
 }

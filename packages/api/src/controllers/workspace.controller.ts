@@ -145,7 +145,6 @@ export class WorkspaceController {
   async getWorkspaceById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<WorkspaceDto> {
     const workspace = await this.workspaceService.findOneById(id, user.userId);
 
-    let volumes: Record<string, VolumeDto> | undefined;
     let features: FeaturesDto | undefined;
 
     if (workspace.blockName) {
@@ -153,14 +152,12 @@ export class WorkspaceController {
       if (workspaceBlock) {
         const config = getBlockConfig<WorkspaceType>(workspaceBlock) as WorkspaceType;
         if (config) {
-          volumes = config.volumes;
           features = config.features;
         }
       }
     }
 
     const workspaceDto = WorkspaceDto.create(workspace);
-    workspaceDto.volumes = volumes;
     workspaceDto.features = features;
     return workspaceDto;
   }

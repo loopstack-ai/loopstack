@@ -11,6 +11,7 @@ export const WorkflowTransitionConfigSchema = z
     trigger: z.union([z.enum(['manual', 'onEntry']), TemplateExpression]).optional(),
     call: z.array(ToolCallConfigSchema).optional(),
     onError: z.string().optional(),
+    debug: z.boolean().optional(),
   })
   .strict();
 
@@ -23,5 +24,6 @@ export const WorkflowTransitionSchema = z
     trigger: z.enum(['manual', 'onEntry']).optional(),
     call: z.array(ToolCallSchema).optional(),
     onError: z.string().optional(),
+    debug: z.boolean().optional(),
   })
   .strict();

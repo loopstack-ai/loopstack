@@ -76,6 +76,8 @@ export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
 
     const { uiMessage, usage } = await this.handleGenerateText(model, options);
 
+    console.log(uiMessage, usage);
+
     return {
       data: uiMessage,
       metadata: { usage },

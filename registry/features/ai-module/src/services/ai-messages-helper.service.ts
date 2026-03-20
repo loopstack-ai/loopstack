@@ -23,8 +23,6 @@ export class AiMessagesHelperService {
       messages = this.searchMessages(documents, args.messagesSearchTag ?? 'message');
     }
 
-    console.log(JSON.stringify(messages, null, 2));
-
     return messages;
   }
 }

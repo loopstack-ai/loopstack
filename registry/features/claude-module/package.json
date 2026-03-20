@@ -1,0 +1,76 @@
+{
+  "name": "@loopstack/claude-module",
+  "displayName": "Loopstack Claude Module",
+  "description": "A collection of tools for performing AI actions using the Anthropic Claude API directly via the official SDK",
+  "keywords": [
+    "ai",
+    "anthropic",
+    "claude",
+    "llm",
+    "loopstack",
+    "tool"
+  ],
+  "version": "0.20.6",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@loopstack/common": "^0.23.0",
+    "@loopstack/core-ui-module": "^0.20.6",
+    "@nestjs/common": "^11.1.14",
+    "@nestjs/config": "^4.0.3",
+    "@nestjs/core": "^11.1.14",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1
+  },
+  "loopstack": {
+    "modules": [
+      {
+        "path": "src/claude.module.ts",
+        "className": "ClaudeModule"
+      }
+    ],
+    "installModes": [
+      "add",
+      "install"
+    ]
+  }
+}

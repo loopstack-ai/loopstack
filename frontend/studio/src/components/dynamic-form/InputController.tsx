@@ -6,6 +6,8 @@ import { CheckboxField } from './fields/CheckboxField';
 import type { CheckboxFieldSchema } from './fields/CheckboxField';
 import { CodeViewField } from './fields/CodeViewField';
 import type { CodeFieldSchema } from './fields/CodeViewField';
+import { MarkdownViewField } from './fields/MarkdownViewField';
+import type { MarkdownFieldSchema } from './fields/MarkdownViewField';
 import { RadioField } from './fields/RadioField';
 import type { RadioFieldSchema } from './fields/RadioField';
 import { SelectField } from './fields/SelectField';
@@ -16,7 +18,16 @@ import { SwitchField } from './fields/SwitchField';
 import type { SwitchFieldSchema } from './fields/SwitchField';
 import type { FieldProps } from './types';
 
-type WidgetType = 'checkbox' | 'radio' | 'switch' | 'select' | 'slider' | 'text' | 'code-view' | 'textarea';
+type WidgetType =
+  | 'checkbox'
+  | 'radio'
+  | 'switch'
+  | 'select'
+  | 'slider'
+  | 'text'
+  | 'code-view'
+  | 'markdown-view'
+  | 'textarea';
 
 type FieldSchema =
   | CheckboxFieldSchema
@@ -26,7 +37,8 @@ type FieldSchema =
   | SliderFieldSchema
   | InputFieldSchema
   | TextareaFieldSchema
-  | CodeFieldSchema;
+  | CodeFieldSchema
+  | MarkdownFieldSchema;
 
 const WIDGET_REGISTRY: Record<WidgetType, React.ComponentType<FieldProps & { schema: any }>> = {
   checkbox: CheckboxField,
@@ -37,6 +49,7 @@ const WIDGET_REGISTRY: Record<WidgetType, React.ComponentType<FieldProps & { sch
   text: InputField,
   textarea: TextareaField,
   'code-view': CodeViewField,
+  'markdown-view': MarkdownViewField,
 } as const;
 
 const WIDGET_NAMES = Object.keys(WIDGET_REGISTRY) as WidgetType[];

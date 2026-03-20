@@ -30,6 +30,7 @@ export class StateMachineToolCallProcessorService {
   async processToolCalls(
     ctx: WorkflowExecutionContextManager,
     toolCalls: ToolCallType[] | undefined,
+    debug = false,
   ): Promise<WorkflowExecutionContextManager> {
     const transition = ctx.getManager().getData('transition')!;
 
@@ -68,6 +69,11 @@ export class StateMachineToolCallProcessorService {
           parsedArgs = schema ? (schema.parse(evaluatedArgs) as Record<string, unknown> | undefined) : evaluatedArgs;
         }
 
+        if (debug) {
+          this.logger.log(`[DEBUG] Transition "${transition.id}" | Tool "${toolCall.tool}" args:`);
+          console.log(JSON.stringify(parsedArgs, null, 2));
+        }
+
         const execContext: ToolExecutionContext = {
           tool,
           args: parsedArgs,
@@ -89,7 +95,12 @@ export class StateMachineToolCallProcessorService {
 
         await this.toolExecutionInterceptorService.afterExecute(execContext, toolCallResult);
 
-        this.assignToTargetBlock(ctx, toolCall.assign as AssignmentConfigType, toolCallResult);
+        if (debug) {
+          this.logger.log(`[DEBUG] Transition "${transition.id}" | Tool "${toolCall.tool}" result:`);
+          console.log(JSON.stringify(toolCallResult, null, 2));
+        }
+
+        this.assignToTargetBlock(ctx, toolCall.assign as AssignmentConfigType, toolCallResult, debug);
 
         if (toolCall.id) {
           toolResults[toolCall.id] = toolCallResult;
@@ -169,19 +180,31 @@ export class StateMachineToolCallProcessorService {
     });
   }
 
-  assignToTargetBlock(ctx: ExecutionContextManager, assign: AssignmentConfigType | undefined, result: ToolResult) {
+  assignToTargetBlock(
+    ctx: ExecutionContextManager,
+    assign: AssignmentConfigType | undefined,
+    result: ToolResult,
+    debug = false,
+  ) {
     if (assign) {
       const update: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(assign)) {
         update[key] = this.templateExpressionEvaluatorService.evaluateTemplateRaw<string>(
           value,
-          { result },
+          { ...getTemplateVars(ctx), result },
           {
             cacheKey: ctx.getInstance().constructor.name,
             helpers: getBlockTemplateHelpers(ctx.getInstance()),
             schema: z.array(WorkflowTransitionSchema),
           },
         );
+      }
+
+      if (debug) {
+        for (const [key, val] of Object.entries(update)) {
+          this.logger.log(`[DEBUG] Assign state "${key}":`);
+          console.log(JSON.stringify(val, null, 2));
+        }
       }
 
       ctx.getManager().update(update);

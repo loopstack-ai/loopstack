@@ -161,10 +161,12 @@ export class StateMachineProcessorService {
       this.logger.debug(`Applying next transition: ${currentTransition.id}`);
 
       // get tool calls for transition
-      const toolCalls = config.transitions.find((transition) => transition.id === currentTransition.id)?.call;
+      const configTransition = config.transitions.find((transition) => transition.id === currentTransition.id);
+      const toolCalls = configTransition?.call;
+      const debug = configTransition?.debug ?? false;
 
       try {
-        ctx = await this.stateMachineToolCallProcessorService.processToolCalls(ctx, toolCalls);
+        ctx = await this.stateMachineToolCallProcessorService.processToolCalls(ctx, toolCalls, debug);
         this.commitWorkflowTransition(ctx);
       } catch (e: unknown) {
         if (currentTransition.onError) {

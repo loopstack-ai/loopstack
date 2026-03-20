@@ -38,7 +38,14 @@ import { BlockDiscoveryService } from '@loopstack/core';
 import { AvailableEnvironmentDto } from '../dtos/available-environment.dto';
 import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
 import { PipelineSourceDto } from '../dtos/pipeline-source.dto';
-import { EnvironmentConfigDto, FeaturesDto, VolumeDto, WorkspaceConfigDto } from '../dtos/workspace-config.dto';
+import {
+  EnvironmentConfigDto,
+  FeaturesDto,
+  VolumeDto,
+  WorkspaceActionDto,
+  WorkspaceConfigDto,
+  WorkspaceUiDto,
+} from '../dtos/workspace-config.dto';
 import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from '../tokens';
 
 @ApiTags('api/v1/config')
@@ -50,6 +57,8 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from '../tokens';
   FeaturesDto,
   EnvironmentConfigDto,
   AvailableEnvironmentDto,
+  WorkspaceActionDto,
+  WorkspaceUiDto,
 )
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/config')
@@ -74,12 +83,37 @@ export class ConfigController {
         throw new Error(`Block ${workspace.constructor.name} is missing @BlockConfig decorator`);
       }
 
+      // Resolve ui.actions — enrich any action that references a pipeline with its schema/ui
+      let resolvedUi: WorkspaceConfigDto['ui'] | undefined;
+      if (config.ui?.actions?.length) {
+        const resolvedActions = config.ui.actions.map((action) => {
+          const pipelineName = action.options?.workflow as string | undefined;
+          if (!pipelineName) return action;
+
+          const workflow = getBlockWorkflow<WorkflowInterface>(workspace, pipelineName);
+          if (!workflow) return action;
+
+          const workflowConfig = getBlockConfig<WorkflowType>(workflow);
+          const argsSchema = getBlockArgsSchema(workflow);
+
+          return {
+            ...action,
+            options: {
+              ...action.options,
+              schema: argsSchema ? (toJSONSchema(argsSchema) as JSONSchemaDefinition) : undefined,
+              pipelineUi: workflowConfig?.ui,
+            },
+          };
+        });
+        resolvedUi = { actions: resolvedActions };
+      }
+
       return {
         blockName: workspace.constructor.name,
         title: config.title ?? workspace.constructor.name,
-        volumes: config.volumes,
         features: config.features,
         environments: config.environments,
+        ui: resolvedUi,
       };
     });
 

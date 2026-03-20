@@ -11,7 +11,7 @@ export interface SidebarFeatureInterface {
 
 export interface FileExplorerFeatureInterface {
   enabled?: boolean;
-  volume?: string;
+  environments?: string[];
   options?: Record<string, unknown>;
 }
 
@@ -72,12 +72,22 @@ export interface WorkspaceUpdateInterface {
   environments?: WorkspaceEnvironmentInterface[];
 }
 
+export interface WorkspaceActionInterface {
+  widget: string;
+  options?: Record<string, any>;
+}
+
+export interface WorkspaceUiInterface {
+  actions?: WorkspaceActionInterface[];
+}
+
 export interface WorkspaceConfigInterface {
   blockName: string;
   title?: string;
   volumes?: Record<string, VolumeInterface>;
   features?: FeaturesInterface;
   environments?: EnvironmentConfigInterface[];
+  ui?: WorkspaceUiInterface;
 }
 
 export interface WorkspaceEnvironmentInterface {

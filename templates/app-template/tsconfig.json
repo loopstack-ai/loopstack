@@ -1,10 +1,26 @@
 {
-  "extends": "../tsconfig.base.json",
   "compilerOptions": {
+    "target": "ES2023",
+    "module": "CommonJS",
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "declaration": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+    "noUnusedLocals": false,
+    "noFallthroughCasesInSwitch": false,
+    "useUnknownInCatchVariables": false
   },
-  "exclude": ["node_modules", "dist"],
-  "include": ["./src", "./test"]
+  "include": ["./src", "./test"],
+  "exclude": ["node_modules", "dist"]
 }

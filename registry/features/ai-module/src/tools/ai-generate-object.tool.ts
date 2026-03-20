@@ -114,8 +114,6 @@ export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType>
   ): Promise<GenerateTextResult<ToolSet, any>> {
     const startTime = performance.now();
     try {
-      console.log(options.schema);
-
       return generateText({
         model,
         messages: options.messages,
