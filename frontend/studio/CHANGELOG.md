@@ -1,5 +1,14 @@
 # @loopstack/loopstack-studio
 
+## 0.23.1
+
+### Patch Changes
+
+- [#106](https://github.com/loopstack-ai/loopstack/pull/106) [`75416d0`](https://github.com/loopstack-ai/loopstack/commit/75416d062351ee4db69786388ef022b5ee13ab0e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add Claude message document renderer with support for thinking blocks, tool use, and tool results
+
+- Updated dependencies [[`8d9273e`](https://github.com/loopstack-ai/loopstack/commit/8d9273e5e08191682364c4b1282953e24a929f43)]:
+  - @loopstack/contracts@0.23.1
+
 ## 0.23.0
 
 ### Minor Changes

@@ -1,5 +1,15 @@
 # @loopstack/api
 
+## 0.23.1
+
+### Patch Changes
+
+- [#106](https://github.com/loopstack-ai/loopstack/pull/106) [`8d9273e`](https://github.com/loopstack-ai/loopstack/commit/8d9273e5e08191682364c4b1282953e24a929f43) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add workspace UI action configuration and debug flag for workflow transitions
+
+- Updated dependencies [[`8d9273e`](https://github.com/loopstack-ai/loopstack/commit/8d9273e5e08191682364c4b1282953e24a929f43), [`8d9273e`](https://github.com/loopstack-ai/loopstack/commit/8d9273e5e08191682364c4b1282953e24a929f43)]:
+  - @loopstack/core@0.23.1
+  - @loopstack/contracts@0.23.1
+
 ## 0.23.0
 
 ### Patch Changes

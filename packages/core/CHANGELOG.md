@@ -1,5 +1,11 @@
 # @loopstack/core
 
+## 0.23.1
+
+### Patch Changes
+
+- [#106](https://github.com/loopstack-ai/loopstack/pull/106) [`8d9273e`](https://github.com/loopstack-ai/loopstack/commit/8d9273e5e08191682364c4b1282953e24a929f43) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add debug logging for workflow transitions and fix template variable context in state assignments
+
 ## 0.23.0
 
 ### Patch Changes
