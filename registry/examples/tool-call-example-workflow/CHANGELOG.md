@@ -1,5 +1,14 @@
 # @loopstack/tool-call-example-workflow
 
+## 0.20.7
+
+### Patch Changes
+
+- [#106](https://github.com/loopstack-ai/loopstack/pull/106) [`c36038f`](https://github.com/loopstack-ai/loopstack/commit/c36038f110f74e1ae8961866d95406da7a19e8a2) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add document auto-creation to delegate-tool-call, improve error handling, and simplify tool-call example workflow
+
+- Updated dependencies [[`c36038f`](https://github.com/loopstack-ai/loopstack/commit/c36038f110f74e1ae8961866d95406da7a19e8a2)]:
+  - @loopstack/ai-module@0.20.7
+
 ## 0.20.6
 
 ### Patch Changes

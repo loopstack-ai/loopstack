@@ -1,5 +1,15 @@
 # @loopstack/app-template
 
+## 0.18.8
+
+### Patch Changes
+
+- [#106](https://github.com/loopstack-ai/loopstack/pull/106) [`75416d0`](https://github.com/loopstack-ai/loopstack/commit/75416d062351ee4db69786388ef022b5ee13ab0e) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Remove hello-world example workflow and simplify default workspace scaffold
+
+- Updated dependencies [[`8d9273e`](https://github.com/loopstack-ai/loopstack/commit/8d9273e5e08191682364c4b1282953e24a929f43), [`8d9273e`](https://github.com/loopstack-ai/loopstack/commit/8d9273e5e08191682364c4b1282953e24a929f43)]:
+  - @loopstack/core@0.23.1
+  - @loopstack/api@0.23.1
+
 ## 0.18.7
 
 ### Patch Changes
