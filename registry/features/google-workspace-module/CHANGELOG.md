@@ -1,5 +1,11 @@
 # @loopstack/core-ui-module
 
+## 0.2.0
+
+### Minor Changes
+
+- [#106](https://github.com/loopstack-ai/loopstack/pull/106) [`ba11102`](https://github.com/loopstack-ai/loopstack/commit/ba11102b8b79d0e7875c6b773b020ea0d5644d31) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add tools for calendar, drive and gmail
+
 ## 0.1.3
 
 ### Patch Changes

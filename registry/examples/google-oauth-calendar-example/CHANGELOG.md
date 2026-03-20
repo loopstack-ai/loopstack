@@ -1,5 +1,13 @@
 # @loopstack/google-oauth-calendar-example
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [[`8d9273e`](https://github.com/loopstack-ai/loopstack/commit/8d9273e5e08191682364c4b1282953e24a929f43), [`ba11102`](https://github.com/loopstack-ai/loopstack/commit/ba11102b8b79d0e7875c6b773b020ea0d5644d31)]:
+  - @loopstack/core@0.23.1
+  - @loopstack/google-workspace-module@0.2.0
+
 ## 0.1.5
 
 ### Patch Changes
