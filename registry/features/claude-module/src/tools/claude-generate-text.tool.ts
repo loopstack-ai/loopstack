@@ -14,6 +14,7 @@ import { ClaudeGenerateToolBaseSchema } from '../schemas/claude-generate-tool-ba
 import { ClaudeClientService } from '../services';
 import { ClaudeMessagesHelperService } from '../services';
 import { ClaudeToolsHelperService } from '../services';
+import { applyCacheBreakpoints } from '../utils/cache.utils';
 
 export const ClaudeGenerateTextSchema = ClaudeGenerateToolBaseSchema.extend({
   tools: z.array(z.string()).optional(),
@@ -68,6 +69,7 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
       system: args.system,
       maxTokens: args.claude?.maxTokens,
       tools,
+      cache: args.claude?.cache,
     });
 
     return {
@@ -76,6 +78,8 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
         usage: {
           inputTokens: response.usage.input_tokens,
           outputTokens: response.usage.output_tokens,
+          cacheCreationInputTokens: response.usage.cache_creation_input_tokens ?? 0,
+          cacheReadInputTokens: response.usage.cache_read_input_tokens ?? 0,
         },
       },
     };
@@ -89,16 +93,21 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
       system?: string;
       maxTokens?: number;
       tools?: Anthropic.Tool[];
+      cache?: boolean;
     },
   ): Promise<Anthropic.Message> {
+    const { system, tools, messages } = options.cache
+      ? applyCacheBreakpoints({ system: options.system, tools: options.tools, messages: options.messages })
+      : { system: options.system, tools: options.tools, messages: options.messages };
+
     const startTime = performance.now();
     try {
       const stream = client.messages.stream({
         model: options.model,
-        messages: options.messages,
+        messages,
         max_tokens: options.maxTokens ?? 4096,
-        ...(options.system ? { system: options.system } : {}),
-        ...(options.tools ? { tools: options.tools } : {}),
+        ...(system ? { system } : {}),
+        ...(tools ? { tools } : {}),
       });
 
       return await stream.finalMessage();

@@ -5,6 +5,7 @@ import { Document, Input } from '@loopstack/common';
 export const ClaudeMessageDocumentSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.union([z.string(), z.array(z.any())]),
+  toolResults: z.array(z.any()).optional(),
 });
 
 export type ClaudeMessageDocumentContentType = z.infer<typeof ClaudeMessageDocumentSchema>;

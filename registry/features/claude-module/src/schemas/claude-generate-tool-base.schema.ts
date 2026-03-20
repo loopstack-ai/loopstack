@@ -6,6 +6,7 @@ export const ClaudeGenerateToolBaseSchema = z.object({
       model: z.string().optional(),
       envApiKey: z.string().optional(),
       maxTokens: z.number().optional(),
+      cache: z.boolean().optional(),
     })
     .optional(),
   messages: z

@@ -5,6 +5,7 @@ import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contra
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { OAuthPromptRenderer } from '@/features/oauth';
 import AiMessage from './renderers/AiMessage.tsx';
+import ClaudeMessage from './renderers/ClaudeMessage.tsx';
 import DocumentDebugRenderer from './renderers/DocumentDebugRenderer.tsx';
 import DocumentFormRenderer from './renderers/DocumentFormRenderer.tsx';
 import DocumentMessageRenderer from './renderers/DocumentMessageRenderer.tsx';
@@ -29,6 +30,7 @@ type WidgetRenderer = ComponentType<DocumentRendererProps>;
  */
 const rendererRegistry = new Map<string, WidgetRenderer>([
   ['ai-message', ({ document, isLastItem }) => <AiMessage document={document} isLastItem={isLastItem} />],
+  ['claude-message', ({ document, isLastItem }) => <ClaudeMessage document={document} isLastItem={isLastItem} />],
   [
     'debug',
     ({ document }) => (

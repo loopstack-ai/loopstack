@@ -14,6 +14,7 @@ import {
 
 const ClaudeDelegateToolCallSchema = z.object({
   message: z.object({
+    id: z.string().optional(),
     content: z.array(z.any()),
   }),
   document: z.string().optional(),
@@ -106,11 +107,13 @@ export class ClaudeDelegateToolCall implements ToolInterface<ClaudeDelegateToolC
 
     return createDocumentTool.execute(
       {
+        id: args.message.id,
         document: args.document,
         update: {
           content: {
-            role: 'user',
-            content: toolResults,
+            role: 'assistant',
+            content: args.message.content,
+            toolResults,
           },
         },
       },

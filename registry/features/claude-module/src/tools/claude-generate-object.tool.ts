@@ -16,6 +16,7 @@ import {
 import { ClaudeGenerateToolBaseSchema } from '../schemas/claude-generate-tool-base.schema';
 import { ClaudeClientService } from '../services';
 import { ClaudeMessagesHelperService } from '../services';
+import { applyCacheBreakpoints } from '../utils/cache.utils';
 
 export const ClaudeGenerateObjectSchema = ClaudeGenerateToolBaseSchema.extend({
   response: z.object({
@@ -83,6 +84,7 @@ export class ClaudeGenerateObject implements ToolInterface<ClaudeGenerateObjectA
       system: args.system,
       maxTokens: args.claude?.maxTokens,
       inputSchema: jsonSchema as Anthropic.Tool['input_schema'],
+      cache: args.claude?.cache,
     });
 
     return {
@@ -91,6 +93,8 @@ export class ClaudeGenerateObject implements ToolInterface<ClaudeGenerateObjectA
         usage: {
           inputTokens: response.usage.input_tokens,
           outputTokens: response.usage.output_tokens,
+          cacheCreationInputTokens: response.usage.cache_creation_input_tokens ?? 0,
+          cacheReadInputTokens: response.usage.cache_read_input_tokens ?? 0,
         },
       },
     };
@@ -104,22 +108,27 @@ export class ClaudeGenerateObject implements ToolInterface<ClaudeGenerateObjectA
       system?: string;
       maxTokens?: number;
       inputSchema: Anthropic.Tool['input_schema'];
+      cache?: boolean;
     },
   ): Promise<{ data: unknown; usage: Anthropic.Usage }> {
+    const baseTool: Anthropic.Tool = {
+      name: STRUCTURED_OUTPUT_TOOL_NAME,
+      description: 'Return the structured output matching the schema.',
+      input_schema: options.inputSchema,
+    };
+
+    const { system, tools, messages } = options.cache
+      ? applyCacheBreakpoints({ system: options.system, tools: [baseTool], messages: options.messages })
+      : { system: options.system, tools: [baseTool], messages: options.messages };
+
     const startTime = performance.now();
     try {
       const response = await client.messages.create({
         model: options.model,
-        messages: options.messages,
+        messages,
         max_tokens: options.maxTokens ?? 4096,
-        ...(options.system ? { system: options.system } : {}),
-        tools: [
-          {
-            name: STRUCTURED_OUTPUT_TOOL_NAME,
-            description: 'Return the structured output matching the schema.',
-            input_schema: options.inputSchema,
-          },
-        ],
+        ...(system ? { system } : {}),
+        tools: tools!,
         tool_choice: { type: 'tool', name: STRUCTURED_OUTPUT_TOOL_NAME },
       });
 
