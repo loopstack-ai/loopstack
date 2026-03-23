@@ -1,5 +1,13 @@
-import type { DataContent, FilePart, ImagePart, ModelMessage, TextPart, ToolCallPart, ToolResultPart } from 'ai';
 import React from 'react';
+import type {
+  DataContent,
+  FilePart,
+  ImagePart,
+  ModelMessage,
+  TextPart,
+  ToolCallPart,
+  ToolResultPart,
+} from '@/types/ai.types';
 
 interface ReasoningPart {
   type: 'reasoning';
@@ -125,7 +133,7 @@ const MessageContentRenderer: React.FC<{ message: ModelMessage }> = ({ message }
       return (
         <div className="rounded-lg border-l-4 border-gray-400 bg-gray-50 p-3 text-sm text-gray-600 italic">
           <div className="mb-1 font-medium">System</div>
-          <div className="whitespace-pre-wrap">{message.content}</div>
+          <div className="whitespace-pre-wrap">{message.content as string}</div>
         </div>
       );
     }

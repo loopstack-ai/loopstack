@@ -1,12 +1,12 @@
 'use client';
 
-import type { DynamicToolUIPart, ToolUIPart } from 'ai';
 import { CheckCircleIcon, ChevronDownIcon, CircleIcon, ClockIcon, WrenchIcon, XCircleIcon } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
 import { isValidElement } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import type { DynamicToolUIPart, ToolUIPart } from '@/types/ai.types';
 import { CodeBlock } from './code-block';
 
 export type ToolProps = ComponentProps<typeof Collapsible>;
@@ -28,7 +28,6 @@ const getStatusBadge = (status: ToolState) => {
   const labels: Record<ToolState, string> = {
     'input-streaming': 'Pending',
     'input-available': 'Running',
-    // @ts-ignore
     'approval-requested': 'Awaiting Approval',
     'approval-responded': 'Responded',
     'output-available': 'Completed',
@@ -39,7 +38,6 @@ const getStatusBadge = (status: ToolState) => {
   const icons: Record<ToolState, ReactNode> = {
     'input-streaming': <CircleIcon className="size-4" />,
     'input-available': <ClockIcon className="size-4 animate-pulse" />,
-    // @ts-ignore
     'approval-requested': <ClockIcon className="size-4 text-yellow-600" />,
     'approval-responded': <CheckCircleIcon className="size-4 text-blue-600" />,
     'output-available': <CheckCircleIcon className="size-4 text-green-600" />,
@@ -92,7 +90,7 @@ export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
 );
 
 export type ToolOutputProps = ComponentProps<'div'> & {
-  output: ToolUIPart['output'] | DynamicToolUIPart['output'];
+  output: ToolUIPart['output'] | DynamicToolUIPart['output'] | unknown;
   errorText: ToolUIPart['errorText'] | DynamicToolUIPart['errorText'];
 };
 

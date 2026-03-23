@@ -1,10 +1,10 @@
 'use client';
 
-import type { ToolUIPart } from 'ai';
 import { type ComponentProps, type ReactNode, createContext, useContext } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import type { ToolUIPart } from '@/types/ai.types';
 
 type ToolUIPartApproval =
   | {
@@ -81,8 +81,6 @@ export type ConfirmationRequestProps = {
 export const ConfirmationRequest = ({ children }: ConfirmationRequestProps) => {
   const { state } = useConfirmation();
 
-  // Only show when approval is requested
-  // @ts-ignore
   if (state !== 'approval-requested') {
     return null;
   }
@@ -97,14 +95,9 @@ export type ConfirmationAcceptedProps = {
 export const ConfirmationAccepted = ({ children }: ConfirmationAcceptedProps) => {
   const { approval, state } = useConfirmation();
 
-  // Only show when approved and in response states
   if (
     !approval?.approved ||
-    // @ts-ignore
-    (state !== 'approval-responded' &&
-      // @ts-ignore
-      state !== 'output-denied' &&
-      state !== 'output-available')
+    (state !== 'approval-responded' && state !== 'output-denied' && state !== 'output-available')
   ) {
     return null;
   }
@@ -119,14 +112,9 @@ export type ConfirmationRejectedProps = {
 export const ConfirmationRejected = ({ children }: ConfirmationRejectedProps) => {
   const { approval, state } = useConfirmation();
 
-  // Only show when rejected and in response states
   if (
     approval?.approved !== false ||
-    // @ts-ignore
-    (state !== 'approval-responded' &&
-      // @ts-ignore
-      state !== 'output-denied' &&
-      state !== 'output-available')
+    (state !== 'approval-responded' && state !== 'output-denied' && state !== 'output-available')
   ) {
     return null;
   }
@@ -139,8 +127,6 @@ export type ConfirmationActionsProps = ComponentProps<'div'>;
 export const ConfirmationActions = ({ className, ...props }: ConfirmationActionsProps) => {
   const { state } = useConfirmation();
 
-  // Only show when approval is requested
-  // @ts-ignore
   if (state !== 'approval-requested') {
     return null;
   }
