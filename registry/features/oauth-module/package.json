@@ -32,6 +32,7 @@
     "@loopstack/common": "^0.23.0",
     "@loopstack/core-ui-module": "^0.20.6",
     "@loopstack/create-chat-message-tool": "^0.20.6",
+    "ioredis": "^5.9.3",
     "zod": "^4.3.6"
   },
   "files": [
