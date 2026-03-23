@@ -1,10 +1,12 @@
 {
-  "name": "@loopstack/google-oauth-calendar-example",
-  "displayName": "Google OAuth Calendar Example",
-  "description": "An example module demonstrating how to fetch Google Calendar events with OAuth authentication using the Loopstack automation framework. Shows the sub-workflow pattern for handling OAuth flows.",
+  "name": "@loopstack/google-oauth-example",
+  "displayName": "Google OAuth Example",
+  "description": "An example module demonstrating how to interact with Google Calendar, Gmail, and Google Drive using OAuth authentication with the Loopstack automation framework. Includes a structured calendar workflow and an interactive chat agent powered by an LLM.",
   "keywords": [
     "calendar",
+    "drive",
     "example",
+    "gmail",
     "google",
     "loopstack",
     "oauth"
@@ -30,6 +32,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
+    "@loopstack/ai-module": "^0.20.6",
     "@loopstack/common": "^0.23.0",
     "@loopstack/core": "^0.23.1",
     "@loopstack/core-ui-module": "^0.20.6",
@@ -61,8 +64,8 @@
     ],
     "modules": [
       {
-        "path": "src/calendar-example.module.ts",
-        "className": "CalendarExampleModule"
+        "path": "src/google-example.module.ts",
+        "className": "GoogleExampleModule"
       },
       {
         "package": "@loopstack/oauth-module",
@@ -78,6 +81,11 @@
         "path": "src/workflows/calendar-summary.workflow.ts",
         "className": "CalendarSummaryWorkflow",
         "propertyName": "calendarSummary"
+      },
+      {
+        "path": "src/workflows/google-workspace-agent.workflow.ts",
+        "className": "GoogleWorkspaceAgentWorkflow",
+        "propertyName": "googleWorkspaceAgent"
       },
       {
         "package": "@loopstack/oauth-module",

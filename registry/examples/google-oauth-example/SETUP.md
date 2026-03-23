@@ -5,7 +5,7 @@ There are three ways to add this module to your Loopstack project.
 ## Option 1: `loopstack add` (recommended)
 
 ```bash
-loopstack add @loopstack/google-oauth-calendar-example
+loopstack add @loopstack/google-oauth-example
 ```
 
 This copies the source files into your project directory and automatically registers the module and workflows in your application.
@@ -17,7 +17,7 @@ This copies the source files into your project directory and automatically regis
 ## Option 2: `loopstack install`
 
 ```bash
-loopstack install @loopstack/google-oauth-calendar-example
+loopstack install @loopstack/google-oauth-example
 ```
 
 This installs the package as an npm dependency and automatically registers the module and workflows — without copying any source files into your project.
@@ -29,31 +29,32 @@ This installs the package as an npm dependency and automatically registers the m
 ## Option 3: Manual `npm install`
 
 ```bash
-npm install --save @loopstack/google-oauth-calendar-example
+npm install --save @loopstack/google-oauth-example
 ```
 
 This installs the package as an npm dependency without any automatic configuration.
 
 After installing, you need to manually register the module and workflows:
 
-1. Add `CalendarExampleModule` to the imports of your module (e.g. `default.module.ts`):
+1. Add `GoogleExampleModule` to the imports of your module (e.g. `default.module.ts`):
 
 ```typescript
-import { CalendarExampleModule } from '@loopstack/google-oauth-calendar-example';
+import { GoogleExampleModule } from '@loopstack/google-oauth-example';
 
 @Module({
-  imports: [CalendarExampleModule],
+  imports: [GoogleExampleModule],
 })
 export class DefaultModule {}
 ```
 
-2. Inject the `CalendarSummaryWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the workflows into your workspace class using the `@InjectWorkflow()` decorator:
 
 ```typescript
-import { CalendarSummaryWorkflow } from '@loopstack/google-oauth-calendar-example';
+import { CalendarSummaryWorkflow, GoogleWorkspaceAgentWorkflow } from '@loopstack/google-oauth-example';
 
 export class DefaultWorkspace {
   @InjectWorkflow() calendarSummary: CalendarSummaryWorkflow;
+  @InjectWorkflow() googleWorkspaceAgent: GoogleWorkspaceAgentWorkflow;
 }
 ```
 

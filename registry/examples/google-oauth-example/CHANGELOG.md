@@ -1,4 +1,4 @@
-# @loopstack/google-oauth-calendar-example
+# @loopstack/google-oauth-example
 
 ## 0.1.6
 

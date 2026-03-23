@@ -14,9 +14,43 @@ import {
 import { ExecuteWorkflowAsync, WorkflowProcessorService } from '@loopstack/core';
 import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
+import {
+  GmailGetMessageTool,
+  GmailReplyToMessageTool,
+  GmailSearchMessagesTool,
+  GmailSendMessageTool,
+  GoogleCalendarCreateEventTool,
+  GoogleCalendarFetchEventsTool as GoogleCalendarFetchEventsModuleTool,
+  GoogleCalendarListCalendarsTool,
+  GoogleDriveDownloadFileTool,
+  GoogleDriveGetFileMetadataTool,
+  GoogleDriveListFilesTool,
+  GoogleDriveUploadFileTool,
+} from '@loopstack/google-workspace-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { GoogleCalendarFetchEventsTool } from '../../tools';
 import { CalendarSummaryWorkflow } from '../calendar-summary.workflow';
+
+function buildCalendarSummaryTest() {
+  return createWorkflowTest()
+    .forWorkflow(CalendarSummaryWorkflow)
+    .withImports(CoreUiModule, CreateChatMessageToolModule)
+    .withToolMock(GoogleCalendarFetchEventsTool)
+    .withToolMock(GoogleCalendarListCalendarsTool)
+    .withToolMock(GoogleCalendarFetchEventsModuleTool)
+    .withToolMock(GoogleCalendarCreateEventTool)
+    .withToolMock(GmailSearchMessagesTool)
+    .withToolMock(GmailGetMessageTool)
+    .withToolMock(GmailSendMessageTool)
+    .withToolMock(GmailReplyToMessageTool)
+    .withToolMock(GoogleDriveListFilesTool)
+    .withToolMock(GoogleDriveGetFileMetadataTool)
+    .withToolMock(GoogleDriveDownloadFileTool)
+    .withToolMock(GoogleDriveUploadFileTool)
+    .withToolOverride(ExecuteWorkflowAsync)
+    .withToolOverride(CreateDocument)
+    .withToolOverride(CreateChatMessage);
+}
 
 describe('CalendarSummaryWorkflow', () => {
   let module: TestingModule;
@@ -27,14 +61,7 @@ describe('CalendarSummaryWorkflow', () => {
   let mockExecuteWorkflowAsyncTool: ToolMock;
   let mockCreateDocumentTool: ToolMock;
   beforeEach(async () => {
-    module = await createWorkflowTest()
-      .forWorkflow(CalendarSummaryWorkflow)
-      .withImports(CoreUiModule, CreateChatMessageToolModule)
-      .withToolMock(GoogleCalendarFetchEventsTool)
-      .withToolOverride(ExecuteWorkflowAsync)
-      .withToolOverride(CreateDocument)
-      .withToolOverride(CreateChatMessage)
-      .compile();
+    module = await buildCalendarSummaryTest().compile();
 
     workflow = module.get(CalendarSummaryWorkflow);
     processor = module.get(WorkflowProcessorService);
@@ -69,14 +96,37 @@ describe('CalendarSummaryWorkflow', () => {
       expect(getBlockConfig(workflow)).toBeDefined();
     });
 
-    it('should have all tools available via workflow.tools', () => {
-      expect(getBlockTools(workflow)).toBeDefined();
-      expect(Array.isArray(getBlockTools(workflow))).toBe(true);
-      expect(getBlockTools(workflow)).toContain('googleCalendarFetchEvents');
-      expect(getBlockTools(workflow)).toContain('executeWorkflowAsync');
-      expect(getBlockTools(workflow)).toContain('createDocument');
-      expect(getBlockTools(workflow)).toContain('createChatMessage');
-      expect(getBlockTools(workflow)).toHaveLength(4);
+    it('should have all 15 tools available', () => {
+      const tools = getBlockTools(workflow);
+      expect(tools).toBeDefined();
+      expect(Array.isArray(tools)).toBe(true);
+
+      // Core tools
+      expect(tools).toContain('executeWorkflowAsync');
+      expect(tools).toContain('createDocument');
+      expect(tools).toContain('createChatMessage');
+
+      // Custom tool
+      expect(tools).toContain('googleCalendarFetchEvents');
+
+      // Google Calendar tools (from module)
+      expect(tools).toContain('googleCalendarListCalendars');
+      expect(tools).toContain('googleCalendarFetchEventsModule');
+      expect(tools).toContain('googleCalendarCreateEvent');
+
+      // Gmail tools
+      expect(tools).toContain('gmailSearchMessages');
+      expect(tools).toContain('gmailGetMessage');
+      expect(tools).toContain('gmailSendMessage');
+      expect(tools).toContain('gmailReplyToMessage');
+
+      // Google Drive tools
+      expect(tools).toContain('googleDriveListFiles');
+      expect(tools).toContain('googleDriveGetFileMetadata');
+      expect(tools).toContain('googleDriveDownloadFile');
+      expect(tools).toContain('googleDriveUploadFile');
+
+      expect(tools).toHaveLength(15);
     });
 
     it('should have all documents available', () => {
@@ -277,13 +327,7 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
     const workflowId = '00000000-0000-0000-0000-000000000001';
     const args = { calendarId: 'primary' };
 
-    module = await createWorkflowTest()
-      .forWorkflow(CalendarSummaryWorkflow)
-      .withImports(CoreUiModule, CreateChatMessageToolModule)
-      .withToolMock(GoogleCalendarFetchEventsTool)
-      .withToolOverride(ExecuteWorkflowAsync)
-      .withToolOverride(CreateDocument)
-      .withToolOverride(CreateChatMessage)
+    module = await buildCalendarSummaryTest()
       .withExistingWorkflow({
         place: 'awaiting_auth',
         inputData: args,
@@ -330,13 +374,7 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
   });
 
   it('should resume from existing workflow state', async () => {
-    module = await createWorkflowTest()
-      .forWorkflow(CalendarSummaryWorkflow)
-      .withImports(CoreUiModule, CreateChatMessageToolModule)
-      .withToolMock(GoogleCalendarFetchEventsTool)
-      .withToolOverride(ExecuteWorkflowAsync)
-      .withToolOverride(CreateDocument)
-      .withToolOverride(CreateChatMessage)
+    module = await buildCalendarSummaryTest()
       .withExistingWorkflow({
         place: 'calendar_fetched',
         inputData: { calendarId: 'primary' },

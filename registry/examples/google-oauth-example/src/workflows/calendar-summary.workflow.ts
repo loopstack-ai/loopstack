@@ -14,6 +14,19 @@ import {
 import { ExecuteWorkflowAsync } from '@loopstack/core';
 import { CreateDocument, LinkDocument, MarkdownDocument } from '@loopstack/core-ui-module';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import {
+  GmailGetMessageTool,
+  GmailReplyToMessageTool,
+  GmailSearchMessagesTool,
+  GmailSendMessageTool,
+  GoogleCalendarCreateEventTool,
+  GoogleCalendarFetchEventsTool as GoogleCalendarFetchEventsModuleTool,
+  GoogleCalendarListCalendarsTool,
+  GoogleDriveDownloadFileTool,
+  GoogleDriveGetFileMetadataTool,
+  GoogleDriveListFilesTool,
+  GoogleDriveUploadFileTool,
+} from '@loopstack/google-workspace-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 
 @Injectable()
@@ -21,10 +34,32 @@ import { GoogleCalendarFetchEventsTool } from '../tools';
   configFile: __dirname + '/calendar-summary.workflow.yaml',
 })
 export class CalendarSummaryWorkflow implements WorkflowInterface {
-  @InjectTool() private googleCalendarFetchEvents: GoogleCalendarFetchEventsTool;
+  // Core tools
   @InjectTool() private executeWorkflowAsync: ExecuteWorkflowAsync;
   @InjectTool() private createDocument: CreateDocument;
   @InjectTool() private createChatMessage: CreateChatMessage;
+
+  // Custom tool (demonstrates building an OAuth-aware tool from scratch)
+  @InjectTool() private googleCalendarFetchEvents: GoogleCalendarFetchEventsTool;
+
+  // Google Calendar tools (from @loopstack/google-workspace-module)
+  @InjectTool() private googleCalendarListCalendars: GoogleCalendarListCalendarsTool;
+  @InjectTool() private googleCalendarFetchEventsModule: GoogleCalendarFetchEventsModuleTool;
+  @InjectTool() private googleCalendarCreateEvent: GoogleCalendarCreateEventTool;
+
+  // Gmail tools
+  @InjectTool() private gmailSearchMessages: GmailSearchMessagesTool;
+  @InjectTool() private gmailGetMessage: GmailGetMessageTool;
+  @InjectTool() private gmailSendMessage: GmailSendMessageTool;
+  @InjectTool() private gmailReplyToMessage: GmailReplyToMessageTool;
+
+  // Google Drive tools
+  @InjectTool() private googleDriveListFiles: GoogleDriveListFilesTool;
+  @InjectTool() private googleDriveGetFileMetadata: GoogleDriveGetFileMetadataTool;
+  @InjectTool() private googleDriveDownloadFile: GoogleDriveDownloadFileTool;
+  @InjectTool() private googleDriveUploadFile: GoogleDriveUploadFileTool;
+
+  // Documents
   @InjectDocument() private linkDocument: LinkDocument;
   @InjectDocument() private markdown: MarkdownDocument;
 
@@ -75,7 +110,6 @@ export class CalendarSummaryWorkflow implements WorkflowInterface {
   endOfWeek() {
     const now = new Date();
     const dayOfWeek = now.getDay();
-    // If today is Sunday (0), go to next Sunday (7 days); otherwise go to the coming Sunday
     const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek;
     const endOfWeek = new Date(now);
     endOfWeek.setDate(now.getDate() + daysUntilSunday);
