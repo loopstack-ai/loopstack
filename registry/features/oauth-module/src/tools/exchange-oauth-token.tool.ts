@@ -59,7 +59,7 @@ export class ExchangeOAuthTokenTool implements ToolInterface {
     const provider = this.providerRegistry.get(args.provider);
     const tokenSet = await provider.exchangeCode(args.code);
 
-    this.tokenStore.storeFromTokenSet(ctx.userId, args.provider, tokenSet);
+    await this.tokenStore.storeFromTokenSet(ctx.userId, args.provider, tokenSet);
 
     return {
       data: {

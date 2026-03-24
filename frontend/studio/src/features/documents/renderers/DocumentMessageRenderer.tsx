@@ -1,7 +1,7 @@
-import type { ModelMessage } from 'ai';
 import React from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
+import type { ModelMessage } from '@/types/ai.types';
 import MessageContentRenderer from './AiMessageContent.tsx';
 
 interface DocumentMessageRendererProps {
