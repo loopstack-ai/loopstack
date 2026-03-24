@@ -1,8 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateDocument, AiModule } from '@loopstack/ai-module';
 import { RunContext, generateObjectFingerprint, getBlockTools } from '@loopstack/common';
-import { WorkflowProcessorService } from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { MeetingNotesDocument } from '../documents/meeting-notes-document';
 import { OptimizedNotesDocument } from '../documents/optimized-notes-document';
@@ -26,7 +25,7 @@ describe('MeetingNotesWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(MeetingNotesWorkflow)
-      .withImports(CoreUiModule, AiModule)
+      .withImports(LoopCoreModule, AiModule)
       .withProvider(MeetingNotesDocument)
       .withProvider(OptimizedNotesDocument)
       .withToolOverride(CreateDocument)
@@ -110,7 +109,7 @@ describe('MeetingNotesWorkflow', () => {
       // Create module with existing workflow state
       const moduleWithState = await createWorkflowTest()
         .forWorkflow(MeetingNotesWorkflow)
-        .withImports(CoreUiModule, AiModule)
+        .withImports(LoopCoreModule, AiModule)
         .withProvider(MeetingNotesDocument)
         .withProvider(OptimizedNotesDocument)
         .withToolOverride(CreateDocument)
@@ -204,7 +203,7 @@ describe('MeetingNotesWorkflow', () => {
       // Create module with existing workflow state after AI optimization
       const moduleWithState = await createWorkflowTest()
         .forWorkflow(MeetingNotesWorkflow)
-        .withImports(CoreUiModule, AiModule)
+        .withImports(LoopCoreModule, AiModule)
         .withProvider(MeetingNotesDocument)
         .withProvider(OptimizedNotesDocument)
         .withToolOverride(CreateDocument)

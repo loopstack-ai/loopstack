@@ -5,6 +5,7 @@ import {
   EventSubscriberEntity,
   NamespaceEntity,
   PipelineEntity,
+  SecretEntity,
   WorkflowEntity,
   WorkspaceEntity,
   WorkspaceEnvironmentEntity,
@@ -43,5 +44,7 @@ export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingM
     .overrideProvider(getRepositoryToken(EventSubscriberEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkspaceEnvironmentEntity))
+    .useValue(createMockRepository())
+    .overrideProvider(getRepositoryToken(SecretEntity))
     .useValue(createMockRepository());
 }

@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectDocument, InjectTool, Runtime, ToolResult, Workflow } from '@loopstack/common';
 import { TransitionPayload } from '@loopstack/contracts/dist/schemas';
 import type { ScheduledTask } from '@loopstack/contracts/dist/types';
-import { ExecuteWorkflowAsync } from '@loopstack/core';
-import { CreateDocument, LinkDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, ExecuteWorkflowAsync, LinkDocument } from '@loopstack/core';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
 @Injectable()

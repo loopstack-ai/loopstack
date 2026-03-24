@@ -12,7 +12,7 @@ import {
   WorkflowInterface,
   WorkflowMetadataInterface,
 } from '@loopstack/common';
-import { CreateDocument, MessageDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, MessageDocument } from '@loopstack/core';
 
 const MessageSchema = z.object({
   role: z.string(),
@@ -66,9 +66,11 @@ export class CreateChatMessage implements ToolInterface<CreateChatMessageInput> 
 
     return {
       data: createdDocuments,
-      effects: {
-        addWorkflowDocuments: createdDocuments,
-      },
+      effects: [
+        {
+          addWorkflowDocuments: createdDocuments,
+        },
+      ],
     };
   }
 }

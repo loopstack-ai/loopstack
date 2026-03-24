@@ -5,7 +5,7 @@ import {
   DelegateToolCall,
 } from '@loopstack/ai-module';
 import { DefineHelper, InjectDocument, InjectTool, Runtime, Workflow } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument } from '@loopstack/core';
 import { GetWeather } from './tools/get-weather.tool';
 
 @Workflow({

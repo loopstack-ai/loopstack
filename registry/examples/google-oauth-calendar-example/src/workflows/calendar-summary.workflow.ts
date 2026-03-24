@@ -11,8 +11,7 @@ import {
   Workflow,
   WorkflowInterface,
 } from '@loopstack/common';
-import { ExecuteWorkflowAsync } from '@loopstack/core';
-import { CreateDocument, LinkDocument, MarkdownDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, ExecuteWorkflowAsync, LinkDocument, MarkdownDocument } from '@loopstack/core';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 

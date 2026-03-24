@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AiModule } from '@loopstack/ai-module';
-import { CoreUiModule } from '@loopstack/core-ui-module';
+import { LoopCoreModule } from '@loopstack/core';
 import { PromptWorkflow } from './prompt.workflow';
 
 @Module({
-  imports: [CoreUiModule, AiModule],
+  imports: [LoopCoreModule, AiModule],
   providers: [PromptWorkflow],
   exports: [PromptWorkflow],
 })

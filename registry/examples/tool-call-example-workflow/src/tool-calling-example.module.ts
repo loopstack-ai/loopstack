@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { AiModule } from '@loopstack/ai-module';
-import { CoreUiModule } from '@loopstack/core-ui-module';
+import { LoopCoreModule } from '@loopstack/core';
 import { ToolCallWorkflow } from './tool-call.workflow';
 import { GetWeather } from './tools/get-weather.tool';
 
 @Module({
-  imports: [CoreUiModule, AiModule],
+  imports: [LoopCoreModule, AiModule],
   providers: [GetWeather, ToolCallWorkflow],
   exports: [ToolCallWorkflow],
 })

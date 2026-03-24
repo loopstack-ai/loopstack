@@ -5,12 +5,16 @@ import {
   Input,
   RunContext,
   Tool,
+  ToolCallEntry,
+  ToolCallsMap,
   ToolInterface,
   ToolResult,
+  ToolSideEffects,
   WorkflowInterface,
   WorkflowMetadataInterface,
   getBlockTool,
 } from '@loopstack/common';
+import { StateMachineToolCallProcessorService } from '@loopstack/core';
 
 const ClaudeDelegateToolCallSchema = z.object({
   message: z.object({
@@ -31,6 +35,8 @@ type ClaudeDelegateToolCallArgs = z.infer<typeof ClaudeDelegateToolCallSchema>;
 export class ClaudeDelegateToolCall implements ToolInterface<ClaudeDelegateToolCallArgs> {
   private readonly logger = new Logger(ClaudeDelegateToolCall.name);
 
+  constructor(private readonly toolCallProcessor: StateMachineToolCallProcessorService) {}
+
   @Input({
     schema: ClaudeDelegateToolCallSchema,
   })
@@ -44,26 +50,41 @@ export class ClaudeDelegateToolCall implements ToolInterface<ClaudeDelegateToolC
   ): Promise<ToolResult> {
     const contentBlocks = args.message.content as Anthropic.ContentBlock[];
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
+    const toolCalls: ToolCallsMap = {};
+    let effects: ToolSideEffects[] = [];
 
     for (const block of contentBlocks) {
       if (block.type !== 'tool_use') {
         continue;
       }
 
-      const tool = getBlockTool<ToolInterface>(parent, block.name);
-
-      if (!tool) {
-        throw new Error(`Tool ${block.name} not found.`);
-      }
+      const tool = this.toolCallProcessor.getTool(parent, block.name);
 
       try {
-        const result: ToolResult = await tool.execute(block.input as Record<string, unknown>, ctx, parent, runtime);
+        const parsedArgs = this.toolCallProcessor.parseArgs(
+          tool,
+          block.input as Record<string, unknown> | undefined,
+          runtime.transition!,
+        );
+
+        const result = await this.toolCallProcessor.executeToolCall(tool, parsedArgs, ctx, parent, runtime);
+
+        if (result?.effects) {
+          effects.push(...result.effects);
+        }
 
         toolResults.push({
           type: 'tool_result',
           tool_use_id: block.id,
-          content: JSON.stringify(result.data, null, 2),
+          content: result?.data ? JSON.stringify(result.data, null, 2) : '',
         });
+
+        toolCalls[block.name] = {
+          id: block.id,
+          name: block.name,
+          input: block.input,
+          output: result?.data,
+        } satisfies ToolCallEntry;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         this.logger.error(`Tool "${block.name}" failed: ${errorMessage}`);
@@ -74,22 +95,31 @@ export class ClaudeDelegateToolCall implements ToolInterface<ClaudeDelegateToolC
           content: errorMessage,
           is_error: true,
         });
+
+        toolCalls[block.name] = {
+          id: block.id,
+          name: block.name,
+          input: block.input,
+        } satisfies ToolCallEntry;
       }
     }
 
-    const resultData = { toolResults };
+    const resultData = {
+      message: args.message,
+      toolResults,
+      ...(Object.keys(toolCalls).length > 0 ? { toolCalls } : {}),
+    };
 
     if (args.document && !args.skipResponseMessage) {
       const docResult = await this.createResponseMessage(args, toolResults, ctx, parent, runtime);
-
-      return {
-        data: resultData,
-        effects: docResult.effects,
-      };
+      if (docResult.effects) {
+        effects = [...docResult.effects, ...effects];
+      }
     }
 
     return {
       data: resultData,
+      effects,
     };
   }
 

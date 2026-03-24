@@ -78,6 +78,7 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     BlockProcessor,
     WorkflowProcessorService,
     BlockDiscoveryService,
+    StateMachineToolCallProcessorService,
   ],
 })
 export class WorkflowProcessorModule {}

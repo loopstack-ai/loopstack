@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AiGenerateText, AiMessageDocument, AiMessageDocumentContentType } from '@loopstack/ai-module';
 import { InjectDocument, InjectTool, Input, Runtime, ToolResult, Workflow } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument } from '@loopstack/core';
 
 @Workflow({
   configFile: __dirname + '/prompt.workflow.yaml',

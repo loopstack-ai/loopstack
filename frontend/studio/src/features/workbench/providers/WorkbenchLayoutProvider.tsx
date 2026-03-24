@@ -1,7 +1,7 @@
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { PipelineInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 
-export type FloatingPanelId = 'navigation' | 'history';
+export type FloatingPanelId = 'navigation' | 'history' | 'secrets';
 export type SidePanelId = 'preview' | 'flow' | 'files';
 export type PreviewTab = 'preview' | 'flow' | 'history';
 

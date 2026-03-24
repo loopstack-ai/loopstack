@@ -1,8 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateText, AiModule } from '@loopstack/ai-module';
 import { RunContext, getBlockTools } from '@loopstack/common';
-import { WorkflowProcessorService } from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { PromptWorkflow } from '../prompt.workflow';
 
@@ -27,7 +26,7 @@ describe('PromptWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptWorkflow)
-      .withImports(CoreUiModule, AiModule)
+      .withImports(LoopCoreModule, AiModule)
       .withToolOverride(AiGenerateText)
       .withToolOverride(CreateDocument)
       .compile();

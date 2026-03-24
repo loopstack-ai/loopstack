@@ -2,6 +2,7 @@ import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { useFieldArray } from 'react-hook-form';
 import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { FormElement } from './FormElement.tsx';
 import { useArrayDefaultValue } from './hooks/useArrayDefaultValue.ts';
@@ -19,6 +20,7 @@ export const ArrayController: React.FC<FormElementProps> = ({
 }) => {
   const newParentKey = useMergeParentKey(parentKey, name);
   const collapsed = ui?.collapsed ?? false;
+  const fixed = (ui as { fixed?: boolean } | undefined)?.fixed ?? false;
   const [isOpen, setIsOpen] = useState(!collapsed);
 
   const { fields, append, remove } = useFieldArray({
@@ -45,55 +47,48 @@ export const ArrayController: React.FC<FormElementProps> = ({
       </CollapsibleTrigger>
 
       <CollapsibleContent>
-        <div className="pl-4">
-          {fields.map((field, index) => {
-            return (
-              <div
-                key={field.id}
-                className={`mb-2 flex items-start border-l border-gray-300 pt-2 pr-0 pl-4 ${
-                  index === 0 ? 'mt-2' : 'mt-5'
-                }`}
-              >
-                <div className="mr-1 min-w-0 flex-1">
-                  {schema.items && (
-                    <FormElement
-                      name={index.toString()}
-                      parentKey={newParentKey}
-                      required={false}
-                      schema={schema.items}
-                      ui={ui?.items}
-                      form={form}
-                      disabled={disabled}
-                      viewOnly={viewOnly}
-                    />
-                  )}
-                </div>
-                {!viewOnly ? (
+        <div className="space-y-2">
+          {fields.map((field, index) => (
+            <Card key={field.id} className="gap-0 rounded-lg py-0 shadow-none">
+              {!viewOnly && !fixed && (
+                <div className="flex justify-end px-4 pt-2 pb-0">
                   <Button
                     type="button"
                     onClick={() => remove(index)}
                     variant="ghost"
                     size="sm"
                     disabled={disabled}
-                    className="mt-1 h-8 w-8 p-2"
+                    className="h-7 w-7 p-1.5"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
-                ) : (
-                  ''
+                </div>
+              )}
+              <CardContent className={`px-4 pb-2 ${!viewOnly && !fixed ? 'pt-0' : 'pt-3'}`}>
+                {schema.items && (
+                  <FormElement
+                    name={index.toString()}
+                    parentKey={newParentKey}
+                    required={false}
+                    schema={schema.items}
+                    ui={ui?.items}
+                    form={form}
+                    disabled={disabled}
+                    viewOnly={viewOnly}
+                  />
                 )}
-              </div>
-            );
-          })}
+              </CardContent>
+            </Card>
+          ))}
 
-          {!viewOnly ? (
+          {!viewOnly && !fixed ? (
             <Button
               type="button"
               onClick={() => append(defaultItemValue)}
               variant="outline"
               size="sm"
               disabled={disabled}
-              className="mt-4"
+              className="mt-2"
             >
               <Plus className="mr-2 h-4 w-4" />
               Add {ui?.items?.title ?? schema.items?.title ?? 'Item'}

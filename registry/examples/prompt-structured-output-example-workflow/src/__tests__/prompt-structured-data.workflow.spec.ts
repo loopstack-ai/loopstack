@@ -1,8 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateDocument, AiModule } from '@loopstack/ai-module';
 import { RunContext, getBlockTools } from '@loopstack/common';
-import { WorkflowProcessorService } from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { FileDocument } from '../documents/file-document';
 import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow';
@@ -24,7 +23,7 @@ describe('PromptStructuredOutputWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptStructuredOutputWorkflow)
-      .withImports(CoreUiModule, AiModule)
+      .withImports(LoopCoreModule, AiModule)
       .withProvider(FileDocument)
       .withToolOverride(CreateDocument)
       .withToolOverride(AiGenerateDocument)

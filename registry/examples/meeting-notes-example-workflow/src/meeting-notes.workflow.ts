@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AiGenerateDocument } from '@loopstack/ai-module';
 import { InjectDocument, InjectTool, Input, Runtime, State, Workflow } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument } from '@loopstack/core';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
 

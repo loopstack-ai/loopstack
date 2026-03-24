@@ -5,6 +5,8 @@ import {
   Input,
   RunContext,
   Tool,
+  ToolCallEntry,
+  ToolCallsMap,
   ToolInterface,
   ToolResult,
   WorkflowInterface,
@@ -50,6 +52,7 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
   ): Promise<ToolResult> {
     const parts = args.message.parts;
     const resultParts: ToolUIPart[] = [];
+    const toolCalls: ToolCallsMap = {};
 
     for (const part of parts) {
       if (!part.type.startsWith('tool-')) {
@@ -80,6 +83,13 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
           input: part.input as Record<string, unknown>,
           state: 'output-available',
         } satisfies ToolUIPart);
+
+        toolCalls[toolName] = {
+          id: part.toolCallId,
+          name: toolName,
+          input: part.input,
+          output: result.data,
+        } satisfies ToolCallEntry;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         this.logger.error(`Tool "${toolName}" failed: ${errorMessage}`);
@@ -91,13 +101,20 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
           state: 'output-error',
           errorText: errorMessage,
         } as ToolUIPart);
+
+        toolCalls[toolName] = {
+          id: part.toolCallId,
+          name: toolName,
+          input: part.input,
+        } satisfies ToolCallEntry;
       }
     }
 
-    const resultMessage: UIMessage = {
+    const resultMessage: UIMessage & { toolCalls?: ToolCallsMap } = {
       id: args.message.id,
       role: 'assistant',
       parts: resultParts,
+      ...(Object.keys(toolCalls).length > 0 ? { toolCalls } : {}),
     };
 
     if (args.document && !args.skipResponseMessage) {

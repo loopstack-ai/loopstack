@@ -81,16 +81,26 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
     }
   };
 
-  const handleSubmit = (transition: string) => {
-    // use data from react-hook-form
-    void form.handleSubmit(handleFormSubmit(transition))();
+  const handleSubmit = (transition: string, widgetData?: Record<string, unknown> | string) => {
+    if (widgetData !== undefined) {
+      executePipelineRun(transition, widgetData);
+    } else {
+      // use data from react-hook-form
+      void form.handleSubmit(handleFormSubmit(transition))();
+    }
   };
 
   const ui = document.ui;
   const schema = document.schema;
-  const formDisabled = (ui?.form as { disabled?: boolean } | undefined)?.disabled;
+  const formDisabled = !!(ui?.form as { disabled?: boolean } | undefined)?.disabled;
   const disabledProps = !enabled || formDisabled || false;
   const actions: UiWidgetType[] = document.ui?.actions ?? [];
+
+  console.log({
+    document,
+    formDisabled,
+    enabled,
+  });
 
   return (
     <div className="flex">

@@ -5,6 +5,7 @@ import {
   EventSubscriberEntity,
   NamespaceEntity,
   PipelineEntity,
+  SecretEntity,
   WorkflowEntity,
   WorkspaceEntity,
 } from '@loopstack/common';
@@ -15,6 +16,7 @@ import {
   MigrationsService,
   NamespacesService,
   PipelineService,
+  SecretService,
   WorkflowService,
   WorkspaceService,
 } from './services';
@@ -28,6 +30,7 @@ import {
       PipelineEntity,
       DocumentEntity,
       EventSubscriberEntity,
+      SecretEntity,
     ]),
     CommonModule,
   ],
@@ -39,6 +42,7 @@ import {
     DocumentService,
     MigrationsService,
     EventSubscriberService,
+    SecretService,
   ],
   exports: [
     WorkflowService,
@@ -47,6 +51,7 @@ import {
     PipelineService,
     DocumentService,
     EventSubscriberService,
+    SecretService,
   ],
 })
 export class PersistenceModule {}

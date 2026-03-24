@@ -7,3 +7,4 @@ export * from './namespace.entity.js';
 export * from './role.entity.js';
 export * from './user.entity.js';
 export * from './event-subscriber.entity.js';
+export * from './secret.entity.js';

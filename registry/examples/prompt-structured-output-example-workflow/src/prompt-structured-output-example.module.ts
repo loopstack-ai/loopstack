@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { AiModule } from '@loopstack/ai-module';
-import { CoreUiModule } from '@loopstack/core-ui-module';
+import { LoopCoreModule } from '@loopstack/core';
 import { FileDocument } from './documents/file-document';
 import { PromptStructuredOutputWorkflow } from './prompt-structured-output.workflow';
 
 @Module({
-  imports: [CoreUiModule, AiModule],
+  imports: [LoopCoreModule, AiModule],
   providers: [FileDocument, PromptStructuredOutputWorkflow],
   exports: [PromptStructuredOutputWorkflow],
 })

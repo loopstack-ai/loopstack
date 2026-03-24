@@ -6,8 +6,7 @@ import {
   getBlockDocuments,
   getBlockTools,
 } from '@loopstack/common';
-import { ExecuteWorkflowAsync, WorkflowProcessorService } from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, ExecuteWorkflowAsync, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { RunSubWorkflowExampleParentWorkflow } from '../run-sub-workflow-example-parent.workflow';
@@ -23,7 +22,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(RunSubWorkflowExampleParentWorkflow)
-      .withImports(CoreUiModule, CreateChatMessageToolModule)
+      .withImports(LoopCoreModule, CreateChatMessageToolModule)
       .withToolOverride(CreateChatMessage)
       .withToolOverride(ExecuteWorkflowAsync)
       .withToolOverride(CreateDocument)
@@ -117,7 +116,7 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(RunSubWorkflowExampleParentWorkflow)
-      .withImports(CoreUiModule, CreateChatMessageToolModule)
+      .withImports(LoopCoreModule, CreateChatMessageToolModule)
       .withToolOverride(CreateChatMessage)
       .withToolOverride(ExecuteWorkflowAsync)
       .withToolOverride(CreateDocument)
@@ -178,7 +177,7 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(RunSubWorkflowExampleParentWorkflow)
-      .withImports(CoreUiModule, CreateChatMessageToolModule)
+      .withImports(LoopCoreModule, CreateChatMessageToolModule)
       .withToolOverride(CreateChatMessage)
       .withToolOverride(ExecuteWorkflowAsync)
       .withToolOverride(CreateDocument)

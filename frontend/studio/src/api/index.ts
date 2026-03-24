@@ -6,6 +6,7 @@ import { createDocumentsApi } from './documents';
 import { createNamespacesApi } from './namespaces';
 import { createPipelinesApi } from './pipelines';
 import { createProcessorApi } from './processor';
+import { createSecretsApi } from './secrets';
 import { createWorkflowsApi } from './workflows';
 import { createWorkspacesApi } from './workspaces';
 
@@ -20,6 +21,7 @@ export function createApi(http: AxiosInstance) {
     namespaces: createNamespacesApi(http),
     pipelines: createPipelinesApi(http),
     processor: createProcessorApi(http),
+    secrets: createSecretsApi(http),
     workflows: createWorkflowsApi(http),
     workspaces: createWorkspacesApi(http),
   };

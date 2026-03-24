@@ -107,7 +107,7 @@ prompt: Write a haiku about {{ args.subject }}
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/core` - Core framework functionality
-- `@loopstack/core-ui-module` - Provides `CreateDocument` tool
+- `@loopstack/core` - Provides `CreateDocument` tool
 - `@loopstack/ai-module` - Provides `AiGenerateText` tool and `AiMessageDocument`
 
 ## About

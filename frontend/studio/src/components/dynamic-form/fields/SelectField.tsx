@@ -31,7 +31,9 @@ export const SelectField: React.FC<SelectFieldProps> = ({ name, schema, ui, requ
   const config = useFieldConfig(name, schema, ui, disabled);
 
   // Get enum options - prioritize enumOptions over enum
-  const enumOptions = schema.enumOptions && schema.enumOptions.length > 0 ? schema.enumOptions : schema.enum || [];
+  const uiConfig = ui as { enumOptions?: (string | EnumOption)[]; placeholder?: string } | undefined;
+  const rawEnumOptions = uiConfig?.enumOptions ?? schema.enumOptions;
+  const enumOptions = rawEnumOptions && rawEnumOptions.length > 0 ? rawEnumOptions : schema.enum || [];
 
   // Extract labels and values from enum options
   const enumLabels = enumOptions.map((opt: string | number | EnumOption) =>
@@ -42,7 +44,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({ name, schema, ui, requ
     typeof opt === 'string' || typeof opt === 'number' ? opt : opt.value,
   );
 
-  const placeholder = schema.placeholder || `Select ${config.fieldLabel}`;
+  const placeholder = uiConfig?.placeholder || schema.placeholder || `Select ${config.fieldLabel}`;
 
   return (
     <Controller

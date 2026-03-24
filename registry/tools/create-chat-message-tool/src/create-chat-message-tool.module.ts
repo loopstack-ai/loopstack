@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import { Module } from '@nestjs/common';
-import { CoreUiModule } from '@loopstack/core-ui-module';
+import { LoopCoreModule } from '@loopstack/core';
 import { CreateChatMessage } from './create-chat-message-tool';
 
 @Module({
-  imports: [CoreUiModule],
+  imports: [LoopCoreModule],
   providers: [CreateChatMessage],
   exports: [CreateChatMessage],
 })

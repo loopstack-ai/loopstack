@@ -35,7 +35,7 @@
     "@ai-sdk/openai": "^3.0.30",
     "@ai-sdk/provider-utils": "^4.0.15",
     "@loopstack/common": "^0.23.0",
-    "@loopstack/core-ui-module": "^0.20.6",
+    "@loopstack/core": "^0.23.0",
     "@nestjs/common": "^11.1.14",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.14",

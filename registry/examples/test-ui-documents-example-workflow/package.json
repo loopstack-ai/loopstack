@@ -1,0 +1,80 @@
+{
+  "name": "@loopstack/test-ui-documents-example-workflow",
+  "displayName": "Loopstack UI Documents Example",
+  "description": "A simple workflow demonstrating how to render core UI documents (message, error, markdown, plain text) in the Loopstack Studio.",
+  "keywords": [
+    "documents",
+    "example",
+    "ui",
+    "workflow"
+  ],
+  "version": "0.20.6",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "^0.23.0",
+    "@loopstack/core": "^0.23.0",
+    "@nestjs/common": "^11.1.14",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1,
+    "testTimeout": 10000,
+    "forceExit": true
+  },
+  "loopstack": {
+    "installModes": [
+      "add",
+      "install"
+    ],
+    "modules": [
+      {
+        "path": "src/test-ui-documents-example.module.ts",
+        "className": "TestUiDocumentsExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/test-ui-documents.workflow.ts",
+        "className": "TestUiDocumentsWorkflow",
+        "propertyName": "testUiDocuments"
+      }
+    ]
+  }
+}

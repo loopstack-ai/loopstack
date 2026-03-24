@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AiGenerateDocument, AiMessageDocument } from '@loopstack/ai-module';
 import { DocumentEntity, InjectDocument, InjectTool, Input, Runtime, ToolResult, Workflow } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument } from '@loopstack/core';
 import { FileDocument, FileDocumentType } from './documents/file-document';
 
 @Workflow({

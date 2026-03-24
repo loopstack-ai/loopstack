@@ -9,7 +9,7 @@ interface ValidationSchema {
   minimum?: number;
   maximum?: number;
   pattern?: string;
-  format?: 'email' | 'url' | 'date' | 'time' | 'datetime' | 'phone';
+  format?: 'email' | 'url' | 'date' | 'time' | 'datetime' | 'phone' | 'password';
   multipleOf?: number;
 }
 

@@ -30,8 +30,10 @@ export const ObjectController: React.FC<FormElementProps> = ({
 
   const requiredFields: string[] = objectSchema.required ?? [];
 
+  const useGrid = propertyNames.length === 2;
+
   return (
-    <>
+    <div className={useGrid ? 'grid grid-cols-2 gap-x-4' : undefined}>
       {propertyNames.map((propName) => {
         const itemSchema = objectSchema.properties?.[propName];
         return itemSchema ? (
@@ -48,6 +50,6 @@ export const ObjectController: React.FC<FormElementProps> = ({
           />
         ) : null;
       })}
-    </>
+    </div>
   );
 };

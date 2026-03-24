@@ -186,7 +186,7 @@ This pattern allows the LLM to make multiple tool calls before providing a final
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/core` - Core framework functionality
-- `@loopstack/core-ui-module` - Provides `CreateDocument` tool
+- `@loopstack/core` - Provides `CreateDocument` tool
 - `@loopstack/ai-module` - Provides `AiGenerateText`, `DelegateToolCall` tools and `AiMessageDocument`
 
 ## About

@@ -26,6 +26,7 @@ import { FileController } from './controllers/file.controller';
 import { NamespaceController } from './controllers/namespace.controller';
 import { PipelineController } from './controllers/pipeline.controller';
 import { ProcessorController } from './controllers/processor.controller';
+import { SecretController } from './controllers/secret.controller';
 import { SseController } from './controllers/sse.controller';
 import { WorkflowController } from './controllers/workflow.controller';
 import { WorkspaceController } from './controllers/workspace.controller';
@@ -76,6 +77,7 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
     DashboardController,
     SseController,
     FileController,
+    SecretController,
   ],
   providers: [
     {

@@ -1,7 +1,7 @@
 import { AiGenerateText, AiMessageDocument, AiMessageDocumentContentType } from '@loopstack/ai-module';
 import { InjectDocument, InjectTool, Runtime, ToolResult, Workflow } from '@loopstack/common';
 import { TransitionPayload } from '@loopstack/contracts/schemas';
-import { CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument } from '@loopstack/core';
 
 @Workflow({
   configFile: __dirname + '/chat.workflow.yaml',

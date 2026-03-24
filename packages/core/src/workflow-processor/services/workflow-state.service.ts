@@ -52,5 +52,9 @@ export class WorkflowStateService {
     workflowEntity.hashRecord = ctx.getManager().getData('hashRecord');
 
     await this.saveWorkflowState(workflowEntity, ctx.getManager().getData('persistenceState'));
+
+    // Sync DB-assigned IDs back into StateManager so subsequent saves
+    // don't re-insert the same documents as new rows.
+    ctx.getManager().setData('documents', workflowEntity.documents);
   }
 }

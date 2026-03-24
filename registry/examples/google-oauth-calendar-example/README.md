@@ -99,7 +99,7 @@ This example uses the following Loopstack modules:
 
 - `@loopstack/core` — Core framework functionality including `ExecuteWorkflowAsync`
 - `@loopstack/oauth-module` — OAuth infrastructure (`OAuthTokenStore`, `OAuthWorkflow`)
-- `@loopstack/core-ui-module` — Provides `CreateDocument`, `LinkDocument`, and `MarkdownDocument`
+- `@loopstack/core` — Provides `CreateDocument`, `LinkDocument`, and `MarkdownDocument`
 - `@loopstack/create-chat-message-tool` — Provides `CreateChatMessage`
 
 A Google OAuth provider module (implementing `OAuthProviderInterface`) is also required.

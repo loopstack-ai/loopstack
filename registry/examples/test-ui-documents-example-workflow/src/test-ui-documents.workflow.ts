@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDocument, InjectTool, Workflow } from '@loopstack/common';
-import { ErrorDocument, MarkdownDocument, MessageDocument, PlainDocument } from '../../documents';
-import { CreateDocument } from '../../tools';
+import { CreateDocument, ErrorDocument, MarkdownDocument, MessageDocument, PlainDocument } from '@loopstack/core';
 
 @Injectable()
 @Workflow({

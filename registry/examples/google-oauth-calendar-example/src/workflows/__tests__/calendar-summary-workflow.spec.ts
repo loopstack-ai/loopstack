@@ -11,8 +11,7 @@ import {
   getBlockStateSchema,
   getBlockTools,
 } from '@loopstack/common';
-import { ExecuteWorkflowAsync, WorkflowProcessorService } from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, ExecuteWorkflowAsync, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { GoogleCalendarFetchEventsTool } from '../../tools';
@@ -29,7 +28,7 @@ describe('CalendarSummaryWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(CalendarSummaryWorkflow)
-      .withImports(CoreUiModule, CreateChatMessageToolModule)
+      .withImports(LoopCoreModule, CreateChatMessageToolModule)
       .withToolMock(GoogleCalendarFetchEventsTool)
       .withToolOverride(ExecuteWorkflowAsync)
       .withToolOverride(CreateDocument)
@@ -279,7 +278,7 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(CalendarSummaryWorkflow)
-      .withImports(CoreUiModule, CreateChatMessageToolModule)
+      .withImports(LoopCoreModule, CreateChatMessageToolModule)
       .withToolMock(GoogleCalendarFetchEventsTool)
       .withToolOverride(ExecuteWorkflowAsync)
       .withToolOverride(CreateDocument)
@@ -332,7 +331,7 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
   it('should resume from existing workflow state', async () => {
     module = await createWorkflowTest()
       .forWorkflow(CalendarSummaryWorkflow)
-      .withImports(CoreUiModule, CreateChatMessageToolModule)
+      .withImports(LoopCoreModule, CreateChatMessageToolModule)
       .withToolMock(GoogleCalendarFetchEventsTool)
       .withToolOverride(ExecuteWorkflowAsync)
       .withToolOverride(CreateDocument)

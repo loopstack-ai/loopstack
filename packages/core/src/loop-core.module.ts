@@ -5,13 +5,22 @@ import {
   DocumentEntity,
   NamespaceEntity,
   PipelineEntity,
+  SecretEntity,
   WorkflowEntity,
   WorkspaceEntity,
   WorkspaceEnvironmentEntity,
 } from '@loopstack/common';
 import { CommonModule } from './common';
+import {
+  ErrorDocument,
+  LinkDocument,
+  MarkdownDocument,
+  MessageDocument,
+  PlainDocument,
+  SecretRequestDocument,
+} from './documents';
 import { SchedulerModule } from './scheduler';
-import { ExecuteWorkflowAsync } from './tools';
+import { CreateDocument, ExecuteWorkflowAsync, GetSecretKeysTool, RequestSecretsTool } from './tools';
 import { WorkflowProcessorModule } from './workflow-processor';
 
 @Module({
@@ -23,6 +32,7 @@ import { WorkflowProcessorModule } from './workflow-processor';
       WorkspaceEntity,
       WorkspaceEnvironmentEntity,
       NamespaceEntity,
+      SecretEntity,
     ]),
     EventEmitterModule.forRoot({
       global: true,
@@ -31,7 +41,35 @@ import { WorkflowProcessorModule } from './workflow-processor';
     WorkflowProcessorModule,
     SchedulerModule,
   ],
-  providers: [ExecuteWorkflowAsync],
-  exports: [CommonModule, WorkflowProcessorModule, SchedulerModule, ExecuteWorkflowAsync],
+  providers: [
+    // Tools
+    CreateDocument,
+    ExecuteWorkflowAsync,
+    GetSecretKeysTool,
+    RequestSecretsTool,
+
+    // Documents
+    ErrorDocument,
+    LinkDocument,
+    MarkdownDocument,
+    MessageDocument,
+    PlainDocument,
+    SecretRequestDocument,
+  ],
+  exports: [
+    CommonModule,
+    WorkflowProcessorModule,
+    SchedulerModule,
+    CreateDocument,
+    ExecuteWorkflowAsync,
+    GetSecretKeysTool,
+    RequestSecretsTool,
+    ErrorDocument,
+    LinkDocument,
+    MarkdownDocument,
+    MessageDocument,
+    PlainDocument,
+    SecretRequestDocument,
+  ],
 })
 export class LoopCoreModule {}

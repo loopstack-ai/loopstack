@@ -2,20 +2,23 @@ import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
   DocumentEntity,
+  RunContext,
   ToolExecutionContext,
   ToolInterface,
   ToolResult,
   ToolSideEffects,
+  WorkflowInterface,
+  WorkflowMetadataInterface,
   getBlockArgsSchema,
   getBlockTemplateHelpers,
   getBlockTool,
 } from '@loopstack/common';
 import { WorkflowTransitionSchema } from '@loopstack/contracts/schemas';
-import { AssignmentConfigType, ToolCallType } from '@loopstack/contracts/types';
+import { AssignmentConfigType, HistoryTransition, ToolCallType } from '@loopstack/contracts/types';
 import { TemplateExpressionEvaluatorService } from '../../common';
-import { ExecutionContextManager, WorkflowExecutionContextManager } from '../utils/execution-context-manager';
-import { getTemplateVars } from '../utils/template-helper';
-import { wrapToolProxy } from '../utils/wrap-block-proxy';
+import { WorkflowExecutionContextManager } from '../utils';
+import { getTemplateVars } from '../utils';
+import { wrapToolProxy } from '../utils';
 import { ToolExecutionInterceptorService } from './tool-execution-interceptor.service';
 
 @Injectable()
@@ -26,6 +29,101 @@ export class StateMachineToolCallProcessorService {
     private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService,
     private readonly toolExecutionInterceptorService: ToolExecutionInterceptorService,
   ) {}
+
+  getTool(instance: WorkflowInterface, toolName: string): ToolInterface {
+    const rawTool = getBlockTool<ToolInterface>(instance, toolName);
+    if (!rawTool) {
+      throw new Error(`Tool with name ${toolName} not found.`);
+    }
+    return wrapToolProxy(rawTool);
+  }
+
+  getArgs(
+    ctx: WorkflowExecutionContextManager,
+    tool: ToolInterface,
+    rawArgs: Record<string, unknown> | undefined,
+    transition: HistoryTransition,
+    debug?: boolean,
+  ): Record<string, unknown> | undefined {
+    if (rawArgs) {
+      const evaluatedArgs = this.templateExpressionEvaluatorService.evaluateTemplate<unknown>(
+        rawArgs,
+        getTemplateVars(ctx),
+        {
+          cacheKey: ctx.getInstance().constructor.name,
+          helpers: getBlockTemplateHelpers(ctx.getInstance()),
+        },
+      ) as Record<string, unknown> | undefined;
+
+      if (debug) {
+        this.logger.log(`[DEBUG] Transition "${transition.id}" | Tool "${tool.constructor.name}" raw args:`);
+        console.log(JSON.stringify(evaluatedArgs, null, 2));
+      }
+
+      return evaluatedArgs;
+    }
+
+    return undefined;
+  }
+
+  parseArgs(
+    tool: ToolInterface,
+    args: Record<string, unknown> | undefined,
+    transition: HistoryTransition,
+    debug?: boolean,
+  ) {
+    let parsedArgs: Record<string, unknown> | undefined;
+    try {
+      if (tool.validate) {
+        parsedArgs = tool.validate<Record<string, unknown>>(args);
+      } else {
+        const schema = getBlockArgsSchema(tool);
+        parsedArgs = schema ? (schema.parse(args) as Record<string, unknown> | undefined) : args;
+      }
+    } catch (e: unknown) {
+      this.logger.error(`Schema error in transition ${transition.id} tool call: ${tool.constructor.name} with args.`);
+      console.log(args);
+      throw e;
+    }
+
+    if (debug) {
+      this.logger.log(`[DEBUG] Transition "${transition.id}" | Tool "${tool.constructor.name}" parsed args:`);
+      console.log(JSON.stringify(parsedArgs, null, 2));
+    }
+
+    return parsedArgs;
+  }
+
+  async executeToolCall(
+    tool: ToolInterface,
+    args: Record<string, unknown> | undefined,
+    runContext: RunContext,
+    instance: WorkflowInterface,
+    metadata: WorkflowMetadataInterface,
+  ): Promise<ToolResult> {
+    const execContext: ToolExecutionContext = {
+      tool,
+      args,
+      runContext,
+    };
+
+    await this.toolExecutionInterceptorService.beforeExecute(execContext);
+
+    let toolCallResult: ToolResult;
+    const startTime = performance.now();
+    try {
+      toolCallResult = await tool.execute(args, runContext, instance, metadata);
+    } catch (error) {
+      execContext.metrics = { durationMs: Math.round(performance.now() - startTime) };
+      await this.toolExecutionInterceptorService.onError(execContext, error);
+      throw error;
+    }
+    execContext.metrics = { durationMs: Math.round(performance.now() - startTime) };
+
+    await this.toolExecutionInterceptorService.afterExecute(execContext, toolCallResult);
+
+    return toolCallResult;
+  }
 
   async processToolCalls(
     ctx: WorkflowExecutionContextManager,
@@ -47,54 +145,17 @@ export class StateMachineToolCallProcessorService {
       for (const toolCall of toolCalls) {
         this.logger.debug(`Call tool ${i} (${toolCall.tool}) on transition ${transition.id}`);
 
-        const rawTool = getBlockTool<ToolInterface>(ctx.getInstance(), toolCall.tool);
-        if (!rawTool) {
-          throw new Error(`Tool with name ${toolCall.tool} not found.`);
-        }
-        const tool = wrapToolProxy(rawTool);
+        const tool = this.getTool(ctx.getInstance(), toolCall.tool);
+        const args = this.getArgs(ctx, tool, toolCall.args as Record<string, unknown> | undefined, transition, debug);
+        const parsedArgs = this.parseArgs(tool, args, transition, debug);
 
-        const evaluatedArgs = this.templateExpressionEvaluatorService.evaluateTemplate<unknown>(
-          toolCall.args,
-          getTemplateVars(ctx),
-          {
-            cacheKey: ctx.getInstance().constructor.name,
-            helpers: getBlockTemplateHelpers(ctx.getInstance()),
-          },
-        ) as Record<string, unknown> | undefined;
-        let parsedArgs: Record<string, unknown> | undefined;
-        if (tool.validate) {
-          parsedArgs = tool.validate<Record<string, unknown>>(evaluatedArgs);
-        } else {
-          const schema = getBlockArgsSchema(tool);
-          parsedArgs = schema ? (schema.parse(evaluatedArgs) as Record<string, unknown> | undefined) : evaluatedArgs;
-        }
-
-        if (debug) {
-          this.logger.log(`[DEBUG] Transition "${transition.id}" | Tool "${toolCall.tool}" args:`);
-          console.log(JSON.stringify(parsedArgs, null, 2));
-        }
-
-        const execContext: ToolExecutionContext = {
+        const toolCallResult = await this.executeToolCall(
           tool,
-          args: parsedArgs,
-          runContext: ctx.getContext(),
-        };
-
-        await this.toolExecutionInterceptorService.beforeExecute(execContext);
-
-        let toolCallResult: ToolResult;
-        const startTime = performance.now();
-        try {
-          toolCallResult = await tool.execute(parsedArgs, ctx.getContext(), ctx.getInstance(), ctx.getData());
-        } catch (error) {
-          execContext.metrics = { durationMs: Math.round(performance.now() - startTime) };
-          await this.toolExecutionInterceptorService.onError(execContext, error);
-          throw error;
-        }
-        execContext.metrics = { durationMs: Math.round(performance.now() - startTime) };
-
-        await this.toolExecutionInterceptorService.afterExecute(execContext, toolCallResult);
-
+          parsedArgs,
+          ctx.getContext(),
+          ctx.getInstance(),
+          ctx.getData(),
+        );
         if (debug) {
           this.logger.log(`[DEBUG] Transition "${transition.id}" | Tool "${toolCall.tool}" result:`);
           console.log(JSON.stringify(toolCallResult, null, 2));
@@ -113,7 +174,7 @@ export class StateMachineToolCallProcessorService {
         ctx.getManager().setData('tools', transitionResults);
 
         if (toolCallResult.effects) {
-          effects.push(toolCallResult.effects);
+          effects.push(...toolCallResult.effects);
         }
 
         i++;
@@ -151,8 +212,8 @@ export class StateMachineToolCallProcessorService {
   updateDocument(ctx: WorkflowExecutionContextManager, index: number, document: DocumentEntity) {
     const documents = ctx.getManager().getData('documents');
 
-    // update the entity index
-    document.index = documents.length ?? 0;
+    // preserve the position index of the document being replaced
+    document.index = index;
 
     if (index != -1) {
       documents[index] = document;
@@ -173,6 +234,7 @@ export class StateMachineToolCallProcessorService {
       }
     }
 
+    document.index = documents.length;
     documents.push(document);
     ctx.getManager().setData('documents', documents);
     ctx.getManager().setData('persistenceState', {
@@ -181,7 +243,7 @@ export class StateMachineToolCallProcessorService {
   }
 
   assignToTargetBlock(
-    ctx: ExecutionContextManager,
+    ctx: WorkflowExecutionContextManager,
     assign: AssignmentConfigType | undefined,
     result: ToolResult,
     debug = false,

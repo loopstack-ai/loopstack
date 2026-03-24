@@ -101,6 +101,11 @@ export function getDocumentsCacheKey(envKey: string, workflowId: string) {
   return ['documents', envKey, workflowId];
 }
 
+// --- Secrets ---
+export function getSecretsCacheKey(envKey: string, workspaceId: string) {
+  return ['secrets', envKey, workspaceId];
+}
+
 // --- Files ---
 export function getFileTreeCacheKey(envKey: string, pipelineId: string) {
   return ['fileTree', envKey, pipelineId];

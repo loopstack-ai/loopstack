@@ -18,12 +18,9 @@ import {
 } from '@loopstack/common';
 import { DocumentSchema } from '@loopstack/contracts/schemas';
 import { DocumentConfigType, DocumentType } from '@loopstack/contracts/types';
-import {
-  ConfigTraceError,
-  DocumentService,
-  SchemaValidationError,
-  TemplateExpressionEvaluatorService,
-} from '@loopstack/core';
+import { ConfigTraceError, SchemaValidationError } from '../common';
+import { TemplateExpressionEvaluatorService } from '../common';
+import { DocumentService } from '../persistence';
 
 interface ContentValidationResult {
   content: unknown;
@@ -204,9 +201,11 @@ export class CreateDocument implements ToolInterface {
   private buildResult(documentEntity: DocumentEntity): ToolResult {
     return {
       data: documentEntity,
-      effects: {
-        addWorkflowDocuments: [documentEntity],
-      },
+      effects: [
+        {
+          addWorkflowDocuments: [documentEntity],
+        },
+      ],
     };
   }
 }

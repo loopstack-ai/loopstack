@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { CoreUiModule } from '@loopstack/core-ui-module';
+import { LoopCoreModule } from '@loopstack/core';
 import { CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { OAuthPromptDocument } from './documents';
 import { OAuthProviderRegistry } from './services/oauth-provider-registry';
@@ -9,7 +9,7 @@ import { OAuthWorkflow } from './workflows';
 
 @Global()
 @Module({
-  imports: [CoreUiModule, CreateChatMessageToolModule],
+  imports: [LoopCoreModule, CreateChatMessageToolModule],
   providers: [
     OAuthProviderRegistry,
     OAuthTokenStore,

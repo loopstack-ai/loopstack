@@ -1,8 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateText, AiModule } from '@loopstack/ai-module';
 import { RunContext, generateObjectFingerprint, getBlockTools } from '@loopstack/common';
-import { WorkflowProcessorService } from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { ChatWorkflow } from '../chat.workflow';
 
@@ -37,7 +36,7 @@ describe('ChatWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ChatWorkflow)
-      .withImports(CoreUiModule, AiModule)
+      .withImports(LoopCoreModule, AiModule)
       .withToolOverride(CreateDocument)
       .withToolOverride(AiGenerateText)
       .compile();
@@ -148,7 +147,7 @@ describe('ChatWorkflow', () => {
       // Create module with existing workflow state
       const moduleWithState = await createWorkflowTest()
         .forWorkflow(ChatWorkflow)
-        .withImports(CoreUiModule, AiModule)
+        .withImports(LoopCoreModule, AiModule)
         .withToolOverride(CreateDocument)
         .withToolOverride(AiGenerateText)
         .withExistingWorkflow({

@@ -1,11 +1,11 @@
 {
-  "name": "@loopstack/core-ui-module",
-  "displayName": "Loopstack Core UI Module",
-  "description": "A collection of tools for creating specific UI documents for interaction in the loopstack studio ",
+  "name": "@loopstack/secrets-example-workflow",
+  "displayName": "Loopstack Secrets Example Workflow",
+  "description": "A simple workflow demonstrating how to request and verify secrets using the SecretRequestDocument and GetSecretKeys tool.",
   "keywords": [
-    "core",
-    "loopstack",
-    "tool"
+    "example",
+    "secrets",
+    "workflow"
   ],
   "version": "0.20.6",
   "license": "Apache-2.0",
@@ -28,10 +28,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
+    "@loopstack/claude-module": "^0.21.0",
     "@loopstack/common": "^0.23.0",
-    "@loopstack/contracts": "^0.23.0",
     "@loopstack/core": "^0.23.0",
-    "lodash": "^4.17.23",
+    "@nestjs/common": "^11.1.14",
     "zod": "^4.3.6"
   },
   "files": [
@@ -54,18 +54,27 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
-    "maxWorkers": 1
+    "maxWorkers": 1,
+    "testTimeout": 10000,
+    "forceExit": true
   },
   "loopstack": {
-    "modules": [
-      {
-        "path": "src/core-ui.module.ts",
-        "className": "CoreUiModule"
-      }
-    ],
     "installModes": [
       "add",
       "install"
+    ],
+    "modules": [
+      {
+        "path": "src/secrets-example.module.ts",
+        "className": "SecretsExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/secrets-example.workflow.ts",
+        "className": "SecretsExampleWorkflow",
+        "propertyName": "secretsExample"
+      }
     ]
   }
 }

@@ -1,8 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AiGenerateText, AiModule, DelegateToolCall } from '@loopstack/ai-module';
 import { RunContext, getBlockHelper, getBlockHelpers, getBlockTools } from '@loopstack/common';
-import { WorkflowProcessorService } from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { ToolCallWorkflow } from '../tool-call.workflow';
 import { GetWeather } from '../tools/get-weather.tool';
@@ -19,7 +18,7 @@ describe('ToolCallWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ToolCallWorkflow)
-      .withImports(CoreUiModule, AiModule)
+      .withImports(LoopCoreModule, AiModule)
       .withProvider(GetWeather)
       .withToolOverride(CreateDocument)
       .withToolOverride(AiGenerateText)
