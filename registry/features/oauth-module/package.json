@@ -8,7 +8,7 @@
     "module",
     "oauth"
   ],
-  "version": "0.1.5",
+  "version": "0.1.6",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -29,9 +29,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.23.0",
-    "@loopstack/core": "^0.23.0",
-    "@loopstack/create-chat-message-tool": "^0.20.6",
+    "@loopstack/common": "^0.24.0",
+    "@loopstack/core": "^0.24.0",
+    "@loopstack/create-chat-message-tool": "^0.20.7",
     "ioredis": "^5.9.3",
     "zod": "^4.3.6"
   },
