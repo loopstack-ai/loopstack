@@ -32,7 +32,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.20.6",
+    "@loopstack/claude-module": "^0.21.0",
     "@loopstack/common": "^0.23.0",
     "@loopstack/core": "^0.23.0",
     "@loopstack/create-chat-message-tool": "^0.20.6",
@@ -65,14 +65,6 @@
       {
         "path": "src/google-example.module.ts",
         "className": "GoogleExampleModule"
-      },
-      {
-        "package": "@loopstack/oauth-module",
-        "className": "OAuthModule"
-      },
-      {
-        "package": "@loopstack/google-workspace-module",
-        "className": "GoogleWorkspaceModule"
       }
     ],
     "workflows": [
@@ -85,11 +77,6 @@
         "path": "src/workflows/google-workspace-agent.workflow.ts",
         "className": "GoogleWorkspaceAgentWorkflow",
         "propertyName": "googleWorkspaceAgent"
-      },
-      {
-        "package": "@loopstack/oauth-module",
-        "className": "OAuthWorkflow",
-        "propertyName": "oAuth"
       }
     ]
   }

@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDocument, InjectTool, Runtime, ToolResult, Workflow } from '@loopstack/common';
-import { TransitionPayload } from '@loopstack/contracts/dist/schemas';
-import type { ScheduledTask } from '@loopstack/contracts/dist/types';
-import { CreateDocument, ExecuteWorkflowAsync, LinkDocument } from '@loopstack/core';
+import { InjectDocument, InjectTool, InjectWorkflow, Runtime, Workflow } from '@loopstack/common';
+import { CreateDocument, LinkDocument, Task } from '@loopstack/core';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
 
 @Injectable()
 @Workflow({
@@ -11,14 +10,13 @@ import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 })
 export class RunSubWorkflowExampleParentWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;
-  @InjectTool() private executeWorkflowAsync: ExecuteWorkflowAsync;
+  @InjectTool() private task: Task;
   @InjectTool() private createDocument: CreateDocument;
 
   @InjectDocument() private linkDocument: LinkDocument;
 
+  @InjectWorkflow() private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
+
   @Runtime()
-  runtime: {
-    tools: Record<'run_workflow', Record<'execute', ToolResult<ScheduledTask>>>;
-    transition: TransitionPayload;
-  };
+  runtime: any;
 }

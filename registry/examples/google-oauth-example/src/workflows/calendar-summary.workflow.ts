@@ -5,13 +5,14 @@ import {
   DefineHelper,
   InjectDocument,
   InjectTool,
+  InjectWorkflow,
   Input,
   Runtime,
   State,
   Workflow,
   WorkflowInterface,
 } from '@loopstack/common';
-import { CreateDocument, ExecuteWorkflowAsync, LinkDocument, MarkdownDocument } from '@loopstack/core';
+import { CreateDocument, LinkDocument, MarkdownDocument, Task } from '@loopstack/core';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import {
   GmailGetMessageTool,
@@ -26,6 +27,7 @@ import {
   GoogleDriveListFilesTool,
   GoogleDriveUploadFileTool,
 } from '@loopstack/google-workspace-module';
+import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 
 @Injectable()
@@ -34,7 +36,7 @@ import { GoogleCalendarFetchEventsTool } from '../tools';
 })
 export class CalendarSummaryWorkflow implements WorkflowInterface {
   // Core tools
-  @InjectTool() private executeWorkflowAsync: ExecuteWorkflowAsync;
+  @InjectTool() private task: Task;
   @InjectTool() private createDocument: CreateDocument;
   @InjectTool() private createChatMessage: CreateChatMessage;
 
@@ -61,6 +63,8 @@ export class CalendarSummaryWorkflow implements WorkflowInterface {
   // Documents
   @InjectDocument() private linkDocument: LinkDocument;
   @InjectDocument() private markdown: MarkdownDocument;
+
+  @InjectWorkflow() private oAuth: OAuthWorkflow;
 
   @Input({
     schema: z

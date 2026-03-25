@@ -4,6 +4,7 @@ import { WorkflowState } from '@loopstack/contracts/enums';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { WorkflowItem } from '@/features/workbench';
+import { WorkbenchLayoutProvider } from '@/features/workbench/providers/WorkbenchLayoutProvider';
 import { usePipeline } from '../hooks/usePipelines.ts';
 import { useFetchWorkflowsByPipeline } from '../hooks/useWorkflows.ts';
 import { requireParam } from '../lib/requireParam.ts';
@@ -78,8 +79,9 @@ export default function EmbedWorkbenchPage() {
       <ErrorSnackbar error={fetchPipeline.error} />
       <ErrorSnackbar error={fetchWorkflows.error} />
       <LoadingCentered loading={fetchPipeline.isLoading || fetchWorkflows.isLoading}>
-        {fetchPipeline.data && fetchWorkflows.data
-          ? fetchWorkflows.data.map((workflow) => (
+        {fetchPipeline.data && fetchWorkflows.data ? (
+          <WorkbenchLayoutProvider pipeline={fetchPipeline.data}>
+            {fetchWorkflows.data.map((workflow) => (
               <WorkflowItem
                 key={workflow.id}
                 pipeline={fetchPipeline.data}
@@ -88,8 +90,9 @@ export default function EmbedWorkbenchPage() {
                 settings={settings}
                 embed
               />
-            ))
-          : null}
+            ))}
+          </WorkbenchLayoutProvider>
+        ) : null}
       </LoadingCentered>
     </div>
   );

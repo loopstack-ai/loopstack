@@ -11,8 +11,7 @@ import {
   getBlockStateSchema,
   getBlockTools,
 } from '@loopstack/common';
-import { ExecuteWorkflowAsync, WorkflowProcessorService } from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, LoopCoreModule, Task, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import {
   GitHubCreateIssueCommentTool,
@@ -41,6 +40,7 @@ import {
   GitHubSearchReposTool,
   GitHubTriggerWorkflowTool,
 } from '@loopstack/github-module';
+import { OAuthModule } from '@loopstack/oauth-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { GitHubReposOverviewWorkflow } from '../github-repos-overview.workflow';
 
@@ -87,15 +87,15 @@ describe('GitHubReposOverviewWorkflow', () => {
   let mockListDirectory: ToolMock;
   let mockListWorkflowRuns: ToolMock;
   let mockSearchCode: ToolMock;
-  let mockExecuteWorkflowAsync: ToolMock;
+  let mockTask: ToolMock;
   let mockCreateDocument: ToolMock;
 
   function buildWorkflowTest() {
     return applyAllGitHubToolMocks(
       createWorkflowTest()
         .forWorkflow(GitHubReposOverviewWorkflow)
-        .withImports(CoreUiModule, CreateChatMessageToolModule)
-        .withToolOverride(ExecuteWorkflowAsync)
+        .withImports(LoopCoreModule, CreateChatMessageToolModule, OAuthModule)
+        .withToolOverride(Task)
         .withToolOverride(CreateDocument)
         .withToolOverride(CreateChatMessage),
     );
@@ -116,7 +116,7 @@ describe('GitHubReposOverviewWorkflow', () => {
     mockListDirectory = module.get(GitHubListDirectoryTool);
     mockListWorkflowRuns = module.get(GitHubListWorkflowRunsTool);
     mockSearchCode = module.get(GitHubSearchCodeTool);
-    mockExecuteWorkflowAsync = module.get(ExecuteWorkflowAsync);
+    mockTask = module.get(Task);
     mockCreateDocument = module.get(CreateDocument);
   });
 
@@ -151,7 +151,7 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(tools).toHaveLength(28);
 
       // Core tools
-      expect(tools).toContain('executeWorkflowAsync');
+      expect(tools).toContain('task');
       expect(tools).toContain('createDocument');
       expect(tools).toContain('createChatMessage');
 
@@ -559,8 +559,8 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockExecuteWorkflowAsync.execute.mockResolvedValue({
-        data: { task: { pipelineId: 'test-pipeline-id' } },
+      mockTask.execute.mockResolvedValue({
+        data: { pipelineId: 'test-pipeline-id' },
       });
 
       const result = await processor.process(workflow, { owner: 'octocat', repo: 'Hello-World' }, context);
@@ -571,8 +571,8 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(result.place).toBe('awaiting_auth');
 
       expect(mockGetAuthenticatedUser.execute).toHaveBeenCalledTimes(1);
-      expect(mockExecuteWorkflowAsync.execute).toHaveBeenCalledTimes(1);
-      expect(mockExecuteWorkflowAsync.execute).toHaveBeenCalledWith(
+      expect(mockTask.execute).toHaveBeenCalledTimes(1);
+      expect(mockTask.execute).toHaveBeenCalledWith(
         expect.objectContaining({
           workflow: 'oAuth',
           args: expect.objectContaining({
@@ -600,8 +600,8 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
     return applyAllGitHubToolMocks(
       createWorkflowTest()
         .forWorkflow(GitHubReposOverviewWorkflow)
-        .withImports(CoreUiModule, CreateChatMessageToolModule)
-        .withToolOverride(ExecuteWorkflowAsync)
+        .withImports(LoopCoreModule, CreateChatMessageToolModule, OAuthModule)
+        .withToolOverride(Task)
         .withToolOverride(CreateDocument)
         .withToolOverride(CreateChatMessage),
     );

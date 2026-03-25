@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AiGenerateDocument } from '@loopstack/ai-module';
+import { ClaudeGenerateDocument } from '@loopstack/claude-module';
 import { InjectDocument, InjectTool, Input, Runtime, State, Workflow } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
@@ -9,7 +9,7 @@ import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './d
   configFile: __dirname + '/meeting-notes.workflow.yaml',
 })
 export class MeetingNotesWorkflow {
-  @InjectTool() aiGenerateDocument: AiGenerateDocument;
+  @InjectTool() claudeGenerateDocument: ClaudeGenerateDocument;
   @InjectTool() createDocument: CreateDocument;
   @InjectDocument() meetingNotesDocument: MeetingNotesDocument;
   @InjectDocument() optimizedNotesDocument: OptimizedNotesDocument;

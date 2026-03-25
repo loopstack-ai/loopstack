@@ -6,32 +6,34 @@ import {
   getBlockDocuments,
   getBlockTools,
 } from '@loopstack/common';
-import { CreateDocument, ExecuteWorkflowAsync, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { CreateDocument, LoopCoreModule, Task, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { RunSubWorkflowExampleParentWorkflow } from '../run-sub-workflow-example-parent.workflow';
+import { RunSubWorkflowExampleSubWorkflow } from '../run-sub-workflow-example-sub.workflow';
 
 describe('RunSubWorkflowExampleParentWorkflow', () => {
   let module: TestingModule;
   let workflow: RunSubWorkflowExampleParentWorkflow;
   let processor: WorkflowProcessorService;
 
-  let mockExecuteWorkflowAsyncTool: ToolMock;
+  let mockTaskTool: ToolMock;
   let mockCreateDocumentTool: ToolMock;
 
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(RunSubWorkflowExampleParentWorkflow)
       .withImports(LoopCoreModule, CreateChatMessageToolModule)
+      .withProvider(RunSubWorkflowExampleSubWorkflow)
       .withToolOverride(CreateChatMessage)
-      .withToolOverride(ExecuteWorkflowAsync)
+      .withToolOverride(Task)
       .withToolOverride(CreateDocument)
       .compile();
 
     workflow = module.get(RunSubWorkflowExampleParentWorkflow);
     processor = module.get(WorkflowProcessorService);
 
-    mockExecuteWorkflowAsyncTool = module.get(ExecuteWorkflowAsync);
+    mockTaskTool = module.get(Task);
     mockCreateDocumentTool = module.get(CreateDocument);
   });
 
@@ -54,7 +56,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(getBlockTools(workflow)).toBeDefined();
       expect(Array.isArray(getBlockTools(workflow))).toBe(true);
       expect(getBlockTools(workflow)).toContain('createChatMessage');
-      expect(getBlockTools(workflow)).toContain('executeWorkflowAsync');
+      expect(getBlockTools(workflow)).toContain('task');
       expect(getBlockTools(workflow)).toContain('createDocument');
       expect(getBlockTools(workflow)).toHaveLength(3);
     });
@@ -71,11 +73,9 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
     it('should execute run_workflow transition', async () => {
       const context = {} as RunContext;
 
-      mockExecuteWorkflowAsyncTool.execute.mockResolvedValue({
+      mockTaskTool.execute.mockResolvedValue({
         data: {
-          task: {
-            payload: { id: 'test-pipeline-id' },
-          },
+          payload: { id: 'test-pipeline-id' },
         },
       });
 
@@ -85,8 +85,8 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
 
-      expect(mockExecuteWorkflowAsyncTool.execute).toHaveBeenCalledTimes(1);
-      expect(mockExecuteWorkflowAsyncTool.execute).toHaveBeenCalledWith(
+      expect(mockTaskTool.execute).toHaveBeenCalledTimes(1);
+      expect(mockTaskTool.execute).toHaveBeenCalledWith(
         expect.objectContaining({
           workflow: 'runSubWorkflowExampleSub',
           args: {},
@@ -117,8 +117,9 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
     module = await createWorkflowTest()
       .forWorkflow(RunSubWorkflowExampleParentWorkflow)
       .withImports(LoopCoreModule, CreateChatMessageToolModule)
+      .withProvider(RunSubWorkflowExampleSubWorkflow)
       .withToolOverride(CreateChatMessage)
-      .withToolOverride(ExecuteWorkflowAsync)
+      .withToolOverride(Task)
       .withToolOverride(CreateDocument)
       .withExistingWorkflow({
         place: 'sub_workflow_started',
@@ -133,7 +134,7 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
     const workflow = module.get(RunSubWorkflowExampleParentWorkflow);
     const processor = module.get(WorkflowProcessorService);
     const mockCreateChatMessage: ToolMock = module.get(CreateChatMessage);
-    const mockExecuteWorkflowAsync: ToolMock = module.get(ExecuteWorkflowAsync);
+    const mockTask: ToolMock = module.get(Task);
     const mockCreateDocument: ToolMock = module.get(CreateDocument);
 
     const context = {
@@ -154,16 +155,15 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
     expect(result.place).toBe('sub_workflow2_started');
 
     // sub_workflow_callback calls createDocument + createChatMessage,
-    // then run_workflow2 fires automatically and calls executeWorkflowAsync + createDocument
+    // then run_workflow2 fires automatically and calls task + createDocument
     expect(mockCreateDocument.execute).toHaveBeenCalledTimes(2);
     expect(mockCreateChatMessage.execute).toHaveBeenCalledTimes(1);
-    expect(mockExecuteWorkflowAsync.execute).toHaveBeenCalledTimes(1);
-    expect(mockExecuteWorkflowAsync.execute).toHaveBeenCalledWith(
+    expect(mockTask.execute).toHaveBeenCalledTimes(1);
+    expect(mockTask.execute).toHaveBeenCalledWith(
       expect.objectContaining({
-        workflow: 'runSubWorkflowExampleSubWorkflow',
+        workflow: 'runSubWorkflowExampleSub',
         args: {},
         callback: { transition: 'sub_workflow2_callback' },
-        options: { runStateless: false },
       }),
       expect.anything(),
       expect.anything(),
@@ -178,8 +178,9 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
     module = await createWorkflowTest()
       .forWorkflow(RunSubWorkflowExampleParentWorkflow)
       .withImports(LoopCoreModule, CreateChatMessageToolModule)
+      .withProvider(RunSubWorkflowExampleSubWorkflow)
       .withToolOverride(CreateChatMessage)
-      .withToolOverride(ExecuteWorkflowAsync)
+      .withToolOverride(Task)
       .withToolOverride(CreateDocument)
       .withExistingWorkflow({
         place: 'sub_workflow2_started',

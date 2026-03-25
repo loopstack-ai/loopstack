@@ -11,7 +11,7 @@ import {
   getBlockStateSchema,
   getBlockTools,
 } from '@loopstack/common';
-import { CreateDocument, ExecuteWorkflowAsync, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { CreateDocument, LoopCoreModule, Task, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import {
   GmailGetMessageTool,
@@ -26,6 +26,7 @@ import {
   GoogleDriveListFilesTool,
   GoogleDriveUploadFileTool,
 } from '@loopstack/google-workspace-module';
+import { OAuthModule } from '@loopstack/oauth-module';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { GoogleCalendarFetchEventsTool } from '../../tools';
 import { CalendarSummaryWorkflow } from '../calendar-summary.workflow';
@@ -33,7 +34,7 @@ import { CalendarSummaryWorkflow } from '../calendar-summary.workflow';
 function buildCalendarSummaryTest() {
   return createWorkflowTest()
     .forWorkflow(CalendarSummaryWorkflow)
-    .withImports(LoopCoreModule, CreateChatMessageToolModule)
+    .withImports(LoopCoreModule, CreateChatMessageToolModule, OAuthModule)
     .withToolMock(GoogleCalendarFetchEventsTool)
     .withToolMock(GoogleCalendarListCalendarsTool)
     .withToolMock(GoogleCalendarFetchEventsModuleTool)
@@ -46,7 +47,7 @@ function buildCalendarSummaryTest() {
     .withToolMock(GoogleDriveGetFileMetadataTool)
     .withToolMock(GoogleDriveDownloadFileTool)
     .withToolMock(GoogleDriveUploadFileTool)
-    .withToolOverride(ExecuteWorkflowAsync)
+    .withToolOverride(Task)
     .withToolOverride(CreateDocument)
     .withToolOverride(CreateChatMessage);
 }
@@ -57,7 +58,7 @@ describe('CalendarSummaryWorkflow', () => {
   let processor: WorkflowProcessorService;
 
   let mockGoogleCalendarFetchEventsTool: ToolMock;
-  let mockExecuteWorkflowAsyncTool: ToolMock;
+  let mockTaskTool: ToolMock;
   let mockCreateDocumentTool: ToolMock;
   beforeEach(async () => {
     module = await buildCalendarSummaryTest().compile();
@@ -66,7 +67,7 @@ describe('CalendarSummaryWorkflow', () => {
     processor = module.get(WorkflowProcessorService);
 
     mockGoogleCalendarFetchEventsTool = module.get(GoogleCalendarFetchEventsTool);
-    mockExecuteWorkflowAsyncTool = module.get(ExecuteWorkflowAsync);
+    mockTaskTool = module.get(Task);
     mockCreateDocumentTool = module.get(CreateDocument);
   });
 
@@ -101,7 +102,7 @@ describe('CalendarSummaryWorkflow', () => {
       expect(Array.isArray(tools)).toBe(true);
 
       // Core tools
-      expect(tools).toContain('executeWorkflowAsync');
+      expect(tools).toContain('task');
       expect(tools).toContain('createDocument');
       expect(tools).toContain('createChatMessage');
 
@@ -259,11 +260,9 @@ describe('CalendarSummaryWorkflow', () => {
         },
       });
 
-      mockExecuteWorkflowAsyncTool.execute.mockResolvedValue({
+      mockTaskTool.execute.mockResolvedValue({
         data: {
-          task: {
-            pipelineId: 'test-pipeline-id',
-          },
+          pipelineId: 'test-pipeline-id',
         },
       });
 
@@ -275,8 +274,8 @@ describe('CalendarSummaryWorkflow', () => {
       expect(result.place).toBe('awaiting_auth');
 
       expect(mockGoogleCalendarFetchEventsTool.execute).toHaveBeenCalledTimes(1);
-      expect(mockExecuteWorkflowAsyncTool.execute).toHaveBeenCalledTimes(1);
-      expect(mockExecuteWorkflowAsyncTool.execute).toHaveBeenCalledWith(
+      expect(mockTaskTool.execute).toHaveBeenCalledTimes(1);
+      expect(mockTaskTool.execute).toHaveBeenCalledWith(
         expect.objectContaining({
           workflow: 'oAuth',
           args: expect.objectContaining({

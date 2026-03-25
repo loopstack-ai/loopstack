@@ -6,7 +6,7 @@ import { SecretsExampleWorkflow } from './secrets-example.workflow';
 
 @Module({
   imports: [LoopCoreModule, ClaudeModule],
-  providers: [SecretsExampleWorkflow, SecretsAgentExampleWorkflow],
-  exports: [SecretsExampleWorkflow, SecretsAgentExampleWorkflow],
+  providers: [SecretsExampleWorkflow, SecretsAgentExampleWorkflow, SecretsAgentExampleWorkflow],
+  exports: [SecretsExampleWorkflow, SecretsAgentExampleWorkflow, SecretsAgentExampleWorkflow],
 })
 export class SecretsExampleModule {}

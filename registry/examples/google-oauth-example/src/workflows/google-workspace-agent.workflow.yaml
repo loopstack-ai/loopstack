@@ -3,7 +3,8 @@ title: 'Google Workspace Agent'
 description: |
   An interactive chat agent with access to Google Calendar, Gmail, and Google Drive.
   Ask it to check your calendar, search emails, find files, send messages, create events, and more.
-  Handles OAuth authentication automatically when needed.
+  Handles OAuth authentication automatically when needed — the agent detects unauthorized errors
+  and launches authentication on its own.
 
 ui:
   actions:
@@ -16,37 +17,42 @@ ui:
         label: Send Message
 
 transitions:
-  # Set up the system prompt
   - id: setup
     from: start
     to: waiting_for_user
     call:
       - tool: createDocument
         args:
-          document: aiMessageDocument
+          document: claudeMessageDocument
           update:
             meta:
               hidden: true
             content:
-              role: system
-              parts:
-                - type: text
-                  text: |
-                    You are a helpful Google Workspace assistant. You have access to the user's
-                    Google Calendar, Gmail, and Google Drive through the tools provided to you.
+              role: user
+              content: |
+                You are a helpful Google Workspace assistant. You have access to the user's
+                Google Calendar, Gmail, and Google Drive through the tools provided to you.
 
-                    You can help with:
-                    - **Calendar**: List calendars, fetch events, create new events
-                    - **Gmail**: Search messages, read full emails, send new emails, reply to threads
-                    - **Drive**: Search files, get file details, download/export files, upload files
+                You can help with:
+                - **Calendar**: List calendars, fetch events, create new events
+                - **Gmail**: Search messages, read full emails, send new emails, reply to threads
+                - **Drive**: Search files, get file details, download/export files, upload files
 
-                    When using date/time parameters, always use ISO 8601 format.
-                    When a tool returns { error: "unauthorized" }, tell the user they need to
-                    authenticate with Google and that the authentication flow has been started.
+                When using date/time parameters, always use ISO 8601 format.
 
-                    Be concise and helpful. Format results clearly using markdown.
+                When a tool returns `{ error: "unauthorized" }` or `{ error: "401" }`, call the
+                `authenticateGoogle` tool with the required OAuth scopes to let the user sign in.
+                After authentication completes, retry the original request.
 
-  # User sends a message
+                Common scopes:
+                - Calendar: https://www.googleapis.com/auth/calendar.events
+                - Gmail: https://www.googleapis.com/auth/gmail.modify
+                - Drive: https://www.googleapis.com/auth/drive
+
+                IMPORTANT: When using authenticateGoogle, it must be the ONLY tool call in your response.
+
+                Be concise and helpful. Format results clearly using markdown.
+
   - id: user_message
     from: waiting_for_user
     to: ready
@@ -54,25 +60,25 @@ transitions:
     call:
       - tool: createDocument
         args:
-          document: aiMessageDocument
+          document: claudeMessageDocument
           update:
             content:
               role: user
-              parts:
-                - type: text
-                  text: ${{ runtime.transition.payload }}
+              content: ${{ runtime.transition.payload }}
 
-  # LLM processes the conversation and may call tools
   - id: llm_turn
     from: ready
-    to: llm_responded
+    to: prompt_executed
     call:
       - id: llm_call
-        tool: aiGenerateText
+        tool: claudeGenerateText
         args:
-          llm:
-            provider: openai
-            model: gpt-4o
+          system: |
+            You are a helpful Google Workspace assistant with access to Calendar, Gmail, and Drive tools.
+            When a tool returns an unauthorized error, use authenticateGoogle to let the user sign in,
+            then retry. Be concise and format results using markdown.
+          claude:
+            model: claude-sonnet-4-6
           messagesSearchTag: message
           tools:
             - googleCalendarListCalendars
@@ -86,100 +92,49 @@ transitions:
             - googleDriveGetFileMetadata
             - googleDriveDownloadFile
             - googleDriveUploadFile
-
-      - tool: createDocument
-        args:
-          id: ${{ runtime.tools.llm_turn.llm_call.data.id }}
-          document: aiMessageDocument
-          update:
-            content: ${{ runtime.tools.llm_turn.llm_call.data }}
-
-  # LLM wants to call tools → execute them and check for auth errors
-  - id: execute_tool_calls
-    from: llm_responded
-    to: tools_executed
-    if: ${{ isToolCall(runtime.tools.llm_turn.llm_call.data) }}
-    call:
-      - id: delegate
-        tool: delegateToolCall
-        args:
-          message: ${{ runtime.tools.llm_turn.llm_call.data }}
+            - authenticateGoogle
         assign:
-          requiresAuthentication: ${{ checkAuthError(result.data) }}
+          llmResult: ${{ result.data }}
 
-      - tool: createDocument
-        args:
-          id: ${{ runtime.tools.execute_tool_calls.delegate.data.id }}
-          document: aiMessageDocument
-          update:
-            content: ${{ runtime.tools.execute_tool_calls.delegate.data }}
-
-  # Tool returned auth error → launch OAuth
-  - id: handle_auth_error
-    from: tools_executed
-    to: awaiting_auth
-    if: ${{ state.requiresAuthentication }}
+  - id: execute_tool_calls
+    from: prompt_executed
+    to: awaiting_tools
+    if: ${{ state.llmResult.stop_reason == 'tool_use' }}
     call:
-      - tool: executeWorkflowAsync
-        id: launchAuth
+      - tool: delegateToolCalls
         args:
-          workflow: oAuth
-          args:
-            provider: 'google'
-            scopes:
-              - 'https://www.googleapis.com/auth/calendar.events'
-              - 'https://www.googleapis.com/auth/gmail.modify'
-              - 'https://www.googleapis.com/auth/drive'
+          message: ${{ state.llmResult }}
+          document: claudeMessageDocument
           callback:
-            transition: auth_completed
+            transition: tool_result_received
+        assign:
+          delegateResult: ${{ result.data }}
 
-      - tool: createDocument
-        args:
-          id: authStatus
-          document: linkDocument
-          update:
-            content:
-              icon: 'LockKeyhole'
-              label: 'Google authentication required'
-              caption: 'Complete sign-in to access Google Workspace'
-              href: '/pipelines/{{ runtime.tools.handle_auth_error.launchAuth.data.task.pipelineId }}'
-              embed: true
-              expanded: true
-
-  # No auth error → loop back to LLM with tool results
-  - id: continue_after_tools
-    from: tools_executed
-    to: ready
-
-  # Auth completed → notify and wait for user to continue
-  - id: auth_completed
-    from: awaiting_auth
-    to: waiting_for_user
+  - id: tool_result_received
+    from: awaiting_tools
+    to: awaiting_tools
     trigger: manual
     call:
-      - tool: createDocument
+      - tool: updateToolResult
         args:
-          id: authStatus
-          document: linkDocument
-          update:
-            content:
-              icon: 'ShieldCheck'
-              type: 'success'
-              label: 'Google authentication completed'
-              caption: 'You can now use Google Workspace tools'
-              href: '/pipelines/{{ runtime.transition.payload.pipelineId }}'
+          delegateResult: ${{ state.delegateResult }}
+          completedTool: ${{ runtime.transition.payload }}
+          document: claudeMessageDocument
+        assign:
+          delegateResult: ${{ result.data }}
 
-      - tool: createDocument
-        args:
-          document: aiMessageDocument
-          update:
-            content:
-              role: assistant
-              parts:
-                - type: text
-                  text: Google authentication completed successfully! You can now ask me to access your Calendar, Gmail, or Drive.
+  - id: all_tools_complete
+    from: awaiting_tools
+    to: ready
+    if: ${{ state.delegateResult.allCompleted }}
 
-  # LLM responded with text (no tool calls) → show response and wait
-  - id: show_response
-    from: llm_responded
+  - id: respond
+    from: prompt_executed
     to: waiting_for_user
+    call:
+      - tool: createDocument
+        args:
+          id: ${{ state.llmResult.id }}
+          document: claudeMessageDocument
+          update:
+            content: ${{ state.llmResult }}

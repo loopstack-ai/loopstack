@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import {
-  ClaudeDelegateToolCall,
   ClaudeGenerateText,
   ClaudeMessageDocument,
-  ClaudeMessageDocumentContentType,
+  DelegateToolCalls,
+  UpdateToolResult,
 } from '@loopstack/claude-module';
-import { InjectDocument, InjectTool, Runtime, State, Workflow } from '@loopstack/common';
-import { TransitionPayload } from '@loopstack/contracts/dist/schemas';
-import { CreateDocument, GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/core';
+import { InjectDocument, InjectTool, InjectWorkflow, Runtime, State, Workflow } from '@loopstack/common';
+import { CreateDocument, GetSecretKeysTool, RequestSecretsTask, SecretsRequestWorkflow } from '@loopstack/core';
 
 @Injectable()
 @Workflow({
@@ -20,31 +19,24 @@ import { CreateDocument, GetSecretKeysTool, RequestSecretsTool, SecretRequestDoc
 export class SecretsAgentExampleWorkflow {
   @InjectTool() createDocument: CreateDocument;
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
-  @InjectTool() claudeDelegateToolCall: ClaudeDelegateToolCall;
-  @InjectTool() requestSecrets: RequestSecretsTool;
+  @InjectTool() delegateToolCalls: DelegateToolCalls;
+  @InjectTool() updateToolResult: UpdateToolResult;
+  @InjectTool() requestSecrets: RequestSecretsTask;
   @InjectTool() getSecretKeys: GetSecretKeysTool;
-  @InjectDocument() secretRequestDocument: SecretRequestDocument;
+  @InjectWorkflow() secretsRequest: SecretsRequestWorkflow;
   @InjectDocument() claudeMessageDocument: ClaudeMessageDocument;
 
   @State({
     schema: z.object({
+      llmResult: z.any().optional(),
       delegateResult: z.any().optional(),
     }),
   })
   state: {
+    llmResult?: any;
     delegateResult?: any;
   };
 
   @Runtime()
-  runtime: {
-    tools: {
-      llm_turn: {
-        llm_call: ClaudeMessageDocumentContentType;
-      };
-      route_with_tool_calls: {
-        delegate: ClaudeMessageDocumentContentType;
-      };
-    };
-    transition: TransitionPayload;
-  };
+  runtime: any;
 }

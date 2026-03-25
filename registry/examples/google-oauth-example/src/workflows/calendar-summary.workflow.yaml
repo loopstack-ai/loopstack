@@ -34,7 +34,7 @@ transitions:
     to: awaiting_auth
     if: ${{ state.requiresAuthentication }}
     call:
-      - tool: executeWorkflowAsync
+      - tool: task
         id: launchAuth
         args:
           workflow: oAuth
@@ -54,7 +54,7 @@ transitions:
               icon: 'LockKeyhole'
               label: 'Google authentication required'
               caption: 'Complete sign-in to continue'
-              href: '/pipelines/{{ runtime.tools.auth_required.launchAuth.data.task.pipelineId }}'
+              href: '/pipelines/{{ runtime.tools.auth_required.launchAuth.data.pipelineId }}'
               embed: true
               expanded: true
 

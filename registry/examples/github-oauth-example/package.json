@@ -29,10 +29,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/ai-module": "^0.20.6",
+    "@loopstack/claude-module": "^0.21.0",
     "@loopstack/common": "^0.23.0",
     "@loopstack/core": "^0.23.1",
-    "@loopstack/core-ui-module": "^0.20.6",
     "@loopstack/create-chat-message-tool": "^0.20.6",
     "@loopstack/github-module": "^0.1.0",
     "@loopstack/oauth-module": "^0.1.5",
@@ -63,14 +62,6 @@
       {
         "path": "src/github-example.module.ts",
         "className": "GitHubExampleModule"
-      },
-      {
-        "package": "@loopstack/oauth-module",
-        "className": "OAuthModule"
-      },
-      {
-        "package": "@loopstack/github-module",
-        "className": "GitHubModule"
       }
     ],
     "workflows": [
@@ -83,11 +74,6 @@
         "path": "src/workflows/github-agent.workflow.ts",
         "className": "GitHubAgentWorkflow",
         "propertyName": "gitHubAgent"
-      },
-      {
-        "package": "@loopstack/oauth-module",
-        "className": "OAuthWorkflow",
-        "propertyName": "oAuth"
       }
     ]
   }

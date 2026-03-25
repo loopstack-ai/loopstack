@@ -1,17 +1,17 @@
 import { z } from 'zod';
-import { AiGenerateDocument, AiMessageDocument } from '@loopstack/ai-module';
-import { DocumentEntity, InjectDocument, InjectTool, Input, Runtime, ToolResult, Workflow } from '@loopstack/common';
+import { ClaudeGenerateDocument, ClaudeMessageDocument } from '@loopstack/claude-module';
+import { InjectDocument, InjectTool, Input, Runtime, Workflow } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core';
-import { FileDocument, FileDocumentType } from './documents/file-document';
+import { FileDocument } from './documents/file-document';
 
 @Workflow({
   configFile: __dirname + '/prompt-structured-output.workflow.yaml',
 })
 export class PromptStructuredOutputWorkflow {
   @InjectTool() createDocument: CreateDocument;
-  @InjectTool() aiGenerateDocument: AiGenerateDocument;
+  @InjectTool() claudeGenerateDocument: ClaudeGenerateDocument;
 
-  @InjectDocument() aiMessageDocument: AiMessageDocument;
+  @InjectDocument() claudeMessageDocument: ClaudeMessageDocument;
   @InjectDocument() fileDocument: FileDocument;
 
   @Input({
@@ -24,7 +24,5 @@ export class PromptStructuredOutputWorkflow {
   };
 
   @Runtime()
-  runtime: {
-    tools: Record<'prompt', Record<'llm_call', ToolResult<DocumentEntity<FileDocumentType>>>>;
-  };
+  runtime: any;
 }

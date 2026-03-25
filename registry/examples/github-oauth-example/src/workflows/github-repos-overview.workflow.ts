@@ -5,14 +5,14 @@ import {
   DefineHelper,
   InjectDocument,
   InjectTool,
+  InjectWorkflow,
   Input,
   Runtime,
   State,
   Workflow,
   WorkflowInterface,
 } from '@loopstack/common';
-import { ExecuteWorkflowAsync } from '@loopstack/core';
-import { CreateDocument, LinkDocument, MarkdownDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, LinkDocument, MarkdownDocument, Task } from '@loopstack/core';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import {
   GitHubCreateIssueCommentTool,
@@ -41,6 +41,7 @@ import {
   GitHubSearchReposTool,
   GitHubTriggerWorkflowTool,
 } from '@loopstack/github-module';
+import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 @Injectable()
 @Workflow({
@@ -48,7 +49,7 @@ import {
 })
 export class GitHubReposOverviewWorkflow implements WorkflowInterface {
   // Core tools
-  @InjectTool() private executeWorkflowAsync: ExecuteWorkflowAsync;
+  @InjectTool() private task: Task;
   @InjectTool() private createDocument: CreateDocument;
   @InjectTool() private createChatMessage: CreateChatMessage;
 
@@ -94,6 +95,8 @@ export class GitHubReposOverviewWorkflow implements WorkflowInterface {
   // Documents
   @InjectDocument() private linkDocument: LinkDocument;
   @InjectDocument() private markdown: MarkdownDocument;
+
+  @InjectWorkflow() oAuth: OAuthWorkflow;
 
   @Input({
     schema: z

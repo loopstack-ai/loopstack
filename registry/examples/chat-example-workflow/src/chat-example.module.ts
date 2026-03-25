@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AiModule } from '@loopstack/ai-module';
+import { ClaudeModule } from '@loopstack/claude-module';
 import { LoopCoreModule } from '@loopstack/core';
 import { ChatWorkflow } from './chat.workflow';
 
 @Module({
-  imports: [LoopCoreModule, AiModule],
+  imports: [LoopCoreModule, ClaudeModule],
   providers: [ChatWorkflow],
   exports: [ChatWorkflow],
 })

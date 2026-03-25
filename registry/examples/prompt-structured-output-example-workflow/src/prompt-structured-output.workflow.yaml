@@ -17,11 +17,11 @@ transitions:
       - tool: createDocument
         args:
           id: status
-          document: aiMessageDocument
+          document: claudeMessageDocument
           update:
             content:
               role: assistant
-              parts:
+              content:
                 - type: text
                   text: Creating a 'Hello, World!' script in {{ args.language }}...
 
@@ -30,29 +30,28 @@ transitions:
     to: prompt_executed
     call:
       - id: llm_call
-        tool: aiGenerateDocument
+        tool: claudeGenerateDocument
         args:
-          llm:
-            provider: openai
-            model: gpt-4o
+          claude:
+            model: claude-sonnet-4-6
           response:
             document: fileDocument
           prompt: |
             Create a {{ args.language }} script that prints 'Hello, World!' to the console.
             Wrap the code in triple-backticks.
 
-  - id: add_message
+  - id: respond
     from: prompt_executed
     to: end
     call:
       - tool: createDocument
         args:
           id: status
-          document: aiMessageDocument
+          document: claudeMessageDocument
           update:
             content:
               role: assistant
-              parts:
+              content:
                 - type: text
                   text: |
                     Successfully generated: {{ runtime.tools.prompt.llm_call.data.content.description }}

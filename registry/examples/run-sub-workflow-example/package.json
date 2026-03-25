@@ -68,16 +68,6 @@
         "path": "src/run-sub-workflow-example-parent.workflow.ts",
         "className": "RunSubWorkflowExampleParentWorkflow",
         "propertyName": "runSubWorkflowExampleParent"
-      },
-      {
-        "path": "src/run-sub-workflow-example-sub.workflow.ts",
-        "className": "RunSubWorkflowExampleSubWorkflow",
-        "propertyName": "runSubWorkflowExampleSub",
-        "options": {
-          "options": {
-            "visible": false
-          }
-        }
       }
     ]
   }
