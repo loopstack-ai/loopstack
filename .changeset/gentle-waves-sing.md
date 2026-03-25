@@ -3,7 +3,6 @@
 '@loopstack/test-ui-documents-example-workflow': minor
 '@loopstack/accessing-tool-results-example-workflow': patch
 '@loopstack/chat-example-workflow': patch
-'@loopstack/google-oauth-calendar-example': patch
 '@loopstack/meeting-notes-example-workflow': patch
 '@loopstack/prompt-example-workflow': patch
 '@loopstack/prompt-structured-output-example-workflow': patch
