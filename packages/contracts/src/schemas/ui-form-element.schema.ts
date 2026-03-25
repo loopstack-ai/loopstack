@@ -2,14 +2,11 @@ import { z } from 'zod';
 
 export const UiElementSchema = z.object({
   widget: z.string().optional(),
-  index: z.number().optional(),
   label: z.string().optional(),
-  descriptions: z.string().optional(),
+  description: z.string().optional(),
   placeholder: z.string().optional(),
   rows: z.number().int().positive().optional(),
   inline: z.boolean().optional(),
-  inputType: z.string().optional(),
-  emptyValue: z.any().optional(),
   help: z.string().optional(),
   title: z.string().optional(),
   enumOptions: z
@@ -26,16 +23,10 @@ export const UiElementSchema = z.object({
       z.string(),
     ])
     .optional(),
-  titleFormat: z.string().optional(),
-  addable: z.boolean().optional(),
-  removable: z.boolean().optional(),
-  movable: z.boolean().optional(),
-  accept: z.string().optional(),
-  multiple: z.boolean().optional(),
   hidden: z.boolean().optional(),
   disabled: z.boolean().optional(),
   readonly: z.boolean().optional(),
   collapsed: z.boolean().optional(),
-
+  fixed: z.boolean().optional(),
   order: z.array(z.string()).optional(),
 });

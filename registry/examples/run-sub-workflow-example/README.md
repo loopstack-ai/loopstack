@@ -151,7 +151,7 @@ When `visible: false` is set, the workflow will not appear in the Loopstack Stud
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/core` - Core framework functionality including `ExecuteWorkflowAsync`
-- `@loopstack/core-ui-module` - Provides `CreateDocument` tool and `LinkDocument`
+- `@loopstack/core` - Provides `CreateDocument` tool and `LinkDocument`
 - `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool
 
 ## About

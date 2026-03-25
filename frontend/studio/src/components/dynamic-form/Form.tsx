@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { FormProvider } from 'react-hook-form';
 import FormBody from './FormBody';
 import { FormElementHeader } from './FormElementHeader';
 import type { DynamicFormProps, SchemaProperties } from './types';
@@ -75,22 +76,24 @@ const Form: React.FC<DynamicFormProps> = ({
   }, [schema]);
 
   return (
-    <div className="container mx-auto">
-      <FormElementHeader title={typedUi?.form?.title} description={typedUi?.form?.description} disabled={disabled} />
+    <FormProvider {...form}>
+      <div className="container mx-auto">
+        <FormElementHeader title={typedUi?.form?.title} description={typedUi?.form?.description} disabled={disabled} />
 
-      <form>
-        <FormBody
-          form={form}
-          mimeType={mimeType}
-          schema={schema as SchemaProperties}
-          ui={ui?.form as SchemaProperties | undefined}
-          disabled={disabled}
-          viewOnly={viewOnly}
-        />
+        <form>
+          <FormBody
+            form={form}
+            mimeType={mimeType}
+            schema={schema as SchemaProperties}
+            ui={ui?.form as SchemaProperties | undefined}
+            disabled={disabled}
+            viewOnly={viewOnly}
+          />
 
-        {!viewOnly && !!actions && <div className="mt-4 flex w-full justify-end">{actions}</div>}
-      </form>
-    </div>
+          {!viewOnly && !!actions && <div className="mt-4 flex w-full justify-end">{actions}</div>}
+        </form>
+      </div>
+    </FormProvider>
   );
 };
 

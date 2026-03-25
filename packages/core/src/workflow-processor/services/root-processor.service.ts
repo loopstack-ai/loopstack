@@ -27,17 +27,42 @@ export class RootProcessorService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  private resolveWorkflow(workspaceName: string, blockName: string) {
+  private resolveWorkflowFromWorkspace(workspaceName: string, blockName: string): WorkflowInterface | undefined {
     const workspaceInstance = this.blockDiscoveryService.getWorkspace(workspaceName);
     if (!workspaceInstance) {
-      throw new BadRequestException(`Config for workspace with name ${workspaceName} not found.`);
+      return undefined;
+    }
+    return getBlockWorkflow<WorkflowInterface>(workspaceInstance, blockName);
+  }
+
+  private resolveWorkflow(pipeline: PipelineEntity): WorkflowInterface {
+    // Try parent workflow first (for sub-pipelines)
+    if (pipeline.parent) {
+      const parentWorkflow = this.resolveWorkflow(pipeline.parent);
+      const subWorkflow = getBlockWorkflow<WorkflowInterface>(parentWorkflow, pipeline.blockName);
+      if (subWorkflow) {
+        return subWorkflow;
+      }
     }
 
-    const workflow = getBlockWorkflow<WorkflowInterface>(workspaceInstance, blockName);
+    // Fallback: resolve from workspace
+    const workflow = this.resolveWorkflowFromWorkspace(pipeline.workspace.blockName, pipeline.blockName);
     if (!workflow) {
-      throw new Error(`Workflow ${blockName} not available in workspace ${workspaceName}`);
+      throw new Error(
+        `Workflow ${pipeline.blockName} not found` +
+          (pipeline.parent ? ` on parent workflow or` : ' on') +
+          ` workspace ${pipeline.workspace.blockName}`,
+      );
     }
 
+    return workflow;
+  }
+
+  private resolveWorkflowByNames(workspaceName: string, blockName: string): WorkflowInterface {
+    const workflow = this.resolveWorkflowFromWorkspace(workspaceName, blockName);
+    if (!workflow) {
+      throw new BadRequestException(`Workflow ${blockName} not available in workspace ${workspaceName}`);
+    }
     return workflow;
   }
 
@@ -57,7 +82,7 @@ export class RootProcessorService {
     },
     payload: RunPayload,
   ): Promise<WorkflowMetadataInterface> {
-    const workflow = this.resolveWorkflow(params.workspaceName, params.blockName);
+    const workflow = this.resolveWorkflowByNames(params.workspaceName, params.blockName);
 
     const ctx = new RunContext({
       root: params.blockName,
@@ -90,7 +115,7 @@ export class RootProcessorService {
   }
 
   async runPipeline(pipeline: PipelineEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {
-    const workflow = this.resolveWorkflow(pipeline.workspace.blockName, pipeline.blockName);
+    const workflow = this.resolveWorkflow(pipeline);
 
     const namespace = await this.namespaceProcessorService.createRootNamespace(pipeline);
 

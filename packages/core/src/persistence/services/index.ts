@@ -5,3 +5,4 @@ export * from './pipeline.service';
 export * from './document.service';
 export * from './migrations.service';
 export * from './event-subscriber.service';
+export * from './secret.service';

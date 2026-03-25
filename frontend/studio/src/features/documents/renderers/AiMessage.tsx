@@ -1,5 +1,3 @@
-import type { UIMessage } from 'ai';
-import { getToolOrDynamicToolName, isReasoningUIPart, isTextUIPart, isToolOrDynamicToolUIPart } from 'ai';
 import { CopyIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
@@ -13,11 +11,16 @@ import {
 import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-elements/reasoning.tsx';
 import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources.tsx';
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/ai-elements/tool.tsx';
+import type { SourceUIPart, UIMessage, UIMessagePart } from '@/types/ai.types';
+import { getToolOrDynamicToolName, isReasoningUIPart, isTextUIPart, isToolOrDynamicToolUIPart } from '@/types/ai.types';
 
 const AiMessage = ({ document }: { document: DocumentItemInterface; isLastItem: boolean }) => {
   const message = document.content as UIMessage;
+  const isSourcePart = (part: UIMessagePart): part is SourceUIPart => {
+    return part.type === 'source-url';
+  };
 
-  const sourceParts = message.parts?.filter((part) => part.type === 'source-url') ?? [];
+  const sourceParts = message.parts?.filter(isSourcePart) ?? [];
 
   return (
     <Fragment>

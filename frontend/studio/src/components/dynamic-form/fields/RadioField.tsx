@@ -31,7 +31,8 @@ export const RadioField: React.FC<RadioFieldProps> = ({ name, schema, ui, requir
   const config = useFieldConfig(name, schema, ui, disabled);
 
   // Get custom enum options if provided
-  const enumOptions = schema.enumOptions;
+  const uiConfig = ui as { enumOptions?: Array<{ label: string; value: string }>; inline?: boolean } | undefined;
+  const enumOptions = uiConfig?.enumOptions ?? schema.enumOptions;
   const enumLabels = enumOptions ? enumOptions.map((opt) => opt.label) : schema.enum;
   const enumValues = enumOptions ? enumOptions.map((opt) => opt.value) : schema.enum;
 
@@ -59,7 +60,7 @@ export const RadioField: React.FC<RadioFieldProps> = ({ name, schema, ui, requir
             disabled={config.isDisabled}
             required={required}
             aria-label={config.fieldLabel}
-            className={cn(schema.inline && 'flex flex-row space-y-0 space-x-4')}
+            className={cn((uiConfig?.inline ?? schema.inline) && 'flex flex-row space-y-0 space-x-4')}
             {...config.getAriaProps()}
           >
             {enumValues?.map((option: string, index: number) => (

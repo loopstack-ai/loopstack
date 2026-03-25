@@ -190,7 +190,7 @@ This workflow uses the following Loopstack modules:
 - `@loopstack/core` - Core framework functionality
 - `@loopstack/sandbox-tool` - Provides `SandboxInit` and `SandboxDestroy` tools for container lifecycle
 - `@loopstack/sandbox-filesystem` - Provides filesystem tools (`SandboxWriteFile`, `SandboxReadFile`, `SandboxListDirectory`, `SandboxCreateDirectory`, `SandboxDelete`, `SandboxExists`, `SandboxFileInfo`)
-- `@loopstack/core-ui-module` - Core UI functionality
+- `@loopstack/core` - Core UI functionality
 - `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool for output
 
 ## About

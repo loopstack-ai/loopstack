@@ -19,11 +19,12 @@ export class DocumentService {
     return this.documentRepository.create({
       ...data,
       transition: transition.id,
-      index: metadata.documents.length ?? 0,
+      index: 0,
       workflowIndex: context.index,
       place: transition.to,
       labels: context.labels,
       workflow: { id: context.workflowId } as WorkflowEntity,
+      workflowId: context.workflowId,
       workspaceId: context.workspaceId,
       pipelineId: context.pipelineId,
       createdBy: context.userId,

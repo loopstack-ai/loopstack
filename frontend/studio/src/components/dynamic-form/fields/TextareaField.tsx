@@ -40,14 +40,15 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
 }) => {
   const config = useFieldConfig(name, schema, ui, disabled);
 
-  const placeholder = schema.placeholder || schema.examples?.[0] || '';
-  const rows = schema.rows || 4;
+  const uiConfig = ui as { placeholder?: string; rows?: number } | undefined;
+  const placeholder = uiConfig?.placeholder || schema.placeholder || schema.examples?.[0] || '';
+  const rows = uiConfig?.rows || schema.rows || 4;
 
   const validationRules = buildTextValidationRules(schema, required);
 
   if (viewOnly) {
     return (
-      <div className="mt-4 mb-8 block">
+      <div className="mb-4 block">
         <Label className="text-muted-foreground mb-1 block text-sm">{config.fieldLabel}</Label>
         <Controller
           name={name}

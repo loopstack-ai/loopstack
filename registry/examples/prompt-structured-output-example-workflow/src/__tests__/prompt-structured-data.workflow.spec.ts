@@ -1,8 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
-import { AiGenerateDocument, AiModule } from '@loopstack/ai-module';
+import { ClaudeGenerateDocument, ClaudeModule } from '@loopstack/claude-module';
 import { RunContext, getBlockTools } from '@loopstack/common';
-import { WorkflowProcessorService } from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { FileDocument } from '../documents/file-document';
 import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow';
@@ -13,7 +12,7 @@ describe('PromptStructuredOutputWorkflow', () => {
   let processor: WorkflowProcessorService;
 
   let mockCreateDocument: ToolMock;
-  let mockAiGenerateDocument: ToolMock;
+  let mockClaudeGenerateDocument: ToolMock;
 
   const mockFileContent = {
     filename: 'hello_world.py',
@@ -24,17 +23,17 @@ describe('PromptStructuredOutputWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptStructuredOutputWorkflow)
-      .withImports(CoreUiModule, AiModule)
+      .withImports(LoopCoreModule, ClaudeModule)
       .withProvider(FileDocument)
       .withToolOverride(CreateDocument)
-      .withToolOverride(AiGenerateDocument)
+      .withToolOverride(ClaudeGenerateDocument)
       .compile();
 
     workflow = module.get(PromptStructuredOutputWorkflow);
     processor = module.get(WorkflowProcessorService);
 
     mockCreateDocument = module.get(CreateDocument);
-    mockAiGenerateDocument = module.get(AiGenerateDocument);
+    mockClaudeGenerateDocument = module.get(ClaudeGenerateDocument);
   });
 
   afterEach(async () => {
@@ -45,7 +44,7 @@ describe('PromptStructuredOutputWorkflow', () => {
     it('should be defined with correct tools and documents', () => {
       expect(workflow).toBeDefined();
       expect(getBlockTools(workflow)).toContain('createDocument');
-      expect(getBlockTools(workflow)).toContain('aiGenerateDocument');
+      expect(getBlockTools(workflow)).toContain('claudeGenerateDocument');
     });
   });
 
@@ -54,7 +53,7 @@ describe('PromptStructuredOutputWorkflow', () => {
 
     it('should execute workflow and generate hello world script', async () => {
       mockCreateDocument.execute.mockResolvedValue({});
-      mockAiGenerateDocument.execute.mockResolvedValue({
+      mockClaudeGenerateDocument.execute.mockResolvedValue({
         data: { content: mockFileContent },
       });
 
@@ -72,7 +71,7 @@ describe('PromptStructuredOutputWorkflow', () => {
           update: {
             content: {
               role: 'assistant',
-              parts: [
+              content: [
                 {
                   type: 'text',
                   text: "Creating a 'Hello, World!' script in python...",
@@ -86,13 +85,12 @@ describe('PromptStructuredOutputWorkflow', () => {
         expect.anything(),
       );
 
-      // Verify AiGenerateDocument was called once with correct arguments
-      expect(mockAiGenerateDocument.execute).toHaveBeenCalledTimes(1);
-      expect(mockAiGenerateDocument.execute).toHaveBeenCalledWith(
+      // Verify ClaudeGenerateDocument was called once with correct arguments
+      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledTimes(1);
+      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledWith(
         expect.objectContaining({
-          llm: {
-            provider: 'openai',
-            model: 'gpt-4o',
+          claude: {
+            model: 'claude-sonnet-4-6',
           },
           prompt: expect.stringContaining('python'),
         }),
@@ -111,7 +109,7 @@ describe('PromptStructuredOutputWorkflow', () => {
 
     it('should work with different programming languages', async () => {
       mockCreateDocument.execute.mockResolvedValue({});
-      mockAiGenerateDocument.execute.mockResolvedValue({
+      mockClaudeGenerateDocument.execute.mockResolvedValue({
         data: { content: { ...mockFileContent, filename: 'hello_world.js' } },
       });
 
@@ -125,7 +123,7 @@ describe('PromptStructuredOutputWorkflow', () => {
           update: {
             content: {
               role: 'assistant',
-              parts: [
+              content: [
                 {
                   type: 'text',
                   text: "Creating a 'Hello, World!' script in javascript...",
@@ -139,8 +137,8 @@ describe('PromptStructuredOutputWorkflow', () => {
         expect.anything(),
       );
 
-      // Verify AiGenerateDocument prompt mentions javascript
-      expect(mockAiGenerateDocument.execute).toHaveBeenCalledWith(
+      // Verify ClaudeGenerateDocument prompt mentions javascript
+      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: expect.stringContaining('javascript'),
         }),
@@ -152,7 +150,7 @@ describe('PromptStructuredOutputWorkflow', () => {
 
     it('should use default language when not provided', async () => {
       mockCreateDocument.execute.mockResolvedValue({});
-      mockAiGenerateDocument.execute.mockResolvedValue({
+      mockClaudeGenerateDocument.execute.mockResolvedValue({
         data: { content: mockFileContent },
       });
 
@@ -160,8 +158,8 @@ describe('PromptStructuredOutputWorkflow', () => {
 
       expect(result.hasError).toBe(false);
 
-      // Verify AiGenerateDocument was called with default language "python"
-      expect(mockAiGenerateDocument.execute).toHaveBeenCalledWith(
+      // Verify ClaudeGenerateDocument was called with default language "python"
+      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: expect.stringContaining('python'),
         }),

@@ -10,7 +10,7 @@ import {
   Workflow,
   WorkflowInterface,
 } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument } from '@loopstack/core';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { OAuthPromptDocument } from '../documents';
 import { BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools';

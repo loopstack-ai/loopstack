@@ -36,6 +36,12 @@ const DocumentList: React.FC<{
         const isDocumentActive =
           item.place === workflow.place || !!document.meta?.enableAtPlaces?.includes(workflow.place);
 
+        console.log({
+          isDocumentActive,
+          enableAtPlaces: document.meta?.enableAtPlaces,
+          place: workflow.place,
+        });
+
         const isActive = isWorkflowActive && isDocumentActive;
 
         const isLastItem = documentIndex === documents.length - 1;

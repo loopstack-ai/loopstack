@@ -5,10 +5,14 @@ import {
   Input,
   RunContext,
   Tool,
+  ToolCallEntry,
+  ToolCallsMap,
   ToolInterface,
   ToolResult,
+  ToolSideEffects,
   WorkflowInterface,
   WorkflowMetadataInterface,
+  getBlockTool,
 } from '@loopstack/common';
 import { ClaudeGenerateToolBaseSchema } from '../schemas/claude-generate-tool-base.schema';
 import { ClaudeClientService } from '../services';
@@ -18,6 +22,7 @@ import { applyCacheBreakpoints } from '../utils/cache.utils';
 
 export const ClaudeGenerateTextSchema = ClaudeGenerateToolBaseSchema.extend({
   tools: z.array(z.string()).optional(),
+  document: z.string().optional(),
 }).strict();
 
 type ClaudeGenerateTextArgsType = z.infer<typeof ClaudeGenerateTextSchema>;
@@ -72,8 +77,23 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
       cache: args.claude?.cache,
     });
 
+    const toolCalls = this.extractToolCalls(response);
+
+    let effects: ToolSideEffects[] = [];
+
+    if (args.document) {
+      const docResult = await this.createResponseMessage(args.document, response, ctx, parent, runtime);
+      if (docResult.effects) {
+        effects = [...docResult.effects];
+      }
+    }
+
     return {
-      data: response,
+      data: {
+        ...response,
+        ...(toolCalls ? { toolCalls } : {}),
+      },
+      ...(effects.length > 0 ? { effects } : {}),
       metadata: {
         usage: {
           inputTokens: response.usage.input_tokens,
@@ -83,6 +103,51 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
         },
       },
     };
+  }
+
+  private async createResponseMessage(
+    document: string,
+    response: Anthropic.Message,
+    ctx: RunContext,
+    parent: WorkflowInterface,
+    runtime: WorkflowMetadataInterface,
+  ): Promise<ToolResult> {
+    const createDocumentTool = getBlockTool<ToolInterface>(parent, 'createDocument');
+    if (!createDocumentTool) {
+      throw new Error('createDocument tool not found in parent context.');
+    }
+
+    return createDocumentTool.execute(
+      {
+        id: response.id,
+        document,
+        update: {
+          content: response,
+        },
+      },
+      ctx,
+      parent,
+      runtime,
+    );
+  }
+
+  private extractToolCalls(response: Anthropic.Message): ToolCallsMap | null {
+    if (response.stop_reason !== 'tool_use') {
+      return null;
+    }
+
+    const toolCalls: ToolCallsMap = {};
+    for (const block of response.content) {
+      if (block.type === 'tool_use') {
+        toolCalls[block.name] = {
+          id: block.id,
+          name: block.name,
+          input: block.input,
+        } satisfies ToolCallEntry;
+      }
+    }
+
+    return Object.keys(toolCalls).length > 0 ? toolCalls : null;
   }
 
   private async handleGenerateText(

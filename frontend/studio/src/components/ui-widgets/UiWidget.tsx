@@ -3,6 +3,7 @@ import type { UiFormButtonOptionsType, UiWidgetType } from '@loopstack/contracts
 import AiPromptInput from '@/components/ui-widgets/widgets/AiPromptInput';
 import { ButtonFullWidth } from '@/components/ui-widgets/widgets/ButtonFullWidth.tsx';
 import { SandboxRun } from '@/components/ui-widgets/widgets/SandboxRun.tsx';
+import { SecretInput } from '@/components/ui-widgets/widgets/SecretInput.tsx';
 import { SubmitButton } from './widgets/SubmitButton';
 
 export interface UiWidgetProps {
@@ -38,6 +39,8 @@ const UiWidget: React.FC<UiWidgetProps> = ({ config, onSubmit, disabled, isLoadi
       );
     case 'sandbox-run':
       return <SandboxRun ui={options as { slotId?: string; label?: string }} disabled={disabled} />;
+    case 'secret-input':
+      return <SecretInput ui={options as { transition?: string }} disabled={disabled} onSubmit={onSubmit} />;
   }
 
   return <></>;

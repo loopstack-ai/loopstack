@@ -1,0 +1,154 @@
+title: 'GitHub Agent'
+
+description: |
+  An interactive chat agent with access to GitHub.
+  Ask it to manage repositories, issues, pull requests, browse code, check CI/CD status,
+  search across GitHub, and more. Handles OAuth authentication automatically when needed —
+  the agent detects unauthorized errors and launches authentication on its own.
+
+ui:
+  actions:
+    - type: custom
+      widget: prompt-input
+      enabledWhen:
+        - waiting_for_user
+      options:
+        transition: user_message
+        label: Send Message
+
+transitions:
+  - id: setup
+    from: start
+    to: waiting_for_user
+    call:
+      - tool: createDocument
+        args:
+          document: claudeMessageDocument
+          update:
+            meta:
+              hidden: true
+            content:
+              role: user
+              content: |
+                You are a helpful GitHub assistant. You have access to the user's
+                GitHub account through the tools provided to you.
+
+                You can help with:
+                - **Repositories**: List repos, get repo details, create repos, list branches
+                - **Issues**: List issues, get issue details, create issues, comment on issues
+                - **Pull Requests**: List PRs, get PR details, create PRs, merge PRs, list reviews
+                - **Code & Content**: Read files, create/update files, browse directories, view commits
+                - **Actions (CI/CD)**: List workflow runs, trigger workflows, check run status
+                - **Search**: Search code, repositories, and issues across GitHub
+                - **Users & Orgs**: Get user profile, list organizations
+
+                When a tool returns `{ error: "unauthorized" }` or `{ error: "401" }`, call the
+                `authenticateGitHub` tool with the required OAuth scopes to let the user sign in.
+                After authentication completes, retry the original request.
+
+                Common scopes: repo, user, workflow, read:org
+
+                IMPORTANT: When using authenticateGitHub, it must be the ONLY tool call in your response.
+
+                Be concise and helpful. Format results clearly using markdown.
+                When showing repository or issue information, include links where available.
+
+  - id: user_message
+    from: waiting_for_user
+    to: ready
+    trigger: manual
+    call:
+      - tool: createDocument
+        args:
+          document: claudeMessageDocument
+          update:
+            content:
+              role: user
+              content: ${{ runtime.transition.payload }}
+
+  - id: llm_turn
+    from: ready
+    to: prompt_executed
+    call:
+      - id: llm_call
+        tool: claudeGenerateText
+        args:
+          system: |
+            You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
+            and search tools. When a tool returns an unauthorized error, use authenticateGitHub
+            to let the user sign in, then retry. Be concise and format results using markdown.
+          claude:
+            model: claude-sonnet-4-6
+          messagesSearchTag: message
+          tools:
+            - gitHubListRepos
+            - gitHubGetRepo
+            - gitHubCreateRepo
+            - gitHubListBranches
+            - gitHubListIssues
+            - gitHubGetIssue
+            - gitHubCreateIssue
+            - gitHubCreateIssueComment
+            - gitHubListPullRequests
+            - gitHubGetPullRequest
+            - gitHubCreatePullRequest
+            - gitHubMergePullRequest
+            - gitHubListPrReviews
+            - gitHubGetFileContent
+            - gitHubCreateOrUpdateFile
+            - gitHubListDirectory
+            - gitHubGetCommit
+            - gitHubListWorkflowRuns
+            - gitHubTriggerWorkflow
+            - gitHubGetWorkflowRun
+            - gitHubSearchCode
+            - gitHubSearchRepos
+            - gitHubSearchIssues
+            - gitHubGetAuthenticatedUser
+            - gitHubListUserOrgs
+            - authenticateGitHub
+        assign:
+          llmResult: ${{ result.data }}
+
+  - id: execute_tool_calls
+    from: prompt_executed
+    to: awaiting_tools
+    if: ${{ state.llmResult.stop_reason == 'tool_use' }}
+    call:
+      - tool: delegateToolCalls
+        args:
+          message: ${{ state.llmResult }}
+          document: claudeMessageDocument
+          callback:
+            transition: tool_result_received
+        assign:
+          delegateResult: ${{ result.data }}
+
+  - id: tool_result_received
+    from: awaiting_tools
+    to: awaiting_tools
+    trigger: manual
+    call:
+      - tool: updateToolResult
+        args:
+          delegateResult: ${{ state.delegateResult }}
+          completedTool: ${{ runtime.transition.payload }}
+          document: claudeMessageDocument
+        assign:
+          delegateResult: ${{ result.data }}
+
+  - id: all_tools_complete
+    from: awaiting_tools
+    to: ready
+    if: ${{ state.delegateResult.allCompleted }}
+
+  - id: respond
+    from: prompt_executed
+    to: waiting_for_user
+    call:
+      - tool: createDocument
+        args:
+          id: ${{ state.llmResult.id }}
+          document: claudeMessageDocument
+          update:
+            content: ${{ state.llmResult }}

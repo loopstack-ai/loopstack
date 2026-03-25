@@ -34,7 +34,7 @@ export const FormElement: React.FC<FormElementProps> = (props) => {
       case 'array':
         return (
           <>
-            <div className="mt-3">
+            <div className="mt-1">
               <ArrayController {...props} />
             </div>
           </>

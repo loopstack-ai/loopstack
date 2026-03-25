@@ -85,7 +85,6 @@ export function FileTabsBarBase({
 
   const handleCopyPath = (path: string) => {
     navigator.clipboard.writeText(path).catch((err) => {
-      // eslint-disable-next-line no-console
       console.error('Failed to copy path:', err);
     });
   };

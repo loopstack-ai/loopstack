@@ -1,15 +1,15 @@
 import { z } from 'zod';
-import { AiGenerateText, AiMessageDocument, AiMessageDocumentContentType } from '@loopstack/ai-module';
-import { InjectDocument, InjectTool, Input, Runtime, ToolResult, Workflow } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core-ui-module';
+import { ClaudeGenerateText, ClaudeMessageDocument } from '@loopstack/claude-module';
+import { InjectDocument, InjectTool, Input, Runtime, Workflow } from '@loopstack/common';
+import { CreateDocument } from '@loopstack/core';
 
 @Workflow({
   configFile: __dirname + '/prompt.workflow.yaml',
 })
 export class PromptWorkflow {
   @InjectTool() private createDocument: CreateDocument;
-  @InjectTool() private aiGenerateText: AiGenerateText;
-  @InjectDocument() private aiMessageDocument: AiMessageDocument;
+  @InjectTool() private claudeGenerateText: ClaudeGenerateText;
+  @InjectDocument() private claudeMessageDocument: ClaudeMessageDocument;
 
   @Input({
     schema: z.object({
@@ -21,7 +21,5 @@ export class PromptWorkflow {
   };
 
   @Runtime()
-  runtime: {
-    tools: Record<'prompt', Record<'llm_call', ToolResult<AiMessageDocumentContentType>>>;
-  };
+  runtime: any;
 }

@@ -31,7 +31,7 @@ export const BaseFieldWrapper: React.FC<BaseFieldWrapperProps> = ({
   helpTextPosition = 'after',
 }) => {
   return (
-    <div className="mt-4 mb-8 block space-y-2">
+    <div className="mb-4 block space-y-1.5">
       {showLabel && (
         <Label
           htmlFor={name}

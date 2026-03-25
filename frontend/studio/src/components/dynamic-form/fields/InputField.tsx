@@ -22,6 +22,8 @@ export const getInputType = (property: InputFieldSchema): React.HTMLInputTypeAtt
         return 'datetime-local';
       case 'phone':
         return 'tel';
+      case 'password':
+        return 'password';
     }
   }
 
@@ -51,7 +53,7 @@ export interface InputFieldSchema {
   maximum?: number;
   multipleOf?: number;
   pattern?: string;
-  format?: 'email' | 'url' | 'date' | 'time' | 'datetime' | 'phone';
+  format?: 'email' | 'url' | 'date' | 'time' | 'datetime' | 'phone' | 'password';
   [key: string]: unknown;
 }
 
@@ -66,13 +68,14 @@ const isNumericType = (schema: InputFieldSchema): boolean => {
 export const InputField: React.FC<InputFieldProps> = ({ name, schema, ui, required, form, disabled, viewOnly }) => {
   const config = useFieldConfig(name, schema, ui, disabled);
   const inputType = getInputType(schema);
-  const placeholder = schema.placeholder || schema.examples?.[0]?.toString() || '';
+  const uiConfig = ui as { placeholder?: string } | undefined;
+  const placeholder = uiConfig?.placeholder || schema.placeholder || schema.examples?.[0]?.toString() || '';
   const validationRules = buildTextValidationRules(schema, required);
   const isNumeric = isNumericType(schema);
 
   if (viewOnly) {
     return (
-      <div className="mt-4 mb-8 block">
+      <div className="mb-4 block">
         <Label className="text-muted-foreground mb-1 block text-sm">{config.fieldLabel}</Label>
         <Controller
           name={name}

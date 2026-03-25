@@ -6,6 +6,8 @@ import {
   Input,
   RunContext,
   Tool,
+  ToolCallEntry,
+  ToolCallsMap,
   ToolInterface,
   ToolResult,
   WorkflowInterface,
@@ -76,12 +78,34 @@ export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
 
     const { uiMessage, usage } = await this.handleGenerateText(model, options);
 
-    console.log(uiMessage, usage);
+    const toolCalls = this.extractToolCalls(uiMessage);
 
     return {
-      data: uiMessage,
+      data: {
+        ...uiMessage,
+        ...(toolCalls ? { toolCalls } : {}),
+      },
       metadata: { usage },
     };
+  }
+
+  private extractToolCalls(message: UIMessage): ToolCallsMap | null {
+    const toolCalls: ToolCallsMap = {};
+
+    for (const part of message.parts) {
+      if (!('type' in part) || typeof part.type !== 'string' || !part.type.startsWith('tool-')) {
+        continue;
+      }
+
+      const toolName = part.type.replace(/^tool-/, '');
+      toolCalls[toolName] = {
+        id: (part as { toolCallId?: string }).toolCallId ?? '',
+        name: toolName,
+        input: (part as { input?: unknown }).input,
+      } satisfies ToolCallEntry;
+    }
+
+    return Object.keys(toolCalls).length > 0 ? toolCalls : null;
   }
 
   private async handleGenerateText(

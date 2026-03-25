@@ -13,19 +13,19 @@ transitions:
     to: prompt_executed
     call:
       - id: llm_call
-        tool: aiGenerateText
+        tool: claudeGenerateText
         args:
-          llm:
-            provider: openai
-            model: gpt-4o
+          claude:
+            model: claude-sonnet-4-6
           prompt: Write a haiku about {{ args.subject }}
 
-  - id: add_response
+  - id: respond
     from: prompt_executed
     to: end
     call:
       - tool: createDocument
         args:
-          document: aiMessageDocument
+          id: ${{ runtime.tools.prompt.llm_call.data.id }}
+          document: claudeMessageDocument
           update:
             content: ${{ runtime.tools.prompt.llm_call.data }}

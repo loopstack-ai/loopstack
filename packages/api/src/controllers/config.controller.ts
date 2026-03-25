@@ -28,7 +28,6 @@ import {
   getBlockConfig,
   getBlockWorkflow,
   getBlockWorkflows,
-  getWorkflowOptions,
 } from '@loopstack/common';
 import { BlockOptions } from '@loopstack/common';
 import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
@@ -256,33 +255,28 @@ export class ConfigController {
       throw new BadRequestException(`Config for workspace with name ${workspaceBlockName} not found.`);
     }
 
-    const workflows: { name: string; instance: WorkflowInterface; hidden: boolean }[] = getBlockWorkflows(
-      workspace,
-    ).map((key) => ({
+    const workflows = getBlockWorkflows(workspace).map((key) => ({
       name: key,
       instance: (workspace as Record<string, unknown>)[key] as WorkflowInterface,
-      hidden: getWorkflowOptions(workspace, key)?.visible === false,
     }));
 
-    const filtered = workflows
-      .filter((item) => !item.hidden)
-      .map((item) => {
-        const config = getBlockConfig<WorkflowType>(item.instance) as WorkflowType;
-        if (!config) {
-          throw new Error(`Block ${item.name} is missing @BlockConfig decorator`);
-        }
+    const filtered = workflows.map((item) => {
+      const config = getBlockConfig<WorkflowType>(item.instance) as WorkflowType;
+      if (!config) {
+        throw new Error(`Block ${item.name} is missing @BlockConfig decorator`);
+      }
 
-        const schema = getBlockArgsSchema(item.instance);
-        const propertiesSchema = schema ? (toJSONSchema(schema) as JSONSchemaDefinition) : undefined;
+      const schema = getBlockArgsSchema(item.instance);
+      const propertiesSchema = schema ? (toJSONSchema(schema) as JSONSchemaDefinition) : undefined;
 
-        return {
-          blockName: item.name,
-          title: config.title,
-          description: config.description,
-          schema: propertiesSchema,
-          ui: config.ui,
-        } satisfies PipelineConfigDto;
-      });
+      return {
+        blockName: item.name,
+        title: config.title,
+        description: config.description,
+        schema: propertiesSchema,
+        ui: config.ui,
+      } satisfies PipelineConfigDto;
+    });
 
     const sorted = sortBy(filtered, 'title');
 

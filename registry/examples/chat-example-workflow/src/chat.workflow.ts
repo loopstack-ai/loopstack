@@ -1,19 +1,22 @@
-import { AiGenerateText, AiMessageDocument, AiMessageDocumentContentType } from '@loopstack/ai-module';
-import { InjectDocument, InjectTool, Runtime, ToolResult, Workflow } from '@loopstack/common';
-import { TransitionPayload } from '@loopstack/contracts/schemas';
-import { CreateDocument } from '@loopstack/core-ui-module';
+import { ClaudeGenerateText, ClaudeMessageDocument } from '@loopstack/claude-module';
+import { InjectDocument, InjectTool, Runtime, State, Workflow } from '@loopstack/common';
+import { CreateDocument } from '@loopstack/core';
 
 @Workflow({
   configFile: __dirname + '/chat.workflow.yaml',
 })
 export class ChatWorkflow {
   @InjectTool() createDocument: CreateDocument;
-  @InjectTool() aiGenerateText: AiGenerateText;
-  @InjectDocument() aiMessageDocument: AiMessageDocument;
+  @InjectTool() claudeGenerateText: ClaudeGenerateText;
+  @InjectDocument() claudeMessageDocument: ClaudeMessageDocument;
+
+  @State({
+    schema: undefined,
+  })
+  state: {
+    llmResult?: any;
+  };
 
   @Runtime()
-  runtime: {
-    tools: Record<'prompt', Record<'llm_call', ToolResult<AiMessageDocumentContentType>>>;
-    transition: TransitionPayload;
-  };
+  runtime: any;
 }

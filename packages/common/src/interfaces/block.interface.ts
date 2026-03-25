@@ -14,6 +14,13 @@ export interface ToolInterface<TArgs extends object = any> extends BlockInterfac
     parentBlock: WorkflowInterface | ToolInterface,
     metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult>;
+
+  complete?(
+    result: unknown,
+    context: RunContext,
+    parentBlock: WorkflowInterface | ToolInterface,
+    metadata: WorkflowMetadataInterface,
+  ): Promise<ToolResult>;
 }
 
 export interface WorkflowInterface extends BlockInterface {

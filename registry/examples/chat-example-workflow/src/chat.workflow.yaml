@@ -7,64 +7,61 @@ ui:
     - type: custom
       widget: prompt-input
       enabledWhen:
-        - ready
+        - waiting_for_user
       options:
         transition: user_message
         label: Send Message
 
 transitions:
-  - id: greeting
+  - id: setup
     from: start
-    to: ready
-    call:
-      - tool: createDocument
-        args:
-          document: aiMessageDocument
-          update:
-            meta:
-              hidden: true
-            content:
-              role: system
-              parts:
-                - type: text
-                  text: |
-                    You are a helpful assistant named Bob.
-                    Always tell the user your name.
-                    Use available tools to help the user with their requests.
-  - id: prompt
-    from: ready
-    to: prompt_executed
-    call:
-      - id: llm_call
-        tool: aiGenerateText
-        args:
-          llm:
-            provider: openai
-            model: gpt-4o
-          messagesSearchTag: message
-
-  - id: add_response
-    from: prompt_executed
     to: waiting_for_user
     call:
       - tool: createDocument
         args:
-          document: aiMessageDocument
+          document: claudeMessageDocument
           update:
-            content: ${{ runtime.tools.prompt.llm_call.data }}
+            meta:
+              hidden: true
+            content:
+              role: user
+              content: |
+                You are a helpful assistant named Bob.
+                Always tell the user your name.
 
   - id: user_message
     from: waiting_for_user
     to: ready
     trigger: manual
     call:
-      - id: prompt_message
-        tool: createDocument
+      - tool: createDocument
         args:
-          document: aiMessageDocument
+          document: claudeMessageDocument
           update:
             content:
               role: user
-              parts:
-                - type: text
-                  text: ${{ runtime.transition.payload }}
+              content: ${{ runtime.transition.payload }}
+
+  - id: llm_turn
+    from: ready
+    to: prompt_executed
+    call:
+      - id: llm_call
+        tool: claudeGenerateText
+        args:
+          claude:
+            model: claude-sonnet-4-6
+          messagesSearchTag: message
+        assign:
+          llmResult: ${{ result.data }}
+
+  - id: respond
+    from: prompt_executed
+    to: waiting_for_user
+    call:
+      - tool: createDocument
+        args:
+          id: ${{ state.llmResult.id }}
+          document: claudeMessageDocument
+          update:
+            content: ${{ state.llmResult }}

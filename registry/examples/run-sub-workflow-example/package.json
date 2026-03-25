@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.23.0",
-    "@loopstack/core-ui-module": "^0.20.6",
+    "@loopstack/core": "^0.23.0",
     "@loopstack/create-chat-message-tool": "^0.20.6",
     "@nestjs/common": "^11.1.14",
     "zod": "^4.3.6"
@@ -68,16 +68,6 @@
         "path": "src/run-sub-workflow-example-parent.workflow.ts",
         "className": "RunSubWorkflowExampleParentWorkflow",
         "propertyName": "runSubWorkflowExampleParent"
-      },
-      {
-        "path": "src/run-sub-workflow-example-sub.workflow.ts",
-        "className": "RunSubWorkflowExampleSubWorkflow",
-        "propertyName": "runSubWorkflowExampleSub",
-        "options": {
-          "options": {
-            "visible": false
-          }
-        }
       }
     ]
   }

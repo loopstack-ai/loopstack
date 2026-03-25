@@ -1,11 +1,7 @@
-import {
-  AiGenerateText,
-  AiMessageDocument,
-  AiMessageDocumentContentType,
-  DelegateToolCall,
-} from '@loopstack/ai-module';
-import { DefineHelper, InjectDocument, InjectTool, Runtime, Workflow } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core-ui-module';
+import { z } from 'zod';
+import { ClaudeGenerateText, ClaudeMessageDocument, DelegateToolCalls } from '@loopstack/claude-module';
+import { InjectDocument, InjectTool, Runtime, State, Workflow } from '@loopstack/common';
+import { CreateDocument } from '@loopstack/core';
 import { GetWeather } from './tools/get-weather.tool';
 
 @Workflow({
@@ -13,25 +9,22 @@ import { GetWeather } from './tools/get-weather.tool';
 })
 export class ToolCallWorkflow {
   @InjectTool() createDocument: CreateDocument;
-  @InjectTool() aiGenerateText: AiGenerateText;
-  @InjectTool() delegateToolCall: DelegateToolCall;
+  @InjectTool() claudeGenerateText: ClaudeGenerateText;
+  @InjectTool() delegateToolCalls: DelegateToolCalls;
   @InjectTool() getWeather: GetWeather;
-  @InjectDocument() aiMessageDocument: AiMessageDocument;
+  @InjectDocument() claudeMessageDocument: ClaudeMessageDocument;
 
-  @DefineHelper()
-  isToolCall(message: { parts?: { type: string }[] } | null | undefined): boolean {
-    return message?.parts?.some((part) => part.type.startsWith('tool-')) ?? false;
-  }
+  @State({
+    schema: z.object({
+      llmResult: z.any().optional(),
+      delegateResult: z.any().optional(),
+    }),
+  })
+  state: {
+    llmResult?: any;
+    delegateResult?: any;
+  };
 
   @Runtime()
-  runtime: {
-    tools: {
-      llm_turn: {
-        llm_call: AiMessageDocumentContentType;
-      };
-      route_with_tool_calls: {
-        delegate: AiMessageDocumentContentType;
-      };
-    };
-  };
+  runtime: any;
 }

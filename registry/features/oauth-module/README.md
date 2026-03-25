@@ -290,8 +290,7 @@ The `embed: true` and `expanded: true` flags on the link document cause the OAut
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { Context, InjectDocument, InjectTool, Runtime, State, Workflow, WorkflowInterface } from '@loopstack/common';
-import { ExecuteWorkflowAsync } from '@loopstack/core';
-import { CreateDocument, LinkDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, ExecuteWorkflowAsync, LinkDocument } from '@loopstack/core';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { MyApiTool } from './my-api.tool';
 
@@ -315,11 +314,10 @@ Your module must import `LoopCoreModule` (for `ExecuteWorkflowAsync`) and the re
 ```typescript
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
-import { CoreUiModule } from '@loopstack/core-ui-module';
 import { GitHubOAuthModule } from '../github-oauth-module';
 
 @Module({
-  imports: [LoopCoreModule, CoreUiModule, GitHubOAuthModule],
+  imports: [LoopCoreModule, GitHubOAuthModule],
   providers: [MyApiTool, MyWorkflow],
 })
 export class MyModule {}

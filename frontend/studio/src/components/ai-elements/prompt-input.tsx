@@ -1,6 +1,5 @@
 'use client';
 
-import type { ChatStatus, FileUIPart } from 'ai';
 import {
   CornerDownLeftIcon,
   ImageIcon,
@@ -54,6 +53,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from '@/components/ui/input-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import type { ChatStatus, FileUIPart } from '@/types/ai.types';
 
 // ============================================================================
 // Provider Context & Types

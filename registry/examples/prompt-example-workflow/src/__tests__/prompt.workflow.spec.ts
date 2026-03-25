@@ -1,8 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
-import { AiGenerateText, AiModule } from '@loopstack/ai-module';
+import { ClaudeGenerateText, ClaudeModule } from '@loopstack/claude-module';
 import { RunContext, getBlockTools } from '@loopstack/common';
-import { WorkflowProcessorService } from '@loopstack/core';
-import { CoreUiModule, CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
 import { PromptWorkflow } from '../prompt.workflow';
 
@@ -11,7 +10,7 @@ describe('PromptWorkflow', () => {
   let workflow: PromptWorkflow;
   let processor: WorkflowProcessorService;
 
-  let mockAiGenerateText: ToolMock;
+  let mockClaudeGenerateText: ToolMock;
   let mockCreateDocument: ToolMock;
 
   const mockLlmResponse = {
@@ -27,15 +26,15 @@ describe('PromptWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptWorkflow)
-      .withImports(CoreUiModule, AiModule)
-      .withToolOverride(AiGenerateText)
+      .withImports(LoopCoreModule, ClaudeModule)
+      .withToolOverride(ClaudeGenerateText)
       .withToolOverride(CreateDocument)
       .compile();
 
     workflow = module.get(PromptWorkflow);
     processor = module.get(WorkflowProcessorService);
 
-    mockAiGenerateText = module.get(AiGenerateText);
+    mockClaudeGenerateText = module.get(ClaudeGenerateText);
     mockCreateDocument = module.get(CreateDocument);
   });
 
@@ -46,7 +45,7 @@ describe('PromptWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('aiGenerateText');
+      expect(getBlockTools(workflow)).toContain('claudeGenerateText');
       expect(getBlockTools(workflow)).toContain('createDocument');
     });
   });
@@ -55,20 +54,19 @@ describe('PromptWorkflow', () => {
     const context = {} as RunContext;
 
     it('should execute workflow and generate haiku about a subject', async () => {
-      mockAiGenerateText.execute.mockResolvedValue({ data: mockLlmResponse });
+      mockClaudeGenerateText.execute.mockResolvedValue({ data: mockLlmResponse });
       mockCreateDocument.execute.mockResolvedValue({});
 
       const result = await processor.process(workflow, { subject: 'spring' }, context);
 
       expect(result.hasError).toBe(false);
 
-      // Verify AiGenerateText was called with correct arguments
-      expect(mockAiGenerateText.execute).toHaveBeenCalledTimes(1);
-      expect(mockAiGenerateText.execute).toHaveBeenCalledWith(
+      // Verify ClaudeGenerateText was called with correct arguments
+      expect(mockClaudeGenerateText.execute).toHaveBeenCalledTimes(1);
+      expect(mockClaudeGenerateText.execute).toHaveBeenCalledWith(
         expect.objectContaining({
-          llm: {
-            provider: 'openai',
-            model: 'gpt-4o',
+          claude: {
+            model: 'claude-sonnet-4-6',
           },
           prompt: 'Write a haiku about spring',
         }),
@@ -98,15 +96,15 @@ describe('PromptWorkflow', () => {
     });
 
     it('should use default subject when not provided', async () => {
-      mockAiGenerateText.execute.mockResolvedValue({ data: mockLlmResponse });
+      mockClaudeGenerateText.execute.mockResolvedValue({ data: mockLlmResponse });
       mockCreateDocument.execute.mockResolvedValue({});
 
       const result = await processor.process(workflow, {}, context);
 
       expect(result.hasError).toBe(false);
 
-      // Verify AiGenerateText was called with default subject "coffee"
-      expect(mockAiGenerateText.execute).toHaveBeenCalledWith(
+      // Verify ClaudeGenerateText was called with default subject "coffee"
+      expect(mockClaudeGenerateText.execute).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: 'Write a haiku about coffee',
         }),

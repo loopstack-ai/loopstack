@@ -5,7 +5,7 @@ transitions:
     from: start
     to: sub_workflow_started
     call:
-      - tool: executeWorkflowAsync
+      - tool: task
         id: executeStateful
         args:
           workflow: runSubWorkflowExampleSub
@@ -21,7 +21,7 @@ transitions:
             content:
               icon: 'Clock'
               label: 'Executing Sub-Workflow...'
-              href: '/pipelines/{{ runtime.tools.run_workflow.executeStateful.data.task.pipelineId }}'
+              href: '/pipelines/{{ runtime.tools.run_workflow.executeStateful.data.pipelineId }}'
 
   - id: sub_workflow_callback
     from: sub_workflow_started
@@ -48,15 +48,13 @@ transitions:
     from: sub_workflow_ended
     to: sub_workflow2_started
     call:
-      - tool: executeWorkflowAsync
+      - tool: task
         id: executeStateful
         args:
-          workflow: runSubWorkflowExampleSubWorkflow
+          workflow: runSubWorkflowExampleSub
           args: {}
           callback:
             transition: sub_workflow2_callback
-          options:
-            runStateless: false
 
       - tool: createDocument
         args:

@@ -9,7 +9,7 @@ import {
   WorkflowMetadataInterface,
   getBlockTool,
 } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core-ui-module';
+import { CreateDocument } from '@loopstack/core';
 import { AiGenerateObject, AiGenerateObjectArgsType, AiGenerateObjectSchema } from './ai-generate-object.tool';
 
 @Tool({

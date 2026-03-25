@@ -7,7 +7,6 @@ export const BLOCK_TYPE_METADATA_KEY = Symbol('blockType');
 export const INJECTED_TOOLS_METADATA_KEY = Symbol('injectedTools');
 export const INJECTED_DOCUMENTS_METADATA_KEY = Symbol('injectedDocuments');
 export const INJECTED_WORKFLOWS_METADATA_KEY = Symbol('injectedWorkflows');
-export const INJECTED_WORKFLOW_OPTIONS_KEY = Symbol('injectedWorkflowOptions');
 export const TEMPLATE_HELPER_METADATA_KEY = Symbol('templateHelper');
 export const INPUT_METADATA_KEY = Symbol('input');
 export const CONTEXT_METADATA_KEY = Symbol('context');
@@ -16,13 +15,8 @@ export const STATE_METADATA_KEY = Symbol('state');
 export const SHARED_METADATA_KEY = Symbol('shared');
 export const OUTPUT_METADATA_KEY = Symbol('output');
 
-export interface InjectedWorkflowOptions {
-  visible?: boolean;
-}
-
 export interface InjectWorkflowDecoratorOptions {
   token?: InjectionToken;
-  options?: InjectedWorkflowOptions;
 }
 
 // Block Type Class Decorators
@@ -160,17 +154,6 @@ export function Shared(): PropertyDecorator {
   };
 }
 
-// Config Helpers
-export function getWorkflowOptions(target: object, propertyKey: string | symbol): InjectedWorkflowOptions {
-  return (
-    (Reflect.getMetadata(INJECTED_WORKFLOW_OPTIONS_KEY, target, propertyKey) as
-      | InjectedWorkflowOptions
-      | undefined) ?? {
-      visible: true,
-    }
-  );
-}
-
 // Injection Property Decorators
 export function InjectTool(token?: InjectionToken): PropertyDecorator & MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
@@ -203,11 +186,6 @@ export function InjectDocument(token?: InjectionToken): PropertyDecorator & Meth
 export function InjectWorkflow(options?: InjectWorkflowDecoratorOptions): PropertyDecorator & MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     const token = options?.token;
-    const config: InjectedWorkflowOptions = {
-      visible: true,
-      ...options?.options,
-    };
-
     const type = token ?? (Reflect.getMetadata('design:type', target, propertyKey) as InjectionToken | undefined);
 
     if (type) {
@@ -217,8 +195,6 @@ export function InjectWorkflow(options?: InjectWorkflowDecoratorOptions): Proper
     const existingWorkflows =
       (Reflect.getMetadata(INJECTED_WORKFLOWS_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
     Reflect.defineMetadata(INJECTED_WORKFLOWS_METADATA_KEY, [...existingWorkflows, propertyKey], target);
-
-    Reflect.defineMetadata(INJECTED_WORKFLOW_OPTIONS_KEY, config, target, propertyKey);
   };
 }
 

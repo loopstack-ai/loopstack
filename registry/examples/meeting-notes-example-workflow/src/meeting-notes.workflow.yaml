@@ -46,11 +46,10 @@ transitions:
     to: notes_optimized
     call:
       - id: prompt
-        tool: aiGenerateDocument
+        tool: claudeGenerateDocument
         args:
-          llm:
-            provider: openai
-            model: gpt-4o
+          claude:
+            model: claude-sonnet-4-6
           response:
             id: final
             document: optimizedNotesDocument
