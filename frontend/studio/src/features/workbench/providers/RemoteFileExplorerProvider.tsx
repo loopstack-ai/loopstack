@@ -2,6 +2,29 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FileExplorerNode } from '../../code-explorer/types';
 
+function getBaseUrl(): string {
+  return (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8000';
+}
+
+async function refreshToken(): Promise<boolean> {
+  const res = await fetch(`${getBaseUrl()}/api/v1/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  return res.ok;
+}
+
+async function fetchWithRefresh(input: string, init?: RequestInit): Promise<Response> {
+  const res = await fetch(input, init);
+  if (res.status === 401 || res.status === 403) {
+    const refreshed = await refreshToken();
+    if (refreshed) {
+      return fetch(input, init);
+    }
+  }
+  return res;
+}
+
 interface RemoteFileExplorerContextValue {
   nodes: FileExplorerNode[];
   isTreeLoading: boolean;
@@ -38,9 +61,11 @@ export function RemoteFileExplorerProvider({ children }: RemoteFileExplorerProvi
   const treeQuery = useQuery({
     queryKey: ['remote-agent-file-tree'],
     queryFn: async (): Promise<FileExplorerNode[]> => {
-      const base = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8000';
+      const base = getBaseUrl();
       const path = './src';
-      const res = await fetch(`${base}/api/v1/files/tree?path=${path}`, { credentials: 'include' });
+      const res = await fetchWithRefresh(`${base}/api/v1/files/tree?path=${path}`, {
+        credentials: 'include',
+      });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Failed to load file tree (${res.status}): ${text}`);
@@ -48,15 +73,16 @@ export function RemoteFileExplorerProvider({ children }: RemoteFileExplorerProvi
       return (await res.json()) as FileExplorerNode[];
     },
     staleTime: 30_000,
+    retry: false,
   });
 
   const contentQuery = useQuery({
     queryKey: ['remote-agent-file-content', selectedFile?.path],
     queryFn: async (): Promise<string> => {
-      const base = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8000';
+      const base = getBaseUrl();
       const url = new URL(`${base}/api/v1/files/read`);
       url.searchParams.set('path', selectedFile!.path);
-      const res = await fetch(url.toString(), { credentials: 'include' });
+      const res = await fetchWithRefresh(url.toString(), { credentials: 'include' });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Failed to read file (${res.status}): ${text}`);
@@ -66,6 +92,7 @@ export function RemoteFileExplorerProvider({ children }: RemoteFileExplorerProvi
     },
     enabled: !!selectedFile && selectedFile.type === 'file',
     staleTime: 15_000,
+    retry: false,
   });
 
   const toggleFolder = useCallback((folderId: string) => {
