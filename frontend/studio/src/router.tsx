@@ -13,8 +13,10 @@ import DebugPage from './pages/DebugPage.tsx';
 import DebugWorkflowDetailsPage from './pages/DebugWorkflowDetailsPage.tsx';
 import DebugWorkflowsPage from './pages/DebugWorkflowsPage.tsx';
 import EmbedWorkbenchPage from './pages/EmbedWorkbenchPage.tsx';
+import NotFoundPage from './pages/NotFoundPage.tsx';
 import PipelineDebugPage from './pages/PipelineDebugPage.tsx';
 import PreviewWorkbenchPage from './pages/PreviewWorkbenchPage.tsx';
+import RouteErrorPage from './pages/RouteErrorPage.tsx';
 import RunsListPage from './pages/RunsListPage.tsx';
 import RunsPage from './pages/RunsPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
@@ -63,10 +65,12 @@ const router: DataRouter = createBrowserRouter([
   {
     path: '/oauth/callback',
     element: <OAuthCallbackPage />,
+    errorElement: <RouteErrorPage />,
   },
   {
     path: '/embed/env',
     element: <EnvironmentEmbedRoot />,
+    errorElement: <RouteErrorPage />,
     children: [
       { path: 'preview', element: <PreviewWorkbenchPage /> },
       { path: 'preview/pipelines/:pipelineId', element: <PreviewWorkbenchPage /> },
@@ -75,6 +79,7 @@ const router: DataRouter = createBrowserRouter([
   {
     path: '/embed',
     element: <EmbedRoot />,
+    errorElement: <RouteErrorPage />,
     children: [
       { path: 'pipelines/:pipelineId', element: <EmbedWorkbenchPage /> },
       { path: 'preview', element: <PreviewWorkbenchPage /> },
@@ -84,6 +89,7 @@ const router: DataRouter = createBrowserRouter([
   {
     path: '/',
     element: <AppRoot />,
+    errorElement: <RouteErrorPage />,
     children: [
       {
         index: true,
@@ -140,6 +146,10 @@ const router: DataRouter = createBrowserRouter([
       {
         path: 'pipelines/:pipelineId/namespaces/:namespaceId/w/:workflowId',
         element: <WorkbenchPage />,
+      },
+      {
+        path: '*',
+        element: <NotFoundPage />,
       },
     ],
   },

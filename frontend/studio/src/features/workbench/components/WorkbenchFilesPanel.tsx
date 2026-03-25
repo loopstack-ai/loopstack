@@ -1,5 +1,7 @@
 import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { FileContentViewer } from '@/features/code-explorer';
+import { cn } from '@/lib/utils';
 import { useOptionalRemoteFileExplorer } from '../providers/RemoteFileExplorerProvider';
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider';
 import { RemoteFileTabsBar } from './RemoteFileTabsBar';
@@ -17,12 +19,18 @@ export function WorkbenchFilesPanel() {
     <div className="border-l bg-background flex w-2/3 shrink-0 flex-col">
       <div className="border-b flex h-12 shrink-0 items-center justify-between px-3">
         <span className="text-sm font-medium">Files</span>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            'h-5 w-5 shrink-0 rounded transition-opacity',
+            'hover:bg-destructive/10 hover:text-destructive',
+          )}
           onClick={closeSidePanel}
-          className="text-muted-foreground hover:text-foreground flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:cursor-pointer"
+          aria-label={`Close Files Panel`}
         >
-          <X className="h-4 w-4" />
-        </button>
+          <X className="h-3.5 w-3.5" />
+        </Button>
       </div>
 
       <div className="flex-1 overflow-hidden flex">

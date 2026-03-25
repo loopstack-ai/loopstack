@@ -96,14 +96,24 @@ export function FileContentViewer({
   }
 
   const isBinary = isBinaryFileName(selectedFile.name);
-  const displayContent =
-    content ?? (isBinary ? null : `// ${selectedFile.path ?? selectedFile.name}\n\n(No content available)`);
+  const hasContent = content != null;
+  const displayContent = content ?? '';
 
-  if (isBinary && content == null) {
+  if (isBinary && !hasContent) {
     return (
       <div className={cn('flex flex-1 flex-col rounded-lg border bg-background', className)}>
         <div className="flex flex-1 items-center justify-center p-8">
           <p className="text-sm text-muted-foreground">Binary file — preview not available</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasContent && !isLoading) {
+    return (
+      <div className={cn('flex flex-1 flex-col rounded-lg border bg-background', className)}>
+        <div className="flex flex-1 items-center justify-center p-8">
+          <p className="text-sm text-destructive">Error loading file content</p>
         </div>
       </div>
     );
