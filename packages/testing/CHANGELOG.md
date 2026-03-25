@@ -1,5 +1,22 @@
 # @loopstack/testing
 
+## 0.24.0
+
+### Patch Changes
+
+- [#109](https://github.com/loopstack-ai/loopstack/pull/109) [`79fb4f7`](https://github.com/loopstack-ai/loopstack/commit/79fb4f781b9742bd45edc38340adc67511d6cfb8) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add secrets management system and consolidate document types into core
+  - New SecretEntity, SecretService, and SecretController with full CRUD API
+  - Move built-in document types (error, link, markdown, message, plain) from core-ui-module into core
+  - Add SecretRequestDocument and RequestSecretsTool for workflow-driven secret collection
+  - Add CreateDocument tool for dynamic document creation in workflows
+  - Add secrets management panel and SecretInput widget to Studio
+  - Refactor ToolResult.effects to array and add ToolCallEntry/ToolCallsMap interfaces
+  - Simplify UiElementSchema in contracts
+
+- Updated dependencies [[`79fb4f7`](https://github.com/loopstack-ai/loopstack/commit/79fb4f781b9742bd45edc38340adc67511d6cfb8)]:
+  - @loopstack/core@0.24.0
+  - @loopstack/common@0.24.0
+
 ## 0.23.0
 
 ### Patch Changes

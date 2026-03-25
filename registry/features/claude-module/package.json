@@ -10,7 +10,7 @@
     "loopstack",
     "tool"
   ],
-  "version": "0.21.0",
+  "version": "0.21.1",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -32,8 +32,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
-    "@loopstack/common": "^0.23.0",
-    "@loopstack/core": "^0.23.0",
+    "@loopstack/common": "^0.24.0",
+    "@loopstack/core": "^0.24.0",
     "@nestjs/common": "^11.1.14",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.14",
