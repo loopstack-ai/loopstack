@@ -22,15 +22,13 @@ export class ClaudeToolsHelperService {
         throw new Error(`Block ${tool.constructor.name} is missing @BlockConfig decorator`);
       }
 
-      if (inputSchema) {
-        const jsonSchema = toJSONSchema(inputSchema);
+      const jsonSchema = inputSchema ? toJSONSchema(inputSchema) : { type: 'object' };
 
-        toolDefinitions.push({
-          name: toolName,
-          description: config.description ?? '',
-          input_schema: jsonSchema as Anthropic.Tool['input_schema'],
-        });
-      }
+      toolDefinitions.push({
+        name: toolName,
+        description: config.description ?? '',
+        input_schema: jsonSchema as Anthropic.Tool['input_schema'],
+      });
     }
 
     return toolDefinitions.length ? toolDefinitions : undefined;

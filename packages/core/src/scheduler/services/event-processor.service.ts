@@ -38,7 +38,10 @@ export class EventProcessorService {
               transition: {
                 id: subscriber.subscriberTransition,
                 workflowId: subscriber.subscriberWorkflowId,
-                payload: data,
+                payload: {
+                  ...data,
+                  ...(subscriber.metadata ? { _subscriberMetadata: subscriber.metadata } : {}),
+                },
               },
             },
             user: subscriber.userId,

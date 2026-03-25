@@ -20,7 +20,14 @@ import {
   SecretRequestDocument,
 } from './documents';
 import { SchedulerModule } from './scheduler';
-import { CreateDocument, ExecuteWorkflowAsync, GetSecretKeysTool, RequestSecretsTool } from './tools';
+import {
+  CreateDocument,
+  GetSecretKeysTool,
+  RequestSecretsTask,
+  RequestSecretsTool,
+  SecretsRequestWorkflow,
+  Task,
+} from './tools';
 import { WorkflowProcessorModule } from './workflow-processor';
 
 @Module({
@@ -44,9 +51,11 @@ import { WorkflowProcessorModule } from './workflow-processor';
   providers: [
     // Tools
     CreateDocument,
-    ExecuteWorkflowAsync,
     GetSecretKeysTool,
     RequestSecretsTool,
+    RequestSecretsTask,
+    Task,
+    SecretsRequestWorkflow,
 
     // Documents
     ErrorDocument,
@@ -61,9 +70,11 @@ import { WorkflowProcessorModule } from './workflow-processor';
     WorkflowProcessorModule,
     SchedulerModule,
     CreateDocument,
-    ExecuteWorkflowAsync,
     GetSecretKeysTool,
     RequestSecretsTool,
+    RequestSecretsTask,
+    Task,
+    SecretsRequestWorkflow,
     ErrorDocument,
     LinkDocument,
     MarkdownDocument,

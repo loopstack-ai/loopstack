@@ -228,13 +228,22 @@ export class StateMachineToolCallProcessorService {
   addDocument(ctx: WorkflowExecutionContextManager, document: DocumentEntity) {
     // invalidate previous versions of the same document
     const documents = ctx.getManager().getData('documents');
+    let inheritedIndex: number | undefined;
     for (const doc of documents) {
       if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
+        if (inheritedIndex === undefined) {
+          inheritedIndex = doc.index;
+        }
         doc.isInvalidated = true;
       }
     }
 
-    document.index = documents.length;
+    // Preserve the original index when replacing an invalidated document,
+    // otherwise assign a new index at the end.
+    document.index = inheritedIndex ?? documents.length;
+    this.logger.debug(
+      `addDocument: ${document.blockName}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
+    );
     documents.push(document);
     ctx.getManager().setData('documents', documents);
     ctx.getManager().setData('persistenceState', {

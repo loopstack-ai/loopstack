@@ -32,6 +32,7 @@ export class EventSubscriberService {
     eventName: string,
     userId: string,
     workspaceId?: string,
+    metadata?: Record<string, unknown>,
   ): Promise<EventSubscriberEntity> {
     const existing = await this.entityRepository.findOne({
       where: {
@@ -54,6 +55,7 @@ export class EventSubscriberService {
       eventName,
       userId,
       workspaceId,
+      metadata: metadata ?? null,
     });
 
     return await this.entityRepository.save(subscriber);

@@ -15,11 +15,12 @@ export class RunPipelineTaskProcessorService {
 
   public async process(task: RunPipelineTask) {
     if (task.pipelineId) {
-      const pipeline = await this.pipelineService.getPipeline(
-        task.pipelineId,
-        task.user,
-        ['workspace', 'workspace.environments'], // todo: processing fails when loading namespaces relation. why?
-      );
+      const pipeline = await this.pipelineService.getPipeline(task.pipelineId, task.user, [
+        'workspace',
+        'workspace.environments',
+        'parent',
+        'parent.workspace',
+      ]);
 
       if (!pipeline) {
         throw new Error(`Pipeline with id ${task.pipelineId} not found.`);

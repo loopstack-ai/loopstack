@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { FindOptionsWhere } from 'typeorm';
 import {
+  BlockInterface,
   PipelineEntity,
   WorkflowInterface,
   WorkspaceEntity,
-  WorkspaceInterface,
   getBlockArgsSchema,
   getBlockWorkflow,
 } from '@loopstack/common';
@@ -19,22 +19,39 @@ export class CreatePipelineService {
     private readonly blockDiscoveryService: BlockDiscoveryService,
   ) {}
 
-  private validateArguments(workspace: WorkspaceInterface, data: Partial<PipelineEntity>) {
-    if (!data.blockName) {
-      throw new Error(`blockName is required to create a pipeline.`);
-    }
-
-    const workflow = getBlockWorkflow<WorkflowInterface>(workspace, data.blockName);
-    if (!workflow) {
-      throw new Error(`Workflow ${data.blockName} not available in workspace ${workspace.constructor.name}.`);
-    }
-
+  private validateWorkflowArgs(workflow: WorkflowInterface, data: Partial<PipelineEntity>): Partial<PipelineEntity> {
     if (data.args && Object.keys(data.args as Record<string, unknown>).length !== 0) {
       const schema = getBlockArgsSchema(workflow);
       data.args = schema?.parse(data.args);
     }
-
     return data;
+  }
+
+  private resolveWorkflow(
+    blockName: string,
+    workspaceInstance: BlockInterface,
+    parentWorkflowInstance?: WorkflowInterface | BlockInterface,
+  ): WorkflowInterface {
+    // Try parent workflow first
+    if (parentWorkflowInstance) {
+      const workflow = getBlockWorkflow<WorkflowInterface>(parentWorkflowInstance, blockName);
+      if (workflow) {
+        return workflow;
+      }
+    }
+
+    // Fallback: resolve from workspace
+    const workflow = getBlockWorkflow<WorkflowInterface>(workspaceInstance, blockName);
+    if (workflow) {
+      return workflow;
+    }
+
+    const parentName = parentWorkflowInstance?.constructor.name;
+    throw new Error(
+      `Workflow ${blockName} not found` +
+        (parentName ? ` on parent workflow ${parentName} or` : ' on') +
+        ` workspace ${workspaceInstance.constructor.name}.`,
+    );
   }
 
   async create(
@@ -42,10 +59,15 @@ export class CreatePipelineService {
     data: Partial<PipelineEntity>,
     user: string,
     parentPipelineId?: string,
+    parentWorkflowInstance?: WorkflowInterface | BlockInterface,
   ): Promise<PipelineEntity> {
+    if (!data.blockName) {
+      throw new Error('blockName is required to create a pipeline.');
+    }
+
     const workspace = await this.workspaceService.getWorkspace(workspaceWhere, user);
     if (!workspace) {
-      throw new Error(`Workspace not found.`);
+      throw new Error('Workspace not found.');
     }
 
     const workspaceInstance = this.blockDiscoveryService.getWorkspace(workspace.blockName);
@@ -58,7 +80,8 @@ export class CreatePipelineService {
       parentPipeline = await this.pipelineService.getPipeline(parentPipelineId, user, []);
     }
 
-    const validData = this.validateArguments(workspaceInstance, data);
+    const workflow = this.resolveWorkflow(data.blockName, workspaceInstance, parentWorkflowInstance);
+    const validData = this.validateWorkflowArgs(workflow, data);
     return this.pipelineService.createPipeline(validData, workspace, user, parentPipeline);
   }
 }

@@ -64,4 +64,7 @@ export class EventSubscriberEntity {
 
   @Column({ name: 'once', type: 'boolean', default: true })
   once!: boolean;
+
+  @Column('jsonb', { nullable: true })
+  metadata!: Record<string, unknown> | null;
 }
