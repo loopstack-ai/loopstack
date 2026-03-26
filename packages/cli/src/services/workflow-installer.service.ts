@@ -113,6 +113,7 @@ export class WorkflowInstallerService {
     const project = this.astService.createProject();
     const sourceFile = this.astService.loadSourceFile(project, targetWorkspaceFile);
 
+    this.astService.addNamedImport(sourceFile, 'InjectWorkflow', '@loopstack/common');
     this.astService.addNamedImport(sourceFile, workflowClassName, importPath);
 
     const classes = sourceFile.getClasses();
