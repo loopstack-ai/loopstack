@@ -9,12 +9,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { z } from 'zod';
-import type { JSONSchemaConfigType } from '@loopstack/contracts/types';
 import { PipelineState } from '../enums';
-import { StableJsonTransformer } from '../utils';
-import { NamespaceEntity } from './namespace.entity';
 import { User } from './user.entity';
+import { WorkflowEntity } from './workflow.entity';
 import { WorkspaceEntity } from './workspace.entity';
 
 @Entity({ name: 'core_pipeline' })
@@ -35,9 +32,6 @@ export class PipelineEntity {
   @Column('jsonb', { default: [] })
   labels!: string[];
 
-  @Column('ltree', { default: '0001' })
-  index!: string;
-
   @Column({
     type: 'enum',
     enum: PipelineState,
@@ -53,25 +47,6 @@ export class PipelineEntity {
 
   @Column('jsonb', { default: {} })
   context!: Record<string, any>;
-
-  @Column({
-    type: 'jsonb',
-    transformer: new StableJsonTransformer(),
-    name: 'schema',
-    nullable: true,
-  })
-  schema!: JSONSchemaConfigType | null;
-
-  @Column('jsonb', { nullable: true, name: 'error' })
-  error!: z.ZodError | null;
-
-  @Column({
-    type: 'jsonb',
-    transformer: new StableJsonTransformer(),
-    name: 'ui',
-    nullable: true,
-  })
-  ui!: any;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
@@ -96,8 +71,8 @@ export class PipelineEntity {
   @Index()
   createdBy!: string;
 
-  @OneToMany(() => NamespaceEntity, (namespace) => namespace.pipeline)
-  namespaces!: NamespaceEntity[];
+  @OneToMany(() => WorkflowEntity, (workflow) => workflow.pipeline)
+  workflows!: WorkflowEntity[];
 
   @ManyToOne(() => PipelineEntity, (pipeline) => pipeline.children, {
     onDelete: 'CASCADE',

@@ -25,7 +25,6 @@ export interface StudioRouter {
   getPipelineDebug(pipelineId: string): string;
   navigateToPipelineDebug(pipelineId: string): Promise<void>;
   navigateToWorkflow(pipelineId: string, workflowId: string, clickId: string | undefined): Promise<void>;
-  navigateToPipelineNamespace(workspaceId: string, pipelineId: string, namespaceId: string): Promise<void>;
   getWorkspaceRuns(workspaceId: string): string;
   navigateToWorkspaceRuns(workspaceId: string): Promise<void>;
   getEmbedPipeline(pipelineId: string): string;

@@ -3,7 +3,6 @@ export * from './common.interface.js';
 export * from './dashboard.interface.js';
 export * from './document.interface.js';
 export * from './file.interface.js';
-export * from './namespace.interface.js';
 export * from './pagination.interface.js';
 export * from './pipeline.interface.js';
 export * from './workspace.interface.js';

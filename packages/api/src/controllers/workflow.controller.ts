@@ -108,4 +108,17 @@ export class WorkflowController {
   async deleteWorkflow(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<void> {
     await this.workflowService.delete(id, user.userId);
   }
+
+  /**
+   * Retrieves the checkpoint history for a workflow.
+   */
+  @Get(':id/checkpoints')
+  @ApiOperation({ summary: 'Get checkpoint history for a workflow' })
+  @ApiParam({ name: 'id', type: String, description: 'The ID of the workflow' })
+  @ApiResponse({ status: 404, description: 'Workflow not found' })
+  @ApiOkResponse({ description: 'List of checkpoints (lightweight: place, transition, version, timestamp)' })
+  @ApiUnauthorizedResponse()
+  async getCheckpointHistory(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface) {
+    return this.workflowService.getCheckpointHistory(id, user.userId);
+  }
 }

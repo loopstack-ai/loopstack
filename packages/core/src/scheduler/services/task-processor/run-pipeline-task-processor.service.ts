@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { RunPipelineTask } from '@loopstack/contracts/types';
 import { PipelineService, WorkspaceService } from '../../../persistence';
-import { RootProcessorService } from '../../../workflow-processor';
+import { RootProcessorService, WorkflowMemoryMonitorService } from '../../../workflow-processor';
 
 @Injectable()
 export class RunPipelineTaskProcessorService {
@@ -11,10 +11,13 @@ export class RunPipelineTaskProcessorService {
     private readonly workspaceService: WorkspaceService,
     private readonly pipelineService: PipelineService,
     private readonly rootProcessorService: RootProcessorService,
+    private readonly memoryMonitor: WorkflowMemoryMonitorService,
   ) {}
 
   public async process(task: RunPipelineTask) {
     if (task.pipelineId) {
+      this.memoryMonitor.logHeap(`task:${task.type}:before-pipeline-load`);
+
       const pipeline = await this.pipelineService.getPipeline(task.pipelineId, task.user, [
         'workspace',
         'workspace.environments',
@@ -26,6 +29,7 @@ export class RunPipelineTaskProcessorService {
         throw new Error(`Pipeline with id ${task.pipelineId} not found.`);
       }
 
+      this.memoryMonitor.logHeap(`task:${task.type}:after-pipeline-load:${pipeline.blockName}`);
       this.logger.debug(`Pipeline for schedule task created with id ${pipeline.id}`);
 
       await this.rootProcessorService.runPipeline(pipeline, task.payload);

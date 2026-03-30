@@ -88,10 +88,6 @@ export class LocalRouter implements StudioRouter {
     await this.navigate(`/pipelines/${pipelineId}/workflows/${workflowId}/${(clickId ? parseInt(clickId) : 0) + 1}`);
   }
 
-  async navigateToPipelineNamespace(workspaceId: string, pipelineId: string, namespaceId: string) {
-    await this.navigate(`/workspaces/${workspaceId}/pipelines/${pipelineId}/namespaces/${namespaceId}`);
-  }
-
   getWorkspaceRuns(workspaceId: string) {
     return `/workspaces/${workspaceId}/runs`;
   }

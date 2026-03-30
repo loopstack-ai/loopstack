@@ -1,12 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { WorkflowItemInterface, WorkflowSortByInterface } from '@loopstack/contracts/api';
 import type { WorkflowInterface } from '@loopstack/contracts/types';
-import {
-  getAllWorkflowsCacheKey,
-  getWorkflowCacheKey,
-  getWorkflowsByPipelineCacheKey,
-  getWorkflowsCacheKey,
-} from './query-keys.ts';
+import type { WorkflowCheckpoint } from '../api/workflows.ts';
+import { getAllWorkflowsCacheKey, getWorkflowCacheKey, getWorkflowsByPipelineCacheKey } from './query-keys.ts';
 import { useApiClient } from './useApi.ts';
 
 export function useWorkflow(id: string) {
@@ -28,7 +24,7 @@ export function useFetchWorkflowsByPipeline(pipelineId: string) {
     }),
     sortBy: JSON.stringify([
       {
-        field: 'index',
+        field: 'createdAt',
         order: 'ASC',
       } as WorkflowSortByInterface,
     ]),
@@ -36,28 +32,6 @@ export function useFetchWorkflowsByPipeline(pipelineId: string) {
 
   return useQuery({
     queryKey: getWorkflowsByPipelineCacheKey(envKey, pipelineId),
-    queryFn: () => api.workflows.getAll(requestParams),
-    select: (res) => res.data,
-  });
-}
-
-export function useFetchWorkflowsByNamespace(namespaceId: string) {
-  const { envKey, api } = useApiClient();
-
-  const requestParams = {
-    filter: JSON.stringify({
-      namespaceId,
-    }),
-    sortBy: JSON.stringify([
-      {
-        field: 'index',
-        order: 'ASC',
-      } as WorkflowSortByInterface,
-    ]),
-  };
-
-  return useQuery({
-    queryKey: getWorkflowsCacheKey(envKey, namespaceId),
     queryFn: () => api.workflows.getAll(requestParams),
     select: (res) => res.data,
   });
@@ -72,12 +46,19 @@ export function useDeleteWorkflow() {
     onSuccess: (_, workflow) => {
       queryClient.removeQueries({ queryKey: getWorkflowCacheKey(envKey, workflow.id) });
       void queryClient.invalidateQueries({
-        queryKey: getWorkflowsCacheKey(envKey, workflow.namespaceId),
-      });
-      void queryClient.invalidateQueries({
         queryKey: getWorkflowsByPipelineCacheKey(envKey, workflow.pipelineId),
       });
     },
+  });
+}
+
+export function useWorkflowCheckpoints(workflowId: string) {
+  const { envKey, api } = useApiClient();
+
+  return useQuery<WorkflowCheckpoint[]>({
+    queryKey: [...getWorkflowCacheKey(envKey, workflowId), 'checkpoints'],
+    queryFn: () => api.workflows.getCheckpoints({ id: workflowId }),
+    enabled: !!workflowId,
   });
 }
 
@@ -88,7 +69,7 @@ export function useFetchAllWorkflows() {
     filter: JSON.stringify({}),
     sortBy: JSON.stringify([
       {
-        field: 'index',
+        field: 'createdAt',
         order: 'ASC',
       } as WorkflowSortByInterface,
     ]),

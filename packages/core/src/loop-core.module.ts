@@ -3,7 +3,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   DocumentEntity,
-  NamespaceEntity,
   PipelineEntity,
   SecretEntity,
   WorkflowEntity,
@@ -38,7 +37,6 @@ import { WorkflowProcessorModule } from './workflow-processor';
       DocumentEntity,
       WorkspaceEntity,
       WorkspaceEnvironmentEntity,
-      NamespaceEntity,
       SecretEntity,
     ]),
     EventEmitterModule.forRoot({

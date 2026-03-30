@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   RunContext,
   StateMachineValidatorResultInterface,
+  WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkflowInterface,
   WorkflowMetadataInterface,
@@ -13,9 +14,10 @@ import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/co
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { ConfigTraceError, Processor } from '../../../common';
 import { ExecutionContextManager, WorkflowExecutionContextManager } from '../../utils/execution-context-manager';
-import { StateManager } from '../../utils/state/state-manager';
+import { CheckpointState, StateManager } from '../../utils/state/state-manager';
 import { StateMachineProcessorService } from '../state-machine-processor.service';
 import { StateMachineValidatorService } from '../state-machine-validator.service';
+import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service';
 import { WorkflowStateService } from '../workflow-state.service';
 
 @Injectable()
@@ -26,6 +28,7 @@ export class WorkflowProcessorService implements Processor {
     private readonly workflowStateService: WorkflowStateService,
     private readonly stateMachineValidatorService: StateMachineValidatorService,
     private readonly stateMachineProcessorService: StateMachineProcessorService,
+    private readonly memoryMonitor: WorkflowMemoryMonitorService,
   ) {}
 
   createCtx(
@@ -33,6 +36,7 @@ export class WorkflowProcessorService implements Processor {
     context: RunContext,
     validArgs: Record<string, unknown> | undefined,
     workflowEntity?: WorkflowEntity,
+    latestCheckpoint?: WorkflowCheckpointEntity | null,
   ): WorkflowExecutionContextManager {
     const initialWorkflowData: WorkflowMetadataInterface = {
       hasError: false,
@@ -50,7 +54,17 @@ export class WorkflowProcessorService implements Processor {
     };
 
     const schema = getBlockStateSchema(workflow);
-    const stateManager = new StateManager(schema, initialWorkflowData, workflowEntity?.history ?? null);
+
+    // Build checkpoint state from the latest DB checkpoint (if exists)
+    const checkpoint: CheckpointState<any> | null = latestCheckpoint
+      ? {
+          state: latestCheckpoint.state,
+          tools: latestCheckpoint.tools,
+          version: latestCheckpoint.version,
+        }
+      : null;
+
+    const stateManager = new StateManager(schema, initialWorkflowData, checkpoint);
     return new ExecutionContextManager<any, any, WorkflowMetadataInterface>(workflow, context, validArgs, stateManager);
   }
 
@@ -80,7 +94,8 @@ export class WorkflowProcessorService implements Processor {
       workflowEntity = await this.workflowStateService.getWorkflowState(workflow, context);
       context.workflowId = workflowEntity.id;
 
-      ctx = this.createCtx(workflow, context, validArgs, workflowEntity);
+      const latestCheckpoint = await this.workflowStateService.getLatestCheckpoint(workflowEntity.id);
+      ctx = this.createCtx(workflow, context, validArgs, workflowEntity, latestCheckpoint);
 
       const validatorResult = this.stateMachineValidatorService.validate(workflowEntity, ctx);
 
@@ -98,12 +113,16 @@ export class WorkflowProcessorService implements Processor {
     }
 
     this.logger.debug(`Process state machine for workflow ${workflow.constructor.name}`);
+    this.memoryMonitor.logWorkflowStart(workflow.constructor.name);
 
     try {
       for await (const yieldedCtx of this.stateMachineProcessorService.processStateMachine(
         ctx,
         pendingTransition ? [pendingTransition] : [],
       )) {
+        const transition = yieldedCtx.getManager().getData('transition');
+        this.memoryMonitor.logTransition(workflow.constructor.name, transition?.id ?? 'unknown', yieldedCtx);
+
         if (workflowEntity) {
           await this.workflowStateService.saveExecutionState(workflowEntity, yieldedCtx);
         }
@@ -137,6 +156,8 @@ export class WorkflowProcessorService implements Processor {
       ctx.getManager().setData('stop', true);
       ctx.getManager().setData('status', WorkflowState.Waiting);
     }
+
+    this.memoryMonitor.logWorkflowEnd(workflow.constructor.name, ctx);
 
     if (workflowEntity) {
       await this.workflowStateService.saveExecutionState(workflowEntity, ctx);

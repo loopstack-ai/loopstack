@@ -1,17 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ReactFlowProvider } from '@xyflow/react';
 import { formatDistanceToNow } from 'date-fns';
-import {
-  ChevronDown,
-  ChevronRight,
-  ListOrdered,
-  Loader2,
-  Navigation,
-  Play,
-  RefreshCw,
-  ScrollText,
-  Workflow,
-} from 'lucide-react';
+import { ChevronDown, ChevronRight, ListOrdered, Loader2, Play, RefreshCw, ScrollText, Workflow } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { PipelineInterface, PipelineItemInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
@@ -20,22 +10,14 @@ import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { Button } from '@/components/ui/button.tsx';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
-import { SidebarMenu, SidebarProvider } from '@/components/ui/sidebar.tsx';
 import { PipelineFlowViewer } from '@/features/debug';
-import {
-  NewRunDialog,
-  PipelineHistoryList,
-  WorkbenchNavigation,
-  WorkflowButtons,
-  WorkflowItem,
-} from '@/features/workbench';
-import { useNamespaceTree } from '@/hooks/useNamespaceTree.ts';
+import { NewRunDialog, PipelineHistoryList, WorkflowButtons, WorkflowItem } from '@/features/workbench';
 import { useFilterPipelines, usePipeline, usePipelineConfigByName } from '../hooks/usePipelines.ts';
 import { useFetchWorkflowsByPipeline } from '../hooks/useWorkflows.ts';
 import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
-type PreviewTab = 'output' | 'graph' | 'run-log' | 'navigate' | 'logs';
+type PreviewTab = 'output' | 'graph' | 'run-log' | 'logs';
 
 const EMBED_MESSAGE_TYPE = 'loopstack:embed:workflow-completed';
 const EMBED_RESIZE_MESSAGE_TYPE = 'loopstack:embed:resize';
@@ -244,12 +226,6 @@ function PreviewWorkbenchContent({
         {activeTab === 'run-log' && (
           <div className="px-4">
             <PipelineHistoryList pipeline={fetchPipeline.data} />
-          </div>
-        )}
-
-        {activeTab === 'navigate' && (
-          <div className="px-4 py-2">
-            <EmbedNavigationContent pipelineId={pipelineId} />
           </div>
         )}
 
@@ -494,28 +470,5 @@ function EmbedLogsContent() {
         )}
       </div>
     </div>
-  );
-}
-
-function EmbedNavigationContent({ pipelineId }: { pipelineId: string }) {
-  const namespaceTree = useNamespaceTree(pipelineId);
-
-  if (!namespaceTree || namespaceTree.length === 0) {
-    return (
-      <div className="text-muted-foreground flex flex-col items-center justify-center gap-2 py-8">
-        <Navigation className="h-6 w-6" />
-        <span className="text-sm">No navigation items</span>
-      </div>
-    );
-  }
-
-  return (
-    <SidebarProvider defaultOpen className="min-h-0" style={{ '--sidebar-width': '100%' } as React.CSSProperties}>
-      <div className="w-full overflow-auto">
-        <SidebarMenu>
-          <WorkbenchNavigation namespaceTree={namespaceTree} indent={0} />
-        </SidebarMenu>
-      </div>
-    </SidebarProvider>
   );
 }

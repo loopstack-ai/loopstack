@@ -1,24 +1,35 @@
 import { z } from 'zod';
-import type { WorkflowMementoData, WorkflowStateInterface } from '@loopstack/common';
-import { StateCaretaker } from './state-caretaker';
+import type { WorkflowStateInterface } from '@loopstack/common';
+
+export interface CheckpointState<TState> {
+  state: TState;
+  tools: Record<string, unknown>;
+  version: number;
+}
 
 export class StateManager<TState = any, TData = any> implements WorkflowStateInterface<TState, TData> {
   private state: TState;
   private data: TData;
   private version: number;
-  private caretaker: StateCaretaker<TState, TData>;
 
   constructor(
     private readonly schema: z.ZodType<TState> | undefined,
     data: TData,
-    history: WorkflowMementoData<TState, TData>[] | null,
+    checkpoint: CheckpointState<TState> | null,
   ) {
     this.state = {} as TState;
     this.data = data;
     this.version = 1;
 
-    this.caretaker = StateCaretaker.deserialize<TState, TData>(history, schema);
-    this.restoreToLatest();
+    if (checkpoint) {
+      this.state = this.schema ? this.schema.parse(checkpoint.state) : checkpoint.state;
+      this.version = checkpoint.version + 1;
+
+      // Restore tools from checkpoint into data
+      if (checkpoint.tools && typeof this.data === 'object' && this.data !== null) {
+        (this.data as Record<string, unknown>)['tools'] = checkpoint.tools;
+      }
+    }
   }
 
   get<K extends keyof TState>(key: K): TState[K] {
@@ -72,32 +83,11 @@ export class StateManager<TState = any, TData = any> implements WorkflowStateInt
     };
   }
 
-  // Checkpoint at a named step
   checkpoint(): void {
-    const memento: WorkflowMementoData<TState, TData> = {
-      state: { ...this.state },
-      data: { ...this.data },
-      timestamp: new Date(),
-      version: this.version++,
-    };
-    this.caretaker.save(memento);
+    this.version++;
   }
 
-  serialize(): WorkflowMementoData<TState, TData>[] {
-    return this.caretaker.serialize();
-  }
-
-  getHistory(): WorkflowMementoData<TState, TData>[] {
-    return this.caretaker.getHistory();
-  }
-
-  restoreToLatest(): boolean {
-    const memento = this.caretaker.getLatest();
-    if (!memento) return false;
-
-    this.state = this.schema ? this.schema.parse(memento.state) : memento.state;
-    this.data = memento.data;
-    this.version = memento.version + 1;
-    return true;
+  getVersion(): number {
+    return this.version;
   }
 }

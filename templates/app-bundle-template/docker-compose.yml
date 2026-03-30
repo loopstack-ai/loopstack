@@ -11,7 +11,7 @@ services:
       - monorepo-network
 
   postgres:
-    image: ghcr.io/loopstack-ai/postgres:16.9-alpine
+    image: postgres:16.9-alpine
     restart: unless-stopped
     env_file:
       - ./backend/.env
@@ -23,6 +23,7 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/scripts:/docker-entrypoint-initdb.d
     networks:
       - monorepo-network
 

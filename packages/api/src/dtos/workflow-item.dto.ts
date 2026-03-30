@@ -32,30 +32,12 @@ export class WorkflowItemDto {
 
   @Expose()
   @ApiProperty({
-    description: 'Index position of the workflow item in a sequence',
-    example: 1,
-    type: Number,
-  })
-  index: number;
-
-  @Expose()
-  @ApiProperty({
     type: 'array',
     items: { type: 'string' },
     description: 'Tags associated with the workflow for categorization and filtering',
     example: ['frontend', 'featureXY'],
   })
   labels: string[];
-
-  @Expose()
-  @ApiProperty({
-    description: 'Completion percentage of the workflow item (0-100)',
-    example: 75,
-    minimum: 0,
-    maximum: 100,
-    type: Number,
-  })
-  progress: number;
 
   @Expose()
   @ApiProperty({
@@ -108,13 +90,6 @@ export class WorkflowItemDto {
     example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
   })
   pipelineId: string;
-
-  @Expose()
-  @ApiProperty({
-    description: 'Unique identifier of the namespace this workflow belongs to',
-    example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
-  })
-  namespaceId: string;
 
   /**
    * Creates a WorkflowItemDto instance from a WorkflowEntity

@@ -61,7 +61,7 @@ const WorkflowItem: React.FC<{
 
       {!!workflow && (
         <div className="mt-6">
-          <WorkflowForms workflow={workflow} onSubmit={handleRun} />
+          <WorkflowForms workflow={workflow} pipeline={pipeline} onSubmit={handleRun} />
         </div>
       )}
     </div>

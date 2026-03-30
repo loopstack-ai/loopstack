@@ -20,7 +20,6 @@ export class DocumentService {
       ...data,
       transition: transition.id,
       index: 0,
-      workflowIndex: context.index,
       place: transition.to,
       labels: context.labels,
       workflow: { id: context.workflowId } as WorkflowEntity,

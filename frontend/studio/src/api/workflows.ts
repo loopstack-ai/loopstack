@@ -17,5 +17,17 @@ export function createWorkflowsApi(http: AxiosInstance) {
 
     delete: (params: { id: string }): Promise<void> =>
       http.delete<void>(`/api/v1/workflows/${params.id}`).then((res) => res.data),
+
+    getCheckpoints: (params: { id: string }): Promise<WorkflowCheckpoint[]> =>
+      http.get<WorkflowCheckpoint[]>(`/api/v1/workflows/${params.id}/checkpoints`).then((res) => res.data),
   };
+}
+
+export interface WorkflowCheckpoint {
+  id: string;
+  place: string;
+  transitionId: string | null;
+  transitionFrom: string | null;
+  version: number;
+  createdAt: string;
 }

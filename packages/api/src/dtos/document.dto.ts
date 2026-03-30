@@ -98,16 +98,6 @@ export class DocumentDto {
   isPendingRemoval: boolean;
 
   /**
-   * Index of the document in the workflow
-   */
-  @Expose()
-  @ApiProperty({
-    description: 'Index of the document in the workflow',
-    example: 2,
-  })
-  workflowIndex: number;
-
-  /**
    * Version of the document
    */
   @Expose()

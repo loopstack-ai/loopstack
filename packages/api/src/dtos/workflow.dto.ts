@@ -1,13 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, plainToInstance } from 'class-transformer';
 import { WorkflowEntity, WorkflowState } from '@loopstack/common';
-import type {
-  HistoryTransition,
-  JSONSchemaConfigType,
-  UiFormType,
-  WorkflowInterface,
-  WorkflowTransitionType,
-} from '@loopstack/contracts/types';
+import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
 
 /**
  * Data Transfer Object representing a workflow
@@ -39,30 +33,12 @@ export class WorkflowDto implements WorkflowInterface {
 
   @Expose()
   @ApiProperty({
-    description: 'Index position of the workflow in the pipeline sequence',
-    example: 1,
-    type: Number,
-  })
-  index: number;
-
-  @Expose()
-  @ApiProperty({
     type: 'array',
     items: { type: 'string' },
     description: 'Tags associated with the workflow for categorization and filtering',
     example: ['frontend', 'featureXY'],
   })
   labels: string[];
-
-  @Expose()
-  @ApiProperty({
-    description: 'Completion percentage of the workflow (0-100)',
-    example: 75,
-    minimum: 0,
-    maximum: 100,
-    type: Number,
-  })
-  progress: number;
 
   @Expose()
   @ApiProperty({
@@ -104,28 +80,6 @@ export class WorkflowDto implements WorkflowInterface {
   availableTransitions: WorkflowTransitionType[] | null;
 
   @Expose()
-  @ApiPropertyOptional({
-    description: 'History of state transitions within the workflow',
-    nullable: true,
-  })
-  history: HistoryTransition[] | null;
-
-  @Expose()
-  @ApiProperty({
-    description: 'The json schema for form validation',
-  })
-  schema: JSONSchemaConfigType;
-
-  @Expose()
-  @ApiPropertyOptional({
-    type: 'object',
-    additionalProperties: true,
-    description: 'Ui schema config for the workflow',
-    nullable: true,
-  })
-  ui: UiFormType | null;
-
-  @Expose()
   @ApiProperty({
     type: Date,
     description: 'Date and time when the workflow was created',
@@ -154,13 +108,6 @@ export class WorkflowDto implements WorkflowInterface {
     example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
   })
   pipelineId: string;
-
-  @Expose()
-  @ApiProperty({
-    description: 'Unique identifier of the namespace this workflow belongs to',
-    example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
-  })
-  namespaceId: string;
 
   /**
    * Creates a WorkflowDto instance from a WorkflowEntity

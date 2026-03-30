@@ -1,5 +1,3 @@
-import { WorkflowMementoData } from './workflow-memento-data.interfate';
-
 export interface WorkflowStateInterface<TState, TData> {
   get<K extends keyof TState>(key: K): TState[K];
   set<K extends keyof TState>(key: K, value: TState[K]): void;
@@ -12,7 +10,5 @@ export interface WorkflowStateInterface<TState, TData> {
   updateData(partial: Partial<TData>): void;
 
   checkpoint(): void;
-  serialize(): WorkflowMementoData<TState, TData>[];
-  getHistory(): WorkflowMementoData<TState, TData>[];
-  restoreToLatest(): boolean;
+  getVersion(): number;
 }

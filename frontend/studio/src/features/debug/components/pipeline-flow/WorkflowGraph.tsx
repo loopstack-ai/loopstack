@@ -1,7 +1,7 @@
 import { type Edge, type Node } from '@xyflow/react';
 import React, { useEffect, useRef } from 'react';
 import type { PipelineConfigInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
-import { useWorkflow } from '@/hooks/useWorkflows.ts';
+import { useWorkflow, useWorkflowCheckpoints } from '@/hooks/useWorkflows.ts';
 import type { StateNodeData } from '../../lib/flow-types.ts';
 import { buildWorkflowGraph, getTransitions } from '../../lib/flow-utils.ts';
 
@@ -28,29 +28,43 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
 }) => {
   const fetchWorkflow = useWorkflow(workflow.id);
   const workflowData = fetchWorkflow.data;
+  const checkpointsQuery = useWorkflowCheckpoints(workflow.id);
+  const checkpoints = checkpointsQuery.data ?? [];
   const prevDataRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    onLoadingChange(workflow.id, fetchWorkflow.isLoading);
-  }, [workflow.id, fetchWorkflow.isLoading, onLoadingChange]);
+  const isLoading = fetchWorkflow.isLoading || checkpointsQuery.isLoading;
 
   useEffect(() => {
+    onLoadingChange(workflow.id, isLoading);
+  }, [workflow.id, isLoading, onLoadingChange]);
+
+  useEffect(() => {
+    if (isLoading) return;
+
     const configTransitions = pipelineConfig ? getTransitions(pipelineConfig) : [];
 
     const dataKey = JSON.stringify({
       p: countTransitions(pipeline),
       w: countTransitions(workflowData),
       c: configTransitions.length,
-      history: workflowData?.history?.length,
+      checkpoints: checkpoints.length,
       place: workflowData?.place,
     });
 
     if (dataKey !== prevDataRef.current) {
       prevDataRef.current = dataKey;
-      const { nodes, edges } = buildWorkflowGraph(pipeline, workflowData, workflow.id, configTransitions, direction);
+      const { nodes, edges } = buildWorkflowGraph(
+        pipeline,
+        workflowData,
+        workflow.id,
+        configTransitions,
+        direction,
+        false,
+        checkpoints,
+      );
       onGraphReady(workflow.id, nodes, edges);
     }
-  }, [pipeline, workflow, workflowData, pipelineConfig, onGraphReady]);
+  }, [pipeline, workflow, workflowData, checkpoints, pipelineConfig, onGraphReady, isLoading]);
 
   return null;
 };

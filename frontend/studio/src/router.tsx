@@ -144,10 +144,6 @@ const router: DataRouter = createBrowserRouter([
         element: <WorkbenchPage />,
       },
       {
-        path: 'pipelines/:pipelineId/namespaces/:namespaceId/w/:workflowId',
-        element: <WorkbenchPage />,
-      },
-      {
         path: '*',
         element: <NotFoundPage />,
       },

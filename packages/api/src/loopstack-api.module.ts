@@ -7,7 +7,6 @@ import cookieParser from 'cookie-parser';
 import { AuthModule, JwtAuthGuard, RolesGuard } from '@loopstack/auth';
 import {
   DocumentEntity,
-  NamespaceEntity,
   PipelineEntity,
   Role,
   User,
@@ -23,7 +22,6 @@ import { ConfigController } from './controllers/config.controller';
 import { DashboardController } from './controllers/dashboard.controller';
 import { DocumentController } from './controllers/document.controller';
 import { FileController } from './controllers/file.controller';
-import { NamespaceController } from './controllers/namespace.controller';
 import { PipelineController } from './controllers/pipeline.controller';
 import { ProcessorController } from './controllers/processor.controller';
 import { SecretController } from './controllers/secret.controller';
@@ -40,7 +38,6 @@ import { DashboardService } from './services/dashboard.service';
 import { DocumentApiService } from './services/document-api.service';
 import { FileApiService } from './services/file-api.service';
 import { FileSystemService } from './services/file-system.service';
-import { NamespaceApiService } from './services/namespace-api.service';
 import { PipelineApiService } from './services/pipeline-api.service';
 import { ProcessorApiService } from './services/processor-api.service';
 import { SseEventService } from './services/sse-event.service';
@@ -56,7 +53,6 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
       WorkspaceEnvironmentEntity,
       WorkflowEntity,
       DocumentEntity,
-      NamespaceEntity,
       User,
       Role,
     ]),
@@ -72,7 +68,6 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
     ProcessorController,
     WorkflowController,
     DocumentController,
-    NamespaceController,
     ConfigController,
     DashboardController,
     SseController,
@@ -97,7 +92,6 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
     ProcessorApiService,
     WorkflowApiService,
     DocumentApiService,
-    NamespaceApiService,
     DashboardService,
     UserService,
     FileSystemService,

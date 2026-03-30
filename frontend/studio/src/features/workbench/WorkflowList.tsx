@@ -51,7 +51,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
         <div className="mb-10" ref={listRef}>
           <div>
             {fetchWorkflows.data.map((item) => {
-              const sectionId = `section-${item.index}-${item.id}`;
+              const sectionId = `section-${item.id}`;
               const isActive = activeId === sectionId;
               const isSingle = fetchWorkflows.data.length === 1;
               const isExpanded = isSingle || expandedSections[sectionId];

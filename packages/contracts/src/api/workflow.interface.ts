@@ -5,9 +5,7 @@ export interface WorkflowItemInterface {
   id: string;
   blockName: string;
   title: string;
-  index: number;
   labels: string[];
-  progress: number;
   status: WorkflowState;
   hasError: boolean;
   place: string;
@@ -15,11 +13,9 @@ export interface WorkflowItemInterface {
   updatedAt: string;
   workspaceId: string;
   pipelineId: string;
-  namespaceId: string;
 }
 
 export interface WorkflowFilterInterface {
-  namespaceId?: string;
   pipelineId?: string;
 }
 

@@ -13,7 +13,6 @@ import { RunPayload } from '@loopstack/contracts/schemas';
 import { type PipelineEventPayload, PipelineService } from '../../persistence';
 import { BlockDiscoveryService } from './block-discovery.service';
 import { BlockProcessor } from './block-processor.service';
-import { NamespaceProcessorService } from './namespace-processor.service';
 
 @Injectable()
 export class RootProcessorService {
@@ -21,7 +20,6 @@ export class RootProcessorService {
 
   constructor(
     private readonly pipelineService: PipelineService,
-    private readonly namespaceProcessorService: NamespaceProcessorService,
     private readonly blockProcessor: BlockProcessor,
     private readonly blockDiscoveryService: BlockDiscoveryService,
     private readonly eventEmitter: EventEmitter2,
@@ -95,7 +93,6 @@ export class RootProcessorService {
 
     const ctx = new RunContext({
       root: params.blockName,
-      index: '0001',
       userId: params.userId,
       workspaceId: params.workspaceId,
       labels: [],
@@ -126,16 +123,12 @@ export class RootProcessorService {
   async runPipeline(pipeline: PipelineEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {
     const workflow = await this.resolveWorkflow(pipeline);
 
-    const namespace = await this.namespaceProcessorService.createRootNamespace(pipeline);
-
     const ctx = new RunContext({
       root: pipeline.blockName,
-      index: pipeline.index,
       userId: pipeline.createdBy,
       pipelineId: pipeline.id,
       workspaceId: pipeline.workspaceId,
-      labels: [...pipeline.labels, namespace.name],
-      namespace,
+      labels: [...pipeline.labels],
       payload,
       pipelineContext: pipeline.context,
       workspaceEnvironments: pipeline.workspace?.environments

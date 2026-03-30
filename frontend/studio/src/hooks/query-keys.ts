@@ -71,25 +71,12 @@ export function getWorkflowCacheKey(envKey: string, workflowId: string) {
   return ['workflow', envKey, workflowId];
 }
 
-export function getWorkflowsCacheKey(envKey: string, namespaceId: string) {
-  return ['workflows', envKey, namespaceId];
-}
-
 export function getWorkflowsByPipelineCacheKey(envKey: string, pipelineId: string) {
   return ['workflows-by-pipeline', envKey, pipelineId];
 }
 
 export function getAllWorkflowsCacheKey(envKey: string) {
   return ['all-workflows', envKey];
-}
-
-// --- Namespaces ---
-export function getNamespaceCacheKey(envKey: string, namespaceId: string) {
-  return ['namespace', envKey, namespaceId];
-}
-
-export function getNamespacesByPipelineCacheKey(envKey: string, pipelineId: string) {
-  return ['namespaces', envKey, pipelineId];
 }
 
 // --- Documents ---

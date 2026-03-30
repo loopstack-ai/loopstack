@@ -3,8 +3,8 @@ import { DiscoveryModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   DocumentEntity,
-  NamespaceEntity,
   PipelineEntity,
+  WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
   WorkspaceEnvironmentEntity,
@@ -14,7 +14,6 @@ import { PersistenceModule } from '../persistence';
 import {
   BlockDiscoveryService,
   BlockProcessor,
-  NamespaceProcessorService,
   ProcessorFactory,
   RootProcessorService,
   StateMachineProcessorService,
@@ -22,6 +21,7 @@ import {
   StateMachineValidatorRegistry,
   StateMachineValidatorService,
   ToolExecutionInterceptorService,
+  WorkflowMemoryMonitorService,
   WorkflowProcessorService,
   WorkflowStateService,
 } from './services';
@@ -36,7 +36,7 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
       DocumentEntity,
       WorkspaceEntity,
       WorkspaceEnvironmentEntity,
-      NamespaceEntity,
+      WorkflowCheckpointEntity,
     ]),
     PersistenceModule,
     DiscoveryModule,
@@ -60,7 +60,6 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     BlockDiscoveryService,
 
     WorkflowStateService,
-    NamespaceProcessorService,
     InitialRunValidator,
     WorkflowDependenciesValidator,
     WorkflowOptionValidator,
@@ -69,6 +68,7 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     StateMachineProcessorService,
     StateMachineToolCallProcessorService,
     ToolExecutionInterceptorService,
+    WorkflowMemoryMonitorService,
     CreatePipelineService,
   ],
   exports: [
@@ -79,6 +79,7 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     WorkflowProcessorService,
     BlockDiscoveryService,
     StateMachineToolCallProcessorService,
+    WorkflowMemoryMonitorService,
   ],
 })
 export class WorkflowProcessorModule {}

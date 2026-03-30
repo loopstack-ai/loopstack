@@ -70,9 +70,6 @@ export class DocumentEntity<T = any> {
   @Column({ name: 'is_pending_removal', default: false })
   isPendingRemoval!: boolean;
 
-  @Column('ltree', { name: 'workflow_index', default: '1' })
-  workflowIndex!: string;
-
   @Column({ default: 1 })
   version!: number;
 

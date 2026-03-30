@@ -2,7 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, IsNull, Repository } from 'typeorm';
-import { WorkflowEntity } from '@loopstack/common';
+import { WorkflowCheckpointEntity, WorkflowEntity } from '@loopstack/common';
+import { WorkflowCheckpointService } from '@loopstack/core';
 import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
 import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
 
@@ -12,6 +13,7 @@ export class WorkflowApiService {
     @InjectRepository(WorkflowEntity)
     private workflowRepository: Repository<WorkflowEntity>,
     private configService: ConfigService,
+    private workflowCheckpointService: WorkflowCheckpointService,
   ) {}
 
   /**
@@ -95,5 +97,16 @@ export class WorkflowApiService {
     if (!workflow) throw new NotFoundException(`Workflow with ID ${id} not found`);
 
     await this.workflowRepository.delete({ id, createdBy: user });
+  }
+
+  async getCheckpointHistory(
+    workflowId: string,
+    user: string,
+  ): Promise<
+    Pick<WorkflowCheckpointEntity, 'id' | 'place' | 'transitionId' | 'transitionFrom' | 'version' | 'createdAt'>[]
+  > {
+    // Verify the user owns this workflow
+    await this.findOneById(workflowId, user);
+    return this.workflowCheckpointService.getHistory(workflowId);
   }
 }

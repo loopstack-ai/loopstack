@@ -1,6 +1,7 @@
 import Dagre from '@dagrejs/dagre';
 import { type Edge, MarkerType, type Node, Position } from '@xyflow/react';
 import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
+import type { WorkflowCheckpoint } from '@/api/workflows.ts';
 import type { FlowDirection, ResolvedTransition, StateNodeData, TransitionEdgeData } from './flow-types.ts';
 
 export type { StateNodeData } from './flow-types.ts';
@@ -17,18 +18,8 @@ const CONDITION_OPERATORS: Record<string, string> = {
   le: '<=',
 };
 
-export interface HistoryTransitionMetadata {
-  place: string;
-  tools: Record<string, Record<string, unknown>>;
-  transition?: { id: string; from: string | null; to: string };
-}
-
-export interface HistoryTransition {
-  state: Record<string, unknown>;
-  version: number;
-  data: HistoryTransitionMetadata;
-  timestamp: string;
-}
+// Checkpoint-based history entry (from WorkflowCheckpointEntity)
+type CheckpointEntry = WorkflowCheckpoint;
 
 export function getLayoutedElements(
   nodes: Node<StateNodeData>[],
@@ -125,16 +116,16 @@ export function buildWorkflowGraph(
   configTransitions: WorkflowTransitionType[] = [],
   direction: FlowDirection,
   forceVisible = false,
+  checkpoints: CheckpointEntry[] = [],
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
   const transitions = collectTransitions(pipeline, workflowData, configTransitions);
-  const history = extractHistory(workflowData);
 
-  const states = collectStates(transitions, history);
-  const executedMap = buildExecutedMap(history);
+  const states = collectStates(transitions, checkpoints);
+  const executedMap = buildExecutedMap(checkpoints);
 
-  const allTransitions = resolveTransitions(transitions, history);
+  const allTransitions = resolveTransitions(transitions, checkpoints);
   const endStates = findEndStates(states, allTransitions);
-  const visitedStates = findVisitedStates(history);
+  const visitedStates = findVisitedStates(checkpoints);
   const stateRanks = computeStateRanks(allTransitions);
 
   const nodes = buildNodes(states, {
@@ -142,7 +133,7 @@ export function buildWorkflowGraph(
     currentPlace: workflowData?.place,
     endStates,
     visitedStates,
-    visitCounts: buildVisitCounts(history),
+    visitCounts: buildVisitCounts(checkpoints),
     direction,
     forceVisible,
   });
@@ -176,11 +167,7 @@ function collectTransitions(
   });
 }
 
-function extractHistory(workflowData: WorkflowInterface | undefined): HistoryTransition[] {
-  return (workflowData?.history ?? []) as unknown as HistoryTransition[];
-}
-
-function collectStates(transitions: WorkflowTransitionType[], history: HistoryTransition[]): Set<string> {
+function collectStates(transitions: WorkflowTransitionType[], checkpoints: CheckpointEntry[]): Set<string> {
   const states = new Set<string>(['start']);
 
   for (const t of transitions) {
@@ -189,38 +176,37 @@ function collectStates(transitions: WorkflowTransitionType[], history: HistoryTr
     states.add(t.to);
   }
 
-  for (const entry of history) {
-    if (entry.data?.place) states.add(entry.data.place);
-    if (entry.data?.transition) {
-      states.add(entry.data.transition.from ?? 'start');
-      states.add(entry.data.transition.to);
-    }
+  for (const entry of checkpoints) {
+    if (entry.place) states.add(entry.place);
+    if (entry.transitionFrom) states.add(entry.transitionFrom);
   }
 
   return states;
 }
 
-function buildVisitCounts(history: HistoryTransition[]): Map<string, number> {
+function buildVisitCounts(checkpoints: CheckpointEntry[]): Map<string, number> {
   const counts = new Map<string, number>([['start', 1]]);
-  for (const entry of history) {
-    const place = entry.data?.place;
-    if (place) counts.set(place, (counts.get(place) ?? 0) + 1);
+  for (const entry of checkpoints) {
+    if (entry.place) counts.set(entry.place, (counts.get(entry.place) ?? 0) + 1);
   }
   return counts;
 }
 
-function buildExecutedMap(history: HistoryTransition[]): Map<string, number> {
+function buildExecutedMap(checkpoints: CheckpointEntry[]): Map<string, number> {
   const map = new Map<string, number>();
-  for (const entry of history) {
-    const t = entry.data?.transition;
-    if (!t) continue;
-    const key = `${t.from ?? 'start'}->${t.to}:${t.id}`;
+  for (const entry of checkpoints) {
+    if (!entry.transitionId) continue;
+    const from = entry.transitionFrom ?? 'start';
+    const key = `${from}->${entry.place}:${entry.transitionId}`;
     map.set(key, (map.get(key) ?? 0) + 1);
   }
   return map;
 }
 
-function resolveTransitions(definitions: WorkflowTransitionType[], history: HistoryTransition[]): ResolvedTransition[] {
+function resolveTransitions(
+  definitions: WorkflowTransitionType[],
+  checkpoints: CheckpointEntry[],
+): ResolvedTransition[] {
   const result: ResolvedTransition[] = [];
 
   for (const t of definitions) {
@@ -238,13 +224,12 @@ function resolveTransitions(definitions: WorkflowTransitionType[], history: Hist
     }
   }
 
-  for (const entry of history) {
-    const t = entry.data?.transition;
-    if (!t?.id) continue;
-    const from = t.from ?? 'start';
-    const exists = result.some((r) => r.from === from && r.to === t.to && r.id === t.id);
+  for (const entry of checkpoints) {
+    if (!entry.transitionId) continue;
+    const from = entry.transitionFrom ?? 'start';
+    const exists = result.some((r) => r.from === from && r.to === entry.place && r.id === entry.transitionId);
     if (!exists) {
-      result.push({ id: t.id, from, to: t.to });
+      result.push({ id: entry.transitionId, from, to: entry.place });
     }
   }
 
@@ -260,11 +245,10 @@ function findEndStates(states: Set<string>, transitions: ResolvedTransition[]): 
   return ends;
 }
 
-function findVisitedStates(history: HistoryTransition[]): Set<string> {
+function findVisitedStates(checkpoints: CheckpointEntry[]): Set<string> {
   const visited = new Set<string>(['start']);
-  for (const entry of history) {
-    if (entry.data?.place) visited.add(entry.data.place);
-    if (entry.data?.transition?.to) visited.add(entry.data.transition.to);
+  for (const entry of checkpoints) {
+    if (entry.place) visited.add(entry.place);
   }
   return visited;
 }

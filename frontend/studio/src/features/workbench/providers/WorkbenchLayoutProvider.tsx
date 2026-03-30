@@ -1,7 +1,7 @@
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { PipelineInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
 
-export type FloatingPanelId = 'navigation' | 'history' | 'secrets';
+export type FloatingPanelId = 'history' | 'secrets';
 export type SidePanelId = 'preview' | 'flow' | 'files';
 export type PreviewTab = 'preview' | 'flow' | 'history';
 
@@ -17,7 +17,7 @@ export interface WorkbenchLayoutContextType {
   getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, pipelineId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
 
-  // Floating panel state (navigation, history)
+  // Floating panel state (history, secrets)
   activeFloatingPanel: FloatingPanelId | null;
   toggleFloatingPanel: (id: FloatingPanelId) => void;
   closeFloatingPanel: () => void;
