@@ -3,10 +3,8 @@ import { Document, DocumentInterface, Input } from '@loopstack/common';
 
 const LinkDocumentSchema = z
   .object({
-    icon: z.string().optional(),
-    type: z.string().optional(),
+    status: z.enum(['pending', 'success', 'failure']).optional(),
     label: z.string().optional(),
-    caption: z.string().optional(),
     href: z.string().optional(),
     embed: z.boolean().optional(),
     expanded: z.boolean().optional(),

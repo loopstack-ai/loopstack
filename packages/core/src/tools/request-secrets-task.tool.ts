@@ -69,7 +69,7 @@ export class RequestSecretsTask implements ToolInterface<RequestSecretsTaskInput
         validate: 'skip' as const,
         update: {
           content: {
-            icon: 'Clock',
+            status: 'pending',
             label: 'Requesting Secrets',
             href: `/pipelines/${(taskResult.data as { pipelineId: string }).pipelineId}`,
             embed: true,
@@ -108,7 +108,7 @@ export class RequestSecretsTask implements ToolInterface<RequestSecretsTaskInput
         validate: 'skip' as const,
         update: {
           content: {
-            icon: 'CircleCheck',
+            status: 'success',
             label: 'Secrets have been stored',
             href: `/pipelines/${data.pipelineId}`,
           },

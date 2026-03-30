@@ -20,7 +20,10 @@ const WorkspacePage = () => {
   const startFormAction: WorkspaceActionInterface | undefined = (() => {
     if (!workspace || !fetchWorkspaceConfigs.data) return undefined;
     const config = fetchWorkspaceConfigs.data.find((c) => c.blockName === workspace.blockName);
-    return config?.ui?.actions?.find((a) => a.widget === 'start-form');
+    const uiTyped = config?.ui as
+      | { widgets?: WorkspaceActionInterface[]; actions?: WorkspaceActionInterface[] }
+      | undefined;
+    return (uiTyped?.widgets ?? uiTyped?.actions)?.find((a) => a.widget === 'start-form');
   })();
 
   const breadcrumbData = [

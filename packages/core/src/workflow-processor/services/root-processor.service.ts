@@ -35,10 +35,19 @@ export class RootProcessorService {
     return getBlockWorkflow<WorkflowInterface>(workspaceInstance, blockName);
   }
 
-  private resolveWorkflow(pipeline: PipelineEntity): WorkflowInterface {
+  private async resolveWorkflow(pipeline: PipelineEntity): Promise<WorkflowInterface> {
+    // When recursing, the parent relation may not be eagerly loaded beyond the first level.
+    // Load it on demand when parentId exists but the relation object is missing.
+    if (pipeline.parentId && !pipeline.parent) {
+      pipeline.parent = await this.pipelineService.getPipeline(pipeline.parentId, pipeline.createdBy, [
+        'workspace',
+        'parent',
+      ]);
+    }
+
     // Try parent workflow first (for sub-pipelines)
     if (pipeline.parent) {
-      const parentWorkflow = this.resolveWorkflow(pipeline.parent);
+      const parentWorkflow = await this.resolveWorkflow(pipeline.parent);
       const subWorkflow = getBlockWorkflow<WorkflowInterface>(parentWorkflow, pipeline.blockName);
       if (subWorkflow) {
         return subWorkflow;
@@ -115,7 +124,7 @@ export class RootProcessorService {
   }
 
   async runPipeline(pipeline: PipelineEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {
-    const workflow = this.resolveWorkflow(pipeline);
+    const workflow = await this.resolveWorkflow(pipeline);
 
     const namespace = await this.namespaceProcessorService.createRootNamespace(pipeline);
 

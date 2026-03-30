@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import type { JSONSchemaConfigType, UiFormType, UiWidgetType } from '@loopstack/contracts/types';
+import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
 import Form from '@/components/dynamic-form/Form.tsx';
 import UiActions from '@/components/ui-widgets/UiActions.tsx';
 
@@ -37,13 +37,12 @@ const PipelinePropertiesFormContainer: React.FC<PipelinePropertiesFormContainerP
 
   const uiActions = [
     {
-      type: 'button',
       widget: 'button-full-w',
       options: {
         transition: '',
         label: 'Run Now',
       },
-    } satisfies UiWidgetType,
+    },
   ];
 
   return (

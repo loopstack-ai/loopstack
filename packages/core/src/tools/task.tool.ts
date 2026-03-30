@@ -49,6 +49,9 @@ export class Task implements ToolInterface<TaskArgs> {
   args: TaskArgs;
 
   async execute(args: TaskArgs, context: RunContext, parent?: WorkflowInterface | BlockInterface): Promise<ToolResult> {
+    this.logger.debug(
+      `[DEBUG] Task.execute called: workflow=${args.workflow}, parent=${parent?.constructor?.name ?? 'UNDEFINED'}, pipelineId=${context.pipelineId ?? 'UNDEFINED'}`,
+    );
     if (context.options.stateless) {
       throw new Error('Task tool requires stateful workflow execution.');
     }

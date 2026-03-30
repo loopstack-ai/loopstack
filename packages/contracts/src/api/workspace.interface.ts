@@ -78,7 +78,7 @@ export interface WorkspaceActionInterface {
 }
 
 export interface WorkspaceUiInterface {
-  actions?: WorkspaceActionInterface[];
+  widgets?: WorkspaceActionInterface[];
 }
 
 export interface WorkspaceConfigInterface {

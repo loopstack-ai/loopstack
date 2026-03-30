@@ -91,9 +91,8 @@ The workflow defines a custom UI action that allows users to send messages:
 
 ```yaml
 ui:
-  actions:
-    - type: custom
-      widget: prompt-input
+  widgets:
+    - widget: prompt-input
       enabledWhen:
         - ready
       options:

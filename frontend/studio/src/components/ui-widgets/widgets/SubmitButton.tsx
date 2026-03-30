@@ -20,7 +20,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({ ui, disabled, onClic
       variant="default"
       {...submitButtonProps}
       disabled={disabled || isLoading}
-      onClick={onClick}
+      onClick={() => onClick()}
       size={'default'}
       className="w-48"
     >

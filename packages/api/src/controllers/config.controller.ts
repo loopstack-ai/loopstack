@@ -82,29 +82,33 @@ export class ConfigController {
         throw new Error(`Block ${workspace.constructor.name} is missing @BlockConfig decorator`);
       }
 
-      // Resolve ui.actions — enrich any action that references a pipeline with its schema/ui
+      // Resolve ui.widgets — enrich any widget that references a pipeline with its schema/ui
       let resolvedUi: WorkspaceConfigDto['ui'] | undefined;
-      if (config.ui?.actions?.length) {
-        const resolvedActions = config.ui.actions.map((action) => {
-          const pipelineName = action.options?.workflow as string | undefined;
-          if (!pipelineName) return action;
+      const uiWidgets = (config.ui as Record<string, unknown> | undefined)?.widgets as
+        | Record<string, unknown>[]
+        | undefined;
+      if (uiWidgets?.length) {
+        const resolvedWidgets = uiWidgets.map((widget) => {
+          const options = widget.options as Record<string, unknown> | undefined;
+          const pipelineName = options?.workflow as string | undefined;
+          if (!pipelineName) return widget;
 
           const workflow = getBlockWorkflow<WorkflowInterface>(workspace, pipelineName);
-          if (!workflow) return action;
+          if (!workflow) return widget;
 
           const workflowConfig = getBlockConfig<WorkflowType>(workflow);
           const argsSchema = getBlockArgsSchema(workflow);
 
           return {
-            ...action,
+            ...widget,
             options: {
-              ...action.options,
+              ...options,
               schema: argsSchema ? (toJSONSchema(argsSchema) as JSONSchemaDefinition) : undefined,
               pipelineUi: workflowConfig?.ui,
             },
           };
         });
-        resolvedUi = { actions: resolvedActions };
+        resolvedUi = { widgets: resolvedWidgets } as unknown as WorkspaceConfigDto['ui'];
       }
 
       return {

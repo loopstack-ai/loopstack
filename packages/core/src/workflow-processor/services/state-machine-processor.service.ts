@@ -34,7 +34,9 @@ export class StateMachineProcessorService {
 
     // exclude call property from transitions eval because this should be only
     // evaluated when called, so it received actual arguments
-    const transitionsWithoutCallProperty = config.transitions!.map((transition) => omit(transition, ['call']));
+    const transitionsWithoutCallProperty = config.transitions!.map((transition) =>
+      omit(transition, ['call', 'assign']),
+    );
 
     // make (latest) context available within service class
     const evaluatedTransitions = this.templateExpressionEvaluatorService.evaluateTemplate<WorkflowTransitionType[]>(
@@ -167,6 +169,12 @@ export class StateMachineProcessorService {
 
       try {
         ctx = await this.stateMachineToolCallProcessorService.processToolCalls(ctx, toolCalls, debug);
+
+        // Apply transition-level assign (after tool calls, before commit)
+        if (configTransition?.assign) {
+          this.stateMachineToolCallProcessorService.assignToTargetBlock(ctx, configTransition.assign, undefined, debug);
+        }
+
         this.commitWorkflowTransition(ctx);
       } catch (e: unknown) {
         if (currentTransition.onError) {

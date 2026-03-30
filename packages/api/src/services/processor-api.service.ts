@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { PipelineState } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { TaskSchedulerService } from '@loopstack/core';
 import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
@@ -12,10 +13,12 @@ export class ProcessorApiService {
     private pipelineApiService: PipelineApiService,
   ) {}
 
-  async processPipeline(pipelineId: string, user: string, payload: RunPipelinePayloadDto): Promise<any> {
+  async processPipeline(pipelineId: string, user: string, payload: RunPipelinePayloadDto): Promise<void> {
     const pipeline = await this.pipelineApiService.findOneById(pipelineId, user);
 
-    return this.taskSchedulerService.addTask({
+    await this.pipelineApiService.setStatus(pipelineId, user, PipelineState.Pending);
+
+    void this.taskSchedulerService.addTask({
       id: 'manual_pipeline_execution-' + randomUUID(),
       workspaceId: pipeline.workspaceId,
       task: {

@@ -17,7 +17,7 @@ const LoadingCentered: React.FC<LoadingCenteredProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className={cn('flex items-center justify-center', className)} {...props}>
+      <div className={cn('mt-12 flex items-center justify-center', className)} {...props}>
         <Loader2 className="animate-spin" size={size} />
       </div>
     );

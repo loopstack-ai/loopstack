@@ -10,8 +10,10 @@ interface WorkflowFormsProps {
 }
 
 const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit }) => {
-  const actions = (workflow.ui as { actions?: unknown[] } | undefined)?.actions;
-  if (!actions?.length) {
+  const uiTyped = workflow.ui as { widgets?: unknown[]; actions?: unknown[] } | undefined;
+  // New format: ui.widgets, legacy fallback: ui.actions
+  const widgets = uiTyped?.widgets ?? uiTyped?.actions;
+  if (!widgets?.length) {
     return null;
   }
 
@@ -21,7 +23,7 @@ const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit }) => 
   return (
     <div>
       <UiActions
-        actions={actions as UiWidgetType[]}
+        actions={widgets as UiWidgetType[]}
         availableTransitions={availableTransitions}
         currentPlace={workflow.place}
         disabled={workflow.status === WorkflowState.Completed}

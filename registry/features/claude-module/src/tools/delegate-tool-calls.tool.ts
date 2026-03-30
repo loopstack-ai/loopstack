@@ -151,14 +151,14 @@ export class DelegateToolCalls implements ToolInterface<DelegateToolCallsArgs> {
     parent: WorkflowInterface,
     metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
-    const tool = this.toolCallProcessor.getTool(parent, block.name);
-    const parsedArgs = this.toolCallProcessor.parseArgs(
-      tool,
-      block.input as Record<string, unknown> | undefined,
-      metadata.transition!,
-    );
-
     try {
+      const tool = this.toolCallProcessor.getTool(parent, block.name);
+      const parsedArgs = this.toolCallProcessor.parseArgs(
+        tool,
+        block.input as Record<string, unknown> | undefined,
+        metadata.transition!,
+      );
+
       return await this.toolCallProcessor.executeToolCall(tool, parsedArgs, ctx, parent, metadata);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

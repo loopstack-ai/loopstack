@@ -61,11 +61,11 @@ export class ProcessorController {
     description: 'Pipeline not found',
   })
   @ApiUnauthorizedResponse()
-  runPipeline(
+  async runPipeline(
     @Param('pipelineId') pipelineId: string,
     @Body() payload: RunPipelinePayloadDto,
     @CurrentUser() user: CurrentUserInterface,
-  ): void {
-    void this.processorApiService.processPipeline(pipelineId, user.userId, payload ?? {});
+  ): Promise<void> {
+    await this.processorApiService.processPipeline(pipelineId, user.userId, payload ?? {});
   }
 }

@@ -63,9 +63,8 @@ export class AuthenticateGitHubTask implements ToolInterface<AuthenticateGitHubT
         validate: 'skip' as const,
         update: {
           content: {
-            icon: 'LockKeyhole',
+            status: 'pending',
             label: 'GitHub authentication required',
-            caption: 'Complete sign-in to access GitHub',
             href: `/pipelines/${String((taskResult.data as Record<string, unknown>).pipelineId)}`,
             embed: true,
             expanded: true,
@@ -103,7 +102,7 @@ export class AuthenticateGitHubTask implements ToolInterface<AuthenticateGitHubT
         validate: 'skip' as const,
         update: {
           content: {
-            icon: 'ShieldCheck',
+            status: 'success',
             label: 'GitHub authentication completed',
             href: `/pipelines/${data.pipelineId}`,
           },

@@ -9,8 +9,8 @@ import {
   MessageResponse,
 } from '@/components/ai-elements/message.tsx';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-elements/reasoning.tsx';
-import type { ToolHeaderProps } from '@/components/ai-elements/tool.tsx';
-import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/ai-elements/tool.tsx';
+import type { ToolHeaderProps } from '@/components/loopstack-elements/tool.tsx';
+import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/loopstack-elements/tool.tsx';
 
 // Anthropic native content block types
 interface TextBlock {

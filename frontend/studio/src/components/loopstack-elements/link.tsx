@@ -1,45 +1,36 @@
 'use client';
 
-import { ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon, LinkIcon, icons } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon, FolderClosedIcon, FolderOpenIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useStudio } from '@/providers/StudioProvider';
 
 const EMBED_RESIZE_MESSAGE_TYPE = 'loopstack:embed:resize';
 
-export type LucideIconName = keyof typeof icons;
+export type LinkCardStatus = 'pending' | 'success' | 'failure';
 
 export type LinkCardProps = {
   href?: string;
   label?: string;
-  caption?: string;
-  icon?: LucideIconName;
-  type?: string;
+  status?: LinkCardStatus;
   embed?: boolean;
   defaultExpanded?: boolean;
-  iconClassName?: string;
   className?: string;
+};
+
+const statusColorMap: Record<LinkCardStatus, string> = {
+  pending: 'text-muted-foreground',
+  success: 'text-green-600',
+  failure: 'text-red-600',
 };
 
 const PIPELINE_HREF_PATTERN = /^\/pipelines\/([a-zA-Z0-9_-]+)$/;
 
-export const LinkCard = ({
-  className,
-  href,
-  label,
-  caption,
-  icon,
-  type,
-  embed,
-  defaultExpanded,
-  iconClassName,
-}: LinkCardProps) => {
+export const LinkCard = ({ className, href, label, status = 'pending', embed, defaultExpanded }: LinkCardProps) => {
   const { router } = useStudio();
   const [expanded, setExpanded] = useState(defaultExpanded ?? false);
   const [iframeHeight, setIframeHeight] = useState(0);
-
-  // Get the icon component from lucide-react icons object
-  const IconComponent = icon && icons[icon] ? icons[icon] : LinkIcon;
 
   // Extract domain for display if no label provided
   const displayLabel =
@@ -53,8 +44,6 @@ export const LinkCard = ({
         return href;
       }
     })();
-
-  const isSuccess = type === 'success';
 
   // Check if href points to an internal pipeline
   const pipelineMatch = href?.match(PIPELINE_HREF_PATTERN);
@@ -83,58 +72,45 @@ export const LinkCard = ({
   }, [pipelineId, expanded]);
 
   return (
-    <div className={cn('not-prose flex w-full flex-col rounded-md border bg-background', className)}>
-      <div className="flex w-full items-center gap-3 p-3">
-        <div
-          className={cn(
-            'flex size-8 shrink-0 items-center justify-center rounded-md border',
-            isSuccess ? 'bg-green-50 text-green-600 border-green-200' : 'text-muted-foreground bg-muted/50',
-          )}
-        >
-          <IconComponent className={cn('size-4', iconClassName)} />
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-sm font-medium">{displayLabel}</span>
-          {caption ? (
-            <span className="text-muted-foreground truncate text-xs">{caption}</span>
-          ) : (
-            href && (
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground truncate text-xs hover:underline"
-              >
-                {href}
-              </a>
-            )
-          )}
-        </div>
+    <div
+      className={cn('not-prose flex w-full cursor-pointer flex-col', className)}
+      onClick={() => embedSrc && setExpanded((v) => !v)}
+    >
+      <div className="flex w-full items-center gap-1.5 py-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className={cn('flex shrink-0 items-center', statusColorMap[status])}>
+              {expanded ? <FolderOpenIcon className="size-4" /> : <FolderClosedIcon className="size-4" />}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top">{expanded ? 'Collapse' : 'Expand'}</TooltipContent>
+        </Tooltip>
+        <span className={cn('min-w-0 flex-1 truncate text-sm', expanded ? 'font-medium' : 'text-muted-foreground')}>
+          {displayLabel}
+        </span>
         <div className="flex shrink-0 items-center gap-1">
-          {embedSrc && (
-            <button
-              type="button"
-              onClick={() => setExpanded((v) => !v)}
-              className="text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-md transition-colors hover:bg-muted/50"
-            >
-              {expanded ? <ChevronUpIcon className="size-4" /> : <ChevronDownIcon className="size-4" />}
-            </button>
-          )}
           {href && (
             <a
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-md transition-colors hover:bg-muted/50"
+              onClick={(e) => e.stopPropagation()}
+              className="text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
             >
-              <ExternalLinkIcon className="size-4" />
+              <ExternalLinkIcon className="size-3.5" />
             </a>
           )}
+          {embedSrc &&
+            (expanded ? (
+              <ChevronUpIcon className="text-muted-foreground size-3.5" />
+            ) : (
+              <ChevronDownIcon className="text-muted-foreground size-3.5" />
+            ))}
         </div>
       </div>
 
       {expanded && embedSrc && (
-        <div className="border-t">
+        <div className="mt-2 border-t">
           <iframe
             src={embedSrc}
             className="w-full overflow-hidden border-0"

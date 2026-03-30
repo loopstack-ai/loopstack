@@ -65,9 +65,8 @@ export class AuthenticateGoogleTask implements ToolInterface<AuthenticateGoogleT
         validate: 'skip' as const,
         update: {
           content: {
-            icon: 'LockKeyhole',
+            status: 'pending',
             label: 'Google authentication required',
-            caption: 'Complete sign-in to access Google services',
             href: `/pipelines/${String((taskResult.data as Record<string, unknown>).pipelineId)}`,
             embed: true,
             expanded: true,
@@ -105,7 +104,7 @@ export class AuthenticateGoogleTask implements ToolInterface<AuthenticateGoogleT
         validate: 'skip' as const,
         update: {
           content: {
-            icon: 'ShieldCheck',
+            status: 'success',
             label: 'Google authentication completed',
             href: `/pipelines/${data.pipelineId}`,
           },

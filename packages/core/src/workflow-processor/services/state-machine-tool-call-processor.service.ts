@@ -254,21 +254,18 @@ export class StateMachineToolCallProcessorService {
   assignToTargetBlock(
     ctx: WorkflowExecutionContextManager,
     assign: AssignmentConfigType | undefined,
-    result: ToolResult,
+    result?: ToolResult,
     debug = false,
   ) {
     if (assign) {
       const update: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(assign)) {
-        update[key] = this.templateExpressionEvaluatorService.evaluateTemplateRaw<string>(
-          value,
-          { ...getTemplateVars(ctx), result },
-          {
-            cacheKey: ctx.getInstance().constructor.name,
-            helpers: getBlockTemplateHelpers(ctx.getInstance()),
-            schema: z.array(WorkflowTransitionSchema),
-          },
-        );
+        const vars = result ? { ...getTemplateVars(ctx), result } : getTemplateVars(ctx);
+        update[key] = this.templateExpressionEvaluatorService.evaluateTemplateRaw<string>(value, vars, {
+          cacheKey: ctx.getInstance().constructor.name,
+          helpers: getBlockTemplateHelpers(ctx.getInstance()),
+          schema: z.array(WorkflowTransitionSchema),
+        });
       }
 
       if (debug) {

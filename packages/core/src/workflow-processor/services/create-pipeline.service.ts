@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { FindOptionsWhere } from 'typeorm';
 import {
   BlockInterface,
@@ -7,12 +7,15 @@ import {
   WorkspaceEntity,
   getBlockArgsSchema,
   getBlockWorkflow,
+  getBlockWorkflows,
 } from '@loopstack/common';
 import { PipelineService, WorkspaceService } from '../../persistence';
 import { BlockDiscoveryService } from './block-discovery.service';
 
 @Injectable()
 export class CreatePipelineService {
+  private readonly logger = new Logger(CreatePipelineService.name);
+
   constructor(
     private readonly workspaceService: WorkspaceService,
     private readonly pipelineService: PipelineService,
@@ -32,15 +35,25 @@ export class CreatePipelineService {
     workspaceInstance: BlockInterface,
     parentWorkflowInstance?: WorkflowInterface | BlockInterface,
   ): WorkflowInterface {
+    this.logger.debug(
+      `[DEBUG] resolveWorkflow: blockName=${blockName}, workspace=${workspaceInstance.constructor.name}, parent=${parentWorkflowInstance?.constructor?.name ?? 'UNDEFINED'}`,
+    );
+
     // Try parent workflow first
     if (parentWorkflowInstance) {
+      const parentWorkflows = getBlockWorkflows(parentWorkflowInstance);
+      this.logger.debug(`[DEBUG] Parent workflows available: [${parentWorkflows.join(', ')}]`);
       const workflow = getBlockWorkflow<WorkflowInterface>(parentWorkflowInstance, blockName);
       if (workflow) {
+        this.logger.debug(`[DEBUG] Found "${blockName}" on parent workflow`);
         return workflow;
       }
+      this.logger.debug(`[DEBUG] "${blockName}" NOT found on parent workflow`);
     }
 
     // Fallback: resolve from workspace
+    const workspaceWorkflows = getBlockWorkflows(workspaceInstance);
+    this.logger.debug(`[DEBUG] Workspace workflows available: [${workspaceWorkflows.join(', ')}]`);
     const workflow = getBlockWorkflow<WorkflowInterface>(workspaceInstance, blockName);
     if (workflow) {
       return workflow;

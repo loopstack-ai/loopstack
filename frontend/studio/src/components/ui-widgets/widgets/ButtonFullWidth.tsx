@@ -22,7 +22,7 @@ export const ButtonFullWidth: React.FC<SubmitButtonProps> = ({ ui, disabled, onC
       variant={variant}
       {...submitButtonProps}
       disabled={disabled || isLoading}
-      onClick={onClick}
+      onClick={() => onClick()}
       size={'lg'}
       className={'w-full font-medium'}
     >

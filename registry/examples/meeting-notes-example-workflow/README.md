@@ -87,17 +87,17 @@ Add action buttons to documents that trigger transitions. These are defined in t
 # meeting-notes-document.yaml
 type: document
 ui:
-  form:
-    properties:
-      text:
-        title: Text
-        widget: textarea
-  actions:
-    - type: button
-      widget: button
-      transition: user_response
+  widgets:
+    - widget: form
       options:
-        label: 'Optimize Notes'
+        properties:
+          text:
+            title: Text
+            widget: textarea
+        actions:
+          - type: button
+            transition: user_response
+            label: 'Optimize Notes'
 ```
 
 When clicked, the button triggers the `user_response` transition with the current document content.
@@ -167,35 +167,35 @@ Configure the document UI with ordering, collapsible arrays, and confirm button:
 # optimized-notes-document.yaml
 type: document
 ui:
-  form:
-    order:
-      - date
-      - summary
-      - participants
-      - decisions
-      - actionItems
-    properties:
-      date:
-        title: Date
-      summary:
-        title: Summary
-        widget: textarea
-      participants:
-        title: Participants
-        collapsed: true
-        items:
-          title: Participant
-      actionItems:
-        title: Action Items
-        collapsed: true
-        items:
-          title: Action Item
-  actions:
-    - type: button
-      widget: button
-      transition: confirm
+  widgets:
+    - widget: form
       options:
-        label: 'Confirm'
+        order:
+          - date
+          - summary
+          - participants
+          - decisions
+          - actionItems
+        properties:
+          date:
+            title: Date
+          summary:
+            title: Summary
+            widget: textarea
+          participants:
+            title: Participants
+            collapsed: true
+            items:
+              title: Participant
+          actionItems:
+            title: Action Items
+            collapsed: true
+            items:
+              title: Action Item
+        actions:
+          - type: button
+            transition: confirm
+            label: 'Confirm'
 ```
 
 #### 7. AI Document Generation

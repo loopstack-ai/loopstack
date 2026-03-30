@@ -75,7 +75,7 @@ export default function EmbedWorkbenchPage() {
   };
 
   return (
-    <div ref={containerRef} className="overflow-hidden px-6 py-4">
+    <div ref={containerRef} className="overflow-hidden pl-3 py-4">
       <ErrorSnackbar error={fetchPipeline.error} />
       <ErrorSnackbar error={fetchWorkflows.error} />
       <LoadingCentered loading={fetchPipeline.isLoading || fetchWorkflows.isLoading}>

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
-import { PipelineEntity } from '@loopstack/common';
+import { PipelineEntity, PipelineState } from '@loopstack/common';
 import { CreatePipelineService } from '@loopstack/core';
 import { PipelineCreateDto } from '../dtos/pipeline-create.dto';
 import { PipelineFilterDto } from '../dtos/pipeline-filter.dto';
@@ -155,6 +155,17 @@ export class PipelineApiService {
     if (!pipeline) throw new NotFoundException(`Pipeline with ID ${id} not found`);
 
     await this.pipelineRepository.delete({ id, createdBy: user });
+  }
+
+  async setStatus(id: string, user: string, status: PipelineState): Promise<void> {
+    const pipeline = await this.pipelineRepository.findOne({
+      where: { id, createdBy: user },
+    });
+
+    if (!pipeline) throw new NotFoundException(`Pipeline with ID ${id} not found`);
+
+    pipeline.status = status;
+    await this.pipelineRepository.save(pipeline);
   }
 
   async batchDelete(

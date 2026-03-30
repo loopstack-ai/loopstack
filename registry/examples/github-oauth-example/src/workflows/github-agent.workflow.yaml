@@ -7,9 +7,8 @@ description: |
   the agent detects unauthorized errors and launches authentication on its own.
 
 ui:
-  actions:
-    - type: custom
-      widget: prompt-input
+  widgets:
+    - widget: prompt-input
       enabledWhen:
         - waiting_for_user
       options:
