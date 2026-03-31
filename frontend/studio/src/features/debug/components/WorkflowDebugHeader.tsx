@@ -1,14 +1,14 @@
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
-import PipelineDebugLegend from './PipelineDebugLegend.tsx';
+import WorkflowDebugLegend from './WorkflowDebugLegend.tsx';
 
-interface PipelineDebugHeaderProps {
+interface WorkflowDebugHeaderProps {
   title: string;
   runNumber?: number;
   onBack: () => void;
 }
 
-const PipelineDebugHeader: React.FC<PipelineDebugHeaderProps> = ({ title, runNumber, onBack }) => {
+const WorkflowDebugHeader: React.FC<WorkflowDebugHeaderProps> = ({ title, runNumber, onBack }) => {
   return (
     <div className="flex items-center justify-between pb-2">
       <div className="flex items-center gap-4">
@@ -18,16 +18,16 @@ const PipelineDebugHeader: React.FC<PipelineDebugHeaderProps> = ({ title, runNum
         <div className="flex flex-col">
           <h1 className="text-lg font-bold tracking-tight">{title}</h1>
           <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-            Pipeline Flow Visualization {runNumber && `· Run #${runNumber}`}
+            Workflow Flow Visualization {runNumber && `· Run #${runNumber}`}
           </p>
         </div>
       </div>
 
       <div className="hidden items-center gap-6 sm:flex">
-        <PipelineDebugLegend />
+        <WorkflowDebugLegend />
       </div>
     </div>
   );
 };
 
-export default PipelineDebugHeader;
+export default WorkflowDebugHeader;

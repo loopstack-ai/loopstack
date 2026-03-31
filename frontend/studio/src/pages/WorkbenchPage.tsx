@@ -5,7 +5,7 @@ import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { Workbench } from '@/features/workbench';
-import { usePipeline } from '../hooks/usePipelines.ts';
+import { useWorkflow } from '../hooks/useWorkflows.ts';
 import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { requireParam } from '../lib/requireParam.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
@@ -21,16 +21,16 @@ export default function WorkbenchPage({
   previewPanelOpen?: boolean;
   onPreviewPanelOpenChange?: (open: boolean) => void;
   isDeveloperMode?: boolean;
-  getPreviewUrl?: (pipelineId: string) => string;
-  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, pipelineId?: string) => string;
+  getPreviewUrl?: (workflowId: string) => string;
+  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, workflowId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
 } = {}) {
   const { router } = useStudio();
-  const params = useParams<{ pipelineId: string }>();
-  const pipelineId = requireParam(params, 'pipelineId');
+  const params = useParams<{ workflowId: string }>();
+  const workflowId = requireParam(params, 'workflowId');
 
-  const fetchPipeline = usePipeline(pipelineId);
-  const workspaceId = fetchPipeline.data?.workspaceId;
+  const fetchWorkflow = useWorkflow(workflowId);
+  const workspaceId = fetchWorkflow.data?.workspaceId;
   const fetchWorkspace = useWorkspace(workspaceId);
 
   const resolvedEnvironments = useMemo(
@@ -38,14 +38,14 @@ export default function WorkbenchPage({
     [environments, fetchWorkspace.data?.environments],
   );
 
-  const defaultGetEnvironmentPreviewUrl = useCallback((env: WorkspaceEnvironmentInterface, pipelineId?: string) => {
+  const defaultGetEnvironmentPreviewUrl = useCallback((env: WorkspaceEnvironmentInterface, workflowId?: string) => {
     if (!env.connectionUrl) return '';
     const params = new URLSearchParams({
       url: env.connectionUrl,
       name: env.envName || env.workerId || '',
     });
     const base = `/embed/env/preview`;
-    return pipelineId ? `${base}/pipelines/${pipelineId}?${params}` : `${base}?${params}`;
+    return workflowId ? `${base}/workflows/${workflowId}?${params}` : `${base}?${params}`;
   }, []);
 
   const resolvedGetEnvironmentPreviewUrl = getEnvironmentPreviewUrl ?? defaultGetEnvironmentPreviewUrl;
@@ -58,18 +58,18 @@ export default function WorkbenchPage({
       href: workspaceId ? router.getWorkspace(workspaceId) : undefined,
     },
     {
-      label: `Run #${fetchPipeline.data?.run}${fetchPipeline.data?.title ? ` (${fetchPipeline.data.title})` : ''}`,
+      label: `Run #${fetchWorkflow.data?.run}${fetchWorkflow.data?.title ? ` (${fetchWorkflow.data.title})` : ''}`,
     },
   ];
 
   return (
     <div className="flex h-svh flex-col">
       <div className="flex-1 overflow-hidden">
-        <ErrorSnackbar error={fetchPipeline.error} />
-        <LoadingCentered loading={fetchPipeline.isLoading}>
-          {fetchPipeline.data ? (
+        <ErrorSnackbar error={fetchWorkflow.error} />
+        <LoadingCentered loading={fetchWorkflow.isLoading}>
+          {fetchWorkflow.data ? (
             <Workbench
-              pipeline={fetchPipeline.data}
+              workflow={fetchWorkflow.data}
               breadcrumbData={breadcrumbData}
               previewPanelOpen={previewPanelOpen}
               onPreviewPanelOpenChange={onPreviewPanelOpenChange}
@@ -78,8 +78,8 @@ export default function WorkbenchPage({
               getEnvironmentPreviewUrl={resolvedGetEnvironmentPreviewUrl}
               environments={resolvedEnvironments}
             />
-          ) : !fetchPipeline.isLoading && !fetchPipeline.error ? (
-            <p className="text-muted-foreground py-8 text-center text-sm">Pipeline not found.</p>
+          ) : !fetchWorkflow.isLoading && !fetchWorkflow.error ? (
+            <p className="text-muted-foreground py-8 text-center text-sm">Workflow not found.</p>
           ) : null}
         </LoadingCentered>
       </div>

@@ -13,8 +13,8 @@ services:
   postgres:
     image: postgres:16.9-alpine
     restart: unless-stopped
-    env_file:
-      - ./backend/.env
+#    env_file:
+#      - ./backend/.env
     environment:
       POSTGRES_DB: ${DATABASE_NAME:-postgres}
       POSTGRES_USER: ${DATABASE_USERNAME:-postgres}

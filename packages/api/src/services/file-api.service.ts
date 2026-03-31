@@ -3,12 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as path from 'path';
 import { Repository } from 'typeorm';
 import { parse } from 'yaml';
-import { PipelineEntity, getBlockConfig } from '@loopstack/common';
+import { WorkflowEntity, getBlockConfig } from '@loopstack/common';
 import { WorkspaceType } from '@loopstack/contracts/types';
 import { BlockDiscoveryService } from '@loopstack/core';
 import { FileContentDto } from '../dtos/file-content.dto';
 import { FileExplorerNodeDto } from '../dtos/file-tree.dto';
-import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
+import { WorkflowConfigDto } from '../dtos/workflow-config.dto';
 import { FileSystemService } from './file-system.service';
 
 @Injectable()
@@ -16,30 +16,30 @@ export class FileApiService {
   private readonly logger = new Logger(FileApiService.name);
 
   constructor(
-    @InjectRepository(PipelineEntity)
-    private pipelineRepository: Repository<PipelineEntity>,
+    @InjectRepository(WorkflowEntity)
+    private workflowRepository: Repository<WorkflowEntity>,
     private fileSystemService: FileSystemService,
     private blockDiscoveryService: BlockDiscoveryService,
   ) {}
 
   /**
-   * Get file tree for a pipeline's workspace
+   * Get file tree for a workflow's workspace
    */
-  async getFileTree(pipelineId: string, userId: string): Promise<FileExplorerNodeDto[]> {
-    const pipeline = await this.pipelineRepository.findOne({
+  async getFileTree(workflowId: string, userId: string): Promise<FileExplorerNodeDto[]> {
+    const workflow = await this.workflowRepository.findOne({
       where: {
-        id: pipelineId,
+        id: workflowId,
         createdBy: userId,
       },
       relations: ['workspace'],
     });
 
-    if (!pipeline) {
-      throw new NotFoundException(`Pipeline with ID ${pipelineId} not found`);
+    if (!workflow) {
+      throw new NotFoundException(`Workflow with ID ${workflowId} not found`);
     }
 
-    const volume = this.getFileExplorerVolume(pipeline.workspace.blockName);
-    this.validatePermission(volume.permissions, 'read', pipeline.workspace.blockName, volume.volumeName);
+    const volume = this.getFileExplorerVolume(workflow.workspace.blockName);
+    this.validatePermission(volume.permissions, 'read', workflow.workspace.blockName, volume.volumeName);
 
     const exists = await this.fileSystemService.exists(volume.path);
     if (!exists) {
@@ -52,23 +52,23 @@ export class FileApiService {
   }
 
   /**
-   * Get file content for a specific file in a pipeline's workspace
+   * Get file content for a specific file in a workflow's workspace
    */
-  async getFileContent(pipelineId: string, filePath: string, userId: string): Promise<FileContentDto> {
-    const pipeline = await this.pipelineRepository.findOne({
+  async getFileContent(workflowId: string, filePath: string, userId: string): Promise<FileContentDto> {
+    const workflow = await this.workflowRepository.findOne({
       where: {
-        id: pipelineId,
+        id: workflowId,
         createdBy: userId,
       },
       relations: ['workspace'],
     });
 
-    if (!pipeline) {
-      throw new NotFoundException(`Pipeline with ID ${pipelineId} not found`);
+    if (!workflow) {
+      throw new NotFoundException(`Workflow with ID ${workflowId} not found`);
     }
 
-    const volume = this.getFileExplorerVolume(pipeline.workspace.blockName);
-    this.validatePermission(volume.permissions, 'read', pipeline.workspace.blockName, volume.volumeName);
+    const volume = this.getFileExplorerVolume(workflow.workspace.blockName);
+    this.validatePermission(volume.permissions, 'read', workflow.workspace.blockName, volume.volumeName);
 
     const fullFilePath = path.join(volume.path, filePath);
     if (!this.fileSystemService.validatePath(volume.path, fullFilePath)) {
@@ -119,7 +119,7 @@ export class FileApiService {
             transitions: parsed.transitions,
             ui: parsed.ui,
             schema: parsed.schema,
-          } as PipelineConfigDto;
+          } as WorkflowConfigDto;
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);

@@ -7,7 +7,6 @@ import cookieParser from 'cookie-parser';
 import { AuthModule, JwtAuthGuard, RolesGuard } from '@loopstack/auth';
 import {
   DocumentEntity,
-  PipelineEntity,
   Role,
   User,
   WorkflowEntity,
@@ -22,7 +21,6 @@ import { ConfigController } from './controllers/config.controller';
 import { DashboardController } from './controllers/dashboard.controller';
 import { DocumentController } from './controllers/document.controller';
 import { FileController } from './controllers/file.controller';
-import { PipelineController } from './controllers/pipeline.controller';
 import { ProcessorController } from './controllers/processor.controller';
 import { SecretController } from './controllers/secret.controller';
 import { SseController } from './controllers/sse.controller';
@@ -38,7 +36,6 @@ import { DashboardService } from './services/dashboard.service';
 import { DocumentApiService } from './services/document-api.service';
 import { FileApiService } from './services/file-api.service';
 import { FileSystemService } from './services/file-system.service';
-import { PipelineApiService } from './services/pipeline-api.service';
 import { ProcessorApiService } from './services/processor-api.service';
 import { SseEventService } from './services/sse-event.service';
 import { WorkflowApiService } from './services/workflow-api.service';
@@ -47,15 +44,7 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      PipelineEntity,
-      WorkspaceEntity,
-      WorkspaceEnvironmentEntity,
-      WorkflowEntity,
-      DocumentEntity,
-      User,
-      Role,
-    ]),
+    TypeOrmModule.forFeature([WorkspaceEntity, WorkspaceEnvironmentEntity, WorkflowEntity, DocumentEntity, User, Role]),
     LoopCoreModule,
     AuthModule.forRoot(),
   ],
@@ -63,7 +52,6 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
     AdminRoleController,
     AdminSystemController,
     AdminUserController,
-    PipelineController,
     WorkspaceController,
     ProcessorController,
     WorkflowController,
@@ -87,7 +75,6 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
     AdminSystemApiService,
     AdminUserApiService,
     SseEventService,
-    PipelineApiService,
     WorkspaceApiService,
     ProcessorApiService,
     WorkflowApiService,
@@ -102,7 +89,7 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
     },
   ],
   exports: [
-    PipelineApiService,
+    WorkflowApiService,
     WorkspaceApiService,
     ProcessorApiService,
     DashboardService,

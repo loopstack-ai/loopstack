@@ -1,4 +1,8 @@
-import type { PipelineInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
+import type {
+  WorkflowFullInterface,
+  WorkspaceEnvironmentInterface,
+  WorkspaceInterface,
+} from '@loopstack/contracts/api';
 import PageBreadcrumbs, { type BreadCrumbsData } from '@/components/page/PageBreadcrumbs.tsx';
 import { useWorkspace } from '@/hooks/useWorkspaces.ts';
 import WorkflowList from './WorkflowList.tsx';
@@ -12,10 +16,10 @@ import { ScrollProvider } from './providers/ScrollProvider.tsx';
 import { WorkbenchLayoutProvider, useWorkbenchLayout } from './providers/WorkbenchLayoutProvider.tsx';
 
 function WorkbenchContent({
-  pipeline,
+  workflow,
   breadcrumbData,
 }: {
-  pipeline: PipelineInterface;
+  workflow: WorkflowFullInterface;
   breadcrumbData?: BreadCrumbsData[];
 }) {
   return (
@@ -31,7 +35,7 @@ function WorkbenchContent({
           </div>
           <ScrollProvider>
             <div className="flex-1 overflow-auto">
-              <WorkflowList pipeline={pipeline} />
+              <WorkflowList workflow={workflow} />
             </div>
           </ScrollProvider>
         </div>
@@ -41,10 +45,10 @@ function WorkbenchContent({
 }
 
 function WorkbenchInner({
-  pipeline,
+  workflow,
   breadcrumbData,
 }: {
-  pipeline: PipelineInterface;
+  workflow: WorkflowFullInterface;
   breadcrumbData?: BreadCrumbsData[];
 }) {
   const { activeSidePanel } = useWorkbenchLayout();
@@ -53,7 +57,7 @@ function WorkbenchInner({
     <div className="flex h-full w-full">
       <div className="relative flex flex-1 overflow-hidden">
         <div className={activeSidePanel ? 'w-1/2 overflow-hidden' : 'w-full overflow-hidden'}>
-          <WorkbenchContent pipeline={pipeline} breadcrumbData={breadcrumbData} />
+          <WorkbenchContent workflow={workflow} breadcrumbData={breadcrumbData} />
         </div>
         {activeSidePanel === 'preview' && <WorkbenchPreviewPanel />}
         {activeSidePanel === 'flow' && <WorkbenchFlowPanel />}
@@ -66,7 +70,7 @@ function WorkbenchInner({
 }
 
 export default function Workbench({
-  pipeline,
+  workflow,
   breadcrumbData,
   previewPanelOpen,
   onPreviewPanelOpenChange,
@@ -75,16 +79,16 @@ export default function Workbench({
   getEnvironmentPreviewUrl,
   environments,
 }: {
-  pipeline: PipelineInterface;
+  workflow: WorkflowFullInterface;
   breadcrumbData?: BreadCrumbsData[];
   previewPanelOpen?: boolean;
   onPreviewPanelOpenChange?: (open: boolean) => void;
   isDeveloperMode?: boolean;
-  getPreviewUrl?: (pipelineId: string) => string;
-  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, pipelineId?: string) => string;
+  getPreviewUrl?: (workflowId: string) => string;
+  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, workflowId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
 }) {
-  const workspaceId = pipeline?.workspaceId;
+  const workspaceId = workflow?.workspaceId;
   const fetchWorkspace = useWorkspace(workspaceId);
 
   const fileExplorerEnabled =
@@ -102,7 +106,7 @@ export default function Workbench({
 
   return (
     <WorkbenchLayoutProvider
-      pipeline={pipeline}
+      workflow={workflow}
       isDeveloperMode={isDeveloperMode}
       workspaceConfig={workspaceConfig}
       getPreviewUrl={getPreviewUrl}
@@ -113,10 +117,10 @@ export default function Workbench({
     >
       {fileExplorerEnabled ? (
         <RemoteFileExplorerProvider>
-          <WorkbenchInner pipeline={pipeline} breadcrumbData={breadcrumbData} />
+          <WorkbenchInner workflow={workflow} breadcrumbData={breadcrumbData} />
         </RemoteFileExplorerProvider>
       ) : (
-        <WorkbenchInner pipeline={pipeline} breadcrumbData={breadcrumbData} />
+        <WorkbenchInner workflow={workflow} breadcrumbData={breadcrumbData} />
       )}
     </WorkbenchLayoutProvider>
   );

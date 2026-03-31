@@ -1,8 +1,8 @@
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type FloatingPanelId, useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
-import PipelineHistoryList from './PipelineHistoryList.tsx';
 import { WorkbenchSecretsPanel } from './WorkbenchSecretsPanel.tsx';
+import WorkflowHistoryList from './WorkflowHistoryList.tsx';
 
 const PANEL_TITLES: Record<FloatingPanelId, string> = {
   history: 'Run Log',
@@ -10,10 +10,10 @@ const PANEL_TITLES: Record<FloatingPanelId, string> = {
 };
 
 function HistoryContent() {
-  const { pipeline } = useWorkbenchLayout();
+  const { workflow } = useWorkbenchLayout();
   return (
     <div className="overflow-auto p-2">
-      <PipelineHistoryList pipeline={pipeline} />
+      <WorkflowHistoryList workflow={workflow} />
     </div>
   );
 }

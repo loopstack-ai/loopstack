@@ -1,14 +1,14 @@
 import { type Edge, type Node } from '@xyflow/react';
 import React, { useEffect, useRef } from 'react';
-import type { PipelineConfigInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
+import type { WorkflowConfigInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
 import { useWorkflow, useWorkflowCheckpoints } from '@/hooks/useWorkflows.ts';
 import type { StateNodeData } from '../../lib/flow-types.ts';
 import { buildWorkflowGraph, getTransitions } from '../../lib/flow-utils.ts';
 
 interface WorkflowGraphProps {
-  pipeline: unknown;
+  parentWorkflow: unknown;
   workflow: WorkflowItemInterface;
-  pipelineConfig?: PipelineConfigInterface;
+  workflowConfig?: WorkflowConfigInterface;
   onGraphReady: (workflowId: string, nodes: Node<StateNodeData>[], edges: Edge[]) => void;
   onLoadingChange: (workflowId: string, isLoading: boolean) => void;
   direction?: 'LR' | 'TB';
@@ -19,9 +19,9 @@ function countTransitions(obj: unknown): number {
 }
 
 const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
-  pipeline,
+  parentWorkflow,
   workflow,
-  pipelineConfig,
+  workflowConfig,
   onGraphReady,
   onLoadingChange,
   direction = 'LR',
@@ -41,10 +41,10 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   useEffect(() => {
     if (isLoading) return;
 
-    const configTransitions = pipelineConfig ? getTransitions(pipelineConfig) : [];
+    const configTransitions = workflowConfig ? getTransitions(workflowConfig) : [];
 
     const dataKey = JSON.stringify({
-      p: countTransitions(pipeline),
+      p: countTransitions(parentWorkflow),
       w: countTransitions(workflowData),
       c: configTransitions.length,
       checkpoints: checkpoints.length,
@@ -54,8 +54,8 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
     if (dataKey !== prevDataRef.current) {
       prevDataRef.current = dataKey;
       const { nodes, edges } = buildWorkflowGraph(
-        pipeline,
-        workflowData,
+        parentWorkflow,
+        workflowData as any,
         workflow.id,
         configTransitions,
         direction,
@@ -64,7 +64,7 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
       );
       onGraphReady(workflow.id, nodes, edges);
     }
-  }, [pipeline, workflow, workflowData, checkpoints, pipelineConfig, onGraphReady, isLoading]);
+  }, [parentWorkflow, workflow, workflowData, checkpoints, workflowConfig, onGraphReady, isLoading]);
 
   return null;
 };

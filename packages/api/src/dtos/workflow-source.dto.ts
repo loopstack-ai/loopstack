@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
-import type { PipelineSourceInterface } from '@loopstack/contracts/api';
+import type { WorkflowSourceInterface } from '@loopstack/contracts/api';
 
-export class PipelineSourceDto implements PipelineSourceInterface {
+export class WorkflowSourceDto implements WorkflowSourceInterface {
   @ApiProperty()
   @IsString()
   name: string;

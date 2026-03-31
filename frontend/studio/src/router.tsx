@@ -14,11 +14,11 @@ import DebugWorkflowDetailsPage from './pages/DebugWorkflowDetailsPage.tsx';
 import DebugWorkflowsPage from './pages/DebugWorkflowsPage.tsx';
 import EmbedWorkbenchPage from './pages/EmbedWorkbenchPage.tsx';
 import NotFoundPage from './pages/NotFoundPage.tsx';
-import PipelineDebugPage from './pages/PipelineDebugPage.tsx';
 import PreviewWorkbenchPage from './pages/PreviewWorkbenchPage.tsx';
 import RouteErrorPage from './pages/RouteErrorPage.tsx';
 import RunsListPage from './pages/RunsListPage.tsx';
 import RunsPage from './pages/RunsPage.tsx';
+import WorkflowDebugPage from './pages/WorkflowDebugPage.tsx';
 import WorkspacePage from './pages/WorkspacePage.tsx';
 import WorkspaceRunsPage from './pages/WorkspaceRunsPage.tsx';
 import WorkspacesPage from './pages/WorkspacesPage.tsx';
@@ -73,7 +73,7 @@ const router: DataRouter = createBrowserRouter([
     errorElement: <RouteErrorPage />,
     children: [
       { path: 'preview', element: <PreviewWorkbenchPage /> },
-      { path: 'preview/pipelines/:pipelineId', element: <PreviewWorkbenchPage /> },
+      { path: 'preview/workflows/:workflowId', element: <PreviewWorkbenchPage /> },
     ],
   },
   {
@@ -81,9 +81,9 @@ const router: DataRouter = createBrowserRouter([
     element: <EmbedRoot />,
     errorElement: <RouteErrorPage />,
     children: [
-      { path: 'pipelines/:pipelineId', element: <EmbedWorkbenchPage /> },
+      { path: 'workflows/:workflowId', element: <EmbedWorkbenchPage /> },
       { path: 'preview', element: <PreviewWorkbenchPage /> },
-      { path: 'preview/pipelines/:pipelineId', element: <PreviewWorkbenchPage /> },
+      { path: 'preview/workflows/:workflowId', element: <PreviewWorkbenchPage /> },
     ],
   },
   {
@@ -124,12 +124,12 @@ const router: DataRouter = createBrowserRouter([
         element: <WorkspaceRunsPage />,
       },
       {
-        path: 'pipelines/:pipelineId',
+        path: 'workflows/:workflowId',
         element: <WorkbenchPage />,
       },
       {
-        path: 'pipelines/:pipelineId/debug',
-        element: <PipelineDebugPage />,
+        path: 'workflows/:workflowId/debug',
+        element: <WorkflowDebugPage />,
       },
       {
         path: 'debug/workflows',
@@ -140,7 +140,7 @@ const router: DataRouter = createBrowserRouter([
         element: <DebugWorkflowDetailsPage />,
       },
       {
-        path: 'pipelines/:pipelineId/workflows/:workflowId/:clickId?',
+        path: 'workflows/:workflowId/:clickId',
         element: <WorkbenchPage />,
       },
       {

@@ -54,7 +54,7 @@ transitions:
               icon: 'LockKeyhole'
               label: 'Google authentication required'
               caption: 'Complete sign-in to continue'
-              href: '/pipelines/{{ runtime.tools.auth_required.launchAuth.data.pipelineId }}'
+              href: '/workflows/{{ runtime.tools.auth_required.launchAuth.data.workflowId }}'
               embed: true
               expanded: true
 
@@ -74,7 +74,7 @@ transitions:
               type: 'success'
               label: 'Google authentication completed'
               caption: 'Google authentication required to access your calendar.'
-              href: '/pipelines/{{ runtime.transition.payload.pipelineId }}'
+              href: '/workflows/{{ runtime.transition.payload.workflowId }}'
 
   # Success → display summary
   - id: display_results

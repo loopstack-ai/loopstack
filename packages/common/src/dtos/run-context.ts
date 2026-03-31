@@ -4,12 +4,12 @@ import { WorkspaceEnvironmentContextDto } from './workspace-environment-context.
 export class RunContext {
   root!: string;
   userId!: string;
-  pipelineId?: string;
+  parentWorkflowId?: string;
   workspaceId!: string;
   workflowId?: string;
   labels!: string[];
   payload: RunPayload;
-  pipelineContext?: Record<string, any>;
+  workflowContext?: Record<string, any>;
   workspaceEnvironments?: WorkspaceEnvironmentContextDto[];
   options: {
     stateless: boolean;

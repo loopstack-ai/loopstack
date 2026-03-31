@@ -110,7 +110,7 @@ export function formatCondition(condition: string): string {
 }
 
 export function buildWorkflowGraph(
-  pipeline: unknown,
+  parentWorkflow: unknown,
   workflowData: WorkflowInterface | undefined,
   workflowId: string,
   configTransitions: WorkflowTransitionType[] = [],
@@ -118,7 +118,7 @@ export function buildWorkflowGraph(
   forceVisible = false,
   checkpoints: CheckpointEntry[] = [],
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
-  const transitions = collectTransitions(pipeline, workflowData, configTransitions);
+  const transitions = collectTransitions(parentWorkflow, workflowData, configTransitions);
 
   const states = collectStates(transitions, checkpoints);
   const executedMap = buildExecutedMap(checkpoints);
@@ -149,12 +149,12 @@ export function buildWorkflowGraph(
 }
 
 function collectTransitions(
-  pipeline: unknown,
+  parentWorkflow: unknown,
   workflowData: WorkflowInterface | undefined,
   configTransitions: WorkflowTransitionType[],
 ): WorkflowTransitionType[] {
   const all = [...configTransitions];
-  if (pipeline) all.push(...getTransitions(pipeline));
+  if (parentWorkflow) all.push(...getTransitions(parentWorkflow));
   if (workflowData) all.push(...getTransitions(workflowData));
 
   const seen = new Set<string>();

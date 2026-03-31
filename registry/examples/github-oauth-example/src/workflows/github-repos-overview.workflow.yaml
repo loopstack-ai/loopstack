@@ -57,7 +57,7 @@ transitions:
               icon: 'LockKeyhole'
               label: 'GitHub authentication required'
               caption: 'Complete sign-in to continue'
-              href: '/pipelines/{{ runtime.tools.auth_required.launchAuth.data.pipelineId }}'
+              href: '/workflows/{{ runtime.tools.auth_required.launchAuth.data.workflowId }}'
               embed: true
               expanded: true
 
@@ -77,7 +77,7 @@ transitions:
               type: 'success'
               label: 'GitHub authentication completed'
               caption: 'You are now authenticated with GitHub.'
-              href: '/pipelines/{{ runtime.transition.payload.pipelineId }}'
+              href: '/workflows/{{ runtime.transition.payload.workflowId }}'
 
   # Step 2: Fetch user orgs
   - id: fetch_orgs

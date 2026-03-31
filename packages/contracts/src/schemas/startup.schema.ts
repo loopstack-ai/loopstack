@@ -49,52 +49,18 @@ export const RunPayloadSchema = z.object({
 
 export type RunPayload = z.infer<typeof RunPayloadSchema>;
 
-export const RunPipelineTaskSchema = BaseStartupTaskSchema.extend({
-  type: z.literal('run_pipeline'),
+export const RunWorkflowTaskSchema = BaseStartupTaskSchema.extend({
+  type: z.literal('run_workflow'),
   workspaceId: z.string().optional(),
-  pipelineId: z.string().optional(),
+  workflowId: z.string().optional(),
   correlationId: z.string().optional(),
   blockName: z.string().optional(),
   args: z.record(z.string(), z.any()).optional(),
   payload: RunPayloadSchema,
 });
 
-// export const CreateRunPipelineTaskSchema = BaseStartupTaskSchema.extend({
-//   type: z.literal('create_run_pipeline'),
-//   payload: z.object({
-//     pipeline: z.string(),
-//     transition: TransitionPayloadSchema.optional(),
-//   }),
-//   variables: z.record(z.string(), z.any()).optional(),
-// })
-
-// export const CreateWorkspaceTaskSchema = BaseStartupTaskSchema.extend({
-//   type: z.literal('create_workspace'),
-//   payload: z.object({
-//     workspace: z.string()
-//   }),
-// })
-//
-// const intervalRegex = /^(\d+)\s*(days?|hours?|minutes?|seconds?)$/i;
-
-// export const CleanupPipelineTaskSchema = BaseStartupTaskSchema.extend({
-//   type: z.literal('cleanup_pipeline'),
-//   payload: z.object({
-//     pipeline: z.string(),
-//     olderThan: z.string()
-//       .regex(intervalRegex, 'Duration must be in format: number followed by the unit (e.g., 30 days", "24 hours", "60 minutes")')
-//       .optional(),
-//     status: z.nativeEnum(PipelineState).optional(),
-//     skip: z.number().optional(), // keep the latest x items
-//     limit: z.number().positive().optional(), // Maximum number of pipelines to delete in one execution
-//   }),
-// })
-
 export const StartupTaskSchema = z.discriminatedUnion('type', [
-  RunPipelineTaskSchema,
-  // CreateRunPipelineTaskSchema,
-  // CleanupPipelineTaskSchema,
-  // CreateWorkspaceTaskSchema,
+  RunWorkflowTaskSchema,
 ]);
 
 export const ScheduledTaskSchema = z.object({

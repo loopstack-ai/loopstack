@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import type { PipelineInterface } from '@loopstack/contracts/api';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import BasicErrorComponent from '@/components/feedback/ErrorAlert';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
@@ -11,16 +11,16 @@ import type { WorkbenchSettingsInterface } from './WorkflowList.tsx';
 import { useWorkflowData } from './hooks/useWorkflowData.ts';
 
 const WorkflowItem: React.FC<{
-  pipeline: PipelineInterface;
+  workflow: WorkflowFullInterface;
   workflowId: string;
   scrollTo: (workflowId: string) => void;
   settings: WorkbenchSettingsInterface;
   embed?: boolean;
-}> = ({ pipeline, workflowId, scrollTo, settings, embed }) => {
+}> = ({ workflow, workflowId, scrollTo, settings, embed }) => {
   const { workflowId: paramsWorkflowId, clickId } = useParams();
 
   const {
-    workflow,
+    workflow: childWorkflow,
     workflowLoading,
     workflowReady,
     workflowError,
@@ -46,10 +46,10 @@ const WorkflowItem: React.FC<{
 
       <BasicErrorComponent error={workflowError} />
 
-      {workflowReady && workflow && (
+      {workflowReady && childWorkflow && (
         <DocumentList
-          pipeline={pipeline}
           workflow={workflow}
+          childWorkflow={childWorkflow}
           documents={documents}
           scrollTo={scrollTo}
           settings={settings}
@@ -59,9 +59,9 @@ const WorkflowItem: React.FC<{
 
       <LoadingCentered loading={isLoading} />
 
-      {!!workflow && (
+      {!!childWorkflow && (
         <div className="mt-6">
-          <WorkflowForms workflow={workflow} pipeline={pipeline} onSubmit={handleRun} />
+          <WorkflowForms workflow={childWorkflow} parentWorkflow={workflow} onSubmit={handleRun} />
         </div>
       )}
     </div>

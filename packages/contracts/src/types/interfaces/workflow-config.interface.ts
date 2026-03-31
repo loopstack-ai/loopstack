@@ -1,6 +1,6 @@
 import { JSONSchemaConfigType, UiFormType } from '../types';
 
-export interface PipelineConfigInterface {
+export interface WorkflowConfigInterface {
   blockName: string;
   title?: string;
   description?: string;

@@ -25,7 +25,7 @@ const statusColorMap: Record<LinkCardStatus, string> = {
   failure: 'text-red-600',
 };
 
-const PIPELINE_HREF_PATTERN = /^\/pipelines\/([a-zA-Z0-9_-]+)$/;
+const WORKFLOW_HREF_PATTERN = /^\/workflows\/([a-zA-Z0-9_-]+)$/;
 
 export const LinkCard = ({ className, href, label, status = 'pending', embed, defaultExpanded }: LinkCardProps) => {
   const { router } = useStudio();
@@ -45,21 +45,21 @@ export const LinkCard = ({ className, href, label, status = 'pending', embed, de
       }
     })();
 
-  // Check if href points to an internal pipeline
-  const pipelineMatch = href?.match(PIPELINE_HREF_PATTERN);
-  const pipelineId = pipelineMatch?.[1] ?? null;
-  const canEmbed = embed === true && pipelineId != null;
-  const embedSrc = canEmbed ? router.getEmbedPipeline(pipelineId) : null;
+  // Check if href points to an internal workflow
+  const workflowMatch = href?.match(WORKFLOW_HREF_PATTERN);
+  const workflowId = workflowMatch?.[1] ?? null;
+  const canEmbed = embed === true && workflowId != null;
+  const embedSrc = canEmbed ? router.getEmbedWorkflow(workflowId) : null;
 
   // Listen for resize messages from the embedded iframe
   useEffect(() => {
-    if (!pipelineId || !expanded) return;
+    if (!workflowId || !expanded) return;
 
     const handleMessage = (event: MessageEvent<unknown>) => {
       if (event.origin !== window.location.origin) return;
       const data = event.data as Record<string, unknown> | null;
       if (data?.type !== EMBED_RESIZE_MESSAGE_TYPE) return;
-      if (data?.pipelineId !== pipelineId) return;
+      if (data?.workflowId !== workflowId) return;
 
       const height = data?.height;
       if (typeof height === 'number' && height > 0) {
@@ -69,7 +69,7 @@ export const LinkCard = ({ className, href, label, status = 'pending', embed, de
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [pipelineId, expanded]);
+  }, [workflowId, expanded]);
 
   return (
     <div

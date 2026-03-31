@@ -262,7 +262,7 @@ describe('CalendarSummaryWorkflow', () => {
 
       mockTaskTool.execute.mockResolvedValue({
         data: {
-          pipelineId: 'test-pipeline-id',
+          workflowId: 'test-workflow-id',
         },
       });
 
@@ -355,7 +355,7 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
         transition: {
           id: 'auth_completed',
           workflowId,
-          payload: { pipelineId: 'auth-pipeline-id' },
+          payload: { workflowId: 'auth-workflow-id' },
         },
       },
     } as unknown as RunContext;

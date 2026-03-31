@@ -426,7 +426,7 @@ describe('GitHubReposOverviewWorkflow', () => {
       });
     }
 
-    it('should execute full pipeline from start to end', async () => {
+    it('should execute full workflow from start to end', async () => {
       const context = {} as RunContext;
       setupAllMocks();
 
@@ -560,7 +560,7 @@ describe('GitHubReposOverviewWorkflow', () => {
       });
 
       mockTask.execute.mockResolvedValue({
-        data: { pipelineId: 'test-pipeline-id' },
+        data: { workflowId: 'test-workflow-id' },
       });
 
       const result = await processor.process(workflow, { owner: 'octocat', repo: 'Hello-World' }, context);
@@ -695,7 +695,7 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
         transition: {
           id: 'auth_completed',
           workflowId,
-          payload: { pipelineId: 'auth-pipeline-id' },
+          payload: { workflowId: 'auth-workflow-id' },
         },
       },
     } as unknown as RunContext;

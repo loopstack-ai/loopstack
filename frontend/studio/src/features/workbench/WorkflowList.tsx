@@ -1,11 +1,11 @@
 import { ArrowDownIcon, ChevronRightIcon, Play } from 'lucide-react';
 import React, { useState } from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { Button } from '@/components/ui/button.tsx';
 import WorkflowItem from '@/features/workbench/WorkflowItem.tsx';
-import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
+import { useChildWorkflows } from '@/hooks/useWorkflows.ts';
 import { cn } from '@/lib/utils.ts';
 import WorkbenchSettingsModal from './components/WorkbenchSettingsModal.tsx';
 import WorkflowButtons from './components/buttons/WorkflowButtons.tsx';
@@ -17,11 +17,11 @@ export interface WorkbenchSettingsInterface {
 }
 
 interface WorkbenchMainContainerProps {
-  pipeline: PipelineInterface;
+  workflow: WorkflowFullInterface;
 }
 
-const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
-  const fetchWorkflows = useFetchWorkflowsByPipeline(pipeline.id);
+const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
+  const fetchChildWorkflows = useChildWorkflows(workflow.id);
 
   const [openSettingsModal, setOpenSettingsModal] = useState(false);
   const [settings, setSettings] = useState<WorkbenchSettingsInterface>({
@@ -30,7 +30,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
   });
 
   const { activeId, expandedSections, observe, listRef, scrollTo, canScrollDown, scrollToBottom, toggleSection } =
-    useWorkflowListState(fetchWorkflows.data);
+    useWorkflowListState(fetchChildWorkflows.data);
 
   return (
     <div>
@@ -44,16 +44,16 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
           <ArrowDownIcon className="size-4" />
         </Button>
       )}
-      <LoadingCentered loading={fetchWorkflows.isLoading} />
-      <ErrorSnackbar error={fetchWorkflows.error} />
+      <LoadingCentered loading={fetchChildWorkflows.isLoading} />
+      <ErrorSnackbar error={fetchChildWorkflows.error} />
 
-      {fetchWorkflows.data ? (
+      {fetchChildWorkflows.data ? (
         <div className="mb-10" ref={listRef}>
           <div>
-            {fetchWorkflows.data.map((item) => {
+            {fetchChildWorkflows.data.map((item) => {
               const sectionId = `section-${item.id}`;
               const isActive = activeId === sectionId;
-              const isSingle = fetchWorkflows.data.length === 1;
+              const isSingle = fetchChildWorkflows.data.length === 1;
               const isExpanded = isSingle || expandedSections[sectionId];
 
               return (
@@ -81,7 +81,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
                     >
                       <Play className="text-primary h-3.5 w-3.5 fill-current" />
                       <span className="flex-1 truncate text-sm">{item.title ?? item.blockName}</span>
-                      <WorkflowButtons pipeline={pipeline} workflowId={item.id} />
+                      <WorkflowButtons workflow={workflow} workflowId={item.id} />
                       {isActive && (
                         <WorkbenchSettingsModal
                           settings={settings}
@@ -102,7 +102,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ pipeline }) => {
                   </div>
                   {isExpanded && (
                     <div className="max-w-4xl py-1">
-                      <WorkflowItem pipeline={pipeline} workflowId={item.id} scrollTo={scrollTo} settings={settings} />
+                      <WorkflowItem workflow={workflow} workflowId={item.id} scrollTo={scrollTo} settings={settings} />
                     </div>
                   )}
                 </div>

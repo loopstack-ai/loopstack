@@ -75,7 +75,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
 
       mockTaskTool.execute.mockResolvedValue({
         data: {
-          payload: { id: 'test-pipeline-id' },
+          payload: { id: 'test-workflow-id' },
         },
       });
 

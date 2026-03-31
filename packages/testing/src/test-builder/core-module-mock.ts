@@ -3,7 +3,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import {
   DocumentEntity,
   EventSubscriberEntity,
-  PipelineEntity,
   SecretEntity,
   WorkflowEntity,
   WorkspaceEntity,
@@ -24,8 +23,6 @@ const createMockRepository = () => ({
 
 export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingModuleBuilder {
   return builder
-    .overrideProvider(getRepositoryToken(PipelineEntity))
-    .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkflowEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(DocumentEntity))

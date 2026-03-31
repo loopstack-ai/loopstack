@@ -67,7 +67,7 @@ export class AuthenticateGoogleTask implements ToolInterface<AuthenticateGoogleT
           content: {
             status: 'pending',
             label: 'Google authentication required',
-            href: `/pipelines/${String((taskResult.data as Record<string, unknown>).pipelineId)}`,
+            href: `/workflows/${String((taskResult.data as Record<string, unknown>).workflowId)}`,
             embed: true,
             expanded: true,
           },
@@ -93,7 +93,7 @@ export class AuthenticateGoogleTask implements ToolInterface<AuthenticateGoogleT
     parent: WorkflowInterface | ToolInterface,
     metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
-    const data = result as { pipelineId?: string };
+    const data = result as { workflowId?: string };
 
     const effects: ToolSideEffects[] = [];
 
@@ -106,7 +106,7 @@ export class AuthenticateGoogleTask implements ToolInterface<AuthenticateGoogleT
           content: {
             status: 'success',
             label: 'Google authentication completed',
-            href: `/pipelines/${data.pipelineId}`,
+            href: `/workflows/${data.workflowId}`,
           },
         },
       },

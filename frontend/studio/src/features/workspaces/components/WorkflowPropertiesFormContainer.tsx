@@ -4,7 +4,7 @@ import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/type
 import Form from '@/components/dynamic-form/Form.tsx';
 import UiActions from '@/components/ui-widgets/UiActions.tsx';
 
-interface PipelinePropertiesFormContainerProps {
+interface WorkflowPropertiesFormContainerProps {
   schema: JSONSchemaConfigType;
   ui?: UiFormType;
   availableTransitions: string[];
@@ -13,7 +13,7 @@ interface PipelinePropertiesFormContainerProps {
   isLoading?: boolean;
 }
 
-const PipelinePropertiesFormContainer: React.FC<PipelinePropertiesFormContainerProps> = ({
+const WorkflowPropertiesFormContainer: React.FC<WorkflowPropertiesFormContainerProps> = ({
   schema,
   ui,
   defaultValues,
@@ -67,4 +67,4 @@ const PipelinePropertiesFormContainer: React.FC<PipelinePropertiesFormContainerP
   );
 };
 
-export default PipelinePropertiesFormContainer;
+export default WorkflowPropertiesFormContainer;

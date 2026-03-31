@@ -102,7 +102,7 @@ export class DelegateToolCalls implements ToolInterface<DelegateToolCallsArgs> {
 
         // Register event subscriber
         await this.eventSubscriberService.registerSubscriber(
-          ctx.pipelineId,
+          ctx.parentWorkflowId,
           ctx.workflowId!,
           args.callback.transition,
           resultData.correlationId as string,

@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   DocumentEntity,
   EventSubscriberEntity,
-  PipelineEntity,
   SecretEntity,
   WorkflowCheckpointEntity,
   WorkflowEntity,
@@ -13,7 +12,6 @@ import { CommonModule } from '../common';
 import {
   DocumentService,
   EventSubscriberService,
-  PipelineService,
   SecretService,
   WorkflowCheckpointService,
   WorkflowService,
@@ -25,7 +23,6 @@ import {
     TypeOrmModule.forFeature([
       WorkflowEntity,
       WorkspaceEntity,
-      PipelineEntity,
       DocumentEntity,
       EventSubscriberEntity,
       SecretEntity,
@@ -36,7 +33,6 @@ import {
   providers: [
     WorkflowService,
     WorkspaceService,
-    PipelineService,
     DocumentService,
     EventSubscriberService,
     SecretService,
@@ -45,7 +41,6 @@ import {
   exports: [
     WorkflowService,
     WorkspaceService,
-    PipelineService,
     DocumentService,
     EventSubscriberService,
     SecretService,

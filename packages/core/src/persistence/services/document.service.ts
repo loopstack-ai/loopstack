@@ -25,7 +25,6 @@ export class DocumentService {
       workflow: { id: context.workflowId } as WorkflowEntity,
       workflowId: context.workflowId,
       workspaceId: context.workspaceId,
-      pipelineId: context.pipelineId,
       createdBy: context.userId,
     });
   }

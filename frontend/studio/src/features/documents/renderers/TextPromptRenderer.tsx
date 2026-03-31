@@ -1,7 +1,7 @@
 import { Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import MarkdownContent from '@/components/dynamic-form/MarkdownContent.tsx';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -14,15 +14,15 @@ interface TextPromptContent {
 }
 
 interface TextPromptRendererProps {
-  pipeline: PipelineInterface;
-  workflow: WorkflowInterface;
+  parentWorkflow: WorkflowFullInterface;
+  workflow: WorkflowFullInterface;
   document: DocumentItemInterface;
   isActive: boolean;
 }
 
-const TextPromptRenderer: React.FC<TextPromptRendererProps> = ({ pipeline, workflow, document, isActive }) => {
+const TextPromptRenderer: React.FC<TextPromptRendererProps> = ({ parentWorkflow, workflow, document, isActive }) => {
   const content = document.content as TextPromptContent;
-  const { submit, canSubmit, isLoading } = useDocumentTransition(pipeline, workflow, document.ui);
+  const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, document.ui);
 
   const [text, setText] = useState('');
   const hasAnswer = !!content.answer;

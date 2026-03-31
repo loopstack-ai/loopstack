@@ -27,7 +27,7 @@ export class ClientMessageService {
         type: type,
         id: entity.id,
         userId: entity.createdBy,
-        pipelineId: entity.pipelineId,
+        workflowId: entity.id,
         workerId: this.clientId,
       }),
     );

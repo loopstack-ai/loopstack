@@ -1,16 +1,16 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { WorkspaceInterface } from '@loopstack/contracts/api';
-import type { PipelineConfigInterface } from '@loopstack/contracts/types';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/types';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
-import ArgumentsView from '@/features/workspaces/components/pipeline-form/ArgumentsView.tsx';
-import SelectionView from '@/features/workspaces/components/pipeline-form/SelectionView.tsx';
-import { usePipelineConfig } from '@/hooks/useConfig.ts';
-import { useCreatePipeline } from '@/hooks/usePipelines.ts';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import ArgumentsView from '@/features/workspaces/components/workflow-form/ArgumentsView.tsx';
+import SelectionView from '@/features/workspaces/components/workflow-form/SelectionView.tsx';
+import { useWorkflowConfig } from '@/hooks/useConfig.ts';
+import { useRunWorkflow } from '@/hooks/useProcessor.ts';
+import { useCreateWorkflow } from '@/hooks/useWorkflows.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
-interface PipelineFormProps {
+interface WorkflowFormProps {
   title: string;
   workspace: WorkspaceInterface;
   onSuccess?: () => void;
@@ -18,13 +18,13 @@ interface PipelineFormProps {
 
 type Step = 'selection' | 'arguments';
 
-const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
+const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
   const { router } = useStudio();
 
-  const createPipeline = useCreatePipeline();
-  const pingPipeline = useRunPipeline();
+  const createWorkflow = useCreateWorkflow();
+  const pingWorkflow = useRunWorkflow();
 
-  const fetchPipelineTypes = usePipelineConfig(workspace.blockName);
+  const fetchWorkflowTypes = useWorkflowConfig(workspace.blockName);
 
   const [currentStep, setCurrentStep] = useState<Step>('selection');
   const [formData, setFormData] = useState({
@@ -38,22 +38,22 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
     blockName: '',
   });
 
-  const selectedPipelineConfig: PipelineConfigInterface | undefined = useMemo(() => {
-    if (!formData.blockName || !fetchPipelineTypes.data) return undefined;
-    return fetchPipelineTypes.data.find((p) => p.blockName === formData.blockName);
-  }, [formData.blockName, fetchPipelineTypes.data]);
+  const selectedWorkflowConfig: WorkflowConfigInterface | undefined = useMemo(() => {
+    if (!formData.blockName || !fetchWorkflowTypes.data) return undefined;
+    return fetchWorkflowTypes.data.find((p) => p.blockName === formData.blockName);
+  }, [formData.blockName, fetchWorkflowTypes.data]);
 
-  const hasArguments = !!selectedPipelineConfig?.schema;
-  const isLoading = createPipeline.isPending || pingPipeline.isPending;
+  const hasArguments = !!selectedWorkflowConfig?.schema;
+  const isLoading = createWorkflow.isPending || pingWorkflow.isPending;
 
   useEffect(() => {
-    if (!formData.blockName && fetchPipelineTypes.data?.[0]?.blockName) {
+    if (!formData.blockName && fetchWorkflowTypes.data?.[0]?.blockName) {
       setFormData((prev) => ({
         ...prev,
-        blockName: fetchPipelineTypes.data[0].blockName,
+        blockName: fetchWorkflowTypes.data[0].blockName,
       }));
     }
-  }, [fetchPipelineTypes.data, formData.blockName]);
+  }, [fetchWorkflowTypes.data, formData.blockName]);
 
   const validateForm = (): boolean => {
     if (formData.blockName) return true;
@@ -62,14 +62,14 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
     return false;
   };
 
-  const navigateToPipeline = (pipelineId: string) => {
-    void router.navigateToPipeline(pipelineId);
+  const navigateToWorkflow = (workflowId: string) => {
+    void router.navigateToWorkflow(workflowId);
   };
 
-  const createAndRunPipeline = (transition?: string, data?: Record<string, any>) => {
-    createPipeline.mutate(
+  const createAndRunWorkflow = (transition?: string, data?: Record<string, any>) => {
+    createWorkflow.mutate(
       {
-        pipelineCreateDto: {
+        workflowCreateDto: {
           blockName: formData.blockName,
           title: formData.name || null,
           workspaceId: workspace.id,
@@ -78,15 +78,15 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
         },
       },
       {
-        onSuccess: (createdPipeline) => {
-          pingPipeline.mutate(
+        onSuccess: (createdWorkflow) => {
+          pingWorkflow.mutate(
             {
-              pipelineId: createdPipeline.id,
-              runPipelinePayloadDto: {},
+              workflowId: createdWorkflow.id,
+              runWorkflowPayloadDto: {},
               force: true,
             },
             {
-              onSuccess: () => navigateToPipeline(createdPipeline.id),
+              onSuccess: () => navigateToWorkflow(createdWorkflow.id),
             },
           );
         },
@@ -100,7 +100,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
     if (hasArguments) {
       setCurrentStep('arguments');
     } else {
-      createAndRunPipeline();
+      createAndRunWorkflow();
     }
   };
 
@@ -109,7 +109,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
   };
 
   const handleSubmit = (transition?: string, data?: Record<string, any>) => {
-    createAndRunPipeline(transition, data);
+    createAndRunWorkflow(transition, data);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -120,7 +120,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
     }
   };
 
-  if (fetchPipelineTypes.isLoading) {
+  if (fetchWorkflowTypes.isLoading) {
     return (
       <div className="flex min-h-50 items-center justify-center">
         <Loader2 className="text-primary h-8 w-8 animate-spin" />
@@ -128,13 +128,13 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
     );
   }
 
-  if (!fetchPipelineTypes.data) return null;
+  if (!fetchWorkflowTypes.data) return null;
 
   return (
     <div className="relative">
-      <ErrorSnackbar error={createPipeline.error} />
-      <ErrorSnackbar error={pingPipeline.error} />
-      <ErrorSnackbar error={fetchPipelineTypes.error} />
+      <ErrorSnackbar error={createWorkflow.error} />
+      <ErrorSnackbar error={pingWorkflow.error} />
+      <ErrorSnackbar error={fetchWorkflowTypes.error} />
 
       <div className="relative overflow-hidden">
         <div
@@ -145,7 +145,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
           <div className="w-full shrink-0 px-1">
             <SelectionView
               title={title}
-              pipelineTypes={fetchPipelineTypes.data}
+              workflowTypes={fetchWorkflowTypes.data}
               formData={formData}
               errors={errors}
               isLoading={isLoading}
@@ -158,7 +158,7 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
           <div className="w-full shrink-0 px-1">
             <ArgumentsView
               key={formData.blockName} // forces remount of the component / form when selection is changed
-              config={selectedPipelineConfig}
+              config={selectedWorkflowConfig}
               hasArguments={hasArguments}
               isLoading={isLoading}
               onBack={handleBack}
@@ -171,4 +171,4 @@ const PipelineForm = ({ title, workspace }: PipelineFormProps) => {
   );
 };
 
-export default PipelineForm;
+export default WorkflowForm;

@@ -1,12 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, plainToInstance } from 'class-transformer';
 import { WorkflowEntity, WorkflowState } from '@loopstack/common';
-import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
+import type { WorkflowTransitionType } from '@loopstack/contracts/types';
 
 /**
- * Data Transfer Object representing a workflow
+ * Data Transfer Object representing a workflow (full detail)
  */
-export class WorkflowDto implements WorkflowInterface {
+export class WorkflowDto {
   @Expose()
   @ApiProperty({
     description: 'Unique identifier of the workflow',
@@ -25,11 +25,26 @@ export class WorkflowDto implements WorkflowInterface {
   blockName: string;
 
   @Expose()
+  @ApiPropertyOptional({
+    description: 'Class name of the workflow (for config lookups)',
+    example: 'AutomationBuilderWorkflow',
+    nullable: true,
+  })
+  className: string | null;
+
+  @Expose()
   @ApiProperty({
     description: 'Display title of the workflow',
     example: 'My workflow',
   })
   title: string;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Run number for identification if no title is given.',
+    example: 123,
+  })
+  run: number;
 
   @Expose()
   @ApiProperty({
@@ -80,6 +95,31 @@ export class WorkflowDto implements WorkflowInterface {
   availableTransitions: WorkflowTransitionType[] | null;
 
   @Expose()
+  @ApiPropertyOptional({
+    type: 'object',
+    additionalProperties: true,
+    description: 'Arguments for the workflow run',
+    nullable: true,
+  })
+  args: any;
+
+  @Expose()
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+    description: 'Contextual information available to the workflow',
+  })
+  context: Record<string, any>;
+
+  @Expose()
+  @ApiPropertyOptional({
+    type: 'string',
+    description: 'Event correlation ID for linking related workflows',
+    nullable: true,
+  })
+  eventCorrelationId: string | null;
+
+  @Expose()
   @ApiProperty({
     type: Date,
     description: 'Date and time when the workflow was created',
@@ -103,11 +143,19 @@ export class WorkflowDto implements WorkflowInterface {
   workspaceId: string;
 
   @Expose()
-  @ApiProperty({
-    description: 'Unique identifier of the pipeline this workflow belongs to',
-    example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
+  @ApiPropertyOptional({
+    description: 'ID of parent workflow. Is null for root workflows',
+    nullable: true,
   })
-  pipelineId: string;
+  parentId: string | null;
+
+  @Expose()
+  @ApiProperty({
+    type: 'number',
+    description: 'Number of child workflows',
+    example: 0,
+  })
+  hasChildren: number;
 
   /**
    * Creates a WorkflowDto instance from a WorkflowEntity

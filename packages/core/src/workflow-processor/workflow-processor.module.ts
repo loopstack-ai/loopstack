@@ -3,7 +3,6 @@ import { DiscoveryModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   DocumentEntity,
-  PipelineEntity,
   WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
@@ -14,6 +13,7 @@ import { PersistenceModule } from '../persistence';
 import {
   BlockDiscoveryService,
   BlockProcessor,
+  CreateWorkflowService,
   ProcessorFactory,
   RootProcessorService,
   StateMachineProcessorService,
@@ -25,13 +25,11 @@ import {
   WorkflowProcessorService,
   WorkflowStateService,
 } from './services';
-import { CreatePipelineService } from './services';
 import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValidator } from './validators';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      PipelineEntity,
       WorkflowEntity,
       DocumentEntity,
       WorkspaceEntity,
@@ -43,16 +41,6 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     CommonModule,
   ],
   providers: [
-    // {
-    //   provide: DynamicRepositoryService,
-    //   useFactory: (dataSource) => {
-    //     return new DynamicRepositoryService(dataSource, {
-    //       blacklist: [],
-    //     });
-    //   },
-    //   inject: [DataSource],
-    // },
-
     RootProcessorService,
     BlockProcessor,
     ProcessorFactory,
@@ -69,12 +57,12 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     StateMachineToolCallProcessorService,
     ToolExecutionInterceptorService,
     WorkflowMemoryMonitorService,
-    CreatePipelineService,
+    CreateWorkflowService,
   ],
   exports: [
     PersistenceModule,
     RootProcessorService,
-    CreatePipelineService,
+    CreateWorkflowService,
     BlockProcessor,
     WorkflowProcessorService,
     BlockDiscoveryService,

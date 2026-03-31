@@ -1,26 +1,26 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import type { PipelineConfigInterface } from '@loopstack/contracts/api';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
 import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
 
-export class PipelineConfigDto implements PipelineConfigInterface {
+export class WorkflowConfigDto implements WorkflowConfigInterface {
   @Expose()
   @ApiProperty({
-    description: 'The config Key of the pipeline',
+    description: 'The config Key of the workflow',
     example: 'file.yaml:my-model',
   })
   blockName: string;
 
   @Expose()
   @ApiPropertyOptional({
-    description: 'The title of the pipeline type',
-    example: 'My Pipeline',
+    description: 'The title of the workflow type',
+    example: 'My Workflow',
   })
   title?: string;
 
   @Expose()
   @ApiPropertyOptional({
-    description: 'The description of the pipeline type',
+    description: 'The description of the workflow type',
   })
   description?: string;
 

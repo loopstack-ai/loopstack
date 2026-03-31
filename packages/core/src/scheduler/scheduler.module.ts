@@ -6,10 +6,10 @@ import { RunService, TaskSchedulerService } from './services';
 import { EventProcessorService } from './services/event-processor.service';
 import { TaskInitializationService } from './services/task-initialization.service';
 import { TaskProcessorService } from './services/task-processor.service';
-import { CleanupPipelineTaskProcessorService } from './services/task-processor/cleanup-pipeline-task-processor.service';
-import { CreateRunPipelineTaskProcessorService } from './services/task-processor/create-run-pipeline-task-processor.service';
+import { CleanupWorkflowTaskProcessorService } from './services/task-processor/cleanup-workflow-task-processor.service';
+import { CreateRunWorkflowTaskProcessorService } from './services/task-processor/create-run-workflow-task-processor.service';
 import { CreateWorkspaceTaskProcessorService } from './services/task-processor/create-workspace-task-processor.service';
-import { RunPipelineTaskProcessorService } from './services/task-processor/run-pipeline-task-processor.service';
+import { RunWorkflowTaskProcessorService } from './services/task-processor/run-workflow-task-processor.service';
 import { WorkspaceLockService } from './services/workspace-lock.service';
 
 @Module({
@@ -45,9 +45,9 @@ import { WorkspaceLockService } from './services/workspace-lock.service';
     TaskSchedulerService,
     TaskProcessorService,
     TaskInitializationService,
-    RunPipelineTaskProcessorService,
-    CreateRunPipelineTaskProcessorService,
-    CleanupPipelineTaskProcessorService,
+    RunWorkflowTaskProcessorService,
+    CreateRunWorkflowTaskProcessorService,
+    CleanupWorkflowTaskProcessorService,
     CreateWorkspaceTaskProcessorService,
     RunService,
     EventProcessorService,

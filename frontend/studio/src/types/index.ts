@@ -20,15 +20,15 @@ export interface StudioRouter {
   navigateToWorkspaces(): Promise<void>;
   getWorkspace(workspaceId: string): string;
   navigateToWorkspace(workspaceId: string): Promise<void>;
-  getPipeline(pipelineId: string): string;
-  navigateToPipeline(pipelineId: string): Promise<void>;
-  getPipelineDebug(pipelineId: string): string;
-  navigateToPipelineDebug(pipelineId: string): Promise<void>;
-  navigateToWorkflow(pipelineId: string, workflowId: string, clickId: string | undefined): Promise<void>;
+  getWorkflow(workflowId: string): string;
+  navigateToWorkflow(workflowId: string): Promise<void>;
+  getWorkflowDebug(workflowId: string): string;
+  navigateToWorkflowDebug(workflowId: string): Promise<void>;
+  navigateToChildWorkflow(workflowId: string, clickId: string | undefined): Promise<void>;
   getWorkspaceRuns(workspaceId: string): string;
   navigateToWorkspaceRuns(workspaceId: string): Promise<void>;
-  getEmbedPipeline(pipelineId: string): string;
-  getPreviewPipeline(pipelineId: string): string;
+  getEmbedWorkflow(workflowId: string): string;
+  getPreviewWorkflow(workflowId: string): string;
   getCurrentEnvironmentId(): string;
   getTheme(): 'local' | 'cloud';
 }

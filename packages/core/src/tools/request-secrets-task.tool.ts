@@ -71,7 +71,7 @@ export class RequestSecretsTask implements ToolInterface<RequestSecretsTaskInput
           content: {
             status: 'pending',
             label: 'Requesting Secrets',
-            href: `/pipelines/${(taskResult.data as { pipelineId: string }).pipelineId}`,
+            href: `/workflows/${(taskResult.data as { workflowId: string }).workflowId}`,
             embed: true,
             expanded: true,
           },
@@ -97,7 +97,7 @@ export class RequestSecretsTask implements ToolInterface<RequestSecretsTaskInput
     parent: WorkflowInterface | ToolInterface,
     metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
-    const data = result as { pipelineId?: string };
+    const data = result as { workflowId?: string };
 
     const effects: ToolSideEffects[] = [];
 
@@ -110,7 +110,7 @@ export class RequestSecretsTask implements ToolInterface<RequestSecretsTaskInput
           content: {
             status: 'success',
             label: 'Secrets have been stored',
-            href: `/pipelines/${data.pipelineId}`,
+            href: `/workflows/${data.workflowId}`,
           },
         },
       },

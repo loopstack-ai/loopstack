@@ -65,7 +65,7 @@ export class AuthenticateGitHubTask implements ToolInterface<AuthenticateGitHubT
           content: {
             status: 'pending',
             label: 'GitHub authentication required',
-            href: `/pipelines/${String((taskResult.data as Record<string, unknown>).pipelineId)}`,
+            href: `/workflows/${String((taskResult.data as Record<string, unknown>).workflowId)}`,
             embed: true,
             expanded: true,
           },
@@ -91,7 +91,7 @@ export class AuthenticateGitHubTask implements ToolInterface<AuthenticateGitHubT
     parent: WorkflowInterface | ToolInterface,
     metadata: WorkflowMetadataInterface,
   ): Promise<ToolResult> {
-    const data = result as { pipelineId?: string };
+    const data = result as { workflowId?: string };
 
     const effects: ToolSideEffects[] = [];
 
@@ -104,7 +104,7 @@ export class AuthenticateGitHubTask implements ToolInterface<AuthenticateGitHubT
           content: {
             status: 'success',
             label: 'GitHub authentication completed',
-            href: `/pipelines/${data.pipelineId}`,
+            href: `/workflows/${data.workflowId}`,
           },
         },
       },

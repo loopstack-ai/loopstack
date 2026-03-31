@@ -1,4 +1,3 @@
-export * from './pipeline.entity.js';
 export * from './document.entity.js';
 export * from './workflow.entity.js';
 export * from './workflow-checkpoint.entity.js';

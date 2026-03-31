@@ -21,7 +21,7 @@ transitions:
             content:
               icon: 'Clock'
               label: 'Executing Sub-Workflow...'
-              href: '/pipelines/{{ runtime.tools.run_workflow.executeStateful.data.pipelineId }}'
+              href: '/workflows/{{ runtime.tools.run_workflow.executeStateful.data.workflowId }}'
 
   - id: sub_workflow_callback
     from: sub_workflow_started
@@ -36,7 +36,7 @@ transitions:
             content:
               icon: 'CircleCheck'
               label: 'Sub-Workflow {{ runtime.transition.payload.status }}'
-              href: '/pipelines/{{ runtime.transition.payload.pipelineId }}'
+              href: '/workflows/{{ runtime.transition.payload.workflowId }}'
 
       - tool: createChatMessage
         args:

@@ -1,12 +1,12 @@
 import { Loader2, Play } from 'lucide-react';
-import type { PipelineConfigInterface } from '@loopstack/contracts/api';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/types';
 import { Button } from '@/components/ui/button.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import HeaderSection from '@/features/workspaces/components/pipeline-form/HeaderSection.tsx';
+import HeaderSection from '@/features/workspaces/components/workflow-form/HeaderSection.tsx';
 
 const SelectionView = ({
   title,
-  pipelineTypes,
+  workflowTypes,
   formData,
   errors,
   isLoading,
@@ -14,14 +14,14 @@ const SelectionView = ({
   onNext,
 }: {
   title: string;
-  pipelineTypes: PipelineConfigInterface[];
+  workflowTypes: WorkflowConfigInterface[];
   formData: { blockName: string };
   errors: { blockName: string };
   isLoading: boolean;
   onInputChange: (field: string, value: string) => void;
   onNext: () => void;
 }) => {
-  const selectedConfig = pipelineTypes.find((p) => p.blockName === formData.blockName);
+  const selectedConfig = workflowTypes.find((p) => p.blockName === formData.blockName);
 
   return (
     <div className="flex flex-col">
@@ -49,7 +49,7 @@ const SelectionView = ({
                 <SelectValue placeholder="Select an automation..." />
               </SelectTrigger>
               <SelectContent>
-                {pipelineTypes.map((item) => (
+                {workflowTypes.map((item) => (
                   <SelectItem key={item.blockName} value={item.blockName}>
                     {item.title ?? item.blockName}
                   </SelectItem>

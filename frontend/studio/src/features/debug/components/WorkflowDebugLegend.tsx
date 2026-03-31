@@ -1,6 +1,6 @@
 import React from 'react';
 
-const PipelineDebugLegend: React.FC = () => {
+const WorkflowDebugLegend: React.FC = () => {
   return (
     <div className="flex items-center gap-6 text-xs font-medium">
       <div className="flex items-center gap-2">
@@ -35,4 +35,4 @@ const PipelineDebugLegend: React.FC = () => {
   );
 };
 
-export default PipelineDebugLegend;
+export default WorkflowDebugLegend;

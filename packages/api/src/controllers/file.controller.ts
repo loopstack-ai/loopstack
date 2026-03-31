@@ -13,25 +13,25 @@ import { FileContentDto } from '../dtos/file-content.dto';
 import { FileExplorerNodeDto } from '../dtos/file-tree.dto';
 import { FileApiService } from '../services/file-api.service';
 
-@ApiTags('api/v1/pipelines')
+@ApiTags('api/v1/workflows')
 @ApiExtraModels(FileExplorerNodeDto, FileContentDto)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
-@Controller('api/v1/pipelines')
+@Controller('api/v1/workflows')
 export class FileController {
   constructor(private readonly fileApiService: FileApiService) {}
 
   /**
-   * Get file tree for a pipeline's workspace
+   * Get file tree for a workflow's workspace
    */
-  @Get(':pipelineId/files')
+  @Get(':workflowId/files')
   @ApiOperation({
-    summary: 'Get file tree for a pipeline',
-    description: "Returns the file tree structure of files in the pipeline's workspace directory",
+    summary: 'Get file tree for a workflow',
+    description: "Returns the file tree structure of files in the workflow's workspace directory",
   })
   @ApiParam({
-    name: 'pipelineId',
+    name: 'workflowId',
     type: String,
-    description: 'The unique identifier of the pipeline',
+    description: 'The unique identifier of the workflow',
     required: true,
     example: '507f1f77bcf86cd799439011',
   })
@@ -41,29 +41,29 @@ export class FileController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Pipeline not found',
+    description: 'Workflow not found',
   })
   @ApiUnauthorizedResponse()
   async getFileTree(
-    @Param('pipelineId') pipelineId: string,
+    @Param('workflowId') workflowId: string,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<FileExplorerNodeDto[]> {
-    return this.fileApiService.getFileTree(pipelineId, user.userId);
+    return this.fileApiService.getFileTree(workflowId, user.userId);
   }
 
   /**
    * Get file content for a specific file
    * Note: This route must be registered after the file tree route to avoid conflicts
    */
-  @Get(':pipelineId/files/*filePath')
+  @Get(':workflowId/files/*filePath')
   @ApiOperation({
     summary: 'Get file content',
-    description: "Returns the content of a specific file in the pipeline's workspace",
+    description: "Returns the content of a specific file in the workflow's workspace",
   })
   @ApiParam({
-    name: 'pipelineId',
+    name: 'workflowId',
     type: String,
-    description: 'The unique identifier of the pipeline',
+    description: 'The unique identifier of the workflow',
     required: true,
     example: '507f1f77bcf86cd799439011',
   })
@@ -80,15 +80,15 @@ export class FileController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Pipeline or file not found',
+    description: 'Workflow or file not found',
   })
   @ApiUnauthorizedResponse()
   async getFileContent(
-    @Param('pipelineId') pipelineId: string,
+    @Param('workflowId') workflowId: string,
     @Param('filePath') filePath: string,
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<FileContentDto> {
     const decodedPath = decodeURIComponent(filePath);
-    return this.fileApiService.getFileContent(pipelineId, decodedPath, user.userId);
+    return this.fileApiService.getFileContent(workflowId, decodedPath, user.userId);
   }
 }

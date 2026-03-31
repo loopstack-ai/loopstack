@@ -2,7 +2,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, CheckIcon, ChevronDown, Loader2, Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import type { PipelineConfigInterface } from '@loopstack/contracts/types';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/types';
 import Form from '@/components/dynamic-form/Form.tsx';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import { Button } from '@/components/ui/button.tsx';
@@ -10,9 +10,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreateWorkspace as DefaultCreateWorkspace } from '@/features/workspaces';
-import { usePipelineConfig, useWorkspaceConfig } from '@/hooks/useConfig.ts';
-import { useCreatePipeline } from '@/hooks/usePipelines.ts';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import { useWorkflowConfig, useWorkspaceConfig } from '@/hooks/useConfig.ts';
+import { useRunWorkflow } from '@/hooks/useProcessor.ts';
+import { useCreateWorkflow } from '@/hooks/useWorkflows.ts';
 import { useFilterWorkspaces } from '@/hooks/useWorkspaces.ts';
 import { useComponentOverrides } from '@/providers/ComponentOverridesProvider.tsx';
 
@@ -21,7 +21,7 @@ type Section = 'workspace' | 'automation' | 'config';
 interface NewRunDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: (pipelineId: string) => void;
+  onSuccess: (workflowId: string) => void;
 }
 
 export function NewRunDialog({ open, onOpenChange, onSuccess }: NewRunDialogProps) {
@@ -35,7 +35,7 @@ export function NewRunDialog({ open, onOpenChange, onSuccess }: NewRunDialogProp
   );
 }
 
-function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (pipelineId: string) => void }) {
+function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (workflowId: string) => void }) {
   const [activeSection, setActiveSection] = useState<Section | null>('workspace');
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('');
@@ -49,24 +49,24 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (p
   const workspaces = fetchWorkspaces.data?.data ?? [];
 
   const selectedWorkspace = workspaces.find((w) => w.id === selectedWorkspaceId);
-  const fetchPipelineTypes = usePipelineConfig(selectedWorkspace?.blockName);
-  const pipelineTypes = fetchPipelineTypes.data ?? [];
+  const fetchWorkflowTypes = useWorkflowConfig(selectedWorkspace?.blockName);
+  const workflowTypes = fetchWorkflowTypes.data ?? [];
 
-  const createPipeline = useCreatePipeline();
-  const runPipeline = useRunPipeline();
-  const isLoading = createPipeline.isPending || runPipeline.isPending;
+  const createWorkflow = useCreateWorkflow();
+  const runWorkflow = useRunWorkflow();
+  const isLoading = createWorkflow.isPending || runWorkflow.isPending;
 
   const form = useForm<Record<string, any>>({
     defaultValues: {},
     mode: 'onChange',
   });
 
-  const selectedPipelineConfig: PipelineConfigInterface | undefined = useMemo(() => {
-    if (!selectedBlockName || !pipelineTypes.length) return undefined;
-    return pipelineTypes.find((p) => p.blockName === selectedBlockName);
-  }, [selectedBlockName, pipelineTypes]);
+  const selectedWorkflowConfig: WorkflowConfigInterface | undefined = useMemo(() => {
+    if (!selectedBlockName || !workflowTypes.length) return undefined;
+    return workflowTypes.find((p) => p.blockName === selectedBlockName);
+  }, [selectedBlockName, workflowTypes]);
 
-  const hasArguments = !!selectedPipelineConfig?.schema;
+  const hasArguments = !!selectedWorkflowConfig?.schema;
 
   // Auto-select first workspace
   useEffect(() => {
@@ -75,12 +75,12 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (p
     }
   }, [workspaces, selectedWorkspaceId]);
 
-  // Auto-select first pipeline type when workspace changes
+  // Auto-select first workflow type when workspace changes
   useEffect(() => {
-    if (pipelineTypes.length > 0 && !pipelineTypes.find((p) => p.blockName === selectedBlockName)) {
-      setSelectedBlockName(pipelineTypes[0].blockName);
+    if (workflowTypes.length > 0 && !workflowTypes.find((p) => p.blockName === selectedBlockName)) {
+      setSelectedBlockName(workflowTypes[0].blockName);
     }
-  }, [pipelineTypes, selectedBlockName]);
+  }, [workflowTypes, selectedBlockName]);
 
   // Reset state when dialog closes
   useEffect(() => {
@@ -90,39 +90,39 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (p
       setSelectedWorkspaceId('');
       setSelectedBlockName('');
       form.reset({});
-      createPipeline.reset();
-      runPipeline.reset();
+      createWorkflow.reset();
+      runWorkflow.reset();
     }
   }, [open]);
 
-  // Auto-advance: workspace selected → open automation
+  // Auto-advance: workspace selected -> open automation
   const handleWorkspaceChange = (id: string) => {
     setSelectedWorkspaceId(id);
     setActiveSection('automation');
   };
 
-  // Auto-advance: automation selected → open config if has args
+  // Auto-advance: automation selected -> open config if has args
   const handleBlockNameChange = (name: string) => {
     setSelectedBlockName(name);
     form.reset({});
   };
 
-  // When selectedPipelineConfig changes and has arguments, open config section
+  // When selectedWorkflowConfig changes and has arguments, open config section
   useEffect(() => {
-    if (selectedBlockName && selectedPipelineConfig) {
+    if (selectedBlockName && selectedWorkflowConfig) {
       if (hasArguments) {
         setActiveSection('config');
       }
     }
-  }, [selectedPipelineConfig, selectedBlockName, hasArguments]);
+  }, [selectedWorkflowConfig, selectedBlockName, hasArguments]);
 
   const createAndRun = useCallback(
     (transition?: string, args?: Record<string, any>) => {
       if (!selectedWorkspaceId || !selectedBlockName) return;
 
-      createPipeline.mutate(
+      createWorkflow.mutate(
         {
-          pipelineCreateDto: {
+          workflowCreateDto: {
             blockName: selectedBlockName,
             title: null,
             workspaceId: selectedWorkspaceId,
@@ -131,22 +131,22 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (p
           },
         },
         {
-          onSuccess: (createdPipeline) => {
-            runPipeline.mutate(
+          onSuccess: (createdWorkflow) => {
+            runWorkflow.mutate(
               {
-                pipelineId: createdPipeline.id,
-                runPipelinePayloadDto: {},
+                workflowId: createdWorkflow.id,
+                runWorkflowPayloadDto: {},
                 force: true,
               },
               {
-                onSuccess: () => onSuccess(createdPipeline.id),
+                onSuccess: () => onSuccess(createdWorkflow.id),
               },
             );
           },
         },
       );
     },
-    [selectedWorkspaceId, selectedBlockName, createPipeline, runPipeline, onSuccess],
+    [selectedWorkspaceId, selectedBlockName, createWorkflow, runWorkflow, onSuccess],
   );
 
   const handleRunNow = () => {
@@ -170,8 +170,8 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (p
 
   return (
     <div className="mt-2 overflow-y-auto">
-      <ErrorSnackbar error={createPipeline.error} />
-      <ErrorSnackbar error={runPipeline.error} />
+      <ErrorSnackbar error={createWorkflow.error} />
+      <ErrorSnackbar error={runWorkflow.error} />
 
       <div className="space-y-2">
         {/* Workspace Section */}
@@ -226,13 +226,13 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (p
           title="Select Workflow"
           summary={
             automationComplete
-              ? (pipelineTypes.find((p) => p.blockName === selectedBlockName)?.title ?? selectedBlockName)
+              ? (workflowTypes.find((p) => p.blockName === selectedBlockName)?.title ?? selectedBlockName)
               : undefined
           }
           isActive={activeSection === 'automation'}
           isComplete={automationComplete && activeSection !== 'automation'}
           isEnabled={automationEnabled}
-          isLoading={fetchPipelineTypes.isLoading}
+          isLoading={fetchWorkflowTypes.isLoading}
           onToggle={() => automationEnabled && toggleSection('automation')}
         >
           <div className="pt-2">
@@ -241,7 +241,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (p
                 <SelectValue placeholder="Select a workflow..." />
               </SelectTrigger>
               <SelectContent>
-                {pipelineTypes.map((item) => (
+                {workflowTypes.map((item) => (
                   <SelectPrimitive.Item
                     key={item.blockName}
                     value={item.blockName}
@@ -274,11 +274,11 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (p
             onToggle={() => configEnabled && toggleSection('config')}
           >
             <div className="max-h-72 overflow-y-auto pt-2">
-              {selectedPipelineConfig?.schema && (
+              {selectedWorkflowConfig?.schema && (
                 <Form
                   form={form}
-                  schema={selectedPipelineConfig.schema}
-                  ui={selectedPipelineConfig.ui}
+                  schema={selectedWorkflowConfig.schema}
+                  ui={selectedWorkflowConfig.ui}
                   disabled={false}
                   viewOnly={false}
                 />

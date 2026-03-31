@@ -25,7 +25,7 @@ export class WorkflowStateService {
   async getWorkflowState(block: WorkflowInterface, context: RunContext): Promise<WorkflowEntity> {
     this.memoryMonitor.logHeap(`workflow-state:before-load:${block.constructor.name}`);
 
-    const workflow = await this.workflowService.findOneByQuery(context.pipelineId, {
+    const workflow = await this.workflowService.findOneByQuery(context.parentWorkflowId, {
       blockName: block.constructor.name,
       labels: context.labels,
     });
@@ -40,8 +40,10 @@ export class WorkflowStateService {
     return this.workflowService.create({
       createdBy: context.userId,
       labels: context.labels,
-      pipelineId: context.pipelineId,
+      parentId: context.parentWorkflowId,
+      workspaceId: context.workspaceId,
       blockName: block.constructor.name,
+      className: block.constructor.name,
       title: config?.title ?? block.constructor.name,
       place: 'start',
     });

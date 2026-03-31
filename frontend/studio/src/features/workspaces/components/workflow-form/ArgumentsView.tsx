@@ -1,9 +1,9 @@
 import { Loader2, Zap } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import type { PipelineConfigInterface } from '@loopstack/contracts/types';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/types';
 import Form from '@/components/dynamic-form/Form.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import HeaderSection from '@/features/workspaces/components/pipeline-form/HeaderSection.tsx';
+import HeaderSection from '@/features/workspaces/components/workflow-form/HeaderSection.tsx';
 
 const ArgumentsView = ({
   config,
@@ -12,7 +12,7 @@ const ArgumentsView = ({
   onBack,
   onSubmit,
 }: {
-  config?: PipelineConfigInterface;
+  config?: WorkflowConfigInterface;
   hasArguments: boolean;
   isLoading: boolean;
   onBack: () => void;

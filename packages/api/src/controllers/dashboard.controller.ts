@@ -11,7 +11,7 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
   /**
    * Retrieves aggregated statistics for all automations across all workspaces.
-   * This includes total counts of workspaces, pipelines, workflows,
+   * This includes total counts of workspaces, workflows,
    * as well as recent errors and runs.
    * */
   @Get()

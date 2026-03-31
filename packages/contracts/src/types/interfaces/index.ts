@@ -5,4 +5,4 @@ export * from './transition-metadata.interface.js';
 export * from './document-item.interface.js';
 export * from './workflow.interface.js';
 export * from './client-message.interface.js';
-export * from './pipeline-config.interface.js';
+export * from './workflow-config.interface.js';

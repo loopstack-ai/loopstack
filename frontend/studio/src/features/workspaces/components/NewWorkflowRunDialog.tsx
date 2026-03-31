@@ -1,15 +1,15 @@
 import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog.tsx';
-import PipelineForm from './PipelineForm.tsx';
+import WorkflowForm from './WorkflowRunForm.tsx';
 
-interface CreatePipelineDialogProps {
+interface CreateWorkflowDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   workspace: WorkspaceInterface;
   onSuccess: () => void;
 }
 
-const CreatePipelineDialog = ({ isOpen, onOpenChange, workspace, onSuccess }: CreatePipelineDialogProps) => {
+const CreateWorkflowDialog = ({ isOpen, onOpenChange, workspace, onSuccess }: CreateWorkflowDialogProps) => {
   const handleSuccess = () => {
     onSuccess();
     onOpenChange(false);
@@ -18,13 +18,13 @@ const CreatePipelineDialog = ({ isOpen, onOpenChange, workspace, onSuccess }: Cr
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[80vh] min-h-[300px] !max-w-2xl">
-        <DialogTitle>Run Pipeline</DialogTitle>
+        <DialogTitle>Run Workflow</DialogTitle>
         <div className="mt-4 overflow-y-auto">
-          <PipelineForm title="Run Pipeline" workspace={workspace} onSuccess={handleSuccess} />
+          <WorkflowForm title="Run Workflow" workspace={workspace} onSuccess={handleSuccess} />
         </div>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default CreatePipelineDialog;
+export default CreateWorkflowDialog;

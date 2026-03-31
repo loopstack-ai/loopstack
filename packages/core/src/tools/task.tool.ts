@@ -14,7 +14,7 @@ import { WorkflowState } from '@loopstack/contracts/enums';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { EventSubscriberService } from '../persistence';
 import { TaskSchedulerService } from '../scheduler';
-import { CreatePipelineService } from '../workflow-processor';
+import { CreateWorkflowService } from '../workflow-processor';
 
 const TaskArgsSchema = z.object({
   workflow: z.string(),
@@ -38,7 +38,7 @@ export class Task implements ToolInterface<TaskArgs> {
   protected readonly logger = new Logger(Task.name);
 
   constructor(
-    private readonly createPipelineService: CreatePipelineService,
+    private readonly createWorkflowService: CreateWorkflowService,
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly eventSubscriberService: EventSubscriberService,
   ) {}
@@ -50,7 +50,7 @@ export class Task implements ToolInterface<TaskArgs> {
 
   async execute(args: TaskArgs, context: RunContext, parent?: WorkflowInterface | BlockInterface): Promise<ToolResult> {
     this.logger.debug(
-      `[DEBUG] Task.execute called: workflow=${args.workflow}, parent=${parent?.constructor?.name ?? 'UNDEFINED'}, pipelineId=${context.pipelineId ?? 'UNDEFINED'}`,
+      `[DEBUG] Task.execute called: workflow=${args.workflow}, parent=${parent?.constructor?.name ?? 'UNDEFINED'}, parentWorkflowId=${context.parentWorkflowId ?? 'UNDEFINED'}`,
     );
     if (context.options.stateless) {
       throw new Error('Task tool requires stateful workflow execution.');
@@ -58,7 +58,7 @@ export class Task implements ToolInterface<TaskArgs> {
 
     const correlationId = randomUUID();
 
-    const pipeline = await this.createPipelineService.create(
+    const workflow = await this.createWorkflowService.create(
       {
         id: context.workspaceId,
       },
@@ -71,19 +71,19 @@ export class Task implements ToolInterface<TaskArgs> {
         eventCorrelationId: correlationId,
       },
       context.userId,
-      context.pipelineId,
+      context.parentWorkflowId,
       parent,
     );
 
     await this.taskSchedulerService.addTask({
-      id: 'sub_pipeline_execution-' + randomUUID(),
+      id: 'sub_workflow_execution-' + randomUUID(),
       workspaceId: context.workspaceId,
       task: {
-        name: 'sub_pipeline_execution',
-        type: 'run_pipeline',
+        name: 'sub_workflow_execution',
+        type: 'run_workflow',
         user: context.userId,
         workspaceId: context.workspaceId,
-        pipelineId: pipeline.id,
+        workflowId: workflow.id,
         correlationId,
         blockName: args.workflow,
         args: {
@@ -97,7 +97,7 @@ export class Task implements ToolInterface<TaskArgs> {
     // When callback is omitted (delegate usage), delegateToolCalls handles the subscriber.
     if (args.callback?.transition) {
       await this.eventSubscriberService.registerSubscriber(
-        context.pipelineId,
+        context.parentWorkflowId,
         context.workflowId!,
         args.callback.transition,
         correlationId,
@@ -111,7 +111,7 @@ export class Task implements ToolInterface<TaskArgs> {
       data: {
         mode: 'async',
         correlationId,
-        pipelineId: pipeline.id,
+        workflowId: workflow.id,
         eventName: `workflow.${WorkflowState.Completed}`,
       },
     };

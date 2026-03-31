@@ -8,24 +8,24 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { PipelineEntity } from './pipeline.entity';
 import { User } from './user.entity';
+import { WorkflowEntity } from './workflow.entity';
 import { WorkspaceEntity } from './workspace.entity';
 
 @Entity({ name: 'core_event_subscriber' })
 @Index(['eventCorrelationId', 'eventName'])
-@Index(['subscriberPipelineId', 'subscriberWorkflowId', 'subscriberTransition'])
+@Index(['subscriberRootWorkflowId', 'subscriberWorkflowId', 'subscriberTransition'])
 export class EventSubscriberEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => PipelineEntity, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'subscriber_pipeline_id' })
-  subscriberPipeline!: PipelineEntity;
+  @ManyToOne(() => WorkflowEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'subscriber_root_workflow_id' })
+  subscriberRootWorkflow!: WorkflowEntity;
 
-  @Column({ type: 'uuid', name: 'subscriber_pipeline_id' })
+  @Column({ type: 'uuid', name: 'subscriber_root_workflow_id' })
   @Index()
-  subscriberPipelineId: string;
+  subscriberRootWorkflowId: string;
 
   @Column({ type: 'uuid', name: 'subscriber_workflow_id' })
   subscriberWorkflowId!: string;

@@ -2,7 +2,7 @@ import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import debounce from 'lodash/debounce';
 import { useEffect, useRef } from 'react';
 import { SseClientEvents } from '@/events';
-import { getDocumentsCacheKey, getWorkflowCacheKey, getWorkflowsByPipelineCacheKey } from '@/hooks/query-keys';
+import { getChildWorkflowsCacheKey, getDocumentsCacheKey, getWorkflowCacheKey } from '@/hooks/query-keys';
 import { eventBus } from '@/services';
 import { useStudio } from './StudioProvider';
 
@@ -10,7 +10,7 @@ type DebouncedInvalidator = ReturnType<typeof debounce<() => void>>;
 
 interface WorkflowEventPayload {
   id?: string;
-  pipelineId?: string;
+  parentId?: string;
 }
 
 interface DocumentEventPayload {
@@ -47,8 +47,8 @@ export function InvalidationEventsProvider() {
     }
 
     const unsubWorkflowCreated = eventBus.on(SseClientEvents.WORKFLOW_CREATED, (payload: WorkflowEventPayload) => {
-      if (payload.pipelineId) {
-        invalidate(getWorkflowsByPipelineCacheKey(envKey, payload.pipelineId));
+      if (payload.parentId) {
+        invalidate(getChildWorkflowsCacheKey(envKey, payload.parentId));
       }
     });
 
@@ -56,8 +56,8 @@ export function InvalidationEventsProvider() {
       if (payload.id) {
         invalidate(getWorkflowCacheKey(envKey, payload.id));
       }
-      if (payload.pipelineId) {
-        invalidate(getWorkflowsByPipelineCacheKey(envKey, payload.pipelineId));
+      if (payload.parentId) {
+        invalidate(getChildWorkflowsCacheKey(envKey, payload.parentId));
       }
     });
 

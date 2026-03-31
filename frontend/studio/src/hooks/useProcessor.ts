@@ -1,17 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { RunPipelinePayloadInterface } from '@loopstack/contracts/api';
-import { getPipelinesCacheKey } from './query-keys.ts';
+import type { RunWorkflowPayloadInterface } from '@loopstack/contracts/api';
+import { getWorkflowsCacheKey } from './query-keys.ts';
 import { useApiClient } from './useApi.ts';
 
-export function useRunPipeline() {
+export function useRunWorkflow() {
   const { envKey, api } = useApiClient();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (params: { pipelineId: string; runPipelinePayloadDto: RunPipelinePayloadInterface; force?: boolean }) =>
-      api.processor.runPipeline(params),
+    mutationFn: (params: { workflowId: string; runWorkflowPayloadDto: RunWorkflowPayloadInterface; force?: boolean }) =>
+      api.processor.runWorkflow(params),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: getPipelinesCacheKey(envKey) });
+      void queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey) });
     },
   });
 }

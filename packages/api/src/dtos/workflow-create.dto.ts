@@ -11,42 +11,42 @@ import {
   MaxLength,
   ValidateIf,
 } from 'class-validator';
-import type { PipelineCreateInterface } from '@loopstack/contracts/api';
+import type { WorkflowCreateInterface } from '@loopstack/contracts/api';
 
 /**
- * Data Transfer Object for creating a new pipeline
+ * Data Transfer Object for creating a new workflow
  */
-export class PipelineCreateDto implements PipelineCreateInterface {
+export class WorkflowCreateDto implements WorkflowCreateInterface {
   /**
-   * Unique identifier for the pipeline
-   * @example "file.yaml:my-pipeline"
+   * Unique identifier for the workflow
+   * @example "file.yaml:my-workflow"
    */
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100, { message: 'Pipeline name must not exceed 100 characters' })
+  @MaxLength(100, { message: 'Workflow name must not exceed 100 characters' })
   @ApiProperty({
-    description: 'Process config key identifier for the pipeline',
-    example: 'file.yaml:my-pipeline',
+    description: 'Process config key identifier for the workflow',
+    example: 'file.yaml:my-workflow',
   })
   blockName: string;
 
   /**
-   * Human-readable title for the pipeline
-   * @example "My Awesome Pipeline"
+   * Human-readable title for the workflow
+   * @example "My Awesome Workflow"
    */
   @IsString()
   @IsOptional()
-  @MaxLength(200, { message: 'Pipeline title must not exceed 200 characters' })
+  @MaxLength(200, { message: 'Workflow title must not exceed 200 characters' })
   @ApiPropertyOptional({
-    description: 'Human-readable title for the pipeline',
-    example: 'My Awesome Pipeline',
+    description: 'Human-readable title for the workflow',
+    example: 'My Awesome Workflow',
     type: 'string',
     nullable: true,
   })
   title: string | null;
 
   /**
-   * Array of labels/tags associated with the pipeline
+   * Array of labels/tags associated with the workflow
    * @example ["frontend", "react", "typescript"]
    */
   @ValidateIf((o: { labels?: string[] }) => o.labels !== undefined)
@@ -55,7 +55,7 @@ export class PipelineCreateDto implements PipelineCreateInterface {
   @IsString({ each: true, message: 'Each label must be a string' })
   @Type(() => String)
   @ApiPropertyOptional({
-    description: 'Array of labels/tags associated with the pipeline',
+    description: 'Array of labels/tags associated with the workflow',
     type: 'array',
     items: { type: 'string' },
     example: ['frontend', 'customer-facing', 'high-priority'],
@@ -63,13 +63,13 @@ export class PipelineCreateDto implements PipelineCreateInterface {
   labels?: string[];
 
   /**
-   * UUID of the workspace the pipeline belongs to
+   * UUID of the workspace the workflow belongs to
    * @example "123e4567-e89b-12d3-a456-426614174000"
    */
   @IsUUID('4', { message: 'Workspace ID must be a valid UUID v4' })
   @IsNotEmpty({ message: 'Workspace ID is required' })
   @ApiProperty({
-    description: 'UUID of the workspace the pipeline belongs to',
+    description: 'UUID of the workspace the workflow belongs to',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   workspaceId: string;
@@ -89,7 +89,7 @@ export class PipelineCreateDto implements PipelineCreateInterface {
   @ApiPropertyOptional({
     type: 'object',
     additionalProperties: true,
-    description: 'Arguments for the pipeline run',
+    description: 'Arguments for the workflow run',
     nullable: true,
   })
   args: any;
@@ -100,7 +100,7 @@ export class PipelineCreateDto implements PipelineCreateInterface {
   @ApiPropertyOptional({
     type: 'object',
     additionalProperties: true,
-    description: 'Pipeline context (e.g. flyInstances for Fly.io integration)',
+    description: 'Workflow context (e.g. flyInstances for Fly.io integration)',
     nullable: true,
   })
   context?: Record<string, any>;

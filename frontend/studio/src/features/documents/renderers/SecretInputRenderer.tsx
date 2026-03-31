@@ -1,13 +1,13 @@
 import { Info, KeyRound, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
-import type { DocumentItemInterface, TransitionPayloadInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import { Label } from '@/components/ui/label.tsx';
 import { useWorkbenchLayout } from '@/features/workbench';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 import { useUpsertSecret } from '@/hooks/useSecrets.ts';
 
 interface SecretVariable {
@@ -20,13 +20,13 @@ interface SecretInputContent {
 }
 
 interface SecretInputRendererProps {
-  pipeline: PipelineInterface;
-  workflow: WorkflowInterface;
+  parentWorkflow: WorkflowFullInterface;
+  workflow: WorkflowFullInterface;
   document: DocumentItemInterface;
   isActive: boolean;
 }
 
-const SecretInputRenderer: React.FC<SecretInputRendererProps> = ({ pipeline, workflow, document, isActive }) => {
+const SecretInputRenderer: React.FC<SecretInputRendererProps> = ({ parentWorkflow, workflow, document, isActive }) => {
   const content = document.content as SecretInputContent;
   const variables = content.variables ?? [];
 
@@ -38,9 +38,9 @@ const SecretInputRenderer: React.FC<SecretInputRendererProps> = ({ pipeline, wor
   const transitionId = widgetOptions?.transition;
   const buttonLabel = widgetOptions?.label ?? 'Save & Continue';
 
-  const { pipeline: workbenchPipeline } = useWorkbenchLayout();
-  const workspaceId = workbenchPipeline?.workspaceId;
-  const runPipeline = useRunPipeline();
+  const { workflow: workbenchWorkflow } = useWorkbenchLayout();
+  const workspaceId = workbenchWorkflow?.workspaceId;
+  const runWorkflow = useRunWorkflow();
   const upsertSecret = useUpsertSecret();
   const availableTransitions = workflow.availableTransitions?.map((t) => t.id) ?? [];
 
@@ -76,9 +76,9 @@ const SecretInputRenderer: React.FC<SecretInputRendererProps> = ({ pipeline, wor
         savedKeys.push(variable.key);
       }
 
-      runPipeline.mutate({
-        pipelineId: pipeline.id,
-        runPipelinePayloadDto: {
+      runWorkflow.mutate({
+        workflowId: parentWorkflow.id,
+        runWorkflowPayloadDto: {
           transition: {
             id: transitionId,
             workflowId: workflow.id,

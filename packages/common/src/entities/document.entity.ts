@@ -28,13 +28,12 @@ export class DocumentEntity<T = any> {
   @Index()
   blockName!: string;
 
+  @Column({ type: 'varchar', name: 'class_name', nullable: true })
+  className!: string | null;
+
   @Column({ name: 'workspace_id' })
   @Index()
   workspaceId!: string;
-
-  @Column({ name: 'pipeline_id' })
-  @Index()
-  pipelineId!: string;
 
   @Column('jsonb', { nullable: true })
   content!: T | null;

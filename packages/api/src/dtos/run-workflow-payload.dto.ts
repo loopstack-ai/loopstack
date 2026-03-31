@@ -1,12 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
-import type { RunPipelinePayloadInterface } from '@loopstack/contracts/api';
+import type { RunWorkflowPayloadInterface } from '@loopstack/contracts/api';
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 
 /**
- * DTO for pipeline run payload
+ * DTO for workflow run payload
  */
-export class RunPipelinePayloadDto implements RunPipelinePayloadInterface {
+export class RunWorkflowPayloadDto implements RunWorkflowPayloadInterface {
   @IsOptional()
   @ApiPropertyOptional()
   transition?: TransitionPayloadInterface;

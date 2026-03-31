@@ -1,28 +1,28 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ArrayNotEmpty, IsArray, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
-import type { PipelineUpdateInterface } from '@loopstack/contracts/api';
+import type { WorkflowUpdateInterface } from '@loopstack/contracts/api';
 
 /**
- * Data Transfer Object for updating an existing pipeline
+ * Data Transfer Object for updating an existing workflow
  */
-export class PipelineUpdateDto implements PipelineUpdateInterface {
+export class WorkflowUpdateDto implements WorkflowUpdateInterface {
   /**
-   * Human-readable title for the pipeline
-   * @example "My Updated Pipeline"
+   * Human-readable title for the workflow
+   * @example "My Updated Workflow"
    */
   @ValidateIf((o: { title?: string }) => o.title !== undefined)
   @IsString()
   @IsOptional()
-  @MaxLength(200, { message: 'Pipeline title must not exceed 200 characters' })
+  @MaxLength(200, { message: 'Workflow title must not exceed 200 characters' })
   @ApiPropertyOptional({
-    description: 'Human-readable title for the pipeline',
-    example: 'My Updated Pipeline',
+    description: 'Human-readable title for the workflow',
+    example: 'My Updated Workflow',
   })
   title?: string;
 
   /**
-   * Array of labels/tags associated with the pipeline
+   * Array of labels/tags associated with the workflow
    * @example ["frontend", "react", "typescript"]
    */
   @ValidateIf((o: { labels?: string }) => o.labels !== undefined)
@@ -32,7 +32,7 @@ export class PipelineUpdateDto implements PipelineUpdateInterface {
   @IsOptional()
   @Type(() => String)
   @ApiPropertyOptional({
-    description: 'Array of labels/tags associated with the pipeline',
+    description: 'Array of labels/tags associated with the workflow',
     type: 'array',
     items: { type: 'string' },
     example: ['frontend', 'customer-facing', 'high-priority'],

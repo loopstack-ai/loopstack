@@ -12,12 +12,12 @@ import {
 import '@xyflow/react/dist/style.css';
 import { Loader2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import type { PipelineConfigInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
-import { usePipeline } from '@/hooks/usePipelines.ts';
+import type { WorkflowConfigInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
+import { useWorkflow } from '@/hooks/useWorkflows.ts';
 import type { StateNodeData } from '../lib/flow-types.ts';
-import StateNode from './pipeline-flow/StateNode.tsx';
-import WorkflowGraph from './pipeline-flow/WorkflowGraph.tsx';
-import WorkflowTransitionEdge from './pipeline-flow/WorkflowTransitionEdge.tsx';
+import StateNode from './workflow-flow/StateNode.tsx';
+import WorkflowGraph from './workflow-flow/WorkflowGraph.tsx';
+import WorkflowTransitionEdge from './workflow-flow/WorkflowTransitionEdge.tsx';
 
 const nodeTypes = {
   stateNode: StateNode,
@@ -27,20 +27,20 @@ const edgeTypes = {
   workflowTransition: WorkflowTransitionEdge,
 };
 
-interface PipelineFlowViewerProps {
-  pipelineId: string;
+interface WorkflowFlowViewerProps {
+  workflowId: string;
   workflows: WorkflowItemInterface[];
-  pipelineConfig?: PipelineConfigInterface;
+  workflowConfig?: WorkflowConfigInterface;
   direction?: 'LR' | 'TB';
 }
 
-const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
-  pipelineId,
+const WorkflowFlowViewer: React.FC<WorkflowFlowViewerProps> = ({
+  workflowId,
   workflows,
-  pipelineConfig,
+  workflowConfig,
   direction = 'LR',
 }) => {
-  const { data: pipeline } = usePipeline(pipelineId);
+  const { data: parentWorkflow } = useWorkflow(workflowId);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<StateNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView } = useReactFlow();
@@ -51,16 +51,16 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
 
   const isLoading = Object.values(loadingStates).some((l) => l);
 
-  const handleLoadingChange = useCallback((workflowId: string, loading: boolean) => {
+  const handleLoadingChange = useCallback((childWorkflowId: string, loading: boolean) => {
     setLoadingStates((prev) => {
-      if (prev[workflowId] === loading) return prev;
-      return { ...prev, [workflowId]: loading };
+      if (prev[childWorkflowId] === loading) return prev;
+      return { ...prev, [childWorkflowId]: loading };
     });
   }, []);
 
   const handleGraphReady = useCallback(
-    (workflowId: string, newNodes: Node<StateNodeData>[], newEdges: Edge[]) => {
-      const workflowIndex = workflows.findIndex((w) => w.id === workflowId);
+    (childWorkflowId: string, newNodes: Node<StateNodeData>[], newEdges: Edge[]) => {
+      const workflowIndex = workflows.findIndex((w) => w.id === childWorkflowId);
       const yOffset = workflowIndex * 250;
 
       const offsetNodes = newNodes.map((n) => ({
@@ -68,7 +68,7 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
         position: { ...n.position, y: n.position.y + yOffset },
       }));
 
-      graphDataRef.current.set(workflowId, { nodes: offsetNodes, edges: newEdges });
+      graphDataRef.current.set(childWorkflowId, { nodes: offsetNodes, edges: newEdges });
 
       const allNodes: Node<StateNodeData>[] = [];
       const allEdges: Edge[] = [];
@@ -104,13 +104,13 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
 
   return (
     <div className="h-full w-full">
-      {pipeline &&
-        workflows.map((workflow) => (
+      {parentWorkflow &&
+        workflows.map((childWorkflow) => (
           <WorkflowGraph
-            key={workflow.id}
-            pipeline={pipeline}
-            workflow={workflow}
-            pipelineConfig={pipelineConfig}
+            key={childWorkflow.id}
+            parentWorkflow={parentWorkflow}
+            workflow={childWorkflow}
+            workflowConfig={workflowConfig}
             onGraphReady={handleGraphReady}
             onLoadingChange={handleLoadingChange}
             direction={direction}
@@ -143,4 +143,4 @@ const PipelineFlowViewer: React.FC<PipelineFlowViewerProps> = ({
   );
 };
 
-export default PipelineFlowViewer;
+export default WorkflowFlowViewer;

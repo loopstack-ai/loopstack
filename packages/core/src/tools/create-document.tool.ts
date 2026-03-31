@@ -97,6 +97,7 @@ export class CreateDocument implements ToolInterface {
         schema: jsonSchema,
         messageId,
         blockName: document.constructor.name,
+        className: document.constructor.name,
       });
 
       this.logger.debug(`Created document "${messageId}".`);
@@ -180,6 +181,7 @@ export class CreateDocument implements ToolInterface {
       schema: unknown;
       messageId: string;
       blockName: string;
+      className: string;
     },
   ): DocumentEntity {
     const documentData: Partial<DocumentEntity> = {
@@ -189,6 +191,7 @@ export class CreateDocument implements ToolInterface {
       schema: params.schema as any,
       messageId: params.messageId,
       blockName: params.blockName,
+      className: params.className,
     };
 
     if (params.error) {

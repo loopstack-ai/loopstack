@@ -8,10 +8,11 @@ import { createToolMock } from './tool-test-builder';
 
 type ModuleImport = Type | DynamicModule | Promise<DynamicModule> | ForwardReference;
 
-export const DEFAULT_WORKFLOW_ENTITY: Omit<WorkflowEntity, 'pipeline'> = {
+export const DEFAULT_WORKFLOW_ENTITY: Partial<WorkflowEntity> = {
   id: '00000000-0000-0000-0000-000000000000',
   blockName: '',
   title: '',
+  run: 1,
   status: WorkflowState.Pending,
   hasError: false,
   errorMessage: null,
@@ -19,7 +20,11 @@ export const DEFAULT_WORKFLOW_ENTITY: Omit<WorkflowEntity, 'pipeline'> = {
   updatedAt: new Date(),
   place: 'start',
   availableTransitions: null,
-  pipelineId: '',
+  args: {},
+  context: {},
+  eventCorrelationId: null,
+  workspaceId: '',
+  parentId: null,
   labels: [],
   hashRecord: null,
   createdBy: '',

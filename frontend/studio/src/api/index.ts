@@ -3,7 +3,6 @@ import { createAuthApi } from './auth';
 import { createConfigApi } from './config';
 import { createDashboardApi } from './dashboard';
 import { createDocumentsApi } from './documents';
-import { createPipelinesApi } from './pipelines';
 import { createProcessorApi } from './processor';
 import { createSecretsApi } from './secrets';
 import { createWorkflowsApi } from './workflows';
@@ -17,7 +16,6 @@ export function createApi(http: AxiosInstance) {
     config: createConfigApi(http),
     dashboard: createDashboardApi(http),
     documents: createDocumentsApi(http),
-    pipelines: createPipelinesApi(http),
     processor: createProcessorApi(http),
     secrets: createSecretsApi(http),
     workflows: createWorkflowsApi(http),

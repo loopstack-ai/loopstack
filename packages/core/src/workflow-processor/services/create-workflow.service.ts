@@ -2,27 +2,27 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { FindOptionsWhere } from 'typeorm';
 import {
   BlockInterface,
-  PipelineEntity,
+  WorkflowEntity,
   WorkflowInterface,
   WorkspaceEntity,
   getBlockArgsSchema,
   getBlockWorkflow,
   getBlockWorkflows,
 } from '@loopstack/common';
-import { PipelineService, WorkspaceService } from '../../persistence';
+import { WorkflowService, WorkspaceService } from '../../persistence';
 import { BlockDiscoveryService } from './block-discovery.service';
 
 @Injectable()
-export class CreatePipelineService {
-  private readonly logger = new Logger(CreatePipelineService.name);
+export class CreateWorkflowService {
+  private readonly logger = new Logger(CreateWorkflowService.name);
 
   constructor(
     private readonly workspaceService: WorkspaceService,
-    private readonly pipelineService: PipelineService,
+    private readonly workflowService: WorkflowService,
     private readonly blockDiscoveryService: BlockDiscoveryService,
   ) {}
 
-  private validateWorkflowArgs(workflow: WorkflowInterface, data: Partial<PipelineEntity>): Partial<PipelineEntity> {
+  private validateWorkflowArgs(workflow: WorkflowInterface, data: Partial<WorkflowEntity>): Partial<WorkflowEntity> {
     if (data.args && Object.keys(data.args as Record<string, unknown>).length !== 0) {
       const schema = getBlockArgsSchema(workflow);
       data.args = schema?.parse(data.args);
@@ -69,13 +69,13 @@ export class CreatePipelineService {
 
   async create(
     workspaceWhere: FindOptionsWhere<WorkspaceEntity>,
-    data: Partial<PipelineEntity>,
+    data: Partial<WorkflowEntity>,
     user: string,
-    parentPipelineId?: string,
+    parentWorkflowId?: string,
     parentWorkflowInstance?: WorkflowInterface | BlockInterface,
-  ): Promise<PipelineEntity> {
+  ): Promise<WorkflowEntity> {
     if (!data.blockName) {
-      throw new Error('blockName is required to create a pipeline.');
+      throw new Error('blockName is required to create a workflow.');
     }
 
     const workspace = await this.workspaceService.getWorkspace(workspaceWhere, user);
@@ -88,13 +88,15 @@ export class CreatePipelineService {
       throw new BadRequestException(`Config for workspace with name ${workspace.blockName} not found.`);
     }
 
-    let parentPipeline: PipelineEntity | null = null;
-    if (parentPipelineId) {
-      parentPipeline = await this.pipelineService.getPipeline(parentPipelineId, user, []);
+    let parentWorkflow: WorkflowEntity | null = null;
+    if (parentWorkflowId) {
+      parentWorkflow = await this.workflowService.getWorkflow(parentWorkflowId, user, []);
     }
 
     const workflow = this.resolveWorkflow(data.blockName, workspaceInstance, parentWorkflowInstance);
     const validData = this.validateWorkflowArgs(workflow, data);
-    return this.pipelineService.createPipeline(validData, workspace, user, parentPipeline);
+    // blockName stays as property name (for hierarchy resolution), className stores the class name (for config lookups)
+    validData.className = workflow.constructor.name;
+    return this.workflowService.createRootWorkflow(validData, workspace, user, parentWorkflow);
   }
 }

@@ -4,26 +4,23 @@ import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import MainLayout from '@/components/layout/MainLayout.tsx';
-import { PipelineDebugHeader, PipelineFlowViewer } from '@/features/debug';
-import { usePipeline, usePipelineConfigByName } from '@/hooks/usePipelines.ts';
-import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
+import { WorkflowDebugHeader, WorkflowFlowViewer } from '@/features/debug';
+import { useChildWorkflows, useWorkflow, useWorkflowConfigByName } from '@/hooks/useWorkflows.ts';
 import { useWorkspace } from '@/hooks/useWorkspaces.ts';
 import { requireParam } from '@/lib/requireParam.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
-const PipelineDebugPage: React.FC = () => {
+const WorkflowDebugPage: React.FC = () => {
   const { router } = useStudio();
-  const params = useParams<{ pipelineId: string }>();
-  const pipelineId = requireParam(params, 'pipelineId');
+  const params = useParams<{ workflowId: string }>();
+  const workflowId = requireParam(params, 'workflowId');
 
-  const fetchPipeline = usePipeline(pipelineId);
-  const workspaceId = fetchPipeline.data?.workspaceId;
+  const fetchWorkflow = useWorkflow(workflowId);
+  const workspaceId = fetchWorkflow.data?.workspaceId;
   const fetchWorkspace = useWorkspace(workspaceId);
-  const fetchWorkflows = useFetchWorkflowsByPipeline(pipelineId);
-  const workflows = useMemo(() => fetchWorkflows.data ?? [], [fetchWorkflows.data]);
-  const workspaceBlockName = fetchWorkspace.data?.blockName;
-  const pipelineBlockName = fetchPipeline.data?.blockName;
-  const fetchPipelineConfig = usePipelineConfigByName(workspaceBlockName, pipelineBlockName);
+  const fetchChildWorkflows = useChildWorkflows(workflowId);
+  const childWorkflows = useMemo(() => fetchChildWorkflows.data ?? [], [fetchChildWorkflows.data]);
+  const fetchWorkflowConfig = useWorkflowConfigByName(fetchWorkflow.data?.className ?? undefined);
 
   const breadcrumbData = useMemo(
     () => [
@@ -34,18 +31,18 @@ const PipelineDebugPage: React.FC = () => {
         href: workspaceId ? router.getWorkspace(workspaceId) : undefined,
       },
       {
-        label: `Run #${fetchPipeline.data?.run ?? '...'}`,
-        href: router.getPipeline(pipelineId),
+        label: `Run #${fetchWorkflow.data?.run ?? '...'}`,
+        href: router.getWorkflow(workflowId),
       },
       {
         label: 'Debug Flow',
         icon: <Bug className="h-4 w-4" />,
       },
     ],
-    [fetchWorkspace.data, fetchPipeline.data, workspaceId, pipelineId, router],
+    [fetchWorkspace.data, fetchWorkflow.data, workspaceId, workflowId, router],
   );
 
-  const isLoading = fetchPipeline.isLoading || fetchWorkflows.isLoading || fetchWorkspace.isLoading;
+  const isLoading = fetchWorkflow.isLoading || fetchChildWorkflows.isLoading || fetchWorkspace.isLoading;
 
   if (isLoading) {
     return (
@@ -59,27 +56,27 @@ const PipelineDebugPage: React.FC = () => {
 
   return (
     <MainLayout breadcrumbsData={breadcrumbData}>
-      <ErrorSnackbar error={fetchPipeline.error} />
+      <ErrorSnackbar error={fetchWorkflow.error} />
 
       <div className="flex h-[calc(100vh-8rem)] flex-col gap-6">
-        <PipelineDebugHeader
-          title={fetchPipeline.data?.title ?? fetchPipeline.data?.blockName ?? 'Pipeline'}
-          runNumber={fetchPipeline.data?.run}
-          onBack={() => void router.navigateToPipeline(pipelineId)}
+        <WorkflowDebugHeader
+          title={fetchWorkflow.data?.title ?? fetchWorkflow.data?.blockName ?? 'Workflow'}
+          runNumber={fetchWorkflow.data?.run}
+          onBack={() => void router.navigateToWorkflow(workflowId)}
         />
 
         <div className="bg-card border-border flex-1 overflow-hidden rounded-2xl border shadow-sm">
-          {workflows.length > 0 ? (
+          {childWorkflows.length > 0 ? (
             <ReactFlowProvider>
-              <PipelineFlowViewer
-                pipelineId={pipelineId}
-                workflows={workflows}
-                pipelineConfig={fetchPipelineConfig.data}
+              <WorkflowFlowViewer
+                workflowId={workflowId}
+                workflows={childWorkflows}
+                workflowConfig={fetchWorkflowConfig.data}
               />
             </ReactFlowProvider>
           ) : (
             <div className="text-muted-foreground flex h-full items-center justify-center">
-              <p className="font-medium">No workflows found for this pipeline</p>
+              <p className="font-medium">No child workflows found for this workflow</p>
             </div>
           )}
         </div>
@@ -88,4 +85,4 @@ const PipelineDebugPage: React.FC = () => {
   );
 };
 
-export default PipelineDebugPage;
+export default WorkflowDebugPage;

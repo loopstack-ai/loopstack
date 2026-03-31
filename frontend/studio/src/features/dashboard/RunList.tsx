@@ -2,7 +2,7 @@ import RunItem, { type Run } from '@/features/dashboard/RunItem.tsx';
 import { ScrollArea } from '../../components/ui/scroll-area.tsx';
 
 interface Router {
-  getPipeline: (id: string) => string;
+  getWorkflow: (id: string) => string;
 }
 
 interface RunsListProps {
