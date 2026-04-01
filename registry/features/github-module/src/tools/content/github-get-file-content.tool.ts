@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GitHubGetFileContentArgs = {
@@ -16,7 +16,7 @@ export type GitHubGetFileContentArgs = {
       'Gets the content of a file from a GitHub repository. Decodes base64-encoded content from the API. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GitHubGetFileContentTool implements ToolInterface {
+export class GitHubGetFileContentTool extends BaseTool {
   private readonly logger = new Logger(GitHubGetFileContentTool.name);
 
   @Inject()
@@ -34,8 +34,8 @@ export class GitHubGetFileContentTool implements ToolInterface {
   })
   args: GitHubGetFileContentArgs;
 
-  async execute(args: GitHubGetFileContentArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async run(args: GitHubGetFileContentArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -59,7 +59,7 @@ export class GitHubGetFileContentTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: '401',

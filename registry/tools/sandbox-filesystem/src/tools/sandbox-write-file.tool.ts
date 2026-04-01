@@ -16,7 +16,7 @@ limitations under the License.
 import { Logger } from '@nestjs/common';
 import * as path from 'path';
 import { z } from 'zod';
-import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -41,7 +41,7 @@ interface SandboxWriteFileResult {
     description: 'Write content to a file in a sandbox container',
   },
 })
-export class SandboxWriteFile implements ToolInterface<SandboxWriteFileArgs> {
+export class SandboxWriteFile extends BaseTool {
   private readonly logger = new Logger(SandboxWriteFile.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
@@ -49,7 +49,7 @@ export class SandboxWriteFile implements ToolInterface<SandboxWriteFileArgs> {
   @Input({ schema: inputSchema })
   args: SandboxWriteFileArgs;
 
-  async execute(args: SandboxWriteFileArgs): Promise<ToolResult<SandboxWriteFileResult>> {
+  async run(args: SandboxWriteFileArgs): Promise<ToolResult<SandboxWriteFileResult>> {
     const { containerId, path: filePath, content, encoding, createParentDirs } = args;
 
     this.logger.debug(`Writing file ${filePath} to container ${containerId} (encoding: ${encoding})`);
@@ -59,7 +59,7 @@ export class SandboxWriteFile implements ToolInterface<SandboxWriteFileArgs> {
       const parentDir = path.posix.dirname(filePath);
       if (parentDir !== '/' && parentDir !== '.') {
         this.logger.debug(`Creating parent directory ${parentDir}`);
-        const mkdirResult = await this.sandboxCommand.execute({
+        const mkdirResult = await this.sandboxCommand.run({
           containerId,
           executable: 'mkdir',
           args: ['-p', parentDir],
@@ -88,7 +88,7 @@ export class SandboxWriteFile implements ToolInterface<SandboxWriteFileArgs> {
       encoding === 'utf8' ? Buffer.from(content, 'utf8').toString('base64') : content.replace(/[^A-Za-z0-9+/=]/g, '');
 
     // Write file using base64 decode
-    const result = await this.sandboxCommand.execute({
+    const result = await this.sandboxCommand.run({
       containerId,
       executable: 'sh',
       args: ['-c', `echo '${base64Content}' | base64 -d > '${filePath.replace(/'/g, "'\\''")}'`],

@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GmailGetMessageArgs = {
@@ -22,7 +22,7 @@ interface GmailMessagePart {
       'Gets the full content of a single Gmail message, including body text and attachment metadata. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GmailGetMessageTool implements ToolInterface {
+export class GmailGetMessageTool extends BaseTool {
   private readonly logger = new Logger(GmailGetMessageTool.name);
 
   @Inject()
@@ -38,8 +38,8 @@ export class GmailGetMessageTool implements ToolInterface {
   })
   args: GmailGetMessageArgs;
 
-  async execute(args: GmailGetMessageArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async run(args: GmailGetMessageArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -57,7 +57,7 @@ export class GmailGetMessageTool implements ToolInterface {
     );
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Gmail API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Gmail API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

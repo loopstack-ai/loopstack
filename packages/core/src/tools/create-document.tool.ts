@@ -3,15 +3,12 @@ import { merge, omit } from 'lodash';
 import { randomUUID } from 'node:crypto';
 import { ZodError, ZodSchema, toJSONSchema, z } from 'zod';
 import {
+  BaseTool,
   DocumentEntity,
   DocumentInterface,
   Input,
-  RunContext,
   Tool,
-  ToolInterface,
   ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
   getBlockArgsSchema,
   getBlockConfig,
   getBlockDocument,
@@ -19,7 +16,6 @@ import {
 import { DocumentSchema } from '@loopstack/contracts/schemas';
 import { DocumentConfigType, DocumentType } from '@loopstack/contracts/types';
 import { ConfigTraceError, SchemaValidationError } from '../common';
-import { TemplateExpressionEvaluatorService } from '../common';
 import { DocumentService } from '../persistence';
 
 interface ContentValidationResult {
@@ -45,7 +41,7 @@ export type CreateDocumentInput = z.infer<typeof CreateDocumentInputSchema>;
     description: 'Create a document.',
   },
 })
-export class CreateDocument implements ToolInterface {
+export class CreateDocument extends BaseTool {
   protected readonly logger = new Logger(CreateDocument.name);
 
   @Input({ schema: CreateDocumentInputSchema })
@@ -54,16 +50,8 @@ export class CreateDocument implements ToolInterface {
   @Inject()
   private readonly documentService: DocumentService;
 
-  @Inject()
-  private readonly templateExpressionEvaluatorService: TemplateExpressionEvaluatorService;
-
-  execute(
-    args: CreateDocumentInput,
-    context: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const document = getBlockDocument<DocumentInterface>(parent, args.document);
+  run(args: CreateDocumentInput): Promise<ToolResult> {
+    const document = getBlockDocument<DocumentInterface>(this.parent, args.document);
     if (!document) {
       return Promise.reject(new Error(`Document "${args.document}" not found in parent context.`));
     }
@@ -74,11 +62,9 @@ export class CreateDocument implements ToolInterface {
     }
 
     try {
-      const templateContext = { args };
-
       const mergedTemplateData = this.mergeTemplateData(config, args.update);
 
-      const documentSkeleton = this.createDocumentSkeleton(mergedTemplateData, templateContext);
+      const documentSkeleton = omit(mergedTemplateData, ['content']) as Omit<DocumentType, 'content'>;
 
       const validationResult = this.validateContent(
         getBlockArgsSchema(document),
@@ -86,11 +72,11 @@ export class CreateDocument implements ToolInterface {
         args.validate,
       );
 
-      const messageId = this.resolveMessageId(args.id, templateContext);
+      const messageId = args.id ?? randomUUID();
 
       const jsonSchema = this.createJsonSchema(getBlockArgsSchema(document));
 
-      const documentEntity = this.createDocumentEntity(context, metadata, {
+      const documentEntity = this.createDocumentEntity({
         skeleton: documentSkeleton,
         content: validationResult.content,
         error: validationResult.error,
@@ -110,17 +96,6 @@ export class CreateDocument implements ToolInterface {
 
   private mergeTemplateData(config: DocumentConfigType, update?: Partial<DocumentConfigType>): DocumentConfigType {
     return merge({}, config, update ?? {});
-  }
-
-  private createDocumentSkeleton(
-    templateData: DocumentConfigType,
-    context: Record<string, unknown>,
-  ): Omit<DocumentType, 'content'> {
-    return this.templateExpressionEvaluatorService.evaluateTemplate<Omit<DocumentType, 'content'>>(
-      omit(templateData, ['content']),
-      context,
-      { schema: DocumentSchema },
-    );
   }
 
   private validateContent(
@@ -153,16 +128,6 @@ export class CreateDocument implements ToolInterface {
     return { content: result.data };
   }
 
-  private resolveMessageId(idTemplate: string | undefined, context: Record<string, unknown>): string {
-    if (!idTemplate) {
-      return randomUUID();
-    }
-
-    return this.templateExpressionEvaluatorService.evaluateTemplate<string>(idTemplate, context, {
-      schema: z.string(),
-    });
-  }
-
   private createJsonSchema(schema: ZodSchema | undefined): unknown {
     if (!schema) {
       return undefined;
@@ -171,19 +136,15 @@ export class CreateDocument implements ToolInterface {
     return toJSONSchema(schema);
   }
 
-  private createDocumentEntity(
-    context: RunContext,
-    metadata: WorkflowMetadataInterface,
-    params: {
-      skeleton: Omit<DocumentType, 'content'>;
-      content: unknown;
-      error?: ZodError;
-      schema: unknown;
-      messageId: string;
-      blockName: string;
-      className: string;
-    },
-  ): DocumentEntity {
+  private createDocumentEntity(params: {
+    skeleton: Omit<DocumentType, 'content'>;
+    content: unknown;
+    error?: ZodError;
+    schema: unknown;
+    messageId: string;
+    blockName: string;
+    className: string;
+  }): DocumentEntity {
     const documentData: Partial<DocumentEntity> = {
       ...params.skeleton,
       content: params.content,
@@ -198,7 +159,7 @@ export class CreateDocument implements ToolInterface {
       documentData.error = params.error;
     }
 
-    return this.documentService.create(context, metadata, documentData);
+    return this.documentService.create(this.context, this.runtime, documentData);
   }
 
   private buildResult(documentEntity: DocumentEntity): ToolResult {

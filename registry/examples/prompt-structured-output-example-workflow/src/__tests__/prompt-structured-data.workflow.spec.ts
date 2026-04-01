@@ -52,8 +52,8 @@ describe('PromptStructuredOutputWorkflow', () => {
     const context = {} as RunContext;
 
     it('should execute workflow and generate hello world script', async () => {
-      mockCreateDocument.execute.mockResolvedValue({});
-      mockClaudeGenerateDocument.execute.mockResolvedValue({
+      mockCreateDocument.run.mockResolvedValue({});
+      mockClaudeGenerateDocument.run.mockResolvedValue({
         data: { content: mockFileContent },
       });
 
@@ -62,10 +62,10 @@ describe('PromptStructuredOutputWorkflow', () => {
       expect(result.hasError).toBe(false);
 
       // Verify CreateDocument was called twice (status message + success message)
-      expect(mockCreateDocument.execute).toHaveBeenCalledTimes(2);
+      expect(mockCreateDocument.run).toHaveBeenCalledTimes(2);
 
       // First call: status message
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
+      expect(mockCreateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'status',
           update: {
@@ -80,23 +80,17 @@ describe('PromptStructuredOutputWorkflow', () => {
             },
           },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // Verify ClaudeGenerateDocument was called once with correct arguments
-      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledTimes(1);
-      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateDocument.run).toHaveBeenCalledTimes(1);
+      expect(mockClaudeGenerateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           claude: {
             model: 'claude-sonnet-4-6',
           },
           prompt: expect.stringContaining('python'),
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // // Verify history contains expected places
@@ -108,8 +102,8 @@ describe('PromptStructuredOutputWorkflow', () => {
     });
 
     it('should work with different programming languages', async () => {
-      mockCreateDocument.execute.mockResolvedValue({});
-      mockClaudeGenerateDocument.execute.mockResolvedValue({
+      mockCreateDocument.run.mockResolvedValue({});
+      mockClaudeGenerateDocument.run.mockResolvedValue({
         data: { content: { ...mockFileContent, filename: 'hello_world.js' } },
       });
 
@@ -118,7 +112,7 @@ describe('PromptStructuredOutputWorkflow', () => {
       expect(result.hasError).toBe(false);
 
       // Verify status message mentions javascript
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
+      expect(mockCreateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           update: {
             content: {
@@ -132,25 +126,19 @@ describe('PromptStructuredOutputWorkflow', () => {
             },
           },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // Verify ClaudeGenerateDocument prompt mentions javascript
-      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: expect.stringContaining('javascript'),
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
     it('should use default language when not provided', async () => {
-      mockCreateDocument.execute.mockResolvedValue({});
-      mockClaudeGenerateDocument.execute.mockResolvedValue({
+      mockCreateDocument.run.mockResolvedValue({});
+      mockClaudeGenerateDocument.run.mockResolvedValue({
         data: { content: mockFileContent },
       });
 
@@ -159,13 +147,10 @@ describe('PromptStructuredOutputWorkflow', () => {
       expect(result.hasError).toBe(false);
 
       // Verify ClaudeGenerateDocument was called with default language "python"
-      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: expect.stringContaining('python'),
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
   });

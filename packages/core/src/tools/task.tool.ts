@@ -1,15 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import {
-  BlockInterface,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  WorkflowInterface,
-} from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { EventSubscriberService } from '../persistence';
@@ -34,23 +26,27 @@ type TaskArgs = z.infer<typeof TaskArgsSchema>;
     description: 'Execute a workflow as a sub-task',
   },
 })
-export class Task implements ToolInterface<TaskArgs> {
+export class Task extends BaseTool {
   protected readonly logger = new Logger(Task.name);
 
   constructor(
     private readonly createWorkflowService: CreateWorkflowService,
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly eventSubscriberService: EventSubscriberService,
-  ) {}
+  ) {
+    super();
+  }
 
   @Input({
     schema: TaskArgsSchema,
   })
   args: TaskArgs;
 
-  async execute(args: TaskArgs, context: RunContext, parent?: WorkflowInterface | BlockInterface): Promise<ToolResult> {
+  async run(args: TaskArgs): Promise<ToolResult> {
+    const context = this.context;
+    const parent = this.parent;
     this.logger.debug(
-      `[DEBUG] Task.execute called: workflow=${args.workflow}, parent=${parent?.constructor?.name ?? 'UNDEFINED'}, parentWorkflowId=${context.parentWorkflowId ?? 'UNDEFINED'}`,
+      `[DEBUG] Task.run called: workflow=${args.workflow}, parent=${parent?.constructor?.name ?? 'UNDEFINED'}, parentWorkflowId=${context.parentWorkflowId ?? 'UNDEFINED'}`,
     );
     if (context.options.stateless) {
       throw new Error('Task tool requires stateful workflow execution.');

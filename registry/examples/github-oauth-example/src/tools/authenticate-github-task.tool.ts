@@ -1,17 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  InjectDocument,
-  InjectTool,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  ToolSideEffects,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-} from '@loopstack/common';
+import { BaseTool, InjectDocument, InjectTool, Input, Tool, ToolResult, ToolSideEffects } from '@loopstack/common';
 import { CreateDocument, LinkDocument, Task } from '@loopstack/core';
 
 const AuthenticateGitHubTaskInputSchema = z
@@ -32,7 +21,7 @@ type AuthenticateGitHubTaskInput = z.infer<typeof AuthenticateGitHubTaskInputSch
       'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   },
 })
-export class AuthenticateGitHubTask implements ToolInterface<AuthenticateGitHubTaskInput> {
+export class AuthenticateGitHubTask extends BaseTool {
   private readonly logger = new Logger(AuthenticateGitHubTask.name);
 
   @InjectTool() private task: Task;
@@ -42,39 +31,28 @@ export class AuthenticateGitHubTask implements ToolInterface<AuthenticateGitHubT
   @Input({ schema: AuthenticateGitHubTaskInputSchema })
   args: AuthenticateGitHubTaskInput;
 
-  async execute(
-    args: AuthenticateGitHubTaskInput,
-    ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const taskResult = await this.task.execute(
-      { workflow: 'oAuth', args: { provider: 'github', scopes: args.scopes } },
-      ctx,
-      parent,
-    );
+  async run(args: AuthenticateGitHubTaskInput): Promise<ToolResult> {
+    const taskResult = await this.task.run({
+      workflow: 'oAuth',
+      args: { provider: 'github', scopes: args.scopes },
+    });
 
     const effects: ToolSideEffects[] = [];
 
-    const linkResult = await this.createDocument.execute(
-      {
-        document: 'linkDocument',
-        id: 'github_auth_link',
-        validate: 'skip' as const,
-        update: {
-          content: {
-            status: 'pending',
-            label: 'GitHub authentication required',
-            href: `/workflows/${String((taskResult.data as Record<string, unknown>).workflowId)}`,
-            embed: true,
-            expanded: true,
-          },
+    const linkResult = await this.createDocument.run({
+      document: 'linkDocument',
+      id: 'github_auth_link',
+      validate: 'skip' as const,
+      update: {
+        content: {
+          status: 'pending',
+          label: 'GitHub authentication required',
+          href: `/workflows/${String((taskResult.data as Record<string, unknown>).workflowId)}`,
+          embed: true,
+          expanded: true,
         },
       },
-      ctx,
-      this,
-      metadata,
-    );
+    });
     if (linkResult.effects) {
       effects.push(...linkResult.effects);
     }
@@ -85,33 +63,23 @@ export class AuthenticateGitHubTask implements ToolInterface<AuthenticateGitHubT
     };
   }
 
-  async complete(
-    result: Record<string, unknown>,
-    ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult> {
     const data = result as { workflowId?: string };
 
     const effects: ToolSideEffects[] = [];
 
-    const linkResult = await this.createDocument.execute(
-      {
-        document: 'linkDocument',
-        id: 'github_auth_link',
-        validate: 'skip' as const,
-        update: {
-          content: {
-            status: 'success',
-            label: 'GitHub authentication completed',
-            href: `/workflows/${data.workflowId}`,
-          },
+    const linkResult = await this.createDocument.run({
+      document: 'linkDocument',
+      id: 'github_auth_link',
+      validate: 'skip' as const,
+      update: {
+        content: {
+          status: 'success',
+          label: 'GitHub authentication completed',
+          href: `/workflows/${data.workflowId}`,
         },
       },
-      ctx,
-      this,
-      metadata,
-    );
+    });
     if (linkResult.effects) {
       effects.push(...linkResult.effects);
     }

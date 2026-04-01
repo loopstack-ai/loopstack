@@ -15,7 +15,7 @@ limitations under the License.
 */
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -38,7 +38,7 @@ interface SandboxReadFileResult {
     description: 'Read file contents from a sandbox container',
   },
 })
-export class SandboxReadFile implements ToolInterface<SandboxReadFileArgs> {
+export class SandboxReadFile extends BaseTool {
   private readonly logger = new Logger(SandboxReadFile.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
@@ -46,13 +46,13 @@ export class SandboxReadFile implements ToolInterface<SandboxReadFileArgs> {
   @Input({ schema: inputSchema })
   args: SandboxReadFileArgs;
 
-  async execute(args: SandboxReadFileArgs): Promise<ToolResult<SandboxReadFileResult>> {
+  async run(args: SandboxReadFileArgs): Promise<ToolResult<SandboxReadFileResult>> {
     const { containerId, path, encoding } = args;
 
     this.logger.debug(`Reading file ${path} from container ${containerId} (encoding: ${encoding})`);
 
     const executable = encoding === 'base64' ? 'base64' : 'cat';
-    const result = await this.sandboxCommand.execute({
+    const result = await this.sandboxCommand.run({
       containerId,
       executable,
       args: [path],

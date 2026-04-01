@@ -1,17 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  InjectDocument,
-  InjectTool,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  ToolSideEffects,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-} from '@loopstack/common';
+import { BaseTool, InjectDocument, InjectTool, Input, Tool, ToolResult, ToolSideEffects } from '@loopstack/common';
 import { LinkDocument } from '../documents';
 import { CreateDocument } from './create-document.tool';
 import { Task } from './task.tool';
@@ -38,7 +27,7 @@ type RequestSecretsTaskInput = z.infer<typeof RequestSecretsTaskInputSchema>;
       'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   },
 })
-export class RequestSecretsTask implements ToolInterface<RequestSecretsTaskInput> {
+export class RequestSecretsTask extends BaseTool {
   private readonly logger = new Logger(RequestSecretsTask.name);
 
   @InjectTool() private task: Task;
@@ -48,39 +37,25 @@ export class RequestSecretsTask implements ToolInterface<RequestSecretsTaskInput
   @Input({ schema: RequestSecretsTaskInputSchema })
   args: RequestSecretsTaskInput;
 
-  async execute(
-    args: RequestSecretsTaskInput,
-    ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const taskResult = await this.task.execute(
-      { workflow: 'secretsRequest', args: { variables: args.variables } },
-      ctx,
-      parent,
-    );
+  async run(args: RequestSecretsTaskInput): Promise<ToolResult> {
+    const taskResult = await this.task.run({ workflow: 'secretsRequest', args: { variables: args.variables } });
 
     const effects: ToolSideEffects[] = [];
 
-    const linkResult = await this.createDocument.execute(
-      {
-        document: 'linkDocument',
-        id: 'secrets_link',
-        validate: 'skip' as const,
-        update: {
-          content: {
-            status: 'pending',
-            label: 'Requesting Secrets',
-            href: `/workflows/${(taskResult.data as { workflowId: string }).workflowId}`,
-            embed: true,
-            expanded: true,
-          },
+    const linkResult = await this.createDocument.run({
+      document: 'linkDocument',
+      id: 'secrets_link',
+      validate: 'skip' as const,
+      update: {
+        content: {
+          status: 'pending',
+          label: 'Requesting Secrets',
+          href: `/workflows/${(taskResult.data as { workflowId: string }).workflowId}`,
+          embed: true,
+          expanded: true,
         },
       },
-      ctx,
-      this,
-      metadata,
-    );
+    });
     if (linkResult.effects) {
       effects.push(...linkResult.effects);
     }
@@ -91,33 +66,23 @@ export class RequestSecretsTask implements ToolInterface<RequestSecretsTaskInput
     };
   }
 
-  async complete(
-    result: Record<string, unknown>,
-    ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult> {
     const data = result as { workflowId?: string };
 
     const effects: ToolSideEffects[] = [];
 
-    const linkResult = await this.createDocument.execute(
-      {
-        document: 'linkDocument',
-        id: 'secrets_link',
-        validate: 'skip' as const,
-        update: {
-          content: {
-            status: 'success',
-            label: 'Secrets have been stored',
-            href: `/workflows/${data.workflowId}`,
-          },
+    const linkResult = await this.createDocument.run({
+      document: 'linkDocument',
+      id: 'secrets_link',
+      validate: 'skip' as const,
+      update: {
+        content: {
+          status: 'success',
+          label: 'Secrets have been stored',
+          href: `/workflows/${data.workflowId}`,
         },
       },
-      ctx,
-      this,
-      metadata,
-    );
+    });
     if (linkResult.effects) {
       effects.push(...linkResult.effects);
     }

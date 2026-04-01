@@ -47,7 +47,7 @@ import {
 import { SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
 
 @Workflow({
-  configFile: __dirname + '/my.workflow.yaml',
+  uiConfig: __dirname + '/my.workflow.yaml',
 })
 export class MyWorkflow {
   @Input({

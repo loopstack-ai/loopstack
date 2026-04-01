@@ -1,16 +1,23 @@
 import { z } from 'zod';
 import { ClaudeGenerateDocument } from '@loopstack/claude-module';
-import { InjectDocument, InjectTool, Input, Runtime, State, Workflow } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core';
+import {
+  Final,
+  Initial,
+  InjectDocument,
+  InjectTool,
+  Input,
+  Transition,
+  Workflow,
+  WorkflowMetadataInterface,
+} from '@loopstack/common';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
 
 @Workflow({
-  configFile: __dirname + '/meeting-notes.workflow.yaml',
+  uiConfig: __dirname + '/meeting-notes.workflow.yaml',
 })
 export class MeetingNotesWorkflow {
   @InjectTool() claudeGenerateDocument: ClaudeGenerateDocument;
-  @InjectTool() createDocument: CreateDocument;
   @InjectDocument() meetingNotesDocument: MeetingNotesDocument;
   @InjectDocument() optimizedNotesDocument: OptimizedNotesDocument;
 
@@ -27,17 +34,54 @@ export class MeetingNotesWorkflow {
     inputText: string;
   };
 
-  @State({
-    schema: z.object({
-      meetingNotes: MeetingNotesDocumentSchema.optional(),
-      optimizedNotes: OptimizedMeetingNotesDocumentSchema.optional(),
-    }),
-  })
-  state: {
-    meetingNotes?: z.infer<typeof MeetingNotesDocumentSchema>;
-    optimizedNotes?: z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
-  };
+  private runtime: WorkflowMetadataInterface;
 
-  @Runtime()
-  runtime: any;
+  meetingNotes?: z.infer<typeof MeetingNotesDocumentSchema>;
+  optimizedNotes?: z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
+
+  @Initial({ to: 'waiting_for_response' })
+  async createForm() {
+    await this.meetingNotesDocument.create({
+      id: 'input',
+      content: {
+        text: `Unstructured Notes:\n\n${this.args.inputText}`,
+      },
+    });
+  }
+
+  @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true })
+  async userResponse() {
+    const payload = this.runtime.transition!.payload as z.infer<typeof MeetingNotesDocumentSchema>;
+    const result = await this.meetingNotesDocument.create({
+      id: 'input',
+      content: payload,
+    });
+    this.meetingNotes = result.content as z.infer<typeof MeetingNotesDocumentSchema>;
+  }
+
+  @Transition({ from: 'response_received', to: 'notes_optimized' })
+  async optimizeNotes() {
+    await this.claudeGenerateDocument.run({
+      claude: { model: 'claude-sonnet-4-6' },
+      response: {
+        id: 'final',
+        document: 'optimizedNotesDocument',
+      },
+      prompt: `Extract all information from the provided meeting notes into the structured document.
+
+<Meeting Notes>
+${this.meetingNotes?.text}
+</Meeting Notes>`,
+    });
+  }
+
+  @Final({ from: 'notes_optimized', wait: true })
+  async confirm() {
+    const payload = this.runtime.transition!.payload as z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
+    const result = await this.optimizedNotesDocument.create({
+      id: 'final',
+      content: payload,
+    });
+    this.optimizedNotes = result.content as z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
+  }
 }

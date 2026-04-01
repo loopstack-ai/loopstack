@@ -2,17 +2,7 @@ import { ModelMessage } from '@ai-sdk/provider-utils';
 import { Inject } from '@nestjs/common';
 import { LanguageModel, ToolSet, UIMessage, convertToModelMessages, createUIMessageStream, streamText } from 'ai';
 import { z } from 'zod';
-import {
-  Input,
-  RunContext,
-  Tool,
-  ToolCallEntry,
-  ToolCallsMap,
-  ToolInterface,
-  ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-} from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolCallEntry, ToolCallsMap, ToolResult } from '@loopstack/common';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
@@ -29,7 +19,7 @@ type AiGenerateTextArgsType = z.infer<typeof AiGenerateTextSchema>;
     description: 'Generates text using a LLM',
   },
 })
-export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
+export class AiGenerateText extends BaseTool {
   @Inject()
   private readonly aiMessagesHelperService: AiMessagesHelperService;
   @Inject()
@@ -42,12 +32,7 @@ export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
   })
   args: AiGenerateTextArgsType;
 
-  async execute(
-    args: AiGenerateTextArgsType,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    runtime: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async run(args: AiGenerateTextArgsType): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {
@@ -58,7 +43,7 @@ export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
       messages: [],
     };
 
-    options.tools = args.tools ? this.aiToolsHelperService.getTools(args.tools, parent) : undefined;
+    options.tools = args.tools ? this.aiToolsHelperService.getTools(args.tools, this.parent) : undefined;
 
     if (args.prompt) {
       options.messages.push({
@@ -66,7 +51,7 @@ export class AiGenerateText implements ToolInterface<AiGenerateTextArgsType> {
         content: args.prompt,
       } as ModelMessage);
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(runtime.documents, {
+      const messages = this.aiMessagesHelperService.getMessages(this.runtime.documents, {
         messages: args.messages as unknown as UIMessage[],
         messagesSearchTag: args.messagesSearchTag,
       });

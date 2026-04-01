@@ -1,11 +1,1 @@
 title: 'Sub Workflow'
-
-transitions:
-  - id: message
-    from: start
-    to: end
-    call:
-      - tool: createChatMessage
-        args:
-          role: 'assistant'
-          content: 'Sub workflow completed.'

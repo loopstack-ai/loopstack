@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GitHubCreateOrUpdateFileArgs = {
@@ -19,7 +19,7 @@ export type GitHubCreateOrUpdateFileArgs = {
       'Creates or updates a file in a GitHub repository. Content is provided as plain text and encoded to base64 before sending. To update an existing file, provide the sha of the file being replaced. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GitHubCreateOrUpdateFileTool implements ToolInterface {
+export class GitHubCreateOrUpdateFileTool extends BaseTool {
   private readonly logger = new Logger(GitHubCreateOrUpdateFileTool.name);
 
   @Inject()
@@ -40,8 +40,8 @@ export class GitHubCreateOrUpdateFileTool implements ToolInterface {
   })
   args: GitHubCreateOrUpdateFileArgs;
 
-  async execute(args: GitHubCreateOrUpdateFileArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async run(args: GitHubCreateOrUpdateFileArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -73,7 +73,7 @@ export class GitHubCreateOrUpdateFileTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: '401',

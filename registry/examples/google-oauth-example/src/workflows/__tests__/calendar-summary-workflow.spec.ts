@@ -6,8 +6,6 @@ import {
   getBlockArgsSchema,
   getBlockConfig,
   getBlockDocuments,
-  getBlockHelper,
-  getBlockHelpers,
   getBlockStateSchema,
   getBlockTools,
 } from '@loopstack/common';
@@ -190,48 +188,11 @@ describe('CalendarSummaryWorkflow', () => {
     });
   });
 
-  describe('helpers', () => {
-    it('should have helpers defined', () => {
-      expect(getBlockHelpers(workflow)).toBeDefined();
-      expect(Array.isArray(getBlockHelpers(workflow))).toBe(true);
-    });
-
-    it('should have now helper registered', () => {
-      expect(getBlockHelpers(workflow)).toContain('now');
-    });
-
-    it('should have endOfWeek helper registered', () => {
-      expect(getBlockHelpers(workflow)).toContain('endOfWeek');
-    });
-
-    it('should execute now helper and return an ISO date string', () => {
-      const nowHelper = getBlockHelper(workflow, 'now')!;
-      expect(nowHelper).toBeDefined();
-      const result = nowHelper.call(workflow);
-      expect(typeof result).toBe('string');
-      expect(() => new Date(result).toISOString()).not.toThrow();
-    });
-
-    it('should execute endOfWeek helper and return a date after now', () => {
-      const endOfWeekHelper = getBlockHelper(workflow, 'endOfWeek')!;
-      expect(endOfWeekHelper).toBeDefined();
-      const result = endOfWeekHelper.call(workflow);
-      expect(typeof result).toBe('string');
-      const endDate = new Date(result);
-      expect(endDate.getTime()).toBeGreaterThan(Date.now());
-    });
-
-    it('should return undefined for non-existent helper', () => {
-      const nonExistent = getBlockHelper(workflow, 'nonExistentHelper');
-      expect(nonExistent).toBeUndefined();
-    });
-  });
-
   describe('workflow execution', () => {
     it('should execute fetch_events and display_results when events are returned', async () => {
       const context = {} as RunContext;
 
-      mockGoogleCalendarFetchEventsTool.execute.mockResolvedValue({
+      mockGoogleCalendarFetchEventsTool.run.mockResolvedValue({
         data: {
           events: [
             { id: 'e1', summary: 'Team Standup', start: '2025-01-02T09:00:00Z', end: '2025-01-02T09:30:00Z' },
@@ -246,21 +207,21 @@ describe('CalendarSummaryWorkflow', () => {
       expect(result.hasError).toBe(false);
       expect(result.place).toBe('end');
 
-      expect(mockGoogleCalendarFetchEventsTool.execute).toHaveBeenCalledTimes(1);
-      expect(mockCreateDocumentTool.execute).toHaveBeenCalledTimes(1);
+      expect(mockGoogleCalendarFetchEventsTool.run).toHaveBeenCalledTimes(1);
+      expect(mockCreateDocumentTool.run).toHaveBeenCalledTimes(1);
     });
 
     it('should execute fetch_events and auth_required when unauthorized', async () => {
       const context = {} as RunContext;
 
-      mockGoogleCalendarFetchEventsTool.execute.mockResolvedValue({
+      mockGoogleCalendarFetchEventsTool.run.mockResolvedValue({
         data: {
           error: 'unauthorized',
           message: 'No valid Google token found. Please authenticate first.',
         },
       });
 
-      mockTaskTool.execute.mockResolvedValue({
+      mockTaskTool.run.mockResolvedValue({
         data: {
           workflowId: 'test-workflow-id',
         },
@@ -273,9 +234,9 @@ describe('CalendarSummaryWorkflow', () => {
       expect(result.stop).toBe(true);
       expect(result.place).toBe('awaiting_auth');
 
-      expect(mockGoogleCalendarFetchEventsTool.execute).toHaveBeenCalledTimes(1);
-      expect(mockTaskTool.execute).toHaveBeenCalledTimes(1);
-      expect(mockTaskTool.execute).toHaveBeenCalledWith(
+      expect(mockGoogleCalendarFetchEventsTool.run).toHaveBeenCalledTimes(1);
+      expect(mockTaskTool.run).toHaveBeenCalledTimes(1);
+      expect(mockTaskTool.run).toHaveBeenCalledWith(
         expect.objectContaining({
           workflow: 'oAuth',
           args: expect.objectContaining({
@@ -284,29 +245,23 @@ describe('CalendarSummaryWorkflow', () => {
           }),
           callback: { transition: 'auth_completed' },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
-      expect(mockCreateDocumentTool.execute).toHaveBeenCalledTimes(1);
+      expect(mockCreateDocumentTool.run).toHaveBeenCalledTimes(1);
     });
 
     it('should pass calendarId argument to fetch events tool', async () => {
       const context = {} as RunContext;
 
-      mockGoogleCalendarFetchEventsTool.execute.mockResolvedValue({
+      mockGoogleCalendarFetchEventsTool.run.mockResolvedValue({
         data: { events: [] },
       });
 
       await processor.process(workflow, { calendarId: 'work@group.calendar.google.com' }, context);
 
-      expect(mockGoogleCalendarFetchEventsTool.execute).toHaveBeenCalledWith(
+      expect(mockGoogleCalendarFetchEventsTool.run).toHaveBeenCalledWith(
         expect.objectContaining({
           calendarId: 'work@group.calendar.google.com',
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
   });
@@ -342,7 +297,7 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
     const mockCreateDocument: ToolMock = module.get(CreateDocument);
 
     // After auth, the workflow goes back to start and fetches events again
-    mockGoogleCalendarFetchEvents.execute.mockResolvedValue({
+    mockGoogleCalendarFetchEvents.run.mockResolvedValue({
       data: {
         events: [
           { id: 'e1', summary: 'Post-Auth Meeting', start: '2025-01-03T14:00:00Z', end: '2025-01-03T15:00:00Z' },
@@ -367,8 +322,8 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
     expect(result.place).toBe('end');
 
     // auth_completed calls createDocument, then fetch_events runs, then display_results calls createDocument
-    expect(mockCreateDocument.execute).toHaveBeenCalled();
-    expect(mockGoogleCalendarFetchEvents.execute).toHaveBeenCalledTimes(1);
+    expect(mockCreateDocument.run).toHaveBeenCalled();
+    expect(mockGoogleCalendarFetchEvents.run).toHaveBeenCalledTimes(1);
   });
 
   it('should resume from existing workflow state', async () => {

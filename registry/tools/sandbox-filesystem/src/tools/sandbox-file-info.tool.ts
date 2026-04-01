@@ -15,7 +15,7 @@ limitations under the License.
 */
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -45,7 +45,7 @@ interface SandboxFileInfoResult {
     description: 'Get detailed information about a file or directory in a sandbox container',
   },
 })
-export class SandboxFileInfo implements ToolInterface<SandboxFileInfoArgs> {
+export class SandboxFileInfo extends BaseTool {
   private readonly logger = new Logger(SandboxFileInfo.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
@@ -53,14 +53,14 @@ export class SandboxFileInfo implements ToolInterface<SandboxFileInfoArgs> {
   @Input({ schema: inputSchema })
   args: SandboxFileInfoArgs;
 
-  async execute(args: SandboxFileInfoArgs): Promise<ToolResult<SandboxFileInfoResult>> {
+  async run(args: SandboxFileInfoArgs): Promise<ToolResult<SandboxFileInfoResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Getting file info for ${targetPath} in container ${containerId}`);
 
     // Use stat to get detailed file information
     // Format: type|size|permissions|owner|group|mtime|atime|ctime
-    const result = await this.sandboxCommand.execute({
+    const result = await this.sandboxCommand.run({
       containerId,
       executable: 'stat',
       args: ['-c', '%F|%s|%A|%U|%G|%y|%x|%w', targetPath],

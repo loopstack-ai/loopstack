@@ -1,14 +1,4 @@
-import {
-  InjectTool,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-  getBlockTool,
-} from '@loopstack/common';
+import { BaseTool, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { CreateDocument } from '@loopstack/core';
 import { AiGenerateObject, AiGenerateObjectArgsType, AiGenerateObjectSchema } from './ai-generate-object.tool';
 
@@ -17,7 +7,7 @@ import { AiGenerateObject, AiGenerateObjectArgsType, AiGenerateObjectSchema } fr
     description: 'Generates a structured object using a LLM and creates it as document',
   },
 })
-export class AiGenerateDocument implements ToolInterface<AiGenerateObjectArgsType> {
+export class AiGenerateDocument extends BaseTool {
   @InjectTool() private aiGenerateObject!: AiGenerateObject;
   @InjectTool() private createDocument!: CreateDocument;
 
@@ -26,33 +16,16 @@ export class AiGenerateDocument implements ToolInterface<AiGenerateObjectArgsTyp
   })
   args: AiGenerateObjectArgsType;
 
-  private getRequiredTool(name: string): ToolInterface {
-    const tool = getBlockTool<ToolInterface>(this, name);
-    if (tool === undefined) {
-      throw new Error(`Tool "${name}" is not available`);
-    }
-    return tool;
-  }
-
-  async execute(
-    args: AiGenerateObjectArgsType,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const generateResult = await this.getRequiredTool('aiGenerateObject').execute(args, ctx, parent, metadata);
-    const documentResult = await this.getRequiredTool('createDocument').execute(
-      {
-        id: args.response.id,
-        document: args.response.document,
-        update: {
-          content: generateResult.data as unknown,
-        },
+  async run(args: AiGenerateObjectArgsType): Promise<ToolResult> {
+    const generateResult = await this.aiGenerateObject.run(args);
+    const documentResult = await this.createDocument.run({
+      id: args.response.id,
+      document: args.response.document,
+      validate: 'strict',
+      update: {
+        content: generateResult.data as unknown,
       },
-      ctx,
-      parent,
-      metadata,
-    );
+    });
 
     return {
       ...documentResult,

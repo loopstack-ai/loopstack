@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 
 const RequestSecretsInputSchema = z
   .object({
@@ -22,11 +22,11 @@ type RequestSecretsInput = z.infer<typeof RequestSecretsInputSchema>;
       'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   },
 })
-export class RequestSecretsTool implements ToolInterface<RequestSecretsInput> {
+export class RequestSecretsTool extends BaseTool {
   @Input({ schema: RequestSecretsInputSchema })
   args: RequestSecretsInput;
 
-  execute(args: RequestSecretsInput): Promise<ToolResult> {
+  run(args: RequestSecretsInput): Promise<ToolResult> {
     return Promise.resolve({
       data: { variables: args.variables },
     });

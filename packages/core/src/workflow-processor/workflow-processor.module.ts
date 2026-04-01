@@ -14,17 +14,20 @@ import {
   BlockDiscoveryService,
   BlockProcessor,
   CreateWorkflowService,
+  DocumentPersistenceService,
   ProcessorFactory,
   RootProcessorService,
-  StateMachineProcessorService,
-  StateMachineToolCallProcessorService,
   StateMachineValidatorRegistry,
   StateMachineValidatorService,
   ToolExecutionInterceptorService,
+  ToolExecutionService,
+  TransitionResolverService,
   WorkflowMemoryMonitorService,
+  WorkflowOrchestrationService,
   WorkflowProcessorService,
   WorkflowStateService,
 } from './services';
+import { ExecutionScope } from './utils';
 import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValidator } from './validators';
 
 @Module({
@@ -53,11 +56,14 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     WorkflowOptionValidator,
     StateMachineValidatorRegistry,
     StateMachineValidatorService,
-    StateMachineProcessorService,
-    StateMachineToolCallProcessorService,
     ToolExecutionInterceptorService,
     WorkflowMemoryMonitorService,
     CreateWorkflowService,
+    ExecutionScope,
+    ToolExecutionService,
+    DocumentPersistenceService,
+    WorkflowOrchestrationService,
+    TransitionResolverService,
   ],
   exports: [
     PersistenceModule,
@@ -66,8 +72,12 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     BlockProcessor,
     WorkflowProcessorService,
     BlockDiscoveryService,
-    StateMachineToolCallProcessorService,
     WorkflowMemoryMonitorService,
+    ExecutionScope,
+    ToolExecutionService,
+    DocumentPersistenceService,
+    WorkflowOrchestrationService,
+    TransitionResolverService,
   ],
 })
 export class WorkflowProcessorModule {}

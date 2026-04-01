@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document, DocumentInterface, Input } from '@loopstack/common';
+import { BaseDocument, Document, DocumentInterface, Input } from '@loopstack/common';
 
 const PlainDocumentSchema = z
   .object({
@@ -12,9 +12,9 @@ const PlainDocumentSchema = z
     type: 'document',
     description: 'Plain Document.',
   },
-  configFile: __dirname + '/plain-document.yaml',
+  uiConfig: __dirname + '/plain-document.yaml',
 })
-export class PlainDocument implements DocumentInterface {
+export class PlainDocument extends BaseDocument implements DocumentInterface {
   @Input({
     schema: PlainDocumentSchema,
   })

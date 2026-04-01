@@ -1,6 +1,7 @@
 import { type Edge, type Node } from '@xyflow/react';
 import React, { useEffect, useRef } from 'react';
 import type { WorkflowConfigInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
+import type { WorkflowInterface } from '@loopstack/contracts/types';
 import { useWorkflow, useWorkflowCheckpoints } from '@/hooks/useWorkflows.ts';
 import type { StateNodeData } from '../../lib/flow-types.ts';
 import { buildWorkflowGraph, getTransitions } from '../../lib/flow-utils.ts';
@@ -55,7 +56,7 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
       prevDataRef.current = dataKey;
       const { nodes, edges } = buildWorkflowGraph(
         parentWorkflow,
-        workflowData as any,
+        workflowData as unknown as WorkflowInterface | undefined,
         workflow.id,
         configTransitions,
         direction,

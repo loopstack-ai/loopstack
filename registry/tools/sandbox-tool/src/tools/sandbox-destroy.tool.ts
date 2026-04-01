@@ -15,7 +15,7 @@ limitations under the License.
 */
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { DockerContainerManagerService } from '../services/docker-container-manager.service';
 
 const inputSchema = z
@@ -40,7 +40,7 @@ interface SandboxDestroyResult {
     description: 'Stop and destroy a sandbox container',
   },
 })
-export class SandboxDestroy implements ToolInterface<SandboxDestroyArgs> {
+export class SandboxDestroy extends BaseTool {
   private readonly logger = new Logger(SandboxDestroy.name);
 
   @Inject()
@@ -49,7 +49,7 @@ export class SandboxDestroy implements ToolInterface<SandboxDestroyArgs> {
   @Input({ schema: inputSchema })
   args: SandboxDestroyArgs;
 
-  async execute(args: SandboxDestroyArgs): Promise<ToolResult<SandboxDestroyResult>> {
+  async run(args: SandboxDestroyArgs): Promise<ToolResult<SandboxDestroyResult>> {
     const { containerId, removeContainer } = args;
 
     this.logger.debug(`Destroying sandbox ${containerId} (removeContainer: ${removeContainer})`);

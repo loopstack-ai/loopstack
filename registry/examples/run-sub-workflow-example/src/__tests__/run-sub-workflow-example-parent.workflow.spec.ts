@@ -73,7 +73,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
     it('should execute run_workflow transition', async () => {
       const context = {} as RunContext;
 
-      mockTaskTool.execute.mockResolvedValue({
+      mockTaskTool.run.mockResolvedValue({
         data: {
           payload: { id: 'test-workflow-id' },
         },
@@ -85,18 +85,15 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
 
-      expect(mockTaskTool.execute).toHaveBeenCalledTimes(1);
-      expect(mockTaskTool.execute).toHaveBeenCalledWith(
+      expect(mockTaskTool.run).toHaveBeenCalledTimes(1);
+      expect(mockTaskTool.run).toHaveBeenCalledWith(
         expect.objectContaining({
           workflow: 'runSubWorkflowExampleSub',
           args: {},
           callback: { transition: 'sub_workflow_callback' },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
-      expect(mockCreateDocumentTool.execute).toHaveBeenCalledTimes(1);
+      expect(mockCreateDocumentTool.run).toHaveBeenCalledTimes(1);
     });
   });
 });
@@ -156,18 +153,15 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
 
     // sub_workflow_callback calls createDocument + createChatMessage,
     // then run_workflow2 fires automatically and calls task + createDocument
-    expect(mockCreateDocument.execute).toHaveBeenCalledTimes(2);
-    expect(mockCreateChatMessage.execute).toHaveBeenCalledTimes(1);
-    expect(mockTask.execute).toHaveBeenCalledTimes(1);
-    expect(mockTask.execute).toHaveBeenCalledWith(
+    expect(mockCreateDocument.run).toHaveBeenCalledTimes(2);
+    expect(mockCreateChatMessage.run).toHaveBeenCalledTimes(1);
+    expect(mockTask.run).toHaveBeenCalledTimes(1);
+    expect(mockTask.run).toHaveBeenCalledWith(
       expect.objectContaining({
         workflow: 'runSubWorkflowExampleSub',
         args: {},
         callback: { transition: 'sub_workflow2_callback' },
       }),
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
     );
   });
 
@@ -213,7 +207,7 @@ describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
     expect(result.hasError).toBe(false);
     expect(result.place).toBe('end');
 
-    expect(mockCreateDocument.execute).toHaveBeenCalledTimes(1);
-    expect(mockCreateChatMessage.execute).toHaveBeenCalledTimes(1);
+    expect(mockCreateDocument.run).toHaveBeenCalledTimes(1);
+    expect(mockCreateChatMessage.run).toHaveBeenCalledTimes(1);
   });
 });

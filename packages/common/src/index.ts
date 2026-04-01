@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 
+export * from './base/index.js';
 export * from './decorators/index.js';
 export * from './entities/index.js';
 export * from './enums/index.js';

@@ -59,9 +59,7 @@ export const RunWorkflowTaskSchema = BaseStartupTaskSchema.extend({
   payload: RunPayloadSchema,
 });
 
-export const StartupTaskSchema = z.discriminatedUnion('type', [
-  RunWorkflowTaskSchema,
-]);
+export const StartupTaskSchema = z.discriminatedUnion('type', [RunWorkflowTaskSchema]);
 
 export const ScheduledTaskSchema = z.object({
   id: z.string().min(1, 'id is required'),

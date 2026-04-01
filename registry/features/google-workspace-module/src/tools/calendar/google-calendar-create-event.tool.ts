@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GoogleCalendarCreateEventArgs = {
@@ -23,7 +23,7 @@ export type GoogleCalendarCreateEventArgs = {
       'Creates a new event on Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GoogleCalendarCreateEventTool implements ToolInterface {
+export class GoogleCalendarCreateEventTool extends BaseTool {
   private readonly logger = new Logger(GoogleCalendarCreateEventTool.name);
 
   @Inject()
@@ -50,8 +50,8 @@ export class GoogleCalendarCreateEventTool implements ToolInterface {
   })
   args: GoogleCalendarCreateEventArgs;
 
-  async execute(args: GoogleCalendarCreateEventArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async run(args: GoogleCalendarCreateEventArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -86,7 +86,7 @@ export class GoogleCalendarCreateEventTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Calendar API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

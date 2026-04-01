@@ -1,29 +1,36 @@
-import { z } from 'zod';
-import { DefineHelper, InjectTool, Runtime, RuntimeToolResult, State, Workflow } from '@loopstack/common';
+import { Final, Initial, InjectTool, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { CreateValue } from '@loopstack/create-value-tool';
 
 @Workflow({
-  configFile: __dirname + '/workflow-state.workflow.yaml',
+  uiConfig: __dirname + '/workflow-state.workflow.yaml',
 })
 export class WorkflowStateWorkflow {
   @InjectTool() private createValue: CreateValue;
   @InjectTool() private createChatMessage: CreateChatMessage;
 
-  @Runtime()
-  runtime: {
-    tools: RuntimeToolResult;
-  };
+  message?: string;
 
-  @State({
-    schema: z.object({
-      message: z.string().optional(),
-    }),
-  })
-  state: { message: string };
+  @Initial({ to: 'data_created' })
+  async createSomeData() {
+    const result = await this.createValue.run({ input: 'Hello :)' });
+    this.message = result.data as string;
+  }
 
-  @DefineHelper()
-  messageInUpperCase(message: string) {
+  @Final({ from: 'data_created' })
+  async showResults() {
+    await this.createChatMessage.run({
+      role: 'assistant',
+      content: `Data from state: ${this.message}`,
+    });
+
+    await this.createChatMessage.run({
+      role: 'assistant',
+      content: `Use workflow helper method: ${this.messageInUpperCase(this.message!)}`,
+    });
+  }
+
+  private messageInUpperCase(message: string): string {
     return message?.toUpperCase();
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Workspace } from '@loopstack/common';
+import { InjectWorkflow, Workspace } from '@loopstack/common';
+import { MeetingNotesWorkflow } from './meeting';
 
 @Injectable()
 @Workspace({
@@ -7,4 +8,6 @@ import { Workspace } from '@loopstack/common';
     title: 'Default Workspace',
   },
 })
-export class DefaultWorkspace {}
+export class DefaultWorkspace {
+  @InjectWorkflow() meetingNotesWorkflow: MeetingNotesWorkflow;
+}

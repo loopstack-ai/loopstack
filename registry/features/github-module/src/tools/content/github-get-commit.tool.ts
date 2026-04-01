@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GitHubGetCommitArgs = {
@@ -15,7 +15,7 @@ export type GitHubGetCommitArgs = {
       'Gets detailed information about a specific commit in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GitHubGetCommitTool implements ToolInterface {
+export class GitHubGetCommitTool extends BaseTool {
   private readonly logger = new Logger(GitHubGetCommitTool.name);
 
   @Inject()
@@ -32,8 +32,8 @@ export class GitHubGetCommitTool implements ToolInterface {
   })
   args: GitHubGetCommitArgs;
 
-  async execute(args: GitHubGetCommitArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async run(args: GitHubGetCommitArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -54,7 +54,7 @@ export class GitHubGetCommitTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: '401',

@@ -1,8 +1,9 @@
 import { WorkflowState } from '../enums/workflow-state.enum.js';
+import type { WorkflowTransitionType } from '../types/types/workflow-transition.type.js';
 import { SortByInterface } from './common.interface.js';
 
 export interface WorkflowContextInterface {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface WorkflowItemInterface {
@@ -29,7 +30,7 @@ export interface WorkflowFullInterface extends WorkflowItemInterface {
   schema: any;
   ui: any;
   result: Record<string, unknown> | null;
-  availableTransitions: any[] | null;
+  availableTransitions: WorkflowTransitionType[] | null;
   args: any;
   eventCorrelationId: string | null;
 }

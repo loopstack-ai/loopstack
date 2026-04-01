@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GitHubCreateIssueArgs = {
@@ -18,7 +18,7 @@ export type GitHubCreateIssueArgs = {
       'Creates a new issue in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GitHubCreateIssueTool implements ToolInterface {
+export class GitHubCreateIssueTool extends BaseTool {
   private readonly logger = new Logger(GitHubCreateIssueTool.name);
 
   @Inject()
@@ -38,8 +38,8 @@ export class GitHubCreateIssueTool implements ToolInterface {
   })
   args: GitHubCreateIssueArgs;
 
-  async execute(args: GitHubCreateIssueArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async run(args: GitHubCreateIssueArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -71,7 +71,7 @@ export class GitHubCreateIssueTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: '401',

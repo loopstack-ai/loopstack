@@ -1,27 +1,46 @@
-import { DefineHelper, InjectTool, Runtime, Workflow } from '@loopstack/common';
+import { Final, Initial, InjectTool, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { CreateValue } from '@loopstack/create-value-tool';
 
 @Workflow({
-  configFile: __dirname + '/workflow-tool-results.workflow.yaml',
+  uiConfig: __dirname + '/workflow-tool-results.workflow.yaml',
 })
 export class WorkflowToolResultsWorkflow {
   @InjectTool() private createValue: CreateValue;
   @InjectTool() private createChatMessage: CreateChatMessage;
 
-  @Runtime()
-  runtime: {
-    tools: {
-      create_some_data: {
-        say_hello: {
-          data: string;
-        };
-      };
-    };
-  };
+  storedMessage?: string;
 
-  @DefineHelper()
-  theMessage(): string {
-    return this.runtime.tools.create_some_data.say_hello.data;
+  @Initial({ to: 'data_created' })
+  async createSomeData() {
+    const result = await this.createValue.run({ input: 'Hello World.' });
+    this.storedMessage = result.data as string;
+
+    await this.createChatMessage.run({
+      role: 'assistant',
+      content: `Data from specific call id: ${this.storedMessage}`,
+    });
+
+    await this.createChatMessage.run({
+      role: 'assistant',
+      content: `Data from first tool call: ${this.storedMessage}`,
+    });
+  }
+
+  @Final({ from: 'data_created' })
+  async accessData() {
+    await this.createChatMessage.run({
+      role: 'assistant',
+      content: `Data from previous transition: ${this.storedMessage}`,
+    });
+
+    await this.createChatMessage.run({
+      role: 'assistant',
+      content: `Data access using custom helper: ${this.theMessage()}`,
+    });
+  }
+
+  private theMessage(): string {
+    return this.storedMessage!;
   }
 }

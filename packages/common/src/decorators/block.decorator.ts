@@ -7,13 +7,11 @@ export const BLOCK_TYPE_METADATA_KEY = Symbol('blockType');
 export const INJECTED_TOOLS_METADATA_KEY = Symbol('injectedTools');
 export const INJECTED_DOCUMENTS_METADATA_KEY = Symbol('injectedDocuments');
 export const INJECTED_WORKFLOWS_METADATA_KEY = Symbol('injectedWorkflows');
-export const TEMPLATE_HELPER_METADATA_KEY = Symbol('templateHelper');
+export const INJECTED_TEMPLATES_METADATA_KEY = Symbol('injectedTemplates');
 export const INPUT_METADATA_KEY = Symbol('input');
-export const CONTEXT_METADATA_KEY = Symbol('context');
-export const RUNTIME_METADATA_KEY = Symbol('runtime');
-export const STATE_METADATA_KEY = Symbol('state');
-export const SHARED_METADATA_KEY = Symbol('shared');
 export const OUTPUT_METADATA_KEY = Symbol('output');
+export const TRANSITIONS_METADATA_KEY = Symbol('transitions');
+export const GUARDS_METADATA_KEY = Symbol('guards');
 
 export interface InjectWorkflowDecoratorOptions {
   token?: InjectionToken;
@@ -24,7 +22,10 @@ export type BlockType = 'workflow' | 'tool' | 'document' | 'workspace';
 
 export interface BlockOptions {
   config?: Partial<BlockConfigType>;
-  configFile?: string;
+  /** Path to YAML file containing UI config (title, description, ui) */
+  uiConfig?: string;
+  /** Map of template names to file paths (e.g., { system: __dirname + '/templates/system.md' }) */
+  templates?: Record<string, string>;
 }
 
 export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
@@ -72,66 +73,6 @@ export function Input(options: InputOptions): PropertyDecorator {
   };
 }
 
-export interface ContextOptions {
-  schema?: z.ZodType;
-}
-
-export interface ContextMetadata extends ContextOptions {
-  name: string | symbol;
-}
-
-export function Context(options?: ContextOptions): PropertyDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    Reflect.defineMetadata(CONTEXT_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
-  };
-}
-
-export interface RuntimeOptions {
-  schema?: z.ZodType;
-}
-
-export interface RuntimeMetadata extends ContextOptions {
-  name: string | symbol;
-}
-
-export function Runtime(options?: RuntimeOptions): PropertyDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    Reflect.defineMetadata(RUNTIME_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
-  };
-}
-
-function validateStateSchema(schema: z.ZodType): void {
-  const forbiddenKeys = ['args', 'metadata'];
-
-  if (schema instanceof z.ZodObject) {
-    const shape = schema.shape as Record<string, unknown>;
-    const keys = Object.keys(shape);
-
-    for (const key of forbiddenKeys) {
-      if (keys.includes(key)) {
-        throw new Error(`State schema cannot contain '${key}' key`);
-      }
-    }
-  }
-}
-
-export interface StateOptions {
-  schema?: z.ZodType;
-}
-
-export interface StateMetadata extends StateOptions {
-  name: string | symbol;
-}
-
-export function State(options?: StateOptions): PropertyDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    if (options?.schema) {
-      validateStateSchema(options.schema);
-    }
-    Reflect.defineMetadata(STATE_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
-  };
-}
-
 export interface OutputOptions {
   schema?: z.ZodType;
 }
@@ -143,14 +84,6 @@ export interface OutputMetadata extends OutputOptions {
 export function Output(options?: OutputOptions): MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     Reflect.defineMetadata(OUTPUT_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
-  };
-}
-
-export function Shared(): PropertyDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    const existing =
-      (Reflect.getMetadata(SHARED_METADATA_KEY, target.constructor) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(SHARED_METADATA_KEY, [...existing, propertyKey], target.constructor);
   };
 }
 
@@ -198,11 +131,95 @@ export function InjectWorkflow(options?: InjectWorkflowDecoratorOptions): Proper
   };
 }
 
-// Method Decorators
-export function DefineHelper(): MethodDecorator {
+// Templates Injection Decorator
+export function InjectTemplates(): PropertyDecorator {
   return (target: object, propertyKey: string | symbol) => {
-    const existing =
-      (Reflect.getMetadata(TEMPLATE_HELPER_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(TEMPLATE_HELPER_METADATA_KEY, [...existing, propertyKey], target);
+    Reflect.defineMetadata(INJECTED_TEMPLATES_METADATA_KEY, propertyKey, target.constructor);
+  };
+}
+
+// Transition Decorators
+
+export interface TransitionMetadata {
+  methodName: string;
+  from: string;
+  to: string;
+  wait?: boolean;
+  priority?: number;
+}
+
+export interface GuardMetadata {
+  transitionMethodName: string;
+  guardMethodName: string;
+}
+
+export interface InitialOptions {
+  to: string;
+  wait?: boolean;
+  priority?: number;
+}
+
+export interface TransitionOptions {
+  from: string;
+  to: string;
+  wait?: boolean;
+  priority?: number;
+}
+
+export interface FinalOptions {
+  from: string;
+  wait?: boolean;
+  priority?: number;
+}
+
+function addTransitionMetadata(target: object, metadata: TransitionMetadata): void {
+  const existing = (Reflect.getMetadata(TRANSITIONS_METADATA_KEY, target.constructor) as TransitionMetadata[]) ?? [];
+  Reflect.defineMetadata(TRANSITIONS_METADATA_KEY, [...existing, metadata], target.constructor);
+}
+
+export function Initial(options: InitialOptions): MethodDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    addTransitionMetadata(target, {
+      methodName: String(propertyKey),
+      from: 'start',
+      to: options.to,
+      wait: options.wait,
+      priority: options.priority,
+    });
+  };
+}
+
+export function Transition(options: TransitionOptions): MethodDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    addTransitionMetadata(target, {
+      methodName: String(propertyKey),
+      from: options.from,
+      to: options.to,
+      wait: options.wait,
+      priority: options.priority,
+    });
+  };
+}
+
+export function Final(options: FinalOptions): MethodDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    addTransitionMetadata(target, {
+      methodName: String(propertyKey),
+      from: options.from,
+      to: 'end',
+      wait: options.wait,
+      priority: options.priority,
+    });
+  };
+}
+
+export function Guard(guardMethodName: string): MethodDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    const existing = (Reflect.getMetadata(GUARDS_METADATA_KEY, target.constructor) as GuardMetadata[]) ?? [];
+    Reflect.defineMetadata(
+      GUARDS_METADATA_KEY,
+      [...existing, { transitionMethodName: String(propertyKey), guardMethodName }],
+      target.constructor,
+    );
   };
 }

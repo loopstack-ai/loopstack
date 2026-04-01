@@ -11,14 +11,11 @@ import {
 } from 'ai';
 import { z } from 'zod';
 import {
+  BaseTool,
   DocumentInterface,
   Input,
-  RunContext,
   Tool,
-  ToolInterface,
   ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
   getBlockArgsSchema,
   getBlockDocument,
 } from '@loopstack/common';
@@ -40,7 +37,7 @@ export type AiGenerateObjectArgsType = z.infer<typeof AiGenerateObjectSchema>;
     description: 'Generates a structured object using a LLM',
   },
 })
-export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType> {
+export class AiGenerateObject extends BaseTool {
   @Inject()
   private readonly aiMessagesHelperService: AiMessagesHelperService;
 
@@ -52,12 +49,7 @@ export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType>
   })
   args: AiGenerateObjectArgsType;
 
-  async execute(
-    args: AiGenerateObjectArgsType,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async run(args: AiGenerateObjectArgsType): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {
@@ -73,7 +65,7 @@ export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType>
         content: args.prompt,
       } as ModelMessage);
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(metadata.documents, {
+      const messages = this.aiMessagesHelperService.getMessages(this.runtime.documents, {
         messages: args.messages as unknown as UIMessage[],
         messagesSearchTag: args.messagesSearchTag,
       });
@@ -81,7 +73,7 @@ export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType>
       options.messages = await convertToModelMessages(messages);
     }
 
-    const document = getBlockDocument<DocumentInterface>(parent, args.response.document);
+    const document = getBlockDocument<DocumentInterface>(this.parent, args.response.document);
     if (!document) {
       throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
     }

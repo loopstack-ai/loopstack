@@ -9,10 +9,10 @@ export function buildConfig(options: BlockOptions, type?: string): BlockConfigTy
     ...options.config,
   };
 
-  if (options.configFile) {
-    const configSource = loadConfigFile(options.configFile);
+  if (options.uiConfig) {
+    const configSource = loadConfigFile(options.uiConfig);
     if (!configSource) {
-      throw new Error(`Could not load config source ${options.configFile}`);
+      throw new Error(`Could not load config source ${options.uiConfig}`);
     }
 
     Object.assign(baseConfig, configSource.config);

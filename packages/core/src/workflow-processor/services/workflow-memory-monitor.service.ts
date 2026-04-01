@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WorkflowEntity } from '@loopstack/common';
+import { DocumentEntity, WorkflowEntity } from '@loopstack/common';
 import { WorkflowExecutionContextManager } from '../utils/execution-context-manager';
 
 export interface MemorySnapshot {
@@ -36,9 +36,9 @@ export class WorkflowMemoryMonitorService {
   collectMetrics(ctx: WorkflowExecutionContextManager): WorkflowMemoryMetrics {
     const memory = this.getMemorySnapshot();
 
-    const documents: any[] = ctx.getManager().getData('documents') ?? [];
+    const documents: DocumentEntity[] = ctx.getManager().getData('documents') ?? [];
     const documentCount = documents.length;
-    const invalidatedDocumentCount = documents.filter((d: any) => d.isInvalidated).length;
+    const invalidatedDocumentCount = documents.filter((d) => d.isInvalidated).length;
     const version = ctx.getManager().getVersion();
 
     return {

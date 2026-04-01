@@ -2,22 +2,21 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
+  BaseTool,
   Input,
-  RunContext,
   Tool,
   ToolCallEntry,
   ToolCallsMap,
   ToolInterface,
   ToolResult,
   ToolSideEffects,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
   getBlockTool,
 } from '@loopstack/common';
 import { ClaudeGenerateToolBaseSchema } from '../schemas/claude-generate-tool-base.schema';
 import { ClaudeClientService } from '../services';
 import { ClaudeMessagesHelperService } from '../services';
 import { ClaudeToolsHelperService } from '../services';
+import type { ClaudeGenerateTextResult } from '../types';
 import { applyCacheBreakpoints } from '../utils/cache.utils';
 
 export const ClaudeGenerateTextSchema = ClaudeGenerateToolBaseSchema.extend({
@@ -32,7 +31,7 @@ type ClaudeGenerateTextArgsType = z.infer<typeof ClaudeGenerateTextSchema>;
     description: 'Generates text using the Anthropic Claude API',
   },
 })
-export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsType> {
+export class ClaudeGenerateText extends BaseTool {
   @Inject()
   private readonly claudeClientService: ClaudeClientService;
   @Inject()
@@ -45,12 +44,7 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
   })
   args: ClaudeGenerateTextArgsType;
 
-  async execute(
-    args: ClaudeGenerateTextArgsType,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    runtime: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async run(args: ClaudeGenerateTextArgsType): Promise<ToolResult<ClaudeGenerateTextResult>> {
     const client = this.claudeClientService.getClient(args.claude);
     const model = this.claudeClientService.getModel(args.claude);
 
@@ -59,14 +53,14 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
     if (args.prompt) {
       messages.push({ role: 'user', content: args.prompt });
     } else {
-      const resolved = this.claudeMessagesHelperService.getMessages(runtime.documents, {
+      const resolved = this.claudeMessagesHelperService.getMessages(this.runtime.documents, {
         messages: args.messages as Anthropic.MessageParam[],
         messagesSearchTag: args.messagesSearchTag,
       });
       messages.push(...resolved);
     }
 
-    const tools = args.tools ? this.claudeToolsHelperService.getTools(args.tools, parent) : undefined;
+    const tools = args.tools ? this.claudeToolsHelperService.getTools(args.tools, this.parent) : undefined;
 
     const response = await this.handleGenerateText(client, {
       model,
@@ -82,7 +76,7 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
     let effects: ToolSideEffects[] = [];
 
     if (args.document) {
-      const docResult = await this.createResponseMessage(args.document, response, ctx, parent, runtime);
+      const docResult = await this.createResponseMessage(args.document, response);
       if (docResult.effects) {
         effects = [...docResult.effects];
       }
@@ -105,30 +99,19 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
     };
   }
 
-  private async createResponseMessage(
-    document: string,
-    response: Anthropic.Message,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    runtime: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const createDocumentTool = getBlockTool<ToolInterface>(parent, 'createDocument');
+  private async createResponseMessage(document: string, response: Anthropic.Message): Promise<ToolResult> {
+    const createDocumentTool = getBlockTool<ToolInterface>(this.parent, 'createDocument');
     if (!createDocumentTool) {
       throw new Error('createDocument tool not found in parent context.');
     }
 
-    return createDocumentTool.execute(
-      {
-        id: response.id,
-        document,
-        update: {
-          content: response,
-        },
+    return createDocumentTool.run({
+      id: response.id,
+      document,
+      update: {
+        content: response,
       },
-      ctx,
-      parent,
-      runtime,
-    );
+    });
   }
 
   private extractToolCalls(response: Anthropic.Message): ToolCallsMap | null {

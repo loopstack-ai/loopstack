@@ -32,7 +32,7 @@ import { InjectTool, State, Workflow } from '@loopstack/common';
 import { CreateValue } from './create-value-tool';
 
 @Workflow({
-  configFile: __dirname + '/my.workflow.yaml',
+  uiConfig: __dirname + '/my.workflow.yaml',
 })
 export class MyWorkflow {
   @InjectTool() createValue: CreateValue;

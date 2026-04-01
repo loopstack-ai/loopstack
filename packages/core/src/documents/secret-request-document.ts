@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document, DocumentInterface, Input } from '@loopstack/common';
+import { BaseDocument, Document, DocumentInterface, Input } from '@loopstack/common';
 
 const SecretRequestDocumentSchema = z
   .object({
@@ -15,9 +15,9 @@ const SecretRequestDocumentSchema = z
   .strict();
 
 @Document({
-  configFile: __dirname + '/secret-request-document.yaml',
+  uiConfig: __dirname + '/secret-request-document.yaml',
 })
-export class SecretRequestDocument implements DocumentInterface {
+export class SecretRequestDocument extends BaseDocument implements DocumentInterface {
   @Input({
     schema: SecretRequestDocumentSchema,
   })

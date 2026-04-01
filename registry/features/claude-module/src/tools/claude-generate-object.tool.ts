@@ -2,14 +2,11 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Inject } from '@nestjs/common';
 import { toJSONSchema, z } from 'zod';
 import {
+  BaseTool,
   DocumentInterface,
   Input,
-  RunContext,
   Tool,
-  ToolInterface,
   ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
   getBlockArgsSchema,
   getBlockDocument,
 } from '@loopstack/common';
@@ -34,7 +31,7 @@ const STRUCTURED_OUTPUT_TOOL_NAME = 'structured_output';
     description: 'Generates a structured object using the Anthropic Claude API',
   },
 })
-export class ClaudeGenerateObject implements ToolInterface<ClaudeGenerateObjectArgsType> {
+export class ClaudeGenerateObject extends BaseTool {
   @Inject()
   private readonly claudeClientService: ClaudeClientService;
   @Inject()
@@ -45,12 +42,7 @@ export class ClaudeGenerateObject implements ToolInterface<ClaudeGenerateObjectA
   })
   args: ClaudeGenerateObjectArgsType;
 
-  async execute(
-    args: ClaudeGenerateObjectArgsType,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async run(args: ClaudeGenerateObjectArgsType): Promise<ToolResult> {
     const client = this.claudeClientService.getClient(args.claude);
     const model = this.claudeClientService.getModel(args.claude);
 
@@ -59,14 +51,14 @@ export class ClaudeGenerateObject implements ToolInterface<ClaudeGenerateObjectA
     if (args.prompt) {
       messages.push({ role: 'user', content: args.prompt });
     } else {
-      const resolved = this.claudeMessagesHelperService.getMessages(metadata.documents, {
+      const resolved = this.claudeMessagesHelperService.getMessages(this.runtime.documents, {
         messages: args.messages as Anthropic.MessageParam[],
         messagesSearchTag: args.messagesSearchTag,
       });
       messages.push(...resolved);
     }
 
-    const document = getBlockDocument<DocumentInterface>(parent, args.response.document);
+    const document = getBlockDocument<DocumentInterface>(this.parent, args.response.document);
     if (!document) {
       throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
     }

@@ -1,30 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import {
+  Final,
+  Initial,
   InjectDocument,
   InjectTool,
   Input,
   Output,
-  Runtime,
-  State,
+  ToolResult,
   Workflow,
   WorkflowInterface,
+  WorkflowMetadataInterface,
 } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { OAuthPromptDocument } from '../documents';
-import { BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools';
+import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools';
 
 @Injectable()
 @Workflow({
-  configFile: __dirname + '/oauth.workflow.yaml',
+  uiConfig: __dirname + '/oauth.workflow.yaml',
 })
 export class OAuthWorkflow implements WorkflowInterface {
-  @InjectTool() private buildOAuthUrl: BuildOAuthUrlTool;
-  @InjectTool() private exchangeOAuthToken: ExchangeOAuthTokenTool;
-  @InjectTool() private createDocument: CreateDocument;
-  @InjectTool() private createChatMessage: CreateChatMessage;
-  @InjectDocument() private oauthPromptDocument: OAuthPromptDocument;
+  @InjectTool() buildOAuthUrl: BuildOAuthUrlTool;
+  @InjectTool() exchangeOAuthToken: ExchangeOAuthTokenTool;
+  @InjectDocument() oauthPromptDocument: OAuthPromptDocument;
 
   @Input({
     schema: z
@@ -39,21 +37,54 @@ export class OAuthWorkflow implements WorkflowInterface {
     scopes: string[];
   };
 
-  @State({
-    schema: z
-      .object({
-        oauthState: z.string().optional(),
-        authUrl: z.string().optional(),
-      })
-      .strict(),
-  })
-  state: {
-    oauthState?: string;
-    authUrl?: string;
-  };
+  private runtime: WorkflowMetadataInterface;
 
-  @Runtime()
-  runtime: any;
+  oauthState?: string;
+  authUrl?: string;
+
+  @Initial({ to: 'awaiting_auth' })
+  async initiateOAuth() {
+    const result: ToolResult<BuildOAuthUrlResult> = await this.buildOAuthUrl.run({
+      provider: this.args.provider,
+      scopes: this.args.scopes,
+    });
+
+    this.oauthState = result.data!.state;
+    this.authUrl = result.data!.authUrl;
+
+    await this.oauthPromptDocument.create({
+      id: 'oauthPrompt',
+      content: {
+        provider: this.args.provider,
+        authUrl: this.authUrl,
+        state: this.oauthState,
+        status: 'pending' as const,
+      },
+    });
+  }
+
+  @Final({ from: 'awaiting_auth', wait: true })
+  async exchangeToken() {
+    const payload = this.runtime.transition!.payload as { code: string; state: string };
+
+    await this.exchangeOAuthToken.run({
+      provider: this.args.provider,
+      code: payload.code,
+      state: payload.state,
+      expectedState: this.oauthState!,
+    });
+
+    await this.oauthPromptDocument.create({
+      id: 'oauthPrompt',
+      content: {
+        provider: this.args.provider,
+        authUrl: this.authUrl!,
+        state: this.oauthState!,
+        status: 'success' as const,
+        message: 'Successfully connected.',
+      },
+    });
+  }
 
   @Output()
   result() {

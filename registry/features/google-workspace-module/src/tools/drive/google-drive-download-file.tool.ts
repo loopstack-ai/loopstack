@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GoogleDriveDownloadFileArgs = {
@@ -20,7 +20,7 @@ const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
       'Downloads or exports a file from Google Drive. Automatically handles Google Docs/Sheets/Slides export. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GoogleDriveDownloadFileTool implements ToolInterface {
+export class GoogleDriveDownloadFileTool extends BaseTool {
   private readonly logger = new Logger(GoogleDriveDownloadFileTool.name);
 
   @Inject()
@@ -36,8 +36,8 @@ export class GoogleDriveDownloadFileTool implements ToolInterface {
   })
   args: GoogleDriveDownloadFileArgs;
 
-  async execute(args: GoogleDriveDownloadFileArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async run(args: GoogleDriveDownloadFileArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'google');
 
     if (!accessToken) {
       return {

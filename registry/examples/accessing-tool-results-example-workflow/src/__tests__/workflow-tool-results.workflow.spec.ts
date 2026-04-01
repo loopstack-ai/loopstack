@@ -1,5 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
-import { RunContext, getBlockHelpers } from '@loopstack/common';
+import { RunContext } from '@loopstack/common';
 import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { CreateValue, CreateValueToolModule } from '@loopstack/create-value-tool';
@@ -37,81 +37,62 @@ describe('WorkflowToolResultsWorkflow', () => {
     expect(workflow).toBeDefined();
   });
 
-  it('should have extractMessage helper', () => {
-    expect(getBlockHelpers(workflow)).toContain('theMessage');
-  });
-
   describe('tool result access', () => {
     it('should access tool results by call id and index in same transition', async () => {
       const context = {} as RunContext;
-      mockCreateValue.execute.mockResolvedValue({ data: 'Hello World.' });
-      mockCreateChatMessage.execute.mockResolvedValue({ data: undefined });
+      mockCreateValue.run.mockResolvedValue({ data: 'Hello World.' });
+      mockCreateChatMessage.run.mockResolvedValue({ data: undefined });
 
       await processor.process(workflow, {}, context);
 
       // Verify CreateValue was called
-      expect(mockCreateValue.execute).toHaveBeenCalledWith(
+      expect(mockCreateValue.run).toHaveBeenCalledWith(
         { input: 'Hello World.' },
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // Verify CreateChatMessage received resolved template values
-      expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
         {
           role: 'assistant',
           content: 'Data from specific call id: Hello World.',
         },
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
-      expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
         {
           role: 'assistant',
           content: 'Data from first tool call: Hello World.',
         },
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
     it('should access tool results from previous transition', async () => {
       const context = {} as RunContext;
-      mockCreateValue.execute.mockResolvedValue({ data: 'Hello World.' });
-      mockCreateChatMessage.execute.mockResolvedValue({ data: undefined });
+      mockCreateValue.run.mockResolvedValue({ data: 'Hello World.' });
+      mockCreateChatMessage.run.mockResolvedValue({ data: undefined });
 
       await processor.process(workflow, {}, context);
 
-      expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
         {
           role: 'assistant',
           content: 'Data from previous transition: Hello World.',
         },
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
     it('should access tool results using custom helper', async () => {
       const context = {} as RunContext;
-      mockCreateValue.execute.mockResolvedValue({ data: 'Hello World.' });
-      mockCreateChatMessage.execute.mockResolvedValue({ data: undefined });
+      mockCreateValue.run.mockResolvedValue({ data: 'Hello World.' });
+      mockCreateChatMessage.run.mockResolvedValue({ data: undefined });
 
       await processor.process(workflow, {}, context);
 
-      expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
         {
           role: 'assistant',
           content: 'Data access using custom helper: Hello World.',
         },
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
   });

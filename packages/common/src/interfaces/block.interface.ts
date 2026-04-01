@@ -1,34 +1,18 @@
-import { RunContext } from '../dtos';
 import { ToolResult } from './handler.interface';
-import { WorkflowMetadataInterface } from './workflow-metadata.interface';
 
 // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
-export interface BlockInterface extends Object {
-  validate?<TArgs>(args: unknown): TArgs;
-}
+export interface BlockInterface extends Object {}
 
 export interface ToolInterface<TArgs extends object = any> extends BlockInterface {
-  execute(
-    args: TArgs,
-    context: RunContext,
-    parentBlock: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult>;
-
-  complete?(
-    result: unknown,
-    context: RunContext,
-    parentBlock: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult>;
+  run(args: TArgs): Promise<ToolResult>;
 }
 
 export interface WorkflowInterface extends BlockInterface {
-  getResult?(ctx: any, args: any): any;
+  getResult?(): unknown;
 }
 
 export interface DocumentInterface extends BlockInterface {
-  content: any;
+  content: unknown;
 }
 
 export type WorkspaceInterface = BlockInterface;

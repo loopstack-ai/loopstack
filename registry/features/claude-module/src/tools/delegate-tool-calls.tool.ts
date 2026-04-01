@@ -2,17 +2,17 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
+  BaseTool,
   InjectTool,
   Input,
-  RunContext,
   Tool,
-  ToolInterface,
   ToolResult,
   ToolSideEffects,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
+  getBlockArgsSchema,
+  getBlockTool,
 } from '@loopstack/common';
-import { CreateDocument, EventSubscriberService, StateMachineToolCallProcessorService } from '@loopstack/core';
+import { CreateDocument, EventSubscriberService, ToolExecutionService } from '@loopstack/core';
+import type { DelegateToolCallsResult, DelegateToolResultEntry } from '../types';
 
 const DelegateToolCallsSchema = z.object({
   message: z.object({
@@ -30,55 +30,50 @@ const DelegateToolCallsSchema = z.object({
 
 type DelegateToolCallsArgs = z.infer<typeof DelegateToolCallsSchema>;
 
-interface ToolResultEntry {
-  type: 'tool_result';
-  tool_use_id: string;
-  content?: string;
-  is_error?: boolean;
-}
-
 @Injectable()
 @Tool({
   config: {
     description: 'Delegate tool calls from an LLM response. Handles both sync tools and async task tools.',
   },
 })
-export class DelegateToolCalls implements ToolInterface<DelegateToolCallsArgs> {
+export class DelegateToolCalls extends BaseTool {
   private readonly logger = new Logger(DelegateToolCalls.name);
 
   @InjectTool() private createDocument: CreateDocument;
 
   constructor(
-    private readonly toolCallProcessor: StateMachineToolCallProcessorService,
+    private readonly toolExecutionService: ToolExecutionService,
     private readonly eventSubscriberService: EventSubscriberService,
-  ) {}
+  ) {
+    super();
+  }
 
   @Input({
     schema: DelegateToolCallsSchema,
   })
   args: DelegateToolCallsArgs;
 
-  async execute(
-    args: DelegateToolCallsArgs,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async run(args: DelegateToolCallsArgs): Promise<ToolResult<DelegateToolCallsResult>> {
     const contentBlocks = args.message.content as Anthropic.ContentBlock[];
     const toolUseBlocks = contentBlocks.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
 
     if (toolUseBlocks.length === 0) {
       return {
-        data: { allCompleted: true, toolResults: [], message: args.message, pendingCount: 0 },
+        data: {
+          allCompleted: true,
+          toolResults: [],
+          message: args.message as DelegateToolCallsResult['message'],
+          pendingCount: 0,
+        },
       };
     }
 
     // 1. Execute ALL tools in parallel
-    const results = await Promise.all(toolUseBlocks.map((block) => this.executeTool(block, ctx, parent, metadata)));
+    const results = await Promise.all(toolUseBlocks.map((block) => this.executeTool(block)));
 
     // 2. Register subscribers for async results + build toolResults array
     let pendingCount = 0;
-    const toolResults: ToolResultEntry[] = [];
+    const toolResults: DelegateToolResultEntry[] = [];
     const toolEffects: ToolSideEffects[] = [];
 
     for (let i = 0; i < toolUseBlocks.length; i++) {
@@ -102,13 +97,13 @@ export class DelegateToolCalls implements ToolInterface<DelegateToolCallsArgs> {
 
         // Register event subscriber
         await this.eventSubscriberService.registerSubscriber(
-          ctx.parentWorkflowId,
-          ctx.workflowId!,
+          this.context.parentWorkflowId,
+          this.context.workflowId!,
           args.callback.transition,
           resultData.correlationId as string,
           resultData.eventName as string,
-          ctx.userId,
-          ctx.workspaceId,
+          this.context.userId,
+          this.context.workspaceId,
           { toolUseId: block.id, toolName: block.name },
         );
 
@@ -127,7 +122,7 @@ export class DelegateToolCalls implements ToolInterface<DelegateToolCallsArgs> {
     //    tool execution effects (e.g. link documents) so they appear after.
     const effects: ToolSideEffects[] = [];
     if (args.document && !args.skipResponseMessage) {
-      const docResult = await this.createResponseDocument(args, toolResults, ctx, parent, metadata);
+      const docResult = await this.createResponseDocument(args, toolResults);
       if (docResult.effects) {
         effects.push(...docResult.effects);
       }
@@ -138,28 +133,26 @@ export class DelegateToolCalls implements ToolInterface<DelegateToolCallsArgs> {
       data: {
         allCompleted: pendingCount === 0,
         toolResults,
-        message: args.message,
+        message: args.message as DelegateToolCallsResult['message'],
         pendingCount,
       },
       effects,
     };
   }
 
-  private async executeTool(
-    block: Anthropic.ToolUseBlock,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  private async executeTool(block: Anthropic.ToolUseBlock): Promise<ToolResult> {
     try {
-      const tool = this.toolCallProcessor.getTool(parent, block.name);
-      const parsedArgs = this.toolCallProcessor.parseArgs(
-        tool,
-        block.input as Record<string, unknown> | undefined,
-        metadata.transition!,
-      );
+      const tool = getBlockTool<BaseTool>(this.parent, block.name);
+      if (!tool) {
+        throw new Error(`Tool with name ${block.name} not found.`);
+      }
 
-      return await this.toolCallProcessor.executeToolCall(tool, parsedArgs, ctx, parent, metadata);
+      const schema = getBlockArgsSchema(tool);
+      const parsedArgs = schema
+        ? (schema.parse(block.input) as Record<string, unknown>)
+        : (block.input as Record<string, unknown>);
+
+      return await this.toolExecutionService.execute(tool, parsedArgs);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Tool "${block.name}" failed: ${errorMessage}`);
@@ -172,27 +165,19 @@ export class DelegateToolCalls implements ToolInterface<DelegateToolCallsArgs> {
 
   private async createResponseDocument(
     args: DelegateToolCallsArgs,
-    toolResults: ToolResultEntry[],
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
+    toolResults: DelegateToolResultEntry[],
   ): Promise<ToolResult> {
-    return this.createDocument.execute(
-      {
-        id: args.message.id,
-        document: args.document!,
-        validate: 'skip' as const,
-        update: {
-          content: {
-            role: 'assistant',
-            content: args.message.content,
-            toolResults,
-          },
+    return this.createDocument.run({
+      id: args.message.id,
+      document: args.document!,
+      validate: 'skip' as const,
+      update: {
+        content: {
+          role: 'assistant',
+          content: args.message.content,
+          toolResults,
         },
       },
-      ctx,
-      parent,
-      metadata,
-    );
+    });
   }
 }

@@ -1,17 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  DocumentEntity,
-  InjectDocument,
-  InjectTool,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-} from '@loopstack/common';
+import { BaseTool, DocumentEntity, InjectDocument, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { CreateDocument, MessageDocument } from '@loopstack/core';
 
 const MessageSchema = z.object({
@@ -28,7 +17,7 @@ type CreateChatMessageInput = z.infer<typeof CreateChatMessageInputSchema>;
     description: 'Create chat message(s).',
   },
 })
-export class CreateChatMessage implements ToolInterface<CreateChatMessageInput> {
+export class CreateChatMessage extends BaseTool {
   protected readonly logger = new Logger(CreateChatMessage.name);
 
   @Input({
@@ -39,12 +28,7 @@ export class CreateChatMessage implements ToolInterface<CreateChatMessageInput> 
   @InjectTool() private createDocument: CreateDocument;
   @InjectDocument() private messageDocument: MessageDocument;
 
-  async execute(
-    args: CreateChatMessageInput,
-    ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async run(args: CreateChatMessageInput): Promise<ToolResult> {
     const items = !Array.isArray(args) ? [args] : args;
 
     const createdDocuments: DocumentEntity[] = [];
@@ -60,7 +44,7 @@ export class CreateChatMessage implements ToolInterface<CreateChatMessageInput> 
         validate: 'strict' as const,
       };
 
-      const result = await this.createDocument.execute(createDocumentArgs, ctx, this, metadata);
+      const result = await this.createDocument.run(createDocumentArgs);
       createdDocuments.push(result.data as DocumentEntity);
     }
 

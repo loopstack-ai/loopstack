@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { Document, Input } from '@loopstack/common';
+import { BaseDocument, Document, Input } from '@loopstack/common';
 
 export const AiMessageDocumentSchema = z.object({
   id: z.string().optional(),
@@ -17,9 +17,9 @@ export type AiMessageDocumentContentType = z.infer<typeof AiMessageDocumentSchem
     type: 'document',
     description: 'Ai Message Document.',
   },
-  configFile: __dirname + '/ai-message-document.yaml',
+  uiConfig: __dirname + '/ai-message-document.yaml',
 })
-export class AiMessageDocument {
+export class AiMessageDocument extends BaseDocument {
   @Input({
     schema: AiMessageDocumentSchema,
   })
