@@ -50,20 +50,6 @@ const WorkbenchSettingsModal: React.FC<WorkbenchSettingsModalProps> = ({
               onCheckedChange={(checked) => handleSettingChange('enableDebugMode', checked)}
             />
           </div>
-
-          <div className="flex items-center justify-between space-x-2">
-            <div className="flex-1">
-              <Label htmlFor="message-history" className="text-sm font-medium">
-                Full Message History
-              </Label>
-              <p className="text-muted-foreground text-sm">Show all internal messages and prompts</p>
-            </div>
-            <Switch
-              id="message-history"
-              checked={settings.showFullMessageHistory}
-              onCheckedChange={(checked) => handleSettingChange('showFullMessageHistory', checked)}
-            />
-          </div>
         </div>
       </DialogContent>
     </Dialog>
