@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { RunContext } from '../dtos';
-import { ToolResult } from '../interfaces/handler.interface';
 import { WorkflowInterface } from '../interfaces/block.interface';
+import { ToolResult } from '../interfaces/handler.interface';
 import { WorkflowMetadataInterface } from '../interfaces/workflow-metadata.interface';
 
 /**

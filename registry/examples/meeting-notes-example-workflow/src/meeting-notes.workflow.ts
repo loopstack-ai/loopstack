@@ -65,7 +65,7 @@ export class MeetingNotesWorkflow {
       claude: { model: 'claude-sonnet-4-6' },
       response: {
         id: 'final',
-        document: 'optimizedNotesDocument',
+        document: this.optimizedNotesDocument,
       },
       prompt: `Extract all information from the provided meeting notes into the structured document.
 

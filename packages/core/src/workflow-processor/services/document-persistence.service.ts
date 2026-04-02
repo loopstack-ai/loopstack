@@ -4,17 +4,18 @@ import { merge } from 'lodash';
 import { randomUUID } from 'node:crypto';
 import { Repository } from 'typeorm';
 import { ZodError, toJSONSchema } from 'zod';
-import { DocumentEntity, WorkflowEntity, getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
+import {
+  CreateDocumentOptions,
+  DocumentEntity,
+  WorkflowEntity,
+  getBlockArgsSchema,
+  getBlockConfig,
+} from '@loopstack/common';
 import { DocumentConfigType } from '@loopstack/contracts/types';
 import { SchemaValidationError } from '../../common';
 import { ExecutionScope, WorkflowExecutionContextManager } from '../utils';
 
-export interface DocumentCreateOptions<TContent = any> {
-  content: TContent;
-  id?: string;
-  meta?: Record<string, unknown>;
-  validate?: 'strict' | 'safe' | 'skip';
-}
+export type DocumentCreateOptions<TContent = any> = CreateDocumentOptions<TContent>;
 
 @Injectable()
 export class DocumentPersistenceService {

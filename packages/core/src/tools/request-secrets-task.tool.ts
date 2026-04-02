@@ -1,9 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectDocument, InjectTool, Input, Tool, ToolResult, ToolSideEffects } from '@loopstack/common';
+import { BaseTool, InjectDocument, InjectWorkflow, Input, Tool, ToolResult } from '@loopstack/common';
 import { LinkDocument } from '../documents';
-import { CreateDocument } from './create-document.tool';
-import { Task } from './task.tool';
+import { SecretsRequestWorkflow } from './secrets-request.workflow';
 
 const RequestSecretsTaskInputSchema = z
   .object({
@@ -30,66 +29,47 @@ type RequestSecretsTaskInput = z.infer<typeof RequestSecretsTaskInputSchema>;
 export class RequestSecretsTask extends BaseTool {
   private readonly logger = new Logger(RequestSecretsTask.name);
 
-  @InjectTool() private task: Task;
-  @InjectTool() private createDocument: CreateDocument;
+  @InjectWorkflow() private secretsRequest: SecretsRequestWorkflow;
   @InjectDocument() private linkDocument: LinkDocument;
 
   @Input({ schema: RequestSecretsTaskInputSchema })
   args: RequestSecretsTaskInput;
 
   async run(args: RequestSecretsTaskInput): Promise<ToolResult> {
-    const taskResult = await this.task.run({ workflow: 'secretsRequest', args: { variables: args.variables } });
+    const result = await this.secretsRequest.run({ args: { variables: args.variables } });
 
-    const effects: ToolSideEffects[] = [];
-
-    const linkResult = await this.createDocument.run({
-      document: 'linkDocument',
+    await this.linkDocument.create({
       id: 'secrets_link',
-      validate: 'skip' as const,
-      update: {
-        content: {
-          status: 'pending',
-          label: 'Requesting Secrets',
-          href: `/workflows/${(taskResult.data as { workflowId: string }).workflowId}`,
-          embed: true,
-          expanded: true,
-        },
+      validate: 'skip',
+      content: {
+        status: 'pending',
+        label: 'Requesting Secrets',
+        href: `/workflows/${result.workflowId}`,
+        embed: true,
+        expanded: true,
       },
     });
-    if (linkResult.effects) {
-      effects.push(...linkResult.effects);
-    }
 
     return {
-      data: taskResult.data as Record<string, unknown>,
-      effects,
+      data: result,
     };
   }
 
   async complete(result: Record<string, unknown>): Promise<ToolResult> {
     const data = result as { workflowId?: string };
 
-    const effects: ToolSideEffects[] = [];
-
-    const linkResult = await this.createDocument.run({
-      document: 'linkDocument',
+    await this.linkDocument.create({
       id: 'secrets_link',
-      validate: 'skip' as const,
-      update: {
-        content: {
-          status: 'success',
-          label: 'Secrets have been stored',
-          href: `/workflows/${data.workflowId}`,
-        },
+      validate: 'skip',
+      content: {
+        status: 'success',
+        label: 'Secrets have been stored',
+        href: `/workflows/${data.workflowId}`,
       },
     });
-    if (linkResult.effects) {
-      effects.push(...linkResult.effects);
-    }
 
     return {
       data: 'Secrets have been stored securely by the user.',
-      effects,
     };
   }
 }

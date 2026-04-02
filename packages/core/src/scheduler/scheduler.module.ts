@@ -1,5 +1,5 @@
 import { BullModule } from '@nestjs/bullmq';
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PersistenceModule } from '../persistence';
 import { WorkflowProcessorModule } from '../workflow-processor';
 import { RunService, TaskSchedulerService } from './services';
@@ -39,7 +39,7 @@ import { WorkspaceLockService } from './services/workspace-lock.service';
       },
     }),
     PersistenceModule,
-    WorkflowProcessorModule,
+    forwardRef(() => WorkflowProcessorModule),
   ],
   providers: [
     TaskSchedulerService,

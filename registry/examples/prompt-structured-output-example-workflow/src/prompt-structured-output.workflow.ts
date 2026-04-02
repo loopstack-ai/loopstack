@@ -57,7 +57,7 @@ export class PromptStructuredOutputWorkflow {
   async prompt() {
     const result = await this.claudeGenerateDocument.run({
       claude: { model: 'claude-sonnet-4-6' },
-      response: { document: 'fileDocument' },
+      response: { document: this.fileDocument },
       prompt: this.templates.render('prompt', { language: this.args.language }),
     });
     this.llmResult = result.data as DocumentEntity<FileDocumentType>;

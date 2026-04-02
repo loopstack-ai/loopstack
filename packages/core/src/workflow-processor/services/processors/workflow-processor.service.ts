@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   BaseDocument,
   BaseTool,
+  BaseWorkflow,
+  LaunchWorkflowOptions,
   RunContext,
-  StateMachineValidatorResultInterface,
   WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkflowInterface,
@@ -14,6 +15,7 @@ import {
   getBlockOutputMetadata,
   getBlockTemplatesPropertyName,
   getBlockTools,
+  getBlockWorkflows,
   getGuardMetadataMap,
 } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
@@ -27,10 +29,10 @@ import {
 } from '../../utils';
 import { CheckpointState, StateManager } from '../../utils/state/state-manager';
 import { DocumentCreateOptions, DocumentPersistenceService } from '../document-persistence.service';
-import { StateMachineValidatorService } from '../state-machine-validator.service';
 import { ToolExecutionService } from '../tool-execution.service';
 import { TransitionResolverService } from '../transition-resolver.service';
 import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service';
+import { WorkflowOrchestrationService } from '../workflow-orchestration.service';
 import { WorkflowStateService } from '../workflow-state.service';
 
 /** Invoke a named method on a workflow proxy (transition or guard method) */
@@ -57,12 +59,12 @@ export class WorkflowProcessorService implements Processor {
 
   constructor(
     private readonly workflowStateService: WorkflowStateService,
-    private readonly stateMachineValidatorService: StateMachineValidatorService,
     private readonly transitionResolverService: TransitionResolverService,
     private readonly executionScope: ExecutionScope,
     private readonly memoryMonitor: WorkflowMemoryMonitorService,
     private readonly toolExecutionService: ToolExecutionService,
     private readonly documentPersistenceService: DocumentPersistenceService,
+    private readonly workflowOrchestrationService: WorkflowOrchestrationService,
   ) {}
 
   createCtx(
@@ -82,7 +84,6 @@ export class WorkflowProcessorService implements Processor {
       },
       documents: workflowEntity?.documents ?? [],
       place: workflowEntity?.place ?? 'start',
-      hashRecord: workflowEntity?.hashRecord ?? null,
       tools: {},
       result: null,
     };
@@ -131,19 +132,19 @@ export class WorkflowProcessorService implements Processor {
       const latestCheckpoint = await this.workflowStateService.getLatestCheckpoint(workflowEntity.id);
       ctx = this.createCtx(workflow, context, validArgs, workflowEntity, latestCheckpoint);
 
-      const validatorResult = this.stateMachineValidatorService.validate(workflowEntity, ctx);
+      const isInitialRun = workflowEntity.place === 'start';
 
       pendingTransition =
-        validatorResult.valid && ctx.getContext().payload?.transition?.workflowId === ctx.getContext().workflowId
+        !isInitialRun && ctx.getContext().payload?.transition?.workflowId === ctx.getContext().workflowId
           ? ctx.getContext().payload?.transition
           : undefined;
 
-      if (validatorResult.valid && !pendingTransition) {
-        this.logger.debug('Skipping processing since state is processed still valid.');
+      if (!isInitialRun && !pendingTransition) {
+        this.logger.debug('Skipping processing since state is already processed.');
         return ctx.getData();
       }
 
-      this.initStateMachine(ctx, validatorResult);
+      ctx.getManager().setData('status', WorkflowStateEnum.Running);
     }
 
     // Wire _run() on injected tools and _create() on injected documents
@@ -326,6 +327,20 @@ export class WorkflowProcessorService implements Processor {
         tool._run = function (args: Record<string, unknown>) {
           return toolExecutionService.execute(tool, args);
         };
+
+        // Wire documents inside tools so they work outside the tool proxy
+        // (e.g. when complete() is called directly by UpdateToolResult)
+        const toolDocNames = getBlockDocuments(tool.constructor);
+        for (const docName of toolDocNames) {
+          const doc = (tool as unknown as Record<string, unknown>)[docName] as BaseDocument | undefined;
+          if (doc) {
+            const documentPersistenceService = this.documentPersistenceService;
+            const blockName = docName;
+            doc._create = function (options: DocumentCreateOptions) {
+              return Promise.resolve(documentPersistenceService.create(blockName, doc, options));
+            };
+          }
+        }
       }
     }
 
@@ -342,6 +357,19 @@ export class WorkflowProcessorService implements Processor {
       }
     }
 
+    // Wire sub-workflows: proxy redirects .run() → ._run() → WorkflowOrchestrationService
+    const workflowNames = getBlockWorkflows(workflow);
+    for (const name of workflowNames) {
+      const subWorkflow = (workflow as Record<string, unknown>)[name] as BaseWorkflow | undefined;
+      if (subWorkflow) {
+        const orchestrationService = this.workflowOrchestrationService;
+        const blockName = name;
+        subWorkflow._run = function (options: LaunchWorkflowOptions) {
+          return orchestrationService.launch(blockName, subWorkflow, options);
+        };
+      }
+    }
+
     // Wire templates: create WorkflowTemplatesImpl from @Workflow({ templates }) option
     const templatesPropName = getBlockTemplatesPropertyName(workflow);
     if (templatesPropName) {
@@ -349,34 +377,6 @@ export class WorkflowProcessorService implements Processor {
       const templatePaths = options?.templates;
       if (templatePaths) {
         (workflow as Record<string, unknown>)[templatesPropName] = new WorkflowTemplatesImpl(templatePaths);
-      }
-    }
-  }
-
-  initStateMachine(ctx: WorkflowExecutionContextManager, validation: StateMachineValidatorResultInterface): void {
-    ctx.getManager().setData('status', WorkflowStateEnum.Running);
-
-    if (!validation.valid) {
-      ctx.getManager().setData('hashRecord', {
-        ...(ctx.getManager().getData('hashRecord') ?? {}),
-        ...validation.hashRecordUpdates,
-      });
-
-      ctx.getManager().setData('result', null);
-
-      // add invalidation transition if not at start place
-      const currentPlace: string = ctx.getManager().getData('place');
-      if (currentPlace !== 'start') {
-        ctx.getManager().setData('place', 'start');
-
-        ctx.getManager().setData('transition', {
-          id: 'invalidation',
-          from: currentPlace,
-          to: 'start',
-          payload: {},
-        });
-
-        ctx.getManager().checkpoint();
       }
     }
   }

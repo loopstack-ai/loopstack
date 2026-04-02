@@ -1,7 +1,7 @@
 import { Provider, Type } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { merge } from 'lodash';
-import { BaseTool, BLOCK_CONFIG_METADATA_KEY, WorkflowExecution } from '@loopstack/common';
+import { BLOCK_CONFIG_METADATA_KEY, BaseTool, WorkflowExecution } from '@loopstack/common';
 
 /**
  * Mock for Tool classes - provides standard jest mock functions

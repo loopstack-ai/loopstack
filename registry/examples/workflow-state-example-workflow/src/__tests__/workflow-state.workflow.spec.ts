@@ -53,23 +53,18 @@ describe('WorkflowStateWorkflow', () => {
     expect(result.hasError).toBe(false);
 
     // Verify createValue was called
-    expect(mockCreateValue.run).toHaveBeenCalledWith(
-      { input: 'Hello :)' },
-    );
+    expect(mockCreateValue.run).toHaveBeenCalledWith({ input: 'Hello :)' });
 
     // Verify createChatMessage was called twice with interpolated state
     expect(mockCreateChatMessage.run).toHaveBeenCalledTimes(3);
-    expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-      { role: 'assistant', content: 'Data from runtime: Hello :)' },
-    );
-    expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-      { role: 'assistant', content: 'Data from state: Hello :)' },
-    );
-    expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-      {
-        role: 'assistant',
-        content: 'Use workflow helper method: HELLO :)',
-      },
-    );
+    expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+      role: 'assistant',
+      content: 'Data from runtime: Hello :)',
+    });
+    expect(mockCreateChatMessage.run).toHaveBeenCalledWith({ role: 'assistant', content: 'Data from state: Hello :)' });
+    expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+      role: 'assistant',
+      content: 'Use workflow helper method: HELLO :)',
+    });
   });
 });

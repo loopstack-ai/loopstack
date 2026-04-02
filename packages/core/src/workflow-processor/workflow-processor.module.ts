@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
@@ -10,6 +10,7 @@ import {
 } from '@loopstack/common';
 import { CommonModule } from '../common';
 import { PersistenceModule } from '../persistence';
+import { SchedulerModule } from '../scheduler';
 import {
   BlockDiscoveryService,
   BlockProcessor,
@@ -17,8 +18,6 @@ import {
   DocumentPersistenceService,
   ProcessorFactory,
   RootProcessorService,
-  StateMachineValidatorRegistry,
-  StateMachineValidatorService,
   ToolExecutionInterceptorService,
   ToolExecutionService,
   TransitionResolverService,
@@ -28,7 +27,6 @@ import {
   WorkflowStateService,
 } from './services';
 import { ExecutionScope } from './utils';
-import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValidator } from './validators';
 
 @Module({
   imports: [
@@ -40,6 +38,7 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
       WorkflowCheckpointEntity,
     ]),
     PersistenceModule,
+    forwardRef(() => SchedulerModule),
     DiscoveryModule,
     CommonModule,
   ],
@@ -51,11 +50,6 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     BlockDiscoveryService,
 
     WorkflowStateService,
-    InitialRunValidator,
-    WorkflowDependenciesValidator,
-    WorkflowOptionValidator,
-    StateMachineValidatorRegistry,
-    StateMachineValidatorService,
     ToolExecutionInterceptorService,
     WorkflowMemoryMonitorService,
     CreateWorkflowService,

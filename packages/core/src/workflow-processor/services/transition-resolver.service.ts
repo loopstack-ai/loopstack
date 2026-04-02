@@ -106,7 +106,7 @@ export class TransitionResolverService {
       if (guard) {
         const method = (proxy as Record<string, unknown>)[guard.guardMethodName];
         if (typeof method !== 'function') continue;
-        const passes = (method as () => boolean)();
+        const passes = (method as () => boolean).call(proxy);
         if (!passes) continue;
       }
 

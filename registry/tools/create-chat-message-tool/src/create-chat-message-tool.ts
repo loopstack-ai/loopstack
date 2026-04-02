@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, DocumentEntity, InjectDocument, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
-import { CreateDocument, MessageDocument } from '@loopstack/core';
+import { BaseTool, DocumentEntity, InjectDocument, Input, Tool, ToolResult } from '@loopstack/common';
+import { MessageDocument } from '@loopstack/core';
 
 const MessageSchema = z.object({
   role: z.string(),
@@ -25,7 +25,6 @@ export class CreateChatMessage extends BaseTool {
   })
   content: CreateChatMessageInput;
 
-  @InjectTool() private createDocument: CreateDocument;
   @InjectDocument() private messageDocument: MessageDocument;
 
   async run(args: CreateChatMessageInput): Promise<ToolResult> {
@@ -33,28 +32,18 @@ export class CreateChatMessage extends BaseTool {
 
     const createdDocuments: DocumentEntity[] = [];
     for (const item of items) {
-      const createDocumentArgs = {
-        document: 'messageDocument',
-        update: {
-          content: {
-            role: item.role,
-            content: item.content,
-          },
+      const entity = await this.messageDocument.create({
+        content: {
+          role: item.role,
+          content: item.content,
         },
-        validate: 'strict' as const,
-      };
-
-      const result = await this.createDocument.run(createDocumentArgs);
-      createdDocuments.push(result.data as DocumentEntity);
+        validate: 'strict',
+      });
+      createdDocuments.push(entity);
     }
 
     return {
       data: createdDocuments,
-      effects: [
-        {
-          addWorkflowDocuments: createdDocuments,
-        },
-      ],
     };
   }
 }

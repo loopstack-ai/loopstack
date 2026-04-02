@@ -14,16 +14,9 @@ import {
   WorkflowMetadataInterface,
   WorkflowTemplates,
 } from '@loopstack/common';
-import { LinkDocument, MarkdownDocument, Task } from '@loopstack/core';
+import { LinkDocument, MarkdownDocument } from '@loopstack/core';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
-
-interface TaskRunResult {
-  mode: string;
-  correlationId: string;
-  workflowId: string;
-  eventName: string;
-}
 
 interface SubWorkflowCallbackPayload {
   workflowId: string;
@@ -42,9 +35,6 @@ interface CalendarFetchResult {
   },
 })
 export class CalendarSummaryWorkflow {
-  // Core tools
-  @InjectTool() private task: Task;
-
   // Custom tool (demonstrates building an OAuth-aware tool from scratch)
   @InjectTool() private googleCalendarFetchEvents: GoogleCalendarFetchEventsTool;
 
@@ -89,22 +79,19 @@ export class CalendarSummaryWorkflow {
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async authRequired() {
-    const taskResult: ToolResult<TaskRunResult> = await this.task.run({
-      workflow: 'oAuth',
+    const result = await this.oAuth.run({
       args: {
         provider: 'google',
         scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
       },
       callback: { transition: 'authCompleted' },
     });
-    this.authWorkflowId = taskResult.data!.workflowId;
+    this.authWorkflowId = result.workflowId;
 
     await this.linkDocument.create({
       id: 'authStatus',
       content: {
-        icon: 'LockKeyhole',
         label: 'Google authentication required',
-        caption: 'Complete sign-in to continue',
         href: `/workflows/${this.authWorkflowId}`,
         embed: true,
         expanded: true,
@@ -122,11 +109,11 @@ export class CalendarSummaryWorkflow {
     await this.linkDocument.create({
       id: 'authStatus',
       content: {
-        icon: 'ShieldCheck',
-        type: 'success',
+        status: 'success',
         label: 'Google authentication completed',
-        caption: 'Google authentication required to access your calendar.',
         href: `/workflows/${(this.runtime.transition!.payload as SubWorkflowCallbackPayload).workflowId}`,
+        embed: true,
+        expanded: false,
       },
     });
   }

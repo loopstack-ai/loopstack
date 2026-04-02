@@ -1,15 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Inject } from '@nestjs/common';
 import { toJSONSchema, z } from 'zod';
-import {
-  BaseTool,
-  DocumentInterface,
-  Input,
-  Tool,
-  ToolResult,
-  getBlockArgsSchema,
-  getBlockDocument,
-} from '@loopstack/common';
+import { BaseDocument, BaseTool, Input, Tool, ToolResult, getBlockArgsSchema } from '@loopstack/common';
 import { ClaudeGenerateToolBaseSchema } from '../schemas/claude-generate-tool-base.schema';
 import { ClaudeClientService } from '../services';
 import { ClaudeMessagesHelperService } from '../services';
@@ -18,7 +10,7 @@ import { applyCacheBreakpoints } from '../utils/cache.utils';
 export const ClaudeGenerateObjectSchema = ClaudeGenerateToolBaseSchema.extend({
   response: z.object({
     id: z.string().optional(),
-    document: z.string(),
+    document: z.custom<BaseDocument>((val) => val instanceof BaseDocument),
   }),
 }).strict();
 
@@ -58,12 +50,7 @@ export class ClaudeGenerateObject extends BaseTool {
       messages.push(...resolved);
     }
 
-    const document = getBlockDocument<DocumentInterface>(this.parent, args.response.document);
-    if (!document) {
-      throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
-    }
-
-    const responseSchema = getBlockArgsSchema(document);
+    const responseSchema = getBlockArgsSchema(args.response.document);
     if (!responseSchema) {
       throw new Error('Claude object generation source document must have a schema.');
     }

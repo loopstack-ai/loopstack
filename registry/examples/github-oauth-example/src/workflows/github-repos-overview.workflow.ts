@@ -14,7 +14,7 @@ import {
   WorkflowMetadataInterface,
   WorkflowTemplates,
 } from '@loopstack/common';
-import { LinkDocument, MarkdownDocument, Task } from '@loopstack/core';
+import { LinkDocument, MarkdownDocument } from '@loopstack/core';
 import {
   GitHubGetAuthenticatedUserTool,
   GitHubGetRepoTool,
@@ -27,13 +27,6 @@ import {
   GitHubSearchCodeTool,
 } from '@loopstack/github-module';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
-
-interface TaskRunResult {
-  mode: string;
-  correlationId: string;
-  workflowId: string;
-  eventName: string;
-}
 
 interface SubWorkflowCallbackPayload {
   workflowId: string;
@@ -108,9 +101,6 @@ interface GitHubSearchCodeResult {
   },
 })
 export class GitHubReposOverviewWorkflow {
-  // Core tools
-  @InjectTool() private task: Task;
-
   // GitHub tools
   @InjectTool() private gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool;
   @InjectTool() private gitHubListUserOrgs: GitHubListUserOrgsTool;
@@ -191,22 +181,19 @@ export class GitHubReposOverviewWorkflow {
   @Transition({ from: 'user_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async authRequired() {
-    const taskResult: ToolResult<TaskRunResult> = await this.task.run({
-      workflow: 'oAuth',
+    const result = await this.oAuth.run({
       args: {
         provider: 'github',
         scopes: ['repo', 'read:org', 'workflow'],
       },
       callback: { transition: 'authCompleted' },
     });
-    this.authWorkflowId = taskResult.data!.workflowId;
+    this.authWorkflowId = result.workflowId;
 
     await this.linkDocument.create({
       id: 'authStatus',
       content: {
-        icon: 'LockKeyhole',
         label: 'GitHub authentication required',
-        caption: 'Complete sign-in to continue',
         href: `/workflows/${this.authWorkflowId}`,
         embed: true,
         expanded: true,
@@ -224,11 +211,11 @@ export class GitHubReposOverviewWorkflow {
     await this.linkDocument.create({
       id: 'authStatus',
       content: {
-        icon: 'ShieldCheck',
-        type: 'success',
+        status: 'success',
         label: 'GitHub authentication completed',
-        caption: 'You are now authenticated with GitHub.',
         href: `/workflows/${(this.runtime.transition!.payload as SubWorkflowCallbackPayload).workflowId}`,
+        embed: true,
+        expanded: false,
       },
     });
   }

@@ -46,24 +46,18 @@ describe('WorkflowToolResultsWorkflow', () => {
       await processor.process(workflow, {}, context);
 
       // Verify CreateValue was called
-      expect(mockCreateValue.run).toHaveBeenCalledWith(
-        { input: 'Hello World.' },
-      );
+      expect(mockCreateValue.run).toHaveBeenCalledWith({ input: 'Hello World.' });
 
       // Verify CreateChatMessage received resolved template values
-      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-        {
-          role: 'assistant',
-          content: 'Data from specific call id: Hello World.',
-        },
-      );
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+        role: 'assistant',
+        content: 'Data from specific call id: Hello World.',
+      });
 
-      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-        {
-          role: 'assistant',
-          content: 'Data from first tool call: Hello World.',
-        },
-      );
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+        role: 'assistant',
+        content: 'Data from first tool call: Hello World.',
+      });
     });
 
     it('should access tool results from previous transition', async () => {
@@ -73,12 +67,10 @@ describe('WorkflowToolResultsWorkflow', () => {
 
       await processor.process(workflow, {}, context);
 
-      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-        {
-          role: 'assistant',
-          content: 'Data from previous transition: Hello World.',
-        },
-      );
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+        role: 'assistant',
+        content: 'Data from previous transition: Hello World.',
+      });
     });
 
     it('should access tool results using custom helper', async () => {
@@ -88,12 +80,10 @@ describe('WorkflowToolResultsWorkflow', () => {
 
       await processor.process(workflow, {}, context);
 
-      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-        {
-          role: 'assistant',
-          content: 'Data access using custom helper: Hello World.',
-        },
-      );
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+        role: 'assistant',
+        content: 'Data access using custom helper: Hello World.',
+      });
     });
   });
 });

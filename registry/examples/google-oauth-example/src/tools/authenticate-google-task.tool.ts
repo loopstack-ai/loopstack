@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectDocument, InjectTool, Input, Tool, ToolResult, ToolSideEffects } from '@loopstack/common';
-import { CreateDocument, LinkDocument, Task } from '@loopstack/core';
+import { BaseTool, InjectDocument, InjectWorkflow, Input, Tool, ToolResult } from '@loopstack/common';
+import { LinkDocument } from '@loopstack/core';
+import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 const AuthenticateGoogleTaskInputSchema = z
   .object({
@@ -26,69 +27,49 @@ type AuthenticateGoogleTaskInput = z.infer<typeof AuthenticateGoogleTaskInputSch
 export class AuthenticateGoogleTask extends BaseTool {
   private readonly logger = new Logger(AuthenticateGoogleTask.name);
 
-  @InjectTool() private task: Task;
-  @InjectTool() private createDocument: CreateDocument;
+  @InjectWorkflow() private oAuth: OAuthWorkflow;
   @InjectDocument() private linkDocument: LinkDocument;
 
   @Input({ schema: AuthenticateGoogleTaskInputSchema })
   args: AuthenticateGoogleTaskInput;
 
   async run(args: AuthenticateGoogleTaskInput): Promise<ToolResult> {
-    const taskResult = await this.task.run({
-      workflow: 'oAuth',
+    const result = await this.oAuth.run({
       args: { provider: 'google', scopes: args.scopes },
     });
 
-    const effects: ToolSideEffects[] = [];
-
-    const linkResult = await this.createDocument.run({
-      document: 'linkDocument',
+    await this.linkDocument.create({
       id: 'google_auth_link',
-      validate: 'skip' as const,
-      update: {
-        content: {
-          status: 'pending',
-          label: 'Google authentication required',
-          href: `/workflows/${String((taskResult.data as Record<string, unknown>).workflowId)}`,
-          embed: true,
-          expanded: true,
-        },
+      validate: 'skip',
+      content: {
+        status: 'pending',
+        label: 'Google authentication required',
+        href: `/workflows/${result.workflowId}`,
+        embed: true,
+        expanded: true,
       },
     });
-    if (linkResult.effects) {
-      effects.push(...linkResult.effects);
-    }
 
     return {
-      data: taskResult.data as Record<string, unknown>,
-      effects,
+      data: result,
     };
   }
 
   async complete(result: Record<string, unknown>): Promise<ToolResult> {
     const data = result as { workflowId?: string };
 
-    const effects: ToolSideEffects[] = [];
-
-    const linkResult = await this.createDocument.run({
-      document: 'linkDocument',
+    await this.linkDocument.create({
       id: 'google_auth_link',
-      validate: 'skip' as const,
-      update: {
-        content: {
-          status: 'success',
-          label: 'Google authentication completed',
-          href: `/workflows/${data.workflowId}`,
-        },
+      validate: 'skip',
+      content: {
+        status: 'success',
+        label: 'Google authentication completed',
+        href: `/workflows/${data.workflowId}`,
       },
     });
-    if (linkResult.effects) {
-      effects.push(...linkResult.effects);
-    }
 
     return {
       data: 'Google authentication completed successfully. You can now use Google Workspace tools.',
-      effects,
     };
   }
 }

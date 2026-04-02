@@ -10,15 +10,7 @@ import {
   generateText,
 } from 'ai';
 import { z } from 'zod';
-import {
-  BaseTool,
-  DocumentInterface,
-  Input,
-  Tool,
-  ToolResult,
-  getBlockArgsSchema,
-  getBlockDocument,
-} from '@loopstack/common';
+import { BaseDocument, BaseTool, Input, Tool, ToolResult, getBlockArgsSchema } from '@loopstack/common';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
@@ -26,7 +18,7 @@ import { AiProviderModelHelperService } from '../services';
 export const AiGenerateObjectSchema = AiGenerateToolBaseSchema.extend({
   response: z.object({
     id: z.string().optional(),
-    document: z.string(),
+    document: z.custom<BaseDocument>((val) => val instanceof BaseDocument),
   }),
 }).strict();
 
@@ -73,11 +65,7 @@ export class AiGenerateObject extends BaseTool {
       options.messages = await convertToModelMessages(messages);
     }
 
-    const document = getBlockDocument<DocumentInterface>(this.parent, args.response.document);
-    if (!document) {
-      throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
-    }
-    const responseSchema = getBlockArgsSchema(document);
+    const responseSchema = getBlockArgsSchema(args.response.document);
     if (!responseSchema) {
       throw new Error(`AI object generation source document must have a schema.`);
     }

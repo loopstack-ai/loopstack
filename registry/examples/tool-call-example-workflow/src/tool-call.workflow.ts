@@ -54,7 +54,7 @@ export class ToolCallWorkflow {
   async executeToolCalls() {
     const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.run({
       message: this.llmResult!,
-      document: 'claudeMessageDocument',
+      document: this.claudeMessageDocument,
     });
     this.delegateResult = result.data;
   }

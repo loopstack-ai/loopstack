@@ -18,7 +18,6 @@ export interface WorkflowMetadataInterface {
   place: string;
   tools: Record<string, any>;
   transition?: HistoryTransition;
-  hashRecord: Record<string, string | null> | null;
 
   result: Record<string, unknown> | null;
 }

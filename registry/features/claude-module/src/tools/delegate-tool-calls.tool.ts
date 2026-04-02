@@ -2,8 +2,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
+  BaseDocument,
   BaseTool,
-  InjectTool,
   Input,
   Tool,
   ToolResult,
@@ -11,7 +11,7 @@ import {
   getBlockArgsSchema,
   getBlockTool,
 } from '@loopstack/common';
-import { CreateDocument, EventSubscriberService, ToolExecutionService } from '@loopstack/core';
+import { EventSubscriberService, ToolExecutionService } from '@loopstack/core';
 import type { DelegateToolCallsResult, DelegateToolResultEntry } from '../types';
 
 const DelegateToolCallsSchema = z.object({
@@ -19,7 +19,7 @@ const DelegateToolCallsSchema = z.object({
     id: z.string().optional(),
     content: z.array(z.any()),
   }),
-  document: z.string().optional(),
+  document: z.custom<BaseDocument>((val) => val instanceof BaseDocument).optional(),
   skipResponseMessage: z.boolean().optional(),
   callback: z
     .object({
@@ -38,8 +38,6 @@ type DelegateToolCallsArgs = z.infer<typeof DelegateToolCallsSchema>;
 })
 export class DelegateToolCalls extends BaseTool {
   private readonly logger = new Logger(DelegateToolCalls.name);
-
-  @InjectTool() private createDocument: CreateDocument;
 
   constructor(
     private readonly toolExecutionService: ToolExecutionService,
@@ -120,14 +118,9 @@ export class DelegateToolCalls extends BaseTool {
 
     // 3. Create response document first (tool call message), then append
     //    tool execution effects (e.g. link documents) so they appear after.
-    const effects: ToolSideEffects[] = [];
     if (args.document && !args.skipResponseMessage) {
-      const docResult = await this.createResponseDocument(args, toolResults);
-      if (docResult.effects) {
-        effects.push(...docResult.effects);
-      }
+      await this.createResponseDocument(args.document, args, toolResults);
     }
-    effects.push(...toolEffects);
 
     return {
       data: {
@@ -136,7 +129,7 @@ export class DelegateToolCalls extends BaseTool {
         message: args.message as DelegateToolCallsResult['message'],
         pendingCount,
       },
-      effects,
+      effects: toolEffects.length > 0 ? toolEffects : undefined,
     };
   }
 
@@ -164,19 +157,17 @@ export class DelegateToolCalls extends BaseTool {
   }
 
   private async createResponseDocument(
+    document: BaseDocument,
     args: DelegateToolCallsArgs,
     toolResults: DelegateToolResultEntry[],
-  ): Promise<ToolResult> {
-    return this.createDocument.run({
+  ): Promise<void> {
+    await document.create({
       id: args.message.id,
-      document: args.document!,
-      validate: 'skip' as const,
-      update: {
-        content: {
-          role: 'assistant',
-          content: args.message.content,
-          toolResults,
-        },
+      validate: 'skip',
+      content: {
+        role: 'assistant',
+        content: args.message.content,
+        toolResults,
       },
     });
   }

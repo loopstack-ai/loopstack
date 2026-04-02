@@ -151,9 +151,7 @@ describe('CustomToolExampleWorkflow', () => {
       expect(result.result?.total).toBe(30);
 
       // Tool calls
-      expect(mockMathSumTool.run).toHaveBeenCalledWith(
-        { a: 10, b: 20 },
-      );
+      expect(mockMathSumTool.run).toHaveBeenCalledWith({ a: 10, b: 20 });
       expect(mockCounterTool.run).toHaveBeenCalledTimes(3);
       expect(mockCreateChatMessageTool.run).toHaveBeenCalledTimes(3);
 

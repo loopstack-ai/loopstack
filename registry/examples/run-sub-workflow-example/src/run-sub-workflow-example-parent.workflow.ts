@@ -4,21 +4,14 @@ import {
   InjectDocument,
   InjectTool,
   InjectWorkflow,
-  ToolResult,
+  LaunchWorkflowResult,
   Transition,
   Workflow,
   WorkflowMetadataInterface,
 } from '@loopstack/common';
-import { LinkDocument, Task } from '@loopstack/core';
+import { LinkDocument } from '@loopstack/core';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
-
-interface TaskRunResult {
-  mode: string;
-  correlationId: string;
-  workflowId: string;
-  eventName: string;
-}
 
 interface SubWorkflowCallbackPayload {
   workflowId: string;
@@ -31,7 +24,6 @@ interface SubWorkflowCallbackPayload {
 })
 export class RunSubWorkflowExampleParentWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;
-  @InjectTool() private task: Task;
   @InjectDocument() private linkDocument: LinkDocument;
   @InjectWorkflow() private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
 
@@ -42,13 +34,11 @@ export class RunSubWorkflowExampleParentWorkflow {
 
   @Initial({ to: 'sub_workflow_started' })
   async runWorkflow() {
-    const result: ToolResult<TaskRunResult> = await this.task.run({
-      workflow: 'runSubWorkflowExampleSub',
-      args: {},
+    const result: LaunchWorkflowResult = await this.runSubWorkflowExampleSub.run({
       callback: { transition: 'subWorkflowCallback' },
     });
 
-    this.subWorkflow1Id = result.data!.workflowId;
+    this.subWorkflow1Id = result.workflowId;
 
     await this.linkDocument.create({
       id: 'subWorkflow_link',
@@ -79,13 +69,11 @@ export class RunSubWorkflowExampleParentWorkflow {
 
   @Transition({ from: 'sub_workflow_ended', to: 'sub_workflow2_started' })
   async runWorkflow2() {
-    const result: ToolResult<TaskRunResult> = await this.task.run({
-      workflow: 'runSubWorkflowExampleSub',
-      args: {},
+    const result: LaunchWorkflowResult = await this.runSubWorkflowExampleSub.run({
       callback: { transition: 'subWorkflow2Callback' },
     });
 
-    this.subWorkflow2Id = result.data!.workflowId;
+    this.subWorkflow2Id = result.workflowId;
 
     await this.linkDocument.create({
       id: 'subWorkflow2_link',

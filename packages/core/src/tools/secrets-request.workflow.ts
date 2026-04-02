@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { Final, Initial, InjectDocument, Input, Output, Workflow, WorkflowInterface } from '@loopstack/common';
+import { BaseWorkflow, Final, Initial, InjectDocument, Input, Output, Workflow } from '@loopstack/common';
 import { SecretRequestDocument } from '../documents';
 
 @Injectable()
 @Workflow({
   uiConfig: __dirname + '/secrets-request.workflow.yaml',
 })
-export class SecretsRequestWorkflow implements WorkflowInterface {
+export class SecretsRequestWorkflow extends BaseWorkflow {
   @InjectDocument() secretRequestDocument: SecretRequestDocument;
 
   @Input({

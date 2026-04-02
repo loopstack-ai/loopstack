@@ -47,12 +47,11 @@ describe('DynamicRoutingExampleWorkflow', () => {
       expect(result.hasError).toBe(false);
 
       // Verify createChatMessage calls
-      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-        { role: 'assistant', content: 'Analysing value = 50' },
-      );
-      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-        { role: 'assistant', content: 'Value is less or equal 100' },
-      );
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith({ role: 'assistant', content: 'Analysing value = 50' });
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+        role: 'assistant',
+        content: 'Value is less or equal 100',
+      });
 
       // // Verify history contains expected places
       // const history = result.state.getHistory();
@@ -71,12 +70,11 @@ describe('DynamicRoutingExampleWorkflow', () => {
       expect(result.hasError).toBe(false);
 
       // Verify createChatMessage calls
-      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-        { role: 'assistant', content: 'Analysing value = 250' },
-      );
-      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-        { role: 'assistant', content: 'Value is greater than 200' },
-      );
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith({ role: 'assistant', content: 'Analysing value = 250' });
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+        role: 'assistant',
+        content: 'Value is greater than 200',
+      });
 
       // // Verify history contains expected places
       // const history = result.state.getHistory();
@@ -97,15 +95,11 @@ describe('DynamicRoutingExampleWorkflow', () => {
       expect(result.hasError).toBe(false);
 
       // Verify createChatMessage calls
-      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-        { role: 'assistant', content: 'Analysing value = 150' },
-      );
-      expect(mockCreateChatMessage.run).toHaveBeenCalledWith(
-        {
-          role: 'assistant',
-          content: 'Value is less or equal 200, but greater than 100',
-        },
-      );
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith({ role: 'assistant', content: 'Analysing value = 150' });
+      expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+        role: 'assistant',
+        content: 'Value is less or equal 200, but greater than 100',
+      });
 
       // // Verify history contains expected places
       // const history = result.state.getHistory();

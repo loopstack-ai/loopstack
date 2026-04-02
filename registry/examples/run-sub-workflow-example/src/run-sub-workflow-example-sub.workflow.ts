@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { Initial, InjectTool, Output, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Initial, InjectTool, Output, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
 @Workflow({
   uiConfig: __dirname + '/run-sub-workflow-example-sub.workflow.yaml',
 })
-export class RunSubWorkflowExampleSubWorkflow {
+export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;
 
   @Output({

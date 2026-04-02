@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectTool, Input, Tool, ToolResult, ToolSideEffects, getBlockTool } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core';
+import { BaseDocument, BaseTool, Input, Tool, ToolResult, ToolSideEffects, getBlockTool } from '@loopstack/common';
 
 const UpdateToolResultSchema = z.object({
   delegateResult: z.object({
@@ -11,7 +10,7 @@ const UpdateToolResultSchema = z.object({
     pendingCount: z.number(),
   }),
   completedTool: z.any(),
-  document: z.string().optional(),
+  document: z.custom<BaseDocument>((val) => val instanceof BaseDocument).optional(),
 });
 
 type UpdateToolResultArgs = z.infer<typeof UpdateToolResultSchema>;
@@ -24,8 +23,6 @@ type UpdateToolResultArgs = z.infer<typeof UpdateToolResultSchema>;
 })
 export class UpdateToolResult extends BaseTool {
   private readonly logger = new Logger(UpdateToolResult.name);
-
-  @InjectTool() private createDocument: CreateDocument;
 
   @Input({
     schema: UpdateToolResultSchema,
@@ -92,21 +89,15 @@ export class UpdateToolResult extends BaseTool {
     }
 
     if (args.document) {
-      const docResult = await this.createDocument.run({
+      await args.document.create({
         id: (delegateResult.message as Record<string, unknown>).id as string,
-        document: args.document,
-        validate: 'skip' as const,
-        update: {
-          content: {
-            role: 'assistant',
-            content: (delegateResult.message as Record<string, unknown>).content,
-            toolResults: updatedResults,
-          },
+        validate: 'skip',
+        content: {
+          role: 'assistant',
+          content: (delegateResult.message as Record<string, unknown>).content,
+          toolResults: updatedResults,
         },
       });
-      if (docResult.effects) {
-        allEffects.push(...docResult.effects);
-      }
     }
 
     return {

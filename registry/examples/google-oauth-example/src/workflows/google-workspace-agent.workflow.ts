@@ -19,7 +19,7 @@ import {
   WorkflowMetadataInterface,
   WorkflowTemplates,
 } from '@loopstack/common';
-import { LinkDocument, Task } from '@loopstack/core';
+import { LinkDocument } from '@loopstack/core';
 import {
   GmailGetMessageTool,
   GmailReplyToMessageTool,
@@ -46,7 +46,6 @@ export class GoogleWorkspaceAgentWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
   @InjectTool() delegateToolCalls: DelegateToolCalls;
   @InjectTool() updateToolResult: UpdateToolResult;
-  @InjectTool() task: Task;
   @InjectTool() authenticateGoogle: AuthenticateGoogleTask;
 
   @InjectDocument() claudeMessageDocument: ClaudeMessageDocument;
@@ -129,7 +128,7 @@ then retry. Be concise and format results using markdown.`,
   async executeToolCalls() {
     const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.run({
       message: this.llmResult!,
-      document: 'claudeMessageDocument',
+      document: this.claudeMessageDocument,
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
@@ -144,7 +143,7 @@ then retry. Be concise and format results using markdown.`,
     const result: ToolResult<DelegateToolCallsResult> = await this.updateToolResult.run({
       delegateResult: this.delegateResult!,
       completedTool: this.runtime.transition!.payload as Record<string, unknown>,
-      document: 'claudeMessageDocument',
+      document: this.claudeMessageDocument,
     });
     this.delegateResult = result.data;
   }

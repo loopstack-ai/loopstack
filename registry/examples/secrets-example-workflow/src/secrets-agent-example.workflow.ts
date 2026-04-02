@@ -73,7 +73,7 @@ Do not combine it with other tool calls.`,
   async executeToolCalls() {
     const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.run({
       message: this.llmResult!,
-      document: 'claudeMessageDocument',
+      document: this.claudeMessageDocument,
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
@@ -88,7 +88,7 @@ Do not combine it with other tool calls.`,
     const result: ToolResult<DelegateToolCallsResult> = await this.updateToolResult.run({
       delegateResult: this.delegateResult!,
       completedTool: this.runtime.transition!.payload as Record<string, unknown>,
-      document: 'claudeMessageDocument',
+      document: this.claudeMessageDocument,
     });
     this.delegateResult = result.data;
   }

@@ -30,7 +30,6 @@ export const DEFAULT_WORKFLOW_ENTITY: Partial<WorkflowEntity> = {
   createdBy: '',
   creator: {} as User,
   documents: [],
-  dependencies: [],
   result: null,
 };
 

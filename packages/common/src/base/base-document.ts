@@ -5,6 +5,7 @@ export interface CreateDocumentOptions<TContent = any> {
   content: TContent;
   id?: string;
   meta?: Record<string, unknown>;
+  validate?: 'strict' | 'safe' | 'skip';
 }
 
 /**

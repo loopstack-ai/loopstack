@@ -76,9 +76,7 @@ export class WorkflowService {
       queryBuilder.where('workflow.parent_id = :parentWorkflowId', { parentWorkflowId });
     }
 
-    queryBuilder
-      .leftJoinAndSelect('workflow.documents', 'document')
-      .leftJoinAndSelect('workflow.dependencies', 'dependencies');
+    queryBuilder.leftJoinAndSelect('workflow.documents', 'document');
 
     if (blockName) {
       queryBuilder.andWhere('workflow.block_name = :blockName', { blockName });
@@ -111,7 +109,7 @@ export class WorkflowService {
   async findById(id: string): Promise<WorkflowEntity | null> {
     return this.workflowRepository.findOne({
       where: { id },
-      relations: ['documents', 'dependencies'],
+      relations: ['documents'],
     });
   }
 

@@ -1,18 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  BaseTool,
   BaseDocument,
+  BaseTool,
+  BaseWorkflow,
   DocumentEntity,
+  LaunchWorkflowOptions,
   ToolExecutionContext,
   ToolResult,
   ToolSideEffects,
   getBlockArgsSchema,
   getBlockDocuments,
   getBlockTools,
+  getBlockWorkflows,
 } from '@loopstack/common';
 import { ExecutionScope, WorkflowExecutionContextManager } from '../utils';
 import { DocumentCreateOptions, DocumentPersistenceService } from './document-persistence.service';
 import { ToolExecutionInterceptorService } from './tool-execution-interceptor.service';
+import { WorkflowOrchestrationService } from './workflow-orchestration.service';
 
 /**
  * Executes tools called from the TypeScript-first workflow model.
@@ -34,6 +38,7 @@ export class ToolExecutionService {
     private readonly executionScope: ExecutionScope,
     private readonly interceptorService: ToolExecutionInterceptorService,
     private readonly documentPersistenceService: DocumentPersistenceService,
+    private readonly workflowOrchestrationService: WorkflowOrchestrationService,
   ) {}
 
   async execute(tool: BaseTool, args: Record<string, unknown>): Promise<ToolResult> {
@@ -88,6 +93,7 @@ export class ToolExecutionService {
   private createToolProxy(tool: BaseTool, ctx: WorkflowExecutionContextManager): BaseTool {
     const toolProps = new Set(getBlockTools(tool.constructor));
     const documentProps = new Set(getBlockDocuments(tool.constructor));
+    const workflowProps = new Set(getBlockWorkflows(tool.constructor));
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const executionService = this;
 
@@ -122,6 +128,21 @@ export class ToolExecutionService {
               if (p === 'create') {
                 return (options: DocumentCreateOptions) =>
                   Promise.resolve(executionService.documentPersistenceService.create(blockName, docInstance, options));
+              }
+              return Reflect.get(t, p, r);
+            },
+          });
+        }
+
+        // Sub-proxy for injected sub-workflows: route .run() through WorkflowOrchestrationService
+        if (workflowProps.has(prop as string) && value != null && typeof value === 'object') {
+          const subWorkflow = value as BaseWorkflow;
+          const blockName = prop as string;
+          return new Proxy(subWorkflow, {
+            get(t, p, r) {
+              if (p === 'run') {
+                return (options?: LaunchWorkflowOptions) =>
+                  executionService.workflowOrchestrationService.launch(blockName, subWorkflow, options ?? {});
               }
               return Reflect.get(t, p, r);
             },

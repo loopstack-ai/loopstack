@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import {
+  BaseWorkflow,
   Final,
   Initial,
   InjectDocument,
@@ -9,7 +10,6 @@ import {
   Output,
   ToolResult,
   Workflow,
-  WorkflowInterface,
   WorkflowMetadataInterface,
 } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents';
@@ -19,7 +19,7 @@ import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '
 @Workflow({
   uiConfig: __dirname + '/oauth.workflow.yaml',
 })
-export class OAuthWorkflow implements WorkflowInterface {
+export class OAuthWorkflow extends BaseWorkflow {
   @InjectTool() buildOAuthUrl: BuildOAuthUrlTool;
   @InjectTool() exchangeOAuthToken: ExchangeOAuthTokenTool;
   @InjectDocument() oauthPromptDocument: OAuthPromptDocument;

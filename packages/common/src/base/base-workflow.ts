@@ -6,11 +6,14 @@ export interface LaunchWorkflowOptions {
 }
 
 export interface LaunchWorkflowResult {
-  data: { workflowId: string };
+  workflowId: string;
+  correlationId: string;
+  eventName: string;
+  mode: 'async';
 }
 
 /**
- * Abstract base class for sub-workflows in the new TypeScript-first workflow model.
+ * Abstract base class for sub-workflows in the TypeScript-first workflow model.
  *
  * The workflow proxy intercepts `.run()` calls on injected sub-workflows and
  * redirects them to `_run()`, which delegates to WorkflowOrchestrationService.
@@ -18,8 +21,8 @@ export interface LaunchWorkflowResult {
 @Injectable()
 export abstract class BaseWorkflow {
   /** Public API for workflow authors */
-  run(options: LaunchWorkflowOptions): Promise<LaunchWorkflowResult> {
-    return this._run(options);
+  run(options?: LaunchWorkflowOptions): Promise<LaunchWorkflowResult> {
+    return this._run(options ?? {});
   }
 
   /**

@@ -433,9 +433,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockGetRepo.run).toHaveBeenCalledWith(
-        expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
-      );
+      expect(mockGetRepo.run).toHaveBeenCalledWith(expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }));
     });
 
     it('should pass owner and repo to gitHubListBranches', async () => {
@@ -499,9 +497,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockSearchCode.run).toHaveBeenCalledWith(
-        expect.objectContaining({ query: 'repo:octocat/Hello-World' }),
-      );
+      expect(mockSearchCode.run).toHaveBeenCalledWith(expect.objectContaining({ query: 'repo:octocat/Hello-World' }));
     });
   });
 

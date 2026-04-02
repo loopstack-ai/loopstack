@@ -10,7 +10,6 @@ import {
 } from '@loopstack/common';
 import { CommonModule } from '../common';
 import {
-  DocumentService,
   EventSubscriberService,
   SecretService,
   WorkflowCheckpointService,
@@ -30,21 +29,7 @@ import {
     ]),
     CommonModule,
   ],
-  providers: [
-    WorkflowService,
-    WorkspaceService,
-    DocumentService,
-    EventSubscriberService,
-    SecretService,
-    WorkflowCheckpointService,
-  ],
-  exports: [
-    WorkflowService,
-    WorkspaceService,
-    DocumentService,
-    EventSubscriberService,
-    SecretService,
-    WorkflowCheckpointService,
-  ],
+  providers: [WorkflowService, WorkspaceService, EventSubscriberService, SecretService, WorkflowCheckpointService],
+  exports: [WorkflowService, WorkspaceService, EventSubscriberService, SecretService, WorkflowCheckpointService],
 })
 export class PersistenceModule {}
