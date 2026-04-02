@@ -1,4 +1,3 @@
-export * from './state-machine-validator.interface.js';
 export * from './handler.interface.js';
 
 export * from './role.interface.js';
@@ -8,7 +7,6 @@ export * from './ai-provider.interface.js';
 export * from './block.interface.js';
 export * from './transition-results.types.js';
 export * from './sso-response.interface.js';
-export * from './state-machine-validator-result.interface.js';
 export * from './jwt-payload.interface.js';
 export * from './current-user.interface.js';
 export * from './persistence-state.interface.js';

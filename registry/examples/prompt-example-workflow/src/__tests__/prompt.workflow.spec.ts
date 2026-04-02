@@ -54,38 +54,32 @@ describe('PromptWorkflow', () => {
     const context = {} as RunContext;
 
     it('should execute workflow and generate haiku about a subject', async () => {
-      mockClaudeGenerateText.execute.mockResolvedValue({ data: mockLlmResponse });
-      mockCreateDocument.execute.mockResolvedValue({});
+      mockClaudeGenerateText.run.mockResolvedValue({ data: mockLlmResponse });
+      mockCreateDocument.run.mockResolvedValue({});
 
       const result = await processor.process(workflow, { subject: 'spring' }, context);
 
       expect(result.hasError).toBe(false);
 
       // Verify ClaudeGenerateText was called with correct arguments
-      expect(mockClaudeGenerateText.execute).toHaveBeenCalledTimes(1);
-      expect(mockClaudeGenerateText.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateText.run).toHaveBeenCalledTimes(1);
+      expect(mockClaudeGenerateText.run).toHaveBeenCalledWith(
         expect.objectContaining({
           claude: {
             model: 'claude-sonnet-4-6',
           },
           prompt: 'Write a haiku about spring',
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // Verify CreateDocument was called with the LLM response
-      expect(mockCreateDocument.execute).toHaveBeenCalledTimes(1);
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
+      expect(mockCreateDocument.run).toHaveBeenCalledTimes(1);
+      expect(mockCreateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           update: {
             content: mockLlmResponse,
           },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // // Verify history contains expected places
@@ -96,21 +90,18 @@ describe('PromptWorkflow', () => {
     });
 
     it('should use default subject when not provided', async () => {
-      mockClaudeGenerateText.execute.mockResolvedValue({ data: mockLlmResponse });
-      mockCreateDocument.execute.mockResolvedValue({});
+      mockClaudeGenerateText.run.mockResolvedValue({ data: mockLlmResponse });
+      mockCreateDocument.run.mockResolvedValue({});
 
       const result = await processor.process(workflow, {}, context);
 
       expect(result.hasError).toBe(false);
 
       // Verify ClaudeGenerateText was called with default subject "coffee"
-      expect(mockClaudeGenerateText.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateText.run).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: 'Write a haiku about coffee',
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
   });

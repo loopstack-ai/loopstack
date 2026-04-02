@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAvailableEnvironmentsCacheKey, getPipelineTypesCacheKey, getWorkspaceTypesCacheKey } from './query-keys';
+import { getAvailableEnvironmentsCacheKey, getWorkflowTypesCacheKey, getWorkspaceTypesCacheKey } from './query-keys';
 import { useApiClient } from './useApi';
 
 export function useWorkspaceConfig() {
@@ -11,13 +11,13 @@ export function useWorkspaceConfig() {
   });
 }
 
-export function usePipelineConfig(workspaceBlockName: string | undefined) {
+export function useWorkflowConfig(workspaceBlockName: string | undefined) {
   const { envKey, api } = useApiClient();
 
   return useQuery({
-    queryKey: getPipelineTypesCacheKey(envKey, workspaceBlockName!),
+    queryKey: getWorkflowTypesCacheKey(envKey, workspaceBlockName!),
     queryFn: () =>
-      api.config.getPipelineTypesByWorkspace({
+      api.config.getWorkflowTypesByWorkspace({
         workspaceBlockName: workspaceBlockName!,
       }),
     enabled: !!workspaceBlockName,

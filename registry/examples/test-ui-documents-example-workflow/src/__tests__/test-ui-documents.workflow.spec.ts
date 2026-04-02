@@ -35,20 +35,20 @@ describe('TestUiDocumentsWorkflow', () => {
   describe('render_all transition', () => {
     it('should create all four document types', async () => {
       const context = {} as RunContext;
-      mockCreateDocument.execute.mockResolvedValue({ data: undefined });
+      mockCreateDocument.run.mockResolvedValue({ data: undefined });
 
       await processor.process(workflow, {}, context);
 
-      expect(mockCreateDocument.execute).toHaveBeenCalledTimes(4);
+      expect(mockCreateDocument.run).toHaveBeenCalledTimes(4);
     });
 
     it('should create a message document', async () => {
       const context = {} as RunContext;
-      mockCreateDocument.execute.mockResolvedValue({ data: undefined });
+      mockCreateDocument.run.mockResolvedValue({ data: undefined });
 
       await processor.process(workflow, {}, context);
 
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
+      expect(mockCreateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           document: expect.anything(),
           update: {
@@ -58,19 +58,16 @@ describe('TestUiDocumentsWorkflow', () => {
             },
           },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
     it('should create an error document', async () => {
       const context = {} as RunContext;
-      mockCreateDocument.execute.mockResolvedValue({ data: undefined });
+      mockCreateDocument.run.mockResolvedValue({ data: undefined });
 
       await processor.process(workflow, {}, context);
 
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
+      expect(mockCreateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           document: expect.anything(),
           update: {
@@ -79,19 +76,16 @@ describe('TestUiDocumentsWorkflow', () => {
             },
           },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
     it('should create a markdown document', async () => {
       const context = {} as RunContext;
-      mockCreateDocument.execute.mockResolvedValue({ data: undefined });
+      mockCreateDocument.run.mockResolvedValue({ data: undefined });
 
       await processor.process(workflow, {}, context);
 
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
+      expect(mockCreateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           document: expect.anything(),
           update: {
@@ -100,19 +94,16 @@ describe('TestUiDocumentsWorkflow', () => {
             },
           },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
     it('should create a plain text document', async () => {
       const context = {} as RunContext;
-      mockCreateDocument.execute.mockResolvedValue({ data: undefined });
+      mockCreateDocument.run.mockResolvedValue({ data: undefined });
 
       await processor.process(workflow, {}, context);
 
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
+      expect(mockCreateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           document: expect.anything(),
           update: {
@@ -121,9 +112,6 @@ describe('TestUiDocumentsWorkflow', () => {
             },
           },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
   });

@@ -36,7 +36,7 @@ import {
 import { BlockConfig, DefineHelper, InjectDocument, InjectTool, Workflow } from '@loopstack/common';
 
 @Workflow({
-  configFile: __dirname + '/my.workflow.yaml',
+  uiConfig: __dirname + '/my.workflow.yaml',
 })
 export class MyWorkflow {
   // Tools

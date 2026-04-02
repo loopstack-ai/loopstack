@@ -54,7 +54,7 @@ describe('MeetingNotesWorkflow', () => {
     const context = {} as RunContext;
 
     it('should execute initial step and stop at waiting_for_response', async () => {
-      mockCreateDocument.execute.mockResolvedValue({
+      mockCreateDocument.run.mockResolvedValue({
         data: { content: mockInitialNotes },
       });
 
@@ -65,8 +65,8 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.stop).toBe(true);
 
       // Should call CreateDocument once for the initial form
-      expect(mockCreateDocument.execute).toHaveBeenCalledTimes(1);
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
+      expect(mockCreateDocument.run).toHaveBeenCalledTimes(1);
+      expect(mockCreateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'input',
           update: {
@@ -75,9 +75,6 @@ describe('MeetingNotesWorkflow', () => {
             },
           },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // // Verify history contains expected places
@@ -129,10 +126,10 @@ describe('MeetingNotesWorkflow', () => {
       const mockCreateDocumentWithState: ToolMock = moduleWithState.get(CreateDocument);
       const mockClaudeGenerateDocumentWithState: ToolMock = moduleWithState.get(ClaudeGenerateDocument);
 
-      mockCreateDocumentWithState.execute.mockResolvedValue({
+      mockCreateDocumentWithState.run.mockResolvedValue({
         data: { content: mockUserEditedNotes },
       });
-      mockClaudeGenerateDocumentWithState.execute.mockResolvedValue({
+      mockClaudeGenerateDocumentWithState.run.mockResolvedValue({
         data: { content: mockOptimizedNotes },
       });
 
@@ -154,27 +151,21 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.stop).toBe(true);
 
       // Should call CreateDocument once for user response
-      expect(mockCreateDocumentWithState.execute).toHaveBeenCalledTimes(1);
-      expect(mockCreateDocumentWithState.execute).toHaveBeenCalledWith(
+      expect(mockCreateDocumentWithState.run).toHaveBeenCalledTimes(1);
+      expect(mockCreateDocumentWithState.run).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'input',
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // Should call ClaudeGenerateDocument once
-      expect(mockClaudeGenerateDocumentWithState.execute).toHaveBeenCalledTimes(1);
-      expect(mockClaudeGenerateDocumentWithState.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateDocumentWithState.run).toHaveBeenCalledTimes(1);
+      expect(mockClaudeGenerateDocumentWithState.run).toHaveBeenCalledWith(
         expect.objectContaining({
           claude: {
             model: 'claude-sonnet-4-6',
           },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // // Verify history contains expected places
@@ -221,7 +212,7 @@ describe('MeetingNotesWorkflow', () => {
 
       const mockCreateDocumentWithState: ToolMock = moduleWithState.get(CreateDocument);
 
-      mockCreateDocumentWithState.execute.mockResolvedValue({
+      mockCreateDocumentWithState.run.mockResolvedValue({
         data: { content: mockFinalNotes },
       });
 
@@ -243,7 +234,7 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.stop).toBe(false);
 
       // Should call CreateDocument once for final confirmation
-      expect(mockCreateDocumentWithState.execute).toHaveBeenCalledTimes(1);
+      expect(mockCreateDocumentWithState.run).toHaveBeenCalledTimes(1);
 
       // // Verify history contains expected places including end
       // const history = result.state.getHistory();

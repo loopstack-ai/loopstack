@@ -1,102 +1,187 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { WorkflowItemInterface, WorkflowSortByInterface } from '@loopstack/contracts/api';
-import type { WorkflowInterface } from '@loopstack/contracts/types';
+import type {
+  WorkflowConfigInterface,
+  WorkflowCreateInterface,
+  WorkflowFullInterface,
+  WorkflowSortByInterface,
+  WorkflowSourceInterface,
+  WorkflowUpdateInterface,
+} from '@loopstack/contracts/api';
+import type { WorkflowCheckpoint } from '../api/workflows.ts';
 import {
-  getAllWorkflowsCacheKey,
+  getChildWorkflowsCacheKey,
   getWorkflowCacheKey,
-  getWorkflowsByPipelineCacheKey,
+  getWorkflowConfigCacheKey,
+  getWorkflowSourceCacheKey,
   getWorkflowsCacheKey,
 } from './query-keys.ts';
 import { useApiClient } from './useApi.ts';
 
-export function useWorkflow(id: string) {
+/**
+ * Fetch a single workflow (full details) by ID.
+ */
+export function useWorkflow(id: string | undefined) {
   const { envKey, api } = useApiClient();
 
-  return useQuery<WorkflowInterface>({
-    queryKey: getWorkflowCacheKey(envKey, id),
-    queryFn: () => api.workflows.getById({ id }),
+  return useQuery<WorkflowFullInterface>({
+    queryKey: getWorkflowCacheKey(envKey, id!),
+    queryFn: () => api.workflows.getById({ id: id! }),
     enabled: !!id,
   });
 }
 
-export function useFetchWorkflowsByPipeline(pipelineId: string) {
+/**
+ * Fetch a filtered, sorted, paginated list of workflows.
+ */
+export function useFilterWorkflows(
+  searchTerm: string | undefined,
+  filter: Record<string, string | null>,
+  sortBy: string = 'id',
+  order: string = 'DESC',
+  page: number = 0,
+  limit: number = 10,
+) {
   const { envKey, api } = useApiClient();
 
+  const hasFilter = Object.keys(filter).length > 0;
+  const filterStr = hasFilter ? JSON.stringify(filter) : undefined;
+
   const requestParams = {
-    filter: JSON.stringify({
-      pipelineId,
-    }),
+    ...(filterStr && { filter: filterStr }),
     sortBy: JSON.stringify([
       {
-        field: 'index',
-        order: 'ASC',
+        field: sortBy,
+        order: order,
       } as WorkflowSortByInterface,
     ]),
+    page,
+    limit,
+    ...(searchTerm && { search: searchTerm, searchColumns: JSON.stringify(['title', 'model']) }),
   };
 
   return useQuery({
-    queryKey: getWorkflowsByPipelineCacheKey(envKey, pipelineId),
+    queryKey: [...getWorkflowsCacheKey(envKey), 'list', searchTerm ?? '', filterStr ?? '', sortBy, order, page, limit],
     queryFn: () => api.workflows.getAll(requestParams),
-    select: (res) => res.data,
   });
 }
 
-export function useFetchWorkflowsByNamespace(namespaceId: string) {
+/**
+ * Create a new workflow.
+ */
+export function useCreateWorkflow() {
   const { envKey, api } = useApiClient();
+  const queryClient = useQueryClient();
 
-  const requestParams = {
-    filter: JSON.stringify({
-      namespaceId,
-    }),
-    sortBy: JSON.stringify([
-      {
-        field: 'index',
-        order: 'ASC',
-      } as WorkflowSortByInterface,
-    ]),
-  };
-
-  return useQuery({
-    queryKey: getWorkflowsCacheKey(envKey, namespaceId),
-    queryFn: () => api.workflows.getAll(requestParams),
-    select: (res) => res.data,
+  return useMutation({
+    mutationFn: (params: { workflowCreateDto: WorkflowCreateInterface }) => api.workflows.create(params),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey) });
+    },
   });
 }
 
+/**
+ * Update an existing workflow.
+ */
+export function useUpdateWorkflow() {
+  const { envKey, api } = useApiClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { id: string; workflowUpdateDto: WorkflowUpdateInterface }) => api.workflows.update(params),
+    onSuccess: (_, variables) => {
+      void queryClient.invalidateQueries({ queryKey: getWorkflowCacheKey(envKey, variables.id) });
+      void queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey) });
+    },
+  });
+}
+
+/**
+ * Delete a single workflow.
+ */
 export function useDeleteWorkflow() {
   const { envKey, api } = useApiClient();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (workflow: WorkflowItemInterface) => api.workflows.delete({ id: workflow.id }),
-    onSuccess: (_, workflow) => {
-      queryClient.removeQueries({ queryKey: getWorkflowCacheKey(envKey, workflow.id) });
-      void queryClient.invalidateQueries({
-        queryKey: getWorkflowsCacheKey(envKey, workflow.namespaceId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: getWorkflowsByPipelineCacheKey(envKey, workflow.pipelineId),
-      });
+    mutationFn: (id: string) => api.workflows.delete({ id }),
+    onSuccess: (_, id) => {
+      queryClient.removeQueries({ queryKey: getWorkflowCacheKey(envKey, id) });
+      void queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey) });
     },
   });
 }
 
-export function useFetchAllWorkflows() {
+/**
+ * Batch delete workflows.
+ */
+export function useBatchDeleteWorkflows() {
+  const { envKey, api } = useApiClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => api.workflows.batchDelete({ ids }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey) });
+    },
+  });
+}
+
+/**
+ * Fetch child workflows by parentId.
+ */
+export function useChildWorkflows(parentId: string | undefined, enabled: boolean = true) {
   const { envKey, api } = useApiClient();
 
-  const requestParams = {
-    filter: JSON.stringify({}),
-    sortBy: JSON.stringify([
-      {
-        field: 'index',
-        order: 'ASC',
-      } as WorkflowSortByInterface,
-    ]),
-  };
-
   return useQuery({
-    queryKey: getAllWorkflowsCacheKey(envKey),
-    queryFn: () => api.workflows.getAll(requestParams),
+    queryKey: getChildWorkflowsCacheKey(envKey, parentId!),
+    queryFn: () =>
+      api.workflows.getAll({
+        filter: JSON.stringify({ parentId }),
+        sortBy: JSON.stringify([{ field: 'createdAt', order: 'ASC' } as WorkflowSortByInterface]),
+        page: 0,
+        limit: 100,
+      }),
     select: (res) => res.data,
+    enabled: enabled && !!parentId,
+  });
+}
+
+/**
+ * Fetch workflow config by block name (class name).
+ */
+export function useWorkflowConfigByName(blockName: string | undefined) {
+  const { envKey, api } = useApiClient();
+
+  return useQuery<WorkflowConfigInterface>({
+    queryKey: getWorkflowConfigCacheKey(envKey, blockName!),
+    queryFn: () => api.config.getWorkflowConfig({ blockName: blockName! }),
+    enabled: !!blockName,
+  });
+}
+
+/**
+ * Fetch workflow source by block name (class name).
+ */
+export function useWorkflowSource(blockName: string | undefined) {
+  const { envKey, api } = useApiClient();
+
+  return useQuery<WorkflowSourceInterface>({
+    queryKey: getWorkflowSourceCacheKey(envKey, blockName!),
+    queryFn: () => api.config.getWorkflowSource({ blockName: blockName! }),
+    enabled: !!blockName,
+  });
+}
+
+/**
+ * Fetch checkpoints for a workflow run.
+ */
+export function useWorkflowCheckpoints(workflowId: string) {
+  const { envKey, api } = useApiClient();
+
+  return useQuery<WorkflowCheckpoint[]>({
+    queryKey: [...getWorkflowCacheKey(envKey, workflowId), 'checkpoints'],
+    queryFn: () => api.workflows.getCheckpoints({ id: workflowId }),
+    enabled: !!workflowId,
   });
 }

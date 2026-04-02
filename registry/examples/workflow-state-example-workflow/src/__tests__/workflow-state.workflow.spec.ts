@@ -46,42 +46,25 @@ describe('WorkflowStateWorkflow', () => {
   it('should execute workflow and pass state between tool calls', async () => {
     const context = new RunContext({} as RunContext);
 
-    mockCreateValue.execute.mockResolvedValue({ data: 'Hello :)' });
+    mockCreateValue.run.mockResolvedValue({ data: 'Hello :)' });
 
     const result = await processor.process(workflow, {}, context);
 
     expect(result.hasError).toBe(false);
 
     // Verify createValue was called
-    expect(mockCreateValue.execute).toHaveBeenCalledWith(
-      { input: 'Hello :)' },
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-    );
+    expect(mockCreateValue.run).toHaveBeenCalledWith({ input: 'Hello :)' });
 
     // Verify createChatMessage was called twice with interpolated state
-    expect(mockCreateChatMessage.execute).toHaveBeenCalledTimes(3);
-    expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
-      { role: 'assistant', content: 'Data from runtime: Hello :)' },
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-    );
-    expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
-      { role: 'assistant', content: 'Data from state: Hello :)' },
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-    );
-    expect(mockCreateChatMessage.execute).toHaveBeenCalledWith(
-      {
-        role: 'assistant',
-        content: 'Use workflow helper method: HELLO :)',
-      },
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-    );
+    expect(mockCreateChatMessage.run).toHaveBeenCalledTimes(3);
+    expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+      role: 'assistant',
+      content: 'Data from runtime: Hello :)',
+    });
+    expect(mockCreateChatMessage.run).toHaveBeenCalledWith({ role: 'assistant', content: 'Data from state: Hello :)' });
+    expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+      role: 'assistant',
+      content: 'Use workflow helper method: HELLO :)',
+    });
   });
 });

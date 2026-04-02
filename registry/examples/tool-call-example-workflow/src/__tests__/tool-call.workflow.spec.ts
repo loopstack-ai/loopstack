@@ -86,19 +86,19 @@ describe('ToolCallWorkflow', () => {
         ],
       };
 
-      mockCreateDocument.execute.mockResolvedValue({});
-      mockClaudeGenerateText.execute
+      mockCreateDocument.run.mockResolvedValue({});
+      mockClaudeGenerateText.run
         .mockResolvedValueOnce({ data: mockLlmResponseWithToolCall })
         .mockResolvedValueOnce({ data: mockFinalLlmResponse });
-      mockDelegateToolCalls.execute.mockResolvedValue({ data: mockToolCallResult });
+      mockDelegateToolCalls.run.mockResolvedValue({ data: mockToolCallResult });
 
       const result = await processor.process(workflow, {}, context);
 
       expect(result.hasError).toBe(false);
 
       // Should call ClaudeGenerateText twice (initial + after tool response)
-      expect(mockClaudeGenerateText.execute).toHaveBeenCalledTimes(2);
-      expect(mockClaudeGenerateText.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateText.run).toHaveBeenCalledTimes(2);
+      expect(mockClaudeGenerateText.run).toHaveBeenCalledWith(
         expect.objectContaining({
           claude: {
             model: 'claude-sonnet-4-6',
@@ -106,20 +106,14 @@ describe('ToolCallWorkflow', () => {
           messagesSearchTag: 'message',
           tools: ['getWeather'],
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // Should call DelegateToolCalls once (only when there are tool calls)
-      expect(mockDelegateToolCalls.execute).toHaveBeenCalledTimes(1);
-      expect(mockDelegateToolCalls.execute).toHaveBeenCalledWith(
+      expect(mockDelegateToolCalls.run).toHaveBeenCalledTimes(1);
+      expect(mockDelegateToolCalls.run).toHaveBeenCalledWith(
         expect.objectContaining({
           message: mockLlmResponseWithToolCall,
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
@@ -135,18 +129,18 @@ describe('ToolCallWorkflow', () => {
         ],
       };
 
-      mockCreateDocument.execute.mockResolvedValue({});
-      mockClaudeGenerateText.execute.mockResolvedValue({ data: mockLlmResponseNoToolCall });
+      mockCreateDocument.run.mockResolvedValue({});
+      mockClaudeGenerateText.run.mockResolvedValue({ data: mockLlmResponseNoToolCall });
 
       const result = await processor.process(workflow, {}, context);
 
       expect(result.hasError).toBe(false);
 
       // Should call ClaudeGenerateText once
-      expect(mockClaudeGenerateText.execute).toHaveBeenCalledTimes(1);
+      expect(mockClaudeGenerateText.run).toHaveBeenCalledTimes(1);
 
       // Should NOT call DelegateToolCalls (no tool calls in response)
-      expect(mockDelegateToolCalls.execute).not.toHaveBeenCalled();
+      expect(mockDelegateToolCalls.run).not.toHaveBeenCalled();
     });
 
     it('should handle multiple tool calls in a single LLM response', async () => {
@@ -196,24 +190,21 @@ describe('ToolCallWorkflow', () => {
         ],
       };
 
-      mockCreateDocument.execute.mockResolvedValue({});
-      mockClaudeGenerateText.execute
+      mockCreateDocument.run.mockResolvedValue({});
+      mockClaudeGenerateText.run
         .mockResolvedValueOnce({ data: mockLlmResponseWithMultipleToolCalls })
         .mockResolvedValueOnce({ data: mockFinalResponse });
-      mockDelegateToolCalls.execute.mockResolvedValue({ data: mockToolCallResults });
+      mockDelegateToolCalls.run.mockResolvedValue({ data: mockToolCallResults });
 
       const result = await processor.process(workflow, {}, context);
 
       expect(result.hasError).toBe(false);
 
       // DelegateToolCalls should receive message with multiple tool calls
-      expect(mockDelegateToolCalls.execute).toHaveBeenCalledWith(
+      expect(mockDelegateToolCalls.run).toHaveBeenCalledWith(
         expect.objectContaining({
           message: mockLlmResponseWithMultipleToolCalls,
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
   });

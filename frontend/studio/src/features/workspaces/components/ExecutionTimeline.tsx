@@ -2,22 +2,22 @@ import { useQueryClient } from '@tanstack/react-query';
 import { format, formatDistanceToNow, isToday, isYesterday, parseISO } from 'date-fns';
 import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import type { PipelineItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
-import { PipelineState } from '@loopstack/contracts/enums';
+import type { WorkflowItemInterface, WorkspaceInterface } from '@loopstack/contracts/api';
+import { WorkflowState } from '@loopstack/contracts/enums';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import CustomListView from '../../../components/lists/CustomListView.tsx';
 import { Badge } from '../../../components/ui/badge.tsx';
-import { useBatchDeletePipeline, useChildPipelines, useFilterPipelines } from '../../../hooks/usePipelines.ts';
+import { useBatchDeleteWorkflows, useChildWorkflows, useFilterWorkflows } from '../../../hooks/useWorkflows.ts';
 import { useStudio } from '../../../providers/StudioProvider.tsx';
-import CreatePipelineDialog from './NewPipelineRunDialog.tsx';
+import CreateWorkflowDialog from './NewWorkflowRunDialog.tsx';
 
-const ChildPipelineList: React.FC<{
+const ChildWorkflowList: React.FC<{
   parentId: string;
   formatUpdatedTime: (updatedAt: string) => string;
-  getPipelineStateColor: (status: PipelineState) => string;
+  getWorkflowStateColor: (status: WorkflowState) => string;
   onChildClick: (id: string) => void;
-}> = ({ parentId, formatUpdatedTime, getPipelineStateColor, onChildClick }) => {
-  const { data, isPending } = useChildPipelines(parentId, true);
+}> = ({ parentId, formatUpdatedTime, getWorkflowStateColor, onChildClick }) => {
+  const { data, isPending } = useChildWorkflows(parentId, true);
 
   if (isPending) {
     return (
@@ -27,7 +27,7 @@ const ChildPipelineList: React.FC<{
     );
   }
 
-  const children = data?.data ?? [];
+  const children = data ?? [];
 
   if (children.length === 0) {
     return <p className="py-1 pl-8 text-xs text-gray-400">No child workflows</p>;
@@ -51,7 +51,7 @@ const ChildPipelineList: React.FC<{
             <p className="text-xs text-gray-500">{child.blockName}</p>
             <p className="text-xs text-gray-400">{formatUpdatedTime(child.updatedAt)}</p>
           </div>
-          <Badge variant="default" className={getPipelineStateColor(child.status)}>
+          <Badge variant="default" className={getWorkflowStateColor(child.status)}>
             {child.status}
           </Badge>
         </div>
@@ -60,11 +60,11 @@ const ChildPipelineList: React.FC<{
   );
 };
 
-interface PipelinesProps {
+interface ExecutionTimelineProps {
   workspace: WorkspaceInterface;
 }
 
-const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
+const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
   const { router } = useStudio();
   const queryClient = useQueryClient();
 
@@ -87,7 +87,7 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
   };
 
   useEffect(() => {
-    void queryClient.invalidateQueries({ queryKey: ['pipelines'] });
+    void queryClient.invalidateQueries({ queryKey: ['workflows'] });
   }, [queryClient]);
 
   // Format updated time to show relative time for recent updates using date-fns
@@ -95,36 +95,27 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
     const updatedDate = parseISO(updatedAt);
 
     if (isToday(updatedDate)) {
-      // For today, show relative time (e.g., "2 hours ago", "30 minutes ago")
       return formatDistanceToNow(updatedDate, { addSuffix: true });
     } else if (isYesterday(updatedDate)) {
-      // For yesterday, show "Yesterday at 2:30 PM"
       return `Yesterday at ${format(updatedDate, 'h:mm a')}`;
     } else {
-      // For older dates, show date with time
       return format(updatedDate, 'MMM d, yyyy h:mm a');
     }
   };
 
-  // Fetch pipelines with pagination
-  const fetchPipelines = useFilterPipelines(
-    undefined, // no search
-    { workspaceId: workspace.id, parentId: null }, // only workspace filter
-    'createdAt', // default ordering
-    'DESC', // newest first
+  // Fetch workflows with pagination
+  const fetchWorkflows = useFilterWorkflows(
+    undefined,
+    { workspaceId: workspace.id, parentId: null },
+    'createdAt',
+    'DESC',
     page,
     rowsPerPage,
   );
 
-  // const deletePipeline = useDeletePipeline();
-  // const handleDelete = (id: string) => {
-  //   console.log(id);
-  //   deletePipeline.mutate(id);
-  // };
-
-  const batchDeletePipelines = useBatchDeletePipeline();
+  const batchDeleteWorkflows = useBatchDeleteWorkflows();
   const handleBatchDelete = (ids: string[]) => {
-    batchDeletePipelines.mutate(ids);
+    batchDeleteWorkflows.mutate(ids);
   };
 
   const handleOpen = () => {
@@ -135,29 +126,30 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
     setOpen(false);
   };
 
-  const handlePipelineClick = (id: string) => {
-    void router.navigateToPipeline(id);
+  const handleWorkflowClick = (id: string) => {
+    void router.navigateToWorkflow(id);
   };
 
-  const getPipelineStateColor = (status: PipelineState): string => {
+  const getWorkflowStateColor = (status: WorkflowState): string => {
     switch (status) {
-      case PipelineState.Completed:
+      case WorkflowState.Completed:
         return 'bg-green-600';
-      case PipelineState.Paused:
+      case WorkflowState.Paused:
         return 'bg-yellow-600';
-      case PipelineState.Failed:
+      case WorkflowState.Failed:
         return 'bg-red-600';
-      case PipelineState.Canceled:
-      case PipelineState.Pending:
-      case PipelineState.Running:
+      case WorkflowState.Canceled:
+      case WorkflowState.Pending:
+      case WorkflowState.Running:
+      default:
         return 'bg-black';
     }
   };
 
-  const pipelines = fetchPipelines.data?.data ?? [];
-  const totalItems = fetchPipelines.data?.total ?? 0;
+  const workflows = fetchWorkflows.data?.data ?? [];
+  const totalItems = fetchWorkflows.data?.total ?? 0;
 
-  const renderItem = (item: PipelineItemInterface) => (
+  const renderItem = (item: WorkflowItemInterface) => (
     <div>
       <div className="flex items-center justify-between space-x-3">
         <div>
@@ -176,18 +168,18 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
           )}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <Badge variant="default" className={getPipelineStateColor(item.status)}>
+          <Badge variant="default" className={getWorkflowStateColor(item.status)}>
             {item.status}
           </Badge>
           <span className="text-xs text-gray-400">{formatUpdatedTime(item.updatedAt)}</span>
         </div>
       </div>
       {item.hasChildren > 0 && expandedIds.has(item.id) && (
-        <ChildPipelineList
+        <ChildWorkflowList
           parentId={item.id}
           formatUpdatedTime={formatUpdatedTime}
-          getPipelineStateColor={getPipelineStateColor}
-          onChildClick={handlePipelineClick}
+          getWorkflowStateColor={getWorkflowStateColor}
+          onChildClick={handleWorkflowClick}
         />
       )}
     </div>
@@ -195,9 +187,9 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
 
   return (
     <div>
-      <ErrorSnackbar error={fetchPipelines.error} />
+      <ErrorSnackbar error={fetchWorkflows.error} />
 
-      {fetchPipelines.isPending ? (
+      {fetchWorkflows.isPending ? (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
@@ -206,11 +198,11 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
       )}
 
       <CustomListView
-        loading={fetchPipelines.isPending}
-        error={fetchPipelines.error ?? null}
-        items={pipelines}
+        loading={fetchWorkflows.isPending}
+        error={fetchWorkflows.error ?? null}
+        items={workflows}
         totalItems={totalItems}
-        onClick={handlePipelineClick}
+        onClick={handleWorkflowClick}
         handleNew={handleOpen}
         setPage={setPage}
         setRowsPerPage={setRowsPerPage}
@@ -219,19 +211,10 @@ const ExecutionTimeline: React.FC<PipelinesProps> = ({ workspace }) => {
         enableBatchActions={true}
         batchDelete={handleBatchDelete}
         itemRenderer={renderItem}
-        // rowActions={[
-        //   {
-        //     id: 'delete',
-        //     label: 'Delete',
-        //     icon: <Trash2 className="h-4 w-4" />,
-        //     variant: 'ghost' as const,
-        //     action: (item: PipelineItemInterface) => handleDelete(item.id)
-        //   }
-        // ]}
         newButtonLabel="Run"
       />
 
-      <CreatePipelineDialog isOpen={open} onOpenChange={setOpen} workspace={workspace} onSuccess={handleClose} />
+      <CreateWorkflowDialog isOpen={open} onOpenChange={setOpen} workspace={workspace} onSuccess={handleClose} />
     </div>
   );
 };

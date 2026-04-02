@@ -3,21 +3,18 @@ import { BlockConfigType } from '@loopstack/contracts/dist/types';
 import {
   BLOCK_CONFIG_METADATA_KEY,
   BlockOptions,
-  CONTEXT_METADATA_KEY,
-  ContextMetadata,
+  GUARDS_METADATA_KEY,
+  GuardMetadata,
   INJECTED_DOCUMENTS_METADATA_KEY,
+  INJECTED_TEMPLATES_METADATA_KEY,
   INJECTED_TOOLS_METADATA_KEY,
   INJECTED_WORKFLOWS_METADATA_KEY,
   INPUT_METADATA_KEY,
   InputMetadata,
   OUTPUT_METADATA_KEY,
   OutputMetadata,
-  RUNTIME_METADATA_KEY,
-  RuntimeMetadata,
-  SHARED_METADATA_KEY,
-  STATE_METADATA_KEY,
-  StateMetadata,
-  TEMPLATE_HELPER_METADATA_KEY,
+  TRANSITIONS_METADATA_KEY,
+  TransitionMetadata,
 } from '../decorators';
 import { buildConfig } from './block-config.builder.js';
 
@@ -91,23 +88,6 @@ export function getBlockWorkflows(target: object | Constructor): string[] {
 }
 
 /**
- * Gets the list of template helper method names from the decorator metadata
- */
-export function getBlockHelpers(target: object | Constructor): string[] {
-  const proto = getPrototype(target);
-  const keys = (Reflect.getMetadata(TEMPLATE_HELPER_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  return keys.map((key) => String(key));
-}
-
-/**
- * Gets the list of shared property names from the decorator metadata
- */
-export function getBlockSharedProperties(target: object | Constructor): (string | symbol)[] {
-  const ctor = getConstructor(target);
-  return (Reflect.getMetadata(SHARED_METADATA_KEY, ctor) as (string | symbol)[] | undefined) ?? [];
-}
-
-/**
  * Gets the full input metadata from the decorator
  */
 export function getBlockInputMetadata(target: object | Constructor): InputMetadata | undefined {
@@ -116,41 +96,10 @@ export function getBlockInputMetadata(target: object | Constructor): InputMetada
 }
 
 /**
- * Gets the full context metadata from the decorator
- */
-export function getBlockContextMetadata(target: object | Constructor): ContextMetadata | undefined {
-  const ctor = getConstructor(target);
-  return Reflect.getMetadata(CONTEXT_METADATA_KEY, ctor) as ContextMetadata | undefined;
-}
-
-/**
- * Gets the full runtime metadata from the decorator
- */
-export function getBlockRuntimeMetadata(target: object | Constructor): RuntimeMetadata | undefined {
-  const ctor = getConstructor(target);
-  return Reflect.getMetadata(RUNTIME_METADATA_KEY, ctor) as RuntimeMetadata | undefined;
-}
-
-/**
  * Gets the args schema from the decorator metadata
  */
 export function getBlockArgsSchema(target: object | Constructor): z.ZodType | undefined {
   return getBlockInputMetadata(target)?.schema;
-}
-
-/**
- * Gets the full state metadata from the decorator
- */
-export function getBlockStateMetadata(target: object | Constructor): StateMetadata | undefined {
-  const ctor = getConstructor(target);
-  return Reflect.getMetadata(STATE_METADATA_KEY, ctor) as StateMetadata | undefined;
-}
-
-/**
- * Gets the state schema from the decorator metadata
- */
-export function getBlockStateSchema(target: object | Constructor): z.ZodType | undefined {
-  return getBlockStateMetadata(target)?.schema;
 }
 
 /**
@@ -192,34 +141,41 @@ export function getBlockDocument<T = unknown>(target: object, name: string): T |
   return documents.includes(name) ? ((target as Record<string, unknown>)[name] as T) : undefined;
 }
 
+// --- Transition metadata getters ---
+
 /**
- * Gets a helper function by name from a block
+ * Gets all transition metadata from the class decorators
  */
-export function getBlockHelper(target: object, name: string): ((...args: unknown[]) => unknown) | undefined {
-  const helpers = getBlockHelpers(target);
-  return helpers.includes(name)
-    ? ((target as Record<string, unknown>)[name] as (...args: unknown[]) => unknown)
-    : undefined;
+export function getTransitionMetadata(target: object | Constructor): TransitionMetadata[] {
+  const ctor = getConstructor(target);
+  return (Reflect.getMetadata(TRANSITIONS_METADATA_KEY, ctor) as TransitionMetadata[]) ?? [];
 }
 
-export interface TemplateHelper {
-  name: string;
-  fn: (...args: unknown[]) => unknown;
+/**
+ * Gets all guard metadata from the class decorators
+ */
+export function getGuardMetadata(target: object | Constructor): GuardMetadata[] {
+  const ctor = getConstructor(target);
+  return (Reflect.getMetadata(GUARDS_METADATA_KEY, ctor) as GuardMetadata[]) ?? [];
 }
 
-export function getBlockTemplateHelpers(target: object): TemplateHelper[] {
-  const proto = getPrototype(target);
-  const keys = (Reflect.getMetadata(TEMPLATE_HELPER_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
-  const targetRecord = target as Record<string, unknown>;
-
-  const helpers: TemplateHelper[] = [];
-  for (const key of keys) {
-    const name = String(key);
-    const fn = targetRecord[name];
-    if (typeof fn === 'function') {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-unsafe-function-type
-      helpers.push({ name, fn: (fn as Function).bind(target) });
-    }
+/**
+ * Gets guard metadata as a Map keyed by transition method name
+ */
+export function getGuardMetadataMap(target: object | Constructor): Map<string, GuardMetadata> {
+  const guards = getGuardMetadata(target);
+  const map = new Map<string, GuardMetadata>();
+  for (const guard of guards) {
+    map.set(guard.transitionMethodName, guard);
   }
-  return helpers;
+  return map;
+}
+
+/**
+ * Gets the templates property name from @InjectTemplates() metadata
+ */
+export function getBlockTemplatesPropertyName(target: object | Constructor): string | undefined {
+  const ctor = getConstructor(target);
+  const key = Reflect.getMetadata(INJECTED_TEMPLATES_METADATA_KEY, ctor) as string | symbol | undefined;
+  return key != null ? String(key) : undefined;
 }

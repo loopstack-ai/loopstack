@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
-import { RunContext, getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
+import { getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 import { createToolTest } from '@loopstack/testing';
 import { GoogleCalendarFetchEventsTool } from '../google-calendar-fetch-events.tool';
@@ -101,7 +101,6 @@ describe('GoogleCalendarFetchEventsTool', () => {
   });
 
   describe('execution', () => {
-    const ctx = { userId: 'user-1' } as RunContext;
     const args = {
       timeMin: '2025-01-01T00:00:00Z',
       timeMax: '2025-01-07T23:59:59Z',
@@ -111,9 +110,9 @@ describe('GoogleCalendarFetchEventsTool', () => {
     it('should return unauthorized error when no valid token is available', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
 
-      const result = await tool.execute(args, ctx);
+      const result = await tool.run(args);
 
-      expect(mockTokenStore.getValidAccessToken).toHaveBeenCalledWith('user-1', 'google');
+      expect(mockTokenStore.getValidAccessToken).toHaveBeenCalled();
       expect(result.data).toEqual({
         error: 'unauthorized',
         message: 'No valid Google token found. Please authenticate first.',
@@ -146,7 +145,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         json: () => Promise.resolve(mockEvents),
       } as Response);
 
-      const result = await tool.execute(args, ctx);
+      const result = await tool.run(args);
 
       expect(result.data).toEqual({
         events: [
@@ -172,7 +171,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         statusText: 'Unauthorized',
       } as Response);
 
-      const result = await tool.execute(args, ctx);
+      const result = await tool.run(args);
 
       expect(result.data).toEqual({
         error: '401',
@@ -189,7 +188,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         statusText: 'Forbidden',
       } as Response);
 
-      const result = await tool.execute(args, ctx);
+      const result = await tool.run(args);
 
       expect(result.data).toEqual({
         error: '401',
@@ -207,7 +206,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         text: () => Promise.resolve('Server error body'),
       } as Response);
 
-      const result = await tool.execute(args, ctx);
+      const result = await tool.run(args);
 
       expect(result.data).toEqual({
         error: 'api_error',
@@ -224,7 +223,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         json: () => Promise.resolve({ items: [] }),
       } as Response);
 
-      await tool.execute({ ...args, calendarId: 'user@example.com' }, ctx);
+      await tool.run({ ...args, calendarId: 'user@example.com' });
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('calendars/user%40example.com/events'),
@@ -241,7 +240,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         json: () => Promise.resolve({ items: [] }),
       } as Response);
 
-      await tool.execute(args, ctx);
+      await tool.run(args);
 
       const fetchUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
       const url = new URL(fetchUrl);

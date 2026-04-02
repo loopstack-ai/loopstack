@@ -1,11 +1,10 @@
 import { format } from 'date-fns';
-import { ChevronRight, Clock, Loader2, Play, Wrench } from 'lucide-react';
+import { ChevronRight, Clock, Loader2, Play } from 'lucide-react';
 import React from 'react';
 import type { WorkflowItemInterface } from '@loopstack/contracts/api';
-import type { DocumentItemInterface } from '@loopstack/contracts/types';
+import type { WorkflowCheckpoint } from '@/api/workflows.ts';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
-import { useWorkflow } from '@/hooks/useWorkflows.ts';
+import { useWorkflowCheckpoints } from '@/hooks/useWorkflows.ts';
 import { cn } from '@/lib/utils.ts';
 
 interface WorkflowHistoryItemProps {
@@ -13,30 +12,11 @@ interface WorkflowHistoryItemProps {
   workflow: WorkflowItemInterface;
 }
 
-export interface HistoryTransitionMetadata {
-  place: string;
-  tools: Record<string, Record<string, unknown>>;
-  documents: DocumentItemInterface[];
-  transition: {
-    id: string;
-    from: string | null;
-    to: string;
-  };
-}
-
-export interface HistoryTransition {
-  state: Record<string, unknown>;
-  version: number;
-  data: HistoryTransitionMetadata;
-  timestamp: string;
-}
-
 const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, workflow }) => {
-  const fetchWorkflow = useWorkflow(workflowId);
-  const workflowData = fetchWorkflow.data;
-  const history = workflowData?.history as unknown as HistoryTransition[] | undefined;
+  const checkpointsQuery = useWorkflowCheckpoints(workflowId);
+  const checkpoints = checkpointsQuery.data;
 
-  if (fetchWorkflow.isLoading) {
+  if (checkpointsQuery.isLoading) {
     return (
       <li className="group/menu-item relative list-none">
         <div className="flex w-full items-center gap-2 rounded-md p-2 text-sm opacity-50">
@@ -47,7 +27,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
     );
   }
 
-  if (!history?.length) {
+  if (!checkpoints?.length) {
     return null;
   }
 
@@ -78,14 +58,10 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
                 </div>
               </div>
 
-              {history.map((entry: HistoryTransition, index: number) => {
-                console.log(entry);
-                const transition = entry.data?.transition;
-                const toolNames = Object.keys(entry.data?.tools ?? {});
-                const isLast = index === history.length - 1;
-
-                const place = entry.data?.place ?? transition?.to ?? 'unknown';
-                const transitionName = transition?.id;
+              {checkpoints.map((entry: WorkflowCheckpoint, index: number) => {
+                const isLast = index === checkpoints.length - 1;
+                const place = entry.place ?? 'unknown';
+                const transitionName = entry.transitionId;
 
                 return (
                   <div key={entry.version} className="group/entry relative flex gap-3 py-1 pl-0">
@@ -119,23 +95,9 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
                       </div>
 
                       <div className="text-muted-foreground flex items-center gap-2 text-[10px]">
-                        {toolNames.length > 0 && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex cursor-default items-center gap-0.5">
-                                <Wrench className="h-3 w-3" />
-                                <span className="tabular-nums">{toolNames.length}</span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" className="max-w-48">
-                              <p className="text-xs font-medium">Tools used:</p>
-                              <p className="text-muted-foreground text-[11px]">{toolNames.join(', ')}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
                         <div className="flex items-center gap-0.5">
                           <Clock className="h-3 w-3" />
-                          <span className="tabular-nums">{format(new Date(entry.timestamp), 'HH:mm:ss')}</span>
+                          <span className="tabular-nums">{format(new Date(entry.createdAt), 'HH:mm:ss')}</span>
                         </div>
                       </div>
                     </div>

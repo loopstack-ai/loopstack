@@ -1,5 +1,5 @@
 import { WorkflowInterface } from '../types/interfaces/workflow.interface.js';
-import { PipelineInterface } from './pipeline.interface.js';
+import { WorkflowItemInterface } from './workflow.interface.js';
 
 export interface DashboardStatsInterface {
   workspaceCount: number;
@@ -9,5 +9,5 @@ export interface DashboardStatsInterface {
   errorRuns: number;
   inProgressRuns: number;
   recentErrors: WorkflowInterface[];
-  recentRuns: PipelineInterface[];
+  recentRuns: WorkflowItemInterface[];
 }

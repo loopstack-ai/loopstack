@@ -5,40 +5,40 @@ import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { WorkflowItem } from '@/features/workbench';
 import { WorkbenchLayoutProvider } from '@/features/workbench/providers/WorkbenchLayoutProvider';
-import { usePipeline } from '../hooks/usePipelines.ts';
-import { useFetchWorkflowsByPipeline } from '../hooks/useWorkflows.ts';
+import { useChildWorkflows, useWorkflow } from '../hooks/useWorkflows.ts';
 import { requireParam } from '../lib/requireParam.ts';
 
 const EMBED_MESSAGE_TYPE = 'loopstack:embed:workflow-completed';
 const EMBED_RESIZE_MESSAGE_TYPE = 'loopstack:embed:resize';
 
 export default function EmbedWorkbenchPage() {
-  const params = useParams<{ pipelineId: string }>();
-  const pipelineId = requireParam(params, 'pipelineId');
+  const params = useParams<{ workflowId: string }>();
+  const workflowId = requireParam(params, 'workflowId');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const fetchPipeline = usePipeline(pipelineId);
-  const fetchWorkflows = useFetchWorkflowsByPipeline(pipelineId);
+  const fetchWorkflow = useWorkflow(workflowId);
+  const fetchChildWorkflows = useChildWorkflows(workflowId);
   const notifiedRef = useRef(false);
 
-  // Notify parent when all workflows have completed
+  // Notify parent when all child workflows have completed
   useEffect(() => {
-    if (!fetchWorkflows.data || notifiedRef.current) return;
+    if (!fetchChildWorkflows.data || notifiedRef.current) return;
 
     const allCompleted =
-      fetchWorkflows.data.length > 0 && fetchWorkflows.data.every((w) => w.status === WorkflowState.Completed);
+      fetchChildWorkflows.data.length > 0 &&
+      fetchChildWorkflows.data.every((w) => w.status === WorkflowState.Completed);
 
     if (allCompleted && window.parent !== window) {
       notifiedRef.current = true;
       window.parent.postMessage(
         {
           type: EMBED_MESSAGE_TYPE,
-          pipelineId,
+          workflowId,
         },
         window.location.origin,
       );
     }
-  }, [fetchWorkflows.data, pipelineId]);
+  }, [fetchChildWorkflows.data, workflowId]);
 
   // Report content height to parent for dynamic iframe sizing
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function EmbedWorkbenchPage() {
       window.parent.postMessage(
         {
           type: EMBED_RESIZE_MESSAGE_TYPE,
-          pipelineId,
+          workflowId,
           height,
         },
         window.location.origin,
@@ -65,7 +65,7 @@ export default function EmbedWorkbenchPage() {
     const observer = new ResizeObserver(postHeight);
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [pipelineId]);
+  }, [workflowId]);
 
   const scrollTo = () => {};
 
@@ -76,16 +76,16 @@ export default function EmbedWorkbenchPage() {
 
   return (
     <div ref={containerRef} className="overflow-hidden pl-3 py-4">
-      <ErrorSnackbar error={fetchPipeline.error} />
-      <ErrorSnackbar error={fetchWorkflows.error} />
-      <LoadingCentered loading={fetchPipeline.isLoading || fetchWorkflows.isLoading}>
-        {fetchPipeline.data && fetchWorkflows.data ? (
-          <WorkbenchLayoutProvider pipeline={fetchPipeline.data}>
-            {fetchWorkflows.data.map((workflow) => (
+      <ErrorSnackbar error={fetchWorkflow.error} />
+      <ErrorSnackbar error={fetchChildWorkflows.error} />
+      <LoadingCentered loading={fetchWorkflow.isLoading || fetchChildWorkflows.isLoading}>
+        {fetchWorkflow.data && fetchChildWorkflows.data ? (
+          <WorkbenchLayoutProvider workflow={fetchWorkflow.data}>
+            {fetchChildWorkflows.data.map((childWorkflow) => (
               <WorkflowItem
-                key={workflow.id}
-                pipeline={fetchPipeline.data}
-                workflowId={workflow.id}
+                key={childWorkflow.id}
+                workflow={fetchWorkflow.data}
+                workflowId={childWorkflow.id}
                 scrollTo={scrollTo}
                 settings={settings}
                 embed

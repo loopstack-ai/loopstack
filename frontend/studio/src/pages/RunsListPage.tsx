@@ -32,9 +32,9 @@ export default function RunsListPage() {
       <NewRunDialog
         open={newRunDialogOpen}
         onOpenChange={setNewRunDialogOpen}
-        onSuccess={(pipelineId) => {
+        onSuccess={(workflowId) => {
           setNewRunDialogOpen(false);
-          void router.navigateToPipeline(pipelineId);
+          void router.navigateToWorkflow(workflowId);
         }}
       />
     </MainLayout>

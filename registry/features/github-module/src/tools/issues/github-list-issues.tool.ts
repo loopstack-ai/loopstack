@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GitHubListIssuesArgs = {
@@ -19,7 +19,7 @@ export type GitHubListIssuesArgs = {
       'Lists issues for a GitHub repository. Note: the GitHub API returns both issues and pull requests; pull requests have a pull_request key. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GitHubListIssuesTool implements ToolInterface {
+export class GitHubListIssuesTool extends BaseTool {
   private readonly logger = new Logger(GitHubListIssuesTool.name);
 
   @Inject()
@@ -40,8 +40,8 @@ export class GitHubListIssuesTool implements ToolInterface {
   })
   args: GitHubListIssuesArgs;
 
-  async execute(args: GitHubListIssuesArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async run(args: GitHubListIssuesArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -71,7 +71,7 @@ export class GitHubListIssuesTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: '401',

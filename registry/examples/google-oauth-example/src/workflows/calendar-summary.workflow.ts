@@ -1,70 +1,49 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import {
-  Context,
-  DefineHelper,
+  Final,
+  Guard,
+  Initial,
   InjectDocument,
+  InjectTemplates,
   InjectTool,
   InjectWorkflow,
   Input,
-  Runtime,
-  State,
+  ToolResult,
+  Transition,
   Workflow,
-  WorkflowInterface,
+  WorkflowMetadataInterface,
+  WorkflowTemplates,
 } from '@loopstack/common';
-import { CreateDocument, LinkDocument, MarkdownDocument, Task } from '@loopstack/core';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
-import {
-  GmailGetMessageTool,
-  GmailReplyToMessageTool,
-  GmailSearchMessagesTool,
-  GmailSendMessageTool,
-  GoogleCalendarCreateEventTool,
-  GoogleCalendarFetchEventsTool as GoogleCalendarFetchEventsModuleTool,
-  GoogleCalendarListCalendarsTool,
-  GoogleDriveDownloadFileTool,
-  GoogleDriveGetFileMetadataTool,
-  GoogleDriveListFilesTool,
-  GoogleDriveUploadFileTool,
-} from '@loopstack/google-workspace-module';
+import { LinkDocument, MarkdownDocument } from '@loopstack/core';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 
-@Injectable()
-@Workflow({
-  configFile: __dirname + '/calendar-summary.workflow.yaml',
-})
-export class CalendarSummaryWorkflow implements WorkflowInterface {
-  // Core tools
-  @InjectTool() private task: Task;
-  @InjectTool() private createDocument: CreateDocument;
-  @InjectTool() private createChatMessage: CreateChatMessage;
+interface SubWorkflowCallbackPayload {
+  workflowId: string;
+  status: string;
+}
 
+interface CalendarFetchResult {
+  error?: string;
+  events?: Array<{ id: string; summary: string; start?: string; end?: string }>;
+}
+
+@Workflow({
+  uiConfig: __dirname + '/calendar-summary.workflow.yaml',
+  templates: {
+    calendarSummary: __dirname + '/templates/calendarSummary.md',
+  },
+})
+export class CalendarSummaryWorkflow {
   // Custom tool (demonstrates building an OAuth-aware tool from scratch)
   @InjectTool() private googleCalendarFetchEvents: GoogleCalendarFetchEventsTool;
-
-  // Google Calendar tools (from @loopstack/google-workspace-module)
-  @InjectTool() private googleCalendarListCalendars: GoogleCalendarListCalendarsTool;
-  @InjectTool() private googleCalendarFetchEventsModule: GoogleCalendarFetchEventsModuleTool;
-  @InjectTool() private googleCalendarCreateEvent: GoogleCalendarCreateEventTool;
-
-  // Gmail tools
-  @InjectTool() private gmailSearchMessages: GmailSearchMessagesTool;
-  @InjectTool() private gmailGetMessage: GmailGetMessageTool;
-  @InjectTool() private gmailSendMessage: GmailSendMessageTool;
-  @InjectTool() private gmailReplyToMessage: GmailReplyToMessageTool;
-
-  // Google Drive tools
-  @InjectTool() private googleDriveListFiles: GoogleDriveListFilesTool;
-  @InjectTool() private googleDriveGetFileMetadata: GoogleDriveGetFileMetadataTool;
-  @InjectTool() private googleDriveDownloadFile: GoogleDriveDownloadFileTool;
-  @InjectTool() private googleDriveUploadFile: GoogleDriveUploadFileTool;
 
   // Documents
   @InjectDocument() private linkDocument: LinkDocument;
   @InjectDocument() private markdown: MarkdownDocument;
 
   @InjectWorkflow() private oAuth: OAuthWorkflow;
+  @InjectTemplates() templates: WorkflowTemplates;
 
   @Input({
     schema: z
@@ -77,40 +56,83 @@ export class CalendarSummaryWorkflow implements WorkflowInterface {
     calendarId: string;
   };
 
-  @Context()
-  context: any;
+  private runtime: WorkflowMetadataInterface;
 
-  @Runtime()
-  runtime: any;
+  events?: Array<{ id: string; summary: string; start?: string; end?: string }>;
+  requiresAuthentication?: boolean;
+  private authWorkflowId?: string;
 
-  @State({
-    schema: z
-      .object({
-        events: z
-          .array(
-            z.object({
-              id: z.string(),
-              summary: z.string(),
-              start: z.string().optional(),
-              end: z.string().optional(),
-            }),
-          )
-          .optional(),
-        requiresAuthentication: z.boolean().optional(),
-      })
-      .strict(),
-  })
-  state: {
-    events?: Array<{ id: string; summary: string; start?: string; end?: string }>;
-  };
+  // --- Fetch events from Google Calendar ---
 
-  @DefineHelper()
-  now() {
+  @Initial({ to: 'calendar_fetched' })
+  async fetchEvents() {
+    const result: ToolResult<CalendarFetchResult> = await this.googleCalendarFetchEvents.run({
+      calendarId: this.args.calendarId,
+      timeMin: this.now(),
+      timeMax: this.endOfWeek(),
+    });
+    this.requiresAuthentication = result.data!.error === 'unauthorized';
+    this.events = result.data!.events;
+  }
+
+  // If unauthorized -> launch OAuth as sub-workflow
+  @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
+  @Guard('needsAuth')
+  async authRequired() {
+    const result = await this.oAuth.run({
+      args: {
+        provider: 'google',
+        scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+      },
+      callback: { transition: 'authCompleted' },
+    });
+    this.authWorkflowId = result.workflowId;
+
+    await this.linkDocument.create({
+      id: 'authStatus',
+      content: {
+        label: 'Google authentication required',
+        href: `/workflows/${this.authWorkflowId}`,
+        embed: true,
+        expanded: true,
+      },
+    });
+  }
+
+  needsAuth(): boolean {
+    return !!this.requiresAuthentication;
+  }
+
+  // Auth sub-workflow completed -> retry from start
+  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
+  async authCompleted() {
+    await this.linkDocument.create({
+      id: 'authStatus',
+      content: {
+        status: 'success',
+        label: 'Google authentication completed',
+        href: `/workflows/${(this.runtime.transition!.payload as SubWorkflowCallbackPayload).workflowId}`,
+        embed: true,
+        expanded: false,
+      },
+    });
+  }
+
+  // Success -> display summary
+  @Final({ from: 'calendar_fetched' })
+  async displayResults() {
+    await this.markdown.create({
+      content: {
+        markdown: this.templates.render('calendarSummary', { events: this.events }),
+      },
+    });
+  }
+
+  private now(): string {
     return new Date().toISOString();
   }
 
-  @DefineHelper()
-  endOfWeek() {
+  private endOfWeek(): string {
     const now = new Date();
     const dayOfWeek = now.getDay();
     const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek;

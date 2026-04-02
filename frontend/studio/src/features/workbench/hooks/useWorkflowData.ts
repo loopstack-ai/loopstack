@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { useFilterDocuments } from '@/hooks/useDocuments.ts';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
 
 interface UseWorkflowDataOptions {
@@ -13,7 +13,7 @@ interface UseWorkflowDataOptions {
 export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkflowDataOptions) {
   const fetchWorkflow = useWorkflow(workflowId);
   const fetchDocuments = useFilterDocuments(workflowId);
-  const runPipeline = useRunPipeline();
+  const runWorkflow = useRunWorkflow();
 
   const filterDocuments = useCallback(
     (item: DocumentItemInterface) => {
@@ -43,9 +43,9 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
 
   const handleRun = useCallback(
     (transition: string, data: Record<string, unknown> | string | undefined) => {
-      runPipeline.mutate({
-        pipelineId: fetchWorkflow.data!.pipelineId,
-        runPipelinePayloadDto: {
+      runWorkflow.mutate({
+        workflowId: fetchWorkflow.data!.parentId ?? fetchWorkflow.data!.id,
+        runWorkflowPayloadDto: {
           transition: {
             id: transition,
             workflowId: workflowId,
@@ -54,10 +54,10 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
         },
       });
     },
-    [runPipeline, fetchWorkflow.data, workflowId],
+    [runWorkflow, fetchWorkflow.data, workflowId],
   );
 
-  const isLoading = runPipeline.isPending || fetchWorkflow.data?.status === WorkflowState.Running;
+  const isLoading = runWorkflow.isPending || fetchWorkflow.data?.status === WorkflowState.Running;
 
   return {
     workflow: fetchWorkflow.data,

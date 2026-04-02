@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
-import type { TransitionPayloadInterface, UiFormType, WorkflowInterface } from '@loopstack/contracts/types';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { TransitionPayloadInterface, UiFormType } from '@loopstack/contracts/types';
+import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 
 /**
  * Resolve transition ID from document UI config.
@@ -27,11 +27,11 @@ function resolveTransition(ui: UiFormType | undefined): string | undefined {
  * Extracts the transition ID from widget options and provides a submit helper.
  */
 export function useDocumentTransition(
-  pipeline: PipelineInterface,
-  workflow: WorkflowInterface,
+  parentWorkflow: WorkflowFullInterface,
+  workflow: WorkflowFullInterface,
   ui: UiFormType | undefined,
 ) {
-  const runPipeline = useRunPipeline();
+  const runWorkflow = useRunWorkflow();
   const availableTransitions = workflow.availableTransitions?.map((t) => t.id) ?? [];
 
   const transitionId = resolveTransition(ui);
@@ -40,9 +40,9 @@ export function useDocumentTransition(
   const submit = useCallback(
     (payload: unknown) => {
       if (!transitionId || !canSubmit) return;
-      runPipeline.mutate({
-        pipelineId: pipeline.id,
-        runPipelinePayloadDto: {
+      runWorkflow.mutate({
+        workflowId: parentWorkflow.id,
+        runWorkflowPayloadDto: {
           transition: {
             id: transitionId,
             workflowId: workflow.id,
@@ -51,8 +51,8 @@ export function useDocumentTransition(
         },
       });
     },
-    [transitionId, canSubmit, runPipeline, pipeline.id, workflow.id],
+    [transitionId, canSubmit, runWorkflow, parentWorkflow.id, workflow.id],
   );
 
-  return { submit, canSubmit, isLoading: runPipeline.isPending };
+  return { submit, canSubmit, isLoading: runWorkflow.isPending };
 }

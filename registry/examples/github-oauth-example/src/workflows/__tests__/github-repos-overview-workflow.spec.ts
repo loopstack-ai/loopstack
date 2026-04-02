@@ -6,8 +6,6 @@ import {
   getBlockArgsSchema,
   getBlockConfig,
   getBlockDocuments,
-  getBlockHelper,
-  getBlockHelpers,
   getBlockStateSchema,
   getBlockTools,
 } from '@loopstack/common';
@@ -265,31 +263,11 @@ describe('GitHubReposOverviewWorkflow', () => {
     });
   });
 
-  describe('helpers', () => {
-    it('should have helpers defined', () => {
-      expect(getBlockHelpers(workflow)).toBeDefined();
-      expect(Array.isArray(getBlockHelpers(workflow))).toBe(true);
-    });
-
-    it('should have searchQuery helper registered', () => {
-      expect(getBlockHelpers(workflow)).toContain('searchQuery');
-    });
-
-    it('should execute searchQuery helper and return repo-scoped query', () => {
-      // Set args on the workflow instance so the helper can read them
-      (workflow as any).args = { owner: 'octocat', repo: 'Hello-World' };
-      const helper = getBlockHelper(workflow, 'searchQuery')!;
-      expect(helper).toBeDefined();
-      const result = helper.call(workflow);
-      expect(result).toBe('repo:octocat/Hello-World');
-    });
-  });
-
   describe('workflow execution — happy path', () => {
     const args = { owner: 'octocat', repo: 'Hello-World' };
 
     function setupAllMocks() {
-      mockGetAuthenticatedUser.execute.mockResolvedValue({
+      mockGetAuthenticatedUser.run.mockResolvedValue({
         data: {
           user: {
             id: 1,
@@ -307,13 +285,13 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListUserOrgs.execute.mockResolvedValue({
+      mockListUserOrgs.run.mockResolvedValue({
         data: {
           orgs: [{ id: 1, login: 'github', description: 'How people build software', avatarUrl: '' }],
         },
       });
 
-      mockGetRepo.execute.mockResolvedValue({
+      mockGetRepo.run.mockResolvedValue({
         data: {
           repo: {
             id: 1296269,
@@ -337,7 +315,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListBranches.execute.mockResolvedValue({
+      mockListBranches.run.mockResolvedValue({
         data: {
           branches: [
             { name: 'main', commitSha: 'abc123', protected: true },
@@ -346,7 +324,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListIssues.execute.mockResolvedValue({
+      mockListIssues.run.mockResolvedValue({
         data: {
           issues: [
             {
@@ -366,7 +344,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListPullRequests.execute.mockResolvedValue({
+      mockListPullRequests.run.mockResolvedValue({
         data: {
           pullRequests: [
             {
@@ -387,7 +365,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListDirectory.execute.mockResolvedValue({
+      mockListDirectory.run.mockResolvedValue({
         data: {
           entries: [
             { name: 'README.md', path: 'README.md', sha: 'abc', size: 1234, type: 'file', htmlUrl: '' },
@@ -396,7 +374,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListWorkflowRuns.execute.mockResolvedValue({
+      mockListWorkflowRuns.run.mockResolvedValue({
         data: {
           totalCount: 1,
           runs: [
@@ -416,7 +394,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockSearchCode.execute.mockResolvedValue({
+      mockSearchCode.run.mockResolvedValue({
         data: {
           totalCount: 1,
           results: [
@@ -426,7 +404,7 @@ describe('GitHubReposOverviewWorkflow', () => {
       });
     }
 
-    it('should execute full pipeline from start to end', async () => {
+    it('should execute full workflow from start to end', async () => {
       const context = {} as RunContext;
       setupAllMocks();
 
@@ -437,16 +415,16 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(result.place).toBe('end');
 
       // Verify all read tools were called
-      expect(mockGetAuthenticatedUser.execute).toHaveBeenCalledTimes(1);
-      expect(mockListUserOrgs.execute).toHaveBeenCalledTimes(1);
-      expect(mockGetRepo.execute).toHaveBeenCalledTimes(1);
-      expect(mockListBranches.execute).toHaveBeenCalledTimes(1);
-      expect(mockListIssues.execute).toHaveBeenCalledTimes(1);
-      expect(mockListPullRequests.execute).toHaveBeenCalledTimes(1);
-      expect(mockListDirectory.execute).toHaveBeenCalledTimes(1);
-      expect(mockListWorkflowRuns.execute).toHaveBeenCalledTimes(1);
-      expect(mockSearchCode.execute).toHaveBeenCalledTimes(1);
-      expect(mockCreateDocument.execute).toHaveBeenCalledTimes(1);
+      expect(mockGetAuthenticatedUser.run).toHaveBeenCalledTimes(1);
+      expect(mockListUserOrgs.run).toHaveBeenCalledTimes(1);
+      expect(mockGetRepo.run).toHaveBeenCalledTimes(1);
+      expect(mockListBranches.run).toHaveBeenCalledTimes(1);
+      expect(mockListIssues.run).toHaveBeenCalledTimes(1);
+      expect(mockListPullRequests.run).toHaveBeenCalledTimes(1);
+      expect(mockListDirectory.run).toHaveBeenCalledTimes(1);
+      expect(mockListWorkflowRuns.run).toHaveBeenCalledTimes(1);
+      expect(mockSearchCode.run).toHaveBeenCalledTimes(1);
+      expect(mockCreateDocument.run).toHaveBeenCalledTimes(1);
     });
 
     it('should pass owner and repo to gitHubGetRepo', async () => {
@@ -455,12 +433,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockGetRepo.execute).toHaveBeenCalledWith(
-        expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-      );
+      expect(mockGetRepo.run).toHaveBeenCalledWith(expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }));
     });
 
     it('should pass owner and repo to gitHubListBranches', async () => {
@@ -469,11 +442,8 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockListBranches.execute).toHaveBeenCalledWith(
+      expect(mockListBranches.run).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
@@ -483,11 +453,8 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockListIssues.execute).toHaveBeenCalledWith(
+      expect(mockListIssues.run).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World', state: 'open' }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
@@ -497,11 +464,8 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockListPullRequests.execute).toHaveBeenCalledWith(
+      expect(mockListPullRequests.run).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World', state: 'open' }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
@@ -511,11 +475,8 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockListDirectory.execute).toHaveBeenCalledWith(
+      expect(mockListDirectory.run).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
@@ -525,11 +486,8 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockListWorkflowRuns.execute).toHaveBeenCalledWith(
+      expect(mockListWorkflowRuns.run).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
     });
 
@@ -539,12 +497,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockSearchCode.execute).toHaveBeenCalledWith(
-        expect.objectContaining({ query: 'repo:octocat/Hello-World' }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-      );
+      expect(mockSearchCode.run).toHaveBeenCalledWith(expect.objectContaining({ query: 'repo:octocat/Hello-World' }));
     });
   });
 
@@ -552,15 +505,15 @@ describe('GitHubReposOverviewWorkflow', () => {
     it('should stop at awaiting_auth when unauthorized', async () => {
       const context = {} as RunContext;
 
-      mockGetAuthenticatedUser.execute.mockResolvedValue({
+      mockGetAuthenticatedUser.run.mockResolvedValue({
         data: {
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
       });
 
-      mockTask.execute.mockResolvedValue({
-        data: { pipelineId: 'test-pipeline-id' },
+      mockTask.run.mockResolvedValue({
+        data: { workflowId: 'test-workflow-id' },
       });
 
       const result = await processor.process(workflow, { owner: 'octocat', repo: 'Hello-World' }, context);
@@ -570,9 +523,9 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(result.stop).toBe(true);
       expect(result.place).toBe('awaiting_auth');
 
-      expect(mockGetAuthenticatedUser.execute).toHaveBeenCalledTimes(1);
-      expect(mockTask.execute).toHaveBeenCalledTimes(1);
-      expect(mockTask.execute).toHaveBeenCalledWith(
+      expect(mockGetAuthenticatedUser.run).toHaveBeenCalledTimes(1);
+      expect(mockTask.run).toHaveBeenCalledTimes(1);
+      expect(mockTask.run).toHaveBeenCalledWith(
         expect.objectContaining({
           workflow: 'oAuth',
           args: expect.objectContaining({
@@ -581,14 +534,11 @@ describe('GitHubReposOverviewWorkflow', () => {
           }),
           callback: { transition: 'auth_completed' },
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // Subsequent tools should NOT be called
-      expect(mockListUserOrgs.execute).not.toHaveBeenCalled();
-      expect(mockGetRepo.execute).not.toHaveBeenCalled();
+      expect(mockListUserOrgs.run).not.toHaveBeenCalled();
+      expect(mockGetRepo.run).not.toHaveBeenCalled();
     });
   });
 });
@@ -642,7 +592,7 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
     const mockCreateDocument: ToolMock = module.get(CreateDocument);
 
     // After auth, the workflow retries from start and succeeds
-    mockGetAuthenticatedUser.execute.mockResolvedValue({
+    mockGetAuthenticatedUser.run.mockResolvedValue({
       data: {
         user: {
           id: 1,
@@ -659,8 +609,8 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
         },
       },
     });
-    mockListUserOrgs.execute.mockResolvedValue({ data: { orgs: [] } });
-    mockGetRepo.execute.mockResolvedValue({
+    mockListUserOrgs.run.mockResolvedValue({ data: { orgs: [] } });
+    mockGetRepo.run.mockResolvedValue({
       data: {
         repo: {
           id: 1,
@@ -683,19 +633,19 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
         },
       },
     });
-    mockListBranches.execute.mockResolvedValue({ data: { branches: [] } });
-    mockListIssues.execute.mockResolvedValue({ data: { issues: [] } });
-    mockListPullRequests.execute.mockResolvedValue({ data: { pullRequests: [] } });
-    mockListDirectory.execute.mockResolvedValue({ data: { entries: [] } });
-    mockListWorkflowRuns.execute.mockResolvedValue({ data: { totalCount: 0, runs: [] } });
-    mockSearchCode.execute.mockResolvedValue({ data: { totalCount: 0, results: [] } });
+    mockListBranches.run.mockResolvedValue({ data: { branches: [] } });
+    mockListIssues.run.mockResolvedValue({ data: { issues: [] } });
+    mockListPullRequests.run.mockResolvedValue({ data: { pullRequests: [] } });
+    mockListDirectory.run.mockResolvedValue({ data: { entries: [] } });
+    mockListWorkflowRuns.run.mockResolvedValue({ data: { totalCount: 0, runs: [] } });
+    mockSearchCode.run.mockResolvedValue({ data: { totalCount: 0, results: [] } });
 
     const context = {
       payload: {
         transition: {
           id: 'auth_completed',
           workflowId,
-          payload: { pipelineId: 'auth-pipeline-id' },
+          payload: { workflowId: 'auth-workflow-id' },
         },
       },
     } as unknown as RunContext;
@@ -706,9 +656,9 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
     expect(result.hasError).toBe(false);
     expect(result.place).toBe('end');
 
-    expect(mockCreateDocument.execute).toHaveBeenCalled();
-    expect(mockGetAuthenticatedUser.execute).toHaveBeenCalledTimes(1);
-    expect(mockGetRepo.execute).toHaveBeenCalledTimes(1);
+    expect(mockCreateDocument.run).toHaveBeenCalled();
+    expect(mockGetAuthenticatedUser.run).toHaveBeenCalledTimes(1);
+    expect(mockGetRepo.run).toHaveBeenCalledTimes(1);
   });
 
   it('should resume from existing workflow state', async () => {

@@ -1,7 +1,7 @@
 import { Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import MarkdownContent from '@/components/dynamic-form/MarkdownContent.tsx';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -18,15 +18,15 @@ interface ChoicesContent {
 }
 
 interface ChoicesRendererProps {
-  pipeline: PipelineInterface;
-  workflow: WorkflowInterface;
+  parentWorkflow: WorkflowFullInterface;
+  workflow: WorkflowFullInterface;
   document: DocumentItemInterface;
   isActive: boolean;
 }
 
-const ChoicesRenderer: React.FC<ChoicesRendererProps> = ({ pipeline, workflow, document, isActive }) => {
+const ChoicesRenderer: React.FC<ChoicesRendererProps> = ({ parentWorkflow, workflow, document, isActive }) => {
   const content = document.content as ChoicesContent;
-  const { submit, canSubmit, isLoading } = useDocumentTransition(pipeline, workflow, document.ui);
+  const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, document.ui);
 
   const [selected, setSelected] = useState<string>(content.answer ?? '');
   const [customText, setCustomText] = useState('');

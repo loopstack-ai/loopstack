@@ -1,6 +1,6 @@
 import type { AxiosError } from 'axios';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { FileExplorerNodeInterface, PipelineConfigInterface } from '@loopstack/contracts/api';
+import type { FileExplorerNodeInterface, WorkflowConfigInterface } from '@loopstack/contracts/api';
 import { useFileContent, useFileTree } from '@/hooks/useFiles';
 import type { FileExplorerNode } from '../types';
 
@@ -27,7 +27,7 @@ interface CodeExplorerContextValue {
   openFiles: FileExplorerNode[];
   selectedFile: FileExplorerNode | null;
   fileContent: string | null;
-  workflowConfig: PipelineConfigInterface | null;
+  workflowConfig: WorkflowConfigInterface | null;
   isTreeLoading: boolean;
   isContentLoading: boolean;
   error: Error | null;
@@ -49,7 +49,7 @@ const CodeExplorerContext = createContext<CodeExplorerContextValue | null>(null)
 
 interface CodeExplorerProviderProps {
   children: React.ReactNode;
-  pipelineId?: string;
+  workflowId?: string;
   initialSelectedPath?: string;
   fileExplorerEnabled?: boolean;
 }
@@ -66,7 +66,7 @@ function mapDtoToNode(dto: FileExplorerNodeInterface): FileExplorerNode {
 
 export function CodeExplorerProvider({
   children,
-  pipelineId,
+  workflowId,
   initialSelectedPath,
   fileExplorerEnabled = false,
 }: CodeExplorerProviderProps) {
@@ -75,8 +75,8 @@ export function CodeExplorerProvider({
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
-  const fileTreeQuery = useFileTree(pipelineId, fileExplorerEnabled);
-  const fileContentQuery = useFileContent(pipelineId, selectedFile?.path, fileExplorerEnabled);
+  const fileTreeQuery = useFileTree(workflowId, fileExplorerEnabled);
+  const fileContentQuery = useFileContent(workflowId, selectedFile?.path, fileExplorerEnabled);
 
   const fileTree = useMemo(() => {
     if (!fileTreeQuery.data) return [];

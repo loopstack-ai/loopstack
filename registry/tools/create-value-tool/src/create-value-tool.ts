@@ -15,7 +15,7 @@ limitations under the License.
 */
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 
 const InputSchema = z
   .object({
@@ -31,7 +31,7 @@ type InputType = z.infer<typeof InputSchema>;
       'Creates a value from an expression input. This tool is helpful to debug a template expression or value in a workflow. Also it can be used to reassign a value to another using a template expression.',
   },
 })
-export class CreateValue implements ToolInterface<InputType> {
+export class CreateValue extends BaseTool {
   protected readonly logger = new Logger(CreateValue.name);
 
   @Input({
@@ -39,7 +39,7 @@ export class CreateValue implements ToolInterface<InputType> {
   })
   content: InputType;
 
-  execute(args: InputType): Promise<ToolResult> {
+  run(args: InputType): Promise<ToolResult> {
     this.logger.debug(`Created value: ${JSON.stringify(args.input)}`);
 
     return Promise.resolve({

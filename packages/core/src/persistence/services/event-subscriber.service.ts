@@ -4,12 +4,12 @@ import { Repository } from 'typeorm';
 import { EventSubscriberEntity } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 
-export interface PipelineEventPayload {
+export interface WorkflowEventPayload {
   correlationId: string;
   eventName: string;
   workspaceId: string;
   data: {
-    pipelineId: string | undefined;
+    workflowId: string | undefined;
     status: WorkflowState;
     result: Record<string, unknown> | null;
   };
@@ -25,7 +25,7 @@ export class EventSubscriberService {
   ) {}
 
   async registerSubscriber(
-    subscriberPipelineId: string | undefined,
+    subscriberRootWorkflowId: string | undefined,
     subscriberWorkflowId: string,
     subscriberTransition: string,
     eventCorrelationId: string,
@@ -48,7 +48,7 @@ export class EventSubscriberService {
     }
 
     const subscriber = this.entityRepository.create({
-      subscriberPipelineId,
+      subscriberRootWorkflowId,
       subscriberWorkflowId,
       subscriberTransition,
       eventCorrelationId,
@@ -75,9 +75,9 @@ export class EventSubscriberService {
     });
   }
 
-  async removeSubscribersByPipelineId(pipelineId: string): Promise<void> {
+  async removeSubscribersByRootWorkflowId(rootWorkflowId: string): Promise<void> {
     await this.entityRepository.delete({
-      subscriberPipelineId: pipelineId,
+      subscriberRootWorkflowId: rootWorkflowId,
     });
   }
 

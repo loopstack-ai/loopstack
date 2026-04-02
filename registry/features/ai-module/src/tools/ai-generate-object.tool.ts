@@ -10,18 +10,7 @@ import {
   generateText,
 } from 'ai';
 import { z } from 'zod';
-import {
-  DocumentInterface,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-  getBlockArgsSchema,
-  getBlockDocument,
-} from '@loopstack/common';
+import { BaseDocument, BaseTool, Input, Tool, ToolResult, getBlockArgsSchema } from '@loopstack/common';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
@@ -29,7 +18,7 @@ import { AiProviderModelHelperService } from '../services';
 export const AiGenerateObjectSchema = AiGenerateToolBaseSchema.extend({
   response: z.object({
     id: z.string().optional(),
-    document: z.string(),
+    document: z.custom<BaseDocument>((val) => val instanceof BaseDocument),
   }),
 }).strict();
 
@@ -40,7 +29,7 @@ export type AiGenerateObjectArgsType = z.infer<typeof AiGenerateObjectSchema>;
     description: 'Generates a structured object using a LLM',
   },
 })
-export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType> {
+export class AiGenerateObject extends BaseTool {
   @Inject()
   private readonly aiMessagesHelperService: AiMessagesHelperService;
 
@@ -52,12 +41,7 @@ export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType>
   })
   args: AiGenerateObjectArgsType;
 
-  async execute(
-    args: AiGenerateObjectArgsType,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async run(args: AiGenerateObjectArgsType): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {
@@ -73,7 +57,7 @@ export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType>
         content: args.prompt,
       } as ModelMessage);
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(metadata.documents, {
+      const messages = this.aiMessagesHelperService.getMessages(this.runtime.documents, {
         messages: args.messages as unknown as UIMessage[],
         messagesSearchTag: args.messagesSearchTag,
       });
@@ -81,11 +65,7 @@ export class AiGenerateObject implements ToolInterface<AiGenerateObjectArgsType>
       options.messages = await convertToModelMessages(messages);
     }
 
-    const document = getBlockDocument<DocumentInterface>(parent, args.response.document);
-    if (!document) {
-      throw new Error(`Document with name "${args.response.document}" not found in tool execution context.`);
-    }
-    const responseSchema = getBlockArgsSchema(document);
+    const responseSchema = getBlockArgsSchema(args.response.document);
     if (!responseSchema) {
       throw new Error(`AI object generation source document must have a schema.`);
     }

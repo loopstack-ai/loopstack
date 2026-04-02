@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import React from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { OAuthPromptRenderer } from '@/features/oauth';
 import AiMessage from './renderers/AiMessage.tsx';
@@ -19,8 +19,8 @@ import SecretInputRenderer from './renderers/SecretInputRenderer.tsx';
 import TextPromptRenderer from './renderers/TextPromptRenderer.tsx';
 
 export interface DocumentRendererProps {
-  pipeline: PipelineInterface;
-  workflow: WorkflowInterface;
+  parentWorkflow: WorkflowFullInterface;
+  workflow: WorkflowFullInterface;
   document: DocumentItemInterface;
   isActive: boolean;
   isLastItem: boolean;
@@ -45,10 +45,10 @@ const rendererRegistry = new Map<string, WidgetRenderer>([
   ],
   [
     'form',
-    ({ pipeline, workflow, document, isActive }) => (
+    ({ parentWorkflow, workflow, document, isActive }) => (
       <CompletionMessagePaper role={'document'} fullWidth={true} timestamp={new Date(document.createdAt)}>
         <DocumentFormRenderer
-          pipeline={pipeline}
+          parentWorkflow={parentWorkflow}
           workflow={workflow}
           document={document}
           enabled={isActive}
@@ -64,32 +64,47 @@ const rendererRegistry = new Map<string, WidgetRenderer>([
   ['link', ({ document }) => <LinkMessageRenderer document={document} />],
   [
     'oauth-prompt',
-    ({ pipeline, workflow, document, isActive }) => (
-      <OAuthPromptRenderer pipeline={pipeline} workflow={workflow} document={document} isActive={isActive} />
+    ({ parentWorkflow, workflow, document, isActive }) => (
+      <OAuthPromptRenderer
+        parentWorkflow={parentWorkflow}
+        workflow={workflow}
+        document={document}
+        isActive={isActive}
+      />
     ),
   ],
   [
     'text-prompt',
-    ({ pipeline, workflow, document, isActive }) => (
-      <TextPromptRenderer pipeline={pipeline} workflow={workflow} document={document} isActive={isActive} />
+    ({ parentWorkflow, workflow, document, isActive }) => (
+      <TextPromptRenderer parentWorkflow={parentWorkflow} workflow={workflow} document={document} isActive={isActive} />
     ),
   ],
   [
     'choices',
-    ({ pipeline, workflow, document, isActive }) => (
-      <ChoicesRenderer pipeline={pipeline} workflow={workflow} document={document} isActive={isActive} />
+    ({ parentWorkflow, workflow, document, isActive }) => (
+      <ChoicesRenderer parentWorkflow={parentWorkflow} workflow={workflow} document={document} isActive={isActive} />
     ),
   ],
   [
     'confirm-prompt',
-    ({ pipeline, workflow, document, isActive }) => (
-      <ConfirmPromptRenderer pipeline={pipeline} workflow={workflow} document={document} isActive={isActive} />
+    ({ parentWorkflow, workflow, document, isActive }) => (
+      <ConfirmPromptRenderer
+        parentWorkflow={parentWorkflow}
+        workflow={workflow}
+        document={document}
+        isActive={isActive}
+      />
     ),
   ],
   [
     'secret-input',
-    ({ pipeline, workflow, document, isActive }) => (
-      <SecretInputRenderer pipeline={pipeline} workflow={workflow} document={document} isActive={isActive} />
+    ({ parentWorkflow, workflow, document, isActive }) => (
+      <SecretInputRenderer
+        parentWorkflow={parentWorkflow}
+        workflow={workflow}
+        document={document}
+        isActive={isActive}
+      />
     ),
   ],
 ]);

@@ -2,15 +2,13 @@ import { Logger } from '@nestjs/common';
 import { ToolUIPart, UIMessage } from 'ai';
 import { z } from 'zod';
 import {
+  BaseTool,
   Input,
-  RunContext,
   Tool,
   ToolCallEntry,
   ToolCallsMap,
   ToolInterface,
   ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
   getBlockTool,
 } from '@loopstack/common';
 
@@ -36,7 +34,7 @@ type DelegateToolCallsToolArgs = z.infer<typeof DelegateToolCallsToolSchema>;
     description: 'Delegate a tool call.',
   },
 })
-export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs> {
+export class DelegateToolCall extends BaseTool {
   private readonly logger = new Logger(DelegateToolCall.name);
 
   @Input({
@@ -44,12 +42,7 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
   })
   args: DelegateToolCallsToolArgs;
 
-  async execute(
-    args: DelegateToolCallsToolArgs,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    runtime: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async run(args: DelegateToolCallsToolArgs): Promise<ToolResult> {
     const parts = args.message.parts;
     const resultParts: ToolUIPart[] = [];
     const toolCalls: ToolCallsMap = {};
@@ -65,13 +58,13 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
 
       const toolName = part.type.replace(/^tool-/, '');
 
-      const tool = getBlockTool<ToolInterface>(parent, toolName);
+      const tool = getBlockTool<ToolInterface>(this.parent, toolName);
       if (!tool) {
         throw new Error(`Tool ${toolName} not found.`);
       }
 
       try {
-        const result: ToolResult = await tool.execute(part.input as Record<string, unknown>, ctx, parent, runtime);
+        const result: ToolResult = await tool.run(part.input as Record<string, unknown>);
 
         resultParts.push({
           type: part.type as ToolUIPart['type'],
@@ -118,7 +111,7 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
     };
 
     if (args.document && !args.skipResponseMessage) {
-      const docResult = await this.createResponseMessage(args, resultMessage, ctx, parent, runtime);
+      const docResult = await this.createResponseMessage(args, resultMessage);
 
       return {
         data: resultMessage,
@@ -131,27 +124,16 @@ export class DelegateToolCall implements ToolInterface<DelegateToolCallsToolArgs
     };
   }
 
-  private async createResponseMessage(
-    args: DelegateToolCallsToolArgs,
-    resultMessage: UIMessage,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    runtime: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const createDocumentTool = getBlockTool<ToolInterface>(parent, 'createDocument');
+  private async createResponseMessage(args: DelegateToolCallsToolArgs, resultMessage: UIMessage): Promise<ToolResult> {
+    const createDocumentTool = getBlockTool<ToolInterface>(this.parent, 'createDocument');
     if (!createDocumentTool) {
       throw new Error('createDocument tool not found in parent context.');
     }
 
-    return createDocumentTool.execute(
-      {
-        id: args.message.id,
-        document: args.document,
-        update: { content: resultMessage },
-      },
-      ctx,
-      parent,
-      runtime,
-    );
+    return createDocumentTool.run({
+      id: args.message.id,
+      document: args.document,
+      update: { content: resultMessage },
+    });
   }
 }

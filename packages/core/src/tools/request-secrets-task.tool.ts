@@ -1,20 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  InjectDocument,
-  InjectTool,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  ToolSideEffects,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-} from '@loopstack/common';
+import { BaseTool, InjectDocument, InjectWorkflow, Input, Tool, ToolResult } from '@loopstack/common';
 import { LinkDocument } from '../documents';
-import { CreateDocument } from './create-document.tool';
-import { Task } from './task.tool';
+import { SecretsRequestWorkflow } from './secrets-request.workflow';
 
 const RequestSecretsTaskInputSchema = z
   .object({
@@ -38,93 +26,50 @@ type RequestSecretsTaskInput = z.infer<typeof RequestSecretsTaskInputSchema>;
       'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   },
 })
-export class RequestSecretsTask implements ToolInterface<RequestSecretsTaskInput> {
+export class RequestSecretsTask extends BaseTool {
   private readonly logger = new Logger(RequestSecretsTask.name);
 
-  @InjectTool() private task: Task;
-  @InjectTool() private createDocument: CreateDocument;
+  @InjectWorkflow() private secretsRequest: SecretsRequestWorkflow;
   @InjectDocument() private linkDocument: LinkDocument;
 
   @Input({ schema: RequestSecretsTaskInputSchema })
   args: RequestSecretsTaskInput;
 
-  async execute(
-    args: RequestSecretsTaskInput,
-    ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const taskResult = await this.task.execute(
-      { workflow: 'secretsRequest', args: { variables: args.variables } },
-      ctx,
-      parent,
-    );
+  async run(args: RequestSecretsTaskInput): Promise<ToolResult> {
+    const result = await this.secretsRequest.run({ args: { variables: args.variables } });
 
-    const effects: ToolSideEffects[] = [];
-
-    const linkResult = await this.createDocument.execute(
-      {
-        document: 'linkDocument',
-        id: 'secrets_link',
-        validate: 'skip' as const,
-        update: {
-          content: {
-            status: 'pending',
-            label: 'Requesting Secrets',
-            href: `/pipelines/${(taskResult.data as { pipelineId: string }).pipelineId}`,
-            embed: true,
-            expanded: true,
-          },
-        },
+    await this.linkDocument.create({
+      id: 'secrets_link',
+      validate: 'skip',
+      content: {
+        status: 'pending',
+        label: 'Requesting Secrets',
+        href: `/workflows/${result.workflowId}`,
+        embed: true,
+        expanded: true,
       },
-      ctx,
-      this,
-      metadata,
-    );
-    if (linkResult.effects) {
-      effects.push(...linkResult.effects);
-    }
+    });
 
     return {
-      data: taskResult.data as Record<string, unknown>,
-      effects,
+      data: result,
     };
   }
 
-  async complete(
-    result: Record<string, unknown>,
-    ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const data = result as { pipelineId?: string };
+  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+    const data = result as { workflowId?: string };
 
-    const effects: ToolSideEffects[] = [];
-
-    const linkResult = await this.createDocument.execute(
-      {
-        document: 'linkDocument',
-        id: 'secrets_link',
-        validate: 'skip' as const,
-        update: {
-          content: {
-            status: 'success',
-            label: 'Secrets have been stored',
-            href: `/pipelines/${data.pipelineId}`,
-          },
-        },
+    await this.linkDocument.create({
+      id: 'secrets_link',
+      validate: 'skip',
+      content: {
+        status: 'success',
+        label: 'Secrets have been stored',
+        href: `/workflows/${data.workflowId}`,
       },
-      ctx,
-      this,
-      metadata,
-    );
-    if (linkResult.effects) {
-      effects.push(...linkResult.effects);
-    }
+    });
 
     return {
       data: 'Secrets have been stored securely by the user.',
-      effects,
     };
   }
 }

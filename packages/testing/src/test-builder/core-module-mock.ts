@@ -3,14 +3,11 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import {
   DocumentEntity,
   EventSubscriberEntity,
-  NamespaceEntity,
-  PipelineEntity,
   SecretEntity,
   WorkflowEntity,
   WorkspaceEntity,
   WorkspaceEnvironmentEntity,
 } from '@loopstack/common';
-import { MigrationsService } from '@loopstack/core';
 
 const createMockRepository = () => ({
   find: jest.fn().mockResolvedValue([]),
@@ -26,20 +23,11 @@ const createMockRepository = () => ({
 
 export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingModuleBuilder {
   return builder
-    .overrideProvider(MigrationsService)
-    .useValue({
-      onModuleInit: jest.fn(),
-      runMigrations: jest.fn(),
-    })
-    .overrideProvider(getRepositoryToken(PipelineEntity))
-    .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkflowEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(DocumentEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkspaceEntity))
-    .useValue(createMockRepository())
-    .overrideProvider(getRepositoryToken(NamespaceEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(EventSubscriberEntity))
     .useValue(createMockRepository())

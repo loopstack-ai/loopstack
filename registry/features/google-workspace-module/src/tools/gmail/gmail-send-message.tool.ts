@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GmailSendMessageArgs = {
@@ -17,7 +17,7 @@ export type GmailSendMessageArgs = {
     description: 'Sends a new email via Gmail. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GmailSendMessageTool implements ToolInterface {
+export class GmailSendMessageTool extends BaseTool {
   private readonly logger = new Logger(GmailSendMessageTool.name);
 
   @Inject()
@@ -37,8 +37,8 @@ export class GmailSendMessageTool implements ToolInterface {
   })
   args: GmailSendMessageArgs;
 
-  async execute(args: GmailSendMessageArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async run(args: GmailSendMessageArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -66,7 +66,7 @@ export class GmailSendMessageTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Gmail API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Gmail API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

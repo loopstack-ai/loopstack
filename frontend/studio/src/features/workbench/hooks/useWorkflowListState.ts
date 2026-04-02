@@ -31,7 +31,7 @@ export function useWorkflowListState(workflows: WorkflowItemInterface[] | undefi
     if (workflows && workflows.length > 0) {
       const lastWorkflowIndex = workflows.length - 1;
       const lastWorkflow = workflows[lastWorkflowIndex];
-      const lastSectionId = `section-${lastWorkflow.index}-${lastWorkflow.id}`;
+      const lastSectionId = `section-${lastWorkflow.id}`;
 
       setExpandedSections({
         [lastSectionId]: true,

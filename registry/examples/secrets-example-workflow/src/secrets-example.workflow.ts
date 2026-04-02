@@ -1,39 +1,56 @@
-import { Injectable } from '@nestjs/common';
-import z from 'zod';
-import { InjectDocument, InjectTool, State, Workflow } from '@loopstack/common';
 import {
-  CreateDocument,
-  GetSecretKeysTool,
-  MarkdownDocument,
-  RequestSecretsTool,
-  SecretRequestDocument,
-} from '@loopstack/core';
+  Final,
+  Initial,
+  InjectDocument,
+  InjectTemplates,
+  InjectTool,
+  ToolResult,
+  Transition,
+  Workflow,
+  WorkflowTemplates,
+} from '@loopstack/common';
+import { GetSecretKeysTool, MarkdownDocument, RequestSecretsTool, SecretRequestDocument } from '@loopstack/core';
 
-@Injectable()
 @Workflow({
-  config: {
-    description: 'Test the secrets request and verification flow',
+  uiConfig: __dirname + '/secrets-example.workflow.yaml',
+  templates: {
+    secretsVerified: __dirname + '/templates/secretsVerified.md',
   },
-  configFile: __dirname + '/secrets-example.workflow.yaml',
 })
 export class SecretsExampleWorkflow {
-  @InjectTool() private createDocument: CreateDocument;
   @InjectTool() private requestSecrets: RequestSecretsTool;
   @InjectTool() private getSecretKeys: GetSecretKeysTool;
   @InjectDocument() private secretRequestDocument: SecretRequestDocument;
   @InjectDocument() private markdownDocument: MarkdownDocument;
+  @InjectTemplates() templates: WorkflowTemplates;
 
-  @State({
-    schema: z.object({
-      secretKeys: z
-        .array(
-          z.object({
-            key: z.string(),
-            hasValue: z.boolean(),
-          }),
-        )
-        .optional(),
-    }),
-  })
-  state: any;
+  secretKeys?: Array<{ key: string; hasValue: boolean }>;
+
+  @Initial({ to: 'requesting_secrets' })
+  async requestSecretsFromUser() {
+    await this.requestSecrets.run({
+      variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
+    });
+
+    await this.secretRequestDocument.create({
+      content: {
+        variables: [{ key: 'EXAMPLE_API_KEY' }, { key: 'EXAMPLE_SECRET' }],
+      },
+    });
+  }
+
+  @Transition({ from: 'requesting_secrets', to: 'verifying', wait: true })
+  async secretsSubmitted() {
+    const result: ToolResult<Array<{ key: string; hasValue: boolean }>> = await this.getSecretKeys.run(undefined);
+    this.secretKeys = result.data;
+  }
+
+  @Final({ from: 'verifying' })
+  async showResult() {
+    await this.markdownDocument.create({
+      content: {
+        markdown: this.templates.render('secretsVerified', { secretKeys: this.secretKeys }),
+      },
+    });
+  }
 }

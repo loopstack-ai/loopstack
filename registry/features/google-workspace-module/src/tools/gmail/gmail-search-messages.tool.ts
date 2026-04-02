@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GmailSearchMessagesArgs = {
@@ -16,7 +16,7 @@ export type GmailSearchMessagesArgs = {
       'Searches Gmail messages using Gmail query syntax. Returns message summaries with headers and snippets. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GmailSearchMessagesTool implements ToolInterface {
+export class GmailSearchMessagesTool extends BaseTool {
   private readonly logger = new Logger(GmailSearchMessagesTool.name);
 
   @Inject()
@@ -34,8 +34,8 @@ export class GmailSearchMessagesTool implements ToolInterface {
   })
   args: GmailSearchMessagesArgs;
 
-  async execute(args: GmailSearchMessagesArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async run(args: GmailSearchMessagesArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -63,7 +63,7 @@ export class GmailSearchMessagesTool implements ToolInterface {
 
     if (listResponse.status === 401 || listResponse.status === 403) {
       const body = await listResponse.text();
-      this.logger.warn(`Gmail API returned ${listResponse.status} for user ${ctx.userId}: ${body}`);
+      this.logger.warn(`Gmail API returned ${listResponse.status} for user ${this.context.userId}: ${body}`);
       return {
         data: {
           error: 'unauthorized',

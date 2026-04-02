@@ -1,4 +1,4 @@
-import { Files, KeyRound, ListOrdered, MonitorPlay, Navigation, Workflow } from 'lucide-react';
+import { Files, KeyRound, ListOrdered, MonitorPlay, Workflow } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { cn } from '@/lib/utils';
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
@@ -69,12 +69,6 @@ export function WorkbenchIconSidebar() {
         </>
       )}
 
-      <IconButton
-        icon={<Navigation className="h-5 w-5" />}
-        label="Navigate"
-        active={activeFloatingPanel === 'navigation'}
-        onClick={() => toggleFloatingPanel('navigation')}
-      />
       {fileExplorerEnabled && (
         <IconButton
           icon={<Files className="h-5 w-5" />}

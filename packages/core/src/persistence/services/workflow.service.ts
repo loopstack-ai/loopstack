@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
-import { PersistenceState, WorkflowEntity } from '@loopstack/common';
+import { FindOptionsWhere, Repository, SelectQueryBuilder } from 'typeorm';
+import { PersistenceState, WorkflowEntity, WorkflowState, WorkspaceEntity } from '@loopstack/common';
 import { ClientMessageService } from '../../common/services/client-message.service';
 
 @Injectable()
@@ -12,8 +12,57 @@ export class WorkflowService {
     private clientMessageService: ClientMessageService,
   ) {}
 
+  getWorkflow(id: string, userId: string, relations: string[] = ['workspace', 'workspace.environments']) {
+    const where: FindOptionsWhere<WorkflowEntity> = {
+      id,
+      createdBy: userId,
+    };
+
+    return this.workflowRepository.findOne({
+      where,
+      relations,
+    });
+  }
+
+  async createRootWorkflow(
+    data: Partial<WorkflowEntity>,
+    workspace: WorkspaceEntity,
+    user: string,
+    parent?: WorkflowEntity | null,
+  ) {
+    const lastRunNumber = await this.getMaxRun(user, workspace.id);
+
+    const workflow = this.workflowRepository.create({
+      ...data,
+      run: lastRunNumber + 1,
+      createdBy: user,
+      workspace,
+      parent: parent || null,
+    });
+    return await this.workflowRepository.save(workflow);
+  }
+
+  async setWorkflowStatus(workflow: WorkflowEntity, status: WorkflowState) {
+    workflow.status = status;
+    await this.workflowRepository.save(workflow);
+  }
+
+  async getMaxRun(userId: string, workspaceId: string): Promise<number> {
+    const query = this.workflowRepository
+      .createQueryBuilder('workflow')
+      .select('MAX(workflow.run)', 'maxRun')
+      .where('workflow.workspaceId = :workspaceId', { workspaceId });
+
+    if (userId) {
+      query.andWhere('workflow.createdBy = :userId', { userId });
+    }
+
+    const result = await query.getRawOne<{ maxRun: number | null }>();
+    return result?.maxRun ? Number(result.maxRun) : 0;
+  }
+
   private createFindQuery(
-    namespaceId?: string,
+    parentWorkflowId?: string,
     options?: {
       blockName?: string;
       labels?: string[];
@@ -23,13 +72,11 @@ export class WorkflowService {
 
     const queryBuilder = this.workflowRepository.createQueryBuilder('workflow');
 
-    if (namespaceId) {
-      queryBuilder.where('workflow.namespace_id = :namespaceId', { namespaceId });
+    if (parentWorkflowId) {
+      queryBuilder.where('workflow.parent_id = :parentWorkflowId', { parentWorkflowId });
     }
 
-    queryBuilder
-      .leftJoinAndSelect('workflow.documents', 'document')
-      .leftJoinAndSelect('workflow.dependencies', 'dependencies');
+    queryBuilder.leftJoinAndSelect('workflow.documents', 'document');
 
     if (blockName) {
       queryBuilder.andWhere('workflow.block_name = :blockName', { blockName });
@@ -50,19 +97,19 @@ export class WorkflowService {
   }
 
   async findOneByQuery(
-    namespaceId?: string,
+    parentWorkflowId?: string,
     options?: {
       blockName?: string;
       labels?: string[];
     },
   ) {
-    return this.createFindQuery(namespaceId, options).getOne();
+    return this.createFindQuery(parentWorkflowId, options).getOne();
   }
 
   async findById(id: string): Promise<WorkflowEntity | null> {
     return this.workflowRepository.findOne({
       where: { id },
-      relations: ['documents', 'dependencies'],
+      relations: ['documents'],
     });
   }
 
@@ -81,8 +128,6 @@ export class WorkflowService {
 
   async save(entity: WorkflowEntity, persistenceState: PersistenceState) {
     const savedEntity = await this.workflowRepository.save(entity);
-
-    // todo: add persistence states for workflow props too or use more specific events
 
     this.clientMessageService.dispatchWorkflowEvent('workflow.updated', savedEntity);
     if (persistenceState.documentsUpdated) {

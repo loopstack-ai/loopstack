@@ -31,7 +31,7 @@ import { InjectTool, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from './create-chat-message-tool';
 
 @Workflow({
-  configFile: __dirname + '/my.workflow.yaml',
+  uiConfig: __dirname + '/my.workflow.yaml',
 })
 export class MyWorkflow {
   @InjectTool() createChatMessage: CreateChatMessage;

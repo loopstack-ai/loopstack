@@ -1,35 +1,67 @@
-import { Context, Input, Runtime, Shared, State, Workflow } from '@loopstack/common';
+import { InjectDocument, InjectTemplates, InjectTool, Input, Workflow } from '@loopstack/common';
 import { RunContext } from '@loopstack/common';
 import { ExecutionContextManager } from '../execution-context-manager';
 import { StateManager } from '../state/state-manager';
 
+// Mock tool with _run
+class MockTool {
+  run(_args: Record<string, unknown>) {
+    return Promise.resolve({ data: 'from-run' });
+  }
+  _run(_args: Record<string, unknown>) {
+    return Promise.resolve({ data: 'from-_run' });
+  }
+}
+
+// Mock document with _create
+class MockDocument {
+  create(_options: Record<string, unknown>) {
+    return Promise.resolve({ id: 'from-create' });
+  }
+  _create(_options: Record<string, unknown>) {
+    return Promise.resolve({ id: 'from-_create' });
+  }
+}
+
 @Workflow()
 class TestWorkflow {
-  @State({ schema: undefined })
-  state: { message?: string };
-
-  @Runtime()
-  runtime: any;
+  @InjectTool() mockTool: MockTool;
+  @InjectDocument() mockDocument: MockDocument;
+  @InjectTemplates() templates: any;
 
   @Input({ schema: undefined })
   args: any;
 
-  @Context()
-  context: any;
+  // State properties — no decorator needed
+  llmResult?: any;
+  counter?: number;
 
-  @Shared()
-  sharedCounter = 0;
+  // Proxy-resolved properties
+  private runtime: any;
+  private context: any;
 
-  undecorated = 'initial';
+  someMethod() {
+    return 'method-result';
+  }
 }
 
-function createExecutionContext(instance: any, stateData: Record<string, any> = {}) {
+function createExecutionContext(
+  instance: any,
+  metadataOverrides: Record<string, any> = {},
+  args: Record<string, any> = {},
+) {
   const context = new RunContext({
     workspaceId: 'test-workspace',
     options: { stateless: true },
   } as RunContext);
-  const stateManager = new StateManager(undefined, stateData, null);
-  return new ExecutionContextManager(instance, context, {}, stateManager);
+  const initialData = {
+    place: 'start',
+    tools: {},
+    documents: [],
+    ...metadataOverrides,
+  };
+  const stateManager = new StateManager(undefined, initialData, null);
+  return new ExecutionContextManager(instance, context, args, stateManager);
 }
 
 describe('wrapBlockProxy', () => {
@@ -37,137 +69,128 @@ describe('wrapBlockProxy', () => {
 
   beforeEach(() => {
     workflow = new TestWorkflow();
+    workflow.mockTool = new MockTool();
+    workflow.mockDocument = new MockDocument();
+    workflow.templates = { render: () => 'rendered' };
   });
 
-  describe('state isolation', () => {
-    it('should read state from StateManager, not from singleton', () => {
-      const ctx = createExecutionContext(workflow, {});
-      ctx.getManager().setState({ message: 'from-state-manager' });
-
-      const wrapped = ctx.getInstance() as unknown as TestWorkflow;
-      expect(wrapped.state).toEqual({ message: 'from-state-manager' });
-    });
-
-    it('should isolate state between concurrent execution contexts', () => {
-      const ctxA = createExecutionContext(workflow);
-      const ctxB = createExecutionContext(workflow);
-
-      ctxA.getManager().setState({ message: 'A' });
-      ctxB.getManager().setState({ message: 'B' });
-
-      expect((ctxA.getInstance() as unknown as TestWorkflow).state).toEqual({ message: 'A' });
-      expect((ctxB.getInstance() as unknown as TestWorkflow).state).toEqual({ message: 'B' });
-    });
-
-    it('should redirect state writes to StateManager', () => {
-      const ctx = createExecutionContext(workflow);
-      const wrapped = ctx.getInstance();
-
-      (wrapped as any).state = { message: 'updated' };
-
-      expect(ctx.getManager().getAll()).toEqual({ message: 'updated' });
-      expect(workflow.state).toBeUndefined();
-    });
-  });
-
-  describe('runtime isolation', () => {
-    it('should read runtime from StateManager data', () => {
+  describe('fixed proxy properties', () => {
+    it('should resolve this.runtime from ctxManager.getData()', () => {
       const ctx = createExecutionContext(workflow, {
         tools: { someTransition: { data: 'result' } },
       });
-
-      const wrapped = ctx.getInstance();
-      expect((wrapped as any).runtime.tools).toEqual({
-        someTransition: { data: 'result' },
-      });
+      const wrapped = ctx.getInstance() as any;
+      expect(wrapped.runtime.tools).toEqual({ someTransition: { data: 'result' } });
     });
 
-    it('should isolate runtime between concurrent execution contexts', () => {
-      const ctxA = createExecutionContext(workflow, {
-        tools: { t: { data: 'A' } },
-      });
-      const ctxB = createExecutionContext(workflow, {
-        tools: { t: { data: 'B' } },
-      });
+    it('should resolve this.context from ctxManager.getContext()', () => {
+      const ctx = createExecutionContext(workflow);
+      const wrapped = ctx.getInstance() as any;
+      expect(wrapped.context.workspaceId).toBe('test-workspace');
+    });
 
-      expect((ctxA.getInstance() as any).runtime.tools.t.data).toBe('A');
-      expect((ctxB.getInstance() as any).runtime.tools.t.data).toBe('B');
+    it('should resolve this.args from ctxManager.getArgs()', () => {
+      const ctx = createExecutionContext(workflow, {}, { subject: 'test' });
+      const wrapped = ctx.getInstance() as any;
+      expect(wrapped.args.subject).toBe('test');
     });
 
     it('should throw when writing to runtime', () => {
       const ctx = createExecutionContext(workflow);
-      const wrapped = ctx.getInstance();
-
       expect(() => {
-        (wrapped as any).runtime = {};
-      }).toThrow('Cannot modify workflow runtime');
-    });
-  });
-
-  describe('args and context isolation', () => {
-    it('should throw when writing to args', () => {
-      const ctx = createExecutionContext(workflow);
-      expect(() => {
-        (ctx.getInstance() as any).args = {};
-      }).toThrow('Cannot modify workflow arguments');
+        (ctx.getInstance() as any).runtime = {};
+      }).toThrow('Cannot modify "runtime"');
     });
 
     it('should throw when writing to context', () => {
       const ctx = createExecutionContext(workflow);
       expect(() => {
         (ctx.getInstance() as any).context = {};
-      }).toThrow('Cannot modify workflow context');
+      }).toThrow('Cannot modify "context"');
+    });
+
+    it('should throw when writing to args', () => {
+      const ctx = createExecutionContext(workflow);
+      expect(() => {
+        (ctx.getInstance() as any).args = {};
+      }).toThrow('Cannot modify "args"');
     });
   });
 
-  describe('@Shared properties', () => {
-    it('should allow writes to @Shared properties', () => {
+  describe('automatic state persistence', () => {
+    it('should write state properties to StateManager', () => {
       const ctx = createExecutionContext(workflow);
-      const wrapped = ctx.getInstance();
+      const wrapped = ctx.getInstance() as any;
 
-      (wrapped as any).sharedCounter = 5;
-      expect(workflow.sharedCounter).toBe(5);
+      wrapped.llmResult = { id: '123', content: 'hello' };
+
+      expect(ctx.getManager().get('llmResult')).toEqual({ id: '123', content: 'hello' });
     });
 
-    it('should share @Shared properties across execution contexts (singleton)', () => {
+    it('should read state properties from StateManager', () => {
+      const ctx = createExecutionContext(workflow);
+      ctx.getManager().set('llmResult', { id: '456' });
+
+      const wrapped = ctx.getInstance() as any;
+      expect(wrapped.llmResult).toEqual({ id: '456' });
+    });
+
+    it('should isolate state between concurrent execution contexts', () => {
       const ctxA = createExecutionContext(workflow);
       const ctxB = createExecutionContext(workflow);
 
-      (ctxA.getInstance() as any).sharedCounter = 10;
-      expect((ctxB.getInstance() as any).sharedCounter).toBe(10);
+      (ctxA.getInstance() as any).counter = 10;
+      (ctxB.getInstance() as any).counter = 20;
+
+      expect(ctxA.getManager().get('counter')).toBe(10);
+      expect(ctxB.getManager().get('counter')).toBe(20);
+    });
+
+    it('should return undefined for unset state properties', () => {
+      const ctx = createExecutionContext(workflow);
+      const wrapped = ctx.getInstance() as any;
+      expect(wrapped.llmResult).toBeUndefined();
     });
   });
 
-  describe('strict set trap', () => {
-    it('should throw when writing to undecorated properties', () => {
+  describe('pass-through properties', () => {
+    it('should pass through methods', () => {
       const ctx = createExecutionContext(workflow);
-      const wrapped = ctx.getInstance();
-
-      expect(() => {
-        (wrapped as any).undecorated = 'modified';
-      }).toThrow(/Cannot set property "undecorated" on block during execution/);
+      const wrapped = ctx.getInstance() as any;
+      expect(wrapped.someMethod()).toBe('method-result');
     });
 
-    it('should suggest @State or @Shared in the error message', () => {
+    it('should pass through @InjectTemplates property', () => {
       const ctx = createExecutionContext(workflow);
-      const wrapped = ctx.getInstance();
-
-      expect(() => {
-        (wrapped as any).undecorated = 'modified';
-      }).toThrow(/@State\(\).*@Shared\(\)/);
+      const wrapped = ctx.getInstance() as any;
+      expect(wrapped.templates.render()).toBe('rendered');
     });
 
-    it('should not modify the singleton when write is blocked', () => {
+    it('should throw when reassigning injected properties', () => {
       const ctx = createExecutionContext(workflow);
-      const wrapped = ctx.getInstance();
+      expect(() => {
+        (ctx.getInstance() as any).mockTool = new MockTool();
+      }).toThrow('Cannot reassign injected property "mockTool"');
+    });
+  });
 
-      try {
-        (wrapped as any).undecorated = 'modified';
-      } catch {
-        // expected
-      }
+  describe('tool/document method redirect', () => {
+    it('should redirect .run() to ._run() on injected tools', () => {
+      const ctx = createExecutionContext(workflow);
+      const wrapped = ctx.getInstance() as any;
+      const tool = wrapped.mockTool;
 
-      expect(workflow.undecorated).toBe('initial');
+      // The proxy should redirect .run to ._run
+      expect(tool.run).not.toBe(workflow.mockTool.run);
+    });
+
+    it('should redirect .create() to ._create() on injected documents', () => {
+      const ctx = createExecutionContext(workflow);
+      const wrapped = ctx.getInstance() as any;
+      const doc = wrapped.mockDocument;
+
+      // The proxy should redirect .create to ._create
+      expect(doc.create).not.toBe(workflow.mockDocument.create);
     });
   });
 });

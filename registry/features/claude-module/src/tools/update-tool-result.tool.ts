@@ -1,17 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  InjectTool,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  ToolSideEffects,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-} from '@loopstack/common';
-import { CreateDocument, StateMachineToolCallProcessorService } from '@loopstack/core';
+import { BaseDocument, BaseTool, Input, Tool, ToolResult, ToolSideEffects, getBlockTool } from '@loopstack/common';
 
 const UpdateToolResultSchema = z.object({
   delegateResult: z.object({
@@ -21,7 +10,7 @@ const UpdateToolResultSchema = z.object({
     pendingCount: z.number(),
   }),
   completedTool: z.any(),
-  document: z.string().optional(),
+  document: z.custom<BaseDocument>((val) => val instanceof BaseDocument).optional(),
 });
 
 type UpdateToolResultArgs = z.infer<typeof UpdateToolResultSchema>;
@@ -32,24 +21,15 @@ type UpdateToolResultArgs = z.infer<typeof UpdateToolResultSchema>;
     description: 'Handle async tool completion callback. Updates the response document and tracks completion state.',
   },
 })
-export class UpdateToolResult implements ToolInterface<UpdateToolResultArgs> {
+export class UpdateToolResult extends BaseTool {
   private readonly logger = new Logger(UpdateToolResult.name);
-
-  @InjectTool() private createDocument: CreateDocument;
-
-  constructor(private readonly toolCallProcessor: StateMachineToolCallProcessorService) {}
 
   @Input({
     schema: UpdateToolResultSchema,
   })
   args: UpdateToolResultArgs;
 
-  async execute(
-    args: UpdateToolResultArgs,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async run(args: UpdateToolResultArgs): Promise<ToolResult> {
     const { delegateResult } = args;
     const completedToolRecord = args.completedTool as Record<string, unknown>;
 
@@ -67,11 +47,16 @@ export class UpdateToolResult implements ToolInterface<UpdateToolResultArgs> {
     const { toolUseId, toolName } = subscriberMetadata;
 
     // 2. Resolve tool and call complete() if it exists
-    const tool = this.toolCallProcessor.getTool(parent, toolName);
+    const tool = getBlockTool<BaseTool>(this.parent, toolName);
+    if (!tool) {
+      throw new Error(`Tool with name ${toolName} not found.`);
+    }
     let toolResult: ToolResult;
     try {
-      if (tool.complete) {
-        toolResult = await tool.complete(completedToolRecord, ctx, parent, metadata);
+      if ('complete' in tool && typeof tool.complete === 'function') {
+        toolResult = await (tool as BaseTool & { complete: (result: unknown) => Promise<ToolResult> }).complete(
+          completedToolRecord,
+        );
       } else {
         toolResult = { data: completedToolRecord.result ?? completedToolRecord };
       }
@@ -104,26 +89,15 @@ export class UpdateToolResult implements ToolInterface<UpdateToolResultArgs> {
     }
 
     if (args.document) {
-      const docResult = await this.createDocument.execute(
-        {
-          id: (delegateResult.message as Record<string, unknown>).id as string,
-          document: args.document,
-          validate: 'skip' as const,
-          update: {
-            content: {
-              role: 'assistant',
-              content: (delegateResult.message as Record<string, unknown>).content,
-              toolResults: updatedResults,
-            },
-          },
+      await args.document.create({
+        id: (delegateResult.message as Record<string, unknown>).id as string,
+        validate: 'skip',
+        content: {
+          role: 'assistant',
+          content: (delegateResult.message as Record<string, unknown>).content,
+          toolResults: updatedResults,
         },
-        ctx,
-        parent,
-        metadata,
-      );
-      if (docResult.effects) {
-        allEffects.push(...docResult.effects);
-      }
+      });
     }
 
     return {

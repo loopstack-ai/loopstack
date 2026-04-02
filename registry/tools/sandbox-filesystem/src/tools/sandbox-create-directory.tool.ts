@@ -15,7 +15,7 @@ limitations under the License.
 */
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -38,7 +38,7 @@ interface SandboxCreateDirectoryResult {
     description: 'Create a directory in a sandbox container',
   },
 })
-export class SandboxCreateDirectory implements ToolInterface<SandboxCreateDirectoryArgs> {
+export class SandboxCreateDirectory extends BaseTool {
   private readonly logger = new Logger(SandboxCreateDirectory.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
@@ -46,14 +46,14 @@ export class SandboxCreateDirectory implements ToolInterface<SandboxCreateDirect
   @Input({ schema: inputSchema })
   args: SandboxCreateDirectoryArgs;
 
-  async execute(args: SandboxCreateDirectoryArgs): Promise<ToolResult<SandboxCreateDirectoryResult>> {
+  async run(args: SandboxCreateDirectoryArgs): Promise<ToolResult<SandboxCreateDirectoryResult>> {
     const { containerId, path: dirPath, recursive } = args;
 
     this.logger.debug(`Creating directory ${dirPath} in container ${containerId} (recursive: ${recursive})`);
 
     const mkdirArgs = recursive ? ['-p', dirPath] : [dirPath];
 
-    const result = await this.sandboxCommand.execute({
+    const result = await this.sandboxCommand.run({
       containerId,
       executable: 'mkdir',
       args: mkdirArgs,

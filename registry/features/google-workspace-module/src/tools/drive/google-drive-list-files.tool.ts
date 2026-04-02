@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GoogleDriveListFilesArgs = {
@@ -17,7 +17,7 @@ export type GoogleDriveListFilesArgs = {
       'Lists and searches files in Google Drive. Supports Drive query syntax and folder browsing. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GoogleDriveListFilesTool implements ToolInterface {
+export class GoogleDriveListFilesTool extends BaseTool {
   private readonly logger = new Logger(GoogleDriveListFilesTool.name);
 
   @Inject()
@@ -36,8 +36,8 @@ export class GoogleDriveListFilesTool implements ToolInterface {
   })
   args: GoogleDriveListFilesArgs;
 
-  async execute(args: GoogleDriveListFilesArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async run(args: GoogleDriveListFilesArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -66,7 +66,7 @@ export class GoogleDriveListFilesTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Drive API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Google Drive API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

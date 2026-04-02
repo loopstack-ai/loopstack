@@ -1,7 +1,7 @@
 import { useQueries } from '@tanstack/react-query';
 import { Home } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import type { PipelineConfigInterface } from '@loopstack/contracts/api';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
 import { DataTable } from '@/components/data-table/DataTable';
 import type { DataTableColumn } from '@/components/data-table/data-table';
 import MainLayout from '@/components/layout/MainLayout';
@@ -10,7 +10,7 @@ import { useApiClient } from '@/hooks/useApi';
 import { useWorkspaceConfig } from '@/hooks/useConfig';
 import { useStudio } from '@/providers/StudioProvider';
 
-interface PipelineTypeRow extends PipelineConfigInterface {
+interface WorkflowTypeRow extends WorkflowConfigInterface {
   id: string;
   workspaceBlockName: string;
 }
@@ -20,11 +20,11 @@ export default function DebugWorkflowsPage() {
   const { envKey, api } = useApiClient();
   const { data: workspaceTypes, isLoading: isLoadingWorkspaces } = useWorkspaceConfig();
 
-  const pipelineQueries = useQueries({
+  const workflowQueries = useQueries({
     queries: (workspaceTypes ?? []).map((wt) => ({
-      queryKey: ['pipeline-types', wt.blockName, envKey],
+      queryKey: ['workflowTypes', wt.blockName, envKey],
       queryFn: async () => {
-        const types = await api.config.getPipelineTypesByWorkspace({
+        const types = await api.config.getWorkflowTypesByWorkspace({
           workspaceBlockName: wt.blockName,
         });
         return { workspaceBlockName: wt.blockName, types };
@@ -33,22 +33,22 @@ export default function DebugWorkflowsPage() {
     })),
   });
 
-  const isLoadingPipelines = pipelineQueries.some((q) => q.isLoading);
-  const isLoading = isLoadingWorkspaces || isLoadingPipelines;
+  const isLoadingWorkflows = workflowQueries.some((q) => q.isLoading);
+  const isLoading = isLoadingWorkspaces || isLoadingWorkflows;
 
-  const data: PipelineTypeRow[] = useMemo(() => {
-    if (isLoading || !pipelineQueries) return [];
+  const data: WorkflowTypeRow[] = useMemo(() => {
+    if (isLoading || !workflowQueries) return [];
 
-    return pipelineQueries.flatMap((q) => {
+    return workflowQueries.flatMap((q) => {
       if (!q.data) return [];
       const { workspaceBlockName, types } = q.data;
-      return (types ?? []).map((pt) => ({
-        ...pt,
-        id: `${workspaceBlockName}::${pt.blockName}`,
+      return (types ?? []).map((wt) => ({
+        ...wt,
+        id: `${workspaceBlockName}::${wt.blockName}`,
         workspaceBlockName,
       }));
     });
-  }, [pipelineQueries, isLoading]);
+  }, [workflowQueries, isLoading]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<string>('blockName');
@@ -71,7 +71,7 @@ export default function DebugWorkflowsPage() {
     }
 
     result = [...result].sort((a, b) => {
-      const key = sortBy as keyof Pick<PipelineTypeRow, 'blockName' | 'title' | 'description' | 'workspaceBlockName'>;
+      const key = sortBy as keyof Pick<WorkflowTypeRow, 'blockName' | 'title' | 'description' | 'workspaceBlockName'>;
       const valA = (a[key] || '').toLowerCase();
       const valB = (b[key] || '').toLowerCase();
 
@@ -88,7 +88,7 @@ export default function DebugWorkflowsPage() {
     return filteredData.slice(start, start + pageSize);
   }, [filteredData, page, pageSize]);
 
-  const columns: DataTableColumn<PipelineTypeRow>[] = [
+  const columns: DataTableColumn<WorkflowTypeRow>[] = [
     {
       id: 'blockName',
       label: 'Type ID (Block Name)',

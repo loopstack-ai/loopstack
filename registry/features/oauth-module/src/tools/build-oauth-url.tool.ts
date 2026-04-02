@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
-import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthProviderRegistry } from '../services';
 
 export type BuildOAuthUrlArgs = {
@@ -9,12 +9,17 @@ export type BuildOAuthUrlArgs = {
   scopes: string[];
 };
 
+export interface BuildOAuthUrlResult {
+  authUrl: string;
+  state: string;
+}
+
 @Tool({
   config: {
     description: 'Builds an OAuth 2.0 authorization URL for the given provider with CSRF state parameter.',
   },
 })
-export class BuildOAuthUrlTool implements ToolInterface {
+export class BuildOAuthUrlTool extends BaseTool {
   @Inject()
   private providerRegistry: OAuthProviderRegistry;
 
@@ -28,7 +33,7 @@ export class BuildOAuthUrlTool implements ToolInterface {
   })
   args: BuildOAuthUrlArgs;
 
-  execute(args: BuildOAuthUrlArgs): Promise<ToolResult> {
+  run(args: BuildOAuthUrlArgs): Promise<ToolResult<BuildOAuthUrlResult>> {
     const provider = this.providerRegistry.get(args.provider);
     const state = randomBytes(32).toString('hex');
     const scopes = args.scopes?.length ? args.scopes : provider.defaultScopes;

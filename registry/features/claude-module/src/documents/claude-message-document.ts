@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { Document, Input } from '@loopstack/common';
+import { BaseDocument, Document, Input } from '@loopstack/common';
 
 export const ClaudeMessageDocumentSchema = z.object({
   role: z.enum(['user', 'assistant']),
@@ -16,9 +16,9 @@ export type ClaudeMessageDocumentContentType = z.infer<typeof ClaudeMessageDocum
     type: 'document',
     description: 'Claude Message Document. Stores messages in Anthropic native format.',
   },
-  configFile: __dirname + '/claude-message-document.yaml',
+  uiConfig: __dirname + '/claude-message-document.yaml',
 })
-export class ClaudeMessageDocument {
+export class ClaudeMessageDocument extends BaseDocument {
   @Input({
     schema: ClaudeMessageDocumentSchema,
   })

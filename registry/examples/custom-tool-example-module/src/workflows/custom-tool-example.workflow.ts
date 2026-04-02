@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { DefineHelper, InjectTool, Input, Output, State, Workflow } from '@loopstack/common';
+import { Initial, InjectTool, Input, Output, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 
 @Workflow({
-  configFile: __dirname + '/custom-tool-example.workflow.yaml',
+  uiConfig: __dirname + '/custom-tool-example.workflow.yaml',
 })
 export class CustomToolExampleWorkflow {
   @InjectTool() private counterTool: CounterTool;
@@ -25,32 +25,51 @@ export class CustomToolExampleWorkflow {
     b: number;
   };
 
-  @State({
-    schema: z
-      .object({
-        total: z.number().optional(),
-        count1: z.number().optional(),
-        count2: z.number().optional(),
-        count3: z.number().optional(),
-      })
-      .strict(),
-  })
-  state: {
-    total?: number;
-    count1?: number;
-    count2?: number;
-    count3?: number;
-  };
+  total?: number;
+  count1?: number;
+  count2?: number;
+  count3?: number;
 
   @Output()
   result() {
     return {
-      total: this.state.total,
+      total: this.total,
     };
   }
 
-  @DefineHelper()
-  sum(a: number, b: number) {
+  @Initial({ to: 'end' })
+  async calculate() {
+    // Use a custom tool
+    const calcResult = await this.mathTool.run({ a: this.args.a, b: this.args.b });
+    this.total = calcResult.data as number;
+
+    // Display the result
+    await this.createChatMessage.run({
+      role: 'assistant',
+      content: `Tool calculation result:\n${this.args.a} + ${this.args.b} = ${this.total}`,
+    });
+
+    // Alternatively, use a custom workflow method
+    await this.createChatMessage.run({
+      role: 'assistant',
+      content: `Alternatively, using workflow method:\n${this.args.a} + ${this.args.b} = ${this.sum(this.args.a, this.args.b)}`,
+    });
+
+    // Use a stateful tool (counter retains state across calls)
+    const count1Result = await this.counterTool.run();
+    this.count1 = count1Result.data as number;
+    const count2Result = await this.counterTool.run();
+    this.count2 = count2Result.data as number;
+    const count3Result = await this.counterTool.run();
+    this.count3 = count3Result.data as number;
+
+    await this.createChatMessage.run({
+      role: 'assistant',
+      content: `Counter tool should count:\n\n${this.count1}, ${this.count2}, ${this.count3}`,
+    });
+  }
+
+  private sum(a: number, b: number) {
     return a + b;
   }
 }

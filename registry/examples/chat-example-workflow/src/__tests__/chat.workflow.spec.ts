@@ -44,7 +44,7 @@ describe('ChatWorkflow', () => {
     const context = {} as RunContext;
 
     it('should execute setup and stop at waiting_for_user', async () => {
-      mockCreateDocument.execute.mockResolvedValue({});
+      mockCreateDocument.run.mockResolvedValue({});
 
       const result = await processor.process(workflow, {}, context);
 
@@ -54,21 +54,18 @@ describe('ChatWorkflow', () => {
       expect(result.place).toBe('waiting_for_user');
 
       // Setup creates one hidden system document
-      expect(mockCreateDocument.execute).toHaveBeenCalledTimes(1);
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
+      expect(mockCreateDocument.run).toHaveBeenCalledTimes(1);
+      expect(mockCreateDocument.run).toHaveBeenCalledWith(
         expect.objectContaining({
           update: expect.objectContaining({
             meta: { hidden: true },
             content: expect.objectContaining({ role: 'user' }),
           }),
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // LLM should not be called yet (waiting for user message)
-      expect(mockClaudeGenerateText.execute).not.toHaveBeenCalled();
+      expect(mockClaudeGenerateText.run).not.toHaveBeenCalled();
     });
   });
 
@@ -105,8 +102,8 @@ describe('ChatWorkflow', () => {
       const mockCreateDocumentWithState: ToolMock = moduleWithState.get(CreateDocument);
       const mockClaudeGenerateTextWithState: ToolMock = moduleWithState.get(ClaudeGenerateText);
 
-      mockCreateDocumentWithState.execute.mockResolvedValue({});
-      mockClaudeGenerateTextWithState.execute.mockResolvedValue({ data: mockLlmResponse });
+      mockCreateDocumentWithState.run.mockResolvedValue({});
+      mockClaudeGenerateTextWithState.run.mockResolvedValue({ data: mockLlmResponse });
 
       const contextWithPayload = {
         payload: {
@@ -125,31 +122,25 @@ describe('ChatWorkflow', () => {
       expect(result.stop).toBe(true);
 
       // user_message creates user doc, respond creates LLM response doc
-      expect(mockCreateDocumentWithState.execute).toHaveBeenCalledTimes(2);
+      expect(mockCreateDocumentWithState.run).toHaveBeenCalledTimes(2);
 
       // First call: user message
-      expect(mockCreateDocumentWithState.execute).toHaveBeenNthCalledWith(
+      expect(mockCreateDocumentWithState.run).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
           update: expect.objectContaining({
             content: expect.objectContaining({ role: 'user' }),
           }),
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       // Verify ClaudeGenerateText was called once with correct config
-      expect(mockClaudeGenerateTextWithState.execute).toHaveBeenCalledTimes(1);
-      expect(mockClaudeGenerateTextWithState.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateTextWithState.run).toHaveBeenCalledTimes(1);
+      expect(mockClaudeGenerateTextWithState.run).toHaveBeenCalledWith(
         expect.objectContaining({
           claude: { model: 'claude-sonnet-4-6' },
           messagesSearchTag: 'message',
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
       );
 
       await moduleWithState.close();

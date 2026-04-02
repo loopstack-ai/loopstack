@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document, DocumentInterface, Input } from '@loopstack/common';
+import { BaseDocument, Document, DocumentInterface, Input } from '@loopstack/common';
 
 const MarkdownDocumentSchema = z
   .object({
@@ -12,9 +12,9 @@ const MarkdownDocumentSchema = z
     type: 'document',
     description: 'Markdown Document.',
   },
-  configFile: __dirname + '/markdown-document.yaml',
+  uiConfig: __dirname + '/markdown-document.yaml',
 })
-export class MarkdownDocument implements DocumentInterface {
+export class MarkdownDocument extends BaseDocument implements DocumentInterface {
   @Input({
     schema: MarkdownDocumentSchema,
   })

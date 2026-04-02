@@ -1,27 +1,23 @@
 import { WorkflowState } from '../../enums';
-import { JSONSchemaConfigType } from '../types/json-schema-config.type';
-import { UiFormType } from '../types/ui-form.type';
 import { WorkflowTransitionType } from '../types/workflow-transition.type';
-import { HistoryTransition } from './history-transition.interface';
 
 export interface WorkflowInterface {
   id: string;
   blockName: string;
+  className: string | null;
   title: string;
-  index: number;
+  run: number;
   labels: string[];
-  progress: number;
   status: WorkflowState;
   hasError: boolean;
   errorMessage: string | null;
   place: string;
   availableTransitions: WorkflowTransitionType[] | null;
-  history: HistoryTransition[] | null;
-  schema: JSONSchemaConfigType;
-  ui: UiFormType | null;
+  args: any;
+  context: Record<string, any>;
+  eventCorrelationId: string | null;
   createdAt: Date;
   updatedAt: Date;
   workspaceId: string;
-  pipelineId: string;
-  namespaceId: string;
+  parentId: string | null;
 }

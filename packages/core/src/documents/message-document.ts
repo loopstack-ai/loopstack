@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document, DocumentInterface, Input } from '@loopstack/common';
+import { BaseDocument, Document, DocumentInterface, Input } from '@loopstack/common';
 
 const MessageDocumentSchema = z
   .object({
@@ -13,9 +13,9 @@ const MessageDocumentSchema = z
     type: 'document',
     description: 'Message Document.',
   },
-  configFile: __dirname + '/message-document.yaml',
+  uiConfig: __dirname + '/message-document.yaml',
 })
-export class MessageDocument implements DocumentInterface {
+export class MessageDocument extends BaseDocument implements DocumentInterface {
   @Input({
     schema: MessageDocumentSchema,
   })

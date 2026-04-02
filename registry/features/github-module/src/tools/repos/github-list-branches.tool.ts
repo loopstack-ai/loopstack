@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GitHubListBranchesArgs = {
@@ -15,7 +15,7 @@ export type GitHubListBranchesArgs = {
       'Lists branches for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GitHubListBranchesTool implements ToolInterface {
+export class GitHubListBranchesTool extends BaseTool {
   private readonly logger = new Logger(GitHubListBranchesTool.name);
 
   @Inject()
@@ -32,8 +32,8 @@ export class GitHubListBranchesTool implements ToolInterface {
   })
   args: GitHubListBranchesArgs;
 
-  async execute(args: GitHubListBranchesArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async run(args: GitHubListBranchesArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -58,7 +58,7 @@ export class GitHubListBranchesTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: '401',

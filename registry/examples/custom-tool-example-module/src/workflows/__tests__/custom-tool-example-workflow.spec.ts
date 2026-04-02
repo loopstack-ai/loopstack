@@ -1,14 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
-import {
-  RunContext,
-  getBlockArgsSchema,
-  getBlockConfig,
-  getBlockHelper,
-  getBlockHelpers,
-  getBlockStateSchema,
-  getBlockTools,
-} from '@loopstack/common';
+import { RunContext, getBlockArgsSchema, getBlockConfig, getBlockStateSchema, getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { ToolMock, createWorkflowTest } from '@loopstack/testing';
@@ -135,42 +127,13 @@ describe('CustomToolExampleWorkflow', () => {
     });
   });
 
-  describe('helpers', () => {
-    it('should have helpers defined', () => {
-      expect(getBlockHelpers(workflow)).toBeDefined();
-      expect(Array.isArray(getBlockHelpers(workflow))).toBe(true);
-    });
-
-    it('should have sum helper registered', () => {
-      expect(getBlockHelpers(workflow)).toContain('sum');
-    });
-
-    it('should get sum helper via getHelper', () => {
-      const sumHelper = getBlockHelper(workflow, 'sum');
-      expect(sumHelper).toBeDefined();
-      expect(typeof sumHelper).toBe('function');
-    });
-
-    it('should return undefined for non-existent helper', () => {
-      const nonExistent = getBlockHelper(workflow, 'nonExistentHelper');
-      expect(nonExistent).toBeUndefined();
-    });
-
-    it('should execute sum helper correctly', () => {
-      const sumHelper = getBlockHelper(workflow, 'sum')!;
-      expect(sumHelper).toBeDefined();
-      const result = sumHelper.call(workflow, 5, 3);
-      expect(result).toBe(8);
-    });
-  });
-
   describe('workflow execution', () => {
     it('should execute calculate transition with custom arguments', async () => {
       const context = {} as RunContext;
 
       // Configure mocks for this test
-      mockMathSumTool.execute.mockResolvedValue({ data: 30 });
-      mockCounterTool.execute
+      mockMathSumTool.run.mockResolvedValue({ data: 30 });
+      mockCounterTool.run
         .mockResolvedValueOnce({ data: 1 })
         .mockResolvedValueOnce({ data: 2 })
         .mockResolvedValueOnce({ data: 3 });
@@ -188,14 +151,9 @@ describe('CustomToolExampleWorkflow', () => {
       expect(result.result?.total).toBe(30);
 
       // Tool calls
-      expect(mockMathSumTool.execute).toHaveBeenCalledWith(
-        { a: 10, b: 20 },
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-      );
-      expect(mockCounterTool.execute).toHaveBeenCalledTimes(3);
-      expect(mockCreateChatMessageTool.execute).toHaveBeenCalledTimes(3);
+      expect(mockMathSumTool.run).toHaveBeenCalledWith({ a: 10, b: 20 });
+      expect(mockCounterTool.run).toHaveBeenCalledTimes(3);
+      expect(mockCreateChatMessageTool.run).toHaveBeenCalledTimes(3);
 
       // // Transition history
       // const history = result.state.getHistory();

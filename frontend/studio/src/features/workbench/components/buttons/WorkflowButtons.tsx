@@ -1,6 +1,6 @@
 import { LockOpen, Repeat } from 'lucide-react';
 import React from 'react';
-import type { PipelineInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,31 +14,31 @@ import {
 } from '@/components/ui/alert-dialog.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 import { useDeleteWorkflow, useWorkflow } from '@/hooks/useWorkflows.ts';
 
 const WorkflowButtons: React.FC<{
-  pipeline: PipelineInterface;
+  workflow: WorkflowFullInterface;
   workflowId: string;
-}> = ({ pipeline, workflowId }) => {
+}> = ({ workflow, workflowId }) => {
   const fetchWorkflow = useWorkflow(workflowId);
-  const workflow = fetchWorkflow.data;
+  const childWorkflow = fetchWorkflow.data;
 
   const deleteWorkflow = useDeleteWorkflow();
-  const runPipeline = useRunPipeline();
+  const runWorkflow = useRunWorkflow();
 
   const handlePing = () => {
-    runPipeline.mutate({
-      pipelineId: pipeline.id,
-      runPipelinePayloadDto: {},
+    runWorkflow.mutate({
+      workflowId: workflow.id,
+      runWorkflowPayloadDto: {},
       force: false,
     });
   };
 
   const handleUnlock = () => {
-    runPipeline.mutate({
-      pipelineId: pipeline.id,
-      runPipelinePayloadDto: {
+    runWorkflow.mutate({
+      workflowId: workflow.id,
+      runWorkflowPayloadDto: {
         transition: {
           name: 'unlock',
           workflowId: workflowId,
@@ -49,16 +49,16 @@ const WorkflowButtons: React.FC<{
   };
 
   const handleDelete = () => {
-    if (!workflow) return;
+    if (!childWorkflow) return;
     try {
-      deleteWorkflow.mutate(workflow as unknown as WorkflowItemInterface);
+      deleteWorkflow.mutate(childWorkflow.id);
       handlePing();
     } catch (error) {
       console.error('Mutation failed:', error);
     }
   };
 
-  if (!workflow) return null;
+  if (!childWorkflow) return null;
 
   return (
     <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
@@ -81,7 +81,7 @@ const WorkflowButtons: React.FC<{
           <AlertDialogHeader>
             <AlertDialogTitle>Repeat workflow</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the current workflow run and re-trigger the pipeline.
+              This will delete the current workflow run and re-trigger the workflow.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -91,14 +91,14 @@ const WorkflowButtons: React.FC<{
         </AlertDialogContent>
       </AlertDialog>
 
-      {workflow.place === 'end' &&
-        workflow.availableTransitions?.find((t) => (t as { id: string }).id === 'unlock') && (
+      {childWorkflow.place === 'end' &&
+        childWorkflow.availableTransitions?.find((t) => (t as { id: string }).id === 'unlock') && (
           <AlertDialog>
             <Tooltip>
               <TooltipTrigger asChild>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" disabled={runPipeline.isPending}>
-                    {runPipeline.isPending ? (
+                  <Button variant="ghost" size="icon" className="h-7 w-7" disabled={runWorkflow.isPending}>
+                    {runWorkflow.isPending ? (
                       <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     ) : (
                       <LockOpen className="h-3.5 w-3.5" />

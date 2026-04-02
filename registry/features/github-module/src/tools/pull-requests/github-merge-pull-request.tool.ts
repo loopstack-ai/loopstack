@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GitHubMergePullRequestArgs = {
@@ -17,7 +17,7 @@ export type GitHubMergePullRequestArgs = {
     description: 'Merges a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GitHubMergePullRequestTool implements ToolInterface {
+export class GitHubMergePullRequestTool extends BaseTool {
   private readonly logger = new Logger(GitHubMergePullRequestTool.name);
 
   @Inject()
@@ -37,8 +37,8 @@ export class GitHubMergePullRequestTool implements ToolInterface {
   })
   args: GitHubMergePullRequestArgs;
 
-  async execute(args: GitHubMergePullRequestArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async run(args: GitHubMergePullRequestArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -69,7 +69,7 @@ export class GitHubMergePullRequestTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: '401',

@@ -1,18 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  DocumentEntity,
-  InjectDocument,
-  InjectTool,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-} from '@loopstack/common';
-import { CreateDocument, MessageDocument } from '@loopstack/core';
+import { BaseTool, DocumentEntity, InjectDocument, Input, Tool, ToolResult } from '@loopstack/common';
+import { MessageDocument } from '@loopstack/core';
 
 const MessageSchema = z.object({
   role: z.string(),
@@ -28,7 +17,7 @@ type CreateChatMessageInput = z.infer<typeof CreateChatMessageInputSchema>;
     description: 'Create chat message(s).',
   },
 })
-export class CreateChatMessage implements ToolInterface<CreateChatMessageInput> {
+export class CreateChatMessage extends BaseTool {
   protected readonly logger = new Logger(CreateChatMessage.name);
 
   @Input({
@@ -36,41 +25,25 @@ export class CreateChatMessage implements ToolInterface<CreateChatMessageInput> 
   })
   content: CreateChatMessageInput;
 
-  @InjectTool() private createDocument: CreateDocument;
   @InjectDocument() private messageDocument: MessageDocument;
 
-  async execute(
-    args: CreateChatMessageInput,
-    ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async run(args: CreateChatMessageInput): Promise<ToolResult> {
     const items = !Array.isArray(args) ? [args] : args;
 
     const createdDocuments: DocumentEntity[] = [];
     for (const item of items) {
-      const createDocumentArgs = {
-        document: 'messageDocument',
-        update: {
-          content: {
-            role: item.role,
-            content: item.content,
-          },
+      const entity = await this.messageDocument.create({
+        content: {
+          role: item.role,
+          content: item.content,
         },
-        validate: 'strict' as const,
-      };
-
-      const result = await this.createDocument.execute(createDocumentArgs, ctx, this, metadata);
-      createdDocuments.push(result.data as DocumentEntity);
+        validate: 'strict',
+      });
+      createdDocuments.push(entity);
     }
 
     return {
       data: createdDocuments,
-      effects: [
-        {
-          addWorkflowDocuments: createdDocuments,
-        },
-      ],
     };
   }
 }

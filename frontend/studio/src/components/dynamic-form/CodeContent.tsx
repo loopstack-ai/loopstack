@@ -213,12 +213,13 @@ const CodeContent: React.FC<{ content: string }> = ({ content }) => {
             : typeof children === 'string'
               ? children
               : '';
-          return match ? (
+          const isBlock = childrenString.includes('\n');
+          return match || isBlock ? (
             <>
               <SyntaxHighlighter
                 // @ts-expect-error - Prism style objects have complex types that don't match the simplified type definition
                 style={adaptedPrism}
-                language={match[1]}
+                language={match?.[1] ?? 'text'}
                 PreTag="div"
                 {...(props as React.HTMLAttributes<HTMLElement>)}
               >

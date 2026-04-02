@@ -1,58 +1,48 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   DocumentEntity,
-  NamespaceEntity,
-  PipelineEntity,
+  WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
   WorkspaceEnvironmentEntity,
 } from '@loopstack/common';
 import { CommonModule } from '../common';
 import { PersistenceModule } from '../persistence';
+import { SchedulerModule } from '../scheduler';
 import {
   BlockDiscoveryService,
   BlockProcessor,
-  NamespaceProcessorService,
+  CreateWorkflowService,
+  DocumentPersistenceService,
   ProcessorFactory,
   RootProcessorService,
-  StateMachineProcessorService,
-  StateMachineToolCallProcessorService,
-  StateMachineValidatorRegistry,
-  StateMachineValidatorService,
   ToolExecutionInterceptorService,
+  ToolExecutionService,
+  TransitionResolverService,
+  WorkflowMemoryMonitorService,
+  WorkflowOrchestrationService,
   WorkflowProcessorService,
   WorkflowStateService,
 } from './services';
-import { CreatePipelineService } from './services';
-import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValidator } from './validators';
+import { ExecutionScope } from './utils';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      PipelineEntity,
       WorkflowEntity,
       DocumentEntity,
       WorkspaceEntity,
       WorkspaceEnvironmentEntity,
-      NamespaceEntity,
+      WorkflowCheckpointEntity,
     ]),
     PersistenceModule,
+    forwardRef(() => SchedulerModule),
     DiscoveryModule,
     CommonModule,
   ],
   providers: [
-    // {
-    //   provide: DynamicRepositoryService,
-    //   useFactory: (dataSource) => {
-    //     return new DynamicRepositoryService(dataSource, {
-    //       blacklist: [],
-    //     });
-    //   },
-    //   inject: [DataSource],
-    // },
-
     RootProcessorService,
     BlockProcessor,
     ProcessorFactory,
@@ -60,25 +50,28 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     BlockDiscoveryService,
 
     WorkflowStateService,
-    NamespaceProcessorService,
-    InitialRunValidator,
-    WorkflowDependenciesValidator,
-    WorkflowOptionValidator,
-    StateMachineValidatorRegistry,
-    StateMachineValidatorService,
-    StateMachineProcessorService,
-    StateMachineToolCallProcessorService,
     ToolExecutionInterceptorService,
-    CreatePipelineService,
+    WorkflowMemoryMonitorService,
+    CreateWorkflowService,
+    ExecutionScope,
+    ToolExecutionService,
+    DocumentPersistenceService,
+    WorkflowOrchestrationService,
+    TransitionResolverService,
   ],
   exports: [
     PersistenceModule,
     RootProcessorService,
-    CreatePipelineService,
+    CreateWorkflowService,
     BlockProcessor,
     WorkflowProcessorService,
     BlockDiscoveryService,
-    StateMachineToolCallProcessorService,
+    WorkflowMemoryMonitorService,
+    ExecutionScope,
+    ToolExecutionService,
+    DocumentPersistenceService,
+    WorkflowOrchestrationService,
+    TransitionResolverService,
   ],
 })
 export class WorkflowProcessorModule {}

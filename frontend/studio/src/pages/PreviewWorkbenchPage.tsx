@@ -1,66 +1,46 @@
 import { useQuery } from '@tanstack/react-query';
 import { ReactFlowProvider } from '@xyflow/react';
 import { formatDistanceToNow } from 'date-fns';
-import {
-  ChevronDown,
-  ChevronRight,
-  ListOrdered,
-  Loader2,
-  Navigation,
-  Play,
-  RefreshCw,
-  ScrollText,
-  Workflow,
-} from 'lucide-react';
+import { ChevronDown, ChevronRight, ListOrdered, Loader2, Play, RefreshCw, ScrollText, Workflow } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { PipelineInterface, PipelineItemInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
+import type { WorkflowFullInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { Button } from '@/components/ui/button.tsx';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
-import { SidebarMenu, SidebarProvider } from '@/components/ui/sidebar.tsx';
-import { PipelineFlowViewer } from '@/features/debug';
-import {
-  NewRunDialog,
-  PipelineHistoryList,
-  WorkbenchNavigation,
-  WorkflowButtons,
-  WorkflowItem,
-} from '@/features/workbench';
-import { useNamespaceTree } from '@/hooks/useNamespaceTree.ts';
-import { useFilterPipelines, usePipeline, usePipelineConfigByName } from '../hooks/usePipelines.ts';
-import { useFetchWorkflowsByPipeline } from '../hooks/useWorkflows.ts';
-import { useWorkspace } from '../hooks/useWorkspaces.ts';
+import { WorkflowFlowViewer } from '@/features/debug';
+import { NewRunDialog, WorkflowButtons, WorkflowHistoryList, WorkflowItem } from '@/features/workbench';
+import { useChildWorkflows, useFilterWorkflows, useWorkflow, useWorkflowConfigByName } from '../hooks/useWorkflows.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
-type PreviewTab = 'output' | 'graph' | 'run-log' | 'navigate' | 'logs';
+type PreviewTab = 'output' | 'graph' | 'run-log' | 'logs';
 
 const EMBED_MESSAGE_TYPE = 'loopstack:embed:workflow-completed';
 const EMBED_RESIZE_MESSAGE_TYPE = 'loopstack:embed:resize';
 const EMBED_NEW_RUN_MESSAGE_TYPE = 'loopstack:embed:new-run';
 
 export default function PreviewWorkbenchPage() {
-  const { pipelineId } = useParams<{ pipelineId: string }>();
+  const { workflowId } = useParams<{ workflowId: string }>();
 
   const [newRunDialogOpen, setNewRunDialogOpen] = useState(false);
 
-  const handleNewRunSuccess = useCallback((newPipelineId: string) => {
+  const handleNewRunSuccess = useCallback((newWorkflowId: string) => {
     setNewRunDialogOpen(false);
     if (window.parent !== window) {
       window.parent.postMessage(
         {
           type: EMBED_NEW_RUN_MESSAGE_TYPE,
-          pipelineId: newPipelineId,
+          workflowId: newWorkflowId,
         },
         window.location.origin,
       );
     }
   }, []);
 
-  // Empty state: no pipelineId — show "New Run" button + recent runs
-  if (!pipelineId) {
+  // Empty state: no workflowId — show "New Run" button + recent runs
+  if (!workflowId) {
     return (
       <PreviewEmptyState
         newRunDialogOpen={newRunDialogOpen}
@@ -70,50 +50,47 @@ export default function PreviewWorkbenchPage() {
     );
   }
 
-  return <PreviewWorkbenchContent pipelineId={pipelineId} onNewRunSuccess={handleNewRunSuccess} />;
+  return <PreviewWorkbenchContent workflowId={workflowId} onNewRunSuccess={handleNewRunSuccess} />;
 }
 
 function PreviewWorkbenchContent({
-  pipelineId,
+  workflowId,
   onNewRunSuccess,
 }: {
-  pipelineId: string;
-  onNewRunSuccess: (pipelineId: string) => void;
+  workflowId: string;
+  onNewRunSuccess: (workflowId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [activeTab, setActiveTab] = useState<PreviewTab>('output');
   const [newRunDialogOpen, setNewRunDialogOpen] = useState(false);
 
-  const fetchPipeline = usePipeline(pipelineId);
-  const fetchWorkflows = useFetchWorkflowsByPipeline(pipelineId);
-  const workflows = useMemo(() => fetchWorkflows.data ?? [], [fetchWorkflows.data]);
+  const fetchWorkflow = useWorkflow(workflowId);
+  const fetchChildWorkflows = useChildWorkflows(workflowId);
+  const childWorkflows = useMemo(() => fetchChildWorkflows.data ?? [], [fetchChildWorkflows.data]);
   const notifiedRef = useRef(false);
 
-  const workspaceId = fetchPipeline.data?.workspaceId;
-  const fetchWorkspace = useWorkspace(workspaceId);
-  const workspaceBlockName = fetchWorkspace.data?.blockName;
-  const pipelineBlockName = fetchPipeline.data?.blockName;
-  const fetchPipelineConfig = usePipelineConfigByName(workspaceBlockName, pipelineBlockName);
+  const fetchWorkflowConfig = useWorkflowConfigByName(fetchWorkflow.data?.className ?? undefined);
 
-  // Notify parent when all workflows have completed
+  // Notify parent when all child workflows have completed
   useEffect(() => {
-    if (!fetchWorkflows.data || notifiedRef.current) return;
+    if (!fetchChildWorkflows.data || notifiedRef.current) return;
 
     const allCompleted =
-      fetchWorkflows.data.length > 0 && fetchWorkflows.data.every((w) => w.status === WorkflowState.Completed);
+      fetchChildWorkflows.data.length > 0 &&
+      fetchChildWorkflows.data.every((w) => w.status === WorkflowState.Completed);
 
     if (allCompleted && window.parent !== window) {
       notifiedRef.current = true;
       window.parent.postMessage(
         {
           type: EMBED_MESSAGE_TYPE,
-          pipelineId,
+          workflowId,
         },
         window.location.origin,
       );
     }
-  }, [fetchWorkflows.data, pipelineId]);
+  }, [fetchChildWorkflows.data, workflowId]);
 
   // Report content height to parent for dynamic iframe sizing
   useEffect(() => {
@@ -130,7 +107,7 @@ function PreviewWorkbenchContent({
       window.parent.postMessage(
         {
           type: EMBED_RESIZE_MESSAGE_TYPE,
-          pipelineId,
+          workflowId,
           height,
         },
         window.location.origin,
@@ -140,12 +117,12 @@ function PreviewWorkbenchContent({
     const observer = new ResizeObserver(postHeight);
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [pipelineId]);
+  }, [workflowId]);
 
   const handleNewRunSuccess = useCallback(
-    (newPipelineId: string) => {
+    (newWorkflowId: string) => {
       setNewRunDialogOpen(false);
-      onNewRunSuccess(newPipelineId);
+      onNewRunSuccess(newWorkflowId);
     },
     [onNewRunSuccess],
   );
@@ -162,7 +139,6 @@ function PreviewWorkbenchContent({
     { value: 'graph', label: 'Graph', icon: <Workflow className="h-3.5 w-3.5" /> },
     { value: 'run-log', label: 'Run Log', icon: <ListOrdered className="h-3.5 w-3.5" /> },
     { value: 'logs', label: 'Logs', icon: <ScrollText className="h-3.5 w-3.5" /> },
-    // { value: 'navigate', label: 'Navigate', icon: <Navigation className="h-3.5 w-3.5" /> },
   ];
 
   return (
@@ -193,23 +169,23 @@ function PreviewWorkbenchContent({
 
       {/* Content */}
       <div className="flex-1 overflow-auto">
-        <ErrorSnackbar error={fetchPipeline.error} />
-        <ErrorSnackbar error={fetchWorkflows.error} />
+        <ErrorSnackbar error={fetchWorkflow.error} />
+        <ErrorSnackbar error={fetchChildWorkflows.error} />
 
         {activeTab === 'output' && (
           <div className="px-4 py-3">
-            <LoadingCentered loading={fetchPipeline.isLoading || fetchWorkflows.isLoading}>
-              {fetchPipeline.data && fetchWorkflows.data
-                ? fetchWorkflows.data.map((workflow) => (
+            <LoadingCentered loading={fetchWorkflow.isLoading || fetchChildWorkflows.isLoading}>
+              {fetchWorkflow.data && fetchChildWorkflows.data
+                ? fetchChildWorkflows.data.map((childWorkflow) => (
                     <EmbedWorkflowSection
-                      key={workflow.id}
-                      workflow={workflow}
-                      pipeline={fetchPipeline.data}
-                      collapsible={fetchWorkflows.data.length > 1}
+                      key={childWorkflow.id}
+                      childWorkflow={childWorkflow}
+                      workflow={fetchWorkflow.data}
+                      collapsible={fetchChildWorkflows.data.length > 1}
                     >
                       <WorkflowItem
-                        pipeline={fetchPipeline.data}
-                        workflowId={workflow.id}
+                        workflow={fetchWorkflow.data}
+                        workflowId={childWorkflow.id}
                         scrollTo={scrollTo}
                         settings={settings}
                       />
@@ -222,13 +198,13 @@ function PreviewWorkbenchContent({
 
         {activeTab === 'graph' && (
           <div className="h-full">
-            <LoadingCentered loading={fetchPipeline.isLoading || fetchWorkflows.isLoading}>
-              {workflows.length > 0 ? (
+            <LoadingCentered loading={fetchWorkflow.isLoading || fetchChildWorkflows.isLoading}>
+              {childWorkflows.length > 0 ? (
                 <ReactFlowProvider>
-                  <PipelineFlowViewer
-                    pipelineId={pipelineId}
-                    workflows={workflows}
-                    pipelineConfig={fetchPipelineConfig.data}
+                  <WorkflowFlowViewer
+                    workflowId={workflowId}
+                    workflows={childWorkflows}
+                    workflowConfig={fetchWorkflowConfig.data}
                     direction="TB"
                   />
                 </ReactFlowProvider>
@@ -243,13 +219,7 @@ function PreviewWorkbenchContent({
 
         {activeTab === 'run-log' && (
           <div className="px-4">
-            <PipelineHistoryList pipeline={fetchPipeline.data} />
-          </div>
-        )}
-
-        {activeTab === 'navigate' && (
-          <div className="px-4 py-2">
-            <EmbedNavigationContent pipelineId={pipelineId} />
+            <WorkflowHistoryList workflow={fetchWorkflow.data} />
           </div>
         )}
 
@@ -277,15 +247,15 @@ function PreviewEmptyState({
 }: {
   newRunDialogOpen: boolean;
   onNewRunDialogOpenChange: (open: boolean) => void;
-  onNewRunSuccess: (pipelineId: string) => void;
+  onNewRunSuccess: (workflowId: string) => void;
 }) {
   const navigate = useNavigate();
   const { router } = useStudio();
   const [limit, setLimit] = useState(3);
-  const fetchPipelines = useFilterPipelines(undefined, { parentId: null }, 'createdAt', 'DESC', 0, limit);
-  const pipelines = fetchPipelines.data?.data ?? [];
-  const total = fetchPipelines.data?.total ?? 0;
-  const hasMore = pipelines.length < total;
+  const fetchWorkflows = useFilterWorkflows(undefined, { parentId: null }, 'createdAt', 'DESC', 0, limit);
+  const workflows = fetchWorkflows.data?.data ?? [];
+  const total = fetchWorkflows.data?.total ?? 0;
+  const hasMore = workflows.length < total;
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">
@@ -297,20 +267,20 @@ function PreviewEmptyState({
           </Button>
         </div>
 
-        {fetchPipelines.isLoading && pipelines.length === 0 ? (
+        {fetchWorkflows.isLoading && workflows.length === 0 ? (
           <div className="flex justify-center py-4">
             <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
           </div>
-        ) : pipelines.length > 0 ? (
+        ) : workflows.length > 0 ? (
           <div>
             <p className="text-muted-foreground mb-2 text-xs font-medium">Recent</p>
             <div className="max-h-[280px] overflow-auto">
               <div className="divide-border divide-y">
-                {pipelines.map((pipeline) => (
+                {workflows.map((workflow) => (
                   <RecentRunItem
-                    key={pipeline.id}
-                    pipeline={pipeline}
-                    onClick={() => void navigate(router.getPreviewPipeline(pipeline.id))}
+                    key={workflow.id}
+                    workflow={workflow}
+                    onClick={() => void navigate(router.getPreviewWorkflow(workflow.id))}
                   />
                 ))}
               </div>
@@ -333,32 +303,32 @@ function PreviewEmptyState({
   );
 }
 
-function RecentRunItem({ pipeline, onClick }: { pipeline: PipelineItemInterface; onClick: () => void }) {
-  const dotColor = STATUS_DOT_COLORS[pipeline.status] ?? 'bg-muted-foreground';
+function RecentRunItem({ workflow, onClick }: { workflow: WorkflowItemInterface; onClick: () => void }) {
+  const dotColor = STATUS_DOT_COLORS[workflow.status] ?? 'bg-muted-foreground';
 
   return (
     <button className="hover:bg-accent w-full rounded-md px-2 py-2.5 text-left transition-colors" onClick={onClick}>
       <div className="flex items-center gap-2">
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotColor}`} />
         <span className="truncate text-sm font-medium">
-          Run #{pipeline.run} &middot; {pipeline.blockName}
+          Run #{workflow.run} &middot; {workflow.blockName}
         </span>
       </div>
       <p className="text-muted-foreground mt-0.5 pl-3.5 text-xs">
-        {pipeline.status} &middot; {formatDistanceToNow(new Date(pipeline.createdAt), { addSuffix: true })}
+        {workflow.status} &middot; {formatDistanceToNow(new Date(workflow.createdAt), { addSuffix: true })}
       </p>
     </button>
   );
 }
 
 function EmbedWorkflowSection({
+  childWorkflow,
   workflow,
-  pipeline,
   collapsible,
   children,
 }: {
-  workflow: WorkflowItemInterface;
-  pipeline: PipelineInterface;
+  childWorkflow: WorkflowItemInterface;
+  workflow: WorkflowFullInterface;
   collapsible: boolean;
   children: React.ReactNode;
 }) {
@@ -367,8 +337,8 @@ function EmbedWorkflowSection({
       <div>
         <div className="flex items-center gap-2 p-2 text-sm font-medium">
           <Play className="text-primary h-3.5 w-3.5 fill-current" />
-          <span className="flex-1 truncate text-sm">{workflow.title ?? workflow.blockName}</span>
-          <WorkflowButtons pipeline={pipeline} workflowId={workflow.id} />
+          <span className="flex-1 truncate text-sm">{childWorkflow.title ?? childWorkflow.blockName}</span>
+          <WorkflowButtons workflow={workflow} workflowId={childWorkflow.id} />
         </div>
         <div className="py-1">{children}</div>
       </div>
@@ -380,8 +350,8 @@ function EmbedWorkflowSection({
       <CollapsibleTrigger asChild>
         <button className="hover:bg-accent hover:text-accent-foreground group/trigger flex w-full items-center gap-2 rounded-md p-2 text-left text-sm font-medium">
           <Play className="text-primary h-3.5 w-3.5 fill-current" />
-          <span className="flex-1 truncate text-sm">{workflow.title ?? workflow.blockName}</span>
-          <WorkflowButtons pipeline={pipeline} workflowId={workflow.id} />
+          <span className="flex-1 truncate text-sm">{childWorkflow.title ?? childWorkflow.blockName}</span>
+          <WorkflowButtons workflow={workflow} workflowId={childWorkflow.id} />
           <ChevronRight className="text-muted-foreground h-3.5 w-3.5 transition-transform group-data-[state=open]/collapsible:rotate-90" />
         </button>
       </CollapsibleTrigger>
@@ -494,28 +464,5 @@ function EmbedLogsContent() {
         )}
       </div>
     </div>
-  );
-}
-
-function EmbedNavigationContent({ pipelineId }: { pipelineId: string }) {
-  const namespaceTree = useNamespaceTree(pipelineId);
-
-  if (!namespaceTree || namespaceTree.length === 0) {
-    return (
-      <div className="text-muted-foreground flex flex-col items-center justify-center gap-2 py-8">
-        <Navigation className="h-6 w-6" />
-        <span className="text-sm">No navigation items</span>
-      </div>
-    );
-  }
-
-  return (
-    <SidebarProvider defaultOpen className="min-h-0" style={{ '--sidebar-width': '100%' } as React.CSSProperties}>
-      <div className="w-full overflow-auto">
-        <SidebarMenu>
-          <WorkbenchNavigation namespaceTree={namespaceTree} indent={0} />
-        </SidebarMenu>
-      </div>
-    </SidebarProvider>
   );
 }

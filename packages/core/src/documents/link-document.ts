@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document, DocumentInterface, Input } from '@loopstack/common';
+import { BaseDocument, Document, DocumentInterface, Input } from '@loopstack/common';
 
 const LinkDocumentSchema = z
   .object({
@@ -11,16 +11,18 @@ const LinkDocumentSchema = z
   })
   .strict();
 
+type LinkDocumentContent = z.infer<typeof LinkDocumentSchema>;
+
 @Document({
   config: {
     type: 'document',
     description: 'Link Document.',
   },
-  configFile: __dirname + '/link-document.yaml',
+  uiConfig: __dirname + '/link-document.yaml',
 })
-export class LinkDocument implements DocumentInterface {
+export class LinkDocument extends BaseDocument implements DocumentInterface {
   @Input({
     schema: LinkDocumentSchema,
   })
-  content: z.infer<typeof LinkDocumentSchema>;
+  content: LinkDocumentContent;
 }

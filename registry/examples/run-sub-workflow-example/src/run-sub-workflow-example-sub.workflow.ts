@@ -1,13 +1,11 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Output, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Initial, InjectTool, Output, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
-@Injectable()
 @Workflow({
-  configFile: __dirname + '/run-sub-workflow-example-sub.workflow.yaml',
+  uiConfig: __dirname + '/run-sub-workflow-example-sub.workflow.yaml',
 })
-export class RunSubWorkflowExampleSubWorkflow {
+export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;
 
   @Output({
@@ -19,5 +17,13 @@ export class RunSubWorkflowExampleSubWorkflow {
     return {
       message: 'Hi mom!',
     };
+  }
+
+  @Initial({ to: 'end' })
+  async message() {
+    await this.createChatMessage.run({
+      role: 'assistant',
+      content: 'Sub workflow completed.',
+    });
   }
 }

@@ -1,19 +1,16 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
-import { PipelineFlowViewer } from '@/features/debug';
-import { usePipeline, usePipelineConfigByName } from '@/hooks/usePipelines.ts';
-import { useFetchWorkflowsByPipeline } from '@/hooks/useWorkflows.ts';
-import { useWorkspace } from '@/hooks/useWorkspaces.ts';
+import { WorkflowFlowViewer } from '@/features/debug';
+import { useChildWorkflows, useWorkflow, useWorkflowConfigByName } from '@/hooks/useWorkflows.ts';
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
 
 export function WorkbenchFlowPanel() {
-  const { pipeline, closeSidePanel } = useWorkbenchLayout();
-  const fetchPipeline = usePipeline(pipeline.id);
-  const fetchWorkspace = useWorkspace(pipeline.workspaceId);
-  const fetchWorkflows = useFetchWorkflowsByPipeline(pipeline.id);
-  const fetchPipelineConfig = usePipelineConfigByName(fetchWorkspace.data?.blockName, fetchPipeline.data?.blockName);
-  const workflows = useMemo(() => fetchWorkflows.data ?? [], [fetchWorkflows.data]);
+  const { workflow, closeSidePanel } = useWorkbenchLayout();
+  const fetchWorkflow = useWorkflow(workflow.id);
+  const fetchChildWorkflows = useChildWorkflows(workflow.id);
+  const fetchWorkflowConfig = useWorkflowConfigByName(fetchWorkflow.data?.className ?? undefined);
+  const childWorkflows = useMemo(() => fetchChildWorkflows.data ?? [], [fetchChildWorkflows.data]);
 
   return (
     <div className="border-l bg-background flex w-1/2 shrink-0 flex-col">
@@ -28,12 +25,12 @@ export function WorkbenchFlowPanel() {
       </div>
 
       <div className="flex-1 overflow-hidden">
-        {workflows.length > 0 ? (
+        {childWorkflows.length > 0 ? (
           <ReactFlowProvider>
-            <PipelineFlowViewer
-              pipelineId={pipeline.id}
-              workflows={workflows}
-              pipelineConfig={fetchPipelineConfig.data}
+            <WorkflowFlowViewer
+              workflowId={workflow.id}
+              workflows={childWorkflows}
+              workflowConfig={fetchWorkflowConfig.data}
             />
           </ReactFlowProvider>
         ) : (

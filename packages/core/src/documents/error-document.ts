@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document, DocumentInterface, Input } from '@loopstack/common';
+import { BaseDocument, Document, DocumentInterface, Input } from '@loopstack/common';
 
 const ErrorDocumentSchema = z
   .object({
@@ -12,9 +12,9 @@ const ErrorDocumentSchema = z
     type: 'document',
     description: 'Error Document.',
   },
-  configFile: __dirname + '/error-document.yaml',
+  uiConfig: __dirname + '/error-document.yaml',
 })
-export class ErrorDocument implements DocumentInterface {
+export class ErrorDocument extends BaseDocument implements DocumentInterface {
   @Input({
     schema: ErrorDocumentSchema,
   })

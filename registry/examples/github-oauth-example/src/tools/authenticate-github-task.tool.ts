@@ -1,18 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  InjectDocument,
-  InjectTool,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  ToolSideEffects,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-} from '@loopstack/common';
-import { CreateDocument, LinkDocument, Task } from '@loopstack/core';
+import { BaseTool, InjectDocument, InjectWorkflow, Input, Tool, ToolResult } from '@loopstack/common';
+import { LinkDocument } from '@loopstack/core';
+import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 const AuthenticateGitHubTaskInputSchema = z
   .object({
@@ -32,93 +22,52 @@ type AuthenticateGitHubTaskInput = z.infer<typeof AuthenticateGitHubTaskInputSch
       'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   },
 })
-export class AuthenticateGitHubTask implements ToolInterface<AuthenticateGitHubTaskInput> {
+export class AuthenticateGitHubTask extends BaseTool {
   private readonly logger = new Logger(AuthenticateGitHubTask.name);
 
-  @InjectTool() private task: Task;
-  @InjectTool() private createDocument: CreateDocument;
+  @InjectWorkflow() private oAuth: OAuthWorkflow;
   @InjectDocument() private linkDocument: LinkDocument;
 
   @Input({ schema: AuthenticateGitHubTaskInputSchema })
   args: AuthenticateGitHubTaskInput;
 
-  async execute(
-    args: AuthenticateGitHubTaskInput,
-    ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const taskResult = await this.task.execute(
-      { workflow: 'oAuth', args: { provider: 'github', scopes: args.scopes } },
-      ctx,
-      parent,
-    );
+  async run(args: AuthenticateGitHubTaskInput): Promise<ToolResult> {
+    const result = await this.oAuth.run({
+      args: { provider: 'github', scopes: args.scopes },
+    });
 
-    const effects: ToolSideEffects[] = [];
-
-    const linkResult = await this.createDocument.execute(
-      {
-        document: 'linkDocument',
-        id: 'github_auth_link',
-        validate: 'skip' as const,
-        update: {
-          content: {
-            status: 'pending',
-            label: 'GitHub authentication required',
-            href: `/pipelines/${String((taskResult.data as Record<string, unknown>).pipelineId)}`,
-            embed: true,
-            expanded: true,
-          },
-        },
+    await this.linkDocument.create({
+      id: 'github_auth_link',
+      validate: 'skip',
+      content: {
+        status: 'pending',
+        label: 'GitHub authentication required',
+        href: `/workflows/${result.workflowId}`,
+        embed: true,
+        expanded: true,
       },
-      ctx,
-      this,
-      metadata,
-    );
-    if (linkResult.effects) {
-      effects.push(...linkResult.effects);
-    }
+    });
 
     return {
-      data: taskResult.data as Record<string, unknown>,
-      effects,
+      data: result,
     };
   }
 
-  async complete(
-    result: Record<string, unknown>,
-    ctx: RunContext,
-    parent: WorkflowInterface | ToolInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const data = result as { pipelineId?: string };
+  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+    const data = result as { workflowId?: string };
 
-    const effects: ToolSideEffects[] = [];
-
-    const linkResult = await this.createDocument.execute(
-      {
-        document: 'linkDocument',
-        id: 'github_auth_link',
-        validate: 'skip' as const,
-        update: {
-          content: {
-            status: 'success',
-            label: 'GitHub authentication completed',
-            href: `/pipelines/${data.pipelineId}`,
-          },
-        },
+    await this.linkDocument.create({
+      id: 'github_auth_link',
+      validate: 'skip',
+      content: {
+        status: 'success',
+        label: 'GitHub authentication completed',
+        href: `/workflows/${data.workflowId}`,
       },
-      ctx,
-      this,
-      metadata,
-    );
-    if (linkResult.effects) {
-      effects.push(...linkResult.effects);
-    }
+    });
 
     return {
       data: 'GitHub authentication completed successfully. You can now use GitHub tools.',
-      effects,
     };
   }
 }

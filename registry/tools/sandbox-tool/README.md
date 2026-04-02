@@ -32,7 +32,7 @@ import { InjectTool, State, Workflow } from '@loopstack/common';
 import { SandboxCommand, SandboxDestroy, SandboxInit } from './sandbox-tool';
 
 @Workflow({
-  configFile: __dirname + '/my.workflow.yaml',
+  uiConfig: __dirname + '/my.workflow.yaml',
 })
 export class MyWorkflow {
   @InjectTool() sandboxInit: SandboxInit;

@@ -60,7 +60,7 @@ Register custom tools using the `@InjectTool()` decorator:
 
 ```typescript
 @Workflow({
-  configFile: __dirname + '/tool-call.workflow.yaml',
+  uiConfig: __dirname + '/tool-call.workflow.yaml',
 })
 export class ToolCallWorkflow {
   @InjectTool() getWeather: GetWeather;

@@ -21,6 +21,5 @@ export interface DocumentItemInterface {
   createdAt: Date;
   updatedAt: Date;
   workspaceId: string;
-  pipelineId: string;
   workflowId: string;
 }

@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GitHubCreateIssueCommentArgs = {
@@ -16,7 +16,7 @@ export type GitHubCreateIssueCommentArgs = {
       'Creates a comment on a GitHub issue or pull request. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GitHubCreateIssueCommentTool implements ToolInterface {
+export class GitHubCreateIssueCommentTool extends BaseTool {
   private readonly logger = new Logger(GitHubCreateIssueCommentTool.name);
 
   @Inject()
@@ -34,8 +34,8 @@ export class GitHubCreateIssueCommentTool implements ToolInterface {
   })
   args: GitHubCreateIssueCommentArgs;
 
-  async execute(args: GitHubCreateIssueCommentArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async run(args: GitHubCreateIssueCommentArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -59,7 +59,7 @@ export class GitHubCreateIssueCommentTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: '401',

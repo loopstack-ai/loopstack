@@ -6,26 +6,3 @@ ui:
     properties:
       subject:
         title: 'What should the haiku be about?'
-
-transitions:
-  - id: prompt
-    from: start
-    to: prompt_executed
-    call:
-      - id: llm_call
-        tool: claudeGenerateText
-        args:
-          claude:
-            model: claude-sonnet-4-6
-          prompt: Write a haiku about {{ args.subject }}
-
-  - id: respond
-    from: prompt_executed
-    to: end
-    call:
-      - tool: createDocument
-        args:
-          id: ${{ runtime.tools.prompt.llm_call.data.id }}
-          document: claudeMessageDocument
-          update:
-            content: ${{ runtime.tools.prompt.llm_call.data }}

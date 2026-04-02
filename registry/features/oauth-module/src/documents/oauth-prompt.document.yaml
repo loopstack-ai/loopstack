@@ -4,4 +4,4 @@ ui:
   widgets:
     - widget: oauth-prompt
       options:
-        transition: exchange_token
+        transition: exchangeToken

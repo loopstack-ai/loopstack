@@ -1,21 +1,21 @@
 import { Hammer } from 'lucide-react';
 import React from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import { Button } from '../../../../components/ui/button.tsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../../../components/ui/tooltip.tsx';
-import { useRunPipeline } from '../../../../hooks/useProcessor.ts';
+import { useRunWorkflow } from '../../../../hooks/useProcessor.ts';
 
-interface PipelineButtonsProps {
-  pipeline: PipelineInterface;
+interface WorkflowRunButtonsProps {
+  workflow: WorkflowFullInterface;
 }
 
-const PipelineButtons: React.FC<PipelineButtonsProps> = ({ pipeline }) => {
-  const runPipeline = useRunPipeline();
+const WorkflowRunButtons: React.FC<WorkflowRunButtonsProps> = ({ workflow }) => {
+  const runWorkflow = useRunWorkflow();
 
   const handlePing = () => {
-    runPipeline.mutate({
-      pipelineId: pipeline.id,
-      runPipelinePayloadDto: {},
+    runWorkflow.mutate({
+      workflowId: workflow.id,
+      runWorkflowPayloadDto: {},
       force: false,
     });
   };
@@ -30,10 +30,10 @@ const PipelineButtons: React.FC<PipelineButtonsProps> = ({ pipeline }) => {
                 variant="default"
                 size="sm"
                 onClick={handlePing}
-                disabled={runPipeline.isPending}
+                disabled={runWorkflow.isPending}
                 className="ml-3.5 h-8 w-8 bg-transparent p-0 text-black hover:bg-gray-100"
               >
-                {runPipeline.isPending ? (
+                {runWorkflow.isPending ? (
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 ) : (
                   <Hammer className="w-5" />
@@ -41,7 +41,7 @@ const PipelineButtons: React.FC<PipelineButtonsProps> = ({ pipeline }) => {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Ping pipeline</p>
+              <p>Ping workflow</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -50,4 +50,4 @@ const PipelineButtons: React.FC<PipelineButtonsProps> = ({ pipeline }) => {
   );
 };
 
-export default PipelineButtons;
+export default WorkflowRunButtons;

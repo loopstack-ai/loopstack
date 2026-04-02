@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 export type GitHubSearchCodeArgs = {
@@ -15,7 +15,7 @@ export type GitHubSearchCodeArgs = {
       'Searches for code across GitHub repositories using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
   },
 })
-export class GitHubSearchCodeTool implements ToolInterface {
+export class GitHubSearchCodeTool extends BaseTool {
   private readonly logger = new Logger(GitHubSearchCodeTool.name);
 
   @Inject()
@@ -32,8 +32,8 @@ export class GitHubSearchCodeTool implements ToolInterface {
   })
   args: GitHubSearchCodeArgs;
 
-  async execute(args: GitHubSearchCodeArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async run(args: GitHubSearchCodeArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -59,7 +59,7 @@ export class GitHubSearchCodeTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
       return {
         data: {
           error: '401',

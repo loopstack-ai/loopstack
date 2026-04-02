@@ -1,18 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, plainToInstance } from 'class-transformer';
 import { WorkflowEntity, WorkflowState } from '@loopstack/common';
-import type {
-  HistoryTransition,
-  JSONSchemaConfigType,
-  UiFormType,
-  WorkflowInterface,
-  WorkflowTransitionType,
-} from '@loopstack/contracts/types';
+import type { WorkflowTransitionType } from '@loopstack/contracts/types';
 
 /**
- * Data Transfer Object representing a workflow
+ * Data Transfer Object representing a workflow (full detail)
  */
-export class WorkflowDto implements WorkflowInterface {
+export class WorkflowDto {
   @Expose()
   @ApiProperty({
     description: 'Unique identifier of the workflow',
@@ -31,6 +25,14 @@ export class WorkflowDto implements WorkflowInterface {
   blockName: string;
 
   @Expose()
+  @ApiPropertyOptional({
+    description: 'Class name of the workflow (for config lookups)',
+    example: 'AutomationBuilderWorkflow',
+    nullable: true,
+  })
+  className: string | null;
+
+  @Expose()
   @ApiProperty({
     description: 'Display title of the workflow',
     example: 'My workflow',
@@ -39,11 +41,10 @@ export class WorkflowDto implements WorkflowInterface {
 
   @Expose()
   @ApiProperty({
-    description: 'Index position of the workflow in the pipeline sequence',
-    example: 1,
-    type: Number,
+    description: 'Run number for identification if no title is given.',
+    example: 123,
   })
-  index: number;
+  run: number;
 
   @Expose()
   @ApiProperty({
@@ -53,16 +54,6 @@ export class WorkflowDto implements WorkflowInterface {
     example: ['frontend', 'featureXY'],
   })
   labels: string[];
-
-  @Expose()
-  @ApiProperty({
-    description: 'Completion percentage of the workflow (0-100)',
-    example: 75,
-    minimum: 0,
-    maximum: 100,
-    type: Number,
-  })
-  progress: number;
 
   @Expose()
   @ApiProperty({
@@ -105,25 +96,28 @@ export class WorkflowDto implements WorkflowInterface {
 
   @Expose()
   @ApiPropertyOptional({
-    description: 'History of state transitions within the workflow',
+    type: 'object',
+    additionalProperties: true,
+    description: 'Arguments for the workflow run',
     nullable: true,
   })
-  history: HistoryTransition[] | null;
+  args: any;
 
   @Expose()
   @ApiProperty({
-    description: 'The json schema for form validation',
+    type: 'object',
+    additionalProperties: true,
+    description: 'Contextual information available to the workflow',
   })
-  schema: JSONSchemaConfigType;
+  context: Record<string, any>;
 
   @Expose()
   @ApiPropertyOptional({
-    type: 'object',
-    additionalProperties: true,
-    description: 'Ui schema config for the workflow',
+    type: 'string',
+    description: 'Event correlation ID for linking related workflows',
     nullable: true,
   })
-  ui: UiFormType | null;
+  eventCorrelationId: string | null;
 
   @Expose()
   @ApiProperty({
@@ -149,18 +143,19 @@ export class WorkflowDto implements WorkflowInterface {
   workspaceId: string;
 
   @Expose()
-  @ApiProperty({
-    description: 'Unique identifier of the pipeline this workflow belongs to',
-    example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
+  @ApiPropertyOptional({
+    description: 'ID of parent workflow. Is null for root workflows',
+    nullable: true,
   })
-  pipelineId: string;
+  parentId: string | null;
 
   @Expose()
   @ApiProperty({
-    description: 'Unique identifier of the namespace this workflow belongs to',
-    example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
+    type: 'number',
+    description: 'Number of child workflows',
+    example: 0,
   })
-  namespaceId: string;
+  hasChildren: number;
 
   /**
    * Creates a WorkflowDto instance from a WorkflowEntity
