@@ -1,4 +1,5 @@
-import { ClaudeGenerateText, ClaudeGenerateTextResult, ClaudeMessageDocument } from '@loopstack/claude-module';
+import { z } from 'zod';
+import { ClaudeGenerateText, ClaudeMessageDocument } from '@loopstack/claude-module';
 import { BaseWorkflow, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({
@@ -6,8 +7,6 @@ import { BaseWorkflow, Initial, InjectTool, Transition, Workflow } from '@loopst
 })
 export class ChatWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
-
-  llmResult?: ClaudeGenerateTextResult;
 
   @Initial({ to: 'waiting_for_user' })
   async setup() {
@@ -18,23 +17,18 @@ export class ChatWorkflow extends BaseWorkflow {
     );
   }
 
-  @Transition({ from: 'waiting_for_user', to: 'ready', wait: true })
-  async userMessage() {
-    const payload = this.ctx.runtime.transition!.payload as string;
+  @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
+  async userMessage(payload: string) {
     await this.repository.save(ClaudeMessageDocument, { role: 'user', content: payload });
   }
 
-  @Transition({ from: 'ready', to: 'prompt_executed' })
+  @Transition({ from: 'ready', to: 'waiting_for_user' })
   async llmTurn() {
     const result = await this.claudeGenerateText.call({
       claude: { model: 'claude-sonnet-4-6' },
       messagesSearchTag: 'message',
     });
-    this.llmResult = result.data as ClaudeGenerateTextResult;
-  }
 
-  @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  async respond() {
-    await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
+    await this.repository.save(ClaudeMessageDocument, result.data!, { id: result.data!.id });
   }
 }

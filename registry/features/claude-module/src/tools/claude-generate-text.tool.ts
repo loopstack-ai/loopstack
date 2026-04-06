@@ -15,6 +15,7 @@ import { ClaudeGenerateToolBaseSchema } from '../schemas/claude-generate-tool-ba
 import { ClaudeClientService } from '../services';
 import { ClaudeMessagesHelperService } from '../services';
 import { ClaudeToolsHelperService } from '../services';
+import { ClaudeGenerateTextResult } from '../types';
 import { applyCacheBreakpoints } from '../utils/cache.utils';
 
 export const ClaudeGenerateTextSchema = ClaudeGenerateToolBaseSchema.extend({
@@ -38,7 +39,7 @@ export class ClaudeGenerateText extends BaseTool {
   @Inject()
   private readonly claudeToolsHelperService: ClaudeToolsHelperService;
 
-  async call(args: ClaudeGenerateTextArgsType): Promise<ToolResult> {
+  async call(args: ClaudeGenerateTextArgsType): Promise<ToolResult<ClaudeGenerateTextResult>> {
     const client = this.claudeClientService.getClient(args.claude);
     const model = this.claudeClientService.getModel(args.claude);
 

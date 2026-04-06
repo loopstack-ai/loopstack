@@ -71,11 +71,13 @@ export class DocumentPersistenceService {
       createdBy: runContext.userId,
     });
 
-    // Persist immediately via scoped transaction when available
+    // Set index and update in-memory cache first (handles invalidation of previous versions)
+    await this.addToCache(ctx, entity);
+
+    // Persist to DB with correct index via scoped transaction when available
     const queryRunner = ctx.getQueryRunner();
     const saved = queryRunner ? await queryRunner.manager.save(DocumentEntity, entity) : entity;
 
-    await this.addToCache(ctx, saved);
     return saved;
   }
 
@@ -95,11 +97,13 @@ export class DocumentPersistenceService {
     // Collect all existing documents with the same messageId that need invalidation
     const invalidated: DocumentEntity[] = [];
     let inheritedIndex: number | undefined;
+    let inheritedVersion: number | undefined;
 
     for (const doc of documents) {
       if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
         if (inheritedIndex === undefined) {
           inheritedIndex = doc.index;
+          inheritedVersion = doc.version;
         }
         doc.isInvalidated = true;
         if (doc.id) {
@@ -118,8 +122,13 @@ export class DocumentPersistenceService {
         .execute();
     }
 
+    // Bump version when replacing an existing document
+    if (inheritedVersion !== undefined) {
+      document.version = inheritedVersion + 1;
+    }
+
     if (existingIndex !== -1) {
-      document.index = existingIndex;
+      document.index = documents[existingIndex].index;
       documents[existingIndex] = document;
     } else {
       document.index = inheritedIndex ?? documents.length;
