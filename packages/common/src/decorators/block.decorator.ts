@@ -13,7 +13,6 @@ export const BLOCK_TYPE_METADATA_KEY = Symbol('blockType');
 export const INJECTED_TOOLS_METADATA_KEY = Symbol('injectedTools');
 export const INJECTED_DOCUMENTS_METADATA_KEY = Symbol('injectedDocuments');
 export const INJECTED_WORKFLOWS_METADATA_KEY = Symbol('injectedWorkflows');
-export const INJECTED_TEMPLATES_METADATA_KEY = Symbol('injectedTemplates');
 export const TRANSITIONS_METADATA_KEY = Symbol('transitions');
 export const GUARDS_METADATA_KEY = Symbol('guards');
 export const PASS_THROUGH_METADATA_KEY = Symbol('passThrough');
@@ -29,8 +28,6 @@ export type BlockType = 'workflow' | 'tool' | 'document' | 'workspace';
 export interface BlockOptions {
   /** Inline config object or path to a YAML file containing UI config */
   uiConfig?: string | Partial<BlockConfigType>;
-  /** Map of template names to file paths (e.g., { system: __dirname + '/templates/system.md' }) */
-  templates?: Record<string, string>;
   /** Zod schema for input/content validation */
   schema?: z.ZodType;
 }
@@ -49,8 +46,6 @@ export interface WorkflowOptions {
   uiConfig?: string | Partial<WorkflowType>;
   /** Zod schema for input validation */
   schema?: z.ZodType;
-  /** Map of template names to file paths (e.g., { system: __dirname + '/templates/system.md' }) */
-  templates?: Record<string, string>;
 }
 
 /** Options for @Document() decorator */
@@ -144,13 +139,6 @@ export function InjectWorkflow(options?: InjectWorkflowDecoratorOptions): Proper
     const existingWorkflows =
       (Reflect.getMetadata(INJECTED_WORKFLOWS_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
     Reflect.defineMetadata(INJECTED_WORKFLOWS_METADATA_KEY, [...existingWorkflows, propertyKey], target);
-  };
-}
-
-// Templates Injection Decorator
-export function InjectTemplates(): PropertyDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    Reflect.defineMetadata(INJECTED_TEMPLATES_METADATA_KEY, propertyKey, target.constructor);
   };
 }
 

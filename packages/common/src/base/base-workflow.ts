@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { DocumentRepository, FrameworkContext, WorkflowOrchestrator } from '../interfaces';
-import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, WORKFLOW_ORCHESTRATOR } from '../tokens';
+import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens';
+import { TemplateRenderFn } from './workflow-templates';
 
 export interface RunOptions {
   alias: string;
@@ -43,6 +44,9 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>> {
 
   /** Workflow orchestrator — wired by the framework at runtime */
   @Inject(WORKFLOW_ORCHESTRATOR) readonly orchestrator!: WorkflowOrchestrator;
+
+  /** Renders a Handlebars template file. Usage: `this.render(__dirname + '/templates/foo.md', { key: 'value' })` */
+  @Inject(TEMPLATE_RENDERER) readonly render!: TemplateRenderFn;
 
   /** Launches this workflow as a sub-workflow via the orchestrator. */
   run(args: TArgs, options?: RunOptions): Promise<QueueResult> {

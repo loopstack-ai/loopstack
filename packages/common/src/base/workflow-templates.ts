@@ -1,15 +1,8 @@
 /**
- * Provides access to workflow templates registered via the `templates`
- * option in the `@Workflow` decorator.
+ * Function signature for rendering a template file with Handlebars.
  *
- * Templates are `.md` files using Handlebars syntax.
- * The actual implementation is instantiated and wired by the processor in core.
+ * @param path - Absolute path to the template file (typically `__dirname + '/templates/foo.md'`)
+ * @param data - Optional data context passed to Handlebars
+ * @returns The rendered string
  */
-export interface WorkflowTemplates {
-  /** Renders a named template with the given data context */
-  render(name: string, data?: Record<string, unknown>): string;
-  /** Checks if a template exists */
-  has(name: string): boolean;
-  /** Returns all available template names */
-  names(): string[];
-}
+export type TemplateRenderFn = (path: string, data?: Record<string, unknown>) => string;

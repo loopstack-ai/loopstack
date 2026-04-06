@@ -5,13 +5,11 @@ import {
   Final,
   Guard,
   Initial,
-  InjectTemplates,
   InjectTool,
   InjectWorkflow,
   ToolResult,
   Transition,
   Workflow,
-  WorkflowTemplates,
 } from '@loopstack/common';
 import { LinkDocument, MarkdownDocument } from '@loopstack/core';
 import {
@@ -90,9 +88,6 @@ interface GitHubSearchCodeResult {
 
 @Workflow({
   uiConfig: __dirname + '/github-repos-overview.workflow.yaml',
-  templates: {
-    repoOverview: __dirname + '/templates/repoOverview.md',
-  },
   schema: z
     .object({
       owner: z.string().default('octocat'),
@@ -113,7 +108,6 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
   @InjectTool() private gitHubSearchCode: GitHubSearchCodeTool;
 
   @InjectWorkflow() oAuth: OAuthWorkflow;
-  @InjectTemplates() templates: WorkflowTemplates;
 
   requiresAuthentication?: boolean;
   user?: { login: string; name: string | null; htmlUrl: string; publicRepos: number };
@@ -289,7 +283,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
   @Final({ from: 'search_done' })
   async displayResults() {
     await this.repository.save(MarkdownDocument, {
-      markdown: this.templates.render('repoOverview', {
+      markdown: this.render(__dirname + '/templates/repoOverview.md', {
         user: this.user,
         orgs: this.orgs,
         repo: this.repo,

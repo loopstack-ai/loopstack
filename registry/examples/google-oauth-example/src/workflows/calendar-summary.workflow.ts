@@ -5,13 +5,11 @@ import {
   Final,
   Guard,
   Initial,
-  InjectTemplates,
   InjectTool,
   InjectWorkflow,
   ToolResult,
   Transition,
   Workflow,
-  WorkflowTemplates,
 } from '@loopstack/common';
 import { LinkDocument, MarkdownDocument } from '@loopstack/core';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
@@ -24,9 +22,6 @@ interface CalendarFetchResult {
 
 @Workflow({
   uiConfig: __dirname + '/calendar-summary.workflow.yaml',
-  templates: {
-    calendarSummary: __dirname + '/templates/calendarSummary.md',
-  },
   schema: z
     .object({
       calendarId: z.string().default('primary'),
@@ -38,7 +33,6 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
   @InjectTool() private googleCalendarFetchEvents: GoogleCalendarFetchEventsTool;
 
   @InjectWorkflow() private oAuth: OAuthWorkflow;
-  @InjectTemplates() templates: WorkflowTemplates;
 
   events?: Array<{ id: string; summary: string; start?: string; end?: string }>;
   requiresAuthentication?: boolean;
@@ -108,7 +102,7 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
   @Final({ from: 'calendar_fetched' })
   async displayResults() {
     await this.repository.save(MarkdownDocument, {
-      markdown: this.templates.render('calendarSummary', { events: this.events }),
+      markdown: this.render(__dirname + '/templates/calendarSummary.md', { events: this.events }),
     });
   }
 

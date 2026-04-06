@@ -5,3 +5,4 @@
 export const DOCUMENT_REPOSITORY = Symbol('DocumentRepository');
 export const FRAMEWORK_CONTEXT = Symbol('FrameworkContext');
 export const WORKFLOW_ORCHESTRATOR = Symbol('WorkflowOrchestrator');
+export const TEMPLATE_RENDERER = Symbol('TemplateRenderer');

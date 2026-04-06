@@ -1,23 +1,11 @@
 import { ClaudeGenerateText, ClaudeGenerateTextResult, ClaudeMessageDocument } from '@loopstack/claude-module';
-import {
-  BaseWorkflow,
-  Initial,
-  InjectTemplates,
-  InjectTool,
-  Transition,
-  Workflow,
-  WorkflowTemplates,
-} from '@loopstack/common';
+import { BaseWorkflow, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/chat.workflow.yaml',
-  templates: {
-    systemMessage: __dirname + '/templates/systemMessage.md',
-  },
 })
 export class ChatWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
-  @InjectTemplates() templates: WorkflowTemplates;
 
   llmResult?: ClaudeGenerateTextResult;
 
@@ -25,7 +13,7 @@ export class ChatWorkflow extends BaseWorkflow {
   async setup() {
     await this.repository.save(
       ClaudeMessageDocument,
-      { role: 'user', content: this.templates.render('systemMessage') },
+      { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
   }

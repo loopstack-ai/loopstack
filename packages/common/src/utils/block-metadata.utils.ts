@@ -8,7 +8,6 @@ import {
   GUARDS_METADATA_KEY,
   GuardMetadata,
   INJECTED_DOCUMENTS_METADATA_KEY,
-  INJECTED_TEMPLATES_METADATA_KEY,
   INJECTED_TOOLS_METADATA_KEY,
   INJECTED_WORKFLOWS_METADATA_KEY,
   PASS_THROUGH_METADATA_KEY,
@@ -147,15 +146,6 @@ export function getGuardMetadataMap(target: object | Constructor): Map<string, G
     map.set(guard.transitionMethodName, guard);
   }
   return map;
-}
-
-/**
- * Gets the templates property name from @InjectTemplates() metadata
- */
-export function getBlockTemplatesPropertyName(target: object | Constructor): string | undefined {
-  const ctor = getConstructor(target);
-  const key = Reflect.getMetadata(INJECTED_TEMPLATES_METADATA_KEY, ctor) as string | symbol | undefined;
-  return key != null ? String(key) : undefined;
 }
 
 /**

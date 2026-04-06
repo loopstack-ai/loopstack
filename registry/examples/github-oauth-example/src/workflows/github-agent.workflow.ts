@@ -10,13 +10,11 @@ import {
   BaseWorkflow,
   Guard,
   Initial,
-  InjectTemplates,
   InjectTool,
   InjectWorkflow,
   ToolResult,
   Transition,
   Workflow,
-  WorkflowTemplates,
 } from '@loopstack/common';
 import {
   GitHubCreateIssueCommentTool,
@@ -50,9 +48,6 @@ import { AuthenticateGitHubTask } from '../tools/authenticate-github-task.tool';
 
 @Workflow({
   uiConfig: __dirname + '/github-agent.workflow.yaml',
-  templates: {
-    systemMessage: __dirname + '/templates/systemMessage.md',
-  },
 })
 export class GitHubAgentWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
@@ -100,7 +95,6 @@ export class GitHubAgentWorkflow extends BaseWorkflow {
   @InjectTool() gitHubListUserOrgs: GitHubListUserOrgsTool;
 
   @InjectWorkflow() oAuth: OAuthWorkflow;
-  @InjectTemplates() templates: WorkflowTemplates;
 
   llmResult?: ClaudeGenerateTextResult;
   delegateResult?: DelegateToolCallsResult;
@@ -111,7 +105,7 @@ export class GitHubAgentWorkflow extends BaseWorkflow {
       ClaudeMessageDocument,
       {
         role: 'user',
-        content: this.templates.render('systemMessage'),
+        content: this.render(__dirname + '/templates/systemMessage.md'),
       },
       { meta: { hidden: true } },
     );

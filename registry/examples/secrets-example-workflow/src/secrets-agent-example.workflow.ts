@@ -12,21 +12,16 @@ import {
   Final,
   Guard,
   Initial,
-  InjectTemplates,
   InjectTool,
   InjectWorkflow,
   ToolResult,
   Transition,
   Workflow,
-  WorkflowTemplates,
 } from '@loopstack/common';
 import { GetSecretKeysTool, RequestSecretsTask, SecretsRequestWorkflow } from '@loopstack/core';
 
 @Workflow({
   uiConfig: __dirname + '/secrets-agent-example.workflow.yaml',
-  templates: {
-    systemMessage: __dirname + '/templates/systemMessage.md',
-  },
 })
 export class SecretsAgentExampleWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
@@ -35,7 +30,6 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
   @InjectTool() requestSecrets: RequestSecretsTask;
   @InjectTool() getSecretKeys: GetSecretKeysTool;
   @InjectWorkflow() secretsRequest: SecretsRequestWorkflow;
-  @InjectTemplates() templates: WorkflowTemplates;
 
   llmResult?: ClaudeGenerateTextResult;
   delegateResult?: DelegateToolCallsResult;
@@ -46,7 +40,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
       ClaudeMessageDocument,
       {
         role: 'user',
-        content: this.templates.render('systemMessage'),
+        content: this.render(__dirname + '/templates/systemMessage.md'),
       },
       { meta: { hidden: true } },
     );

@@ -1,30 +1,16 @@
 import { z } from 'zod';
 import { ClaudeGenerateDocument, ClaudeMessageDocument } from '@loopstack/claude-module';
-import {
-  BaseWorkflow,
-  DocumentEntity,
-  Final,
-  Initial,
-  InjectTemplates,
-  InjectTool,
-  Transition,
-  Workflow,
-  WorkflowTemplates,
-} from '@loopstack/common';
+import { BaseWorkflow, DocumentEntity, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 import { FileDocument, FileDocumentType } from './documents/file-document';
 
 @Workflow({
   uiConfig: __dirname + '/prompt-structured-output.workflow.yaml',
-  templates: {
-    prompt: __dirname + '/templates/prompt.md',
-  },
   schema: z.object({
     language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
   }),
 })
 export class PromptStructuredOutputWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateDocument: ClaudeGenerateDocument;
-  @InjectTemplates() templates: WorkflowTemplates;
 
   llmResult?: DocumentEntity<FileDocumentType>;
 
@@ -52,7 +38,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow {
     const result = await this.claudeGenerateDocument.call({
       claude: { model: 'claude-sonnet-4-6' },
       response: { document: FileDocument },
-      prompt: this.templates.render('prompt', { language: args.language }),
+      prompt: this.render(__dirname + '/templates/prompt.md', { language: args.language }),
     });
     this.llmResult = result.data as DocumentEntity<FileDocumentType>;
   }

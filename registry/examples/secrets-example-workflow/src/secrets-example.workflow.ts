@@ -1,26 +1,12 @@
-import {
-  BaseWorkflow,
-  Final,
-  Initial,
-  InjectTemplates,
-  InjectTool,
-  ToolResult,
-  Transition,
-  Workflow,
-  WorkflowTemplates,
-} from '@loopstack/common';
+import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
 import { GetSecretKeysTool, MarkdownDocument, RequestSecretsTool, SecretRequestDocument } from '@loopstack/core';
 
 @Workflow({
   uiConfig: __dirname + '/secrets-example.workflow.yaml',
-  templates: {
-    secretsVerified: __dirname + '/templates/secretsVerified.md',
-  },
 })
 export class SecretsExampleWorkflow extends BaseWorkflow {
   @InjectTool() private requestSecrets: RequestSecretsTool;
   @InjectTool() private getSecretKeys: GetSecretKeysTool;
-  @InjectTemplates() templates: WorkflowTemplates;
 
   secretKeys?: Array<{ key: string; hasValue: boolean }>;
 
@@ -44,7 +30,7 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
   @Final({ from: 'verifying' })
   async showResult() {
     await this.repository.save(MarkdownDocument, {
-      markdown: this.templates.render('secretsVerified', { secretKeys: this.secretKeys }),
+      markdown: this.render(__dirname + '/templates/secretsVerified.md', { secretKeys: this.secretKeys }),
     });
   }
 }

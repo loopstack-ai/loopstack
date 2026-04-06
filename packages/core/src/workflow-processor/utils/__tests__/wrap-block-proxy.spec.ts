@@ -1,5 +1,5 @@
 import { Inject } from '@nestjs/common';
-import { DOCUMENT_REPOSITORY, InjectTemplates, InjectTool, Workflow } from '@loopstack/common';
+import { DOCUMENT_REPOSITORY, InjectTool, TEMPLATE_RENDERER, Workflow } from '@loopstack/common';
 import { RunContext } from '@loopstack/common';
 import { ExecutionContextManager } from '../execution-context-manager';
 import { StateManager } from '../state/state-manager';
@@ -17,7 +17,7 @@ class MockTool {
 @Workflow()
 class TestWorkflow {
   @InjectTool() mockTool: MockTool;
-  @InjectTemplates() templates: any;
+  @Inject(TEMPLATE_RENDERER) render: any;
   @Inject(DOCUMENT_REPOSITORY) repository: any;
 
   // State properties — no decorator needed
@@ -54,7 +54,7 @@ describe('wrapBlockProxy', () => {
   beforeEach(() => {
     workflow = new TestWorkflow();
     workflow.mockTool = new MockTool();
-    workflow.templates = { render: () => 'rendered' };
+    workflow.render = () => 'rendered';
     workflow.repository = { save: jest.fn(), findAll: jest.fn() };
   });
 
@@ -101,10 +101,10 @@ describe('wrapBlockProxy', () => {
       expect(wrapped.someMethod()).toBe('method-result');
     });
 
-    it('should pass through @InjectTemplates property', () => {
+    it('should pass through @Inject(TEMPLATE_RENDERER) render property', () => {
       const ctx = createExecutionContext(workflow);
       const wrapped = ctx.getInstance() as any;
-      expect(wrapped.templates.render()).toBe('rendered');
+      expect(wrapped.render()).toBe('rendered');
     });
 
     it('should pass through @FrameworkService property', () => {

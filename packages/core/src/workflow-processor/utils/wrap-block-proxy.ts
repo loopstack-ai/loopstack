@@ -2,7 +2,6 @@ import { PROPERTY_DEPS_METADATA } from '@nestjs/common/constants';
 import {
   BlockInterface,
   WorkflowInterface,
-  getBlockTemplatesPropertyName,
   getBlockTools,
   getBlockWorkflows,
   getPassThroughProperties,
@@ -22,8 +21,8 @@ import { ExecutionContextManager } from './execution-context-manager';
  * - `this.<tool>`        → pass-through (tool proxy handles call() interception)
  * - `this.<wf>`          → pass-through (run() delegates to orchestrator.queue() via DI)
  * - `this.<method>`      → pass-through (prototype function)
- * - `this.templates`     → pass-through (native class property)
  * - `this.repository`    → pass-through (NestJS @Inject)
+ * - `this.render`        → pass-through (NestJS @Inject)
  * - `this.x`             → stateManager.get('x')
  * - `this.x = v`         → stateManager.set('x', v)
  *
@@ -43,12 +42,6 @@ export function wrapBlockProxy(instance: BlockInterface, ctxManager: ExecutionCo
 
   // @PassThrough properties (e.g. repository, ctx)
   getPassThroughProperties(instance.constructor).forEach((name) => passThroughProps.add(name));
-
-  // @InjectTemplates property
-  const templatesProperty = getBlockTemplatesPropertyName(instance.constructor);
-  if (templatesProperty) {
-    passThroughProps.add(templatesProperty);
-  }
 
   // NestJS @Inject() property dependencies
   const propertyDeps =

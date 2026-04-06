@@ -7,20 +7,13 @@ import {
   WorkflowInterface,
   WorkflowMetadataInterface,
   getBlockArgsSchema,
-  getBlockOptions,
-  getBlockTemplatesPropertyName,
   getBlockTools,
   getGuardMetadataMap,
 } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { ConfigTraceError, Processor } from '../../../common';
-import {
-  ExecutionContextManager,
-  ExecutionScope,
-  WorkflowExecutionContextManager,
-  WorkflowTemplatesImpl,
-} from '../../utils';
+import { ExecutionContextManager, ExecutionScope, WorkflowExecutionContextManager } from '../../utils';
 import { CheckpointState, StateManager } from '../../utils/state/state-manager';
 import { ToolExecutionService } from '../tool-execution.service';
 import { TransitionResolverService } from '../transition-resolver.service';
@@ -144,9 +137,8 @@ export class WorkflowProcessorService implements Processor {
       ctx.getManager().setData('status', WorkflowStateEnum.Running);
     }
 
-    // Wire @FrameworkService properties on workflow and tools, sub-workflow _run(), templates
+    // Wire @FrameworkService properties on workflow and tools
     this.wireFrameworkServices(workflow);
-    this.wireTemplates(workflow);
 
     this.logger.debug(`Process state machine for workflow ${workflow.constructor.name}`);
     this.memoryMonitor.logWorkflowStart(workflow.constructor.name);
@@ -374,21 +366,6 @@ export class WorkflowProcessorService implements Processor {
       if (tool) {
         const proxy = this.toolExecutionService.wireAndProxyTool(tool, name);
         (workflow as Record<string, unknown>)[name] = proxy;
-      }
-    }
-  }
-
-  /**
-   * Wires WorkflowTemplates on @InjectTemplates() property.
-   * Sub-workflows use `this.orchestrator.queue()` via DI — no runtime wiring needed.
-   */
-  private wireTemplates(workflow: WorkflowInterface): void {
-    const templatesPropName = getBlockTemplatesPropertyName(workflow);
-    if (templatesPropName) {
-      const options = getBlockOptions(workflow);
-      const templatePaths = options?.templates;
-      if (templatePaths) {
-        (workflow as Record<string, unknown>)[templatesPropName] = new WorkflowTemplatesImpl(templatePaths);
       }
     }
   }

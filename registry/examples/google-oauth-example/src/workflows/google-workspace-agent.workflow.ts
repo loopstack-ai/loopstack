@@ -10,13 +10,11 @@ import {
   BaseWorkflow,
   Guard,
   Initial,
-  InjectTemplates,
   InjectTool,
   InjectWorkflow,
   ToolResult,
   Transition,
   Workflow,
-  WorkflowTemplates,
 } from '@loopstack/common';
 import {
   GmailGetMessageTool,
@@ -36,9 +34,6 @@ import { AuthenticateGoogleTask } from '../tools/authenticate-google-task.tool';
 
 @Workflow({
   uiConfig: __dirname + '/google-workspace-agent.workflow.yaml',
-  templates: {
-    systemMessage: __dirname + '/templates/systemMessage.md',
-  },
 })
 export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
@@ -64,7 +59,6 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
   @InjectTool() googleDriveUploadFile: GoogleDriveUploadFileTool;
 
   @InjectWorkflow() oAuth: OAuthWorkflow;
-  @InjectTemplates() templates: WorkflowTemplates;
 
   llmResult?: ClaudeGenerateTextResult;
   delegateResult?: DelegateToolCallsResult;
@@ -75,7 +69,7 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
       ClaudeMessageDocument,
       {
         role: 'user',
-        content: this.templates.render('systemMessage'),
+        content: this.render(__dirname + '/templates/systemMessage.md'),
       },
       { meta: { hidden: true } },
     );

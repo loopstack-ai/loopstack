@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DocumentRepository, FrameworkContext, ToolResult } from '../interfaces';
-import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT } from '../tokens';
+import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER } from '../tokens';
+import { TemplateRenderFn } from './workflow-templates';
 
 /**
  * Abstract base class for tools in the TypeScript-first workflow model.
@@ -34,6 +35,9 @@ export abstract class BaseTool {
 
   /** Execution context — wired by the framework at runtime */
   @Inject(FRAMEWORK_CONTEXT) readonly ctx!: FrameworkContext;
+
+  /** Renders a Handlebars template file. Usage: `this.render(__dirname + '/templates/foo.md', { key: 'value' })` */
+  @Inject(TEMPLATE_RENDERER) readonly render!: TemplateRenderFn;
 
   /**
    * Implement this method with your tool logic.

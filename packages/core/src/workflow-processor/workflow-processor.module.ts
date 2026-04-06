@@ -5,6 +5,7 @@ import {
   DOCUMENT_REPOSITORY,
   DocumentEntity,
   FRAMEWORK_CONTEXT,
+  TEMPLATE_RENDERER,
   WORKFLOW_ORCHESTRATOR,
   WorkflowCheckpointEntity,
   WorkflowEntity,
@@ -30,7 +31,7 @@ import {
   WorkflowProcessorService,
   WorkflowStateService,
 } from './services';
-import { ExecutionScope } from './utils';
+import { ExecutionScope, TemplateRenderer } from './utils';
 
 @Global()
 @Module({
@@ -77,6 +78,10 @@ import { ExecutionScope } from './utils';
       useExisting: WorkflowOrchestrationService,
     },
     {
+      provide: TEMPLATE_RENDERER,
+      useFactory: () => new TemplateRenderer().render,
+    },
+    {
       provide: FRAMEWORK_CONTEXT,
       useFactory: (scope: ExecutionScope) => ({
         get context() {
@@ -112,6 +117,7 @@ import { ExecutionScope } from './utils';
     DOCUMENT_REPOSITORY,
     FRAMEWORK_CONTEXT,
     WORKFLOW_ORCHESTRATOR,
+    TEMPLATE_RENDERER,
   ],
 })
 export class WorkflowProcessorModule {}
