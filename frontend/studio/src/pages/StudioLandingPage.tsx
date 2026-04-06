@@ -104,7 +104,7 @@ function RecentRunItem({ workflow, onClick }: { workflow: WorkflowItemInterface;
       <div className="flex items-center gap-2">
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotColor}`} />
         <span className="truncate text-sm font-medium">
-          Run #{workflow.run} &middot; {workflow.blockName}
+          Run #{workflow.run} &middot; {workflow.alias}
         </span>
       </div>
       <p className="text-muted-foreground mt-0.5 pl-3.5 text-xs">

@@ -58,7 +58,7 @@ export class WorkflowApiService {
 
     if (search) {
       const allowedColumns = getEntityColumns(WorkflowEntity);
-      const searchColumns = ['title', 'blockName'].filter((col) => allowedColumns.includes(col));
+      const searchColumns = ['title', 'alias'].filter((col) => allowedColumns.includes(col));
       if (searchColumns.length > 0) {
         const searchConditions = searchColumns.map((column) => `workflow.${column} ILIKE :searchQuery`);
         queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {

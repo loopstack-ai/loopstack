@@ -24,9 +24,9 @@ export class DocumentEntity<T = any> {
   @Index()
   messageId!: string;
 
-  @Column({ type: 'varchar', name: 'block_name' })
+  @Column({ type: 'varchar', name: 'alias' })
   @Index()
-  blockName!: string;
+  alias!: string;
 
   @Column({ type: 'varchar', name: 'class_name', nullable: true })
   className!: string | null;

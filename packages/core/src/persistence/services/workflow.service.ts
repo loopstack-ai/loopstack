@@ -64,11 +64,12 @@ export class WorkflowService {
   private createFindQuery(
     parentWorkflowId?: string,
     options?: {
-      blockName?: string;
+      alias?: string;
+      className?: string;
       labels?: string[];
     },
   ): SelectQueryBuilder<WorkflowEntity> {
-    const { blockName, labels } = options || {};
+    const { alias, className, labels } = options || {};
 
     const queryBuilder = this.workflowRepository.createQueryBuilder('workflow');
 
@@ -78,8 +79,12 @@ export class WorkflowService {
 
     queryBuilder.leftJoinAndSelect('workflow.documents', 'document');
 
-    if (blockName) {
-      queryBuilder.andWhere('workflow.block_name = :blockName', { blockName });
+    if (alias) {
+      queryBuilder.andWhere('workflow.alias = :alias', { alias });
+    }
+
+    if (className) {
+      queryBuilder.andWhere('workflow.class_name = :className', { className });
     }
 
     if (labels !== undefined) {
@@ -99,7 +104,8 @@ export class WorkflowService {
   async findOneByQuery(
     parentWorkflowId?: string,
     options?: {
-      blockName?: string;
+      alias?: string;
+      className?: string;
       labels?: string[];
     },
   ) {

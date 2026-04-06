@@ -7,6 +7,12 @@ import { OAuthWorkflow } from '@loopstack/oauth-module';
 const AuthenticateGitHubTaskInputSchema = z
   .object({
     scopes: z.array(z.string()).describe('The OAuth scopes to request (e.g. repo, user, workflow, read:org)'),
+    callback: z
+      .object({
+        transition: z.string(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
+      })
+      .optional(),
   })
   .strict();
 
@@ -29,7 +35,10 @@ export class AuthenticateGitHubTask extends BaseTool {
   @InjectWorkflow() private oAuth: OAuthWorkflow;
 
   async call(args: AuthenticateGitHubTaskInput): Promise<ToolResult> {
-    const result = await this.oAuth.run({ provider: 'github', scopes: args.scopes }, { blockName: 'oAuth' });
+    const result = await this.oAuth.run(
+      { provider: 'github', scopes: args.scopes },
+      { alias: 'oAuth', callback: args.callback },
+    );
 
     await this.repository.save(
       LinkDocument,
@@ -45,7 +54,7 @@ export class AuthenticateGitHubTask extends BaseTool {
     );
 
     return {
-      data: result,
+      data: { ...result, mode: 'async' },
     };
   }
 

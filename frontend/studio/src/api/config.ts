@@ -18,14 +18,14 @@ export function createConfigApi(http: AxiosInstance) {
         >(`/api/v1/config/workspaces/${encodeURIComponent(params.workspaceBlockName)}/workflows`)
         .then((res) => res.data),
 
-    getWorkflowConfig: (params: { blockName: string }): Promise<WorkflowConfigInterface> =>
+    getWorkflowConfig: (params: { alias: string }): Promise<WorkflowConfigInterface> =>
       http
-        .get<WorkflowConfigInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.blockName)}`)
+        .get<WorkflowConfigInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.alias)}`)
         .then((res) => res.data),
 
-    getWorkflowSource: (params: { blockName: string }): Promise<WorkflowSourceInterface> =>
+    getWorkflowSource: (params: { alias: string }): Promise<WorkflowSourceInterface> =>
       http
-        .get<WorkflowSourceInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.blockName)}/source`)
+        .get<WorkflowSourceInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.alias)}/source`)
         .then((res) => res.data),
 
     getAvailableEnvironments: (): Promise<AvailableEnvironmentInterface[]> =>

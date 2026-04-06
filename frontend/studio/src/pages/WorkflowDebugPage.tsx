@@ -60,7 +60,7 @@ const WorkflowDebugPage: React.FC = () => {
 
       <div className="flex h-[calc(100vh-8rem)] flex-col gap-6">
         <WorkflowDebugHeader
-          title={fetchWorkflow.data?.title ?? fetchWorkflow.data?.blockName ?? 'Workflow'}
+          title={fetchWorkflow.data?.title ?? fetchWorkflow.data?.alias ?? 'Workflow'}
           runNumber={fetchWorkflow.data?.run}
           onBack={() => void router.navigateToWorkflow(workflowId)}
         />

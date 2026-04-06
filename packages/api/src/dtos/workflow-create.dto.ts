@@ -28,7 +28,7 @@ export class WorkflowCreateDto implements WorkflowCreateInterface {
     description: 'Process config key identifier for the workflow',
     example: 'file.yaml:my-workflow',
   })
-  blockName: string;
+  alias: string;
 
   /**
    * Human-readable title for the workflow

@@ -21,7 +21,7 @@ export class WorkflowItemDto {
     description: 'Config key of the workflow',
     example: 'file.yaml:my-workflow',
   })
-  blockName: string;
+  alias: string;
 
   @Expose()
   @ApiPropertyOptional({

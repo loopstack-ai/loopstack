@@ -89,14 +89,14 @@ export class WorkflowMemoryMonitorService {
     const documentCount = entity.documents?.length ?? 0;
 
     this.logger.log(
-      `[${label}] entity=${entity.blockName} id=${entity.id} | ` +
+      `[${label}] entity=${entity.alias} id=${entity.id} | ` +
         `heap=${memory.heapUsedMB}/${memory.heapTotalMB}MB | ` +
         `docs=${documentCount}`,
     );
 
     if (documentCount > DOCUMENT_WARN_THRESHOLD) {
       this.logger.warn(
-        `[${label}] entity=${entity.blockName} has ${documentCount} documents (threshold: ${DOCUMENT_WARN_THRESHOLD})`,
+        `[${label}] entity=${entity.alias} has ${documentCount} documents (threshold: ${DOCUMENT_WARN_THRESHOLD})`,
       );
     }
   }

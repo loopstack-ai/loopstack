@@ -49,7 +49,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
   const workspaces = fetchWorkspaces.data?.data ?? [];
 
   const selectedWorkspace = workspaces.find((w) => w.id === selectedWorkspaceId);
-  const fetchWorkflowTypes = useWorkflowConfig(selectedWorkspace?.blockName);
+  const fetchWorkflowTypes = useWorkflowConfig(selectedWorkspace?.className);
   const workflowTypes = fetchWorkflowTypes.data ?? [];
 
   const createWorkflow = useCreateWorkflow();
@@ -63,7 +63,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
 
   const selectedWorkflowConfig: WorkflowConfigInterface | undefined = useMemo(() => {
     if (!selectedBlockName || !workflowTypes.length) return undefined;
-    return workflowTypes.find((p) => p.blockName === selectedBlockName);
+    return workflowTypes.find((p) => p.alias === selectedBlockName);
   }, [selectedBlockName, workflowTypes]);
 
   const hasArguments = !!selectedWorkflowConfig?.schema;
@@ -77,8 +77,8 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
 
   // Auto-select first workflow type when workspace changes
   useEffect(() => {
-    if (workflowTypes.length > 0 && !workflowTypes.find((p) => p.blockName === selectedBlockName)) {
-      setSelectedBlockName(workflowTypes[0].blockName);
+    if (workflowTypes.length > 0 && !workflowTypes.find((p) => p.alias === selectedBlockName)) {
+      setSelectedBlockName(workflowTypes[0].alias);
     }
   }, [workflowTypes, selectedBlockName]);
 
@@ -123,7 +123,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
       createWorkflow.mutate(
         {
           workflowCreateDto: {
-            blockName: selectedBlockName,
+            alias: selectedBlockName,
             title: null,
             workspaceId: selectedWorkspaceId,
             transition: transition ?? null,
@@ -226,7 +226,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
           title="Select Workflow"
           summary={
             automationComplete
-              ? (workflowTypes.find((p) => p.blockName === selectedBlockName)?.title ?? selectedBlockName)
+              ? (workflowTypes.find((p) => p.alias === selectedBlockName)?.title ?? selectedBlockName)
               : undefined
           }
           isActive={activeSection === 'automation'}
@@ -243,8 +243,8 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
               <SelectContent>
                 {workflowTypes.map((item) => (
                   <SelectPrimitive.Item
-                    key={item.blockName}
-                    value={item.blockName}
+                    key={item.alias}
+                    value={item.alias}
                     className="focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-pointer flex-col gap-0.5 rounded-sm py-2 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                   >
                     <span className="absolute right-2 top-2.5 flex size-3.5 items-center justify-center">
@@ -252,7 +252,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
                         <CheckIcon className="size-4" />
                       </SelectPrimitive.ItemIndicator>
                     </span>
-                    <SelectPrimitive.ItemText>{item.title ?? item.blockName}</SelectPrimitive.ItemText>
+                    <SelectPrimitive.ItemText>{item.title ?? item.alias}</SelectPrimitive.ItemText>
                     {item.description && (
                       <span className="text-muted-foreground text-xs leading-snug">{item.description}</span>
                     )}

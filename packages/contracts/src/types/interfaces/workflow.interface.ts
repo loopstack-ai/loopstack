@@ -3,7 +3,7 @@ import { WorkflowTransitionType } from '../types/workflow-transition.type';
 
 export interface WorkflowInterface {
   id: string;
-  blockName: string;
+  alias: string;
   className: string | null;
   title: string;
   run: number;
@@ -15,7 +15,7 @@ export interface WorkflowInterface {
   availableTransitions: WorkflowTransitionType[] | null;
   args: any;
   context: Record<string, any>;
-  eventCorrelationId: string | null;
+  callbackTransition: string | null;
   createdAt: Date;
   updatedAt: Date;
   workspaceId: string;

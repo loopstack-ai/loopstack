@@ -44,7 +44,7 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
   const handleRun = useCallback(
     (transition: string, data: Record<string, unknown> | string | undefined) => {
       runWorkflow.mutate({
-        workflowId: fetchWorkflow.data!.parentId ?? fetchWorkflow.data!.id,
+        workflowId: workflowId,
         runWorkflowPayloadDto: {
           transition: {
             id: transition,
@@ -54,7 +54,7 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
         },
       });
     },
-    [runWorkflow, fetchWorkflow.data, workflowId],
+    [runWorkflow, workflowId],
   );
 
   const isLoading = runWorkflow.isPending || fetchWorkflow.data?.status === WorkflowState.Running;

@@ -31,37 +31,37 @@ export class CreateWorkflowService {
   }
 
   private resolveWorkflow(
-    blockName: string,
+    alias: string,
     workspaceInstance: BlockInterface,
     parentWorkflowInstance?: WorkflowInterface | BlockInterface,
   ): WorkflowInterface {
     this.logger.debug(
-      `[DEBUG] resolveWorkflow: blockName=${blockName}, workspace=${workspaceInstance.constructor.name}, parent=${parentWorkflowInstance?.constructor?.name ?? 'UNDEFINED'}`,
+      `[DEBUG] resolveWorkflow: alias=${alias}, workspace=${workspaceInstance.constructor.name}, parent=${parentWorkflowInstance?.constructor?.name ?? 'UNDEFINED'}`,
     );
 
     // Try parent workflow first
     if (parentWorkflowInstance) {
       const parentWorkflows = getBlockWorkflows(parentWorkflowInstance);
       this.logger.debug(`[DEBUG] Parent workflows available: [${parentWorkflows.join(', ')}]`);
-      const workflow = getBlockWorkflow<WorkflowInterface>(parentWorkflowInstance, blockName);
+      const workflow = getBlockWorkflow<WorkflowInterface>(parentWorkflowInstance, alias);
       if (workflow) {
-        this.logger.debug(`[DEBUG] Found "${blockName}" on parent workflow`);
+        this.logger.debug(`[DEBUG] Found "${alias}" on parent workflow`);
         return workflow;
       }
-      this.logger.debug(`[DEBUG] "${blockName}" NOT found on parent workflow`);
+      this.logger.debug(`[DEBUG] "${alias}" NOT found on parent workflow`);
     }
 
     // Fallback: resolve from workspace
     const workspaceWorkflows = getBlockWorkflows(workspaceInstance);
     this.logger.debug(`[DEBUG] Workspace workflows available: [${workspaceWorkflows.join(', ')}]`);
-    const workflow = getBlockWorkflow<WorkflowInterface>(workspaceInstance, blockName);
+    const workflow = getBlockWorkflow<WorkflowInterface>(workspaceInstance, alias);
     if (workflow) {
       return workflow;
     }
 
     const parentName = parentWorkflowInstance?.constructor.name;
     throw new Error(
-      `Workflow ${blockName} not found` +
+      `Workflow ${alias} not found` +
         (parentName ? ` on parent workflow ${parentName} or` : ' on') +
         ` workspace ${workspaceInstance.constructor.name}.`,
     );
@@ -74,8 +74,8 @@ export class CreateWorkflowService {
     parentWorkflowId?: string,
     parentWorkflowInstance?: WorkflowInterface | BlockInterface,
   ): Promise<WorkflowEntity> {
-    if (!data.blockName) {
-      throw new Error('blockName is required to create a workflow.');
+    if (!data.alias) {
+      throw new Error('alias is required to create a workflow.');
     }
 
     const workspace = await this.workspaceService.getWorkspace(workspaceWhere, user);
@@ -83,9 +83,9 @@ export class CreateWorkflowService {
       throw new Error('Workspace not found.');
     }
 
-    const workspaceInstance = this.blockDiscoveryService.getWorkspace(workspace.blockName);
+    const workspaceInstance = this.blockDiscoveryService.getWorkspace(workspace.className!);
     if (!workspaceInstance) {
-      throw new BadRequestException(`Config for workspace with name ${workspace.blockName} not found.`);
+      throw new BadRequestException(`Config for workspace with name ${workspace.className!} not found.`);
     }
 
     let parentWorkflow: WorkflowEntity | null = null;
@@ -93,9 +93,9 @@ export class CreateWorkflowService {
       parentWorkflow = await this.workflowService.getWorkflow(parentWorkflowId, user, []);
     }
 
-    const workflow = this.resolveWorkflow(data.blockName, workspaceInstance, parentWorkflowInstance);
+    const workflow = this.resolveWorkflow(data.alias, workspaceInstance, parentWorkflowInstance);
     const validData = this.validateWorkflowArgs(workflow, data);
-    // blockName stays as property name (for hierarchy resolution), className stores the class name (for config lookups)
+    // alias stays as property name (for hierarchy resolution), className stores the class name (for config lookups)
     validData.className = workflow.constructor.name;
     return this.workflowService.createRootWorkflow(validData, workspace, user, parentWorkflow);
   }

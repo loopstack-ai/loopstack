@@ -19,7 +19,7 @@ const WorkspacePage = () => {
 
   const startFormAction: WorkspaceActionInterface | undefined = (() => {
     if (!workspace || !fetchWorkspaceConfigs.data) return undefined;
-    const config = fetchWorkspaceConfigs.data.find((c) => c.blockName === workspace.blockName);
+    const config = fetchWorkspaceConfigs.data.find((c) => c.className === workspace.className);
     const uiTyped = config?.ui as
       | { widgets?: WorkspaceActionInterface[]; actions?: WorkspaceActionInterface[] }
       | undefined;

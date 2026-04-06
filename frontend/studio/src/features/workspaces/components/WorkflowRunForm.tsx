@@ -24,41 +24,41 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
   const createWorkflow = useCreateWorkflow();
   const pingWorkflow = useRunWorkflow();
 
-  const fetchWorkflowTypes = useWorkflowConfig(workspace.blockName);
+  const fetchWorkflowTypes = useWorkflowConfig(workspace.className);
 
   const [currentStep, setCurrentStep] = useState<Step>('selection');
   const [formData, setFormData] = useState({
     name: '',
-    blockName: '',
+    alias: '',
     properties: {},
   });
 
   const [errors, setErrors] = useState({
     name: '',
-    blockName: '',
+    alias: '',
   });
 
   const selectedWorkflowConfig: WorkflowConfigInterface | undefined = useMemo(() => {
-    if (!formData.blockName || !fetchWorkflowTypes.data) return undefined;
-    return fetchWorkflowTypes.data.find((p) => p.blockName === formData.blockName);
-  }, [formData.blockName, fetchWorkflowTypes.data]);
+    if (!formData.alias || !fetchWorkflowTypes.data) return undefined;
+    return fetchWorkflowTypes.data.find((p) => p.alias === formData.alias);
+  }, [formData.alias, fetchWorkflowTypes.data]);
 
   const hasArguments = !!selectedWorkflowConfig?.schema;
   const isLoading = createWorkflow.isPending || pingWorkflow.isPending;
 
   useEffect(() => {
-    if (!formData.blockName && fetchWorkflowTypes.data?.[0]?.blockName) {
+    if (!formData.alias && fetchWorkflowTypes.data?.[0]?.alias) {
       setFormData((prev) => ({
         ...prev,
-        blockName: fetchWorkflowTypes.data[0].blockName,
+        alias: fetchWorkflowTypes.data[0].alias,
       }));
     }
-  }, [fetchWorkflowTypes.data, formData.blockName]);
+  }, [fetchWorkflowTypes.data, formData.alias]);
 
   const validateForm = (): boolean => {
-    if (formData.blockName) return true;
+    if (formData.alias) return true;
 
-    setErrors({ name: '', blockName: 'Please select an automation type' });
+    setErrors({ name: '', alias: 'Please select an automation type' });
     return false;
   };
 
@@ -70,7 +70,7 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
     createWorkflow.mutate(
       {
         workflowCreateDto: {
-          blockName: formData.blockName,
+          alias: formData.alias,
           title: formData.name || null,
           workspaceId: workspace.id,
           transition: transition ?? null,
@@ -157,7 +157,7 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
           {/* Arguments View */}
           <div className="w-full shrink-0 px-1">
             <ArgumentsView
-              key={formData.blockName} // forces remount of the component / form when selection is changed
+              key={formData.alias} // forces remount of the component / form when selection is changed
               config={selectedWorkflowConfig}
               hasArguments={hasArguments}
               isLoading={isLoading}

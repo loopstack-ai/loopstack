@@ -3,7 +3,6 @@ import { Module, forwardRef } from '@nestjs/common';
 import { PersistenceModule } from '../persistence';
 import { WorkflowProcessorModule } from '../workflow-processor';
 import { RunService, TaskSchedulerService } from './services';
-import { EventProcessorService } from './services/event-processor.service';
 import { TaskInitializationService } from './services/task-initialization.service';
 import { TaskProcessorService } from './services/task-processor.service';
 import { CleanupWorkflowTaskProcessorService } from './services/task-processor/cleanup-workflow-task-processor.service';
@@ -50,7 +49,6 @@ import { WorkspaceLockService } from './services/workspace-lock.service';
     CleanupWorkflowTaskProcessorService,
     CreateWorkspaceTaskProcessorService,
     RunService,
-    EventProcessorService,
     WorkspaceLockService,
   ],
   exports: [TaskSchedulerService, RunService],

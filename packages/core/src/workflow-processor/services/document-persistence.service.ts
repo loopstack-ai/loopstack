@@ -28,12 +28,12 @@ export class DocumentPersistenceService {
   /**
    * Creates and persists a document entity.
    *
-   * @param blockName - Name used for the document (typically the class name)
+   * @param alias - Name used for the document (typically the class name)
    * @param documentClass - The document class (constructor or instance) for reading metadata
    * @param content - The content data to persist
    * @param options - Optional save options (id, meta, validate)
    */
-  create(blockName: string, documentClass: object, content: unknown, options?: DocumentSaveOptions): DocumentEntity {
+  create(className: string, documentClass: object, content: unknown, options?: DocumentSaveOptions): DocumentEntity {
     const ctx = this.executionScope.get();
     const runContext = ctx.getContext();
     const metadata = ctx.getData();
@@ -56,8 +56,8 @@ export class DocumentPersistenceService {
 
     const entity = this.documentRepository.create({
       messageId,
-      blockName,
-      className: typeof documentClass === 'function' ? documentClass.name : documentClass.constructor.name,
+      alias: className,
+      className,
       content: validatedContent,
       meta: Object.keys(mergedMeta).length > 0 ? mergedMeta : null,
       error: error ?? null,
@@ -122,7 +122,7 @@ export class DocumentPersistenceService {
 
       document.index = inheritedIndex ?? documents.length;
       this.logger.debug(
-        `addDocument: ${document.blockName}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
+        `addDocument: ${document.alias}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
       );
       documents.push(document);
     }

@@ -9,6 +9,12 @@ const AuthenticateGoogleTaskInputSchema = z
     scopes: z
       .array(z.string())
       .describe('The OAuth scopes to request (e.g. https://www.googleapis.com/auth/calendar.events)'),
+    callback: z
+      .object({
+        transition: z.string(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
+      })
+      .optional(),
   })
   .strict();
 
@@ -31,7 +37,10 @@ export class AuthenticateGoogleTask extends BaseTool {
   @InjectWorkflow() private oAuth: OAuthWorkflow;
 
   async call(args: AuthenticateGoogleTaskInput): Promise<ToolResult> {
-    const result = await this.oAuth.run({ provider: 'google', scopes: args.scopes }, { blockName: 'oAuth' });
+    const result = await this.oAuth.run(
+      { provider: 'google', scopes: args.scopes },
+      { alias: 'oAuth', callback: args.callback },
+    );
 
     await this.repository.save(
       LinkDocument,
@@ -47,7 +56,7 @@ export class AuthenticateGoogleTask extends BaseTool {
     );
 
     return {
-      data: result,
+      data: { ...result, mode: 'async' },
     };
   }
 

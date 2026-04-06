@@ -184,7 +184,7 @@ export class ToolExecutionService implements OnModuleInit {
 
     document.index = inheritedIndex ?? documents.length;
     this.logger.debug(
-      `addDocument: ${document.blockName}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
+      `addDocument: ${document.alias}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
     );
     documents.push(document);
     ctx.getManager().setData('documents', documents);

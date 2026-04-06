@@ -22,12 +22,12 @@ export default function DebugWorkflowsPage() {
 
   const workflowQueries = useQueries({
     queries: (workspaceTypes ?? []).map((wt) => ({
-      queryKey: ['workflowTypes', wt.blockName, envKey],
+      queryKey: ['workflowTypes', wt.className, envKey],
       queryFn: async () => {
         const types = await api.config.getWorkflowTypesByWorkspace({
-          workspaceBlockName: wt.blockName,
+          workspaceBlockName: wt.className,
         });
-        return { workspaceBlockName: wt.blockName, types };
+        return { workspaceBlockName: wt.className, types };
       },
       enabled: !!workspaceTypes?.length,
     })),
@@ -44,14 +44,14 @@ export default function DebugWorkflowsPage() {
       const { workspaceBlockName, types } = q.data;
       return (types ?? []).map((wt) => ({
         ...wt,
-        id: `${workspaceBlockName}::${wt.blockName}`,
+        id: `${workspaceBlockName}::${wt.alias}`,
         workspaceBlockName,
       }));
     });
   }, [workflowQueries, isLoading]);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<string>('blockName');
+  const [sortBy, setSortBy] = useState<string>('alias');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -63,7 +63,7 @@ export default function DebugWorkflowsPage() {
       const lowerTerm = searchTerm.toLowerCase();
       result = result.filter(
         (item) =>
-          item.blockName?.toLowerCase().includes(lowerTerm) ||
+          item.alias?.toLowerCase().includes(lowerTerm) ||
           item.title?.toLowerCase().includes(lowerTerm) ||
           item.description?.toLowerCase().includes(lowerTerm) ||
           item.workspaceBlockName.toLowerCase().includes(lowerTerm),
@@ -71,7 +71,7 @@ export default function DebugWorkflowsPage() {
     }
 
     result = [...result].sort((a, b) => {
-      const key = sortBy as keyof Pick<WorkflowTypeRow, 'blockName' | 'title' | 'description' | 'workspaceBlockName'>;
+      const key = sortBy as keyof Pick<WorkflowTypeRow, 'alias' | 'title' | 'description' | 'workspaceBlockName'>;
       const valA = (a[key] || '').toLowerCase();
       const valB = (b[key] || '').toLowerCase();
 
@@ -90,8 +90,8 @@ export default function DebugWorkflowsPage() {
 
   const columns: DataTableColumn<WorkflowTypeRow>[] = [
     {
-      id: 'blockName',
-      label: 'Type ID (Block Name)',
+      id: 'alias',
+      label: 'Type ID (Alias)',
       sortable: true,
       minWidth: 200,
       format: (value) => <span className="font-medium">{String(value)}</span>,
@@ -100,7 +100,7 @@ export default function DebugWorkflowsPage() {
       id: 'title',
       label: 'Title',
       sortable: true,
-      format: (value, row) => <span>{String(value || row.blockName || 'N/A')}</span>,
+      format: (value, row) => <span>{String(value || row.alias || 'N/A')}</span>,
     },
     {
       id: 'workspaceBlockName',

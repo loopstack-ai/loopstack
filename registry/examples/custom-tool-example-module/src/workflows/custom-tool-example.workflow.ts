@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, InjectTool, Output, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
@@ -19,13 +19,6 @@ export class CustomToolExampleWorkflow extends BaseWorkflow {
   @InjectTool() private mathTool: MathSumTool;
 
   total?: number;
-
-  @Output()
-  result() {
-    return {
-      total: this.total,
-    };
-  }
 
   @Initial({ to: 'waiting_for_user' })
   async calculate() {
@@ -64,7 +57,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow {
   }
 
   @Final({ from: 'resumed' })
-  async continueCount() {
+  async continueCount(): Promise<{ total: number | undefined }> {
     // Count after resume — should continue: 4, 5, 6
     const c4 = await this.counterTool.call({});
     const c5 = await this.counterTool.call({});
@@ -74,6 +67,8 @@ export class CustomToolExampleWorkflow extends BaseWorkflow {
       role: 'assistant',
       content: `Counter after resume: ${c4.data}, ${c5.data}, ${c6.data}\n\nIf state persisted, this should be 4, 5, 6.`,
     });
+
+    return { total: this.total };
   }
 
   private sum(a: number, b: number) {

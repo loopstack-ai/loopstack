@@ -8,7 +8,7 @@ export interface WorkflowContextInterface {
 
 export interface WorkflowItemInterface {
   id: string;
-  blockName: string;
+  alias: string;
   className: string | null;
   title: string;
   run: number;
@@ -32,11 +32,11 @@ export interface WorkflowFullInterface extends WorkflowItemInterface {
   result: Record<string, unknown> | null;
   availableTransitions: WorkflowTransitionType[] | null;
   args: any;
-  eventCorrelationId: string | null;
+  callbackTransition: string | null;
 }
 
 export interface WorkflowCreateInterface {
-  blockName: string;
+  alias: string;
   title: string | null;
   labels?: string[];
   workspaceId: string;

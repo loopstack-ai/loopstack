@@ -1,7 +1,7 @@
 import { JSONSchemaConfigType, UiFormType } from '../types';
 
 export interface WorkflowConfigInterface {
-  blockName: string;
+  alias: string;
   title?: string;
   description?: string;
   schema?: JSONSchemaConfigType;

@@ -11,6 +11,12 @@ const RequestSecretsTaskInputSchema = z
         key: z.string().describe('The environment variable key (e.g. OPENAI_API_KEY)'),
       }),
     ),
+    callback: z
+      .object({
+        transition: z.string(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
+      })
+      .optional(),
   })
   .strict();
 
@@ -33,7 +39,13 @@ export class RequestSecretsTask extends BaseTool {
   @InjectWorkflow() private secretsRequest: SecretsRequestWorkflow;
 
   async call(args: RequestSecretsTaskInput): Promise<ToolResult> {
-    const result = await this.secretsRequest.run({ variables: args.variables }, { blockName: 'secretsRequest' });
+    const result = await this.secretsRequest.run(
+      { variables: args.variables },
+      {
+        alias: 'secretsRequest',
+        callback: args.callback,
+      },
+    );
 
     await this.repository.save(
       LinkDocument,
@@ -49,7 +61,7 @@ export class RequestSecretsTask extends BaseTool {
     );
 
     return {
-      data: result,
+      data: { ...result, mode: 'async' },
     };
   }
 

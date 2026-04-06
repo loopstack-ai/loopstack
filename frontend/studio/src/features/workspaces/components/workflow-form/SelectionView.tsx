@@ -15,13 +15,13 @@ const SelectionView = ({
 }: {
   title: string;
   workflowTypes: WorkflowConfigInterface[];
-  formData: { blockName: string };
-  errors: { blockName: string };
+  formData: { alias: string };
+  errors: { alias: string };
   isLoading: boolean;
   onInputChange: (field: string, value: string) => void;
   onNext: () => void;
 }) => {
-  const selectedConfig = workflowTypes.find((p) => p.blockName === formData.blockName);
+  const selectedConfig = workflowTypes.find((p) => p.alias === formData.alias);
 
   return (
     <div className="flex flex-col">
@@ -38,36 +38,34 @@ const SelectionView = ({
           </label>
           <div className="flex gap-2">
             <Select
-              value={formData.blockName}
-              onValueChange={(value) => onInputChange('blockName', value)}
+              value={formData.alias}
+              onValueChange={(value) => onInputChange('alias', value)}
               disabled={isLoading}
             >
               <SelectTrigger
                 id="automation"
-                className={`flex-1 ${errors.blockName ? 'border-red-500 focus:ring-red-500' : ''}`}
+                className={`flex-1 ${errors.alias ? 'border-red-500 focus:ring-red-500' : ''}`}
               >
                 <SelectValue placeholder="Select an automation..." />
               </SelectTrigger>
               <SelectContent>
                 {workflowTypes.map((item) => (
-                  <SelectItem key={item.blockName} value={item.blockName}>
-                    {item.title ?? item.blockName}
+                  <SelectItem key={item.alias} value={item.alias}>
+                    {item.title ?? item.alias}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="default" disabled={isLoading || !formData.blockName} onClick={onNext} className="px-4">
+            <Button variant="default" disabled={isLoading || !formData.alias} onClick={onNext} className="px-4">
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
             </Button>
           </div>
-          {errors.blockName && <p className="mt-1 flex items-center gap-1 text-sm text-red-500">{errors.blockName}</p>}
+          {errors.alias && <p className="mt-1 flex items-center gap-1 text-sm text-red-500">{errors.alias}</p>}
         </div>
 
         {selectedConfig && (
           <div className="bg-muted/50 border-border mt-4 rounded-lg border p-4">
-            <h3 className="text-foreground mb-1 text-sm font-medium">
-              {selectedConfig.title || selectedConfig.blockName}
-            </h3>
+            <h3 className="text-foreground mb-1 text-sm font-medium">{selectedConfig.title || selectedConfig.alias}</h3>
             {selectedConfig.description && (
               <p className="text-muted-foreground text-sm leading-relaxed">{selectedConfig.description}</p>
             )}

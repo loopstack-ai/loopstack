@@ -147,8 +147,8 @@ export class WorkspaceController {
 
     let features: FeaturesDto | undefined;
 
-    if (workspace.blockName) {
-      const workspaceBlock = this.blockDiscoveryService.getWorkspace(workspace.blockName);
+    if (workspace.className) {
+      const workspaceBlock = this.blockDiscoveryService.getWorkspace(workspace.className);
       if (workspaceBlock) {
         const config = getBlockConfig<WorkspaceType>(workspaceBlock) as WorkspaceType;
         if (config) {

@@ -1,16 +1,17 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   RunContext,
   WorkflowEntity,
   WorkflowInterface,
   WorkflowMetadataInterface,
+  WorkflowOrchestrator,
   WorkflowState,
   WorkspaceEnvironmentContextDto,
   getBlockWorkflow,
 } from '@loopstack/common';
+import { WORKFLOW_ORCHESTRATOR } from '@loopstack/common';
 import { RunPayload } from '@loopstack/contracts/schemas';
-import { type WorkflowEventPayload, WorkflowService } from '../../persistence';
+import { WorkflowService } from '../../persistence';
 import { BlockDiscoveryService } from './block-discovery.service';
 import { BlockProcessor } from './block-processor.service';
 
@@ -22,19 +23,19 @@ export class RootProcessorService {
     private readonly workflowService: WorkflowService,
     private readonly blockProcessor: BlockProcessor,
     private readonly blockDiscoveryService: BlockDiscoveryService,
-    private readonly eventEmitter: EventEmitter2,
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
   ) {}
 
-  private resolveWorkflowFromWorkspace(workspaceName: string, blockName: string): WorkflowInterface | undefined {
+  private resolveWorkflowFromWorkspace(workspaceName: string, alias: string): WorkflowInterface | undefined {
     const workspaceInstance = this.blockDiscoveryService.getWorkspace(workspaceName);
     if (!workspaceInstance) {
       return undefined;
     }
-    return getBlockWorkflow<WorkflowInterface>(workspaceInstance, blockName);
+    return getBlockWorkflow<WorkflowInterface>(workspaceInstance, alias);
   }
 
   private async resolveWorkflowConfig(workflow: WorkflowEntity): Promise<WorkflowInterface> {
-    // blockName is the property name — resolve through hierarchy for security validation
+    // alias is the property name — resolve through hierarchy for security validation
     if (workflow.parentId && !workflow.parent) {
       workflow.parent = await this.workflowService.getWorkflow(workflow.parentId, workflow.createdBy, [
         'workspace',
@@ -45,42 +46,37 @@ export class RootProcessorService {
     // Try parent workflow first (for sub-workflows)
     if (workflow.parent) {
       const parentWorkflowConfig = await this.resolveWorkflowConfig(workflow.parent);
-      const subWorkflow = getBlockWorkflow<WorkflowInterface>(parentWorkflowConfig, workflow.blockName);
+      const subWorkflow = getBlockWorkflow<WorkflowInterface>(parentWorkflowConfig, workflow.alias);
       if (subWorkflow) {
         return subWorkflow;
       }
     }
 
     // Fallback: resolve from workspace
-    const workflowConfig = this.resolveWorkflowFromWorkspace(workflow.workspace.blockName, workflow.blockName);
+    const workflowConfig = this.resolveWorkflowFromWorkspace(workflow.workspace.className!, workflow.alias);
     if (!workflowConfig) {
       throw new Error(
-        `Workflow ${workflow.blockName} not found` +
+        `Workflow ${workflow.alias} not found` +
           (workflow.parent ? ` on parent workflow or` : ' on') +
-          ` workspace ${workflow.workspace.blockName}`,
+          ` workspace ${workflow.workspace.className!}`,
       );
     }
 
     return workflowConfig;
   }
 
-  private resolveWorkflowByNames(workspaceName: string, blockName: string): WorkflowInterface {
-    const workflow = this.resolveWorkflowFromWorkspace(workspaceName, blockName);
+  private resolveWorkflowByNames(workspaceName: string, alias: string): WorkflowInterface {
+    const workflow = this.resolveWorkflowFromWorkspace(workspaceName, alias);
     if (!workflow) {
-      throw new BadRequestException(`Workflow ${blockName} not available in workspace ${workspaceName}`);
+      throw new BadRequestException(`Workflow ${alias} not available in workspace ${workspaceName}`);
     }
     return workflow;
-  }
-
-  private emitCompletionEvent(payload: WorkflowEventPayload): void {
-    this.logger.log(`Root workflow execution completed.`);
-    this.eventEmitter.emit('workflow.event', payload);
   }
 
   async runStateless(
     params: {
       workspaceName: string;
-      blockName: string;
+      alias: string;
       userId: string;
       workspaceId: string;
       correlationId?: string;
@@ -88,10 +84,10 @@ export class RootProcessorService {
     },
     payload: RunPayload,
   ): Promise<WorkflowMetadataInterface> {
-    const workflowConfig = this.resolveWorkflowByNames(params.workspaceName, params.blockName);
+    const workflowConfig = this.resolveWorkflowByNames(params.workspaceName, params.alias);
 
     const ctx = new RunContext({
-      root: params.blockName,
+      root: params.alias,
       userId: params.userId,
       workspaceId: params.workspaceId,
       labels: [],
@@ -99,31 +95,16 @@ export class RootProcessorService {
       options: { stateless: true },
     });
 
-    this.logger.debug(`Running stateless workflow: ${params.blockName}`);
+    this.logger.debug(`Running stateless workflow: ${params.alias}`);
 
-    const executionMeta = await this.blockProcessor.processBlock(workflowConfig, params.args, ctx);
-
-    if (params.correlationId) {
-      this.emitCompletionEvent({
-        correlationId: params.correlationId,
-        eventName: `workflow.${executionMeta.status}`,
-        workspaceId: params.workspaceId,
-        data: {
-          workflowId: undefined,
-          status: executionMeta.status,
-          result: executionMeta.result ?? null,
-        },
-      });
-    }
-
-    return executionMeta;
+    return this.blockProcessor.processBlock(workflowConfig, params.args, ctx);
   }
 
   async runWorkflow(workflow: WorkflowEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {
     const workflowConfig = await this.resolveWorkflowConfig(workflow);
 
     const ctx = new RunContext({
-      root: workflow.blockName,
+      root: workflow.alias,
       userId: workflow.createdBy,
       parentWorkflowId: workflow.id,
       workspaceId: workflow.workspaceId,
@@ -133,34 +114,25 @@ export class RootProcessorService {
       workspaceEnvironments: workflow.workspace?.environments
         ? WorkspaceEnvironmentContextDto.fromEntities(workflow.workspace.environments)
         : undefined,
+      workflowEntity: workflow,
       options: { stateless: false },
     });
 
     await this.workflowService.setWorkflowStatus(workflow, WorkflowState.Running);
 
-    this.logger.debug(`Running Root Workflow: ${workflow.blockName}`);
+    this.logger.debug(`Running Root Workflow: ${workflow.alias}`);
 
     const executionMeta = await this.blockProcessor.processBlock(workflowConfig, workflow.args, ctx);
 
-    const status = executionMeta.hasError
-      ? WorkflowState.Failed
-      : executionMeta.stop
-        ? WorkflowState.Paused
-        : WorkflowState.Completed;
+    // Status is already saved by WorkflowProcessorService.saveExecutionState().
+    // Use the metadata status directly for the completion check.
+    const status = executionMeta.status;
 
-    await this.workflowService.setWorkflowStatus(workflow, status);
-
-    if (workflow.eventCorrelationId) {
-      this.emitCompletionEvent({
-        correlationId: workflow.eventCorrelationId,
-        eventName: `workflow.${executionMeta.status}`,
-        workspaceId: workflow.workspaceId,
-        data: {
-          workflowId: workflow.id,
-          status: executionMeta.status,
-          result: executionMeta.result ?? null,
-        },
-      });
+    // Trigger parent callback if this is a sub-workflow that completed
+    if (status === WorkflowState.Completed) {
+      workflow.status = status;
+      workflow.result = executionMeta.result ?? null;
+      await this.orchestrator.complete(workflow);
     }
 
     return executionMeta;

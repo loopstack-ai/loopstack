@@ -8,6 +8,8 @@ import {
 } from '@loopstack/claude-module';
 import {
   BaseWorkflow,
+  DocumentEntity,
+  Final,
   Guard,
   Initial,
   InjectTemplates,
@@ -57,7 +59,9 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
 Use getSecretKeys to check existing secrets, and requestSecrets to ask the user for new ones.
 
 IMPORTANT: When using requestSecrets, it must be the ONLY tool call in your response.
-Do not combine it with other tool calls.`,
+Do not combine it with other tool calls.
+
+When all secrets are available, respond with one sentence including a list of the requested secrets.`,
       claude: { model: 'claude-haiku-4-5-20251001' },
       messagesSearchTag: 'message',
       tools: ['getSecretKeys', 'requestSecrets'],
@@ -98,16 +102,16 @@ Do not combine it with other tool calls.`,
     return this.delegateResult?.allCompleted ?? false;
   }
 
-  @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  async respond() {
-    await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
-  }
-
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true })
   async userMessage() {
     await this.repository.save(ClaudeMessageDocument, {
       role: 'user',
       content: this.ctx.runtime.transition!.payload as string,
     });
+  }
+
+  @Final({ from: 'prompt_executed' })
+  async respond(): Promise<DocumentEntity> {
+    return this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
   }
 }

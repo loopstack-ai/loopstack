@@ -10,7 +10,7 @@ type ModuleImport = Type | DynamicModule | Promise<DynamicModule> | ForwardRefer
 
 export const DEFAULT_WORKFLOW_ENTITY: Partial<WorkflowEntity> = {
   id: '00000000-0000-0000-0000-000000000000',
-  blockName: '',
+  alias: '',
   title: '',
   run: 1,
   status: WorkflowState.Pending,
@@ -22,7 +22,7 @@ export const DEFAULT_WORKFLOW_ENTITY: Partial<WorkflowEntity> = {
   availableTransitions: null,
   args: {},
   context: {},
-  eventCorrelationId: null,
+  callbackTransition: null,
   workspaceId: '',
   parentId: null,
   labels: [],

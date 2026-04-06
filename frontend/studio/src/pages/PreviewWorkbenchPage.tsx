@@ -1,18 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { ReactFlowProvider } from '@xyflow/react';
 import { formatDistanceToNow } from 'date-fns';
-import { ChevronDown, ChevronRight, ListOrdered, Loader2, Play, RefreshCw, ScrollText, Workflow } from 'lucide-react';
+import { ChevronDown, ListOrdered, Loader2, Play, RefreshCw, ScrollText, Workflow } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { WorkflowFullInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
+import type { WorkflowItemInterface } from '@loopstack/contracts/api';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { Button } from '@/components/ui/button.tsx';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
 import { WorkflowFlowViewer } from '@/features/debug';
-import { NewRunDialog, WorkflowButtons, WorkflowHistoryList, WorkflowItem } from '@/features/workbench';
-import { useChildWorkflows, useFilterWorkflows, useWorkflow, useWorkflowConfigByName } from '../hooks/useWorkflows.ts';
+import { NewRunDialog, WorkflowHistoryList, WorkflowItem } from '@/features/workbench';
+import { useFilterWorkflows, useWorkflow, useWorkflowConfigByName } from '../hooks/useWorkflows.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
 type PreviewTab = 'output' | 'graph' | 'run-log' | 'logs';
@@ -66,21 +65,15 @@ function PreviewWorkbenchContent({
   const [newRunDialogOpen, setNewRunDialogOpen] = useState(false);
 
   const fetchWorkflow = useWorkflow(workflowId);
-  const fetchChildWorkflows = useChildWorkflows(workflowId);
-  const childWorkflows = useMemo(() => fetchChildWorkflows.data ?? [], [fetchChildWorkflows.data]);
   const notifiedRef = useRef(false);
 
   const fetchWorkflowConfig = useWorkflowConfigByName(fetchWorkflow.data?.className ?? undefined);
 
-  // Notify parent when all child workflows have completed
+  // Notify parent when workflow has completed
   useEffect(() => {
-    if (!fetchChildWorkflows.data || notifiedRef.current) return;
+    if (!fetchWorkflow.data || notifiedRef.current) return;
 
-    const allCompleted =
-      fetchChildWorkflows.data.length > 0 &&
-      fetchChildWorkflows.data.every((w) => w.status === WorkflowState.Completed);
-
-    if (allCompleted && window.parent !== window) {
+    if (fetchWorkflow.data.status === WorkflowState.Completed && window.parent !== window) {
       notifiedRef.current = true;
       window.parent.postMessage(
         {
@@ -90,7 +83,7 @@ function PreviewWorkbenchContent({
         window.location.origin,
       );
     }
-  }, [fetchChildWorkflows.data, workflowId]);
+  }, [fetchWorkflow.data, workflowId]);
 
   // Report content height to parent for dynamic iframe sizing
   useEffect(() => {
@@ -170,40 +163,30 @@ function PreviewWorkbenchContent({
       {/* Content */}
       <div className="flex-1 overflow-auto">
         <ErrorSnackbar error={fetchWorkflow.error} />
-        <ErrorSnackbar error={fetchChildWorkflows.error} />
 
         {activeTab === 'output' && (
           <div className="px-4 py-3">
-            <LoadingCentered loading={fetchWorkflow.isLoading || fetchChildWorkflows.isLoading}>
-              {fetchWorkflow.data && fetchChildWorkflows.data
-                ? fetchChildWorkflows.data.map((childWorkflow) => (
-                    <EmbedWorkflowSection
-                      key={childWorkflow.id}
-                      childWorkflow={childWorkflow}
-                      workflow={fetchWorkflow.data}
-                      collapsible={fetchChildWorkflows.data.length > 1}
-                    >
-                      <WorkflowItem
-                        workflow={fetchWorkflow.data}
-                        workflowId={childWorkflow.id}
-                        scrollTo={scrollTo}
-                        settings={settings}
-                      />
-                    </EmbedWorkflowSection>
-                  ))
-                : null}
+            <LoadingCentered loading={fetchWorkflow.isLoading}>
+              {fetchWorkflow.data ? (
+                <WorkflowItem
+                  workflow={fetchWorkflow.data}
+                  workflowId={fetchWorkflow.data.id}
+                  scrollTo={scrollTo}
+                  settings={settings}
+                />
+              ) : null}
             </LoadingCentered>
           </div>
         )}
 
         {activeTab === 'graph' && (
           <div className="h-full">
-            <LoadingCentered loading={fetchWorkflow.isLoading || fetchChildWorkflows.isLoading}>
-              {childWorkflows.length > 0 ? (
+            <LoadingCentered loading={fetchWorkflow.isLoading}>
+              {fetchWorkflow.data ? (
                 <ReactFlowProvider>
                   <WorkflowFlowViewer
                     workflowId={workflowId}
-                    workflows={childWorkflows}
+                    workflows={[fetchWorkflow.data]}
                     workflowConfig={fetchWorkflowConfig.data}
                     direction="TB"
                   />
@@ -311,54 +294,13 @@ function RecentRunItem({ workflow, onClick }: { workflow: WorkflowItemInterface;
       <div className="flex items-center gap-2">
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotColor}`} />
         <span className="truncate text-sm font-medium">
-          Run #{workflow.run} &middot; {workflow.blockName}
+          Run #{workflow.run} &middot; {workflow.alias}
         </span>
       </div>
       <p className="text-muted-foreground mt-0.5 pl-3.5 text-xs">
         {workflow.status} &middot; {formatDistanceToNow(new Date(workflow.createdAt), { addSuffix: true })}
       </p>
     </button>
-  );
-}
-
-function EmbedWorkflowSection({
-  childWorkflow,
-  workflow,
-  collapsible,
-  children,
-}: {
-  childWorkflow: WorkflowItemInterface;
-  workflow: WorkflowFullInterface;
-  collapsible: boolean;
-  children: React.ReactNode;
-}) {
-  if (!collapsible) {
-    return (
-      <div>
-        <div className="flex items-center gap-2 p-2 text-sm font-medium">
-          <Play className="text-primary h-3.5 w-3.5 fill-current" />
-          <span className="flex-1 truncate text-sm">{childWorkflow.title ?? childWorkflow.blockName}</span>
-          <WorkflowButtons workflow={workflow} workflowId={childWorkflow.id} />
-        </div>
-        <div className="py-1">{children}</div>
-      </div>
-    );
-  }
-
-  return (
-    <Collapsible defaultOpen className="group/collapsible">
-      <CollapsibleTrigger asChild>
-        <button className="hover:bg-accent hover:text-accent-foreground group/trigger flex w-full items-center gap-2 rounded-md p-2 text-left text-sm font-medium">
-          <Play className="text-primary h-3.5 w-3.5 fill-current" />
-          <span className="flex-1 truncate text-sm">{childWorkflow.title ?? childWorkflow.blockName}</span>
-          <WorkflowButtons workflow={workflow} workflowId={childWorkflow.id} />
-          <ChevronRight className="text-muted-foreground h-3.5 w-3.5 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-        </button>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="py-1">{children}</div>
-      </CollapsibleContent>
-    </Collapsible>
   );
 }
 

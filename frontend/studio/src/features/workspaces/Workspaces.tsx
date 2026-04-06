@@ -120,7 +120,7 @@ const Workspaces = () => {
                       <Badge
                         variant="outline"
                         className="hover:bg-primary/10 cursor-pointer"
-                        onClick={() => setFilters((curr) => ({ ...curr, blockName: value }))}
+                        onClick={() => setFilters((curr) => ({ ...curr, className: value }))}
                       >
                         {value.length > 25 ? value.slice(0, 25) + '...' : value}
                       </Badge>

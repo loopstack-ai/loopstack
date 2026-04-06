@@ -34,7 +34,7 @@ export default function DebugWorkflowDetailsPage() {
       href: router.getDebugWorkflows(),
     },
     {
-      label: workflowConfig?.title || workflowConfig?.blockName || workflowBlockName || 'Workflow Details',
+      label: workflowConfig?.title || workflowConfig?.alias || workflowBlockName || 'Workflow Details',
       current: true,
     },
   ];
@@ -48,7 +48,7 @@ export default function DebugWorkflowDetailsPage() {
         </div>
       ) : workflowConfig ? (
         <div className="flex h-[calc(100vh-8rem)] flex-col gap-4">
-          <h1 className="text-3xl font-bold tracking-tight">{workflowConfig.title || workflowConfig.blockName}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{workflowConfig.title || workflowConfig.alias}</h1>
           <p className="text-muted-foreground">{workflowConfig.description}</p>
 
           <div className="flex flex-1 gap-4 overflow-hidden">

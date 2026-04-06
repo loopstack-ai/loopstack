@@ -57,7 +57,7 @@ export class WorkspaceApiService {
 
     if (search) {
       const allowedColumns = getEntityColumns(WorkspaceEntity);
-      const searchColumns = ['title', 'blockName'].filter((col) => allowedColumns.includes(col));
+      const searchColumns = ['title', 'className'].filter((col) => allowedColumns.includes(col));
       if (searchColumns.length > 0) {
         const searchConditions = searchColumns.map((column) => `workspace.${column} ILIKE :searchQuery`);
         queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
@@ -113,7 +113,7 @@ export class WorkspaceApiService {
    * Creates a new workspace.
    */
   async create(workspaceData: WorkspaceCreateDto, user: string): Promise<WorkspaceEntity> {
-    const title = workspaceData.title || `${workspaceData.blockName}`;
+    const title = workspaceData.title || `${workspaceData.className}`;
     const { environments: envDtos, ...rest } = workspaceData;
 
     const workspace = this.workspaceRepository.create({

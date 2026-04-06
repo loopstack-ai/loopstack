@@ -37,7 +37,7 @@ export class DocumentDto {
     description: 'Config key of the document',
     example: 'file.yaml:my-document',
   })
-  blockName: string;
+  alias: string;
 
   /**
    * Contents of the document

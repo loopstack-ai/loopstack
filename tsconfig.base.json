@@ -21,6 +21,44 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "useUnknownInCatchVariables": false,
-    "allowJs": false
+    "allowJs": false,
+    "paths": {
+      "@loopstack/contracts": ["./packages/contracts/src"],
+      "@loopstack/common": ["./packages/common/src"],
+      "@loopstack/core": ["./packages/core/src"],
+      "@loopstack/auth": ["./packages/auth/src"],
+      "@loopstack/api": ["./packages/api/src"],
+      "@loopstack/cli-module": ["./packages/cli/src"],
+      "@loopstack/testing": ["./packages/testing/src"],
+      "@loopstack/ai-module": ["./registry/features/ai-module/src"],
+      "@loopstack/claude-module": ["./registry/features/claude-module/src"],
+      "@loopstack/github-module": ["./registry/features/github-module/src"],
+      "@loopstack/google-workspace-module": ["./registry/features/google-workspace-module/src"],
+      "@loopstack/oauth-module": ["./registry/features/oauth-module/src"],
+      "@loopstack/create-chat-message-tool": ["./registry/tools/create-chat-message-tool/src"],
+      "@loopstack/create-value-tool": ["./registry/tools/create-value-tool/src"],
+      "@loopstack/sandbox-filesystem": ["./registry/tools/sandbox-filesystem/src"],
+      "@loopstack/sandbox-tool": ["./registry/tools/sandbox-tool/src"],
+      "@loopstack/accessing-tool-results-example-workflow": [
+        "./registry/examples/accessing-tool-results-example-workflow/src"
+      ],
+      "@loopstack/chat-example-workflow": ["./registry/examples/chat-example-workflow/src"],
+      "@loopstack/custom-tool-example-module": ["./registry/examples/custom-tool-example-module/src"],
+      "@loopstack/dynamic-routing-example-workflow": ["./registry/examples/dynamic-routing-example-workflow/src"],
+      "@loopstack/github-oauth-example": ["./registry/examples/github-oauth-example/src"],
+      "@loopstack/google-oauth-example": ["./registry/examples/google-oauth-example/src"],
+      "@loopstack/meeting-notes-example-workflow": ["./registry/examples/meeting-notes-example-workflow/src"],
+      "@loopstack/prompt-example-workflow": ["./registry/examples/prompt-example-workflow/src"],
+      "@loopstack/prompt-structured-output-example-workflow": [
+        "./registry/examples/prompt-structured-output-example-workflow/src"
+      ],
+      "@loopstack/run-sub-workflow-example": ["./registry/examples/run-sub-workflow-example/src"],
+      "@loopstack/sandbox-example-workflow": ["./registry/examples/sandbox-example-workflow/src"],
+      "@loopstack/secrets-example-workflow": ["./registry/examples/secrets-example-workflow/src"],
+      "@loopstack/test-ui-documents-example-workflow": ["./registry/examples/test-ui-documents-example-workflow/src"],
+      "@loopstack/tool-call-example-workflow": ["./registry/examples/tool-call-example-workflow/src"],
+      "@loopstack/workflow-state-example-workflow": ["./registry/examples/workflow-state-example-workflow/src"],
+      "@loopstack/loopstack-studio": ["./frontend/studio/src"]
+    }
   }
 }

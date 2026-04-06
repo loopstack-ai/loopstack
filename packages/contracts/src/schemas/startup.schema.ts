@@ -54,7 +54,7 @@ export const RunWorkflowTaskSchema = BaseStartupTaskSchema.extend({
   workspaceId: z.string().optional(),
   workflowId: z.string().optional(),
   correlationId: z.string().optional(),
-  blockName: z.string().optional(),
+  alias: z.string().optional(),
   args: z.record(z.string(), z.any()).optional(),
   payload: RunPayloadSchema,
 });

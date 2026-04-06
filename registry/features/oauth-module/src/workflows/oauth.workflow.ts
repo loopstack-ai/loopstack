@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, InjectTool, Output, ToolResult, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Workflow } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents';
 import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools';
 
@@ -22,8 +22,7 @@ export class OAuthWorkflow extends BaseWorkflow<{ provider: string; scopes: stri
   authUrl?: string;
 
   @Initial({ to: 'awaiting_auth' })
-  async initiateOAuth() {
-    const args = this.ctx.args as { provider: string; scopes: string[] };
+  async initiateOAuth(args: { provider: string; scopes: string[] }) {
     const result: ToolResult<BuildOAuthUrlResult> = await this.buildOAuthUrl.call({
       provider: args.provider,
       scopes: args.scopes,
@@ -44,10 +43,13 @@ export class OAuthWorkflow extends BaseWorkflow<{ provider: string; scopes: stri
     );
   }
 
-  @Final({ from: 'awaiting_auth', wait: true })
-  async exchangeToken() {
+  @Final({
+    from: 'awaiting_auth',
+    wait: true,
+    schema: z.object({ code: z.string(), state: z.string() }),
+  })
+  async exchangeToken(payload: { code: string; state: string }): Promise<{ authenticated: boolean }> {
     const args = this.ctx.args as { provider: string; scopes: string[] };
-    const payload = this.ctx.runtime.transition!.payload as { code: string; state: string };
 
     await this.exchangeOAuthToken.call({
       provider: args.provider,
@@ -67,12 +69,7 @@ export class OAuthWorkflow extends BaseWorkflow<{ provider: string; scopes: stri
       },
       { id: 'oauthPrompt' },
     );
-  }
 
-  @Output()
-  result() {
-    return {
-      authenticated: true,
-    };
+    return { authenticated: true };
   }
 }

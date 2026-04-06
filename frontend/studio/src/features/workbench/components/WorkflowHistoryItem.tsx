@@ -37,7 +37,7 @@ const WorkflowHistoryItem: React.FC<WorkflowHistoryItemProps> = ({ workflowId, w
         <CollapsibleTrigger asChild>
           <button className="hover:bg-accent hover:text-accent-foreground group/trigger flex w-full items-center gap-2 rounded-md p-2 text-left text-sm font-medium">
             <Play className="text-primary h-3.5 w-3.5 fill-current" />
-            <span className="truncate text-sm">{workflow.title ?? workflow.blockName}</span>
+            <span className="truncate text-sm">{workflow.title ?? workflow.alias}</span>
             <ChevronRight className="text-muted-foreground ml-auto h-3.5 w-3.5 transition-transform group-data-[state=open]/collapsible:rotate-90" />
           </button>
         </CollapsibleTrigger>

@@ -21,12 +21,9 @@ export class WorkspaceEntity {
   @Column({ type: 'varchar', nullable: true })
   title!: string;
 
-  @Column({ type: 'varchar', name: 'block_name' })
+  @Column({ type: 'varchar', name: 'class_name' })
   @Index()
-  blockName!: string;
-
-  @Column({ type: 'varchar', name: 'class_name', nullable: true })
-  className!: string | null;
+  className!: string;
 
   @Column({ name: 'is_favourite', default: false })
   isFavourite!: boolean;

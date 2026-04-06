@@ -37,7 +37,7 @@ const ArgumentsView = ({
     <div className="flex flex-col">
       <HeaderSection
         icon={<Zap className="h-5 w-5" />}
-        title={config?.title || config?.blockName || ''}
+        title={config?.title || config?.alias || ''}
         description={config?.description}
         showBack={true}
         onBack={onBack}

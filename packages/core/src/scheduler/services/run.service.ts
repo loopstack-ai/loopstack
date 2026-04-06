@@ -32,7 +32,7 @@ export class RunService {
 
     let workspace = await this.workspaceService.getWorkspace(
       {
-        blockName: workspaceName,
+        className: workspaceName,
       },
       userId,
     );
@@ -40,7 +40,7 @@ export class RunService {
     if (!workspace) {
       workspace = await this.workspaceService.create(
         {
-          blockName: workspaceName,
+          className: workspaceName,
           title: options.workspaceTitle || workspaceName,
         },
         userId,
@@ -52,7 +52,7 @@ export class RunService {
         id: workspace.id,
       },
       {
-        blockName: itemName,
+        alias: itemName,
         args: payload,
       },
       userId,

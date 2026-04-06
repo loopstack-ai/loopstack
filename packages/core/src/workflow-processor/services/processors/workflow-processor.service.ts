@@ -7,7 +7,6 @@ import {
   WorkflowMetadataInterface,
   getBlockArgsSchema,
   getBlockOptions,
-  getBlockOutputMetadata,
   getBlockTemplatesPropertyName,
   getBlockTools,
   getGuardMetadataMap,
@@ -27,13 +26,13 @@ import { TransitionResolverService } from '../transition-resolver.service';
 import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service';
 import { WorkflowStateService } from '../workflow-state.service';
 
-/** Invoke a named method on a workflow proxy (transition or guard method) */
-function invokeWorkflowMethod(proxy: WorkflowInterface, methodName: string): Promise<void> {
+/** Invoke a named method on a workflow proxy, optionally passing data as the first argument */
+function invokeWorkflowMethod(proxy: WorkflowInterface, methodName: string, data?: unknown): Promise<unknown> {
   const method = (proxy as Record<string, unknown>)[methodName];
   if (typeof method !== 'function') {
     throw new Error(`Method '${methodName}' not found on workflow ${proxy.constructor.name}`);
   }
-  return (method as () => Promise<void>).call(proxy);
+  return (method as (arg?: unknown) => Promise<unknown>).call(proxy, data);
 }
 
 /** Invoke a guard method on a workflow proxy, returning whether the guard passes */
@@ -116,7 +115,7 @@ export class WorkflowProcessorService implements Processor {
       ctx = this.createCtx(workflow, context, validArgs);
       ctx.getManager().setData('status', WorkflowStateEnum.Running);
     } else {
-      workflowEntity = await this.workflowStateService.getWorkflowState(workflow, context);
+      workflowEntity = context.workflowEntity!;
       context.workflowId = workflowEntity.id;
 
       const latestCheckpoint = await this.workflowStateService.getLatestCheckpoint(workflowEntity.id);
@@ -158,17 +157,6 @@ export class WorkflowProcessorService implements Processor {
       ctx.getManager().setData('stop', true);
       ctx.getManager().setData('status', WorkflowState.Failed);
     } else if (ctx.getManager().getData('place') === 'end') {
-      const outputMetadata = getBlockOutputMetadata(ctx.getInstance());
-      if (outputMetadata) {
-        const instance = ctx.getInstance() as Record<string | symbol, (...args: any[]) => unknown>;
-        const result = instance[outputMetadata.name]();
-        ctx
-          .getManager()
-          .setData(
-            'result',
-            (outputMetadata.schema ? outputMetadata.schema.parse(result) : result) as Record<string, unknown>,
-          );
-      }
       ctx.getManager().setData('status', WorkflowState.Completed);
     } else {
       ctx.getManager().setData('stop', true);
@@ -228,11 +216,19 @@ export class WorkflowProcessorService implements Processor {
           await this.workflowStateService.saveExecutionState(workflowEntity, ctx);
         }
 
-        // Execute transition method
+        // Execute transition method — pass payload as method arg (validated if schema defined)
         this.logger.debug(`Applying transition: ${waitTransition.methodName} (${currentPlace} → ${waitTransition.to})`);
-        await this.executionScope.run(ctx, () => {
-          return invokeWorkflowMethod(proxy, waitTransition.methodName);
+        const waitData = waitTransition.schema
+          ? waitTransition.schema.parse(pendingTransition.payload)
+          : pendingTransition.payload;
+        const waitReturnValue = await this.executionScope.run(ctx, () => {
+          return invokeWorkflowMethod(proxy, waitTransition.methodName, waitData);
         });
+
+        // Capture transition return value as result
+        if (waitReturnValue !== undefined && waitReturnValue !== null) {
+          ctx.getManager().setData('result', waitReturnValue as Record<string, unknown>);
+        }
 
         // Advance place + persist
         ctx.getManager().setData('place', waitTransition.to);
@@ -286,10 +282,16 @@ export class WorkflowProcessorService implements Processor {
         await this.workflowStateService.saveExecutionState(workflowEntity, ctx);
       }
 
-      // Execute transition method within ExecutionScope
-      await this.executionScope.run(ctx, () => {
-        return invokeWorkflowMethod(proxy, next.methodName);
+      // Execute transition method — pass args for @Initial, undefined for auto transitions
+      const autoData = next.from === 'start' ? ctx.getArgs() : undefined;
+      const returnValue = await this.executionScope.run(ctx, () => {
+        return invokeWorkflowMethod(proxy, next.methodName, autoData);
       });
+
+      // Capture transition return value as result
+      if (returnValue !== undefined && returnValue !== null) {
+        ctx.getManager().setData('result', returnValue as Record<string, unknown>);
+      }
 
       // Advance place + persist
       ctx.getManager().setData('place', next.to);

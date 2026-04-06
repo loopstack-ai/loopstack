@@ -112,7 +112,7 @@ export class ConfigController {
       }
 
       return {
-        blockName: workspace.constructor.name,
+        className: workspace.constructor.name,
         title: config.title ?? workspace.constructor.name,
         features: config.features,
         environments: config.environments,
@@ -135,28 +135,28 @@ export class ConfigController {
     });
   }
 
-  private resolveWorkflowByBlockName(blockName: string): WorkflowInterface {
-    const workflow = this.blockDiscoveryService.getWorkflowByName(blockName);
+  private resolveWorkflowByAlias(alias: string): WorkflowInterface {
+    const workflow = this.blockDiscoveryService.getWorkflowByName(alias);
     if (workflow) {
       return workflow;
     }
 
-    throw new BadRequestException(`Workflow with blockName ${blockName} not found.`);
+    throw new BadRequestException(`Workflow with alias ${alias} not found.`);
   }
 
-  @Get('workflows/:blockName')
+  @Get('workflows/:alias')
   @ApiOperation({
-    summary: 'Get the full config of a workflow by its block name (class name)',
+    summary: 'Get the full config of a workflow by its alias (class name)',
   })
   @ApiParam({
-    name: 'blockName',
+    name: 'alias',
     type: String,
-    description: 'The block name (class name) of the workflow',
+    description: 'The alias (class name) of the workflow',
   })
   @ApiOkResponse({ type: WorkflowConfigDto })
   @ApiUnauthorizedResponse()
-  getWorkflowConfig(@Param('blockName') blockName: string): WorkflowConfigDto {
-    const workflow = this.resolveWorkflowByBlockName(blockName);
+  getWorkflowConfig(@Param('alias') alias: string): WorkflowConfigDto {
+    const workflow = this.resolveWorkflowByAlias(alias);
 
     const config = getBlockConfig<WorkflowType>(workflow);
     if (!config) {
@@ -168,19 +168,19 @@ export class ConfigController {
     });
   }
 
-  @Get('workflows/:blockName/source')
+  @Get('workflows/:alias/source')
   @ApiOperation({
-    summary: 'Get the source config of a workflow by its block name (class name)',
+    summary: 'Get the source config of a workflow by its alias (class name)',
   })
   @ApiParam({
-    name: 'blockName',
+    name: 'alias',
     type: String,
-    description: 'The block name (class name) of the workflow',
+    description: 'The alias (class name) of the workflow',
   })
   @ApiOkResponse({ type: WorkflowSourceDto })
   @ApiUnauthorizedResponse()
-  getWorkflowSource(@Param('blockName') blockName: string): WorkflowSourceDto {
-    const workflow = this.resolveWorkflowByBlockName(blockName);
+  getWorkflowSource(@Param('alias') alias: string): WorkflowSourceDto {
+    const workflow = this.resolveWorkflowByAlias(alias);
 
     const ctor = workflow.constructor;
     const metadata = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions;
@@ -196,7 +196,7 @@ export class ConfigController {
     }
 
     return {
-      name: blockName,
+      name: alias,
       filePath,
       raw,
     };
@@ -280,7 +280,7 @@ export class ConfigController {
       const propertiesSchema = schema ? (toJSONSchema(schema) as JSONSchemaDefinition) : undefined;
 
       return {
-        blockName: item.name,
+        alias: item.name,
         title: config.title,
         description: config.description,
         schema: propertiesSchema,

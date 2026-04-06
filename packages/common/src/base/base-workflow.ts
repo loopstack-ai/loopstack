@@ -1,17 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { z } from 'zod';
 import { DocumentRepository, FrameworkContext, WorkflowOrchestrator } from '../interfaces';
 import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, WORKFLOW_ORCHESTRATOR } from '../tokens';
 
 export interface RunOptions {
-  blockName: string;
-  callback?: { transition: string };
+  alias: string;
+  callback?: { transition: string; metadata?: Record<string, unknown> };
 }
 
 export interface QueueResult {
   workflowId: string;
-  correlationId: string;
-  eventName: string;
 }
+
+/** Base Zod schema for sub-workflow callback payloads. Extend with `.extend({ data: ... })` to type the result. */
+export const CallbackSchema = z.object({
+  workflowId: z.string(),
+  status: z.string(),
+  data: z.unknown(),
+});
 
 /**
  * Abstract base class for workflows in the TypeScript-first workflow model.
@@ -22,13 +28,10 @@ export interface QueueResult {
  * - `this.orchestrator` — workflow orchestrator for queuing sub-workflows
  *
  * Sub-workflows are launched via `this.subWorkflow.run(args, options)`.
- * Use the generic type parameter to define typed args for the workflow:
- *
- * ```ts
- * export class MyWorkflow extends BaseWorkflow<{ name: string }> {
- *   // run() is inherited with typed args
- * }
- * ```
+ * Transition methods receive typed data as their first argument:
+ * - `@Initial` methods receive the validated workflow args (TArgs)
+ * - `@Transition({ wait: true })` methods receive the callback payload
+ * - Auto `@Transition` methods receive no argument
  */
 @Injectable()
 export abstract class BaseWorkflow<TArgs = Record<string, unknown>> {

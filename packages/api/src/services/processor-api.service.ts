@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { WorkflowState } from '@loopstack/common';
+import { WORKFLOW_ORCHESTRATOR, WorkflowOrchestrator, WorkflowState } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { TaskSchedulerService } from '@loopstack/core';
 import { RunWorkflowPayloadDto } from '../dtos/run-workflow-payload.dto';
@@ -11,6 +11,7 @@ export class ProcessorApiService {
   constructor(
     private taskSchedulerService: TaskSchedulerService,
     private workflowApiService: WorkflowApiService,
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
   ) {}
 
   async processWorkflow(workflowId: string, user: string, payload: RunWorkflowPayloadDto): Promise<void> {
@@ -31,5 +32,9 @@ export class ProcessorApiService {
         user: user,
       },
     } satisfies ScheduledTask);
+  }
+
+  async callbackWorkflow(workflowId: string, payload: Record<string, unknown>, transition: string): Promise<void> {
+    await this.orchestrator.callback(workflowId, payload, { transition });
   }
 }

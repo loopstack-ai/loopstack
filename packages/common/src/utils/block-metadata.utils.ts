@@ -11,10 +11,6 @@ import {
   INJECTED_TEMPLATES_METADATA_KEY,
   INJECTED_TOOLS_METADATA_KEY,
   INJECTED_WORKFLOWS_METADATA_KEY,
-  INPUT_METADATA_KEY,
-  InputMetadata,
-  OUTPUT_METADATA_KEY,
-  OutputMetadata,
   PASS_THROUGH_METADATA_KEY,
   TRANSITIONS_METADATA_KEY,
   TransitionMetadata,
@@ -91,40 +87,12 @@ export function getBlockWorkflows(target: object | Constructor): string[] {
 }
 
 /**
- * Gets the full input metadata from the decorator
- */
-export function getBlockInputMetadata(target: object | Constructor): InputMetadata | undefined {
-  const ctor = getConstructor(target);
-  return Reflect.getMetadata(INPUT_METADATA_KEY, ctor) as InputMetadata | undefined;
-}
-
-/**
  * Gets the args schema from the class decorator metadata (e.g., `@Tool({ schema })`, `@Workflow({ schema })`).
- * Falls back to `@Input({ schema })` for backward compatibility.
  */
 export function getBlockArgsSchema(target: object | Constructor): z.ZodType | undefined {
-  // Primary: read from class decorator (BlockOptions.schema)
   const ctor = getConstructor(target);
   const options = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions | undefined;
-  if (options?.schema) return options.schema;
-
-  // Fallback: read from deprecated @Input decorator
-  return getBlockInputMetadata(target)?.schema;
-}
-
-/**
- * Gets the full output metadata from the decorator
- */
-export function getBlockOutputMetadata(target: object | Constructor): OutputMetadata | undefined {
-  const ctor = getConstructor(target);
-  return Reflect.getMetadata(OUTPUT_METADATA_KEY, ctor) as OutputMetadata | undefined;
-}
-
-/**
- * Gets the result schema from the decorator metadata
- */
-export function getBlockResultSchema(target: object | Constructor): z.ZodType | undefined {
-  return getBlockOutputMetadata(target)?.schema;
+  return options?.schema;
 }
 
 /**

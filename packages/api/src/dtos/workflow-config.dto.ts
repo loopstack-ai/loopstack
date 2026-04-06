@@ -9,7 +9,7 @@ export class WorkflowConfigDto implements WorkflowConfigInterface {
     description: 'The config Key of the workflow',
     example: 'file.yaml:my-model',
   })
-  blockName: string;
+  alias: string;
 
   @Expose()
   @ApiPropertyOptional({

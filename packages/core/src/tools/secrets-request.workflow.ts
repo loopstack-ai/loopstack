@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, Output, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
 import { SecretRequestDocument } from '../documents';
 
 @Injectable()
@@ -15,27 +15,15 @@ import { SecretRequestDocument } from '../documents';
   }),
 })
 export class SecretsRequestWorkflow extends BaseWorkflow<{ variables: { key: string }[] }> {
-  submitted?: boolean;
-
   @Initial({ to: 'requesting_secrets' })
-  async showForm() {
-    const args = this.ctx.args as { variables: { key: string }[] };
+  async showForm(args: { variables: { key: string }[] }) {
     await this.repository.save(SecretRequestDocument, {
       variables: args.variables,
     });
   }
 
   @Final({ from: 'requesting_secrets', wait: true })
-  secretsSubmitted() {
-    this.submitted = true;
-  }
-
-  @Output({
-    schema: z.object({
-      success: z.boolean(),
-    }),
-  })
-  getResult() {
-    return { success: this.submitted ?? false };
+  secretsSubmitted(): { success: boolean } {
+    return { success: true };
   }
 }

@@ -22,7 +22,7 @@ export class WorkflowDto {
     description: 'Config key of the workflow',
     example: 'file.yaml:my-workflow',
   })
-  blockName: string;
+  alias: string;
 
   @Expose()
   @ApiPropertyOptional({
@@ -114,10 +114,10 @@ export class WorkflowDto {
   @Expose()
   @ApiPropertyOptional({
     type: 'string',
-    description: 'Event correlation ID for linking related workflows',
+    description: 'Callback transition name for parent workflow notification on completion',
     nullable: true,
   })
-  eventCorrelationId: string | null;
+  callbackTransition: string | null;
 
   @Expose()
   @ApiProperty({

@@ -4,7 +4,7 @@ import { UiFormType } from '../types/ui-form.type';
 export interface DocumentItemInterface {
   id: string;
   name: string;
-  blockName: string;
+  alias: string;
   content: any;
   schema: JSONSchemaConfigType;
   validationError: any;

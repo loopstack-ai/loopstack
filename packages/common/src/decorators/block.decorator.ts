@@ -14,8 +14,6 @@ export const INJECTED_TOOLS_METADATA_KEY = Symbol('injectedTools');
 export const INJECTED_DOCUMENTS_METADATA_KEY = Symbol('injectedDocuments');
 export const INJECTED_WORKFLOWS_METADATA_KEY = Symbol('injectedWorkflows');
 export const INJECTED_TEMPLATES_METADATA_KEY = Symbol('injectedTemplates');
-export const INPUT_METADATA_KEY = Symbol('input');
-export const OUTPUT_METADATA_KEY = Symbol('output');
 export const TRANSITIONS_METADATA_KEY = Symbol('transitions');
 export const GUARDS_METADATA_KEY = Symbol('guards');
 export const PASS_THROUGH_METADATA_KEY = Symbol('passThrough');
@@ -110,46 +108,6 @@ export function getBlockType(target: object): BlockType | undefined {
   return Reflect.getMetadata(BLOCK_TYPE_METADATA_KEY, target.constructor) as BlockType | undefined;
 }
 
-// Schema Decorators
-
-/**
- * @deprecated Use `schema` in the class decorator instead (e.g., `@Tool({ schema })`, `@Workflow({ schema })`).
- */
-export interface InputOptions {
-  schema?: z.ZodType;
-}
-
-/**
- * @deprecated Use `schema` in the class decorator instead.
- */
-export interface InputMetadata extends InputOptions {
-  name: string | symbol;
-}
-
-/**
- * @deprecated Use `schema` in the class decorator instead (e.g., `@Tool({ schema })`, `@Workflow({ schema })`).
- * This decorator will be removed in a future major version.
- */
-export function Input(options: InputOptions): PropertyDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    Reflect.defineMetadata(INPUT_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
-  };
-}
-
-export interface OutputOptions {
-  schema?: z.ZodType;
-}
-
-export interface OutputMetadata extends OutputOptions {
-  name: string | symbol;
-}
-
-export function Output(options?: OutputOptions): MethodDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    Reflect.defineMetadata(OUTPUT_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
-  };
-}
-
 // Injection Property Decorators
 export function InjectTool(token?: InjectionToken): PropertyDecorator & MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
@@ -204,6 +162,7 @@ export interface TransitionMetadata {
   to: string;
   wait?: boolean;
   priority?: number;
+  schema?: z.ZodType;
 }
 
 export interface GuardMetadata {
@@ -215,6 +174,8 @@ export interface InitialOptions {
   to: string;
   wait?: boolean;
   priority?: number;
+  /** Zod schema to validate the transition payload (for wait transitions) or args (for @Initial) */
+  schema?: z.ZodType;
 }
 
 export interface TransitionOptions {
@@ -222,12 +183,16 @@ export interface TransitionOptions {
   to: string;
   wait?: boolean;
   priority?: number;
+  /** Zod schema to validate the transition payload */
+  schema?: z.ZodType;
 }
 
 export interface FinalOptions {
   from: string;
   wait?: boolean;
   priority?: number;
+  /** Zod schema to validate the transition payload */
+  schema?: z.ZodType;
 }
 
 function addTransitionMetadata(target: object, metadata: TransitionMetadata): void {
@@ -243,6 +208,7 @@ export function Initial(options: InitialOptions): MethodDecorator {
       to: options.to,
       wait: options.wait,
       priority: options.priority,
+      schema: options.schema,
     });
   };
 }
@@ -255,6 +221,7 @@ export function Transition(options: TransitionOptions): MethodDecorator {
       to: options.to,
       wait: options.wait,
       priority: options.priority,
+      schema: options.schema,
     });
   };
 }
@@ -267,6 +234,7 @@ export function Final(options: FinalOptions): MethodDecorator {
       to: 'end',
       wait: options.wait,
       priority: options.priority,
+      schema: options.schema,
     });
   };
 }

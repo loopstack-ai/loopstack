@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   BaseWorkflow,
+  CallbackSchema,
   Final,
   Guard,
   Initial,
@@ -15,11 +16,6 @@ import {
 import { LinkDocument, MarkdownDocument } from '@loopstack/core';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
-
-interface SubWorkflowCallbackPayload {
-  workflowId: string;
-  status: string;
-}
 
 interface CalendarFetchResult {
   error?: string;
@@ -51,8 +47,7 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
   // --- Fetch events from Google Calendar ---
 
   @Initial({ to: 'calendar_fetched' })
-  async fetchEvents() {
-    const args = this.ctx.args as { calendarId: string };
+  async fetchEvents(args: { calendarId: string }) {
     const result: ToolResult<CalendarFetchResult> = await this.googleCalendarFetchEvents.call({
       calendarId: args.calendarId,
       timeMin: this.now(),
@@ -68,7 +63,7 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
   async authRequired() {
     const result = await this.oAuth.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-      { blockName: 'oAuth', callback: { transition: 'authCompleted' } },
+      { alias: 'oAuth', callback: { transition: 'authCompleted' } },
     );
     this.authWorkflowId = result.workflowId;
 
@@ -89,14 +84,19 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
   }
 
   // Auth sub-workflow completed -> retry from start
-  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
-  async authCompleted() {
+  @Transition({
+    from: 'awaiting_auth',
+    to: 'start',
+    wait: true,
+    schema: CallbackSchema,
+  })
+  async authCompleted(payload: { workflowId: string }) {
     await this.repository.save(
       LinkDocument,
       {
         status: 'success',
         label: 'Google authentication completed',
-        href: `/workflows/${(this.ctx.runtime.transition!.payload as SubWorkflowCallbackPayload).workflowId}`,
+        href: `/workflows/${payload.workflowId}`,
         embed: true,
         expanded: false,
       },

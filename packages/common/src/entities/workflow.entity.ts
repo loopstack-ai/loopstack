@@ -22,9 +22,9 @@ export class WorkflowEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', name: 'block_name' })
+  @Column({ type: 'varchar', name: 'alias' })
   @Index()
-  blockName!: string;
+  alias!: string;
 
   @Column({ type: 'varchar', name: 'class_name', nullable: true })
   className!: string | null;
@@ -48,8 +48,11 @@ export class WorkflowEntity {
   @Column({ type: 'varchar', nullable: true })
   errorMessage!: string | null;
 
-  @Column({ type: 'varchar', name: 'event_correlation_id', nullable: true })
-  eventCorrelationId!: string | null;
+  @Column({ type: 'varchar', name: 'callback_transition', nullable: true })
+  callbackTransition!: string | null;
+
+  @Column('jsonb', { name: 'callback_metadata', nullable: true })
+  callbackMetadata!: Record<string, unknown> | null;
 
   @Column('jsonb', { default: {} })
   args!: any;

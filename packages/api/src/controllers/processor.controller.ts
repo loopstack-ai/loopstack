@@ -9,6 +9,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
+import { CallbackWorkflowPayloadDto } from '../dtos/callback-workflow-payload.dto';
 import { RunWorkflowPayloadDto } from '../dtos/run-workflow-payload.dto';
 import { ProcessorApiService } from '../services/processor-api.service';
 
@@ -67,5 +68,41 @@ export class ProcessorController {
     @CurrentUser() user: CurrentUserInterface,
   ): Promise<void> {
     await this.processorApiService.processWorkflow(workflowId, user.userId, payload ?? {});
+  }
+
+  /**
+   * Sends a callback to a paused workflow, resuming it at the specified transition
+   */
+  @Post('callback/:workflowId')
+  @ApiOperation({
+    summary: 'Callback a workflow',
+    description: 'Resumes a paused workflow by triggering the specified transition with an optional payload',
+  })
+  @ApiParam({
+    name: 'workflowId',
+    type: String,
+    description: 'The unique identifier of the workflow to callback',
+    required: true,
+  })
+  @ApiBody({
+    type: CallbackWorkflowPayloadDto,
+    description: 'Transition name and optional payload for the callback',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Callback successfully scheduled',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Workflow not found',
+  })
+  @ApiUnauthorizedResponse()
+  async callbackWorkflow(
+    @Param('workflowId') workflowId: string,
+    @Body() body: CallbackWorkflowPayloadDto,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<void> {
+    await this.processorApiService.callbackWorkflow(workflowId, body.payload ?? {}, body.transition);
   }
 }

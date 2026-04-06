@@ -49,12 +49,12 @@ export function getChildWorkflowsCacheKey(envKey: string, parentId: string) {
   return ['childWorkflows', envKey, parentId];
 }
 
-export function getWorkflowConfigCacheKey(envKey: string, blockName: string) {
-  return ['workflowConfig', envKey, blockName];
+export function getWorkflowConfigCacheKey(envKey: string, alias: string) {
+  return ['workflowConfig', envKey, alias];
 }
 
-export function getWorkflowSourceCacheKey(envKey: string, blockName: string) {
-  return ['workflowSource', envKey, blockName];
+export function getWorkflowSourceCacheKey(envKey: string, alias: string) {
+  return ['workflowSource', envKey, alias];
 }
 
 // --- Workspaces ---

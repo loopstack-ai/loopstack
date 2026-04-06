@@ -5,7 +5,7 @@ import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { WorkflowItem } from '@/features/workbench';
 import { WorkbenchLayoutProvider } from '@/features/workbench/providers/WorkbenchLayoutProvider';
-import { useChildWorkflows, useWorkflow } from '../hooks/useWorkflows.ts';
+import { useWorkflow } from '../hooks/useWorkflows.ts';
 import { requireParam } from '../lib/requireParam.ts';
 
 const EMBED_MESSAGE_TYPE = 'loopstack:embed:workflow-completed';
@@ -17,18 +17,13 @@ export default function EmbedWorkbenchPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchWorkflow = useWorkflow(workflowId);
-  const fetchChildWorkflows = useChildWorkflows(workflowId);
   const notifiedRef = useRef(false);
 
-  // Notify parent when all child workflows have completed
+  // Notify parent when workflow has completed
   useEffect(() => {
-    if (!fetchChildWorkflows.data || notifiedRef.current) return;
+    if (!fetchWorkflow.data || notifiedRef.current) return;
 
-    const allCompleted =
-      fetchChildWorkflows.data.length > 0 &&
-      fetchChildWorkflows.data.every((w) => w.status === WorkflowState.Completed);
-
-    if (allCompleted && window.parent !== window) {
+    if (fetchWorkflow.data.status === WorkflowState.Completed && window.parent !== window) {
       notifiedRef.current = true;
       window.parent.postMessage(
         {
@@ -38,7 +33,7 @@ export default function EmbedWorkbenchPage() {
         window.location.origin,
       );
     }
-  }, [fetchChildWorkflows.data, workflowId]);
+  }, [fetchWorkflow.data, workflowId]);
 
   // Report content height to parent for dynamic iframe sizing
   useEffect(() => {
@@ -77,20 +72,16 @@ export default function EmbedWorkbenchPage() {
   return (
     <div ref={containerRef} className="overflow-hidden pl-3 py-4">
       <ErrorSnackbar error={fetchWorkflow.error} />
-      <ErrorSnackbar error={fetchChildWorkflows.error} />
-      <LoadingCentered loading={fetchWorkflow.isLoading || fetchChildWorkflows.isLoading}>
-        {fetchWorkflow.data && fetchChildWorkflows.data ? (
+      <LoadingCentered loading={fetchWorkflow.isLoading}>
+        {fetchWorkflow.data ? (
           <WorkbenchLayoutProvider workflow={fetchWorkflow.data}>
-            {fetchChildWorkflows.data.map((childWorkflow) => (
-              <WorkflowItem
-                key={childWorkflow.id}
-                workflow={fetchWorkflow.data}
-                workflowId={childWorkflow.id}
-                scrollTo={scrollTo}
-                settings={settings}
-                embed
-              />
-            ))}
+            <WorkflowItem
+              workflow={fetchWorkflow.data}
+              workflowId={fetchWorkflow.data.id}
+              scrollTo={scrollTo}
+              settings={settings}
+              embed
+            />
           </WorkbenchLayoutProvider>
         ) : null}
       </LoadingCentered>

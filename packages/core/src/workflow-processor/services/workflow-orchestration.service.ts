@@ -1,9 +1,8 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { QueueResult, RunOptions, WorkflowOrchestrator } from '@loopstack/common';
-import { WorkflowState } from '@loopstack/contracts/enums';
+import { CallbackOptions, QueueResult, RunOptions, WorkflowEntity, WorkflowOrchestrator } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
-import { EventSubscriberService } from '../../persistence';
+import { WorkflowService } from '../../persistence';
 import { TaskSchedulerService } from '../../scheduler';
 import { ExecutionScope } from '../utils';
 import { CreateWorkflowService } from './create-workflow.service';
@@ -11,11 +10,10 @@ import { CreateWorkflowService } from './create-workflow.service';
 /**
  * Handles sub-workflow orchestration for the TypeScript-first workflow model.
  *
- * Injected sub-workflows call `.run(args, options)` which delegates to
- * `this.orchestrator.queue()`, provided by this service via DI.
- *
- * `queue()` creates the workflow entity, schedules it for execution,
- * and optionally registers an event subscriber for the callback transition.
+ * Lifecycle methods:
+ * - `queue()` — creates a sub-workflow entity and schedules it for execution
+ * - `callback()` — universal resume API: schedules a BullMQ task to resume a paused workflow
+ * - `complete()` — called when a workflow finishes; triggers parent callback if configured
  */
 @Injectable()
 export class WorkflowOrchestrationService implements WorkflowOrchestrator {
@@ -26,32 +24,31 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     private readonly createWorkflowService: CreateWorkflowService,
     @Inject(forwardRef(() => TaskSchedulerService))
     private readonly taskSchedulerService: TaskSchedulerService,
-    private readonly eventSubscriberService: EventSubscriberService,
+    private readonly workflowService: WorkflowService,
   ) {}
 
   async queue(args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
     const ctx = this.executionScope.get();
     const context = ctx.getContext();
 
-    if (!options?.blockName) {
-      throw new Error('RunOptions.blockName is required to queue a sub-workflow.');
+    if (!options?.alias) {
+      throw new Error('RunOptions.alias is required to queue a sub-workflow.');
     }
 
     if (context.options?.stateless) {
       throw new Error('Sub-workflow launching requires stateful workflow execution.');
     }
 
-    const blockName = options.blockName;
-    const correlationId = randomUUID();
-    const eventName = `workflow.${WorkflowState.Completed}`;
+    const alias = options.alias;
 
     const workflowEntity = await this.createWorkflowService.create(
       { id: context.workspaceId },
       {
-        blockName,
+        alias,
         workspaceId: context.workspaceId,
         args: { ...args },
-        eventCorrelationId: correlationId,
+        callbackTransition: options?.callback?.transition ?? null,
+        callbackMetadata: options?.callback?.metadata ?? null,
       },
       context.userId,
       context.parentWorkflowId,
@@ -67,29 +64,70 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
         user: context.userId,
         workspaceId: context.workspaceId,
         workflowId: workflowEntity.id,
-        correlationId,
-        blockName,
+        alias,
         args: { ...args },
         payload: {},
       },
     } satisfies ScheduledTask);
 
-    if (options.callback?.transition) {
-      await this.eventSubscriberService.registerSubscriber(
-        context.parentWorkflowId,
-        context.workflowId!,
-        options.callback.transition,
-        correlationId,
-        eventName,
-        context.userId,
-        context.workspaceId,
-      );
+    return {
+      workflowId: workflowEntity.id,
+    };
+  }
+
+  async callback(workflowId: string, payload: Record<string, unknown>, options: CallbackOptions): Promise<void> {
+    const workflow = await this.workflowService.findById(workflowId);
+
+    if (!workflow) {
+      throw new Error(`Workflow with id ${workflowId} not found for callback.`);
     }
 
-    return {
-      correlationId,
-      workflowId: workflowEntity.id,
-      eventName,
-    };
+    this.logger.log(`Scheduling callback for workflow ${workflowId}, transition=${options.transition}`);
+
+    await this.taskSchedulerService.addTask({
+      id: 'callback_execution-' + randomUUID(),
+      workspaceId: workflow.workspaceId,
+      task: {
+        name: 'callback_execution',
+        type: 'run_workflow',
+        workflowId: workflowId,
+        payload: {
+          transition: {
+            id: options.transition,
+            workflowId: workflowId,
+            payload,
+          },
+        },
+        user: workflow.createdBy,
+      },
+    } satisfies ScheduledTask);
+  }
+
+  async complete(workflowEntity: WorkflowEntity): Promise<void> {
+    if (!workflowEntity.parentId || !workflowEntity.callbackTransition) {
+      return;
+    }
+
+    this.logger.log(
+      `Workflow ${workflowEntity.id} completed — triggering parent callback: ` +
+        `parentId=${workflowEntity.parentId}, transition=${workflowEntity.callbackTransition}`,
+    );
+
+    try {
+      await this.callback(
+        workflowEntity.parentId,
+        {
+          workflowId: workflowEntity.id,
+          status: workflowEntity.status,
+          data: workflowEntity.result ?? null,
+          ...(workflowEntity.callbackMetadata ? { _subscriberMetadata: workflowEntity.callbackMetadata } : {}),
+        },
+        { transition: workflowEntity.callbackTransition },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to trigger parent callback for workflow ${workflowEntity.id}: ${message}`);
+      throw error;
+    }
   }
 }

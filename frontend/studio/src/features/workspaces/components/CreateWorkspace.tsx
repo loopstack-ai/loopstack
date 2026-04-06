@@ -28,16 +28,16 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
   const createWorkspace = useCreateWorkspace();
   const updateWorkspace = useUpdateWorkspace();
 
-  const [workspaceType, setWorkspaceType] = useState(types[0]?.blockName ?? '');
+  const [workspaceType, setWorkspaceType] = useState(types[0]?.className ?? '');
   const [isFavourite, setIsFavourite] = useState(workspace?.isFavourite ?? false);
   const [envSelections, setEnvSelections] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    setWorkspaceType(types[0]?.blockName ?? '');
+    setWorkspaceType(types[0]?.className ?? '');
   }, [types]);
 
   // Get environment slots for the selected workspace type
-  const selectedConfig = useMemo(() => types.find((t) => t.blockName === workspaceType), [types, workspaceType]);
+  const selectedConfig = useMemo(() => types.find((t) => t.className === workspaceType), [types, workspaceType]);
   const slots = selectedConfig?.environments ?? [];
 
   const { data: availableEnvironments } = useAvailableEnvironments({ enabled: slots.length > 0 });
@@ -146,7 +146,7 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
       {
         workspaceCreateDto: {
           title: name || undefined,
-          blockName: workspaceType,
+          className: workspaceType,
           isFavourite: isFavourite || undefined,
           environments: buildEnvironments(),
         },
@@ -200,15 +200,15 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
 
           {!workspace && types.length > 1 && (
             <div className="space-y-2">
-              <Label htmlFor="blockName">Type</Label>
-              <Select name="blockName" value={workspaceType} onValueChange={handleWorkspaceTypeChange}>
-                <SelectTrigger id="blockName" className="w-full">
+              <Label htmlFor="className">Type</Label>
+              <Select name="className" value={workspaceType} onValueChange={handleWorkspaceTypeChange}>
+                <SelectTrigger id="className" className="w-full">
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
                   {types.map((item: WorkspaceConfigInterface) => (
-                    <SelectItem key={item.blockName} value={item.blockName}>
-                      {item.title ?? item.blockName}
+                    <SelectItem key={item.className} value={item.className}>
+                      {item.title ?? item.className}
                     </SelectItem>
                   ))}
                 </SelectContent>

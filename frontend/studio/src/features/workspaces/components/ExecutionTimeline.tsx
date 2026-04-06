@@ -48,7 +48,7 @@ const ChildWorkflowList: React.FC<{
             <p className="text-sm font-medium">
               Run #{child.run} {child.title ? `(${child.title})` : ''}
             </p>
-            <p className="text-xs text-gray-500">{child.blockName}</p>
+            <p className="text-xs text-gray-500">{child.alias}</p>
             <p className="text-xs text-gray-400">{formatUpdatedTime(child.updatedAt)}</p>
           </div>
           <Badge variant="default" className={getWorkflowStateColor(child.status)}>
@@ -156,7 +156,7 @@ const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({ workspace }) => {
           <h3 className="hover:text-primary font-medium transition-colors">
             Run #{item.run} {item.title ? `(${item.title})` : ''}
           </h3>
-          <p className="mt-1 text-sm text-gray-500">{item.blockName}</p>
+          <p className="mt-1 text-sm text-gray-500">{item.alias}</p>
           {item.hasChildren > 0 && (
             <button
               onClick={(e) => toggleExpand(item.id, e)}

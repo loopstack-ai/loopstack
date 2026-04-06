@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   BaseWorkflow,
+  CallbackSchema,
   Final,
   Guard,
   Initial,
@@ -25,11 +26,6 @@ import {
   GitHubSearchCodeTool,
 } from '@loopstack/github-module';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
-
-interface SubWorkflowCallbackPayload {
-  workflowId: string;
-  status: string;
-}
 
 interface GitHubUserResult {
   error?: string;
@@ -168,7 +164,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
   async authRequired() {
     const result = await this.oAuth.run(
       { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-      { blockName: 'oAuth', callback: { transition: 'authCompleted' } },
+      { alias: 'oAuth', callback: { transition: 'authCompleted' } },
     );
     this.authWorkflowId = result.workflowId;
 
@@ -189,14 +185,19 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
   }
 
   // Auth completed -> retry from start
-  @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
-  async authCompleted() {
+  @Transition({
+    from: 'awaiting_auth',
+    to: 'start',
+    wait: true,
+    schema: CallbackSchema,
+  })
+  async authCompleted(payload: { workflowId: string }) {
     await this.repository.save(
       LinkDocument,
       {
         status: 'success',
         label: 'GitHub authentication completed',
-        href: `/workflows/${(this.ctx.runtime.transition!.payload as SubWorkflowCallbackPayload).workflowId}`,
+        href: `/workflows/${payload.workflowId}`,
         embed: true,
         expanded: false,
       },

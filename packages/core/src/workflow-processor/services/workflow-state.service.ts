@@ -1,53 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
-import {
-  PersistenceState,
-  RunContext,
-  WorkflowCheckpointEntity,
-  WorkflowEntity,
-  WorkflowInterface,
-  getBlockConfig,
-} from '@loopstack/common';
-import { WorkflowType } from '@loopstack/contracts/types';
+import { Injectable } from '@nestjs/common';
+import { PersistenceState, WorkflowCheckpointEntity, WorkflowEntity } from '@loopstack/common';
 import { WorkflowCheckpointService, WorkflowService } from '../../persistence';
 import { WorkflowExecutionContextManager } from '../utils/execution-context-manager';
-import { WorkflowMemoryMonitorService } from './workflow-memory-monitor.service';
 
 @Injectable()
 export class WorkflowStateService {
-  private readonly logger = new Logger(WorkflowStateService.name);
-
   constructor(
     private workflowService: WorkflowService,
     private workflowCheckpointService: WorkflowCheckpointService,
-    private memoryMonitor: WorkflowMemoryMonitorService,
   ) {}
-
-  async getWorkflowState(block: WorkflowInterface, context: RunContext): Promise<WorkflowEntity> {
-    this.memoryMonitor.logHeap(`workflow-state:before-load:${block.constructor.name}`);
-
-    const workflow = await this.workflowService.findOneByQuery(context.parentWorkflowId, {
-      blockName: block.constructor.name,
-      labels: context.labels,
-    });
-
-    if (workflow) {
-      this.memoryMonitor.logWorkflowEntityLoaded('workflow-state:loaded', workflow);
-      return workflow;
-    }
-
-    const config = getBlockConfig<WorkflowType>(block) as WorkflowType;
-
-    return this.workflowService.create({
-      createdBy: context.userId,
-      labels: context.labels,
-      parentId: context.parentWorkflowId,
-      workspaceId: context.workspaceId,
-      blockName: block.constructor.name,
-      className: block.constructor.name,
-      title: config?.title ?? block.constructor.name,
-      place: 'start',
-    });
-  }
 
   async getLatestCheckpoint(workflowId: string): Promise<WorkflowCheckpointEntity | null> {
     return this.workflowCheckpointService.getLatest(workflowId);

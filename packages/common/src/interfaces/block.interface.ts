@@ -10,7 +10,6 @@ export interface ToolInterface<TArgs extends object = any> extends BlockInterfac
 
 export interface WorkflowInterface extends BlockInterface {
   readonly repository?: DocumentRepository;
-  getResult?(): unknown;
 }
 
 export type WorkspaceInterface = BlockInterface;

@@ -38,8 +38,8 @@ export class FileApiService {
       throw new NotFoundException(`Workflow with ID ${workflowId} not found`);
     }
 
-    const volume = this.getFileExplorerVolume(workflow.workspace.blockName);
-    this.validatePermission(volume.permissions, 'read', workflow.workspace.blockName, volume.volumeName);
+    const volume = this.getFileExplorerVolume(workflow.workspace.className);
+    this.validatePermission(volume.permissions, 'read', workflow.workspace.className, volume.volumeName);
 
     const exists = await this.fileSystemService.exists(volume.path);
     if (!exists) {
@@ -67,8 +67,8 @@ export class FileApiService {
       throw new NotFoundException(`Workflow with ID ${workflowId} not found`);
     }
 
-    const volume = this.getFileExplorerVolume(workflow.workspace.blockName);
-    this.validatePermission(volume.permissions, 'read', workflow.workspace.blockName, volume.volumeName);
+    const volume = this.getFileExplorerVolume(workflow.workspace.className);
+    this.validatePermission(volume.permissions, 'read', workflow.workspace.className, volume.volumeName);
 
     const fullFilePath = path.join(volume.path, filePath);
     if (!this.fileSystemService.validatePath(volume.path, fullFilePath)) {
@@ -111,9 +111,9 @@ export class FileApiService {
         };
 
         if (isWorkflowConfig(parsed)) {
-          const blockName = path.basename(filePath, path.extname(filePath));
+          const alias = path.basename(filePath, path.extname(filePath));
           result.workflowConfig = {
-            blockName,
+            alias,
             title: parsed.title,
             description: parsed.description,
             transitions: parsed.transitions,
@@ -133,31 +133,31 @@ export class FileApiService {
   /**
    * Get the file explorer volume info from workspace config
    */
-  private getFileExplorerVolume(workspaceBlockName: string): {
+  private getFileExplorerVolume(workspaceAlias: string): {
     path: string;
     permissions: ('read' | 'write')[];
     volumeName: string;
   } {
-    const workspace = this.blockDiscoveryService.getWorkspace(workspaceBlockName);
+    const workspace = this.blockDiscoveryService.getWorkspace(workspaceAlias);
     if (!workspace) {
-      throw new NotFoundException(`Workspace with block name ${workspaceBlockName} not found`);
+      throw new NotFoundException(`Workspace with block name ${workspaceAlias} not found`);
     }
 
     const config = getBlockConfig<WorkspaceType>(workspace) as WorkspaceType;
     if (!config) {
-      throw new NotFoundException(`Workspace config for ${workspaceBlockName} not found`);
+      throw new NotFoundException(`Workspace config for ${workspaceAlias} not found`);
     }
 
     if (!('features' in config) || !config.features) {
       throw new BadRequestException(
-        `File explorer is not enabled for workspace ${workspaceBlockName}. Please enable it in the workspace config.`,
+        `File explorer is not enabled for workspace ${workspaceAlias}. Please enable it in the workspace config.`,
       );
     }
 
     const fileExplorer = config.features.fileExplorer;
     if (!fileExplorer || fileExplorer.enabled !== true) {
       throw new BadRequestException(
-        `File explorer is not enabled for workspace ${workspaceBlockName}. Please enable it in the workspace config.`,
+        `File explorer is not enabled for workspace ${workspaceAlias}. Please enable it in the workspace config.`,
       );
     }
 
@@ -174,12 +174,12 @@ export class FileApiService {
   private validatePermission(
     permissions: ('read' | 'write')[],
     requiredPermission: 'read' | 'write',
-    workspaceBlockName: string,
+    workspaceAlias: string,
     volumeName: string,
   ): void {
     if (!permissions.includes(requiredPermission)) {
       throw new BadRequestException(
-        `Volume '${volumeName}' does not have '${requiredPermission}' permission for workspace ${workspaceBlockName}. Required permissions: ${requiredPermission}. Available permissions: ${permissions.join(', ')}.`,
+        `Volume '${volumeName}' does not have '${requiredPermission}' permission for workspace ${workspaceAlias}. Required permissions: ${requiredPermission}. Available permissions: ${permissions.join(', ')}.`,
       );
     }
   }

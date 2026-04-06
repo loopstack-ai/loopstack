@@ -10,7 +10,6 @@ import {
   getBlockTool,
   getBlockTypeFromMetadata,
 } from '@loopstack/common';
-import { EventSubscriberService } from '@loopstack/core';
 import type { DelegateToolCallsResult, DelegateToolResultEntry } from '../types';
 
 const DelegateToolCallsSchema = z.object({
@@ -41,10 +40,6 @@ type DelegateToolCallsArgs = z.infer<typeof DelegateToolCallsSchema>;
 export class DelegateToolCalls extends BaseTool {
   private readonly logger = new Logger(DelegateToolCalls.name);
 
-  constructor(private readonly eventSubscriberService: EventSubscriberService) {
-    super();
-  }
-
   async call(args: DelegateToolCallsArgs): Promise<ToolResult<DelegateToolCallsResult>> {
     const contentBlocks = args.message.content as Anthropic.ContentBlock[];
     const toolUseBlocks = contentBlocks.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
@@ -60,10 +55,23 @@ export class DelegateToolCalls extends BaseTool {
       };
     }
 
-    // 1. Execute ALL tools in parallel
-    const results = await Promise.all(toolUseBlocks.map((block) => this.executeTool(block)));
+    // 1. Execute ALL tools in parallel, passing callback with per-tool metadata
+    const results = await Promise.all(
+      toolUseBlocks.map((block) =>
+        this.executeTool(
+          block,
+          args.callback
+            ? {
+                transition: args.callback.transition,
+                metadata: { toolUseId: block.id, toolName: block.name },
+              }
+            : undefined,
+        ),
+      ),
+    );
 
-    // 2. Register subscribers for async results + build toolResults array
+    // 2. Build toolResults array — async tools are handled by the orchestrator's
+    //    complete() → callback() flow via callbackTransition on the child workflow entity
     let pendingCount = 0;
     const toolResults: DelegateToolResultEntry[] = [];
     const toolEffects: ToolSideEffects[] = [];
@@ -79,26 +87,8 @@ export class DelegateToolCalls extends BaseTool {
 
       const resultData = result.data as Record<string, unknown> | undefined;
       if (resultData?.mode === 'async') {
-        // Validate callback is provided
-        if (!args.callback?.transition) {
-          throw new Error(
-            `Tool "${block.name}" returned an async result but no callback.transition was provided. ` +
-              `Add a callback configuration to the delegateToolCalls args.`,
-          );
-        }
-
-        // Register event subscriber
-        await this.eventSubscriberService.registerSubscriber(
-          this.ctx.context.parentWorkflowId,
-          this.ctx.context.workflowId!,
-          args.callback.transition,
-          resultData.correlationId as string,
-          resultData.eventName as string,
-          this.ctx.context.userId,
-          this.ctx.context.workspaceId,
-          { toolUseId: block.id, toolName: block.name },
-        );
-
+        // Async tools now use the orchestrator lifecycle: the tool's internal sub-workflow
+        // stores callbackTransition, and complete() triggers the parent callback automatically.
         pendingCount++;
       } else {
         toolResults.push({
@@ -127,14 +117,18 @@ export class DelegateToolCalls extends BaseTool {
     };
   }
 
-  private async executeTool(block: Anthropic.ToolUseBlock): Promise<ToolResult> {
+  private async executeTool(
+    block: Anthropic.ToolUseBlock,
+    callback?: { transition: string; metadata?: Record<string, unknown> },
+  ): Promise<ToolResult> {
     try {
       const tool = getBlockTool<BaseTool>(this.ctx.parent, block.name);
       if (!tool) {
         throw new Error(`Tool with name ${block.name} not found.`);
       }
 
-      return await tool.call(block.input as Record<string, unknown>);
+      const input = { ...(block.input as Record<string, unknown>), ...(callback ? { callback } : {}) };
+      return await tool.call(input);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Tool "${block.name}" failed: ${errorMessage}`);

@@ -42,20 +42,20 @@ export class DocumentRepositoryService implements DocumentRepository {
       const documentClass = classOrInstance as DocumentClass<T>;
       const data = dataOrOptions as object;
       const options = maybeOptions;
-      const blockName = documentClass.name;
+      const className = documentClass.name;
 
-      return Promise.resolve(this.documentPersistenceService.create(blockName, documentClass, data, options));
+      return Promise.resolve(this.documentPersistenceService.create(className, documentClass, data, options));
     } else {
       // save(instance, options?)
       const instance = classOrInstance as T;
       const options = dataOrOptions as DocumentSaveOptions | undefined;
       const documentClass = instance.constructor;
-      const blockName = documentClass.name;
+      const className = documentClass.name;
 
       // Serialize instance to plain object for persistence
       const data = Object.assign({}, instance) as Record<string, unknown>;
 
-      return Promise.resolve(this.documentPersistenceService.create(blockName, documentClass, data, options));
+      return Promise.resolve(this.documentPersistenceService.create(className, documentClass, data, options));
     }
   }
 
