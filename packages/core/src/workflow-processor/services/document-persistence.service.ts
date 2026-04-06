@@ -4,13 +4,7 @@ import { merge } from 'lodash';
 import { randomUUID } from 'node:crypto';
 import { Repository } from 'typeorm';
 import { ZodError, toJSONSchema } from 'zod';
-import {
-  DocumentEntity,
-  DocumentSaveOptions,
-  WorkflowEntity,
-  getBlockConfig,
-  getDocumentSchema,
-} from '@loopstack/common';
+import { DocumentEntity, DocumentSaveOptions, getBlockConfig, getDocumentSchema } from '@loopstack/common';
 import { DocumentConfigType } from '@loopstack/contracts/types';
 import { SchemaValidationError } from '../../common';
 import { ExecutionScope, WorkflowExecutionContextManager } from '../utils';
@@ -26,14 +20,19 @@ export class DocumentPersistenceService {
   ) {}
 
   /**
-   * Creates and persists a document entity.
+   * Creates, persists, and caches a document entity.
    *
-   * @param alias - Name used for the document (typically the class name)
-   * @param documentClass - The document class (constructor or instance) for reading metadata
-   * @param content - The content data to persist
-   * @param options - Optional save options (id, meta, validate)
+   * When a queryRunner is available on the execution context (stateful workflows),
+   * the document is written to the DB immediately within the transition's transaction.
+   * For stateless workflows (no queryRunner), the document is only added to the
+   * in-memory cache.
    */
-  create(className: string, documentClass: object, content: unknown, options?: DocumentSaveOptions): DocumentEntity {
+  async create(
+    className: string,
+    documentClass: object,
+    content: unknown,
+    options?: DocumentSaveOptions,
+  ): Promise<DocumentEntity> {
     const ctx = this.executionScope.get();
     const runContext = ctx.getContext();
     const metadata = ctx.getData();
@@ -67,14 +66,83 @@ export class DocumentPersistenceService {
       transition: transition.id,
       place: transition.to,
       labels: runContext.labels,
-      workflow: { id: runContext.workflowId } as WorkflowEntity,
-      workflowId: runContext.workflowId,
+      workflowId: runContext.workflowId!,
       workspaceId: runContext.workspaceId,
       createdBy: runContext.userId,
     });
 
-    this.addDocument(ctx, entity);
-    return entity;
+    // Persist immediately via scoped transaction when available
+    const queryRunner = ctx.getQueryRunner();
+    const saved = queryRunner ? await queryRunner.manager.save(DocumentEntity, entity) : entity;
+
+    await this.addToCache(ctx, saved);
+    return saved;
+  }
+
+  /**
+   * Updates the in-memory document cache. Handles invalidation of previous
+   * versions (by messageId) and index inheritance. Persists invalidation
+   * changes to DB when a queryRunner is available.
+   *
+   * Shared by both direct document creation and tool side-effect processing.
+   */
+  async addToCache(ctx: WorkflowExecutionContextManager, document: DocumentEntity): Promise<void> {
+    const documents = ctx.getManager().getData('documents');
+    const queryRunner = ctx.getQueryRunner();
+
+    const existingIndex = document.messageId ? documents.findIndex((d) => d.messageId === document.messageId) : -1;
+
+    // Collect all existing documents with the same messageId that need invalidation
+    const invalidated: DocumentEntity[] = [];
+    let inheritedIndex: number | undefined;
+
+    for (const doc of documents) {
+      if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
+        if (inheritedIndex === undefined) {
+          inheritedIndex = doc.index;
+        }
+        doc.isInvalidated = true;
+        if (doc.id) {
+          invalidated.push(doc);
+        }
+      }
+    }
+
+    // Persist invalidation to DB
+    if (queryRunner && invalidated.length > 0) {
+      await queryRunner.manager
+        .createQueryBuilder()
+        .update(DocumentEntity)
+        .set({ isInvalidated: true })
+        .whereInIds(invalidated.map((d) => d.id))
+        .execute();
+    }
+
+    if (existingIndex !== -1) {
+      document.index = existingIndex;
+      documents[existingIndex] = document;
+    } else {
+      document.index = inheritedIndex ?? documents.length;
+      this.logger.debug(
+        `addDocument: ${document.alias}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
+      );
+      documents.push(document);
+    }
+
+    ctx.getManager().setData('documents', documents);
+    ctx.getManager().setData('persistenceState', { documentsUpdated: true });
+  }
+
+  /**
+   * Persists a document entity that was created externally (e.g. from tool side effects).
+   * Writes to DB via the scoped queryRunner if available, then updates the in-memory cache.
+   */
+  async persistAndCache(ctx: WorkflowExecutionContextManager, document: DocumentEntity): Promise<DocumentEntity> {
+    const queryRunner = ctx.getQueryRunner();
+    const saved = queryRunner ? await queryRunner.manager.save(DocumentEntity, document) : document;
+
+    await this.addToCache(ctx, saved);
+    return saved;
   }
 
   private validateContent(
@@ -99,35 +167,5 @@ export class DocumentPersistenceService {
     }
 
     return { content: result.data };
-  }
-
-  private addDocument(ctx: WorkflowExecutionContextManager, document: DocumentEntity): void {
-    const documents = ctx.getManager().getData('documents');
-
-    const existingIndex = document.messageId ? documents.findIndex((d) => d.messageId === document.messageId) : -1;
-
-    if (existingIndex !== -1) {
-      document.index = existingIndex;
-      documents[existingIndex] = document;
-    } else {
-      let inheritedIndex: number | undefined;
-      for (const doc of documents) {
-        if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
-          if (inheritedIndex === undefined) {
-            inheritedIndex = doc.index;
-          }
-          doc.isInvalidated = true;
-        }
-      }
-
-      document.index = inheritedIndex ?? documents.length;
-      this.logger.debug(
-        `addDocument: ${document.alias}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
-      );
-      documents.push(document);
-    }
-
-    ctx.getManager().setData('documents', documents);
-    ctx.getManager().setData('persistenceState', { documentsUpdated: true });
   }
 }

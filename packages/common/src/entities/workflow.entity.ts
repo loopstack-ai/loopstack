@@ -105,7 +105,6 @@ export class WorkflowEntity {
   hashRecord!: Record<string, string | null> | null;
 
   @OneToMany(() => DocumentEntity, (document: DocumentEntity) => document.workflow, {
-    cascade: true,
     onDelete: 'CASCADE',
   })
   documents!: DocumentEntity[];

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { WorkflowCheckpointEntity } from '@loopstack/common';
 
 export interface CreateCheckpointData {
@@ -22,9 +22,11 @@ export class WorkflowCheckpointService {
     private readonly checkpointRepository: Repository<WorkflowCheckpointEntity>,
   ) {}
 
-  async createCheckpoint(data: CreateCheckpointData): Promise<WorkflowCheckpointEntity> {
+  async createCheckpoint(data: CreateCheckpointData, queryRunner?: QueryRunner): Promise<WorkflowCheckpointEntity> {
     const checkpoint = this.checkpointRepository.create(data);
-    return this.checkpointRepository.save(checkpoint);
+    return queryRunner
+      ? queryRunner.manager.save(WorkflowCheckpointEntity, checkpoint)
+      : this.checkpointRepository.save(checkpoint);
   }
 
   async getLatest(workflowId: string): Promise<WorkflowCheckpointEntity | null> {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository, SelectQueryBuilder } from 'typeorm';
+import { FindOptionsWhere, QueryRunner, Repository, SelectQueryBuilder } from 'typeorm';
 import { PersistenceState, WorkflowEntity, WorkflowState, WorkspaceEntity } from '@loopstack/common';
 import { ClientMessageService } from '../../common/services/client-message.service';
 
@@ -132,8 +132,10 @@ export class WorkflowService {
     return loaded;
   }
 
-  async save(entity: WorkflowEntity, persistenceState: PersistenceState) {
-    const savedEntity = await this.workflowRepository.save(entity);
+  async save(entity: WorkflowEntity, persistenceState: PersistenceState, queryRunner?: QueryRunner) {
+    const savedEntity = queryRunner
+      ? await queryRunner.manager.save(WorkflowEntity, entity)
+      : await this.workflowRepository.save(entity);
 
     this.clientMessageService.dispatchWorkflowEvent('workflow.updated', savedEntity);
     if (persistenceState.documentsUpdated) {

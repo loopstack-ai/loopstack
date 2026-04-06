@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import {
   RunContext,
   WorkflowCheckpointEntity,
@@ -54,6 +55,7 @@ export class WorkflowProcessorService implements Processor {
     private readonly executionScope: ExecutionScope,
     private readonly memoryMonitor: WorkflowMemoryMonitorService,
     private readonly toolExecutionService: ToolExecutionService,
+    private readonly dataSource: DataSource,
   ) {}
 
   createCtx(
@@ -76,6 +78,12 @@ export class WorkflowProcessorService implements Processor {
       tools: {},
       result: null,
     };
+
+    // Detach documents from entity — they now live in the StateManager.
+    // Prevents TypeORM from touching document rows when saving the workflow.
+    if (workflowEntity) {
+      delete (workflowEntity as unknown as Record<string, unknown>).documents;
+    }
 
     const checkpoint: CheckpointState<Record<string, unknown>> | null = latestCheckpoint
       ? {
@@ -171,6 +179,82 @@ export class WorkflowProcessorService implements Processor {
     return ctx.getData();
   }
 
+  /**
+   * Executes a single transition within a DB transaction.
+   *
+   * All document saves (via repository.save() or tool side effects) that happen
+   * during the transition use the scoped queryRunner. If the transition throws,
+   * the transaction rolls back — including any documents persisted during it.
+   * The in-memory document cache is restored to its pre-transition state.
+   */
+  private async executeTransition(
+    ctx: WorkflowExecutionContextManager,
+    proxy: WorkflowInterface,
+    methodName: string,
+    to: string,
+    data: unknown,
+    workflowEntity: WorkflowEntity | undefined,
+    workflowName: string,
+  ): Promise<unknown> {
+    // Stateless workflows skip transactions
+    if (!workflowEntity) {
+      const returnValue = await this.executionScope.run(ctx, () => {
+        return invokeWorkflowMethod(proxy, methodName, data);
+      });
+
+      ctx.getManager().setData('place', to);
+      ctx.getManager().checkpoint();
+      this.memoryMonitor.logTransition(workflowName, methodName, ctx);
+
+      return returnValue;
+    }
+
+    // Snapshot in-memory documents for rollback on failure
+    const documentsSnapshot = structuredClone(ctx.getManager().getData('documents'));
+    const persistenceStateSnapshot = structuredClone(ctx.getManager().getData('persistenceState'));
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      ctx.setQueryRunner(queryRunner);
+
+      this.logger.debug(`Applying transition: ${methodName} (${ctx.getManager().getData('place')} → ${to})`);
+
+      const returnValue = await this.executionScope.run(ctx, () => {
+        return invokeWorkflowMethod(proxy, methodName, data);
+      });
+
+      // Capture transition return value as result
+      if (returnValue !== undefined && returnValue !== null) {
+        ctx.getManager().setData('result', returnValue as Record<string, unknown>);
+      }
+
+      // Advance place + persist
+      ctx.getManager().setData('place', to);
+      ctx.getManager().checkpoint();
+      this.memoryMonitor.logTransition(workflowName, methodName, ctx);
+
+      // Save workflow state within the same transaction
+      await this.workflowStateService.saveExecutionState(workflowEntity, ctx, queryRunner);
+
+      await queryRunner.commitTransaction();
+      return returnValue;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+
+      // Restore in-memory cache to pre-transition state
+      ctx.getManager().setData('documents', documentsSnapshot);
+      ctx.getManager().setData('persistenceState', persistenceStateSnapshot);
+
+      throw error;
+    } finally {
+      ctx.setQueryRunner(null);
+      await queryRunner.release();
+    }
+  }
+
   private async processStateMachine(
     ctx: WorkflowExecutionContextManager,
     pendingTransition: TransitionPayloadInterface | undefined,
@@ -211,33 +295,25 @@ export class WorkflowProcessorService implements Processor {
           }
         }
 
-        // Pre-transition persistence
+        // Pre-transition persistence (committed state — recovery point if transition fails)
         if (workflowEntity) {
           await this.workflowStateService.saveExecutionState(workflowEntity, ctx);
         }
 
-        // Execute transition method — pass payload as method arg (validated if schema defined)
-        this.logger.debug(`Applying transition: ${waitTransition.methodName} (${currentPlace} → ${waitTransition.to})`);
+        // Execute transition within a DB transaction
         const waitData = waitTransition.schema
           ? waitTransition.schema.parse(pendingTransition.payload)
           : pendingTransition.payload;
-        const waitReturnValue = await this.executionScope.run(ctx, () => {
-          return invokeWorkflowMethod(proxy, waitTransition.methodName, waitData);
-        });
 
-        // Capture transition return value as result
-        if (waitReturnValue !== undefined && waitReturnValue !== null) {
-          ctx.getManager().setData('result', waitReturnValue as Record<string, unknown>);
-        }
-
-        // Advance place + persist
-        ctx.getManager().setData('place', waitTransition.to);
-        ctx.getManager().checkpoint();
-        this.memoryMonitor.logTransition(workflowName, waitTransition.methodName, ctx);
-
-        if (workflowEntity) {
-          await this.workflowStateService.saveExecutionState(workflowEntity, ctx);
-        }
+        await this.executeTransition(
+          ctx,
+          proxy,
+          waitTransition.methodName,
+          waitTransition.to,
+          waitData,
+          workflowEntity,
+          workflowName,
+        );
       }
     }
 
@@ -267,8 +343,6 @@ export class WorkflowProcessorService implements Processor {
 
       if (!next) break;
 
-      this.logger.debug(`Applying transition: ${next.methodName} (${next.from} → ${next.to})`);
-
       // Set transition info on metadata (so ctx.runtime.transition works)
       ctx.getManager().setData('transition', {
         id: next.methodName,
@@ -277,31 +351,14 @@ export class WorkflowProcessorService implements Processor {
         payload: null,
       });
 
-      // Pre-transition persistence (save "transition selected" state before execution)
+      // Pre-transition persistence (committed state — recovery point if transition fails)
       if (workflowEntity) {
         await this.workflowStateService.saveExecutionState(workflowEntity, ctx);
       }
 
-      // Execute transition method — pass args for @Initial, undefined for auto transitions
+      // Execute transition within a DB transaction
       const autoData = next.from === 'start' ? ctx.getArgs() : undefined;
-      const returnValue = await this.executionScope.run(ctx, () => {
-        return invokeWorkflowMethod(proxy, next.methodName, autoData);
-      });
-
-      // Capture transition return value as result
-      if (returnValue !== undefined && returnValue !== null) {
-        ctx.getManager().setData('result', returnValue as Record<string, unknown>);
-      }
-
-      // Advance place + persist
-      ctx.getManager().setData('place', next.to);
-      ctx.getManager().checkpoint();
-
-      this.memoryMonitor.logTransition(workflowName, next.methodName, ctx);
-
-      if (workflowEntity) {
-        await this.workflowStateService.saveExecutionState(workflowEntity, ctx);
-      }
+      await this.executeTransition(ctx, proxy, next.methodName, next.to, autoData, workflowEntity, workflowName);
     }
   }
 

@@ -12,6 +12,7 @@ import {
   getBlockTools,
 } from '@loopstack/common';
 import { ExecutionScope, WorkflowExecutionContextManager, wrapToolProxy } from '../utils';
+import { DocumentPersistenceService } from './document-persistence.service';
 
 /**
  * Executes tools by wrapping them in proxies that add framework logic.
@@ -37,6 +38,7 @@ export class ToolExecutionService implements OnModuleInit {
   constructor(
     private readonly executionScope: ExecutionScope,
     private readonly discoveryService: DiscoveryService,
+    private readonly documentPersistenceService: DocumentPersistenceService,
   ) {}
 
   onModuleInit() {
@@ -107,7 +109,7 @@ export class ToolExecutionService implements OnModuleInit {
 
     // 4. Process side effects (framework guarantee)
     if (result.effects) {
-      this.processEffects(ctx, result.effects);
+      await this.processEffects(ctx, result.effects);
     }
 
     return result;
@@ -139,55 +141,17 @@ export class ToolExecutionService implements OnModuleInit {
     return proxy;
   }
 
-  private processEffects(ctx: WorkflowExecutionContextManager, effects: ToolSideEffects[]): void {
+  private async processEffects(ctx: WorkflowExecutionContextManager, effects: ToolSideEffects[]): Promise<void> {
     for (const effect of effects) {
       if (effect.addWorkflowDocuments?.length) {
-        this.addDocuments(ctx, effect.addWorkflowDocuments);
+        await this.persistDocuments(ctx, effect.addWorkflowDocuments);
       }
     }
   }
 
-  private addDocuments(ctx: WorkflowExecutionContextManager, documents: DocumentEntity[]): void {
+  private async persistDocuments(ctx: WorkflowExecutionContextManager, documents: DocumentEntity[]): Promise<void> {
     for (const document of documents) {
-      const existingDocs = ctx.getManager().getData('documents');
-      const existingIndex = document.id ? existingDocs.findIndex((d) => d.id === document.id) : -1;
-
-      if (existingIndex !== -1) {
-        this.updateDocument(ctx, existingIndex, document);
-      } else {
-        this.addDocument(ctx, document);
-      }
+      await this.documentPersistenceService.persistAndCache(ctx, document);
     }
-  }
-
-  private updateDocument(ctx: WorkflowExecutionContextManager, index: number, document: DocumentEntity): void {
-    const documents = ctx.getManager().getData('documents');
-    document.index = index;
-    if (index !== -1) {
-      documents[index] = document;
-    }
-    ctx.getManager().setData('documents', documents);
-    ctx.getManager().setData('persistenceState', { documentsUpdated: true });
-  }
-
-  private addDocument(ctx: WorkflowExecutionContextManager, document: DocumentEntity): void {
-    const documents = ctx.getManager().getData('documents');
-    let inheritedIndex: number | undefined;
-    for (const doc of documents) {
-      if (doc.messageId === document.messageId && doc.meta?.invalidate !== false) {
-        if (inheritedIndex === undefined) {
-          inheritedIndex = doc.index;
-        }
-        doc.isInvalidated = true;
-      }
-    }
-
-    document.index = inheritedIndex ?? documents.length;
-    this.logger.debug(
-      `addDocument: ${document.alias}(messageId=${document.messageId}) → index=${document.index} (inherited=${inheritedIndex !== undefined}, docCount=${documents.length})`,
-    );
-    documents.push(document);
-    ctx.getManager().setData('documents', documents);
-    ctx.getManager().setData('persistenceState', { documentsUpdated: true });
   }
 }

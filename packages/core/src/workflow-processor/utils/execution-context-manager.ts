@@ -1,3 +1,4 @@
+import { QueryRunner } from 'typeorm';
 import { BlockInterface, RunContext, WorkflowInterface, WorkflowMetadataInterface } from '@loopstack/common';
 import { StateManager } from './state/state-manager';
 import { wrapBlockProxy } from './wrap-block-proxy';
@@ -10,6 +11,7 @@ export type WorkflowExecutionContextManager = ExecutionContextManager<
 
 export class ExecutionContextManager<TInput = any, TState = any, TMetadata = any> {
   protected _wrappedInstance: WorkflowInterface;
+  private _queryRunner: QueryRunner | null = null;
 
   constructor(
     instance: BlockInterface,
@@ -18,6 +20,14 @@ export class ExecutionContextManager<TInput = any, TState = any, TMetadata = any
     private readonly _stateManager?: StateManager<TState, TMetadata>,
   ) {
     this._wrappedInstance = wrapBlockProxy(instance, this);
+  }
+
+  setQueryRunner(qr: QueryRunner | null): void {
+    this._queryRunner = qr;
+  }
+
+  getQueryRunner(): QueryRunner | null {
+    return this._queryRunner;
   }
 
   getArgs(): Readonly<TInput> {

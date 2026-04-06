@@ -30,7 +30,7 @@ export class DocumentRepositoryService implements DocumentRepository {
     return plainToInstance(documentClass, validated);
   }
 
-  save<T extends object>(
+  async save<T extends object>(
     classOrInstance: DocumentClass<T> | T,
     dataOrOptions?: object | DocumentSaveOptions,
     maybeOptions?: DocumentSaveOptions,
@@ -44,7 +44,7 @@ export class DocumentRepositoryService implements DocumentRepository {
       const options = maybeOptions;
       const className = documentClass.name;
 
-      return Promise.resolve(this.documentPersistenceService.create(className, documentClass, data, options));
+      return this.documentPersistenceService.create(className, documentClass, data, options);
     } else {
       // save(instance, options?)
       const instance = classOrInstance as T;
@@ -55,7 +55,7 @@ export class DocumentRepositoryService implements DocumentRepository {
       // Serialize instance to plain object for persistence
       const data = Object.assign({}, instance) as Record<string, unknown>;
 
-      return Promise.resolve(this.documentPersistenceService.create(className, documentClass, data, options));
+      return this.documentPersistenceService.create(className, documentClass, data, options);
     }
   }
 
