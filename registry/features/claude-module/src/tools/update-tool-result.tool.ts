@@ -1,6 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseDocument, BaseTool, Input, Tool, ToolResult, ToolSideEffects, getBlockTool } from '@loopstack/common';
+import {
+  BaseTool,
+  DocumentClass,
+  Tool,
+  ToolResult,
+  ToolSideEffects,
+  getBlockTool,
+  getBlockTypeFromMetadata,
+} from '@loopstack/common';
 
 const UpdateToolResultSchema = z.object({
   delegateResult: z.object({
@@ -10,26 +18,24 @@ const UpdateToolResultSchema = z.object({
     pendingCount: z.number(),
   }),
   completedTool: z.any(),
-  document: z.custom<BaseDocument>((val) => val instanceof BaseDocument).optional(),
+  document: z
+    .custom<DocumentClass>((val) => typeof val === 'function' && getBlockTypeFromMetadata(val as object) === 'document')
+    .optional(),
 });
 
 type UpdateToolResultArgs = z.infer<typeof UpdateToolResultSchema>;
 
 @Injectable()
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Handle async tool completion callback. Updates the response document and tracks completion state.',
   },
+  schema: UpdateToolResultSchema,
 })
 export class UpdateToolResult extends BaseTool {
   private readonly logger = new Logger(UpdateToolResult.name);
 
-  @Input({
-    schema: UpdateToolResultSchema,
-  })
-  args: UpdateToolResultArgs;
-
-  async run(args: UpdateToolResultArgs): Promise<ToolResult> {
+  async call(args: UpdateToolResultArgs): Promise<ToolResult> {
     const { delegateResult } = args;
     const completedToolRecord = args.completedTool as Record<string, unknown>;
 
@@ -47,7 +53,7 @@ export class UpdateToolResult extends BaseTool {
     const { toolUseId, toolName } = subscriberMetadata;
 
     // 2. Resolve tool and call complete() if it exists
-    const tool = getBlockTool<BaseTool>(this.parent, toolName);
+    const tool = getBlockTool<BaseTool>(this.ctx.parent, toolName);
     if (!tool) {
       throw new Error(`Tool with name ${toolName} not found.`);
     }
@@ -89,15 +95,15 @@ export class UpdateToolResult extends BaseTool {
     }
 
     if (args.document) {
-      await args.document.create({
-        id: (delegateResult.message as Record<string, unknown>).id as string,
-        validate: 'skip',
-        content: {
+      await this.repository.save(
+        args.document,
+        {
           role: 'assistant',
           content: (delegateResult.message as Record<string, unknown>).content,
           toolResults: updatedResults,
         },
-      });
+        { id: (delegateResult.message as Record<string, unknown>).id as string, validate: 'skip' },
+      );
     }
 
     return {

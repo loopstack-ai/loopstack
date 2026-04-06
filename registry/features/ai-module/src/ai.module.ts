@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
 import { LoopCoreModule } from '@loopstack/core';
-import { AiMessageDocument } from './documents';
 import { AnthropicProviderService } from './providers/anthropic.provider';
 import { OpenAiProviderService } from './providers/openai.provider';
 import { AiMessagesHelperService } from './services';
@@ -28,10 +27,7 @@ import { AiGenerateDocument, AiGenerateObject, AiGenerateText, DelegateToolCall 
     AiGenerateObject,
     AiGenerateText,
     DelegateToolCall,
-
-    // documents
-    AiMessageDocument,
   ],
-  exports: [AiGenerateDocument, AiGenerateObject, AiGenerateText, DelegateToolCall, AiMessageDocument],
+  exports: [AiGenerateDocument, AiGenerateObject, AiGenerateText, DelegateToolCall],
 })
 export class AiModule {}

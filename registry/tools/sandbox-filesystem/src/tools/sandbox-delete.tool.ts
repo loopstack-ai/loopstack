@@ -15,7 +15,7 @@ limitations under the License.
 */
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -35,19 +35,17 @@ interface SandboxDeleteResult {
 }
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Delete a file or directory in a sandbox container',
   },
+  schema: inputSchema,
 })
 export class SandboxDelete extends BaseTool {
   private readonly logger = new Logger(SandboxDelete.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
 
-  @Input({ schema: inputSchema })
-  args: SandboxDeleteArgs;
-
-  async run(args: SandboxDeleteArgs): Promise<ToolResult<SandboxDeleteResult>> {
+  async call(args: SandboxDeleteArgs): Promise<ToolResult<SandboxDeleteResult>> {
     const { containerId, path: targetPath, recursive, force } = args;
 
     this.logger.debug(`Deleting ${targetPath} in container ${containerId} (recursive: ${recursive}, force: ${force})`);
@@ -57,7 +55,7 @@ export class SandboxDelete extends BaseTool {
     if (force) rmArgs.push('-f');
     rmArgs.push(targetPath);
 
-    const result = await this.sandboxCommand.run({
+    const result = await this.sandboxCommand.call({
       containerId,
       executable: 'rm',
       args: rmArgs,

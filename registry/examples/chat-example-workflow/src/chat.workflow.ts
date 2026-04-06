@@ -1,12 +1,11 @@
 import { ClaudeGenerateText, ClaudeGenerateTextResult, ClaudeMessageDocument } from '@loopstack/claude-module';
 import {
+  BaseWorkflow,
   Initial,
-  InjectDocument,
   InjectTemplates,
   InjectTool,
   Transition,
   Workflow,
-  WorkflowMetadataInterface,
   WorkflowTemplates,
 } from '@loopstack/common';
 
@@ -16,34 +15,30 @@ import {
     systemMessage: __dirname + '/templates/systemMessage.md',
   },
 })
-export class ChatWorkflow {
+export class ChatWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
-  @InjectDocument() claudeMessageDocument: ClaudeMessageDocument;
   @InjectTemplates() templates: WorkflowTemplates;
-
-  private runtime: WorkflowMetadataInterface;
 
   llmResult?: ClaudeGenerateTextResult;
 
   @Initial({ to: 'waiting_for_user' })
   async setup() {
-    await this.claudeMessageDocument.create({
-      meta: { hidden: true },
-      content: { role: 'user', content: this.templates.render('systemMessage') },
-    });
+    await this.repository.save(
+      ClaudeMessageDocument,
+      { role: 'user', content: this.templates.render('systemMessage') },
+      { meta: { hidden: true } },
+    );
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true })
   async userMessage() {
-    const payload = this.runtime.transition!.payload as string;
-    await this.claudeMessageDocument.create({
-      content: { role: 'user', content: payload },
-    });
+    const payload = this.ctx.runtime.transition!.payload as string;
+    await this.repository.save(ClaudeMessageDocument, { role: 'user', content: payload });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
   async llmTurn() {
-    const result = await this.claudeGenerateText.run({
+    const result = await this.claudeGenerateText.call({
       claude: { model: 'claude-sonnet-4-6' },
       messagesSearchTag: 'message',
     });
@@ -52,9 +47,6 @@ export class ChatWorkflow {
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
   async respond() {
-    await this.claudeMessageDocument.create({
-      id: this.llmResult!.id,
-      content: this.llmResult!,
-    });
+    await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
   }
 }

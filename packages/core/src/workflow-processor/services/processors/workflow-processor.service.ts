@@ -1,21 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  BaseDocument,
-  BaseTool,
-  BaseWorkflow,
-  LaunchWorkflowOptions,
   RunContext,
   WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkflowInterface,
   WorkflowMetadataInterface,
   getBlockArgsSchema,
-  getBlockDocuments,
   getBlockOptions,
   getBlockOutputMetadata,
   getBlockTemplatesPropertyName,
   getBlockTools,
-  getBlockWorkflows,
   getGuardMetadataMap,
 } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
@@ -28,11 +22,9 @@ import {
   WorkflowTemplatesImpl,
 } from '../../utils';
 import { CheckpointState, StateManager } from '../../utils/state/state-manager';
-import { DocumentCreateOptions, DocumentPersistenceService } from '../document-persistence.service';
 import { ToolExecutionService } from '../tool-execution.service';
 import { TransitionResolverService } from '../transition-resolver.service';
 import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service';
-import { WorkflowOrchestrationService } from '../workflow-orchestration.service';
 import { WorkflowStateService } from '../workflow-state.service';
 
 /** Invoke a named method on a workflow proxy (transition or guard method) */
@@ -63,8 +55,6 @@ export class WorkflowProcessorService implements Processor {
     private readonly executionScope: ExecutionScope,
     private readonly memoryMonitor: WorkflowMemoryMonitorService,
     private readonly toolExecutionService: ToolExecutionService,
-    private readonly documentPersistenceService: DocumentPersistenceService,
-    private readonly workflowOrchestrationService: WorkflowOrchestrationService,
   ) {}
 
   createCtx(
@@ -147,9 +137,9 @@ export class WorkflowProcessorService implements Processor {
       ctx.getManager().setData('status', WorkflowStateEnum.Running);
     }
 
-    // Wire _run() on injected tools and _create() on injected documents
-    // so the proxy can redirect .run() → ._run() and .create() → ._create()
-    this.wireToolsAndDocuments(workflow);
+    // Wire @FrameworkService properties on workflow and tools, sub-workflow _run(), templates
+    this.wireFrameworkServices(workflow);
+    this.wireTemplates(workflow);
 
     this.logger.debug(`Process state machine for workflow ${workflow.constructor.name}`);
     this.memoryMonitor.logWorkflowStart(workflow.constructor.name);
@@ -283,7 +273,7 @@ export class WorkflowProcessorService implements Processor {
 
       this.logger.debug(`Applying transition: ${next.methodName} (${next.from} → ${next.to})`);
 
-      // Set transition info on metadata (so this.runtime.transition works)
+      // Set transition info on metadata (so ctx.runtime.transition works)
       ctx.getManager().setData('transition', {
         id: next.methodName,
         from: currentPlace,
@@ -314,63 +304,26 @@ export class WorkflowProcessorService implements Processor {
   }
 
   /**
-   * Wires _run() on injected tools, _create() on injected documents,
-   * and WorkflowTemplates on @InjectTemplates() property.
+   * Wires @FrameworkService() properties on the workflow and wraps injected tools in proxies.
+   * Tool proxies intercept call() for framework logic and state access for isolation.
    */
-  private wireToolsAndDocuments(workflow: WorkflowInterface): void {
-    // Wire tools: proxy redirects .run() → ._run() → ToolExecutionService
+  private wireFrameworkServices(workflow: WorkflowInterface): void {
+    // Wire and proxy each injected tool, replacing the reference on the raw workflow instance
     const toolNames = getBlockTools(workflow);
     for (const name of toolNames) {
-      const tool = (workflow as Record<string, unknown>)[name] as BaseTool | undefined;
+      const tool = (workflow as Record<string, unknown>)[name] as object | undefined;
       if (tool) {
-        const toolExecutionService = this.toolExecutionService;
-        tool._run = function (args: Record<string, unknown>) {
-          return toolExecutionService.execute(tool, args);
-        };
-
-        // Wire documents inside tools so they work outside the tool proxy
-        // (e.g. when complete() is called directly by UpdateToolResult)
-        const toolDocNames = getBlockDocuments(tool.constructor);
-        for (const docName of toolDocNames) {
-          const doc = (tool as unknown as Record<string, unknown>)[docName] as BaseDocument | undefined;
-          if (doc) {
-            const documentPersistenceService = this.documentPersistenceService;
-            const blockName = docName;
-            doc._create = function (options: DocumentCreateOptions) {
-              return Promise.resolve(documentPersistenceService.create(blockName, doc, options));
-            };
-          }
-        }
+        const proxy = this.toolExecutionService.wireAndProxyTool(tool, name);
+        (workflow as Record<string, unknown>)[name] = proxy;
       }
     }
+  }
 
-    // Wire documents: proxy redirects .create() → ._create() → DocumentPersistenceService
-    const docNames = getBlockDocuments(workflow);
-    for (const name of docNames) {
-      const doc = (workflow as Record<string, unknown>)[name] as BaseDocument | undefined;
-      if (doc) {
-        const documentPersistenceService = this.documentPersistenceService;
-        const blockName = name;
-        doc._create = function (options: DocumentCreateOptions) {
-          return Promise.resolve(documentPersistenceService.create(blockName, doc, options));
-        };
-      }
-    }
-
-    // Wire sub-workflows: proxy redirects .run() → ._run() → WorkflowOrchestrationService
-    const workflowNames = getBlockWorkflows(workflow);
-    for (const name of workflowNames) {
-      const subWorkflow = (workflow as Record<string, unknown>)[name] as BaseWorkflow | undefined;
-      if (subWorkflow) {
-        const orchestrationService = this.workflowOrchestrationService;
-        const blockName = name;
-        subWorkflow._run = function (options: LaunchWorkflowOptions) {
-          return orchestrationService.launch(blockName, subWorkflow, options);
-        };
-      }
-    }
-
-    // Wire templates: create WorkflowTemplatesImpl from @Workflow({ templates }) option
+  /**
+   * Wires WorkflowTemplates on @InjectTemplates() property.
+   * Sub-workflows use `this.orchestrator.queue()` via DI — no runtime wiring needed.
+   */
+  private wireTemplates(workflow: WorkflowInterface): void {
     const templatesPropName = getBlockTemplatesPropertyName(workflow);
     if (templatesPropName) {
       const options = getBlockOptions(workflow);

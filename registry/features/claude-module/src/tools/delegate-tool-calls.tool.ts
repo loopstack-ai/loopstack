@@ -2,16 +2,15 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
-  BaseDocument,
   BaseTool,
-  Input,
+  DocumentClass,
   Tool,
   ToolResult,
   ToolSideEffects,
-  getBlockArgsSchema,
   getBlockTool,
+  getBlockTypeFromMetadata,
 } from '@loopstack/common';
-import { EventSubscriberService, ToolExecutionService } from '@loopstack/core';
+import { EventSubscriberService } from '@loopstack/core';
 import type { DelegateToolCallsResult, DelegateToolResultEntry } from '../types';
 
 const DelegateToolCallsSchema = z.object({
@@ -19,7 +18,9 @@ const DelegateToolCallsSchema = z.object({
     id: z.string().optional(),
     content: z.array(z.any()),
   }),
-  document: z.custom<BaseDocument>((val) => val instanceof BaseDocument).optional(),
+  document: z
+    .custom<DocumentClass>((val) => typeof val === 'function' && getBlockTypeFromMetadata(val as object) === 'document')
+    .optional(),
   skipResponseMessage: z.boolean().optional(),
   callback: z
     .object({
@@ -32,26 +33,19 @@ type DelegateToolCallsArgs = z.infer<typeof DelegateToolCallsSchema>;
 
 @Injectable()
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Delegate tool calls from an LLM response. Handles both sync tools and async task tools.',
   },
+  schema: DelegateToolCallsSchema,
 })
 export class DelegateToolCalls extends BaseTool {
   private readonly logger = new Logger(DelegateToolCalls.name);
 
-  constructor(
-    private readonly toolExecutionService: ToolExecutionService,
-    private readonly eventSubscriberService: EventSubscriberService,
-  ) {
+  constructor(private readonly eventSubscriberService: EventSubscriberService) {
     super();
   }
 
-  @Input({
-    schema: DelegateToolCallsSchema,
-  })
-  args: DelegateToolCallsArgs;
-
-  async run(args: DelegateToolCallsArgs): Promise<ToolResult<DelegateToolCallsResult>> {
+  async call(args: DelegateToolCallsArgs): Promise<ToolResult<DelegateToolCallsResult>> {
     const contentBlocks = args.message.content as Anthropic.ContentBlock[];
     const toolUseBlocks = contentBlocks.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
 
@@ -95,13 +89,13 @@ export class DelegateToolCalls extends BaseTool {
 
         // Register event subscriber
         await this.eventSubscriberService.registerSubscriber(
-          this.context.parentWorkflowId,
-          this.context.workflowId!,
+          this.ctx.context.parentWorkflowId,
+          this.ctx.context.workflowId!,
           args.callback.transition,
           resultData.correlationId as string,
           resultData.eventName as string,
-          this.context.userId,
-          this.context.workspaceId,
+          this.ctx.context.userId,
+          this.ctx.context.workspaceId,
           { toolUseId: block.id, toolName: block.name },
         );
 
@@ -135,17 +129,12 @@ export class DelegateToolCalls extends BaseTool {
 
   private async executeTool(block: Anthropic.ToolUseBlock): Promise<ToolResult> {
     try {
-      const tool = getBlockTool<BaseTool>(this.parent, block.name);
+      const tool = getBlockTool<BaseTool>(this.ctx.parent, block.name);
       if (!tool) {
         throw new Error(`Tool with name ${block.name} not found.`);
       }
 
-      const schema = getBlockArgsSchema(tool);
-      const parsedArgs = schema
-        ? (schema.parse(block.input) as Record<string, unknown>)
-        : (block.input as Record<string, unknown>);
-
-      return await this.toolExecutionService.execute(tool, parsedArgs);
+      return await tool.call(block.input as Record<string, unknown>);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Tool "${block.name}" failed: ${errorMessage}`);
@@ -157,18 +146,18 @@ export class DelegateToolCalls extends BaseTool {
   }
 
   private async createResponseDocument(
-    document: BaseDocument,
+    document: DocumentClass,
     args: DelegateToolCallsArgs,
     toolResults: DelegateToolResultEntry[],
   ): Promise<void> {
-    await document.create({
-      id: args.message.id,
-      validate: 'skip',
-      content: {
+    await this.repository.save(
+      document,
+      {
         role: 'assistant',
         content: args.message.content,
         toolResults,
       },
-    });
+      { id: args.message.id, validate: 'skip' },
+    );
   }
 }

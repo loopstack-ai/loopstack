@@ -21,7 +21,7 @@ export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
 
   @Initial({ to: 'end' })
   async message() {
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: 'Sub workflow completed.',
     });

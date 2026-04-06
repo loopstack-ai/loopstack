@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Final, Initial, InjectTool, Input, ToolResult, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import {
   SandboxCreateDirectory,
@@ -75,17 +75,11 @@ interface SandboxDestroyResult {
 
 @Workflow({
   uiConfig: __dirname + '/sandbox-example.workflow.yaml',
+  schema: z.object({
+    outputDir: z.string().default(process.cwd() + '/out'),
+  }),
 })
-export class SandboxExampleWorkflow {
-  @Input({
-    schema: z.object({
-      outputDir: z.string().default(process.cwd() + '/out'),
-    }),
-  })
-  args: {
-    outputDir: string;
-  };
-
+export class SandboxExampleWorkflow extends BaseWorkflow {
   containerId?: string;
   fileContent?: string;
   fileList?: FileEntry[];
@@ -108,17 +102,18 @@ export class SandboxExampleWorkflow {
 
   @Initial({ to: 'sandbox_ready' })
   async initSandbox() {
-    const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.run({
+    const args = this.ctx.args as { outputDir: string };
+    const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
       containerName: 'my-filesystem-sandbox',
-      projectOutPath: this.args.outputDir,
+      projectOutPath: args.outputDir,
       rootPath: 'workspace',
     });
 
     this.containerId = initResult.data!.containerId;
 
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
     });
@@ -126,13 +121,13 @@ export class SandboxExampleWorkflow {
 
   @Transition({ from: 'sandbox_ready', to: 'dir_created' })
   async createDir() {
-    const mkdirResult: ToolResult<SandboxCreateDirectoryResult> = await this.sandboxCreateDirectory.run({
+    const mkdirResult: ToolResult<SandboxCreateDirectoryResult> = await this.sandboxCreateDirectory.call({
       containerId: this.containerId!,
       path: '/workspace',
       recursive: true,
     });
 
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: `Directory created: ${mkdirResult.data!.path} (created: ${mkdirResult.data!.created})`,
     });
@@ -140,7 +135,7 @@ export class SandboxExampleWorkflow {
 
   @Transition({ from: 'dir_created', to: 'file_written' })
   async writeFile() {
-    const writeResult: ToolResult<SandboxWriteFileResult> = await this.sandboxWriteFile.run({
+    const writeResult: ToolResult<SandboxWriteFileResult> = await this.sandboxWriteFile.call({
       containerId: this.containerId!,
       path: '/workspace/result.txt',
       content: 'Hello from sandbox!',
@@ -148,7 +143,7 @@ export class SandboxExampleWorkflow {
       createParentDirs: true,
     });
 
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
     });
@@ -156,7 +151,7 @@ export class SandboxExampleWorkflow {
 
   @Transition({ from: 'file_written', to: 'file_read' })
   async readFile() {
-    const readResult: ToolResult<SandboxReadFileResult> = await this.sandboxReadFile.run({
+    const readResult: ToolResult<SandboxReadFileResult> = await this.sandboxReadFile.call({
       containerId: this.containerId!,
       path: '/workspace/result.txt',
       encoding: 'utf8',
@@ -164,7 +159,7 @@ export class SandboxExampleWorkflow {
 
     this.fileContent = readResult.data!.content;
 
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
     });
@@ -172,7 +167,7 @@ export class SandboxExampleWorkflow {
 
   @Transition({ from: 'file_read', to: 'dir_listed' })
   async listDir() {
-    const listResult: ToolResult<SandboxListDirectoryResult> = await this.sandboxListDirectory.run({
+    const listResult: ToolResult<SandboxListDirectoryResult> = await this.sandboxListDirectory.call({
       containerId: this.containerId!,
       path: '/workspace',
       recursive: false,
@@ -180,7 +175,7 @@ export class SandboxExampleWorkflow {
 
     this.fileList = listResult.data!.entries;
 
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
     });
@@ -188,12 +183,12 @@ export class SandboxExampleWorkflow {
 
   @Transition({ from: 'dir_listed', to: 'existence_checked' })
   async checkExists() {
-    const existsResult: ToolResult<SandboxExistsResult> = await this.sandboxExists.run({
+    const existsResult: ToolResult<SandboxExistsResult> = await this.sandboxExists.call({
       containerId: this.containerId!,
       path: '/workspace/result.txt',
     });
 
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: `File existence check: ${existsResult.data!.path} exists=${existsResult.data!.exists}, type=${existsResult.data!.type}`,
     });
@@ -201,12 +196,12 @@ export class SandboxExampleWorkflow {
 
   @Transition({ from: 'existence_checked', to: 'info_retrieved' })
   async getInfo() {
-    const infoResult: ToolResult<SandboxFileInfoResult> = await this.sandboxFileInfo.run({
+    const infoResult: ToolResult<SandboxFileInfoResult> = await this.sandboxFileInfo.call({
       containerId: this.containerId!,
       path: '/workspace/result.txt',
     });
 
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: `File info for ${infoResult.data!.name}: type=${infoResult.data!.type}, size=${infoResult.data!.size} bytes, permissions=${infoResult.data!.permissions}, owner=${infoResult.data!.owner}`,
     });
@@ -214,14 +209,14 @@ export class SandboxExampleWorkflow {
 
   @Transition({ from: 'info_retrieved', to: 'file_deleted' })
   async deleteFile() {
-    const deleteResult: ToolResult<SandboxDeleteResult> = await this.sandboxDelete.run({
+    const deleteResult: ToolResult<SandboxDeleteResult> = await this.sandboxDelete.call({
       containerId: this.containerId!,
       path: '/workspace/result.txt',
       recursive: false,
       force: true,
     });
 
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: `File deleted: ${deleteResult.data!.path} (deleted: ${deleteResult.data!.deleted})`,
     });
@@ -229,12 +224,12 @@ export class SandboxExampleWorkflow {
 
   @Final({ from: 'file_deleted' })
   async destroySandbox() {
-    const destroyResult: ToolResult<SandboxDestroyResult> = await this.sandboxDestroy.run({
+    const destroyResult: ToolResult<SandboxDestroyResult> = await this.sandboxDestroy.call({
       containerId: this.containerId!,
       removeContainer: true,
     });
 
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
     });

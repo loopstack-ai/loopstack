@@ -1,7 +1,14 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Inject } from '@nestjs/common';
 import { toJSONSchema, z } from 'zod';
-import { BaseDocument, BaseTool, Input, Tool, ToolResult, getBlockArgsSchema } from '@loopstack/common';
+import {
+  BaseTool,
+  DocumentClass,
+  Tool,
+  ToolResult,
+  getBlockTypeFromMetadata,
+  getDocumentSchema,
+} from '@loopstack/common';
 import { ClaudeGenerateToolBaseSchema } from '../schemas/claude-generate-tool-base.schema';
 import { ClaudeClientService } from '../services';
 import { ClaudeMessagesHelperService } from '../services';
@@ -10,7 +17,9 @@ import { applyCacheBreakpoints } from '../utils/cache.utils';
 export const ClaudeGenerateObjectSchema = ClaudeGenerateToolBaseSchema.extend({
   response: z.object({
     id: z.string().optional(),
-    document: z.custom<BaseDocument>((val) => val instanceof BaseDocument),
+    document: z.custom<DocumentClass>(
+      (val) => typeof val === 'function' && getBlockTypeFromMetadata(val as object) === 'document',
+    ),
   }),
 }).strict();
 
@@ -19,9 +28,10 @@ export type ClaudeGenerateObjectArgsType = z.infer<typeof ClaudeGenerateObjectSc
 const STRUCTURED_OUTPUT_TOOL_NAME = 'structured_output';
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Generates a structured object using the Anthropic Claude API',
   },
+  schema: ClaudeGenerateObjectSchema,
 })
 export class ClaudeGenerateObject extends BaseTool {
   @Inject()
@@ -29,12 +39,7 @@ export class ClaudeGenerateObject extends BaseTool {
   @Inject()
   private readonly claudeMessagesHelperService: ClaudeMessagesHelperService;
 
-  @Input({
-    schema: ClaudeGenerateObjectSchema,
-  })
-  args: ClaudeGenerateObjectArgsType;
-
-  async run(args: ClaudeGenerateObjectArgsType): Promise<ToolResult> {
+  async call(args: ClaudeGenerateObjectArgsType): Promise<ToolResult> {
     const client = this.claudeClientService.getClient(args.claude);
     const model = this.claudeClientService.getModel(args.claude);
 
@@ -43,14 +48,14 @@ export class ClaudeGenerateObject extends BaseTool {
     if (args.prompt) {
       messages.push({ role: 'user', content: args.prompt });
     } else {
-      const resolved = this.claudeMessagesHelperService.getMessages(this.runtime.documents, {
+      const resolved = this.claudeMessagesHelperService.getMessages(this.ctx.runtime.documents, {
         messages: args.messages as Anthropic.MessageParam[],
         messagesSearchTag: args.messagesSearchTag,
       });
       messages.push(...resolved);
     }
 
-    const responseSchema = getBlockArgsSchema(args.response.document);
+    const responseSchema = getDocumentSchema(args.response.document);
     if (!responseSchema) {
       throw new Error('Claude object generation source document must have a schema.');
     }

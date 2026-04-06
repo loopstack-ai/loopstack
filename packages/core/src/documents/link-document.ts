@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { BaseDocument, Document, DocumentInterface, Input } from '@loopstack/common';
+import { Document } from '@loopstack/common';
 
-const LinkDocumentSchema = z
+export const LinkDocumentSchema = z
   .object({
     status: z.enum(['pending', 'success', 'failure']).optional(),
     label: z.string().optional(),
@@ -11,18 +11,16 @@ const LinkDocumentSchema = z
   })
   .strict();
 
-type LinkDocumentContent = z.infer<typeof LinkDocumentSchema>;
+export type LinkDocumentContent = z.infer<typeof LinkDocumentSchema>;
 
 @Document({
-  config: {
-    type: 'document',
-    description: 'Link Document.',
-  },
+  schema: LinkDocumentSchema,
   uiConfig: __dirname + '/link-document.yaml',
 })
-export class LinkDocument extends BaseDocument implements DocumentInterface {
-  @Input({
-    schema: LinkDocumentSchema,
-  })
-  content: LinkDocumentContent;
+export class LinkDocument {
+  status?: 'pending' | 'success' | 'failure';
+  label?: string;
+  href?: string;
+  embed?: boolean;
+  expanded?: boolean;
 }

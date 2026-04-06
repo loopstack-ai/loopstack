@@ -1,25 +1,20 @@
-import { BaseTool, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
 import { AiGenerateObject, AiGenerateObjectArgsType, AiGenerateObjectSchema } from './ai-generate-object.tool';
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Generates a structured object using a LLM and creates it as document',
   },
+  schema: AiGenerateObjectSchema,
 })
 export class AiGenerateDocument extends BaseTool {
   @InjectTool() private aiGenerateObject!: AiGenerateObject;
 
-  @Input({
-    schema: AiGenerateObjectSchema,
-  })
-  args: AiGenerateObjectArgsType;
-
-  async run(args: AiGenerateObjectArgsType): Promise<ToolResult> {
-    const generateResult = await this.aiGenerateObject.run(args);
-    const entity = await args.response.document.create({
+  async call(args: AiGenerateObjectArgsType): Promise<ToolResult> {
+    const generateResult = await this.aiGenerateObject.call(args);
+    const entity = await this.repository.save(args.response.document, generateResult.data as Record<string, unknown>, {
       id: args.response.id,
       validate: 'strict',
-      content: generateResult.data as unknown,
     });
 
     return {

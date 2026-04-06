@@ -2,7 +2,7 @@ import { ModelMessage } from '@ai-sdk/provider-utils';
 import { Inject } from '@nestjs/common';
 import { LanguageModel, ToolSet, UIMessage, convertToModelMessages, createUIMessageStream, streamText } from 'ai';
 import { z } from 'zod';
-import { BaseTool, Input, Tool, ToolCallEntry, ToolCallsMap, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallEntry, ToolCallsMap, ToolResult } from '@loopstack/common';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
@@ -15,9 +15,10 @@ export const AiGenerateTextSchema = AiGenerateToolBaseSchema.extend({
 type AiGenerateTextArgsType = z.infer<typeof AiGenerateTextSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Generates text using a LLM',
   },
+  schema: AiGenerateTextSchema,
 })
 export class AiGenerateText extends BaseTool {
   @Inject()
@@ -27,12 +28,7 @@ export class AiGenerateText extends BaseTool {
   @Inject()
   private readonly aiProviderModelHelperService: AiProviderModelHelperService;
 
-  @Input({
-    schema: AiGenerateTextSchema,
-  })
-  args: AiGenerateTextArgsType;
-
-  async run(args: AiGenerateTextArgsType): Promise<ToolResult> {
+  async call(args: AiGenerateTextArgsType): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {
@@ -43,7 +39,7 @@ export class AiGenerateText extends BaseTool {
       messages: [],
     };
 
-    options.tools = args.tools ? this.aiToolsHelperService.getTools(args.tools, this.parent) : undefined;
+    options.tools = args.tools ? this.aiToolsHelperService.getTools(args.tools, this.ctx.parent) : undefined;
 
     if (args.prompt) {
       options.messages.push({
@@ -51,7 +47,7 @@ export class AiGenerateText extends BaseTool {
         content: args.prompt,
       } as ModelMessage);
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(this.runtime.documents, {
+      const messages = this.aiMessagesHelperService.getMessages(this.ctx.runtime.documents, {
         messages: args.messages as unknown as UIMessage[],
         messagesSearchTag: args.messagesSearchTag,
       });

@@ -3,7 +3,7 @@ title: 'Custom Tool'
 description: |
   This workflow demonstrates the usage of custom tools, including both stateless and stateful tools.
   It performs a simple addition operation using a custom MathSumTool and showcases the behavior of
-  stateless and stateful counter tools.
+  stateless and stateful counter tools. It also tests that tool state persists across checkpoints.
 
 ui:
   form:
@@ -12,3 +12,10 @@ ui:
         title: 'First number (a)'
       b:
         title: 'Second number (b)'
+  widgets:
+    - widget: button
+      enabledWhen:
+        - waiting_for_user
+      options:
+        transition: userContinue
+        label: Continue

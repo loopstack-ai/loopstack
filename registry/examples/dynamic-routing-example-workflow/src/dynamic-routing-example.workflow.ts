@@ -1,27 +1,26 @@
 import { z } from 'zod';
-import { Final, Guard, Initial, InjectTool, Input, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Final, Guard, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
-@Workflow({ uiConfig: __dirname + '/dynamic-routing-example.workflow.yaml' })
-export class DynamicRoutingExampleWorkflow {
+@Workflow({
+  uiConfig: __dirname + '/dynamic-routing-example.workflow.yaml',
+  schema: z
+    .object({
+      value: z.number().default(150),
+    })
+    .strict(),
+})
+export class DynamicRoutingExampleWorkflow extends BaseWorkflow {
   @InjectTool() createChatMessage: CreateChatMessage;
-
-  @Input({
-    schema: z
-      .object({
-        value: z.number().default(150),
-      })
-      .strict(),
-  })
-  args: { value: number };
 
   // --- Initial transition ---
 
   @Initial({ to: 'prepared' })
   async createMockData() {
-    await this.createChatMessage.run({
+    const args = this.ctx.args as { value: number };
+    await this.createChatMessage.call({
       role: 'assistant',
-      content: `Analysing value = ${this.args.value}`,
+      content: `Analysing value = ${args.value}`,
     });
   }
 
@@ -32,7 +31,8 @@ export class DynamicRoutingExampleWorkflow {
   routeToPlaceA() {}
 
   isAbove100() {
-    return this.args.value > 100;
+    const args = this.ctx.args as { value: number };
+    return args.value > 100;
   }
 
   @Transition({ from: 'prepared', to: 'placeB' })
@@ -45,7 +45,8 @@ export class DynamicRoutingExampleWorkflow {
   routeToPlaceC() {}
 
   isAbove200() {
-    return this.args.value > 200;
+    const args = this.ctx.args as { value: number };
+    return args.value > 200;
   }
 
   @Transition({ from: 'placeA', to: 'placeD' })
@@ -55,7 +56,7 @@ export class DynamicRoutingExampleWorkflow {
 
   @Final({ from: 'placeB' })
   async showMessagePlaceB() {
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: 'Value is less or equal 100',
     });
@@ -63,7 +64,7 @@ export class DynamicRoutingExampleWorkflow {
 
   @Final({ from: 'placeC' })
   async showMessagePlaceC() {
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: 'Value is greater than 200',
     });
@@ -71,7 +72,7 @@ export class DynamicRoutingExampleWorkflow {
 
   @Final({ from: 'placeD' })
   async showMessagePlaceD() {
-    await this.createChatMessage.run({
+    await this.createChatMessage.call({
       role: 'assistant',
       content: 'Value is less or equal 200, but greater than 100',
     });

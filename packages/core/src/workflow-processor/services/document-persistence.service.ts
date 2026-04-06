@@ -5,17 +5,15 @@ import { randomUUID } from 'node:crypto';
 import { Repository } from 'typeorm';
 import { ZodError, toJSONSchema } from 'zod';
 import {
-  CreateDocumentOptions,
   DocumentEntity,
+  DocumentSaveOptions,
   WorkflowEntity,
-  getBlockArgsSchema,
   getBlockConfig,
+  getDocumentSchema,
 } from '@loopstack/common';
 import { DocumentConfigType } from '@loopstack/contracts/types';
 import { SchemaValidationError } from '../../common';
 import { ExecutionScope, WorkflowExecutionContextManager } from '../utils';
-
-export type DocumentCreateOptions<TContent = any> = CreateDocumentOptions<TContent>;
 
 @Injectable()
 export class DocumentPersistenceService {
@@ -27,32 +25,40 @@ export class DocumentPersistenceService {
     private readonly documentRepository: Repository<DocumentEntity>,
   ) {}
 
-  create(blockName: string, documentInstance: object, options: DocumentCreateOptions): DocumentEntity {
+  /**
+   * Creates and persists a document entity.
+   *
+   * @param blockName - Name used for the document (typically the class name)
+   * @param documentClass - The document class (constructor or instance) for reading metadata
+   * @param content - The content data to persist
+   * @param options - Optional save options (id, meta, validate)
+   */
+  create(blockName: string, documentClass: object, content: unknown, options?: DocumentSaveOptions): DocumentEntity {
     const ctx = this.executionScope.get();
     const runContext = ctx.getContext();
     const metadata = ctx.getData();
     const transition = metadata.transition!;
 
     // Read config and schema from the document class
-    const config = getBlockConfig<DocumentConfigType>(documentInstance);
-    const contentSchema = getBlockArgsSchema(documentInstance);
+    const config = getBlockConfig<DocumentConfigType>(documentClass);
+    const contentSchema = getDocumentSchema(documentClass);
     const jsonSchema = contentSchema ? toJSONSchema(contentSchema) : undefined;
 
     // Merge document config defaults with caller-provided values
-    const mergedMeta = merge({}, config?.meta ?? {}, options.meta ?? {});
+    const mergedMeta = merge({}, config?.meta ?? {}, options?.meta ?? {});
 
     // Validate content against document schema
-    const validateMode = options.validate ?? 'strict';
-    const { content, error } = this.validateContent(contentSchema, options.content, validateMode);
+    const validateMode = options?.validate ?? 'strict';
+    const { content: validatedContent, error } = this.validateContent(contentSchema, content, validateMode);
 
     // Generate messageId if not provided
-    const messageId = options.id ?? randomUUID();
+    const messageId = options?.id ?? randomUUID();
 
     const entity = this.documentRepository.create({
       messageId,
       blockName,
-      className: documentInstance.constructor.name,
-      content,
+      className: typeof documentClass === 'function' ? documentClass.name : documentClass.constructor.name,
+      content: validatedContent,
       meta: Object.keys(mergedMeta).length > 0 ? mergedMeta : null,
       error: error ?? null,
       schema: jsonSchema as Record<string, unknown> | undefined,

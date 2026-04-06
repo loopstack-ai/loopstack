@@ -15,7 +15,7 @@ limitations under the License.
 */
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -34,9 +34,10 @@ interface SandboxExistsResult {
 }
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Check if a file or directory exists in a sandbox container',
   },
+  schema: inputSchema,
 })
 export class SandboxExists extends BaseTool {
   private readonly logger = new Logger(SandboxExists.name);
@@ -44,16 +45,13 @@ export class SandboxExists extends BaseTool {
   @InjectTool()
   private sandboxCommand: SandboxCommand;
 
-  @Input({ schema: inputSchema })
-  args: SandboxExistsArgs;
-
-  async run(args: SandboxExistsArgs): Promise<ToolResult<SandboxExistsResult>> {
+  async call(args: SandboxExistsArgs): Promise<ToolResult<SandboxExistsResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Checking existence of ${targetPath} in container ${containerId}`);
 
     // Use test command to check existence and stat to get type
-    const result = await this.sandboxCommand.run({
+    const result = await this.sandboxCommand.call({
       containerId,
       executable: 'sh',
       args: [

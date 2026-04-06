@@ -188,7 +188,7 @@ export class ConfigController {
     let raw: string | null = null;
     let filePath: string | null = null;
 
-    if (metadata && metadata.uiConfig) {
+    if (metadata && typeof metadata.uiConfig === 'string') {
       filePath = metadata.uiConfig;
       if (fs.existsSync(filePath)) {
         raw = fs.readFileSync(filePath, 'utf8');

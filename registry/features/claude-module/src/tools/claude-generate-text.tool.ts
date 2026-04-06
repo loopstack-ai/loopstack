@@ -3,7 +3,6 @@ import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseTool,
-  Input,
   Tool,
   ToolCallEntry,
   ToolCallsMap,
@@ -16,7 +15,6 @@ import { ClaudeGenerateToolBaseSchema } from '../schemas/claude-generate-tool-ba
 import { ClaudeClientService } from '../services';
 import { ClaudeMessagesHelperService } from '../services';
 import { ClaudeToolsHelperService } from '../services';
-import type { ClaudeGenerateTextResult } from '../types';
 import { applyCacheBreakpoints } from '../utils/cache.utils';
 
 export const ClaudeGenerateTextSchema = ClaudeGenerateToolBaseSchema.extend({
@@ -27,9 +25,10 @@ export const ClaudeGenerateTextSchema = ClaudeGenerateToolBaseSchema.extend({
 type ClaudeGenerateTextArgsType = z.infer<typeof ClaudeGenerateTextSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Generates text using the Anthropic Claude API',
   },
+  schema: ClaudeGenerateTextSchema,
 })
 export class ClaudeGenerateText extends BaseTool {
   @Inject()
@@ -39,12 +38,7 @@ export class ClaudeGenerateText extends BaseTool {
   @Inject()
   private readonly claudeToolsHelperService: ClaudeToolsHelperService;
 
-  @Input({
-    schema: ClaudeGenerateTextSchema,
-  })
-  args: ClaudeGenerateTextArgsType;
-
-  async run(args: ClaudeGenerateTextArgsType): Promise<ToolResult<ClaudeGenerateTextResult>> {
+  async call(args: ClaudeGenerateTextArgsType): Promise<ToolResult> {
     const client = this.claudeClientService.getClient(args.claude);
     const model = this.claudeClientService.getModel(args.claude);
 
@@ -53,14 +47,14 @@ export class ClaudeGenerateText extends BaseTool {
     if (args.prompt) {
       messages.push({ role: 'user', content: args.prompt });
     } else {
-      const resolved = this.claudeMessagesHelperService.getMessages(this.runtime.documents, {
+      const resolved = this.claudeMessagesHelperService.getMessages(this.ctx.runtime.documents, {
         messages: args.messages as Anthropic.MessageParam[],
         messagesSearchTag: args.messagesSearchTag,
       });
       messages.push(...resolved);
     }
 
-    const tools = args.tools ? this.claudeToolsHelperService.getTools(args.tools, this.parent) : undefined;
+    const tools = args.tools ? this.claudeToolsHelperService.getTools(args.tools, this.ctx.parent) : undefined;
 
     const response = await this.handleGenerateText(client, {
       model,
@@ -100,12 +94,12 @@ export class ClaudeGenerateText extends BaseTool {
   }
 
   private async createResponseMessage(document: string, response: Anthropic.Message): Promise<ToolResult> {
-    const createDocumentTool = getBlockTool<ToolInterface>(this.parent, 'createDocument');
+    const createDocumentTool = getBlockTool<ToolInterface>(this.ctx.parent, 'createDocument');
     if (!createDocumentTool) {
       throw new Error('createDocument tool not found in parent context.');
     }
 
-    return createDocumentTool.run({
+    return (createDocumentTool as BaseTool).call({
       id: response.id,
       document,
       update: {

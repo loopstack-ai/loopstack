@@ -7,19 +7,17 @@ import {
   UpdateToolResult,
 } from '@loopstack/claude-module';
 import {
+  BaseWorkflow,
   Guard,
   Initial,
-  InjectDocument,
   InjectTemplates,
   InjectTool,
   InjectWorkflow,
   ToolResult,
   Transition,
   Workflow,
-  WorkflowMetadataInterface,
   WorkflowTemplates,
 } from '@loopstack/common';
-import { LinkDocument } from '@loopstack/core';
 import {
   GitHubCreateIssueCommentTool,
   GitHubCreateIssueTool,
@@ -56,14 +54,11 @@ import { AuthenticateGitHubTask } from '../tools/authenticate-github-task.tool';
     systemMessage: __dirname + '/templates/systemMessage.md',
   },
 })
-export class GitHubAgentWorkflow {
+export class GitHubAgentWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
   @InjectTool() delegateToolCalls: DelegateToolCalls;
   @InjectTool() updateToolResult: UpdateToolResult;
   @InjectTool() authenticateGitHub: AuthenticateGitHubTask;
-
-  @InjectDocument() claudeMessageDocument: ClaudeMessageDocument;
-  @InjectDocument() linkDocument: LinkDocument;
 
   // GitHub Repos tools
   @InjectTool() gitHubListRepos: GitHubListReposTool;
@@ -107,35 +102,32 @@ export class GitHubAgentWorkflow {
   @InjectWorkflow() oAuth: OAuthWorkflow;
   @InjectTemplates() templates: WorkflowTemplates;
 
-  private runtime: WorkflowMetadataInterface;
-
   llmResult?: ClaudeGenerateTextResult;
   delegateResult?: DelegateToolCallsResult;
 
   @Initial({ to: 'waiting_for_user' })
   async setup() {
-    await this.claudeMessageDocument.create({
-      meta: { hidden: true },
-      content: {
+    await this.repository.save(
+      ClaudeMessageDocument,
+      {
         role: 'user',
         content: this.templates.render('systemMessage'),
       },
-    });
+      { meta: { hidden: true } },
+    );
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true })
   async userMessage() {
-    await this.claudeMessageDocument.create({
-      content: {
-        role: 'user',
-        content: this.runtime.transition!.payload as string,
-      },
+    await this.repository.save(ClaudeMessageDocument, {
+      role: 'user',
+      content: this.ctx.runtime.transition!.payload as string,
     });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
   async llmTurn() {
-    const result: ToolResult<ClaudeGenerateTextResult> = await this.claudeGenerateText.run({
+    const result: ToolResult<ClaudeGenerateTextResult> = await this.claudeGenerateText.call({
       system: `You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
 and search tools. When a tool returns an unauthorized error, use authenticateGitHub
 to let the user sign in, then retry. Be concise and format results using markdown.`,
@@ -176,9 +168,9 @@ to let the user sign in, then retry. Be concise and format results using markdow
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls() {
-    const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.run({
+    const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
       message: this.llmResult!,
-      document: this.claudeMessageDocument,
+      document: ClaudeMessageDocument,
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
@@ -190,10 +182,10 @@ to let the user sign in, then retry. Be concise and format results using markdow
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
   async toolResultReceived() {
-    const result: ToolResult<DelegateToolCallsResult> = await this.updateToolResult.run({
+    const result: ToolResult<DelegateToolCallsResult> = await this.updateToolResult.call({
       delegateResult: this.delegateResult!,
-      completedTool: this.runtime.transition!.payload as Record<string, unknown>,
-      document: this.claudeMessageDocument,
+      completedTool: this.ctx.runtime.transition!.payload as Record<string, unknown>,
+      document: ClaudeMessageDocument,
     });
     this.delegateResult = result.data;
   }
@@ -208,9 +200,6 @@ to let the user sign in, then retry. Be concise and format results using markdow
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
   async respond() {
-    await this.claudeMessageDocument.create({
-      id: this.llmResult!.id,
-      content: this.llmResult!,
-    });
+    await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
   }
 }

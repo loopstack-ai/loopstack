@@ -1,4 +1,4 @@
-import { BaseTool, InjectTool, Input, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
 import {
   ClaudeGenerateObject,
   ClaudeGenerateObjectArgsType,
@@ -6,24 +6,19 @@ import {
 } from './claude-generate-object.tool';
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Generates a structured object using the Anthropic Claude API and creates it as a document',
   },
+  schema: ClaudeGenerateObjectSchema,
 })
 export class ClaudeGenerateDocument extends BaseTool {
   @InjectTool() private claudeGenerateObject!: ClaudeGenerateObject;
 
-  @Input({
-    schema: ClaudeGenerateObjectSchema,
-  })
-  args: ClaudeGenerateObjectArgsType;
-
-  async run(args: ClaudeGenerateObjectArgsType): Promise<ToolResult> {
-    const generateResult = await this.claudeGenerateObject.run(args);
-    const entity = await args.response.document.create({
+  async call(args: ClaudeGenerateObjectArgsType): Promise<ToolResult> {
+    const generateResult = await this.claudeGenerateObject.call(args);
+    const entity = await this.repository.save(args.response.document, generateResult.data as Record<string, unknown>, {
       id: args.response.id,
       validate: 'skip',
-      content: generateResult.data as unknown,
     });
 
     return {

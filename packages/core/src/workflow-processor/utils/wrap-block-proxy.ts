@@ -1,46 +1,48 @@
+import { PROPERTY_DEPS_METADATA } from '@nestjs/common/constants';
 import {
-  BaseDocument,
-  BaseTool,
-  BaseWorkflow,
   BlockInterface,
   WorkflowInterface,
-  getBlockDocuments,
-  getBlockInputMetadata,
   getBlockTemplatesPropertyName,
   getBlockTools,
   getBlockWorkflows,
+  getPassThroughProperties,
 } from '@loopstack/common';
 import { ExecutionContextManager } from './execution-context-manager';
 
-/** Union of injected block types that support method redirection */
-type InjectableBlock = BaseTool | BaseDocument | BaseWorkflow;
-
 /**
- * Wraps a workflow instance in a Proxy that intercepts property access:
+ * Wraps a workflow instance in a Proxy that intercepts property access
+ * for **state management only**.
  *
- * - `this.runtime`  → ctxManager.getData()   (WorkflowMetadataInterface)
- * - `this.context`  → ctxManager.getContext() (RunContext)
- * - `this.args`     → ctxManager.getArgs()   (@Input validated args)
- * - `this.templates` → pass-through (native class property)
- * - `this.<tool>`   → pass-through + method redirect (.run() → ._run())
- * - `this.<doc>`    → pass-through + method redirect (.create() → ._create())
- * - `this.<wf>`     → pass-through + method redirect (.run() → ._run())
- * - `this.<method>` → pass-through (prototype function)
- * - `this.x`        → stateManager.get('x')
- * - `this.x = v`    → stateManager.set('x', v)
+ * Per-execution data (context, runtime, args) is passed via the `ctx`
+ * parameter to transition methods — NOT through the proxy.
+ *
+ * Tools use `call()` (a real method on BaseTool) — no proxy redirect needed.
+ *
+ * The proxy handles:
+ * - `this.<tool>`        → pass-through (tool proxy handles call() interception)
+ * - `this.<wf>`          → pass-through (run() delegates to orchestrator.queue() via DI)
+ * - `this.<method>`      → pass-through (prototype function)
+ * - `this.templates`     → pass-through (native class property)
+ * - `this.repository`    → pass-through (NestJS @Inject)
+ * - `this.x`             → stateManager.get('x')
+ * - `this.x = v`         → stateManager.set('x', v)
+ *
+ * Note: Workflow args are accessed via `ctx.args` (passed to transition methods),
+ * NOT through `this.args`.
  */
 export function wrapBlockProxy(instance: BlockInterface, ctxManager: ExecutionContextManager): WorkflowInterface {
   // Determine pass-through properties at creation time
   const passThroughProps = new Set<string | symbol>();
 
-  // Collect injected tools, documents, workflows
+  // Collect injected tools, workflows
   const toolProps = new Set(getBlockTools(instance.constructor));
-  const documentProps = new Set(getBlockDocuments(instance.constructor));
   const workflowProps = new Set(getBlockWorkflows(instance.constructor));
 
   toolProps.forEach((name) => passThroughProps.add(name));
-  documentProps.forEach((name) => passThroughProps.add(name));
   workflowProps.forEach((name) => passThroughProps.add(name));
+
+  // @PassThrough properties (e.g. repository, ctx)
+  getPassThroughProperties(instance.constructor).forEach((name) => passThroughProps.add(name));
 
   // @InjectTemplates property
   const templatesProperty = getBlockTemplatesPropertyName(instance.constructor);
@@ -48,11 +50,10 @@ export function wrapBlockProxy(instance: BlockInterface, ctxManager: ExecutionCo
     passThroughProps.add(templatesProperty);
   }
 
-  // @Input property
-  const inputMeta = getBlockInputMetadata(instance.constructor);
-  if (inputMeta) {
-    passThroughProps.add(inputMeta.name);
-  }
+  // NestJS @Inject() property dependencies
+  const propertyDeps =
+    (Reflect.getMetadata(PROPERTY_DEPS_METADATA, instance.constructor) as { key: string }[] | undefined) ?? [];
+  propertyDeps.forEach((dep) => passThroughProps.add(dep.key));
 
   // Collect methods (from prototype chain)
   let proto = Object.getPrototypeOf(instance) as Record<string, unknown> | null;
@@ -72,35 +73,9 @@ export function wrapBlockProxy(instance: BlockInterface, ctxManager: ExecutionCo
      All values are properly narrowed before return, but TS cannot track types through Proxy traps. */
   return new Proxy(instance as WorkflowInterface, {
     get(target, prop, receiver) {
-      // Fixed proxy properties — read from ExecutionContextManager
-      if (prop === 'runtime') return ctxManager.getData();
-      if (prop === 'context') return ctxManager.getContext();
-      if (prop === 'args') return ctxManager.getArgs();
-
-      // Pass-through: functions, templates, @Input
+      // Pass-through: functions, tools, workflows, templates, @Inject properties
       if (passThroughProps.has(prop)) {
-        const value = Reflect.get(target, prop, receiver);
-
-        // Wrap injected tools/documents/workflows with method redirect proxy
-        if (
-          (toolProps.has(prop as string) || workflowProps.has(prop as string) || documentProps.has(prop as string)) &&
-          value != null &&
-          typeof value === 'object'
-        ) {
-          return new Proxy(value as InjectableBlock, {
-            get(t, p, r) {
-              if (p === 'run' && '_run' in t && typeof t._run === 'function') {
-                return (t._run as (...args: unknown[]) => unknown).bind(t);
-              }
-              if (p === 'create' && '_create' in t && typeof (t as BaseDocument)._create === 'function') {
-                return ((t as BaseDocument)._create as (...args: unknown[]) => unknown).bind(t);
-              }
-              return Reflect.get(t, p, r);
-            },
-          });
-        }
-
-        return value as unknown;
+        return Reflect.get(target, prop, receiver);
       }
 
       // Everything else → StateManager (per-property)
@@ -108,14 +83,9 @@ export function wrapBlockProxy(instance: BlockInterface, ctxManager: ExecutionCo
     },
 
     set(_target, prop, value) {
-      // Protect fixed properties
-      if (prop === 'runtime' || prop === 'context' || prop === 'args') {
-        throw new Error(`Cannot modify "${String(prop)}"`);
-      }
-
-      // Protect injected instances
+      // Protect pass-through properties (injected tools, workflows, services, methods, etc.)
       if (passThroughProps.has(prop)) {
-        throw new Error(`Cannot reassign injected property "${String(prop)}"`);
+        throw new Error(`Cannot reassign property "${String(prop)}"`);
       }
 
       // Everything else → StateManager

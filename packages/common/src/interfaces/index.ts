@@ -14,3 +14,6 @@ export * from './workflow-execution.interface.js';
 export * from './workflow-memento-data.interfate.js';
 export * from './workflow-metadata.interface.js';
 export * from './workflow-state.interface.js';
+export * from './document-repository.interface.js';
+export * from './execution-context.interface.js';
+export * from './workflow-orchestrator.interface.js';

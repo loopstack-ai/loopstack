@@ -1,13 +1,12 @@
 import { z } from 'zod';
 import { ClaudeGenerateDocument, ClaudeMessageDocument } from '@loopstack/claude-module';
 import {
+  BaseWorkflow,
   DocumentEntity,
   Final,
   Initial,
-  InjectDocument,
   InjectTemplates,
   InjectTool,
-  Input,
   Transition,
   Workflow,
   WorkflowTemplates,
@@ -19,55 +18,50 @@ import { FileDocument, FileDocumentType } from './documents/file-document';
   templates: {
     prompt: __dirname + '/templates/prompt.md',
   },
+  schema: z.object({
+    language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
+  }),
 })
-export class PromptStructuredOutputWorkflow {
+export class PromptStructuredOutputWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateDocument: ClaudeGenerateDocument;
-  @InjectDocument() claudeMessageDocument: ClaudeMessageDocument;
-  @InjectDocument() fileDocument: FileDocument;
   @InjectTemplates() templates: WorkflowTemplates;
-
-  @Input({
-    schema: z.object({
-      language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
-    }),
-  })
-  args: {
-    language: string;
-  };
 
   llmResult?: DocumentEntity<FileDocumentType>;
 
   @Initial({ to: 'ready' })
   async greeting() {
-    await this.claudeMessageDocument.create({
-      id: 'status',
-      content: {
+    const args = this.ctx.args as { language: string };
+    await this.repository.save(
+      ClaudeMessageDocument,
+      {
         role: 'assistant',
         content: [
           {
             type: 'text',
-            text: `Creating a 'Hello, World!' script in ${this.args.language}...`,
+            text: `Creating a 'Hello, World!' script in ${args.language}...`,
           },
         ],
       },
-    });
+      { id: 'status' },
+    );
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
   async prompt() {
-    const result = await this.claudeGenerateDocument.run({
+    const args = this.ctx.args as { language: string };
+    const result = await this.claudeGenerateDocument.call({
       claude: { model: 'claude-sonnet-4-6' },
-      response: { document: this.fileDocument },
-      prompt: this.templates.render('prompt', { language: this.args.language }),
+      response: { document: FileDocument },
+      prompt: this.templates.render('prompt', { language: args.language }),
     });
     this.llmResult = result.data as DocumentEntity<FileDocumentType>;
   }
 
   @Final({ from: 'prompt_executed' })
   async respond() {
-    await this.claudeMessageDocument.create({
-      id: 'status',
-      content: {
+    await this.repository.save(
+      ClaudeMessageDocument,
+      {
         role: 'assistant',
         content: [
           {
@@ -76,6 +70,7 @@ export class PromptStructuredOutputWorkflow {
           },
         ],
       },
-    });
+      { id: 'status' },
+    );
   }
 }

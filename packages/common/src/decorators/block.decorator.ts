@@ -1,6 +1,12 @@
 import { Inject, Injectable, InjectionToken } from '@nestjs/common';
 import { z } from 'zod';
-import type { BlockConfigType } from '@loopstack/contracts/types';
+import type {
+  BlockConfigType,
+  DocumentConfigType,
+  ToolConfigType,
+  WorkflowType,
+  WorkspaceType,
+} from '@loopstack/contracts/types';
 
 export const BLOCK_CONFIG_METADATA_KEY = Symbol('blockConfig');
 export const BLOCK_TYPE_METADATA_KEY = Symbol('blockType');
@@ -12,6 +18,7 @@ export const INPUT_METADATA_KEY = Symbol('input');
 export const OUTPUT_METADATA_KEY = Symbol('output');
 export const TRANSITIONS_METADATA_KEY = Symbol('transitions');
 export const GUARDS_METADATA_KEY = Symbol('guards');
+export const PASS_THROUGH_METADATA_KEY = Symbol('passThrough');
 
 export interface InjectWorkflowDecoratorOptions {
   token?: InjectionToken;
@@ -20,12 +27,46 @@ export interface InjectWorkflowDecoratorOptions {
 // Block Type Class Decorators
 export type BlockType = 'workflow' | 'tool' | 'document' | 'workspace';
 
+/** Base block options — used by the internal `Block()` decorator */
 export interface BlockOptions {
-  config?: Partial<BlockConfigType>;
-  /** Path to YAML file containing UI config (title, description, ui) */
-  uiConfig?: string;
+  /** Inline config object or path to a YAML file containing UI config */
+  uiConfig?: string | Partial<BlockConfigType>;
   /** Map of template names to file paths (e.g., { system: __dirname + '/templates/system.md' }) */
   templates?: Record<string, string>;
+  /** Zod schema for input/content validation */
+  schema?: z.ZodType;
+}
+
+/** Options for @Tool() decorator */
+export interface ToolOptions {
+  /** Inline config object or path to a YAML file containing UI config */
+  uiConfig?: string | Partial<ToolConfigType>;
+  /** Zod schema for input validation */
+  schema?: z.ZodType;
+}
+
+/** Options for @Workflow() decorator */
+export interface WorkflowOptions {
+  /** Inline config object or path to a YAML file containing UI config */
+  uiConfig?: string | Partial<WorkflowType>;
+  /** Zod schema for input validation */
+  schema?: z.ZodType;
+  /** Map of template names to file paths (e.g., { system: __dirname + '/templates/system.md' }) */
+  templates?: Record<string, string>;
+}
+
+/** Options for @Document() decorator */
+export interface DocumentOptions {
+  /** Inline config object or path to a YAML file containing UI config */
+  uiConfig?: string | Partial<DocumentConfigType>;
+  /** Zod schema for content validation */
+  schema?: z.ZodType;
+}
+
+/** Options for @Workspace() decorator */
+export interface WorkspaceOptions {
+  /** Inline config object or path to a YAML file containing UI config */
+  uiConfig?: string | Partial<WorkspaceType>;
 }
 
 export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
@@ -38,20 +79,31 @@ export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
   };
 }
 
-export function Workflow(options?: BlockOptions): ClassDecorator {
-  return Block('workflow', options);
+export function Workflow(options?: WorkflowOptions): ClassDecorator {
+  return Block('workflow', options as BlockOptions);
 }
 
-export function Tool(options?: BlockOptions): ClassDecorator {
-  return Block('tool', options);
+export function Tool(options?: ToolOptions): ClassDecorator {
+  return Block('tool', options as BlockOptions);
 }
 
-export function Document(options?: BlockOptions): ClassDecorator {
-  return Block('document', options);
+/**
+ * Marks a class as a Document DTO.
+ * Unlike @Tool and @Workflow, documents are NOT injectable NestJS providers.
+ * They are plain data classes whose schema and config are read from decorator metadata.
+ */
+export function Document(options?: DocumentOptions): ClassDecorator {
+  return (target) => {
+    // Documents are NOT @Injectable — they are plain DTOs, not NestJS providers
+    Reflect.defineMetadata(BLOCK_TYPE_METADATA_KEY, 'document', target);
+    if (options) {
+      Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, options as BlockOptions, target);
+    }
+  };
 }
 
-export function Workspace(options?: BlockOptions): ClassDecorator {
-  return Block('workspace', options);
+export function Workspace(options?: WorkspaceOptions): ClassDecorator {
+  return Block('workspace', options as BlockOptions);
 }
 
 export function getBlockType(target: object): BlockType | undefined {
@@ -59,14 +111,25 @@ export function getBlockType(target: object): BlockType | undefined {
 }
 
 // Schema Decorators
+
+/**
+ * @deprecated Use `schema` in the class decorator instead (e.g., `@Tool({ schema })`, `@Workflow({ schema })`).
+ */
 export interface InputOptions {
   schema?: z.ZodType;
 }
 
+/**
+ * @deprecated Use `schema` in the class decorator instead.
+ */
 export interface InputMetadata extends InputOptions {
   name: string | symbol;
 }
 
+/**
+ * @deprecated Use `schema` in the class decorator instead (e.g., `@Tool({ schema })`, `@Workflow({ schema })`).
+ * This decorator will be removed in a future major version.
+ */
 export function Input(options: InputOptions): PropertyDecorator {
   return (target: object, propertyKey: string | symbol) => {
     Reflect.defineMetadata(INPUT_METADATA_KEY, { ...options, name: propertyKey }, target.constructor);
@@ -102,17 +165,12 @@ export function InjectTool(token?: InjectionToken): PropertyDecorator & MethodDe
   };
 }
 
-export function InjectDocument(token?: InjectionToken): PropertyDecorator & MethodDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    const type = token ?? (Reflect.getMetadata('design:type', target, propertyKey) as InjectionToken | undefined);
-
-    if (type) {
-      Inject(type)(target, propertyKey);
-    }
-
-    const existingDocuments =
-      (Reflect.getMetadata(INJECTED_DOCUMENTS_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
-    Reflect.defineMetadata(INJECTED_DOCUMENTS_METADATA_KEY, [...existingDocuments, propertyKey], target);
+/**
+ * @deprecated Documents are now plain DTOs. Use `this.repository.save(DocumentClass, data)` instead of injecting documents.
+ */
+export function InjectDocument(_token?: InjectionToken): PropertyDecorator & MethodDecorator {
+  return (_target: object, _propertyKey: string | symbol) => {
+    // No-op: documents are no longer injectable
   };
 }
 
@@ -221,5 +279,19 @@ export function Guard(guardMethodName: string): MethodDecorator {
       [...existing, { transitionMethodName: String(propertyKey), guardMethodName }],
       target.constructor,
     );
+  };
+}
+
+/**
+ * Marks a property as pass-through — the proxy will NOT intercept it
+ * for state management. The property value is read directly from the
+ * instance, bypassing the StateManager.
+ *
+ * Use this for properties wired by the framework at runtime (e.g. `ctx`).
+ */
+export function PassThrough(): PropertyDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    const existing = (Reflect.getMetadata(PASS_THROUGH_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
+    Reflect.defineMetadata(PASS_THROUGH_METADATA_KEY, [...existing, propertyKey], target);
   };
 }

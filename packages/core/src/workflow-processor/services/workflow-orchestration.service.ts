@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { BaseWorkflow, LaunchWorkflowOptions, LaunchWorkflowResult } from '@loopstack/common';
+import { QueueResult, RunOptions, WorkflowOrchestrator } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { EventSubscriberService } from '../../persistence';
@@ -11,15 +11,14 @@ import { CreateWorkflowService } from './create-workflow.service';
 /**
  * Handles sub-workflow orchestration for the TypeScript-first workflow model.
  *
- * Injected sub-workflows call `.run()` which the proxy redirects to `._run()`,
- * wired to `WorkflowOrchestrationService.launch()`.
+ * Injected sub-workflows call `.run(args, options)` which delegates to
+ * `this.orchestrator.queue()`, provided by this service via DI.
  *
- * This replaces the old `Task` tool — launch creates the workflow entity,
- * schedules it for execution, and optionally registers an event subscriber
- * for the callback transition.
+ * `queue()` creates the workflow entity, schedules it for execution,
+ * and optionally registers an event subscriber for the callback transition.
  */
 @Injectable()
-export class WorkflowOrchestrationService {
+export class WorkflowOrchestrationService implements WorkflowOrchestrator {
   private readonly logger = new Logger(WorkflowOrchestrationService.name);
 
   constructor(
@@ -30,18 +29,19 @@ export class WorkflowOrchestrationService {
     private readonly eventSubscriberService: EventSubscriberService,
   ) {}
 
-  async launch(
-    blockName: string,
-    workflow: BaseWorkflow,
-    options: LaunchWorkflowOptions,
-  ): Promise<LaunchWorkflowResult> {
+  async queue(args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
     const ctx = this.executionScope.get();
     const context = ctx.getContext();
+
+    if (!options?.blockName) {
+      throw new Error('RunOptions.blockName is required to queue a sub-workflow.');
+    }
 
     if (context.options?.stateless) {
       throw new Error('Sub-workflow launching requires stateful workflow execution.');
     }
 
+    const blockName = options.blockName;
     const correlationId = randomUUID();
     const eventName = `workflow.${WorkflowState.Completed}`;
 
@@ -50,7 +50,7 @@ export class WorkflowOrchestrationService {
       {
         blockName,
         workspaceId: context.workspaceId,
-        args: { ...options.args },
+        args: { ...args },
         eventCorrelationId: correlationId,
       },
       context.userId,
@@ -69,7 +69,7 @@ export class WorkflowOrchestrationService {
         workflowId: workflowEntity.id,
         correlationId,
         blockName,
-        args: { ...options.args },
+        args: { ...args },
         payload: {},
       },
     } satisfies ScheduledTask);
@@ -87,7 +87,6 @@ export class WorkflowOrchestrationService {
     }
 
     return {
-      mode: 'async',
       correlationId,
       workflowId: workflowEntity.id,
       eventName,

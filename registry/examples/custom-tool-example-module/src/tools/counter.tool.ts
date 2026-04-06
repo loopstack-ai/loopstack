@@ -1,17 +1,15 @@
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Counter tool.',
   },
 })
 export class CounterTool extends BaseTool {
   count: number = 0;
 
-  async run(): Promise<ToolResult> {
+  async call(_args?: object): Promise<ToolResult<number>> {
     this.count++;
-    return Promise.resolve({
-      data: this.count,
-    });
+    return { data: this.count };
   }
 }

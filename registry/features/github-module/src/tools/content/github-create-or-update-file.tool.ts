@@ -1,23 +1,28 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GitHubCreateOrUpdateFileArgs = {
-  owner: string;
-  repo: string;
-  path: string;
-  content: string;
-  message: string;
-  sha?: string;
-  branch?: string;
-};
+const inputSchema = z
+  .object({
+    owner: z.string(),
+    repo: z.string(),
+    path: z.string(),
+    content: z.string(),
+    message: z.string(),
+    sha: z.string().optional(),
+    branch: z.string().optional(),
+  })
+  .strict();
+
+export type GitHubCreateOrUpdateFileArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Creates or updates a file in a GitHub repository. Content is provided as plain text and encoded to base64 before sending. To update an existing file, provide the sha of the file being replaced. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
 export class GitHubCreateOrUpdateFileTool extends BaseTool {
   private readonly logger = new Logger(GitHubCreateOrUpdateFileTool.name);
@@ -25,23 +30,8 @@ export class GitHubCreateOrUpdateFileTool extends BaseTool {
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        owner: z.string(),
-        repo: z.string(),
-        path: z.string(),
-        content: z.string(),
-        message: z.string(),
-        sha: z.string().optional(),
-        branch: z.string().optional(),
-      })
-      .strict(),
-  })
-  args: GitHubCreateOrUpdateFileArgs;
-
-  async run(args: GitHubCreateOrUpdateFileArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
+  async call(args: GitHubCreateOrUpdateFileArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -73,7 +63,7 @@ export class GitHubCreateOrUpdateFileTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: '401',

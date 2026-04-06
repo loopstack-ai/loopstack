@@ -1,12 +1,16 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GoogleDriveDownloadFileArgs = {
-  fileId: string;
-  exportMimeType?: string;
-};
+const inputSchema = z
+  .object({
+    fileId: z.string(),
+    exportMimeType: z.string().optional(),
+  })
+  .strict();
+
+export type GoogleDriveDownloadFileArgs = z.infer<typeof inputSchema>;
 
 const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
   'application/vnd.google-apps.document': 'text/plain',
@@ -15,10 +19,11 @@ const GOOGLE_DOCS_EXPORT_DEFAULTS: Record<string, string> = {
 };
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Downloads or exports a file from Google Drive. Automatically handles Google Docs/Sheets/Slides export. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
 export class GoogleDriveDownloadFileTool extends BaseTool {
   private readonly logger = new Logger(GoogleDriveDownloadFileTool.name);
@@ -26,18 +31,8 @@ export class GoogleDriveDownloadFileTool extends BaseTool {
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        fileId: z.string(),
-        exportMimeType: z.string().optional(),
-      })
-      .strict(),
-  })
-  args: GoogleDriveDownloadFileArgs;
-
-  async run(args: GoogleDriveDownloadFileArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'google');
+  async call(args: GoogleDriveDownloadFileArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {

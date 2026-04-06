@@ -1,36 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, InjectDocument, Input, Output, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Final, Initial, Output, Workflow } from '@loopstack/common';
 import { SecretRequestDocument } from '../documents';
 
 @Injectable()
 @Workflow({
   uiConfig: __dirname + '/secrets-request.workflow.yaml',
+  schema: z.object({
+    variables: z.array(
+      z.object({
+        key: z.string(),
+      }),
+    ),
+  }),
 })
-export class SecretsRequestWorkflow extends BaseWorkflow {
-  @InjectDocument() secretRequestDocument: SecretRequestDocument;
-
-  @Input({
-    schema: z.object({
-      variables: z.array(
-        z.object({
-          key: z.string(),
-        }),
-      ),
-    }),
-  })
-  args: {
-    variables: { key: string }[];
-  };
-
+export class SecretsRequestWorkflow extends BaseWorkflow<{ variables: { key: string }[] }> {
   submitted?: boolean;
 
   @Initial({ to: 'requesting_secrets' })
   async showForm() {
-    await this.secretRequestDocument.create({
-      content: {
-        variables: this.args.variables,
-      },
+    const args = this.ctx.args as { variables: { key: string }[] };
+    await this.repository.save(SecretRequestDocument, {
+      variables: args.variables,
     });
   }
 

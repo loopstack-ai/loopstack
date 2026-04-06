@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseDocument, Document, DocumentInterface, Input } from '@loopstack/common';
+import { Document } from '@loopstack/common';
 
 export const OptimizedMeetingNotesDocumentSchema = z.object({
   date: z.string(),
@@ -10,11 +10,13 @@ export const OptimizedMeetingNotesDocumentSchema = z.object({
 });
 
 @Document({
+  schema: OptimizedMeetingNotesDocumentSchema,
   uiConfig: __dirname + '/optimized-notes-document.yaml',
 })
-export class OptimizedNotesDocument extends BaseDocument implements DocumentInterface {
-  @Input({
-    schema: OptimizedMeetingNotesDocumentSchema,
-  })
-  content: z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
+export class OptimizedNotesDocument {
+  date: string;
+  summary: string;
+  participants: string[];
+  decisions: string[];
+  actionItems: string[];
 }

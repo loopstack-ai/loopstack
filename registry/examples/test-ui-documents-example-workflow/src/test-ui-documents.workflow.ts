@@ -1,44 +1,31 @@
-import { Final, Initial, InjectDocument, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
 import { ErrorDocument, MarkdownDocument, MessageDocument, PlainDocument } from '@loopstack/core';
 
 @Workflow({
   uiConfig: __dirname + '/test-ui-documents.workflow.yaml',
 })
-export class TestUiDocumentsWorkflow {
-  @InjectDocument() private errorDocument: ErrorDocument;
-  @InjectDocument() private markdownDocument: MarkdownDocument;
-  @InjectDocument() private messageDocument: MessageDocument;
-  @InjectDocument() private plainDocument: PlainDocument;
-
+export class TestUiDocumentsWorkflow extends BaseWorkflow {
   @Initial({ to: 'rendered' })
   async renderAll() {
     // Message
-    await this.messageDocument.create({
-      content: {
-        role: 'assistant',
-        content: 'This is the default message',
-      },
+    await this.repository.save(MessageDocument, {
+      role: 'assistant',
+      content: 'This is the default message',
     });
 
     // Error
-    await this.errorDocument.create({
-      content: {
-        error: 'This is an error message',
-      },
+    await this.repository.save(ErrorDocument, {
+      error: 'This is an error message',
     });
 
     // Markdown
-    await this.markdownDocument.create({
-      content: {
-        markdown: '# Markdown\n\nThis is `markdown`\n',
-      },
+    await this.repository.save(MarkdownDocument, {
+      markdown: '# Markdown\n\nThis is `markdown`\n',
     });
 
     // Plain Text
-    await this.plainDocument.create({
-      content: {
-        text: 'This is plain text',
-      },
+    await this.repository.save(PlainDocument, {
+      text: 'This is plain text',
     });
   }
 

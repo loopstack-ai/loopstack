@@ -1,17 +1,15 @@
 import { z } from 'zod';
 import {
+  BaseWorkflow,
   Final,
   Guard,
   Initial,
-  InjectDocument,
   InjectTemplates,
   InjectTool,
   InjectWorkflow,
-  Input,
   ToolResult,
   Transition,
   Workflow,
-  WorkflowMetadataInterface,
   WorkflowTemplates,
 } from '@loopstack/common';
 import { LinkDocument, MarkdownDocument } from '@loopstack/core';
@@ -33,30 +31,18 @@ interface CalendarFetchResult {
   templates: {
     calendarSummary: __dirname + '/templates/calendarSummary.md',
   },
+  schema: z
+    .object({
+      calendarId: z.string().default('primary'),
+    })
+    .strict(),
 })
-export class CalendarSummaryWorkflow {
+export class CalendarSummaryWorkflow extends BaseWorkflow {
   // Custom tool (demonstrates building an OAuth-aware tool from scratch)
   @InjectTool() private googleCalendarFetchEvents: GoogleCalendarFetchEventsTool;
 
-  // Documents
-  @InjectDocument() private linkDocument: LinkDocument;
-  @InjectDocument() private markdown: MarkdownDocument;
-
   @InjectWorkflow() private oAuth: OAuthWorkflow;
   @InjectTemplates() templates: WorkflowTemplates;
-
-  @Input({
-    schema: z
-      .object({
-        calendarId: z.string().default('primary'),
-      })
-      .strict(),
-  })
-  args: {
-    calendarId: string;
-  };
-
-  private runtime: WorkflowMetadataInterface;
 
   events?: Array<{ id: string; summary: string; start?: string; end?: string }>;
   requiresAuthentication?: boolean;
@@ -66,8 +52,9 @@ export class CalendarSummaryWorkflow {
 
   @Initial({ to: 'calendar_fetched' })
   async fetchEvents() {
-    const result: ToolResult<CalendarFetchResult> = await this.googleCalendarFetchEvents.run({
-      calendarId: this.args.calendarId,
+    const args = this.ctx.args as { calendarId: string };
+    const result: ToolResult<CalendarFetchResult> = await this.googleCalendarFetchEvents.call({
+      calendarId: args.calendarId,
       timeMin: this.now(),
       timeMax: this.endOfWeek(),
     });
@@ -79,24 +66,22 @@ export class CalendarSummaryWorkflow {
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async authRequired() {
-    const result = await this.oAuth.run({
-      args: {
-        provider: 'google',
-        scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-      },
-      callback: { transition: 'authCompleted' },
-    });
+    const result = await this.oAuth.run(
+      { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
+      { blockName: 'oAuth', callback: { transition: 'authCompleted' } },
+    );
     this.authWorkflowId = result.workflowId;
 
-    await this.linkDocument.create({
-      id: 'authStatus',
-      content: {
+    await this.repository.save(
+      LinkDocument,
+      {
         label: 'Google authentication required',
         href: `/workflows/${this.authWorkflowId}`,
         embed: true,
         expanded: true,
       },
-    });
+      { id: 'authStatus' },
+    );
   }
 
   needsAuth(): boolean {
@@ -106,25 +91,24 @@ export class CalendarSummaryWorkflow {
   // Auth sub-workflow completed -> retry from start
   @Transition({ from: 'awaiting_auth', to: 'start', wait: true })
   async authCompleted() {
-    await this.linkDocument.create({
-      id: 'authStatus',
-      content: {
+    await this.repository.save(
+      LinkDocument,
+      {
         status: 'success',
         label: 'Google authentication completed',
-        href: `/workflows/${(this.runtime.transition!.payload as SubWorkflowCallbackPayload).workflowId}`,
+        href: `/workflows/${(this.ctx.runtime.transition!.payload as SubWorkflowCallbackPayload).workflowId}`,
         embed: true,
         expanded: false,
       },
-    });
+      { id: 'authStatus' },
+    );
   }
 
   // Success -> display summary
   @Final({ from: 'calendar_fetched' })
   async displayResults() {
-    await this.markdown.create({
-      content: {
-        markdown: this.templates.render('calendarSummary', { events: this.events }),
-      },
+    await this.repository.save(MarkdownDocument, {
+      markdown: this.templates.render('calendarSummary', { events: this.events }),
     });
   }
 

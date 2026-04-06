@@ -1,20 +1,25 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GitHubListDirectoryArgs = {
-  owner: string;
-  repo: string;
-  path?: string;
-  ref?: string;
-};
+const inputSchema = z
+  .object({
+    owner: z.string(),
+    repo: z.string(),
+    path: z.string().default(''),
+    ref: z.string().optional(),
+  })
+  .strict();
+
+export type GitHubListDirectoryArgs = z.input<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Lists the contents of a directory in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
 export class GitHubListDirectoryTool extends BaseTool {
   private readonly logger = new Logger(GitHubListDirectoryTool.name);
@@ -22,20 +27,8 @@ export class GitHubListDirectoryTool extends BaseTool {
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        owner: z.string(),
-        repo: z.string(),
-        path: z.string().default(''),
-        ref: z.string().optional(),
-      })
-      .strict(),
-  })
-  args: GitHubListDirectoryArgs;
-
-  async run(args: GitHubListDirectoryArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'github');
+  async call(args: GitHubListDirectoryArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -60,7 +53,7 @@ export class GitHubListDirectoryTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.context.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: '401',

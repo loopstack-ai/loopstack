@@ -3,7 +3,6 @@ import { ToolUIPart, UIMessage } from 'ai';
 import { z } from 'zod';
 import {
   BaseTool,
-  Input,
   Tool,
   ToolCallEntry,
   ToolCallsMap,
@@ -30,19 +29,15 @@ const DelegateToolCallsToolSchema = z.object({
 type DelegateToolCallsToolArgs = z.infer<typeof DelegateToolCallsToolSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Delegate a tool call.',
   },
+  schema: DelegateToolCallsToolSchema,
 })
 export class DelegateToolCall extends BaseTool {
   private readonly logger = new Logger(DelegateToolCall.name);
 
-  @Input({
-    schema: DelegateToolCallsToolSchema,
-  })
-  args: DelegateToolCallsToolArgs;
-
-  async run(args: DelegateToolCallsToolArgs): Promise<ToolResult> {
+  async call(args: DelegateToolCallsToolArgs): Promise<ToolResult> {
     const parts = args.message.parts;
     const resultParts: ToolUIPart[] = [];
     const toolCalls: ToolCallsMap = {};
@@ -58,13 +53,13 @@ export class DelegateToolCall extends BaseTool {
 
       const toolName = part.type.replace(/^tool-/, '');
 
-      const tool = getBlockTool<ToolInterface>(this.parent, toolName);
+      const tool = getBlockTool<ToolInterface>(this.ctx.parent, toolName);
       if (!tool) {
         throw new Error(`Tool ${toolName} not found.`);
       }
 
       try {
-        const result: ToolResult = await tool.run(part.input as Record<string, unknown>);
+        const result: ToolResult = await (tool as BaseTool).call(part.input as Record<string, unknown>);
 
         resultParts.push({
           type: part.type as ToolUIPart['type'],
@@ -125,12 +120,12 @@ export class DelegateToolCall extends BaseTool {
   }
 
   private async createResponseMessage(args: DelegateToolCallsToolArgs, resultMessage: UIMessage): Promise<ToolResult> {
-    const createDocumentTool = getBlockTool<ToolInterface>(this.parent, 'createDocument');
+    const createDocumentTool = getBlockTool<ToolInterface>(this.ctx.parent, 'createDocument');
     if (!createDocumentTool) {
       throw new Error('createDocument tool not found in parent context.');
     }
 
-    return createDocumentTool.run({
+    return (createDocumentTool as BaseTool).call({
       id: args.message.id,
       document: args.document,
       update: { content: resultMessage },

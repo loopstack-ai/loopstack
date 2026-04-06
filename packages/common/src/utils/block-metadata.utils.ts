@@ -2,7 +2,9 @@ import { z } from 'zod';
 import { BlockConfigType } from '@loopstack/contracts/dist/types';
 import {
   BLOCK_CONFIG_METADATA_KEY,
+  BLOCK_TYPE_METADATA_KEY,
   BlockOptions,
+  BlockType,
   GUARDS_METADATA_KEY,
   GuardMetadata,
   INJECTED_DOCUMENTS_METADATA_KEY,
@@ -13,6 +15,7 @@ import {
   InputMetadata,
   OUTPUT_METADATA_KEY,
   OutputMetadata,
+  PASS_THROUGH_METADATA_KEY,
   TRANSITIONS_METADATA_KEY,
   TransitionMetadata,
 } from '../decorators';
@@ -96,9 +99,16 @@ export function getBlockInputMetadata(target: object | Constructor): InputMetada
 }
 
 /**
- * Gets the args schema from the decorator metadata
+ * Gets the args schema from the class decorator metadata (e.g., `@Tool({ schema })`, `@Workflow({ schema })`).
+ * Falls back to `@Input({ schema })` for backward compatibility.
  */
 export function getBlockArgsSchema(target: object | Constructor): z.ZodType | undefined {
+  // Primary: read from class decorator (BlockOptions.schema)
+  const ctor = getConstructor(target);
+  const options = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions | undefined;
+  if (options?.schema) return options.schema;
+
+  // Fallback: read from deprecated @Input decorator
   return getBlockInputMetadata(target)?.schema;
 }
 
@@ -178,4 +188,29 @@ export function getBlockTemplatesPropertyName(target: object | Constructor): str
   const ctor = getConstructor(target);
   const key = Reflect.getMetadata(INJECTED_TEMPLATES_METADATA_KEY, ctor) as string | symbol | undefined;
   return key != null ? String(key) : undefined;
+}
+
+/**
+ * Gets the block type from the decorator metadata
+ */
+export function getBlockTypeFromMetadata(target: object | Constructor): BlockType | undefined {
+  const ctor = getConstructor(target);
+  return Reflect.getMetadata(BLOCK_TYPE_METADATA_KEY, ctor) as BlockType | undefined;
+}
+
+/**
+ * Gets the Zod schema from a @Document({ schema }) decorator.
+ * Now delegates to getBlockArgsSchema since all block types store schema in BlockOptions.
+ */
+export function getDocumentSchema(target: object | Constructor): z.ZodType | undefined {
+  return getBlockArgsSchema(target);
+}
+
+/**
+ * Gets the list of @PassThrough() property names from the decorator metadata.
+ */
+export function getPassThroughProperties(target: object | Constructor): string[] {
+  const proto = getPrototype(target);
+  const keys = (Reflect.getMetadata(PASS_THROUGH_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
+  return keys.map((key) => String(key));
 }

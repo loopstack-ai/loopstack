@@ -6,6 +6,7 @@ import { CustomToolExampleWorkflow } from '@loopstack/custom-tool-example-module
 import { DynamicRoutingExampleWorkflow } from '@loopstack/dynamic-routing-example-workflow';
 import { GitHubAgentWorkflow, GitHubReposOverviewWorkflow } from '@loopstack/github-oauth-example';
 import { CalendarSummaryWorkflow, GoogleWorkspaceAgentWorkflow } from '@loopstack/google-oauth-example';
+import { MeetingNotesWorkflow } from '@loopstack/meeting-notes-example-workflow';
 import { PromptWorkflow } from '@loopstack/prompt-example-workflow';
 import { PromptStructuredOutputWorkflow } from '@loopstack/prompt-structured-output-example-workflow';
 import { RunSubWorkflowExampleParentWorkflow } from '@loopstack/run-sub-workflow-example';
@@ -14,11 +15,10 @@ import { SecretsAgentExampleWorkflow, SecretsExampleWorkflow } from '@loopstack/
 import { TestUiDocumentsWorkflow } from '@loopstack/test-ui-documents-example-workflow';
 import { ToolCallWorkflow } from '@loopstack/tool-call-example-workflow';
 import { WorkflowStateWorkflow } from '@loopstack/workflow-state-example-workflow';
-import { MeetingNotesWorkflow } from './meeting';
 
 @Injectable()
 @Workspace({
-  config: {
+  uiConfig: {
     title: 'Default Workspace',
   },
 })

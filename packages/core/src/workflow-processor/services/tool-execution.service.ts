@@ -1,80 +1,111 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { DiscoveryService } from '@nestjs/core';
 import {
-  BaseDocument,
   BaseTool,
-  BaseWorkflow,
   DocumentEntity,
-  LaunchWorkflowOptions,
+  TOOL_INTERCEPTOR_METADATA_KEY,
   ToolExecutionContext,
+  ToolInterceptor,
   ToolResult,
   ToolSideEffects,
   getBlockArgsSchema,
-  getBlockDocuments,
   getBlockTools,
-  getBlockWorkflows,
 } from '@loopstack/common';
-import { ExecutionScope, WorkflowExecutionContextManager } from '../utils';
-import { DocumentCreateOptions, DocumentPersistenceService } from './document-persistence.service';
-import { ToolExecutionInterceptorService } from './tool-execution-interceptor.service';
-import { WorkflowOrchestrationService } from './workflow-orchestration.service';
+import { ExecutionScope, WorkflowExecutionContextManager, wrapToolProxy } from '../utils';
 
 /**
- * Executes tools called from the TypeScript-first workflow model.
+ * Executes tools by wrapping them in proxies that add framework logic.
  *
- * All tools implement `run(args)`. Context (RunContext, metadata, parent workflow)
- * is available inside `run()` via proxy-provided properties:
- * - `this.context`  → RunContext
- * - `this.runtime`  → WorkflowMetadataInterface
- * - `this.parent`   → proxied workflow instance
+ * During wireAndProxyTool(), each tool is wrapped in a Proxy (via wrapToolProxy)
+ * that intercepts call() and routes through executeCall(). This adds validation,
+ * interceptor chain, and side-effect processing transparently.
  *
- * Injected sibling tools/documents accessed via `this.<tool>` are automatically
- * sub-proxied: `.run()` routes through ToolExecutionService and `.create()` through DocumentPersistenceService.
+ * Interceptors are discovered automatically at module init — any @Injectable() class
+ * marked with @UseToolInterceptor() is picked up via NestJS DiscoveryService.
+ * Ordering is controlled by priority (lower = runs first / outermost).
  */
 @Injectable()
-export class ToolExecutionService {
+export class ToolExecutionService implements OnModuleInit {
   private readonly logger = new Logger(ToolExecutionService.name);
+
+  /** Tracks which tool instances have already been proxied (idempotent wiring) */
+  private readonly proxiedTools = new WeakSet<object>();
+
+  /** Discovered interceptors, sorted by priority (lowest first = outermost in chain) */
+  private interceptors: ToolInterceptor[] = [];
 
   constructor(
     private readonly executionScope: ExecutionScope,
-    private readonly interceptorService: ToolExecutionInterceptorService,
-    private readonly documentPersistenceService: DocumentPersistenceService,
-    private readonly workflowOrchestrationService: WorkflowOrchestrationService,
+    private readonly discoveryService: DiscoveryService,
   ) {}
 
-  async execute(tool: BaseTool, args: Record<string, unknown>): Promise<ToolResult> {
+  onModuleInit() {
+    const providers = this.discoveryService.getProviders();
+
+    const discovered: { instance: ToolInterceptor; priority: number }[] = [];
+
+    for (const wrapper of providers) {
+      if (!wrapper.metatype || !wrapper.instance) continue;
+      const meta = Reflect.getMetadata(TOOL_INTERCEPTOR_METADATA_KEY, wrapper.metatype) as
+        | { priority: number }
+        | undefined;
+      if (meta) {
+        discovered.push({ instance: wrapper.instance as ToolInterceptor, priority: meta.priority });
+      }
+    }
+
+    // Sort by priority: lower number = outermost (runs first)
+    discovered.sort((a, b) => a.priority - b.priority);
+    this.interceptors = discovered.map((d) => d.instance);
+
+    this.logger.log(
+      `Discovered ${this.interceptors.length} tool interceptor(s): ${this.interceptors.map((i) => i.constructor.name).join(', ')}`,
+    );
+  }
+
+  /**
+   * Framework wrapper around a tool's call(). Called by the tool proxy.
+   *
+   * Flow:
+   * 1. Validate args (framework guarantee — always runs)
+   * 2. Run interceptor chain (user-configurable)
+   * 3. Process side effects (framework guarantee — always runs)
+   */
+  /* eslint-disable @typescript-eslint/no-unsafe-function-type --
+     originalCallFn is the tool's call() method retrieved dynamically from the prototype chain. */
+  async executeCall(
+    rawTool: object,
+    originalCallFn: Function,
+    args: Record<string, unknown>,
+    proxy: object,
+  ): Promise<ToolResult> {
+    const baseTool = rawTool as BaseTool;
     const ctx = this.executionScope.get();
 
-    // 1. Validate args
-    const schema = getBlockArgsSchema(tool as object);
+    // 1. Validate args (framework guarantee)
+    const schema = getBlockArgsSchema(baseTool as object);
     const validArgs = schema ? (schema.parse(args) as Record<string, unknown>) : args;
 
-    // 2. Build execution context for interceptors
+    // 2. Build execution context
     const execContext: ToolExecutionContext = {
-      tool,
+      tool: baseTool,
       args: validArgs,
       runContext: ctx.getContext(),
+      metadata: {},
     };
 
-    // 3. Before interceptors
-    await this.interceptorService.beforeExecute(execContext);
+    // 3. Build interceptor chain — each interceptor wraps the next, innermost is the tool call
+    const toolCall = () => originalCallFn.call(proxy, validArgs) as Promise<ToolResult>;
 
-    // 4. Execute the tool via proxy
-    const proxiedTool = this.createToolProxy(tool, ctx);
-    const startTime = performance.now();
-    let result: ToolResult;
-    try {
-      result = await proxiedTool.run(validArgs);
-    } catch (error) {
-      execContext.metrics = { durationMs: Math.round(performance.now() - startTime) };
-      await this.interceptorService.onError(execContext, error);
-      throw error;
-    }
-    execContext.metrics = { durationMs: Math.round(performance.now() - startTime) };
+    const chain = this.interceptors.reduceRight<() => Promise<ToolResult>>(
+      (next, interceptor) => () => interceptor.intercept(execContext, next),
+      toolCall,
+    );
 
-    // 5. After interceptors
-    await this.interceptorService.afterExecute(execContext, result);
+    const result = await chain();
+    /* eslint-enable @typescript-eslint/no-unsafe-function-type */
 
-    // 6. Process side effects (documents)
+    // 4. Process side effects (framework guarantee)
     if (result.effects) {
       this.processEffects(ctx, result.effects);
     }
@@ -83,75 +114,29 @@ export class ToolExecutionService {
   }
 
   /**
-   * Wraps a tool instance in a Proxy that provides execution context
-   * and redirects injected tool/document method calls.
-   *
-   * For injected tools, .run() is routed through ToolExecutionService.execute()
-   * rather than ._run(), because nested tools (tools injected into other tools)
-   * don't have ._run() wired — only top-level workflow tools do.
+   * Wraps a tool instance in a proxy. Returns the proxy.
+   * Also recursively proxies nested @InjectTool() dependencies.
    */
-  private createToolProxy(tool: BaseTool, ctx: WorkflowExecutionContextManager): BaseTool {
-    const toolProps = new Set(getBlockTools(tool.constructor));
-    const documentProps = new Set(getBlockDocuments(tool.constructor));
-    const workflowProps = new Set(getBlockWorkflows(tool.constructor));
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const executionService = this;
+  wireAndProxyTool(tool: object, toolName: string): object {
+    // Already proxied (singleton reused across workflow runs) — return as-is
+    if (this.proxiedTools.has(tool)) {
+      return tool;
+    }
 
-    return new Proxy(tool, {
-      get(target, prop, receiver) {
-        // Proxy-provided context properties
-        if (prop === 'context') return ctx.getContext();
-        if (prop === 'runtime') return ctx.getData();
-        if (prop === 'parent') return ctx.getInstance();
+    const proxy = wrapToolProxy(tool, toolName, this.executionScope, this.executeCall.bind(this));
+    this.proxiedTools.add(proxy);
 
-        const value = Reflect.get(target, prop, receiver) as unknown;
+    // Recursively wire nested @InjectTool() dependencies
+    const nestedToolNames = getBlockTools(tool);
+    for (const nestedName of nestedToolNames) {
+      const nestedTool = (tool as Record<string, unknown>)[nestedName] as object | undefined;
+      if (nestedTool && !this.proxiedTools.has(nestedTool)) {
+        const nestedProxy = this.wireAndProxyTool(nestedTool, nestedName);
+        (tool as Record<string, unknown>)[nestedName] = nestedProxy;
+      }
+    }
 
-        // Sub-proxy for injected tools: route .run() through ToolExecutionService
-        if (toolProps.has(prop as string) && value != null && typeof value === 'object') {
-          const nestedTool = value as BaseTool;
-          return new Proxy(nestedTool, {
-            get(t, p, r) {
-              if (p === 'run') {
-                return (args: Record<string, unknown>) => executionService.execute(nestedTool, args);
-              }
-              return Reflect.get(t, p, r);
-            },
-          });
-        }
-
-        // Sub-proxy for injected documents: route .create() through DocumentPersistenceService
-        if (documentProps.has(prop as string) && value != null && typeof value === 'object') {
-          const docInstance = value as BaseDocument;
-          const blockName = prop as string;
-          return new Proxy(docInstance, {
-            get(t, p, r) {
-              if (p === 'create') {
-                return (options: DocumentCreateOptions) =>
-                  Promise.resolve(executionService.documentPersistenceService.create(blockName, docInstance, options));
-              }
-              return Reflect.get(t, p, r);
-            },
-          });
-        }
-
-        // Sub-proxy for injected sub-workflows: route .run() through WorkflowOrchestrationService
-        if (workflowProps.has(prop as string) && value != null && typeof value === 'object') {
-          const subWorkflow = value as BaseWorkflow;
-          const blockName = prop as string;
-          return new Proxy(subWorkflow, {
-            get(t, p, r) {
-              if (p === 'run') {
-                return (options?: LaunchWorkflowOptions) =>
-                  executionService.workflowOrchestrationService.launch(blockName, subWorkflow, options ?? {});
-              }
-              return Reflect.get(t, p, r);
-            },
-          });
-        }
-
-        return value;
-      },
-    });
+    return proxy;
   }
 
   private processEffects(ctx: WorkflowExecutionContextManager, effects: ToolSideEffects[]): void {

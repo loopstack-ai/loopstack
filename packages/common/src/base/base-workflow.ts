@@ -1,42 +1,48 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { DocumentRepository, FrameworkContext, WorkflowOrchestrator } from '../interfaces';
+import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, WORKFLOW_ORCHESTRATOR } from '../tokens';
 
-export interface LaunchWorkflowOptions {
-  args?: Record<string, unknown>;
+export interface RunOptions {
+  blockName: string;
   callback?: { transition: string };
 }
 
-export interface LaunchWorkflowResult {
+export interface QueueResult {
   workflowId: string;
   correlationId: string;
   eventName: string;
-  mode: 'async';
 }
 
 /**
- * Abstract base class for sub-workflows in the TypeScript-first workflow model.
+ * Abstract base class for workflows in the TypeScript-first workflow model.
  *
- * The workflow proxy intercepts `.run()` calls on injected sub-workflows and
- * redirects them to `_run()`, which delegates to WorkflowOrchestrationService.
+ * Framework services are available on `this`:
+ * - `this.repository` — document repository for creating/querying documents
+ * - `this.ctx` — execution context (context, runtime, args, parent)
+ * - `this.orchestrator` — workflow orchestrator for queuing sub-workflows
+ *
+ * Sub-workflows are launched via `this.subWorkflow.run(args, options)`.
+ * Use the generic type parameter to define typed args for the workflow:
+ *
+ * ```ts
+ * export class MyWorkflow extends BaseWorkflow<{ name: string }> {
+ *   // run() is inherited with typed args
+ * }
+ * ```
  */
 @Injectable()
-export abstract class BaseWorkflow {
-  /** Public API for workflow authors */
-  run(options?: LaunchWorkflowOptions): Promise<LaunchWorkflowResult> {
-    return this._run(options ?? {});
-  }
+export abstract class BaseWorkflow<TArgs = Record<string, unknown>> {
+  /** Framework-provided document repository for creating/querying documents */
+  @Inject(DOCUMENT_REPOSITORY) readonly repository!: DocumentRepository;
 
-  /**
-   * Internal entry point called by the workflow proxy redirect.
-   * Delegates to WorkflowOrchestrationService.
-   *
-   * Wired at runtime by the framework.
-   */
-  _run(_options: LaunchWorkflowOptions): Promise<LaunchWorkflowResult> {
-    return Promise.reject(
-      new Error(
-        'BaseWorkflow._run() was called but has not been wired. ' +
-          'Ensure the sub-workflow is used within a workflow transition with an active ExecutionScope.',
-      ),
-    );
+  /** Execution context — wired by the framework at runtime */
+  @Inject(FRAMEWORK_CONTEXT) readonly ctx!: FrameworkContext;
+
+  /** Workflow orchestrator — wired by the framework at runtime */
+  @Inject(WORKFLOW_ORCHESTRATOR) readonly orchestrator!: WorkflowOrchestrator;
+
+  /** Launches this workflow as a sub-workflow via the orchestrator. */
+  run(args: TArgs, options?: RunOptions): Promise<QueueResult> {
+    return this.orchestrator.queue(args as Record<string, unknown>, options);
   }
 }

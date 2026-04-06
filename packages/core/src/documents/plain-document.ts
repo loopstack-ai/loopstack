@@ -1,22 +1,16 @@
 import { z } from 'zod';
-import { BaseDocument, Document, DocumentInterface, Input } from '@loopstack/common';
+import { Document } from '@loopstack/common';
 
-const PlainDocumentSchema = z
+export const PlainDocumentSchema = z
   .object({
     text: z.string(),
   })
   .strict();
 
 @Document({
-  config: {
-    type: 'document',
-    description: 'Plain Document.',
-  },
+  schema: PlainDocumentSchema,
   uiConfig: __dirname + '/plain-document.yaml',
 })
-export class PlainDocument extends BaseDocument implements DocumentInterface {
-  @Input({
-    schema: PlainDocumentSchema,
-  })
-  content: z.infer<typeof PlainDocumentSchema>;
+export class PlainDocument {
+  text: string;
 }

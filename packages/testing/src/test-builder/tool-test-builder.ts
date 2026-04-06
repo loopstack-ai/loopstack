@@ -67,7 +67,7 @@ export function createExecutionContext(overrides?: Partial<WorkflowExecution>): 
  * const result = await tool.run({ a: 1, b: 2 });
  * ```
  */
-export class ToolTestBuilder<TTool extends BaseTool<object> = BaseTool<object>> {
+export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
   private toolClass?: Type<TTool>;
   private providers: Provider[] = [];
   private overrides = new Map<unknown, unknown>();
@@ -75,7 +75,7 @@ export class ToolTestBuilder<TTool extends BaseTool<object> = BaseTool<object>> 
   /**
    * Set the tool class to test
    */
-  forTool<T extends BaseTool<object>>(toolClass: Type<T>): ToolTestBuilder<T> {
+  forTool<T extends BaseTool>(toolClass: Type<T>): ToolTestBuilder<T> {
     this.verifyToolDecorators(toolClass);
     (this.toolClass as Type<unknown> | undefined) = toolClass;
     this.providers.push(toolClass);

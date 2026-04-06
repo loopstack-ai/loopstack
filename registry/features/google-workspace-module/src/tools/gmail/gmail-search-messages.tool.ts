@@ -1,20 +1,25 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Input, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GmailSearchMessagesArgs = {
-  query?: string;
-  labelIds?: string[];
-  maxResults?: number;
-  pageToken?: string;
-};
+const inputSchema = z
+  .object({
+    query: z.string().optional(),
+    labelIds: z.array(z.string()).optional(),
+    maxResults: z.number().default(10),
+    pageToken: z.string().optional(),
+  })
+  .strict();
+
+export type GmailSearchMessagesArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Searches Gmail messages using Gmail query syntax. Returns message summaries with headers and snippets. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
 export class GmailSearchMessagesTool extends BaseTool {
   private readonly logger = new Logger(GmailSearchMessagesTool.name);
@@ -22,20 +27,8 @@ export class GmailSearchMessagesTool extends BaseTool {
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        query: z.string().optional(),
-        labelIds: z.array(z.string()).optional(),
-        maxResults: z.number().default(10),
-        pageToken: z.string().optional(),
-      })
-      .strict(),
-  })
-  args: GmailSearchMessagesArgs;
-
-  async run(args: GmailSearchMessagesArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.context.userId, 'google');
+  async call(args: GmailSearchMessagesArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -63,7 +56,7 @@ export class GmailSearchMessagesTool extends BaseTool {
 
     if (listResponse.status === 401 || listResponse.status === 403) {
       const body = await listResponse.text();
-      this.logger.warn(`Gmail API returned ${listResponse.status} for user ${this.context.userId}: ${body}`);
+      this.logger.warn(`Gmail API returned ${listResponse.status} for user ${this.ctx.context.userId}: ${body}`);
       return {
         data: {
           error: 'unauthorized',

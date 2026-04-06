@@ -10,7 +10,14 @@ import {
   generateText,
 } from 'ai';
 import { z } from 'zod';
-import { BaseDocument, BaseTool, Input, Tool, ToolResult, getBlockArgsSchema } from '@loopstack/common';
+import {
+  BaseTool,
+  DocumentClass,
+  Tool,
+  ToolResult,
+  getBlockTypeFromMetadata,
+  getDocumentSchema,
+} from '@loopstack/common';
 import { AiGenerateToolBaseSchema } from '../schemas/ai-generate-tool-base.schema';
 import { AiMessagesHelperService } from '../services';
 import { AiProviderModelHelperService } from '../services';
@@ -18,16 +25,19 @@ import { AiProviderModelHelperService } from '../services';
 export const AiGenerateObjectSchema = AiGenerateToolBaseSchema.extend({
   response: z.object({
     id: z.string().optional(),
-    document: z.custom<BaseDocument>((val) => val instanceof BaseDocument),
+    document: z.custom<DocumentClass>(
+      (val) => typeof val === 'function' && getBlockTypeFromMetadata(val as object) === 'document',
+    ),
   }),
 }).strict();
 
 export type AiGenerateObjectArgsType = z.infer<typeof AiGenerateObjectSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Generates a structured object using a LLM',
   },
+  schema: AiGenerateObjectSchema,
 })
 export class AiGenerateObject extends BaseTool {
   @Inject()
@@ -36,12 +46,7 @@ export class AiGenerateObject extends BaseTool {
   @Inject()
   private readonly aiProviderModelHelperService: AiProviderModelHelperService;
 
-  @Input({
-    schema: AiGenerateObjectSchema,
-  })
-  args: AiGenerateObjectArgsType;
-
-  async run(args: AiGenerateObjectArgsType): Promise<ToolResult> {
+  async call(args: AiGenerateObjectArgsType): Promise<ToolResult> {
     const model = this.aiProviderModelHelperService.getProviderModel(args.llm);
 
     const options: {
@@ -57,7 +62,7 @@ export class AiGenerateObject extends BaseTool {
         content: args.prompt,
       } as ModelMessage);
     } else {
-      const messages = this.aiMessagesHelperService.getMessages(this.runtime.documents, {
+      const messages = this.aiMessagesHelperService.getMessages(this.ctx.runtime.documents, {
         messages: args.messages as unknown as UIMessage[],
         messagesSearchTag: args.messagesSearchTag,
       });
@@ -65,7 +70,7 @@ export class AiGenerateObject extends BaseTool {
       options.messages = await convertToModelMessages(messages);
     }
 
-    const responseSchema = getBlockArgsSchema(args.response.document);
+    const responseSchema = getDocumentSchema(args.response.document);
     if (!responseSchema) {
       throw new Error(`AI object generation source document must have a schema.`);
     }
