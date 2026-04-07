@@ -1,8 +1,11 @@
+import { Global, Module } from '@nestjs/common';
 import { TestingModuleBuilder } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import {
   DocumentEntity,
   SecretEntity,
+  WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
   WorkspaceEnvironmentEntity,
@@ -20,6 +23,34 @@ const createMockRepository = () => ({
   remove: jest.fn().mockResolvedValue({}),
 });
 
+const createMockDataSource = () => ({
+  createQueryRunner: jest.fn().mockReturnValue({
+    connect: jest.fn(),
+    startTransaction: jest.fn(),
+    commitTransaction: jest.fn(),
+    rollbackTransaction: jest.fn(),
+    release: jest.fn(),
+    manager: {
+      save: jest.fn().mockImplementation((entity) => Promise.resolve(entity)),
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
+    },
+  }),
+  getRepository: jest.fn().mockReturnValue(createMockRepository()),
+});
+
+@Global()
+@Module({
+  providers: [
+    {
+      provide: DataSource,
+      useFactory: () => createMockDataSource(),
+    },
+  ],
+  exports: [DataSource],
+})
+export class MockDataSourceModule {}
+
 export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingModuleBuilder {
   return builder
     .overrideProvider(getRepositoryToken(WorkflowEntity))
@@ -31,5 +62,7 @@ export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingM
     .overrideProvider(getRepositoryToken(WorkspaceEnvironmentEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(SecretEntity))
+    .useValue(createMockRepository())
+    .overrideProvider(getRepositoryToken(WorkflowCheckpointEntity))
     .useValue(createMockRepository());
 }

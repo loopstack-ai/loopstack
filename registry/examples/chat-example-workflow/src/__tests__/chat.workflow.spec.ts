@@ -1,8 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { ClaudeGenerateText, ClaudeModule } from '@loopstack/claude-module';
-import { RunContext, generateObjectFingerprint, getBlockTools } from '@loopstack/common';
-import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
-import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
+import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { ChatWorkflow } from '../chat.workflow';
 
 describe('ChatWorkflow', () => {
@@ -10,21 +10,18 @@ describe('ChatWorkflow', () => {
   let workflow: ChatWorkflow;
   let processor: WorkflowProcessorService;
 
-  let mockCreateDocument: ToolMock;
   let mockClaudeGenerateText: ToolMock;
 
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ChatWorkflow)
       .withImports(LoopCoreModule, ClaudeModule)
-      .withToolOverride(CreateDocument)
       .withToolOverride(ClaudeGenerateText)
       .compile();
 
     workflow = module.get(ChatWorkflow);
     processor = module.get(WorkflowProcessorService);
 
-    mockCreateDocument = module.get(CreateDocument);
     mockClaudeGenerateText = module.get(ClaudeGenerateText);
   });
 
@@ -35,16 +32,13 @@ describe('ChatWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('createDocument');
       expect(getBlockTools(workflow)).toContain('claudeGenerateText');
     });
   });
 
   describe('initial workflow execution', () => {
-    const context = {} as RunContext;
-
     it('should execute setup and stop at waiting_for_user', async () => {
-      mockCreateDocument.run.mockResolvedValue({});
+      const context = createStatelessContext();
 
       const result = await processor.process(workflow, {}, context);
 
@@ -54,96 +48,75 @@ describe('ChatWorkflow', () => {
       expect(result.place).toBe('waiting_for_user');
 
       // Setup creates one hidden system document
-      expect(mockCreateDocument.run).toHaveBeenCalledTimes(1);
-      expect(mockCreateDocument.run).toHaveBeenCalledWith(
+      expect(result.documents).toHaveLength(1);
+      expect(result.documents[0]).toEqual(
         expect.objectContaining({
-          update: expect.objectContaining({
-            meta: { hidden: true },
-            content: expect.objectContaining({ role: 'user' }),
-          }),
+          className: 'ClaudeMessageDocument',
+          content: expect.objectContaining({ role: 'user' }),
+          meta: expect.objectContaining({ hidden: true }),
         }),
       );
 
       // LLM should not be called yet (waiting for user message)
-      expect(mockClaudeGenerateText.run).not.toHaveBeenCalled();
+      expect(mockClaudeGenerateText.call).not.toHaveBeenCalled();
     });
   });
 
-  describe('workflow with user input', () => {
-    it('should execute workflow with user input until next manual step', async () => {
-      const mockLlmResponse = {
-        id: 'msg_1',
-        stop_reason: 'end_turn',
-        content: [{ type: 'text', text: 'Hello! I am Bob.' }],
-      };
+  describe('resume from waiting_for_user', () => {
+    it('should process user message and generate LLM response', async () => {
+      const workflowId = '00000000-0000-0000-0000-000000000001';
 
-      const previousRun = {
-        workflowId: '123',
-        args: {},
-      };
+      mockClaudeGenerateText.call.mockResolvedValue({
+        data: {
+          id: 'msg_1',
+          role: 'assistant',
+          content: 'I am doing well, thank you!',
+        },
+      });
 
-      const moduleWithState = await createWorkflowTest()
-        .forWorkflow(ChatWorkflow)
-        .withImports(LoopCoreModule, ClaudeModule)
-        .withToolOverride(CreateDocument)
-        .withToolOverride(ClaudeGenerateText)
-        .withExistingWorkflow({
-          id: previousRun.workflowId,
+      const context = {
+        workflowEntity: {
+          id: workflowId,
           place: 'waiting_for_user',
-          hashRecord: {
-            options: generateObjectFingerprint(previousRun.args),
-          },
-        })
-        .compile();
-
-      const workflowWithState = moduleWithState.get(ChatWorkflow);
-      const processorWithState = moduleWithState.get(WorkflowProcessorService);
-
-      const mockCreateDocumentWithState: ToolMock = moduleWithState.get(CreateDocument);
-      const mockClaudeGenerateTextWithState: ToolMock = moduleWithState.get(ClaudeGenerateText);
-
-      mockCreateDocumentWithState.run.mockResolvedValue({});
-      mockClaudeGenerateTextWithState.run.mockResolvedValue({ data: mockLlmResponse });
-
-      const contextWithPayload = {
+          documents: [],
+        } as Partial<WorkflowEntity>,
         payload: {
           transition: {
-            workflowId: '123',
-            id: 'user_message',
-            payload: 'Hello Bob!',
+            id: 'userMessage',
+            workflowId,
+            payload: 'Hello, how are you?',
           },
         },
       } as RunContext;
 
-      const result = await processorWithState.process(workflowWithState, {}, contextWithPayload);
+      const result = await processor.process(workflow, {}, context);
 
-      expect(result.place).toBe('waiting_for_user');
       expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
+      expect(result.place).toBe('waiting_for_user');
 
-      // user_message creates user doc, respond creates LLM response doc
-      expect(mockCreateDocumentWithState.run).toHaveBeenCalledTimes(2);
-
-      // First call: user message
-      expect(mockCreateDocumentWithState.run).toHaveBeenNthCalledWith(
-        1,
-        expect.objectContaining({
-          update: expect.objectContaining({
-            content: expect.objectContaining({ role: 'user' }),
-          }),
-        }),
-      );
-
-      // Verify ClaudeGenerateText was called once with correct config
-      expect(mockClaudeGenerateTextWithState.run).toHaveBeenCalledTimes(1);
-      expect(mockClaudeGenerateTextWithState.run).toHaveBeenCalledWith(
+      // LLM should have been called with correct arguments
+      expect(mockClaudeGenerateText.call).toHaveBeenCalledTimes(1);
+      expect(mockClaudeGenerateText.call).toHaveBeenCalledWith(
         expect.objectContaining({
           claude: { model: 'claude-sonnet-4-6' },
           messagesSearchTag: 'message',
         }),
       );
 
-      await moduleWithState.close();
+      // User message and LLM response should be saved as documents
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'ClaudeMessageDocument',
+            content: expect.objectContaining({ role: 'user', content: 'Hello, how are you?' }),
+          }),
+          expect.objectContaining({
+            className: 'ClaudeMessageDocument',
+            content: expect.objectContaining({ role: 'assistant' }),
+          }),
+        ]),
+      );
     });
   });
 });

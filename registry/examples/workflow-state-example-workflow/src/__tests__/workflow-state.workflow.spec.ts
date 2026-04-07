@@ -1,9 +1,9 @@
 import { TestingModule } from '@nestjs/testing';
-import { RunContext, getBlockHelper } from '@loopstack/common';
+import { RunContext } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { CreateValue, CreateValueToolModule } from '@loopstack/create-value-tool';
-import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { WorkflowStateWorkflow } from '../workflow-state.workflow';
 
 describe('WorkflowStateWorkflow', () => {
@@ -37,32 +37,26 @@ describe('WorkflowStateWorkflow', () => {
     expect(workflow).toBeDefined();
   });
 
-  it('should have messageInUpperCase helper', () => {
-    const helper = getBlockHelper(workflow, 'messageInUpperCase');
-    expect(helper).toBeDefined();
-    expect(helper!.call(workflow, 'hello')).toBe('HELLO');
-  });
+  it('should execute workflow and pass state between transitions', async () => {
+    const context = createStatelessContext();
 
-  it('should execute workflow and pass state between tool calls', async () => {
-    const context = new RunContext({} as RunContext);
-
-    mockCreateValue.run.mockResolvedValue({ data: 'Hello :)' });
+    mockCreateValue.call.mockResolvedValue({ data: 'Hello :)' });
+    mockCreateChatMessage.call.mockResolvedValue({ data: undefined });
 
     const result = await processor.process(workflow, {}, context);
 
     expect(result.hasError).toBe(false);
 
     // Verify createValue was called
-    expect(mockCreateValue.run).toHaveBeenCalledWith({ input: 'Hello :)' });
+    expect(mockCreateValue.call).toHaveBeenCalledWith({ input: 'Hello :)' });
 
-    // Verify createChatMessage was called twice with interpolated state
-    expect(mockCreateChatMessage.run).toHaveBeenCalledTimes(3);
-    expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+    // Verify createChatMessage was called with state from previous transition
+    expect(mockCreateChatMessage.call).toHaveBeenCalledTimes(2);
+    expect(mockCreateChatMessage.call).toHaveBeenCalledWith({
       role: 'assistant',
-      content: 'Data from runtime: Hello :)',
+      content: 'Data from state: Hello :)',
     });
-    expect(mockCreateChatMessage.run).toHaveBeenCalledWith({ role: 'assistant', content: 'Data from state: Hello :)' });
-    expect(mockCreateChatMessage.run).toHaveBeenCalledWith({
+    expect(mockCreateChatMessage.call).toHaveBeenCalledWith({
       role: 'assistant',
       content: 'Use workflow helper method: HELLO :)',
     });

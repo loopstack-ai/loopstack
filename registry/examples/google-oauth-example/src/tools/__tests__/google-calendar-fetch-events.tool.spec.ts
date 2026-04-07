@@ -110,7 +110,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
     it('should return unauthorized error when no valid token is available', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue(undefined);
 
-      const result = await tool.run(args);
+      const result = await tool.call(args);
 
       expect(mockTokenStore.getValidAccessToken).toHaveBeenCalled();
       expect(result.data).toEqual({
@@ -145,7 +145,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         json: () => Promise.resolve(mockEvents),
       } as Response);
 
-      const result = await tool.run(args);
+      const result = await tool.call(args);
 
       expect(result.data).toEqual({
         events: [
@@ -171,7 +171,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         statusText: 'Unauthorized',
       } as Response);
 
-      const result = await tool.run(args);
+      const result = await tool.call(args);
 
       expect(result.data).toEqual({
         error: '401',
@@ -188,7 +188,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         statusText: 'Forbidden',
       } as Response);
 
-      const result = await tool.run(args);
+      const result = await tool.call(args);
 
       expect(result.data).toEqual({
         error: '401',
@@ -206,7 +206,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         text: () => Promise.resolve('Server error body'),
       } as Response);
 
-      const result = await tool.run(args);
+      const result = await tool.call(args);
 
       expect(result.data).toEqual({
         error: 'api_error',
@@ -223,7 +223,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         json: () => Promise.resolve({ items: [] }),
       } as Response);
 
-      await tool.run({ ...args, calendarId: 'user@example.com' });
+      await tool.call({ ...args, calendarId: 'user@example.com' });
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('calendars/user%40example.com/events'),
@@ -240,7 +240,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         json: () => Promise.resolve({ items: [] }),
       } as Response);
 
-      await tool.run(args);
+      await tool.call(args);
 
       const fetchUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
       const url = new URL(fetchUrl);

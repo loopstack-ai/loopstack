@@ -1,8 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { ClaudeGenerateDocument, ClaudeModule } from '@loopstack/claude-module';
-import { RunContext, generateObjectFingerprint, getBlockTools } from '@loopstack/common';
-import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
-import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
+import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { MeetingNotesDocument } from '../documents/meeting-notes-document';
 import { OptimizedNotesDocument } from '../documents/optimized-notes-document';
 import { MeetingNotesWorkflow } from '../meeting-notes.workflow';
@@ -12,15 +12,7 @@ describe('MeetingNotesWorkflow', () => {
   let workflow: MeetingNotesWorkflow;
   let processor: WorkflowProcessorService;
 
-  let mockCreateDocument: ToolMock;
-
-  const mockInitialNotes = {
-    text: `
-- meeting 1.1.2025
-- budget: need 2 cut costs sarah said
-- hire new person?? --> marketing
-- vendor pricing - follow up needed by anna`,
-  };
+  let mockClaudeGenerateDocument: ToolMock;
 
   beforeEach(async () => {
     module = await createWorkflowTest()
@@ -28,14 +20,13 @@ describe('MeetingNotesWorkflow', () => {
       .withImports(LoopCoreModule, ClaudeModule)
       .withProvider(MeetingNotesDocument)
       .withProvider(OptimizedNotesDocument)
-      .withToolOverride(CreateDocument)
       .withToolOverride(ClaudeGenerateDocument)
       .compile();
 
     workflow = module.get(MeetingNotesWorkflow);
     processor = module.get(WorkflowProcessorService);
 
-    mockCreateDocument = module.get(CreateDocument);
+    mockClaudeGenerateDocument = module.get(ClaudeGenerateDocument);
   });
 
   afterEach(async () => {
@@ -45,142 +36,102 @@ describe('MeetingNotesWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('createDocument');
       expect(getBlockTools(workflow)).toContain('claudeGenerateDocument');
     });
   });
 
   describe('initial step', () => {
-    const context = {} as RunContext;
-
     it('should execute initial step and stop at waiting_for_response', async () => {
-      mockCreateDocument.run.mockResolvedValue({
-        data: { content: mockInitialNotes },
-      });
+      const context = createStatelessContext();
 
       const result = await processor.process(workflow, {}, context);
 
-      // Should execute without errors and stop at waiting_for_response (manual step)
+      expect(result.hasError).toBe(false);
+      expect(result.stop).toBe(true);
+      expect(result.place).toBe('waiting_for_response');
+
+      expect(result.documents).toHaveLength(1);
+      expect(result.documents[0]).toEqual(
+        expect.objectContaining({
+          className: 'MeetingNotesDocument',
+          content: expect.objectContaining({
+            text: expect.stringContaining('1.1.2025'),
+          }),
+        }),
+      );
+    });
+
+    it('should use custom input text when provided', async () => {
+      const context = createStatelessContext();
+
+      const result = await processor.process(workflow, { inputText: 'Custom meeting notes here' }, context);
+
       expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
 
-      // Should call CreateDocument once for the initial form
-      expect(mockCreateDocument.run).toHaveBeenCalledTimes(1);
-      expect(mockCreateDocument.run).toHaveBeenCalledWith(
+      expect(result.documents[0]).toEqual(
         expect.objectContaining({
-          id: 'input',
-          update: {
-            content: {
-              text: expect.stringContaining('1.1.2025'),
-            },
-          },
+          content: expect.objectContaining({
+            text: expect.stringContaining('Custom meeting notes here'),
+          }),
         }),
       );
-
-      // // Verify history contains expected places
-      // const history = result.state.getHistory();
-      // const places = history.map((h) => h.metadata?.place);
-      // expect(places).toContain('waiting_for_response');
     });
   });
 
-  describe('user response step', () => {
-    it('should process user response and generate optimized notes', async () => {
-      const mockUserEditedNotes = {
-        text: `Meeting Notes - January 1, 2025
-- Budget discussion: need to cut costs (Sarah's input)
-- Hiring: new person needed for marketing
-- Vendor pricing: follow up needed by Anna`,
-      };
+  describe('resume from waiting_for_response', () => {
+    it('should process user response and call LLM to optimize notes', async () => {
+      const workflowId = '00000000-0000-0000-0000-000000000001';
 
-      const mockOptimizedNotes = {
-        date: '2025-01-01',
-        summary: 'Budget and hiring discussion',
-        participants: ['Sarah', 'Anna'],
-        decisions: ['Cut costs', 'Hire for marketing'],
-        actionItems: ['Follow up on vendor pricing'],
-      };
+      mockClaudeGenerateDocument.call.mockResolvedValue({ data: undefined });
 
-      const args = { inputText: mockInitialNotes.text };
-
-      // Create module with existing workflow state
-      const moduleWithState = await createWorkflowTest()
-        .forWorkflow(MeetingNotesWorkflow)
-        .withImports(LoopCoreModule, ClaudeModule)
-        .withProvider(MeetingNotesDocument)
-        .withProvider(OptimizedNotesDocument)
-        .withToolOverride(CreateDocument)
-        .withToolOverride(ClaudeGenerateDocument)
-        .withExistingWorkflow({
-          id: '123',
+      const context = {
+        workflowEntity: {
+          id: workflowId,
           place: 'waiting_for_response',
-          hashRecord: {
-            options: generateObjectFingerprint(args), // previously run with same arguments
-          },
-        })
-        .compile();
-
-      const workflowWithState = moduleWithState.get(MeetingNotesWorkflow);
-      const processorWithState = moduleWithState.get(WorkflowProcessorService);
-
-      const mockCreateDocumentWithState: ToolMock = moduleWithState.get(CreateDocument);
-      const mockClaudeGenerateDocumentWithState: ToolMock = moduleWithState.get(ClaudeGenerateDocument);
-
-      mockCreateDocumentWithState.run.mockResolvedValue({
-        data: { content: mockUserEditedNotes },
-      });
-      mockClaudeGenerateDocumentWithState.run.mockResolvedValue({
-        data: { content: mockOptimizedNotes },
-      });
-
-      // Context with user payload for manual transition
-      const contextWithPayload = {
+          documents: [],
+        } as Partial<WorkflowEntity>,
         payload: {
           transition: {
-            id: 'user_response',
-            workflowId: '123',
-            payload: mockUserEditedNotes,
+            id: 'userResponse',
+            workflowId,
+            payload: { text: 'Cleaned up meeting notes from user' },
           },
         },
-      } as RunContext;
+      } as unknown as RunContext;
 
-      const result = await processorWithState.process(workflowWithState, args, contextWithPayload);
+      const result = await processor.process(workflow, {}, context);
 
-      // Should execute and stop at notes_optimized (next manual step)
       expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
+      expect(result.place).toBe('notes_optimized');
 
-      // Should call CreateDocument once for user response
-      expect(mockCreateDocumentWithState.run).toHaveBeenCalledTimes(1);
-      expect(mockCreateDocumentWithState.run).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'input',
-        }),
+      // User response should have been saved as document
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'MeetingNotesDocument',
+          }),
+        ]),
       );
 
-      // Should call ClaudeGenerateDocument once
-      expect(mockClaudeGenerateDocumentWithState.run).toHaveBeenCalledTimes(1);
-      expect(mockClaudeGenerateDocumentWithState.run).toHaveBeenCalledWith(
+      // LLM should have been called to optimize notes
+      expect(mockClaudeGenerateDocument.call).toHaveBeenCalledTimes(1);
+      expect(mockClaudeGenerateDocument.call).toHaveBeenCalledWith(
         expect.objectContaining({
-          claude: {
-            model: 'claude-sonnet-4-6',
-          },
+          claude: { model: 'claude-sonnet-4-6' },
+          response: expect.objectContaining({ id: 'final' }),
+          prompt: expect.stringContaining('meeting notes'),
         }),
       );
-
-      // // Verify history contains expected places
-      // const history = result.state.getHistory();
-      // const places = history.map((h) => h.metadata?.place);
-      // expect(places).toContain('response_received');
-      // expect(places).toContain('notes_optimized');
-
-      await moduleWithState.close();
     });
   });
 
-  describe('confirm step', () => {
+  describe('resume from notes_optimized', () => {
     it('should complete workflow when user confirms optimized notes', async () => {
-      const mockFinalNotes = {
+      const workflowId = '00000000-0000-0000-0000-000000000002';
+
+      const optimizedPayload = {
         date: '2025-01-01',
         summary: 'Budget discussion with updates',
         participants: ['Sarah', 'Anna', 'Bob'],
@@ -188,60 +139,38 @@ describe('MeetingNotesWorkflow', () => {
         actionItems: ['Follow up on vendor pricing by Friday'],
       };
 
-      const args = { inputText: 'any text' };
-
-      // Create module with existing workflow state after AI optimization
-      const moduleWithState = await createWorkflowTest()
-        .forWorkflow(MeetingNotesWorkflow)
-        .withImports(LoopCoreModule, ClaudeModule)
-        .withProvider(MeetingNotesDocument)
-        .withProvider(OptimizedNotesDocument)
-        .withToolOverride(CreateDocument)
-        .withToolOverride(ClaudeGenerateDocument)
-        .withExistingWorkflow({
-          id: '123',
+      const context = {
+        workflowEntity: {
+          id: workflowId,
           place: 'notes_optimized',
-          hashRecord: {
-            options: generateObjectFingerprint(args), // previously run with same arguments
-          },
-        })
-        .compile();
-
-      const workflowWithState = moduleWithState.get(MeetingNotesWorkflow);
-      const processorWithState = moduleWithState.get(WorkflowProcessorService);
-
-      const mockCreateDocumentWithState: ToolMock = moduleWithState.get(CreateDocument);
-
-      mockCreateDocumentWithState.run.mockResolvedValue({
-        data: { content: mockFinalNotes },
-      });
-
-      // Context with user confirmation for manual transition
-      const contextWithPayload = {
+          documents: [],
+        } as Partial<WorkflowEntity>,
         payload: {
           transition: {
             id: 'confirm',
-            workflowId: '123',
-            payload: mockFinalNotes,
+            workflowId,
+            payload: optimizedPayload,
           },
         },
-      } as RunContext;
+      } as unknown as RunContext;
 
-      const result = await processorWithState.process(workflowWithState, args, contextWithPayload);
+      const result = await processor.process(workflow, {}, context);
 
-      // Should complete and reach end state
       expect(result.hasError).toBe(false);
       expect(result.stop).toBe(false);
+      expect(result.place).toBe('end');
 
-      // Should call CreateDocument once for final confirmation
-      expect(mockCreateDocumentWithState.run).toHaveBeenCalledTimes(1);
+      // Confirmed payload should have been saved as OptimizedNotesDocument
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'OptimizedNotesDocument',
+          }),
+        ]),
+      );
 
-      // // Verify history contains expected places including end
-      // const history = result.state.getHistory();
-      // const places = history.map((h) => h.metadata?.place);
-      // expect(places).toContain('end');
-
-      await moduleWithState.close();
+      // No additional LLM calls during confirmation
+      expect(mockClaudeGenerateDocument.call).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,21 +1,28 @@
 import { Provider, Type } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { merge } from 'lodash';
-import { BLOCK_CONFIG_METADATA_KEY, BaseTool, WorkflowExecution } from '@loopstack/common';
+import {
+  BLOCK_CONFIG_METADATA_KEY,
+  BaseTool,
+  DOCUMENT_REPOSITORY,
+  FRAMEWORK_CONTEXT,
+  TEMPLATE_RENDERER,
+  WorkflowExecution,
+} from '@loopstack/common';
 
 /**
  * Mock for Tool classes - provides standard jest mock functions
  */
 export interface ToolMock {
-  run: jest.Mock;
+  call: jest.Mock;
 }
 
 /**
- * Creates a standard tool mock with a run function
+ * Creates a standard tool mock with a call function
  */
 export function createToolMock(): ToolMock {
   return {
-    run: jest.fn().mockResolvedValue({ data: undefined }),
+    call: jest.fn().mockResolvedValue({ data: undefined }),
   };
 }
 
@@ -138,7 +145,31 @@ export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
     }
 
     let builder = Test.createTestingModule({
-      providers: this.providers,
+      providers: [
+        {
+          provide: DOCUMENT_REPOSITORY,
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn().mockResolvedValue({}),
+            findAll: jest.fn().mockReturnValue([]),
+            findByTag: jest.fn().mockReturnValue([]),
+          },
+        },
+        {
+          provide: FRAMEWORK_CONTEXT,
+          useValue: {
+            context: {},
+            runtime: {},
+            args: {},
+            parent: null,
+          },
+        },
+        {
+          provide: TEMPLATE_RENDERER,
+          useValue: jest.fn((template: string) => template),
+        },
+        ...this.providers,
+      ],
     });
 
     // Apply overrides
