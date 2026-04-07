@@ -36,8 +36,6 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
 
   events?: Array<{ id: string; summary: string; start?: string; end?: string }>;
   requiresAuthentication?: boolean;
-  private authWorkflowId?: string;
-
   // --- Fetch events from Google Calendar ---
 
   @Initial({ to: 'calendar_fetched' })
@@ -59,17 +57,16 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
       { alias: 'oAuth', callback: { transition: 'authCompleted' } },
     );
-    this.authWorkflowId = result.workflowId;
 
     await this.repository.save(
       LinkDocument,
       {
         label: 'Google authentication required',
-        href: `/workflows/${this.authWorkflowId}`,
+        workflowId: result.workflowId,
         embed: true,
         expanded: true,
       },
-      { id: 'authStatus' },
+      { id: `link_${result.workflowId}` },
     );
   }
 
@@ -90,11 +87,11 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
       {
         status: 'success',
         label: 'Google authentication completed',
-        href: `/workflows/${payload.workflowId}`,
+        workflowId: payload.workflowId,
         embed: true,
         expanded: false,
       },
-      { id: 'authStatus' },
+      { id: `link_${payload.workflowId}` },
     );
   }
 

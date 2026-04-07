@@ -50,14 +50,13 @@ export class RequestSecretsTask extends BaseTool {
     await this.repository.save(
       LinkDocument,
       {
-        id: 'secrets_link',
         status: 'pending',
         label: 'Requesting Secrets',
-        href: `/workflows/${result.workflowId}`,
+        workflowId: result.workflowId,
         embed: true,
         expanded: true,
       },
-      { validate: 'skip' },
+      { id: `link_${result.workflowId}` },
     );
 
     return {
@@ -71,12 +70,11 @@ export class RequestSecretsTask extends BaseTool {
     await this.repository.save(
       LinkDocument,
       {
-        id: 'secrets_link',
         status: 'success',
         label: 'Secrets have been stored',
-        href: `/workflows/${data.workflowId}`,
+        workflowId: data.workflowId,
       },
-      { validate: 'skip' },
+      { id: `link_${data.workflowId}` },
     );
 
     return {

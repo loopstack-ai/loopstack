@@ -43,14 +43,13 @@ export class AuthenticateGitHubTask extends BaseTool {
     await this.repository.save(
       LinkDocument,
       {
-        id: 'github_auth_link',
         status: 'pending',
         label: 'GitHub authentication required',
-        href: `/workflows/${result.workflowId}`,
+        workflowId: result.workflowId,
         embed: true,
         expanded: true,
       },
-      { validate: 'skip' },
+      { id: `link_${result.workflowId}` },
     );
 
     return {
@@ -64,12 +63,11 @@ export class AuthenticateGitHubTask extends BaseTool {
     await this.repository.save(
       LinkDocument,
       {
-        id: 'github_auth_link',
         status: 'success',
         label: 'GitHub authentication completed',
-        href: `/workflows/${data.workflowId}`,
+        workflowId: data.workflowId,
       },
-      { validate: 'skip' },
+      { id: `link_${data.workflowId}` },
     );
 
     return {

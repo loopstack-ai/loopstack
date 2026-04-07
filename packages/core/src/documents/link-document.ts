@@ -5,7 +5,7 @@ export const LinkDocumentSchema = z
   .object({
     status: z.enum(['pending', 'success', 'failure']).optional(),
     label: z.string().optional(),
-    href: z.string().optional(),
+    workflowId: z.string().optional(),
     embed: z.boolean().optional(),
     expanded: z.boolean().optional(),
   })
@@ -20,7 +20,7 @@ export type LinkDocumentContent = z.infer<typeof LinkDocumentSchema>;
 export class LinkDocument {
   status?: 'pending' | 'success' | 'failure';
   label?: string;
-  href?: string;
+  workflowId?: string;
   embed?: boolean;
   expanded?: boolean;
 }

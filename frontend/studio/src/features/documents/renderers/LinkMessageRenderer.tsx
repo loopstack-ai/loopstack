@@ -5,7 +5,7 @@ import LinkCard, { type LinkCardStatus } from '@/components/loopstack-elements/l
 type LinkMessageContentType = {
   status?: LinkCardStatus;
   label?: string;
-  href: string;
+  workflowId?: string;
   embed?: boolean;
   expanded?: boolean;
 };
@@ -15,7 +15,8 @@ interface LinkMessageRendererProps {
 }
 
 const LinkMessageRenderer: React.FC<LinkMessageRendererProps> = ({ document }) => {
-  const { status, label, href, embed, expanded } = document.content;
+  const { status, label, workflowId, embed, expanded } = document.content;
+  const href = workflowId ? `/workflows/${workflowId}` : undefined;
 
   return <LinkCard href={href} label={label} status={status} embed={embed} defaultExpanded={expanded} />;
 };

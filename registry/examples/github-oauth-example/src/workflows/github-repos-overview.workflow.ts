@@ -141,8 +141,6 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
     htmlUrl: string;
   }>;
   searchResults?: Array<{ name: string; path: string; repository: string }>;
-  private authWorkflowId?: string;
-
   // --- Step 1: Fetch authenticated user ---
 
   @Initial({ to: 'user_fetched' })
@@ -160,17 +158,16 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
       { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
       { alias: 'oAuth', callback: { transition: 'authCompleted' } },
     );
-    this.authWorkflowId = result.workflowId;
 
     await this.repository.save(
       LinkDocument,
       {
         label: 'GitHub authentication required',
-        href: `/workflows/${this.authWorkflowId}`,
+        workflowId: result.workflowId,
         embed: true,
         expanded: true,
       },
-      { id: 'authStatus' },
+      { id: `link_${result.workflowId}` },
     );
   }
 
@@ -191,11 +188,11 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
       {
         status: 'success',
         label: 'GitHub authentication completed',
-        href: `/workflows/${payload.workflowId}`,
+        workflowId: payload.workflowId,
         embed: true,
         expanded: false,
       },
-      { id: 'authStatus' },
+      { id: `link_${payload.workflowId}` },
     );
   }
 

@@ -24,7 +24,7 @@ export class DocumentRepositoryService implements DocumentRepository {
     private readonly documentPersistenceService: DocumentPersistenceService,
   ) {}
 
-  create<T extends object>(documentClass: DocumentClass<T>, data: object): T {
+  create<T extends object>(documentClass: DocumentClass<T>, data: T): T {
     const schema = getDocumentSchema(documentClass);
     const validated = schema ? (schema.parse(data) as Record<string, unknown>) : data;
     return plainToInstance(documentClass, validated);
@@ -32,7 +32,7 @@ export class DocumentRepositoryService implements DocumentRepository {
 
   async save<T extends object>(
     classOrInstance: DocumentClass<T> | T,
-    dataOrOptions?: object | DocumentSaveOptions,
+    dataOrOptions?: T | DocumentSaveOptions,
     maybeOptions?: DocumentSaveOptions,
   ): Promise<DocumentEntity> {
     const isClass = typeof classOrInstance === 'function';
@@ -40,7 +40,7 @@ export class DocumentRepositoryService implements DocumentRepository {
     if (isClass) {
       // save(DocumentClass, data, options?)
       const documentClass = classOrInstance as DocumentClass<T>;
-      const data = dataOrOptions as object;
+      const data = dataOrOptions as T;
       const options = maybeOptions;
       const className = documentClass.name;
 

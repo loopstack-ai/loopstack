@@ -14,14 +14,14 @@ export interface DocumentRepository {
    * Instantiate a document DTO without persisting.
    * Validates content against the document's Zod schema and returns a typed instance.
    */
-  create<T extends object>(documentClass: DocumentClass<T>, data: Record<string, unknown>): T;
+  create<T extends object>(documentClass: DocumentClass<T>, data: T): T;
 
   /**
    * Validate, instantiate, and persist a document from a class + data.
    */
   save<T extends object>(
     documentClass: DocumentClass<T>,
-    data: object,
+    data: T,
     options?: DocumentSaveOptions,
   ): Promise<DocumentEntity>;
 

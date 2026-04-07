@@ -27,9 +27,6 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;
   @InjectWorkflow() private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
 
-  private subWorkflow1Id?: string;
-  private subWorkflow2Id?: string;
-
   @Initial({ to: 'sub_workflow_started' })
   async runWorkflow() {
     const result: QueueResult = await this.runSubWorkflowExampleSub.run(
@@ -37,15 +34,13 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       { alias: 'runSubWorkflowExampleSub', callback: { transition: 'subWorkflowCallback' } },
     );
 
-    this.subWorkflow1Id = result.workflowId;
-
     await this.repository.save(
       LinkDocument,
       {
         label: 'Executing Sub-Workflow...',
-        href: `/workflows/${this.subWorkflow1Id}`,
+        workflowId: result.workflowId,
       },
-      { id: 'subWorkflow_link' },
+      { id: `link_${result.workflowId}` },
     );
   }
 
@@ -59,10 +54,11 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     await this.repository.save(
       LinkDocument,
       {
-        label: `Sub-Workflow ${payload.status}`,
-        href: `/workflows/${payload.workflowId}`,
+        label: 'Sub-Workflow',
+        status: 'success',
+        workflowId: payload.workflowId,
       },
-      { id: 'subWorkflow_link' },
+      { id: `link_${payload.workflowId}` },
     );
 
     await this.createChatMessage.call({
@@ -78,14 +74,13 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       { alias: 'runSubWorkflowExampleSub', callback: { transition: 'subWorkflow2Callback' } },
     );
 
-    this.subWorkflow2Id = result.workflowId;
-
     await this.repository.save(
       LinkDocument,
       {
         label: 'Executing Sub-Workflow 2...',
+        workflowId: result.workflowId,
       },
-      { id: 'subWorkflow2_link' },
+      { id: `link_${result.workflowId}` },
     );
   }
 
@@ -98,9 +93,11 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     await this.repository.save(
       LinkDocument,
       {
-        label: `Sub-Workflow 2 ${payload.status}`,
+        label: 'Sub-Workflow 2',
+        status: 'success',
+        workflowId: payload.workflowId,
       },
-      { id: 'subWorkflow2_link' },
+      { id: `link_${payload.workflowId}` },
     );
 
     await this.createChatMessage.call({
