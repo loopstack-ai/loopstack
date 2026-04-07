@@ -7,6 +7,7 @@ import {
   Tool,
   ToolResult,
   ToolSideEffects,
+  getBlockArgsSchema,
   getBlockTool,
   getBlockTypeFromMetadata,
 } from '@loopstack/common';
@@ -127,7 +128,17 @@ export class DelegateToolCalls extends BaseTool {
         throw new Error(`Tool with name ${block.name} not found.`);
       }
 
-      const input = { ...(block.input as Record<string, unknown>), ...(callback ? { callback } : {}) };
+      const input: Record<string, unknown> = { ...(block.input as Record<string, unknown>) };
+
+      // Only pass callback to tools that declare it in their schema (async task tools).
+      // Sync tools with .strict() schemas would reject the unrecognized key.
+      if (callback) {
+        const schema = getBlockArgsSchema(tool as object);
+        if (!schema || (schema instanceof z.ZodObject && 'callback' in (schema.shape as Record<string, unknown>))) {
+          input.callback = callback;
+        }
+      }
+
       return await tool.call(input);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
