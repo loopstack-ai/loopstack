@@ -1,4 +1,4 @@
-import { JSONSchemaConfigType, UiFormType } from '../types';
+import { JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '../types';
 
 export interface WorkflowConfigInterface {
   alias: string;
@@ -6,5 +6,5 @@ export interface WorkflowConfigInterface {
   description?: string;
   schema?: JSONSchemaConfigType;
   ui?: UiFormType;
-  transitions?: any[];
+  transitions?: WorkflowTransitionType[];
 }

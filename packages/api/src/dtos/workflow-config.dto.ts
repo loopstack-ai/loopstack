@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
-import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
+import type { JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '@loopstack/contracts/types';
 
 export class WorkflowConfigDto implements WorkflowConfigInterface {
   @Expose()
@@ -40,5 +40,5 @@ export class WorkflowConfigDto implements WorkflowConfigInterface {
   @ApiPropertyOptional({
     description: 'The state machine transitions',
   })
-  transitions?: any[];
+  transitions?: WorkflowTransitionType[];
 }
