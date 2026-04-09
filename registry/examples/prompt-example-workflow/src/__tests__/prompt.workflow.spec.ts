@@ -66,6 +66,7 @@ describe('PromptWorkflow', () => {
           },
           prompt: expect.stringContaining('Write a haiku about spring'),
         }),
+        undefined,
       );
 
       // Verify LLM response was saved as a document
@@ -90,6 +91,7 @@ describe('PromptWorkflow', () => {
         expect.objectContaining({
           prompt: expect.stringContaining('Write a haiku about coffee'),
         }),
+        undefined,
       );
     });
   });

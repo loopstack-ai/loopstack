@@ -46,11 +46,14 @@ describe('DynamicRoutingExampleWorkflow', () => {
 
       expect(result.hasError).toBe(false);
 
-      expect(mockCreateChatMessage.call).toHaveBeenCalledWith({ role: 'assistant', content: 'Analysing value = 50' });
-      expect(mockCreateChatMessage.call).toHaveBeenCalledWith({
-        role: 'assistant',
-        content: 'Value is less or equal 100',
-      });
+      expect(mockCreateChatMessage.call).toHaveBeenCalledWith(
+        { role: 'assistant', content: 'Analysing value = 50' },
+        undefined,
+      );
+      expect(mockCreateChatMessage.call).toHaveBeenCalledWith(
+        { role: 'assistant', content: 'Value is less or equal 100' },
+        undefined,
+      );
     });
 
     it('should route to placeC when value > 200', async () => {
@@ -60,11 +63,14 @@ describe('DynamicRoutingExampleWorkflow', () => {
 
       expect(result.hasError).toBe(false);
 
-      expect(mockCreateChatMessage.call).toHaveBeenCalledWith({ role: 'assistant', content: 'Analysing value = 250' });
-      expect(mockCreateChatMessage.call).toHaveBeenCalledWith({
-        role: 'assistant',
-        content: 'Value is greater than 200',
-      });
+      expect(mockCreateChatMessage.call).toHaveBeenCalledWith(
+        { role: 'assistant', content: 'Analysing value = 250' },
+        undefined,
+      );
+      expect(mockCreateChatMessage.call).toHaveBeenCalledWith(
+        { role: 'assistant', content: 'Value is greater than 200' },
+        undefined,
+      );
     });
 
     it('should route to placeD when 100 < value <= 200', async () => {
@@ -74,11 +80,14 @@ describe('DynamicRoutingExampleWorkflow', () => {
 
       expect(result.hasError).toBe(false);
 
-      expect(mockCreateChatMessage.call).toHaveBeenCalledWith({ role: 'assistant', content: 'Analysing value = 150' });
-      expect(mockCreateChatMessage.call).toHaveBeenCalledWith({
-        role: 'assistant',
-        content: 'Value is less or equal 200, but greater than 100',
-      });
+      expect(mockCreateChatMessage.call).toHaveBeenCalledWith(
+        { role: 'assistant', content: 'Analysing value = 150' },
+        undefined,
+      );
+      expect(mockCreateChatMessage.call).toHaveBeenCalledWith(
+        { role: 'assistant', content: 'Value is less or equal 200, but greater than 100' },
+        undefined,
+      );
     });
   });
 });

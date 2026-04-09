@@ -101,7 +101,7 @@ export class ProcessorController {
   async callbackWorkflow(
     @Param('workflowId') workflowId: string,
     @Body() body: CallbackWorkflowPayloadDto,
-    @CurrentUser() user: CurrentUserInterface,
+    @CurrentUser() _user: CurrentUserInterface,
   ): Promise<void> {
     await this.processorApiService.callbackWorkflow(workflowId, body.payload ?? {}, body.transition);
   }

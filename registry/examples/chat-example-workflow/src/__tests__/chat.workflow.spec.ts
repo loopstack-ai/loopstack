@@ -102,6 +102,7 @@ describe('ChatWorkflow', () => {
           claude: { model: 'claude-sonnet-4-6' },
           messagesSearchTag: 'message',
         }),
+        undefined,
       );
 
       // User message and LLM response should be saved as documents

@@ -128,14 +128,14 @@ describe('wrapBlockProxy', () => {
     });
   });
 
-  describe('tool method redirect', () => {
-    it('should redirect .run() to ._run() on injected tools', () => {
+  describe('tool pass-through', () => {
+    it('should pass through injected tools without modification', () => {
       const ctx = createExecutionContext(workflow);
       const wrapped = ctx.getInstance() as any;
       const tool = wrapped.mockTool;
 
-      // The proxy should redirect .run to ._run
-      expect(tool.run).not.toBe(workflow.mockTool.run);
+      // Tools use call() directly — no proxy redirect needed
+      expect(tool).toBe(workflow.mockTool);
     });
   });
 });

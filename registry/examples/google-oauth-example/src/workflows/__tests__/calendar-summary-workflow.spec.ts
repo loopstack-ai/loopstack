@@ -193,6 +193,7 @@ describe('CalendarSummaryWorkflow', () => {
         expect.objectContaining({
           calendarId: 'work@group.calendar.google.com',
         }),
+        undefined,
       );
     });
   });

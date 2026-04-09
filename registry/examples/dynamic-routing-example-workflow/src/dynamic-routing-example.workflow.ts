@@ -10,17 +10,19 @@ import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
     })
     .strict(),
 })
-export class DynamicRoutingExampleWorkflow extends BaseWorkflow {
+export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }> {
   @InjectTool() createChatMessage: CreateChatMessage;
+
+  value!: number;
 
   // --- Initial transition ---
 
   @Initial({ to: 'prepared' })
-  async createMockData() {
-    const args = this.ctx.args as { value: number };
+  async createMockData(args: { value: number }) {
+    this.value = args.value;
     await this.createChatMessage.call({
       role: 'assistant',
-      content: `Analysing value = ${args.value}`,
+      content: `Analysing value = ${this.value}`,
     });
   }
 
@@ -31,8 +33,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow {
   routeToPlaceA() {}
 
   isAbove100() {
-    const args = this.ctx.args as { value: number };
-    return args.value > 100;
+    return this.value > 100;
   }
 
   @Transition({ from: 'prepared', to: 'placeB' })
@@ -45,8 +46,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow {
   routeToPlaceC() {}
 
   isAbove200() {
-    const args = this.ctx.args as { value: number };
-    return args.value > 200;
+    return this.value > 200;
   }
 
   @Transition({ from: 'placeA', to: 'placeD' })

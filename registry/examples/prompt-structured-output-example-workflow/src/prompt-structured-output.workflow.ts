@@ -9,14 +9,15 @@ import { FileDocument, FileDocumentType } from './documents/file-document';
     language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
   }),
 })
-export class PromptStructuredOutputWorkflow extends BaseWorkflow {
+export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }> {
   @InjectTool() claudeGenerateDocument: ClaudeGenerateDocument;
 
+  language!: string;
   llmResult?: DocumentEntity<FileDocumentType>;
 
   @Initial({ to: 'ready' })
-  async greeting() {
-    const args = this.ctx.args as { language: string };
+  async greeting(args: { language: string }) {
+    this.language = args.language;
     await this.repository.save(
       ClaudeMessageDocument,
       {
@@ -24,7 +25,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow {
         content: [
           {
             type: 'text',
-            text: `Creating a 'Hello, World!' script in ${args.language}...`,
+            text: `Creating a 'Hello, World!' script in ${this.language}...`,
           },
         ],
       },
@@ -34,11 +35,10 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
   async prompt() {
-    const args = this.ctx.args as { language: string };
     const result = await this.claudeGenerateDocument.call({
       claude: { model: 'claude-sonnet-4-6' },
       response: { document: FileDocument },
-      prompt: this.render(__dirname + '/templates/prompt.md', { language: args.language }),
+      prompt: this.render(__dirname + '/templates/prompt.md', { language: this.language }),
     });
     this.llmResult = result.data as DocumentEntity<FileDocumentType>;
   }

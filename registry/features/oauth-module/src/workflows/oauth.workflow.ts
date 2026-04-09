@@ -18,11 +18,14 @@ export class OAuthWorkflow extends BaseWorkflow<{ provider: string; scopes: stri
   @InjectTool() buildOAuthUrl: BuildOAuthUrlTool;
   @InjectTool() exchangeOAuthToken: ExchangeOAuthTokenTool;
 
+  provider!: string;
   oauthState?: string;
   authUrl?: string;
 
   @Initial({ to: 'awaiting_auth' })
   async initiateOAuth(args: { provider: string; scopes: string[] }) {
+    this.provider = args.provider;
+
     const result: ToolResult<BuildOAuthUrlResult> = await this.buildOAuthUrl.call({
       provider: args.provider,
       scopes: args.scopes,
@@ -34,7 +37,7 @@ export class OAuthWorkflow extends BaseWorkflow<{ provider: string; scopes: stri
     await this.repository.save(
       OAuthPromptDocument,
       {
-        provider: args.provider,
+        provider: this.provider,
         authUrl: this.authUrl,
         state: this.oauthState,
         status: 'pending' as const,
@@ -49,10 +52,8 @@ export class OAuthWorkflow extends BaseWorkflow<{ provider: string; scopes: stri
     schema: z.object({ code: z.string(), state: z.string() }),
   })
   async exchangeToken(payload: { code: string; state: string }): Promise<{ authenticated: boolean }> {
-    const args = this.ctx.args as { provider: string; scopes: string[] };
-
     await this.exchangeOAuthToken.call({
-      provider: args.provider,
+      provider: this.provider,
       code: payload.code,
       state: payload.state,
       expectedState: this.oauthState!,
@@ -61,7 +62,7 @@ export class OAuthWorkflow extends BaseWorkflow<{ provider: string; scopes: stri
     await this.repository.save(
       OAuthPromptDocument,
       {
-        provider: args.provider,
+        provider: this.provider,
         authUrl: this.authUrl!,
         state: this.oauthState!,
         status: 'success' as const,

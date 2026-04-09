@@ -79,7 +79,7 @@ interface SandboxDestroyResult {
     outputDir: z.string().default(process.cwd() + '/out'),
   }),
 })
-export class SandboxExampleWorkflow extends BaseWorkflow {
+export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> {
   containerId?: string;
   fileContent?: string;
   fileList?: FileEntry[];
@@ -101,8 +101,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow {
   @InjectTool() createChatMessage: CreateChatMessage;
 
   @Initial({ to: 'sandbox_ready' })
-  async initSandbox() {
-    const args = this.ctx.args as { outputDir: string };
+  async initSandbox(args: { outputDir: string }) {
     const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',

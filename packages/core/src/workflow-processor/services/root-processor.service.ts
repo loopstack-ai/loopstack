@@ -1,14 +1,14 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   RunContext,
+  WORKFLOW_ORCHESTRATOR,
   WorkflowEntity,
   WorkflowInterface,
   WorkflowMetadataInterface,
   WorkflowOrchestrator,
-  WorkflowState,
   WorkspaceEnvironmentContextDto,
-  WORKFLOW_ORCHESTRATOR,
 } from '@loopstack/common';
+import { WorkflowState } from '@loopstack/contracts/enums';
 import { RunPayload } from '@loopstack/contracts/schemas';
 import { WorkflowService } from '../../persistence';
 import { BlockDiscoveryService } from './block-discovery.service';
@@ -32,9 +32,7 @@ export class RootProcessorService {
 
     const workflowConfig = this.blockDiscoveryService.getWorkflowByName(workflow.className);
     if (!workflowConfig) {
-      throw new Error(
-        `Workflow ${workflow.className} not found. Ensure it is registered as a provider in the module.`,
-      );
+      throw new Error(`Workflow ${workflow.className} not found. Ensure it is registered as a provider in the module.`);
     }
 
     return workflowConfig;
@@ -43,7 +41,9 @@ export class RootProcessorService {
   private resolveWorkflowByNames(alias: string): WorkflowInterface {
     const workflow = this.blockDiscoveryService.getWorkflowByName(alias);
     if (!workflow) {
-      throw new BadRequestException(`Workflow ${alias} not found. Ensure it is registered as a provider in the module.`);
+      throw new BadRequestException(
+        `Workflow ${alias} not found. Ensure it is registered as a provider in the module.`,
+      );
     }
     return workflow;
   }

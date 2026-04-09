@@ -8,19 +8,18 @@ import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/c
     subject: z.string().default('coffee'),
   }),
 })
-export class PromptWorkflow extends BaseWorkflow {
+export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
 
   llmResult?: ClaudeGenerateTextResult;
 
   @Initial({ to: 'prompt_executed' })
-  async prompt() {
-    const args = this.ctx.args as { subject: string };
+  async prompt(args: { subject: string }) {
     const result = await this.claudeGenerateText.call({
       claude: { model: 'claude-sonnet-4-6' },
       prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
     });
-    this.llmResult = result.data as ClaudeGenerateTextResult;
+    this.llmResult = result.data;
   }
 
   @Final({ from: 'prompt_executed' })

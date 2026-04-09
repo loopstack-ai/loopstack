@@ -103,6 +103,7 @@ describe('ToolCallWorkflow', () => {
           messagesSearchTag: 'message',
           tools: ['getWeather'],
         }),
+        undefined,
       );
 
       // Should call DelegateToolCalls once (only when there are tool calls)
@@ -111,6 +112,7 @@ describe('ToolCallWorkflow', () => {
         expect.objectContaining({
           message: mockLlmResponseWithToolCall,
         }),
+        undefined,
       );
     });
 
@@ -203,6 +205,7 @@ describe('ToolCallWorkflow', () => {
         expect.objectContaining({
           message: mockLlmResponseWithMultipleToolCalls,
         }),
+        undefined,
       );
     });
   });

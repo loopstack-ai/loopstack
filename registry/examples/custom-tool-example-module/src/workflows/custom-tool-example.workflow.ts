@@ -13,7 +13,7 @@ import { CounterTool } from '../tools';
     })
     .strict(),
 })
-export class CustomToolExampleWorkflow extends BaseWorkflow {
+export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: number }> {
   @InjectTool() private counterTool: CounterTool;
   @InjectTool() private createChatMessage: CreateChatMessage;
   @InjectTool() private mathTool: MathSumTool;
@@ -21,9 +21,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow {
   total?: number;
 
   @Initial({ to: 'waiting_for_user' })
-  async calculate() {
-    const args = this.ctx.args as { a: number; b: number };
-
+  async calculate(args: { a: number; b: number }) {
     // Use a custom tool
     const calcResult = await this.mathTool.call({ a: args.a, b: args.b });
     this.total = calcResult.data as number;

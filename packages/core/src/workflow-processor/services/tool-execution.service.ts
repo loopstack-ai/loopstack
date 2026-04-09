@@ -9,7 +9,7 @@ import {
   getBlockArgsSchema,
   getBlockTools,
 } from '@loopstack/common';
-import { ExecutionScope, WorkflowExecutionContextManager, wrapToolProxy } from '../utils';
+import { ExecutionScope, wrapToolProxy } from '../utils';
 
 /**
  * Executes tools by wrapping them in proxies that add framework logic.
@@ -68,11 +68,9 @@ export class ToolExecutionService implements OnModuleInit {
    * 1. Validate args (framework guarantee — always runs)
    * 2. Run interceptor chain (user-configurable)
    */
-  /* eslint-disable @typescript-eslint/no-unsafe-function-type --
-     originalCallFn is the tool's call() method retrieved dynamically from the prototype chain. */
   async executeCall(
     rawTool: object,
-    originalCallFn: Function,
+    originalCallFn: (...callArgs: unknown[]) => unknown,
     args: Record<string, unknown>,
     proxy: object,
     options?: Record<string, unknown>,
@@ -101,7 +99,6 @@ export class ToolExecutionService implements OnModuleInit {
     );
 
     const result = await chain();
-    /* eslint-enable @typescript-eslint/no-unsafe-function-type */
 
     return result;
   }
@@ -116,6 +113,7 @@ export class ToolExecutionService implements OnModuleInit {
       return tool;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- bind() returns `any` due to Function type in executeCall signature
     const proxy = wrapToolProxy(tool, toolName, this.executionScope, this.executeCall.bind(this));
     this.proxiedTools.add(proxy);
 
@@ -131,5 +129,4 @@ export class ToolExecutionService implements OnModuleInit {
 
     return proxy;
   }
-
 }

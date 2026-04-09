@@ -124,10 +124,13 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.place).toBe('sub_workflow2_started');
 
       // subWorkflowCallback calls createChatMessage
-      expect(mockCreateChatMessageTool.call).toHaveBeenCalledWith({
-        role: 'assistant',
-        content: 'A message from sub workflow 1: Hi mom!',
-      });
+      expect(mockCreateChatMessageTool.call).toHaveBeenCalledWith(
+        {
+          role: 'assistant',
+          content: 'A message from sub workflow 1: Hi mom!',
+        },
+        undefined,
+      );
 
       // runWorkflow2 fires automatically and calls sub workflow again
       expect(mockSubWorkflow.run).toHaveBeenCalledTimes(1);
@@ -164,10 +167,13 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.hasError).toBe(false);
       expect(result.place).toBe('end');
 
-      expect(mockCreateChatMessageTool.call).toHaveBeenCalledWith({
-        role: 'assistant',
-        content: 'A message from sub workflow 2: Hello from sub workflow 2!',
-      });
+      expect(mockCreateChatMessageTool.call).toHaveBeenCalledWith(
+        {
+          role: 'assistant',
+          content: 'A message from sub workflow 2: Hello from sub workflow 2!',
+        },
+        undefined,
+      );
     });
   });
 });

@@ -111,7 +111,7 @@ describe('CustomToolExampleWorkflow', () => {
       expect(result.place).toBe('waiting_for_user');
 
       // Tool calls
-      expect(mockMathSumTool.call).toHaveBeenCalledWith({ a: 10, b: 20 });
+      expect(mockMathSumTool.call).toHaveBeenCalledWith({ a: 10, b: 20 }, undefined);
       expect(mockCounterTool.call).toHaveBeenCalledTimes(3);
       expect(mockCreateChatMessageTool.call).toHaveBeenCalledTimes(3);
 
@@ -121,6 +121,7 @@ describe('CustomToolExampleWorkflow', () => {
           role: 'assistant',
           content: expect.stringContaining('10 + 20 = 30'),
         }),
+        undefined,
       );
     });
   });

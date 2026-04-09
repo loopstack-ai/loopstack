@@ -1,5 +1,4 @@
 import { TestingModule } from '@nestjs/testing';
-import { RunContext } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { CreateValue, CreateValueToolModule } from '@loopstack/create-value-tool';
@@ -48,17 +47,23 @@ describe('WorkflowStateWorkflow', () => {
     expect(result.hasError).toBe(false);
 
     // Verify createValue was called
-    expect(mockCreateValue.call).toHaveBeenCalledWith({ input: 'Hello :)' });
+    expect(mockCreateValue.call).toHaveBeenCalledWith({ input: 'Hello :)' }, undefined);
 
     // Verify createChatMessage was called with state from previous transition
     expect(mockCreateChatMessage.call).toHaveBeenCalledTimes(2);
-    expect(mockCreateChatMessage.call).toHaveBeenCalledWith({
-      role: 'assistant',
-      content: 'Data from state: Hello :)',
-    });
-    expect(mockCreateChatMessage.call).toHaveBeenCalledWith({
-      role: 'assistant',
-      content: 'Use workflow helper method: HELLO :)',
-    });
+    expect(mockCreateChatMessage.call).toHaveBeenCalledWith(
+      {
+        role: 'assistant',
+        content: 'Data from state: Hello :)',
+      },
+      undefined,
+    );
+    expect(mockCreateChatMessage.call).toHaveBeenCalledWith(
+      {
+        role: 'assistant',
+        content: 'Use workflow helper method: HELLO :)',
+      },
+      undefined,
+    );
   });
 });

@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import {
   ClaudeGenerateText,
   ClaudeGenerateTextResult,
@@ -75,11 +76,11 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
     );
   }
 
-  @Transition({ from: 'waiting_for_user', to: 'ready', wait: true })
-  async userMessage() {
+  @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
+  async userMessage(payload: string) {
     await this.repository.save(ClaudeMessageDocument, {
       role: 'user',
-      content: this.ctx.runtime.transition!.payload as string,
+      content: payload,
     });
   }
 
@@ -124,11 +125,11 @@ then retry. Be concise and format results using markdown.`,
     return this.llmResult?.stop_reason === 'tool_use';
   }
 
-  @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
-  async toolResultReceived() {
+  @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
+  async toolResultReceived(payload: Record<string, unknown>) {
     const result: ToolResult<DelegateToolCallsResult> = await this.updateToolResult.call({
       delegateResult: this.delegateResult!,
-      completedTool: this.ctx.runtime.transition!.payload as Record<string, unknown>,
+      completedTool: payload,
       document: ClaudeMessageDocument,
     });
     this.delegateResult = result.data;

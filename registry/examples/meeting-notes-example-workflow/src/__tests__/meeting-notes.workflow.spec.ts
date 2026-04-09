@@ -123,6 +123,7 @@ describe('MeetingNotesWorkflow', () => {
           response: expect.objectContaining({ id: 'final' }),
           prompt: expect.stringContaining('meeting notes'),
         }),
+        undefined,
       );
     });
   });

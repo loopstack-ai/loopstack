@@ -353,7 +353,10 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockGetRepo.call).toHaveBeenCalledWith(expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }));
+      expect(mockGetRepo.call).toHaveBeenCalledWith(
+        expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
+        undefined,
+      );
     });
 
     it('should pass owner and repo to gitHubListBranches', async () => {
@@ -364,6 +367,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       expect(mockListBranches.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
+        undefined,
       );
     });
 
@@ -375,6 +379,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       expect(mockListIssues.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World', state: 'open' }),
+        undefined,
       );
     });
 
@@ -386,6 +391,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       expect(mockListPullRequests.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World', state: 'open' }),
+        undefined,
       );
     });
 
@@ -397,6 +403,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       expect(mockListDirectory.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
+        undefined,
       );
     });
 
@@ -408,6 +415,7 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       expect(mockListWorkflowRuns.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
+        undefined,
       );
     });
 
@@ -417,7 +425,10 @@ describe('GitHubReposOverviewWorkflow', () => {
 
       await processor.process(workflow, args, context);
 
-      expect(mockSearchCode.call).toHaveBeenCalledWith(expect.objectContaining({ query: 'repo:octocat/Hello-World' }));
+      expect(mockSearchCode.call).toHaveBeenCalledWith(
+        expect.objectContaining({ query: 'repo:octocat/Hello-World' }),
+        undefined,
+      );
     });
   });
 

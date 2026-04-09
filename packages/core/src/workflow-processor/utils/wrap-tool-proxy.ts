@@ -17,7 +17,7 @@ export function wrapToolProxy(
   executionScope: ExecutionScope,
   executeCall: (
     rawTool: object,
-    originalCallFn: Function,
+    originalCallFn: (...callArgs: unknown[]) => unknown,
     args: Record<string, unknown>,
     proxy: object,
     options?: Record<string, unknown>,
@@ -49,11 +49,11 @@ export function wrapToolProxy(
     (Reflect.getMetadata(PROPERTY_DEPS_METADATA, tool.constructor) as { key: string }[] | undefined) ?? [];
   propertyDeps.forEach((dep) => passThroughProps.add(dep.key));
 
-  // Capture the original call() from the prototype chain
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  const originalCall = (tool as BaseTool).call as unknown as Function;
+  // Capture the original call() from the prototype chain — deliberately unbound; executeCall re-binds via .call(proxy)
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const originalCall: (...callArgs: unknown[]) => unknown = (tool as BaseTool).call;
 
-  /* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access --
+  /* eslint-disable @typescript-eslint/no-unsafe-return --
      Proxy get/set handlers use `any` in TypeScript's ProxyHandler definition. */
   return new Proxy(tool, {
     get(target, prop, receiver) {
@@ -97,5 +97,5 @@ export function wrapToolProxy(
       return true;
     },
   });
-  /* eslint-enable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+  /* eslint-enable @typescript-eslint/no-unsafe-return */
 }

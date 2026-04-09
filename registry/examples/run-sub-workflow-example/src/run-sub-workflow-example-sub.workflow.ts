@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { BaseWorkflow, Initial, InjectTool, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 

@@ -103,10 +103,7 @@ export class DelegateToolCalls extends BaseTool {
     };
   }
 
-  private async executeTool(
-    block: Anthropic.ToolUseBlock,
-    options?: ToolCallOptions,
-  ): Promise<ToolResult> {
+  private async executeTool(block: Anthropic.ToolUseBlock, options?: ToolCallOptions): Promise<ToolResult> {
     try {
       const tool = getBlockTool<BaseTool>(this.ctx.parent, block.name);
       if (!tool) {

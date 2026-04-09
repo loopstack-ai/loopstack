@@ -65,6 +65,7 @@ describe('PromptStructuredOutputWorkflow', () => {
           },
           prompt: expect.stringContaining('python'),
         }),
+        undefined,
       );
 
       // Verify status document was created (greeting + respond both write to id 'status', last write wins)
@@ -99,6 +100,7 @@ describe('PromptStructuredOutputWorkflow', () => {
         expect.objectContaining({
           prompt: expect.stringContaining('javascript'),
         }),
+        undefined,
       );
 
       // Verify status document was created
@@ -127,6 +129,7 @@ describe('PromptStructuredOutputWorkflow', () => {
         expect.objectContaining({
           prompt: expect.stringContaining('python'),
         }),
+        undefined,
       );
     });
   });

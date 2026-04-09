@@ -22,8 +22,8 @@ export class MathSumTool extends BaseTool {
   @Inject()
   private mathService: MathService;
 
-  async call(args: MathSumArgs): Promise<ToolResult<number>> {
+  call(args: MathSumArgs): Promise<ToolResult<number>> {
     const sum = this.mathService.sum(args.a, args.b);
-    return { data: sum };
+    return Promise.resolve({ data: sum });
   }
 }

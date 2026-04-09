@@ -55,7 +55,7 @@ export class RunWorkflowTaskProcessorService {
       await this.rootProcessorService.runStateless(
         {
           workspaceId: task.workspaceId,
-          workspaceName: workspace.className!,
+          workspaceName: workspace.className,
           correlationId: task.correlationId,
           alias: task.alias,
           userId: task.user,

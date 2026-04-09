@@ -61,7 +61,7 @@ export function wrapBlockProxy(instance: BlockInterface, ctxManager: ExecutionCo
 
   const stateManager = ctxManager.getManager();
 
-  /* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment --
+  /* eslint-disable @typescript-eslint/no-unsafe-return --
      Proxy get/set handlers use `any` in TypeScript's ProxyHandler definition.
      All values are properly narrowed before return, but TS cannot track types through Proxy traps. */
   return new Proxy(instance as WorkflowInterface, {
@@ -86,5 +86,5 @@ export function wrapBlockProxy(instance: BlockInterface, ctxManager: ExecutionCo
       return true;
     },
   });
-  /* eslint-enable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
+  /* eslint-enable @typescript-eslint/no-unsafe-return */
 }

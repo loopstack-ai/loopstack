@@ -68,7 +68,7 @@ export abstract class BaseTool {
    * Override to post-process the result (e.g. update link documents, transform data).
    * The default implementation passes through the sub-workflow result.
    */
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
-    return { data: (result as { data?: unknown }).data ?? result };
+  complete(result: Record<string, unknown>): Promise<ToolResult> {
+    return Promise.resolve({ data: (result as { data?: unknown }).data ?? result });
   }
 }

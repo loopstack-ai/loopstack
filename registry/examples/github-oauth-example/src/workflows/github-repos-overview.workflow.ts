@@ -95,7 +95,7 @@ interface GitHubSearchCodeResult {
     })
     .strict(),
 })
-export class GitHubReposOverviewWorkflow extends BaseWorkflow {
+export class GitHubReposOverviewWorkflow extends BaseWorkflow<{ owner: string; repo: string }> {
   // GitHub tools
   @InjectTool() private gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool;
   @InjectTool() private gitHubListUserOrgs: GitHubListUserOrgsTool;
@@ -109,10 +109,12 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
 
   @InjectWorkflow() oAuth: OAuthWorkflow;
 
+  owner!: string;
+  repo!: string;
   requiresAuthentication?: boolean;
   user?: { login: string; name: string | null; htmlUrl: string; publicRepos: number };
   orgs?: Array<{ login: string; description: string | null }>;
-  repo?: {
+  repoDetails?: {
     fullName: string;
     description: string | null;
     language: string | null;
@@ -144,7 +146,9 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
   // --- Step 1: Fetch authenticated user ---
 
   @Initial({ to: 'user_fetched' })
-  async fetchUser() {
+  async fetchUser(args: { owner: string; repo: string }) {
+    this.owner = args.owner;
+    this.repo = args.repo;
     const result: ToolResult<GitHubUserResult> = await this.gitHubGetAuthenticatedUser.call({});
     this.requiresAuthentication = result.data!.error === 'unauthorized';
     this.user = result.data!.user;
@@ -208,16 +212,15 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'orgs_fetched', to: 'repo_fetched' })
   async fetchRepoDetails() {
-    const args = this.ctx.args as { owner: string; repo: string };
     const repoResult: ToolResult<GitHubRepoResult> = await this.gitHubGetRepo.call({
-      owner: args.owner,
-      repo: args.repo,
+      owner: this.owner,
+      repo: this.repo,
     });
-    this.repo = repoResult.data!.repo;
+    this.repoDetails = repoResult.data!.repo;
 
     const branchesResult: ToolResult<GitHubBranchesResult> = await this.gitHubListBranches.call({
-      owner: args.owner,
-      repo: args.repo,
+      owner: this.owner,
+      repo: this.repo,
     });
     this.branches = branchesResult.data!.branches;
   }
@@ -226,18 +229,17 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'repo_fetched', to: 'issues_prs_fetched' })
   async fetchIssuesPrs() {
-    const args = this.ctx.args as { owner: string; repo: string };
     const issuesResult: ToolResult<GitHubIssuesResult> = await this.gitHubListIssues.call({
-      owner: args.owner,
-      repo: args.repo,
+      owner: this.owner,
+      repo: this.repo,
       state: 'open',
       perPage: 10,
     });
     this.issues = issuesResult.data!.issues;
 
     const prsResult: ToolResult<GitHubPullRequestsResult> = await this.gitHubListPullRequests.call({
-      owner: args.owner,
-      repo: args.repo,
+      owner: this.owner,
+      repo: this.repo,
       state: 'open',
       perPage: 10,
     });
@@ -248,16 +250,15 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'issues_prs_fetched', to: 'content_actions_fetched' })
   async fetchContentActions() {
-    const args = this.ctx.args as { owner: string; repo: string };
     const dirResult: ToolResult<GitHubDirectoryResult> = await this.gitHubListDirectory.call({
-      owner: args.owner,
-      repo: args.repo,
+      owner: this.owner,
+      repo: this.repo,
     });
     this.directoryEntries = dirResult.data!.entries;
 
     const runsResult: ToolResult<GitHubWorkflowRunsResult> = await this.gitHubListWorkflowRuns.call({
-      owner: args.owner,
-      repo: args.repo,
+      owner: this.owner,
+      repo: this.repo,
       perPage: 5,
     });
     this.workflowRuns = runsResult.data!.runs;
@@ -267,9 +268,8 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'content_actions_fetched', to: 'search_done' })
   async fetchSearch() {
-    const args = this.ctx.args as { owner: string; repo: string };
     const result: ToolResult<GitHubSearchCodeResult> = await this.gitHubSearchCode.call({
-      query: `repo:${args.owner}/${args.repo}`,
+      query: `repo:${this.owner}/${this.repo}`,
       perPage: 5,
     });
     this.searchResults = result.data!.results;
@@ -283,7 +283,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow {
       markdown: this.render(__dirname + '/templates/repoOverview.md', {
         user: this.user,
         orgs: this.orgs,
-        repo: this.repo,
+        repo: this.repoDetails,
         branches: this.branches,
         issues: this.issues,
         pullRequests: this.pullRequests,

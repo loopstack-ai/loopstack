@@ -39,7 +39,7 @@ export class DocumentRepositoryService implements DocumentRepository {
 
     if (isClass) {
       // save(DocumentClass, data, options?)
-      const documentClass = classOrInstance as DocumentClass<T>;
+      const documentClass = classOrInstance;
       const data = dataOrOptions as T;
       const options = maybeOptions;
       const className = documentClass.name;
@@ -47,7 +47,7 @@ export class DocumentRepositoryService implements DocumentRepository {
       return this.documentPersistenceService.create(className, documentClass, data, options);
     } else {
       // save(instance, options?)
-      const instance = classOrInstance as T;
+      const instance = classOrInstance;
       const options = dataOrOptions as DocumentSaveOptions | undefined;
       const documentClass = instance.constructor;
       const className = documentClass.name;
@@ -61,7 +61,7 @@ export class DocumentRepositoryService implements DocumentRepository {
 
   findAll<T extends object>(documentClass: DocumentClass<T>): T[] {
     const ctx = this.executionScope.get();
-    const documents = ctx.getManager().getData('documents') as DocumentEntity[];
+    const documents = ctx.getManager().getData('documents');
     const className = documentClass.name;
 
     return documents
@@ -71,7 +71,7 @@ export class DocumentRepositoryService implements DocumentRepository {
 
   findByTag(tag: string): DocumentEntity[] {
     const ctx = this.executionScope.get();
-    const documents = ctx.getManager().getData('documents') as DocumentEntity[];
+    const documents = ctx.getManager().getData('documents');
 
     return documents.filter((d) => !d.isInvalidated && d.tags?.includes(tag));
   }

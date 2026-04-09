@@ -8,8 +8,8 @@ import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 export class CounterTool extends BaseTool {
   count: number = 0;
 
-  async call(_args?: object): Promise<ToolResult<number>> {
+  call(_args?: object): Promise<ToolResult<number>> {
     this.count++;
-    return { data: this.count };
+    return Promise.resolve({ data: this.count });
   }
 }

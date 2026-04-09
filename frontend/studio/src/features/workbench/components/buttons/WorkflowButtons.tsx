@@ -39,7 +39,7 @@ const WorkflowButtons: React.FC<{
           title: null,
           workspaceId: workflow.workspaceId,
           transition: null,
-          args: workflow.args ?? {},
+          args: (workflow.args ?? {}) as Record<string, unknown>,
         },
       },
       {
