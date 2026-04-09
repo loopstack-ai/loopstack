@@ -29,7 +29,7 @@ The workflow declares tools, typed runtime, and a helper function:
 
 ```typescript
 @Workflow({
-  uiConfig: __dirname + '/workflow-tool-results.workflow.yaml',
+  uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
 export class WorkflowToolResultsWorkflow {
   @InjectTool() private createValue: CreateValue;

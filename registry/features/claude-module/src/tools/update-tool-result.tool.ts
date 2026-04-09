@@ -1,14 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseTool,
-  DocumentClass,
-  Tool,
-  ToolResult,
-  ToolSideEffects,
-  getBlockTool,
-  getBlockTypeFromMetadata,
-} from '@loopstack/common';
+import { BaseTool, DocumentClass, Tool, ToolResult, getBlockTool, getBlockTypeFromMetadata } from '@loopstack/common';
 
 const UpdateToolResultSchema = z.object({
   delegateResult: z.object({
@@ -52,20 +44,14 @@ export class UpdateToolResult extends BaseTool {
 
     const { toolUseId, toolName } = subscriberMetadata;
 
-    // 2. Resolve tool and call complete() if it exists
+    // 2. Resolve tool and call complete()
     const tool = getBlockTool<BaseTool>(this.ctx.parent, toolName);
     if (!tool) {
       throw new Error(`Tool with name ${toolName} not found.`);
     }
     let toolResult: ToolResult;
     try {
-      if ('complete' in tool && typeof tool.complete === 'function') {
-        toolResult = await (tool as BaseTool & { complete: (result: unknown) => Promise<ToolResult> }).complete(
-          completedToolRecord,
-        );
-      } else {
-        toolResult = { data: completedToolRecord.result ?? completedToolRecord };
-      }
+      toolResult = await tool.complete(completedToolRecord);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Tool "${toolName}" complete() failed: ${errorMessage}`);
@@ -88,12 +74,7 @@ export class UpdateToolResult extends BaseTool {
     const pendingCount = delegateResult.pendingCount - 1;
     const allCompleted = pendingCount === 0;
 
-    // 5. Create updated response document (invalidates previous)
-    const allEffects: ToolSideEffects[] = [];
-    if (toolResult.effects) {
-      allEffects.push(...toolResult.effects);
-    }
-
+    // 5. Update response document (invalidates previous)
     if (args.document) {
       await this.repository.save(
         args.document,
@@ -113,7 +94,6 @@ export class UpdateToolResult extends BaseTool {
         allCompleted,
         pendingCount,
       },
-      effects: allEffects.length > 0 ? allEffects : undefined,
     };
   }
 }

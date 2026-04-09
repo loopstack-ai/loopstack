@@ -174,7 +174,7 @@ export class WorkflowProcessorService implements Processor {
   /**
    * Executes a single transition within a DB transaction.
    *
-   * All document saves (via repository.save() or tool side effects) that happen
+   * All document saves (via repository.save()) that happen
    * during the transition use the scoped queryRunner. If the transition throws,
    * the transaction rolls back — including any documents persisted during it.
    * The in-memory document cache is restored to its pre-transition state.

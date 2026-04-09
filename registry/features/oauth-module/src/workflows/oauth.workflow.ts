@@ -6,7 +6,7 @@ import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '
 
 @Injectable()
 @Workflow({
-  uiConfig: __dirname + '/oauth.workflow.yaml',
+  uiConfig: __dirname + '/oauth.ui.yaml',
   schema: z
     .object({
       provider: z.string(),

@@ -47,7 +47,7 @@ import {
 import { SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
 
 @Workflow({
-  uiConfig: __dirname + '/my.workflow.yaml',
+  uiConfig: __dirname + '/my.ui.yaml',
 })
 export class MyWorkflow {
   @Input({
@@ -84,7 +84,7 @@ export class MyWorkflow {
 And use them in your YAML workflow configuration:
 
 ```yaml
-# src/my.workflow.yaml
+# src/my.ui.yaml
 transitions:
   # Initialize the sandbox container (required before filesystem operations)
   - id: init_sandbox

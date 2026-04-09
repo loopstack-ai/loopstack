@@ -5,7 +5,7 @@ import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 
 @Workflow({
-  uiConfig: __dirname + '/custom-tool-example.workflow.yaml',
+  uiConfig: __dirname + '/custom-tool-example.ui.yaml',
   schema: z
     .object({
       a: z.number().default(1),

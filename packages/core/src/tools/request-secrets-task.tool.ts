@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, InjectWorkflow, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import { LinkDocument } from '../documents';
 import { SecretsRequestWorkflow } from './secrets-request.workflow';
 
@@ -11,12 +11,6 @@ const RequestSecretsTaskInputSchema = z
         key: z.string().describe('The environment variable key (e.g. OPENAI_API_KEY)'),
       }),
     ),
-    callback: z
-      .object({
-        transition: z.string(),
-        metadata: z.record(z.string(), z.unknown()).optional(),
-      })
-      .optional(),
   })
   .strict();
 
@@ -38,12 +32,12 @@ export class RequestSecretsTask extends BaseTool {
 
   @InjectWorkflow() private secretsRequest: SecretsRequestWorkflow;
 
-  async call(args: RequestSecretsTaskInput): Promise<ToolResult> {
+  async call(args: RequestSecretsTaskInput, options?: ToolCallOptions): Promise<ToolResult> {
     const result = await this.secretsRequest.run(
       { variables: args.variables },
       {
         alias: 'secretsRequest',
-        callback: args.callback,
+        callback: options?.callback,
       },
     );
 
@@ -60,7 +54,8 @@ export class RequestSecretsTask extends BaseTool {
     );
 
     return {
-      data: { ...result, mode: 'async' },
+      data: { workflowId: result.workflowId },
+      pending: { workflowId: result.workflowId },
     };
   }
 

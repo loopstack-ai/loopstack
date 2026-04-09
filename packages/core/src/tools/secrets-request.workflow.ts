@@ -5,7 +5,7 @@ import { SecretRequestDocument } from '../documents';
 
 @Injectable()
 @Workflow({
-  uiConfig: __dirname + '/secrets-request.workflow.yaml',
+  uiConfig: __dirname + '/secrets-request.ui.yaml',
   schema: z.object({
     variables: z.array(
       z.object({

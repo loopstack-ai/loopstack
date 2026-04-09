@@ -35,7 +35,7 @@ The workflow class declares inputs, state, runtime types, tools, and helpers:
 import { ToolResult } from '@loopstack/common';
 
 @Workflow({
-  uiConfig: __dirname + '/sandbox-example.workflow.yaml',
+  uiConfig: __dirname + '/sandbox-example.ui.yaml',
 })
 export class SandboxExampleWorkflow {
   @Input({

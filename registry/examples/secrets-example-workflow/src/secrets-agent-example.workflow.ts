@@ -21,7 +21,7 @@ import {
 import { GetSecretKeysTool, RequestSecretsTask, SecretsRequestWorkflow } from '@loopstack/core';
 
 @Workflow({
-  uiConfig: __dirname + '/secrets-agent-example.workflow.yaml',
+  uiConfig: __dirname + '/secrets-agent-example.ui.yaml',
 })
 export class SecretsAgentExampleWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;

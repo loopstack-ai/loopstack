@@ -99,7 +99,7 @@ The workflow class declares input, state, output, tools, and helpers:
 
 ```typescript
 @Workflow({
-  uiConfig: __dirname + '/custom-tool-example.workflow.yaml',
+  uiConfig: __dirname + '/custom-tool-example.ui.yaml',
 })
 export class CustomToolExampleWorkflow {
   @InjectTool() private counterTool: CounterTool;

@@ -1,14 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { FindOptionsWhere } from 'typeorm';
-import {
-  BlockInterface,
-  WorkflowEntity,
-  WorkflowInterface,
-  WorkspaceEntity,
-  getBlockArgsSchema,
-  getBlockWorkflow,
-  getBlockWorkflows,
-} from '@loopstack/common';
+import { WorkflowEntity, WorkflowInterface, WorkspaceEntity, getBlockArgsSchema } from '@loopstack/common';
 import { WorkflowService, WorkspaceService } from '../../persistence';
 import { BlockDiscoveryService } from './block-discovery.service';
 
@@ -30,49 +22,12 @@ export class CreateWorkflowService {
     return data;
   }
 
-  private resolveWorkflow(
-    alias: string,
-    workspaceInstance: BlockInterface,
-    parentWorkflowInstance?: WorkflowInterface | BlockInterface,
-  ): WorkflowInterface {
-    this.logger.debug(
-      `[DEBUG] resolveWorkflow: alias=${alias}, workspace=${workspaceInstance.constructor.name}, parent=${parentWorkflowInstance?.constructor?.name ?? 'UNDEFINED'}`,
-    );
-
-    // Try parent workflow first
-    if (parentWorkflowInstance) {
-      const parentWorkflows = getBlockWorkflows(parentWorkflowInstance);
-      this.logger.debug(`[DEBUG] Parent workflows available: [${parentWorkflows.join(', ')}]`);
-      const workflow = getBlockWorkflow<WorkflowInterface>(parentWorkflowInstance, alias);
-      if (workflow) {
-        this.logger.debug(`[DEBUG] Found "${alias}" on parent workflow`);
-        return workflow;
-      }
-      this.logger.debug(`[DEBUG] "${alias}" NOT found on parent workflow`);
-    }
-
-    // Fallback: resolve from workspace
-    const workspaceWorkflows = getBlockWorkflows(workspaceInstance);
-    this.logger.debug(`[DEBUG] Workspace workflows available: [${workspaceWorkflows.join(', ')}]`);
-    const workflow = getBlockWorkflow<WorkflowInterface>(workspaceInstance, alias);
-    if (workflow) {
-      return workflow;
-    }
-
-    const parentName = parentWorkflowInstance?.constructor.name;
-    throw new Error(
-      `Workflow ${alias} not found` +
-        (parentName ? ` on parent workflow ${parentName} or` : ' on') +
-        ` workspace ${workspaceInstance.constructor.name}.`,
-    );
-  }
-
   async create(
     workspaceWhere: FindOptionsWhere<WorkspaceEntity>,
     data: Partial<WorkflowEntity>,
     user: string,
     parentWorkflowId?: string,
-    parentWorkflowInstance?: WorkflowInterface | BlockInterface,
+    workflowInstance?: WorkflowInterface,
   ): Promise<WorkflowEntity> {
     if (!data.alias) {
       throw new Error('alias is required to create a workflow.');
@@ -93,9 +48,17 @@ export class CreateWorkflowService {
       parentWorkflow = await this.workflowService.getWorkflow(parentWorkflowId, user, []);
     }
 
-    const workflow = this.resolveWorkflow(data.alias, workspaceInstance, parentWorkflowInstance);
+    // Sub-workflows pass the instance directly via BaseWorkflow.run().
+    // Root workflows (from UI) are resolved by alias from the workspace.
+    const workflow =
+      workflowInstance ?? this.blockDiscoveryService.getWorkflowByName(data.alias);
+    if (!workflow) {
+      throw new Error(
+        `Workflow ${data.alias} not found. Ensure it is registered as a provider in the module.`,
+      );
+    }
+
     const validData = this.validateWorkflowArgs(workflow, data);
-    // alias stays as property name (for hierarchy resolution), className stores the class name (for config lookups)
     validData.className = workflow.constructor.name;
     return this.workflowService.createRootWorkflow(validData, workspace, user, parentWorkflow);
   }

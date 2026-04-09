@@ -3,7 +3,7 @@ import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { CreateValue } from '@loopstack/create-value-tool';
 
 @Workflow({
-  uiConfig: __dirname + '/workflow-tool-results.workflow.yaml',
+  uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
 export class WorkflowToolResultsWorkflow extends BaseWorkflow {
   @InjectTool() private createValue: CreateValue;

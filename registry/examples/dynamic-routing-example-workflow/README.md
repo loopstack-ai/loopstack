@@ -29,7 +29,7 @@ The workflow class declares input arguments using `@Input`:
 
 ```typescript
 @Workflow({
-  uiConfig: __dirname + '/dynamic-routing-example.workflow.yaml',
+  uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',
 })
 export class DynamicRoutingExampleWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;

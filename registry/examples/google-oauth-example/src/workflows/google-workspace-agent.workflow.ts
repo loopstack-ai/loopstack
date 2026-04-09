@@ -33,7 +33,7 @@ import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { AuthenticateGoogleTask } from '../tools/authenticate-google-task.tool';
 
 @Workflow({
-  uiConfig: __dirname + '/google-workspace-agent.workflow.yaml',
+  uiConfig: __dirname + '/google-workspace-agent.ui.yaml',
 })
 export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;

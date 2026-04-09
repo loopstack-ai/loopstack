@@ -1,16 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseTool,
-  Tool,
-  ToolCallEntry,
-  ToolCallsMap,
-  ToolInterface,
-  ToolResult,
-  ToolSideEffects,
-  getBlockTool,
-} from '@loopstack/common';
+import { BaseTool, Tool, ToolCallEntry, ToolCallsMap, ToolResult } from '@loopstack/common';
 import { ClaudeGenerateToolBaseSchema } from '../schemas/claude-generate-tool-base.schema';
 import { ClaudeClientService } from '../services';
 import { ClaudeMessagesHelperService } from '../services';
@@ -20,7 +11,6 @@ import { applyCacheBreakpoints } from '../utils/cache.utils';
 
 export const ClaudeGenerateTextSchema = ClaudeGenerateToolBaseSchema.extend({
   tools: z.array(z.string()).optional(),
-  document: z.string().optional(),
 }).strict();
 
 type ClaudeGenerateTextArgsType = z.infer<typeof ClaudeGenerateTextSchema>;
@@ -68,21 +58,11 @@ export class ClaudeGenerateText extends BaseTool {
 
     const toolCalls = this.extractToolCalls(response);
 
-    let effects: ToolSideEffects[] = [];
-
-    if (args.document) {
-      const docResult = await this.createResponseMessage(args.document, response);
-      if (docResult.effects) {
-        effects = [...docResult.effects];
-      }
-    }
-
     return {
       data: {
         ...response,
         ...(toolCalls ? { toolCalls } : {}),
       },
-      ...(effects.length > 0 ? { effects } : {}),
       metadata: {
         usage: {
           inputTokens: response.usage.input_tokens,
@@ -92,21 +72,6 @@ export class ClaudeGenerateText extends BaseTool {
         },
       },
     };
-  }
-
-  private async createResponseMessage(document: string, response: Anthropic.Message): Promise<ToolResult> {
-    const createDocumentTool = getBlockTool<ToolInterface>(this.ctx.parent, 'createDocument');
-    if (!createDocumentTool) {
-      throw new Error('createDocument tool not found in parent context.');
-    }
-
-    return (createDocumentTool as BaseTool).call({
-      id: response.id,
-      document,
-      update: {
-        content: response,
-      },
-    });
   }
 
   private extractToolCalls(response: Anthropic.Message): ToolCallsMap | null {

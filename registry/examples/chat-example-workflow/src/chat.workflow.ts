@@ -3,7 +3,7 @@ import { ClaudeGenerateText, ClaudeMessageDocument } from '@loopstack/claude-mod
 import { BaseWorkflow, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({
-  uiConfig: __dirname + '/chat.workflow.yaml',
+  uiConfig: __dirname + '/chat.ui.yaml',
 })
 export class ChatWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;

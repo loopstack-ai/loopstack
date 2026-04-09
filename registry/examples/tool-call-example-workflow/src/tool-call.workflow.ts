@@ -9,7 +9,7 @@ import { BaseWorkflow, Final, Guard, Initial, InjectTool, ToolResult, Transition
 import { GetWeather } from './tools/get-weather.tool';
 
 @Workflow({
-  uiConfig: __dirname + '/tool-call.workflow.yaml',
+  uiConfig: __dirname + '/tool-call.ui.yaml',
 })
 export class ToolCallWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;

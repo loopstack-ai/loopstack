@@ -38,8 +38,11 @@ const DocumentList: React.FC<{
 
         console.log({
           isDocumentActive,
-          enableAtPlaces: document.meta?.enableAtPlaces,
+          isWorkflowActive,
+          status: childWorkflow.status,
           place: childWorkflow.place,
+          documentPlace: item.place,
+          availableTransitions: childWorkflow.availableTransitions,
         });
 
         const isActive = isWorkflowActive && isDocumentActive;

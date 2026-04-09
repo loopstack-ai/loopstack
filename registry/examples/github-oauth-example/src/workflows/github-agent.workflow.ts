@@ -47,7 +47,7 @@ import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { AuthenticateGitHubTask } from '../tools/authenticate-github-task.tool';
 
 @Workflow({
-  uiConfig: __dirname + '/github-agent.workflow.yaml',
+  uiConfig: __dirname + '/github-agent.ui.yaml',
 })
 export class GitHubAgentWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;

@@ -21,7 +21,7 @@ const SubWorkflowCallbackSchema = CallbackSchema.extend({
 type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
 
 @Workflow({
-  uiConfig: __dirname + '/run-sub-workflow-example-parent.workflow.yaml',
+  uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml',
 })
 export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;

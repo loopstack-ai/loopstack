@@ -87,7 +87,7 @@ interface GitHubSearchCodeResult {
 }
 
 @Workflow({
-  uiConfig: __dirname + '/github-repos-overview.workflow.yaml',
+  uiConfig: __dirname + '/github-repos-overview.ui.yaml',
   schema: z
     .object({
       owner: z.string().default('octocat'),

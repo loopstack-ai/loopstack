@@ -3,7 +3,7 @@ import { ClaudeGenerateText, ClaudeGenerateTextResult, ClaudeMessageDocument } f
 import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/common';
 
 @Workflow({
-  uiConfig: __dirname + '/prompt.workflow.yaml',
+  uiConfig: __dirname + '/prompt.ui.yaml',
   schema: z.object({
     subject: z.string().default('coffee'),
   }),

@@ -2,17 +2,14 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import {
   BaseTool,
-  DocumentEntity,
   TOOL_INTERCEPTOR_METADATA_KEY,
   ToolExecutionContext,
   ToolInterceptor,
   ToolResult,
-  ToolSideEffects,
   getBlockArgsSchema,
   getBlockTools,
 } from '@loopstack/common';
 import { ExecutionScope, WorkflowExecutionContextManager, wrapToolProxy } from '../utils';
-import { DocumentPersistenceService } from './document-persistence.service';
 
 /**
  * Executes tools by wrapping them in proxies that add framework logic.
@@ -38,7 +35,6 @@ export class ToolExecutionService implements OnModuleInit {
   constructor(
     private readonly executionScope: ExecutionScope,
     private readonly discoveryService: DiscoveryService,
-    private readonly documentPersistenceService: DocumentPersistenceService,
   ) {}
 
   onModuleInit() {
@@ -71,7 +67,6 @@ export class ToolExecutionService implements OnModuleInit {
    * Flow:
    * 1. Validate args (framework guarantee — always runs)
    * 2. Run interceptor chain (user-configurable)
-   * 3. Process side effects (framework guarantee — always runs)
    */
   /* eslint-disable @typescript-eslint/no-unsafe-function-type --
      originalCallFn is the tool's call() method retrieved dynamically from the prototype chain. */
@@ -80,6 +75,7 @@ export class ToolExecutionService implements OnModuleInit {
     originalCallFn: Function,
     args: Record<string, unknown>,
     proxy: object,
+    options?: Record<string, unknown>,
   ): Promise<ToolResult> {
     const baseTool = rawTool as BaseTool;
     const ctx = this.executionScope.get();
@@ -97,7 +93,7 @@ export class ToolExecutionService implements OnModuleInit {
     };
 
     // 3. Build interceptor chain — each interceptor wraps the next, innermost is the tool call
-    const toolCall = () => originalCallFn.call(proxy, validArgs) as Promise<ToolResult>;
+    const toolCall = () => originalCallFn.call(proxy, validArgs, options) as Promise<ToolResult>;
 
     const chain = this.interceptors.reduceRight<() => Promise<ToolResult>>(
       (next, interceptor) => () => interceptor.intercept(execContext, next),
@@ -106,11 +102,6 @@ export class ToolExecutionService implements OnModuleInit {
 
     const result = await chain();
     /* eslint-enable @typescript-eslint/no-unsafe-function-type */
-
-    // 4. Process side effects (framework guarantee)
-    if (result.effects) {
-      await this.processEffects(ctx, result.effects);
-    }
 
     return result;
   }
@@ -141,17 +132,4 @@ export class ToolExecutionService implements OnModuleInit {
     return proxy;
   }
 
-  private async processEffects(ctx: WorkflowExecutionContextManager, effects: ToolSideEffects[]): Promise<void> {
-    for (const effect of effects) {
-      if (effect.addWorkflowDocuments?.length) {
-        await this.persistDocuments(ctx, effect.addWorkflowDocuments);
-      }
-    }
-  }
-
-  private async persistDocuments(ctx: WorkflowExecutionContextManager, documents: DocumentEntity[]): Promise<void> {
-    for (const document of documents) {
-      await this.documentPersistenceService.persistAndCache(ctx, document);
-    }
-  }
 }

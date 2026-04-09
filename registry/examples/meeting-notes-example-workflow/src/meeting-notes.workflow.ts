@@ -5,7 +5,7 @@ import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/me
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
 
 @Workflow({
-  uiConfig: __dirname + '/meeting-notes.workflow.yaml',
+  uiConfig: __dirname + '/meeting-notes.ui.yaml',
   schema: z.object({
     inputText: z
       .string()

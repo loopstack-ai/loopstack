@@ -7,9 +7,8 @@ import {
   WorkflowOrchestrator,
   WorkflowState,
   WorkspaceEnvironmentContextDto,
-  getBlockWorkflow,
+  WORKFLOW_ORCHESTRATOR,
 } from '@loopstack/common';
-import { WORKFLOW_ORCHESTRATOR } from '@loopstack/common';
 import { RunPayload } from '@loopstack/contracts/schemas';
 import { WorkflowService } from '../../persistence';
 import { BlockDiscoveryService } from './block-discovery.service';
@@ -26,49 +25,25 @@ export class RootProcessorService {
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
   ) {}
 
-  private resolveWorkflowFromWorkspace(workspaceName: string, alias: string): WorkflowInterface | undefined {
-    const workspaceInstance = this.blockDiscoveryService.getWorkspace(workspaceName);
-    if (!workspaceInstance) {
-      return undefined;
-    }
-    return getBlockWorkflow<WorkflowInterface>(workspaceInstance, alias);
-  }
-
-  private async resolveWorkflowConfig(workflow: WorkflowEntity): Promise<WorkflowInterface> {
-    // alias is the property name — resolve through hierarchy for security validation
-    if (workflow.parentId && !workflow.parent) {
-      workflow.parent = await this.workflowService.getWorkflow(workflow.parentId, workflow.createdBy, [
-        'workspace',
-        'parent',
-      ]);
+  private resolveWorkflowConfig(workflow: WorkflowEntity): WorkflowInterface {
+    if (!workflow.className) {
+      throw new Error(`Workflow entity ${workflow.id} has no className. Cannot resolve.`);
     }
 
-    // Try parent workflow first (for sub-workflows)
-    if (workflow.parent) {
-      const parentWorkflowConfig = await this.resolveWorkflowConfig(workflow.parent);
-      const subWorkflow = getBlockWorkflow<WorkflowInterface>(parentWorkflowConfig, workflow.alias);
-      if (subWorkflow) {
-        return subWorkflow;
-      }
-    }
-
-    // Fallback: resolve from workspace
-    const workflowConfig = this.resolveWorkflowFromWorkspace(workflow.workspace.className!, workflow.alias);
+    const workflowConfig = this.blockDiscoveryService.getWorkflowByName(workflow.className);
     if (!workflowConfig) {
       throw new Error(
-        `Workflow ${workflow.alias} not found` +
-          (workflow.parent ? ` on parent workflow or` : ' on') +
-          ` workspace ${workflow.workspace.className!}`,
+        `Workflow ${workflow.className} not found. Ensure it is registered as a provider in the module.`,
       );
     }
 
     return workflowConfig;
   }
 
-  private resolveWorkflowByNames(workspaceName: string, alias: string): WorkflowInterface {
-    const workflow = this.resolveWorkflowFromWorkspace(workspaceName, alias);
+  private resolveWorkflowByNames(alias: string): WorkflowInterface {
+    const workflow = this.blockDiscoveryService.getWorkflowByName(alias);
     if (!workflow) {
-      throw new BadRequestException(`Workflow ${alias} not available in workspace ${workspaceName}`);
+      throw new BadRequestException(`Workflow ${alias} not found. Ensure it is registered as a provider in the module.`);
     }
     return workflow;
   }
@@ -84,7 +59,7 @@ export class RootProcessorService {
     },
     payload: RunPayload,
   ): Promise<WorkflowMetadataInterface> {
-    const workflowConfig = this.resolveWorkflowByNames(params.workspaceName, params.alias);
+    const workflowConfig = this.resolveWorkflowByNames(params.alias);
 
     const ctx = new RunContext({
       root: params.alias,
@@ -101,7 +76,7 @@ export class RootProcessorService {
   }
 
   async runWorkflow(workflow: WorkflowEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {
-    const workflowConfig = await this.resolveWorkflowConfig(workflow);
+    const workflowConfig = this.resolveWorkflowConfig(workflow);
 
     const ctx = new RunContext({
       root: workflow.alias,

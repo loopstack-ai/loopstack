@@ -2,7 +2,7 @@ import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
 import { ErrorDocument, MarkdownDocument, MessageDocument, PlainDocument } from '@loopstack/core';
 
 @Workflow({
-  uiConfig: __dirname + '/test-ui-documents.workflow.yaml',
+  uiConfig: __dirname + '/test-ui-documents.ui.yaml',
 })
 export class TestUiDocumentsWorkflow extends BaseWorkflow {
   @Initial({ to: 'rendered' })

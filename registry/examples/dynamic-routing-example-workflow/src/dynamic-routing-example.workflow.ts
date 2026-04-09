@@ -3,7 +3,7 @@ import { BaseWorkflow, Final, Guard, Initial, InjectTool, Transition, Workflow }
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
 @Workflow({
-  uiConfig: __dirname + '/dynamic-routing-example.workflow.yaml',
+  uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',
   schema: z
     .object({
       value: z.number().default(150),

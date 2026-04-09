@@ -74,7 +74,7 @@ interface SandboxDestroyResult {
 }
 
 @Workflow({
-  uiConfig: __dirname + '/sandbox-example.workflow.yaml',
+  uiConfig: __dirname + '/sandbox-example.ui.yaml',
   schema: z.object({
     outputDir: z.string().default(process.cwd() + '/out'),
   }),

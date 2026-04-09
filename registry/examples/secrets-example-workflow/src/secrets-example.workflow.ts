@@ -2,7 +2,7 @@ import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Transition, Workf
 import { GetSecretKeysTool, MarkdownDocument, RequestSecretsTool, SecretRequestDocument } from '@loopstack/core';
 
 @Workflow({
-  uiConfig: __dirname + '/secrets-example.workflow.yaml',
+  uiConfig: __dirname + '/secrets-example.ui.yaml',
 })
 export class SecretsExampleWorkflow extends BaseWorkflow {
   @InjectTool() private requestSecrets: RequestSecretsTool;

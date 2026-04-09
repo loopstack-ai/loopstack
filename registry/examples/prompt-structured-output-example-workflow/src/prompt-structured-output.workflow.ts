@@ -4,7 +4,7 @@ import { BaseWorkflow, DocumentEntity, Final, Initial, InjectTool, Transition, W
 import { FileDocument, FileDocumentType } from './documents/file-document';
 
 @Workflow({
-  uiConfig: __dirname + '/prompt-structured-output.workflow.yaml',
+  uiConfig: __dirname + '/prompt-structured-output.ui.yaml',
   schema: z.object({
     language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
   }),

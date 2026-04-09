@@ -31,7 +31,7 @@ import { InjectTool, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from './create-chat-message-tool';
 
 @Workflow({
-  uiConfig: __dirname + '/my.workflow.yaml',
+  uiConfig: __dirname + '/my.ui.yaml',
 })
 export class MyWorkflow {
   @InjectTool() createChatMessage: CreateChatMessage;
@@ -41,7 +41,7 @@ export class MyWorkflow {
 And use it in your YAML workflow configuration:
 
 ```yaml
-# src/my.workflow.yaml
+# src/my.ui.yaml
 transitions:
   - id: send_welcome
     from: start

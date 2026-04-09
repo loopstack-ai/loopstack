@@ -21,7 +21,7 @@ interface CalendarFetchResult {
 }
 
 @Workflow({
-  uiConfig: __dirname + '/calendar-summary.workflow.yaml',
+  uiConfig: __dirname + '/calendar-summary.ui.yaml',
   schema: z
     .object({
       calendarId: z.string().default('primary'),

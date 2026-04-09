@@ -4,7 +4,7 @@ import { ExecutionScope } from './execution-scope';
 
 /**
  * Wraps a tool instance in a Proxy that provides:
- * - **call() interception** — routes through ToolExecutionService for validation, interceptors, side effects
+ * - **call() interception** — routes through ToolExecutionService for validation and interceptors
  * - **state isolation** — `this.x` reads/writes go to the workflow's StateManager (namespaced by tool name),
  *   so tool state is per-workflow-instance and checkpointed across wait/resume
  * - **pass-through** for methods, @FrameworkService props (repository), and @InjectTool() nested tools
@@ -20,6 +20,7 @@ export function wrapToolProxy(
     originalCallFn: Function,
     args: Record<string, unknown>,
     proxy: object,
+    options?: Record<string, unknown>,
   ) => Promise<unknown>,
 ): object {
   // Determine pass-through properties at creation time
@@ -56,9 +57,10 @@ export function wrapToolProxy(
      Proxy get/set handlers use `any` in TypeScript's ProxyHandler definition. */
   return new Proxy(tool, {
     get(target, prop, receiver) {
-      // call() → route through framework (validation, interceptors, side effects)
+      // call() → route through framework (validation, interceptors)
       if (prop === 'call') {
-        return (args: Record<string, unknown>) => executeCall(target, originalCall, args, receiver as object);
+        return (args: Record<string, unknown>, options?: Record<string, unknown>) =>
+          executeCall(target, originalCall, args, receiver as object, options);
       }
 
       // Pass-through: methods, framework services, nested tools, NestJS-injected services

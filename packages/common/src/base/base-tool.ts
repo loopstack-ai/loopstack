@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DocumentRepository, FrameworkContext, ToolResult } from '../interfaces';
+import { DocumentRepository, FrameworkContext, ToolCallOptions, ToolResult } from '../interfaces';
 import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER } from '../tokens';
 import { TemplateRenderFn } from './workflow-templates';
 
 /**
  * Abstract base class for tools in the TypeScript-first workflow model.
  *
- * Tool authors extend this class and implement `call(args)`:
+ * Tool authors extend this class and implement `call(args, options?)`:
  *
  * ```ts
  * const Schema = z.object({ a: z.number(), b: z.number() }).strict();
@@ -20,13 +20,28 @@ import { TemplateRenderFn } from './workflow-templates';
  * }
  * ```
  *
- * Workflows invoke tools with the same method: `this.myTool.call(args)`.
- * The framework transparently wraps `call()` at runtime with validation,
- * interceptors, and context management — tool authors don't need to know.
+ * For async tools that launch sub-workflows, return `pending` in the result
+ * and override `complete()` to post-process the sub-workflow result:
+ *
+ * ```ts
+ * class MyAsyncTool extends BaseTool {
+ *   @InjectWorkflow() private myWorkflow: MyWorkflow;
+ *
+ *   async call(args: Args, options?: ToolCallOptions) {
+ *     const result = await this.myWorkflow.run(args, { callback: options?.callback });
+ *     return { data: { workflowId: result.workflowId }, pending: { workflowId: result.workflowId } };
+ *   }
+ *
+ *   async complete(result: Record<string, unknown>) {
+ *     return { data: result.result };
+ *   }
+ * }
+ * ```
  *
  * Framework services are available on `this`:
  * - `this.repository` — document repository for creating/querying documents
  * - `this.ctx` — execution context (context, runtime, args, parent)
+ * - `this.render` — Handlebars template renderer
  */
 @Injectable()
 export abstract class BaseTool {
@@ -42,6 +57,18 @@ export abstract class BaseTool {
   /**
    * Implement this method with your tool logic.
    * The framework wraps this method at runtime with validation and interceptors.
+   *
+   * @param args — Validated input (against the `@Tool({ schema })` Zod schema)
+   * @param options — Framework-provided options (e.g. callback for async tool delegation)
    */
-  abstract call(args: object): Promise<ToolResult>;
+  abstract call(args: object, options?: ToolCallOptions): Promise<ToolResult>;
+
+  /**
+   * Called when an async sub-workflow completes and the callback fires.
+   * Override to post-process the result (e.g. update link documents, transform data).
+   * The default implementation passes through the sub-workflow result.
+   */
+  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+    return { data: (result as { data?: unknown }).data ?? result };
+  }
 }

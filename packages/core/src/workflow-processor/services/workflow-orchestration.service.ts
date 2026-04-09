@@ -1,6 +1,13 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { CallbackOptions, QueueResult, RunOptions, WorkflowEntity, WorkflowOrchestrator } from '@loopstack/common';
+import {
+  CallbackOptions,
+  QueueResult,
+  RunOptions,
+  WorkflowEntity,
+  WorkflowInterface,
+  WorkflowOrchestrator,
+} from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { WorkflowService } from '../../persistence';
 import { TaskSchedulerService } from '../../scheduler';
@@ -40,6 +47,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     }
 
     const alias = options.alias;
+    const workflowInstance = options._workflowInstance as WorkflowInterface | undefined;
 
     const workflowEntity = await this.createWorkflowService.create(
       { id: context.workspaceId },
@@ -52,7 +60,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
       },
       context.userId,
       context.parentWorkflowId,
-      ctx.getInstance(),
+      workflowInstance,
     );
 
     await this.taskSchedulerService.addTask({

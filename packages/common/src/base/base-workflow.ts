@@ -5,8 +5,10 @@ import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER, WORKFLOW_ORC
 import { TemplateRenderFn } from './workflow-templates';
 
 export interface RunOptions {
-  alias: string;
+  alias?: string;
   callback?: { transition: string; metadata?: Record<string, unknown> };
+  /** @internal — set automatically by `run()`. The resolved workflow instance. */
+  _workflowInstance?: object;
 }
 
 export interface QueueResult {
@@ -50,6 +52,9 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>> {
 
   /** Launches this workflow as a sub-workflow via the orchestrator. */
   run(args: TArgs, options?: RunOptions): Promise<QueueResult> {
-    return this.orchestrator.queue(args as Record<string, unknown>, options);
+    return this.orchestrator.queue(args as Record<string, unknown>, {
+      ...options,
+      _workflowInstance: this,
+    });
   }
 }

@@ -142,18 +142,6 @@ export class DocumentPersistenceService {
     ctx.getManager().setData('persistenceState', { documentsUpdated: true });
   }
 
-  /**
-   * Persists a document entity that was created externally (e.g. from tool side effects).
-   * Writes to DB via the scoped queryRunner if available, then updates the in-memory cache.
-   */
-  async persistAndCache(ctx: WorkflowExecutionContextManager, document: DocumentEntity): Promise<DocumentEntity> {
-    const queryRunner = ctx.getQueryRunner();
-    const saved = queryRunner ? await queryRunner.manager.save(DocumentEntity, document) : document;
-
-    await this.addToCache(ctx, saved);
-    return saved;
-  }
-
   private validateContent(
     schema: import('zod').ZodType | undefined,
     content: unknown,

@@ -32,7 +32,7 @@ import { InjectTool, State, Workflow } from '@loopstack/common';
 import { CreateValue } from './create-value-tool';
 
 @Workflow({
-  uiConfig: __dirname + '/my.workflow.yaml',
+  uiConfig: __dirname + '/my.ui.yaml',
 })
 export class MyWorkflow {
   @InjectTool() createValue: CreateValue;
@@ -49,7 +49,7 @@ export class MyWorkflow {
 And use it in your YAML workflow configuration:
 
 ```yaml
-# src/my.workflow.yaml
+# src/my.ui.yaml
 transitions:
   # Debug a template expression
   - id: debug_expression
