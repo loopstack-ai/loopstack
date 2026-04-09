@@ -1,32 +1,17 @@
-import {
-  BlockInterface,
-  ContextMetadata,
-  InputMetadata,
-  RunContext,
-  RuntimeMetadata,
-  StateMetadata,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-  getBlockContextMetadata,
-  getBlockInputMetadata,
-  getBlockRuntimeMetadata,
-  getBlockStateMetadata,
-} from '@loopstack/common';
+import { QueryRunner } from 'typeorm';
+import { BlockInterface, RunContext, WorkflowInterface, WorkflowMetadataInterface } from '@loopstack/common';
 import { StateManager } from './state/state-manager';
 import { wrapBlockProxy } from './wrap-block-proxy';
 
-export type WorkflowExecutionContextManager = ExecutionContextManager<any, any, WorkflowMetadataInterface>;
-
-export type InstanceMetadataInfo = {
-  state?: StateMetadata;
-  args?: InputMetadata;
-  context?: ContextMetadata;
-  runtime?: RuntimeMetadata;
-};
+export type WorkflowExecutionContextManager = ExecutionContextManager<
+  Record<string, unknown> | undefined,
+  Record<string, unknown>,
+  WorkflowMetadataInterface
+>;
 
 export class ExecutionContextManager<TInput = any, TState = any, TMetadata = any> {
   protected _wrappedInstance: WorkflowInterface;
-  protected _blockMetadata: InstanceMetadataInfo;
+  private _queryRunner: QueryRunner | null = null;
 
   constructor(
     instance: BlockInterface,
@@ -34,19 +19,15 @@ export class ExecutionContextManager<TInput = any, TState = any, TMetadata = any
     private readonly _args: TInput,
     private readonly _stateManager?: StateManager<TState, TMetadata>,
   ) {
-    const stateMeta = getBlockStateMetadata(instance.constructor);
-    const argsMeta = getBlockInputMetadata(instance.constructor);
-    const contextMeta = getBlockContextMetadata(instance.constructor);
-    const runtimeMeta = getBlockRuntimeMetadata(instance.constructor);
-
-    this._blockMetadata = {
-      state: stateMeta,
-      args: argsMeta,
-      context: contextMeta,
-      runtime: runtimeMeta,
-    };
-
     this._wrappedInstance = wrapBlockProxy(instance, this);
+  }
+
+  setQueryRunner(qr: QueryRunner | null): void {
+    this._queryRunner = qr;
+  }
+
+  getQueryRunner(): QueryRunner | null {
+    return this._queryRunner;
   }
 
   getArgs(): Readonly<TInput> {
@@ -55,10 +36,6 @@ export class ExecutionContextManager<TInput = any, TState = any, TMetadata = any
 
   getContext(): RunContext {
     return Object.freeze({ ...this._context });
-  }
-
-  getMetadata(): InstanceMetadataInfo {
-    return this._blockMetadata;
   }
 
   getInstance(): WorkflowInterface {

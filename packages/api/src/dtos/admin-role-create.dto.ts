@@ -16,7 +16,7 @@ export class AdminRoleCreateDto {
   @MaxLength(500, { message: 'Description must not exceed 500 characters' })
   @ApiPropertyOptional({
     description: 'Human-readable description of the role',
-    example: 'Can edit pipelines and workspaces',
+    example: 'Can edit workflows and workspaces',
   })
   description?: string;
 }

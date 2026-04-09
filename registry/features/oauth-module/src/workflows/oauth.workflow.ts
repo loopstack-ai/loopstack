@@ -1,64 +1,76 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  InjectDocument,
-  InjectTool,
-  Input,
-  Output,
-  Runtime,
-  State,
-  Workflow,
-  WorkflowInterface,
-} from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Workflow } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents';
-import { BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools';
+import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools';
 
 @Injectable()
 @Workflow({
-  configFile: __dirname + '/oauth.workflow.yaml',
+  uiConfig: __dirname + '/oauth.ui.yaml',
+  schema: z
+    .object({
+      provider: z.string(),
+      scopes: z.array(z.string()).default([]),
+    })
+    .strict(),
 })
-export class OAuthWorkflow implements WorkflowInterface {
-  @InjectTool() private buildOAuthUrl: BuildOAuthUrlTool;
-  @InjectTool() private exchangeOAuthToken: ExchangeOAuthTokenTool;
-  @InjectTool() private createDocument: CreateDocument;
-  @InjectTool() private createChatMessage: CreateChatMessage;
-  @InjectDocument() private oauthPromptDocument: OAuthPromptDocument;
+export class OAuthWorkflow extends BaseWorkflow<{ provider: string; scopes: string[] }> {
+  @InjectTool() buildOAuthUrl: BuildOAuthUrlTool;
+  @InjectTool() exchangeOAuthToken: ExchangeOAuthTokenTool;
 
-  @Input({
-    schema: z
-      .object({
-        provider: z.string(),
-        scopes: z.array(z.string()).default([]),
-      })
-      .strict(),
+  provider!: string;
+  oauthState?: string;
+  authUrl?: string;
+
+  @Initial({ to: 'awaiting_auth' })
+  async initiateOAuth(args: { provider: string; scopes: string[] }) {
+    this.provider = args.provider;
+
+    const result: ToolResult<BuildOAuthUrlResult> = await this.buildOAuthUrl.call({
+      provider: args.provider,
+      scopes: args.scopes,
+    });
+
+    this.oauthState = result.data!.state;
+    this.authUrl = result.data!.authUrl;
+
+    await this.repository.save(
+      OAuthPromptDocument,
+      {
+        provider: this.provider,
+        authUrl: this.authUrl,
+        state: this.oauthState,
+        status: 'pending' as const,
+      },
+      { id: 'oauthPrompt' },
+    );
+  }
+
+  @Final({
+    from: 'awaiting_auth',
+    wait: true,
+    schema: z.object({ code: z.string(), state: z.string() }),
   })
-  args: {
-    provider: string;
-    scopes: string[];
-  };
+  async exchangeToken(payload: { code: string; state: string }): Promise<{ authenticated: boolean }> {
+    await this.exchangeOAuthToken.call({
+      provider: this.provider,
+      code: payload.code,
+      state: payload.state,
+      expectedState: this.oauthState!,
+    });
 
-  @State({
-    schema: z
-      .object({
-        oauthState: z.string().optional(),
-        authUrl: z.string().optional(),
-      })
-      .strict(),
-  })
-  state: {
-    oauthState?: string;
-    authUrl?: string;
-  };
+    await this.repository.save(
+      OAuthPromptDocument,
+      {
+        provider: this.provider,
+        authUrl: this.authUrl!,
+        state: this.oauthState!,
+        status: 'success' as const,
+        message: 'Successfully connected.',
+      },
+      { id: 'oauthPrompt' },
+    );
 
-  @Runtime()
-  runtime: any;
-
-  @Output()
-  result() {
-    return {
-      authenticated: true,
-    };
+    return { authenticated: true };
   }
 }

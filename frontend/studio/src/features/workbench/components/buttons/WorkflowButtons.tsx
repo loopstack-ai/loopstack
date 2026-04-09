@@ -1,6 +1,6 @@
 import { LockOpen, Repeat } from 'lucide-react';
 import React from 'react';
-import type { PipelineInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,31 +14,57 @@ import {
 } from '@/components/ui/alert-dialog.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
-import { useDeleteWorkflow, useWorkflow } from '@/hooks/useWorkflows.ts';
+import { useRunWorkflow } from '@/hooks/useProcessor.ts';
+import { useCreateWorkflow, useWorkflow } from '@/hooks/useWorkflows.ts';
+import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const WorkflowButtons: React.FC<{
-  pipeline: PipelineInterface;
+  workflow: WorkflowFullInterface;
   workflowId: string;
-}> = ({ pipeline, workflowId }) => {
+}> = ({ workflow, workflowId }) => {
+  const { router } = useStudio();
   const fetchWorkflow = useWorkflow(workflowId);
-  const workflow = fetchWorkflow.data;
+  const childWorkflow = fetchWorkflow.data;
 
-  const deleteWorkflow = useDeleteWorkflow();
-  const runPipeline = useRunPipeline();
+  const createWorkflow = useCreateWorkflow();
+  const runWorkflow = useRunWorkflow();
 
-  const handlePing = () => {
-    runPipeline.mutate({
-      pipelineId: pipeline.id,
-      runPipelinePayloadDto: {},
-      force: false,
-    });
+  const isRepeating = createWorkflow.isPending || runWorkflow.isPending;
+
+  const handleRepeat = () => {
+    createWorkflow.mutate(
+      {
+        workflowCreateDto: {
+          alias: workflow.alias,
+          title: null,
+          workspaceId: workflow.workspaceId,
+          transition: null,
+          args: (workflow.args ?? {}) as Record<string, unknown>,
+        },
+      },
+      {
+        onSuccess: (createdWorkflow) => {
+          runWorkflow.mutate(
+            {
+              workflowId: createdWorkflow.id,
+              runWorkflowPayloadDto: {},
+              force: true,
+            },
+            {
+              onSuccess: () => {
+                void router.navigateToWorkflow(createdWorkflow.id);
+              },
+            },
+          );
+        },
+      },
+    );
   };
 
   const handleUnlock = () => {
-    runPipeline.mutate({
-      pipelineId: pipeline.id,
-      runPipelinePayloadDto: {
+    runWorkflow.mutate({
+      workflowId: workflow.id,
+      runWorkflowPayloadDto: {
         transition: {
           name: 'unlock',
           workflowId: workflowId,
@@ -48,17 +74,7 @@ const WorkflowButtons: React.FC<{
     });
   };
 
-  const handleDelete = () => {
-    if (!workflow) return;
-    try {
-      deleteWorkflow.mutate(workflow as unknown as WorkflowItemInterface);
-      handlePing();
-    } catch (error) {
-      console.error('Mutation failed:', error);
-    }
-  };
-
-  if (!workflow) return null;
+  if (!childWorkflow) return null;
 
   return (
     <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
@@ -66,8 +82,8 @@ const WorkflowButtons: React.FC<{
         <Tooltip>
           <TooltipTrigger asChild>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={deleteWorkflow.isPending}>
-                {deleteWorkflow.isPending ? (
+              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={isRepeating}>
+                {isRepeating ? (
                   <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 ) : (
                   <Repeat className="h-3.5 w-3.5" />
@@ -81,24 +97,24 @@ const WorkflowButtons: React.FC<{
           <AlertDialogHeader>
             <AlertDialogTitle>Repeat workflow</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the current workflow run and re-trigger the pipeline.
+              This will create a new run with the same arguments and redirect you to it.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Repeat</AlertDialogAction>
+            <AlertDialogAction onClick={handleRepeat}>Repeat</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {workflow.place === 'end' &&
-        workflow.availableTransitions?.find((t) => (t as { id: string }).id === 'unlock') && (
+      {childWorkflow.place === 'end' &&
+        childWorkflow.availableTransitions?.find((t) => (t as { id: string }).id === 'unlock') && (
           <AlertDialog>
             <Tooltip>
               <TooltipTrigger asChild>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" disabled={runPipeline.isPending}>
-                    {runPipeline.isPending ? (
+                  <Button variant="ghost" size="icon" className="h-7 w-7" disabled={runWorkflow.isPending}>
+                    {runWorkflow.isPending ? (
                       <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     ) : (
                       <LockOpen className="h-3.5 w-3.5" />

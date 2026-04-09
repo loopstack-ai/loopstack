@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { FileContentInterface } from '@loopstack/contracts/api';
-import { PipelineConfigDto } from './pipeline-config.dto';
+import { WorkflowConfigDto } from './workflow-config.dto';
 
 export class FileContentDto implements FileContentInterface {
   @ApiProperty({
@@ -17,7 +17,7 @@ export class FileContentDto implements FileContentInterface {
 
   @ApiPropertyOptional({
     description: 'Parsed workflow configuration if the file is a YAML workflow file',
-    type: PipelineConfigDto,
+    type: WorkflowConfigDto,
   })
-  workflowConfig?: PipelineConfigDto;
+  workflowConfig?: WorkflowConfigDto;
 }

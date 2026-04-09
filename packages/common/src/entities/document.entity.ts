@@ -24,17 +24,16 @@ export class DocumentEntity<T = any> {
   @Index()
   messageId!: string;
 
-  @Column({ type: 'varchar', name: 'block_name' })
+  @Column({ type: 'varchar', name: 'alias' })
   @Index()
-  blockName!: string;
+  alias!: string;
+
+  @Column({ type: 'varchar', name: 'class_name', nullable: true })
+  className!: string | null;
 
   @Column({ name: 'workspace_id' })
   @Index()
   workspaceId!: string;
-
-  @Column({ name: 'pipeline_id' })
-  @Index()
-  pipelineId!: string;
 
   @Column('jsonb', { nullable: true })
   content!: T | null;
@@ -69,9 +68,6 @@ export class DocumentEntity<T = any> {
 
   @Column({ name: 'is_pending_removal', default: false })
   isPendingRemoval!: boolean;
-
-  @Column('ltree', { name: 'workflow_index', default: '1' })
-  workflowIndex!: string;
 
   @Column({ default: 1 })
   version!: number;

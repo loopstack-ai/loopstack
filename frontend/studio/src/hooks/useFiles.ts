@@ -4,20 +4,20 @@ import { getFileContentCacheKey, getFileTreeCacheKey } from './query-keys';
 import { useApiClient } from './useApi';
 
 export function useFileTree(
-  pipelineId: string | undefined,
+  workflowId: string | undefined,
   fileExplorerEnabled = true,
 ): UseQueryResult<FileExplorerNodeInterface[], Error> {
   const { envKey, api } = useApiClient();
 
   return useQuery<FileExplorerNodeInterface[], Error>({
-    queryKey: getFileTreeCacheKey(envKey, pipelineId!),
+    queryKey: getFileTreeCacheKey(envKey, workflowId!),
     queryFn: () => {
-      if (!pipelineId) {
-        throw new Error('Pipeline ID is required');
+      if (!workflowId) {
+        throw new Error('Workflow ID is required');
       }
-      return api.pipelines.getFileTree({ pipelineId });
+      return api.workflows.getFileTree({ workflowId });
     },
-    enabled: !!pipelineId && fileExplorerEnabled,
+    enabled: !!workflowId && fileExplorerEnabled,
     staleTime: 5 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -26,20 +26,20 @@ export function useFileTree(
 }
 
 export function useFileContent(
-  pipelineId: string | undefined,
+  workflowId: string | undefined,
   filePath: string | undefined,
   fileExplorerEnabled = true,
 ): UseQueryResult<FileContentInterface, Error> {
   const { envKey, api } = useApiClient();
 
   return useQuery<FileContentInterface, Error>({
-    queryKey: getFileContentCacheKey(envKey, pipelineId!, filePath!),
+    queryKey: getFileContentCacheKey(envKey, workflowId!, filePath!),
     queryFn: () => {
-      if (!pipelineId || !filePath) {
-        throw new Error('Pipeline ID and file path are required');
+      if (!workflowId || !filePath) {
+        throw new Error('Workflow ID and file path are required');
       }
-      return api.pipelines.getFileContent({ pipelineId, filePath });
+      return api.workflows.getFileContent({ workflowId, filePath });
     },
-    enabled: !!pipelineId && !!filePath && fileExplorerEnabled,
+    enabled: !!workflowId && !!filePath && fileExplorerEnabled,
   });
 }

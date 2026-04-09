@@ -9,5 +9,5 @@ ui:
             widget: textarea
         actions:
           - type: button
-            transition: user_response
+            transition: userResponse
             label: 'Optimize Notes'

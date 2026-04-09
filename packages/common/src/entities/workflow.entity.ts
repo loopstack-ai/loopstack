@@ -11,34 +11,29 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { z } from 'zod';
-import type { JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '@loopstack/contracts/types';
+import type { WorkflowTransitionType } from '@loopstack/contracts/types';
 import { WorkflowState } from '../enums';
-import { TransitionResultLookup, WorkflowMementoData } from '../interfaces';
-import { StableJsonTransformer } from '../utils';
 import { DocumentEntity } from './document.entity';
-import { NamespaceEntity } from './namespace.entity';
 import { User } from './user.entity';
+import { WorkspaceEntity } from './workspace.entity';
 
 @Entity({ name: 'core_workflow' })
 export class WorkflowEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', name: 'block_name' })
+  @Column({ type: 'varchar', name: 'alias' })
   @Index()
-  blockName!: string;
+  alias!: string;
 
-  /** @deprecated to be moved out of entity */
+  @Column({ type: 'varchar', name: 'class_name', nullable: true })
+  className!: string | null;
+
   @Column({ type: 'varchar', nullable: true })
   title!: string;
 
-  @Column('ltree', { default: '1' })
-  index!: string;
-
-  /** @deprecated unused */
-  @Column({ default: 0 })
-  progress!: number;
+  @Column({ default: 1 })
+  run!: number;
 
   @Column({
     type: 'enum',
@@ -53,28 +48,26 @@ export class WorkflowEntity {
   @Column({ type: 'varchar', nullable: true })
   errorMessage!: string | null;
 
+  @Column({ type: 'varchar', name: 'callback_transition', nullable: true })
+  callbackTransition!: string | null;
+
+  @Column('jsonb', { name: 'callback_metadata', nullable: true })
+  callbackMetadata!: Record<string, unknown> | null;
+
+  @Column('jsonb', { default: {} })
+  args!: any;
+
+  @Column('jsonb', { default: {} })
+  context!: Record<string, any>;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', default: 'start' })
   place!: string;
-
-  /** @deprecated unused */
-  @Column('jsonb', {
-    name: 'transition_results',
-    nullable: true,
-  })
-  transitionResults!: TransitionResultLookup | null;
-
-  /** @deprecated unused */
-  @Column('jsonb', {
-    name: 'input_data',
-    default: {},
-  })
-  inputData!: Record<string, unknown>;
 
   @Column({
     type: 'jsonb',
@@ -88,43 +81,6 @@ export class WorkflowEntity {
     nullable: true,
   })
   availableTransitions!: WorkflowTransitionType[] | null;
-
-  @Column('jsonb', { name: 'history', nullable: true })
-  history!: WorkflowMementoData<any, any>[] | null;
-
-  /** @deprecated to be moved out of entity */
-  @Column({
-    type: 'jsonb',
-    transformer: new StableJsonTransformer(),
-    name: 'schema',
-    nullable: true,
-  })
-  schema!: JSONSchemaConfigType | null;
-
-  /** @deprecated unused */
-  @Column('jsonb', { nullable: true, name: 'error' })
-  error!: z.ZodError | null;
-
-  /** @deprecated to be moved out of entity */
-  @Column({
-    type: 'jsonb',
-    transformer: new StableJsonTransformer(),
-    name: 'ui',
-    nullable: true,
-  })
-  ui!: UiFormType | null;
-
-  @ManyToOne(() => NamespaceEntity, (namespace) => namespace.workflows, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'namespace_id' })
-  namespace!: NamespaceEntity;
-
-  @Column({ name: 'namespace_id' })
-  namespaceId!: string;
-
-  @Column({ name: 'pipeline_id' })
-  pipelineId!: string;
 
   @Column('varchar', { name: 'labels', array: true, default: [] })
   labels!: string[];
@@ -149,10 +105,18 @@ export class WorkflowEntity {
   hashRecord!: Record<string, string | null> | null;
 
   @OneToMany(() => DocumentEntity, (document: DocumentEntity) => document.workflow, {
-    cascade: true,
     onDelete: 'CASCADE',
   })
   documents!: DocumentEntity[];
+
+  @ManyToOne(() => WorkspaceEntity, (workspace) => workspace.workflows, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'workspace_id' })
+  workspace!: WorkspaceEntity;
+
+  @Column({ name: 'workspace_id' })
+  workspaceId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by' })
@@ -161,4 +125,17 @@ export class WorkflowEntity {
   @Column({ name: 'created_by', type: 'uuid' })
   @Index()
   createdBy!: string;
+
+  @ManyToOne(() => WorkflowEntity, (workflow) => workflow.children, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'parent_id' })
+  parent!: WorkflowEntity | null;
+
+  @Column({ name: 'parent_id', type: 'uuid', nullable: true })
+  parentId!: string | null;
+
+  @OneToMany(() => WorkflowEntity, (workflow) => workflow.parent)
+  children!: WorkflowEntity[];
 }

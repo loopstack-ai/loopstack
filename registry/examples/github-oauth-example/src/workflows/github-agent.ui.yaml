@@ -1,0 +1,16 @@
+title: 'GitHub Agent'
+
+description: |
+  An interactive chat agent with access to GitHub.
+  Ask it to manage repositories, issues, pull requests, browse code, check CI/CD status,
+  search across GitHub, and more. Handles OAuth authentication automatically when needed —
+  the agent detects unauthorized errors and launches authentication on its own.
+
+ui:
+  widgets:
+    - widget: prompt-input
+      enabledWhen:
+        - waiting_for_user
+      options:
+        transition: userMessage
+        label: Send Message

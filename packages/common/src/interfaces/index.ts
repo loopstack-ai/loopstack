@@ -1,4 +1,3 @@
-export * from './state-machine-validator.interface.js';
 export * from './handler.interface.js';
 
 export * from './role.interface.js';
@@ -8,7 +7,6 @@ export * from './ai-provider.interface.js';
 export * from './block.interface.js';
 export * from './transition-results.types.js';
 export * from './sso-response.interface.js';
-export * from './state-machine-validator-result.interface.js';
 export * from './jwt-payload.interface.js';
 export * from './current-user.interface.js';
 export * from './persistence-state.interface.js';
@@ -16,3 +14,6 @@ export * from './workflow-execution.interface.js';
 export * from './workflow-memento-data.interfate.js';
 export * from './workflow-metadata.interface.js';
 export * from './workflow-state.interface.js';
+export * from './document-repository.interface.js';
+export * from './execution-context.interface.js';
+export * from './workflow-orchestrator.interface.js';

@@ -1,34 +1,34 @@
 import { Inject } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
-import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthProviderRegistry } from '../services';
 
-export type BuildOAuthUrlArgs = {
-  provider: string;
-  scopes: string[];
-};
+const BuildOAuthUrlSchema = z
+  .object({
+    provider: z.string(),
+    scopes: z.array(z.string()),
+  })
+  .strict();
+
+type BuildOAuthUrlArgs = z.infer<typeof BuildOAuthUrlSchema>;
+
+export interface BuildOAuthUrlResult {
+  authUrl: string;
+  state: string;
+}
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Builds an OAuth 2.0 authorization URL for the given provider with CSRF state parameter.',
   },
+  schema: BuildOAuthUrlSchema,
 })
-export class BuildOAuthUrlTool implements ToolInterface {
+export class BuildOAuthUrlTool extends BaseTool {
   @Inject()
   private providerRegistry: OAuthProviderRegistry;
 
-  @Input({
-    schema: z
-      .object({
-        provider: z.string(),
-        scopes: z.array(z.string()),
-      })
-      .strict(),
-  })
-  args: BuildOAuthUrlArgs;
-
-  execute(args: BuildOAuthUrlArgs): Promise<ToolResult> {
+  call(args: BuildOAuthUrlArgs): Promise<ToolResult> {
     const provider = this.providerRegistry.get(args.provider);
     const state = randomBytes(32).toString('hex');
     const scopes = args.scopes?.length ? args.scopes : provider.defaultScopes;

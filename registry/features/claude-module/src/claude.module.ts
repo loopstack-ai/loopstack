@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
-import { ClaudeMessageDocument } from './documents';
 import { ClaudeClientService, ClaudeMessagesHelperService, ClaudeToolsHelperService } from './services';
 import {
   ClaudeGenerateDocument,
@@ -24,17 +23,7 @@ import {
     ClaudeGenerateDocument,
     DelegateToolCalls,
     UpdateToolResult,
-
-    // documents
-    ClaudeMessageDocument,
   ],
-  exports: [
-    ClaudeGenerateText,
-    ClaudeGenerateObject,
-    ClaudeGenerateDocument,
-    DelegateToolCalls,
-    UpdateToolResult,
-    ClaudeMessageDocument,
-  ],
+  exports: [ClaudeGenerateText, ClaudeGenerateObject, ClaudeGenerateDocument, DelegateToolCalls, UpdateToolResult],
 })
 export class ClaudeModule {}

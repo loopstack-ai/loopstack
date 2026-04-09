@@ -22,7 +22,7 @@ export class WorkspaceCreateDto implements WorkspaceCreateInterface {
     description: 'The config key of the workspace',
     example: 'file.yaml:my-workflow-type',
   })
-  blockName: string;
+  className: string;
 
   @IsOptional()
   @IsBoolean()

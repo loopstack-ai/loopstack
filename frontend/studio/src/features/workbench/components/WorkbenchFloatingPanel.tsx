@@ -1,49 +1,19 @@
 import { X } from 'lucide-react';
-import { SidebarMenu, SidebarProvider } from '@/components/ui/sidebar.tsx';
-import { useNamespaceTree } from '@/hooks/useNamespaceTree.ts';
 import { cn } from '@/lib/utils';
-import WorkbenchNavigation from '../WorkbenchNavigation.tsx';
 import { type FloatingPanelId, useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
-import PipelineHistoryList from './PipelineHistoryList.tsx';
 import { WorkbenchSecretsPanel } from './WorkbenchSecretsPanel.tsx';
+import WorkflowHistoryList from './WorkflowHistoryList.tsx';
 
 const PANEL_TITLES: Record<FloatingPanelId, string> = {
-  navigation: 'Navigate',
   history: 'Run Log',
   secrets: 'Secrets',
 };
 
-function NavigationContent() {
-  const { pipeline } = useWorkbenchLayout();
-
-  // WorkbenchNavigation uses SidebarMenuDiv which requires useSidebar()
-  // We wrap it in a minimal SidebarProvider for compatibility
-  return (
-    <SidebarProvider defaultOpen className="min-h-0" style={{ '--sidebar-width': '100%' } as React.CSSProperties}>
-      <div className="w-full overflow-auto p-2">
-        <SidebarMenu>
-          <NavigationContentInner pipelineId={pipeline.id} />
-        </SidebarMenu>
-      </div>
-    </SidebarProvider>
-  );
-}
-
-function NavigationContentInner({ pipelineId }: { pipelineId: string }) {
-  const namespaceTree = useNamespaceTree(pipelineId);
-
-  if (!namespaceTree || namespaceTree.length === 0) {
-    return <div className="text-muted-foreground py-4 text-center text-sm">No navigation items</div>;
-  }
-
-  return <WorkbenchNavigation namespaceTree={namespaceTree} indent={0} />;
-}
-
 function HistoryContent() {
-  const { pipeline } = useWorkbenchLayout();
+  const { workflow } = useWorkbenchLayout();
   return (
     <div className="overflow-auto p-2">
-      <PipelineHistoryList pipeline={pipeline} />
+      <WorkflowHistoryList workflow={workflow} />
     </div>
   );
 }
@@ -72,7 +42,6 @@ export function WorkbenchFloatingPanel() {
         </button>
       </div>
       <div className="flex-1 overflow-hidden">
-        {activeFloatingPanel === 'navigation' && <NavigationContent />}
         {activeFloatingPanel === 'history' && <HistoryContent />}
         {activeFloatingPanel === 'secrets' && <WorkbenchSecretsPanel />}
       </div>

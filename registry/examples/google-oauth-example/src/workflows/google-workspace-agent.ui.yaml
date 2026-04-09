@@ -1,0 +1,16 @@
+title: 'Google Workspace Agent'
+
+description: |
+  An interactive chat agent with access to Google Calendar, Gmail, and Google Drive.
+  Ask it to check your calendar, search emails, find files, send messages, create events, and more.
+  Handles OAuth authentication automatically when needed — the agent detects unauthorized errors
+  and launches authentication on its own.
+
+ui:
+  widgets:
+    - widget: prompt-input
+      enabledWhen:
+        - waiting_for_user
+      options:
+        transition: userMessage
+        label: Send Message

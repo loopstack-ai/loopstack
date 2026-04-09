@@ -1,22 +1,34 @@
+import { z } from 'zod';
 import { ClaudeGenerateText, ClaudeMessageDocument } from '@loopstack/claude-module';
-import { InjectDocument, InjectTool, Runtime, State, Workflow } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core';
+import { BaseWorkflow, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({
-  configFile: __dirname + '/chat.workflow.yaml',
+  uiConfig: __dirname + '/chat.ui.yaml',
 })
-export class ChatWorkflow {
-  @InjectTool() createDocument: CreateDocument;
+export class ChatWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
-  @InjectDocument() claudeMessageDocument: ClaudeMessageDocument;
 
-  @State({
-    schema: undefined,
-  })
-  state: {
-    llmResult?: any;
-  };
+  @Initial({ to: 'waiting_for_user' })
+  async setup() {
+    await this.repository.save(
+      ClaudeMessageDocument,
+      { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
+      { meta: { hidden: true } },
+    );
+  }
 
-  @Runtime()
-  runtime: any;
+  @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
+  async userMessage(payload: string) {
+    await this.repository.save(ClaudeMessageDocument, { role: 'user', content: payload });
+  }
+
+  @Transition({ from: 'ready', to: 'waiting_for_user' })
+  async llmTurn() {
+    const result = await this.claudeGenerateText.call({
+      claude: { model: 'claude-sonnet-4-6' },
+      messagesSearchTag: 'message',
+    });
+
+    await this.repository.save(ClaudeMessageDocument, result.data!, { id: result.data!.id });
+  }
 }

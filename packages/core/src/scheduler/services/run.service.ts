@@ -3,14 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { WorkspaceService } from '../../persistence';
-import { CreatePipelineService } from '../../workflow-processor';
+import { CreateWorkflowService } from '../../workflow-processor';
 import { TaskSchedulerService } from './task-scheduler.service';
 
 @Injectable()
 export class RunService {
   constructor(
     private readonly configService: ConfigService,
-    private readonly createPipelineService: CreatePipelineService,
+    private readonly createWorkflowService: CreateWorkflowService,
     private readonly workspaceService: WorkspaceService,
     private readonly taskSchedulerService: TaskSchedulerService,
   ) {}
@@ -25,14 +25,14 @@ export class RunService {
     } = {},
   ): Promise<{
     workerId: string;
-    pipelineId: string;
+    workflowId: string;
     workspaceId: string;
   }> {
     const workerId = this.configService.getOrThrow<string>('auth.clientId');
 
     let workspace = await this.workspaceService.getWorkspace(
       {
-        blockName: workspaceName,
+        className: workspaceName,
       },
       userId,
     );
@@ -40,31 +40,31 @@ export class RunService {
     if (!workspace) {
       workspace = await this.workspaceService.create(
         {
-          blockName: workspaceName,
+          className: workspaceName,
           title: options.workspaceTitle || workspaceName,
         },
         userId,
       );
     }
 
-    const pipeline = await this.createPipelineService.create(
+    const workflow = await this.createWorkflowService.create(
       {
         id: workspace.id,
       },
       {
-        blockName: itemName,
+        alias: itemName,
         args: payload,
       },
       userId,
     );
 
     await this.taskSchedulerService.addTask({
-      id: 'manual_pipeline_execution-' + randomUUID(),
+      id: 'manual_workflow_execution-' + randomUUID(),
       workspaceId: workspace.id,
       task: {
         name: 'manual_execution',
-        type: 'run_pipeline',
-        pipelineId: pipeline.id,
+        type: 'run_workflow',
+        workflowId: workflow.id,
         payload: {},
         user: userId,
       },
@@ -73,7 +73,7 @@ export class RunService {
     return {
       workerId,
       workspaceId: workspace.id,
-      pipelineId: pipeline.id,
+      workflowId: workflow.id,
     };
   }
 }

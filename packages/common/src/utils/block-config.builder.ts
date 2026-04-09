@@ -5,17 +5,18 @@ import { BlockConfigType, type ConfigSourceInterface } from '@loopstack/contract
 import { BlockOptions } from '../decorators';
 
 export function buildConfig(options: BlockOptions, type?: string): BlockConfigType {
-  const baseConfig: Partial<BlockConfigType> = {
-    ...options.config,
-  };
+  let baseConfig: Partial<BlockConfigType> = {};
 
-  if (options.configFile) {
-    const configSource = loadConfigFile(options.configFile);
+  if (typeof options.uiConfig === 'string') {
+    // File path — load YAML
+    const configSource = loadConfigFile(options.uiConfig);
     if (!configSource) {
-      throw new Error(`Could not load config source ${options.configFile}`);
+      throw new Error(`Could not load config source ${options.uiConfig}`);
     }
-
     Object.assign(baseConfig, configSource.config);
+  } else if (options.uiConfig) {
+    // Inline config object
+    baseConfig = { ...options.uiConfig };
   }
 
   if (type) {

@@ -57,7 +57,7 @@ export class WorkspaceApiService {
 
     if (search) {
       const allowedColumns = getEntityColumns(WorkspaceEntity);
-      const searchColumns = ['title', 'blockName'].filter((col) => allowedColumns.includes(col));
+      const searchColumns = ['title', 'className'].filter((col) => allowedColumns.includes(col));
       if (searchColumns.length > 0) {
         const searchConditions = searchColumns.map((column) => `workspace.${column} ILIKE :searchQuery`);
         queryBuilder.andWhere(`(${searchConditions.join(' OR ')})`, {
@@ -113,7 +113,7 @@ export class WorkspaceApiService {
    * Creates a new workspace.
    */
   async create(workspaceData: WorkspaceCreateDto, user: string): Promise<WorkspaceEntity> {
-    const title = workspaceData.title || `${workspaceData.blockName}`;
+    const title = workspaceData.title || `${workspaceData.className}`;
     const { environments: envDtos, ...rest } = workspaceData;
 
     const workspace = this.workspaceRepository.create({
@@ -201,7 +201,7 @@ export class WorkspaceApiService {
       return { deleted, failed };
     }
 
-    const existingPipelines = await this.workspaceRepository.find({
+    const existingWorkspaces = await this.workspaceRepository.find({
       where: {
         id: In(ids),
         createdBy: user,
@@ -209,7 +209,7 @@ export class WorkspaceApiService {
       select: ['id'],
     });
 
-    const existingIds = existingPipelines.map((pipeline) => pipeline.id);
+    const existingIds = existingWorkspaces.map((workspace) => workspace.id);
     const notFoundIds = ids.filter((id) => !existingIds.includes(id));
 
     notFoundIds.forEach((id) => {
@@ -235,7 +235,7 @@ export class WorkspaceApiService {
       } else {
         // Handle partial deletion - this is rare but can happen
         // We need to check which ones were actually deleted
-        const remainingPipelines = await this.workspaceRepository.find({
+        const remainingWorkspaces = await this.workspaceRepository.find({
           where: {
             id: In(existingIds),
             createdBy: user,
@@ -243,7 +243,7 @@ export class WorkspaceApiService {
           select: ['id'],
         });
 
-        const remainingIds = remainingPipelines.map((pipeline) => pipeline.id);
+        const remainingIds = remainingWorkspaces.map((workspace) => workspace.id);
         const actuallyDeleted = existingIds.filter((id) => !remainingIds.includes(id));
         const failedToDelete = existingIds.filter((id) => remainingIds.includes(id));
 
@@ -251,7 +251,7 @@ export class WorkspaceApiService {
         failedToDelete.forEach((id) => {
           failed.push({
             id,
-            error: 'Deletion failed - pipeline may be in use or protected',
+            error: 'Deletion failed - workspace may be in use or protected',
           });
         });
       }

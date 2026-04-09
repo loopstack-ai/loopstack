@@ -5,7 +5,7 @@ import type { Column } from '../../components/lists/ListView.tsx';
 import { Badge } from '../../components/ui/badge.tsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip.tsx';
 import { useDebounce } from '../../hooks/useDebounce.ts';
-import { useBatchDeletePipeline, useDeletePipeline, useFilterPipelines } from '../../hooks/usePipelines.ts';
+import { useBatchDeleteWorkflows, useDeleteWorkflow, useFilterWorkflows } from '../../hooks/useWorkflows.ts';
 import { useFilterWorkspaces } from '../../hooks/useWorkspaces.ts';
 import { useStudio } from '../../providers/StudioProvider.tsx';
 
@@ -35,11 +35,11 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
 
   const mergedFilters: Record<string, string | null> = { ...filters, parentId: null };
 
-  const fetchPipelines = useFilterPipelines(debouncedSearchTerm, mergedFilters, orderBy, order, page, rowsPerPage);
+  const fetchWorkflows = useFilterWorkflows(debouncedSearchTerm, mergedFilters, orderBy, order, page, rowsPerPage);
   const fetchWorkspaces = useFilterWorkspaces(undefined, {}, 'title', 'ASC', 0, 100);
 
-  const deletePipeline = useDeletePipeline();
-  const batchDeletePipelines = useBatchDeletePipeline();
+  const deleteWorkflow = useDeleteWorkflow();
+  const batchDeleteWorkflows = useBatchDeleteWorkflows();
 
   const workspaceMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -56,32 +56,32 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
     }));
   }, [fetchWorkspaces.data]);
 
-  const blockNameFilterOptions: FilterOption[] = useMemo(() => {
+  const aliasFilterOptions: FilterOption[] = useMemo(() => {
     const names = new Set<string>();
-    for (const p of fetchPipelines.data?.data ?? []) {
-      if (p.blockName) names.add(p.blockName);
+    for (const p of fetchWorkflows.data?.data ?? []) {
+      if (p.alias) names.add(p.alias);
     }
     return Array.from(names).sort();
-  }, [fetchPipelines.data]);
+  }, [fetchWorkflows.data]);
 
   const handleDelete = (id: string) => {
-    deletePipeline.mutate(id);
+    deleteWorkflow.mutate(id);
   };
 
   const handleBatchDelete = (ids: string[]) => {
-    batchDeletePipelines.mutate(ids);
+    batchDeleteWorkflows.mutate(ids);
   };
 
   const handleRunClick = (id: string) => {
-    void router.navigateToPipeline(id);
+    void router.navigateToWorkflow(id);
   };
 
   return (
     <ItemListView
-      loading={fetchPipelines.isPending}
-      error={fetchPipelines.error ?? null}
-      items={fetchPipelines.data?.data ?? []}
-      totalItems={fetchPipelines.data?.total ?? 0}
+      loading={fetchWorkflows.isPending}
+      error={fetchWorkflows.error ?? null}
+      items={fetchWorkflows.data?.data ?? []}
+      totalItems={fetchWorkflows.data?.total ?? 0}
       setPage={setPage}
       setRowsPerPage={setRowsPerPage}
       setOrderBy={setOrderBy}
@@ -131,7 +131,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
             },
           },
           {
-            id: 'blockName',
+            id: 'alias',
             label: 'Type',
             minWidth: 100,
             format: (value: unknown) => {
@@ -142,7 +142,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
                   className="hover:bg-primary/10 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setFilters((curr) => ({ ...curr, blockName: name }));
+                    setFilters((curr) => ({ ...curr, alias: name }));
                   }}
                 >
                   {name}
@@ -196,7 +196,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
       filterConfig={{
         status: ['pending', 'running', 'paused', 'completed', 'failed', 'canceled'],
         workspaceId: workspaceFilterOptions,
-        blockName: blockNameFilterOptions,
+        alias: aliasFilterOptions,
       }}
     />
   );

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Workspace } from '@loopstack/common';
+import { InjectWorkflow, Workspace } from '@loopstack/common';
 
 @Injectable()
 @Workspace({
-  config: {
+  uiConfig: {
     title: 'Default Workspace',
   },
 })

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document, DocumentInterface, Input } from '@loopstack/common';
+import { Document } from '@loopstack/common';
 
 export const OAuthPromptDocumentSchema = z
   .object({
@@ -12,15 +12,13 @@ export const OAuthPromptDocumentSchema = z
   .strict();
 
 @Document({
-  config: {
-    type: 'document',
-    description: 'OAuth prompt document for initiating OAuth flows.',
-  },
-  configFile: __dirname + '/oauth-prompt.document.yaml',
+  schema: OAuthPromptDocumentSchema,
+  uiConfig: __dirname + '/oauth-prompt.ui.yaml',
 })
-export class OAuthPromptDocument implements DocumentInterface {
-  @Input({
-    schema: OAuthPromptDocumentSchema,
-  })
-  content: z.infer<typeof OAuthPromptDocumentSchema>;
+export class OAuthPromptDocument {
+  provider: string;
+  authUrl: string;
+  state: string;
+  status: 'pending' | 'success' | 'error';
+  message?: string;
 }

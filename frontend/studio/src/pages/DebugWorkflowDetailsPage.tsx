@@ -6,25 +6,22 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import MainLayout from '../components/layout/MainLayout.tsx';
 import ConfigFlowViewer from '../features/debug/components/ConfigFlowViewer.tsx';
-import { usePipelineConfigByName, usePipelineSource } from '../hooks/usePipelines.ts';
+import { useWorkflowConfigByName, useWorkflowSource } from '../hooks/useWorkflows.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
 export default function DebugWorkflowDetailsPage() {
   const { workflowId } = useParams();
   const { router } = useStudio();
 
-  const [workspaceBlockName, pipelineBlockName] = useMemo(() => {
+  const [workspaceBlockName, workflowBlockName] = useMemo(() => {
     if (!workflowId) return ['', ''];
     const parts = workflowId.split('::');
     if (parts.length === 2) return parts;
     return ['default', workflowId];
   }, [workflowId]);
 
-  const { data: workflow, isLoading: isWorkflowLoading } = usePipelineConfigByName(
-    workspaceBlockName,
-    pipelineBlockName,
-  );
-  const { data: source, isLoading: isSourceLoading } = usePipelineSource(workspaceBlockName, pipelineBlockName);
+  const { data: workflowConfig, isLoading: isWorkflowLoading } = useWorkflowConfigByName(workflowBlockName);
+  const { data: source, isLoading: isSourceLoading } = useWorkflowSource(workflowBlockName);
   const isLoading = isWorkflowLoading || isSourceLoading;
   const breadcrumbsData = [
     {
@@ -37,7 +34,7 @@ export default function DebugWorkflowDetailsPage() {
       href: router.getDebugWorkflows(),
     },
     {
-      label: workflow?.title || workflow?.blockName || pipelineBlockName || 'Workflow Details',
+      label: workflowConfig?.title || workflowConfig?.alias || workflowBlockName || 'Workflow Details',
       current: true,
     },
   ];
@@ -49,22 +46,22 @@ export default function DebugWorkflowDetailsPage() {
           <Loader2 className="h-4 w-4 animate-spin" />
           <span>Loading...</span>
         </div>
-      ) : workflow ? (
+      ) : workflowConfig ? (
         <div className="flex h-[calc(100vh-8rem)] flex-col gap-4">
-          <h1 className="text-3xl font-bold tracking-tight">{workflow.title || workflow.blockName}</h1>
-          <p className="text-muted-foreground">{workflow.description}</p>
+          <h1 className="text-3xl font-bold tracking-tight">{workflowConfig.title || workflowConfig.alias}</h1>
+          <p className="text-muted-foreground">{workflowConfig.description}</p>
 
           <div className="flex flex-1 gap-4 overflow-hidden">
             <div className="w-1/2 flex flex-col rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
               <div className="border-b bg-muted/50 px-4 py-2 font-medium text-sm">{source?.filePath}</div>
               <div className="flex-1 overflow-auto bg-[#1e1e1e]">
                 <SyntaxHighlighter
-                  language={source?.raw ? 'yaml' : 'json'}
+                  language={source?.raw ? 'typescript' : 'json'}
                   style={vscDarkPlus}
                   customStyle={{ margin: 0, padding: '1rem', height: '100%', fontSize: '13px' }}
                   showLineNumbers={true}
                 >
-                  {source?.raw ? source.raw : JSON.stringify(workflow, null, 2)}
+                  {source?.raw ? source.raw : JSON.stringify(workflowConfig, null, 2)}
                 </SyntaxHighlighter>
               </div>
             </div>
@@ -73,7 +70,7 @@ export default function DebugWorkflowDetailsPage() {
               <div className="border-b bg-muted/50 px-4 py-2 font-medium text-sm">Diagram</div>
               <div className="flex-1 relative bg-background">
                 <ReactFlowProvider>
-                  <ConfigFlowViewer config={workflow} />
+                  <ConfigFlowViewer config={workflowConfig} />
                 </ReactFlowProvider>
               </div>
             </div>
@@ -81,7 +78,7 @@ export default function DebugWorkflowDetailsPage() {
         </div>
       ) : (
         <div>
-          Workflow Type not found (Workspace: {workspaceBlockName}, Pipeline: {pipelineBlockName})
+          Workflow Type not found (Workspace: {workspaceBlockName}, Workflow: {workflowBlockName})
         </div>
       )}
     </MainLayout>

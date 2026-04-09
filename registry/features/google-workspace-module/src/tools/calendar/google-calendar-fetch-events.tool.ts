@@ -1,43 +1,35 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GoogleCalendarFetchEventsArgs = {
-  calendarId?: string;
-  timeMin: string;
-  timeMax: string;
-  maxResults?: number;
-  query?: string;
-};
+const inputSchema = z
+  .object({
+    calendarId: z.string().default('primary'),
+    timeMin: z.string(),
+    timeMax: z.string(),
+    maxResults: z.number().optional(),
+    query: z.string().optional(),
+  })
+  .strict();
+
+export type GoogleCalendarFetchEventsArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Fetches events from a Google Calendar within a time range. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GoogleCalendarFetchEventsTool implements ToolInterface {
+export class GoogleCalendarFetchEventsTool extends BaseTool {
   private readonly logger = new Logger(GoogleCalendarFetchEventsTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        calendarId: z.string().default('primary'),
-        timeMin: z.string(),
-        timeMax: z.string(),
-        maxResults: z.number().optional(),
-        query: z.string().optional(),
-      })
-      .strict(),
-  })
-  args: GoogleCalendarFetchEventsArgs;
-
-  async execute(args: GoogleCalendarFetchEventsArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async call(args: GoogleCalendarFetchEventsArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -69,7 +61,7 @@ export class GoogleCalendarFetchEventsTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Calendar API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

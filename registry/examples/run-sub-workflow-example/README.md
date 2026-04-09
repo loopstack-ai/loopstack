@@ -35,7 +35,7 @@ The parent workflow uses `ExecuteWorkflowAsync` to start a child workflow and se
 ```typescript
 @Injectable()
 @Workflow({
-  configFile: __dirname + '/run-sub-workflow-example-parent.workflow.yaml',
+  uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml',
 })
 export class RunSubWorkflowExampleParentWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;
@@ -85,7 +85,7 @@ Sub-workflows can return structured results using `@Output` and `getResult()`:
 ```typescript
 @Injectable()
 @Workflow({
-  configFile: __dirname + '/run-sub-workflow-example-sub.workflow.yaml',
+  uiConfig: __dirname + '/run-sub-workflow-example-sub.ui.yaml',
 })
 export class RunSubWorkflowExampleSubWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;

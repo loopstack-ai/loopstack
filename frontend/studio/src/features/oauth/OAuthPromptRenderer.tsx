@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
-import type { WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 import { useOAuthPopup } from './useOAuthPopup.ts';
 import type { OAuthPopupResult } from './useOAuthPopup.ts';
 
@@ -16,13 +15,13 @@ interface OAuthPromptContent {
 }
 
 interface OAuthPromptRendererProps {
-  pipeline: PipelineInterface;
-  workflow: WorkflowInterface;
+  parentWorkflow: WorkflowFullInterface;
+  workflow: WorkflowFullInterface;
   document: DocumentItemInterface;
   isActive: boolean;
 }
 
-const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ pipeline, workflow, document, isActive }) => {
+const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ parentWorkflow, workflow, document, isActive }) => {
   const content = document.content as OAuthPromptContent;
 
   // Resolve transition from ui.widgets[0].options.transition or legacy ui.actions
@@ -34,7 +33,7 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ pipeline, wor
       ?.map((a) => a.options?.transition)
       .find((t) => !!t);
 
-  const runPipeline = useRunPipeline();
+  const runWorkflow = useRunWorkflow();
   const { result, open, reset } = useOAuthPopup();
   const submittedRef = useRef(false);
 
@@ -44,9 +43,9 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ pipeline, wor
     (code: string, state: string) => {
       if (!transitionId || !availableTransitions.includes(transitionId)) return;
 
-      runPipeline.mutate({
-        pipelineId: pipeline.id,
-        runPipelinePayloadDto: {
+      runWorkflow.mutate({
+        workflowId: parentWorkflow.id,
+        runWorkflowPayloadDto: {
           transition: {
             id: transitionId,
             workflowId: workflow.id,
@@ -55,7 +54,7 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ pipeline, wor
         },
       });
     },
-    [transitionId, availableTransitions, runPipeline, pipeline.id, workflow.id],
+    [transitionId, availableTransitions, runWorkflow, parentWorkflow.id, workflow.id],
   );
 
   // When popup succeeds, trigger the backend transition
@@ -101,7 +100,7 @@ const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ pipeline, wor
         result={result}
         provider={content.provider}
         isActive={isActive}
-        isSubmitting={runPipeline.isPending}
+        isSubmitting={runWorkflow.isPending}
         onSignIn={handleSignIn}
         onRetry={handleRetry}
       />

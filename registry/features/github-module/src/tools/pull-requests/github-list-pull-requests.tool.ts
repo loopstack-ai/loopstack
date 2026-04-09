@@ -1,45 +1,36 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GitHubListPullRequestsArgs = {
-  owner: string;
-  repo: string;
-  state?: string;
-  base?: string;
-  perPage?: number;
-  page?: number;
-};
+const inputSchema = z
+  .object({
+    owner: z.string(),
+    repo: z.string(),
+    state: z.enum(['open', 'closed', 'all']).default('open'),
+    base: z.string().optional(),
+    perPage: z.number().default(30),
+    page: z.number().default(1),
+  })
+  .strict();
+
+export type GitHubListPullRequestsArgs = z.input<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Lists pull requests for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GitHubListPullRequestsTool implements ToolInterface {
+export class GitHubListPullRequestsTool extends BaseTool {
   private readonly logger = new Logger(GitHubListPullRequestsTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        owner: z.string(),
-        repo: z.string(),
-        state: z.enum(['open', 'closed', 'all']).default('open'),
-        base: z.string().optional(),
-        perPage: z.number().default(30),
-        page: z.number().default(1),
-      })
-      .strict(),
-  })
-  args: GitHubListPullRequestsArgs;
-
-  async execute(args: GitHubListPullRequestsArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async call(args: GitHubListPullRequestsArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -68,7 +59,7 @@ export class GitHubListPullRequestsTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: '401',

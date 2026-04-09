@@ -1,25 +1,29 @@
 import { z } from 'zod';
-import { ClaudeGenerateText, ClaudeMessageDocument } from '@loopstack/claude-module';
-import { InjectDocument, InjectTool, Input, Runtime, Workflow } from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core';
+import { ClaudeGenerateText, ClaudeGenerateTextResult, ClaudeMessageDocument } from '@loopstack/claude-module';
+import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/common';
 
 @Workflow({
-  configFile: __dirname + '/prompt.workflow.yaml',
+  uiConfig: __dirname + '/prompt.ui.yaml',
+  schema: z.object({
+    subject: z.string().default('coffee'),
+  }),
 })
-export class PromptWorkflow {
-  @InjectTool() private createDocument: CreateDocument;
-  @InjectTool() private claudeGenerateText: ClaudeGenerateText;
-  @InjectDocument() private claudeMessageDocument: ClaudeMessageDocument;
+export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
+  @InjectTool() claudeGenerateText: ClaudeGenerateText;
 
-  @Input({
-    schema: z.object({
-      subject: z.string().default('coffee'),
-    }),
-  })
-  args: {
-    subject: string;
-  };
+  llmResult?: ClaudeGenerateTextResult;
 
-  @Runtime()
-  runtime: any;
+  @Initial({ to: 'prompt_executed' })
+  async prompt(args: { subject: string }) {
+    const result = await this.claudeGenerateText.call({
+      claude: { model: 'claude-sonnet-4-6' },
+      prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
+    });
+    this.llmResult = result.data;
+  }
+
+  @Final({ from: 'prompt_executed' })
+  async respond() {
+    await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
+  }
 }

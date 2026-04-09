@@ -1,39 +1,33 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GitHubListBranchesArgs = {
-  owner: string;
-  repo: string;
-  perPage?: number;
-};
+const inputSchema = z
+  .object({
+    owner: z.string(),
+    repo: z.string(),
+    perPage: z.number().default(30),
+  })
+  .strict();
+
+export type GitHubListBranchesArgs = z.input<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Lists branches for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GitHubListBranchesTool implements ToolInterface {
+export class GitHubListBranchesTool extends BaseTool {
   private readonly logger = new Logger(GitHubListBranchesTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        owner: z.string(),
-        repo: z.string(),
-        perPage: z.number().default(30),
-      })
-      .strict(),
-  })
-  args: GitHubListBranchesArgs;
-
-  async execute(args: GitHubListBranchesArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async call(args: GitHubListBranchesArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -58,7 +52,7 @@ export class GitHubListBranchesTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: '401',

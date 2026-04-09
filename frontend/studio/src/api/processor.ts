@@ -1,17 +1,17 @@
 import type { AxiosInstance } from 'axios';
-import type { RunPipelinePayloadInterface } from '@loopstack/contracts/api';
+import type { RunWorkflowPayloadInterface } from '@loopstack/contracts/api';
 
 export function createProcessorApi(http: AxiosInstance) {
   return {
-    runPipeline: (params: {
-      pipelineId: string;
-      runPipelinePayloadDto: RunPipelinePayloadInterface;
+    runWorkflow: (params: {
+      workflowId: string;
+      runWorkflowPayloadDto: RunWorkflowPayloadInterface;
       force?: boolean;
     }): Promise<void> =>
       http
         .post<void>(
-          `/api/v1/processor/run/${params.pipelineId}`,
-          params.runPipelinePayloadDto,
+          `/api/v1/processor/run/${params.workflowId}`,
+          params.runWorkflowPayloadDto,
           params.force !== undefined ? { params: { force: params.force } } : undefined,
         )
         .then((res) => res.data),

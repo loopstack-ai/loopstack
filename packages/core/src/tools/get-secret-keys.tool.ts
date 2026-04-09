@@ -1,17 +1,20 @@
 import { Inject } from '@nestjs/common';
-import { RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { SecretService } from '../persistence';
+import { ExecutionScope } from '../workflow-processor/utils';
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Returns the list of secret keys for the current workspace. Does not return secret values.',
   },
 })
-export class GetSecretKeysTool implements ToolInterface {
+export class GetSecretKeysTool extends BaseTool {
   @Inject() private secretService: SecretService;
+  @Inject() private executionScope: ExecutionScope;
 
-  async execute(_args: undefined, context: RunContext): Promise<ToolResult> {
-    const secrets = await this.secretService.findAllByWorkspace(context.workspaceId);
+  async call(_args: object): Promise<ToolResult> {
+    const ctx = this.executionScope.get();
+    const secrets = await this.secretService.findAllByWorkspace(ctx.getContext().workspaceId);
     return {
       data: secrets.map((s) => ({
         key: s.key,

@@ -2,7 +2,7 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { Loader2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import type { PipelineConfigInterface } from '@loopstack/contracts/api';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
 import MarkdownContent from '@/components/dynamic-form/MarkdownContent';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -75,7 +75,7 @@ function getLanguageForFileName(name: string): string {
 interface FileContentViewerProps {
   selectedFile: FileExplorerNode | null;
   content: string | null;
-  workflowConfig?: PipelineConfigInterface | null;
+  workflowConfig?: WorkflowConfigInterface | null;
   isLoading?: boolean;
   className?: string;
 }

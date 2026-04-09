@@ -1,0 +1,13 @@
+title: 'Google Calendar Summary'
+
+description: |
+  Fetches upcoming events from Google Calendar and displays a summary.
+  If not authenticated, launches the OAuth workflow as a sub-workflow
+  and retries automatically after authentication completes.
+
+ui:
+  form:
+    properties:
+      calendarId:
+        title: 'Calendar ID'
+        placeholder: 'primary'

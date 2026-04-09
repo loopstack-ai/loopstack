@@ -1,0 +1,5 @@
+title: 'Sandbox Filesystem Example'
+
+description: |
+  This workflow demonstrates how to use sandbox containers for isolated filesystem operations.
+  It initializes a Docker container, performs file operations, and cleans up the sandbox.

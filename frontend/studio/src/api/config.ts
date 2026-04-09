@@ -1,8 +1,8 @@
 import type { AxiosInstance } from 'axios';
 import type {
   AvailableEnvironmentInterface,
-  PipelineConfigInterface,
-  PipelineSourceInterface,
+  WorkflowConfigInterface,
+  WorkflowSourceInterface,
   WorkspaceConfigInterface,
 } from '@loopstack/contracts/api';
 
@@ -11,31 +11,21 @@ export function createConfigApi(http: AxiosInstance) {
     getWorkspaceTypes: (): Promise<WorkspaceConfigInterface[]> =>
       http.get<WorkspaceConfigInterface[]>('/api/v1/config/workspaces').then((res) => res.data),
 
-    getPipelineTypesByWorkspace: (params: { workspaceBlockName: string }): Promise<PipelineConfigInterface[]> =>
+    getWorkflowTypesByWorkspace: (params: { workspaceBlockName: string }): Promise<WorkflowConfigInterface[]> =>
       http
         .get<
-          PipelineConfigInterface[]
-        >(`/api/v1/config/workspaces/${encodeURIComponent(params.workspaceBlockName)}/pipelines`)
+          WorkflowConfigInterface[]
+        >(`/api/v1/config/workspaces/${encodeURIComponent(params.workspaceBlockName)}/workflows`)
         .then((res) => res.data),
 
-    getPipelineConfigByName: (params: {
-      workspaceBlockName: string;
-      pipelineName: string;
-    }): Promise<PipelineConfigInterface> =>
+    getWorkflowConfig: (params: { alias: string }): Promise<WorkflowConfigInterface> =>
       http
-        .get<PipelineConfigInterface>(
-          `/api/v1/config/workspaces/${encodeURIComponent(params.workspaceBlockName)}/pipelines/${encodeURIComponent(params.pipelineName)}`,
-        )
+        .get<WorkflowConfigInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.alias)}`)
         .then((res) => res.data),
 
-    getPipelineSourceByName: (params: {
-      workspaceBlockName: string;
-      pipelineName: string;
-    }): Promise<PipelineSourceInterface> =>
+    getWorkflowSource: (params: { alias: string }): Promise<WorkflowSourceInterface> =>
       http
-        .get<PipelineSourceInterface>(
-          `/api/v1/config/workspaces/${encodeURIComponent(params.workspaceBlockName)}/pipelines/${encodeURIComponent(params.pipelineName)}/source`,
-        )
+        .get<WorkflowSourceInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.alias)}/source`)
         .then((res) => res.data),
 
     getAvailableEnvironments: (): Promise<AvailableEnvironmentInterface[]> =>

@@ -48,16 +48,16 @@ const Workspaces = () => {
 
   const fetchWorkspaces = useFilterWorkspaces(debouncedSearchTerm, filters, orderBy, order, page, rowsPerPage);
 
-  const deletePipeline = useDeleteWorkspace();
-  const batchDeletePipelines = useBatchDeleteWorkspaces();
+  const deleteWorkspace = useDeleteWorkspace();
+  const batchDeleteWorkspaces = useBatchDeleteWorkspaces();
   const setFavourite = useSetFavouriteWorkspace();
 
   const handleDelete = (id: string) => {
-    deletePipeline.mutate(id);
+    deleteWorkspace.mutate(id);
   };
 
   const handleBatchDelete = (ids: string[]) => {
-    batchDeletePipelines.mutate(ids);
+    batchDeleteWorkspaces.mutate(ids);
   };
 
   const handleOpen = () => {
@@ -72,8 +72,8 @@ const Workspaces = () => {
     void router.navigateToWorkspace(id);
   };
 
-  const handleEdit = (pipeline: WorkspaceItemInterface) => {
-    setOpenEdit(pipeline);
+  const handleEdit = (workspace: WorkspaceItemInterface) => {
+    setOpenEdit(workspace);
   };
 
   const handleEditClose = () => {
@@ -120,7 +120,7 @@ const Workspaces = () => {
                       <Badge
                         variant="outline"
                         className="hover:bg-primary/10 cursor-pointer"
-                        onClick={() => setFilters((curr) => ({ ...curr, blockName: value }))}
+                        onClick={() => setFilters((curr) => ({ ...curr, className: value }))}
                       >
                         {value.length > 25 ? value.slice(0, 25) + '...' : value}
                       </Badge>

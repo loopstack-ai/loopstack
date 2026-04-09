@@ -4,8 +4,8 @@ import type { WorkspaceActionInterface, WorkspaceInterface } from '@loopstack/co
 import Form from '@/components/dynamic-form/Form.tsx';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import { Button } from '@/components/ui/button.tsx';
-import { useCreatePipeline } from '@/hooks/usePipelines.ts';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import { useRunWorkflow } from '@/hooks/useProcessor.ts';
+import { useCreateWorkflow } from '@/hooks/useWorkflows.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 interface WorkspaceHomePageProps {
@@ -15,29 +15,29 @@ interface WorkspaceHomePageProps {
 
 const WorkspaceHomePage = ({ workspace, action }: WorkspaceHomePageProps) => {
   const { router } = useStudio();
-  const createPipeline = useCreatePipeline();
-  const runPipeline = useRunPipeline();
+  const createWorkflow = useCreateWorkflow();
+  const runWorkflow = useRunWorkflow();
 
   const options = action.options ?? {};
   const workflow = options.workflow as string;
   const title = options.title as string | undefined;
   const subtitle = options.subtitle as string | undefined;
   const schema = options.schema as Record<string, any> | undefined;
-  const pipelineUi = options.pipelineUi as Record<string, any> | undefined;
+  const workflowUi = options.workflowUi as Record<string, any> | undefined;
 
   const form = useForm<Record<string, any>>({
     defaultValues: {},
     mode: 'onChange',
   });
 
-  const isLoading = createPipeline.isPending || runPipeline.isPending;
+  const isLoading = createWorkflow.isPending || runWorkflow.isPending;
   const hasSchema = !!schema;
 
   const handleSubmit = (data: Record<string, any>) => {
-    createPipeline.mutate(
+    createWorkflow.mutate(
       {
-        pipelineCreateDto: {
-          blockName: workflow,
+        workflowCreateDto: {
+          alias: workflow,
           title: null,
           workspaceId: workspace.id,
           transition: null,
@@ -45,16 +45,16 @@ const WorkspaceHomePage = ({ workspace, action }: WorkspaceHomePageProps) => {
         },
       },
       {
-        onSuccess: (createdPipeline) => {
-          runPipeline.mutate(
+        onSuccess: (createdWorkflow) => {
+          runWorkflow.mutate(
             {
-              pipelineId: createdPipeline.id,
-              runPipelinePayloadDto: {},
+              workflowId: createdWorkflow.id,
+              runWorkflowPayloadDto: {},
               force: true,
             },
             {
               onSuccess: () => {
-                void router.navigateToPipeline(createdPipeline.id);
+                void router.navigateToWorkflow(createdWorkflow.id);
               },
             },
           );
@@ -69,15 +69,15 @@ const WorkspaceHomePage = ({ workspace, action }: WorkspaceHomePageProps) => {
 
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center">
-      <ErrorSnackbar error={createPipeline.error} />
-      <ErrorSnackbar error={runPipeline.error} />
+      <ErrorSnackbar error={createWorkflow.error} />
+      <ErrorSnackbar error={runWorkflow.error} />
 
       {title && <h2 className="mb-2 text-center text-3xl font-bold tracking-tight">{title}</h2>}
       {subtitle && <p className="text-muted-foreground mb-8 text-center text-sm">{subtitle}</p>}
 
       {hasSchema ? (
         <div className="mb-6 w-full">
-          <Form form={form} schema={schema} ui={pipelineUi} disabled={false} viewOnly={false} />
+          <Form form={form} schema={schema} ui={workflowUi} disabled={false} viewOnly={false} />
         </div>
       ) : null}
 

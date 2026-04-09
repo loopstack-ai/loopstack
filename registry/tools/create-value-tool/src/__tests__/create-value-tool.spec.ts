@@ -87,14 +87,14 @@ describe('CreateValue', () => {
   describe('execution', () => {
     it('should return string input as data', async () => {
       const args = { input: 'hello world' };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
 
       expect(result.data).toBe('hello world');
     });
 
     it('should return number input as data', async () => {
       const args = { input: 123 };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
 
       expect(result.data).toBe(123);
     });
@@ -102,7 +102,7 @@ describe('CreateValue', () => {
     it('should return object input as data', async () => {
       const input = { name: 'test', value: 42 };
       const args = { input };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
 
       expect(result.data).toEqual(input);
     });
@@ -110,21 +110,21 @@ describe('CreateValue', () => {
     it('should return array input as data', async () => {
       const input = [1, 'two', { three: 3 }];
       const args = { input };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
 
       expect(result.data).toEqual(input);
     });
 
     it('should return boolean input as data', async () => {
       const args = { input: true };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
 
       expect(result.data).toBe(true);
     });
 
     it('should return null input as data', async () => {
       const args = { input: null };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
 
       expect(result.data).toBeNull();
     });
@@ -138,7 +138,7 @@ describe('CreateValue', () => {
         },
       };
       const args = { input };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
 
       expect(result.data).toEqual(input);
     });

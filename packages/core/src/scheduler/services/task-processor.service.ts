@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Job } from 'bullmq';
 import type { ScheduledTask } from '@loopstack/contracts/types';
-import { RunPipelineTaskProcessorService } from './task-processor/run-pipeline-task-processor.service';
+import { RunWorkflowTaskProcessorService } from './task-processor/run-workflow-task-processor.service';
 import { WorkspaceLockService } from './workspace-lock.service';
 
 @Processor('task-queue', {
@@ -14,11 +14,8 @@ export class TaskProcessorService extends WorkerHost {
   private readonly logger = new Logger(TaskProcessorService.name);
 
   constructor(
-    private readonly runPipelineTaskProcessorService: RunPipelineTaskProcessorService,
+    private readonly runWorkflowTaskProcessorService: RunWorkflowTaskProcessorService,
     private readonly workspaceLockService: WorkspaceLockService,
-    // private readonly createRunPipelineTaskProcessorService: CreateRunPipelineTaskProcessorService,
-    // private readonly cleanupPipelineTaskProcessorService: CleanupPipelineTaskProcessorService,
-    // private readonly createWorkspaceTaskProcessorService: CreateWorkspaceTaskProcessorService,
   ) {
     super();
   }
@@ -45,24 +42,9 @@ export class TaskProcessorService extends WorkerHost {
       await job.updateProgress(0);
 
       switch (task.type) {
-        case 'run_pipeline':
-          await this.runPipelineTaskProcessorService.process(task);
+        case 'run_workflow':
+          await this.runWorkflowTaskProcessorService.process(task);
           break;
-        // case 'create_run_pipeline':
-        //   await this.createRunPipelineTaskProcessorService.process(task, metadata);
-        //   break;
-        // case 'cleanup_pipeline':
-        //   await this.cleanupPipelineTaskProcessorService.process(
-        //     task,
-        //     metadata,
-        //   );
-        //   break;
-        // case 'create_workspace':
-        //   await this.createWorkspaceTaskProcessorService.process(
-        //     task,
-        //     metadata,
-        //   );
-        //   break;
       }
 
       await job.updateProgress(100);

@@ -1,7 +1,7 @@
 import { omit } from 'lodash';
 import React from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import type { WorkbenchSettingsInterface } from '@/features/workbench';
 import DocumentRenderer from '../DocumentRenderer.tsx';
 import DocumentMetadataPills from './DocumentMetadataPills.tsx';
@@ -13,12 +13,12 @@ interface DocumentMeta {
 
 const DocumentItem: React.FC<{
   document: DocumentItemInterface;
-  workflow: WorkflowInterface;
-  pipeline: PipelineInterface;
+  workflow: WorkflowFullInterface;
+  parentWorkflow: WorkflowFullInterface;
   isActive: boolean;
   isLastItem: boolean;
   settings: WorkbenchSettingsInterface;
-}> = ({ document, workflow, pipeline, isActive, isLastItem, settings }) => {
+}> = ({ document, workflow, parentWorkflow, isActive, isLastItem, settings }) => {
   const meta = document.meta as DocumentMeta | undefined;
 
   return (
@@ -26,7 +26,7 @@ const DocumentItem: React.FC<{
       <DocumentRenderer
         document={document}
         workflow={workflow}
-        pipeline={pipeline}
+        parentWorkflow={parentWorkflow}
         isActive={isActive}
         isLastItem={isLastItem}
       />

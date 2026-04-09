@@ -1,0 +1,17 @@
+title: 'GitHub Repository Overview'
+
+description: |
+  Comprehensive GitHub example that exercises every GitHub tool.
+  Fetches user info, repository details, issues, pull requests, branches,
+  directory contents, workflow runs, and search results for a given repository.
+  If not authenticated, launches the OAuth sub-workflow and retries.
+
+ui:
+  form:
+    properties:
+      owner:
+        title: 'Repository Owner'
+        placeholder: 'octocat'
+      repo:
+        title: 'Repository Name'
+        placeholder: 'Hello-World'

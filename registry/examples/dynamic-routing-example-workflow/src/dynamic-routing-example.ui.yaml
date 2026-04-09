@@ -1,0 +1,11 @@
+title: 'Dynamic Routing'
+
+description: |
+  This workflow demonstrates dynamic routing based on the value of a variable.
+  It uses guards and priority to determine the next transition based on conditions.
+
+ui:
+  form:
+    properties:
+      value:
+        title: 'A number between 0 and 300'

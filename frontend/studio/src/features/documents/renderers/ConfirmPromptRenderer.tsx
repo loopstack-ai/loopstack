@@ -1,7 +1,7 @@
 import { Loader2 } from 'lucide-react';
 import React from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import MarkdownContent from '@/components/dynamic-form/MarkdownContent.tsx';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { Button } from '@/components/ui/button.tsx';
@@ -13,15 +13,20 @@ interface ConfirmPromptContent {
 }
 
 interface ConfirmPromptRendererProps {
-  pipeline: PipelineInterface;
-  workflow: WorkflowInterface;
+  parentWorkflow: WorkflowFullInterface;
+  workflow: WorkflowFullInterface;
   document: DocumentItemInterface;
   isActive: boolean;
 }
 
-const ConfirmPromptRenderer: React.FC<ConfirmPromptRendererProps> = ({ pipeline, workflow, document, isActive }) => {
+const ConfirmPromptRenderer: React.FC<ConfirmPromptRendererProps> = ({
+  parentWorkflow,
+  workflow,
+  document,
+  isActive,
+}) => {
   const content = document.content as ConfirmPromptContent;
-  const { submit, canSubmit, isLoading } = useDocumentTransition(pipeline, workflow, document.ui);
+  const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, document.ui);
 
   const hasAnswer = !!content.answer;
   const disabled = !isActive || !canSubmit || hasAnswer;

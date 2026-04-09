@@ -16,7 +16,7 @@ export function WorkbenchPreviewPanel() {
     [environments],
   );
 
-  const [previewPipelineId, setPreviewPipelineId] = useState<string | null>(null);
+  const [previewWorkflowId, setPreviewWorkflowId] = useState<string | null>(null);
 
   // Auto-select first connectable environment once data arrives
   useEffect(() => {
@@ -32,13 +32,13 @@ export function WorkbenchPreviewPanel() {
 
   const previewUrl = useMemo(() => {
     if (!getEnvironmentPreviewUrl || !selectedEnv) return undefined;
-    return getEnvironmentPreviewUrl(selectedEnv, previewPipelineId ?? undefined);
-  }, [getEnvironmentPreviewUrl, selectedEnv, previewPipelineId]);
+    return getEnvironmentPreviewUrl(selectedEnv, previewWorkflowId ?? undefined);
+  }, [getEnvironmentPreviewUrl, selectedEnv, previewWorkflowId]);
 
-  // Reset pipeline when environment changes
+  // Reset workflow when environment changes
   const handleEnvironmentChange = (slotId: string) => {
     setSelectedSlotId(slotId);
-    setPreviewPipelineId(null);
+    setPreviewWorkflowId(null);
   };
 
   // Listen for new-run messages from the iframe
@@ -47,9 +47,9 @@ export function WorkbenchPreviewPanel() {
       if (event.origin !== window.location.origin) return;
       const data = event.data as Record<string, unknown> | null;
       if (data?.type !== EMBED_NEW_RUN_MESSAGE_TYPE) return;
-      const newPipelineId = data?.pipelineId;
-      if (typeof newPipelineId === 'string') {
-        setPreviewPipelineId(newPipelineId);
+      const newWorkflowId = data?.workflowId;
+      if (typeof newWorkflowId === 'string') {
+        setPreviewWorkflowId(newWorkflowId);
       }
     };
 
@@ -149,7 +149,7 @@ export function WorkbenchPreviewPanel() {
             ref={iframeRef}
             src={previewUrl}
             className="bg-background h-full w-full rounded-lg"
-            title="Pipeline preview"
+            title="Workflow preview"
           />
         </div>
       ) : (

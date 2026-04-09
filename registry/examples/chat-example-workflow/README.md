@@ -130,7 +130,7 @@ The TypeScript workflow class declares the tools, documents, and runtime types u
 import { ToolResult } from '@loopstack/common';
 
 @Workflow({
-  configFile: __dirname + '/chat.workflow.yaml',
+  uiConfig: __dirname + '/chat.ui.yaml',
 })
 export class ChatWorkflow {
   @InjectTool() createDocument: CreateDocument;

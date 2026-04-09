@@ -1,47 +1,37 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GitHubCreatePullRequestArgs = {
-  owner: string;
-  repo: string;
-  title: string;
-  head: string;
-  base: string;
-  body?: string;
-  draft?: boolean;
-};
+const inputSchema = z
+  .object({
+    owner: z.string(),
+    repo: z.string(),
+    title: z.string(),
+    head: z.string(),
+    base: z.string(),
+    body: z.string().optional(),
+    draft: z.boolean().default(false),
+  })
+  .strict();
+
+export type GitHubCreatePullRequestArgs = z.input<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Creates a new pull request in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GitHubCreatePullRequestTool implements ToolInterface {
+export class GitHubCreatePullRequestTool extends BaseTool {
   private readonly logger = new Logger(GitHubCreatePullRequestTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        owner: z.string(),
-        repo: z.string(),
-        title: z.string(),
-        head: z.string(),
-        base: z.string(),
-        body: z.string().optional(),
-        draft: z.boolean().default(false),
-      })
-      .strict(),
-  })
-  args: GitHubCreatePullRequestArgs;
-
-  async execute(args: GitHubCreatePullRequestArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async call(args: GitHubCreatePullRequestArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -74,7 +64,7 @@ export class GitHubCreatePullRequestTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: '401',

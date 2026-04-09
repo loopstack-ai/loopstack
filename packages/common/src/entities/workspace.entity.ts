@@ -9,8 +9,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { PipelineEntity } from './pipeline.entity';
 import { User } from './user.entity';
+import { WorkflowEntity } from './workflow.entity';
 import { WorkspaceEnvironmentEntity } from './workspace-environment.entity';
 
 @Entity({ name: 'core_workspace' })
@@ -21,9 +21,9 @@ export class WorkspaceEntity {
   @Column({ type: 'varchar', nullable: true })
   title!: string;
 
-  @Column({ type: 'varchar', name: 'block_name' })
+  @Column({ type: 'varchar', name: 'class_name' })
   @Index()
-  blockName!: string;
+  className!: string;
 
   @Column({ name: 'is_favourite', default: false })
   isFavourite!: boolean;
@@ -34,11 +34,11 @@ export class WorkspaceEntity {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt!: Date;
 
-  @OneToMany(() => PipelineEntity, (pipeline) => pipeline.workspace, {
+  @OneToMany(() => WorkflowEntity, (workflow) => workflow.workspace, {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  pipelines!: PipelineEntity[];
+  workflows!: WorkflowEntity[];
 
   @OneToMany(() => WorkspaceEnvironmentEntity, (env) => env.workspace, {
     cascade: true,

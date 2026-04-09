@@ -1,35 +1,31 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GitHubListUserOrgsArgs = {
-  perPage?: number;
-};
+const inputSchema = z
+  .object({
+    perPage: z.number().default(30),
+  })
+  .strict();
+
+export type GitHubListUserOrgsArgs = z.input<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Lists organizations for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GitHubListUserOrgsTool implements ToolInterface {
+export class GitHubListUserOrgsTool extends BaseTool {
   private readonly logger = new Logger(GitHubListUserOrgsTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        perPage: z.number().default(30),
-      })
-      .strict(),
-  })
-  args: GitHubListUserOrgsArgs;
-
-  async execute(args: GitHubListUserOrgsArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async call(args: GitHubListUserOrgsArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -53,7 +49,7 @@ export class GitHubListUserOrgsTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: '401',

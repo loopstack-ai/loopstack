@@ -1,44 +1,35 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GmailSendMessageArgs = {
-  to: string[];
-  cc?: string[];
-  bcc?: string[];
-  subject: string;
-  body: string;
-  htmlBody?: string;
-};
+const inputSchema = z
+  .object({
+    to: z.array(z.string()),
+    cc: z.array(z.string()).optional(),
+    bcc: z.array(z.string()).optional(),
+    subject: z.string(),
+    body: z.string(),
+    htmlBody: z.string().optional(),
+  })
+  .strict();
+
+export type GmailSendMessageArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Sends a new email via Gmail. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GmailSendMessageTool implements ToolInterface {
+export class GmailSendMessageTool extends BaseTool {
   private readonly logger = new Logger(GmailSendMessageTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        to: z.array(z.string()),
-        cc: z.array(z.string()).optional(),
-        bcc: z.array(z.string()).optional(),
-        subject: z.string(),
-        body: z.string(),
-        htmlBody: z.string().optional(),
-      })
-      .strict(),
-  })
-  args: GmailSendMessageArgs;
-
-  async execute(args: GmailSendMessageArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async call(args: GmailSendMessageArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -66,7 +57,7 @@ export class GmailSendMessageTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Gmail API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Gmail API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

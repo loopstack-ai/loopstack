@@ -38,7 +38,7 @@ export interface EnvironmentConfigInterface {
 
 export interface WorkspaceInterface {
   id: string;
-  blockName: string;
+  className: string;
   title: string;
   isLocked: boolean;
   isFavourite: boolean;
@@ -51,7 +51,7 @@ export interface WorkspaceInterface {
 
 export interface WorkspaceItemInterface {
   id: string;
-  blockName: string;
+  className: string;
   title: string;
   isFavourite: boolean;
   createdAt: string;
@@ -61,7 +61,7 @@ export interface WorkspaceItemInterface {
 
 export interface WorkspaceCreateInterface {
   title?: string;
-  blockName: string;
+  className: string;
   isFavourite?: boolean;
   environments?: WorkspaceEnvironmentInterface[];
 }
@@ -82,7 +82,7 @@ export interface WorkspaceUiInterface {
 }
 
 export interface WorkspaceConfigInterface {
-  blockName: string;
+  className: string;
   title?: string;
   volumes?: Record<string, VolumeInterface>;
   features?: FeaturesInterface;

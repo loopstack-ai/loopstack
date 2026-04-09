@@ -1,43 +1,35 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GitHubTriggerWorkflowArgs = {
-  owner: string;
-  repo: string;
-  workflowId: string;
-  ref: string;
-  inputs?: Record<string, string>;
-};
+const inputSchema = z
+  .object({
+    owner: z.string(),
+    repo: z.string(),
+    workflowId: z.string(),
+    ref: z.string(),
+    inputs: z.record(z.string(), z.string()).optional(),
+  })
+  .strict();
+
+export type GitHubTriggerWorkflowArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Triggers a GitHub Actions workflow dispatch event. Returns 204 No Content on success. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GitHubTriggerWorkflowTool implements ToolInterface {
+export class GitHubTriggerWorkflowTool extends BaseTool {
   private readonly logger = new Logger(GitHubTriggerWorkflowTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        owner: z.string(),
-        repo: z.string(),
-        workflowId: z.string(),
-        ref: z.string(),
-        inputs: z.record(z.string(), z.string()).optional(),
-      })
-      .strict(),
-  })
-  args: GitHubTriggerWorkflowArgs;
-
-  async execute(args: GitHubTriggerWorkflowArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async call(args: GitHubTriggerWorkflowArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -67,7 +59,7 @@ export class GitHubTriggerWorkflowTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: '401',

@@ -2,16 +2,11 @@ import { Loader2 } from 'lucide-react';
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import type { PipelineInterface } from '@loopstack/contracts/api';
-import type {
-  DocumentItemInterface,
-  MimeType,
-  TransitionPayloadInterface,
-  WorkflowInterface,
-} from '@loopstack/contracts/types';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface, MimeType, TransitionPayloadInterface } from '@loopstack/contracts/types';
 import Form from '@/components/dynamic-form/Form.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { useRunPipeline } from '@/hooks/useProcessor.ts';
+import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 
 interface FormAction {
   type: string;
@@ -68,21 +63,21 @@ function resolveFormConfig(ui: Record<string, unknown> | undefined): {
 }
 
 interface DocumentFormRendererProps {
-  pipeline: PipelineInterface;
-  workflow: WorkflowInterface;
+  parentWorkflow: WorkflowFullInterface;
+  workflow: WorkflowFullInterface;
   document: DocumentItemInterface;
   enabled: boolean;
   viewOnly: boolean;
 }
 
 const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
-  pipeline,
+  parentWorkflow,
   workflow,
   document,
   enabled,
   viewOnly,
 }) => {
-  const runPipeline = useRunPipeline();
+  const runWorkflow = useRunWorkflow();
 
   const form = useForm<Record<string, unknown>>({
     defaultValues:
@@ -109,15 +104,15 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
 
   const availableTransitions = workflow.availableTransitions?.map((transition) => transition.id) ?? [];
 
-  const executePipelineRun = (transition: string, payload: unknown) => {
+  const executeWorkflowRun = (transition: string, payload: unknown) => {
     if (!availableTransitions.includes(transition)) {
       console.error(`Transition ${transition} not available.`);
       return;
     }
 
-    runPipeline.mutate({
-      pipelineId: pipeline.id,
-      runPipelinePayloadDto: {
+    runWorkflow.mutate({
+      workflowId: parentWorkflow.id,
+      runWorkflowPayloadDto: {
         transition: {
           id: transition,
           workflowId: workflow.id,
@@ -129,9 +124,9 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
 
   const handleFormSubmit = (transition: string) => (data: Record<string, unknown>) => {
     if (document.schema.type === 'object') {
-      executePipelineRun(transition, data);
+      executeWorkflowRun(transition, data);
     } else {
-      executePipelineRun(transition, data.raw);
+      executeWorkflowRun(transition, data.raw);
     }
   };
 
@@ -170,12 +165,12 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
                     key={index}
                     type="button"
                     variant={(action.variant as 'default' | 'outline' | 'destructive') ?? 'default'}
-                    disabled={isDisabled || runPipeline.isPending}
+                    disabled={isDisabled || runWorkflow.isPending}
                     onClick={() => handleActionClick(action)}
                     className={action.type === 'button-full-w' ? 'w-full' : 'w-48'}
                     {...(action.props ?? {})}
                   >
-                    {runPipeline.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {runWorkflow.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                     {action.label ?? 'Submit'}
                   </Button>
                 );

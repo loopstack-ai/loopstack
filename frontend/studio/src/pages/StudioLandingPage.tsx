@@ -1,10 +1,10 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ChevronDown, Loader2, Play } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import type { PipelineItemInterface } from '@loopstack/contracts/api';
+import type { WorkflowItemInterface } from '@loopstack/contracts/api';
 import { Button } from '@/components/ui/button.tsx';
 import { NewRunDialog } from '@/features/workbench';
-import { useFilterPipelines } from '@/hooks/usePipelines.ts';
+import { useFilterWorkflows } from '@/hooks/useWorkflows.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 const STATUS_DOT_COLORS: Record<string, string> = {
@@ -20,25 +20,25 @@ export default function StudioLandingPage() {
   const { router } = useStudio();
   const [newRunDialogOpen, setNewRunDialogOpen] = useState(false);
   const [limit, setLimit] = useState(3);
-  const fetchPipelines = useFilterPipelines(undefined, { parentId: null }, 'createdAt', 'DESC', 0, limit);
-  const pipelines = fetchPipelines.data?.data ?? [];
-  const total = fetchPipelines.data?.total ?? 0;
-  const hasMore = pipelines.length < total;
+  const fetchWorkflows = useFilterWorkflows(undefined, { parentId: null }, 'createdAt', 'DESC', 0, limit);
+  const workflows = fetchWorkflows.data?.data ?? [];
+  const total = fetchWorkflows.data?.total ?? 0;
+  const hasMore = workflows.length < total;
 
-  const fetchPaused = useFilterPipelines(undefined, { parentId: null, status: 'paused' }, 'createdAt', 'DESC', 0, 5);
+  const fetchPaused = useFilterWorkflows(undefined, { parentId: null, status: 'paused' }, 'createdAt', 'DESC', 0, 5);
   const pausedRuns = fetchPaused.data?.data ?? [];
 
   const handleNewRunSuccess = useCallback(
-    (pipelineId: string) => {
+    (workflowId: string) => {
       setNewRunDialogOpen(false);
-      void router.navigateToPipeline(pipelineId);
+      void router.navigateToWorkflow(workflowId);
     },
     [router],
   );
 
   const handleRunClick = useCallback(
-    (pipelineId: string) => {
-      void router.navigateToPipeline(pipelineId);
+    (workflowId: string) => {
+      void router.navigateToWorkflow(workflowId);
     },
     [router],
   );
@@ -57,24 +57,24 @@ export default function StudioLandingPage() {
           <div>
             <p className="text-muted-foreground mb-2 text-xs font-medium">Needs Attention</p>
             <div className="divide-border divide-y">
-              {pausedRuns.map((pipeline) => (
-                <RecentRunItem key={pipeline.id} pipeline={pipeline} onClick={() => handleRunClick(pipeline.id)} />
+              {pausedRuns.map((workflow) => (
+                <RecentRunItem key={workflow.id} workflow={workflow} onClick={() => handleRunClick(workflow.id)} />
               ))}
             </div>
           </div>
         )}
 
-        {fetchPipelines.isLoading && pipelines.length === 0 ? (
+        {fetchWorkflows.isLoading && workflows.length === 0 ? (
           <div className="flex justify-center py-4">
             <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
           </div>
-        ) : pipelines.length > 0 ? (
+        ) : workflows.length > 0 ? (
           <div>
             <p className="text-muted-foreground mb-2 text-xs font-medium">Recent</p>
             <div className="max-h-[280px] overflow-auto">
               <div className="divide-border divide-y">
-                {pipelines.map((pipeline) => (
-                  <RecentRunItem key={pipeline.id} pipeline={pipeline} onClick={() => handleRunClick(pipeline.id)} />
+                {workflows.map((workflow) => (
+                  <RecentRunItem key={workflow.id} workflow={workflow} onClick={() => handleRunClick(workflow.id)} />
                 ))}
               </div>
             </div>
@@ -96,19 +96,19 @@ export default function StudioLandingPage() {
   );
 }
 
-function RecentRunItem({ pipeline, onClick }: { pipeline: PipelineItemInterface; onClick: () => void }) {
-  const dotColor = STATUS_DOT_COLORS[pipeline.status] ?? 'bg-muted-foreground';
+function RecentRunItem({ workflow, onClick }: { workflow: WorkflowItemInterface; onClick: () => void }) {
+  const dotColor = STATUS_DOT_COLORS[workflow.status] ?? 'bg-muted-foreground';
 
   return (
     <button className="hover:bg-accent w-full rounded-md px-2 py-2.5 text-left transition-colors" onClick={onClick}>
       <div className="flex items-center gap-2">
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotColor}`} />
         <span className="truncate text-sm font-medium">
-          Run #{pipeline.run} &middot; {pipeline.blockName}
+          Run #{workflow.run} &middot; {workflow.alias}
         </span>
       </div>
       <p className="text-muted-foreground mt-0.5 pl-3.5 text-xs">
-        {pipeline.status} &middot; {formatDistanceToNow(new Date(pipeline.createdAt), { addSuffix: true })}
+        {workflow.status} &middot; {formatDistanceToNow(new Date(workflow.createdAt), { addSuffix: true })}
       </p>
     </button>
   );

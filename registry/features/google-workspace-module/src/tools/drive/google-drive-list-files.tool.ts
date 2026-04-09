@@ -1,43 +1,35 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GoogleDriveListFilesArgs = {
-  query?: string;
-  folderId?: string;
-  maxResults?: number;
-  pageToken?: string;
-  orderBy?: string;
-};
+const inputSchema = z
+  .object({
+    query: z.string().optional(),
+    folderId: z.string().optional(),
+    maxResults: z.number().default(20),
+    pageToken: z.string().optional(),
+    orderBy: z.string().optional(),
+  })
+  .strict();
+
+export type GoogleDriveListFilesArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Lists and searches files in Google Drive. Supports Drive query syntax and folder browsing. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GoogleDriveListFilesTool implements ToolInterface {
+export class GoogleDriveListFilesTool extends BaseTool {
   private readonly logger = new Logger(GoogleDriveListFilesTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        query: z.string().optional(),
-        folderId: z.string().optional(),
-        maxResults: z.number().default(20),
-        pageToken: z.string().optional(),
-        orderBy: z.string().optional(),
-      })
-      .strict(),
-  })
-  args: GoogleDriveListFilesArgs;
-
-  async execute(args: GoogleDriveListFilesArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async call(args: GoogleDriveListFilesArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -66,7 +58,7 @@ export class GoogleDriveListFilesTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Drive API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Google Drive API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

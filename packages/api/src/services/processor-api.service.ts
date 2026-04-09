@@ -1,35 +1,40 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { PipelineState } from '@loopstack/common';
+import { WORKFLOW_ORCHESTRATOR, WorkflowOrchestrator, WorkflowState } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { TaskSchedulerService } from '@loopstack/core';
-import { RunPipelinePayloadDto } from '../dtos/run-pipeline-payload.dto';
-import { PipelineApiService } from './pipeline-api.service';
+import { RunWorkflowPayloadDto } from '../dtos/run-workflow-payload.dto';
+import { WorkflowApiService } from './workflow-api.service';
 
 @Injectable()
 export class ProcessorApiService {
   constructor(
     private taskSchedulerService: TaskSchedulerService,
-    private pipelineApiService: PipelineApiService,
+    private workflowApiService: WorkflowApiService,
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
   ) {}
 
-  async processPipeline(pipelineId: string, user: string, payload: RunPipelinePayloadDto): Promise<void> {
-    const pipeline = await this.pipelineApiService.findOneById(pipelineId, user);
+  async processWorkflow(workflowId: string, user: string, payload: RunWorkflowPayloadDto): Promise<void> {
+    const workflow = await this.workflowApiService.findOneById(workflowId, user);
 
-    await this.pipelineApiService.setStatus(pipelineId, user, PipelineState.Pending);
+    await this.workflowApiService.setStatus(workflowId, user, WorkflowState.Pending);
 
     void this.taskSchedulerService.addTask({
-      id: 'manual_pipeline_execution-' + randomUUID(),
-      workspaceId: pipeline.workspaceId,
+      id: 'manual_workflow_execution-' + randomUUID(),
+      workspaceId: workflow.workspaceId,
       task: {
         name: 'manual_execution',
-        type: 'run_pipeline',
-        pipelineId,
+        type: 'run_workflow',
+        workflowId,
         payload: {
           ...payload,
         },
         user: user,
       },
     } satisfies ScheduledTask);
+  }
+
+  async callbackWorkflow(workflowId: string, payload: Record<string, unknown>, transition: string): Promise<void> {
+    await this.orchestrator.callback(workflowId, payload, { transition });
   }
 }

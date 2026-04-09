@@ -197,7 +197,7 @@ export class WorkspaceConfigDto implements WorkspaceConfigInterface {
     description: 'Config key of the workspace',
     example: 'file.yaml:my-workspace',
   })
-  blockName: string;
+  className: string;
 
   @Expose()
   @ApiPropertyOptional({

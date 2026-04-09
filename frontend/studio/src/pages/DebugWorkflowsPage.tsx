@@ -1,7 +1,7 @@
 import { useQueries } from '@tanstack/react-query';
 import { Home } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import type { PipelineConfigInterface } from '@loopstack/contracts/api';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
 import { DataTable } from '@/components/data-table/DataTable';
 import type { DataTableColumn } from '@/components/data-table/data-table';
 import MainLayout from '@/components/layout/MainLayout';
@@ -10,7 +10,7 @@ import { useApiClient } from '@/hooks/useApi';
 import { useWorkspaceConfig } from '@/hooks/useConfig';
 import { useStudio } from '@/providers/StudioProvider';
 
-interface PipelineTypeRow extends PipelineConfigInterface {
+interface WorkflowTypeRow extends WorkflowConfigInterface {
   id: string;
   workspaceBlockName: string;
 }
@@ -20,38 +20,38 @@ export default function DebugWorkflowsPage() {
   const { envKey, api } = useApiClient();
   const { data: workspaceTypes, isLoading: isLoadingWorkspaces } = useWorkspaceConfig();
 
-  const pipelineQueries = useQueries({
+  const workflowQueries = useQueries({
     queries: (workspaceTypes ?? []).map((wt) => ({
-      queryKey: ['pipeline-types', wt.blockName, envKey],
+      queryKey: ['workflowTypes', wt.className, envKey],
       queryFn: async () => {
-        const types = await api.config.getPipelineTypesByWorkspace({
-          workspaceBlockName: wt.blockName,
+        const types = await api.config.getWorkflowTypesByWorkspace({
+          workspaceBlockName: wt.className,
         });
-        return { workspaceBlockName: wt.blockName, types };
+        return { workspaceBlockName: wt.className, types };
       },
       enabled: !!workspaceTypes?.length,
     })),
   });
 
-  const isLoadingPipelines = pipelineQueries.some((q) => q.isLoading);
-  const isLoading = isLoadingWorkspaces || isLoadingPipelines;
+  const isLoadingWorkflows = workflowQueries.some((q) => q.isLoading);
+  const isLoading = isLoadingWorkspaces || isLoadingWorkflows;
 
-  const data: PipelineTypeRow[] = useMemo(() => {
-    if (isLoading || !pipelineQueries) return [];
+  const data: WorkflowTypeRow[] = useMemo(() => {
+    if (isLoading || !workflowQueries) return [];
 
-    return pipelineQueries.flatMap((q) => {
+    return workflowQueries.flatMap((q) => {
       if (!q.data) return [];
       const { workspaceBlockName, types } = q.data;
-      return (types ?? []).map((pt) => ({
-        ...pt,
-        id: `${workspaceBlockName}::${pt.blockName}`,
+      return (types ?? []).map((wt) => ({
+        ...wt,
+        id: `${workspaceBlockName}::${wt.alias}`,
         workspaceBlockName,
       }));
     });
-  }, [pipelineQueries, isLoading]);
+  }, [workflowQueries, isLoading]);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<string>('blockName');
+  const [sortBy, setSortBy] = useState<string>('alias');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -63,7 +63,7 @@ export default function DebugWorkflowsPage() {
       const lowerTerm = searchTerm.toLowerCase();
       result = result.filter(
         (item) =>
-          item.blockName?.toLowerCase().includes(lowerTerm) ||
+          item.alias?.toLowerCase().includes(lowerTerm) ||
           item.title?.toLowerCase().includes(lowerTerm) ||
           item.description?.toLowerCase().includes(lowerTerm) ||
           item.workspaceBlockName.toLowerCase().includes(lowerTerm),
@@ -71,7 +71,7 @@ export default function DebugWorkflowsPage() {
     }
 
     result = [...result].sort((a, b) => {
-      const key = sortBy as keyof Pick<PipelineTypeRow, 'blockName' | 'title' | 'description' | 'workspaceBlockName'>;
+      const key = sortBy as keyof Pick<WorkflowTypeRow, 'alias' | 'title' | 'description' | 'workspaceBlockName'>;
       const valA = (a[key] || '').toLowerCase();
       const valB = (b[key] || '').toLowerCase();
 
@@ -88,10 +88,10 @@ export default function DebugWorkflowsPage() {
     return filteredData.slice(start, start + pageSize);
   }, [filteredData, page, pageSize]);
 
-  const columns: DataTableColumn<PipelineTypeRow>[] = [
+  const columns: DataTableColumn<WorkflowTypeRow>[] = [
     {
-      id: 'blockName',
-      label: 'Type ID (Block Name)',
+      id: 'alias',
+      label: 'Type ID (Alias)',
       sortable: true,
       minWidth: 200,
       format: (value) => <span className="font-medium">{String(value)}</span>,
@@ -100,7 +100,7 @@ export default function DebugWorkflowsPage() {
       id: 'title',
       label: 'Title',
       sortable: true,
-      format: (value, row) => <span>{String(value || row.blockName || 'N/A')}</span>,
+      format: (value, row) => <span>{String(value || row.alias || 'N/A')}</span>,
     },
     {
       id: 'workspaceBlockName',

@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { PipelineDto } from './pipeline.dto';
 import { WorkflowDto } from './workflow.dto';
 
 export class DashboardStatsDto {
@@ -56,11 +55,11 @@ export class DashboardStatsDto {
   recentErrors: WorkflowDto[];
 
   @Expose()
-  @Type(() => PipelineDto)
+  @Type(() => WorkflowDto)
   @ApiProperty({
-    description: 'List of recent pipeline runs',
-    type: PipelineDto,
+    description: 'List of recent workflow runs',
+    type: WorkflowDto,
     isArray: true,
   })
-  recentRuns: PipelineDto[];
+  recentRuns: WorkflowDto[];
 }

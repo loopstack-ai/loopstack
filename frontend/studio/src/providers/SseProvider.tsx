@@ -33,13 +33,7 @@ export function SseProvider() {
         }
       };
 
-      const eventTypes = [
-        'workflow.created',
-        'workflow.updated',
-        'document.created',
-        'pipeline.updated',
-        'workspace.updated',
-      ];
+      const eventTypes = ['workflow.created', 'workflow.updated', 'document.created', 'workspace.updated'];
 
       eventTypes.forEach((eventType) => {
         es.addEventListener(eventType, (event: MessageEvent<string>) => {

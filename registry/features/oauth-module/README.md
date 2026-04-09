@@ -294,7 +294,7 @@ import { CreateDocument, ExecuteWorkflowAsync, LinkDocument } from '@loopstack/c
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { MyApiTool } from './my-api.tool';
 
-@Workflow({ configFile: __dirname + '/my.workflow.yaml' })
+@Workflow({ uiConfig: __dirname + '/my.ui.yaml' })
 export class MyWorkflow implements WorkflowInterface {
   @InjectTool() private myApiTool: MyApiTool;
   @InjectTool() private executeWorkflowAsync: ExecuteWorkflowAsync;

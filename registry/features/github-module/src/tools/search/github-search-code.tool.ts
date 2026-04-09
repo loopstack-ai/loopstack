@@ -1,39 +1,33 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GitHubSearchCodeArgs = {
-  query: string;
-  perPage?: number;
-  page?: number;
-};
+const inputSchema = z
+  .object({
+    query: z.string(),
+    perPage: z.number().default(30),
+    page: z.number().default(1),
+  })
+  .strict();
+
+export type GitHubSearchCodeArgs = z.input<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Searches for code across GitHub repositories using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GitHubSearchCodeTool implements ToolInterface {
+export class GitHubSearchCodeTool extends BaseTool {
   private readonly logger = new Logger(GitHubSearchCodeTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        query: z.string(),
-        perPage: z.number().default(30),
-        page: z.number().default(1),
-      })
-      .strict(),
-  })
-  args: GitHubSearchCodeArgs;
-
-  async execute(args: GitHubSearchCodeArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async call(args: GitHubSearchCodeArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -59,7 +53,7 @@ export class GitHubSearchCodeTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: '401',

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { PipelineEntity, PipelineState, User, WorkflowEntity, WorkflowState, WorkspaceEntity } from '@loopstack/common';
+import { User, WorkflowEntity, WorkflowState, WorkspaceEntity } from '@loopstack/common';
 import { SseEventService } from './sse-event.service';
 
 export interface SystemHealth {
@@ -21,12 +21,6 @@ export interface SystemHealth {
 export interface SystemStats {
   users: { total: number; active: number };
   workspaces: { total: number };
-  pipelines: {
-    total: number;
-    running: number;
-    completed: number;
-    failed: number;
-  };
   workflows: {
     total: number;
     running: number;
@@ -48,8 +42,6 @@ export class AdminSystemApiService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
-    @InjectRepository(PipelineEntity)
-    private readonly pipelineRepository: Repository<PipelineEntity>,
     @InjectRepository(WorkflowEntity)
     private readonly workflowRepository: Repository<WorkflowEntity>,
     private readonly sseEventService: SseEventService,
@@ -89,10 +81,6 @@ export class AdminSystemApiService {
       totalUsers,
       activeUsers,
       totalWorkspaces,
-      totalPipelines,
-      runningPipelines,
-      completedPipelines,
-      failedPipelines,
       totalWorkflows,
       runningWorkflows,
       completedWorkflows,
@@ -101,10 +89,6 @@ export class AdminSystemApiService {
       this.userRepository.count(),
       this.userRepository.count({ where: { isActive: true } }),
       this.workspaceRepository.count(),
-      this.pipelineRepository.count(),
-      this.pipelineRepository.count({ where: { status: PipelineState.Running } }),
-      this.pipelineRepository.count({ where: { status: PipelineState.Completed } }),
-      this.pipelineRepository.count({ where: { status: PipelineState.Failed } }),
       this.workflowRepository.count(),
       this.workflowRepository.count({ where: { status: WorkflowState.Running } }),
       this.workflowRepository.count({ where: { status: WorkflowState.Completed } }),
@@ -114,12 +98,6 @@ export class AdminSystemApiService {
     return {
       users: { total: totalUsers, active: activeUsers },
       workspaces: { total: totalWorkspaces },
-      pipelines: {
-        total: totalPipelines,
-        running: runningPipelines,
-        completed: completedPipelines,
-        failed: failedPipelines,
-      },
       workflows: {
         total: totalWorkflows,
         running: runningWorkflows,

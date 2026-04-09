@@ -7,7 +7,7 @@ export function createDocumentMock<T>(
 ): DocumentEntity {
   return {
     ...documentProps,
-    blockName: source.name,
+    alias: source.name,
     content: content,
   } as DocumentEntity<T>;
 }

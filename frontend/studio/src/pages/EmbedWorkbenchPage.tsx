@@ -5,40 +5,35 @@ import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { WorkflowItem } from '@/features/workbench';
 import { WorkbenchLayoutProvider } from '@/features/workbench/providers/WorkbenchLayoutProvider';
-import { usePipeline } from '../hooks/usePipelines.ts';
-import { useFetchWorkflowsByPipeline } from '../hooks/useWorkflows.ts';
+import { useWorkflow } from '../hooks/useWorkflows.ts';
 import { requireParam } from '../lib/requireParam.ts';
 
 const EMBED_MESSAGE_TYPE = 'loopstack:embed:workflow-completed';
 const EMBED_RESIZE_MESSAGE_TYPE = 'loopstack:embed:resize';
 
 export default function EmbedWorkbenchPage() {
-  const params = useParams<{ pipelineId: string }>();
-  const pipelineId = requireParam(params, 'pipelineId');
+  const params = useParams<{ workflowId: string }>();
+  const workflowId = requireParam(params, 'workflowId');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const fetchPipeline = usePipeline(pipelineId);
-  const fetchWorkflows = useFetchWorkflowsByPipeline(pipelineId);
+  const fetchWorkflow = useWorkflow(workflowId);
   const notifiedRef = useRef(false);
 
-  // Notify parent when all workflows have completed
+  // Notify parent when workflow has completed
   useEffect(() => {
-    if (!fetchWorkflows.data || notifiedRef.current) return;
+    if (!fetchWorkflow.data || notifiedRef.current) return;
 
-    const allCompleted =
-      fetchWorkflows.data.length > 0 && fetchWorkflows.data.every((w) => w.status === WorkflowState.Completed);
-
-    if (allCompleted && window.parent !== window) {
+    if (fetchWorkflow.data.status === WorkflowState.Completed && window.parent !== window) {
       notifiedRef.current = true;
       window.parent.postMessage(
         {
           type: EMBED_MESSAGE_TYPE,
-          pipelineId,
+          workflowId,
         },
         window.location.origin,
       );
     }
-  }, [fetchWorkflows.data, pipelineId]);
+  }, [fetchWorkflow.data, workflowId]);
 
   // Report content height to parent for dynamic iframe sizing
   useEffect(() => {
@@ -55,7 +50,7 @@ export default function EmbedWorkbenchPage() {
       window.parent.postMessage(
         {
           type: EMBED_RESIZE_MESSAGE_TYPE,
-          pipelineId,
+          workflowId,
           height,
         },
         window.location.origin,
@@ -65,7 +60,7 @@ export default function EmbedWorkbenchPage() {
     const observer = new ResizeObserver(postHeight);
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [pipelineId]);
+  }, [workflowId]);
 
   const scrollTo = () => {};
 
@@ -76,21 +71,17 @@ export default function EmbedWorkbenchPage() {
 
   return (
     <div ref={containerRef} className="overflow-hidden pl-3 py-4">
-      <ErrorSnackbar error={fetchPipeline.error} />
-      <ErrorSnackbar error={fetchWorkflows.error} />
-      <LoadingCentered loading={fetchPipeline.isLoading || fetchWorkflows.isLoading}>
-        {fetchPipeline.data && fetchWorkflows.data ? (
-          <WorkbenchLayoutProvider pipeline={fetchPipeline.data}>
-            {fetchWorkflows.data.map((workflow) => (
-              <WorkflowItem
-                key={workflow.id}
-                pipeline={fetchPipeline.data}
-                workflowId={workflow.id}
-                scrollTo={scrollTo}
-                settings={settings}
-                embed
-              />
-            ))}
+      <ErrorSnackbar error={fetchWorkflow.error} />
+      <LoadingCentered loading={fetchWorkflow.isLoading}>
+        {fetchWorkflow.data ? (
+          <WorkbenchLayoutProvider workflow={fetchWorkflow.data}>
+            <WorkflowItem
+              workflow={fetchWorkflow.data}
+              workflowId={fetchWorkflow.data.id}
+              scrollTo={scrollTo}
+              settings={settings}
+              embed
+            />
           </WorkbenchLayoutProvider>
         ) : null}
       </LoadingCentered>

@@ -1,19 +1,19 @@
 import { RunPayload } from '@loopstack/contracts/schemas';
-import { NamespaceEntity } from '../entities';
+import type { WorkflowEntity } from '../entities';
 import { WorkspaceEnvironmentContextDto } from './workspace-environment-context.dto';
 
 export class RunContext {
   root!: string;
-  index!: string;
   userId!: string;
-  pipelineId?: string;
+  parentWorkflowId?: string;
   workspaceId!: string;
   workflowId?: string;
-  namespace?: NamespaceEntity;
   labels!: string[];
   payload: RunPayload;
-  pipelineContext?: Record<string, any>;
+  workflowContext?: Record<string, any>;
   workspaceEnvironments?: WorkspaceEnvironmentContextDto[];
+  /** The root workflow entity — available for stateful workflow execution */
+  workflowEntity?: WorkflowEntity;
   options: {
     stateless: boolean;
   };
