@@ -9,7 +9,7 @@
     "state",
     "workflow"
   ],
-  "version": "0.20.7",
+  "version": "0.21.0",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -30,9 +30,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.24.0",
-    "@loopstack/create-chat-message-tool": "^0.20.7",
-    "@loopstack/create-value-tool": "^0.20.7",
+    "@loopstack/common": "^0.25.0",
+    "@loopstack/create-chat-message-tool": "^0.21.0",
+    "@loopstack/create-value-tool": "^0.21.0",
     "@nestjs/common": "^11.1.14",
     "zod": "^4.3.6"
   },
