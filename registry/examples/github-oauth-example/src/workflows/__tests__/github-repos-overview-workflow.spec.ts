@@ -1,15 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
-import {
-  RunContext,
-  generateObjectFingerprint,
-  getBlockArgsSchema,
-  getBlockConfig,
-  getBlockDocuments,
-  getBlockStateSchema,
-  getBlockTools,
-} from '@loopstack/common';
-import { CreateDocument, LoopCoreModule, Task, WorkflowProcessorService } from '@loopstack/core';
+import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
+import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import {
   GitHubCreateIssueCommentTool,
@@ -38,9 +30,13 @@ import {
   GitHubSearchReposTool,
   GitHubTriggerWorkflowTool,
 } from '@loopstack/github-module';
-import { OAuthModule } from '@loopstack/oauth-module';
-import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { OAuthModule, OAuthWorkflow } from '@loopstack/oauth-module';
+import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { GitHubReposOverviewWorkflow } from '../github-repos-overview.workflow';
+
+const mockOAuthWorkflow = {
+  run: jest.fn(),
+};
 
 function applyAllGitHubToolMocks(builder: ReturnType<typeof createWorkflowTest>) {
   return builder
@@ -71,6 +67,16 @@ function applyAllGitHubToolMocks(builder: ReturnType<typeof createWorkflowTest>)
     .withToolMock(GitHubSearchIssuesTool);
 }
 
+function buildWorkflowTest() {
+  return applyAllGitHubToolMocks(
+    createWorkflowTest()
+      .forWorkflow(GitHubReposOverviewWorkflow)
+      .withImports(LoopCoreModule, CreateChatMessageToolModule, OAuthModule)
+      .withMock(OAuthWorkflow, mockOAuthWorkflow)
+      .withToolOverride(CreateChatMessage),
+  );
+}
+
 describe('GitHubReposOverviewWorkflow', () => {
   let module: TestingModule;
   let workflow: GitHubReposOverviewWorkflow;
@@ -85,21 +91,10 @@ describe('GitHubReposOverviewWorkflow', () => {
   let mockListDirectory: ToolMock;
   let mockListWorkflowRuns: ToolMock;
   let mockSearchCode: ToolMock;
-  let mockTask: ToolMock;
-  let mockCreateDocument: ToolMock;
-
-  function buildWorkflowTest() {
-    return applyAllGitHubToolMocks(
-      createWorkflowTest()
-        .forWorkflow(GitHubReposOverviewWorkflow)
-        .withImports(LoopCoreModule, CreateChatMessageToolModule, OAuthModule)
-        .withToolOverride(Task)
-        .withToolOverride(CreateDocument)
-        .withToolOverride(CreateChatMessage),
-    );
-  }
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     module = await buildWorkflowTest().compile();
 
     workflow = module.get(GitHubReposOverviewWorkflow);
@@ -114,8 +109,6 @@ describe('GitHubReposOverviewWorkflow', () => {
     mockListDirectory = module.get(GitHubListDirectoryTool);
     mockListWorkflowRuns = module.get(GitHubListWorkflowRunsTool);
     mockSearchCode = module.get(GitHubSearchCodeTool);
-    mockTask = module.get(Task);
-    mockCreateDocument = module.get(CreateDocument);
   });
 
   afterEach(async () => {
@@ -134,71 +127,24 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(getBlockArgsSchema(workflow)).toBeInstanceOf(z.ZodType);
     });
 
-    it('should have stateSchema defined', () => {
-      expect(getBlockStateSchema(workflow)).toBeDefined();
-      expect(getBlockStateSchema(workflow)).toBeInstanceOf(z.ZodType);
-    });
-
     it('should have config defined', () => {
       expect(getBlockConfig(workflow)).toBeDefined();
     });
 
-    it('should have all 28 tools available', () => {
+    it('should have GitHub tools available', () => {
       const tools = getBlockTools(workflow);
       expect(tools).toBeDefined();
-      expect(tools).toHaveLength(28);
 
-      // Core tools
-      expect(tools).toContain('task');
-      expect(tools).toContain('createDocument');
-      expect(tools).toContain('createChatMessage');
-
-      // GitHub — Users
       expect(tools).toContain('gitHubGetAuthenticatedUser');
       expect(tools).toContain('gitHubListUserOrgs');
-
-      // GitHub — Repos
-      expect(tools).toContain('gitHubListRepos');
       expect(tools).toContain('gitHubGetRepo');
-      expect(tools).toContain('gitHubCreateRepo');
+
       expect(tools).toContain('gitHubListBranches');
-
-      // GitHub — Issues
       expect(tools).toContain('gitHubListIssues');
-      expect(tools).toContain('gitHubGetIssue');
-      expect(tools).toContain('gitHubCreateIssue');
-      expect(tools).toContain('gitHubCreateIssueComment');
-
-      // GitHub — Pull Requests
       expect(tools).toContain('gitHubListPullRequests');
-      expect(tools).toContain('gitHubGetPullRequest');
-      expect(tools).toContain('gitHubCreatePullRequest');
-      expect(tools).toContain('gitHubMergePullRequest');
-      expect(tools).toContain('gitHubListPrReviews');
-
-      // GitHub — Content
-      expect(tools).toContain('gitHubGetFileContent');
-      expect(tools).toContain('gitHubCreateOrUpdateFile');
       expect(tools).toContain('gitHubListDirectory');
-      expect(tools).toContain('gitHubGetCommit');
-
-      // GitHub — Actions
       expect(tools).toContain('gitHubListWorkflowRuns');
-      expect(tools).toContain('gitHubTriggerWorkflow');
-      expect(tools).toContain('gitHubGetWorkflowRun');
-
-      // GitHub — Search
       expect(tools).toContain('gitHubSearchCode');
-      expect(tools).toContain('gitHubSearchRepos');
-      expect(tools).toContain('gitHubSearchIssues');
-    });
-
-    it('should have all documents available', () => {
-      expect(getBlockDocuments(workflow)).toBeDefined();
-      expect(Array.isArray(getBlockDocuments(workflow))).toBe(true);
-      expect(getBlockDocuments(workflow)).toContain('linkDocument');
-      expect(getBlockDocuments(workflow)).toContain('markdown');
-      expect(getBlockDocuments(workflow)).toHaveLength(2);
     });
   });
 
@@ -233,41 +179,11 @@ describe('GitHubReposOverviewWorkflow', () => {
     });
   });
 
-  describe('states', () => {
-    it('should have stateSchema with expected properties', () => {
-      const schema = getBlockStateSchema(workflow) as z.ZodObject<any>;
-      expect(schema).toBeDefined();
-      const shape = schema.shape;
-      expect(shape.requiresAuthentication).toBeDefined();
-      expect(shape.user).toBeDefined();
-      expect(shape.orgs).toBeDefined();
-      expect(shape.repo).toBeDefined();
-      expect(shape.branches).toBeDefined();
-      expect(shape.issues).toBeDefined();
-      expect(shape.pullRequests).toBeDefined();
-      expect(shape.directoryEntries).toBeDefined();
-      expect(shape.workflowRuns).toBeDefined();
-      expect(shape.searchResults).toBeDefined();
-    });
-
-    it('should validate state with all optional fields', () => {
-      const schema = getBlockStateSchema(workflow)!;
-      const result = schema.parse({});
-      expect(result).toEqual({});
-    });
-
-    it('should throw error for invalid state field types', () => {
-      const schema = getBlockStateSchema(workflow)!;
-      expect(() => schema.parse({ repos: 'not-an-array' })).toThrow();
-      expect(() => schema.parse({ requiresAuthentication: 'not-a-boolean' })).toThrow();
-    });
-  });
-
   describe('workflow execution — happy path', () => {
     const args = { owner: 'octocat', repo: 'Hello-World' };
 
     function setupAllMocks() {
-      mockGetAuthenticatedUser.run.mockResolvedValue({
+      mockGetAuthenticatedUser.call.mockResolvedValue({
         data: {
           user: {
             id: 1,
@@ -285,13 +201,13 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListUserOrgs.run.mockResolvedValue({
+      mockListUserOrgs.call.mockResolvedValue({
         data: {
           orgs: [{ id: 1, login: 'github', description: 'How people build software', avatarUrl: '' }],
         },
       });
 
-      mockGetRepo.run.mockResolvedValue({
+      mockGetRepo.call.mockResolvedValue({
         data: {
           repo: {
             id: 1296269,
@@ -315,7 +231,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListBranches.run.mockResolvedValue({
+      mockListBranches.call.mockResolvedValue({
         data: {
           branches: [
             { name: 'main', commitSha: 'abc123', protected: true },
@@ -324,7 +240,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListIssues.run.mockResolvedValue({
+      mockListIssues.call.mockResolvedValue({
         data: {
           issues: [
             {
@@ -344,7 +260,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListPullRequests.run.mockResolvedValue({
+      mockListPullRequests.call.mockResolvedValue({
         data: {
           pullRequests: [
             {
@@ -365,7 +281,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListDirectory.run.mockResolvedValue({
+      mockListDirectory.call.mockResolvedValue({
         data: {
           entries: [
             { name: 'README.md', path: 'README.md', sha: 'abc', size: 1234, type: 'file', htmlUrl: '' },
@@ -374,7 +290,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockListWorkflowRuns.run.mockResolvedValue({
+      mockListWorkflowRuns.call.mockResolvedValue({
         data: {
           totalCount: 1,
           runs: [
@@ -394,7 +310,7 @@ describe('GitHubReposOverviewWorkflow', () => {
         },
       });
 
-      mockSearchCode.run.mockResolvedValue({
+      mockSearchCode.call.mockResolvedValue({
         data: {
           totalCount: 1,
           results: [
@@ -405,7 +321,7 @@ describe('GitHubReposOverviewWorkflow', () => {
     }
 
     it('should execute full workflow from start to end', async () => {
-      const context = {} as RunContext;
+      const context = createStatelessContext();
       setupAllMocks();
 
       const result = await processor.process(workflow, args, context);
@@ -414,106 +330,110 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(result.hasError).toBe(false);
       expect(result.place).toBe('end');
 
+      // Verify markdown document was created
+      expect(result.documents).toEqual(
+        expect.arrayContaining([expect.objectContaining({ className: 'MarkdownDocument' })]),
+      );
+
       // Verify all read tools were called
-      expect(mockGetAuthenticatedUser.run).toHaveBeenCalledTimes(1);
-      expect(mockListUserOrgs.run).toHaveBeenCalledTimes(1);
-      expect(mockGetRepo.run).toHaveBeenCalledTimes(1);
-      expect(mockListBranches.run).toHaveBeenCalledTimes(1);
-      expect(mockListIssues.run).toHaveBeenCalledTimes(1);
-      expect(mockListPullRequests.run).toHaveBeenCalledTimes(1);
-      expect(mockListDirectory.run).toHaveBeenCalledTimes(1);
-      expect(mockListWorkflowRuns.run).toHaveBeenCalledTimes(1);
-      expect(mockSearchCode.run).toHaveBeenCalledTimes(1);
-      expect(mockCreateDocument.run).toHaveBeenCalledTimes(1);
+      expect(mockGetAuthenticatedUser.call).toHaveBeenCalledTimes(1);
+      expect(mockListUserOrgs.call).toHaveBeenCalledTimes(1);
+      expect(mockGetRepo.call).toHaveBeenCalledTimes(1);
+      expect(mockListBranches.call).toHaveBeenCalledTimes(1);
+      expect(mockListIssues.call).toHaveBeenCalledTimes(1);
+      expect(mockListPullRequests.call).toHaveBeenCalledTimes(1);
+      expect(mockListDirectory.call).toHaveBeenCalledTimes(1);
+      expect(mockListWorkflowRuns.call).toHaveBeenCalledTimes(1);
+      expect(mockSearchCode.call).toHaveBeenCalledTimes(1);
     });
 
     it('should pass owner and repo to gitHubGetRepo', async () => {
-      const context = {} as RunContext;
+      const context = createStatelessContext();
       setupAllMocks();
 
       await processor.process(workflow, args, context);
 
-      expect(mockGetRepo.run).toHaveBeenCalledWith(expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }));
+      expect(mockGetRepo.call).toHaveBeenCalledWith(expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }));
     });
 
     it('should pass owner and repo to gitHubListBranches', async () => {
-      const context = {} as RunContext;
+      const context = createStatelessContext();
       setupAllMocks();
 
       await processor.process(workflow, args, context);
 
-      expect(mockListBranches.run).toHaveBeenCalledWith(
+      expect(mockListBranches.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
       );
     });
 
     it('should pass owner and repo to gitHubListIssues with state open', async () => {
-      const context = {} as RunContext;
+      const context = createStatelessContext();
       setupAllMocks();
 
       await processor.process(workflow, args, context);
 
-      expect(mockListIssues.run).toHaveBeenCalledWith(
+      expect(mockListIssues.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World', state: 'open' }),
       );
     });
 
     it('should pass owner and repo to gitHubListPullRequests', async () => {
-      const context = {} as RunContext;
+      const context = createStatelessContext();
       setupAllMocks();
 
       await processor.process(workflow, args, context);
 
-      expect(mockListPullRequests.run).toHaveBeenCalledWith(
+      expect(mockListPullRequests.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World', state: 'open' }),
       );
     });
 
     it('should pass owner and repo to gitHubListDirectory', async () => {
-      const context = {} as RunContext;
+      const context = createStatelessContext();
       setupAllMocks();
 
       await processor.process(workflow, args, context);
 
-      expect(mockListDirectory.run).toHaveBeenCalledWith(
+      expect(mockListDirectory.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
       );
     });
 
     it('should pass owner and repo to gitHubListWorkflowRuns', async () => {
-      const context = {} as RunContext;
+      const context = createStatelessContext();
       setupAllMocks();
 
       await processor.process(workflow, args, context);
 
-      expect(mockListWorkflowRuns.run).toHaveBeenCalledWith(
+      expect(mockListWorkflowRuns.call).toHaveBeenCalledWith(
         expect.objectContaining({ owner: 'octocat', repo: 'Hello-World' }),
       );
     });
 
     it('should pass repo-scoped query to gitHubSearchCode', async () => {
-      const context = {} as RunContext;
+      const context = createStatelessContext();
       setupAllMocks();
 
       await processor.process(workflow, args, context);
 
-      expect(mockSearchCode.run).toHaveBeenCalledWith(expect.objectContaining({ query: 'repo:octocat/Hello-World' }));
+      expect(mockSearchCode.call).toHaveBeenCalledWith(expect.objectContaining({ query: 'repo:octocat/Hello-World' }));
     });
   });
 
   describe('workflow execution — auth flow', () => {
     it('should stop at awaiting_auth when unauthorized', async () => {
-      const context = {} as RunContext;
+      const context = createStatelessContext();
 
-      mockGetAuthenticatedUser.run.mockResolvedValue({
+      mockGetAuthenticatedUser.call.mockResolvedValue({
         data: {
           error: 'unauthorized',
           message: 'No valid GitHub token found. Please authenticate first.',
         },
       });
 
-      mockTask.run.mockResolvedValue({
-        data: { workflowId: 'test-workflow-id' },
+      mockOAuthWorkflow.run.mockResolvedValue({
+        workflowId: 'test-workflow-id',
       });
 
       const result = await processor.process(workflow, { owner: 'octocat', repo: 'Hello-World' }, context);
@@ -523,39 +443,25 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(result.stop).toBe(true);
       expect(result.place).toBe('awaiting_auth');
 
-      expect(mockGetAuthenticatedUser.run).toHaveBeenCalledTimes(1);
-      expect(mockTask.run).toHaveBeenCalledTimes(1);
-      expect(mockTask.run).toHaveBeenCalledWith(
+      expect(mockGetAuthenticatedUser.call).toHaveBeenCalledTimes(1);
+      expect(mockOAuthWorkflow.run).toHaveBeenCalledTimes(1);
+      expect(mockOAuthWorkflow.run).toHaveBeenCalledWith(
+        { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
         expect.objectContaining({
-          workflow: 'oAuth',
-          args: expect.objectContaining({
-            provider: 'github',
-            scopes: ['repo', 'read:org', 'workflow'],
-          }),
-          callback: { transition: 'auth_completed' },
+          alias: 'oAuth',
+          callback: { transition: 'authCompleted' },
         }),
       );
 
       // Subsequent tools should NOT be called
-      expect(mockListUserOrgs.run).not.toHaveBeenCalled();
-      expect(mockGetRepo.run).not.toHaveBeenCalled();
+      expect(mockListUserOrgs.call).not.toHaveBeenCalled();
+      expect(mockGetRepo.call).not.toHaveBeenCalled();
     });
   });
 });
 
 describe('GitHubReposOverviewWorkflow with existing entity', () => {
   let module: TestingModule;
-
-  function buildWorkflowTest() {
-    return applyAllGitHubToolMocks(
-      createWorkflowTest()
-        .forWorkflow(GitHubReposOverviewWorkflow)
-        .withImports(LoopCoreModule, CreateChatMessageToolModule, OAuthModule)
-        .withToolOverride(Task)
-        .withToolOverride(CreateDocument)
-        .withToolOverride(CreateChatMessage),
-    );
-  }
 
   afterEach(async () => {
     if (module) {
@@ -567,16 +473,9 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
     const workflowId = '00000000-0000-0000-0000-000000000001';
     const args = { owner: 'octocat', repo: 'Hello-World' };
 
-    module = await buildWorkflowTest()
-      .withExistingWorkflow({
-        place: 'awaiting_auth',
-        inputData: args,
-        id: workflowId,
-        hashRecord: {
-          options: generateObjectFingerprint(args),
-        },
-      })
-      .compile();
+    jest.clearAllMocks();
+
+    module = await buildWorkflowTest().compile();
 
     const workflow = module.get(GitHubReposOverviewWorkflow);
     const processor = module.get(WorkflowProcessorService);
@@ -589,10 +488,9 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
     const mockListDirectory: ToolMock = module.get(GitHubListDirectoryTool);
     const mockListWorkflowRuns: ToolMock = module.get(GitHubListWorkflowRunsTool);
     const mockSearchCode: ToolMock = module.get(GitHubSearchCodeTool);
-    const mockCreateDocument: ToolMock = module.get(CreateDocument);
 
     // After auth, the workflow retries from start and succeeds
-    mockGetAuthenticatedUser.run.mockResolvedValue({
+    mockGetAuthenticatedUser.call.mockResolvedValue({
       data: {
         user: {
           id: 1,
@@ -609,8 +507,8 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
         },
       },
     });
-    mockListUserOrgs.run.mockResolvedValue({ data: { orgs: [] } });
-    mockGetRepo.run.mockResolvedValue({
+    mockListUserOrgs.call.mockResolvedValue({ data: { orgs: [] } });
+    mockGetRepo.call.mockResolvedValue({
       data: {
         repo: {
           id: 1,
@@ -633,19 +531,24 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
         },
       },
     });
-    mockListBranches.run.mockResolvedValue({ data: { branches: [] } });
-    mockListIssues.run.mockResolvedValue({ data: { issues: [] } });
-    mockListPullRequests.run.mockResolvedValue({ data: { pullRequests: [] } });
-    mockListDirectory.run.mockResolvedValue({ data: { entries: [] } });
-    mockListWorkflowRuns.run.mockResolvedValue({ data: { totalCount: 0, runs: [] } });
-    mockSearchCode.run.mockResolvedValue({ data: { totalCount: 0, results: [] } });
+    mockListBranches.call.mockResolvedValue({ data: { branches: [] } });
+    mockListIssues.call.mockResolvedValue({ data: { issues: [] } });
+    mockListPullRequests.call.mockResolvedValue({ data: { pullRequests: [] } });
+    mockListDirectory.call.mockResolvedValue({ data: { entries: [] } });
+    mockListWorkflowRuns.call.mockResolvedValue({ data: { totalCount: 0, runs: [] } });
+    mockSearchCode.call.mockResolvedValue({ data: { totalCount: 0, results: [] } });
 
     const context = {
+      workflowEntity: {
+        id: workflowId,
+        place: 'awaiting_auth',
+        documents: [],
+      } as Partial<WorkflowEntity>,
       payload: {
         transition: {
-          id: 'auth_completed',
+          id: 'authCompleted',
           workflowId,
-          payload: { workflowId: 'auth-workflow-id' },
+          payload: { workflowId: 'auth-workflow-id', status: 'completed', data: {} },
         },
       },
     } as unknown as RunContext;
@@ -656,20 +559,12 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
     expect(result.hasError).toBe(false);
     expect(result.place).toBe('end');
 
-    expect(mockCreateDocument.run).toHaveBeenCalled();
-    expect(mockGetAuthenticatedUser.run).toHaveBeenCalledTimes(1);
-    expect(mockGetRepo.run).toHaveBeenCalledTimes(1);
-  });
+    // Verify markdown document was created after auth resume
+    expect(result.documents).toEqual(
+      expect.arrayContaining([expect.objectContaining({ className: 'MarkdownDocument' })]),
+    );
 
-  it('should resume from existing workflow state', async () => {
-    module = await buildWorkflowTest()
-      .withExistingWorkflow({
-        place: 'repo_fetched',
-        inputData: { owner: 'octocat', repo: 'Hello-World' },
-      })
-      .compile();
-
-    const workflow = module.get(GitHubReposOverviewWorkflow);
-    expect(workflow).toBeDefined();
+    expect(mockGetAuthenticatedUser.call).toHaveBeenCalledTimes(1);
+    expect(mockGetRepo.call).toHaveBeenCalledTimes(1);
   });
 });

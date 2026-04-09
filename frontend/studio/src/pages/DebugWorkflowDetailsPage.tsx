@@ -56,7 +56,7 @@ export default function DebugWorkflowDetailsPage() {
               <div className="border-b bg-muted/50 px-4 py-2 font-medium text-sm">{source?.filePath}</div>
               <div className="flex-1 overflow-auto bg-[#1e1e1e]">
                 <SyntaxHighlighter
-                  language={source?.raw ? 'yaml' : 'json'}
+                  language={source?.raw ? 'typescript' : 'json'}
                   style={vscDarkPlus}
                   customStyle={{ margin: 0, padding: '1rem', height: '100%', fontSize: '13px' }}
                   showLineNumbers={true}

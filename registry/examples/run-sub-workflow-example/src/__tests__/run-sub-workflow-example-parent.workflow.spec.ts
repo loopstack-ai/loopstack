@@ -1,14 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
-import {
-  RunContext,
-  generateObjectFingerprint,
-  getBlockConfig,
-  getBlockDocuments,
-  getBlockTools,
-} from '@loopstack/common';
-import { CreateDocument, LoopCoreModule, Task, WorkflowProcessorService } from '@loopstack/core';
+import { RunContext, WorkflowEntity, getBlockConfig, getBlockTools } from '@loopstack/common';
+import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
-import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { RunSubWorkflowExampleParentWorkflow } from '../run-sub-workflow-example-parent.workflow';
 import { RunSubWorkflowExampleSubWorkflow } from '../run-sub-workflow-example-sub.workflow';
 
@@ -17,24 +11,26 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
   let workflow: RunSubWorkflowExampleParentWorkflow;
   let processor: WorkflowProcessorService;
 
-  let mockTaskTool: ToolMock;
-  let mockCreateDocumentTool: ToolMock;
+  let mockCreateChatMessageTool: ToolMock;
+
+  const mockSubWorkflow = {
+    run: jest.fn(),
+  };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     module = await createWorkflowTest()
       .forWorkflow(RunSubWorkflowExampleParentWorkflow)
       .withImports(LoopCoreModule, CreateChatMessageToolModule)
-      .withProvider(RunSubWorkflowExampleSubWorkflow)
+      .withMock(RunSubWorkflowExampleSubWorkflow, mockSubWorkflow)
       .withToolOverride(CreateChatMessage)
-      .withToolOverride(Task)
-      .withToolOverride(CreateDocument)
       .compile();
 
     workflow = module.get(RunSubWorkflowExampleParentWorkflow);
     processor = module.get(WorkflowProcessorService);
 
-    mockTaskTool = module.get(Task);
-    mockCreateDocumentTool = module.get(CreateDocument);
+    mockCreateChatMessageTool = module.get(CreateChatMessage);
   });
 
   afterEach(async () => {
@@ -56,27 +52,16 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(getBlockTools(workflow)).toBeDefined();
       expect(Array.isArray(getBlockTools(workflow))).toBe(true);
       expect(getBlockTools(workflow)).toContain('createChatMessage');
-      expect(getBlockTools(workflow)).toContain('task');
-      expect(getBlockTools(workflow)).toContain('createDocument');
-      expect(getBlockTools(workflow)).toHaveLength(3);
-    });
-
-    it('should have all documents available', () => {
-      expect(getBlockDocuments(workflow)).toBeDefined();
-      expect(Array.isArray(getBlockDocuments(workflow))).toBe(true);
-      expect(getBlockDocuments(workflow)).toContain('linkDocument');
-      expect(getBlockDocuments(workflow)).toHaveLength(1);
+      expect(getBlockTools(workflow)).toHaveLength(1);
     });
   });
 
   describe('workflow execution', () => {
-    it('should execute run_workflow transition', async () => {
-      const context = {} as RunContext;
+    it('should execute run_workflow transition and stop at sub_workflow_started', async () => {
+      const context = createStatelessContext();
 
-      mockTaskTool.run.mockResolvedValue({
-        data: {
-          payload: { id: 'test-workflow-id' },
-        },
+      mockSubWorkflow.run.mockResolvedValue({
+        workflowId: 'test-workflow-id',
       });
 
       const result = await processor.process(workflow, {}, context);
@@ -84,130 +69,105 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result).toBeDefined();
       expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
+      expect(result.place).toBe('sub_workflow_started');
 
-      expect(mockTaskTool.run).toHaveBeenCalledTimes(1);
-      expect(mockTaskTool.run).toHaveBeenCalledWith(
+      expect(mockSubWorkflow.run).toHaveBeenCalledTimes(1);
+      expect(mockSubWorkflow.run).toHaveBeenCalledWith(
+        {},
         expect.objectContaining({
-          workflow: 'runSubWorkflowExampleSub',
-          args: {},
-          callback: { transition: 'sub_workflow_callback' },
+          alias: 'runSubWorkflowExampleSub',
+          callback: { transition: 'subWorkflowCallback' },
         }),
       );
-      expect(mockCreateDocumentTool.run).toHaveBeenCalledTimes(1);
+
+      // Link document should have been created
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'LinkDocument',
+            content: expect.objectContaining({
+              label: 'Executing Sub-Workflow...',
+              workflowId: 'test-workflow-id',
+            }),
+          }),
+        ]),
+      );
     });
-  });
-});
 
-describe('RunSubWorkflowExampleParentWorkflow with existing entity', () => {
-  let module: TestingModule;
+    it('should execute sub_workflow_callback when resumed from sub_workflow_started', async () => {
+      const workflowId = '00000000-0000-0000-0000-000000000001';
 
-  afterEach(async () => {
-    if (module) {
-      await module.close();
-    }
-  });
+      mockSubWorkflow.run.mockResolvedValue({
+        workflowId: 'test-workflow-id-2',
+      });
 
-  it('should execute sub_workflow_callback transition when resumed from sub_workflow_started', async () => {
-    const workflowId = '00000000-0000-0000-0000-000000000001';
-    const args = {};
-
-    module = await createWorkflowTest()
-      .forWorkflow(RunSubWorkflowExampleParentWorkflow)
-      .withImports(LoopCoreModule, CreateChatMessageToolModule)
-      .withProvider(RunSubWorkflowExampleSubWorkflow)
-      .withToolOverride(CreateChatMessage)
-      .withToolOverride(Task)
-      .withToolOverride(CreateDocument)
-      .withExistingWorkflow({
-        place: 'sub_workflow_started',
-        inputData: args,
-        id: workflowId,
-        hashRecord: {
-          options: generateObjectFingerprint(args),
+      const context = {
+        workflowEntity: {
+          id: workflowId,
+          place: 'sub_workflow_started',
+          documents: [],
+        } as Partial<WorkflowEntity>,
+        payload: {
+          transition: {
+            id: 'subWorkflowCallback',
+            workflowId,
+            payload: { workflowId, status: 'completed', data: { message: 'Hi mom!' } },
+          },
         },
-      })
-      .compile();
+      } as unknown as RunContext;
 
-    const workflow = module.get(RunSubWorkflowExampleParentWorkflow);
-    const processor = module.get(WorkflowProcessorService);
-    const mockCreateChatMessage: ToolMock = module.get(CreateChatMessage);
-    const mockTask: ToolMock = module.get(Task);
-    const mockCreateDocument: ToolMock = module.get(CreateDocument);
+      const result = await processor.process(workflow, {}, context);
 
-    const context = {
-      payload: {
-        transition: {
-          id: 'sub_workflow_callback',
-          workflowId,
-          payload: { message: 'Hi mom!' },
+      expect(result).toBeDefined();
+      expect(result.hasError).toBe(false);
+      expect(result.stop).toBe(true);
+      expect(result.place).toBe('sub_workflow2_started');
+
+      // subWorkflowCallback calls createChatMessage
+      expect(mockCreateChatMessageTool.call).toHaveBeenCalledWith({
+        role: 'assistant',
+        content: 'A message from sub workflow 1: Hi mom!',
+      });
+
+      // runWorkflow2 fires automatically and calls sub workflow again
+      expect(mockSubWorkflow.run).toHaveBeenCalledTimes(1);
+      expect(mockSubWorkflow.run).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({
+          alias: 'runSubWorkflowExampleSub',
+          callback: { transition: 'subWorkflow2Callback' },
+        }),
+      );
+    });
+
+    it('should execute sub_workflow2_callback when resumed from sub_workflow2_started', async () => {
+      const workflowId = '00000000-0000-0000-0000-000000000001';
+
+      const context = {
+        workflowEntity: {
+          id: workflowId,
+          place: 'sub_workflow2_started',
+          documents: [],
+        } as Partial<WorkflowEntity>,
+        payload: {
+          transition: {
+            id: 'subWorkflow2Callback',
+            workflowId,
+            payload: { workflowId, status: 'completed', data: { message: 'Hello from sub workflow 2!' } },
+          },
         },
-      },
-    } as unknown as RunContext;
+      } as unknown as RunContext;
 
-    const result = await processor.process(workflow, args, context);
+      const result = await processor.process(workflow, {}, context);
 
-    expect(result).toBeDefined();
-    expect(result.hasError).toBe(false);
-    expect(result.stop).toBe(true);
-    expect(result.place).toBe('sub_workflow2_started');
+      expect(result).toBeDefined();
+      expect(result.hasError).toBe(false);
+      expect(result.place).toBe('end');
 
-    // sub_workflow_callback calls createDocument + createChatMessage,
-    // then run_workflow2 fires automatically and calls task + createDocument
-    expect(mockCreateDocument.run).toHaveBeenCalledTimes(2);
-    expect(mockCreateChatMessage.run).toHaveBeenCalledTimes(1);
-    expect(mockTask.run).toHaveBeenCalledTimes(1);
-    expect(mockTask.run).toHaveBeenCalledWith(
-      expect.objectContaining({
-        workflow: 'runSubWorkflowExampleSub',
-        args: {},
-        callback: { transition: 'sub_workflow2_callback' },
-      }),
-    );
-  });
-
-  it('should execute sub_workflow2_callback transition when resumed from sub_workflow2_started', async () => {
-    const workflowId = '00000000-0000-0000-0000-000000000001';
-    const args = {};
-
-    module = await createWorkflowTest()
-      .forWorkflow(RunSubWorkflowExampleParentWorkflow)
-      .withImports(LoopCoreModule, CreateChatMessageToolModule)
-      .withProvider(RunSubWorkflowExampleSubWorkflow)
-      .withToolOverride(CreateChatMessage)
-      .withToolOverride(Task)
-      .withToolOverride(CreateDocument)
-      .withExistingWorkflow({
-        place: 'sub_workflow2_started',
-        inputData: args,
-        id: workflowId,
-        hashRecord: {
-          options: generateObjectFingerprint(args),
-        },
-      })
-      .compile();
-
-    const workflow = module.get(RunSubWorkflowExampleParentWorkflow);
-    const processor = module.get(WorkflowProcessorService);
-    const mockCreateChatMessage: ToolMock = module.get(CreateChatMessage);
-    const mockCreateDocument: ToolMock = module.get(CreateDocument);
-
-    const context = {
-      payload: {
-        transition: {
-          id: 'sub_workflow2_callback',
-          workflowId,
-          payload: { message: 'Hello from sub workflow 2!' },
-        },
-      },
-    } as unknown as RunContext;
-
-    const result = await processor.process(workflow, args, context);
-
-    expect(result).toBeDefined();
-    expect(result.hasError).toBe(false);
-    expect(result.place).toBe('end');
-
-    expect(mockCreateDocument.run).toHaveBeenCalledTimes(1);
-    expect(mockCreateChatMessage.run).toHaveBeenCalledTimes(1);
+      expect(mockCreateChatMessageTool.call).toHaveBeenCalledWith({
+        role: 'assistant',
+        content: 'A message from sub workflow 2: Hello from sub workflow 2!',
+      });
+    });
   });
 });

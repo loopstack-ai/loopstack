@@ -1,6 +1,6 @@
 import { DynamicModule, ForwardReference, Provider, Type } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { User, WorkflowEntity, WorkflowState } from '@loopstack/common';
+import { RunContext, User, WorkflowEntity, WorkflowState } from '@loopstack/common';
 import { WorkflowService } from '@loopstack/core';
 import { mockCoreModuleProviders } from './core-module-mock';
 import { createTestingModule } from './create-testing-module';
@@ -203,4 +203,8 @@ export class WorkflowTestBuilder<TWorkflow = unknown> {
 
 export function createWorkflowTest(): WorkflowTestBuilder {
   return new WorkflowTestBuilder();
+}
+
+export function createStatelessContext(overrides?: Partial<RunContext>): RunContext {
+  return { options: { stateless: true }, ...overrides } as RunContext;
 }

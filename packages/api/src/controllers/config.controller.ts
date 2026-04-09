@@ -19,11 +19,13 @@ import {
 import { plainToInstance } from 'class-transformer';
 import * as fs from 'fs';
 import { sortBy } from 'lodash';
+import * as path from 'path';
 import { toJSONSchema } from 'zod';
 import {
   BLOCK_CONFIG_METADATA_KEY,
   WorkflowInterface,
   WorkspaceInterface,
+  buildWorkflowTransitions,
   getBlockArgsSchema,
   getBlockConfig,
   getBlockWorkflow,
@@ -163,9 +165,16 @@ export class ConfigController {
       throw new Error(`Block ${workflow.constructor.name} is missing @BlockConfig decorator`);
     }
 
-    return plainToInstance(WorkflowConfigDto, config, {
-      excludeExtraneousValues: true,
-    });
+    const decoratorTransitions = buildWorkflowTransitions(workflow);
+    const transitions = decoratorTransitions.length > 0 ? decoratorTransitions : config.transitions;
+
+    return plainToInstance(
+      WorkflowConfigDto,
+      { ...config, transitions },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
   @Get('workflows/:alias/source')
@@ -189,9 +198,27 @@ export class ConfigController {
     let filePath: string | null = null;
 
     if (metadata && typeof metadata.uiConfig === 'string') {
-      filePath = metadata.uiConfig;
-      if (fs.existsSync(filePath)) {
-        raw = fs.readFileSync(filePath, 'utf8');
+      const yamlPath = metadata.uiConfig;
+      const jsPath = yamlPath.replace(/\.ya?ml$/, '.js');
+      const mapPath = jsPath + '.map';
+
+      if (fs.existsSync(mapPath)) {
+        try {
+          const map = JSON.parse(fs.readFileSync(mapPath, 'utf8')) as {
+            sources?: string[];
+            sourceRoot?: string;
+          };
+          const source = map.sources?.[0];
+          if (source) {
+            const resolved = path.resolve(path.dirname(mapPath), map.sourceRoot ?? '', source);
+            if (fs.existsSync(resolved)) {
+              filePath = resolved;
+              raw = fs.readFileSync(resolved, 'utf8');
+            }
+          }
+        } catch {
+          // fall through — source map unreadable
+        }
       }
     }
 
