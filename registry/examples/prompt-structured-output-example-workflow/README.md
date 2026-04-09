@@ -6,14 +6,15 @@ This module provides an example workflow demonstrating how to generate structure
 
 ## Overview
 
-The Prompt Structured Output Example Workflow shows how to use the `aiGenerateDocument` tool to get structured, typed responses from an LLM. It generates a "Hello, World!" script in a user-selected programming language, with the response structured into filename, description, and code fields.
+The Prompt Structured Output Example Workflow shows how to use the `ClaudeGenerateDocument` tool to get structured, typed responses from an LLM. It generates a "Hello, World!" script in a user-selected programming language, with the response structured into filename, description, and code fields.
 
 By using this workflow as a reference, you'll learn how to:
 
 - Define custom document schemas with Zod for structured LLM output
-- Use the `aiGenerateDocument` tool to generate typed responses
-- Create custom documents with form configuration
-- Access structured results via the `runtime` object
+- Use the `ClaudeGenerateDocument` tool to generate typed responses
+- Create custom documents with the `@Document` decorator
+- Store workflow state as instance properties
+- Save and update documents with stable IDs
 
 This example builds on the basic prompt pattern and is ideal for developers who need typed, structured responses from LLMs.
 
@@ -27,7 +28,7 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 #### 1. Custom Document Schema
 
-Define a Zod schema for the structured output:
+Define a Zod schema for the structured output and a document class using the `@Document` decorator:
 
 ```typescript
 export const FileDocumentSchema = z
@@ -39,133 +40,155 @@ export const FileDocumentSchema = z
   .strict();
 
 export type FileDocumentType = z.infer<typeof FileDocumentSchema>;
-```
 
-Create a document class that uses this schema with the `@Document` decorator and `@Input` for the content:
-
-```typescript
-@Document({
-  uiConfig: __dirname + '/file-document.yaml',
-})
-export class FileDocument implements DocumentInterface {
-  @Input({ schema: FileDocumentSchema })
-  content: FileDocumentType;
+@Document({ schema: FileDocumentSchema, uiConfig: __dirname + '/file-document.yaml' })
+export class FileDocument {
+  filename: string;
+  description: string;
+  code: string;
 }
 ```
 
-#### 2. Document UI Configuration
+The schema is passed directly to the `@Document` decorator, which validates the LLM output and configures UI rendering.
 
-Configure how the document is displayed in the UI:
+#### 2. Workflow Input with Enum Arguments
 
-```yaml
-type: document
-
-ui:
-  form:
-    order:
-      - filename
-      - description
-      - code
-    properties:
-      filename:
-        title: File Name
-        readonly: true
-      description:
-        title: Description
-        readonly: true
-      code:
-        title: Code
-        widget: code-view
-```
-
-#### 3. Enum Arguments with Select Widget
-
-Use Zod enums to provide a dropdown selection in the UI:
+Use Zod enums to provide a dropdown selection in the UI. The schema is defined in the `@Workflow` decorator:
 
 ```typescript
-@Input({
+@Workflow({
+  uiConfig: __dirname + '/prompt-structured-output.ui.yaml',
   schema: z.object({
     language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
   }),
 })
-args: {
-  language: string;
-};
+export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }> {
 ```
 
-Configure the select widget in YAML:
+#### 3. Storing Arguments as Instance State
 
-```yaml
-ui:
-  form:
-    properties:
-      language:
-        title: 'What programming language should the script be in?'
-        widget: select
+The `@Initial` method receives the validated arguments and stores them as instance properties for use in later transitions:
+
+```typescript
+language!: string;
+
+@Initial({ to: 'ready' })
+async greeting(args: { language: string }) {
+  this.language = args.language;
+  await this.repository.save(
+    ClaudeMessageDocument,
+    {
+      role: 'assistant',
+      content: [{ type: 'text', text: `Creating a 'Hello, World!' script in ${this.language}...` }],
+    },
+    { id: 'status' },
+  );
+}
 ```
+
+The `{ id: 'status' }` option saves the document with a stable ID so it can be updated later.
 
 #### 4. Generating Structured Output
 
-Use `aiGenerateDocument` with a `response.document` to get typed output. The tool call is given an `id` so its result can be referenced later:
-
-```yaml
-- id: prompt
-  from: ready
-  to: prompt_executed
-  call:
-    - id: llm_call
-      tool: aiGenerateDocument
-      args:
-        llm:
-          provider: openai
-          model: gpt-4o
-        response:
-          document: fileDocument
-        prompt: |
-          Create a {{ args.language }} script that prints 'Hello, World!' to the console.
-          Wrap the code in triple-backticks.
-```
-
-The LLM response is automatically parsed into the `FileDocument` schema.
-
-#### 5. Accessing Results via Runtime
-
-Instead of using `assign` to save results to workflow state, tool results are accessed through the `runtime` object. The path follows the pattern `runtime.tools.<transitionId>.<toolCallId>.data`:
-
-```yaml
-- id: add_message
-  from: prompt_executed
-  to: end
-  call:
-    - tool: createDocument
-      args:
-        id: status
-        document: aiMessageDocument
-        update:
-          content:
-            role: assistant
-            parts:
-              - type: text
-                text: |
-                  Successfully generated: {{ runtime.tools.prompt.llm_call.data.content.description }}
-```
-
-The TypeScript class declares the runtime types with the `@Runtime()` decorator:
+Use `ClaudeGenerateDocument` with a `response.document` to get typed output:
 
 ```typescript
-@Runtime()
-runtime: {
-  tools: Record<'prompt', Record<'llm_call', ToolResult<DocumentEntity<FileDocumentType>>>>;
-};
+@Transition({ from: 'ready', to: 'prompt_executed' })
+async prompt() {
+  const result = await this.claudeGenerateDocument.call({
+    claude: { model: 'claude-sonnet-4-6' },
+    response: { document: FileDocument },
+    prompt: this.render(__dirname + '/templates/prompt.md', { language: this.language }),
+  });
+  this.llmResult = result.data as DocumentEntity<FileDocumentType>;
+}
+```
+
+The LLM response is automatically parsed and validated against the `FileDocument` schema. The result is stored as an instance property for use in the final transition.
+
+#### 5. Updating a Document by ID
+
+The `@Final` method updates the status message saved earlier using the same `{ id: 'status' }`:
+
+```typescript
+@Final({ from: 'prompt_executed' })
+async respond() {
+  await this.repository.save(
+    ClaudeMessageDocument,
+    {
+      role: 'assistant',
+      content: [{ type: 'text', text: `Successfully generated: ${this.llmResult?.content?.description ?? ''}` }],
+    },
+    { id: 'status' },
+  );
+}
+```
+
+### Workflow Class
+
+The complete workflow class:
+
+```typescript
+import { z } from 'zod';
+import { ClaudeGenerateDocument, ClaudeMessageDocument } from '@loopstack/claude-module';
+import { BaseWorkflow, DocumentEntity, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
+import { FileDocument, FileDocumentType } from './documents/file-document';
+
+@Workflow({
+  uiConfig: __dirname + '/prompt-structured-output.ui.yaml',
+  schema: z.object({
+    language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
+  }),
+})
+export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }> {
+  @InjectTool() claudeGenerateDocument: ClaudeGenerateDocument;
+
+  language!: string;
+  llmResult?: DocumentEntity<FileDocumentType>;
+
+  @Initial({ to: 'ready' })
+  async greeting(args: { language: string }) {
+    this.language = args.language;
+    await this.repository.save(
+      ClaudeMessageDocument,
+      {
+        role: 'assistant',
+        content: [{ type: 'text', text: `Creating a 'Hello, World!' script in ${this.language}...` }],
+      },
+      { id: 'status' },
+    );
+  }
+
+  @Transition({ from: 'ready', to: 'prompt_executed' })
+  async prompt() {
+    const result = await this.claudeGenerateDocument.call({
+      claude: { model: 'claude-sonnet-4-6' },
+      response: { document: FileDocument },
+      prompt: this.render(__dirname + '/templates/prompt.md', { language: this.language }),
+    });
+    this.llmResult = result.data as DocumentEntity<FileDocumentType>;
+  }
+
+  @Final({ from: 'prompt_executed' })
+  async respond() {
+    await this.repository.save(
+      ClaudeMessageDocument,
+      {
+        role: 'assistant',
+        content: [{ type: 'text', text: `Successfully generated: ${this.llmResult?.content?.description ?? ''}` }],
+      },
+      { id: 'status' },
+    );
+  }
+}
 ```
 
 ## Dependencies
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/core` - Core framework functionality
-- `@loopstack/core` - Provides `CreateDocument` tool
-- `@loopstack/ai-module` - Provides `AiGenerateDocument` tool and `AiMessageDocument`
+- `@loopstack/common` - Core framework functionality, `BaseWorkflow`, `DocumentEntity`, decorators
+- `@loopstack/claude-module` - Provides `ClaudeGenerateDocument` tool and `ClaudeMessageDocument`
 
 ## About
 

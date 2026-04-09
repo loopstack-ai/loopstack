@@ -24,77 +24,61 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## Usage
 
-Inject the tools in your workflow class using the @InjectTool() decorator:
+Inject the tools in your workflow class using the `@InjectTool()` decorator:
 
 ```typescript
 import { z } from 'zod';
-import { InjectTool, State, Workflow } from '@loopstack/common';
-import { SandboxCommand, SandboxDestroy, SandboxInit } from './sandbox-tool';
+import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
+import { SandboxCommand, SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
 
 @Workflow({
   uiConfig: __dirname + '/my.ui.yaml',
+  schema: z.object({
+    outputDir: z.string().default(process.cwd() + '/out'),
+  }),
 })
-export class MyWorkflow {
+export class MySandboxWorkflow extends BaseWorkflow<{ outputDir: string }> {
   @InjectTool() sandboxInit: SandboxInit;
   @InjectTool() sandboxCommand: SandboxCommand;
   @InjectTool() sandboxDestroy: SandboxDestroy;
 
-  @State({
-    schema: z.object({
-      containerId: z.string().optional(),
-      result: z.any().optional(),
-    }),
-  })
-  state: { containerId: string; result: any };
+  containerId?: string;
+
+  // Initialize a Node.js sandbox
+  @Initial({ to: 'sandbox_ready' })
+  async createSandbox(args: { outputDir: string }) {
+    const result: ToolResult<{ containerId: string; dockerId: string }> = await this.sandboxInit.call({
+      containerId: 'my-sandbox',
+      imageName: 'node:18',
+      containerName: 'my-node-sandbox',
+      projectOutPath: args.outputDir,
+      rootPath: 'workspace',
+    });
+
+    this.containerId = result.data!.containerId;
+  }
+
+  // Execute a Node.js command
+  @Transition({ from: 'sandbox_ready', to: 'code_executed' })
+  async runCode() {
+    await this.sandboxCommand.call({
+      containerId: this.containerId!,
+      executable: 'node',
+      args: ['-e', "console.log('Hello from sandbox!')"],
+      workingDirectory: '/workspace',
+      timeout: 30000,
+    });
+  }
+
+  // Clean up the sandbox
+  @Final({ from: 'code_executed' })
+  async cleanup() {
+    await this.sandboxDestroy.call({
+      containerId: this.containerId!,
+      removeContainer: true,
+    });
+  }
 }
-```
-
-And use it in your YAML workflow configuration:
-
-```yaml
-# src/my.ui.yaml
-transitions:
-  # Initialize a Node.js sandbox
-  - id: create_sandbox
-    from: start
-    to: sandbox_ready
-    call:
-      - tool: sandboxInit
-        args:
-          containerId: my-sandbox
-          imageName: node:18
-          containerName: my-node-sandbox
-          projectOutPath: /tmp/workspace
-          rootPath: workspace
-        assign:
-          containerId: ${{ result.data.containerId }}
-
-  # Execute a Node.js command
-  - id: run_code
-    from: sandbox_ready
-    to: code_executed
-    call:
-      - tool: sandboxCommand
-        args:
-          containerId: ${{ state.containerId }}
-          executable: node
-          args:
-            - -e
-            - "console.log('Hello from sandbox!')"
-          workingDirectory: /workspace
-          timeout: 30000
-        assign:
-          result: ${{ result.data }}
-
-  # Clean up the sandbox
-  - id: cleanup
-    from: code_executed
-    to: end
-    call:
-      - tool: sandboxDestroy
-        args:
-          containerId: ${{ state.containerId }}
-          removeContainer: true
 ```
 
 ## Tool Reference
@@ -162,59 +146,6 @@ Stop and destroy a sandbox container.
 }
 ```
 
-## Complete Example
-
-Here's a complete workflow that executes Python code in an isolated environment:
-
-```yaml
-title: 'Python Code Execution Sandbox'
-
-description: Safely execute Python code in an isolated Docker container
-
-transitions:
-  - id: init_python_sandbox
-    from: start
-    to: sandbox_ready
-    call:
-      - tool: sandboxInit
-        args:
-          containerId: python-sandbox
-          imageName: python:3.11
-          containerName: python-executor
-          projectOutPath: /tmp/python-workspace
-          rootPath: workspace
-        assign:
-          containerId: ${{ result.data.containerId }}
-
-  - id: execute_script
-    from: sandbox_ready
-    to: script_executed
-    call:
-      - tool: sandboxCommand
-        args:
-          containerId: ${{ state.containerId }}
-          executable: python
-          args:
-            - -c
-            - |
-              import sys
-              print(f"Python version: {sys.version}")
-              print("Hello from isolated sandbox!")
-          workingDirectory: /workspace
-          timeout: 10000
-        assign:
-          output: ${{ result.data }}
-
-  - id: cleanup_sandbox
-    from: script_executed
-    to: end
-    call:
-      - tool: sandboxDestroy
-        args:
-          containerId: ${{ state.containerId }}
-          removeContainer: true
-```
-
 ## About
 
 Author: Tobias Blättermann, Jakob Klippel
@@ -223,6 +154,6 @@ License: Apache-2.0
 
 ### Additional Resources:
 
-- [Loopstack Documentation](https://loopstack.ai)
-- [Getting Started with Loopstack](https://loopstack.ai)
+- [Loopstack Documentation](https://loopstack.ai/docs)
+- [Getting Started with Loopstack](https://loopstack.ai/docs/getting-started)
 - For more examples how to use this tool look for `@loopstack/sandbox-tool` in the [Loopstack Registry](https://loopstack.ai/registry)

@@ -10,11 +10,12 @@ The Chat Example Workflow shows how to create a conversational assistant that pr
 
 By using this workflow as a reference, you'll learn how to:
 
-- Set up a system prompt to define assistant behavior
-- Process user messages through an LLM
+- Set up a system prompt using a Handlebars template file
+- Use `wait: true` to pause the workflow for user input
+- Process user messages through an LLM with `ClaudeGenerateText`
 - Create a message loop for continuous conversation
-- Configure custom UI actions for user input
-- Access LLM results via the `runtime` object
+- Configure custom UI widgets for user input
+- Save documents with the workflow repository
 
 This example is useful for developers building chatbots, virtual assistants, or any conversational AI interface.
 
@@ -28,131 +29,114 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 #### 1. System Prompt Setup
 
-The workflow begins by creating a hidden system message that defines the assistant's behavior:
+The workflow begins with an `@Initial` method that saves a hidden system message. The message content is rendered from a Handlebars template file:
 
-```yaml
-- id: greeting
-  from: start
-  to: ready
-  call:
-    - tool: createDocument
-      args:
-        document: aiMessageDocument
-        update:
-          meta:
-            hidden: true
-          content:
-            role: system
-            parts:
-              - type: text
-                text: |
-                  You are a helpful assistant named Bob.
-                  Always tell the user your name.
-                  Use available tools to help the user with their requests.
+```typescript
+@Initial({ to: 'waiting_for_user' })
+async setup() {
+  await this.repository.save(
+    ClaudeMessageDocument,
+    { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
+    { meta: { hidden: true } },
+  );
+}
 ```
 
-#### 2. LLM Response Generation
+The `{ meta: { hidden: true } }` option ensures the system message is included in the LLM context but not displayed in the chat UI.
 
-When the workflow reaches the `ready` state, it calls the LLM to generate a response based on the conversation history. The tool call is given an `id` so its result can be referenced later via the `runtime` object:
+#### 2. Waiting for User Input
 
-```yaml
-- id: prompt
-  from: ready
-  to: prompt_executed
-  call:
-    - id: llm_call
-      tool: aiGenerateText
-      args:
-        llm:
-          provider: openai
-          model: gpt-4o
-        messagesSearchTag: message
+The `userMessage` transition uses `wait: true` to pause the workflow and wait for external input. A Zod schema defines the expected payload type:
+
+```typescript
+@Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
+async userMessage(payload: string) {
+  await this.repository.save(ClaudeMessageDocument, { role: 'user', content: payload });
+}
 ```
 
-#### 3. Storing the LLM Response
+When the user sends a message, the payload is saved as a `ClaudeMessageDocument` and the workflow transitions to the `ready` state.
 
-After the LLM generates a response, the result is stored as a document. The response data is accessed through `runtime.tools.prompt.llm_call.data`, which references the result of the `llm_call` tool in the `prompt` transition:
+#### 3. LLM Response Generation
 
-```yaml
-- id: add_response
-  from: prompt_executed
-  to: waiting_for_user
-  call:
-    - tool: createDocument
-      args:
-        document: aiMessageDocument
-        update:
-          content: ${{ runtime.tools.prompt.llm_call.data }}
+When the workflow reaches the `ready` state, it calls the LLM to generate a response based on the full conversation history using `messagesSearchTag`:
+
+```typescript
+@Transition({ from: 'ready', to: 'waiting_for_user' })
+async llmTurn() {
+  const result = await this.claudeGenerateText.call({
+    claude: { model: 'claude-sonnet-4-6' },
+    messagesSearchTag: 'message',
+  });
+  await this.repository.save(ClaudeMessageDocument, result.data!, { id: result.data!.id });
+}
 ```
 
-#### 4. Custom UI Actions
+The `messagesSearchTag: 'message'` parameter retrieves all saved `ClaudeMessageDocument` entries as conversation context. The LLM response is saved and the workflow loops back to `waiting_for_user`.
 
-The workflow defines a custom UI action that allows users to send messages:
+#### 4. Custom UI Widgets
+
+The workflow defines a prompt input widget that is enabled when waiting for user input:
 
 ```yaml
 ui:
   widgets:
     - widget: prompt-input
       enabledWhen:
-        - ready
+        - waiting_for_user
       options:
-        transition: user_message
+        transition: userMessage
         label: Send Message
 ```
 
-#### 5. Manual Trigger for User Input
-
-User messages are handled through a manually triggered transition that captures the input payload:
-
-```yaml
-- id: user_message
-  from: waiting_for_user
-  to: ready
-  trigger: manual
-  call:
-    - id: prompt_message
-      tool: createDocument
-      args:
-        document: aiMessageDocument
-        update:
-          content:
-            role: user
-            parts:
-              - type: text
-                text: ${{ runtime.transition.payload }}
-```
+The `transition: userMessage` connects the widget to the `userMessage` method, and `enabledWhen` controls when the input is active.
 
 ### Workflow Class
 
-The TypeScript workflow class declares the tools, documents, and runtime types used in the YAML definition:
+The complete workflow class uses `@InjectTool()` to access the `ClaudeGenerateText` tool and extends `BaseWorkflow`:
 
 ```typescript
-import { ToolResult } from '@loopstack/common';
+import { z } from 'zod';
+import { ClaudeGenerateText, ClaudeMessageDocument } from '@loopstack/claude-module';
+import { BaseWorkflow, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/chat.ui.yaml',
 })
-export class ChatWorkflow {
-  @InjectTool() createDocument: CreateDocument;
-  @InjectTool() aiGenerateText: AiGenerateText;
-  @InjectDocument() aiMessageDocument: AiMessageDocument;
+export class ChatWorkflow extends BaseWorkflow {
+  @InjectTool() claudeGenerateText: ClaudeGenerateText;
 
-  @Runtime()
-  runtime: {
-    tools: Record<'prompt', Record<'llm_call', ToolResult<AiMessageDocumentContentType>>>;
-  };
+  @Initial({ to: 'waiting_for_user' })
+  async setup() {
+    await this.repository.save(
+      ClaudeMessageDocument,
+      { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
+      { meta: { hidden: true } },
+    );
+  }
+
+  @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
+  async userMessage(payload: string) {
+    await this.repository.save(ClaudeMessageDocument, { role: 'user', content: payload });
+  }
+
+  @Transition({ from: 'ready', to: 'waiting_for_user' })
+  async llmTurn() {
+    const result = await this.claudeGenerateText.call({
+      claude: { model: 'claude-sonnet-4-6' },
+      messagesSearchTag: 'message',
+    });
+    await this.repository.save(ClaudeMessageDocument, result.data!, { id: result.data!.id });
+  }
 }
 ```
-
-The `@Runtime()` decorator provides typed access to tool results. Here, `runtime.tools.prompt.llm_call` gives access to the result of the `llm_call` tool executed in the `prompt` transition.
 
 ## Dependencies
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/core` - Core framework functionality
-- `@loopstack/core` - Provides `CreateDocument` tool
-- `@loopstack/ai-module` - Provides `AiGenerateText` tool and `AiMessageDocument`
+- `@loopstack/common` - Core framework functionality, `BaseWorkflow`, decorators
+- `@loopstack/claude-module` - Provides `ClaudeGenerateText` tool and `ClaudeMessageDocument`
 
 ## About
 

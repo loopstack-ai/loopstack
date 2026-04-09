@@ -13,7 +13,7 @@ By using this module, you'll be able to:
 - Run an OAuth 2.0 authorization code flow for any registered provider
 - Store and retrieve access/refresh tokens per user and provider
 - Automatically refresh expired tokens
-- Trigger authentication from any workflow via the sub-workflow pattern using `ExecuteWorkflowAsync`
+- Trigger authentication from any workflow via the sub-workflow pattern
 
 ## Installation and Setup
 
@@ -33,7 +33,7 @@ oauth-module (generic)          provider module (e.g. google)
 └─────────────────────────┘     ┌──────────────────────────┐
                                 │ uses OAuthTokenStore     │
                                 │ launches OAuthWorkflow   │
-                                │ via ExecuteWorkflowAsync │
+                                │ via InjectWorkflow       │
                                 └──────────────────────────┘
 ```
 
@@ -176,26 +176,39 @@ interface OAuthTokenSet {
 
 ## Using the OAuth Workflow in a Custom Use Case
 
-The typical pattern is "try, then authenticate on failure" using `ExecuteWorkflowAsync` to launch the OAuth workflow as a sub-workflow:
+The typical pattern is "try, then authenticate on failure" using `@InjectWorkflow()` to launch the OAuth workflow as a sub-workflow:
 
 1. Your tool attempts an API call using a token from `OAuthTokenStore`
-2. If no token exists (or it's rejected), your workflow launches the OAuth workflow as a sub-workflow via `ExecuteWorkflowAsync`
+2. If no token exists (or it's rejected), your workflow launches the OAuth workflow as a sub-workflow
 3. The OAuth sub-workflow handles the full auth flow (popup, code exchange, token storage)
 4. On completion, the parent workflow is automatically resumed via the callback transition
 
-### Step 1: Inject `OAuthTokenStore` in your tool
+### Step 1: Create a tool that uses `OAuthTokenStore`
 
 ```typescript
-import { Inject } from '@nestjs/common';
-import { RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { z } from 'zod';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-@Tool({ config: { description: 'Fetches data from an API that requires OAuth.' } })
-export class MyApiTool implements ToolInterface {
+const inputSchema = z
+  .object({
+    query: z.string(),
+  })
+  .strict();
+
+@Injectable()
+@Tool({
+  uiConfig: { description: 'Fetches data from an API that requires OAuth.' },
+  schema: inputSchema,
+})
+export class MyApiTool extends BaseTool {
+  private readonly logger = new Logger(MyApiTool.name);
+
   @Inject() private tokenStore: OAuthTokenStore;
 
-  async execute(args: any, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async call(args: z.infer<typeof inputSchema>): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return { data: { error: 'unauthorized' } };
@@ -205,111 +218,118 @@ export class MyApiTool implements ToolInterface {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    // ... handle response
     return { data: { items: await response.json() } };
   }
 }
 ```
 
-### Step 2: Handle the auth flow in your workflow YAML
+### Step 2: Handle the auth flow in your workflow
 
-```yaml
-transitions:
-  # 1. Attempt the API call
-  - id: fetch_data
-    from: start
-    to: data_fetched
-    call:
-      - tool: myApiTool
-        assign:
-          requiresAuth: ${{ result.data.error == "unauthorized" }}
-          items: ${{ result.data.items }}
+```typescript
+import { z } from 'zod';
+import {
+  BaseWorkflow,
+  CallbackSchema,
+  Final,
+  Guard,
+  Initial,
+  InjectTool,
+  InjectWorkflow,
+  ToolResult,
+  Transition,
+  Workflow,
+} from '@loopstack/common';
+import { LinkDocument } from '@loopstack/core';
+import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import { OAuthWorkflow } from '@loopstack/oauth-module';
+import { MyApiTool } from './my-api.tool';
 
-  # 2. If unauthorized, launch OAuth as a sub-workflow
-  - id: auth_required
-    from: data_fetched
-    to: awaiting_auth
-    if: ${{ state.requiresAuth }}
-    call:
-      - tool: executeWorkflowAsync
-        id: launchAuth
-        args:
-          workflow: oAuthWorkflow
-          args:
-            provider: 'github'
-            scopes:
-              - 'repo'
-          callback:
-            transition: auth_completed
+@Workflow({
+  uiConfig: __dirname + '/my.ui.yaml',
+  schema: z
+    .object({
+      query: z.string().default('example'),
+    })
+    .strict(),
+})
+export class MyWorkflow extends BaseWorkflow<{ query: string }> {
+  @InjectTool() private myApiTool: MyApiTool;
+  @InjectTool() private createChatMessage: CreateChatMessage;
+  @InjectWorkflow() private oAuth: OAuthWorkflow;
 
-      - tool: createDocument
-        args:
-          id: authStatus
-          document: linkDocument
-          update:
-            content:
-              icon: 'LockKeyhole'
-              label: 'GitHub authentication required'
-              caption: 'Complete sign-in to continue'
-              href: '/pipelines/{{ runtime.tools.auth_required.launchAuth.data.task.pipelineId }}'
-              embed: true
-              expanded: true
+  requiresAuth?: boolean;
+  items?: any;
 
-  # 3. Auth sub-workflow completed — resume from start
-  - id: auth_completed
-    from: awaiting_auth
-    to: start
-    trigger: manual
-    call:
-      - tool: createDocument
-        args:
-          id: authStatus
-          document: linkDocument
-          update:
-            content:
-              icon: 'ShieldCheck'
-              type: 'success'
-              label: 'Authentication completed'
-              href: '/pipelines/{{ runtime.transition.payload.pipelineId }}'
+  // 1. Attempt the API call
+  @Initial({ to: 'data_fetched' })
+  async fetchData(args: { query: string }) {
+    const result: ToolResult = await this.myApiTool.call({ query: args.query });
+    this.requiresAuth = result.data?.error === 'unauthorized';
+    this.items = result.data?.items;
+  }
 
-  # 4. Success path
-  - id: display_results
-    from: data_fetched
-    to: end
-    call:
-      - tool: createChatMessage
-        args:
-          role: assistant
-          content: 'Here is your data: ...'
+  // 2. If unauthorized, launch OAuth as a sub-workflow
+  @Transition({ from: 'data_fetched', to: 'awaiting_auth', priority: 10 })
+  @Guard('needsAuth')
+  async authRequired() {
+    const result = await this.oAuth.run(
+      { provider: 'github', scopes: ['repo'] },
+      { alias: 'oAuth', callback: { transition: 'authCompleted' } },
+    );
+
+    await this.repository.save(
+      LinkDocument,
+      {
+        label: 'GitHub authentication required',
+        workflowId: result.workflowId,
+        embed: true,
+        expanded: true,
+      },
+      { id: `link_${result.workflowId}` },
+    );
+  }
+
+  needsAuth(): boolean {
+    return !!this.requiresAuth;
+  }
+
+  // 3. Auth completed — retry from start
+  @Transition({
+    from: 'awaiting_auth',
+    to: 'start',
+    wait: true,
+    schema: CallbackSchema,
+  })
+  async authCompleted(payload: { workflowId: string }) {
+    await this.repository.save(
+      LinkDocument,
+      {
+        status: 'success',
+        label: 'Authentication completed',
+        workflowId: payload.workflowId,
+        embed: true,
+        expanded: false,
+      },
+      { id: `link_${payload.workflowId}` },
+    );
+  }
+
+  // 4. Success path
+  @Final({ from: 'data_fetched' })
+  async displayResults() {
+    await this.createChatMessage.call({
+      role: 'assistant',
+      content: `Here is your data: ${JSON.stringify(this.items)}`,
+    });
+  }
+}
 ```
 
 The `embed: true` and `expanded: true` flags on the link document cause the OAuth sub-workflow to render inline as an iframe, so the user can complete authentication without leaving the page. Omit these flags to show a plain link instead.
 
-### Step 3: Wire up the workflow class
+### Step 3: Wire up the module
 
-```typescript
-import { Injectable } from '@nestjs/common';
-import { Context, InjectDocument, InjectTool, Runtime, State, Workflow, WorkflowInterface } from '@loopstack/common';
-import { CreateDocument, ExecuteWorkflowAsync, LinkDocument } from '@loopstack/core';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
-import { MyApiTool } from './my-api.tool';
-
-@Workflow({ uiConfig: __dirname + '/my.ui.yaml' })
-export class MyWorkflow implements WorkflowInterface {
-  @InjectTool() private myApiTool: MyApiTool;
-  @InjectTool() private executeWorkflowAsync: ExecuteWorkflowAsync;
-  @InjectTool() private createDocument: CreateDocument;
-  @InjectTool() private createChatMessage: CreateChatMessage;
-  @InjectDocument() private linkDocument: LinkDocument;
-
-  @Context() context: any;
-  @Runtime() runtime: any;
-  @State({ schema: z.object({ requiresAuth: z.boolean().optional(), items: z.any().optional() }).strict() })
-  state: { requiresAuth?: boolean; items?: any };
-}
-```
-
-Your module must import `LoopCoreModule` (for `ExecuteWorkflowAsync`) and the relevant provider module:
+Your module must import `LoopCoreModule` (for sub-workflow support) and the relevant provider module:
 
 ```typescript
 import { Module } from '@nestjs/common';

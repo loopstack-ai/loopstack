@@ -2,7 +2,7 @@
 
 > An example module for the [Loopstack AI](https://loopstack.ai) automation framework.
 
-This module demonstrates how to build workflows that interact with the GitHub API using OAuth authentication. It includes two workflows: a structured overview that fetches repository data, and an interactive chat agent powered by an LLM that can use all 25 GitHub tools.
+This module demonstrates how to build workflows that interact with the GitHub API using OAuth authentication. It includes two workflows: a structured overview that fetches repository data, and an interactive chat agent powered by Claude that can use all 25 GitHub tools.
 
 ## Workflows
 
@@ -15,16 +15,70 @@ A multi-step workflow that fetches and displays a comprehensive overview of a Gi
 **Flow:**
 
 ```
-start -> fetch_user -> fetch_orgs -> fetch_repo_details -> fetch_issues_prs
-  -> fetch_content_actions -> fetch_search -> display_results -> end
+start -> user_fetched -> orgs_fetched -> repo_fetched -> issues_prs_fetched
+  -> content_actions_fetched -> search_done -> end
 ```
 
 With OAuth branching:
 
 ```
-fetch_user -> (unauthorized) -> auth_required -> awaiting_auth
-                                                    |
-                                              auth_completed -> start (retry)
+user_fetched -> (unauthorized via @Guard) -> awaiting_auth
+                                                |
+                                          auth_completed -> start (retry)
+```
+
+**Key patterns:**
+
+The workflow uses `@Guard` to check if authentication is needed and routes to the OAuth flow:
+
+```typescript
+@Transition({ from: 'user_fetched', to: 'awaiting_auth', priority: 10 })
+@Guard('needsAuth')
+async authRequired() {
+  const result = await this.oAuth.run(
+    { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
+    { alias: 'oAuth', callback: { transition: 'authCompleted' } },
+  );
+
+  await this.repository.save(
+    LinkDocument,
+    {
+      label: 'GitHub authentication required',
+      workflowId: result.workflowId,
+      embed: true,
+      expanded: true,
+    },
+    { id: `link_${result.workflowId}` },
+  );
+}
+
+needsAuth(): boolean {
+  return !!this.requiresAuthentication;
+}
+```
+
+The auth callback uses `wait: true` with `CallbackSchema` to receive the OAuth completion signal:
+
+```typescript
+@Transition({
+  from: 'awaiting_auth',
+  to: 'start',
+  wait: true,
+  schema: CallbackSchema,
+})
+async authCompleted(payload: { workflowId: string }) {
+  await this.repository.save(
+    LinkDocument,
+    {
+      status: 'success',
+      label: 'GitHub authentication completed',
+      workflowId: payload.workflowId,
+      embed: true,
+      expanded: false,
+    },
+    { id: `link_${payload.workflowId}` },
+  );
+}
 ```
 
 **Tools exercised in the workflow:**
@@ -61,18 +115,60 @@ All 25 tools are injected and available; 9 are called directly by the workflow t
 
 ### GitHub Agent (`gitHubAgent`)
 
-An interactive chat agent that gives an LLM access to all 25 GitHub tools. The agent can manage repositories, issues, pull requests, browse code, check CI/CD status, search across GitHub, and handle OAuth automatically.
+An interactive chat agent that gives Claude access to all 25 GitHub tools. The agent can manage repositories, issues, pull requests, browse code, check CI/CD status, search across GitHub, and handle OAuth automatically via the `AuthenticateGitHubTask` custom tool.
 
 **How it works:**
 
-1. Sets up a system prompt describing available GitHub capabilities
-2. Waits for user input via a chat prompt
-3. Sends the conversation to the LLM with all GitHub tools available
-4. Executes any tool calls the LLM makes
-5. If a tool returns an auth error, launches OAuth and resumes after authentication
+1. Sets up a hidden system message describing available GitHub capabilities
+2. Waits for user input via a `wait: true` transition
+3. Sends the conversation to Claude with all 25 GitHub tools plus `authenticateGitHub`
+4. If `stop_reason === 'tool_use'`, delegates tool calls via `DelegateToolCalls` and collects results with `UpdateToolResult`
+5. If a tool returns an auth error, the LLM calls `authenticateGitHub` which launches OAuth
 6. Loops back to wait for the next user message
 
-This is the easiest way to interactively test every GitHub tool — just ask the agent to perform any GitHub operation.
+**Agent loop pattern:**
+
+```typescript
+@Transition({ from: 'ready', to: 'prompt_executed' })
+async llmTurn() {
+  const result: ToolResult<ClaudeGenerateTextResult> = await this.claudeGenerateText.call({
+    system: `You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
+and search tools. When a tool returns an unauthorized error, use authenticateGitHub
+to let the user sign in, then retry. Be concise and format results using markdown.`,
+    claude: { model: 'claude-sonnet-4-6' },
+    messagesSearchTag: 'message',
+    tools: [
+      'gitHubListRepos', 'gitHubGetRepo', 'gitHubCreateRepo', 'gitHubListBranches',
+      'gitHubListIssues', 'gitHubGetIssue', 'gitHubCreateIssue', 'gitHubCreateIssueComment',
+      'gitHubListPullRequests', 'gitHubGetPullRequest', 'gitHubCreatePullRequest',
+      'gitHubMergePullRequest', 'gitHubListPrReviews',
+      'gitHubGetFileContent', 'gitHubCreateOrUpdateFile', 'gitHubListDirectory', 'gitHubGetCommit',
+      'gitHubListWorkflowRuns', 'gitHubTriggerWorkflow', 'gitHubGetWorkflowRun',
+      'gitHubSearchCode', 'gitHubSearchRepos', 'gitHubSearchIssues',
+      'gitHubGetAuthenticatedUser', 'gitHubListUserOrgs',
+      'authenticateGitHub',
+    ],
+  });
+  this.llmResult = result.data;
+}
+
+@Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
+@Guard('hasToolCalls')
+async executeToolCalls() {
+  const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
+    message: this.llmResult!,
+    document: ClaudeMessageDocument,
+    callback: { transition: 'toolResultReceived' },
+  });
+  this.delegateResult = result.data;
+}
+
+hasToolCalls(): boolean {
+  return this.llmResult?.stop_reason === 'tool_use';
+}
+```
+
+This is the easiest way to interactively test every GitHub tool -- just ask the agent to perform any GitHub operation.
 
 ## Setup
 
@@ -89,17 +185,17 @@ GITHUB_OAUTH_REDIRECT_URI=http://localhost:5173/oauth/callback
 For the GitHub Agent workflow, you also need an LLM API key:
 
 ```bash
-OPENAI_API_KEY=your-openai-api-key
+ANTHROPIC_API_KEY=your-anthropic-api-key
 ```
 
 ## Dependencies
 
-- `@loopstack/core` — Core framework functionality including `ExecuteWorkflowAsync`
-- `@loopstack/ai-module` — LLM integration (`AiGenerateText`, `DelegateToolCall`)
-- `@loopstack/oauth-module` — OAuth infrastructure (`OAuthTokenStore`, `OAuthWorkflow`)
-- `@loopstack/github-module` — All 25 GitHub tools and the GitHub OAuth provider
-- `@loopstack/core-ui-module` — `CreateDocument`, `LinkDocument`, `MarkdownDocument`
-- `@loopstack/create-chat-message-tool` — `CreateChatMessage`
+- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@Guard`, `@InjectTool`, `@InjectWorkflow`, `CallbackSchema`, `ToolResult`)
+- `@loopstack/core` - Provides `LinkDocument` and `MarkdownDocument`
+- `@loopstack/claude-module` - Claude integration (`ClaudeGenerateText`, `ClaudeMessageDocument`, `DelegateToolCalls`, `UpdateToolResult`)
+- `@loopstack/oauth-module` - OAuth infrastructure (`OAuthWorkflow`)
+- `@loopstack/github-module` - All 25 GitHub tools
+- `@loopstack/create-chat-message-tool` - `CreateChatMessage` (used in agent workflow)
 
 ## About
 

@@ -30,11 +30,11 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## Usage
 
-Inject the tools in your workflow class using the @InjectTool() decorator:
+Inject the tools in your workflow class using the `@InjectTool()` decorator:
 
 ```typescript
 import { z } from 'zod';
-import { InjectTool, Input, State, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
@@ -48,24 +48,11 @@ import { SandboxDestroy, SandboxInit } from '@loopstack/sandbox-tool';
 
 @Workflow({
   uiConfig: __dirname + '/my.ui.yaml',
+  schema: z.object({
+    outputDir: z.string().default(process.cwd() + '/out'),
+  }),
 })
-export class MyWorkflow {
-  @Input({
-    schema: z.object({
-      outputDir: z.string().default(process.cwd() + '/out'),
-    }),
-  })
-  args: { outputDir: string };
-
-  @State({
-    schema: z.object({
-      containerId: z.string().optional(),
-      fileContent: z.string().optional(),
-      fileList: z.array(z.any()).optional(),
-    }),
-  })
-  state: { containerId: string; fileContent: string; fileList: any[] };
-
+export class MyWorkflow extends BaseWorkflow<{ outputDir: string }> {
   // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
   @InjectTool() sandboxInit: SandboxInit;
   @InjectTool() sandboxDestroy: SandboxDestroy;
@@ -78,119 +65,89 @@ export class MyWorkflow {
   @InjectTool() sandboxDelete: SandboxDelete;
   @InjectTool() sandboxExists: SandboxExists;
   @InjectTool() sandboxFileInfo: SandboxFileInfo;
+
+  containerId?: string;
+  fileContent?: string;
+
+  // Initialize the sandbox container (required before filesystem operations)
+  @Initial({ to: 'sandbox_ready' })
+  async initSandbox(args: { outputDir: string }) {
+    const result = await this.sandboxInit.call({
+      containerId: 'my-sandbox',
+      imageName: 'node:18',
+      containerName: 'my-filesystem-sandbox',
+      projectOutPath: args.outputDir,
+      rootPath: 'workspace',
+    });
+
+    this.containerId = result.data!.containerId;
+  }
+
+  // Create a directory and write a file
+  @Transition({ from: 'sandbox_ready', to: 'file_written' })
+  async writeFile() {
+    await this.sandboxCreateDirectory.call({
+      containerId: this.containerId!,
+      path: '/workspace/output',
+      recursive: true,
+    });
+
+    await this.sandboxWriteFile.call({
+      containerId: this.containerId!,
+      path: '/workspace/output/result.txt',
+      content: 'Hello from sandbox!',
+      encoding: 'utf8',
+      createParentDirs: true,
+    });
+  }
+
+  // Read the file back
+  @Transition({ from: 'file_written', to: 'file_read' })
+  async readFile() {
+    const result = await this.sandboxReadFile.call({
+      containerId: this.containerId!,
+      path: '/workspace/output/result.txt',
+      encoding: 'utf8',
+    });
+
+    this.fileContent = result.data!.content;
+  }
+
+  // List directory, check existence, get info
+  @Transition({ from: 'file_read', to: 'inspected' })
+  async inspectFiles() {
+    await this.sandboxListDirectory.call({
+      containerId: this.containerId!,
+      path: '/workspace/output',
+      recursive: false,
+    });
+
+    await this.sandboxExists.call({
+      containerId: this.containerId!,
+      path: '/workspace/output/result.txt',
+    });
+
+    await this.sandboxFileInfo.call({
+      containerId: this.containerId!,
+      path: '/workspace/output/result.txt',
+    });
+  }
+
+  // Clean up and destroy the sandbox
+  @Final({ from: 'inspected' })
+  async cleanup() {
+    await this.sandboxDelete.call({
+      containerId: this.containerId!,
+      path: '/workspace/output/result.txt',
+      force: true,
+    });
+
+    await this.sandboxDestroy.call({
+      containerId: this.containerId!,
+      removeContainer: true,
+    });
+  }
 }
-```
-
-And use them in your YAML workflow configuration:
-
-```yaml
-# src/my.ui.yaml
-transitions:
-  # Initialize the sandbox container (required before filesystem operations)
-  - id: init_sandbox
-    from: start
-    to: sandbox_ready
-    call:
-      - tool: sandboxInit
-        args:
-          containerId: my-sandbox
-          imageName: node:18
-          containerName: my-filesystem-sandbox
-          projectOutPath: ${{ args.outputDir }}
-          rootPath: workspace
-        assign:
-          containerId: ${{ result.data.containerId }}
-
-  # Create a directory
-  - id: create_dir
-    from: sandbox_ready
-    to: dir_created
-    call:
-      - tool: sandboxCreateDirectory
-        args:
-          containerId: ${{ state.containerId }}
-          path: /workspace
-          recursive: true
-
-  # Write a file
-  - id: write_file
-    from: dir_created
-    to: file_written
-    call:
-      - tool: sandboxWriteFile
-        args:
-          containerId: ${{ state.containerId }}
-          path: /workspace/result.txt
-          content: 'Hello from sandbox!'
-          encoding: utf8
-          createParentDirs: true
-
-  # Read the file
-  - id: read_file
-    from: file_written
-    to: file_read
-    call:
-      - tool: sandboxReadFile
-        args:
-          containerId: ${{ state.containerId }}
-          path: /workspace/result.txt
-          encoding: utf8
-        assign:
-          fileContent: ${{ result.data.content }}
-
-  # List directory contents
-  - id: list_dir
-    from: file_read
-    to: dir_listed
-    call:
-      - tool: sandboxListDirectory
-        args:
-          containerId: ${{ state.containerId }}
-          path: /workspace
-          recursive: false
-        assign:
-          fileList: ${{ result.data.entries }}
-
-  # Check file existence
-  - id: check_exists
-    from: dir_listed
-    to: existence_checked
-    call:
-      - tool: sandboxExists
-        args:
-          containerId: ${{ state.containerId }}
-          path: /workspace/result.txt
-
-  # Get file info
-  - id: get_info
-    from: existence_checked
-    to: info_retrieved
-    call:
-      - tool: sandboxFileInfo
-        args:
-          containerId: ${{ state.containerId }}
-          path: /workspace/result.txt
-
-  # Delete the file
-  - id: delete_file
-    from: info_retrieved
-    to: file_deleted
-    call:
-      - tool: sandboxDelete
-        args:
-          containerId: ${{ state.containerId }}
-          path: /workspace/result.txt
-          force: true
-
-  # Destroy the sandbox container (cleanup)
-  - id: destroy_sandbox
-    from: file_deleted
-    to: end
-    call:
-      - tool: sandboxDestroy
-        args:
-          containerId: ${{ state.containerId }}
-          removeContainer: true
 ```
 
 ## About
@@ -201,6 +158,6 @@ License: Apache-2.0
 
 ### Additional Resources:
 
-- [Loopstack Documentation](https://loopstack.ai)
-- [Getting Started with Loopstack](https://loopstack.ai)
+- [Loopstack Documentation](https://loopstack.ai/docs)
+- [Getting Started with Loopstack](https://loopstack.ai/docs/getting-started)
 - For more examples how to use this tool look for `@loopstack/sandbox-filesystem` in the [Loopstack Registry](https://loopstack.ai/registry)
