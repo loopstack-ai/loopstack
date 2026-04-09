@@ -1,5 +1,4 @@
 ---
-'@loopstack/ai-module': patch
 '@loopstack/claude-module': patch
 '@loopstack/oauth-module': patch
 ---
