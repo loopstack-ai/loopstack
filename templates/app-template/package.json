@@ -23,7 +23,6 @@
     "@loopstack/cli-module": "^0.24.0",
     "@loopstack/common": "^0.24.0",
     "@loopstack/core": "^0.24.0",
-    "@loopstack/create-chat-message-tool": "^0.20.7",
     "@nestjs/common": "^11.1.14",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.14",

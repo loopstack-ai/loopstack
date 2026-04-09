@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { RunPipelineTaskSchema, ScheduledTaskSchema } from '../../schemas';
+import { RunWorkflowTaskSchema, ScheduledTaskSchema } from '../../schemas';
 
-export type RunPipelineTask = z.infer<typeof RunPipelineTaskSchema>;
+export type RunWorkflowTask = z.infer<typeof RunWorkflowTaskSchema>;
 export type ScheduledTask = z.infer<typeof ScheduledTaskSchema>;

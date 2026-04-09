@@ -68,28 +68,24 @@ export class LocalRouter implements StudioRouter {
     await this.navigate(this.getWorkspace(workspaceId));
   }
 
-  getPipeline(pipelineId: string) {
-    return `/pipelines/${pipelineId}`;
+  getWorkflow(workflowId: string) {
+    return `/workflows/${workflowId}`;
   }
 
-  async navigateToPipeline(pipelineId: string) {
-    await this.navigate(this.getPipeline(pipelineId));
+  async navigateToWorkflow(workflowId: string) {
+    await this.navigate(this.getWorkflow(workflowId));
   }
 
-  getPipelineDebug(pipelineId: string) {
-    return `/pipelines/${pipelineId}/debug`;
+  getWorkflowDebug(workflowId: string) {
+    return `/workflows/${workflowId}/debug`;
   }
 
-  async navigateToPipelineDebug(pipelineId: string) {
-    await this.navigate(this.getPipelineDebug(pipelineId));
+  async navigateToWorkflowDebug(workflowId: string) {
+    await this.navigate(this.getWorkflowDebug(workflowId));
   }
 
-  async navigateToWorkflow(pipelineId: string, workflowId: string, clickId: string | undefined) {
-    await this.navigate(`/pipelines/${pipelineId}/workflows/${workflowId}/${(clickId ? parseInt(clickId) : 0) + 1}`);
-  }
-
-  async navigateToPipelineNamespace(workspaceId: string, pipelineId: string, namespaceId: string) {
-    await this.navigate(`/workspaces/${workspaceId}/pipelines/${pipelineId}/namespaces/${namespaceId}`);
+  async navigateToChildWorkflow(workflowId: string, clickId: string | undefined) {
+    await this.navigate(`/workflows/${workflowId}/${(clickId ? parseInt(clickId) : 0) + 1}`);
   }
 
   getWorkspaceRuns(workspaceId: string) {
@@ -100,12 +96,12 @@ export class LocalRouter implements StudioRouter {
     await this.navigate(this.getWorkspaceRuns(workspaceId));
   }
 
-  getEmbedPipeline(pipelineId: string) {
-    return `${this.embedPrefix}/pipelines/${pipelineId}`;
+  getEmbedWorkflow(workflowId: string) {
+    return `${this.embedPrefix}/workflows/${workflowId}`;
   }
 
-  getPreviewPipeline(pipelineId: string) {
-    return `${this.embedPrefix}/preview/pipelines/${pipelineId}`;
+  getPreviewWorkflow(workflowId: string) {
+    return `${this.embedPrefix}/preview/workflows/${workflowId}`;
   }
 
   getCurrentEnvironmentId() {

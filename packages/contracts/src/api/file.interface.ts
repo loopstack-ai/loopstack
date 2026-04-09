@@ -1,4 +1,4 @@
-import { PipelineConfigInterface } from '../types/interfaces/pipeline-config.interface.js';
+import { WorkflowConfigInterface } from '../types/interfaces/workflow-config.interface.js';
 
 export interface FileExplorerNodeInterface {
   id: string;
@@ -11,5 +11,5 @@ export interface FileExplorerNodeInterface {
 export interface FileContentInterface {
   path: string;
   content: string;
-  workflowConfig?: PipelineConfigInterface;
+  workflowConfig?: WorkflowConfigInterface;
 }

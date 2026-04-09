@@ -19,11 +19,13 @@ import {
 import { plainToInstance } from 'class-transformer';
 import * as fs from 'fs';
 import { sortBy } from 'lodash';
+import * as path from 'path';
 import { toJSONSchema } from 'zod';
 import {
   BLOCK_CONFIG_METADATA_KEY,
   WorkflowInterface,
   WorkspaceInterface,
+  buildWorkflowTransitions,
   getBlockArgsSchema,
   getBlockConfig,
   getBlockWorkflow,
@@ -35,8 +37,8 @@ import { JSONSchemaDefinition } from '@loopstack/contracts/dist/schemas';
 import { WorkflowType, WorkspaceType } from '@loopstack/contracts/types';
 import { BlockDiscoveryService } from '@loopstack/core';
 import { AvailableEnvironmentDto } from '../dtos/available-environment.dto';
-import { PipelineConfigDto } from '../dtos/pipeline-config.dto';
-import { PipelineSourceDto } from '../dtos/pipeline-source.dto';
+import { WorkflowConfigDto } from '../dtos/workflow-config.dto';
+import { WorkflowSourceDto } from '../dtos/workflow-source.dto';
 import {
   EnvironmentConfigDto,
   FeaturesDto,
@@ -50,8 +52,8 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from '../tokens';
 @ApiTags('api/v1/config')
 @ApiExtraModels(
   WorkspaceConfigDto,
-  PipelineConfigDto,
-  PipelineSourceDto,
+  WorkflowConfigDto,
+  WorkflowSourceDto,
   VolumeDto,
   FeaturesDto,
   EnvironmentConfigDto,
@@ -82,33 +84,37 @@ export class ConfigController {
         throw new Error(`Block ${workspace.constructor.name} is missing @BlockConfig decorator`);
       }
 
-      // Resolve ui.actions — enrich any action that references a pipeline with its schema/ui
+      // Resolve ui.widgets — enrich any widget that references a workflow with its schema/ui
       let resolvedUi: WorkspaceConfigDto['ui'] | undefined;
-      if (config.ui?.actions?.length) {
-        const resolvedActions = config.ui.actions.map((action) => {
-          const pipelineName = action.options?.workflow as string | undefined;
-          if (!pipelineName) return action;
+      const uiWidgets = (config.ui as Record<string, unknown> | undefined)?.widgets as
+        | Record<string, unknown>[]
+        | undefined;
+      if (uiWidgets?.length) {
+        const resolvedWidgets = uiWidgets.map((widget) => {
+          const options = widget.options as Record<string, unknown> | undefined;
+          const workflowName = options?.workflow as string | undefined;
+          if (!workflowName) return widget;
 
-          const workflow = getBlockWorkflow<WorkflowInterface>(workspace, pipelineName);
-          if (!workflow) return action;
+          const workflow = getBlockWorkflow<WorkflowInterface>(workspace, workflowName);
+          if (!workflow) return widget;
 
           const workflowConfig = getBlockConfig<WorkflowType>(workflow);
           const argsSchema = getBlockArgsSchema(workflow);
 
           return {
-            ...action,
+            ...widget,
             options: {
-              ...action.options,
+              ...options,
               schema: argsSchema ? (toJSONSchema(argsSchema) as JSONSchemaDefinition) : undefined,
-              pipelineUi: workflowConfig?.ui,
+              workflowUi: workflowConfig?.ui,
             },
           };
         });
-        resolvedUi = { actions: resolvedActions };
+        resolvedUi = { widgets: resolvedWidgets } as unknown as WorkspaceConfigDto['ui'];
       }
 
       return {
-        blockName: workspace.constructor.name,
+        className: workspace.constructor.name,
         title: config.title ?? workspace.constructor.name,
         features: config.features,
         environments: config.environments,
@@ -131,87 +137,59 @@ export class ConfigController {
     });
   }
 
-  @Get('workspaces/:workspaceBlockName/pipelines/:pipelineName')
+  private resolveWorkflowByAlias(alias: string): WorkflowInterface {
+    const workflow = this.blockDiscoveryService.getWorkflowByName(alias);
+    if (workflow) {
+      return workflow;
+    }
+
+    throw new BadRequestException(`Workflow with alias ${alias} not found.`);
+  }
+
+  @Get('workflows/:alias')
   @ApiOperation({
-    summary: 'Get the full config of a specific pipeline by name',
+    summary: 'Get the full config of a workflow by its alias (class name)',
   })
   @ApiParam({
-    name: 'workspaceBlockName',
+    name: 'alias',
     type: String,
-    description: 'The config key of the workspace type',
+    description: 'The alias (class name) of the workflow',
   })
-  @ApiParam({
-    name: 'pipelineName',
-    type: String,
-    description: 'The name of the pipeline to retrieve',
-  })
-  @ApiOkResponse({ type: PipelineConfigDto })
+  @ApiOkResponse({ type: WorkflowConfigDto })
   @ApiUnauthorizedResponse()
-  getPipelineConfigByName(
-    @Param('workspaceBlockName') workspaceBlockName: string,
-    @Param('pipelineName') pipelineName: string,
-  ): PipelineConfigDto {
-    const workspace = this.blockDiscoveryService.getWorkspace(workspaceBlockName);
-    if (!workspace) {
-      throw new BadRequestException(`Config for workspace with name ${workspaceBlockName} not found.`);
-    }
-
-    if (!getBlockWorkflows(workspace).includes(pipelineName)) {
-      throw new BadRequestException(
-        `Pipeline with name ${pipelineName} not found in workspace ${workspaceBlockName}. Available: ${getBlockWorkflows(workspace).join(', ')}`,
-      );
-    }
-
-    const workflow = getBlockWorkflow<WorkflowInterface>(workspace, pipelineName);
-    if (!workflow) {
-      throw new BadRequestException(`Workflow with name ${pipelineName} not found in workspace ${workspaceBlockName}.`);
-    }
+  getWorkflowConfig(@Param('alias') alias: string): WorkflowConfigDto {
+    const workflow = this.resolveWorkflowByAlias(alias);
 
     const config = getBlockConfig<WorkflowType>(workflow);
     if (!config) {
       throw new Error(`Block ${workflow.constructor.name} is missing @BlockConfig decorator`);
     }
 
-    return plainToInstance(PipelineConfigDto, config, {
-      excludeExtraneousValues: true,
-    });
+    const decoratorTransitions = buildWorkflowTransitions(workflow);
+    const transitions = decoratorTransitions.length > 0 ? decoratorTransitions : config.transitions;
+
+    return plainToInstance(
+      WorkflowConfigDto,
+      { ...config, transitions },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
-  @Get('workspaces/:workspaceBlockName/pipelines/:pipelineName/source')
+  @Get('workflows/:alias/source')
   @ApiOperation({
-    summary: 'Get the source config of a specific pipeline by name',
+    summary: 'Get the source config of a workflow by its alias (class name)',
   })
   @ApiParam({
-    name: 'workspaceBlockName',
+    name: 'alias',
     type: String,
-    description: 'The config key of the workspace type',
+    description: 'The alias (class name) of the workflow',
   })
-  @ApiParam({
-    name: 'pipelineName',
-    type: String,
-    description: 'The name of the pipeline to retrieve',
-  })
-  @ApiOkResponse({ type: PipelineSourceDto })
+  @ApiOkResponse({ type: WorkflowSourceDto })
   @ApiUnauthorizedResponse()
-  getPipelineSourceByName(
-    @Param('workspaceBlockName') workspaceBlockName: string,
-    @Param('pipelineName') pipelineName: string,
-  ): PipelineSourceDto {
-    const workspace = this.blockDiscoveryService.getWorkspace(workspaceBlockName);
-    if (!workspace) {
-      throw new BadRequestException(`Config for workspace with name ${workspaceBlockName} not found.`);
-    }
-
-    if (!getBlockWorkflows(workspace).includes(pipelineName)) {
-      throw new BadRequestException(
-        `Pipeline with name ${pipelineName} not found in workspace ${workspaceBlockName}. Available: ${getBlockWorkflows(workspace).join(', ')}`,
-      );
-    }
-
-    const workflow = getBlockWorkflow<WorkflowInterface>(workspace, pipelineName);
-    if (!workflow) {
-      throw new BadRequestException(`Workflow with name ${pipelineName} not found in workspace ${workspaceBlockName}.`);
-    }
+  getWorkflowSource(@Param('alias') alias: string): WorkflowSourceDto {
+    const workflow = this.resolveWorkflowByAlias(alias);
 
     const ctor = workflow.constructor;
     const metadata = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions;
@@ -219,37 +197,96 @@ export class ConfigController {
     let raw: string | null = null;
     let filePath: string | null = null;
 
-    // SECURITY: metadata.configFile originates from the @BlockConfig decorator applied at
-    // compile time and is not influenced by user input. If this assumption ever changes (e.g.
-    // configFile becomes user-configurable or stored in the database), a path traversal check
-    // must be added here to ensure filePath resolves within an allowed base directory.
-    // See FileSystemService.validatePath() for a reference implementation.
-    if (metadata && metadata.configFile) {
-      filePath = metadata.configFile;
-      if (fs.existsSync(filePath)) {
-        raw = fs.readFileSync(filePath, 'utf8');
+    if (metadata && typeof metadata.uiConfig === 'string') {
+      const yamlPath = metadata.uiConfig;
+      const jsPath = yamlPath.replace(/\.ya?ml$/, '.js');
+      const mapPath = jsPath + '.map';
+
+      if (fs.existsSync(mapPath)) {
+        try {
+          const map = JSON.parse(fs.readFileSync(mapPath, 'utf8')) as {
+            sources?: string[];
+            sourceRoot?: string;
+          };
+          const source = map.sources?.[0];
+          if (source) {
+            const resolved = path.resolve(path.dirname(mapPath), map.sourceRoot ?? '', source);
+            if (fs.existsSync(resolved)) {
+              filePath = resolved;
+              raw = fs.readFileSync(resolved, 'utf8');
+            }
+          }
+        } catch {
+          // fall through — source map unreadable
+        }
       }
     }
 
     return {
-      name: pipelineName,
+      name: alias,
       filePath,
       raw,
     };
   }
 
-  @Get('workspaces/:workspaceBlockName/pipelines')
+  @Get('workspaces/:workspaceBlockName/workflows/:workflowName')
   @ApiOperation({
-    summary: 'Get all pipeline types available for this workspace',
+    summary: 'Get the full config of a specific workflow by name',
   })
   @ApiParam({
     name: 'workspaceBlockName',
     type: String,
     description: 'The config key of the workspace type',
   })
-  @ApiOkResponse({ type: PipelineConfigDto, isArray: true })
+  @ApiParam({
+    name: 'workflowName',
+    type: String,
+    description: 'The name of the workflow to retrieve',
+  })
+  @ApiOkResponse({ type: WorkflowConfigDto })
   @ApiUnauthorizedResponse()
-  getPipelineTypesByWorkspace(@Param('workspaceBlockName') workspaceBlockName: string): PipelineConfigDto[] {
+  getWorkflowConfigByName(
+    @Param('workspaceBlockName') _workspaceBlockName: string,
+    @Param('workflowName') workflowName: string,
+  ): WorkflowConfigDto {
+    return this.getWorkflowConfig(workflowName);
+  }
+
+  @Get('workspaces/:workspaceBlockName/workflows/:workflowName/source')
+  @ApiOperation({
+    summary: 'Get the source config of a specific workflow by name',
+  })
+  @ApiParam({
+    name: 'workspaceBlockName',
+    type: String,
+    description: 'The config key of the workspace type',
+  })
+  @ApiParam({
+    name: 'workflowName',
+    type: String,
+    description: 'The name of the workflow to retrieve',
+  })
+  @ApiOkResponse({ type: WorkflowSourceDto })
+  @ApiUnauthorizedResponse()
+  getWorkflowSourceByName(
+    @Param('workspaceBlockName') _workspaceBlockName: string,
+    @Param('workflowName') workflowName: string,
+  ): WorkflowSourceDto {
+    return this.getWorkflowSource(workflowName);
+  }
+
+  @Get('workspaces/:workspaceBlockName/workflows')
+  @ApiOperation({
+    summary: 'Get all workflow types available for this workspace',
+  })
+  @ApiParam({
+    name: 'workspaceBlockName',
+    type: String,
+    description: 'The config key of the workspace type',
+  })
+  @ApiOkResponse({ type: WorkflowConfigDto, isArray: true })
+  @ApiUnauthorizedResponse()
+  getWorkflowTypesByWorkspace(@Param('workspaceBlockName') workspaceBlockName: string): WorkflowConfigDto[] {
     const workspace = this.blockDiscoveryService.getWorkspace(workspaceBlockName);
     if (!workspace) {
       throw new BadRequestException(`Config for workspace with name ${workspaceBlockName} not found.`);
@@ -270,17 +307,17 @@ export class ConfigController {
       const propertiesSchema = schema ? (toJSONSchema(schema) as JSONSchemaDefinition) : undefined;
 
       return {
-        blockName: item.name,
+        alias: item.name,
         title: config.title,
         description: config.description,
         schema: propertiesSchema,
         ui: config.ui,
-      } satisfies PipelineConfigDto;
+      } satisfies WorkflowConfigDto;
     });
 
     const sorted = sortBy(filtered, 'title');
 
-    return plainToInstance(PipelineConfigDto, sorted, {
+    return plainToInstance(WorkflowConfigDto, sorted, {
       excludeExtraneousValues: true,
     });
   }

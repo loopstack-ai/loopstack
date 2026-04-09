@@ -1,35 +1,31 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GoogleCalendarListCalendarsArgs = {
-  showHidden?: boolean;
-};
+const inputSchema = z
+  .object({
+    showHidden: z.boolean().optional(),
+  })
+  .strict();
+
+export type GoogleCalendarListCalendarsArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Lists all calendars the authenticated user has access to. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GoogleCalendarListCalendarsTool implements ToolInterface {
+export class GoogleCalendarListCalendarsTool extends BaseTool {
   private readonly logger = new Logger(GoogleCalendarListCalendarsTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        showHidden: z.boolean().optional(),
-      })
-      .strict(),
-  })
-  args: GoogleCalendarListCalendarsArgs;
-
-  async execute(args: GoogleCalendarListCalendarsArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async call(args: GoogleCalendarListCalendarsArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -51,7 +47,7 @@ export class GoogleCalendarListCalendarsTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Calendar API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

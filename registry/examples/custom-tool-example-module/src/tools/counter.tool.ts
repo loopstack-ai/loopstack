@@ -1,17 +1,15 @@
-import { Shared, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Counter tool.',
   },
 })
-export class CounterTool implements ToolInterface {
-  @Shared() count: number = 0;
+export class CounterTool extends BaseTool {
+  count: number = 0;
 
-  async execute(): Promise<ToolResult> {
+  call(_args?: object): Promise<ToolResult<number>> {
     this.count++;
-    return Promise.resolve({
-      data: this.count,
-    });
+    return Promise.resolve({ data: this.count });
   }
 }

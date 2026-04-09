@@ -147,8 +147,8 @@ export class WorkspaceController {
 
     let features: FeaturesDto | undefined;
 
-    if (workspace.blockName) {
-      const workspaceBlock = this.blockDiscoveryService.getWorkspace(workspace.blockName);
+    if (workspace.className) {
+      const workspaceBlock = this.blockDiscoveryService.getWorkspace(workspace.className);
       if (workspaceBlock) {
         const config = getBlockConfig<WorkspaceType>(workspaceBlock) as WorkspaceType;
         if (config) {
@@ -257,7 +257,7 @@ export class WorkspaceController {
             type: 'string',
           },
           description: 'Array of workspace IDs to delete',
-          example: ['pipeline-1', 'pipeline-2', 'pipeline-3'],
+          example: ['workspace-1', 'workspace-2', 'workspace-3'],
         },
       },
       required: ['ids'],

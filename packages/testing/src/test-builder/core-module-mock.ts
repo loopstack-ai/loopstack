@@ -1,16 +1,15 @@
+import { Global, Module } from '@nestjs/common';
 import { TestingModuleBuilder } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import {
   DocumentEntity,
-  EventSubscriberEntity,
-  NamespaceEntity,
-  PipelineEntity,
   SecretEntity,
+  WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
   WorkspaceEnvironmentEntity,
 } from '@loopstack/common';
-import { MigrationsService } from '@loopstack/core';
 
 const createMockRepository = () => ({
   find: jest.fn().mockResolvedValue([]),
@@ -24,27 +23,46 @@ const createMockRepository = () => ({
   remove: jest.fn().mockResolvedValue({}),
 });
 
+const createMockDataSource = () => ({
+  createQueryRunner: jest.fn().mockReturnValue({
+    connect: jest.fn(),
+    startTransaction: jest.fn(),
+    commitTransaction: jest.fn(),
+    rollbackTransaction: jest.fn(),
+    release: jest.fn(),
+    manager: {
+      save: jest.fn().mockImplementation((entity) => Promise.resolve(entity)),
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
+    },
+  }),
+  getRepository: jest.fn().mockReturnValue(createMockRepository()),
+});
+
+@Global()
+@Module({
+  providers: [
+    {
+      provide: DataSource,
+      useFactory: () => createMockDataSource(),
+    },
+  ],
+  exports: [DataSource],
+})
+export class MockDataSourceModule {}
+
 export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingModuleBuilder {
   return builder
-    .overrideProvider(MigrationsService)
-    .useValue({
-      onModuleInit: jest.fn(),
-      runMigrations: jest.fn(),
-    })
-    .overrideProvider(getRepositoryToken(PipelineEntity))
-    .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkflowEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(DocumentEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkspaceEntity))
     .useValue(createMockRepository())
-    .overrideProvider(getRepositoryToken(NamespaceEntity))
-    .useValue(createMockRepository())
-    .overrideProvider(getRepositoryToken(EventSubscriberEntity))
-    .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkspaceEnvironmentEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(SecretEntity))
+    .useValue(createMockRepository())
+    .overrideProvider(getRepositoryToken(WorkflowCheckpointEntity))
     .useValue(createMockRepository());
 }

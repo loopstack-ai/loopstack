@@ -7,8 +7,8 @@ import { useCreateSecret, useDeleteSecret, useUpdateSecret, useWorkspaceSecrets 
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider';
 
 export function WorkbenchSecretsPanel() {
-  const { pipeline } = useWorkbenchLayout();
-  const workspaceId = pipeline?.workspaceId;
+  const { workflow } = useWorkbenchLayout();
+  const workspaceId = workflow?.workspaceId;
 
   const { data: secrets, isLoading } = useWorkspaceSecrets(workspaceId);
   const createSecret = useCreateSecret();

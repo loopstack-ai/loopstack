@@ -1,7 +1,6 @@
 export * from './document.schema.js';
 export * from './json-schema.schema.js';
 export * from './main.schema.js';
-export * from './pipeline.schema.js';
 export * from './tool-config.schema';
 export * from './workflow-transition.schema.js';
 export * from './workflow.schema.js';

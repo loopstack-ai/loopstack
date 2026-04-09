@@ -15,7 +15,7 @@ limitations under the License.
 */
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectTool, Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -41,19 +41,17 @@ interface SandboxListDirectoryResult {
 }
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'List files and directories in a sandbox container',
   },
+  schema: inputSchema,
 })
-export class SandboxListDirectory implements ToolInterface<SandboxListDirectoryArgs> {
+export class SandboxListDirectory extends BaseTool {
   private readonly logger = new Logger(SandboxListDirectory.name);
 
   @InjectTool() private sandboxCommand: SandboxCommand;
 
-  @Input({ schema: inputSchema })
-  args: SandboxListDirectoryArgs;
-
-  async execute(args: SandboxListDirectoryArgs): Promise<ToolResult<SandboxListDirectoryResult>> {
+  async call(args: SandboxListDirectoryArgs): Promise<ToolResult<SandboxListDirectoryResult>> {
     const { containerId, path: dirPath, recursive } = args;
 
     this.logger.debug(`Listing directory ${dirPath} in container ${containerId} (recursive: ${recursive})`);
@@ -64,7 +62,7 @@ export class SandboxListDirectory implements ToolInterface<SandboxListDirectoryA
       ? `find '${dirPath.replace(/'/g, "'\\''")}' -printf '%y %s %p\\n'`
       : `find '${dirPath.replace(/'/g, "'\\''")}' -maxdepth 1 -printf '%y %s %p\\n'`;
 
-    const result = await this.sandboxCommand.execute({
+    const result = await this.sandboxCommand.call({
       containerId,
       executable: 'sh',
       args: ['-c', command],

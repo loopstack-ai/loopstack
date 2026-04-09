@@ -1,35 +1,31 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GoogleDriveGetFileMetadataArgs = {
-  fileId: string;
-};
+const inputSchema = z
+  .object({
+    fileId: z.string(),
+  })
+  .strict();
+
+export type GoogleDriveGetFileMetadataArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Gets detailed metadata for a single Google Drive file. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GoogleDriveGetFileMetadataTool implements ToolInterface {
+export class GoogleDriveGetFileMetadataTool extends BaseTool {
   private readonly logger = new Logger(GoogleDriveGetFileMetadataTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        fileId: z.string(),
-      })
-      .strict(),
-  })
-  args: GoogleDriveGetFileMetadataArgs;
-
-  async execute(args: GoogleDriveGetFileMetadataArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async call(args: GoogleDriveGetFileMetadataArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -47,7 +43,7 @@ export class GoogleDriveGetFileMetadataTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Drive API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Google Drive API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

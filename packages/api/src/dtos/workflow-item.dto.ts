@@ -1,6 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, plainToInstance } from 'class-transformer';
-import { PipelineState, WorkflowEntity, WorkflowState } from '@loopstack/common';
+import { WorkflowEntity, WorkflowState } from '@loopstack/common';
 
 /**
  * Data Transfer Object representing a workflow item
@@ -21,7 +21,15 @@ export class WorkflowItemDto {
     description: 'Config key of the workflow',
     example: 'file.yaml:my-workflow',
   })
-  blockName: string;
+  alias: string;
+
+  @Expose()
+  @ApiPropertyOptional({
+    description: 'Class name of the workflow (for config lookups)',
+    example: 'AutomationBuilderWorkflow',
+    nullable: true,
+  })
+  className: string | null;
 
   @Expose()
   @ApiProperty({
@@ -32,11 +40,10 @@ export class WorkflowItemDto {
 
   @Expose()
   @ApiProperty({
-    description: 'Index position of the workflow item in a sequence',
-    example: 1,
-    type: Number,
+    description: 'Run number for identification if no title is given.',
+    example: 123,
   })
-  index: number;
+  run: number;
 
   @Expose()
   @ApiProperty({
@@ -49,21 +56,11 @@ export class WorkflowItemDto {
 
   @Expose()
   @ApiProperty({
-    description: 'Completion percentage of the workflow item (0-100)',
-    example: 75,
-    minimum: 0,
-    maximum: 100,
-    type: Number,
-  })
-  progress: number;
-
-  @Expose()
-  @ApiProperty({
     enum: WorkflowState,
     enumName: 'WorkflowState',
     description: 'Current status of the workflow',
   })
-  status: PipelineState;
+  status: WorkflowState;
 
   @Expose()
   @ApiProperty({
@@ -103,18 +100,19 @@ export class WorkflowItemDto {
   workspaceId: string;
 
   @Expose()
-  @ApiProperty({
-    description: 'Unique identifier of the pipeline this workflow belongs to',
-    example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
+  @ApiPropertyOptional({
+    description: 'ID of parent workflow. Is null for root workflows',
+    nullable: true,
   })
-  pipelineId: string;
+  parentId: string | null;
 
   @Expose()
   @ApiProperty({
-    description: 'Unique identifier of the namespace this workflow belongs to',
-    example: '9i8h7g6f-5e4d-3c2b-1a0z-9y8x7w6v5u4t',
+    type: 'number',
+    description: 'Number of child workflows',
+    example: 0,
   })
-  namespaceId: string;
+  hasChildren: number;
 
   /**
    * Creates a WorkflowItemDto instance from a WorkflowEntity

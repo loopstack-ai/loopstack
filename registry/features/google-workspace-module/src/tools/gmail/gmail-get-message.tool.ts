@@ -1,12 +1,16 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GmailGetMessageArgs = {
-  messageId: string;
-  format?: 'full' | 'metadata' | 'minimal';
-};
+const inputSchema = z
+  .object({
+    messageId: z.string(),
+    format: z.enum(['full', 'metadata', 'minimal']).default('full'),
+  })
+  .strict();
+
+export type GmailGetMessageArgs = z.infer<typeof inputSchema>;
 
 interface GmailMessagePart {
   mimeType: string;
@@ -17,29 +21,20 @@ interface GmailMessagePart {
 }
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Gets the full content of a single Gmail message, including body text and attachment metadata. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GmailGetMessageTool implements ToolInterface {
+export class GmailGetMessageTool extends BaseTool {
   private readonly logger = new Logger(GmailGetMessageTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        messageId: z.string(),
-        format: z.enum(['full', 'metadata', 'minimal']).default('full'),
-      })
-      .strict(),
-  })
-  args: GmailGetMessageArgs;
-
-  async execute(args: GmailGetMessageArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async call(args: GmailGetMessageArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -57,7 +52,7 @@ export class GmailGetMessageTool implements ToolInterface {
     );
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Gmail API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Gmail API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

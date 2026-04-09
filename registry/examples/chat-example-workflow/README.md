@@ -91,9 +91,8 @@ The workflow defines a custom UI action that allows users to send messages:
 
 ```yaml
 ui:
-  actions:
-    - type: custom
-      widget: prompt-input
+  widgets:
+    - widget: prompt-input
       enabledWhen:
         - ready
       options:
@@ -131,7 +130,7 @@ The TypeScript workflow class declares the tools, documents, and runtime types u
 import { ToolResult } from '@loopstack/common';
 
 @Workflow({
-  configFile: __dirname + '/chat.workflow.yaml',
+  uiConfig: __dirname + '/chat.ui.yaml',
 })
 export class ChatWorkflow {
   @InjectTool() createDocument: CreateDocument;

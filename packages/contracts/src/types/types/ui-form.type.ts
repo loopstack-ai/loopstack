@@ -1,7 +1,11 @@
 import { z } from 'zod';
-import { UiFormButtonOptionsSchema, UiFormButtonSchema, UiFormSchema, UiWidgetSchema } from '../../schemas';
+import { UiFormActionSchema, UiFormSchema, UiWidgetSchema } from '../../schemas';
 
-export type UiFormButtonOptionsType = z.infer<typeof UiFormButtonOptionsSchema>;
-export type UiFormButtonType = z.infer<typeof UiFormButtonSchema>;
 export type UiWidgetType = z.infer<typeof UiWidgetSchema>;
+export type UiFormActionType = z.infer<typeof UiFormActionSchema>;
 export type UiFormType = z.infer<typeof UiFormSchema>;
+
+/** @deprecated Use UiFormActionType instead */
+export type UiFormButtonOptionsType = UiFormActionType;
+/** @deprecated Use UiWidgetType instead */
+export type UiFormButtonType = UiWidgetType;

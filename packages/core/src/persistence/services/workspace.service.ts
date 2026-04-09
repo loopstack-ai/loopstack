@@ -23,6 +23,7 @@ export class WorkspaceService {
   async create(data: Partial<WorkspaceEntity>, user: string) {
     const workspace = this.workspaceRepository.create({
       ...data,
+      className: data.className,
       createdBy: user,
     });
     return await this.workspaceRepository.save(workspace);

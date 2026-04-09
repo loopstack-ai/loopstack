@@ -1,28 +1,26 @@
 import { z } from 'zod';
-import { Document, DocumentInterface, Input } from '@loopstack/common';
+import { Document } from '@loopstack/common';
 
-const LinkDocumentSchema = z
+export const LinkDocumentSchema = z
   .object({
-    icon: z.string().optional(),
-    type: z.string().optional(),
+    status: z.enum(['pending', 'success', 'failure']).optional(),
     label: z.string().optional(),
-    caption: z.string().optional(),
-    href: z.string().optional(),
+    workflowId: z.string().optional(),
     embed: z.boolean().optional(),
     expanded: z.boolean().optional(),
   })
   .strict();
 
+export type LinkDocumentContent = z.infer<typeof LinkDocumentSchema>;
+
 @Document({
-  config: {
-    type: 'document',
-    description: 'Link Document.',
-  },
-  configFile: __dirname + '/link-document.yaml',
+  schema: LinkDocumentSchema,
+  uiConfig: __dirname + '/link-document.yaml',
 })
-export class LinkDocument implements DocumentInterface {
-  @Input({
-    schema: LinkDocumentSchema,
-  })
-  content: z.infer<typeof LinkDocumentSchema>;
+export class LinkDocument {
+  status?: 'pending' | 'success' | 'failure';
+  label?: string;
+  workflowId?: string;
+  embed?: boolean;
+  expanded?: boolean;
 }

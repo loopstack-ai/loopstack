@@ -15,7 +15,7 @@ limitations under the License.
 */
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { DockerContainerManagerService } from '../services/docker-container-manager.service';
 
 const inputSchema = z
@@ -36,20 +36,18 @@ interface SandboxInitResult {
 }
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Initialize a new sandbox container',
   },
+  schema: inputSchema,
 })
-export class SandboxInit implements ToolInterface<SandboxInitArgs> {
+export class SandboxInit extends BaseTool {
   private readonly logger = new Logger(SandboxInit.name);
 
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  @Input({ schema: inputSchema })
-  args: SandboxInitArgs;
-
-  async execute(args: SandboxInitArgs): Promise<ToolResult<SandboxInitResult>> {
+  async call(args: SandboxInitArgs): Promise<ToolResult<SandboxInitResult>> {
     const { containerId, imageName, containerName, projectOutPath, rootPath } = args;
 
     this.logger.debug(

@@ -181,11 +181,11 @@ export class WorkspaceUiDto implements WorkspaceUiInterface {
   @Expose()
   @Type(() => WorkspaceActionDto)
   @ApiPropertyOptional({
-    description: 'UI actions for this workspace',
+    description: 'UI widgets for this workspace',
     type: WorkspaceActionDto,
     isArray: true,
   })
-  actions?: WorkspaceActionDto[];
+  widgets?: WorkspaceActionDto[];
 }
 
 export class WorkspaceConfigDto implements WorkspaceConfigInterface {
@@ -197,7 +197,7 @@ export class WorkspaceConfigDto implements WorkspaceConfigInterface {
     description: 'Config key of the workspace',
     example: 'file.yaml:my-workspace',
   })
-  blockName: string;
+  className: string;
 
   @Expose()
   @ApiPropertyOptional({

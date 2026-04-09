@@ -10,7 +10,7 @@ import {
 } from '@/components/ai-elements/message.tsx';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-elements/reasoning.tsx';
 import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources.tsx';
-import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/ai-elements/tool.tsx';
+import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/loopstack-elements/tool.tsx';
 import type { SourceUIPart, UIMessage, UIMessagePart } from '@/types/ai.types';
 import { getToolOrDynamicToolName, isReasoningUIPart, isTextUIPart, isToolOrDynamicToolUIPart } from '@/types/ai.types';
 

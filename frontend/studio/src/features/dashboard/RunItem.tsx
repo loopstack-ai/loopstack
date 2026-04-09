@@ -11,7 +11,7 @@ export interface Run {
 }
 
 interface Router {
-  getPipeline: (id: string) => string;
+  getWorkflow: (id: string) => string;
 }
 
 interface RunItemProps {
@@ -34,7 +34,7 @@ function RunItem({ run, router }: RunItemProps) {
 
   return (
     <Link
-      to={router.getPipeline(run.id)}
+      to={router.getWorkflow(run.id)}
       key={run.id}
       className="bg-card border-border hover:border-primary/50 group block w-full overflow-hidden rounded-lg border p-4 transition-all duration-200 hover:shadow-md"
     >

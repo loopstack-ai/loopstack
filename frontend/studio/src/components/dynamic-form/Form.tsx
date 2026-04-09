@@ -85,7 +85,7 @@ const Form: React.FC<DynamicFormProps> = ({
             form={form}
             mimeType={mimeType}
             schema={schema as SchemaProperties}
-            ui={ui?.form as SchemaProperties | undefined}
+            ui={(ui as FormUi | undefined)?.form as SchemaProperties | undefined}
             disabled={disabled}
             viewOnly={viewOnly}
           />

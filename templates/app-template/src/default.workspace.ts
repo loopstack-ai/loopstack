@@ -3,7 +3,7 @@ import { Workspace } from '@loopstack/common';
 
 @Injectable()
 @Workspace({
-  config: {
+  uiConfig: {
     title: 'Default Workspace',
   },
 })

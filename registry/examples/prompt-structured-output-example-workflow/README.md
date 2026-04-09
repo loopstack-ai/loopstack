@@ -45,7 +45,7 @@ Create a document class that uses this schema with the `@Document` decorator and
 
 ```typescript
 @Document({
-  configFile: __dirname + '/file-document.yaml',
+  uiConfig: __dirname + '/file-document.yaml',
 })
 export class FileDocument implements DocumentInterface {
   @Input({ schema: FileDocumentSchema })

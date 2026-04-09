@@ -1,0 +1,7 @@
+tags:
+  - oauth
+ui:
+  widgets:
+    - widget: oauth-prompt
+      options:
+        transition: exchangeToken

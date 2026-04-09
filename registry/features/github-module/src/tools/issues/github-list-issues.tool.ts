@@ -1,47 +1,37 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GitHubListIssuesArgs = {
-  owner: string;
-  repo: string;
-  state?: string;
-  labels?: string;
-  assignee?: string;
-  perPage?: number;
-  page?: number;
-};
+const inputSchema = z
+  .object({
+    owner: z.string(),
+    repo: z.string(),
+    state: z.enum(['open', 'closed', 'all']).default('open'),
+    labels: z.string().optional(),
+    assignee: z.string().optional(),
+    perPage: z.number().default(30),
+    page: z.number().default(1),
+  })
+  .strict();
+
+export type GitHubListIssuesArgs = z.input<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Lists issues for a GitHub repository. Note: the GitHub API returns both issues and pull requests; pull requests have a pull_request key. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GitHubListIssuesTool implements ToolInterface {
+export class GitHubListIssuesTool extends BaseTool {
   private readonly logger = new Logger(GitHubListIssuesTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        owner: z.string(),
-        repo: z.string(),
-        state: z.enum(['open', 'closed', 'all']).default('open'),
-        labels: z.string().optional(),
-        assignee: z.string().optional(),
-        perPage: z.number().default(30),
-        page: z.number().default(1),
-      })
-      .strict(),
-  })
-  args: GitHubListIssuesArgs;
-
-  async execute(args: GitHubListIssuesArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async call(args: GitHubListIssuesArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -71,7 +61,7 @@ export class GitHubListIssuesTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: '401',

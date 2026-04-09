@@ -1,13 +1,11 @@
 import React from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
-import LinkCard, { type LucideIconName } from '@/components/loopstack-elements/link.tsx';
+import LinkCard, { type LinkCardStatus } from '@/components/loopstack-elements/link.tsx';
 
 type LinkMessageContentType = {
-  icon?: string;
-  type?: string;
+  status?: LinkCardStatus;
   label?: string;
-  caption?: string;
-  href: string;
+  workflowId?: string;
   embed?: boolean;
   expanded?: boolean;
 };
@@ -17,19 +15,10 @@ interface LinkMessageRendererProps {
 }
 
 const LinkMessageRenderer: React.FC<LinkMessageRendererProps> = ({ document }) => {
-  const { icon, type, label, caption, href, embed, expanded } = document.content;
+  const { status, label, workflowId, embed, expanded } = document.content;
+  const href = workflowId ? `/workflows/${workflowId}` : undefined;
 
-  return (
-    <LinkCard
-      href={href}
-      label={label}
-      caption={caption}
-      icon={icon as LucideIconName}
-      type={type}
-      embed={embed}
-      defaultExpanded={expanded}
-    />
-  );
+  return <LinkCard href={href} label={label} status={status} embed={embed} defaultExpanded={expanded} />;
 };
 
 export default LinkMessageRenderer;

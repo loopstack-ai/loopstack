@@ -1,23 +1,27 @@
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
-import type { PipelineInterface, WorkspaceEnvironmentInterface, WorkspaceInterface } from '@loopstack/contracts/api';
+import type {
+  WorkflowFullInterface,
+  WorkspaceEnvironmentInterface,
+  WorkspaceInterface,
+} from '@loopstack/contracts/api';
 
-export type FloatingPanelId = 'navigation' | 'history' | 'secrets';
+export type FloatingPanelId = 'history' | 'secrets';
 export type SidePanelId = 'preview' | 'flow' | 'files';
 export type PreviewTab = 'preview' | 'flow' | 'history';
 
 export interface WorkbenchLayoutContextType {
-  // Pipeline & derived state
-  pipeline: PipelineInterface;
+  // Workflow & derived state
+  workflow: WorkflowFullInterface;
   previewPanelEnabled: boolean;
   fileExplorerEnabled: boolean;
   isDeveloperMode: boolean;
   workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
-  getPreviewUrl?: (pipelineId: string) => string;
-  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, pipelineId?: string) => string;
+  getPreviewUrl?: (workflowId: string) => string;
+  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, workflowId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
 
-  // Floating panel state (navigation, history)
+  // Floating panel state (history, secrets)
   activeFloatingPanel: FloatingPanelId | null;
   toggleFloatingPanel: (id: FloatingPanelId) => void;
   closeFloatingPanel: () => void;
@@ -47,12 +51,12 @@ const WorkbenchLayoutContext = createContext<WorkbenchLayoutContextType | null>(
 
 export interface WorkbenchLayoutProviderProps {
   children: ReactNode;
-  pipeline: PipelineInterface;
+  workflow: WorkflowFullInterface;
   isDeveloperMode?: boolean;
   workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
-  getPreviewUrl?: (pipelineId: string) => string;
-  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, pipelineId?: string) => string;
+  getPreviewUrl?: (workflowId: string) => string;
+  getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, workflowId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
   previewPanelOpen?: boolean;
   onPreviewPanelOpenChange?: (open: boolean) => void;
@@ -60,7 +64,7 @@ export interface WorkbenchLayoutProviderProps {
 
 export function WorkbenchLayoutProvider({
   children,
-  pipeline,
+  workflow,
   isDeveloperMode = false,
   workspaceConfig,
 
@@ -146,7 +150,7 @@ export function WorkbenchLayoutProvider({
 
   const value = useMemo<WorkbenchLayoutContextType>(
     () => ({
-      pipeline,
+      workflow,
       previewPanelEnabled,
       fileExplorerEnabled: fileExplorerEnabled ?? false,
       isDeveloperMode,
@@ -172,7 +176,7 @@ export function WorkbenchLayoutProvider({
       setActiveSectionId,
     }),
     [
-      pipeline,
+      workflow,
       previewPanelEnabled,
       fileExplorerEnabled,
       isDeveloperMode,

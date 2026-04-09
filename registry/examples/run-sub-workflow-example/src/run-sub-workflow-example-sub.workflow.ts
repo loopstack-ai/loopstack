@@ -1,23 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { z } from 'zod';
-import { InjectTool, Output, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Initial, InjectTool, Workflow } from '@loopstack/common';
 import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
-@Injectable()
 @Workflow({
-  configFile: __dirname + '/run-sub-workflow-example-sub.workflow.yaml',
+  uiConfig: __dirname + '/run-sub-workflow-example-sub.ui.yaml',
 })
-export class RunSubWorkflowExampleSubWorkflow {
+export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;
 
-  @Output({
-    schema: z.object({
-      message: z.string(),
-    }),
-  })
-  getResult(): any {
-    return {
-      message: 'Hi mom!',
-    };
+  @Initial({ to: 'end' })
+  async message(): Promise<{ message: string }> {
+    await this.createChatMessage.call({
+      role: 'assistant',
+      content: 'Sub workflow completed.',
+    });
+
+    return { message: 'Hi mom!' };
   }
 }

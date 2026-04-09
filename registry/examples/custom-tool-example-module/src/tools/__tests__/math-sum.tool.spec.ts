@@ -29,19 +29,19 @@ describe('MathSumTool', () => {
 
     it('should calculate sum of two positive numbers', async () => {
       const args = { a: 2, b: 3 };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
       expect(result.data).toBe(5);
     });
 
     it('should handle negative numbers', async () => {
       const args = { a: -5, b: 3 };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
       expect(result.data).toBe(-2);
     });
 
     it('should handle zero', async () => {
       const args = { a: 0, b: 0 };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
       expect(result.data).toBe(0);
     });
   });
@@ -67,7 +67,7 @@ describe('MathSumTool', () => {
       mockMathService.sum.mockReturnValue(42);
 
       const args = { a: 10, b: 32 };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
 
       expect(mockMathService.sum).toHaveBeenCalledWith(10, 32);
       expect(result.data).toBe(42);
@@ -77,7 +77,7 @@ describe('MathSumTool', () => {
       mockMathService.sum.mockReturnValue(-100);
 
       const args = { a: 1, b: 1 };
-      const result = await tool.execute(args);
+      const result = await tool.call(args);
 
       expect(result.data).toBe(-100);
     });

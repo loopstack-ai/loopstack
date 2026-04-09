@@ -1,15 +1,4 @@
-import {
-  InjectTool,
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-  getBlockTool,
-} from '@loopstack/common';
-import { CreateDocument } from '@loopstack/core';
+import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
 import {
   ClaudeGenerateObject,
   ClaudeGenerateObjectArgsType,
@@ -17,49 +6,23 @@ import {
 } from './claude-generate-object.tool';
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Generates a structured object using the Anthropic Claude API and creates it as a document',
   },
+  schema: ClaudeGenerateObjectSchema,
 })
-export class ClaudeGenerateDocument implements ToolInterface<ClaudeGenerateObjectArgsType> {
+export class ClaudeGenerateDocument extends BaseTool {
   @InjectTool() private claudeGenerateObject!: ClaudeGenerateObject;
-  @InjectTool() private createDocument!: CreateDocument;
 
-  @Input({
-    schema: ClaudeGenerateObjectSchema,
-  })
-  args: ClaudeGenerateObjectArgsType;
-
-  private getRequiredTool(name: string): ToolInterface {
-    const tool = getBlockTool<ToolInterface>(this, name);
-    if (tool === undefined) {
-      throw new Error(`Tool "${name}" is not available`);
-    }
-    return tool;
-  }
-
-  async execute(
-    args: ClaudeGenerateObjectArgsType,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const generateResult = await this.getRequiredTool('claudeGenerateObject').execute(args, ctx, parent, metadata);
-    const documentResult = await this.getRequiredTool('createDocument').execute(
-      {
-        id: args.response.id,
-        document: args.response.document,
-        update: {
-          content: generateResult.data as unknown,
-        },
-      },
-      ctx,
-      parent,
-      metadata,
-    );
+  async call(args: ClaudeGenerateObjectArgsType): Promise<ToolResult> {
+    const generateResult = await this.claudeGenerateObject.call(args);
+    const entity = await this.repository.save(args.response.document, generateResult.data as Record<string, unknown>, {
+      id: args.response.id,
+      validate: 'skip',
+    });
 
     return {
-      ...documentResult,
+      data: entity,
       metadata: generateResult.metadata,
     };
   }

@@ -27,7 +27,6 @@ interface DocumentData {
   createdAt: string;
   updatedAt: string;
   workspaceId: string;
-  pipelineId: string;
   workflowId: string;
 }
 
@@ -123,7 +122,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data }) => {
                   <span className="font-medium">Workspace ID:</span> {data.workspaceId}
                 </div>
                 <div className="text-sm">
-                  <span className="font-medium">Pipeline ID:</span> {data.pipelineId}
+                  <span className="font-medium">Workflow ID:</span> {data.workflowId}
                 </div>
                 <div className="text-sm">
                   <span className="font-medium">Workflow ID:</span> {data.workflowId}

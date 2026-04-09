@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 
+export * from './base/index.js';
 export * from './decorators/index.js';
 export * from './entities/index.js';
 export * from './enums/index.js';
@@ -7,4 +8,5 @@ export * from './interfaces/index.js';
 export * from './utils/index.js';
 export * from './constants/index.js';
 export * from './dtos/index.js';
+export * from './tokens.js';
 export * from './schema/index.js';

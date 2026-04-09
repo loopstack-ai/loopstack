@@ -1,254 +1,296 @@
-import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import {
-  Context,
-  DefineHelper,
-  InjectDocument,
+  BaseWorkflow,
+  CallbackSchema,
+  Final,
+  Guard,
+  Initial,
   InjectTool,
   InjectWorkflow,
-  Input,
-  Runtime,
-  State,
+  ToolResult,
+  Transition,
   Workflow,
-  WorkflowInterface,
 } from '@loopstack/common';
-import { CreateDocument, LinkDocument, MarkdownDocument, Task } from '@loopstack/core';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import { LinkDocument, MarkdownDocument } from '@loopstack/core';
 import {
-  GitHubCreateIssueCommentTool,
-  GitHubCreateIssueTool,
-  GitHubCreateOrUpdateFileTool,
-  GitHubCreatePullRequestTool,
-  GitHubCreateRepoTool,
   GitHubGetAuthenticatedUserTool,
-  GitHubGetCommitTool,
-  GitHubGetFileContentTool,
-  GitHubGetIssueTool,
-  GitHubGetPullRequestTool,
   GitHubGetRepoTool,
-  GitHubGetWorkflowRunTool,
   GitHubListBranchesTool,
   GitHubListDirectoryTool,
   GitHubListIssuesTool,
-  GitHubListPrReviewsTool,
   GitHubListPullRequestsTool,
-  GitHubListReposTool,
   GitHubListUserOrgsTool,
   GitHubListWorkflowRunsTool,
-  GitHubMergePullRequestTool,
   GitHubSearchCodeTool,
-  GitHubSearchIssuesTool,
-  GitHubSearchReposTool,
-  GitHubTriggerWorkflowTool,
 } from '@loopstack/github-module';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
-@Injectable()
-@Workflow({
-  configFile: __dirname + '/github-repos-overview.workflow.yaml',
-})
-export class GitHubReposOverviewWorkflow implements WorkflowInterface {
-  // Core tools
-  @InjectTool() private task: Task;
-  @InjectTool() private createDocument: CreateDocument;
-  @InjectTool() private createChatMessage: CreateChatMessage;
+interface GitHubUserResult {
+  error?: string;
+  user?: { login: string; name: string | null; htmlUrl: string; publicRepos: number };
+}
 
-  // GitHub — Users
+interface GitHubOrgsResult {
+  orgs: Array<{ login: string; description: string | null }>;
+}
+
+interface GitHubRepoResult {
+  repo: {
+    fullName: string;
+    description: string | null;
+    language: string | null;
+    stars: number;
+    forks: number;
+    openIssues: number;
+    defaultBranch: string;
+    htmlUrl: string;
+  };
+}
+
+interface GitHubBranchesResult {
+  branches: Array<{ name: string; protected: boolean }>;
+}
+
+interface GitHubIssuesResult {
+  issues: Array<{ number: number; title: string; state: string; user: string; htmlUrl: string }>;
+}
+
+interface GitHubPullRequestsResult {
+  pullRequests: Array<{
+    number: number;
+    title: string;
+    state: string;
+    user: string;
+    draft: boolean;
+    htmlUrl: string;
+  }>;
+}
+
+interface GitHubDirectoryResult {
+  entries: Array<{ name: string; type: string; path: string }>;
+}
+
+interface GitHubWorkflowRunsResult {
+  totalCount: number;
+  runs: Array<{
+    id: number;
+    name: string;
+    status: string;
+    conclusion: string | null;
+    htmlUrl: string;
+  }>;
+}
+
+interface GitHubSearchCodeResult {
+  totalCount: number;
+  results: Array<{ name: string; path: string; repository: string }>;
+}
+
+@Workflow({
+  uiConfig: __dirname + '/github-repos-overview.ui.yaml',
+  schema: z
+    .object({
+      owner: z.string().default('octocat'),
+      repo: z.string().default('Hello-World'),
+    })
+    .strict(),
+})
+export class GitHubReposOverviewWorkflow extends BaseWorkflow<{ owner: string; repo: string }> {
+  // GitHub tools
   @InjectTool() private gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool;
   @InjectTool() private gitHubListUserOrgs: GitHubListUserOrgsTool;
-
-  // GitHub — Repos
-  @InjectTool() private gitHubListRepos: GitHubListReposTool;
   @InjectTool() private gitHubGetRepo: GitHubGetRepoTool;
-  @InjectTool() private gitHubCreateRepo: GitHubCreateRepoTool;
   @InjectTool() private gitHubListBranches: GitHubListBranchesTool;
-
-  // GitHub — Issues
   @InjectTool() private gitHubListIssues: GitHubListIssuesTool;
-  @InjectTool() private gitHubGetIssue: GitHubGetIssueTool;
-  @InjectTool() private gitHubCreateIssue: GitHubCreateIssueTool;
-  @InjectTool() private gitHubCreateIssueComment: GitHubCreateIssueCommentTool;
-
-  // GitHub — Pull Requests
   @InjectTool() private gitHubListPullRequests: GitHubListPullRequestsTool;
-  @InjectTool() private gitHubGetPullRequest: GitHubGetPullRequestTool;
-  @InjectTool() private gitHubCreatePullRequest: GitHubCreatePullRequestTool;
-  @InjectTool() private gitHubMergePullRequest: GitHubMergePullRequestTool;
-  @InjectTool() private gitHubListPrReviews: GitHubListPrReviewsTool;
-
-  // GitHub — Content
-  @InjectTool() private gitHubGetFileContent: GitHubGetFileContentTool;
-  @InjectTool() private gitHubCreateOrUpdateFile: GitHubCreateOrUpdateFileTool;
   @InjectTool() private gitHubListDirectory: GitHubListDirectoryTool;
-  @InjectTool() private gitHubGetCommit: GitHubGetCommitTool;
-
-  // GitHub — Actions
   @InjectTool() private gitHubListWorkflowRuns: GitHubListWorkflowRunsTool;
-  @InjectTool() private gitHubTriggerWorkflow: GitHubTriggerWorkflowTool;
-  @InjectTool() private gitHubGetWorkflowRun: GitHubGetWorkflowRunTool;
-
-  // GitHub — Search
   @InjectTool() private gitHubSearchCode: GitHubSearchCodeTool;
-  @InjectTool() private gitHubSearchRepos: GitHubSearchReposTool;
-  @InjectTool() private gitHubSearchIssues: GitHubSearchIssuesTool;
-
-  // Documents
-  @InjectDocument() private linkDocument: LinkDocument;
-  @InjectDocument() private markdown: MarkdownDocument;
 
   @InjectWorkflow() oAuth: OAuthWorkflow;
 
-  @Input({
-    schema: z
-      .object({
-        owner: z.string().default('octocat'),
-        repo: z.string().default('Hello-World'),
-      })
-      .strict(),
-  })
-  args: {
-    owner: string;
-    repo: string;
+  owner!: string;
+  repo!: string;
+  requiresAuthentication?: boolean;
+  user?: { login: string; name: string | null; htmlUrl: string; publicRepos: number };
+  orgs?: Array<{ login: string; description: string | null }>;
+  repoDetails?: {
+    fullName: string;
+    description: string | null;
+    language: string | null;
+    stars: number;
+    forks: number;
+    openIssues: number;
+    defaultBranch: string;
+    htmlUrl: string;
   };
+  branches?: Array<{ name: string; protected: boolean }>;
+  issues?: Array<{ number: number; title: string; state: string; user: string; htmlUrl: string }>;
+  pullRequests?: Array<{
+    number: number;
+    title: string;
+    state: string;
+    user: string;
+    draft: boolean;
+    htmlUrl: string;
+  }>;
+  directoryEntries?: Array<{ name: string; type: string; path: string }>;
+  workflowRuns?: Array<{
+    id: number;
+    name: string;
+    status: string;
+    conclusion: string | null;
+    htmlUrl: string;
+  }>;
+  searchResults?: Array<{ name: string; path: string; repository: string }>;
+  // --- Step 1: Fetch authenticated user ---
 
-  @Context()
-  context: any;
+  @Initial({ to: 'user_fetched' })
+  async fetchUser(args: { owner: string; repo: string }) {
+    this.owner = args.owner;
+    this.repo = args.repo;
+    const result: ToolResult<GitHubUserResult> = await this.gitHubGetAuthenticatedUser.call({});
+    this.requiresAuthentication = result.data!.error === 'unauthorized';
+    this.user = result.data!.user;
+  }
 
-  @Runtime()
-  runtime: any;
+  // If unauthorized -> launch OAuth
+  @Transition({ from: 'user_fetched', to: 'awaiting_auth', priority: 10 })
+  @Guard('needsAuth')
+  async authRequired() {
+    const result = await this.oAuth.run(
+      { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
+      { alias: 'oAuth', callback: { transition: 'authCompleted' } },
+    );
 
-  @State({
-    schema: z
-      .object({
-        requiresAuthentication: z.boolean().optional(),
-        user: z
-          .object({
-            login: z.string(),
-            name: z.string().nullable(),
-            htmlUrl: z.string(),
-            publicRepos: z.number(),
-          })
-          .optional(),
-        orgs: z
-          .array(
-            z.object({
-              login: z.string(),
-              description: z.string().nullable(),
-            }),
-          )
-          .optional(),
-        repo: z
-          .object({
-            fullName: z.string(),
-            description: z.string().nullable(),
-            language: z.string().nullable(),
-            stars: z.number(),
-            forks: z.number(),
-            openIssues: z.number(),
-            defaultBranch: z.string(),
-            htmlUrl: z.string(),
-          })
-          .optional(),
-        branches: z
-          .array(
-            z.object({
-              name: z.string(),
-              protected: z.boolean(),
-            }),
-          )
-          .optional(),
-        issues: z
-          .array(
-            z.object({
-              number: z.number(),
-              title: z.string(),
-              state: z.string(),
-              user: z.string(),
-              htmlUrl: z.string(),
-            }),
-          )
-          .optional(),
-        pullRequests: z
-          .array(
-            z.object({
-              number: z.number(),
-              title: z.string(),
-              state: z.string(),
-              user: z.string(),
-              draft: z.boolean(),
-              htmlUrl: z.string(),
-            }),
-          )
-          .optional(),
-        directoryEntries: z
-          .array(
-            z.object({
-              name: z.string(),
-              type: z.string(),
-              path: z.string(),
-            }),
-          )
-          .optional(),
-        workflowRuns: z
-          .array(
-            z.object({
-              id: z.number(),
-              name: z.string(),
-              status: z.string(),
-              conclusion: z.string().nullable(),
-              htmlUrl: z.string(),
-            }),
-          )
-          .optional(),
-        searchResults: z
-          .array(
-            z.object({
-              name: z.string(),
-              path: z.string(),
-              repository: z.string(),
-            }),
-          )
-          .optional(),
-      })
-      .strict(),
+    await this.repository.save(
+      LinkDocument,
+      {
+        label: 'GitHub authentication required',
+        workflowId: result.workflowId,
+        embed: true,
+        expanded: true,
+      },
+      { id: `link_${result.workflowId}` },
+    );
+  }
+
+  needsAuth(): boolean {
+    return !!this.requiresAuthentication;
+  }
+
+  // Auth completed -> retry from start
+  @Transition({
+    from: 'awaiting_auth',
+    to: 'start',
+    wait: true,
+    schema: CallbackSchema,
   })
-  state: {
-    requiresAuthentication?: boolean;
-    user?: { login: string; name: string | null; htmlUrl: string; publicRepos: number };
-    orgs?: Array<{ login: string; description: string | null }>;
-    repo?: {
-      fullName: string;
-      description: string | null;
-      language: string | null;
-      stars: number;
-      forks: number;
-      openIssues: number;
-      defaultBranch: string;
-      htmlUrl: string;
-    };
-    branches?: Array<{ name: string; protected: boolean }>;
-    issues?: Array<{ number: number; title: string; state: string; user: string; htmlUrl: string }>;
-    pullRequests?: Array<{
-      number: number;
-      title: string;
-      state: string;
-      user: string;
-      draft: boolean;
-      htmlUrl: string;
-    }>;
-    directoryEntries?: Array<{ name: string; type: string; path: string }>;
-    workflowRuns?: Array<{
-      id: number;
-      name: string;
-      status: string;
-      conclusion: string | null;
-      htmlUrl: string;
-    }>;
-    searchResults?: Array<{ name: string; path: string; repository: string }>;
-  };
+  async authCompleted(payload: { workflowId: string }) {
+    await this.repository.save(
+      LinkDocument,
+      {
+        status: 'success',
+        label: 'GitHub authentication completed',
+        workflowId: payload.workflowId,
+        embed: true,
+        expanded: false,
+      },
+      { id: `link_${payload.workflowId}` },
+    );
+  }
 
-  @DefineHelper()
-  searchQuery() {
-    return `repo:${this.args.owner}/${this.args.repo}`;
+  // --- Step 2: Fetch user orgs ---
+
+  @Transition({ from: 'user_fetched', to: 'orgs_fetched' })
+  async fetchOrgs() {
+    const result: ToolResult<GitHubOrgsResult> = await this.gitHubListUserOrgs.call({ perPage: 10 });
+    this.orgs = result.data!.orgs;
+  }
+
+  // --- Step 3: Fetch repo details and branches ---
+
+  @Transition({ from: 'orgs_fetched', to: 'repo_fetched' })
+  async fetchRepoDetails() {
+    const repoResult: ToolResult<GitHubRepoResult> = await this.gitHubGetRepo.call({
+      owner: this.owner,
+      repo: this.repo,
+    });
+    this.repoDetails = repoResult.data!.repo;
+
+    const branchesResult: ToolResult<GitHubBranchesResult> = await this.gitHubListBranches.call({
+      owner: this.owner,
+      repo: this.repo,
+    });
+    this.branches = branchesResult.data!.branches;
+  }
+
+  // --- Step 4: Fetch issues and PRs ---
+
+  @Transition({ from: 'repo_fetched', to: 'issues_prs_fetched' })
+  async fetchIssuesPrs() {
+    const issuesResult: ToolResult<GitHubIssuesResult> = await this.gitHubListIssues.call({
+      owner: this.owner,
+      repo: this.repo,
+      state: 'open',
+      perPage: 10,
+    });
+    this.issues = issuesResult.data!.issues;
+
+    const prsResult: ToolResult<GitHubPullRequestsResult> = await this.gitHubListPullRequests.call({
+      owner: this.owner,
+      repo: this.repo,
+      state: 'open',
+      perPage: 10,
+    });
+    this.pullRequests = prsResult.data!.pullRequests;
+  }
+
+  // --- Step 5: Fetch directory listing and workflow runs ---
+
+  @Transition({ from: 'issues_prs_fetched', to: 'content_actions_fetched' })
+  async fetchContentActions() {
+    const dirResult: ToolResult<GitHubDirectoryResult> = await this.gitHubListDirectory.call({
+      owner: this.owner,
+      repo: this.repo,
+    });
+    this.directoryEntries = dirResult.data!.entries;
+
+    const runsResult: ToolResult<GitHubWorkflowRunsResult> = await this.gitHubListWorkflowRuns.call({
+      owner: this.owner,
+      repo: this.repo,
+      perPage: 5,
+    });
+    this.workflowRuns = runsResult.data!.runs;
+  }
+
+  // --- Step 6: Search code in the repo ---
+
+  @Transition({ from: 'content_actions_fetched', to: 'search_done' })
+  async fetchSearch() {
+    const result: ToolResult<GitHubSearchCodeResult> = await this.gitHubSearchCode.call({
+      query: `repo:${this.owner}/${this.repo}`,
+      perPage: 5,
+    });
+    this.searchResults = result.data!.results;
+  }
+
+  // --- Display all results ---
+
+  @Final({ from: 'search_done' })
+  async displayResults() {
+    await this.repository.save(MarkdownDocument, {
+      markdown: this.render(__dirname + '/templates/repoOverview.md', {
+        user: this.user,
+        orgs: this.orgs,
+        repo: this.repoDetails,
+        branches: this.branches,
+        issues: this.issues,
+        pullRequests: this.pullRequests,
+        directoryEntries: this.directoryEntries,
+        workflowRuns: this.workflowRuns,
+        searchResults: this.searchResults,
+      }),
+    });
   }
 }

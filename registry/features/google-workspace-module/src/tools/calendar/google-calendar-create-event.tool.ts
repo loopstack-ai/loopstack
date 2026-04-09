@@ -1,57 +1,43 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GoogleCalendarCreateEventArgs = {
-  calendarId?: string;
-  summary: string;
-  description?: string;
-  start: string;
-  end: string;
-  location?: string;
-  attendees?: Array<{ email: string }>;
-  reminders?: {
-    useDefault: boolean;
-    overrides?: Array<{ method: string; minutes: number }>;
-  };
-};
+const inputSchema = z
+  .object({
+    calendarId: z.string().default('primary'),
+    summary: z.string(),
+    description: z.string().optional(),
+    start: z.string(),
+    end: z.string(),
+    location: z.string().optional(),
+    attendees: z.array(z.object({ email: z.string() })).optional(),
+    reminders: z
+      .object({
+        useDefault: z.boolean(),
+        overrides: z.array(z.object({ method: z.string(), minutes: z.number() })).optional(),
+      })
+      .optional(),
+  })
+  .strict();
+
+export type GoogleCalendarCreateEventArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Creates a new event on Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GoogleCalendarCreateEventTool implements ToolInterface {
+export class GoogleCalendarCreateEventTool extends BaseTool {
   private readonly logger = new Logger(GoogleCalendarCreateEventTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        calendarId: z.string().default('primary'),
-        summary: z.string(),
-        description: z.string().optional(),
-        start: z.string(),
-        end: z.string(),
-        location: z.string().optional(),
-        attendees: z.array(z.object({ email: z.string() })).optional(),
-        reminders: z
-          .object({
-            useDefault: z.boolean(),
-            overrides: z.array(z.object({ method: z.string(), minutes: z.number() })).optional(),
-          })
-          .optional(),
-      })
-      .strict(),
-  })
-  args: GoogleCalendarCreateEventArgs;
-
-  async execute(args: GoogleCalendarCreateEventArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async call(args: GoogleCalendarCreateEventArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -86,7 +72,7 @@ export class GoogleCalendarCreateEventTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Calendar API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

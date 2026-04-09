@@ -32,7 +32,7 @@ Use the `@State` decorator with a Zod schema to define custom state properties:
 
 ```typescript
 @Workflow({
-  configFile: __dirname + '/workflow-state.workflow.yaml',
+  uiConfig: __dirname + '/workflow-state.ui.yaml',
 })
 export class WorkflowStateWorkflow {
   @State({

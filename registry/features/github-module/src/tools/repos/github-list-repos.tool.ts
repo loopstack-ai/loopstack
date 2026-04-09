@@ -1,41 +1,34 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GitHubListReposArgs = {
-  visibility?: string;
-  sort?: string;
-  perPage?: number;
-  page?: number;
-};
+const inputSchema = z
+  .object({
+    visibility: z.enum(['all', 'public', 'private']).default('all'),
+    sort: z.enum(['created', 'updated', 'pushed', 'full_name']).default('updated'),
+    perPage: z.number().default(30),
+    page: z.number().default(1),
+  })
+  .strict();
+
+export type GitHubListReposArgs = z.input<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Lists repositories for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GitHubListReposTool implements ToolInterface {
+export class GitHubListReposTool extends BaseTool {
   private readonly logger = new Logger(GitHubListReposTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        visibility: z.enum(['all', 'public', 'private']).default('all'),
-        sort: z.enum(['created', 'updated', 'pushed', 'full_name']).default('updated'),
-        perPage: z.number().default(30),
-        page: z.number().default(1),
-      })
-      .strict(),
-  })
-  args: GitHubListReposArgs;
-
-  async execute(args: GitHubListReposArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
+  async call(args: GitHubListReposArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -62,7 +55,7 @@ export class GitHubListReposTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: '401',

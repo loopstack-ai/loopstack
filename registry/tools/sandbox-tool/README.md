@@ -32,7 +32,7 @@ import { InjectTool, State, Workflow } from '@loopstack/common';
 import { SandboxCommand, SandboxDestroy, SandboxInit } from './sandbox-tool';
 
 @Workflow({
-  configFile: __dirname + '/my.workflow.yaml',
+  uiConfig: __dirname + '/my.ui.yaml',
 })
 export class MyWorkflow {
   @InjectTool() sandboxInit: SandboxInit;
@@ -52,7 +52,7 @@ export class MyWorkflow {
 And use it in your YAML workflow configuration:
 
 ```yaml
-# src/my.workflow.yaml
+# src/my.ui.yaml
 transitions:
   # Initialize a Node.js sandbox
   - id: create_sandbox

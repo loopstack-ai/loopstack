@@ -2,56 +2,20 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   DocumentEntity,
-  EventSubscriberEntity,
-  NamespaceEntity,
-  PipelineEntity,
   SecretEntity,
+  WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
 } from '@loopstack/common';
 import { CommonModule } from '../common';
-import {
-  DocumentService,
-  EventSubscriberService,
-  MigrationsService,
-  NamespacesService,
-  PipelineService,
-  SecretService,
-  WorkflowService,
-  WorkspaceService,
-} from './services';
+import { SecretService, WorkflowCheckpointService, WorkflowService, WorkspaceService } from './services';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      WorkflowEntity,
-      NamespaceEntity,
-      WorkspaceEntity,
-      PipelineEntity,
-      DocumentEntity,
-      EventSubscriberEntity,
-      SecretEntity,
-    ]),
+    TypeOrmModule.forFeature([WorkflowEntity, WorkspaceEntity, DocumentEntity, SecretEntity, WorkflowCheckpointEntity]),
     CommonModule,
   ],
-  providers: [
-    WorkflowService,
-    NamespacesService,
-    WorkspaceService,
-    PipelineService,
-    DocumentService,
-    MigrationsService,
-    EventSubscriberService,
-    SecretService,
-  ],
-  exports: [
-    WorkflowService,
-    NamespacesService,
-    WorkspaceService,
-    PipelineService,
-    DocumentService,
-    EventSubscriberService,
-    SecretService,
-  ],
+  providers: [WorkflowService, WorkspaceService, SecretService, WorkflowCheckpointService],
+  exports: [WorkflowService, WorkspaceService, SecretService, WorkflowCheckpointService],
 })
 export class PersistenceModule {}

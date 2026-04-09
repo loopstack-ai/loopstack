@@ -1,45 +1,22 @@
-import { discriminatedUnion, z } from 'zod';
-import { UiPropertiesSchema } from './ui-properties-schema';
+import { z } from 'zod';
 
-export const UiFormBaseSchema = z.object({
-  widget: z.string().optional(),
+// ── Top-level widget entry (used in ui.widgets[]) ───────
+export const UiWidgetSchema = z.object({
+  widget: z.string(),
   enabledWhen: z.array(z.string()).optional(),
+  options: z.record(z.string(), z.any()).optional(),
 });
 
-export const UiFormButtonOptionsSchema = z.object({
+// ── Form action (used inside widget: form → options.actions[]) ──
+export const UiFormActionSchema = z.object({
+  type: z.string(),
   transition: z.string().optional(),
-  position: z.number().optional(),
   label: z.string().optional(),
   variant: z.string().optional(),
   props: z.record(z.string(), z.any()).optional(),
 });
 
-export const UiFormButtonSchema = UiFormBaseSchema.extend({
-  type: z.literal('button'),
-  options: z
-    .object({
-      transition: z.string().optional(),
-      position: z.number().optional(),
-      label: z.string().optional(),
-      props: z.record(z.string(), z.any()).optional(),
-    })
-    .optional(),
-});
-
-export const UiFormCustomSchema = UiFormBaseSchema.extend({
-  type: z.literal('custom'),
-  options: z
-    .object({
-      transition: z.string().optional(),
-      label: z.string().optional(),
-      props: z.record(z.string(), z.any()).optional(),
-    })
-    .optional(),
-});
-
-export const UiWidgetSchema = discriminatedUnion('type', [UiFormButtonSchema, UiFormCustomSchema]);
-
+// ── Root UI schema ──────────────────────────────────────
 export const UiFormSchema = z.object({
-  actions: z.array(UiWidgetSchema).optional(),
-  form: UiPropertiesSchema.optional(),
+  widgets: z.array(UiWidgetSchema).optional(),
 });

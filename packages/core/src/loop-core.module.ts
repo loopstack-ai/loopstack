@@ -3,8 +3,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   DocumentEntity,
-  NamespaceEntity,
-  PipelineEntity,
   SecretEntity,
   WorkflowEntity,
   WorkspaceEntity,
@@ -20,25 +18,16 @@ import {
   SecretRequestDocument,
 } from './documents';
 import { SchedulerModule } from './scheduler';
-import {
-  CreateDocument,
-  GetSecretKeysTool,
-  RequestSecretsTask,
-  RequestSecretsTool,
-  SecretsRequestWorkflow,
-  Task,
-} from './tools';
+import { GetSecretKeysTool, RequestSecretsTask, RequestSecretsTool, SecretsRequestWorkflow } from './tools';
 import { WorkflowProcessorModule } from './workflow-processor';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      PipelineEntity,
       WorkflowEntity,
       DocumentEntity,
       WorkspaceEntity,
       WorkspaceEnvironmentEntity,
-      NamespaceEntity,
       SecretEntity,
     ]),
     EventEmitterModule.forRoot({
@@ -50,11 +39,11 @@ import { WorkflowProcessorModule } from './workflow-processor';
   ],
   providers: [
     // Tools
-    CreateDocument,
+
     GetSecretKeysTool,
     RequestSecretsTool,
     RequestSecretsTask,
-    Task,
+
     SecretsRequestWorkflow,
 
     // Documents
@@ -69,11 +58,11 @@ import { WorkflowProcessorModule } from './workflow-processor';
     CommonModule,
     WorkflowProcessorModule,
     SchedulerModule,
-    CreateDocument,
+
     GetSecretKeysTool,
     RequestSecretsTool,
     RequestSecretsTask,
-    Task,
+
     SecretsRequestWorkflow,
     ErrorDocument,
     LinkDocument,

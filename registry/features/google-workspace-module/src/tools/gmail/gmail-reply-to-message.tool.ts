@@ -1,43 +1,35 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GmailReplyToMessageArgs = {
-  messageId: string;
-  threadId: string;
-  body: string;
-  htmlBody?: string;
-  replyAll?: boolean;
-};
+const inputSchema = z
+  .object({
+    messageId: z.string(),
+    threadId: z.string(),
+    body: z.string(),
+    htmlBody: z.string().optional(),
+    replyAll: z.boolean().default(false),
+  })
+  .strict();
+
+export type GmailReplyToMessageArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Replies to an existing Gmail message in-thread. Fetches the original message to set proper headers. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GmailReplyToMessageTool implements ToolInterface {
+export class GmailReplyToMessageTool extends BaseTool {
   private readonly logger = new Logger(GmailReplyToMessageTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        messageId: z.string(),
-        threadId: z.string(),
-        body: z.string(),
-        htmlBody: z.string().optional(),
-        replyAll: z.boolean().default(false),
-      })
-      .strict(),
-  })
-  args: GmailReplyToMessageArgs;
-
-  async execute(args: GmailReplyToMessageArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async call(args: GmailReplyToMessageArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -122,7 +114,7 @@ export class GmailReplyToMessageTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Gmail API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Gmail API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

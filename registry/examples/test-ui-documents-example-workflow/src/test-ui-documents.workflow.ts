@@ -1,18 +1,34 @@
-import { Injectable } from '@nestjs/common';
-import { InjectDocument, InjectTool, Workflow } from '@loopstack/common';
-import { CreateDocument, ErrorDocument, MarkdownDocument, MessageDocument, PlainDocument } from '@loopstack/core';
+import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
+import { ErrorDocument, MarkdownDocument, MessageDocument, PlainDocument } from '@loopstack/core';
 
-@Injectable()
 @Workflow({
-  config: {
-    description: 'Test the displaying of core ui documents',
-  },
-  configFile: __dirname + '/test-ui-documents.workflow.yaml',
+  uiConfig: __dirname + '/test-ui-documents.ui.yaml',
 })
-export class TestUiDocumentsWorkflow {
-  @InjectTool() private createDocument: CreateDocument;
-  @InjectDocument() private errorDocument: ErrorDocument;
-  @InjectDocument() private markdownDocument: MarkdownDocument;
-  @InjectDocument() private messageDocument: MessageDocument;
-  @InjectDocument() private plainDocument: PlainDocument;
+export class TestUiDocumentsWorkflow extends BaseWorkflow {
+  @Initial({ to: 'rendered' })
+  async renderAll() {
+    // Message
+    await this.repository.save(MessageDocument, {
+      role: 'assistant',
+      content: 'This is the default message',
+    });
+
+    // Error
+    await this.repository.save(ErrorDocument, {
+      error: 'This is an error message',
+    });
+
+    // Markdown
+    await this.repository.save(MarkdownDocument, {
+      markdown: '# Markdown\n\nThis is `markdown`\n',
+    });
+
+    // Plain Text
+    await this.repository.save(PlainDocument, {
+      text: 'This is plain text',
+    });
+  }
+
+  @Final({ from: 'rendered' })
+  done() {}
 }

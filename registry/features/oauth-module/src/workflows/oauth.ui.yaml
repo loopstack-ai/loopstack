@@ -1,0 +1,15 @@
+title: 'OAuth'
+
+description: |
+  Authenticate with an OAuth 2.0 provider.
+  Can be run standalone to pre-authenticate, or invoked from
+  other workflows when authentication is required.
+
+ui:
+  form:
+    properties:
+      provider:
+        title: 'Provider'
+      scopes:
+        title: 'OAuth Scopes'
+        collapsed: true

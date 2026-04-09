@@ -24,10 +24,17 @@ interface CodeFieldProps extends FieldProps {
   schema: CodeFieldSchema;
 }
 
+const codeFenceRegex = /^```[\w-]*\n?([\s\S]*?)\n?```$/;
+
 const stripCodeFence = (text: string): string => {
-  const codeFenceRegex = /^```[\w-]*\n?([\s\S]*?)\n?```$/;
   const match = text.match(codeFenceRegex);
   return match ? match[1] : text;
+};
+
+/** Wrap raw code in markdown fences so CodeContent renders it as a code block. */
+const ensureCodeFenced = (text: string): string => {
+  if (!text || codeFenceRegex.test(text.trim())) return text;
+  return '```\n' + text + '\n```';
 };
 
 export const CodeViewField: React.FC<CodeFieldProps> = ({ name, schema, ui, required, form, disabled }) => {
@@ -63,7 +70,7 @@ export const CodeViewField: React.FC<CodeFieldProps> = ({ name, schema, ui, requ
             <button
               type="button"
               onClick={() => void handleCopy(String(field.value ?? ''))}
-              disabled={config.isDisabled || !field.value}
+              disabled={!field.value}
               className="bg-background/80 hover:bg-background absolute top-2 right-2 z-10 rounded-md border p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               title={copied ? 'Copied!' : 'Copy to clipboard'}
               aria-label={copied ? 'Copied to clipboard' : 'Copy code to clipboard'}
@@ -74,7 +81,7 @@ export const CodeViewField: React.FC<CodeFieldProps> = ({ name, schema, ui, requ
                 <Copy className="h-4 w-4" aria-hidden="true" />
               )}
             </button>
-            <CodeContent content={String(field.value ?? '')} />
+            <CodeContent content={ensureCodeFenced(String(field.value ?? ''))} />
           </div>
         </BaseFieldWrapper>
       )}

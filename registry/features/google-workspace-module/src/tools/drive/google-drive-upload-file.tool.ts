@@ -1,43 +1,35 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { Input, RunContext, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
-export type GoogleDriveUploadFileArgs = {
-  name: string;
-  content: string;
-  mimeType?: string;
-  folderId?: string;
-  description?: string;
-};
+const inputSchema = z
+  .object({
+    name: z.string(),
+    content: z.string(),
+    mimeType: z.string().default('text/plain'),
+    folderId: z.string().optional(),
+    description: z.string().optional(),
+  })
+  .strict();
+
+export type GoogleDriveUploadFileArgs = z.infer<typeof inputSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Uploads a new file to Google Drive using multipart upload. Returns { error: "unauthorized" } if no valid token is available.',
   },
+  schema: inputSchema,
 })
-export class GoogleDriveUploadFileTool implements ToolInterface {
+export class GoogleDriveUploadFileTool extends BaseTool {
   private readonly logger = new Logger(GoogleDriveUploadFileTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        name: z.string(),
-        content: z.string(),
-        mimeType: z.string().default('text/plain'),
-        folderId: z.string().optional(),
-        description: z.string().optional(),
-      })
-      .strict(),
-  })
-  args: GoogleDriveUploadFileArgs;
-
-  async execute(args: GoogleDriveUploadFileArgs, ctx: RunContext): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
+  async call(args: GoogleDriveUploadFileArgs): Promise<ToolResult> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -77,7 +69,7 @@ export class GoogleDriveUploadFileTool implements ToolInterface {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Drive API returned ${response.status} for user ${ctx.userId}`);
+      this.logger.warn(`Google Drive API returned ${response.status} for user ${this.ctx.context.userId}`);
       return {
         data: {
           error: 'unauthorized',

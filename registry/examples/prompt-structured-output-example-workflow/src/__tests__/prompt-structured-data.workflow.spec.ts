@@ -1,8 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
 import { ClaudeGenerateDocument, ClaudeModule } from '@loopstack/claude-module';
-import { RunContext, getBlockTools } from '@loopstack/common';
-import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
-import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { getBlockTools } from '@loopstack/common';
+import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { FileDocument } from '../documents/file-document';
 import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow';
 
@@ -11,7 +11,6 @@ describe('PromptStructuredOutputWorkflow', () => {
   let workflow: PromptStructuredOutputWorkflow;
   let processor: WorkflowProcessorService;
 
-  let mockCreateDocument: ToolMock;
   let mockClaudeGenerateDocument: ToolMock;
 
   const mockFileContent = {
@@ -25,14 +24,12 @@ describe('PromptStructuredOutputWorkflow', () => {
       .forWorkflow(PromptStructuredOutputWorkflow)
       .withImports(LoopCoreModule, ClaudeModule)
       .withProvider(FileDocument)
-      .withToolOverride(CreateDocument)
       .withToolOverride(ClaudeGenerateDocument)
       .compile();
 
     workflow = module.get(PromptStructuredOutputWorkflow);
     processor = module.get(WorkflowProcessorService);
 
-    mockCreateDocument = module.get(CreateDocument);
     mockClaudeGenerateDocument = module.get(ClaudeGenerateDocument);
   });
 
@@ -41,19 +38,17 @@ describe('PromptStructuredOutputWorkflow', () => {
   });
 
   describe('initialization', () => {
-    it('should be defined with correct tools and documents', () => {
+    it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('createDocument');
       expect(getBlockTools(workflow)).toContain('claudeGenerateDocument');
     });
   });
 
   describe('workflow execution', () => {
-    const context = {} as RunContext;
+    const context = createStatelessContext();
 
     it('should execute workflow and generate hello world script', async () => {
-      mockCreateDocument.execute.mockResolvedValue({});
-      mockClaudeGenerateDocument.execute.mockResolvedValue({
+      mockClaudeGenerateDocument.call.mockResolvedValue({
         data: { content: mockFileContent },
       });
 
@@ -61,55 +56,38 @@ describe('PromptStructuredOutputWorkflow', () => {
 
       expect(result.hasError).toBe(false);
 
-      // Verify CreateDocument was called twice (status message + success message)
-      expect(mockCreateDocument.execute).toHaveBeenCalledTimes(2);
-
-      // First call: status message
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'status',
-          update: {
-            content: {
-              role: 'assistant',
-              content: [
-                {
-                  type: 'text',
-                  text: "Creating a 'Hello, World!' script in python...",
-                },
-              ],
-            },
-          },
-        }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-      );
-
       // Verify ClaudeGenerateDocument was called once with correct arguments
-      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledTimes(1);
-      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateDocument.call).toHaveBeenCalledTimes(1);
+      expect(mockClaudeGenerateDocument.call).toHaveBeenCalledWith(
         expect.objectContaining({
           claude: {
             model: 'claude-sonnet-4-6',
           },
           prompt: expect.stringContaining('python'),
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
+        undefined,
       );
 
-      // // Verify history contains expected places
-      // const history = result.state.getHistory();
-      // const places = history.map((h) => h.metadata?.place);
-      // expect(places).toContain('ready');
-      // expect(places).toContain('prompt_executed');
-      // expect(places).toContain('end');
+      // Verify status document was created (greeting + respond both write to id 'status', last write wins)
+      expect(result.documents).toHaveLength(1);
+      expect(result.documents[0]).toEqual(
+        expect.objectContaining({
+          className: 'ClaudeMessageDocument',
+          content: expect.objectContaining({
+            role: 'assistant',
+            content: expect.arrayContaining([
+              expect.objectContaining({
+                type: 'text',
+                text: expect.stringContaining('Successfully generated'),
+              }),
+            ]),
+          }),
+        }),
+      );
     });
 
     it('should work with different programming languages', async () => {
-      mockCreateDocument.execute.mockResolvedValue({});
-      mockClaudeGenerateDocument.execute.mockResolvedValue({
+      mockClaudeGenerateDocument.call.mockResolvedValue({
         data: { content: { ...mockFileContent, filename: 'hello_world.js' } },
       });
 
@@ -117,40 +95,28 @@ describe('PromptStructuredOutputWorkflow', () => {
 
       expect(result.hasError).toBe(false);
 
-      // Verify status message mentions javascript
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
-        expect.objectContaining({
-          update: {
-            content: {
-              role: 'assistant',
-              content: [
-                {
-                  type: 'text',
-                  text: "Creating a 'Hello, World!' script in javascript...",
-                },
-              ],
-            },
-          },
-        }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-      );
-
       // Verify ClaudeGenerateDocument prompt mentions javascript
-      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateDocument.call).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: expect.stringContaining('javascript'),
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
+        undefined,
+      );
+
+      // Verify status document was created
+      expect(result.documents).toHaveLength(1);
+      expect(result.documents[0]).toEqual(
+        expect.objectContaining({
+          className: 'ClaudeMessageDocument',
+          content: expect.objectContaining({
+            role: 'assistant',
+          }),
+        }),
       );
     });
 
     it('should use default language when not provided', async () => {
-      mockCreateDocument.execute.mockResolvedValue({});
-      mockClaudeGenerateDocument.execute.mockResolvedValue({
+      mockClaudeGenerateDocument.call.mockResolvedValue({
         data: { content: mockFileContent },
       });
 
@@ -159,13 +125,11 @@ describe('PromptStructuredOutputWorkflow', () => {
       expect(result.hasError).toBe(false);
 
       // Verify ClaudeGenerateDocument was called with default language "python"
-      expect(mockClaudeGenerateDocument.execute).toHaveBeenCalledWith(
+      expect(mockClaudeGenerateDocument.call).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: expect.stringContaining('python'),
         }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
+        undefined,
       );
     });
   });

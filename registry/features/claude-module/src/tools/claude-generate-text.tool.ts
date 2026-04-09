@@ -1,38 +1,27 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  Input,
-  RunContext,
-  Tool,
-  ToolCallEntry,
-  ToolCallsMap,
-  ToolInterface,
-  ToolResult,
-  ToolSideEffects,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-  getBlockTool,
-} from '@loopstack/common';
+import { BaseTool, Tool, ToolCallEntry, ToolCallsMap, ToolResult } from '@loopstack/common';
 import { ClaudeGenerateToolBaseSchema } from '../schemas/claude-generate-tool-base.schema';
 import { ClaudeClientService } from '../services';
 import { ClaudeMessagesHelperService } from '../services';
 import { ClaudeToolsHelperService } from '../services';
+import { ClaudeGenerateTextResult } from '../types';
 import { applyCacheBreakpoints } from '../utils/cache.utils';
 
 export const ClaudeGenerateTextSchema = ClaudeGenerateToolBaseSchema.extend({
   tools: z.array(z.string()).optional(),
-  document: z.string().optional(),
 }).strict();
 
 type ClaudeGenerateTextArgsType = z.infer<typeof ClaudeGenerateTextSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Generates text using the Anthropic Claude API',
   },
+  schema: ClaudeGenerateTextSchema,
 })
-export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsType> {
+export class ClaudeGenerateText extends BaseTool {
   @Inject()
   private readonly claudeClientService: ClaudeClientService;
   @Inject()
@@ -40,17 +29,7 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
   @Inject()
   private readonly claudeToolsHelperService: ClaudeToolsHelperService;
 
-  @Input({
-    schema: ClaudeGenerateTextSchema,
-  })
-  args: ClaudeGenerateTextArgsType;
-
-  async execute(
-    args: ClaudeGenerateTextArgsType,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    runtime: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async call(args: ClaudeGenerateTextArgsType): Promise<ToolResult<ClaudeGenerateTextResult>> {
     const client = this.claudeClientService.getClient(args.claude);
     const model = this.claudeClientService.getModel(args.claude);
 
@@ -59,14 +38,14 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
     if (args.prompt) {
       messages.push({ role: 'user', content: args.prompt });
     } else {
-      const resolved = this.claudeMessagesHelperService.getMessages(runtime.documents, {
+      const resolved = this.claudeMessagesHelperService.getMessages(this.ctx.runtime.documents, {
         messages: args.messages as Anthropic.MessageParam[],
         messagesSearchTag: args.messagesSearchTag,
       });
       messages.push(...resolved);
     }
 
-    const tools = args.tools ? this.claudeToolsHelperService.getTools(args.tools, parent) : undefined;
+    const tools = args.tools ? this.claudeToolsHelperService.getTools(args.tools, this.ctx.parent) : undefined;
 
     const response = await this.handleGenerateText(client, {
       model,
@@ -79,21 +58,11 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
 
     const toolCalls = this.extractToolCalls(response);
 
-    let effects: ToolSideEffects[] = [];
-
-    if (args.document) {
-      const docResult = await this.createResponseMessage(args.document, response, ctx, parent, runtime);
-      if (docResult.effects) {
-        effects = [...docResult.effects];
-      }
-    }
-
     return {
       data: {
         ...response,
         ...(toolCalls ? { toolCalls } : {}),
       },
-      ...(effects.length > 0 ? { effects } : {}),
       metadata: {
         usage: {
           inputTokens: response.usage.input_tokens,
@@ -103,32 +72,6 @@ export class ClaudeGenerateText implements ToolInterface<ClaudeGenerateTextArgsT
         },
       },
     };
-  }
-
-  private async createResponseMessage(
-    document: string,
-    response: Anthropic.Message,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    runtime: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const createDocumentTool = getBlockTool<ToolInterface>(parent, 'createDocument');
-    if (!createDocumentTool) {
-      throw new Error('createDocument tool not found in parent context.');
-    }
-
-    return createDocumentTool.execute(
-      {
-        id: response.id,
-        document,
-        update: {
-          content: response,
-        },
-      },
-      ctx,
-      parent,
-      runtime,
-    );
   }
 
   private extractToolCalls(response: Anthropic.Message): ToolCallsMap | null {

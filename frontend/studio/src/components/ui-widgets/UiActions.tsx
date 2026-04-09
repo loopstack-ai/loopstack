@@ -31,8 +31,15 @@ const UiActions: React.FC<UiActionsProps> = ({
           (transition !== undefined && !availableTransitions.includes(transition));
 
         const handleSubmit = (data?: Record<string, unknown> | string) => {
+          console.log('[UiActions] handleSubmit called', {
+            transition,
+            data,
+            isDisabled,
+            currentPlace,
+            availableTransitions,
+          });
           if (!transition) {
-            console.error(`[UiActions] Widget "${config.widget ?? config.type}" has no transition configured.`);
+            console.error(`[UiActions] Widget "${config.widget}" has no transition configured.`);
             return;
           }
           onSubmit(transition, data);

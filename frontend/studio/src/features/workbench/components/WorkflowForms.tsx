@@ -1,17 +1,23 @@
 import React from 'react';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import { WorkflowState } from '@loopstack/contracts/enums';
-import type { WorkflowInterface } from '@loopstack/contracts/types';
 import type { UiWidgetType } from '@loopstack/contracts/types';
 import UiActions from '@/components/ui-widgets/UiActions.tsx';
+import { useWorkflowConfigByName } from '@/hooks/useWorkflows.ts';
 
 interface WorkflowFormsProps {
-  workflow: WorkflowInterface;
+  workflow: WorkflowFullInterface;
+  parentWorkflow: WorkflowFullInterface;
   onSubmit: (transition: string, data: Record<string, unknown> | string | undefined) => void;
 }
 
 const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit }) => {
-  const actions = (workflow.ui as { actions?: unknown[] } | undefined)?.actions;
-  if (!actions?.length) {
+  const fetchConfig = useWorkflowConfigByName(workflow.className ?? undefined);
+
+  const uiTyped = fetchConfig.data?.ui as { widgets?: unknown[]; actions?: unknown[] } | undefined;
+  // New format: ui.widgets, legacy fallback: ui.actions
+  const widgets = uiTyped?.widgets ?? uiTyped?.actions;
+  if (!widgets?.length) {
     return null;
   }
 
@@ -21,7 +27,7 @@ const WorkflowForms: React.FC<WorkflowFormsProps> = ({ workflow, onSubmit }) => 
   return (
     <div>
       <UiActions
-        actions={actions as UiWidgetType[]}
+        actions={widgets as UiWidgetType[]}
         availableTransitions={availableTransitions}
         currentPlace={workflow.place}
         disabled={workflow.status === WorkflowState.Completed}

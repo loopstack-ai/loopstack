@@ -1,3 +1,3 @@
-export { default as PipelineFlowViewer } from './components/PipelineFlowViewer';
-export { default as PipelineDebugHeader } from './components/PipelineDebugHeader';
+export { default as WorkflowFlowViewer } from './components/WorkflowFlowViewer';
+export { default as WorkflowDebugHeader } from './components/WorkflowDebugHeader';
 export { default as ConfigFlowViewer } from './components/ConfigFlowViewer';

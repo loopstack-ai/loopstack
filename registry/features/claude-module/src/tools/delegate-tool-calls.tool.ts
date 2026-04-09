@@ -2,24 +2,24 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import {
-  InjectTool,
-  Input,
-  RunContext,
+  BaseTool,
+  DocumentClass,
   Tool,
-  ToolInterface,
+  ToolCallOptions,
   ToolResult,
-  ToolSideEffects,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
+  getBlockTool,
+  getBlockTypeFromMetadata,
 } from '@loopstack/common';
-import { CreateDocument, EventSubscriberService, StateMachineToolCallProcessorService } from '@loopstack/core';
+import type { DelegateToolCallsResult, DelegateToolResultEntry } from '../types';
 
 const DelegateToolCallsSchema = z.object({
   message: z.object({
     id: z.string().optional(),
     content: z.array(z.any()),
   }),
-  document: z.string().optional(),
+  document: z
+    .custom<DocumentClass>((val) => typeof val === 'function' && getBlockTypeFromMetadata(val as object) === 'document')
+    .optional(),
   skipResponseMessage: z.boolean().optional(),
   callback: z
     .object({
@@ -30,88 +30,53 @@ const DelegateToolCallsSchema = z.object({
 
 type DelegateToolCallsArgs = z.infer<typeof DelegateToolCallsSchema>;
 
-interface ToolResultEntry {
-  type: 'tool_result';
-  tool_use_id: string;
-  content?: string;
-  is_error?: boolean;
-}
-
 @Injectable()
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Delegate tool calls from an LLM response. Handles both sync tools and async task tools.',
   },
+  schema: DelegateToolCallsSchema,
 })
-export class DelegateToolCalls implements ToolInterface<DelegateToolCallsArgs> {
+export class DelegateToolCalls extends BaseTool {
   private readonly logger = new Logger(DelegateToolCalls.name);
 
-  @InjectTool() private createDocument: CreateDocument;
-
-  constructor(
-    private readonly toolCallProcessor: StateMachineToolCallProcessorService,
-    private readonly eventSubscriberService: EventSubscriberService,
-  ) {}
-
-  @Input({
-    schema: DelegateToolCallsSchema,
-  })
-  args: DelegateToolCallsArgs;
-
-  async execute(
-    args: DelegateToolCallsArgs,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async call(args: DelegateToolCallsArgs): Promise<ToolResult<DelegateToolCallsResult>> {
     const contentBlocks = args.message.content as Anthropic.ContentBlock[];
     const toolUseBlocks = contentBlocks.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
 
     if (toolUseBlocks.length === 0) {
       return {
-        data: { allCompleted: true, toolResults: [], message: args.message, pendingCount: 0 },
+        data: {
+          allCompleted: true,
+          toolResults: [],
+          message: args.message as DelegateToolCallsResult['message'],
+          pendingCount: 0,
+        },
       };
     }
 
-    // 1. Execute ALL tools in parallel
-    const results = await Promise.all(toolUseBlocks.map((block) => this.executeTool(block, ctx, parent, metadata)));
+    // 1. Execute ALL tools in parallel, passing callback via options (not args)
+    const results = await Promise.all(
+      toolUseBlocks.map((block) => {
+        const toolCallback = args.callback
+          ? {
+              transition: args.callback.transition,
+              metadata: { toolUseId: block.id, toolName: block.name },
+            }
+          : undefined;
+        return this.executeTool(block, toolCallback ? { callback: toolCallback } : undefined);
+      }),
+    );
 
-    // 2. Register subscribers for async results + build toolResults array
+    // 2. Build toolResults array — async tools signal via result.pending
     let pendingCount = 0;
-    const toolResults: ToolResultEntry[] = [];
-    const toolEffects: ToolSideEffects[] = [];
+    const toolResults: DelegateToolResultEntry[] = [];
 
     for (let i = 0; i < toolUseBlocks.length; i++) {
       const block = toolUseBlocks[i];
       const result = results[i];
 
-      // Collect effects from tool execution (e.g. link documents)
-      if (result.effects) {
-        toolEffects.push(...result.effects);
-      }
-
-      const resultData = result.data as Record<string, unknown> | undefined;
-      if (resultData?.mode === 'async') {
-        // Validate callback is provided
-        if (!args.callback?.transition) {
-          throw new Error(
-            `Tool "${block.name}" returned an async result but no callback.transition was provided. ` +
-              `Add a callback configuration to the delegateToolCalls args.`,
-          );
-        }
-
-        // Register event subscriber
-        await this.eventSubscriberService.registerSubscriber(
-          ctx.pipelineId,
-          ctx.workflowId!,
-          args.callback.transition,
-          resultData.correlationId as string,
-          resultData.eventName as string,
-          ctx.userId,
-          ctx.workspaceId,
-          { toolUseId: block.id, toolName: block.name },
-        );
-
+      if (result.pending) {
         pendingCount++;
       } else {
         toolResults.push({
@@ -123,43 +88,29 @@ export class DelegateToolCalls implements ToolInterface<DelegateToolCallsArgs> {
       }
     }
 
-    // 3. Create response document first (tool call message), then append
-    //    tool execution effects (e.g. link documents) so they appear after.
-    const effects: ToolSideEffects[] = [];
+    // 3. Create response document (tool call message)
     if (args.document && !args.skipResponseMessage) {
-      const docResult = await this.createResponseDocument(args, toolResults, ctx, parent, metadata);
-      if (docResult.effects) {
-        effects.push(...docResult.effects);
-      }
+      await this.createResponseDocument(args.document, args, toolResults);
     }
-    effects.push(...toolEffects);
 
     return {
       data: {
         allCompleted: pendingCount === 0,
         toolResults,
-        message: args.message,
+        message: args.message as DelegateToolCallsResult['message'],
         pendingCount,
       },
-      effects,
     };
   }
 
-  private async executeTool(
-    block: Anthropic.ToolUseBlock,
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    const tool = this.toolCallProcessor.getTool(parent, block.name);
-    const parsedArgs = this.toolCallProcessor.parseArgs(
-      tool,
-      block.input as Record<string, unknown> | undefined,
-      metadata.transition!,
-    );
-
+  private async executeTool(block: Anthropic.ToolUseBlock, options?: ToolCallOptions): Promise<ToolResult> {
     try {
-      return await this.toolCallProcessor.executeToolCall(tool, parsedArgs, ctx, parent, metadata);
+      const tool = getBlockTool<BaseTool>(this.ctx.parent, block.name);
+      if (!tool) {
+        throw new Error(`Tool with name ${block.name} not found.`);
+      }
+
+      return await tool.call(block.input as Record<string, unknown>, options);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Tool "${block.name}" failed: ${errorMessage}`);
@@ -171,28 +122,18 @@ export class DelegateToolCalls implements ToolInterface<DelegateToolCallsArgs> {
   }
 
   private async createResponseDocument(
+    document: DocumentClass,
     args: DelegateToolCallsArgs,
-    toolResults: ToolResultEntry[],
-    ctx: RunContext,
-    parent: WorkflowInterface,
-    metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
-    return this.createDocument.execute(
+    toolResults: DelegateToolResultEntry[],
+  ): Promise<void> {
+    await this.repository.save(
+      document,
       {
-        id: args.message.id,
-        document: args.document!,
-        validate: 'skip' as const,
-        update: {
-          content: {
-            role: 'assistant',
-            content: args.message.content,
-            toolResults,
-          },
-        },
+        role: 'assistant',
+        content: args.message.content,
+        toolResults,
       },
-      ctx,
-      parent,
-      metadata,
+      { id: args.message.id, validate: 'skip' },
     );
   }
 }

@@ -1,18 +1,16 @@
 import { z } from 'zod';
-import { Input, Tool, ToolInterface, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 
 @Tool({
-  config: {
+  uiConfig: {
     description: 'Retrieve weather information.',
   },
+  schema: z.object({
+    location: z.string(),
+  }),
 })
-export class GetWeather implements ToolInterface {
-  @Input({
-    schema: z.object({
-      location: z.string(),
-    }),
-  })
-  async execute(): Promise<ToolResult> {
+export class GetWeather extends BaseTool {
+  async call(_args: unknown): Promise<ToolResult> {
     // Wait for 3 seconds for testing
     // await new Promise(resolve => setTimeout(resolve, 3000));
 

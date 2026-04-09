@@ -1,23 +1,28 @@
 import { Provider, Type } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { merge } from 'lodash';
-import { BLOCK_CONFIG_METADATA_KEY, ToolInterface, WorkflowExecution } from '@loopstack/common';
+import {
+  BLOCK_CONFIG_METADATA_KEY,
+  BaseTool,
+  DOCUMENT_REPOSITORY,
+  FRAMEWORK_CONTEXT,
+  TEMPLATE_RENDERER,
+  WorkflowExecution,
+} from '@loopstack/common';
 
 /**
  * Mock for Tool classes - provides standard jest mock functions
  */
 export interface ToolMock {
-  validate: jest.Mock;
-  execute: jest.Mock;
+  call: jest.Mock;
 }
 
 /**
- * Creates a standard tool mock with validate and execute functions
+ * Creates a standard tool mock with a call function
  */
 export function createToolMock(): ToolMock {
   return {
-    validate: jest.fn().mockImplementation((v: unknown) => v),
-    execute: jest.fn().mockResolvedValue({ data: undefined }),
+    call: jest.fn().mockResolvedValue({ data: undefined }),
   };
 }
 
@@ -66,10 +71,10 @@ export function createExecutionContext(overrides?: Partial<WorkflowExecution>): 
  *   .compile();
  *
  * const tool = module.get(MathSumTool);
- * const result = await tool.execute(tool.validate({ a: 1, b: 2 }), createExecutionContext());
+ * const result = await tool.run({ a: 1, b: 2 });
  * ```
  */
-export class ToolTestBuilder<TTool extends ToolInterface<object> = ToolInterface<object>> {
+export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
   private toolClass?: Type<TTool>;
   private providers: Provider[] = [];
   private overrides = new Map<unknown, unknown>();
@@ -77,7 +82,7 @@ export class ToolTestBuilder<TTool extends ToolInterface<object> = ToolInterface
   /**
    * Set the tool class to test
    */
-  forTool<T extends ToolInterface<object>>(toolClass: Type<T>): ToolTestBuilder<T> {
+  forTool<T extends BaseTool>(toolClass: Type<T>): ToolTestBuilder<T> {
     this.verifyToolDecorators(toolClass);
     (this.toolClass as Type<unknown> | undefined) = toolClass;
     this.providers.push(toolClass);
@@ -140,7 +145,31 @@ export class ToolTestBuilder<TTool extends ToolInterface<object> = ToolInterface
     }
 
     let builder = Test.createTestingModule({
-      providers: this.providers,
+      providers: [
+        {
+          provide: DOCUMENT_REPOSITORY,
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn().mockResolvedValue({}),
+            findAll: jest.fn().mockReturnValue([]),
+            findByTag: jest.fn().mockReturnValue([]),
+          },
+        },
+        {
+          provide: FRAMEWORK_CONTEXT,
+          useValue: {
+            context: {},
+            runtime: {},
+            args: {},
+            parent: null,
+          },
+        },
+        {
+          provide: TEMPLATE_RENDERER,
+          useValue: jest.fn((template: string) => template),
+        },
+        ...this.providers,
+      ],
     });
 
     // Apply overrides

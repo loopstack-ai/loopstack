@@ -1,45 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { InjectDocument, InjectTool, Input, Output, State, Workflow, WorkflowInterface } from '@loopstack/common';
+import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
 import { SecretRequestDocument } from '../documents';
-import { CreateDocument } from './create-document.tool';
 
 @Injectable()
 @Workflow({
-  configFile: __dirname + '/secrets-request.workflow.yaml',
+  uiConfig: __dirname + '/secrets-request.ui.yaml',
+  schema: z.object({
+    variables: z.array(
+      z.object({
+        key: z.string(),
+      }),
+    ),
+  }),
 })
-export class SecretsRequestWorkflow implements WorkflowInterface {
-  @InjectTool() createDocument: CreateDocument;
-  @InjectDocument() secretRequestDocument: SecretRequestDocument;
+export class SecretsRequestWorkflow extends BaseWorkflow<{ variables: { key: string }[] }> {
+  @Initial({ to: 'requesting_secrets' })
+  async showForm(args: { variables: { key: string }[] }) {
+    await this.repository.save(SecretRequestDocument, {
+      variables: args.variables,
+    });
+  }
 
-  @Input({
-    schema: z.object({
-      variables: z.array(
-        z.object({
-          key: z.string(),
-        }),
-      ),
-    }),
-  })
-  args: {
-    variables: { key: string }[];
-  };
-
-  @State({
-    schema: z.object({
-      submitted: z.boolean().optional(),
-    }),
-  })
-  state: {
-    submitted?: boolean;
-  };
-
-  @Output({
-    schema: z.object({
-      success: z.boolean(),
-    }),
-  })
-  getResult() {
-    return { success: this.state.submitted ?? false };
+  @Final({ from: 'requesting_secrets', wait: true })
+  secretsSubmitted(): { success: boolean } {
+    return { success: true };
   }
 }

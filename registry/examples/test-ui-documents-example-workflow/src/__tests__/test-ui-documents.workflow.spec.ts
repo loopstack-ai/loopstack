@@ -1,7 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
-import { RunContext } from '@loopstack/common';
-import { CreateDocument, LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
-import { ToolMock, createWorkflowTest } from '@loopstack/testing';
+import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { TestUiDocumentsWorkflow } from '../test-ui-documents.workflow';
 
 describe('TestUiDocumentsWorkflow', () => {
@@ -9,19 +8,11 @@ describe('TestUiDocumentsWorkflow', () => {
   let workflow: TestUiDocumentsWorkflow;
   let processor: WorkflowProcessorService;
 
-  let mockCreateDocument: ToolMock;
-
   beforeEach(async () => {
-    module = await createWorkflowTest()
-      .forWorkflow(TestUiDocumentsWorkflow)
-      .withImports(LoopCoreModule)
-      .withToolOverride(CreateDocument)
-      .compile();
+    module = await createWorkflowTest().forWorkflow(TestUiDocumentsWorkflow).withImports(LoopCoreModule).compile();
 
     workflow = module.get(TestUiDocumentsWorkflow);
     processor = module.get(WorkflowProcessorService);
-
-    mockCreateDocument = module.get(CreateDocument);
   });
 
   afterEach(async () => {
@@ -34,96 +25,80 @@ describe('TestUiDocumentsWorkflow', () => {
 
   describe('render_all transition', () => {
     it('should create all four document types', async () => {
-      const context = {} as RunContext;
-      mockCreateDocument.execute.mockResolvedValue({ data: undefined });
+      const context = createStatelessContext();
 
-      await processor.process(workflow, {}, context);
+      const result = await processor.process(workflow, {}, context);
 
-      expect(mockCreateDocument.execute).toHaveBeenCalledTimes(4);
+      expect(result.hasError).toBe(false);
+      expect(result.documents.filter((d) => !d.isInvalidated)).toHaveLength(4);
     });
 
     it('should create a message document', async () => {
-      const context = {} as RunContext;
-      mockCreateDocument.execute.mockResolvedValue({ data: undefined });
+      const context = createStatelessContext();
 
-      await processor.process(workflow, {}, context);
+      const result = await processor.process(workflow, {}, context);
 
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
-        expect.objectContaining({
-          document: expect.anything(),
-          update: {
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'MessageDocument',
             content: {
               role: 'assistant',
               content: 'This is the default message',
             },
-          },
-        }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
+          }),
+        ]),
       );
     });
 
     it('should create an error document', async () => {
-      const context = {} as RunContext;
-      mockCreateDocument.execute.mockResolvedValue({ data: undefined });
+      const context = createStatelessContext();
 
-      await processor.process(workflow, {}, context);
+      const result = await processor.process(workflow, {}, context);
 
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
-        expect.objectContaining({
-          document: expect.anything(),
-          update: {
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'ErrorDocument',
             content: {
               error: 'This is an error message',
             },
-          },
-        }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
+          }),
+        ]),
       );
     });
 
     it('should create a markdown document', async () => {
-      const context = {} as RunContext;
-      mockCreateDocument.execute.mockResolvedValue({ data: undefined });
+      const context = createStatelessContext();
 
-      await processor.process(workflow, {}, context);
+      const result = await processor.process(workflow, {}, context);
 
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
-        expect.objectContaining({
-          document: expect.anything(),
-          update: {
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'MarkdownDocument',
             content: {
               markdown: expect.stringContaining('# Markdown'),
             },
-          },
-        }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
+          }),
+        ]),
       );
     });
 
     it('should create a plain text document', async () => {
-      const context = {} as RunContext;
-      mockCreateDocument.execute.mockResolvedValue({ data: undefined });
+      const context = createStatelessContext();
 
-      await processor.process(workflow, {}, context);
+      const result = await processor.process(workflow, {}, context);
 
-      expect(mockCreateDocument.execute).toHaveBeenCalledWith(
-        expect.objectContaining({
-          document: expect.anything(),
-          update: {
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'PlainDocument',
             content: {
               text: 'This is plain text',
             },
-          },
-        }),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
+          }),
+        ]),
       );
     });
   });

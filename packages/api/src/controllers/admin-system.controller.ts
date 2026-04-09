@@ -29,7 +29,7 @@ export class AdminSystemController {
   @Get('stats')
   @ApiOperation({
     summary: 'System-wide statistics',
-    description: 'Requires ADMIN role. Returns aggregate counts for users, workspaces, pipelines, and workflows.',
+    description: 'Requires ADMIN role. Returns aggregate counts for users, workspaces, and workflows.',
   })
   @ApiOkResponse({ description: 'System statistics' })
   @ApiUnauthorizedResponse()

@@ -1,31 +1,28 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  Input,
-  RunContext,
-  Tool,
-  ToolInterface,
-  ToolResult,
-  WorkflowInterface,
-  WorkflowMetadataInterface,
-} from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { OAuthProviderRegistry } from '../services';
 import { OAuthTokenStore } from '../services';
 
-export type ExchangeOAuthTokenArgs = {
-  provider: string;
-  code: string;
-  state: string;
-  expectedState: string;
-};
+const ExchangeOAuthTokenSchema = z
+  .object({
+    provider: z.string(),
+    code: z.string(),
+    state: z.string(),
+    expectedState: z.string(),
+  })
+  .strict();
+
+type ExchangeOAuthTokenArgs = z.infer<typeof ExchangeOAuthTokenSchema>;
 
 @Tool({
-  config: {
+  uiConfig: {
     description:
       'Exchanges an OAuth 2.0 authorization code for access and refresh tokens, and stores them globally for the user.',
   },
+  schema: ExchangeOAuthTokenSchema,
 })
-export class ExchangeOAuthTokenTool implements ToolInterface {
+export class ExchangeOAuthTokenTool extends BaseTool {
   private readonly logger = new Logger(ExchangeOAuthTokenTool.name);
 
   @Inject()
@@ -34,24 +31,7 @@ export class ExchangeOAuthTokenTool implements ToolInterface {
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  @Input({
-    schema: z
-      .object({
-        provider: z.string(),
-        code: z.string(),
-        state: z.string(),
-        expectedState: z.string(),
-      })
-      .strict(),
-  })
-  args: ExchangeOAuthTokenArgs;
-
-  async execute(
-    args: ExchangeOAuthTokenArgs,
-    ctx: RunContext,
-    _parent: WorkflowInterface | ToolInterface,
-    _metadata: WorkflowMetadataInterface,
-  ): Promise<ToolResult> {
+  async call(args: ExchangeOAuthTokenArgs): Promise<ToolResult> {
     if (args.state !== args.expectedState) {
       throw new Error('OAuth state mismatch. Possible CSRF attack.');
     }
@@ -59,7 +39,7 @@ export class ExchangeOAuthTokenTool implements ToolInterface {
     const provider = this.providerRegistry.get(args.provider);
     const tokenSet = await provider.exchangeCode(args.code);
 
-    await this.tokenStore.storeFromTokenSet(ctx.userId, args.provider, tokenSet);
+    await this.tokenStore.storeFromTokenSet(this.ctx.context.userId, args.provider, tokenSet);
 
     return {
       data: {

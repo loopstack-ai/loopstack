@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document, DocumentInterface, Input } from '@loopstack/common';
+import { Document } from '@loopstack/common';
 
 export const FileDocumentSchema = z
   .object({
@@ -12,9 +12,11 @@ export const FileDocumentSchema = z
 export type FileDocumentType = z.infer<typeof FileDocumentSchema>;
 
 @Document({
-  configFile: __dirname + '/file-document.yaml',
+  schema: FileDocumentSchema,
+  uiConfig: __dirname + '/file-document.yaml',
 })
-export class FileDocument implements DocumentInterface {
-  @Input({ schema: FileDocumentSchema })
-  content: FileDocumentType;
+export class FileDocument {
+  filename: string;
+  description: string;
+  code: string;
 }

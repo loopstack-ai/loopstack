@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useFilterPipelines } from '@/hooks/usePipelines.ts';
+import { useFilterWorkflows } from '@/hooks/useWorkflows.ts';
 import { cn } from '@/lib/utils';
 import { useComponentOverrides } from '@/providers/ComponentOverridesProvider.tsx';
 import { useStudio, useStudioOptional } from '@/providers/StudioProvider.tsx';
@@ -95,7 +95,7 @@ const RunsNav = () => {
   const runsPath = router.getRuns();
   const actionRequiredPath = router.getRunsActionRequired();
 
-  const fetchPaused = useFilterPipelines(undefined, { parentId: null, status: 'paused' }, 'createdAt', 'DESC', 0, 1);
+  const fetchPaused = useFilterWorkflows(undefined, { parentId: null, status: 'paused' }, 'createdAt', 'DESC', 0, 1);
   const pausedCount = fetchPaused.data?.total ?? 0;
 
   return (

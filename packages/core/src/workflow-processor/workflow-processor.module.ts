@@ -1,58 +1,54 @@
-import { Module } from '@nestjs/common';
+import { Global, Module, forwardRef } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
+  DOCUMENT_REPOSITORY,
   DocumentEntity,
-  NamespaceEntity,
-  PipelineEntity,
+  FRAMEWORK_CONTEXT,
+  TEMPLATE_RENDERER,
+  WORKFLOW_ORCHESTRATOR,
+  WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
   WorkspaceEnvironmentEntity,
 } from '@loopstack/common';
 import { CommonModule } from '../common';
 import { PersistenceModule } from '../persistence';
+import { SchedulerModule } from '../scheduler';
 import {
   BlockDiscoveryService,
   BlockProcessor,
-  NamespaceProcessorService,
+  CreateWorkflowService,
+  DocumentPersistenceService,
+  DocumentRepositoryService,
   ProcessorFactory,
   RootProcessorService,
-  StateMachineProcessorService,
-  StateMachineToolCallProcessorService,
-  StateMachineValidatorRegistry,
-  StateMachineValidatorService,
-  ToolExecutionInterceptorService,
+  ToolExecutionService,
+  ToolLoggingInterceptor,
+  TransitionResolverService,
+  WorkflowMemoryMonitorService,
+  WorkflowOrchestrationService,
   WorkflowProcessorService,
   WorkflowStateService,
 } from './services';
-import { CreatePipelineService } from './services';
-import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValidator } from './validators';
+import { ExecutionScope, TemplateRenderer } from './utils';
 
+@Global()
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      PipelineEntity,
       WorkflowEntity,
       DocumentEntity,
       WorkspaceEntity,
       WorkspaceEnvironmentEntity,
-      NamespaceEntity,
+      WorkflowCheckpointEntity,
     ]),
     PersistenceModule,
+    forwardRef(() => SchedulerModule),
     DiscoveryModule,
     CommonModule,
   ],
   providers: [
-    // {
-    //   provide: DynamicRepositoryService,
-    //   useFactory: (dataSource) => {
-    //     return new DynamicRepositoryService(dataSource, {
-    //       blacklist: [],
-    //     });
-    //   },
-    //   inject: [DataSource],
-    // },
-
     RootProcessorService,
     BlockProcessor,
     ProcessorFactory,
@@ -60,25 +56,68 @@ import { InitialRunValidator, WorkflowDependenciesValidator, WorkflowOptionValid
     BlockDiscoveryService,
 
     WorkflowStateService,
-    NamespaceProcessorService,
-    InitialRunValidator,
-    WorkflowDependenciesValidator,
-    WorkflowOptionValidator,
-    StateMachineValidatorRegistry,
-    StateMachineValidatorService,
-    StateMachineProcessorService,
-    StateMachineToolCallProcessorService,
-    ToolExecutionInterceptorService,
-    CreatePipelineService,
+    WorkflowMemoryMonitorService,
+    CreateWorkflowService,
+    ExecutionScope,
+    ToolExecutionService,
+    DocumentPersistenceService,
+    DocumentRepositoryService,
+    WorkflowOrchestrationService,
+    TransitionResolverService,
+
+    // Built-in tool interceptor — discovered via @UseToolInterceptor()
+    ToolLoggingInterceptor,
+
+    // Framework injection tokens (consumed by BaseTool / BaseWorkflow via @Inject)
+    {
+      provide: DOCUMENT_REPOSITORY,
+      useExisting: DocumentRepositoryService,
+    },
+    {
+      provide: WORKFLOW_ORCHESTRATOR,
+      useExisting: WorkflowOrchestrationService,
+    },
+    {
+      provide: TEMPLATE_RENDERER,
+      useFactory: () => new TemplateRenderer().render,
+    },
+    {
+      provide: FRAMEWORK_CONTEXT,
+      useFactory: (scope: ExecutionScope) => ({
+        get context() {
+          return scope.get().getContext();
+        },
+        get runtime() {
+          return scope.get().getData();
+        },
+        get args() {
+          return scope.get().getArgs();
+        },
+        get parent() {
+          return scope.get().getInstance();
+        },
+      }),
+      inject: [ExecutionScope],
+    },
   ],
   exports: [
     PersistenceModule,
     RootProcessorService,
-    CreatePipelineService,
+    CreateWorkflowService,
     BlockProcessor,
     WorkflowProcessorService,
     BlockDiscoveryService,
-    StateMachineToolCallProcessorService,
+    WorkflowMemoryMonitorService,
+    ExecutionScope,
+    ToolExecutionService,
+    DocumentPersistenceService,
+    DocumentRepositoryService,
+    WorkflowOrchestrationService,
+    TransitionResolverService,
+    DOCUMENT_REPOSITORY,
+    FRAMEWORK_CONTEXT,
+    WORKFLOW_ORCHESTRATOR,
+    TEMPLATE_RENDERER,
   ],
 })
 export class WorkflowProcessorModule {}

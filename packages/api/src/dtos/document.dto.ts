@@ -37,7 +37,7 @@ export class DocumentDto {
     description: 'Config key of the document',
     example: 'file.yaml:my-document',
   })
-  blockName: string;
+  alias: string;
 
   /**
    * Contents of the document
@@ -96,16 +96,6 @@ export class DocumentDto {
     example: false,
   })
   isPendingRemoval: boolean;
-
-  /**
-   * Index of the document in the workflow
-   */
-  @Expose()
-  @ApiProperty({
-    description: 'Index of the document in the workflow',
-    example: 2,
-  })
-  workflowIndex: number;
 
   /**
    * Version of the document
@@ -196,16 +186,6 @@ export class DocumentDto {
     example: 'workspace-123',
   })
   workspaceId: string;
-
-  /**
-   * ID of the pipeline the document belongs to
-   */
-  @Expose()
-  @ApiProperty({
-    description: 'ID of the pipeline the document belongs to',
-    example: 'pipeline-456',
-  })
-  pipelineId: string;
 
   /**
    * ID of the workflow the document belongs to

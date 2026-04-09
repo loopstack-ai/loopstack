@@ -1,97 +1,90 @@
+import { PROPERTY_DEPS_METADATA } from '@nestjs/common/constants';
 import {
   BlockInterface,
-  ToolInterface,
-  getBlockContextMetadata,
-  getBlockInputMetadata,
-  getBlockRuntimeMetadata,
-  getBlockSharedProperties,
-  getBlockStateMetadata,
+  WorkflowInterface,
+  getBlockTools,
+  getBlockWorkflows,
+  getPassThroughProperties,
 } from '@loopstack/common';
 import { ExecutionContextManager } from './execution-context-manager';
 
-export function wrapBlockProxy<TInput = any, TState = any>(
-  instance: BlockInterface,
-  runtimeContext: ExecutionContextManager<TInput, TState>,
-) {
-  const stateMeta = getBlockStateMetadata(instance.constructor);
-  const argsMeta = getBlockInputMetadata(instance.constructor);
-  const contextMeta = getBlockContextMetadata(instance.constructor);
-  const runtimeMeta = getBlockRuntimeMetadata(instance.constructor);
-  const sharedProps = new Set(getBlockSharedProperties(instance));
+/**
+ * Wraps a workflow instance in a Proxy that intercepts property access
+ * for **state management only**.
+ *
+ * Per-execution data (context, runtime, args) is passed via the `ctx`
+ * parameter to transition methods — NOT through the proxy.
+ *
+ * Tools use `call()` (a real method on BaseTool) — no proxy redirect needed.
+ *
+ * The proxy handles:
+ * - `this.<tool>`        → pass-through (tool proxy handles call() interception)
+ * - `this.<wf>`          → pass-through (run() delegates to orchestrator.queue() via DI)
+ * - `this.<method>`      → pass-through (prototype function)
+ * - `this.repository`    → pass-through (NestJS @Inject)
+ * - `this.render`        → pass-through (NestJS @Inject)
+ * - `this.x`             → stateManager.get('x')
+ * - `this.x = v`         → stateManager.set('x', v)
+ *
+ * Note: Workflow args are accessed via `ctx.args` (passed to transition methods),
+ * NOT through `this.args`.
+ */
+export function wrapBlockProxy(instance: BlockInterface, ctxManager: ExecutionContextManager): WorkflowInterface {
+  // Determine pass-through properties at creation time
+  const passThroughProps = new Set<string | symbol>();
 
-  return new Proxy(instance, {
+  // Collect injected tools, workflows
+  const toolProps = new Set(getBlockTools(instance.constructor));
+  const workflowProps = new Set(getBlockWorkflows(instance.constructor));
+
+  toolProps.forEach((name) => passThroughProps.add(name));
+  workflowProps.forEach((name) => passThroughProps.add(name));
+
+  // @PassThrough properties (e.g. repository, ctx)
+  getPassThroughProperties(instance.constructor).forEach((name) => passThroughProps.add(name));
+
+  // NestJS @Inject() property dependencies
+  const propertyDeps =
+    (Reflect.getMetadata(PROPERTY_DEPS_METADATA, instance.constructor) as { key: string }[] | undefined) ?? [];
+  propertyDeps.forEach((dep) => passThroughProps.add(dep.key));
+
+  // Collect methods (from prototype chain)
+  let proto = Object.getPrototypeOf(instance) as Record<string, unknown> | null;
+  while (proto && proto !== Object.prototype) {
+    Object.getOwnPropertyNames(proto).forEach((name) => {
+      if (typeof (proto as Record<string, unknown>)[name] === 'function') {
+        passThroughProps.add(name);
+      }
+    });
+    proto = Object.getPrototypeOf(proto) as Record<string, unknown> | null;
+  }
+
+  const stateManager = ctxManager.getManager();
+
+  /* eslint-disable @typescript-eslint/no-unsafe-return --
+     Proxy get/set handlers use `any` in TypeScript's ProxyHandler definition.
+     All values are properly narrowed before return, but TS cannot track types through Proxy traps. */
+  return new Proxy(instance as WorkflowInterface, {
     get(target, prop, receiver) {
-      // Intercept args access
-      if (prop === argsMeta?.name) {
-        return runtimeContext.getArgs();
+      // Pass-through: functions, tools, workflows, templates, @Inject properties
+      if (passThroughProps.has(prop)) {
+        return Reflect.get(target, prop, receiver);
       }
 
-      // Intercept state access
-      if (prop === stateMeta?.name) {
-        return runtimeContext.getState();
-      }
-
-      // Intercept context access
-      if (prop === contextMeta?.name) {
-        return runtimeContext.getContext();
-      }
-
-      // Intercept runtime access
-      if (prop === runtimeMeta?.name) {
-        return runtimeContext.getData();
-      }
-
-      return Reflect.get(target, prop, receiver) as unknown;
+      // Everything else → StateManager (per-property)
+      return stateManager.get(prop as string);
     },
 
-    set(target, prop, value: TState, receiver) {
-      if (prop === stateMeta?.name) {
-        runtimeContext.setState(value);
-        return true;
+    set(_target, prop, value) {
+      // Protect pass-through properties (injected tools, workflows, services, methods, etc.)
+      if (passThroughProps.has(prop)) {
+        throw new Error(`Cannot reassign property "${String(prop)}"`);
       }
 
-      if (prop === contextMeta?.name) {
-        throw new Error('Cannot modify workflow context');
-      }
-
-      if (prop === argsMeta?.name) {
-        throw new Error('Cannot modify workflow arguments');
-      }
-
-      if (prop === runtimeMeta?.name) {
-        throw new Error('Cannot modify workflow runtime');
-      }
-
-      // Allow writes to @Shared() properties
-      if (sharedProps.has(prop)) {
-        return Reflect.set(target, prop, value, receiver);
-      }
-
-      throw new Error(
-        `Cannot set property "${String(prop)}" on block during execution. ` +
-          `Use @State() for per-execution data or @Shared() for intentionally shared singleton data.`,
-      );
+      // Everything else → StateManager
+      stateManager.set(prop as string, value);
+      return true;
     },
   });
-}
-
-export function wrapToolProxy(instance: ToolInterface): ToolInterface {
-  const sharedProps = new Set(getBlockSharedProperties(instance));
-
-  return new Proxy(instance, {
-    get(target, prop, receiver) {
-      return Reflect.get(target, prop, receiver) as unknown;
-    },
-
-    set(target, prop, value, receiver) {
-      if (sharedProps.has(prop)) {
-        return Reflect.set(target, prop, value, receiver);
-      }
-
-      throw new Error(
-        `Cannot set property "${String(prop)}" on tool during execution. ` +
-          `Use @Shared() to mark properties that are intentionally shared across executions.`,
-      );
-    },
-  });
+  /* eslint-enable @typescript-eslint/no-unsafe-return */
 }

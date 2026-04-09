@@ -1,11 +1,13 @@
 import type { ComponentType } from 'react';
 import React from 'react';
-import type { PipelineInterface } from '@loopstack/contracts/api';
-import type { DocumentItemInterface, WorkflowInterface } from '@loopstack/contracts/types';
+import type { WorkflowFullInterface } from '@loopstack/contracts/api';
+import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { OAuthPromptRenderer } from '@/features/oauth';
 import AiMessage from './renderers/AiMessage.tsx';
+import ChoicesRenderer from './renderers/ChoicesRenderer.tsx';
 import ClaudeMessage from './renderers/ClaudeMessage.tsx';
+import ConfirmPromptRenderer from './renderers/ConfirmPromptRenderer.tsx';
 import DocumentDebugRenderer from './renderers/DocumentDebugRenderer.tsx';
 import DocumentFormRenderer from './renderers/DocumentFormRenderer.tsx';
 import DocumentMessageRenderer from './renderers/DocumentMessageRenderer.tsx';
@@ -13,10 +15,12 @@ import ErrorMessageRenderer from './renderers/ErrorMessageRenderer.tsx';
 import LinkMessageRenderer from './renderers/LinkMessageRenderer.tsx';
 import MarkdownMessageRenderer from './renderers/MarkdownMessageRenderer.tsx';
 import PlainMessageRenderer from './renderers/PlainMessageRenderer.tsx';
+import SecretInputRenderer from './renderers/SecretInputRenderer.tsx';
+import TextPromptRenderer from './renderers/TextPromptRenderer.tsx';
 
 export interface DocumentRendererProps {
-  pipeline: PipelineInterface;
-  workflow: WorkflowInterface;
+  parentWorkflow: WorkflowFullInterface;
+  workflow: WorkflowFullInterface;
   document: DocumentItemInterface;
   isActive: boolean;
   isLastItem: boolean;
@@ -40,11 +44,11 @@ const rendererRegistry = new Map<string, WidgetRenderer>([
     ),
   ],
   [
-    'object-form',
-    ({ pipeline, workflow, document, isActive }) => (
+    'form',
+    ({ parentWorkflow, workflow, document, isActive }) => (
       <CompletionMessagePaper role={'document'} fullWidth={true} timestamp={new Date(document.createdAt)}>
         <DocumentFormRenderer
-          pipeline={pipeline}
+          parentWorkflow={parentWorkflow}
           workflow={workflow}
           document={document}
           enabled={isActive}
@@ -60,15 +64,68 @@ const rendererRegistry = new Map<string, WidgetRenderer>([
   ['link', ({ document }) => <LinkMessageRenderer document={document} />],
   [
     'oauth-prompt',
-    ({ pipeline, workflow, document, isActive }) => (
-      <OAuthPromptRenderer pipeline={pipeline} workflow={workflow} document={document} isActive={isActive} />
+    ({ parentWorkflow, workflow, document, isActive }) => (
+      <OAuthPromptRenderer
+        parentWorkflow={parentWorkflow}
+        workflow={workflow}
+        document={document}
+        isActive={isActive}
+      />
+    ),
+  ],
+  [
+    'text-prompt',
+    ({ parentWorkflow, workflow, document, isActive }) => (
+      <TextPromptRenderer parentWorkflow={parentWorkflow} workflow={workflow} document={document} isActive={isActive} />
+    ),
+  ],
+  [
+    'choices',
+    ({ parentWorkflow, workflow, document, isActive }) => (
+      <ChoicesRenderer parentWorkflow={parentWorkflow} workflow={workflow} document={document} isActive={isActive} />
+    ),
+  ],
+  [
+    'confirm-prompt',
+    ({ parentWorkflow, workflow, document, isActive }) => (
+      <ConfirmPromptRenderer
+        parentWorkflow={parentWorkflow}
+        workflow={workflow}
+        document={document}
+        isActive={isActive}
+      />
+    ),
+  ],
+  [
+    'secret-input',
+    ({ parentWorkflow, workflow, document, isActive }) => (
+      <SecretInputRenderer
+        parentWorkflow={parentWorkflow}
+        workflow={workflow}
+        document={document}
+        isActive={isActive}
+      />
     ),
   ],
 ]);
 
+/** Extract the primary widget name from document UI config. */
+function resolveDocumentWidget(ui: unknown): string {
+  const typed = ui as { widgets?: { widget?: string }[]; form?: { widget?: string } } | undefined;
+  // New format: ui.widgets[0].widget
+  if (typed?.widgets?.[0]?.widget) {
+    return typed.widgets[0].widget;
+  }
+  // Legacy fallback: ui.form.widget
+  if (typed?.form?.widget) {
+    return typed.form.widget;
+  }
+  return 'form';
+}
+
 const DocumentRenderer: React.FC<DocumentRendererProps> = (props) => {
   const doc = props.document as unknown as DocumentItemInterface;
-  const widget = (doc.ui?.form as { widget?: string } | undefined)?.widget ?? 'object-form';
+  const widget = resolveDocumentWidget(doc.ui);
 
   const Renderer = rendererRegistry.get(widget);
 

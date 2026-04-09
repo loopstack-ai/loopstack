@@ -2,9 +2,9 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { Loader2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import type { PipelineConfigInterface } from '@loopstack/contracts/api';
+import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
 import MarkdownContent from '@/components/dynamic-form/MarkdownContent';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConfigFlowViewer } from '@/features/debug';
 import { cn } from '@/lib/utils';
@@ -75,7 +75,7 @@ function getLanguageForFileName(name: string): string {
 interface FileContentViewerProps {
   selectedFile: FileExplorerNode | null;
   content: string | null;
-  workflowConfig?: PipelineConfigInterface | null;
+  workflowConfig?: WorkflowConfigInterface | null;
   isLoading?: boolean;
   className?: string;
 }
@@ -134,6 +134,29 @@ export function FileContentViewer({
   const isYaml = language === 'yaml' || selectedFile.name.endsWith('.yaml') || selectedFile.name.endsWith('.yml');
   const isYamlWorkflow = isYaml && workflowConfig !== null;
 
+  const renderHighlighter = (code: string) => (
+    <ScrollArea className="h-full w-full">
+      <SyntaxHighlighter
+        language={language}
+        style={vscDarkPlus}
+        customStyle={{
+          margin: 0,
+          padding: '1rem',
+          fontSize: '13px',
+          overflow: 'visible',
+          minWidth: 'max-content',
+          width: '100%',
+        }}
+        showLineNumbers
+        PreTag="div"
+        codeTagProps={{ style: { fontFamily: 'inherit' } }}
+      >
+        {code}
+      </SyntaxHighlighter>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
+  );
+
   return (
     <div className={cn('flex h-full flex-col overflow-hidden rounded-lg border bg-background', className)}>
       {isMarkdown && displayContent ? (
@@ -150,18 +173,7 @@ export function FileContentViewer({
             </ScrollArea>
           </TabsContent>
           <TabsContent value="unrendered" className="flex-1 min-h-0 overflow-hidden mt-0">
-            <ScrollArea className="flex-1 min-h-0">
-              <SyntaxHighlighter
-                language={language}
-                style={vscDarkPlus}
-                customStyle={{ margin: 0, padding: '1rem', fontSize: '13px' }}
-                showLineNumbers
-                PreTag="div"
-                codeTagProps={{ style: { fontFamily: 'inherit' } }}
-              >
-                {displayContent ?? ''}
-              </SyntaxHighlighter>
-            </ScrollArea>
+            {renderHighlighter(displayContent)}
           </TabsContent>
         </Tabs>
       ) : isYamlWorkflow && workflowConfig ? (
@@ -171,18 +183,7 @@ export function FileContentViewer({
             <TabsTrigger value="flow">Flow Diagram</TabsTrigger>
           </TabsList>
           <TabsContent value="code" className="flex-1 min-h-0 overflow-hidden mt-0">
-            <ScrollArea className="flex-1 min-h-0">
-              <SyntaxHighlighter
-                language={language}
-                style={vscDarkPlus}
-                customStyle={{ margin: 0, padding: '1rem', fontSize: '13px' }}
-                showLineNumbers
-                PreTag="div"
-                codeTagProps={{ style: { fontFamily: 'inherit' } }}
-              >
-                {displayContent ?? ''}
-              </SyntaxHighlighter>
-            </ScrollArea>
+            {renderHighlighter(displayContent)}
           </TabsContent>
           <TabsContent value="flow" className="flex-1 min-h-0 overflow-hidden mt-0">
             <div className="h-full w-full">
@@ -193,18 +194,7 @@ export function FileContentViewer({
           </TabsContent>
         </Tabs>
       ) : (
-        <ScrollArea className="flex-1 min-h-0">
-          <SyntaxHighlighter
-            language={language}
-            style={vscDarkPlus}
-            customStyle={{ margin: 0, padding: '1rem', fontSize: '13px' }}
-            showLineNumbers
-            PreTag="div"
-            codeTagProps={{ style: { fontFamily: 'inherit' } }}
-          >
-            {displayContent ?? ''}
-          </SyntaxHighlighter>
-        </ScrollArea>
+        renderHighlighter(displayContent)
       )}
     </div>
   );
