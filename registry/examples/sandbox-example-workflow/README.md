@@ -15,9 +15,9 @@ By using this workflow as a reference, you'll learn how to:
 - Write, read, and delete files in isolated containers
 - List directory contents and retrieve file metadata
 - Check file existence and get detailed file information
-- Use helper functions to format tool output
-- Access tool results via the `runtime` object
-- Manage workflow state with `@State` and `@Input`
+- Manage workflow state as class properties
+- Use typed `ToolResult<T>` for strongly-typed tool responses
+- Define workflow input schemas via the `@Workflow` decorator
 
 This example is useful for developers building workflows that need to execute code or manipulate files in isolated environments, such as code execution sandboxes, build pipelines, or secure file processing systems.
 
@@ -29,42 +29,33 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ### Workflow Class
 
-The workflow class declares inputs, state, runtime types, tools, and helpers:
+The workflow class declares inputs, state properties, tools, and a helper method:
 
 ```typescript
-import { ToolResult } from '@loopstack/common';
-
 @Workflow({
   uiConfig: __dirname + '/sandbox-example.ui.yaml',
+  schema: z.object({
+    outputDir: z.string().default(process.cwd() + '/out'),
+  }),
 })
-export class SandboxExampleWorkflow {
-  @Input({
-    schema: z.object({
-      outputDir: z.string().default(process.cwd() + '/out'),
-    }),
-  })
-  args: { outputDir: string };
-
-  @State({
-    schema: z.object({
-      containerId: z.string().optional(),
-      fileContent: z.string().optional(),
-      fileList: z.array(z.any()).optional(),
-    }),
-  })
-  state: { containerId: string; fileContent: string; fileList: string };
-
-  @Runtime()
-  runtime: { tools: Record<string, Record<string, ToolResult<any>>> };
+export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> {
+  containerId?: string;
+  fileContent?: string;
+  fileList?: FileEntry[];
 
   @InjectTool() sandboxInit: SandboxInit;
   @InjectTool() sandboxDestroy: SandboxDestroy;
   @InjectTool() sandboxWriteFile: SandboxWriteFile;
+  @InjectTool() sandboxReadFile: SandboxReadFile;
+  @InjectTool() sandboxListDirectory: SandboxListDirectory;
+  @InjectTool() sandboxCreateDirectory: SandboxCreateDirectory;
+  @InjectTool() sandboxDelete: SandboxDelete;
+  @InjectTool() sandboxExists: SandboxExists;
+  @InjectTool() sandboxFileInfo: SandboxFileInfo;
+  @InjectTool() createChatMessage: CreateChatMessage;
 
-  // ... other tools
-
-  @DefineHelper()
-  formatEntries(entries: FileEntry[]): string {
+  private formatEntries(entries: FileEntry[]): string {
+    if (!entries || entries.length === 0) return '(empty)';
     return entries.map((e) => `${e.name} (${e.type}, ${e.size} bytes)`).join(', ');
   }
 }
@@ -72,125 +63,120 @@ export class SandboxExampleWorkflow {
 
 ### Sandbox Lifecycle
 
-Initialize a Docker container before performing filesystem operations. The `assign` block saves the container ID to workflow state, while `runtime.tools` provides access to the full result for chat messages:
+Initialize a Docker container before performing filesystem operations. The container ID is saved to a class property for use in subsequent transitions:
 
-```yaml
-- id: init_sandbox
-  from: start
-  to: sandbox_ready
-  call:
-    - id: init
-      tool: sandboxInit
-      args:
-        containerId: my-sandbox
-        imageName: node:18
-        containerName: my-filesystem-sandbox
-        projectOutPath: ${{ args.outputDir }}
-        rootPath: workspace
-      assign:
-        containerId: ${{ result.data.containerId }}
-    - tool: createChatMessage
-      args:
-        role: assistant
-        content: 'Sandbox initialized. Container ID: {{ runtime.tools.init_sandbox.init.data.containerId }}'
+```typescript
+@Initial({ to: 'sandbox_ready' })
+async initSandbox(args: { outputDir: string }) {
+  const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
+    containerId: 'my-sandbox',
+    imageName: 'node:18',
+    containerName: 'my-filesystem-sandbox',
+    projectOutPath: args.outputDir,
+    rootPath: 'workspace',
+  });
+
+  this.containerId = initResult.data!.containerId;
+
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
+  });
+}
 ```
 
-Always destroy the sandbox when finished. Note how `state.containerId` references the value saved via `assign`:
+Always destroy the sandbox when finished:
 
-```yaml
-- id: destroy_sandbox
-  from: file_deleted
-  to: end
-  call:
-    - id: destroy
-      tool: sandboxDestroy
-      args:
-        containerId: ${{ state.containerId }}
-        removeContainer: true
-    - tool: createChatMessage
-      args:
-        role: assistant
-        content: 'Sandbox destroyed. Container {{ runtime.tools.destroy_sandbox.destroy.data.containerId }} removed={{ runtime.tools.destroy_sandbox.destroy.data.removed }}'
+```typescript
+@Final({ from: 'file_deleted' })
+async destroySandbox() {
+  const destroyResult: ToolResult<SandboxDestroyResult> = await this.sandboxDestroy.call({
+    containerId: this.containerId!,
+    removeContainer: true,
+  });
+
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
+  });
+}
 ```
 
 ### Filesystem Operations
 
-Perform various file operations within the sandbox, referencing state for the container ID and runtime for tool results:
+Perform various file operations within the sandbox, referencing `this.containerId` for the container ID and storing results on class properties:
 
-```yaml
-# Write a file
-- id: write_file
-  from: dir_created
-  to: file_written
-  call:
-    - id: write
-      tool: sandboxWriteFile
-      args:
-        containerId: ${{ state.containerId }}
-        path: /workspace/result.txt
-        content: 'Hello from sandbox!'
-        encoding: utf8
-        createParentDirs: true
-    - tool: createChatMessage
-      args:
-        role: assistant
-        content: 'File written: {{ runtime.tools.write_file.write.data.path }} ({{ runtime.tools.write_file.write.data.bytesWritten }} bytes)'
+```typescript
+@Transition({ from: 'dir_created', to: 'file_written' })
+async writeFile() {
+  const writeResult: ToolResult<SandboxWriteFileResult> = await this.sandboxWriteFile.call({
+    containerId: this.containerId!,
+    path: '/workspace/result.txt',
+    content: 'Hello from sandbox!',
+    encoding: 'utf8',
+    createParentDirs: true,
+  });
 
-# Read a file
-- id: read_file
-  from: file_written
-  to: file_read
-  call:
-    - id: read
-      tool: sandboxReadFile
-      args:
-        containerId: ${{ state.containerId }}
-        path: /workspace/result.txt
-        encoding: utf8
-      assign:
-        fileContent: ${{ result.data.content }}
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
+  });
+}
 
-# List directory contents
-- id: list_dir
-  from: file_read
-  to: dir_listed
-  call:
-    - id: list
-      tool: sandboxListDirectory
-      args:
-        containerId: ${{ state.containerId }}
-        path: /workspace
-        recursive: false
-      assign:
-        fileList: ${{ result.data.entries }}
-    - tool: createChatMessage
-      args:
-        role: assistant
-        content: 'Directory listing: {{ formatEntries runtime.tools.list_dir.list.data.entries }}'
+@Transition({ from: 'file_written', to: 'file_read' })
+async readFile() {
+  const readResult: ToolResult<SandboxReadFileResult> = await this.sandboxReadFile.call({
+    containerId: this.containerId!,
+    path: '/workspace/result.txt',
+    encoding: 'utf8',
+  });
+
+  this.fileContent = readResult.data!.content;
+
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
+  });
+}
+
+@Transition({ from: 'file_read', to: 'dir_listed' })
+async listDir() {
+  const listResult: ToolResult<SandboxListDirectoryResult> = await this.sandboxListDirectory.call({
+    containerId: this.containerId!,
+    path: '/workspace',
+    recursive: false,
+  });
+
+  this.fileList = listResult.data!.entries;
+
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
+  });
+}
 ```
 
 ## Workflow Steps
 
 This example workflow demonstrates the following sequence:
 
-1. **init_sandbox** - Initialize a Docker container with Node.js 18
-2. **create_dir** - Create the `/workspace` directory
-3. **write_file** - Write a text file to the workspace
-4. **read_file** - Read the file contents back
-5. **list_dir** - List the directory contents
-6. **check_exists** - Verify the file exists
-7. **get_info** - Get detailed file metadata
-8. **delete_file** - Delete the file
-9. **destroy_sandbox** - Clean up the container
+1. **initSandbox** - Initialize a Docker container with Node.js 18
+2. **createDir** - Create the `/workspace` directory
+3. **writeFile** - Write a text file to the workspace
+4. **readFile** - Read the file contents back
+5. **listDir** - List the directory contents
+6. **checkExists** - Verify the file exists
+7. **getInfo** - Get detailed file metadata
+8. **deleteFile** - Delete the file
+9. **destroySandbox** - Clean up the container
 
 ## Dependencies
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/core` - Core framework functionality
+- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@InjectTool`, `ToolResult`)
 - `@loopstack/sandbox-tool` - Provides `SandboxInit` and `SandboxDestroy` tools for container lifecycle
 - `@loopstack/sandbox-filesystem` - Provides filesystem tools (`SandboxWriteFile`, `SandboxReadFile`, `SandboxListDirectory`, `SandboxCreateDirectory`, `SandboxDelete`, `SandboxExists`, `SandboxFileInfo`)
-- `@loopstack/core` - Core UI functionality
 - `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool for output
 
 ## About

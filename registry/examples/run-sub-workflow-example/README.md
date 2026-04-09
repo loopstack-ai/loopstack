@@ -6,17 +6,17 @@ This module provides an example demonstrating how to execute child workflows fro
 
 ## Overview
 
-The Run Sub Workflow Example shows how to build workflows that spawn and manage child workflows asynchronously. It demonstrates a parent workflow that starts a sub-workflow, tracks its completion status through a callback mechanism, and receives result data from the child workflow.
+The Run Sub Workflow Example shows how to build workflows that spawn and manage child workflows asynchronously. It demonstrates a parent workflow that starts sub-workflows, tracks their completion status through a callback mechanism, and receives result data from the child workflows.
 
 By using this example as a reference, you'll learn how to:
 
-- Use `ExecuteWorkflowAsync` to start child workflows asynchronously
+- Use `@InjectWorkflow()` and `.run()` to start child workflows asynchronously
 - Set up callback transitions to handle sub-workflow completion
-- Define workflow results using `@Output` and `getResult()`
-- Access child workflow results via `runtime.transition.payload` in the callback
-- Hide sub-workflows from direct execution using `visible: false`
-- Display real-time status updates using the `LinkDocument`
+- Define callback schemas with `CallbackSchema.extend()` to type callback payloads
+- Return structured data from sub-workflows via the return value of `@Initial` methods
+- Display real-time status updates using `LinkDocument`
 - Compose complex workflows from smaller, reusable workflow components
+- Chain multiple sequential sub-workflow executions
 
 This example is essential for developers building workflows that need to orchestrate multiple workflow executions or break down complex processes into manageable sub-workflows.
 
@@ -26,132 +26,151 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## How It Works
 
-### Key Concepts
+### Workflows
 
-#### 1. Parent Workflow Structure
+#### Parent Workflow
 
-The parent workflow uses `ExecuteWorkflowAsync` to start a child workflow and sets up a callback transition:
+The parent workflow uses `@InjectWorkflow()` to inject the sub-workflow class and calls `.run()` to start it:
 
 ```typescript
-@Injectable()
-@Workflow({
-  uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml',
-})
-export class RunSubWorkflowExampleParentWorkflow {
+@Workflow({ uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml' })
+export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;
-  @InjectTool() private executeWorkflowAsync: ExecuteWorkflowAsync;
-  @InjectTool() private createDocument: CreateDocument;
-
-  @InjectDocument() private linkDocument: LinkDocument;
+  @InjectWorkflow() private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
 }
 ```
 
-#### 2. Executing a Sub-Workflow Asynchronously
+#### Sub-Workflow
 
-Use `executeWorkflowAsync` to spawn a child workflow with a callback:
-
-```yaml
-- tool: executeWorkflowAsync
-  id: job
-  args:
-    workflow: runSubWorkflowExampleSubWorkflow
-    args: {}
-    callback:
-      transition: sub_workflow_callback
-```
-
-The `callback.transition` specifies which transition will be triggered when the sub-workflow completes.
-
-#### 3. Displaying Status with LinkDocument
-
-Use `LinkDocument` to display a link to the sub workflow and status updates:
-
-```yaml
-- tool: createDocument
-  args:
-    document: linkDocument
-    id: subWorkflow_link
-    update:
-      content:
-        icon: 'Clock'
-        label: 'Executing Sub-Workflow...'
-        href: '/pipelines/{{ metadata.tools.run_workflow.job.data.task.payload.id }}'
-```
-
-#### 4. Defining Workflow Results
-
-Sub-workflows can return structured results using `@Output` and `getResult()`:
+The sub-workflow returns structured data from its `@Initial` method. This data is delivered to the parent workflow via the callback payload:
 
 ```typescript
-@Injectable()
-@Workflow({
-  uiConfig: __dirname + '/run-sub-workflow-example-sub.ui.yaml',
-})
-export class RunSubWorkflowExampleSubWorkflow {
+@Workflow({ uiConfig: __dirname + '/run-sub-workflow-example-sub.ui.yaml' })
+export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
   @InjectTool() private createChatMessage: CreateChatMessage;
 
-  @Output({
-    schema: z.object({
-      message: z.string(),
-    }),
-  })
-  getResult(): any {
-    return {
-      message: 'Hi mom!',
-    };
+  @Initial({ to: 'end' })
+  async message(): Promise<{ message: string }> {
+    await this.createChatMessage.call({
+      role: 'assistant',
+      content: 'Sub workflow completed.',
+    });
+    return { message: 'Hi mom!' };
   }
 }
 ```
 
-The `@Output` decorator on `getResult()` defines the schema for the workflow's output, and the method returns the actual data when the workflow completes.
+### Key Concepts
 
-#### 5. Handling the Callback and Accessing Results
+#### 1. Running a Sub-Workflow with Callbacks
 
-Define a callback transition that fires when the sub-workflow completes. Access the child workflow's result via `runtime.transition.payload`:
-
-```yaml
-- id: sub_workflow_callback
-  from: sub_workflow_started
-  to: end
-  trigger: manual
-  call:
-    - tool: createDocument
-      args:
-        document: linkDocument
-        id: subWorkflow_link
-        update:
-          content:
-            icon: 'CircleCheck'
-            label: 'Sub-Workflow completed'
-            href: '/pipelines/{{ metadata.tools.run_workflow.job.data.task.payload.id }}'
-
-    - tool: createChatMessage
-      args:
-        role: 'assistant'
-        content: |
-          A message from the child workflow:
-
-          {{ runtime.transition.payload.message }}
-```
-
-The `trigger: manual` ensures this transition only fires when called by the callback, not automatically. The `runtime.transition.payload` contains the result returned by the child workflow's `getResult()` method, decorated with `@Output`.
-
-#### 6. Hiding Sub-Workflows from Direct Execution
-
-Sub-workflows that should only be executed by a parent workflow can be hidden from the Loopstack Studio UI using the `visible: false` option:
+Use `.run()` on the injected workflow to start it asynchronously. Pass a `callback` option specifying which transition to trigger when the sub-workflow completes:
 
 ```typescript
-@Workflow({ options: { visible: false } }) runSubWorkflowExampleSubWorkflow: RunSubWorkflowExampleSubWorkflow;
+@Initial({ to: 'sub_workflow_started' })
+async runWorkflow() {
+  const result: QueueResult = await this.runSubWorkflowExampleSub.run(
+    {},
+    { alias: 'runSubWorkflowExampleSub', callback: { transition: 'subWorkflowCallback' } },
+  );
+  await this.repository.save(
+    LinkDocument,
+    { label: 'Executing Sub-Workflow...', workflowId: result.workflowId },
+    { id: `link_${result.workflowId}` },
+  );
+}
 ```
 
-When `visible: false` is set, the workflow will not appear in the Loopstack Studio for direct execution. It can only be triggered programmatically by another workflow using `executeWorkflowAsync`. This is useful for helper workflows that are not meant to be run standalone.
+#### 2. Defining Callback Schemas
+
+Extend `CallbackSchema` to type the callback payload. The base schema includes `workflowId`, and you add your custom `data` shape:
+
+```typescript
+const SubWorkflowCallbackSchema = CallbackSchema.extend({
+  data: z.object({ message: z.string() }),
+});
+type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
+```
+
+#### 3. Handling the Callback
+
+Define a transition with `wait: true` and the callback schema. The payload contains both the `workflowId` and the `data` returned by the sub-workflow:
+
+```typescript
+@Transition({ from: 'sub_workflow_started', to: 'sub_workflow_ended', wait: true, schema: SubWorkflowCallbackSchema })
+async subWorkflowCallback(payload: SubWorkflowCallback) {
+  await this.repository.save(
+    LinkDocument,
+    { label: 'Sub-Workflow', status: 'success', workflowId: payload.workflowId },
+    { id: `link_${payload.workflowId}` },
+  );
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `A message from sub workflow 1: ${payload.data.message}`,
+  });
+}
+```
+
+#### 4. Displaying Status with LinkDocument
+
+Use `LinkDocument` to display a clickable link to the sub-workflow with status updates:
+
+```typescript
+await this.repository.save(
+  LinkDocument,
+  { label: 'Executing Sub-Workflow...', workflowId: result.workflowId },
+  { id: `link_${result.workflowId}` },
+);
+```
+
+After completion, update the same document to show success:
+
+```typescript
+await this.repository.save(
+  LinkDocument,
+  { label: 'Sub-Workflow', status: 'success', workflowId: payload.workflowId },
+  { id: `link_${payload.workflowId}` },
+);
+```
+
+#### 5. Chaining Multiple Sub-Workflows
+
+The parent workflow demonstrates running two sub-workflows sequentially. After the first callback completes, a second sub-workflow is started with its own callback. The second callback uses `@Final` to end the parent workflow:
+
+```typescript
+@Transition({ from: 'sub_workflow_ended', to: 'sub_workflow2_started' })
+async runWorkflow2() {
+  const result: QueueResult = await this.runSubWorkflowExampleSub.run(
+    {},
+    { alias: 'runSubWorkflowExampleSub', callback: { transition: 'subWorkflow2Callback' } },
+  );
+  await this.repository.save(
+    LinkDocument,
+    { label: 'Executing Sub-Workflow 2...', workflowId: result.workflowId },
+    { id: `link_${result.workflowId}` },
+  );
+}
+
+@Final({ from: 'sub_workflow2_started', wait: true, schema: SubWorkflowCallbackSchema })
+async subWorkflow2Callback(payload: SubWorkflowCallback) {
+  await this.repository.save(
+    LinkDocument,
+    { label: 'Sub-Workflow 2', status: 'success', workflowId: payload.workflowId },
+    { id: `link_${payload.workflowId}` },
+  );
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `A message from sub workflow 2: ${payload.data.message}`,
+  });
+}
+```
 
 ## Dependencies
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/core` - Core framework functionality including `ExecuteWorkflowAsync`
-- `@loopstack/core` - Provides `CreateDocument` tool and `LinkDocument`
+- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@InjectTool`, `@InjectWorkflow`, `CallbackSchema`, `QueueResult`)
+- `@loopstack/core` - Provides `LinkDocument` for displaying sub-workflow links
 - `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool
 
 ## About

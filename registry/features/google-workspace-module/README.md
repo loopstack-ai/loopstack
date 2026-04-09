@@ -13,6 +13,9 @@ By using this module, you'll be able to:
 - Authenticate users with their Google account via OAuth 2.0
 - Request access to Google Workspace APIs (Calendar, Gmail, Drive, etc.) with configurable scopes
 - Automatically refresh expired Google access tokens using refresh tokens
+- Fetch, create, and manage Google Calendar events
+- Search, read, send, and reply to Gmail messages
+- List, upload, download, and inspect Google Drive files
 
 ## Installation
 
@@ -50,20 +53,40 @@ After registration, the generic `OAuthWorkflow` from `@loopstack/oauth-module` c
 - **`exchangeCode(code)`** — Exchanges an authorization code for access and refresh tokens via Google's token endpoint.
 - **`refreshToken(refreshToken)`** — Refreshes an expired access token using a stored refresh token.
 
+## Tools
+
+### Calendar (3 tools)
+
+- **GoogleCalendarListCalendarsTool** — List all calendars for the authenticated user
+- **GoogleCalendarFetchEventsTool** — Fetch events from a Google Calendar within a time range
+- **GoogleCalendarCreateEventTool** — Create a new event on a Google Calendar
+
+### Gmail (4 tools)
+
+- **GmailSearchMessagesTool** — Search Gmail messages using query filters
+- **GmailGetMessageTool** — Get the full content of a Gmail message
+- **GmailSendMessageTool** — Send a new email message
+- **GmailReplyToMessageTool** — Reply to an existing email thread
+
+### Drive (4 tools)
+
+- **GoogleDriveListFilesTool** — List files and folders in Google Drive
+- **GoogleDriveGetFileMetadataTool** — Get metadata for a Google Drive file
+- **GoogleDriveUploadFileTool** — Upload a file to Google Drive
+- **GoogleDriveDownloadFileTool** — Download a file from Google Drive
+
 ## Usage in Workflows
 
 Once registered, any workflow can trigger Google authentication by launching the OAuth workflow with `provider: 'google'`:
 
-```yaml
-- tool: executeWorkflowAsync
-  args:
-    workflow: oAuthWorkflow
-    args:
-      provider: 'google'
-      scopes:
-        - 'https://www.googleapis.com/auth/calendar.readonly'
-    callback:
-      transition: auth_completed
+```typescript
+@InjectWorkflow() oAuth: OAuthWorkflow;
+
+// In a transition method:
+const result = await this.oAuth.run(
+  { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
+  { alias: 'oAuth', callback: { transition: 'authCompleted' } },
+);
 ```
 
 See `@loopstack/oauth-module` and `@loopstack/google-oauth-calendar-example` for complete usage examples.

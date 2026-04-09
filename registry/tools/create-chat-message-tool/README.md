@@ -24,47 +24,41 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## Usage
 
-Inject the tool in your workflow class using the @InjectTool() decorator:
+Inject the tool in your workflow class using the `@InjectTool()` decorator:
 
 ```typescript
-import { InjectTool, Workflow } from '@loopstack/common';
-import { CreateChatMessage } from './create-chat-message-tool';
+import { BaseWorkflow, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
+import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 
 @Workflow({
   uiConfig: __dirname + '/my.ui.yaml',
 })
-export class MyWorkflow {
+export class MyWorkflow extends BaseWorkflow {
   @InjectTool() createChatMessage: CreateChatMessage;
+
+  @Initial({ to: 'ready' })
+  async sendWelcome() {
+    // Create a single message
+    await this.createChatMessage.call({
+      role: 'assistant',
+      content: "Hello! I'm your assistant. How can I help you today?",
+    });
+  }
+
+  @Transition({ from: 'ready', to: 'waiting', wait: true })
+  async userInput() {
+    // Wait for user input
+  }
+
+  @Final({ from: 'waiting' })
+  async sendResponse() {
+    // Create multiple messages at once
+    await this.createChatMessage.call([
+      { role: 'assistant', content: 'Thanks for your message!' },
+      { role: 'assistant', content: 'Here is your response.' },
+    ]);
+  }
 }
-```
-
-And use it in your YAML workflow configuration:
-
-```yaml
-# src/my.ui.yaml
-transitions:
-  - id: send_welcome
-    from: start
-    to: ready
-    call:
-      # Create a single message
-      - tool: createChatMessage
-        args:
-          role: assistant
-          content: |
-            Hello! I'm your assistant. How can I help you today?
-
-  - id: send_conversation
-    from: ready
-    to: complete
-    call:
-      # Create multiple messages at once
-      - tool: createChatMessage
-        args:
-          - role: user
-            content: What's the weather like?
-          - role: assistant
-            content: I'll check the weather for you right away.
 ```
 
 ## About

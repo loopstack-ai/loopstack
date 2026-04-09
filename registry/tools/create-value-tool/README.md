@@ -24,58 +24,49 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## Usage
 
-Inject the tool in your workflow class using the @InjectTool() decorator:
+Inject the tool in your workflow class using the `@InjectTool()` decorator:
 
 ```typescript
 import { z } from 'zod';
-import { InjectTool, State, Workflow } from '@loopstack/common';
-import { CreateValue } from './create-value-tool';
+import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Workflow } from '@loopstack/common';
+import { CreateValue } from '@loopstack/create-value-tool';
 
 @Workflow({
   uiConfig: __dirname + '/my.ui.yaml',
+  schema: z
+    .object({
+      userId: z.string(),
+    })
+    .strict(),
 })
-export class MyWorkflow {
+export class MyWorkflow extends BaseWorkflow<{ userId: string }> {
   @InjectTool() createValue: CreateValue;
 
-  @State({
-    schema: z.object({
-      config: z.any().optional(),
-    }),
-  })
-  state: { config: any };
+  config?: Record<string, unknown>;
+
+  @Initial({ to: 'processed' })
+  async initialize(args: { userId: string }) {
+    // Debug a value
+    await this.createValue.call({ input: args.userId });
+
+    // Create a complex object
+    const result: ToolResult = await this.createValue.call({
+      input: {
+        environment: 'production',
+        timeout: 30,
+        retries: 3,
+        endpoints: ['https://api.example.com', 'https://backup.example.com'],
+      },
+    });
+
+    this.config = result.data as Record<string, unknown>;
+  }
+
+  @Final({ from: 'processed' })
+  async done() {
+    // Use the config value
+  }
 }
-```
-
-And use it in your YAML workflow configuration:
-
-```yaml
-# src/my.ui.yaml
-transitions:
-  # Debug a template expression
-  - id: debug_expression
-    from: start
-    to: process
-    call:
-      - tool: createValue
-        args:
-          input: ${{ args.userId }}
-
-  # Initialize a complex object
-  - id: create_config
-    from: start
-    to: process
-    call:
-      - tool: createValue
-        args:
-          input:
-            environment: production
-            timeout: 30
-            retries: 3
-            endpoints:
-              - https://api.example.com
-              - https://backup.example.com
-        assign:
-          config: ${{ result.data }}
 ```
 
 ## About
@@ -86,6 +77,6 @@ License: Apache-2.0
 
 ### Additional Resources:
 
-- [Loopstack Documentation](https://loopstack.ai)
-- [Getting Started with Loopstack](https://loopstack.ai)
+- [Loopstack Documentation](https://loopstack.ai/docs)
+- [Getting Started with Loopstack](https://loopstack.ai/docs/getting-started)
 - For more examples how to use this tool look for `@loopstack/create-value-tool` in the [Loopstack Registry](https://loopstack.ai/registry)

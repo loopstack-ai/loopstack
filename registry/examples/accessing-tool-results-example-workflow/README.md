@@ -10,10 +10,10 @@ The Tool Results Example Workflow shows how to retrieve and use data returned by
 
 By using this workflow as a reference, you'll learn how to:
 
-- Access tool results using call IDs via `runtime.tools`
-- Access tool results using call indices
-- Retrieve data from previous transitions
-- Create custom helper functions that access `runtime` for data extraction
+- Call tools using `@InjectTool()` and access their return values directly
+- Store tool results as workflow instance properties for use across transitions
+- Access stored data in later transitions via instance properties
+- Create private helper methods to encapsulate data access logic
 
 This example is useful for developers learning to build data-driven workflows that need to pass information between steps.
 
@@ -25,104 +25,133 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ### Workflow Class
 
-The workflow declares tools, typed runtime, and a helper function:
+The workflow extends `BaseWorkflow` and declares tools via `@InjectTool()`. Tool results are stored as instance properties and accessed across transitions:
 
 ```typescript
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
-export class WorkflowToolResultsWorkflow {
+export class WorkflowToolResultsWorkflow extends BaseWorkflow {
   @InjectTool() private createValue: CreateValue;
   @InjectTool() private createChatMessage: CreateChatMessage;
 
-  @Runtime()
-  runtime: {
-    tools: {
-      create_some_data: {
-        say_hello: {
-          data: string;
-        };
-      };
-    };
-  };
-
-  @DefineHelper()
-  theMessage(): string {
-    return this.runtime.tools.create_some_data.say_hello.data;
-  }
+  storedMessage?: string;
 }
 ```
 
-### Accessing Tool Results
+### Key Concepts
 
-#### 1. Using Call IDs
+#### 1. Calling Tools and Storing Results
 
-Assign a unique `id` to a tool call, then reference it via `runtime.tools.<transition_id>.<call_id>.data`:
-
-```yaml
-- id: say_hello
-  tool: createValue
-  args:
-    input: 'Hello World.'
-
-- tool: createChatMessage
-  args:
-    role: 'assistant'
-    content: 'Data from specific call id: {{ runtime.tools.create_some_data.say_hello.data }}'
-```
-
-#### 2. Using Call Indices
-
-Access tool results by their position (zero-indexed) within the transition:
-
-```yaml
-- tool: createChatMessage
-  args:
-    role: 'assistant'
-    content: 'Data from first tool call: {{ runtime.tools.create_some_data.0.data }}'
-```
-
-#### 3. Across Transitions
-
-Tool results persist and can be accessed from subsequent transitions using the same `runtime.tools` patterns:
-
-```yaml
-# In a later transition
-- id: access_data
-  from: data_created
-  to: end
-  call:
-    - tool: createChatMessage
-      args:
-        role: 'assistant'
-        content: 'Data from previous transition: {{ runtime.tools.create_some_data.say_hello.data }}'
-```
-
-#### 4. Using Helper Functions
-
-Define custom helper functions in your workflow class that access `this.runtime` directly:
+In a transition method, call a tool with `this.tool.call(args)` and store the result as an instance property:
 
 ```typescript
-@DefineHelper()
-theMessage(): string {
-  return this.runtime.tools.create_some_data.say_hello.data;
+@Initial({ to: 'data_created' })
+async createSomeData() {
+  const result = await this.createValue.call({ input: 'Hello World.' });
+  this.storedMessage = result.data as string;
+
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `Data from specific call id: ${this.storedMessage}`,
+  });
+
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `Data from first tool call: ${this.storedMessage}`,
+  });
 }
 ```
 
-Then use them in your YAML configuration (no arguments needed):
+The `createValue` tool returns a `ToolResult` object with a `data` property containing the output. This value is stored in `this.storedMessage` for later use.
 
-```yaml
-- tool: createChatMessage
-  args:
-    role: 'assistant'
-    content: 'Data access using custom helper: {{ theMessage }}'
+#### 2. Accessing Data Across Transitions
+
+Instance properties persist across transitions. In a subsequent `@Final` method, the stored data is still available:
+
+```typescript
+@Final({ from: 'data_created' })
+async accessData() {
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `Data from previous transition: ${this.storedMessage}`,
+  });
+
+  await this.createChatMessage.call({
+    role: 'assistant',
+    content: `Data access using custom helper: ${this.theMessage()}`,
+  });
+}
+```
+
+#### 3. Private Helper Methods
+
+Define private methods on the workflow class to encapsulate data access logic:
+
+```typescript
+private theMessage(): string {
+  return this.storedMessage!;
+}
+```
+
+These are standard TypeScript methods -- no decorator needed. Call them from any transition method using `this.theMessage()`.
+
+### Complete Workflow
+
+```typescript
+import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/common';
+import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import { CreateValue } from '@loopstack/create-value-tool';
+
+@Workflow({
+  uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
+})
+export class WorkflowToolResultsWorkflow extends BaseWorkflow {
+  @InjectTool() private createValue: CreateValue;
+  @InjectTool() private createChatMessage: CreateChatMessage;
+
+  storedMessage?: string;
+
+  @Initial({ to: 'data_created' })
+  async createSomeData() {
+    const result = await this.createValue.call({ input: 'Hello World.' });
+    this.storedMessage = result.data as string;
+
+    await this.createChatMessage.call({
+      role: 'assistant',
+      content: `Data from specific call id: ${this.storedMessage}`,
+    });
+
+    await this.createChatMessage.call({
+      role: 'assistant',
+      content: `Data from first tool call: ${this.storedMessage}`,
+    });
+  }
+
+  @Final({ from: 'data_created' })
+  async accessData() {
+    await this.createChatMessage.call({
+      role: 'assistant',
+      content: `Data from previous transition: ${this.storedMessage}`,
+    });
+
+    await this.createChatMessage.call({
+      role: 'assistant',
+      content: `Data access using custom helper: ${this.theMessage()}`,
+    });
+  }
+
+  private theMessage(): string {
+    return this.storedMessage!;
+  }
+}
 ```
 
 ## Dependencies
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/core` - Core framework functionality
+- `@loopstack/common` - Base classes, decorators, and tool injection
 - `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool
 - `@loopstack/create-value-tool` - Provides `CreateValue` tool
 
