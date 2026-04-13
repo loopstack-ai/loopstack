@@ -22,7 +22,6 @@
     "experimentalDecorators": true,
     "useUnknownInCatchVariables": false,
     "allowJs": false,
-    "types": ["node"],
     "paths": {
       "@loopstack/contracts": ["./packages/contracts/src"],
       "@loopstack/common": ["./packages/common/src"],

@@ -33,7 +33,7 @@ import {
 } from '@loopstack/common';
 import { BlockOptions } from '@loopstack/common';
 import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
-import { JSONSchemaDefinition } from '@loopstack/contracts/schemas';
+import { JSONSchemaDefinition } from '@loopstack/contracts/dist/schemas';
 import { WorkflowType, WorkspaceType } from '@loopstack/contracts/types';
 import { BlockDiscoveryService } from '@loopstack/core';
 import { AvailableEnvironmentDto } from '../dtos/available-environment.dto';

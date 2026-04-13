@@ -26,11 +26,11 @@
   "dependencies": {
     "@loopstack/contracts": "^0.25.1",
     "@loopstack/core": "^0.25.1",
-    "@nestjs/common": "^11.1.19",
-    "@nestjs/core": "^11.1.19",
-    "axios": "^1.15.0",
+    "@nestjs/common": "^11.1.14",
+    "@nestjs/core": "^11.1.14",
+    "axios": "^1.13.5",
     "nest-commander": "^3.20.1",
-    "ts-morph": "^28.0.0",
+    "ts-morph": "^27.0.2",
     "zod": "^4.3.6"
   },
   "files": [
@@ -45,12 +45,7 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.ts$": [
-        "ts-jest",
-        {
-          "tsconfig": "tsconfig.spec.json"
-        }
-      ]
+      "^.+\\.ts$": "ts-jest"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
