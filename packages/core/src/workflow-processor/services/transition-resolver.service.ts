@@ -106,7 +106,6 @@ export class TransitionResolverService {
       if (guard) {
         const method = (proxy as Record<string, unknown>)[guard.guardMethodName];
         if (typeof method !== 'function') continue;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- proxy traps make method.call() return any
         const passes = (method as () => boolean).call(proxy);
         if (!passes) continue;
       }
