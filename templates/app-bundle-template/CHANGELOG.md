@@ -1,5 +1,11 @@
 # @loopstack/app-bundle-template
 
+## 0.20.2
+
+### Patch Changes
+
+- [#124](https://github.com/loopstack-ai/loopstack/pull/124) [`598a7bc`](https://github.com/loopstack-ai/loopstack/commit/598a7bca418f5fdebb695c3ee56b2ea9c0cbdf22) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Revert deps
+
 ## 0.20.1
 
 ### Patch Changes
