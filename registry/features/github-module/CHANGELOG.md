@@ -1,5 +1,14 @@
 # @loopstack/github-module
 
+## 0.2.2
+
+### Patch Changes
+
+- [#121](https://github.com/loopstack-ai/loopstack/pull/121) [`0de6c53`](https://github.com/loopstack-ai/loopstack/commit/0de6c53e23342987a0d2ae182a6c2c473657a71f) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Update dependencies
+
+- Updated dependencies [[`0de6c53`](https://github.com/loopstack-ai/loopstack/commit/0de6c53e23342987a0d2ae182a6c2c473657a71f)]:
+  - @loopstack/oauth-module@0.2.2
+
 ## 0.2.1
 
 ### Patch Changes
