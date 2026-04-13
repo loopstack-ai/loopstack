@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { toJSONSchema } from 'zod';
 import { ToolInterface, WorkflowInterface, getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { getBlockTool } from '@loopstack/common';
-import { WorkflowType } from '@loopstack/contracts/dist/types';
+import { WorkflowType } from '@loopstack/contracts/types';
 
 @Injectable()
 export class ClaudeToolsHelperService {

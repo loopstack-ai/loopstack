@@ -51,7 +51,7 @@ export function wrapToolProxy(
 
   // Capture the original call() from the prototype chain — deliberately unbound; executeCall re-binds via .call(proxy)
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  const originalCall: (...callArgs: unknown[]) => unknown = (tool as BaseTool).call;
+  const originalCall = (tool as BaseTool).call as (...callArgs: unknown[]) => unknown;
 
   /* eslint-disable @typescript-eslint/no-unsafe-return --
      Proxy get/set handlers use `any` in TypeScript's ProxyHandler definition. */

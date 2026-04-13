@@ -29,8 +29,8 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.25.0",
-    "@nestjs/common": "^11.1.14",
-    "dockerode": "^4.0.9",
+    "@nestjs/common": "^11.1.19",
+    "dockerode": "^4.0.10",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -45,7 +45,12 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.ts$": "ts-jest"
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.spec.json"
+        }
+      ]
     },
     "testTimeout": 10000,
     "forceExit": true,

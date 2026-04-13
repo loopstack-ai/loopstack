@@ -36,10 +36,11 @@ export function getLayoutedElements(
     g.setEdge(edge.source, edge.target);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- graphlib.Graph constructor returns Graph<any,any,any>
   Dagre.layout(g);
 
   const layoutedNodes = nodes.map((node) => {
-    const pos = g.node(node.id) as Dagre.Node;
+    const pos = g.node(node.id) as { x: number; y: number };
     return {
       ...node,
       targetPosition: direction === 'LR' ? Position.Left : Position.Top,

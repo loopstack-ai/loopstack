@@ -26,7 +26,6 @@ function invokeWorkflowMethod(proxy: WorkflowInterface, methodName: string, data
   if (typeof method !== 'function') {
     throw new Error(`Method '${methodName}' not found on workflow ${proxy.constructor.name}`);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return (method as (arg?: unknown) => Promise<unknown>).call(proxy, data);
 }
 
@@ -36,7 +35,6 @@ function invokeGuardMethod(proxy: WorkflowInterface, guardMethodName: string): b
   if (typeof method !== 'function') {
     throw new Error(`Guard method '${guardMethodName}' not found on workflow ${proxy.constructor.name}`);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return (method as () => boolean | Promise<boolean>).call(proxy);
 }
 

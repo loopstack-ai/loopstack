@@ -29,7 +29,7 @@
   "dependencies": {
     "@loopstack/common": "^0.25.0",
     "@loopstack/sandbox-tool": "^0.5.1",
-    "@nestjs/common": "^11.1.14",
+    "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
   "files": [
@@ -41,7 +41,12 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.ts$": "ts-jest"
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.spec.json"
+        }
+      ]
     },
     "testTimeout": 10000,
     "forceExit": true,
