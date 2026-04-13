@@ -33,12 +33,12 @@ export default function DashboardPage() {
         <div className="mx-auto w-full max-w-2xl">
           <Alert variant="destructive">
             <TriangleAlert />
-            <AlertTitle>Dashboard konnte nicht geladen werden</AlertTitle>
+            <AlertTitle>Failed to load dashboard</AlertTitle>
             <AlertDescription>
-              <p className="wrap-break-word">Bitte versuch’s nochmal. {error.message}</p>
+              <p className="wrap-break-word">Please try again. {error.message}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button variant="destructive" onClick={() => void refetch()} disabled={isRefetching}>
-                  {isRefetching ? 'Lade neu…' : 'Neu versuchen'}
+                  {isRefetching ? 'Reloading…' : 'Retry'}
                 </Button>
               </div>
             </AlertDescription>
