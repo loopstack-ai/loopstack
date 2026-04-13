@@ -7,7 +7,7 @@
     "filesystem",
     "sandbox"
   ],
-  "version": "0.5.1",
+  "version": "0.5.2",
   "license": "Apache-2.0",
   "author": {
     "name": "Tobias Blättermann, Jakob Klippel"
@@ -27,8 +27,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.25.0",
-    "@loopstack/sandbox-tool": "^0.5.1",
+    "@loopstack/common": "^0.25.1",
+    "@loopstack/sandbox-tool": "^0.5.2",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
