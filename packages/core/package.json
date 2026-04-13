@@ -26,15 +26,15 @@
   "dependencies": {
     "@loopstack/common": "^0.25.1",
     "@nestjs/bullmq": "^11.0.4",
-    "@nestjs/config": "^4.0.4",
+    "@nestjs/config": "^4.0.3",
     "@nestjs/event-emitter": "^3.0.1",
     "@nestjs/schedule": "^6.1.1",
-    "bullmq": "^5.73.5",
+    "bullmq": "^5.69.3",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.15.1",
-    "handlebars": "^4.7.9",
-    "lodash": "^4.18.1",
-    "yaml": "^2.8.3",
+    "class-validator": "^0.14.3",
+    "handlebars": "^4.7.8",
+    "lodash": "^4.17.23",
+    "yaml": "^2.8.2",
     "zod": "^4.3.6"
   },
   "files": [
@@ -49,12 +49,7 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.ts$": [
-        "ts-jest",
-        {
-          "tsconfig": "tsconfig.spec.json"
-        }
-      ]
+      "^.+\\.ts$": "ts-jest"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BlockConfigType } from '@loopstack/contracts/types';
+import { BlockConfigType } from '@loopstack/contracts/dist/types';
 import {
   BLOCK_CONFIG_METADATA_KEY,
   BLOCK_TYPE_METADATA_KEY,

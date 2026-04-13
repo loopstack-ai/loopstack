@@ -25,9 +25,10 @@
     "noUncheckedSideEffectImports": true,
 
     /* Path aliases */
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@loopstack/contracts": ["./packages/contracts"]
+      "@loopstack/contracts": ["packages/contracts"]
     },
 
     /* For library */

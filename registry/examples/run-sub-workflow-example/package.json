@@ -34,7 +34,7 @@
     "@loopstack/common": "^0.25.1",
     "@loopstack/core": "^0.25.1",
     "@loopstack/create-chat-message-tool": "^0.21.2",
-    "@nestjs/common": "^11.1.19",
+    "@nestjs/common": "^11.1.14",
     "zod": "^4.3.6"
   },
   "files": [
@@ -46,12 +46,7 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.ts$": [
-        "ts-jest",
-        {
-          "tsconfig": "tsconfig.spec.json"
-        }
-      ]
+      "^.+\\.ts$": "ts-jest"
     },
     "testTimeout": 10000,
     "forceExit": true,
