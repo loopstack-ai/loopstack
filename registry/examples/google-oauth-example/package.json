@@ -11,7 +11,7 @@
     "loopstack",
     "oauth"
   ],
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -32,12 +32,12 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/claude-module": "^0.22.0",
-    "@loopstack/common": "^0.25.0",
-    "@loopstack/core": "^0.25.0",
-    "@loopstack/create-chat-message-tool": "^0.21.1",
-    "@loopstack/google-workspace-module": "^0.3.1",
-    "@loopstack/oauth-module": "^0.2.1",
+    "@loopstack/claude-module": "^0.22.1",
+    "@loopstack/common": "^0.25.1",
+    "@loopstack/core": "^0.25.1",
+    "@loopstack/create-chat-message-tool": "^0.21.2",
+    "@loopstack/google-workspace-module": "^0.3.2",
+    "@loopstack/oauth-module": "^0.2.2",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },

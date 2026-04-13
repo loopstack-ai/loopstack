@@ -1,5 +1,19 @@
 # @loopstack/google-oauth-example
 
+## 0.2.2
+
+### Patch Changes
+
+- [#121](https://github.com/loopstack-ai/loopstack/pull/121) [`0de6c53`](https://github.com/loopstack-ai/loopstack/commit/0de6c53e23342987a0d2ae182a6c2c473657a71f) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Update dependencies
+
+- Updated dependencies [[`0de6c53`](https://github.com/loopstack-ai/loopstack/commit/0de6c53e23342987a0d2ae182a6c2c473657a71f)]:
+  - @loopstack/google-workspace-module@0.3.2
+  - @loopstack/create-chat-message-tool@0.21.2
+  - @loopstack/claude-module@0.22.1
+  - @loopstack/oauth-module@0.2.2
+  - @loopstack/common@0.25.1
+  - @loopstack/core@0.25.1
+
 ## 0.2.1
 
 ### Patch Changes

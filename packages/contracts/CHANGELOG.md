@@ -1,5 +1,11 @@
 # @loopstack/contracts
 
+## 0.25.1
+
+### Patch Changes
+
+- [#121](https://github.com/loopstack-ai/loopstack/pull/121) [`0de6c53`](https://github.com/loopstack-ai/loopstack/commit/0de6c53e23342987a0d2ae182a6c2c473657a71f) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Update dependencies
+
 ## 0.25.0
 
 ### Minor Changes
