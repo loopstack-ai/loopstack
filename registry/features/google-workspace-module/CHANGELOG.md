@@ -1,5 +1,14 @@
 # @loopstack/core-ui-module
 
+## 0.3.3
+
+### Patch Changes
+
+- [#124](https://github.com/loopstack-ai/loopstack/pull/124) [`598a7bc`](https://github.com/loopstack-ai/loopstack/commit/598a7bca418f5fdebb695c3ee56b2ea9c0cbdf22) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Revert deps
+
+- Updated dependencies [[`598a7bc`](https://github.com/loopstack-ai/loopstack/commit/598a7bca418f5fdebb695c3ee56b2ea9c0cbdf22)]:
+  - @loopstack/oauth-module@0.2.3
+
 ## 0.3.2
 
 ### Patch Changes
