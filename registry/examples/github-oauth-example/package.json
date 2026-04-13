@@ -8,7 +8,7 @@
     "loopstack",
     "oauth"
   ],
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -32,9 +32,9 @@
     "@loopstack/claude-module": "^0.22.0",
     "@loopstack/common": "^0.25.0",
     "@loopstack/core": "^0.25.0",
-    "@loopstack/create-chat-message-tool": "^0.21.0",
-    "@loopstack/github-module": "^0.2.0",
-    "@loopstack/oauth-module": "^0.2.0",
+    "@loopstack/create-chat-message-tool": "^0.21.1",
+    "@loopstack/github-module": "^0.2.1",
+    "@loopstack/oauth-module": "^0.2.1",
     "@nestjs/common": "^11.1.14",
     "zod": "^4.3.6"
   },

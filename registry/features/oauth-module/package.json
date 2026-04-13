@@ -8,7 +8,7 @@
     "module",
     "oauth"
   ],
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "Apache-2.0",
   "author": {
     "name": "Jakob Klippel",
@@ -31,7 +31,7 @@
   "dependencies": {
     "@loopstack/common": "^0.25.0",
     "@loopstack/core": "^0.25.0",
-    "@loopstack/create-chat-message-tool": "^0.21.0",
+    "@loopstack/create-chat-message-tool": "^0.21.1",
     "ioredis": "^5.9.3",
     "zod": "^4.3.6"
   },
