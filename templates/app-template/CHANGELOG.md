@@ -1,5 +1,11 @@
 # @loopstack/app-template
 
+## 0.19.3
+
+### Patch Changes
+
+- [#127](https://github.com/loopstack-ai/loopstack/pull/127) [`70b7eb9`](https://github.com/loopstack-ai/loopstack/commit/70b7eb95855c4d1aeaada59f5ca3382bae7cb808) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Remove rootDir from tsconfig
+
 ## 0.19.2
 
 ### Patch Changes
