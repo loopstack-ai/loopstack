@@ -1,6 +1,6 @@
 {
   "name": "@loopstack/app-template",
-  "version": "0.19.2",
+  "version": "0.19.3",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write --log-level warn .",
