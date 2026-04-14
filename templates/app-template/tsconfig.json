@@ -3,7 +3,6 @@
     "target": "ES2023",
     "module": "CommonJS",
     "outDir": "./dist",
-    "rootDir": "./src",
     "baseUrl": ".",
     "esModuleInterop": true,
     "declaration": true,
