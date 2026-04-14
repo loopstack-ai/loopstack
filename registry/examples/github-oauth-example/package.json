@@ -35,7 +35,7 @@
     "@loopstack/create-chat-message-tool": "^0.21.3",
     "@loopstack/github-module": "^0.2.3",
     "@loopstack/oauth-module": "^0.2.3",
-    "@nestjs/common": "^11.1.14",
+    "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
   "files": [
