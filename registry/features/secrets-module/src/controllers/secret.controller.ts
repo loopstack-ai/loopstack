@@ -1,8 +1,19 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Put,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { SecretService } from '@loopstack/core';
-import { WorkspaceApiService } from '../services/workspace-api.service';
+import { WorkspaceService } from '@loopstack/core';
+import { SecretService } from '../services';
 
 @ApiTags('api/v1/workspaces/:workspaceId/secrets')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
@@ -10,12 +21,20 @@ import { WorkspaceApiService } from '../services/workspace-api.service';
 export class SecretController {
   constructor(
     private readonly secretService: SecretService,
-    private readonly workspaceApiService: WorkspaceApiService,
+    private readonly workspaceService: WorkspaceService,
   ) {}
+
+  private async verifyWorkspaceAccess(workspaceId: string, userId: string) {
+    const workspace = await this.workspaceService.getWorkspace({ id: workspaceId }, userId);
+    if (!workspace) {
+      throw new NotFoundException(`Workspace with ID ${workspaceId} not found`);
+    }
+    return workspace;
+  }
 
   @Get()
   async getSecrets(@Param('workspaceId') workspaceId: string, @CurrentUser() user: CurrentUserInterface) {
-    await this.workspaceApiService.findOneById(workspaceId, user.userId);
+    await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secrets = await this.secretService.findAllByWorkspace(workspaceId);
     return secrets.map((s) => ({
       id: s.id,
@@ -30,7 +49,7 @@ export class SecretController {
     @Body() body: { key: string; value: string },
     @CurrentUser() user: CurrentUserInterface,
   ) {
-    await this.workspaceApiService.findOneById(workspaceId, user.userId);
+    await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secret = await this.secretService.create(workspaceId, body);
     return { id: secret.id, key: secret.key };
   }
@@ -41,7 +60,7 @@ export class SecretController {
     @Body() body: { key: string; value: string },
     @CurrentUser() user: CurrentUserInterface,
   ) {
-    await this.workspaceApiService.findOneById(workspaceId, user.userId);
+    await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secret = await this.secretService.upsert(workspaceId, body);
     return { id: secret.id, key: secret.key };
   }
@@ -53,7 +72,7 @@ export class SecretController {
     @Body() body: { value?: string },
     @CurrentUser() user: CurrentUserInterface,
   ) {
-    await this.workspaceApiService.findOneById(workspaceId, user.userId);
+    await this.verifyWorkspaceAccess(workspaceId, user.userId);
     const secret = await this.secretService.update(id, workspaceId, body);
     return { id: secret.id, key: secret.key };
   }
@@ -64,7 +83,7 @@ export class SecretController {
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserInterface,
   ) {
-    await this.workspaceApiService.findOneById(workspaceId, user.userId);
+    await this.verifyWorkspaceAccess(workspaceId, user.userId);
     await this.secretService.delete(id, workspaceId);
     return { success: true };
   }

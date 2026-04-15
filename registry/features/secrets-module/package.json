@@ -1,10 +1,11 @@
 {
-  "name": "@loopstack/secrets-example-workflow",
-  "displayName": "Loopstack Secrets Example Workflow",
-  "description": "A simple workflow demonstrating how to request and verify secrets using the SecretRequestDocument and GetSecretKeys tool.",
+  "name": "@loopstack/secrets-module",
+  "displayName": "Loopstack Secrets Module",
+  "description": "Secrets management for Loopstack workflows — entity, service, tools, and REST API for securely storing and retrieving workspace secrets",
   "keywords": [
-    "example",
+    "loopstack",
     "secrets",
+    "environment-variables",
     "workflow"
   ],
   "version": "0.22.2",
@@ -28,11 +29,12 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/claude-module": "^0.22.2",
     "@loopstack/common": "^0.25.2",
     "@loopstack/core": "^0.25.2",
-    "@loopstack/secrets-module": "^0.22.2",
     "@nestjs/common": "^11.1.19",
+    "@nestjs/swagger": "^11.2.0",
+    "@nestjs/typeorm": "^11.0.1",
+    "typeorm": "^0.3.22",
     "zod": "^4.3.6"
   },
   "files": [
@@ -55,27 +57,25 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
-    "maxWorkers": 1,
-    "testTimeout": 10000,
-    "forceExit": true
+    "maxWorkers": 1
   },
   "loopstack": {
-    "installModes": [
-      "add",
-      "install"
-    ],
     "modules": [
       {
-        "path": "src/secrets-example.module.ts",
-        "className": "SecretsExampleModule"
+        "path": "src/secrets.module.ts",
+        "className": "SecretsModule"
       }
     ],
     "workflows": [
       {
-        "path": "src/secrets-example.workflow.ts",
-        "className": "SecretsExampleWorkflow",
-        "propertyName": "secretsExample"
+        "path": "src/tools/secrets-request.workflow.ts",
+        "className": "SecretsRequestWorkflow",
+        "propertyName": "secretsRequest"
       }
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

@@ -8,4 +8,3 @@ export * from './workflow-processor';
 export * from './documents';
 export * from './loop-core.module';
 export * from './loop-core.module-definition';
-export * from './tools';

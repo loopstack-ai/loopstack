@@ -1,6 +1,7 @@
-import { Files, Home, KeyRound, MonitorPlay, Play, Server } from 'lucide-react';
+import { Files, Home, MonitorPlay, Play, Server } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
+import { useFeatureRegistry } from '@/features/feature-registry';
 import { cn } from '@/lib/utils';
 import { useStudio } from '@/providers/StudioProvider';
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
@@ -63,9 +64,12 @@ export function WorkbenchIconSidebar() {
     useWorkbenchLayout();
   const { router } = useStudio();
   const location = useLocation();
+  const features = useFeatureRegistry();
 
   const hasRemoteEnvironment = environments?.some((e) => !!e.agentUrl) ?? false;
   const workspacePath = router.getWorkspace(workspaceId);
+
+  const featurePanels = features.filter((f) => f.sidebarPanel).map((f) => f.sidebarPanel!);
 
   return (
     <div className="border-l bg-background flex w-12 shrink-0 flex-col items-center">
@@ -118,12 +122,18 @@ export function WorkbenchIconSidebar() {
           onClick={() => togglePanel('environment')}
         />
 
-        <IconButton
-          icon={<KeyRound className="h-5 w-5" />}
-          label="Environment Secrets"
-          active={activePanel === 'secrets'}
-          onClick={() => togglePanel('secrets')}
-        />
+        {featurePanels.map((panel) => {
+          const Icon = panel.icon;
+          return (
+            <IconButton
+              key={panel.id}
+              icon={<Icon className="h-5 w-5" />}
+              label={panel.label}
+              active={activePanel === panel.id}
+              onClick={() => togglePanel(panel.id)}
+            />
+          );
+        })}
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { WorkspaceEntity } from './workspace.entity';
+import { WorkspaceEntity } from '@loopstack/common';
 
 @Entity({ name: 'core_secret' })
 @Index(['workspaceId', 'key'], { unique: true })

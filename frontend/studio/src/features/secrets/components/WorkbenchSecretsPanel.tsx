@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useWorkbenchLayout } from '@/features/workbench';
+import { SidebarPanel } from '@/features/workbench/components/SidebarPanel';
 import { useCreateSecret, useDeleteSecret, useUpdateSecret, useWorkspaceSecrets } from '@/hooks/useSecrets';
-import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider';
-import { SidebarPanel } from './SidebarPanel';
 
 interface WorkbenchSecretsPanelProps {
   workspaceId?: string;

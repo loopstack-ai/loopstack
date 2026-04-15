@@ -6,8 +6,10 @@ import WorkerLayout from './app/WorkerLayout.tsx';
 import { StudioSidebar } from './components/layout/StudioSidebar.tsx';
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar.tsx';
 import config from './config.ts';
+import { FeatureRegistryProvider } from './features/feature-registry';
 import { LocalHealthCheck } from './features/health';
 import { OAuthCallbackPage } from './features/oauth';
+import { secretsFeature } from './features/secrets';
 import DashboardPage from './pages/DashboardPage.tsx';
 import DebugPage from './pages/DebugPage.tsx';
 import DebugWorkflowDetailsPage from './pages/DebugWorkflowDetailsPage.tsx';
@@ -41,6 +43,8 @@ function AppSidebar() {
   );
 }
 
+const defaultFeatures = [secretsFeature];
+
 function AppRoot() {
   const router = useRouter(config.environment.id);
   return (
@@ -48,10 +52,12 @@ function AppRoot() {
       <Toaster richColors position="top-center" />
       <StudioPreferencesProvider>
         <StudioProvider router={router} environment={config.environment}>
-          <LocalHealthCheck />
-          <SseProvider />
-          <InvalidationEventsProvider />
-          <AppSidebar />
+          <FeatureRegistryProvider features={defaultFeatures}>
+            <LocalHealthCheck />
+            <SseProvider />
+            <InvalidationEventsProvider />
+            <AppSidebar />
+          </FeatureRegistryProvider>
         </StudioProvider>
       </StudioPreferencesProvider>
     </QueryProvider>
@@ -63,9 +69,11 @@ function EmbedRoot() {
   return (
     <QueryProvider>
       <StudioProvider router={router} environment={config.environment}>
-        <SseProvider />
-        <InvalidationEventsProvider />
-        <WorkerLayout />
+        <FeatureRegistryProvider features={defaultFeatures}>
+          <SseProvider />
+          <InvalidationEventsProvider />
+          <WorkerLayout />
+        </FeatureRegistryProvider>
       </StudioProvider>
     </QueryProvider>
   );

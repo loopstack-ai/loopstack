@@ -1,8 +1,9 @@
 import type { ComponentType } from 'react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
+import { useFeatureRegistry } from '@/features/feature-registry';
 import { OAuthPromptRenderer } from '@/features/oauth';
 import AiMessage from './renderers/AiMessage.tsx';
 import ChoicesRenderer from './renderers/ChoicesRenderer.tsx';
@@ -15,7 +16,6 @@ import ErrorMessageRenderer from './renderers/ErrorMessageRenderer.tsx';
 import LinkMessageRenderer from './renderers/LinkMessageRenderer.tsx';
 import MarkdownMessageRenderer from './renderers/MarkdownMessageRenderer.tsx';
 import PlainMessageRenderer from './renderers/PlainMessageRenderer.tsx';
-import SecretInputRenderer from './renderers/SecretInputRenderer.tsx';
 import TextPromptRenderer from './renderers/TextPromptRenderer.tsx';
 
 export interface DocumentRendererProps {
@@ -31,8 +31,9 @@ type WidgetRenderer = ComponentType<DocumentRendererProps>;
 /**
  * Registry mapping widget type names to their renderer components.
  * To add a new document widget, register it here — no changes to DocumentRenderer needed.
+ * Feature modules can also register renderers via the FeatureRegistryProvider.
  */
-const rendererRegistry = new Map<string, WidgetRenderer>([
+const coreRendererRegistry = new Map<string, WidgetRenderer>([
   ['ai-message', ({ document, isLastItem }) => <AiMessage document={document} isLastItem={isLastItem} />],
   ['claude-message', ({ document, isLastItem }) => <ClaudeMessage document={document} isLastItem={isLastItem} />],
   [
@@ -96,17 +97,6 @@ const rendererRegistry = new Map<string, WidgetRenderer>([
       />
     ),
   ],
-  [
-    'secret-input',
-    ({ parentWorkflow, workflow, document, isActive }) => (
-      <SecretInputRenderer
-        parentWorkflow={parentWorkflow}
-        workflow={workflow}
-        document={document}
-        isActive={isActive}
-      />
-    ),
-  ],
 ]);
 
 /** Extract the primary widget name from document UI config. */
@@ -124,10 +114,23 @@ function resolveDocumentWidget(ui: unknown): string {
 }
 
 const DocumentRenderer: React.FC<DocumentRendererProps> = (props) => {
+  const features = useFeatureRegistry();
   const doc = props.document as unknown as DocumentItemInterface;
   const widget = resolveDocumentWidget(doc.ui);
 
-  const Renderer = rendererRegistry.get(widget);
+  const featureRenderers = useMemo(() => {
+    const map = new Map<string, WidgetRenderer>();
+    for (const feature of features) {
+      if (feature.documentRenderers) {
+        for (const [key, renderer] of Object.entries(feature.documentRenderers)) {
+          map.set(key, renderer);
+        }
+      }
+    }
+    return map;
+  }, [features]);
+
+  const Renderer = coreRendererRegistry.get(widget) ?? featureRenderers.get(widget);
 
   return <div>{Renderer ? <Renderer {...props} /> : <>unknown document type</>}</div>;
 };

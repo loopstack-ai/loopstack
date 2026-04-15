@@ -35,6 +35,7 @@
       "@loopstack/github-module": ["./registry/features/github-module/src"],
       "@loopstack/google-workspace-module": ["./registry/features/google-workspace-module/src"],
       "@loopstack/oauth-module": ["./registry/features/oauth-module/src"],
+      "@loopstack/secrets-module": ["./registry/features/secrets-module/src"],
       "@loopstack/create-chat-message-tool": ["./registry/tools/create-chat-message-tool/src"],
       "@loopstack/create-value-tool": ["./registry/tools/create-value-tool/src"],
       "@loopstack/sandbox-filesystem": ["./registry/tools/sandbox-filesystem/src"],

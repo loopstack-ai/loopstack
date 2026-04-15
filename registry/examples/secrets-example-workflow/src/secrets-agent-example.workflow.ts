@@ -19,7 +19,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import { GetSecretKeysTool, RequestSecretsTask, SecretsRequestWorkflow } from '@loopstack/core';
+import { GetSecretKeysTool, RequestSecretsTask, SecretsRequestWorkflow } from '@loopstack/secrets-module';
 
 @Workflow({
   uiConfig: __dirname + '/secrets-agent-example.ui.yaml',

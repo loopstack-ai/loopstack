@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { SecretService } from '../persistence';
-import { ExecutionScope } from '../workflow-processor/utils';
+import { ExecutionScope } from '@loopstack/core';
+import { SecretService } from '../services';
 
 @Tool({
   uiConfig: {

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useFeatureRegistry } from '@/features/feature-registry';
 import { RemoteFileExplorerProvider } from '../providers/RemoteFileExplorerProvider.tsx';
 import type { PanelSize } from '../providers/WorkbenchLayoutProvider.tsx';
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
@@ -7,7 +8,6 @@ import { WorkbenchFilesPanel } from './WorkbenchFilesPanel.tsx';
 import { WorkbenchIconSidebar } from './WorkbenchIconSidebar.tsx';
 import { WorkbenchPreviewPanel } from './WorkbenchPreviewPanel.tsx';
 import { WorkbenchRunsPanel } from './WorkbenchRunsPanel.tsx';
-import { WorkbenchSecretsPanel } from './WorkbenchSecretsPanel.tsx';
 
 const PANEL_WIDTH: Record<PanelSize, string> = {
   small: 'w-80',
@@ -23,6 +23,7 @@ const CONTENT_WIDTH: Record<PanelSize, string> = {
 
 function ActivePanelContent() {
   const { activePanel, workspaceId, environments } = useWorkbenchLayout();
+  const features = useFeatureRegistry();
 
   switch (activePanel) {
     case 'runs':
@@ -31,12 +32,16 @@ function ActivePanelContent() {
       return <WorkbenchPreviewPanel />;
     case 'files':
       return <WorkbenchFilesPanel />;
-    case 'secrets':
-      return <WorkbenchSecretsPanel workspaceId={workspaceId} />;
     case 'environment':
       return <WorkbenchEnvironmentPanel workspaceId={workspaceId} environments={environments} />;
-    default:
+    default: {
+      const feature = features.find((f) => f.sidebarPanel?.id === activePanel);
+      if (feature?.sidebarPanel) {
+        const Panel = feature.sidebarPanel.component;
+        return <Panel workspaceId={workspaceId} />;
+      }
       return null;
+    }
   }
 }
 

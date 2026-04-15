@@ -6,7 +6,7 @@ import type {
 } from '@loopstack/contracts/api';
 import { useOptionalStudioPreferences } from '@/providers/StudioPreferencesProvider';
 
-export type PanelId = 'runs' | 'preview' | 'files' | 'secrets' | 'environment';
+export type PanelId = 'runs' | 'preview' | 'files' | 'environment' | (string & {});
 export type PanelSize = 'small' | 'medium' | 'large';
 
 export interface WorkbenchLayoutContextType {
@@ -81,15 +81,14 @@ export function WorkbenchLayoutProvider({
       workspaceConfig?.features?.fileExplorer?.environments?.includes(environments?.[0]?.slotId ?? '')) ??
     false;
 
-  const defaultPanelSize: Record<PanelId, PanelSize> = {
+  const defaultPanelSize: Record<string, PanelSize> = {
     runs: 'medium',
     preview: 'medium',
     files: 'medium',
-    secrets: 'small',
     environment: 'small',
   };
 
-  const panelSize = activePanel ? (panelSizes[activePanel] ?? defaultPanelSize[activePanel]) : 'small';
+  const panelSize = activePanel ? (panelSizes[activePanel] ?? defaultPanelSize[activePanel] ?? 'small') : 'small';
 
   const setActivePanel = useCallback(
     (panel: PanelId | null) => {

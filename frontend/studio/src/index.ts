@@ -27,7 +27,14 @@ export { default as EnvironmentEmbedRoot } from './app/EnvironmentEmbedRoot';
 export { StudioSidebar } from './components/layout/StudioSidebar';
 
 // Feature re-exports
+export { FeatureRegistryProvider } from './features/feature-registry';
+export type {
+  StudioFeature,
+  StudioFeatureSidebarPanel,
+  FeatureRegistryProviderProps,
+} from './features/feature-registry';
 export { LocalHealthCheck } from './features/health';
+export { secretsFeature } from './features/secrets';
 export { CreateWorkspace, EnvironmentSlotSelector } from './features/workspaces';
 export type { CreateWorkspaceProps, EnvironmentOption } from './features/workspaces';
 export type { EditWorkspaceProps } from './providers/ComponentOverridesProvider';
