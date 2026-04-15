@@ -34,7 +34,13 @@ export class ProcessorApiService {
     } satisfies ScheduledTask);
   }
 
-  async callbackWorkflow(workflowId: string, payload: Record<string, unknown>, transition: string): Promise<void> {
+  async callbackWorkflow(
+    workflowId: string,
+    user: string,
+    payload: Record<string, unknown>,
+    transition: string,
+  ): Promise<void> {
+    await this.workflowApiService.findOneById(workflowId, user);
     await this.orchestrator.callback(workflowId, payload, { transition });
   }
 }

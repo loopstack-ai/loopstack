@@ -1,4 +1,4 @@
-import { Home, Play } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { useState } from 'react';
 import MainLayout from '../components/layout/MainLayout.tsx';
 import { Button } from '../components/ui/button.tsx';
@@ -10,14 +10,7 @@ export default function RunsListPage() {
   const { router } = useStudio();
   const [newRunDialogOpen, setNewRunDialogOpen] = useState(false);
 
-  const breadcrumbsData = [
-    {
-      label: 'Dashboard',
-      href: router.getDashboard(),
-      icon: <Home className="h-4 w-4" />,
-    },
-    { label: 'Runs', current: true },
-  ];
+  const breadcrumbsData = [{ label: 'Runs', current: true }];
 
   return (
     <MainLayout breadcrumbsData={breadcrumbsData}>

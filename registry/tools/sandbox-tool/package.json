@@ -9,7 +9,7 @@
     "sandbox"
   ],
   "version": "0.5.3",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": {
     "name": "Tobias Blättermann, Jakob Klippel"
   },
@@ -29,8 +29,8 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.25.2",
-    "@nestjs/common": "^11.1.14",
-    "dockerode": "^4.0.9",
+    "@nestjs/common": "^11.1.19",
+    "dockerode": "^4.0.10",
     "zod": "^4.3.6"
   },
   "devDependencies": {

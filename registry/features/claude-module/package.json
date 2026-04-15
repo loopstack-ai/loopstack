@@ -11,7 +11,7 @@
     "tool"
   ],
   "version": "0.22.2",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -31,12 +31,12 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "@anthropic-ai/sdk": "^0.88.0",
     "@loopstack/common": "^0.25.2",
     "@loopstack/core": "^0.25.2",
-    "@nestjs/common": "^11.1.14",
-    "@nestjs/config": "^4.0.3",
-    "@nestjs/core": "^11.1.14",
+    "@nestjs/common": "^11.1.19",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.19",
     "zod": "^4.3.6"
   },
   "files": [

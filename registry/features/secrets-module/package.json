@@ -1,0 +1,81 @@
+{
+  "name": "@loopstack/secrets-module",
+  "displayName": "Loopstack Secrets Module",
+  "description": "Secrets management for Loopstack workflows — entity, service, tools, and REST API for securely storing and retrieving workspace secrets",
+  "keywords": [
+    "loopstack",
+    "secrets",
+    "environment-variables",
+    "workflow"
+  ],
+  "version": "0.22.2",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "^0.25.2",
+    "@loopstack/core": "^0.25.2",
+    "@nestjs/common": "^11.1.19",
+    "@nestjs/swagger": "^11.2.0",
+    "@nestjs/typeorm": "^11.0.1",
+    "typeorm": "^0.3.22",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1
+  },
+  "loopstack": {
+    "modules": [
+      {
+        "path": "src/secrets.module.ts",
+        "className": "SecretsModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/tools/secrets-request.workflow.ts",
+        "className": "SecretsRequestWorkflow",
+        "propertyName": "secretsRequest"
+      }
+    ],
+    "installModes": [
+      "add",
+      "install"
+    ]
+  }
+}

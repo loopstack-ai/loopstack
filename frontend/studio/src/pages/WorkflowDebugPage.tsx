@@ -1,5 +1,5 @@
 import { ReactFlowProvider } from '@xyflow/react';
-import { Bug, Home, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
@@ -24,7 +24,6 @@ const WorkflowDebugPage: React.FC = () => {
 
   const breadcrumbData = useMemo(
     () => [
-      { label: 'Dashboard', href: router.getDashboard(), icon: <Home className="h-4 w-4" /> },
       { label: 'Workspaces', href: router.getWorkspaces() },
       {
         label: fetchWorkspace.data?.title ?? '...',
@@ -36,7 +35,6 @@ const WorkflowDebugPage: React.FC = () => {
       },
       {
         label: 'Debug Flow',
-        icon: <Bug className="h-4 w-4" />,
       },
     ],
     [fetchWorkspace.data, fetchWorkflow.data, workspaceId, workflowId, router],

@@ -5,4 +5,3 @@ export * from './workspace.entity.js';
 export * from './workspace-environment.entity.js';
 export * from './role.entity.js';
 export * from './user.entity.js';
-export * from './secret.entity.js';

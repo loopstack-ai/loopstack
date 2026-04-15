@@ -1,30 +1,24 @@
-import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/common';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
-import { CreateValue } from '@loopstack/create-value-tool';
+import { BaseWorkflow, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/workflow-state.ui.yaml',
 })
 export class WorkflowStateWorkflow extends BaseWorkflow {
-  @InjectTool() private createValue: CreateValue;
-  @InjectTool() private createChatMessage: CreateChatMessage;
-
   message?: string;
 
   @Initial({ to: 'data_created' })
-  async createSomeData() {
-    const result = await this.createValue.call({ input: 'Hello :)' });
-    this.message = result.data as string;
+  createSomeData() {
+    this.message = 'Hello :)';
   }
 
   @Final({ from: 'data_created' })
   async showResults() {
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Data from state: ${this.message}`,
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Use workflow helper method: ${this.messageInUpperCase(this.message!)}`,
     });

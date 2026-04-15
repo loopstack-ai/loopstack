@@ -4,14 +4,13 @@ import {
   CallbackSchema,
   Final,
   Initial,
-  InjectTool,
   InjectWorkflow,
+  LinkDocument,
+  MessageDocument,
   QueueResult,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import { LinkDocument } from '@loopstack/core';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
 import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
 
 const SubWorkflowCallbackSchema = CallbackSchema.extend({
@@ -24,7 +23,6 @@ type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
   uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml',
 })
 export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
-  @InjectTool() private createChatMessage: CreateChatMessage;
   @InjectWorkflow() private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
 
   @Initial({ to: 'sub_workflow_started' })
@@ -61,7 +59,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       { id: `link_${payload.workflowId}` },
     );
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `A message from sub workflow 1: ${payload.data.message}`,
     });
@@ -100,7 +98,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       { id: `link_${payload.workflowId}` },
     );
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `A message from sub workflow 2: ${payload.data.message}`,
     });

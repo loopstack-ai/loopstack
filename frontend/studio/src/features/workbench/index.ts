@@ -1,4 +1,5 @@
 export { default as Workbench } from './Workbench';
+export { WorkbenchSidebarShell } from './components/WorkbenchSidebarShell';
 export { default as WorkflowItem } from './WorkflowItem';
 export { default as WorkflowList } from './WorkflowList';
 export { NewRunDialog } from './components/NewRunDialog';

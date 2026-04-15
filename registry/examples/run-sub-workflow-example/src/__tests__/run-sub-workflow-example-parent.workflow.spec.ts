@@ -1,8 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
-import { RunContext, WorkflowEntity, getBlockConfig, getBlockTools } from '@loopstack/common';
+import { RunContext, WorkflowEntity, getBlockConfig } from '@loopstack/common';
 import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
-import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
-import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { RunSubWorkflowExampleParentWorkflow } from '../run-sub-workflow-example-parent.workflow';
 import { RunSubWorkflowExampleSubWorkflow } from '../run-sub-workflow-example-sub.workflow';
 
@@ -10,8 +9,6 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
   let module: TestingModule;
   let workflow: RunSubWorkflowExampleParentWorkflow;
   let processor: WorkflowProcessorService;
-
-  let mockCreateChatMessageTool: ToolMock;
 
   const mockSubWorkflow = {
     run: jest.fn(),
@@ -22,15 +19,12 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(RunSubWorkflowExampleParentWorkflow)
-      .withImports(LoopCoreModule, CreateChatMessageToolModule)
+      .withImports(LoopCoreModule)
       .withMock(RunSubWorkflowExampleSubWorkflow, mockSubWorkflow)
-      .withToolOverride(CreateChatMessage)
       .compile();
 
     workflow = module.get(RunSubWorkflowExampleParentWorkflow);
     processor = module.get(WorkflowProcessorService);
-
-    mockCreateChatMessageTool = module.get(CreateChatMessage);
   });
 
   afterEach(async () => {
@@ -46,13 +40,6 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
 
     it('should have config defined', () => {
       expect(getBlockConfig(workflow)).toBeDefined();
-    });
-
-    it('should have all tools available via workflow.tools', () => {
-      expect(getBlockTools(workflow)).toBeDefined();
-      expect(Array.isArray(getBlockTools(workflow))).toBe(true);
-      expect(getBlockTools(workflow)).toContain('createChatMessage');
-      expect(getBlockTools(workflow)).toHaveLength(1);
     });
   });
 
@@ -123,13 +110,17 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.stop).toBe(true);
       expect(result.place).toBe('sub_workflow2_started');
 
-      // subWorkflowCallback calls createChatMessage
-      expect(mockCreateChatMessageTool.call).toHaveBeenCalledWith(
-        {
-          role: 'assistant',
-          content: 'A message from sub workflow 1: Hi mom!',
-        },
-        undefined,
+      // MessageDocument should have been created
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'MessageDocument',
+            content: expect.objectContaining({
+              role: 'assistant',
+              content: 'A message from sub workflow 1: Hi mom!',
+            }),
+          }),
+        ]),
       );
 
       // runWorkflow2 fires automatically and calls sub workflow again
@@ -167,12 +158,16 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.hasError).toBe(false);
       expect(result.place).toBe('end');
 
-      expect(mockCreateChatMessageTool.call).toHaveBeenCalledWith(
-        {
-          role: 'assistant',
-          content: 'A message from sub workflow 2: Hello from sub workflow 2!',
-        },
-        undefined,
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'MessageDocument',
+            content: expect.objectContaining({
+              role: 'assistant',
+              content: 'A message from sub workflow 2: Hello from sub workflow 2!',
+            }),
+          }),
+        ]),
       );
     });
   });

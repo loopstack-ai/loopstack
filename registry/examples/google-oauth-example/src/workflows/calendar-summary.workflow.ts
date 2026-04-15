@@ -7,11 +7,12 @@ import {
   Initial,
   InjectTool,
   InjectWorkflow,
+  LinkDocument,
+  MarkdownDocument,
   ToolResult,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import { LinkDocument, MarkdownDocument } from '@loopstack/core';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 

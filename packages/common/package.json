@@ -3,7 +3,7 @@
   "displayName": "Loopstack Common Module",
   "description": "A collection of utils and dtos shared between nestjs modules",
   "version": "0.25.2",
-  "license": "BSL",
+  "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -28,7 +28,7 @@
     "class-transformer": "^0.5.1",
     "fast-json-stable-stringify": "^2.1.0",
     "reflect-metadata": "^0.2.2",
-    "yaml": "^2.8.2",
+    "yaml": "^2.8.3",
     "zod": "^4.3.6"
   },
   "files": [

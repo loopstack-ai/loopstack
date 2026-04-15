@@ -2,16 +2,15 @@
 
 > A module for the [Loopstack AI](https://loopstack.ai) automation framework.
 
-This module provides an example workflow demonstrating different methods for accessing tool results within and across workflow transitions.
+This module provides an example workflow demonstrating how to store and access data across workflow transitions using instance properties.
 
 ## Overview
 
-The Tool Results Example Workflow shows how to retrieve and use data returned by tools in subsequent workflow steps. Understanding these patterns is essential for building workflows that pass data between operations.
+The Workflow State Example shows how to persist data between transitions using class instance properties. Understanding these patterns is essential for building workflows that pass data between operations.
 
 By using this workflow as a reference, you'll learn how to:
 
-- Call tools using `@InjectTool()` and access their return values directly
-- Store tool results as workflow instance properties for use across transitions
+- Store data as workflow instance properties for use across transitions
 - Access stored data in later transitions via instance properties
 - Create private helper methods to encapsulate data access logic
 
@@ -25,45 +24,36 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ### Workflow Class
 
-The workflow extends `BaseWorkflow` and declares tools via `@InjectTool()`. Tool results are stored as instance properties and accessed across transitions:
+The workflow extends `BaseWorkflow` and stores data as instance properties that persist across transitions:
 
 ```typescript
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
 export class WorkflowToolResultsWorkflow extends BaseWorkflow {
-  @InjectTool() private createValue: CreateValue;
-  @InjectTool() private createChatMessage: CreateChatMessage;
-
   storedMessage?: string;
 }
 ```
 
 ### Key Concepts
 
-#### 1. Calling Tools and Storing Results
+#### 1. Storing Data in State
 
-In a transition method, call a tool with `this.tool.call(args)` and store the result as an instance property:
+In a transition method, assign values to instance properties:
 
 ```typescript
 @Initial({ to: 'data_created' })
 async createSomeData() {
-  const result = await this.createValue.call({ input: 'Hello World.' });
-  this.storedMessage = result.data as string;
+  this.storedMessage = 'Hello World.';
 
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
-    content: `Data from specific call id: ${this.storedMessage}`,
-  });
-
-  await this.createChatMessage.call({
-    role: 'assistant',
-    content: `Data from first tool call: ${this.storedMessage}`,
+    content: `Stored in initial transition: ${this.storedMessage}`,
   });
 }
 ```
 
-The `createValue` tool returns a `ToolResult` object with a `data` property containing the output. This value is stored in `this.storedMessage` for later use.
+The value is stored in `this.storedMessage` for later use.
 
 #### 2. Accessing Data Across Transitions
 
@@ -72,14 +62,14 @@ Instance properties persist across transitions. In a subsequent `@Final` method,
 ```typescript
 @Final({ from: 'data_created' })
 async accessData() {
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
-    content: `Data from previous transition: ${this.storedMessage}`,
+    content: `Accessed from previous transition: ${this.storedMessage}`,
   });
 
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
-    content: `Data access using custom helper: ${this.theMessage()}`,
+    content: `Accessed via helper method: ${this.theMessage()}`,
   });
 }
 ```
@@ -99,45 +89,35 @@ These are standard TypeScript methods -- no decorator needed. Call them from any
 ### Complete Workflow
 
 ```typescript
-import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/common';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
-import { CreateValue } from '@loopstack/create-value-tool';
+import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
+import { MessageDocument } from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
 export class WorkflowToolResultsWorkflow extends BaseWorkflow {
-  @InjectTool() private createValue: CreateValue;
-  @InjectTool() private createChatMessage: CreateChatMessage;
-
   storedMessage?: string;
 
   @Initial({ to: 'data_created' })
   async createSomeData() {
-    const result = await this.createValue.call({ input: 'Hello World.' });
-    this.storedMessage = result.data as string;
+    this.storedMessage = 'Hello World.';
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
-      content: `Data from specific call id: ${this.storedMessage}`,
-    });
-
-    await this.createChatMessage.call({
-      role: 'assistant',
-      content: `Data from first tool call: ${this.storedMessage}`,
+      content: `Stored in initial transition: ${this.storedMessage}`,
     });
   }
 
   @Final({ from: 'data_created' })
   async accessData() {
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
-      content: `Data from previous transition: ${this.storedMessage}`,
+      content: `Accessed from previous transition: ${this.storedMessage}`,
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
-      content: `Data access using custom helper: ${this.theMessage()}`,
+      content: `Accessed via helper method: ${this.theMessage()}`,
     });
   }
 
@@ -152,14 +132,13 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow {
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/common` - Base classes, decorators, and tool injection
-- `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool
-- `@loopstack/create-value-tool` - Provides `CreateValue` tool
+- `@loopstack/common` - Provides `MessageDocument` for chat messages
 
 ## About
 
 Author: [Jakob Klippel](https://www.linkedin.com/in/jakob-klippel/)
 
-License: Apache-2.0
+License: MIT
 
 ### Additional Resources
 

@@ -1,6 +1,14 @@
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import {
+  BaseWorkflow,
+  Final,
+  Initial,
+  InjectTool,
+  MessageDocument,
+  ToolResult,
+  Transition,
+  Workflow,
+} from '@loopstack/common';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
@@ -97,9 +105,6 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
   @InjectTool() sandboxExists: SandboxExists;
   @InjectTool() sandboxFileInfo: SandboxFileInfo;
 
-  // Chat message tool for outputting info to the interface
-  @InjectTool() createChatMessage: CreateChatMessage;
-
   @Initial({ to: 'sandbox_ready' })
   async initSandbox(args: { outputDir: string }) {
     const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
@@ -112,7 +117,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
 
     this.containerId = initResult.data!.containerId;
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
     });
@@ -126,7 +131,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
       recursive: true,
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Directory created: ${mkdirResult.data!.path} (created: ${mkdirResult.data!.created})`,
     });
@@ -142,7 +147,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
       createParentDirs: true,
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
     });
@@ -158,7 +163,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
 
     this.fileContent = readResult.data!.content;
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
     });
@@ -174,7 +179,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
 
     this.fileList = listResult.data!.entries;
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
     });
@@ -187,7 +192,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
       path: '/workspace/result.txt',
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `File existence check: ${existsResult.data!.path} exists=${existsResult.data!.exists}, type=${existsResult.data!.type}`,
     });
@@ -200,7 +205,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
       path: '/workspace/result.txt',
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `File info for ${infoResult.data!.name}: type=${infoResult.data!.type}, size=${infoResult.data!.size} bytes, permissions=${infoResult.data!.permissions}, owner=${infoResult.data!.owner}`,
     });
@@ -215,7 +220,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
       force: true,
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `File deleted: ${deleteResult.data!.path} (deleted: ${deleteResult.data!.deleted})`,
     });
@@ -228,7 +233,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
       removeContainer: true,
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
     });

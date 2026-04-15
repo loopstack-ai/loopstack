@@ -1,5 +1,5 @@
 import { ReactFlowProvider } from '@xyflow/react';
-import { Home, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -24,11 +24,6 @@ export default function DebugWorkflowDetailsPage() {
   const { data: source, isLoading: isSourceLoading } = useWorkflowSource(workflowBlockName);
   const isLoading = isWorkflowLoading || isSourceLoading;
   const breadcrumbsData = [
-    {
-      label: 'Dashboard',
-      href: router.getDashboard(),
-      icon: <Home className="h-4 w-4" />,
-    },
     {
       label: 'Debug Workflows',
       href: router.getDebugWorkflows(),

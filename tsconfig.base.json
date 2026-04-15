@@ -35,8 +35,11 @@
       "@loopstack/github-module": ["./registry/features/github-module/src"],
       "@loopstack/google-workspace-module": ["./registry/features/google-workspace-module/src"],
       "@loopstack/oauth-module": ["./registry/features/oauth-module/src"],
-      "@loopstack/create-chat-message-tool": ["./registry/tools/create-chat-message-tool/src"],
-      "@loopstack/create-value-tool": ["./registry/tools/create-value-tool/src"],
+      "@loopstack/quota": ["./registry/features/quota-module/src"],
+      "@loopstack/local-file-explorer-module": ["./registry/features/local-file-explorer-module/src"],
+      "@loopstack/remote-agent-client": ["./registry/features/remote-agent-client-module/src"],
+      "@loopstack/remote-file-explorer-module": ["./registry/features/remote-file-explorer-module/src"],
+      "@loopstack/secrets-module": ["./registry/features/secrets-module/src"],
       "@loopstack/sandbox-filesystem": ["./registry/tools/sandbox-filesystem/src"],
       "@loopstack/sandbox-tool": ["./registry/tools/sandbox-tool/src"],
       "@loopstack/accessing-tool-results-example-workflow": [

@@ -366,7 +366,7 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn('relative flex w-full min-w-0 flex-col p-1.5', className)}
+      className={cn('relative flex w-full min-w-0 flex-col p-1.5 group-data-[collapsible=icon]:p-1', className)}
       {...props}
     />
   );
@@ -450,7 +450,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<'li'>) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm text-muted-foreground outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-accent/50 hover:text-accent-foreground focus-visible:ring-2 active:bg-accent/50 active:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-foreground data-[active=true]:font-medium data-[active=true]:text-background data-[state=open]:hover:bg-accent/50 data-[state=open]:hover:text-accent-foreground group-data-[collapsible=icon]:size-10! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-5 [&>svg]:shrink-0',
+  'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm text-muted-foreground outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-accent/50 hover:text-accent-foreground focus-visible:ring-2 active:bg-accent/50 active:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-foreground data-[active=true]:font-medium data-[active=true]:text-background data-[state=open]:hover:bg-accent/50 data-[state=open]:hover:text-accent-foreground group-data-[collapsible=icon]:size-10! group-data-[collapsible=icon]:p-2! group-data-[collapsible=icon]:relative group-data-[collapsible=icon]:[&>svg]:absolute group-data-[collapsible=icon]:[&>svg]:left-1/2 group-data-[collapsible=icon]:[&>svg]:top-1/2 group-data-[collapsible=icon]:[&>svg]:-translate-x-1/2 group-data-[collapsible=icon]:[&>svg]:-translate-y-1/2 group-data-[collapsible=icon]:[&>span]:hidden [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
   {
     variants: {
       variant: {

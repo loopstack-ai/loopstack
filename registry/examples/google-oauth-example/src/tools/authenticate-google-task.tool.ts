@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, Tool, ToolResult } from '@loopstack/common';
-import { LinkDocument } from '@loopstack/core';
+import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolResult } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 const AuthenticateGoogleTaskInputSchema = z

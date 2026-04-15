@@ -68,7 +68,7 @@ const WorkspaceHomePage = ({ workspace, action }: WorkspaceHomePageProps) => {
   };
 
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center">
+    <div className="mx-auto flex min-h-[80vh] max-w-2xl flex-col items-center justify-center">
       <ErrorSnackbar error={createWorkflow.error} />
       <ErrorSnackbar error={runWorkflow.error} />
 

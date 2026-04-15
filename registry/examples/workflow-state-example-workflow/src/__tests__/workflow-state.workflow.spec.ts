@@ -1,8 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
-import { CreateValue, CreateValueToolModule } from '@loopstack/create-value-tool';
-import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
+import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { WorkflowStateWorkflow } from '../workflow-state.workflow';
 
 describe('WorkflowStateWorkflow', () => {
@@ -10,22 +8,11 @@ describe('WorkflowStateWorkflow', () => {
   let workflow: WorkflowStateWorkflow;
   let processor: WorkflowProcessorService;
 
-  let mockCreateValue: ToolMock;
-  let mockCreateChatMessage: ToolMock;
-
   beforeEach(async () => {
-    module = await createWorkflowTest()
-      .forWorkflow(WorkflowStateWorkflow)
-      .withImports(CreateValueToolModule, CreateChatMessageToolModule)
-      .withToolOverride(CreateValue)
-      .withToolOverride(CreateChatMessage)
-      .compile();
+    module = await createWorkflowTest().forWorkflow(WorkflowStateWorkflow).compile();
 
     workflow = module.get(WorkflowStateWorkflow);
     processor = module.get(WorkflowProcessorService);
-
-    mockCreateValue = module.get(CreateValue);
-    mockCreateChatMessage = module.get(CreateChatMessage);
   });
 
   afterEach(async () => {
@@ -39,31 +26,28 @@ describe('WorkflowStateWorkflow', () => {
   it('should execute workflow and pass state between transitions', async () => {
     const context = createStatelessContext();
 
-    mockCreateValue.call.mockResolvedValue({ data: 'Hello :)' });
-    mockCreateChatMessage.call.mockResolvedValue({ data: undefined });
-
     const result = await processor.process(workflow, {}, context);
 
     expect(result.hasError).toBe(false);
 
-    // Verify createValue was called
-    expect(mockCreateValue.call).toHaveBeenCalledWith({ input: 'Hello :)' }, undefined);
-
-    // Verify createChatMessage was called with state from previous transition
-    expect(mockCreateChatMessage.call).toHaveBeenCalledTimes(2);
-    expect(mockCreateChatMessage.call).toHaveBeenCalledWith(
-      {
-        role: 'assistant',
-        content: 'Data from state: Hello :)',
-      },
-      undefined,
-    );
-    expect(mockCreateChatMessage.call).toHaveBeenCalledWith(
-      {
-        role: 'assistant',
-        content: 'Use workflow helper method: HELLO :)',
-      },
-      undefined,
+    // Verify MessageDocuments were created with state from previous transition
+    expect(result.documents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          className: 'MessageDocument',
+          content: expect.objectContaining({
+            role: 'assistant',
+            content: 'Data from state: Hello :)',
+          }),
+        }),
+        expect.objectContaining({
+          className: 'MessageDocument',
+          content: expect.objectContaining({
+            role: 'assistant',
+            content: 'Use workflow helper method: HELLO :)',
+          }),
+        }),
+      ]),
     );
   });
 });

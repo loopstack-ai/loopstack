@@ -4,43 +4,32 @@ import type {
   WorkspaceEnvironmentInterface,
   WorkspaceInterface,
 } from '@loopstack/contracts/api';
+import { useOptionalStudioPreferences } from '@/providers/StudioPreferencesProvider';
 
-export type FloatingPanelId = 'history' | 'secrets';
-export type SidePanelId = 'preview' | 'flow' | 'files';
-export type PreviewTab = 'preview' | 'flow' | 'history';
+export type PanelId = 'runs' | 'preview' | 'files' | 'environment' | (string & {});
+export type PanelSize = 'small' | 'medium' | 'large';
 
 export interface WorkbenchLayoutContextType {
-  // Workflow & derived state
-  workflow: WorkflowFullInterface;
+  workspaceId: string;
+  workflow?: WorkflowFullInterface;
   previewPanelEnabled: boolean;
-  fileExplorerEnabled: boolean;
-  isDeveloperMode: boolean;
   workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
   getPreviewUrl?: (workflowId: string) => string;
   getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, workflowId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
 
-  // Floating panel state (history, secrets)
-  activeFloatingPanel: FloatingPanelId | null;
-  toggleFloatingPanel: (id: FloatingPanelId) => void;
-  closeFloatingPanel: () => void;
-
-  // Side panel state (preview, flow — takes half width)
-  activeSidePanel: SidePanelId | null;
-  toggleSidePanel: (id: SidePanelId) => void;
-  closeSidePanel: () => void;
+  // Panel state
+  activePanel: PanelId | null;
+  panelSize: PanelSize;
+  togglePanel: (id: PanelId) => void;
+  closePanel: () => void;
+  setPanelSize: (size: PanelSize) => void;
 
   // Preview environment selection
   selectedSlotId: string;
   setSelectedSlotId: (slotId: string) => void;
   openPreviewWithEnvironment: (slotId: string) => void;
-
-  // Legacy aliases
-  previewPanelOpen: boolean;
-  togglePreviewPanel: () => void;
-  activePreviewTab: PreviewTab;
-  setActivePreviewTab: (tab: PreviewTab) => void;
 
   // Active workflow section (for navigation highlight sync)
   activeSectionId: string | null;
@@ -51,152 +40,139 @@ const WorkbenchLayoutContext = createContext<WorkbenchLayoutContextType | null>(
 
 export interface WorkbenchLayoutProviderProps {
   children: ReactNode;
-  workflow: WorkflowFullInterface;
-  isDeveloperMode?: boolean;
+  workspaceId: string;
+  workflow?: WorkflowFullInterface;
   workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
   getPreviewUrl?: (workflowId: string) => string;
   getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, workflowId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
-  previewPanelOpen?: boolean;
-  onPreviewPanelOpenChange?: (open: boolean) => void;
 }
 
 export function WorkbenchLayoutProvider({
   children,
+  workspaceId,
   workflow,
-  isDeveloperMode = false,
   workspaceConfig,
 
   getPreviewUrl,
   getEnvironmentPreviewUrl,
   environments,
-  previewPanelOpen: controlledPreviewOpen,
-  onPreviewPanelOpenChange,
 }: WorkbenchLayoutProviderProps) {
-  const [activeFloatingPanel, setActiveFloatingPanel] = useState<FloatingPanelId | null>(null);
-  const [uncontrolledSidePanel, setUncontrolledSidePanel] = useState<SidePanelId | null>(null);
-  const [activePreviewTab, setActivePreviewTab] = useState<PreviewTab>('preview');
+  const studioPrefs = useOptionalStudioPreferences();
+
+  // Panel state — backed by StudioPreferencesProvider when available, otherwise local state
+  const [localActivePanel, setLocalActivePanel] = useState<PanelId | null>(null);
+  const [localPanelSizes, setLocalPanelSizes] = useState<Partial<Record<PanelId, PanelSize>>>({});
+
+  const activePanel = studioPrefs ? studioPrefs.preferences.activePanel : localActivePanel;
+  const panelSizes = studioPrefs ? studioPrefs.preferences.panelSizes : localPanelSizes;
+
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string>('');
-
-  const isControlled = controlledPreviewOpen !== undefined;
-  const activeSidePanel: SidePanelId | null = isControlled
-    ? controlledPreviewOpen
-      ? (uncontrolledSidePanel ?? 'preview')
-      : null
-    : uncontrolledSidePanel;
 
   const featureEnabled = workspaceConfig?.features?.previewPanel?.enabled ?? false;
   const hasConnectableEnvs =
     environments === undefined || environments.some((e) => !!e.connectionUrl && (!!e.workerId || e.local));
   const previewPanelEnabled = featureEnabled && hasConnectableEnvs;
-  const fileExplorerEnabled =
-    workspaceConfig?.features?.fileExplorer?.enabled &&
-    workspaceConfig?.features?.fileExplorer?.environments?.includes(environments?.[0]?.slotId ?? '');
-  const previewPanelOpen = activeSidePanel !== null;
+  const defaultPanelSize: Record<string, PanelSize> = {
+    runs: 'medium',
+    preview: 'medium',
+    files: 'medium',
+    environment: 'small',
+  };
 
-  const setSidePanel = useCallback(
-    (panel: SidePanelId | null) => {
-      if (isControlled) {
-        onPreviewPanelOpenChange?.(panel !== null);
-      }
-      setUncontrolledSidePanel(panel);
-    },
-    [isControlled, onPreviewPanelOpenChange],
-  );
+  const panelSize = activePanel ? (panelSizes[activePanel] ?? defaultPanelSize[activePanel] ?? 'small') : 'small';
 
-  const toggleFloatingPanel = useCallback(
-    (id: FloatingPanelId) => {
-      setActiveFloatingPanel((prev) => (prev === id ? null : id));
-      // Close side panel when opening a floating panel
-      setSidePanel(null);
-    },
-    [setSidePanel],
-  );
-
-  const closeFloatingPanel = useCallback(() => {
-    setActiveFloatingPanel(null);
-  }, []);
-
-  const toggleSidePanel = useCallback(
-    (id: SidePanelId) => {
-      const next = activeSidePanel === id ? null : id;
-      setSidePanel(next);
-      // Close floating panel when opening a side panel
-      if (next) {
-        setActiveFloatingPanel(null);
+  const setActivePanel = useCallback(
+    (panel: PanelId | null) => {
+      if (studioPrefs) {
+        studioPrefs.setPreference('activePanel', panel);
+      } else {
+        setLocalActivePanel(panel);
       }
     },
-    [activeSidePanel, setSidePanel],
+    [studioPrefs],
   );
 
-  const closeSidePanel = useCallback(() => {
-    setSidePanel(null);
-  }, [setSidePanel]);
+  const togglePanel = useCallback(
+    (id: PanelId) => {
+      const next = activePanel === id ? null : id;
+      setActivePanel(next);
+    },
+    [activePanel, setActivePanel],
+  );
+
+  const closePanel = useCallback(() => {
+    setActivePanel(null);
+  }, [setActivePanel]);
+
+  const setPanelSize = useCallback(
+    (size: PanelSize) => {
+      if (!activePanel) return;
+      const next = { ...panelSizes, [activePanel]: size };
+      if (studioPrefs) {
+        studioPrefs.setPreference('panelSizes', next);
+      } else {
+        setLocalPanelSizes(next);
+      }
+    },
+    [activePanel, panelSizes, studioPrefs],
+  );
 
   const openPreviewWithEnvironment = useCallback(
     (slotId: string) => {
       setSelectedSlotId(slotId);
-      setSidePanel('preview');
-      setActiveFloatingPanel(null);
+      setActivePanel('preview');
     },
-    [setSidePanel],
+    [setActivePanel],
   );
-
-  const togglePreviewPanel = useCallback(() => {
-    toggleSidePanel('preview');
-  }, [toggleSidePanel]);
 
   const value = useMemo<WorkbenchLayoutContextType>(
     () => ({
+      workspaceId,
       workflow,
       previewPanelEnabled,
-      fileExplorerEnabled: fileExplorerEnabled ?? false,
-      isDeveloperMode,
+
       workspaceConfig,
 
       getPreviewUrl,
       getEnvironmentPreviewUrl,
       environments,
-      activeFloatingPanel,
-      toggleFloatingPanel,
-      closeFloatingPanel,
-      activeSidePanel,
-      toggleSidePanel,
-      closeSidePanel,
+
+      activePanel,
+      panelSize,
+      togglePanel,
+      closePanel,
+      setPanelSize,
+
       selectedSlotId,
       setSelectedSlotId,
       openPreviewWithEnvironment,
-      previewPanelOpen,
-      togglePreviewPanel,
-      activePreviewTab,
-      setActivePreviewTab,
+
       activeSectionId,
       setActiveSectionId,
     }),
     [
+      workspaceId,
       workflow,
       previewPanelEnabled,
-      fileExplorerEnabled,
-      isDeveloperMode,
+
       workspaceConfig,
 
       getPreviewUrl,
       getEnvironmentPreviewUrl,
       environments,
-      activeFloatingPanel,
-      toggleFloatingPanel,
-      closeFloatingPanel,
-      activeSidePanel,
-      toggleSidePanel,
-      closeSidePanel,
+
+      activePanel,
+      panelSize,
+      togglePanel,
+      closePanel,
+      setPanelSize,
+
       selectedSlotId,
       openPreviewWithEnvironment,
-      previewPanelOpen,
-      togglePreviewPanel,
-      activePreviewTab,
-      setActivePreviewTab,
+
       activeSectionId,
       setActiveSectionId,
     ],

@@ -34,28 +34,24 @@ State is stored as instance properties on the workflow class. No special decorat
   uiConfig: __dirname + '/workflow-state.ui.yaml',
 })
 export class WorkflowStateWorkflow extends BaseWorkflow {
-  @InjectTool() private createValue: CreateValue;
-  @InjectTool() private createChatMessage: CreateChatMessage;
-
   message?: string;
 }
 ```
 
 The `message` property is a plain instance property that persists across transitions automatically.
 
-#### 2. Storing Tool Results in State
+#### 2. Storing Data in State
 
-Call a tool and assign the result to an instance property inside a transition method:
+Assign values to instance properties inside a transition method:
 
 ```typescript
 @Initial({ to: 'data_created' })
 async createSomeData() {
-  const result = await this.createValue.call({ input: 'Hello :)' });
-  this.message = result.data as string;
+  this.message = 'Hello :)';
 }
 ```
 
-The `createValue` tool returns a `ToolResult` with a `data` property. The value is stored in `this.message` for use in later transitions.
+The value is stored in `this.message` for use in later transitions.
 
 #### 3. Accessing State in Later Transitions
 
@@ -91,33 +87,28 @@ These are standard TypeScript methods with no decorator required. Call them from
 ### Complete Workflow
 
 ```typescript
-import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/common';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
-import { CreateValue } from '@loopstack/create-value-tool';
+import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
+import { MessageDocument } from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/workflow-state.ui.yaml',
 })
 export class WorkflowStateWorkflow extends BaseWorkflow {
-  @InjectTool() private createValue: CreateValue;
-  @InjectTool() private createChatMessage: CreateChatMessage;
-
   message?: string;
 
   @Initial({ to: 'data_created' })
   async createSomeData() {
-    const result = await this.createValue.call({ input: 'Hello :)' });
-    this.message = result.data as string;
+    this.message = 'Hello :)';
   }
 
   @Final({ from: 'data_created' })
   async showResults() {
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Data from state: ${this.message}`,
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Use workflow helper method: ${this.messageInUpperCase(this.message!)}`,
     });
@@ -134,14 +125,13 @@ export class WorkflowStateWorkflow extends BaseWorkflow {
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/common` - Base classes, decorators, and tool injection
-- `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool
-- `@loopstack/create-value-tool` - Provides `CreateValue` tool
+- `@loopstack/common` - Provides `MessageDocument` for chat messages
 
 ## About
 
 Author: [Jakob Klippel](https://www.linkedin.com/in/jakob-klippel/)
 
-License: Apache-2.0
+License: MIT
 
 ### Additional Resources
 

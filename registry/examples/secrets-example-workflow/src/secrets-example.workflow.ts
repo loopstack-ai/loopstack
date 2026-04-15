@@ -1,5 +1,14 @@
-import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
-import { GetSecretKeysTool, MarkdownDocument, RequestSecretsTool, SecretRequestDocument } from '@loopstack/core';
+import {
+  BaseWorkflow,
+  Final,
+  Initial,
+  InjectTool,
+  MarkdownDocument,
+  ToolResult,
+  Transition,
+  Workflow,
+} from '@loopstack/common';
+import { GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/secrets-module';
 
 @Workflow({
   uiConfig: __dirname + '/secrets-example.ui.yaml',

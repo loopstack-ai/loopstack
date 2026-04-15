@@ -99,7 +99,7 @@ See `@loopstack/oauth-module` and `@loopstack/google-oauth-calendar-example` for
 
 Author: [Jakob Klippel](https://www.linkedin.com/in/jakob-klippel/)
 
-License: Apache-2.0
+License: MIT
 
 ### Additional Resources
 

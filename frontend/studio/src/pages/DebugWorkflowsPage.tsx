@@ -1,5 +1,4 @@
 import { useQueries } from '@tanstack/react-query';
-import { Home } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { WorkflowConfigInterface } from '@loopstack/contracts/api';
 import { DataTable } from '@/components/data-table/DataTable';
@@ -116,14 +115,7 @@ export default function DebugWorkflowsPage() {
     },
   ];
 
-  const breadcrumbsData = [
-    {
-      label: 'Dashboard',
-      href: router.getDashboard(),
-      icon: <Home className="h-4 w-4" />,
-    },
-    { label: 'Debug Workflows', current: true },
-  ];
+  const breadcrumbsData = [{ label: 'Debug Workflows', current: true }];
 
   return (
     <MainLayout breadcrumbsData={breadcrumbsData}>

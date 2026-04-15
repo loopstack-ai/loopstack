@@ -1,11 +1,16 @@
 import { Outlet, useSearchParams } from 'react-router-dom';
+import { FeatureRegistryProvider } from '../features/feature-registry';
+import { fileExplorerFeature } from '../features/file-explorer';
 import LocalHealthCheck from '../features/health/LocalHealthCheck.tsx';
+import { secretsFeature } from '../features/secrets';
 import { InvalidationEventsProvider } from '../providers/InvalidationEventsProvider.tsx';
 import { QueryProvider } from '../providers/QueryProvider.tsx';
 import { SseProvider } from '../providers/SseProvider.tsx';
 import { StudioProvider } from '../providers/StudioProvider.tsx';
 import { useRouter } from '../routing/LocalRouter.tsx';
 import type { Environment } from '../types';
+
+const defaultFeatures = [secretsFeature, fileExplorerFeature];
 
 export default function EnvironmentEmbedRoot() {
   const [searchParams] = useSearchParams();
@@ -23,10 +28,12 @@ export default function EnvironmentEmbedRoot() {
   return (
     <QueryProvider>
       <StudioProvider router={router} environment={environment}>
-        <LocalHealthCheck />
-        <SseProvider />
-        <InvalidationEventsProvider />
-        <Outlet />
+        <FeatureRegistryProvider features={defaultFeatures}>
+          <LocalHealthCheck />
+          <SseProvider />
+          <InvalidationEventsProvider />
+          <Outlet />
+        </FeatureRegistryProvider>
       </StudioProvider>
     </QueryProvider>
   );

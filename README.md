@@ -68,11 +68,11 @@ Browse available packages at [loopstack.ai/registry](https://loopstack.ai/regist
 
 ## License
 
-**Business Source License 1.1** (BSL)
+**MIT License**
 
-Free for personal and commercial use — build apps, modify code, sell products. After 4 years, everything becomes completely open source with no restrictions.
+Free for personal and commercial use — build apps, modify code, sell products. No restrictions.
 
-For details see: [LICENSE.md](LICENSE.md)
+For details see: [LICENSE](LICENSE)
 
 ---
 

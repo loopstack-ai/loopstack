@@ -4,7 +4,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import {
   DocumentEntity,
-  SecretEntity,
   WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
@@ -60,8 +59,6 @@ export function mockCoreModuleProviders(builder: TestingModuleBuilder): TestingM
     .overrideProvider(getRepositoryToken(WorkspaceEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkspaceEnvironmentEntity))
-    .useValue(createMockRepository())
-    .overrideProvider(getRepositoryToken(SecretEntity))
     .useValue(createMockRepository())
     .overrideProvider(getRepositoryToken(WorkflowCheckpointEntity))
     .useValue(createMockRepository());

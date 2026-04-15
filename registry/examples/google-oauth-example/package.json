@@ -12,7 +12,7 @@
     "oauth"
   ],
   "version": "0.2.3",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://github.com/loopstack-ai"
@@ -35,10 +35,9 @@
     "@loopstack/claude-module": "^0.22.2",
     "@loopstack/common": "^0.25.2",
     "@loopstack/core": "^0.25.2",
-    "@loopstack/create-chat-message-tool": "^0.21.3",
     "@loopstack/google-workspace-module": "^0.3.3",
     "@loopstack/oauth-module": "^0.2.3",
-    "@nestjs/common": "^11.1.14",
+    "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
   "files": [

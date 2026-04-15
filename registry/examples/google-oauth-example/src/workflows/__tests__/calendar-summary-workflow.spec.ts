@@ -2,7 +2,6 @@ import { TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
 import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
 import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
-import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import {
   GmailGetMessageTool,
   GmailReplyToMessageTool,
@@ -28,7 +27,7 @@ const mockOAuthWorkflow = {
 function buildCalendarSummaryTest() {
   return createWorkflowTest()
     .forWorkflow(CalendarSummaryWorkflow)
-    .withImports(LoopCoreModule, CreateChatMessageToolModule, OAuthModule)
+    .withImports(LoopCoreModule, OAuthModule)
     .withToolMock(GoogleCalendarFetchEventsTool)
     .withToolMock(GoogleCalendarListCalendarsTool)
     .withToolMock(GoogleCalendarFetchEventsModuleTool)
@@ -41,8 +40,7 @@ function buildCalendarSummaryTest() {
     .withToolMock(GoogleDriveGetFileMetadataTool)
     .withToolMock(GoogleDriveDownloadFileTool)
     .withToolMock(GoogleDriveUploadFileTool)
-    .withMock(OAuthWorkflow, mockOAuthWorkflow)
-    .withToolOverride(CreateChatMessage);
+    .withMock(OAuthWorkflow, mockOAuthWorkflow);
 }
 
 describe('CalendarSummaryWorkflow', () => {
