@@ -34,7 +34,7 @@
     "@loopstack/common": "^0.25.2",
     "@loopstack/core": "^0.25.2",
     "@loopstack/create-chat-message-tool": "^0.21.3",
-    "@nestjs/common": "^11.1.14",
+    "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
   "files": [

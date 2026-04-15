@@ -35,7 +35,7 @@
     "@loopstack/claude-module": "^0.22.2",
     "@loopstack/common": "^0.25.2",
     "@loopstack/core": "^0.25.2",
-    "@nestjs/common": "^11.1.14",
+    "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
   "files": [
