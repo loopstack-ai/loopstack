@@ -3,7 +3,7 @@
   "displayName": "Loopstack Testing Utils",
   "description": "Testing utilities for building tests for loopstack components",
   "version": "0.25.2",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"

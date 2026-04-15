@@ -11,7 +11,7 @@
     "workflow"
   ],
   "version": "0.21.3",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://github.com/loopstack-ai"

@@ -382,7 +382,7 @@ Rendered by the `oauth-prompt` widget. Used internally by the OAuth workflow to 
 
 Author: [Jakob Klippel](https://www.linkedin.com/in/jakob-klippel/)
 
-License: Apache-2.0
+License: MIT
 
 ### Additional Resources
 

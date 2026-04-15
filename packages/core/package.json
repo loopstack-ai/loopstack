@@ -4,7 +4,7 @@
   "description": "The core module of the loopstack automation framework",
   "version": "0.25.2",
   "repository": "loopstack-ai/core",
-  "license": "BSL",
+  "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel//"

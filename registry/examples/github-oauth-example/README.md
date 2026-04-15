@@ -200,7 +200,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 
 Author: [Jakob Klippel](https://github.com/loopstack-ai)
 
-License: Apache-2.0
+License: MIT
 
 ### Additional Resources
 

@@ -3,7 +3,7 @@
   "displayName": "Loopstack Quota Module",
   "description": "Opt-in quota tracking and enforcement for Loopstack workflows",
   "version": "0.22.0",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"

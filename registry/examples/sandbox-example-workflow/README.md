@@ -182,7 +182,7 @@ This workflow uses the following Loopstack modules:
 
 Author: [Jakob Klippel](https://www.linkedin.com/in/jakob-klippel/)
 
-License: Apache-2.0
+License: MIT
 
 ### Additional Resources
 

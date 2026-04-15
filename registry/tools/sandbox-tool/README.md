@@ -150,7 +150,7 @@ Stop and destroy a sandbox container.
 
 Author: Tobias Blättermann, Jakob Klippel
 
-License: Apache-2.0
+License: MIT
 
 ### Additional Resources:
 

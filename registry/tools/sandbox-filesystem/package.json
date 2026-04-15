@@ -8,7 +8,7 @@
     "sandbox"
   ],
   "version": "0.5.3",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": {
     "name": "Tobias Blättermann, Jakob Klippel"
   },

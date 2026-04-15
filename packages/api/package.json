@@ -3,7 +3,7 @@
   "displayName": "Loopstack Api Module",
   "description": "The api module of the loopstack automation framework",
   "version": "0.25.2",
-  "license": "BSL",
+  "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"

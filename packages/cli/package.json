@@ -4,7 +4,7 @@
   "description": "The cli module for Loopstack",
   "version": "0.25.2",
   "repository": "loopstack-ai/cli",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"

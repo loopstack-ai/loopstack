@@ -154,7 +154,7 @@ export class MyWorkflow extends BaseWorkflow<{ outputDir: string }> {
 
 Author: Tobias Blättermann, Jakob Klippel
 
-License: Apache-2.0
+License: MIT
 
 ### Additional Resources:
 
