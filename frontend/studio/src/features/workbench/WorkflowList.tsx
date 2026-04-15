@@ -1,10 +1,15 @@
-import { ArrowDownIcon } from 'lucide-react';
+import { ReactFlowProvider } from '@xyflow/react';
+import { ArrowDownIcon, ListOrdered, Workflow as WorkflowIcon } from 'lucide-react';
 import React, { useState } from 'react';
 import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import { Button } from '@/components/ui/button.tsx';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog.tsx';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
+import { WorkflowFlowViewer } from '@/features/debug';
 import WorkflowItem from '@/features/workbench/WorkflowItem.tsx';
-import { useWorkflowConfigByName } from '@/hooks/useWorkflows.ts';
+import { useChildWorkflows, useWorkflowConfigByName } from '@/hooks/useWorkflows.ts';
 import WorkbenchSettingsModal from './components/WorkbenchSettingsModal.tsx';
+import WorkflowHistoryList from './components/WorkflowHistoryList.tsx';
 import WorkflowButtons from './components/buttons/WorkflowButtons.tsx';
 import { useWorkflowListState } from './hooks/useWorkflowListState.ts';
 
@@ -26,6 +31,8 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
 
   const { listRef, scrollTo, canScrollDown, scrollToBottom } = useWorkflowListState();
   const fetchWorkflowConfig = useWorkflowConfigByName(workflow.className ?? undefined);
+  const fetchChildWorkflows = useChildWorkflows(workflow.id);
+  const childWorkflows = fetchChildWorkflows.data ?? [];
 
   return (
     <div>
@@ -45,6 +52,69 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
           <div className="flex w-full items-center gap-2 rounded-md p-2 px-3 text-left text-sm font-medium">
             <span className="flex-1 truncate text-sm">{fetchWorkflowConfig.data?.title ?? workflow.alias}</span>
             <WorkflowButtons workflow={workflow} workflowId={workflow.id} />
+
+            <Dialog>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-500 hover:cursor-pointer hover:text-gray-700"
+                    >
+                      <ListOrdered className="h-5 w-5" />
+                    </Button>
+                  </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Run Log</TooltipContent>
+              </Tooltip>
+              <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+                <DialogHeader>
+                  <DialogTitle>Run Log</DialogTitle>
+                </DialogHeader>
+                <div className="flex-1 overflow-auto">
+                  <WorkflowHistoryList workflow={workflow} />
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-500 hover:cursor-pointer hover:text-gray-700"
+                    >
+                      <WorkflowIcon className="h-5 w-5" />
+                    </Button>
+                  </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Graph</TooltipContent>
+              </Tooltip>
+              <DialogContent className="sm:max-w-4xl h-[70vh] overflow-hidden flex flex-col">
+                <DialogHeader>
+                  <DialogTitle>Graph</DialogTitle>
+                </DialogHeader>
+                <div className="flex-1 overflow-hidden">
+                  {childWorkflows.length > 0 ? (
+                    <ReactFlowProvider>
+                      <WorkflowFlowViewer
+                        workflowId={workflow.id}
+                        workflows={childWorkflows}
+                        workflowConfig={fetchWorkflowConfig.data}
+                      />
+                    </ReactFlowProvider>
+                  ) : (
+                    <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
+                      No workflows found
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+
             <WorkbenchSettingsModal
               settings={settings}
               onSettingsChange={setSettings}

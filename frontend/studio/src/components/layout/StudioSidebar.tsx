@@ -1,9 +1,10 @@
-import { CircleAlert, Info, LayoutDashboard, LayoutGrid, PanelLeftIcon, Play, Workflow } from 'lucide-react';
+import { CircleAlert, LayoutGrid, MoreHorizontal, PanelLeftIcon, Play, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useFilterWorkflows } from '@/hooks/useWorkflows.ts';
+import { useFilterWorkspaces } from '@/hooks/useWorkspaces.ts';
 import { cn } from '@/lib/utils';
 import { useComponentOverrides } from '@/providers/ComponentOverridesProvider.tsx';
 import { useStudio, useStudioOptional } from '@/providers/StudioProvider.tsx';
@@ -141,14 +142,10 @@ const WorkspacesNav = () => {
       <SidebarGroupContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={location.pathname === workspacesPath || location.pathname.startsWith(workspacesPath + '/')}
-              tooltip="My Workspaces"
-            >
+            <SidebarMenuButton asChild isActive={location.pathname === workspacesPath} tooltip="Workspaces">
               <Link to={workspacesPath}>
                 <LayoutGrid />
-                <span>My Workspaces</span>
+                <span>Workspaces</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -158,55 +155,87 @@ const WorkspacesNav = () => {
   );
 };
 
-const InsightsNav = () => {
+const FavouritesNav = () => {
   const location = useLocation();
   const { router } = useStudio();
+  const workspacesPath = router.getWorkspaces();
 
-  const navItems = [
-    { label: 'Dashboard', href: router.getDashboard(), icon: LayoutDashboard },
-    { label: 'Workflows', href: router.getDebugWorkflows(), icon: Workflow },
-  ];
+  const fetchFavourites = useFilterWorkspaces(undefined, { isFavourite: 'true' }, 'createdAt', 'ASC', 0, 10);
+
+  const favourites = fetchFavourites.data?.data ?? [];
+
+  if (favourites.length === 0) {
+    return null;
+  }
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Insights</SidebarGroupLabel>
+      <SidebarGroupLabel>Favourites</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {navItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton asChild isActive={location.pathname === item.href} tooltip={item.label}>
-                <Link to={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
+          {favourites.map((workspace) => {
+            const workspacePath = router.getWorkspace(workspace.id);
+            const isActive = location.pathname === workspacePath || location.pathname.startsWith(workspacePath + '/');
+
+            return (
+              <SidebarMenuItem key={workspace.id}>
+                <SidebarMenuButton asChild isActive={isActive} tooltip={workspace.title}>
+                  <Link to={workspacePath}>
+                    <Star className="h-4 w-4" />
+                    <span>{workspace.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+          {(fetchFavourites.data?.total ?? 0) > 10 && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="More favourites">
+                <Link to={workspacesPath}>
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span>More</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          ))}
+          )}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   );
 };
 
-const DefaultSidebarFooter = () => {
-  const location = useLocation();
-  const { router } = useStudio();
-  const infoPath = router.getEnvironmentInfo();
+// const InsightsNav = () => {
+//   const location = useLocation();
+//   const { router } = useStudio();
+//
+//   const navItems = [
+//     { label: 'Dashboard', href: router.getDashboard(), icon: LayoutDashboard },
+//     { label: 'Workflows', href: router.getDebugWorkflows(), icon: Workflow },
+//   ];
+//
+//   return (
+//     <SidebarGroup>
+//       <SidebarGroupLabel>Insights</SidebarGroupLabel>
+//       <SidebarGroupContent>
+//         <SidebarMenu>
+//           {navItems.map((item) => (
+//             <SidebarMenuItem key={item.href}>
+//               <SidebarMenuButton asChild isActive={location.pathname === item.href} tooltip={item.label}>
+//                 <Link to={item.href}>
+//                   <item.icon />
+//                   <span>{item.label}</span>
+//                 </Link>
+//               </SidebarMenuButton>
+//             </SidebarMenuItem>
+//           ))}
+//         </SidebarMenu>
+//       </SidebarGroupContent>
+//     </SidebarGroup>
+//   );
+// };
 
-  return (
-    <SidebarFooter>
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild isActive={location.pathname === infoPath} size="sm" tooltip="Info">
-            <Link to={infoPath}>
-              <Info />
-              <span>Info</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </SidebarFooter>
-  );
+const DefaultSidebarFooter = () => {
+  return <SidebarFooter />;
 };
 
 export const StudioSidebar = () => {
@@ -224,7 +253,7 @@ export const StudioSidebar = () => {
           <>
             <RunsNav />
             <WorkspacesNav />
-            <InsightsNav />
+            <FavouritesNav />
           </>
         )}
       </SidebarContent>

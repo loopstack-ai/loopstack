@@ -170,7 +170,7 @@ const Workspaces = () => {
               id: 'createdAt',
               label: 'Date Created',
               minWidth: 100,
-              format: (value: string) => new Date(value).toLocaleDateString(),
+              format: (value: string) => new Date(value).toLocaleString(),
             },
             // {
             //   id: 'updatedAt',

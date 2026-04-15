@@ -38,8 +38,7 @@ const SecretInputRenderer: React.FC<SecretInputRendererProps> = ({ parentWorkflo
   const transitionId = widgetOptions?.transition;
   const buttonLabel = widgetOptions?.label ?? 'Save & Continue';
 
-  const { workflow: workbenchWorkflow } = useWorkbenchLayout();
-  const workspaceId = workbenchWorkflow?.workspaceId;
+  const { workspaceId } = useWorkbenchLayout();
   const runWorkflow = useRunWorkflow();
   const upsertSecret = useUpsertSecret();
   const availableTransitions = workflow.availableTransitions?.map((t) => t.id) ?? [];

@@ -1,15 +1,12 @@
-import { Home, TriangleAlert } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import MainLayout from '../components/layout/MainLayout.tsx';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert.tsx';
 import { Button } from '../components/ui/button.tsx';
 import Dashboard from '../features/dashboard/Dashboard.tsx';
 import { useDashboardStats } from '../hooks/useDashboard.ts';
-import { useStudio } from '../providers/StudioProvider.tsx';
 
 export default function DashboardPage() {
-  const { environment } = useStudio();
-
   const { data: dashboardStats, isLoading, error, refetch, isRefetching } = useDashboardStats();
 
   if (isLoading) {
@@ -17,14 +14,7 @@ export default function DashboardPage() {
   }
 
   if (error) {
-    const breadcrumbsData = [
-      {
-        label: environment.name,
-        href: '#',
-        icon: <Home className="h-4 w-4" />,
-      },
-      { label: 'Dashboard', current: true },
-    ];
+    const breadcrumbsData = [{ label: 'Dashboard', current: true }];
 
     return (
       <MainLayout breadcrumbsData={breadcrumbsData}>
@@ -52,14 +42,7 @@ export default function DashboardPage() {
     return <div className="p-4">No data available</div>;
   }
 
-  const breadcrumbsData = [
-    {
-      label: environment.name,
-      href: '#',
-      icon: <Home className="h-4 w-4" />,
-    },
-    { label: 'Dashboard', current: true },
-  ];
+  const breadcrumbsData = [{ label: 'Dashboard', current: true }];
 
   return (
     <MainLayout breadcrumbsData={breadcrumbsData}>

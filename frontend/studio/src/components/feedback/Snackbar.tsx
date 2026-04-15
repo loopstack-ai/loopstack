@@ -21,7 +21,7 @@ const Snackbar: React.FC<BaseSnackbarProps> = ({
   show = true,
   icon,
   duration = 4000,
-  position = 'bottom-center',
+  position = 'top-center',
   id,
   onDismiss,
 }) => {

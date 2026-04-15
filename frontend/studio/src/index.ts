@@ -1,6 +1,7 @@
 export * from './types';
 export * from './hooks';
 export * from './services';
+export * from './providers/StudioPreferencesProvider';
 export * from './providers/StudioProvider';
 export * from './providers/ComponentOverridesProvider';
 export { SseProvider } from './providers/SseProvider';

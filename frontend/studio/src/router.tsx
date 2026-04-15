@@ -25,25 +25,35 @@ import WorkspacesPage from './pages/WorkspacesPage.tsx';
 import { InvalidationEventsProvider } from './providers/InvalidationEventsProvider.tsx';
 import { QueryProvider } from './providers/QueryProvider.tsx';
 import { SseProvider } from './providers/SseProvider.tsx';
+import { StudioPreferencesProvider, useStudioPreferences } from './providers/StudioPreferencesProvider.tsx';
 import { StudioProvider } from './providers/StudioProvider.tsx';
 import { useRouter } from './routing/LocalRouter.tsx';
+
+function AppSidebar() {
+  const { preferences, setPreference } = useStudioPreferences();
+  return (
+    <SidebarProvider open={preferences.leftSidebarOpen} onOpenChange={(open) => setPreference('leftSidebarOpen', open)}>
+      <StudioSidebar />
+      <SidebarInset>
+        <WorkerLayout />
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
 
 function AppRoot() {
   const router = useRouter(config.environment.id);
   return (
     <QueryProvider>
-      <Toaster richColors />
-      <StudioProvider router={router} environment={config.environment}>
-        <LocalHealthCheck />
-        <SseProvider />
-        <InvalidationEventsProvider />
-        <SidebarProvider>
-          <StudioSidebar />
-          <SidebarInset>
-            <WorkerLayout />
-          </SidebarInset>
-        </SidebarProvider>
-      </StudioProvider>
+      <Toaster richColors position="top-center" />
+      <StudioPreferencesProvider>
+        <StudioProvider router={router} environment={config.environment}>
+          <LocalHealthCheck />
+          <SseProvider />
+          <InvalidationEventsProvider />
+          <AppSidebar />
+        </StudioProvider>
+      </StudioPreferencesProvider>
     </QueryProvider>
   );
 }

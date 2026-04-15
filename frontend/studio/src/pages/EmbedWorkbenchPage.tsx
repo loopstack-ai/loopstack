@@ -74,7 +74,7 @@ export default function EmbedWorkbenchPage() {
       <ErrorSnackbar error={fetchWorkflow.error} />
       <LoadingCentered loading={fetchWorkflow.isLoading}>
         {fetchWorkflow.data ? (
-          <WorkbenchLayoutProvider workflow={fetchWorkflow.data}>
+          <WorkbenchLayoutProvider workspaceId={fetchWorkflow.data.workspaceId} workflow={fetchWorkflow.data}>
             <WorkflowItem
               workflow={fetchWorkflow.data}
               workflowId={fetchWorkflow.data.id}

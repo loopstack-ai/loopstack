@@ -1,14 +1,21 @@
-import { ExternalLink, Loader2, X } from 'lucide-react';
+import { Loader2, MonitorPlay } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select.tsx';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
+import { SidebarPanel } from './SidebarPanel.tsx';
 
 const EMBED_NEW_RUN_MESSAGE_TYPE = 'loopstack:embed:new-run';
 
 export function WorkbenchPreviewPanel() {
-  const { getEnvironmentPreviewUrl, environments, closeSidePanel, selectedSlotId, setSelectedSlotId } =
-    useWorkbenchLayout();
+  const {
+    getEnvironmentPreviewUrl,
+    environments,
+    closePanel,
+    panelSize,
+    setPanelSize,
+    selectedSlotId,
+    setSelectedSlotId,
+  } = useWorkbenchLayout();
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const connectableEnvironments = useMemo(
@@ -18,7 +25,6 @@ export function WorkbenchPreviewPanel() {
 
   const [previewWorkflowId, setPreviewWorkflowId] = useState<string | null>(null);
 
-  // Auto-select first connectable environment once data arrives
   useEffect(() => {
     if (!selectedSlotId && connectableEnvironments.length > 0) {
       setSelectedSlotId(connectableEnvironments[0].slotId);
@@ -35,13 +41,11 @@ export function WorkbenchPreviewPanel() {
     return getEnvironmentPreviewUrl(selectedEnv, previewWorkflowId ?? undefined);
   }, [getEnvironmentPreviewUrl, selectedEnv, previewWorkflowId]);
 
-  // Reset workflow when environment changes
   const handleEnvironmentChange = (slotId: string) => {
     setSelectedSlotId(slotId);
     setPreviewWorkflowId(null);
   };
 
-  // Listen for new-run messages from the iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
       if (event.origin !== window.location.origin) return;
@@ -57,52 +61,57 @@ export function WorkbenchPreviewPanel() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Still loading workspace data — show spinner
+  // Still loading workspace data
   if (environments === undefined) {
     return (
-      <div className="border-l bg-zinc-950 flex w-1/2 shrink-0 flex-col">
-        <div className="flex h-12 shrink-0 items-center justify-between px-3">
-          <span className="text-sm font-medium text-white">Preview</span>
-          <button
-            onClick={closeSidePanel}
-            className="text-zinc-400 hover:text-white flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+      <SidebarPanel
+        icon={<MonitorPlay className="h-4 w-4" />}
+        title="Preview"
+        size={panelSize}
+        onSizeChange={setPanelSize}
+        onClose={closePanel}
+      >
         <div className="flex flex-1 items-center justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
-      </div>
+      </SidebarPanel>
     );
   }
 
-  // Loaded but no connectable environments
+  // No connectable environments
   if (!getEnvironmentPreviewUrl || connectableEnvironments.length === 0) {
     return (
-      <div className="border-l bg-zinc-950 flex w-1/2 shrink-0 flex-col">
-        <div className="flex h-12 shrink-0 items-center justify-between px-3">
-          <span className="text-sm font-medium text-white">Preview</span>
-          <button
-            onClick={closeSidePanel}
-            className="text-zinc-400 hover:text-white flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </button>
+      <SidebarPanel
+        icon={<MonitorPlay className="h-4 w-4" />}
+        title="Preview"
+        size={panelSize}
+        onSizeChange={setPanelSize}
+        onClose={closePanel}
+      >
+        <div className="text-muted-foreground flex flex-1 items-center justify-center text-sm">
+          Preview not available
         </div>
-        <div className="text-zinc-400 flex flex-1 items-center justify-center text-sm">Preview not available</div>
-      </div>
+      </SidebarPanel>
     );
   }
 
   return (
-    <div className="border-l bg-zinc-950 flex w-1/2 shrink-0 flex-col">
-      <div className="flex h-12 shrink-0 items-center justify-between px-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white">Preview</span>
-          {connectableEnvironments.length > 1 && (
+    <SidebarPanel
+      icon={<MonitorPlay className="h-4 w-4" />}
+      title="Preview"
+      description={
+        connectableEnvironments.length === 1 && selectedEnv ? selectedEnv.envName || selectedEnv.slotId : undefined
+      }
+      size={panelSize}
+      onSizeChange={setPanelSize}
+      onClose={closePanel}
+      expandUrl={previewUrl}
+    >
+      <div className="flex h-full flex-col">
+        {connectableEnvironments.length > 1 && (
+          <div className="border-b px-4 py-2">
             <Select value={selectedSlotId} onValueChange={handleEnvironmentChange}>
-              <SelectTrigger className="h-7 w-40 border-zinc-700 bg-zinc-900 text-zinc-200 text-xs">
+              <SelectTrigger className="h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -113,48 +122,24 @@ export function WorkbenchPreviewPanel() {
                 ))}
               </SelectContent>
             </Select>
-          )}
-          {connectableEnvironments.length === 1 && selectedEnv && (
-            <span className="text-xs text-zinc-400">{selectedEnv.envName || selectedEnv.slotId}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          {previewUrl && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <a
-                  href={previewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-zinc-400 hover:text-white flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:cursor-pointer"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Open in new tab</TooltipContent>
-            </Tooltip>
-          )}
-          <button
-            onClick={closeSidePanel}
-            className="text-zinc-400 hover:text-white flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+          </div>
+        )}
 
-      {previewUrl ? (
-        <div className="flex-1 overflow-hidden p-3 pt-0">
-          <iframe
-            ref={iframeRef}
-            src={previewUrl}
-            className="bg-background h-full w-full rounded-lg"
-            title="Workflow preview"
-          />
-        </div>
-      ) : (
-        <div className="text-zinc-400 flex flex-1 items-center justify-center text-sm">Preview not available</div>
-      )}
-    </div>
+        {previewUrl ? (
+          <div className="flex-1 overflow-hidden p-3">
+            <iframe
+              ref={iframeRef}
+              src={previewUrl}
+              className="bg-muted h-full w-full rounded-lg border"
+              title="Workflow preview"
+            />
+          </div>
+        ) : (
+          <div className="text-muted-foreground flex flex-1 items-center justify-center text-sm">
+            Preview not available
+          </div>
+        )}
+      </div>
+    </SidebarPanel>
   );
 }

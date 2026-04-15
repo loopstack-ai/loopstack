@@ -189,7 +189,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
             id: 'createdAt',
             label: 'Date Created',
             minWidth: 100,
-            format: (value: unknown) => new Date(value as string).toLocaleDateString(),
+            format: (value: unknown) => new Date(value as string).toLocaleString(),
           },
         ] as Column[]
       }

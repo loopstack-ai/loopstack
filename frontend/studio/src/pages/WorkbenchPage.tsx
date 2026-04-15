@@ -1,26 +1,20 @@
-import { Home } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { Workbench } from '@/features/workbench';
+import { useDefaultEnvironmentPreviewUrl } from '../hooks/useEnvironmentPreviewUrl.ts';
 import { useWorkflow } from '../hooks/useWorkflows.ts';
 import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { requireParam } from '../lib/requireParam.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
 export default function WorkbenchPage({
-  previewPanelOpen,
-  onPreviewPanelOpenChange,
-  isDeveloperMode,
   getPreviewUrl,
   getEnvironmentPreviewUrl,
   environments,
 }: {
-  previewPanelOpen?: boolean;
-  onPreviewPanelOpenChange?: (open: boolean) => void;
-  isDeveloperMode?: boolean;
   getPreviewUrl?: (workflowId: string) => string;
   getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, workflowId?: string) => string;
   environments?: WorkspaceEnvironmentInterface[];
@@ -38,20 +32,10 @@ export default function WorkbenchPage({
     [environments, fetchWorkspace.data?.environments],
   );
 
-  const defaultGetEnvironmentPreviewUrl = useCallback((env: WorkspaceEnvironmentInterface, workflowId?: string) => {
-    if (!env.connectionUrl) return '';
-    const params = new URLSearchParams({
-      url: env.connectionUrl,
-      name: env.envName || env.workerId || '',
-    });
-    const base = `/embed/env/preview`;
-    return workflowId ? `${base}/workflows/${workflowId}?${params}` : `${base}?${params}`;
-  }, []);
-
+  const defaultGetEnvironmentPreviewUrl = useDefaultEnvironmentPreviewUrl();
   const resolvedGetEnvironmentPreviewUrl = getEnvironmentPreviewUrl ?? defaultGetEnvironmentPreviewUrl;
 
   const breadcrumbData = [
-    { label: 'Dashboard', href: router.getDashboard(), icon: <Home className="h-4 w-4" /> },
     { label: 'Workspaces', href: router.getWorkspaces() },
     {
       label: fetchWorkspace.data?.title ?? '',
@@ -71,9 +55,6 @@ export default function WorkbenchPage({
             <Workbench
               workflow={fetchWorkflow.data}
               breadcrumbData={breadcrumbData}
-              previewPanelOpen={previewPanelOpen}
-              onPreviewPanelOpenChange={onPreviewPanelOpenChange}
-              isDeveloperMode={isDeveloperMode}
               getPreviewUrl={getPreviewUrl}
               getEnvironmentPreviewUrl={resolvedGetEnvironmentPreviewUrl}
               environments={resolvedEnvironments}
