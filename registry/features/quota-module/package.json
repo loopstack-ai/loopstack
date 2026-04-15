@@ -2,7 +2,7 @@
   "name": "@loopstack/quota",
   "displayName": "Loopstack Quota Module",
   "description": "Opt-in quota tracking and enforcement for Loopstack workflows",
-  "version": "0.22.0",
+  "version": "0.22.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -19,7 +19,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.25.2",
+    "@loopstack/common": "^0.26.0",
     "@nestjs/common": "^11.1.19",
     "ioredis": "^5.10.1"
   },

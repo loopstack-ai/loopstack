@@ -3,7 +3,7 @@
   "displayName": "",
   "description": "",
   "keywords": [],
-  "version": "0.20.2",
+  "version": "0.20.3",
   "license": "MIT",
   "author": {
     "name": "",
@@ -24,8 +24,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.25.2",
-    "@loopstack/core": "^0.25.2",
+    "@loopstack/common": "^0.26.0",
+    "@loopstack/core": "^0.26.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },

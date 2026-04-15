@@ -1,5 +1,14 @@
 # @loopstack/quota
 
+## 0.22.1
+
+### Patch Changes
+
+- [#129](https://github.com/loopstack-ai/loopstack/pull/129) [`5ede93c`](https://github.com/loopstack-ai/loopstack/commit/5ede93c2f8a8c360d10b865dd2d83646d0d7155d) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add quota tracking module with AI and processing time calculators
+
+- Updated dependencies [[`bff1bfa`](https://github.com/loopstack-ai/loopstack/commit/bff1bfa3f8de0800c26537ce289f672493ec6c7c)]:
+  - @loopstack/common@0.26.0
+
 ## 0.22.0
 
 ### Minor Changes

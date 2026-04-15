@@ -1,5 +1,13 @@
 # @loopstack/sandbox-filesystem
 
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies [[`bff1bfa`](https://github.com/loopstack-ai/loopstack/commit/bff1bfa3f8de0800c26537ce289f672493ec6c7c)]:
+  - @loopstack/common@0.26.0
+  - @loopstack/sandbox-tool@0.5.4
+
 ## 0.5.3
 
 ### Patch Changes
