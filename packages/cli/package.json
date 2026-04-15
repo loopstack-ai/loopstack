@@ -2,7 +2,7 @@
   "name": "@loopstack/cli-module",
   "displayName": "Loopstack Cli Module",
   "description": "The cli module for Loopstack",
-  "version": "0.25.2",
+  "version": "0.26.0",
   "repository": "loopstack-ai/cli",
   "license": "MIT",
   "author": {
@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@loopstack/contracts": "^0.25.2",
-    "@loopstack/core": "^0.25.2",
+    "@loopstack/core": "^0.26.0",
     "@nestjs/common": "^11.1.19",
     "@nestjs/core": "^11.1.19",
     "axios": "^1.15.0",

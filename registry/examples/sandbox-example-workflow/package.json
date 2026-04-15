@@ -11,7 +11,7 @@
     "sandbox",
     "workflow"
   ],
-  "version": "0.5.3",
+  "version": "0.5.4",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -32,10 +32,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.25.2",
-    "@loopstack/core": "^0.25.2",
-    "@loopstack/sandbox-filesystem": "^0.5.3",
-    "@loopstack/sandbox-tool": "^0.5.3",
+    "@loopstack/common": "^0.26.0",
+    "@loopstack/core": "^0.26.0",
+    "@loopstack/sandbox-filesystem": "^0.5.4",
+    "@loopstack/sandbox-tool": "^0.5.4",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
