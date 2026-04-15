@@ -208,7 +208,7 @@ private sum(a: number, b: number) {
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
-import { MessageDocument } from '@loopstack/core';
+import { MessageDocument } from '@loopstack/common';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 
@@ -280,7 +280,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/common` - Base classes, decorators, and tool injection
-- `@loopstack/core` - Provides `MessageDocument` for chat messages
+- `@loopstack/common` - Provides `MessageDocument` for chat messages
 
 ## About
 

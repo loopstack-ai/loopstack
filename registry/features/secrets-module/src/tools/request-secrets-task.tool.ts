@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import { LinkDocument } from '@loopstack/core';
+import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import { SecretsRequestWorkflow } from './secrets-request.workflow';
 
 const RequestSecretsTaskInputSchema = z

@@ -121,7 +121,7 @@ The workflow routes through different states based on the input value:
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Final, Guard, Initial, Transition, Workflow } from '@loopstack/common';
-import { MessageDocument } from '@loopstack/core';
+import { MessageDocument } from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',
@@ -196,7 +196,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/common` - Base classes, decorators, and guards
-- `@loopstack/core` - Provides `MessageDocument` for chat messages
+- `@loopstack/common` - Provides `MessageDocument` for chat messages
 
 ## About
 

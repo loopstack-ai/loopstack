@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { BaseWorkflow, Final, Guard, Initial, Transition, Workflow } from '@loopstack/common';
-import { MessageDocument } from '@loopstack/core';
+import { BaseWorkflow, Final, Guard, Initial, MessageDocument, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',

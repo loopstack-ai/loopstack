@@ -1,5 +1,4 @@
-import { BaseWorkflow, Initial, Workflow } from '@loopstack/common';
-import { MessageDocument } from '@loopstack/core';
+import { BaseWorkflow, Initial, MessageDocument, Workflow } from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/run-sub-workflow-example-sub.ui.yaml',

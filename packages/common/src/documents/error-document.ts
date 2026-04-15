@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document } from '@loopstack/common';
+import { Document } from '../decorators/block.decorator';
 
 export const ErrorDocumentSchema = z
   .object({

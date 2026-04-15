@@ -1,9 +1,18 @@
 import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DocumentEntity, WorkflowEntity, WorkspaceEntity, WorkspaceEnvironmentEntity } from '@loopstack/common';
+import {
+  DocumentEntity,
+  ErrorDocument,
+  LinkDocument,
+  MarkdownDocument,
+  MessageDocument,
+  PlainDocument,
+  WorkflowEntity,
+  WorkspaceEntity,
+  WorkspaceEnvironmentEntity,
+} from '@loopstack/common';
 import { CommonModule } from './common';
-import { ErrorDocument, LinkDocument, MarkdownDocument, MessageDocument, PlainDocument } from './documents';
 import { SchedulerModule } from './scheduler';
 import { WorkflowProcessorModule } from './workflow-processor';
 

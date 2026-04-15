@@ -1,5 +1,4 @@
-import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
-import { MessageDocument } from '@loopstack/core';
+import { BaseWorkflow, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',

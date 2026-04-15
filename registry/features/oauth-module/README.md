@@ -239,7 +239,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import { LinkDocument, MessageDocument } from '@loopstack/core';
+import { LinkDocument, MessageDocument } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { MyApiTool } from './my-api.tool';
 

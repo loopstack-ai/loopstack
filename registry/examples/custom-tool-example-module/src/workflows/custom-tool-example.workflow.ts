@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
-import { MessageDocument } from '@loopstack/core';
+import { BaseWorkflow, Final, Initial, InjectTool, MessageDocument, Transition, Workflow } from '@loopstack/common';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 

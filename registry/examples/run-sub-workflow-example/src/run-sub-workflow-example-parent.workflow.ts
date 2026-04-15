@@ -5,11 +5,12 @@ import {
   Final,
   Initial,
   InjectWorkflow,
+  LinkDocument,
+  MessageDocument,
   QueueResult,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import { LinkDocument, MessageDocument } from '@loopstack/core';
 import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
 
 const SubWorkflowCallbackSchema = CallbackSchema.extend({

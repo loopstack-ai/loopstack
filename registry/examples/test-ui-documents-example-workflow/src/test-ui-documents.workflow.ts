@@ -1,5 +1,13 @@
-import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
-import { ErrorDocument, MarkdownDocument, MessageDocument, PlainDocument } from '@loopstack/core';
+import {
+  BaseWorkflow,
+  ErrorDocument,
+  Final,
+  Initial,
+  MarkdownDocument,
+  MessageDocument,
+  PlainDocument,
+  Workflow,
+} from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/test-ui-documents.ui.yaml',

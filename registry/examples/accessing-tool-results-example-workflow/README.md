@@ -90,7 +90,7 @@ These are standard TypeScript methods -- no decorator needed. Call them from any
 
 ```typescript
 import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
-import { MessageDocument } from '@loopstack/core';
+import { MessageDocument } from '@loopstack/common';
 
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
@@ -132,7 +132,7 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow {
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/common` - Base classes, decorators, and tool injection
-- `@loopstack/core` - Provides `MessageDocument` for chat messages
+- `@loopstack/common` - Provides `MessageDocument` for chat messages
 
 ## About
 

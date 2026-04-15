@@ -307,8 +307,7 @@ Guard methods must return `boolean | Promise<boolean>` and must exist on the cla
 Inject a workflow with `@InjectWorkflow()` and launch it with `.run()`. The parent pauses at a wait transition until the sub-workflow completes and fires a callback.
 
 ```typescript
-import { CallbackSchema, InjectWorkflow } from '@loopstack/common';
-import { LinkDocument } from '@loopstack/core';
+import { CallbackSchema, InjectWorkflow, LinkDocument } from '@loopstack/common';
 
 export class ParentWorkflow extends BaseWorkflow {
   @InjectWorkflow() private subWorkflow: SubWorkflow;
