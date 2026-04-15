@@ -200,11 +200,10 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 ## Dependencies
 
 - `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@Guard`, `@InjectTool`, `@InjectWorkflow`, `CallbackSchema`, `ToolResult`, `BaseTool`, `Tool`)
-- `@loopstack/core` - Provides `LinkDocument` and `MarkdownDocument`
+- `@loopstack/core` - Provides `LinkDocument`, `MarkdownDocument`, and `MessageDocument`
 - `@loopstack/claude-module` - Claude integration (`ClaudeGenerateText`, `ClaudeMessageDocument`, `DelegateToolCalls`, `UpdateToolResult`)
 - `@loopstack/oauth-module` - OAuth infrastructure (`OAuthWorkflow`, `OAuthTokenStore`)
 - `@loopstack/google-workspace-module` - All 11 Google Workspace tools (Calendar, Gmail, Drive)
-- `@loopstack/create-chat-message-tool` - `CreateChatMessage` (used in agent workflow)
 
 ## About
 

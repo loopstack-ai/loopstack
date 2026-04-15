@@ -14,11 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 import { Module } from '@nestjs/common';
-import { CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { DynamicRoutingExampleWorkflow } from './dynamic-routing-example.workflow';
 
 @Module({
-  imports: [CreateChatMessageToolModule],
   providers: [DynamicRoutingExampleWorkflow],
   exports: [DynamicRoutingExampleWorkflow],
 })

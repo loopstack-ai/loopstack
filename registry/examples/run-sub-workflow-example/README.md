@@ -35,7 +35,6 @@ The parent workflow uses `@InjectWorkflow()` to inject the sub-workflow class an
 ```typescript
 @Workflow({ uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml' })
 export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
-  @InjectTool() private createChatMessage: CreateChatMessage;
   @InjectWorkflow() private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
 }
 ```
@@ -47,11 +46,9 @@ The sub-workflow returns structured data from its `@Initial` method. This data i
 ```typescript
 @Workflow({ uiConfig: __dirname + '/run-sub-workflow-example-sub.ui.yaml' })
 export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
-  @InjectTool() private createChatMessage: CreateChatMessage;
-
   @Initial({ to: 'end' })
   async message(): Promise<{ message: string }> {
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: 'Sub workflow completed.',
     });
@@ -104,7 +101,7 @@ async subWorkflowCallback(payload: SubWorkflowCallback) {
     { label: 'Sub-Workflow', status: 'success', workflowId: payload.workflowId },
     { id: `link_${payload.workflowId}` },
   );
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
     content: `A message from sub workflow 1: ${payload.data.message}`,
   });
@@ -158,7 +155,7 @@ async subWorkflow2Callback(payload: SubWorkflowCallback) {
     { label: 'Sub-Workflow 2', status: 'success', workflowId: payload.workflowId },
     { id: `link_${payload.workflowId}` },
   );
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
     content: `A message from sub workflow 2: ${payload.data.message}`,
   });
@@ -169,9 +166,8 @@ async subWorkflow2Callback(payload: SubWorkflowCallback) {
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@InjectTool`, `@InjectWorkflow`, `CallbackSchema`, `QueueResult`)
-- `@loopstack/core` - Provides `LinkDocument` for displaying sub-workflow links
-- `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool
+- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@InjectWorkflow`, `CallbackSchema`, `QueueResult`)
+- `@loopstack/core` - Provides `LinkDocument` and `MessageDocument`
 
 ## About
 

@@ -191,11 +191,10 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 ## Dependencies
 
 - `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@Guard`, `@InjectTool`, `@InjectWorkflow`, `CallbackSchema`, `ToolResult`)
-- `@loopstack/core` - Provides `LinkDocument` and `MarkdownDocument`
+- `@loopstack/core` - Provides `LinkDocument`, `MarkdownDocument`, and `MessageDocument`
 - `@loopstack/claude-module` - Claude integration (`ClaudeGenerateText`, `ClaudeMessageDocument`, `DelegateToolCalls`, `UpdateToolResult`)
 - `@loopstack/oauth-module` - OAuth infrastructure (`OAuthWorkflow`)
 - `@loopstack/github-module` - All 25 GitHub tools
-- `@loopstack/create-chat-message-tool` - `CreateChatMessage` (used in agent workflow)
 
 ## About
 

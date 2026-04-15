@@ -1,0 +1,8 @@
+services:
+  agent:
+    build: .
+    ports:
+      - '3031:3001'
+      - '3080:3000'
+    environment:
+      - AGENT_PORT=3001

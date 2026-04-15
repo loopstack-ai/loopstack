@@ -1,4 +1,4 @@
-import { Files, Home, MonitorPlay, Play, Server } from 'lucide-react';
+import { Home, MonitorPlay, Play, Server } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { useFeatureRegistry } from '@/features/feature-registry';
@@ -60,8 +60,7 @@ function IconLink({ icon, label, to, active }: { icon: React.ReactNode; label: s
 }
 
 export function WorkbenchIconSidebar() {
-  const { previewPanelEnabled, fileExplorerEnabled, activePanel, togglePanel, environments, workspaceId } =
-    useWorkbenchLayout();
+  const { previewPanelEnabled, activePanel, togglePanel, environments, workspaceId } = useWorkbenchLayout();
   const { router } = useStudio();
   const location = useLocation();
   const features = useFeatureRegistry();
@@ -104,14 +103,6 @@ export function WorkbenchIconSidebar() {
           active={activePanel === 'preview'}
           disabled={!previewPanelEnabled}
           onClick={() => togglePanel('preview')}
-        />
-
-        <IconButton
-          icon={<Files className="h-5 w-5" />}
-          label={fileExplorerEnabled ? 'Environment Files' : 'Files not available for this environment'}
-          active={activePanel === 'files'}
-          disabled={!fileExplorerEnabled}
-          onClick={() => togglePanel('files')}
         />
 
         <IconButton

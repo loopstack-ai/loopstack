@@ -7,6 +7,7 @@ import { StudioSidebar } from './components/layout/StudioSidebar.tsx';
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar.tsx';
 import config from './config.ts';
 import { FeatureRegistryProvider } from './features/feature-registry';
+import { fileExplorerFeature } from './features/file-explorer';
 import { LocalHealthCheck } from './features/health';
 import { OAuthCallbackPage } from './features/oauth';
 import { secretsFeature } from './features/secrets';
@@ -43,7 +44,7 @@ function AppSidebar() {
   );
 }
 
-const defaultFeatures = [secretsFeature];
+const defaultFeatures = [secretsFeature, fileExplorerFeature];
 
 function AppRoot() {
   const router = useRouter(config.environment.id);

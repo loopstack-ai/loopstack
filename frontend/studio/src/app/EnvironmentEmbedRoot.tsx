@@ -1,5 +1,6 @@
 import { Outlet, useSearchParams } from 'react-router-dom';
 import { FeatureRegistryProvider } from '../features/feature-registry';
+import { fileExplorerFeature } from '../features/file-explorer';
 import LocalHealthCheck from '../features/health/LocalHealthCheck.tsx';
 import { secretsFeature } from '../features/secrets';
 import { InvalidationEventsProvider } from '../providers/InvalidationEventsProvider.tsx';
@@ -9,7 +10,7 @@ import { StudioProvider } from '../providers/StudioProvider.tsx';
 import { useRouter } from '../routing/LocalRouter.tsx';
 import type { Environment } from '../types';
 
-const defaultFeatures = [secretsFeature];
+const defaultFeatures = [secretsFeature, fileExplorerFeature];
 
 export default function EnvironmentEmbedRoot() {
   const [searchParams] = useSearchParams();

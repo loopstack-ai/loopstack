@@ -1,10 +1,8 @@
 import type { ReactNode } from 'react';
 import { useFeatureRegistry } from '@/features/feature-registry';
-import { RemoteFileExplorerProvider } from '../providers/RemoteFileExplorerProvider.tsx';
 import type { PanelSize } from '../providers/WorkbenchLayoutProvider.tsx';
 import { useWorkbenchLayout } from '../providers/WorkbenchLayoutProvider.tsx';
 import { WorkbenchEnvironmentPanel } from './WorkbenchEnvironmentPanel.tsx';
-import { WorkbenchFilesPanel } from './WorkbenchFilesPanel.tsx';
 import { WorkbenchIconSidebar } from './WorkbenchIconSidebar.tsx';
 import { WorkbenchPreviewPanel } from './WorkbenchPreviewPanel.tsx';
 import { WorkbenchRunsPanel } from './WorkbenchRunsPanel.tsx';
@@ -30,8 +28,6 @@ function ActivePanelContent() {
       return <WorkbenchRunsPanel />;
     case 'preview':
       return <WorkbenchPreviewPanel />;
-    case 'files':
-      return <WorkbenchFilesPanel />;
     case 'environment':
       return <WorkbenchEnvironmentPanel workspaceId={workspaceId} environments={environments} />;
     default: {
@@ -64,15 +60,5 @@ function SidebarContent({ children }: { children: ReactNode }) {
 }
 
 export function WorkbenchSidebarShell({ children }: { children: ReactNode }) {
-  const { fileExplorerEnabled } = useWorkbenchLayout();
-
-  if (fileExplorerEnabled) {
-    return (
-      <RemoteFileExplorerProvider>
-        <SidebarContent>{children}</SidebarContent>
-      </RemoteFileExplorerProvider>
-    );
-  }
-
   return <SidebarContent>{children}</SidebarContent>;
 }

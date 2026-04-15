@@ -52,7 +52,6 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
   @InjectTool() sandboxDelete: SandboxDelete;
   @InjectTool() sandboxExists: SandboxExists;
   @InjectTool() sandboxFileInfo: SandboxFileInfo;
-  @InjectTool() createChatMessage: CreateChatMessage;
 
   private formatEntries(entries: FileEntry[]): string {
     if (!entries || entries.length === 0) return '(empty)';
@@ -78,7 +77,7 @@ async initSandbox(args: { outputDir: string }) {
 
   this.containerId = initResult.data!.containerId;
 
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
     content: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
   });
@@ -95,7 +94,7 @@ async destroySandbox() {
     removeContainer: true,
   });
 
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
     content: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
   });
@@ -117,7 +116,7 @@ async writeFile() {
     createParentDirs: true,
   });
 
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
     content: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
   });
@@ -133,7 +132,7 @@ async readFile() {
 
   this.fileContent = readResult.data!.content;
 
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
     content: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
   });
@@ -149,7 +148,7 @@ async listDir() {
 
   this.fileList = listResult.data!.entries;
 
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
     content: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
   });
@@ -177,7 +176,7 @@ This workflow uses the following Loopstack modules:
 - `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@InjectTool`, `ToolResult`)
 - `@loopstack/sandbox-tool` - Provides `SandboxInit` and `SandboxDestroy` tools for container lifecycle
 - `@loopstack/sandbox-filesystem` - Provides filesystem tools (`SandboxWriteFile`, `SandboxReadFile`, `SandboxListDirectory`, `SandboxCreateDirectory`, `SandboxDelete`, `SandboxExists`, `SandboxFileInfo`)
-- `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool for output
+- `@loopstack/core` - Provides `MessageDocument` for chat output
 
 ## About
 

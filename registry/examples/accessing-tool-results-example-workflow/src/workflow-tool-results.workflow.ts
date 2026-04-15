@@ -1,42 +1,32 @@
-import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/common';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
-import { CreateValue } from '@loopstack/create-value-tool';
+import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
+import { MessageDocument } from '@loopstack/core';
 
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
 export class WorkflowToolResultsWorkflow extends BaseWorkflow {
-  @InjectTool() private createValue: CreateValue;
-  @InjectTool() private createChatMessage: CreateChatMessage;
-
   storedMessage?: string;
 
   @Initial({ to: 'data_created' })
   async createSomeData() {
-    const result = await this.createValue.call({ input: 'Hello World.' });
-    this.storedMessage = result.data as string;
+    this.storedMessage = 'Hello World.';
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
-      content: `Data from specific call id: ${this.storedMessage}`,
-    });
-
-    await this.createChatMessage.call({
-      role: 'assistant',
-      content: `Data from first tool call: ${this.storedMessage}`,
+      content: `Stored in initial transition: ${this.storedMessage}`,
     });
   }
 
   @Final({ from: 'data_created' })
   async accessData() {
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
-      content: `Data from previous transition: ${this.storedMessage}`,
+      content: `Accessed from previous transition: ${this.storedMessage}`,
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
-      content: `Data access using custom helper: ${this.theMessage()}`,
+      content: `Accessed via helper method: ${this.theMessage()}`,
     });
   }
 

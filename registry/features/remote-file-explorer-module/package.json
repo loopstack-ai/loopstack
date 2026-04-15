@@ -1,0 +1,73 @@
+{
+  "name": "@loopstack/remote-file-explorer-module",
+  "displayName": "Loopstack Remote File Explorer Module",
+  "description": "Remote file browsing for Loopstack workspaces — proxies file tree and content requests to remote agents",
+  "keywords": [
+    "loopstack",
+    "file-explorer",
+    "remote-agent",
+    "workflow"
+  ],
+  "version": "0.22.2",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "^0.25.2",
+    "@loopstack/core": "^0.25.2",
+    "@loopstack/remote-agent-client": "^0.23.0",
+    "@nestjs/common": "^11.1.19",
+    "@nestjs/typeorm": "^11.0.1",
+    "typeorm": "^0.3.22"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1
+  },
+  "loopstack": {
+    "modules": [
+      {
+        "path": "src/remote-file-explorer.module.ts",
+        "className": "RemoteFileExplorerModule"
+      }
+    ],
+    "installModes": [
+      "add",
+      "install"
+    ]
+  }
+}

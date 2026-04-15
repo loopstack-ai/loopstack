@@ -212,7 +212,6 @@ Tools are injected with `@InjectTool()` and called directly in transition method
 
 ```typescript
 @InjectTool() claudeGenerateText: ClaudeGenerateText;
-@InjectTool() createChatMessage: CreateChatMessage;
 
 @Transition({ from: 'ready', to: 'done' })
 async process() {

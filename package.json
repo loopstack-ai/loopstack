@@ -71,6 +71,7 @@
     "installer/*",
     "templates/*",
     "registry/*/*",
+    "services/*",
     "client/*"
   ]
 }

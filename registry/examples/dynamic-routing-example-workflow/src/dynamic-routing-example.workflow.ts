@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BaseWorkflow, Final, Guard, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import { BaseWorkflow, Final, Guard, Initial, Transition, Workflow } from '@loopstack/common';
+import { MessageDocument } from '@loopstack/core';
 
 @Workflow({
   uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',
@@ -11,8 +11,6 @@ import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
     .strict(),
 })
 export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }> {
-  @InjectTool() createChatMessage: CreateChatMessage;
-
   value!: number;
 
   // --- Initial transition ---
@@ -20,7 +18,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   @Initial({ to: 'prepared' })
   async createMockData(args: { value: number }) {
     this.value = args.value;
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Analysing value = ${this.value}`,
     });
@@ -56,7 +54,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
 
   @Final({ from: 'placeB' })
   async showMessagePlaceB() {
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is less or equal 100',
     });
@@ -64,7 +62,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
 
   @Final({ from: 'placeC' })
   async showMessagePlaceC() {
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is greater than 200',
     });
@@ -72,7 +70,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
 
   @Final({ from: 'placeD' })
   async showMessagePlaceD() {
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is less or equal 200, but greater than 100',
     });

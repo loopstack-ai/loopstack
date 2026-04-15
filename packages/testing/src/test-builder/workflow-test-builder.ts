@@ -69,7 +69,6 @@ export function createWorkflowServiceMock(mockEntity = {}): WorkflowServiceMock 
  *   .forWorkflow(CustomToolExampleWorkflow)
  *   .withImports(LoopCoreModule, CoreToolsModule)
  *   .withToolMock(MathSumTool)
- *   .withToolOverride(CreateChatMessage)
  *   .compile();
  *
  * const workflow = module.get(CustomToolExampleWorkflow);

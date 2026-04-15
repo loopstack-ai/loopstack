@@ -1,15 +1,13 @@
-import { BaseWorkflow, Initial, InjectTool, Workflow } from '@loopstack/common';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import { BaseWorkflow, Initial, Workflow } from '@loopstack/common';
+import { MessageDocument } from '@loopstack/core';
 
 @Workflow({
   uiConfig: __dirname + '/run-sub-workflow-example-sub.ui.yaml',
 })
 export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
-  @InjectTool() private createChatMessage: CreateChatMessage;
-
   @Initial({ to: 'end' })
   async message(): Promise<{ message: string }> {
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: 'Sub workflow completed.',
     });

@@ -13,7 +13,6 @@ export interface WorkbenchLayoutContextType {
   workspaceId: string;
   workflow?: WorkflowFullInterface;
   previewPanelEnabled: boolean;
-  fileExplorerEnabled: boolean;
   workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
   getPreviewUrl?: (workflowId: string) => string;
@@ -76,11 +75,6 @@ export function WorkbenchLayoutProvider({
   const hasConnectableEnvs =
     environments === undefined || environments.some((e) => !!e.connectionUrl && (!!e.workerId || e.local));
   const previewPanelEnabled = featureEnabled && hasConnectableEnvs;
-  const fileExplorerEnabled =
-    (workspaceConfig?.features?.fileExplorer?.enabled &&
-      workspaceConfig?.features?.fileExplorer?.environments?.includes(environments?.[0]?.slotId ?? '')) ??
-    false;
-
   const defaultPanelSize: Record<string, PanelSize> = {
     runs: 'medium',
     preview: 'medium',
@@ -139,7 +133,7 @@ export function WorkbenchLayoutProvider({
       workspaceId,
       workflow,
       previewPanelEnabled,
-      fileExplorerEnabled,
+
       workspaceConfig,
 
       getPreviewUrl,
@@ -163,7 +157,7 @@ export function WorkbenchLayoutProvider({
       workspaceId,
       workflow,
       previewPanelEnabled,
-      fileExplorerEnabled,
+
       workspaceConfig,
 
       getPreviewUrl,

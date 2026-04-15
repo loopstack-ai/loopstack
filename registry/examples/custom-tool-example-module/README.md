@@ -115,7 +115,6 @@ The workflow extends `BaseWorkflow<TArgs>` with a typed argument object. The sch
 })
 export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: number }> {
   @InjectTool() private counterTool: CounterTool;
-  @InjectTool() private createChatMessage: CreateChatMessage;
   @InjectTool() private mathTool: MathSumTool;
 
   total?: number;
@@ -134,12 +133,12 @@ async calculate(args: { a: number; b: number }) {
   const calcResult = await this.mathTool.call({ a: args.a, b: args.b });
   this.total = calcResult.data as number;
 
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
     content: `Tool calculation result:\n${args.a} + ${args.b} = ${this.total}`,
   });
 
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
     content: `Alternatively, using workflow method:\n${args.a} + ${args.b} = ${this.sum(args.a, args.b)}`,
   });
@@ -155,7 +154,7 @@ const c1 = await this.counterTool.call({});
 const c2 = await this.counterTool.call({});
 const c3 = await this.counterTool.call({});
 
-await this.createChatMessage.call({
+await this.repository.save(MessageDocument, {
   role: 'assistant',
   content: `Counter before pause: ${c1.data}, ${c2.data}, ${c3.data}\n\nPress Next to continue...`,
 });
@@ -183,7 +182,7 @@ async continueCount(): Promise<{ total: number | undefined }> {
   const c5 = await this.counterTool.call({});
   const c6 = await this.counterTool.call({});
 
-  await this.createChatMessage.call({
+  await this.repository.save(MessageDocument, {
     role: 'assistant',
     content: `Counter after resume: ${c4.data}, ${c5.data}, ${c6.data}\n\nIf state persisted, this should be 4, 5, 6.`,
   });
@@ -209,7 +208,7 @@ private sum(a: number, b: number) {
 ```typescript
 import { z } from 'zod';
 import { BaseWorkflow, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import { MessageDocument } from '@loopstack/core';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 
@@ -224,7 +223,6 @@ import { CounterTool } from '../tools';
 })
 export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: number }> {
   @InjectTool() private counterTool: CounterTool;
-  @InjectTool() private createChatMessage: CreateChatMessage;
   @InjectTool() private mathTool: MathSumTool;
 
   total?: number;
@@ -234,12 +232,12 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
     const calcResult = await this.mathTool.call({ a: args.a, b: args.b });
     this.total = calcResult.data as number;
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Tool calculation result:\n${args.a} + ${args.b} = ${this.total}`,
     });
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Alternatively, using workflow method:\n${args.a} + ${args.b} = ${this.sum(args.a, args.b)}`,
     });
@@ -248,7 +246,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
     const c2 = await this.counterTool.call({});
     const c3 = await this.counterTool.call({});
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Counter before pause: ${c1.data}, ${c2.data}, ${c3.data}\n\nPress Next to continue...`,
     });
@@ -263,7 +261,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
     const c5 = await this.counterTool.call({});
     const c6 = await this.counterTool.call({});
 
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Counter after resume: ${c4.data}, ${c5.data}, ${c6.data}\n\nIf state persisted, this should be 4, 5, 6.`,
     });
@@ -282,7 +280,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/common` - Base classes, decorators, and tool injection
-- `@loopstack/create-chat-message-tool` - Provides `CreateChatMessage` tool
+- `@loopstack/core` - Provides `MessageDocument` for chat messages
 
 ## About
 

@@ -239,8 +239,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import { LinkDocument } from '@loopstack/core';
-import { CreateChatMessage } from '@loopstack/create-chat-message-tool';
+import { LinkDocument, MessageDocument } from '@loopstack/core';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { MyApiTool } from './my-api.tool';
 
@@ -254,7 +253,6 @@ import { MyApiTool } from './my-api.tool';
 })
 export class MyWorkflow extends BaseWorkflow<{ query: string }> {
   @InjectTool() private myApiTool: MyApiTool;
-  @InjectTool() private createChatMessage: CreateChatMessage;
   @InjectWorkflow() private oAuth: OAuthWorkflow;
 
   requiresAuth?: boolean;
@@ -317,7 +315,7 @@ export class MyWorkflow extends BaseWorkflow<{ query: string }> {
   // 4. Success path
   @Final({ from: 'data_fetched' })
   async displayResults() {
-    await this.createChatMessage.call({
+    await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Here is your data: ${JSON.stringify(this.items)}`,
     });

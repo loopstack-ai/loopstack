@@ -20,7 +20,6 @@ import { AdminUserController } from './controllers/admin-user.controller';
 import { ConfigController } from './controllers/config.controller';
 import { DashboardController } from './controllers/dashboard.controller';
 import { DocumentController } from './controllers/document.controller';
-import { FileController } from './controllers/file.controller';
 import { ProcessorController } from './controllers/processor.controller';
 import { SseController } from './controllers/sse.controller';
 import { WorkflowController } from './controllers/workflow.controller';
@@ -33,8 +32,6 @@ import { AdminSystemApiService } from './services/admin-system-api.service';
 import { AdminUserApiService } from './services/admin-user-api.service';
 import { DashboardService } from './services/dashboard.service';
 import { DocumentApiService } from './services/document-api.service';
-import { FileApiService } from './services/file-api.service';
-import { FileSystemService } from './services/file-system.service';
 import { ProcessorApiService } from './services/processor-api.service';
 import { SseEventService } from './services/sse-event.service';
 import { WorkflowApiService } from './services/workflow-api.service';
@@ -58,7 +55,6 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
     ConfigController,
     DashboardController,
     SseController,
-    FileController,
   ],
   providers: [
     {
@@ -79,8 +75,6 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from './tokens';
     DocumentApiService,
     DashboardService,
     UserService,
-    FileSystemService,
-    FileApiService,
     {
       provide: LOOPSTACK_AVAILABLE_ENVIRONMENTS,
       useValue: [],

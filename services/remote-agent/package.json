@@ -1,0 +1,54 @@
+{
+  "name": "@loopstack/remote-agent",
+  "displayName": "Loopstack Remote Agent",
+  "description": "Lightweight agent service running on remote instances for file and command operations",
+  "version": "0.23.0",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "compile": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "start:dev": "tsx src/index.ts",
+    "test": "jest --passWithNoTests",
+    "create:lockfile": "npm install --package-lock-only --ignore-workspace",
+    "docker:build": "docker buildx build --platform linux/amd64 --load -t registry.fly.io/builder-agent:latest .",
+    "docker:push": "docker push registry.fly.io/builder-agent:latest"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "glob": "^13.0.6"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "files": [
+    "dist"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1
+  }
+}

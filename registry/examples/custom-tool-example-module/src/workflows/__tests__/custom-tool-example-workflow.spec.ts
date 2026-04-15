@@ -2,7 +2,6 @@ import { TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
 import { getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { CreateChatMessage, CreateChatMessageToolModule } from '@loopstack/create-chat-message-tool';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { CounterTool, MathSumTool } from '../../tools';
 import { CustomToolExampleWorkflow } from '../custom-tool-example.workflow';
@@ -14,15 +13,12 @@ describe('CustomToolExampleWorkflow', () => {
 
   let mockMathSumTool: ToolMock;
   let mockCounterTool: ToolMock;
-  let mockCreateChatMessageTool: ToolMock;
 
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(CustomToolExampleWorkflow)
-      .withImports(CreateChatMessageToolModule)
       .withToolMock(MathSumTool)
       .withToolMock(CounterTool)
-      .withToolOverride(CreateChatMessage)
       .compile();
 
     workflow = module.get(CustomToolExampleWorkflow);
@@ -30,7 +26,6 @@ describe('CustomToolExampleWorkflow', () => {
 
     mockMathSumTool = module.get(MathSumTool);
     mockCounterTool = module.get(CounterTool);
-    mockCreateChatMessageTool = module.get(CreateChatMessage);
   });
 
   afterEach(async () => {
@@ -57,9 +52,8 @@ describe('CustomToolExampleWorkflow', () => {
       expect(getBlockTools(workflow)).toBeDefined();
       expect(Array.isArray(getBlockTools(workflow))).toBe(true);
       expect(getBlockTools(workflow)).toContain('counterTool');
-      expect(getBlockTools(workflow)).toContain('createChatMessage');
       expect(getBlockTools(workflow)).toContain('mathTool');
-      expect(getBlockTools(workflow)).toHaveLength(3);
+      expect(getBlockTools(workflow)).toHaveLength(2);
     });
   });
 
@@ -100,7 +94,6 @@ describe('CustomToolExampleWorkflow', () => {
         .mockResolvedValueOnce({ data: 1 })
         .mockResolvedValueOnce({ data: 2 })
         .mockResolvedValueOnce({ data: 3 });
-      mockCreateChatMessageTool.call.mockResolvedValue({ data: undefined });
 
       // Execute
       const result = await processor.process(workflow, { a: 10, b: 20 }, context);
@@ -113,15 +106,18 @@ describe('CustomToolExampleWorkflow', () => {
       // Tool calls
       expect(mockMathSumTool.call).toHaveBeenCalledWith({ a: 10, b: 20 }, undefined);
       expect(mockCounterTool.call).toHaveBeenCalledTimes(3);
-      expect(mockCreateChatMessageTool.call).toHaveBeenCalledTimes(3);
 
-      // Verify createChatMessage was called with calculation result
-      expect(mockCreateChatMessageTool.call).toHaveBeenCalledWith(
-        expect.objectContaining({
-          role: 'assistant',
-          content: expect.stringContaining('10 + 20 = 30'),
-        }),
-        undefined,
+      // Verify MessageDocument was created with calculation result
+      expect(result.documents).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            className: 'MessageDocument',
+            content: expect.objectContaining({
+              role: 'assistant',
+              content: expect.stringContaining('10 + 20 = 30'),
+            }),
+          }),
+        ]),
       );
     });
   });

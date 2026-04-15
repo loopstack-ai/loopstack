@@ -33,6 +33,7 @@ export type {
   StudioFeatureSidebarPanel,
   FeatureRegistryProviderProps,
 } from './features/feature-registry';
+export { fileExplorerFeature } from './features/file-explorer';
 export { LocalHealthCheck } from './features/health';
 export { secretsFeature } from './features/secrets';
 export { CreateWorkspace, EnvironmentSlotSelector } from './features/workspaces';
