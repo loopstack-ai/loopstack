@@ -30,12 +30,12 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.25.2",
-    "@loopstack/core": "^0.25.2",
+    "@loopstack/common": "^0.26.0",
+    "@loopstack/core": "^0.26.0",
     "@loopstack/git-module": "^0.1.0",
     "@loopstack/github-module": "^0.2.3",
     "@loopstack/hitl": "^0.1.0",
-    "@loopstack/oauth-module": "^0.2.3",
+    "@loopstack/oauth-module": "^0.2.4",
     "@loopstack/remote-client": "^0.23.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"

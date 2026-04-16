@@ -35,7 +35,7 @@
     "@loopstack/secrets-module": "^0.23.0",
     "@nestjs/common": "^11.1.19",
     "@nestjs/typeorm": "^11.0.1",
-    "typeorm": "^0.3.22",
+    "typeorm": "^0.3.28",
     "zod": "^4.3.6"
   },
   "files": [
