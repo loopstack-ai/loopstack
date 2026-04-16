@@ -8,7 +8,7 @@
     "module",
     "oauth"
   ],
-  "version": "0.2.4",
+  "version": "0.2.5",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -29,8 +29,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.26.0",
-    "@loopstack/core": "^0.26.0",
+    "@loopstack/common": "^0.27.0",
+    "@loopstack/core": "^0.27.0",
     "ioredis": "^5.10.1",
     "zod": "^4.3.6"
   },
