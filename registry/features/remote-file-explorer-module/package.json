@@ -31,7 +31,7 @@
   "dependencies": {
     "@loopstack/common": "^0.25.2",
     "@loopstack/core": "^0.25.2",
-    "@loopstack/remote-agent-client": "^0.23.0",
+    "@loopstack/remote-client": "^0.23.0",
     "@nestjs/common": "^11.1.19",
     "@nestjs/typeorm": "^11.0.1",
     "typeorm": "^0.3.22"

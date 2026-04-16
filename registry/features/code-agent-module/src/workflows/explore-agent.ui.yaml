@@ -1,0 +1,5 @@
+title: 'Explore Agent'
+
+description: |
+  A read-only agent that explores a remote codebase using glob, grep, and read tools.
+  Accepts instructions, autonomously searches, and returns a synthesized result.

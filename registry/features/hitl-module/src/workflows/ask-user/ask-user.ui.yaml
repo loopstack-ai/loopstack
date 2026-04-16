@@ -1,0 +1,6 @@
+title: 'Ask User'
+
+description: |
+  Generic sub-workflow that presents a question to the user and waits for their answer.
+  Used by async tool calls (e.g. askClarification) to interrupt an agent loop for user input.
+  Supports three modes: text (default), options (pick from a list), and confirm (yes/no).

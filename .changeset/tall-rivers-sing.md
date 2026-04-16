@@ -1,6 +1,6 @@
 ---
 '@loopstack/contracts': patch
-'@loopstack/remote-agent': patch
+'@loopstack/remote-server': patch
 '@loopstack/git-module': patch
 ---
 

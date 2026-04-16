@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
 import { LoopCoreModule } from '@loopstack/core';
-import { RemoteAgentClientModule } from '@loopstack/remote-agent-client';
+import { RemoteClientModule } from '@loopstack/remote-client';
 import { GitController } from './controllers';
 import {
   GitAddTool,
@@ -35,7 +35,7 @@ const tools = [
 ];
 
 @Module({
-  imports: [LoopCoreModule, RemoteAgentClientModule, TypeOrmModule.forFeature([WorkspaceEntity])],
+  imports: [LoopCoreModule, RemoteClientModule, TypeOrmModule.forFeature([WorkspaceEntity])],
   controllers: [GitController],
   providers: [...tools],
   exports: [...tools],

@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteAgentClient, SandboxEnvironmentService } from '@loopstack/remote-agent-client';
+import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
 
 export type GitPullArgs = {
   remote?: string;
@@ -22,7 +22,7 @@ export type GitPullArgs = {
   },
 })
 export class GitPullTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteAgentClient;
+  @Inject() private remoteAgentClient: RemoteClient;
   @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
 
   async call(args: GitPullArgs): Promise<ToolResult> {

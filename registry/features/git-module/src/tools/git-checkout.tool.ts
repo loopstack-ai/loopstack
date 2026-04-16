@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteAgentClient, SandboxEnvironmentService } from '@loopstack/remote-agent-client';
+import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
 
 export type GitCheckoutArgs = {
   branch: string;
@@ -20,7 +20,7 @@ export type GitCheckoutArgs = {
   },
 })
 export class GitCheckoutTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteAgentClient;
+  @Inject() private remoteAgentClient: RemoteClient;
   @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
 
   async call(args: GitCheckoutArgs): Promise<ToolResult> {
