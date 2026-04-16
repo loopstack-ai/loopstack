@@ -1,0 +1,6 @@
+type: document
+ui:
+  widgets:
+    - widget: confirm-prompt
+      options:
+        transition: userAnswered

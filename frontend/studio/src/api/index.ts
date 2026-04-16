@@ -1,5 +1,6 @@
 import type { AxiosInstance } from 'axios';
 import { createFilesApi } from '../features/file-explorer/api/files';
+import { createGitApi } from '../features/git/api/git';
 import { createAuthApi } from './auth';
 import { createConfigApi } from './config';
 import { createDashboardApi } from './dashboard';
@@ -20,6 +21,7 @@ export function createApi(http: AxiosInstance) {
     documents: createDocumentsApi(http),
     environments: createEnvironmentsApi(http),
     files: createFilesApi(http),
+    git: createGitApi(http),
     processor: createProcessorApi(http),
     secrets: createSecretsApi(http),
     workflows: createWorkflowsApi(http),

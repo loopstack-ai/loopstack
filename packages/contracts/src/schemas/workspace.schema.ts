@@ -35,6 +35,12 @@ const FeaturesSchema = z.object({
       enabled: z.boolean().optional(),
     })
     .optional(),
+  git: z
+    .object({
+      enabled: z.boolean().optional(),
+      environments: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 const WorkspaceActionSchema = z.object({
@@ -43,7 +49,7 @@ const WorkspaceActionSchema = z.object({
 });
 
 const WorkspaceUiSchema = z.object({
-  actions: z.array(WorkspaceActionSchema).optional(),
+  widgets: z.array(WorkspaceActionSchema).optional(),
 });
 
 export const WorkspaceSchema = BlockSchema.extend({

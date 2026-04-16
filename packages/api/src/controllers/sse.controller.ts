@@ -36,7 +36,6 @@ export class SseController {
     return messageSubject.pipe(
       map((message) => ({
         data: message,
-        type: message.type,
       })),
     );
   }

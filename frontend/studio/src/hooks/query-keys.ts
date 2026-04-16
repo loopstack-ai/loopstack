@@ -80,6 +80,19 @@ export function getSecretsCacheKey(envKey: string, workspaceId: string) {
   return ['secrets', envKey, workspaceId];
 }
 
+// --- Git ---
+export function getGitStatusCacheKey(envKey: string, workspaceId: string) {
+  return ['gitStatus', envKey, workspaceId];
+}
+
+export function getGitLogCacheKey(envKey: string, workspaceId: string) {
+  return ['gitLog', envKey, workspaceId];
+}
+
+export function getGitRemoteCacheKey(envKey: string, workspaceId: string) {
+  return ['gitRemote', envKey, workspaceId];
+}
+
 // --- Files ---
 export function getFileTreeCacheKey(envKey: string, workflowId: string) {
   return ['fileTree', envKey, workflowId];

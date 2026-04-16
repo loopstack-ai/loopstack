@@ -1,0 +1,16 @@
+type: document
+ui:
+  widgets:
+    - widget: form
+      options:
+        properties:
+          markdown:
+            widget: markdown-view
+        actions:
+          - type: button
+            transition: userDenied
+            label: 'Deny'
+            variant: outline
+          - type: button
+            transition: userConfirmed
+            label: 'Confirm'

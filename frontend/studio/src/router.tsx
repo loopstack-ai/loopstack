@@ -8,6 +8,7 @@ import { SidebarInset, SidebarProvider } from './components/ui/sidebar.tsx';
 import config from './config.ts';
 import { FeatureRegistryProvider } from './features/feature-registry';
 import { fileExplorerFeature } from './features/file-explorer';
+import { gitFeature } from './features/git';
 import { LocalHealthCheck } from './features/health';
 import { OAuthCallbackPage } from './features/oauth';
 import { secretsFeature } from './features/secrets';
@@ -44,7 +45,7 @@ function AppSidebar() {
   );
 }
 
-const defaultFeatures = [secretsFeature, fileExplorerFeature];
+const defaultFeatures = [secretsFeature, fileExplorerFeature, gitFeature];
 
 function AppRoot() {
   const router = useRouter(config.environment.id);
