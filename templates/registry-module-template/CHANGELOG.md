@@ -1,5 +1,13 @@
 # @loopstack/registry-module-template
 
+## 0.20.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.27.0
+  - @loopstack/core@0.27.0
+
 ## 0.20.3
 
 ### Patch Changes

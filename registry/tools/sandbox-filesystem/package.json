@@ -7,7 +7,7 @@
     "filesystem",
     "sandbox"
   ],
-  "version": "0.5.4",
+  "version": "0.5.5",
   "license": "MIT",
   "author": {
     "name": "Tobias Blättermann, Jakob Klippel"
@@ -27,8 +27,8 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.26.0",
-    "@loopstack/sandbox-tool": "^0.5.4",
+    "@loopstack/common": "^0.27.0",
+    "@loopstack/sandbox-tool": "^0.5.5",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },

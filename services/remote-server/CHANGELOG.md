@@ -1,5 +1,15 @@
 # @loopstack/remote-agent
 
+## 0.24.0
+
+### Minor Changes
+
+- [#132](https://github.com/loopstack-ai/loopstack/pull/132) [`03f8e93`](https://github.com/loopstack-ai/loopstack/commit/03f8e93434ca35d4428206488275741d76cb25df) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Restructure remote server to use monorepo workspace layout and rename workspace UI schema field from actions to widgets
+
+### Patch Changes
+
+- [#132](https://github.com/loopstack-ai/loopstack/pull/132) [`6bd6e28`](https://github.com/loopstack-ai/loopstack/commit/6bd6e283b2b3e7526d7e89397f7e5c9b73d73316) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add git integration: workspace git feature config, remote agent git routes, and git-module with tools and API
+
 ## 0.23.0
 
 ### Minor Changes

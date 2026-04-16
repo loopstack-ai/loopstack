@@ -1,5 +1,15 @@
 # @loopstack/github-oauth-example
 
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.27.0
+  - @loopstack/core@0.27.0
+  - @loopstack/claude-module@0.22.4
+  - @loopstack/oauth-module@0.2.5
+
 ## 0.2.4
 
 ### Patch Changes

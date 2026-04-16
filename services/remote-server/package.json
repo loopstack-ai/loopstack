@@ -2,7 +2,7 @@
   "name": "@loopstack/remote-server",
   "displayName": "Loopstack Remote Server",
   "description": "Lightweight server running on remote instances for file and command operations",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",

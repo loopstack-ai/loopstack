@@ -1,5 +1,15 @@
 # @loopstack/secrets-example-workflow
 
+## 0.22.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.27.0
+  - @loopstack/core@0.27.0
+  - @loopstack/claude-module@0.22.4
+  - @loopstack/secrets-module@0.23.1
+
 ## 0.22.3
 
 ### Patch Changes

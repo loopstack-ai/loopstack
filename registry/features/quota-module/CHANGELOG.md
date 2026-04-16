@@ -1,5 +1,12 @@
 # @loopstack/quota
 
+## 0.22.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.27.0
+
 ## 0.22.1
 
 ### Patch Changes
