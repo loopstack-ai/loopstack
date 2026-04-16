@@ -3,6 +3,7 @@ import { WORKSPACE_ROOT } from './config';
 import appRouter, { startApp } from './routes/app';
 import execRouter from './routes/exec';
 import filesRouter from './routes/files';
+import gitRouter from './routes/git';
 
 const app = express();
 const AGENT_PORT = Number(process.env.AGENT_PORT) || 3001;
@@ -16,6 +17,7 @@ app.get('/health', (_req, res) => {
 app.use('/files', filesRouter);
 app.use('/exec', execRouter);
 app.use('/app', appRouter);
+app.use('/git', gitRouter);
 
 app.listen(AGENT_PORT, '::', () => {
   console.log(`Remote agent listening on port ${AGENT_PORT}`);

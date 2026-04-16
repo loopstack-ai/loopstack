@@ -35,6 +35,12 @@ const FeaturesSchema = z.object({
       enabled: z.boolean().optional(),
     })
     .optional(),
+  git: z
+    .object({
+      enabled: z.boolean().optional(),
+      environments: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 const WorkspaceActionSchema = z.object({

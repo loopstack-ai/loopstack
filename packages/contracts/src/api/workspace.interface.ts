@@ -19,6 +19,11 @@ export interface FlyInstanceFeatureInterface {
   enabled?: boolean;
 }
 
+export interface GitFeatureInterface {
+  enabled?: boolean;
+  environments?: string[];
+}
+
 export interface FeaturesInterface {
   sidebar?: SidebarFeatureInterface;
   workflowHistory?: SidebarFeatureInterface;
@@ -27,6 +32,7 @@ export interface FeaturesInterface {
   fileExplorer?: FileExplorerFeatureInterface;
   flyInstance?: FlyInstanceFeatureInterface;
   previewPanel?: SidebarFeatureInterface;
+  git?: GitFeatureInterface;
 }
 
 export interface EnvironmentConfigInterface {

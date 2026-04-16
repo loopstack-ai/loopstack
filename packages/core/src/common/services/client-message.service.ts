@@ -33,6 +33,18 @@ export class ClientMessageService {
     );
   }
 
+  dispatchWorkspaceEvent(type: string, workspaceId: string, userId: string) {
+    this.eventEmitter.emit(
+      'client.message',
+      new ClientMessageDto({
+        type: type,
+        userId: userId,
+        workspaceId: workspaceId,
+        workerId: this.clientId,
+      }),
+    );
+  }
+
   dispatchDocumentEvent(type: string, entity: WorkflowEntity) {
     this.eventEmitter.emit(
       'client.message',

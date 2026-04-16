@@ -17,7 +17,7 @@ RUN npx --yes create-loopstack-app@latest custom-app --template=app-template --t
 FROM node:20-slim
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends postgresql redis-server && \
+    apt-get install -y --no-install-recommends postgresql redis-server git && \
     rm -rf /var/lib/apt/lists/*
 
 RUN npm i -g pm2
@@ -27,7 +27,14 @@ WORKDIR /app
 # Copy full custom-app (source + deps + pre-built dist)
 COPY --from=build /app/custom-app /workspace
 
-# Create compressed backup of the initial workspace for reset
+# Initialize git repo in workspace so version control is available from the start
+RUN cd /workspace && \
+    git config --global user.name "loopstack" && \
+    git config --global user.email "noreply@loopstack.ai" && \
+    git config --global init.defaultBranch main && \
+    git init && git add . && git commit -m "Initial scaffold"
+
+# Create compressed backup of the initial workspace for reset (includes .git)
 RUN tar czf /opt/workspace-backup.tar.gz -C / workspace
 
 # Install agent production dependencies

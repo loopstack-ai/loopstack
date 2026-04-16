@@ -59,8 +59,8 @@ export function wrapToolProxy(
     get(target, prop, receiver) {
       // call() → route through framework (validation, interceptors)
       if (prop === 'call') {
-        return (args: Record<string, unknown>, options?: Record<string, unknown>) =>
-          executeCall(target, originalCall, args, receiver as object, options);
+        return (args?: Record<string, unknown>, options?: Record<string, unknown>) =>
+          executeCall(target, originalCall, args ?? {}, receiver as object, options);
       }
 
       // Pass-through: methods, framework services, nested tools, NestJS-injected services

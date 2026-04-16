@@ -43,6 +43,52 @@ export interface FileTreeNode {
   children?: FileTreeNode[];
 }
 
+// --- Git interfaces ---
+
+export interface GitStatusResponse {
+  branch: string;
+  staged: string[];
+  modified: string[];
+  untracked: string[];
+  deleted: string[];
+}
+
+export interface GitCommit {
+  hash: string;
+  shortHash: string;
+  message: string;
+  author: string;
+  date: string;
+}
+
+export interface GitLogResponse {
+  commits: GitCommit[];
+}
+
+export interface GitBranchesResponse {
+  current: string;
+  branches: { name: string; isCurrent: boolean }[];
+}
+
+export interface GitRemoteResponse {
+  name: string;
+  url: string;
+}
+
+export interface GitDiffFile {
+  path: string;
+  status: string;
+}
+
+export interface GitDiffResponse {
+  files: GitDiffFile[];
+}
+
+export interface GitCommandResult {
+  success: boolean;
+  output?: string;
+}
+
 @Injectable()
 export class RemoteAgentClient {
   private readonly logger = new Logger(RemoteAgentClient.name);
@@ -141,6 +187,88 @@ export class RemoteAgentClient {
   async getFileTree(connectionUrl: string, basePath?: string): Promise<FileTreeNode[]> {
     const path = basePath ? `/files/tree?path=${encodeURIComponent(basePath)}` : '/files/tree';
     return this.doRequest<FileTreeNode[]>(connectionUrl, 'GET', path);
+  }
+
+  // --- Git operations ---
+
+  async gitStatus(connectionUrl: string): Promise<GitStatusResponse> {
+    return this.doRequest<GitStatusResponse>(connectionUrl, 'GET', '/git/status');
+  }
+
+  async gitLog(connectionUrl: string, limit?: number): Promise<GitLogResponse> {
+    const query = limit ? `?limit=${limit}` : '';
+    return this.doRequest<GitLogResponse>(connectionUrl, 'GET', `/git/log${query}`);
+  }
+
+  async gitDiff(connectionUrl: string, staged?: boolean): Promise<GitDiffResponse> {
+    const query = staged ? '?staged=true' : '';
+    return this.doRequest<GitDiffResponse>(connectionUrl, 'GET', `/git/diff${query}`);
+  }
+
+  async gitBranches(connectionUrl: string): Promise<GitBranchesResponse> {
+    return this.doRequest<GitBranchesResponse>(connectionUrl, 'GET', '/git/branches');
+  }
+
+  async gitRemote(connectionUrl: string): Promise<GitRemoteResponse | null> {
+    return this.doRequest<GitRemoteResponse | null>(connectionUrl, 'GET', '/git/remote');
+  }
+
+  async gitAdd(connectionUrl: string, files: string[]): Promise<{ success: boolean }> {
+    return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/add', { files });
+  }
+
+  async gitCommit(connectionUrl: string, message: string): Promise<{ hash: string; message: string }> {
+    return this.doRequest<{ hash: string; message: string }>(connectionUrl, 'POST', '/git/commit', { message });
+  }
+
+  async gitPush(
+    connectionUrl: string,
+    options?: { remote?: string; branch?: string; force?: boolean; token?: string },
+  ): Promise<GitCommandResult> {
+    return this.doRequest<GitCommandResult>(connectionUrl, 'POST', '/git/push', options ?? {}, {
+      redactBody: !!options?.token,
+    });
+  }
+
+  async gitFetch(connectionUrl: string, remote?: string, token?: string): Promise<GitCommandResult> {
+    return this.doRequest<GitCommandResult>(
+      connectionUrl,
+      'POST',
+      '/git/fetch',
+      { remote, token },
+      {
+        redactBody: !!token,
+      },
+    );
+  }
+
+  async gitPull(
+    connectionUrl: string,
+    options?: { remote?: string; branch?: string; token?: string },
+  ): Promise<GitCommandResult> {
+    return this.doRequest<GitCommandResult>(connectionUrl, 'POST', '/git/pull', options ?? {}, {
+      redactBody: !!options?.token,
+    });
+  }
+
+  async gitCheckout(connectionUrl: string, branch: string, create?: boolean): Promise<{ branch: string }> {
+    return this.doRequest<{ branch: string }>(connectionUrl, 'POST', '/git/checkout', { branch, create });
+  }
+
+  async gitBranch(connectionUrl: string, name: string): Promise<{ branch: string }> {
+    return this.doRequest<{ branch: string }>(connectionUrl, 'POST', '/git/branch', { name });
+  }
+
+  async gitRemoveRemote(connectionUrl: string, name?: string): Promise<{ success: boolean }> {
+    return this.doRequest<{ success: boolean }>(connectionUrl, 'DELETE', '/git/remote', { name: name ?? 'origin' });
+  }
+
+  async gitConfigureRemote(connectionUrl: string, url: string): Promise<{ success: boolean }> {
+    return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/remote/configure', { url });
+  }
+
+  async gitConfigUser(connectionUrl: string, name: string, email: string): Promise<{ success: boolean }> {
+    return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/config-user', { name, email });
   }
 
   private async doRequest<T = void>(
