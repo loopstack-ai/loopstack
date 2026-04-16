@@ -1,0 +1,20 @@
+{
+  "name": "loopstack-workspace",
+  "private": true,
+  "workspaces": [
+    "app",
+    "packages/*"
+  ],
+  "loopstack": {
+    "type": "tool-builder",
+    "version": "0.1.0"
+  },
+  "scripts": {
+    "build": "npm run build --workspace=app",
+    "build:all": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present",
+    "format:check": "npm run format:check --workspaces --if-present"
+  }
+}

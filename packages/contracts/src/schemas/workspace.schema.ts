@@ -49,7 +49,7 @@ const WorkspaceActionSchema = z.object({
 });
 
 const WorkspaceUiSchema = z.object({
-  actions: z.array(WorkspaceActionSchema).optional(),
+  widgets: z.array(WorkspaceActionSchema).optional(),
 });
 
 export const WorkspaceSchema = BlockSchema.extend({

@@ -9,10 +9,13 @@ COPY tsconfig.json ./
 COPY src/ ./src/
 RUN npm run build
 
-# Install app-template via create-loopstack-app and pre-build
-RUN npx --yes create-loopstack-app@latest custom-app --template=app-template --tag=main && \
-    cd custom-app && \
-    npm run build
+# Scaffold monorepo workspace
+WORKDIR /workspace-setup
+COPY workspace-root/ ./
+RUN mkdir -p packages
+RUN npx --yes create-loopstack-app@latest app --template=app-template --tag=main
+RUN npm install
+RUN npm run build
 
 FROM node:20-slim
 
@@ -24,8 +27,8 @@ RUN npm i -g pm2
 
 WORKDIR /app
 
-# Copy full custom-app (source + deps + pre-built dist)
-COPY --from=build /app/custom-app /workspace
+# Copy monorepo workspace
+COPY --from=build /workspace-setup /workspace
 
 # Initialize git repo in workspace so version control is available from the start
 RUN cd /workspace && \

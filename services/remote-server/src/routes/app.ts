@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { existsSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { WORKSPACE_ROOT } from '../config';
+import { APP_ROOT } from '../config';
 
 const WORKSPACE_BACKUP_PATH = '/opt/workspace-backup.tar.gz';
 
@@ -30,7 +30,7 @@ router.post('/rebuild', (_req, res) => {
   try {
     console.log('Building custom-app...');
     const buildOutput = execSync('npm run build', {
-      cwd: WORKSPACE_ROOT,
+      cwd: APP_ROOT,
       timeout: 60_000,
       encoding: 'utf-8',
     });
@@ -122,7 +122,7 @@ router.put('/env', async (req, res) => {
 
     const envContent = variables.map(({ key, value }) => `${key}=${value}`).join('\n') + '\n';
 
-    const envPath = join(WORKSPACE_ROOT, '.env');
+    const envPath = join(APP_ROOT, '.env');
     await writeFile(envPath, envContent, 'utf-8');
     console.log(`Wrote ${variables.length} env vars to ${envPath}`);
 

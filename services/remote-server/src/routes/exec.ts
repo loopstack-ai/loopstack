@@ -8,7 +8,7 @@ const EXEC_TIMEOUT_MS = Number(process.env.EXEC_TIMEOUT_MS) || 30_000;
 
 router.post('/', async (req: Request, res) => {
   try {
-    const { command, cwd } = req.body as { command?: string; cwd?: string };
+    const { command, cwd, timeout } = req.body as { command?: string; cwd?: string; timeout?: number };
 
     if (!command) {
       res.status(400).json({ error: 'Missing required field: command' });
@@ -16,14 +16,15 @@ router.post('/', async (req: Request, res) => {
     }
 
     const workingDir = cwd ? path.resolve(WORKSPACE_ROOT, cwd) : WORKSPACE_ROOT;
-    console.log(`[exec] cwd=${workingDir} command=${command.substring(0, 200)}`);
+    const execTimeout = typeof timeout === 'number' && timeout > 0 ? timeout : EXEC_TIMEOUT_MS;
+    console.log(`[exec] cwd=${workingDir} timeout=${execTimeout}ms command=${command.substring(0, 200)}`);
 
     const result = await new Promise<{ stdout: string; stderr: string; exitCode: number }>((resolve) => {
       exec(
         command,
         {
           cwd: workingDir,
-          timeout: EXEC_TIMEOUT_MS,
+          timeout: execTimeout,
           maxBuffer: 10 * 1024 * 1024, // 10MB
         },
         (error, stdout, stderr) => {

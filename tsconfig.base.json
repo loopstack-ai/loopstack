@@ -33,6 +33,7 @@
       "@loopstack/ai-module": ["./registry/features/ai-module/src"],
       "@loopstack/claude-module": ["./registry/features/claude-module/src"],
       "@loopstack/code-agent": ["./registry/features/code-agent-module/src"],
+      "@loopstack/github-integration": ["./registry/features/github-integration-module/src"],
       "@loopstack/github-module": ["./registry/features/github-module/src"],
       "@loopstack/hitl": ["./registry/features/hitl-module/src"],
       "@loopstack/google-workspace-module": ["./registry/features/google-workspace-module/src"],
