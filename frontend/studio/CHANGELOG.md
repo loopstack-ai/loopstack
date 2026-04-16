@@ -1,5 +1,13 @@
 # @loopstack/loopstack-studio
 
+## 0.26.0
+
+### Minor Changes
+
+- [#129](https://github.com/loopstack-ai/loopstack/pull/129) [`6ef3915`](https://github.com/loopstack-ai/loopstack/commit/6ef3915cb067a44d78537410a9ef8491acd65617) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add environment management panel, refactor workbench layout with resizable sidebar panels, and replace Insights with Favourites
+
+- [#129](https://github.com/loopstack-ai/loopstack/pull/129) [`bff1bfa`](https://github.com/loopstack-ai/loopstack/commit/bff1bfa3f8de0800c26537ce289f672493ec6c7c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add feature registry plugin architecture for extensible sidebar panels and document renderers, move secrets UI into secrets feature plugin
+
 ## 0.25.2
 
 ### Patch Changes

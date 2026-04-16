@@ -2,7 +2,7 @@
   "name": "@loopstack/api",
   "displayName": "Loopstack Api Module",
   "description": "The api module of the loopstack automation framework",
-  "version": "0.25.2",
+  "version": "0.26.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -29,10 +29,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/auth": "^0.25.2",
-    "@loopstack/common": "^0.25.2",
+    "@loopstack/auth": "^0.26.0",
+    "@loopstack/common": "^0.26.0",
     "@loopstack/contracts": "^0.25.2",
-    "@loopstack/core": "^0.25.2",
+    "@loopstack/core": "^0.26.0",
     "@nestjs/common": "^11.1.19",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.19",

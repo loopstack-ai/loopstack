@@ -7,7 +7,7 @@
     "secrets",
     "workflow"
   ],
-  "version": "0.22.2",
+  "version": "0.22.3",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -28,10 +28,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/claude-module": "^0.22.2",
-    "@loopstack/common": "^0.25.2",
-    "@loopstack/core": "^0.25.2",
-    "@loopstack/secrets-module": "^0.22.2",
+    "@loopstack/claude-module": "^0.22.3",
+    "@loopstack/common": "^0.26.0",
+    "@loopstack/core": "^0.26.0",
+    "@loopstack/secrets-module": "^0.23.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },

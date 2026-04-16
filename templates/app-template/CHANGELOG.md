@@ -1,5 +1,21 @@
 # @loopstack/app-template
 
+## 0.19.4
+
+### Patch Changes
+
+- Updated dependencies [[`bff1bfa`](https://github.com/loopstack-ai/loopstack/commit/bff1bfa3f8de0800c26537ce289f672493ec6c7c)]:
+  - @loopstack/core@0.26.0
+  - @loopstack/api@0.26.0
+  - @loopstack/common@0.26.0
+  - @loopstack/cli-module@0.26.0
+
+## 0.19.3
+
+### Patch Changes
+
+- [#127](https://github.com/loopstack-ai/loopstack/pull/127) [`70b7eb9`](https://github.com/loopstack-ai/loopstack/commit/70b7eb95855c4d1aeaada59f5ca3382bae7cb808) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Remove rootDir from tsconfig
+
 ## 0.19.2
 
 ### Patch Changes
