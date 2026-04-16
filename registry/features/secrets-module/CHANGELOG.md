@@ -1,5 +1,13 @@
 # @loopstack/secrets-module
 
+## 0.23.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.27.0
+  - @loopstack/core@0.27.0
+
 ## 0.23.0
 
 ### Minor Changes

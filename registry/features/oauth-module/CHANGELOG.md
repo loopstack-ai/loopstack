@@ -1,5 +1,13 @@
 # @loopstack/core-ui-module
 
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.27.0
+  - @loopstack/core@0.27.0
+
 ## 0.2.4
 
 ### Patch Changes

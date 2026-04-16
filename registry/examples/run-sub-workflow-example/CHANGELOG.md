@@ -1,5 +1,13 @@
 # @loopstack/run-sub-workflow-example
 
+## 0.21.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.27.0
+  - @loopstack/core@0.27.0
+
 ## 0.21.4
 
 ### Patch Changes

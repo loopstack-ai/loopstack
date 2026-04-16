@@ -1,5 +1,15 @@
 # @loopstack/app-template
 
+## 0.19.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/api@0.27.0
+  - @loopstack/cli-module@0.27.0
+  - @loopstack/common@0.27.0
+  - @loopstack/core@0.27.0
+
 ## 0.19.4
 
 ### Patch Changes

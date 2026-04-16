@@ -1,5 +1,14 @@
 # @loopstack/remote-file-explorer-module
 
+## 0.22.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @loopstack/common@0.27.0
+  - @loopstack/core@0.27.0
+  - @loopstack/remote-client@0.23.2
+
 ## 0.22.3
 
 ### Patch Changes
