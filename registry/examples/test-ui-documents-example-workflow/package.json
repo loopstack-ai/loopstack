@@ -59,10 +59,6 @@
     "forceExit": true
   },
   "loopstack": {
-    "installModes": [
-      "add",
-      "install"
-    ],
     "modules": [
       {
         "path": "src/test-ui-documents-example.module.ts",
@@ -75,6 +71,10 @@
         "className": "TestUiDocumentsWorkflow",
         "propertyName": "testUiDocuments"
       }
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

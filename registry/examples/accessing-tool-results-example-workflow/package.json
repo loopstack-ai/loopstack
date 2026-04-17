@@ -61,10 +61,6 @@
     "forceExit": true
   },
   "loopstack": {
-    "installModes": [
-      "add",
-      "install"
-    ],
     "modules": [
       {
         "path": "src/tool-results-example.module.ts",
@@ -77,6 +73,10 @@
         "className": "WorkflowToolResultsWorkflow",
         "propertyName": "workflowToolResults"
       }
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

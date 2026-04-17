@@ -12,6 +12,8 @@ Copies the source files of a registry package into your project and registers it
 loopstack add @loopstack/google-oauth-calendar-example
 ```
 
+**Only example and template packages support `loopstack add`.** Feature and tool packages must be installed as npm dependencies via `loopstack install` or `npm install` + `loopstack configure`. Running `loopstack add` against a package that does not ship its sources will exit with an error that points you at the correct command.
+
 **What it does:**
 
 1. Installs the npm package (if not already installed)
@@ -188,7 +190,12 @@ An entry must have either `path` (local) or `package` (dependency), not both.
 
 **Install modes:**
 
-The `installModes` array controls which commands a package supports. Valid values are `"add"` and `"install"`. If omitted, both modes are allowed.
+The `installModes` array declares which commands your package supports. Valid values are `"add"` and `"install"`:
+
+- `["add", "install"]` — examples and templates that ship their sources in the published npm tarball (so `loopstack add` can copy them into a consumer project)
+- `["install"]` — features and tools that are consumed as npm dependencies only (no sources shipped)
+
+If omitted, both modes are allowed. The Loopstack registry reads this field when a package is submitted and publishes a derived `allowInstallSources` flag that the CLI uses to gate `loopstack add`.
 
 ---
 

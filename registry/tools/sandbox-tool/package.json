@@ -16,8 +16,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./src/*": "./src/*"
+    ".": "./dist/index.js"
   },
   "scripts": {
     "build": "nest build",
@@ -37,8 +36,7 @@
     "@types/dockerode": "^4.0.1"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "jest": {
     "testEnvironment": "node",
@@ -59,7 +57,6 @@
       }
     ],
     "installModes": [
-      "add",
       "install"
     ]
   }

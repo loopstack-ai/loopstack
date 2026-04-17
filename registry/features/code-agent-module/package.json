@@ -18,8 +18,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./src/*": "./src/*"
+    ".": "./dist/index.js"
   },
   "scripts": {
     "build": "nest build",
@@ -38,8 +37,7 @@
     "zod": "^4.3.6"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "jest": {
     "moduleFileExtensions": [
@@ -67,7 +65,6 @@
       }
     ],
     "installModes": [
-      "add",
       "install"
     ]
   }
