@@ -9,6 +9,7 @@ export * from './workflow-orchestration.service';
 export * from './transition-resolver.service';
 export * from './workflow-memory-monitor.service';
 export * from './block-discovery.service';
+export * from './block-config-cache.service';
 
 export * from './block-processor.service';
 export * from './processor.factory';
