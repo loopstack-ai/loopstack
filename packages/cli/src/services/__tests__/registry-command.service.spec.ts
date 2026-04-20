@@ -91,7 +91,7 @@ describe('RegistryCommandService', () => {
     });
 
     it('should install the package when not already installed', async () => {
-      registryService.findItem.mockResolvedValue({ name: '@loopstack/test' });
+      registryService.findItem.mockResolvedValue({ name: '@loopstack/test', allowInstallSources: true });
       packageService.isInstalled.mockReturnValue(false);
       packageService.getModuleConfig.mockReturnValue(null);
 
@@ -101,7 +101,7 @@ describe('RegistryCommandService', () => {
     });
 
     it('should skip npm install when package is already installed', async () => {
-      registryService.findItem.mockResolvedValue({ name: '@loopstack/test' });
+      registryService.findItem.mockResolvedValue({ name: '@loopstack/test', allowInstallSources: true });
       packageService.isInstalled.mockReturnValue(true);
       packageService.getModuleConfig.mockReturnValue(null);
 
@@ -114,7 +114,7 @@ describe('RegistryCommandService', () => {
       const config = {
         modules: [{ path: 'src/test.module.ts', className: 'TestModule' }],
       };
-      registryService.findItem.mockResolvedValue({ name: '@loopstack/test' });
+      registryService.findItem.mockResolvedValue({ name: '@loopstack/test', allowInstallSources: true });
       packageService.isInstalled.mockReturnValue(true);
       packageService.getModuleConfig.mockReturnValue(config);
 
@@ -124,28 +124,38 @@ describe('RegistryCommandService', () => {
       expect(result.packageName).toBe('@loopstack/test');
     });
 
-    it('should exit when install mode is not supported', async () => {
-      registryService.findItem.mockResolvedValue({ name: '@loopstack/test' });
+    it('should exit with npm install guidance when add is used on a package without allowInstallSources', async () => {
+      registryService.findItem.mockResolvedValue({ name: '@loopstack/test', allowInstallSources: false });
       packageService.isInstalled.mockReturnValue(true);
-      packageService.getModuleConfig.mockReturnValue({
-        modules: [{ path: 'src/test.module.ts', className: 'TestModule' }],
-        installModes: ['install'],
-      });
 
       await service.resolveAndInstallPackage('@loopstack/test', 'add');
 
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('npm install @loopstack/test'));
       expect(mockProcessExit).toHaveBeenCalledWith(1);
+      expect(packageService.install).not.toHaveBeenCalled();
     });
 
-    it('should allow install mode when it is in the supported list', async () => {
-      registryService.findItem.mockResolvedValue({ name: '@loopstack/test' });
+    it('should allow add when allowInstallSources is true', async () => {
+      registryService.findItem.mockResolvedValue({ name: '@loopstack/test', allowInstallSources: true });
       packageService.isInstalled.mockReturnValue(true);
       packageService.getModuleConfig.mockReturnValue({
         modules: [{ path: 'src/test.module.ts', className: 'TestModule' }],
-        installModes: ['add', 'install'],
       });
 
       const result = await service.resolveAndInstallPackage('@loopstack/test', 'add');
+
+      expect(mockProcessExit).not.toHaveBeenCalled();
+      expect(result.packageName).toBe('@loopstack/test');
+    });
+
+    it('should allow install regardless of allowInstallSources', async () => {
+      registryService.findItem.mockResolvedValue({ name: '@loopstack/test', allowInstallSources: false });
+      packageService.isInstalled.mockReturnValue(true);
+      packageService.getModuleConfig.mockReturnValue({
+        modules: [{ path: 'src/test.module.ts', className: 'TestModule' }],
+      });
+
+      const result = await service.resolveAndInstallPackage('@loopstack/test', 'install');
 
       expect(mockProcessExit).not.toHaveBeenCalled();
       expect(result.packageName).toBe('@loopstack/test');

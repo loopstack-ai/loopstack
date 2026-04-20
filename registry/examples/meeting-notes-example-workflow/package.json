@@ -52,10 +52,6 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "installModes": [
-      "add",
-      "install"
-    ],
     "modules": [
       {
         "path": "src/meeting-notes-example.module.ts",
@@ -68,6 +64,10 @@
         "className": "MeetingNotesWorkflow",
         "propertyName": "meetingNotes"
       }
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

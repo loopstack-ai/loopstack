@@ -56,10 +56,6 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "installModes": [
-      "add",
-      "install"
-    ],
     "modules": [
       {
         "path": "src/google-example.module.ts",
@@ -77,6 +73,10 @@
         "className": "GoogleWorkspaceAgentWorkflow",
         "propertyName": "googleWorkspaceAgent"
       }
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

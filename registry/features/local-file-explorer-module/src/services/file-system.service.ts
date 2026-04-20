@@ -16,7 +16,7 @@ export class FileSystemService {
    */
   getWorkspaceRootPath(): string {
     const basePath = this.configService.get<string>('WORKSPACE_BASE_PATH', process.cwd());
-    return path.join(basePath, 'src');
+    return path.join(basePath);
   }
 
   /**

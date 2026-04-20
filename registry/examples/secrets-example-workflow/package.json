@@ -60,10 +60,6 @@
     "forceExit": true
   },
   "loopstack": {
-    "installModes": [
-      "add",
-      "install"
-    ],
     "modules": [
       {
         "path": "src/secrets-example.module.ts",
@@ -76,6 +72,10 @@
         "className": "SecretsExampleWorkflow",
         "propertyName": "secretsExample"
       }
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

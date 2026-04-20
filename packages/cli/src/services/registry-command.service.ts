@@ -41,6 +41,17 @@ export class RegistryCommandService {
       process.exit(1);
     }
 
+    if (installMode === 'add' && !registryItem.allowInstallSources) {
+      console.error(
+        `Package '${packageName}' cannot be installed via 'loopstack add'. ` +
+          `Only example and template packages support copying sources into your project.\n` +
+          `Install it as a dependency instead:\n` +
+          `  npm install ${packageArg}\n` +
+          `  loopstack configure ${packageName}`,
+      );
+      process.exit(1);
+    }
+
     if (this.packageService.isInstalled(packageName)) {
       console.log(`Package '${packageName}' is already installed, skipping npm install.`);
     } else {
@@ -50,14 +61,6 @@ export class RegistryCommandService {
 
     const srcPath = this.packageService.getSrcPath(packageName);
     const moduleConfig = this.packageService.getModuleConfig(packageName);
-
-    if (moduleConfig?.installModes && !moduleConfig.installModes.includes(installMode)) {
-      const supported = moduleConfig.installModes.join(', ');
-      console.error(
-        `Package '${packageName}' does not support install mode '${installMode}'. Supported modes: ${supported}`,
-      );
-      process.exit(1);
-    }
 
     return { packageName, packageArg, srcPath, moduleConfig };
   }

@@ -37,7 +37,6 @@ export type WorkflowEntry = LocalWorkflowEntry | DependencyWorkflowEntry;
 export interface LoopstackModuleConfig {
   modules: ModuleEntry[];
   workflows?: WorkflowEntry[];
-  installModes?: InstallMode[];
 }
 
 export interface ModuleInstallOptions {

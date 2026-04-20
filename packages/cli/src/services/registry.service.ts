@@ -4,6 +4,7 @@ import axios from 'axios';
 export interface RegistryItem {
   name: string;
   description?: string;
+  allowInstallSources?: boolean;
 }
 
 @Injectable()
