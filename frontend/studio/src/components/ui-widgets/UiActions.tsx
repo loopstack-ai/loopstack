@@ -22,8 +22,13 @@ const UiActions: React.FC<UiActionsProps> = ({
   return (
     <div className="flex w-full flex-col items-end gap-4">
       {actions.map((config: UiWidgetType, index: number) => {
-        const { enabledWhen } = config;
+        const { enabledWhen, showWhen } = config;
         const transition = (config.options as { transition?: string } | undefined)?.transition;
+
+        // showWhen: hide the widget entirely if the current place doesn't match
+        if (showWhen !== undefined && (!currentPlace || !showWhen.includes(currentPlace))) {
+          return null;
+        }
 
         const isDisabled =
           disabled ||

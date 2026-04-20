@@ -1,4 +1,5 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import {
   RunContext,
   WORKFLOW_ORCHESTRATOR,
@@ -10,7 +11,9 @@ import {
 } from '@loopstack/common';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { RunPayload } from '@loopstack/contracts/schemas';
+import type { ScheduledTask } from '@loopstack/contracts/types';
 import { WorkflowService } from '../../persistence';
+import { TaskSchedulerService } from '../../scheduler';
 import { BlockDiscoveryService } from './block-discovery.service';
 import { BlockProcessor } from './block-processor.service';
 
@@ -23,6 +26,8 @@ export class RootProcessorService {
     private readonly blockProcessor: BlockProcessor,
     private readonly blockDiscoveryService: BlockDiscoveryService,
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    @Inject(forwardRef(() => TaskSchedulerService))
+    private readonly taskSchedulerService: TaskSchedulerService,
   ) {}
 
   private resolveWorkflowConfig(workflow: WorkflowEntity): WorkflowInterface {
@@ -98,6 +103,27 @@ export class RootProcessorService {
     this.logger.debug(`Running Root Workflow: ${workflow.alias}`);
 
     const executionMeta = await this.blockProcessor.processBlock(workflowConfig, workflow.args, ctx);
+
+    // Handle auto-retry re-queue
+    if (executionMeta._retrySignal) {
+      const { delayMs } = executionMeta._retrySignal;
+      this.logger.log(`Scheduling auto-retry for workflow ${workflow.id} in ${delayMs}ms`);
+
+      await this.taskSchedulerService.addTask({
+        id: `auto_retry-${randomUUID()}`,
+        workspaceId: workflow.workspaceId,
+        task: {
+          name: 'auto_retry',
+          type: 'run_workflow',
+          workflowId: workflow.id,
+          payload: {},
+          user: workflow.createdBy,
+          schedule: { delay: delayMs },
+        },
+      } satisfies ScheduledTask);
+
+      return executionMeta;
+    }
 
     // Status is already saved by WorkflowProcessorService.saveExecutionState().
     // Use the metadata status directly for the completion check.
