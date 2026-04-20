@@ -10,3 +10,7 @@ export * from './git-checkout.tool';
 export * from './git-branch.tool';
 export * from './git-remote-configure.tool';
 export * from './git-config-user.tool';
+export * from './git-worktree-list.tool';
+export * from './git-worktree-add.tool';
+export * from './git-worktree-remove.tool';
+export * from './git-worktree-prune.tool';
