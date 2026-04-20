@@ -1,0 +1,73 @@
+{
+  "name": "@loopstack/remote-file-explorer-example-workflow",
+  "displayName": "Remote File Explorer Example",
+  "description": "Example workflow demonstrating @loopstack/remote-file-explorer-module — lists a remote workspace tree and reads a file",
+  "keywords": [
+    "example",
+    "remote-agent",
+    "file-explorer",
+    "workflow"
+  ],
+  "version": "0.21.5",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://github.com/loopstack-ai"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "^0.27.0",
+    "@loopstack/core": "^0.27.0",
+    "@loopstack/remote-client": "^0.23.2",
+    "@loopstack/remote-file-explorer-module": "^0.22.4",
+    "@nestjs/common": "^11.1.19",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "testEnvironment": "node",
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testTimeout": 10000,
+    "forceExit": true,
+    "maxWorkers": 1
+  },
+  "loopstack": {
+    "modules": [
+      {
+        "path": "src/remote-file-explorer-example.module.ts",
+        "className": "RemoteFileExplorerExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/remote-file-explorer-example.workflow.ts",
+        "className": "RemoteFileExplorerExampleWorkflow",
+        "propertyName": "remoteFileExplorerExample"
+      }
+    ],
+    "installModes": [
+      "add",
+      "install"
+    ]
+  }
+}
