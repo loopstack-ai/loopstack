@@ -12,7 +12,7 @@ export class FileSystemService {
 
   /**
    * Get the workspace root path.
-   * Defaults to process.cwd()/src if WORKSPACE_BASE_PATH is not set.
+   * Defaults to process.cwd() if WORKSPACE_BASE_PATH is not set.
    */
   getWorkspaceRootPath(): string {
     const basePath = this.configService.get<string>('WORKSPACE_BASE_PATH', process.cwd());

@@ -2,6 +2,13 @@
   "name": "@loopstack/quota",
   "displayName": "Loopstack Quota Module",
   "description": "Opt-in quota tracking and enforcement for Loopstack workflows",
+  "keywords": [
+    "loopstack",
+    "quota",
+    "rate-limiting",
+    "redis",
+    "workflow"
+  ],
   "version": "0.22.2",
   "license": "MIT",
   "author": {
@@ -10,6 +17,9 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "build": "nest build",
     "compile": "tsc --noEmit",
@@ -49,5 +59,16 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "maxWorkers": 1
+  },
+  "loopstack": {
+    "modules": [
+      {
+        "path": "src/quota.module.ts",
+        "className": "QuotaModule"
+      }
+    ],
+    "installModes": [
+      "install"
+    ]
   }
 }
