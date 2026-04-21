@@ -1,5 +1,17 @@
 # @loopstack/claude-module
 
+## 0.22.5
+
+### Patch Changes
+
+- [#135](https://github.com/loopstack-ai/loopstack/pull/135) [`6f6f203`](https://github.com/loopstack-ai/loopstack/commit/6f6f203d56e42c1c45d7d13b1641cbbd24d07fb8) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add error tracking and aggregation to delegate tool calls with sub-workflow failure detection
+
+- [#135](https://github.com/loopstack-ai/loopstack/pull/135) [`df77219`](https://github.com/loopstack-ai/loopstack/commit/df77219aef8278619a895c496493b12d85122f21) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add seatch tool and git worktree feature
+
+- Updated dependencies [[`189e733`](https://github.com/loopstack-ai/loopstack/commit/189e733748074d015a41290ab45c7a46be92253c)]:
+  - @loopstack/common@0.28.0
+  - @loopstack/core@0.28.0
+
 ## 0.22.4
 
 ### Patch Changes

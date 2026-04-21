@@ -1,5 +1,16 @@
 # @loopstack/common
 
+## 0.28.0
+
+### Minor Changes
+
+- [#135](https://github.com/loopstack-ai/loopstack/pull/135) [`189e733`](https://github.com/loopstack-ai/loopstack/commit/189e733748074d015a41290ab45c7a46be92253c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add retry and timeout support for workflow transitions with configurable backoff strategies and error recovery
+
+### Patch Changes
+
+- Updated dependencies [[`189e733`](https://github.com/loopstack-ai/loopstack/commit/189e733748074d015a41290ab45c7a46be92253c)]:
+  - @loopstack/contracts@0.28.0
+
 ## 0.27.0
 
 ### Patch Changes
