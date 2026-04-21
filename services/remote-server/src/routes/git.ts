@@ -76,6 +76,10 @@ function isValidRef(name: string): boolean {
   return /^[a-zA-Z0-9._\-/]+$/.test(name) && !name.includes('..');
 }
 
+function quotePath(p: string): string {
+  return `"${p.replace(/"/g, '\\"')}"`;
+}
+
 // ---------------------------------------------------------------------------
 // GET /status
 // ---------------------------------------------------------------------------
@@ -601,6 +605,189 @@ router.post('/config-user', async (req: Request, res) => {
     }
 
     res.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[git] uncaught error: ${message}`);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /worktree/list
+// ---------------------------------------------------------------------------
+
+router.get('/worktree/list', async (_req: Request, res) => {
+  try {
+    const result = await gitExec('worktree list --porcelain');
+    if (result.exitCode !== 0) {
+      res.status(500).json({ error: result.stderr || 'git worktree list failed' });
+      return;
+    }
+
+    type Worktree = {
+      path: string;
+      head?: string;
+      branch?: string;
+      bare: boolean;
+      detached: boolean;
+      locked?: string;
+      prunable?: string;
+    };
+
+    const worktrees: Worktree[] = [];
+    let current: Partial<Worktree> | null = null;
+
+    for (const line of result.stdout.split('\n')) {
+      if (line === '') {
+        if (current && current.path) {
+          worktrees.push({
+            path: current.path,
+            head: current.head,
+            branch: current.branch,
+            bare: current.bare ?? false,
+            detached: current.detached ?? false,
+            locked: current.locked,
+            prunable: current.prunable,
+          });
+        }
+        current = null;
+        continue;
+      }
+
+      if (!current) current = { bare: false, detached: false };
+
+      if (line.startsWith('worktree ')) {
+        current.path = line.substring('worktree '.length);
+      } else if (line.startsWith('HEAD ')) {
+        current.head = line.substring('HEAD '.length);
+      } else if (line.startsWith('branch ')) {
+        current.branch = line.substring('branch '.length);
+      } else if (line === 'bare') {
+        current.bare = true;
+      } else if (line === 'detached') {
+        current.detached = true;
+      } else if (line.startsWith('locked')) {
+        current.locked = line.length > 'locked'.length ? line.substring('locked '.length) : '';
+      } else if (line.startsWith('prunable')) {
+        current.prunable = line.length > 'prunable'.length ? line.substring('prunable '.length) : '';
+      }
+    }
+
+    if (current && current.path) {
+      worktrees.push({
+        path: current.path,
+        head: current.head,
+        branch: current.branch,
+        bare: current.bare ?? false,
+        detached: current.detached ?? false,
+        locked: current.locked,
+        prunable: current.prunable,
+      });
+    }
+
+    res.json({ worktrees });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[git] uncaught error: ${message}`);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /worktree/add  { path, branch?, newBranch?, force? }
+// ---------------------------------------------------------------------------
+
+router.post('/worktree/add', async (req: Request, res) => {
+  try {
+    const {
+      path: wtPath,
+      branch,
+      newBranch,
+      force,
+    } = req.body as {
+      path?: string;
+      branch?: string;
+      newBranch?: boolean;
+      force?: boolean;
+    };
+
+    if (!wtPath) {
+      res.status(400).json({ error: 'Missing required field: path' });
+      return;
+    }
+    if (branch && !isValidRef(branch)) {
+      res.status(400).json({ error: 'Invalid branch name' });
+      return;
+    }
+
+    let args = 'worktree add';
+    if (force) args += ' --force';
+    if (newBranch && branch) {
+      args += ` -b ${branch} ${quotePath(wtPath)}`;
+    } else {
+      args += ` ${quotePath(wtPath)}`;
+      if (branch) args += ` ${branch}`;
+    }
+
+    const result = await gitExec(args);
+    if (result.exitCode !== 0) {
+      res
+        .status(500)
+        .json({ error: result.stderr || 'git worktree add failed', output: result.stdout + result.stderr });
+      return;
+    }
+
+    res.json({ success: true, path: wtPath, output: result.stdout + result.stderr });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[git] uncaught error: ${message}`);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /worktree/remove  { path, force? }
+// ---------------------------------------------------------------------------
+
+router.post('/worktree/remove', async (req: Request, res) => {
+  try {
+    const { path: wtPath, force } = req.body as { path?: string; force?: boolean };
+    if (!wtPath) {
+      res.status(400).json({ error: 'Missing required field: path' });
+      return;
+    }
+
+    let args = 'worktree remove';
+    if (force) args += ' --force';
+    args += ` ${quotePath(wtPath)}`;
+
+    const result = await gitExec(args);
+    if (result.exitCode !== 0) {
+      res.status(500).json({ error: result.stderr || 'git worktree remove failed' });
+      return;
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[git] uncaught error: ${message}`);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /worktree/prune
+// ---------------------------------------------------------------------------
+
+router.post('/worktree/prune', async (_req: Request, res) => {
+  try {
+    const result = await gitExec('worktree prune -v');
+    if (result.exitCode !== 0) {
+      res.status(500).json({ error: result.stderr || 'git worktree prune failed' });
+      return;
+    }
+
+    res.json({ success: true, output: result.stdout + result.stderr });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[git] uncaught error: ${message}`);

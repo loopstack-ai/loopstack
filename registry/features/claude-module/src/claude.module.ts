@@ -5,6 +5,7 @@ import {
   ClaudeGenerateDocument,
   ClaudeGenerateObject,
   ClaudeGenerateText,
+  ClaudeWebSearch,
   DelegateToolCalls,
   UpdateToolResult,
 } from './tools';
@@ -21,9 +22,21 @@ import {
     ClaudeGenerateText,
     ClaudeGenerateObject,
     ClaudeGenerateDocument,
+    ClaudeWebSearch,
     DelegateToolCalls,
     UpdateToolResult,
   ],
-  exports: [ClaudeGenerateText, ClaudeGenerateObject, ClaudeGenerateDocument, DelegateToolCalls, UpdateToolResult],
+  exports: [
+    ClaudeClientService,
+    ClaudeMessagesHelperService,
+    ClaudeToolsHelperService,
+
+    ClaudeGenerateText,
+    ClaudeGenerateObject,
+    ClaudeGenerateDocument,
+    ClaudeWebSearch,
+    DelegateToolCalls,
+    UpdateToolResult,
+  ],
 })
 export class ClaudeModule {}

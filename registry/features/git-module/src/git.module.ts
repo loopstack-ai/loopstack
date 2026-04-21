@@ -17,6 +17,10 @@ import {
   GitPushTool,
   GitRemoteConfigureTool,
   GitStatusTool,
+  GitWorktreeAddTool,
+  GitWorktreeListTool,
+  GitWorktreePruneTool,
+  GitWorktreeRemoveTool,
 } from './tools';
 
 const tools = [
@@ -32,6 +36,10 @@ const tools = [
   GitBranchTool,
   GitRemoteConfigureTool,
   GitConfigUserTool,
+  GitWorktreeListTool,
+  GitWorktreeAddTool,
+  GitWorktreeRemoveTool,
+  GitWorktreePruneTool,
 ];
 
 @Module({
