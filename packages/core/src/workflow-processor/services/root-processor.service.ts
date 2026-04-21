@@ -86,7 +86,7 @@ export class RootProcessorService {
     const ctx = new RunContext({
       root: workflow.alias,
       userId: workflow.createdBy,
-      parentWorkflowId: workflow.id,
+      workflowId: workflow.id,
       workspaceId: workflow.workspaceId,
       labels: [...workflow.labels],
       payload,
@@ -129,8 +129,8 @@ export class RootProcessorService {
     // Use the metadata status directly for the completion check.
     const status = executionMeta.status;
 
-    // Trigger parent callback if this is a sub-workflow that completed
-    if (status === WorkflowState.Completed) {
+    // Trigger parent callback if this is a sub-workflow that completed, failed, or was canceled
+    if (status === WorkflowState.Completed || status === WorkflowState.Failed || status === WorkflowState.Canceled) {
       workflow.status = status;
       workflow.result = executionMeta.result ?? null;
       await this.orchestrator.complete(workflow);

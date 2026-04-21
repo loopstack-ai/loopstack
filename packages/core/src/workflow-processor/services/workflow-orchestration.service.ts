@@ -7,6 +7,7 @@ import {
   WorkflowEntity,
   WorkflowInterface,
   WorkflowOrchestrator,
+  WorkflowState,
 } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { WorkflowService } from '../../persistence';
@@ -59,7 +60,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
         callbackMetadata: options?.callback?.metadata ?? null,
       },
       context.userId,
-      context.parentWorkflowId,
+      context.workflowId,
       workflowInstance,
     );
 
@@ -111,13 +112,56 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     } satisfies ScheduledTask);
   }
 
+  async cancel(workflowId: string): Promise<void> {
+    const workflow = await this.workflowService.findById(workflowId);
+    if (!workflow) {
+      this.logger.warn(`Workflow ${workflowId} not found for cancellation — skipping.`);
+      return;
+    }
+
+    // Skip if already in a terminal state
+    if (
+      workflow.status === WorkflowState.Completed ||
+      workflow.status === WorkflowState.Failed ||
+      workflow.status === WorkflowState.Canceled
+    ) {
+      return;
+    }
+
+    this.logger.log(`Canceling workflow ${workflowId} (status: ${workflow.status})`);
+
+    // 1. Recursively cancel all children first
+    const children = await this.workflowService.findChildrenByParentId(workflowId);
+    for (const child of children) {
+      await this.cancel(child.id);
+    }
+
+    // 2. Remove queued BullMQ jobs for this workflow
+    await this.taskSchedulerService.removeTasksByWorkflowId(workflowId);
+
+    // 3. Set status to Canceled
+    await this.workflowService.setWorkflowStatus(workflow, WorkflowState.Canceled);
+
+    // 4. Trigger parent callback if configured
+    if (workflow.parentId && workflow.callbackTransition) {
+      await this.complete(workflow);
+    }
+  }
+
+  async cancelChildren(parentWorkflowId: string): Promise<void> {
+    const children = await this.workflowService.findChildrenByParentId(parentWorkflowId);
+    for (const child of children) {
+      await this.cancel(child.id);
+    }
+  }
+
   async complete(workflowEntity: WorkflowEntity): Promise<void> {
     if (!workflowEntity.parentId || !workflowEntity.callbackTransition) {
       return;
     }
 
     this.logger.log(
-      `Workflow ${workflowEntity.id} completed — triggering parent callback: ` +
+      `Workflow ${workflowEntity.id} ${workflowEntity.status} — triggering parent callback: ` +
         `parentId=${workflowEntity.parentId}, transition=${workflowEntity.callbackTransition}`,
     );
 

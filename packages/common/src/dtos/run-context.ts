@@ -5,7 +5,6 @@ import { WorkspaceEnvironmentContextDto } from './workspace-environment-context.
 export class RunContext {
   root!: string;
   userId!: string;
-  parentWorkflowId?: string;
   workspaceId!: string;
   workflowId?: string;
   labels!: string[];

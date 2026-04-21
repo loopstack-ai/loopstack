@@ -47,6 +47,15 @@ export interface DelegateToolCallsResult {
   toolResults: DelegateToolResultEntry[];
   message: { id?: string; content: Anthropic.ContentBlock[] };
   pendingCount: number;
+  errorCount: number;
+  hasErrors: boolean;
+  errors: DelegateToolErrorEntry[];
+}
+
+export interface DelegateToolErrorEntry {
+  toolName: string;
+  toolUseId: string;
+  message: string;
 }
 
 export interface DelegateToolResultEntry {

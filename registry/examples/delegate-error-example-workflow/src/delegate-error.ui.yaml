@@ -1,0 +1,22 @@
+title: 'Delegate Error Handling Example'
+
+description: |
+  Demonstrates how tool errors (validation, runtime, and failed sub-workflows)
+  are handled by DelegateToolCalls and fed back to the LLM for self-correction.
+
+  The workflow instructs the LLM to:
+  1. Call strictSchema with wrong args (triggers Zod validation error)
+  2. Observe the error and retry with correct args
+  3. Call runtimeError with shouldFail: true (triggers runtime error)
+  4. Observe the error and retry with shouldFail: false
+  5. Call failingSubWorkflow (launches a sub-workflow that fails)
+  6. Observe the sub-workflow error and summarize
+
+ui:
+  widgets:
+    - widget: button
+      showWhen:
+        - awaiting_tools
+      options:
+        transition: cancelPendingTools
+        label: Cancel pending tools

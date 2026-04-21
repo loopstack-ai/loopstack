@@ -112,6 +112,12 @@ export class WorkflowService {
     return this.createFindQuery(parentWorkflowId, options).getOne();
   }
 
+  async findChildrenByParentId(parentId: string): Promise<WorkflowEntity[]> {
+    return this.workflowRepository.find({
+      where: { parentId },
+    });
+  }
+
   async findById(id: string): Promise<WorkflowEntity | null> {
     return this.workflowRepository.findOne({
       where: { id },
