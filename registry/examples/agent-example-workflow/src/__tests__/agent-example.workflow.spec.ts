@@ -1,16 +1,18 @@
 import { TestingModule } from '@nestjs/testing';
-import { ExploreAgentWorkflow } from '@loopstack/code-agent';
+import { AgentWorkflow } from '@loopstack/agent';
 import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { CodeAgentExploreExampleWorkflow } from '../code-agent-explore-example.workflow';
+import { AgentExampleWorkflow } from '../agent-example.workflow';
+import { CalculatorTool } from '../tools/calculator.tool';
+import { WeatherLookupTool } from '../tools/weather-lookup.tool';
 
-describe('CodeAgentExploreExampleWorkflow', () => {
+describe('AgentExampleWorkflow', () => {
   let module: TestingModule;
-  let workflow: CodeAgentExploreExampleWorkflow;
+  let workflow: AgentExampleWorkflow;
   let processor: WorkflowProcessorService;
 
-  const mockExploreAgent = {
+  const mockAgent = {
     run: jest.fn(),
   };
 
@@ -18,12 +20,13 @@ describe('CodeAgentExploreExampleWorkflow', () => {
     jest.clearAllMocks();
 
     module = await createWorkflowTest()
-      .forWorkflow(CodeAgentExploreExampleWorkflow)
+      .forWorkflow(AgentExampleWorkflow)
       .withImports(LoopCoreModule)
-      .withMock(ExploreAgentWorkflow, mockExploreAgent)
+      .withProviders(CalculatorTool, WeatherLookupTool)
+      .withMock(AgentWorkflow, mockAgent)
       .compile();
 
-    workflow = module.get(CodeAgentExploreExampleWorkflow);
+    workflow = module.get(AgentExampleWorkflow);
     processor = module.get(WorkflowProcessorService);
   });
 
@@ -31,25 +34,29 @@ describe('CodeAgentExploreExampleWorkflow', () => {
     await module.close();
   });
 
-  it('launches ExploreAgentWorkflow and stops at exploring', async () => {
-    mockExploreAgent.run.mockResolvedValue({ workflowId: 'sub-id' });
+  it('launches AgentWorkflow and stops at running', async () => {
+    mockAgent.run.mockResolvedValue({ workflowId: 'agent-sub-id' });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
 
     expect(result.hasError).toBe(false);
     expect(result.stop).toBe(true);
-    expect(result.place).toBe('exploring');
+    expect(result.place).toBe('running');
 
-    expect(mockExploreAgent.run).toHaveBeenCalledWith(
-      expect.objectContaining({ instructions: expect.any(String) }),
-      expect.objectContaining({ alias: 'exploreAgent', callback: { transition: 'exploreComplete' } }),
+    expect(mockAgent.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        system: expect.any(String),
+        tools: ['weatherLookup', 'calculator'],
+        userMessage: expect.any(String),
+      }),
+      expect.objectContaining({ alias: 'agent', callback: { transition: 'agentComplete' } }),
     );
 
     expect(result.documents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           className: 'LinkDocument',
-          content: expect.objectContaining({ workflowId: 'sub-id' }),
+          content: expect.objectContaining({ workflowId: 'agent-sub-id' }),
         }),
       ]),
     );
@@ -60,17 +67,17 @@ describe('CodeAgentExploreExampleWorkflow', () => {
     const context = {
       workflowEntity: {
         id: workflowId,
-        place: 'exploring',
+        place: 'running',
         documents: [],
       } as Partial<WorkflowEntity>,
       payload: {
         transition: {
-          id: 'exploreComplete',
+          id: 'agentComplete',
           workflowId,
           payload: {
             workflowId,
             status: 'completed',
-            data: { response: '- src/main.ts\n- AppModule' },
+            data: { response: 'Tokyo is 22°C and sunny. 42 * 17 = 714.' },
           },
         },
       },
@@ -83,7 +90,7 @@ describe('CodeAgentExploreExampleWorkflow', () => {
       expect.arrayContaining([
         expect.objectContaining({
           className: 'MessageDocument',
-          content: expect.objectContaining({ content: expect.stringContaining('AppModule') }),
+          content: expect.objectContaining({ content: expect.stringContaining('714') }),
         }),
       ]),
     );

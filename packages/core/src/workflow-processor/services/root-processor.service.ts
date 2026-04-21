@@ -83,6 +83,11 @@ export class RootProcessorService {
   async runWorkflow(workflow: WorkflowEntity, payload: RunPayload): Promise<WorkflowMetadataInterface> {
     const workflowConfig = this.resolveWorkflowConfig(workflow);
 
+    // Resolve workspace NestJS singleton (has @InjectTool/@InjectWorkflow properties wired)
+    const workspaceInstance = workflow.workspace?.className
+      ? this.blockDiscoveryService.getWorkspace(workflow.workspace.className)
+      : undefined;
+
     const ctx = new RunContext({
       root: workflow.alias,
       userId: workflow.createdBy,
@@ -95,6 +100,7 @@ export class RootProcessorService {
         ? WorkspaceEnvironmentContextDto.fromEntities(workflow.workspace.environments)
         : undefined,
       workflowEntity: workflow,
+      workspaceInstance,
       options: { stateless: false },
     });
 

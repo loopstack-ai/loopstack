@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ExploreAgentWorkflow } from '@loopstack/code-agent';
+import { AgentWorkflow } from '@loopstack/agent';
 import {
   BaseWorkflow,
   CallbackSchema,
@@ -22,16 +22,20 @@ const EXPLORE_INSTRUCTIONS = `Find the entry-point module of this project and li
 top-level providers it registers. Return a short bulleted summary.`;
 
 @Workflow({
-  uiConfig: __dirname + '/code-agent-explore-example.ui.yaml',
+  uiConfig: __dirname + '/code-agent-example.ui.yaml',
 })
-export class CodeAgentExploreExampleWorkflow extends BaseWorkflow {
-  @InjectWorkflow() private exploreAgent: ExploreAgentWorkflow;
+export class CodeAgentExampleWorkflow extends BaseWorkflow {
+  @InjectWorkflow() private agent: AgentWorkflow;
 
   @Initial({ to: 'exploring' })
   async startExploration() {
-    const result: QueueResult = await this.exploreAgent.run(
-      { instructions: EXPLORE_INSTRUCTIONS },
-      { alias: 'exploreAgent', callback: { transition: 'exploreComplete' } },
+    const result: QueueResult = await this.agent.run(
+      {
+        system: 'You are a codebase exploration agent. Search and read source code to answer the question thoroughly.',
+        tools: ['glob', 'grep', 'read'],
+        userMessage: EXPLORE_INSTRUCTIONS,
+      },
+      { alias: 'agent', callback: { transition: 'exploreComplete' } },
     );
 
     await this.repository.save(

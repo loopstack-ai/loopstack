@@ -98,6 +98,9 @@ import { ExecutionScope, TemplateRenderer } from './utils';
         get parent() {
           return scope.get().getInstance();
         },
+        get workspace() {
+          return scope.get().getContext().workspaceInstance;
+        },
       }),
       inject: [ExecutionScope],
     },

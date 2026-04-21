@@ -120,7 +120,9 @@ export class DelegateToolCalls extends BaseTool {
 
   private async executeTool(block: Anthropic.ToolUseBlock, options?: ToolCallOptions): Promise<ToolResult> {
     try {
-      const tool = getBlockTool<BaseTool>(this.ctx.parent, block.name);
+      const tool =
+        getBlockTool<BaseTool>(this.ctx.parent, block.name) ??
+        (this.ctx.workspace ? getBlockTool<BaseTool>(this.ctx.workspace, block.name) : undefined);
       if (!tool) {
         throw new Error(`Tool with name ${block.name} not found.`);
       }

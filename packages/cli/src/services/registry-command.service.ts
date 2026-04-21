@@ -77,6 +77,7 @@ export class RegistryCommandService {
     const { moduleConfig, resolvedTargetModuleFile } = options;
     let moduleInstallFailed = false;
     let workflowInstallFailed = false;
+    let toolInstallFailed = false;
 
     console.log('Found loopstack config in package.json, running module installer...');
     try {
@@ -107,13 +108,32 @@ export class RegistryCommandService {
       }
     }
 
-    if (moduleInstallFailed || workflowInstallFailed) {
+    if (!moduleInstallFailed && moduleConfig.tools && moduleConfig.tools.length > 0) {
+      console.log('Installing workspace tools...');
+      try {
+        await this.workflowInstallerService.installTools({
+          tools: moduleConfig.tools,
+          targetPath: options.targetPath,
+          targetWorkspaceFile: options.targetWorkspaceFile,
+          importPath: options.importPath,
+          workspaceSearchRoot: this.fileSystemService.dirname(resolvedTargetModuleFile),
+        });
+      } catch (error) {
+        toolInstallFailed = true;
+        console.error(`Tool installation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    if (moduleInstallFailed || workflowInstallFailed || toolInstallFailed) {
       console.log('\nAutomatic registration failed. Please manually:');
       if (moduleInstallFailed) {
         console.log(`  - Import and add the module to your target module's imports array`);
       }
       if (workflowInstallFailed || moduleInstallFailed) {
         console.log(`  - Import and add workflows to your workspace class with @InjectWorkflow() decorator`);
+      }
+      if (toolInstallFailed || moduleInstallFailed) {
+        console.log(`  - Import and add tools to your workspace class with @InjectTool() decorator`);
       }
     } else {
       if (this.packageService.hasScript('format')) {

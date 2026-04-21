@@ -12,9 +12,9 @@ import { BaseTool, Tool, ToolResult } from '@loopstack/common';
     .strict(),
 })
 export class StrictSchemaTool extends BaseTool {
-  call(args: { name: string }): ToolResult {
-    return {
+  call(args: { name: string }): Promise<ToolResult> {
+    return Promise.resolve({
       data: `Hello, ${args.name}! Nice to meet you.`,
-    };
+    });
   }
 }

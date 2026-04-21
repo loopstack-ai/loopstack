@@ -156,8 +156,8 @@ export class WorkflowProcessorService implements Processor {
       ctx.getManager().setData('status', WorkflowStateEnum.Running);
     }
 
-    // Wire @FrameworkService properties on workflow and tools
-    this.wireFrameworkServices(workflow);
+    // Wire @FrameworkService properties on workflow and workspace tools
+    this.wireFrameworkServices(workflow, context.workspaceInstance);
 
     this.logger.debug(`Process state machine for workflow ${workflow.constructor.name}`);
     this.memoryMonitor.logWorkflowStart(workflow.constructor.name);
@@ -529,15 +529,22 @@ export class WorkflowProcessorService implements Processor {
   /**
    * Wires @FrameworkService() properties on the workflow and wraps injected tools in proxies.
    * Tool proxies intercept call() for framework logic and state access for isolation.
+   * Also proxies workspace tools so they have the same validation and state isolation.
    */
-  private wireFrameworkServices(workflow: WorkflowInterface): void {
-    // Wire and proxy each injected tool, replacing the reference on the raw workflow instance
-    const toolNames = getBlockTools(workflow);
+  private wireFrameworkServices(workflow: WorkflowInterface, workspace?: object): void {
+    this.wireTools(workflow);
+    if (workspace) {
+      this.wireTools(workspace);
+    }
+  }
+
+  private wireTools(target: object): void {
+    const toolNames = getBlockTools(target);
     for (const name of toolNames) {
-      const tool = (workflow as Record<string, unknown>)[name] as object | undefined;
+      const tool = (target as Record<string, unknown>)[name] as object | undefined;
       if (tool) {
         const proxy = this.toolExecutionService.wireAndProxyTool(tool, name);
-        (workflow as Record<string, unknown>)[name] = proxy;
+        (target as Record<string, unknown>)[name] = proxy;
       }
     }
   }

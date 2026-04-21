@@ -1,11 +1,11 @@
 {
-  "name": "@loopstack/code-agent-explore-example-workflow",
-  "displayName": "Code Agent Explore Example",
-  "description": "Example workflow that runs @loopstack/code-agent's ExploreAgentWorkflow against a remote workspace and shows the synthesized summary",
+  "name": "@loopstack/code-agent-example-workflow",
+  "displayName": "Code Agent Example",
+  "description": "Example workflow demonstrating @loopstack/code-agent usage with codebase exploration tools",
   "keywords": [
     "example",
     "code-agent",
-    "explore",
+    "agent",
     "workflow",
     "claude"
   ],
@@ -30,6 +30,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
+    "@loopstack/agent": "^0.1.0",
     "@loopstack/code-agent": "^0.1.1",
     "@loopstack/common": "^0.27.0",
     "@loopstack/core": "^0.27.0",
@@ -54,15 +55,32 @@
   "loopstack": {
     "modules": [
       {
-        "path": "src/code-agent-explore-example.module.ts",
-        "className": "CodeAgentExploreExampleModule"
+        "path": "src/code-agent-example.module.ts",
+        "className": "CodeAgentExampleModule"
       }
     ],
     "workflows": [
       {
-        "path": "src/code-agent-explore-example.workflow.ts",
-        "className": "CodeAgentExploreExampleWorkflow",
-        "propertyName": "codeAgentExploreExample"
+        "path": "src/code-agent-example.workflow.ts",
+        "className": "CodeAgentExampleWorkflow",
+        "propertyName": "codeAgentExample"
+      }
+    ],
+    "tools": [
+      {
+        "package": "@loopstack/remote-client",
+        "className": "GlobTool",
+        "propertyName": "glob"
+      },
+      {
+        "package": "@loopstack/remote-client",
+        "className": "GrepTool",
+        "propertyName": "grep"
+      },
+      {
+        "package": "@loopstack/remote-client",
+        "className": "ReadTool",
+        "propertyName": "read"
       }
     ],
     "installModes": [

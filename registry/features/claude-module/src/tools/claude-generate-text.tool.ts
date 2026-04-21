@@ -45,7 +45,9 @@ export class ClaudeGenerateText extends BaseTool {
       messages.push(...resolved);
     }
 
-    const tools = args.tools ? this.claudeToolsHelperService.getTools(args.tools, this.ctx.parent) : undefined;
+    const tools = args.tools
+      ? this.claudeToolsHelperService.getTools(args.tools, this.ctx.parent, this.ctx.workspace)
+      : undefined;
 
     const response = await this.handleGenerateText(client, {
       model,

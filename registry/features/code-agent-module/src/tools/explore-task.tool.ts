@@ -1,6 +1,19 @@
 import { z } from 'zod';
+import { AgentWorkflow } from '@loopstack/agent';
 import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import { ExploreAgentWorkflow } from '../workflows/explore-agent.workflow';
+
+const EXPLORE_SYSTEM_PROMPT = `You are a codebase exploration agent. Your job is to search and read
+source code to answer the user's question thoroughly.
+
+Strategy:
+1. Start with glob to find relevant files by pattern
+2. Use grep to search for specific code patterns across files
+3. Use read to inspect file contents in detail
+4. Iterate until you have enough information
+5. Respond with a clear, structured summary of your findings
+
+Be thorough but efficient. Don't read entire files when grep
+can pinpoint the relevant sections.`;
 
 const ExploreTaskInputSchema = z
   .object({
@@ -22,11 +35,15 @@ type ExploreTaskInput = z.infer<typeof ExploreTaskInputSchema>;
   schema: ExploreTaskInputSchema,
 })
 export class ExploreTask extends BaseTool {
-  @InjectWorkflow() private exploreAgent: ExploreAgentWorkflow;
+  @InjectWorkflow() private agent: AgentWorkflow;
 
   async call(args: ExploreTaskInput, options?: ToolCallOptions): Promise<ToolResult> {
-    const result = await this.exploreAgent.run(
-      { instructions: args.instructions },
+    const result = await this.agent.run(
+      {
+        system: EXPLORE_SYSTEM_PROMPT,
+        tools: ['glob', 'grep', 'read'],
+        userMessage: args.instructions,
+      },
       { alias: 'exploreAgent', callback: options?.callback },
     );
 

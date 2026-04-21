@@ -1,0 +1,71 @@
+{
+  "name": "@loopstack/agent",
+  "displayName": "Loopstack Agent",
+  "description": "Generic LLM agent workflow for Loopstack — configurable agent loop with tool calling, error handling, and cancel support",
+  "keywords": [
+    "loopstack",
+    "agent",
+    "ai",
+    "llm",
+    "workflow"
+  ],
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/claude-module": "^0.22.4",
+    "@loopstack/common": "^0.27.0",
+    "@loopstack/core": "^0.27.0",
+    "@nestjs/common": "^11.1.19",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist"
+  ],
+  "jest": {
+    "testEnvironment": "node",
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testTimeout": 10000,
+    "forceExit": true,
+    "maxWorkers": 1
+  },
+  "loopstack": {
+    "modules": [
+      {
+        "path": "src/agent.module.ts",
+        "className": "AgentModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/workflows/agent.workflow.ts",
+        "className": "AgentWorkflow",
+        "propertyName": "agent"
+      }
+    ],
+    "installModes": [
+      "add",
+      "install"
+    ]
+  }
+}

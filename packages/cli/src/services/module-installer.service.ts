@@ -34,9 +34,24 @@ export interface DependencyWorkflowEntry {
 
 export type WorkflowEntry = LocalWorkflowEntry | DependencyWorkflowEntry;
 
+export interface LocalToolEntry {
+  path: string;
+  className: string;
+  propertyName: string;
+}
+
+export interface DependencyToolEntry {
+  package: string;
+  className: string;
+  propertyName: string;
+}
+
+export type ToolEntry = LocalToolEntry | DependencyToolEntry;
+
 export interface LoopstackModuleConfig {
   modules: ModuleEntry[];
   workflows?: WorkflowEntry[];
+  tools?: ToolEntry[];
 }
 
 export interface ModuleInstallOptions {

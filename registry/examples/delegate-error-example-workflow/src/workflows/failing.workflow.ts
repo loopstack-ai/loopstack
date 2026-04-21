@@ -7,7 +7,7 @@ import { BaseWorkflow, Initial, Workflow } from '@loopstack/common';
 @Workflow({})
 export class FailingWorkflow extends BaseWorkflow {
   @Initial({ to: 'done' })
-  start() {
-    throw new Error('Simulated sub-workflow failure.');
+  start(): Promise<unknown> {
+    return Promise.reject(new Error('Simulated sub-workflow failure.'));
   }
 }

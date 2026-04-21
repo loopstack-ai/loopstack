@@ -1,11 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { FileSystemService } from './file-system.service';
-import { DependencyWorkflowEntry, WorkflowEntry } from './module-installer.service';
+import { DependencyToolEntry, DependencyWorkflowEntry, ToolEntry, WorkflowEntry } from './module-installer.service';
 import { PromptService } from './prompt.service';
 import { TypeScriptAstService } from './typescript-ast.service';
 
 export interface WorkflowInstallOptions {
   workflows: WorkflowEntry[];
+  targetPath: string;
+  targetWorkspaceFile?: string;
+  importPath?: string;
+  workspaceSearchRoot?: string;
+}
+
+export interface ToolInstallOptions {
+  tools: ToolEntry[];
   targetPath: string;
   targetWorkspaceFile?: string;
   importPath?: string;
@@ -80,6 +88,96 @@ export class WorkflowInstallerService {
         `Registered ${workflowEntry.className} in ${this.fileSystemService.getFileName(targetWorkspaceFile)}`,
       );
     }
+  }
+
+  async installTools(options: ToolInstallOptions): Promise<void> {
+    const { tools, targetPath, targetWorkspaceFile: specifiedWorkspaceFile } = options;
+
+    if (tools.length === 0) {
+      return;
+    }
+
+    let targetWorkspaceFile: string;
+
+    if (specifiedWorkspaceFile) {
+      targetWorkspaceFile = this.fileSystemService.resolvePath(process.cwd(), specifiedWorkspaceFile);
+
+      if (!this.fileSystemService.exists(targetWorkspaceFile)) {
+        throw new Error(`Specified workspace file not found: ${specifiedWorkspaceFile}`);
+      }
+    } else {
+      const targetRoot = options.workspaceSearchRoot ?? this.fileSystemService.dirname(targetPath);
+      const workspaceFiles = this.fileSystemService.findFiles(targetRoot, WORKSPACE_FILE_PATTERN);
+
+      if (workspaceFiles.length === 0) {
+        console.log(`No .workspace.ts files found in ${targetRoot}. Skipping tool registration.`);
+        return;
+      }
+
+      targetWorkspaceFile = await this.selectTargetWorkspace(workspaceFiles);
+    }
+
+    for (const toolEntry of tools) {
+      let importPath: string;
+
+      if (this.isDependencyToolEntry(toolEntry)) {
+        importPath = toolEntry.package;
+      } else {
+        const sourceToolPath = this.fileSystemService.resolvePath(targetPath, toolEntry.path.replace(/^src\//, ''));
+
+        if (!this.fileSystemService.exists(sourceToolPath)) {
+          console.warn(`Tool file not found: ${sourceToolPath}, skipping...`);
+          continue;
+        }
+
+        importPath = options.importPath ?? this.astService.calculateImportPath(targetWorkspaceFile, sourceToolPath);
+      }
+
+      this.addToolToWorkspace(targetWorkspaceFile, toolEntry.className, importPath, toolEntry.propertyName);
+
+      console.log(`Registered ${toolEntry.className} in ${this.fileSystemService.getFileName(targetWorkspaceFile)}`);
+    }
+  }
+
+  private isDependencyToolEntry(entry: ToolEntry): entry is DependencyToolEntry {
+    return 'package' in entry;
+  }
+
+  private addToolToWorkspace(
+    targetWorkspaceFile: string,
+    toolClassName: string,
+    importPath: string,
+    propertyName: string,
+  ): void {
+    const project = this.astService.createProject();
+    const sourceFile = this.astService.loadSourceFile(project, targetWorkspaceFile);
+
+    this.astService.addNamedImport(sourceFile, 'InjectTool', '@loopstack/common');
+    this.astService.addNamedImport(sourceFile, toolClassName, importPath);
+
+    const classes = sourceFile.getClasses();
+    const classDecl = classes[0];
+    const existingProperty = classDecl.getProperty(propertyName);
+    if (existingProperty) {
+      throw new Error(`Property ${propertyName} already exists.`);
+    }
+
+    const hasToolType = classDecl.getProperties().some((prop) => {
+      const typeNode = prop.getTypeNode();
+      return typeNode?.getText() === toolClassName;
+    });
+
+    if (hasToolType) {
+      throw new Error(`Class already has injected tool ${toolClassName}.`);
+    }
+
+    classDecl.addProperty({
+      name: propertyName,
+      type: toolClassName,
+      decorators: [{ name: 'InjectTool', arguments: [] }],
+    });
+
+    this.astService.organizeAndSave(sourceFile);
   }
 
   private async selectTargetWorkspace(workspaceFiles: string[]): Promise<string> {

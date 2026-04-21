@@ -12,13 +12,13 @@ import { BaseTool, Tool, ToolResult } from '@loopstack/common';
   }),
 })
 export class RuntimeErrorTool extends BaseTool {
-  call(args: { shouldFail: boolean }): ToolResult {
+  call(args: { shouldFail: boolean }): Promise<ToolResult> {
     if (args.shouldFail) {
       throw new Error('Simulated runtime error: external service unavailable.');
     }
 
-    return {
+    return Promise.resolve({
       data: 'Action completed successfully.',
-    };
+    });
   }
 }
