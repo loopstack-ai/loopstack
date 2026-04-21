@@ -43,6 +43,7 @@
       "@loopstack/remote-client": ["./registry/features/remote-client-module/src"],
       "@loopstack/remote-file-explorer-module": ["./registry/features/remote-file-explorer-module/src"],
       "@loopstack/secrets-module": ["./registry/features/secrets-module/src"],
+      "@loopstack/web-module": ["./registry/features/web-module/src"],
       "@loopstack/sandbox-filesystem": ["./registry/tools/sandbox-filesystem/src"],
       "@loopstack/sandbox-tool": ["./registry/tools/sandbox-tool/src"],
       "@loopstack/accessing-tool-results-example-workflow": [
