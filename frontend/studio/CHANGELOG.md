@@ -1,5 +1,16 @@
 # @loopstack/loopstack-studio
 
+## 0.27.0
+
+### Minor Changes
+
+- [#135](https://github.com/loopstack-ai/loopstack/pull/135) [`189e733`](https://github.com/loopstack-ai/loopstack/commit/189e733748074d015a41290ab45c7a46be92253c) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add showWhen conditional widget visibility, markdown rendering for AI messages, and workflow retry UI
+
+### Patch Changes
+
+- Updated dependencies [[`189e733`](https://github.com/loopstack-ai/loopstack/commit/189e733748074d015a41290ab45c7a46be92253c)]:
+  - @loopstack/contracts@0.28.0
+
 ## 0.26.1
 
 ### Patch Changes

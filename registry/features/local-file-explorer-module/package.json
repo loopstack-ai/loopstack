@@ -8,7 +8,7 @@
     "filesystem",
     "workflow"
   ],
-  "version": "0.22.4",
+  "version": "0.22.5",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -28,9 +28,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.27.0",
-    "@loopstack/contracts": "^0.27.0",
-    "@loopstack/core": "^0.27.0",
+    "@loopstack/common": "^0.28.0",
+    "@loopstack/contracts": "^0.28.0",
+    "@loopstack/core": "^0.28.0",
     "@nestjs/common": "^11.1.19",
     "@nestjs/config": "^4.0.4",
     "@nestjs/swagger": "^11.2.7",
