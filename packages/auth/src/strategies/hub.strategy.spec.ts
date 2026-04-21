@@ -31,7 +31,7 @@ describe('HubStrategy', () => {
     const keyPair = await generateKeyPair('RS256', { extractable: true });
     privateKey = keyPair.privateKey;
     publicKey = keyPair.publicKey;
-  });
+  }, 15_000);
 
   beforeEach(() => {
     configGet = jest.fn();

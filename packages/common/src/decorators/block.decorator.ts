@@ -142,6 +142,57 @@ export function InjectWorkflow(options?: InjectWorkflowDecoratorOptions): Proper
   };
 }
 
+// Retry Configuration
+
+/** Shorthand (number of auto-retry attempts) or full config object. */
+export type RetryConfig =
+  | number
+  | {
+      /** Number of auto-retry attempts. -1 = unlimited manual retry (default). 0+ = auto-retry count. */
+      attempts?: number;
+      /** Base delay in ms between retries. Default: 1000 */
+      delay?: number;
+      /** Backoff strategy. Default: 'exponential' */
+      backoff?: 'fixed' | 'exponential';
+      /** Maximum delay cap in ms for exponential backoff. Default: 30000 */
+      maxDelay?: number;
+      /** Custom error place to transition to when retries are exhausted. */
+      place?: string;
+    };
+
+/** Fully resolved retry config with all defaults applied. */
+export interface NormalizedRetryConfig {
+  attempts: number;
+  delay: number;
+  backoff: 'fixed' | 'exponential';
+  maxDelay: number;
+  place?: string;
+}
+
+const RETRY_DEFAULTS: Omit<NormalizedRetryConfig, 'place'> = {
+  attempts: -1,
+  delay: 1000,
+  backoff: 'exponential',
+  maxDelay: 30000,
+};
+
+export function normalizeRetryConfig(config?: RetryConfig): NormalizedRetryConfig {
+  if (config === undefined) {
+    return { ...RETRY_DEFAULTS };
+  }
+  if (typeof config === 'number') {
+    return { ...RETRY_DEFAULTS, attempts: config };
+  }
+  const hasPlace = config.place !== undefined;
+  return {
+    attempts: config.attempts ?? (hasPlace ? 0 : RETRY_DEFAULTS.attempts),
+    delay: config.delay ?? RETRY_DEFAULTS.delay,
+    backoff: config.backoff ?? RETRY_DEFAULTS.backoff,
+    maxDelay: config.maxDelay ?? RETRY_DEFAULTS.maxDelay,
+    place: config.place,
+  };
+}
+
 // Transition Decorators
 
 export interface TransitionMetadata {
@@ -151,6 +202,9 @@ export interface TransitionMetadata {
   wait?: boolean;
   priority?: number;
   schema?: z.ZodType;
+  retry?: NormalizedRetryConfig;
+  /** Timeout in ms — kills the transition and triggers the error/retry flow. */
+  timeout?: number;
 }
 
 export interface GuardMetadata {
@@ -164,6 +218,10 @@ export interface InitialOptions {
   priority?: number;
   /** Zod schema to validate the transition payload (for wait transitions) or args (for @Initial) */
   schema?: z.ZodType;
+  /** Retry configuration for error handling. Default: unlimited manual retry. */
+  retry?: RetryConfig;
+  /** Timeout in ms — kills the transition and triggers the error/retry flow. */
+  timeout?: number;
 }
 
 export interface TransitionOptions {
@@ -173,6 +231,10 @@ export interface TransitionOptions {
   priority?: number;
   /** Zod schema to validate the transition payload */
   schema?: z.ZodType;
+  /** Retry configuration for error handling. Default: unlimited manual retry. */
+  retry?: RetryConfig;
+  /** Timeout in ms — kills the transition and triggers the error/retry flow. */
+  timeout?: number;
 }
 
 export interface FinalOptions {
@@ -181,6 +243,10 @@ export interface FinalOptions {
   priority?: number;
   /** Zod schema to validate the transition payload */
   schema?: z.ZodType;
+  /** Retry configuration for error handling. Default: unlimited manual retry. */
+  retry?: RetryConfig;
+  /** Timeout in ms — kills the transition and triggers the error/retry flow. */
+  timeout?: number;
 }
 
 function addTransitionMetadata(target: object, metadata: TransitionMetadata): void {
@@ -197,6 +263,8 @@ export function Initial(options: InitialOptions): MethodDecorator {
       wait: options.wait,
       priority: options.priority,
       schema: options.schema,
+      retry: normalizeRetryConfig(options.retry),
+      timeout: options.timeout,
     });
   };
 }
@@ -210,6 +278,8 @@ export function Transition(options: TransitionOptions): MethodDecorator {
       wait: options.wait,
       priority: options.priority,
       schema: options.schema,
+      retry: normalizeRetryConfig(options.retry),
+      timeout: options.timeout,
     });
   };
 }
@@ -223,6 +293,8 @@ export function Final(options: FinalOptions): MethodDecorator {
       wait: options.wait,
       priority: options.priority,
       schema: options.schema,
+      retry: normalizeRetryConfig(options.retry),
+      timeout: options.timeout,
     });
   };
 }

@@ -18,8 +18,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./src/*": "./src/*"
+    ".": "./dist/index.js"
   },
   "scripts": {
     "build": "nest build",
@@ -30,12 +29,12 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
+    "@loopstack/common": "^0.27.0",
     "@loopstack/oauth-module": "^0.2.3",
     "zod": "^4.3.6"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "jest": {
     "moduleFileExtensions": [
@@ -74,7 +73,6 @@
       }
     ],
     "installModes": [
-      "add",
       "install"
     ]
   }

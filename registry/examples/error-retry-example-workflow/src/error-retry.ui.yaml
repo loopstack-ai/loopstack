@@ -1,0 +1,24 @@
+title: 'Error Retry Example'
+
+description: |
+  Demonstrates all five retry/error modes:
+  1. Auto-retry with exponential backoff
+  2. Manual retry via Retry button
+  3. Custom error place with recovery transition
+  4. Timeout with manual retry
+  5. Hybrid (auto-retry + custom error place)
+
+ui:
+  widgets:
+    - widget: button
+      showWhen:
+        - error_custom
+      options:
+        transition: handleCustomError
+        label: Recover
+    - widget: button
+      showWhen:
+        - error_hybrid
+      options:
+        transition: handleHybridError
+        label: Recover

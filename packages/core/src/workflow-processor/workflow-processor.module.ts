@@ -16,6 +16,7 @@ import { CommonModule } from '../common';
 import { PersistenceModule } from '../persistence';
 import { SchedulerModule } from '../scheduler';
 import {
+  BlockConfigCacheService,
   BlockDiscoveryService,
   BlockProcessor,
   CreateWorkflowService,
@@ -54,6 +55,7 @@ import { ExecutionScope, TemplateRenderer } from './utils';
     ProcessorFactory,
     WorkflowProcessorService,
     BlockDiscoveryService,
+    BlockConfigCacheService,
 
     WorkflowStateService,
     WorkflowMemoryMonitorService,
@@ -96,6 +98,9 @@ import { ExecutionScope, TemplateRenderer } from './utils';
         get parent() {
           return scope.get().getInstance();
         },
+        get workspace() {
+          return scope.get().getContext().workspaceInstance;
+        },
       }),
       inject: [ExecutionScope],
     },
@@ -107,6 +112,7 @@ import { ExecutionScope, TemplateRenderer } from './utils';
     BlockProcessor,
     WorkflowProcessorService,
     BlockDiscoveryService,
+    BlockConfigCacheService,
     WorkflowMemoryMonitorService,
     ExecutionScope,
     ToolExecutionService,

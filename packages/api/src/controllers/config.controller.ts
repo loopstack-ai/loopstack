@@ -20,22 +20,10 @@ import { plainToInstance } from 'class-transformer';
 import * as fs from 'fs';
 import { sortBy } from 'lodash';
 import * as path from 'path';
-import { toJSONSchema } from 'zod';
-import {
-  BLOCK_CONFIG_METADATA_KEY,
-  WorkflowInterface,
-  WorkspaceInterface,
-  buildWorkflowTransitions,
-  getBlockArgsSchema,
-  getBlockConfig,
-  getBlockWorkflow,
-  getBlockWorkflows,
-} from '@loopstack/common';
+import { BLOCK_CONFIG_METADATA_KEY, WorkflowInterface } from '@loopstack/common';
 import { BlockOptions } from '@loopstack/common';
 import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
-import { JSONSchemaDefinition } from '@loopstack/contracts/dist/schemas';
-import { WorkflowType, WorkspaceType } from '@loopstack/contracts/types';
-import { BlockDiscoveryService } from '@loopstack/core';
+import { BlockConfigCacheService, BlockDiscoveryService } from '@loopstack/core';
 import { AvailableEnvironmentDto } from '../dtos/available-environment.dto';
 import { WorkflowConfigDto } from '../dtos/workflow-config.dto';
 import { WorkflowSourceDto } from '../dtos/workflow-source.dto';
@@ -66,6 +54,7 @@ import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from '../tokens';
 export class ConfigController {
   constructor(
     private readonly blockDiscoveryService: BlockDiscoveryService,
+    private readonly blockConfigCacheService: BlockConfigCacheService,
     @Optional()
     @Inject(LOOPSTACK_AVAILABLE_ENVIRONMENTS)
     private readonly availableEnvironments: AvailableEnvironmentInterface[] = [],
@@ -76,51 +65,13 @@ export class ConfigController {
   @ApiOkResponse({ type: WorkspaceConfigDto, isArray: true })
   @ApiUnauthorizedResponse()
   getWorkspaceTypes(): WorkspaceConfigDto[] {
-    const workspaces = this.blockDiscoveryService.getWorkspaces();
-
-    const resolvedConfigs = workspaces.map((workspace: WorkspaceInterface) => {
-      const config = getBlockConfig<WorkspaceType>(workspace) as WorkspaceType;
-      if (!config) {
-        throw new Error(`Block ${workspace.constructor.name} is missing @BlockConfig decorator`);
-      }
-
-      // Resolve ui.widgets — enrich any widget that references a workflow with its schema/ui
-      let resolvedUi: WorkspaceConfigDto['ui'] | undefined;
-      const uiWidgets = (config.ui as Record<string, unknown> | undefined)?.widgets as
-        | Record<string, unknown>[]
-        | undefined;
-      if (uiWidgets?.length) {
-        const resolvedWidgets = uiWidgets.map((widget) => {
-          const options = widget.options as Record<string, unknown> | undefined;
-          const workflowName = options?.workflow as string | undefined;
-          if (!workflowName) return widget;
-
-          const workflow = getBlockWorkflow<WorkflowInterface>(workspace, workflowName);
-          if (!workflow) return widget;
-
-          const workflowConfig = getBlockConfig<WorkflowType>(workflow);
-          const argsSchema = getBlockArgsSchema(workflow);
-
-          return {
-            ...widget,
-            options: {
-              ...options,
-              schema: argsSchema ? (toJSONSchema(argsSchema) as JSONSchemaDefinition) : undefined,
-              workflowUi: workflowConfig?.ui,
-            },
-          };
-        });
-        resolvedUi = { widgets: resolvedWidgets } as unknown as WorkspaceConfigDto['ui'];
-      }
-
-      return {
-        className: workspace.constructor.name,
-        title: config.title ?? workspace.constructor.name,
-        features: config.features,
-        environments: config.environments,
-        ui: resolvedUi,
-      };
-    });
+    const resolvedConfigs = this.blockConfigCacheService.getAllWorkspaceConfigs().map((cached) => ({
+      className: cached.className,
+      title: cached.config.title ?? cached.className,
+      features: cached.config.features,
+      environments: cached.config.environments,
+      ui: cached.resolvedUi as unknown as WorkspaceConfigDto['ui'],
+    }));
 
     return plainToInstance(WorkspaceConfigDto, resolvedConfigs, {
       excludeExtraneousValues: true,
@@ -158,19 +109,23 @@ export class ConfigController {
   @ApiOkResponse({ type: WorkflowConfigDto })
   @ApiUnauthorizedResponse()
   getWorkflowConfig(@Param('alias') alias: string): WorkflowConfigDto {
-    const workflow = this.resolveWorkflowByAlias(alias);
-
-    const config = getBlockConfig<WorkflowType>(workflow);
-    if (!config) {
-      throw new Error(`Block ${workflow.constructor.name} is missing @BlockConfig decorator`);
+    const cached = this.blockConfigCacheService.getWorkflowConfig(alias);
+    if (!cached) {
+      const workflow = this.resolveWorkflowByAlias(alias);
+      const byClassName = this.blockConfigCacheService.getWorkflowConfig(workflow.constructor.name);
+      if (!byClassName) {
+        throw new Error(`Block ${workflow.constructor.name} is missing @BlockConfig decorator`);
+      }
+      return plainToInstance(
+        WorkflowConfigDto,
+        { ...byClassName.config, transitions: byClassName.transitions },
+        { excludeExtraneousValues: true },
+      );
     }
-
-    const decoratorTransitions = buildWorkflowTransitions(workflow);
-    const transitions = decoratorTransitions.length > 0 ? decoratorTransitions : config.transitions;
 
     return plainToInstance(
       WorkflowConfigDto,
-      { ...config, transitions },
+      { ...cached.config, transitions: cached.transitions },
       {
         excludeExtraneousValues: true,
       },
@@ -287,31 +242,23 @@ export class ConfigController {
   @ApiOkResponse({ type: WorkflowConfigDto, isArray: true })
   @ApiUnauthorizedResponse()
   getWorkflowTypesByWorkspace(@Param('workspaceBlockName') workspaceBlockName: string): WorkflowConfigDto[] {
-    const workspace = this.blockDiscoveryService.getWorkspace(workspaceBlockName);
-    if (!workspace) {
+    const cachedWorkspace = this.blockConfigCacheService.getWorkspaceConfig(workspaceBlockName);
+    if (!cachedWorkspace) {
       throw new BadRequestException(`Config for workspace with name ${workspaceBlockName} not found.`);
     }
 
-    const workflows = getBlockWorkflows(workspace).map((key) => ({
-      name: key,
-      instance: (workspace as Record<string, unknown>)[key] as WorkflowInterface,
-    }));
-
-    const filtered = workflows.map((item) => {
-      const config = getBlockConfig<WorkflowType>(item.instance) as WorkflowType;
-      if (!config) {
-        throw new Error(`Block ${item.name} is missing @BlockConfig decorator`);
+    const filtered = cachedWorkspace.workflowNames.map((name) => {
+      const cached = this.blockConfigCacheService.getWorkflowConfig(name);
+      if (!cached) {
+        throw new Error(`Block ${name} is missing @BlockConfig decorator`);
       }
 
-      const schema = getBlockArgsSchema(item.instance);
-      const propertiesSchema = schema ? (toJSONSchema(schema) as JSONSchemaDefinition) : undefined;
-
       return {
-        alias: item.name,
-        title: config.title,
-        description: config.description,
-        schema: propertiesSchema,
-        ui: config.ui,
+        alias: name,
+        title: cached.config.title,
+        description: cached.config.description,
+        schema: cached.argsJsonSchema,
+        ui: cached.config.ui,
       } satisfies WorkflowConfigDto;
     });
 

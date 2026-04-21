@@ -1,0 +1,12 @@
+title: 'Agent'
+
+description: A generic LLM agent loop with tool calling, error handling, and cancel support.
+
+ui:
+  widgets:
+    - widget: button
+      showWhen:
+        - awaiting_tools
+      options:
+        transition: cancelPendingTools
+        label: Cancel pending tools

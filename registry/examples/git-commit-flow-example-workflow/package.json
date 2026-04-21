@@ -1,0 +1,73 @@
+{
+  "name": "@loopstack/git-commit-flow-example-workflow",
+  "displayName": "Git Commit Flow Example",
+  "description": "Example workflow that orchestrates git-status → git-add → git-commit → git-log tools from @loopstack/git-module end-to-end",
+  "keywords": [
+    "example",
+    "git",
+    "commit",
+    "workflow",
+    "remote-agent"
+  ],
+  "version": "0.21.5",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://github.com/loopstack-ai"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/common": "^0.27.0",
+    "@loopstack/core": "^0.27.0",
+    "@loopstack/git-module": "^0.1.1",
+    "@nestjs/common": "^11.1.19",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "testEnvironment": "node",
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testTimeout": 10000,
+    "forceExit": true,
+    "maxWorkers": 1
+  },
+  "loopstack": {
+    "modules": [
+      {
+        "path": "src/git-commit-flow-example.module.ts",
+        "className": "GitCommitFlowExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/git-commit-flow-example.workflow.ts",
+        "className": "GitCommitFlowExampleWorkflow",
+        "propertyName": "gitCommitFlowExample"
+      }
+    ],
+    "installModes": [
+      "add",
+      "install"
+    ]
+  }
+}

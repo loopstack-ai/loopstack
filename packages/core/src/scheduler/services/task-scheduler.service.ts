@@ -24,6 +24,24 @@ export class TaskSchedulerService {
     return job;
   }
 
+  async removeTasksByWorkflowId(workflowId: string): Promise<number> {
+    const jobs = await this.taskQueue.getJobs(['waiting', 'delayed', 'prioritized']);
+    let removed = 0;
+    for (const job of jobs) {
+      const data = job.data as ScheduledTask | undefined;
+      if (data?.task?.workflowId === workflowId) {
+        try {
+          await job.remove();
+          removed++;
+          this.logger.debug(`Removed queued job ${job.id} for workflow ${workflowId}`);
+        } catch {
+          // Job may have started running between getJobs and remove — ignore
+        }
+      }
+    }
+    return removed;
+  }
+
   async clearAllTasks(): Promise<void> {
     await this.taskQueue.drain(true);
     await this.taskQueue.clean(0, 1000, 'active');

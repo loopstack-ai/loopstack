@@ -50,10 +50,6 @@
     "maxWorkers": 1
   },
   "loopstack": {
-    "installModes": [
-      "add",
-      "install"
-    ],
     "modules": [
       {
         "path": "src/workflow-state-example.module.ts",
@@ -66,6 +62,10 @@
         "className": "WorkflowStateWorkflow",
         "propertyName": "workflowState"
       }
+    ],
+    "installModes": [
+      "add",
+      "install"
     ]
   }
 }

@@ -18,8 +18,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./src/*": "./src/*"
+    ".": "./dist/index.js"
   },
   "scripts": {
     "build": "nest build",
@@ -30,7 +29,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/claude-module": "^0.22.4",
+    "@loopstack/agent": "^0.1.0",
     "@loopstack/common": "^0.27.0",
     "@loopstack/core": "^0.27.0",
     "@loopstack/remote-client": "^0.23.2",
@@ -38,8 +37,7 @@
     "zod": "^4.3.6"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "jest": {
     "moduleFileExtensions": [
@@ -66,8 +64,24 @@
         "className": "CodeAgentModule"
       }
     ],
+    "tools": [
+      {
+        "package": "@loopstack/remote-client",
+        "className": "GlobTool",
+        "propertyName": "glob"
+      },
+      {
+        "package": "@loopstack/remote-client",
+        "className": "GrepTool",
+        "propertyName": "grep"
+      },
+      {
+        "package": "@loopstack/remote-client",
+        "className": "ReadTool",
+        "propertyName": "read"
+      }
+    ],
     "installModes": [
-      "add",
       "install"
     ]
   }

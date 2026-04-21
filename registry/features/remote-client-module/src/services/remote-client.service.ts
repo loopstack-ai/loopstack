@@ -89,6 +89,26 @@ export interface GitCommandResult {
   output?: string;
 }
 
+export interface GitWorktree {
+  path: string;
+  head?: string;
+  branch?: string;
+  bare: boolean;
+  detached: boolean;
+  locked?: string;
+  prunable?: string;
+}
+
+export interface GitWorktreeListResponse {
+  worktrees: GitWorktree[];
+}
+
+export interface GitWorktreeAddResponse {
+  success: boolean;
+  path: string;
+  output?: string;
+}
+
 @Injectable()
 export class RemoteClient {
   private readonly logger = new Logger(RemoteClient.name);
@@ -269,6 +289,28 @@ export class RemoteClient {
 
   async gitConfigUser(connectionUrl: string, name: string, email: string): Promise<{ success: boolean }> {
     return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/config-user', { name, email });
+  }
+
+  async gitWorktreeList(connectionUrl: string): Promise<GitWorktreeListResponse> {
+    return this.doRequest<GitWorktreeListResponse>(connectionUrl, 'GET', '/git/worktree/list');
+  }
+
+  async gitWorktreeAdd(
+    connectionUrl: string,
+    options: { path: string; branch?: string; newBranch?: boolean; force?: boolean },
+  ): Promise<GitWorktreeAddResponse> {
+    return this.doRequest<GitWorktreeAddResponse>(connectionUrl, 'POST', '/git/worktree/add', options);
+  }
+
+  async gitWorktreeRemove(
+    connectionUrl: string,
+    options: { path: string; force?: boolean },
+  ): Promise<{ success: boolean }> {
+    return this.doRequest<{ success: boolean }>(connectionUrl, 'POST', '/git/worktree/remove', options);
+  }
+
+  async gitWorktreePrune(connectionUrl: string): Promise<GitCommandResult> {
+    return this.doRequest<GitCommandResult>(connectionUrl, 'POST', '/git/worktree/prune');
   }
 
   private async doRequest<T = void>(

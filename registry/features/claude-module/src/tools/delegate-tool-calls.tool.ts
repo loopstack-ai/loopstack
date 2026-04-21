@@ -10,7 +10,7 @@ import {
   getBlockTool,
   getBlockTypeFromMetadata,
 } from '@loopstack/common';
-import type { DelegateToolCallsResult, DelegateToolResultEntry } from '../types';
+import type { DelegateToolCallsResult, DelegateToolErrorEntry, DelegateToolResultEntry } from '../types';
 
 const DelegateToolCallsSchema = z.object({
   message: z.object({
@@ -51,6 +51,9 @@ export class DelegateToolCalls extends BaseTool {
           toolResults: [],
           message: args.message as DelegateToolCallsResult['message'],
           pendingCount: 0,
+          errorCount: 0,
+          hasErrors: false,
+          errors: [],
         },
       };
     }
@@ -71,6 +74,7 @@ export class DelegateToolCalls extends BaseTool {
     // 2. Build toolResults array — async tools signal via result.pending
     let pendingCount = 0;
     const toolResults: DelegateToolResultEntry[] = [];
+    const errors: DelegateToolErrorEntry[] = [];
 
     for (let i = 0; i < toolUseBlocks.length; i++) {
       const block = toolUseBlocks[i];
@@ -79,12 +83,20 @@ export class DelegateToolCalls extends BaseTool {
       if (result.pending) {
         pendingCount++;
       } else {
+        const isError = !!result.error;
         toolResults.push({
           type: 'tool_result',
           tool_use_id: block.id,
           content: result.data ? JSON.stringify(result.data, null, 2) : '',
-          is_error: !!result.error,
+          is_error: isError,
         });
+        if (isError) {
+          errors.push({
+            toolName: block.name,
+            toolUseId: block.id,
+            message: result.error!,
+          });
+        }
       }
     }
 
@@ -99,13 +111,18 @@ export class DelegateToolCalls extends BaseTool {
         toolResults,
         message: args.message as DelegateToolCallsResult['message'],
         pendingCount,
+        errorCount: errors.length,
+        hasErrors: errors.length > 0,
+        errors,
       },
     };
   }
 
   private async executeTool(block: Anthropic.ToolUseBlock, options?: ToolCallOptions): Promise<ToolResult> {
     try {
-      const tool = getBlockTool<BaseTool>(this.ctx.parent, block.name);
+      const tool =
+        getBlockTool<BaseTool>(this.ctx.parent, block.name) ??
+        (this.ctx.workspace ? getBlockTool<BaseTool>(this.ctx.workspace, block.name) : undefined);
       if (!tool) {
         throw new Error(`Tool with name ${block.name} not found.`);
       }

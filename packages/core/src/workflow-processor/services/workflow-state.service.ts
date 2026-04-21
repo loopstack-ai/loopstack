@@ -29,6 +29,8 @@ export class WorkflowStateService {
     workflowEntity.availableTransitions = ctx.getManager().getData('availableTransitions') || null;
     workflowEntity.hasError = ctx.getManager().getData('hasError');
     workflowEntity.errorMessage = ctx.getManager().getData('errorMessage') || null;
+    workflowEntity.retryCount = ctx.getManager().getData('retryCount') ?? 0;
+    workflowEntity.retryTransitionId = ctx.getManager().getData('retryTransitionId') ?? null;
     workflowEntity.result = ctx.getManager().getData('result') as Record<string, unknown>;
 
     await this.saveWorkflowState(workflowEntity, ctx.getManager().getData('persistenceState'), queryRunner);

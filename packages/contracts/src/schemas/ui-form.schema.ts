@@ -4,6 +4,7 @@ import { z } from 'zod';
 export const UiWidgetSchema = z.object({
   widget: z.string(),
   enabledWhen: z.array(z.string()).optional(),
+  showWhen: z.array(z.string()).optional(),
   options: z.record(z.string(), z.any()).optional(),
 });
 

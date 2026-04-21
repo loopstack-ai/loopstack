@@ -20,4 +20,11 @@ export interface WorkflowMetadataInterface {
   transition?: HistoryTransition;
 
   result: Record<string, unknown> | null;
+
+  /** Current retry attempt count for the active transition (0 = first try). */
+  retryCount: number;
+  /** Method name of the transition being retried — used to detect new vs repeated failures. */
+  retryTransitionId?: string;
+  /** Transient signal for the caller to re-queue the workflow with a delay. Not persisted. */
+  _retrySignal?: { delayMs: number };
 }

@@ -1,6 +1,6 @@
 # Setup
 
-There are three ways to add this module to your Loopstack project.
+There are two ways to add this tool to your Loopstack project. Both install it as an npm dependency — tool packages do not ship their sources, so `loopstack add` is not supported.
 
 **Note:** This module requires `@loopstack/sandbox-tool` as a dependency.
 
@@ -10,25 +10,12 @@ There are three ways to add this module to your Loopstack project.
 loopstack install @loopstack/sandbox-filesystem
 ```
 
-This installs the package as an npm dependency and automatically registers the module — without copying any source files into your project.
+This installs the package as an npm dependency and automatically registers the module.
 
 - The module is imported directly from `node_modules`
 - The CLI handles module registration for you (imports, module setup)
-- Best when you don't need to modify the source code and want to receive updates via npm
 
-## Option 2: `loopstack add`
-
-```bash
-loopstack add @loopstack/sandbox-filesystem
-```
-
-This copies the source files into your project directory and automatically registers the module in your application.
-
-- Full access to the source code for learning, exploring and customizing
-- The CLI handles module registration for you (imports, module setup)
-- Best for getting started or when you want to modify the code
-
-## Option 3: Manual `npm install`
+## Option 2: Manual `npm install`
 
 ```bash
 npm install --save @loopstack/sandbox-filesystem

@@ -1,0 +1,85 @@
+{
+  "name": "@loopstack/agent-example-workflow",
+  "displayName": "Agent Example",
+  "description": "Example workflow that launches @loopstack/agent's AgentWorkflow as a sub-workflow with custom tools",
+  "keywords": [
+    "example",
+    "agent",
+    "workflow",
+    "claude",
+    "sub-workflow"
+  ],
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://github.com/loopstack-ai"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./src/*": "./src/*"
+  },
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/agent": "^0.1.0",
+    "@loopstack/common": "^0.27.0",
+    "@loopstack/core": "^0.27.0",
+    "@nestjs/common": "^11.1.19",
+    "zod": "^4.3.6"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "jest": {
+    "testEnvironment": "node",
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testTimeout": 10000,
+    "forceExit": true,
+    "maxWorkers": 1
+  },
+  "loopstack": {
+    "modules": [
+      {
+        "path": "src/agent-example.module.ts",
+        "className": "AgentExampleModule"
+      }
+    ],
+    "workflows": [
+      {
+        "path": "src/agent-example.workflow.ts",
+        "className": "AgentExampleWorkflow",
+        "propertyName": "agentExample"
+      }
+    ],
+    "tools": [
+      {
+        "path": "src/tools/calculator.tool.ts",
+        "className": "CalculatorTool",
+        "propertyName": "calculator"
+      },
+      {
+        "path": "src/tools/weather-lookup.tool.ts",
+        "className": "WeatherLookupTool",
+        "propertyName": "weatherLookup"
+      }
+    ],
+    "installModes": [
+      "add",
+      "install"
+    ]
+  }
+}

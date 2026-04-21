@@ -1,5 +1,5 @@
 import { RunContext } from '../dtos';
-import { WorkflowInterface } from './block.interface';
+import { WorkflowInterface, WorkspaceInterface } from './block.interface';
 import { WorkflowMetadataInterface } from './workflow-metadata.interface';
 
 /**
@@ -21,4 +21,7 @@ export interface FrameworkContext {
 
   /** Parent workflow instance — for dynamic tool/document lookups */
   readonly parent: WorkflowInterface;
+
+  /** Workspace instance — provides workspace-level tools as fallback for tool resolution */
+  readonly workspace?: WorkspaceInterface;
 }

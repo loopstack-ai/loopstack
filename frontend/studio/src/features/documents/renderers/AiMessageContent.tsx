@@ -1,4 +1,5 @@
 import React from 'react';
+import MarkdownContent from '@/components/dynamic-form/MarkdownContent.tsx';
 import type {
   DataContent,
   FilePart,
@@ -140,9 +141,9 @@ const MessageContentRenderer: React.FC<{ message: ModelMessage }> = ({ message }
 
     const { content } = message;
 
-    // Handle string content
+    // Handle string content — render as markdown
     if (typeof content === 'string') {
-      return <TextPartRenderer part={{ type: 'text', text: content }} />;
+      return <MarkdownContent content={content} />;
     }
 
     // Handle array content

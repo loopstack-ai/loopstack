@@ -7,13 +7,15 @@ import { WorkflowType } from '@loopstack/contracts/dist/types';
 
 @Injectable()
 export class ClaudeToolsHelperService {
-  getTools(tools: string[], parent: WorkflowInterface): Anthropic.Tool[] | undefined {
+  getTools(tools: string[], parent: WorkflowInterface, workspace?: object): Anthropic.Tool[] | undefined {
     const toolDefinitions: Anthropic.Tool[] = [];
 
     for (const toolName of tools) {
-      const tool = getBlockTool<ToolInterface>(parent, toolName);
+      const tool =
+        getBlockTool<ToolInterface>(parent, toolName) ??
+        (workspace ? getBlockTool<ToolInterface>(workspace, toolName) : undefined);
       if (!tool) {
-        throw new Error(`Tool with name ${toolName} not available in Workflow context.`);
+        throw new Error(`Tool with name ${toolName} not available in Workflow or Workspace context.`);
       }
 
       const inputSchema = getBlockArgsSchema(tool);

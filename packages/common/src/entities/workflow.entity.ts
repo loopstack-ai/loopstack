@@ -48,6 +48,12 @@ export class WorkflowEntity {
   @Column({ type: 'varchar', nullable: true })
   errorMessage!: string | null;
 
+  @Column({ name: 'retry_count', type: 'int', default: 0 })
+  retryCount!: number;
+
+  @Column({ type: 'varchar', name: 'retry_transition_id', nullable: true })
+  retryTransitionId!: string | null;
+
   @Column({ type: 'varchar', name: 'callback_transition', nullable: true })
   callbackTransition!: string | null;
 
