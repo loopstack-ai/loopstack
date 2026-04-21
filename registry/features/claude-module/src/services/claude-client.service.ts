@@ -20,8 +20,8 @@ export class ClaudeClientService {
     return new Anthropic({ apiKey });
   }
 
-  getModel(config?: ClaudeModelConfig): string {
-    const model = config?.model ?? process.env['CLAUDE_MODEL'];
+  getModel(config?: ClaudeModelConfig, defaultModel?: string): string {
+    const model = config?.model ?? process.env['CLAUDE_MODEL'] ?? defaultModel;
 
     if (!model) {
       throw new Error(
