@@ -1,5 +1,12 @@
 # @loopstack/hitl-ask-user-example-workflow
 
+## 0.21.7
+
+### Patch Changes
+
+- Updated dependencies [[`4ecc33e`](https://github.com/loopstack-ai/loopstack/commit/4ecc33e9efc2ce44f9d187644acf5bbe47244718)]:
+  - @loopstack/hitl@0.2.0
+
 ## 0.21.6
 
 ### Patch Changes

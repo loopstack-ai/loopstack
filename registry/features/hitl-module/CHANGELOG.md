@@ -1,5 +1,11 @@
 # @loopstack/hitl
 
+## 0.2.0
+
+### Minor Changes
+
+- [#137](https://github.com/loopstack-ai/loopstack/pull/137) [`4ecc33e`](https://github.com/loopstack-ai/loopstack/commit/4ecc33e9efc2ce44f9d187644acf5bbe47244718) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add AskClarification and AskForApproval tools for streamlined human-in-the-loop interactions
+
 ## 0.1.2
 
 ### Patch Changes
