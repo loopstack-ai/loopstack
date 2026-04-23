@@ -11,7 +11,16 @@ export interface QuotaModuleOptions {
   redisPassword?: string;
 }
 
-@Module({})
+@Module({
+  providers: [
+    { provide: QUOTA_REDIS, useValue: null },
+    QuotaClientService,
+    { provide: QUOTA_CLIENT_SERVICE, useExisting: QuotaClientService },
+    QuotaCalculatorRegistry,
+    QuotaInterceptor,
+  ],
+  exports: [QUOTA_CLIENT_SERVICE, QuotaClientService, QuotaCalculatorRegistry],
+})
 export class QuotaModule implements OnModuleInit {
   constructor(private readonly calculatorRegistry: QuotaCalculatorRegistry) {}
 

@@ -7,6 +7,6 @@ import { ExploreTask } from './tools/explore-task.tool';
 @Module({
   imports: [LoopCoreModule, AgentModule, RemoteClientModule],
   providers: [ExploreTask],
-  exports: [ExploreTask],
+  exports: [ExploreTask, AgentModule, RemoteClientModule],
 })
 export class CodeAgentModule {}
