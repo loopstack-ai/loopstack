@@ -1,5 +1,17 @@
 # @loopstack/github-module
 
+## 0.2.4
+
+### Patch Changes
+
+- [#135](https://github.com/loopstack-ai/loopstack/pull/135) [`432f21e`](https://github.com/loopstack-ai/loopstack/commit/432f21e8bd0345ff790d2a0b2b5a91a03a159bc0) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix dependency version
+
+- [#135](https://github.com/loopstack-ai/loopstack/pull/135) [`df77219`](https://github.com/loopstack-ai/loopstack/commit/df77219aef8278619a895c496493b12d85122f21) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add seatch tool and git worktree feature
+
+- Updated dependencies [[`189e733`](https://github.com/loopstack-ai/loopstack/commit/189e733748074d015a41290ab45c7a46be92253c)]:
+  - @loopstack/common@0.28.0
+  - @loopstack/oauth-module@0.2.6
+
 ## 0.2.3
 
 ### Patch Changes

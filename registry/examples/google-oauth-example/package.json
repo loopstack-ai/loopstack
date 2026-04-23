@@ -11,7 +11,7 @@
     "loopstack",
     "oauth"
   ],
-  "version": "0.2.5",
+  "version": "0.2.6",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -32,11 +32,11 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/claude-module": "^0.22.4",
-    "@loopstack/common": "^0.27.0",
-    "@loopstack/core": "^0.27.0",
+    "@loopstack/claude-module": "^0.22.5",
+    "@loopstack/common": "^0.28.0",
+    "@loopstack/core": "^0.28.0",
     "@loopstack/google-workspace-module": "^0.3.3",
-    "@loopstack/oauth-module": "^0.2.5",
+    "@loopstack/oauth-module": "^0.2.6",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
