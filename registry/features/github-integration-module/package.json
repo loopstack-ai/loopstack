@@ -9,7 +9,7 @@
     "integration",
     "workflow"
   ],
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -33,7 +33,7 @@
     "@loopstack/core": "^0.28.0",
     "@loopstack/git-module": "^0.1.2",
     "@loopstack/github-module": "^0.2.4",
-    "@loopstack/hitl": "^0.1.2",
+    "@loopstack/hitl": "^0.2.0",
     "@loopstack/oauth-module": "^0.2.6",
     "@loopstack/remote-client": "^0.23.3",
     "@nestjs/common": "^11.1.19",
