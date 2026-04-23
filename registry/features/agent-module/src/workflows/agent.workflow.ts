@@ -28,6 +28,7 @@ import type { AgentRunResult } from '../types';
     system: z.string(),
     tools: z.array(z.string()),
     userMessage: z.string(),
+    context: z.string().optional(),
     model: z.string().optional(),
     cache: z.boolean().optional(),
   }),
@@ -41,7 +42,15 @@ export class AgentWorkflow extends BaseWorkflow {
   delegateResult?: DelegateToolCallsResult;
 
   @Initial({ to: 'ready' })
-  async setup(args: { system: string; tools: string[]; userMessage: string }) {
+  async setup(args: { system: string; tools: string[]; userMessage: string; context?: string }) {
+    if (args.context) {
+      await this.repository.save(
+        ClaudeMessageDocument,
+        { role: 'user', content: args.context },
+        { meta: { hidden: true } },
+      );
+    }
+
     await this.repository.save(ClaudeMessageDocument, {
       role: 'user',
       content: args.userMessage,
@@ -68,7 +77,6 @@ export class AgentWorkflow extends BaseWorkflow {
   async executeToolCalls() {
     const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
       message: this.llmResult!,
-      document: ClaudeMessageDocument,
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
@@ -79,7 +87,6 @@ export class AgentWorkflow extends BaseWorkflow {
     const result = await this.updateToolResult.call({
       delegateResult: this.delegateResult!,
       completedTool: payload,
-      document: ClaudeMessageDocument,
     });
     this.delegateResult = result.data as DelegateToolCallsResult;
   }

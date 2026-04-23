@@ -6,6 +6,6 @@ import { CodeAgentExampleWorkflow } from './code-agent-example.workflow';
 @Module({
   imports: [LoopCoreModule, CodeAgentModule],
   providers: [CodeAgentExampleWorkflow],
-  exports: [CodeAgentExampleWorkflow],
+  exports: [CodeAgentExampleWorkflow, CodeAgentModule],
 })
 export class CodeAgentExampleModule {}

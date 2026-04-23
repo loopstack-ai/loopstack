@@ -100,6 +100,25 @@ export type ToolOutputProps = ComponentProps<'div'> & {
   errorText: ToolUIPart['errorText'];
 };
 
+const VALUE_PREVIEW_CHARS = 150;
+
+const truncateForDisplay = (value: unknown): unknown => {
+  if (typeof value === 'string') {
+    return value.length > VALUE_PREVIEW_CHARS ? value.slice(0, VALUE_PREVIEW_CHARS) + '...' : value;
+  }
+  if (Array.isArray(value)) {
+    const head = value.slice(0, 5).map(truncateForDisplay);
+    if (value.length > 5) head.push(`... (${value.length - 5} more)`);
+    return head;
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, truncateForDisplay(v)]),
+    );
+  }
+  return value;
+};
+
 export const ToolOutput = ({ className, output, errorText, ...props }: ToolOutputProps) => {
   if (!(output || errorText)) {
     return null;
@@ -108,9 +127,10 @@ export const ToolOutput = ({ className, output, errorText, ...props }: ToolOutpu
   let Output = <div>{output as ReactNode}</div>;
 
   if (typeof output === 'object' && !isValidElement(output)) {
-    Output = <CodeBlock code={JSON.stringify(output, null, 2)} language="json" />;
+    Output = <CodeBlock code={JSON.stringify(truncateForDisplay(output), null, 2)} language="json" />;
   } else if (typeof output === 'string') {
-    Output = <CodeBlock code={output} language="json" />;
+    const displayed = output.length > VALUE_PREVIEW_CHARS ? output.slice(0, VALUE_PREVIEW_CHARS) + '...' : output;
+    Output = <CodeBlock code={displayed} language="json" />;
   }
 
   return (

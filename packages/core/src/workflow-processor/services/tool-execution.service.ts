@@ -113,7 +113,6 @@ export class ToolExecutionService implements OnModuleInit {
       return tool;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- bind() returns `any` due to Function type in executeCall signature
     const proxy = wrapToolProxy(tool, toolName, this.executionScope, this.executeCall.bind(this));
     this.proxiedTools.add(proxy);
 

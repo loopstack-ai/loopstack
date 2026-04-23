@@ -1,15 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseTool,
-  DocumentClass,
-  Tool,
-  ToolCallOptions,
-  ToolResult,
-  getBlockTool,
-  getBlockTypeFromMetadata,
-} from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolResult, getBlockTool } from '@loopstack/common';
+import { ClaudeMessageDocument } from '../documents';
 import type { DelegateToolCallsResult, DelegateToolErrorEntry, DelegateToolResultEntry } from '../types';
 
 const DelegateToolCallsSchema = z.object({
@@ -17,9 +10,6 @@ const DelegateToolCallsSchema = z.object({
     id: z.string().optional(),
     content: z.array(z.any()),
   }),
-  document: z
-    .custom<DocumentClass>((val) => typeof val === 'function' && getBlockTypeFromMetadata(val as object) === 'document')
-    .optional(),
   skipResponseMessage: z.boolean().optional(),
   callback: z
     .object({
@@ -101,8 +91,8 @@ export class DelegateToolCalls extends BaseTool {
     }
 
     // 3. Create response document (tool call message)
-    if (args.document && !args.skipResponseMessage) {
-      await this.createResponseDocument(args.document, args, toolResults);
+    if (!args.skipResponseMessage) {
+      await this.createResponseDocument(args, toolResults);
     }
 
     return {
@@ -139,12 +129,11 @@ export class DelegateToolCalls extends BaseTool {
   }
 
   private async createResponseDocument(
-    document: DocumentClass,
     args: DelegateToolCallsArgs,
     toolResults: DelegateToolResultEntry[],
   ): Promise<void> {
     await this.repository.save(
-      document,
+      ClaudeMessageDocument,
       {
         role: 'assistant',
         content: args.message.content,

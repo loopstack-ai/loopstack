@@ -74,7 +74,10 @@ export class AskUserWorkflow extends BaseWorkflow {
   }
 
   private isOptionsMode(): boolean {
-    return (this.ctx.args as { mode?: string })?.mode === 'options';
+    const args = this.ctx.args as { mode?: string; options?: string[] };
+    return (
+      args?.mode === 'options' || (args?.mode === undefined && Array.isArray(args?.options) && args.options.length > 0)
+    );
   }
 
   private isConfirmMode(): boolean {
