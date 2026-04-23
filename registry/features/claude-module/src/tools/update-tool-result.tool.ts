@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, DocumentClass, Tool, ToolResult, getBlockTool, getBlockTypeFromMetadata } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult, getBlockTool } from '@loopstack/common';
+import { ClaudeMessageDocument } from '../documents';
 
 const UpdateToolResultSchema = z.object({
   delegateResult: z.object({
@@ -13,9 +14,6 @@ const UpdateToolResultSchema = z.object({
     errors: z.array(z.any()).optional(),
   }),
   completedTool: z.any(),
-  document: z
-    .custom<DocumentClass>((val) => typeof val === 'function' && getBlockTypeFromMetadata(val as object) === 'document')
-    .optional(),
 });
 
 type UpdateToolResultArgs = z.infer<typeof UpdateToolResultSchema>;
@@ -52,7 +50,9 @@ export class UpdateToolResult extends BaseTool {
     const subWorkflowFailed = callbackStatus === 'failed' || callbackStatus === 'canceled';
 
     // 3. Resolve tool and call complete()
-    const tool = getBlockTool<BaseTool>(this.ctx.parent, toolName);
+    const tool =
+      getBlockTool<BaseTool>(this.ctx.parent, toolName) ??
+      (this.ctx.workspace ? getBlockTool<BaseTool>(this.ctx.workspace, toolName) : undefined);
     if (!tool) {
       throw new Error(`Tool with name ${toolName} not found.`);
     }
@@ -97,12 +97,12 @@ export class UpdateToolResult extends BaseTool {
     const errorCount = errors.length;
 
     // 6. Update response document (invalidates previous)
-    if (args.document) {
+    {
       await this.repository.save(
-        args.document,
+        ClaudeMessageDocument,
         {
           role: 'assistant',
-          content: (delegateResult.message as Record<string, unknown>).content,
+          content: (delegateResult.message as Record<string, unknown>).content as string | unknown[],
           toolResults: updatedResults,
         },
         { id: (delegateResult.message as Record<string, unknown>).id as string, validate: 'skip' },

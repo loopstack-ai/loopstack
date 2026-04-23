@@ -61,13 +61,14 @@ setup → ready → llmTurn → prompt_executed
 
 ## Args
 
-| Arg           | Type       | Required | Description                                    |
-| ------------- | ---------- | -------- | ---------------------------------------------- |
-| `system`      | `string`   | yes      | System prompt for the LLM                      |
-| `tools`       | `string[]` | yes      | Tool property names available to the LLM       |
-| `userMessage` | `string`   | yes      | Initial user message to start the conversation |
-| `model`       | `string`   | no       | Claude model (default: `claude-sonnet-4-6`)    |
-| `cache`       | `boolean`  | no       | Enable prompt caching (default: `true`)        |
+| Arg           | Type       | Required | Description                                                            |
+| ------------- | ---------- | -------- | ---------------------------------------------------------------------- |
+| `system`      | `string`   | yes      | System prompt for the LLM                                              |
+| `tools`       | `string[]` | yes      | Tool property names available to the LLM                               |
+| `userMessage` | `string`   | yes      | Initial user message to start the conversation                         |
+| `context`     | `string`   | no       | Hidden context message saved before userMessage (e.g. pre-loaded docs) |
+| `model`       | `string`   | no       | Claude model (default: `claude-sonnet-4-6`)                            |
+| `cache`       | `boolean`  | no       | Enable prompt caching (default: `true`)                                |
 
 ## Tool Resolution
 

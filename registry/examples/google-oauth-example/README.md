@@ -166,7 +166,7 @@ then retry. Be concise and format results using markdown.`,
 async executeToolCalls() {
   const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
     message: this.llmResult!,
-    document: ClaudeMessageDocument,
+
     callback: { transition: 'toolResultReceived' },
   });
   this.delegateResult = result.data;

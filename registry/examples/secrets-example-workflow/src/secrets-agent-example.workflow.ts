@@ -69,7 +69,6 @@ When all secrets are available, respond with one sentence including a list of th
   async executeToolCalls() {
     const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
       message: this.llmResult!,
-      document: ClaudeMessageDocument,
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
@@ -84,7 +83,6 @@ When all secrets are available, respond with one sentence including a list of th
     const result: ToolResult<DelegateToolCallsResult> = await this.updateToolResult.call({
       delegateResult: this.delegateResult!,
       completedTool: payload,
-      document: ClaudeMessageDocument,
     });
     this.delegateResult = result.data;
   }

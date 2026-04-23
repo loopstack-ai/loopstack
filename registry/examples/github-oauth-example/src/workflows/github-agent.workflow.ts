@@ -165,7 +165,6 @@ to let the user sign in, then retry. Be concise and format results using markdow
   async executeToolCalls() {
     const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
       message: this.llmResult!,
-      document: ClaudeMessageDocument,
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
@@ -180,7 +179,6 @@ to let the user sign in, then retry. Be concise and format results using markdow
     const result: ToolResult<DelegateToolCallsResult> = await this.updateToolResult.call({
       delegateResult: this.delegateResult!,
       completedTool: payload,
-      document: ClaudeMessageDocument,
     });
     this.delegateResult = result.data;
   }

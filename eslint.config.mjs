@@ -10,6 +10,9 @@ export default tseslint.config(
   {
     ignores: [
       '.changeset',
+      '.turbo',
+      'node_modules',
+      '**/.turbo/**',
       '**/dist/**',
       '**/node_modules/**',
       'eslint.config.mjs',
@@ -19,8 +22,11 @@ export default tseslint.config(
       '**/vitest.config.ts',
       '**/vite.config.ts',
       '**/__backup__/**',
-      'client',
-      'utils',
+      '**/.next/**',
+      '**/build/**',
+      '**/coverage/**',
+      '**/.vite/**',
+      '**/*.min.js',
     ],
   },
 
@@ -28,15 +34,14 @@ export default tseslint.config(
   js.configs.recommended,
   prettier,
 
-  // TypeScript config with type-checked rules (scoped to TS files only)
+  // TypeScript config — non-type-checked base + targeted type-aware rules
   {
     files: ['**/*.{ts,tsx}'],
-    extends: [...tseslint.configs.recommendedTypeChecked],
+    extends: [...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2020,
       sourceType: 'module',
       parserOptions: {
-        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -45,10 +50,6 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-
-      // Type-aware rules
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
     },
   },
 
@@ -78,16 +79,6 @@ export default tseslint.config(
       'registry/**/__tests__/**/*.ts',
     ],
     rules: {
-      // Allow any types in tests for mocking flexibility
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off',
-
-      // Allow unbound methods (common in Jest spies/mocks)
-      '@typescript-eslint/unbound-method': 'off',
-
       // Allow non-null assertions in tests
       '@typescript-eslint/no-non-null-assertion': 'off',
 

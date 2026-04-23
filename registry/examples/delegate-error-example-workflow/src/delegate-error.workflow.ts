@@ -92,7 +92,6 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
   async executeToolCalls() {
     const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
       message: this.llmResult!,
-      document: ClaudeMessageDocument,
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
@@ -103,7 +102,6 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
     const result = await this.updateToolResult.call({
       delegateResult: this.delegateResult!,
       completedTool: payload,
-      document: ClaudeMessageDocument,
     });
     this.delegateResult = result.data as DelegateToolCallsResult;
   }

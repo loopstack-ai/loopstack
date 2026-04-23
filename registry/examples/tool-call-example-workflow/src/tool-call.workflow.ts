@@ -39,7 +39,6 @@ export class ToolCallWorkflow extends BaseWorkflow {
   async executeToolCalls() {
     const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
       message: this.llmResult!,
-      document: ClaudeMessageDocument,
     });
     this.delegateResult = result.data;
   }

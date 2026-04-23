@@ -91,7 +91,7 @@ Use the `@Guard` decorator to conditionally enable transitions. Guards reference
 async executeToolCalls() {
   const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
     message: this.llmResult!,
-    document: ClaudeMessageDocument,
+
   });
   this.delegateResult = result.data;
 }
@@ -110,7 +110,6 @@ The `DelegateToolCalls` tool executes the tool calls requested by the LLM and sa
 ```typescript
 const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
   message: this.llmResult!,
-  document: ClaudeMessageDocument,
 });
 this.delegateResult = result.data;
 ```
@@ -191,7 +190,6 @@ export class ToolCallWorkflow extends BaseWorkflow {
   async executeToolCalls() {
     const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
       message: this.llmResult!,
-      document: ClaudeMessageDocument,
     });
     this.delegateResult = result.data;
   }

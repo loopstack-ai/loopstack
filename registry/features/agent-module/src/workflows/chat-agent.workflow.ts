@@ -8,22 +8,25 @@ import {
   UpdateToolResult,
 } from '@loopstack/claude-module';
 import { BaseWorkflow, Final, Guard, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
-import type { AgentRunResult } from '../types';
+import { AgentFinishTool } from '../tools/agent-finish.tool';
 
 /**
- * Generic LLM agent workflow.
+ * Interactive LLM agent workflow with user chat.
  *
- * Runs a standard agent loop: LLM → tool calls → loop until done.
- * Configured entirely via run() args — no subclassing needed.
+ * Runs an agent loop like AgentWorkflow, but instead of exiting on end_turn,
+ * it waits for user input. The user can chat with the agent between LLM turns.
+ *
+ * Exit behavior is controlled by `taskMode`:
+ * - When true, the AgentFinishTool is added to the tool list. The agent exits
+ *   when the LLM calls it, returning the finish tool's result.
+ * - When false (default), the agent never finishes on its own. The parent
+ *   workflow controls the lifecycle.
  *
  * Tools are resolved from the current workflow first, then from the workspace.
  * Register domain-specific tools via @InjectTool() on your workspace.
- *
- * For custom behavior (user interaction, custom exit logic, setup steps):
- * copy this workflow and modify it directly.
  */
 @Workflow({
-  uiConfig: __dirname + '/agent.ui.yaml',
+  uiConfig: __dirname + '/chat-agent.ui.yaml',
   schema: z.object({
     system: z.string(),
     tools: z.array(z.string()),
@@ -31,15 +34,18 @@ import type { AgentRunResult } from '../types';
     context: z.string().optional(),
     model: z.string().optional(),
     cache: z.boolean().optional(),
+    taskMode: z.boolean().optional(),
   }),
 })
-export class AgentWorkflow extends BaseWorkflow {
+export class ChatAgentWorkflow extends BaseWorkflow {
   @InjectTool() claudeGenerateText: ClaudeGenerateText;
   @InjectTool() delegateToolCalls: DelegateToolCalls;
   @InjectTool() updateToolResult: UpdateToolResult;
+  @InjectTool() agentFinish: AgentFinishTool;
 
   llmResult?: ClaudeGenerateTextResult;
   delegateResult?: DelegateToolCallsResult;
+  finishResult?: unknown;
 
   @Initial({ to: 'ready' })
   async setup(args: { system: string; tools: string[]; userMessage: string; context?: string }) {
@@ -59,7 +65,16 @@ export class AgentWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
   async llmTurn() {
-    const args = this.ctx.args as { system: string; tools: string[]; model?: string; cache?: boolean };
+    const args = this.ctx.args as {
+      system: string;
+      tools: string[];
+      model?: string;
+      cache?: boolean;
+      taskMode?: boolean;
+    };
+
+    const tools = args.taskMode ? [...args.tools, 'agentFinish'] : args.tools;
+
     const result: ToolResult<ClaudeGenerateTextResult> = await this.claudeGenerateText.call({
       system: args.system,
       claude: {
@@ -67,7 +82,7 @@ export class AgentWorkflow extends BaseWorkflow {
         cache: args.cache ?? true,
       },
       messagesSearchTag: 'message',
-      tools: args.tools,
+      tools,
     });
     this.llmResult = result.data;
   }
@@ -80,6 +95,7 @@ export class AgentWorkflow extends BaseWorkflow {
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
+    this.finishResult = this.extractFinishResult(this.delegateResult);
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
@@ -89,6 +105,13 @@ export class AgentWorkflow extends BaseWorkflow {
       completedTool: payload,
     });
     this.delegateResult = result.data as DelegateToolCallsResult;
+    this.finishResult = this.extractFinishResult(this.delegateResult);
+  }
+
+  @Final({ from: 'awaiting_tools', priority: 20 })
+  @Guard('isFinished')
+  async finished(): Promise<unknown> {
+    return Promise.resolve(this.finishResult);
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
@@ -103,11 +126,19 @@ export class AgentWorkflow extends BaseWorkflow {
     }
   }
 
-  @Final({ from: 'prompt_executed' })
-  @Guard('isEndTurn')
-  async respond(): Promise<AgentRunResult> {
-    await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
-    return { response: this.extractTextResponse() };
+  @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
+  async respond() {
+    await this.repository.save(ClaudeMessageDocument, this.llmResult!, {
+      id: this.llmResult!.id,
+    });
+  }
+
+  @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
+  async userMessage(payload: string) {
+    await this.repository.save(ClaudeMessageDocument, {
+      role: 'user',
+      content: payload,
+    });
   }
 
   private hasToolCalls(): boolean {
@@ -118,17 +149,20 @@ export class AgentWorkflow extends BaseWorkflow {
     return !!this.delegateResult?.allCompleted;
   }
 
-  private isEndTurn(): boolean {
-    return this.llmResult?.stop_reason === 'end_turn';
+  private isFinished(): boolean {
+    return !!(this.delegateResult?.allCompleted && this.finishResult !== undefined);
   }
 
-  private extractTextResponse(): string {
-    const content = this.llmResult?.content;
-    if (!content) return '';
-    if (typeof content === 'string') return content;
-    return (content as { type: string; text?: string }[])
-      .filter((block) => block.type === 'text')
-      .map((block) => block.text ?? '')
-      .join('\n');
+  private extractFinishResult(data: DelegateToolCallsResult | undefined): unknown {
+    if (!data?.toolResults?.length) return undefined;
+    for (const result of data.toolResults) {
+      try {
+        const parsed = JSON.parse(result.content as string) as { __agentFinish?: boolean; result?: unknown };
+        if (parsed?.__agentFinish) return parsed.result;
+      } catch {
+        continue;
+      }
+    }
+    return undefined;
   }
 }

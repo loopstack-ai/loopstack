@@ -1,0 +1,18 @@
+title: 'Chat Agent'
+
+description: An interactive LLM agent with user chat and tool calling.
+
+ui:
+  widgets:
+    - widget: prompt-input
+      enabledWhen:
+        - waiting_for_user
+      options:
+        transition: userMessage
+        label: Send Message
+    - widget: button
+      showWhen:
+        - awaiting_tools
+      options:
+        transition: cancelPendingTools
+        label: Cancel pending tools
