@@ -3,4 +3,4 @@ export * from './services';
 export * from './tools';
 export * from './types';
 export * from './utils';
-export * from './webfetch.module';
+export * from './web.module';
