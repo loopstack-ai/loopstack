@@ -12,7 +12,6 @@ name: Release
 on:
   push:
     branches: [main]
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,9 +23,6 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    # Only run the real release on main. Manual dispatch from a feature
-    # branch skips this job and lets smoke-gate run in isolation.
-    if: github.ref == 'refs/heads/main'
     outputs:
       published: ${{ steps.changesets.outputs.published }}
       studio_published: ${{ contains(steps.changesets.outputs.publishedPackages, '@loopstack/loopstack-studio') }}
@@ -102,15 +98,7 @@ jobs:
   smoke-gate:
     name: Pre-release Smoke Gate
     needs: release
-    # Run when release produced a Version PR, OR when manually dispatched
-    # (e.g. from a feature branch where the release job was skipped).
-    if: |
-      always() &&
-      needs.release.result != 'failure' &&
-      (
-        github.event_name == 'workflow_dispatch' ||
-        (needs.release.outputs.has_changesets == 'true' && needs.release.outputs.pr_number != '')
-      )
+    if: needs.release.outputs.has_changesets == 'true' && needs.release.outputs.pr_number != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
