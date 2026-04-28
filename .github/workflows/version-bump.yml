@@ -130,6 +130,15 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            turbo-${{ runner.os }}-
+
       - name: Install dependencies
         run: npm ci
 
@@ -290,11 +299,24 @@ jobs:
           token: ${{ secrets.SMOKE_TESTING_TOKEN || github.token }}
 
       - name: Run smoke tests against snapshot
+        id: smoke
         if: steps.check.outputs.has_changesets == 'true'
         uses: ./smoke-testing/.github/actions/run-smoke-tests
         with:
           loopstack_dist_tag: ${{ steps.snapshot-tag.outputs.tag }}
           template_ref: ${{ github.sha }}
+
+      - name: Deploy smoke environment
+        if: steps.check.outputs.has_changesets == 'true'
+        uses: ./smoke-testing/.github/actions/deploy-smoke-environment
+        with:
+          project_path: ${{ steps.smoke.outputs.project_path }}
+          backend_path: ${{ steps.smoke.outputs.backend_path }}
+          railway_token: ${{ secrets.RAILWAY_TOKEN_SMOKE }}
+          smoke_frontend_url: ${{ secrets.SMOKE_FRONTEND_URL }}
+          smoke_backend_url: ${{ secrets.SMOKE_BACKEND_URL }}
+          smoke_basic_auth_user: ${{ secrets.SMOKE_BASIC_AUTH_USER }}
+          smoke_basic_auth_pass: ${{ secrets.SMOKE_BASIC_AUTH_PASS }}
 
   # --------------------------------------------------------------------------
   # 3. Version — for-real bump on develop, then open release PR develop → main
