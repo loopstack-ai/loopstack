@@ -90,6 +90,7 @@ jobs:
       has_changesets: ${{ steps.check.outputs.has_changesets }}
     permissions:
       contents: read
+      statuses: read
 
     services:
       redis:
@@ -270,6 +271,7 @@ jobs:
       - name: Publish snapshot to Verdaccio
         if: steps.check.outputs.has_changesets == 'true'
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SNAPSHOT_TAG: ${{ steps.snapshot-tag.outputs.tag }}
           SNAPSHOT_CHANGESET: .changeset/zzz-smoke-gate-snapshot.md
         run: |
@@ -338,6 +340,8 @@ jobs:
         run: npm ci
 
       - name: Apply version bumps
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run changeset:version
 
       - name: Commit and push bumps
