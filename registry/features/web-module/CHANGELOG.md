@@ -1,5 +1,11 @@
 # @loopstack/web-module
 
+## 0.2.2
+
+### Patch Changes
+
+- [`bab283d`](https://github.com/loopstack-ai/loopstack/commit/bab283dc2891c7e61eb555b683cc416635218b55) Thanks [@TobeyTG](https://github.com/TobeyTG)! - test release
+
 ## 0.2.1
 
 ### Patch Changes
