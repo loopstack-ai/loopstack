@@ -2,4 +2,4 @@
 '@loopstack/web-module': patch
 ---
 
-test changeset
+test release
