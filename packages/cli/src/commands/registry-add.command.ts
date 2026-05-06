@@ -8,6 +8,7 @@ interface AddCommandOptions {
   dir?: string;
   module?: string;
   workspace?: string;
+  skipRegistry?: boolean;
 }
 
 @Command({
@@ -35,7 +36,9 @@ export class RegistryAddCommand extends CommandRunner {
     }
 
     try {
-      const resolved = await this.registryCommandService.resolveAndInstallPackage(packageArg, 'add');
+      const resolved = await this.registryCommandService.resolveAndInstallPackage(packageArg, 'add', {
+        skipRegistry: options.skipRegistry,
+      });
 
       if (!this.fileSystemService.exists(resolved.srcPath)) {
         console.error(`Package '${resolved.packageName}' does not contain a src directory (${resolved.srcPath})`);
@@ -101,6 +104,14 @@ export class RegistryAddCommand extends CommandRunner {
   })
   parseWorkspace(val: string): string {
     return val;
+  }
+
+  @Option({
+    flags: '--skip-registry',
+    description: 'Skip the online registry lookup (for local/CI testing)',
+  })
+  parseSkipRegistry(): boolean {
+    return true;
   }
 
   private async promptForDirectory(packageName: string, moduleDir?: string): Promise<string> {

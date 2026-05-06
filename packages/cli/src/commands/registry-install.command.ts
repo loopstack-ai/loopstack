@@ -4,6 +4,7 @@ import { RegistryCommandService } from '../services/registry-command.service';
 interface InstallCommandOptions {
   module?: string;
   workspace?: string;
+  skipRegistry?: boolean;
 }
 
 @Command({
@@ -26,7 +27,9 @@ export class RegistryInstallCommand extends CommandRunner {
     }
 
     try {
-      const resolved = await this.registryCommandService.resolveAndInstallPackage(packageArg, 'install');
+      const resolved = await this.registryCommandService.resolveAndInstallPackage(packageArg, 'install', {
+        skipRegistry: options.skipRegistry,
+      });
 
       if (!resolved.moduleConfig) {
         console.log(`Package '${resolved.packageName}' installed successfully (no loopstack config found).`);
@@ -64,5 +67,13 @@ export class RegistryInstallCommand extends CommandRunner {
   })
   parseWorkspace(val: string): string {
     return val;
+  }
+
+  @Option({
+    flags: '--skip-registry',
+    description: 'Skip the online registry lookup (for local/CI testing)',
+  })
+  parseSkipRegistry(): boolean {
+    return true;
   }
 }

@@ -1,0 +1,30 @@
+# =============================================================================
+# Pre-release Hook
+# =============================================================================
+# Fires a repository_dispatch event whenever a PR targeting main is opened or
+# updated. External workflows can listen for this event to run validation.
+# =============================================================================
+
+name: Pre-release Hook
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+jobs:
+  dispatch:
+    name: Pre-release hook
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch pre-release event
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.SMOKE_TESTING_TOKEN }}
+          repository: loopstack-ai/smoke-testing
+          event-type: pre-release
+          client-payload: >-
+            {
+              "ref": "${{ github.event.pull_request.head.sha }}",
+              "pr_number": ${{ github.event.pull_request.number }}
+            }
