@@ -61,7 +61,11 @@ describe('PromptStructuredOutputWorkflow', () => {
           outputSchema: expect.any(Object),
           prompt: expect.stringContaining('python'),
         }),
-        undefined,
+        expect.objectContaining({
+          config: expect.objectContaining({
+            provider: 'claude',
+          }),
+        }),
       );
 
       expect(result.documents.length).toBeGreaterThanOrEqual(1);
@@ -92,7 +96,11 @@ describe('PromptStructuredOutputWorkflow', () => {
         expect.objectContaining({
           prompt: expect.stringContaining('javascript'),
         }),
-        undefined,
+        expect.objectContaining({
+          config: expect.objectContaining({
+            provider: 'claude',
+          }),
+        }),
       );
     });
 
@@ -108,7 +116,11 @@ describe('PromptStructuredOutputWorkflow', () => {
         expect.objectContaining({
           prompt: expect.stringContaining('python'),
         }),
-        undefined,
+        expect.objectContaining({
+          config: expect.objectContaining({
+            provider: 'claude',
+          }),
+        }),
       );
     });
   });
