@@ -1,0 +1,395 @@
+# =============================================================================
+# Version Bump
+# =============================================================================
+# Triggers on every push to `develop` that touches a `.changeset/*` file (i.e.
+# a feature merge brought a new changeset, or a manual commit added one).
+#
+# Three jobs, run in order:
+#
+#   1. guard      — short-circuits if the push is the bot's own bump commit
+#                   (otherwise the workflow would re-trigger itself forever).
+#
+#   2. smoke-gate — boots Verdaccio in the runner, publishes a snapshot of
+#                   *every* public workspace package under a unique prerelease
+#                   dist-tag, then exercises the published artifacts via the
+#                   external `loopstack-ai/smoke-testing` composite action
+#                   (scaffold a real app, install registry features, boot
+#                   Postgres + Redis, hit the API). No real npm publishing
+#                   happens here.
+#
+#   3. version    — applies `changeset version` for real on `develop`, commits
+#                   the bumps + changelogs, and opens (or updates) a release
+#                   PR `develop → main`. Merging that PR triggers `release.yml`
+#                   which runs `changeset publish` against the real npm
+#                   registry.
+#
+# Notes
+#   - We use only `GITHUB_TOKEN` (no PAT). Side effects: the release PR opened
+#     by the bot does NOT trigger CI workflows on the PR itself. That's fine
+#     because the smoke gate already ran against the same content before the
+#     bumps were committed.
+#   - `develop` must allow pushes from `github-actions[bot]` (i.e. don't require
+#     a PR to push to `develop`). `main` should still be protected.
+# =============================================================================
+
+name: Version Bump
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - '.changeset/**'
+
+concurrency:
+  group: version-bump-develop
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # --------------------------------------------------------------------------
+  # 1. Guard — prevent self-trigger from the bot's own bump commit
+  # --------------------------------------------------------------------------
+  guard:
+    name: Guard against self-trigger
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.decide.outputs.proceed }}
+    steps:
+      - name: Decide whether to proceed
+        id: decide
+        env:
+          AUTHOR_EMAIL: ${{ github.event.head_commit.author.email }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          proceed=true
+          if [ "$AUTHOR_EMAIL" = "41898282+github-actions[bot]@users.noreply.github.com" ]; then
+            echo "Push from github-actions[bot] — skipping to avoid self-trigger loop."
+            proceed=false
+          fi
+          case "$COMMIT_MSG" in
+            "chore: version packages"*)
+              echo "Bump commit detected — skipping."
+              proceed=false
+              ;;
+          esac
+          echo "proceed=$proceed" >> "$GITHUB_OUTPUT"
+          echo "proceed=$proceed"
+
+  # --------------------------------------------------------------------------
+  # 2. Smoke Gate — publish a candidate snapshot to local Verdaccio and run
+  #    the cross-repo smoke action against it.
+  # --------------------------------------------------------------------------
+  smoke-gate:
+    name: Pre-release Smoke Gate
+    needs: guard
+    if: needs.guard.outputs.proceed == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      has_changesets: ${{ steps.check.outputs.has_changesets }}
+    permissions:
+      contents: read
+      statuses: read
+
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      postgres:
+        image: postgres:16.9-alpine
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            turbo-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for pending changesets
+        id: check
+        run: |
+          shopt -s nullglob
+          has=false
+          for changeset in .changeset/*.md; do
+            if [ "$(basename "$changeset")" = "README.md" ]; then
+              continue
+            fi
+            has=true
+            break
+          done
+          echo "has_changesets=$has" >> "$GITHUB_OUTPUT"
+          if [ "$has" = "false" ]; then
+            echo "No pending changesets — another queued run likely consumed them."
+          fi
+
+      - name: Build packages
+        if: steps.check.outputs.has_changesets == 'true'
+        run: npm run build
+
+      - name: Start local npm registry (Verdaccio)
+        if: steps.check.outputs.has_changesets == 'true'
+        env:
+          VERDACCIO_URL: http://127.0.0.1:4873
+        run: |
+          set -euo pipefail
+          docker run -d --rm --name loopstack-release-verdaccio -p 4873:4873 verdaccio/verdaccio:6
+
+          for attempt in $(seq 1 30); do
+            if curl -fsS "${VERDACCIO_URL}/-/ping" >/dev/null 2>&1; then
+              echo "Verdaccio is ready"
+              break
+            fi
+            if [ "${attempt}" -eq 30 ]; then
+              echo "Verdaccio did not become ready" >&2
+              exit 1
+            fi
+            sleep 1
+          done
+
+          USER_TOKEN_JSON=$(curl -fsS -X PUT "${VERDACCIO_URL}/-/user/org.couchdb.user:smokegate" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"smokegate","password":"smokegate"}')
+          VERDACCIO_TOKEN=$(node -e "console.log(JSON.parse(process.argv[1]).token || '')" "${USER_TOKEN_JSON}")
+
+          if [ -z "${VERDACCIO_TOKEN}" ]; then
+            echo "Could not obtain Verdaccio token" >&2
+            echo "${USER_TOKEN_JSON}" >&2
+            exit 1
+          fi
+
+          NPMRC="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          {
+            echo "registry=${VERDACCIO_URL}/"
+            echo "//127.0.0.1:4873/:_authToken=${VERDACCIO_TOKEN}"
+          } > "${NPMRC}"
+          echo "Configured npm to use ${VERDACCIO_URL}"
+
+      - name: Compute snapshot tag
+        id: snapshot-tag
+        if: steps.check.outputs.has_changesets == 'true'
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "tag=prerelease-${SHORT_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
+
+      - name: Seed snapshot changeset for all public packages
+        if: steps.check.outputs.has_changesets == 'true'
+        env:
+          SNAPSHOT_CHANGESET: .changeset/zzz-smoke-gate-snapshot.md
+        run: |
+          set -euo pipefail
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const root = process.cwd();
+            const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+            const workspaces = Array.isArray(pkg.workspaces)
+              ? pkg.workspaces
+              : pkg.workspaces?.packages || [];
+
+            function workspacePackageJsons(pattern) {
+              const parts = pattern.split('/');
+              const results = [];
+
+              function walk(base, index) {
+                if (index === parts.length) {
+                  const packageJson = path.join(base, 'package.json');
+                  if (fs.existsSync(packageJson)) results.push(packageJson);
+                  return;
+                }
+
+                const part = parts[index];
+                if (part === '*') {
+                  if (!fs.existsSync(base)) return;
+                  for (const entry of fs.readdirSync(base, { withFileTypes: true })) {
+                    if (entry.isDirectory()) walk(path.join(base, entry.name), index + 1);
+                  }
+                  return;
+                }
+
+                walk(path.join(base, part), index + 1);
+              }
+
+              walk(root, 0);
+              return results;
+            }
+
+            const names = new Set();
+            for (const workspace of workspaces) {
+              for (const packageJson of workspacePackageJsons(workspace)) {
+                const packageConfig = JSON.parse(fs.readFileSync(packageJson, 'utf8'));
+                if (!packageConfig.private && packageConfig.name) {
+                  names.add(packageConfig.name);
+                }
+              }
+            }
+
+            if (names.size === 0) {
+              throw new Error('No public packages found for snapshot changeset');
+            }
+
+            const changeset = [
+              '---',
+              ...Array.from(names).sort().map((name) => \`'\${name}': patch\`),
+              '---',
+              '',
+              'Pre-release smoke gate snapshot.',
+              '',
+            ].join('\n');
+
+            fs.writeFileSync(process.env.SNAPSHOT_CHANGESET, changeset);
+            console.log(\`Seeded snapshot changeset for \${names.size} packages\`);
+          "
+
+      - name: Publish snapshot to Verdaccio
+        if: steps.check.outputs.has_changesets == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SNAPSHOT_TAG: ${{ steps.snapshot-tag.outputs.tag }}
+          SNAPSHOT_CHANGESET: .changeset/zzz-smoke-gate-snapshot.md
+        run: |
+          set -euo pipefail
+          npx changeset version --snapshot "${SNAPSHOT_TAG}"
+          npx changeset publish --tag "${SNAPSHOT_TAG}" --no-git-tag
+          rm -f "${SNAPSHOT_CHANGESET}"
+          git checkout -- .
+
+      - name: Checkout smoke-testing
+        if: steps.check.outputs.has_changesets == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: loopstack-ai/smoke-testing
+          path: smoke-testing
+          token: ${{ secrets.SMOKE_TESTING_TOKEN || github.token }}
+
+      - name: Run smoke tests against snapshot
+        id: smoke
+        if: steps.check.outputs.has_changesets == 'true'
+        uses: ./smoke-testing/.github/actions/run-smoke-tests
+        with:
+          loopstack_dist_tag: ${{ steps.snapshot-tag.outputs.tag }}
+          template_ref: ${{ github.sha }}
+
+      - name: Deploy smoke environment
+        if: steps.check.outputs.has_changesets == 'true'
+        uses: ./smoke-testing/.github/actions/deploy-smoke-environment
+        with:
+          project_path: ${{ steps.smoke.outputs.project_path }}
+          backend_path: ${{ steps.smoke.outputs.backend_path }}
+          railway_token: ${{ secrets.RAILWAY_TOKEN_SMOKE }}
+          smoke_frontend_url: ${{ secrets.SMOKE_FRONTEND_URL }}
+          smoke_backend_url: ${{ secrets.SMOKE_BACKEND_URL }}
+          smoke_basic_auth_user: ${{ secrets.SMOKE_BASIC_AUTH_USER }}
+          smoke_basic_auth_pass: ${{ secrets.SMOKE_BASIC_AUTH_PASS }}
+
+  # --------------------------------------------------------------------------
+  # 3. Version — for-real bump on develop, then open release PR develop → main
+  # --------------------------------------------------------------------------
+  version:
+    name: Version + open release PR
+    needs: [guard, smoke-gate]
+    if: needs.guard.outputs.proceed == 'true' && needs.smoke-gate.outputs.has_changesets == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify develop still matches smoke-tested commit
+        env:
+          TESTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          current_sha=$(git rev-parse HEAD)
+          if [ "$current_sha" != "$TESTED_SHA" ]; then
+            echo "develop moved after this run started."
+            echo "Smoke-tested SHA: $TESTED_SHA"
+            echo "Current develop SHA: $current_sha"
+            echo "A newer queued run should smoke-test and version the latest commit."
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply version bumps
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run changeset:version
+
+      - name: Commit and push bumps
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "Nothing to commit — another run already consumed the changesets."
+            exit 0
+          fi
+          git add -A
+          git commit -m "chore: version packages"
+          git push origin develop
+
+      - name: Open release PR develop → main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          existing=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number' || true)
+          if [ -n "$existing" ]; then
+            echo "Release PR #$existing already open — new bumps appear on it automatically."
+            exit 0
+          fi
+          gh pr create \
+            --base main \
+            --head develop \
+            --title "chore: release" \
+            --body "Automated release PR. Smoke gate passed before bumps were committed on \`develop\`. Merging publishes the bumped packages to npm via \`release.yml\`."

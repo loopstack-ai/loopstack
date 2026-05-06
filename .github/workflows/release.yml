@@ -1,11 +1,14 @@
-# ============================================================================
-# Release Workflow - Stable releases via Changesets
-# ============================================================================
-# This workflow handles:
-# - Creating/updating a "Version Packages" PR when changesets are merged
-# - Publishing to NPM when the version PR is merged
-# - Syncing all package versions automatically
-# ============================================================================
+# =============================================================================
+# Release
+# =============================================================================
+# Triggered by push to `main`, which only happens when the release PR
+# (`develop → main`, opened by `version-bump.yml`) is merged.
+#
+# Bumps are already on the merge commit — `version-bump.yml` applied
+# `changeset version` on `develop` before the release PR was opened — so this
+# workflow only builds the workspace and publishes to npm. `changeset publish`
+# walks the workspace dependency graph and publishes in topological order.
+# =============================================================================
 
 name: Release
 
@@ -20,24 +23,18 @@ env:
   NODE_VERSION: '20'
 
 jobs:
-  release:
-    name: Release
+  publish:
+    name: Publish to npm
     runs-on: ubuntu-latest
-    outputs:
-      published: ${{ steps.changesets.outputs.published }}
-      studio_published: ${{ contains(steps.changesets.outputs.publishedPackages, '@loopstack/loopstack-studio') }}
-      studio_version: ${{ steps.studio-version.outputs.version }}
 
     permissions:
       contents: write
-      pull-requests: write
       id-token: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Fetch all history for changeset to analyze
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -62,33 +59,8 @@ jobs:
       - name: Build packages
         run: npm run build
 
-      - name: Create Release PR or Publish
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          publish: npx changeset publish
-          version: npm run changeset:version
-          commit: 'chore: release'
-          title: 'chore: release'
-          createGithubReleases: true
+      - name: Publish to npm
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Delete changeset-release branch
-        if: steps.changesets.outputs.published == 'true'
-        run: git push origin --delete changeset-release/main || true
-
-      - name: Extract Loopstack Studio Version
-        id: studio-version
-        if: steps.changesets.outputs.published == 'true' && contains(steps.changesets.outputs.publishedPackages, '@loopstack/loopstack-studio')
-        run: |
-          version=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name == "@loopstack/loopstack-studio") | .version')
-          echo "version=$version" >> $GITHUB_OUTPUT
-
-      - name: Summary of published packages
-        if: steps.changesets.outputs.published == 'true'
-        run: |
-          echo "🎉 Published packages:"
-          echo '${{ steps.changesets.outputs.publishedPackages }}' | jq '.'
+        run: npx changeset publish
