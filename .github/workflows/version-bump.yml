@@ -1,8 +1,8 @@
 # =============================================================================
 # Version Bump
 # =============================================================================
-# Triggers on every push to `develop` that touches a `.changeset/*` file (i.e.
-# a feature merge brought a new changeset, or a manual commit added one).
+# Triggers on every push to `develop`. The smoke-gate job short-circuits early
+# if no pending changesets exist.
 #
 # Three jobs, run in order:
 #
@@ -37,8 +37,6 @@ name: Version Bump
 on:
   push:
     branches: [develop]
-    paths:
-      - '.changeset/**'
 
 concurrency:
   group: version-bump-develop
