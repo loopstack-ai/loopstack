@@ -1,5 +1,15 @@
 # @loopstack/secrets-module
 
+## 0.23.3
+
+### Patch Changes
+
+- [#143](https://github.com/loopstack-ai/loopstack/pull/143) [`4adc8f9`](https://github.com/loopstack-ai/loopstack/commit/4adc8f9e9b6b0b85787cea4d800cfe1142c421f3) Thanks [@github-actions](https://github.com/apps/github-actions)! - Adapt tools and examples to LLM provider registry; fix optional tool args and call signatures
+
+- Updated dependencies [[`4adc8f9`](https://github.com/loopstack-ai/loopstack/commit/4adc8f9e9b6b0b85787cea4d800cfe1142c421f3)]:
+  - @loopstack/common@0.29.0
+  - @loopstack/core@0.29.0
+
 ## 0.23.2
 
 ### Patch Changes

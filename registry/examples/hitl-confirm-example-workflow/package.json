@@ -9,7 +9,7 @@
     "human-in-the-loop",
     "workflow"
   ],
-  "version": "0.21.7",
+  "version": "0.21.8",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -30,9 +30,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.28.0",
-    "@loopstack/core": "^0.28.0",
-    "@loopstack/hitl": "^0.2.0",
+    "@loopstack/common": "^0.29.0",
+    "@loopstack/core": "^0.29.0",
+    "@loopstack/hitl": "^0.2.1",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
