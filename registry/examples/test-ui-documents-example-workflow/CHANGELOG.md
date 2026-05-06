@@ -1,5 +1,13 @@
 # @loopstack/test-ui-documents-example-workflow
 
+## 0.22.6
+
+### Patch Changes
+
+- Updated dependencies [[`4adc8f9`](https://github.com/loopstack-ai/loopstack/commit/4adc8f9e9b6b0b85787cea4d800cfe1142c421f3)]:
+  - @loopstack/common@0.29.0
+  - @loopstack/core@0.29.0
+
 ## 0.22.5
 
 ### Patch Changes
