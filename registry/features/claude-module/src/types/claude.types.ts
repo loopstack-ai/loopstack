@@ -1,13 +1,14 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { ToolCallsMap } from '@loopstack/common';
 
 /**
- * Configuration for creating a Claude client and selecting a model.
+ * Provider-specific configuration for the Claude LLM provider.
+ * Passed via `providerConfig` in LlmGenerateTextArgs / LlmGenerateObjectArgs.
  */
-export interface ClaudeModelConfig {
-  /** Model name (e.g. 'claude-sonnet-4-20250514'). Falls back to CLAUDE_MODEL env var. */
-  model?: string;
-  /** Environment variable name containing the API key. Falls back to ANTHROPIC_API_KEY. */
+export interface ClaudeProviderConfig {
+  maxTokens?: number;
+  temperature?: number;
+  stopSequences?: string[];
+  cache?: boolean;
   envApiKey?: string;
 }
 
@@ -29,40 +30,6 @@ export interface ClaudeToolDefinition {
   name: string;
   description: string;
   input_schema: Anthropic.Tool['input_schema'];
-}
-
-/**
- * Result data from ClaudeGenerateText tool.
- * Extends the Anthropic Message with optional tool call metadata.
- */
-export interface ClaudeGenerateTextResult extends Anthropic.Message {
-  toolCalls?: ToolCallsMap;
-}
-
-/**
- * Result data from DelegateToolCalls tool.
- */
-export interface DelegateToolCallsResult {
-  allCompleted: boolean;
-  toolResults: DelegateToolResultEntry[];
-  message: { id?: string; content: Anthropic.ContentBlock[] };
-  pendingCount: number;
-  errorCount: number;
-  hasErrors: boolean;
-  errors: DelegateToolErrorEntry[];
-}
-
-export interface DelegateToolErrorEntry {
-  toolName: string;
-  toolUseId: string;
-  message: string;
-}
-
-export interface DelegateToolResultEntry {
-  type: 'tool_result';
-  tool_use_id: string;
-  content?: string;
-  is_error?: boolean;
 }
 
 // Re-export Anthropic namespace for consumer convenience

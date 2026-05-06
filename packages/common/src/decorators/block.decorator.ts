@@ -16,10 +16,8 @@ export const INJECTED_WORKFLOWS_METADATA_KEY = Symbol('injectedWorkflows');
 export const TRANSITIONS_METADATA_KEY = Symbol('transitions');
 export const GUARDS_METADATA_KEY = Symbol('guards');
 export const PASS_THROUGH_METADATA_KEY = Symbol('passThrough');
-
-export interface InjectWorkflowDecoratorOptions {
-  token?: InjectionToken;
-}
+export const INJECT_TOOL_DEFAULTS_KEY = Symbol('injectToolDefaults');
+export const INJECT_WORKFLOW_DEFAULTS_KEY = Symbol('injectWorkflowDefaults');
 
 // Block Type Class Decorators
 export type BlockType = 'workflow' | 'tool' | 'document' | 'workspace';
@@ -30,6 +28,8 @@ export interface BlockOptions {
   uiConfig?: string | Partial<BlockConfigType>;
   /** Zod schema for input/content validation */
   schema?: z.ZodType;
+  /** Zod schema for tool config validation (author-provided via @InjectTool) */
+  configSchema?: z.ZodType;
 }
 
 /** Options for @Tool() decorator */
@@ -38,6 +38,8 @@ export interface ToolOptions {
   uiConfig?: string | Partial<ToolConfigType>;
   /** Zod schema for input validation */
   schema?: z.ZodType;
+  /** Zod schema for tool config validation (author-provided via @InjectTool) */
+  configSchema?: z.ZodType;
 }
 
 /** Options for @Workflow() decorator */
@@ -46,6 +48,8 @@ export interface WorkflowOptions {
   uiConfig?: string | Partial<WorkflowType>;
   /** Zod schema for input validation */
   schema?: z.ZodType;
+  /** Zod schema for workflow config validation (author-provided via @InjectWorkflow) */
+  configSchema?: z.ZodType;
 }
 
 /** Options for @Document() decorator */
@@ -104,17 +108,51 @@ export function getBlockType(target: object): BlockType | undefined {
 }
 
 // Injection Property Decorators
-export function InjectTool(token?: InjectionToken): PropertyDecorator & MethodDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    const type = token ?? (Reflect.getMetadata('design:type', target, propertyKey) as InjectionToken | undefined);
 
-    if (type) {
-      Inject(type)(target, propertyKey);
+/**
+ * Injects a tool and optionally sets default args that are deep-merged into every `call()`.
+ *
+ * Overloads:
+ * - `@InjectTool()` — resolve by type, no defaults
+ * - `@InjectTool({ model: 'opus' })` — resolve by type, with defaults
+ * - `@InjectTool('token')` — resolve by named token, no defaults
+ * - `@InjectTool('token', { model: 'opus' })` — resolve by named token, with defaults
+ */
+export function InjectTool(
+  tokenOrConfig?: InjectionToken | Record<string, unknown>,
+  config?: Record<string, unknown>,
+): PropertyDecorator & MethodDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    let token: InjectionToken | undefined;
+    let defaults: Record<string, unknown> | undefined;
+
+    if (typeof tokenOrConfig === 'string' || typeof tokenOrConfig === 'symbol') {
+      token = tokenOrConfig;
+      defaults = config;
+    } else if (tokenOrConfig !== null && typeof tokenOrConfig === 'object') {
+      defaults = tokenOrConfig as Record<string, unknown>;
+    } else if (typeof tokenOrConfig === 'function') {
+      // Class reference passed as token (e.g. @InjectTool(SomeToolClass))
+      token = tokenOrConfig;
+    }
+
+    const resolvedToken =
+      token ?? (Reflect.getMetadata('design:type', target, propertyKey) as InjectionToken | undefined);
+    if (resolvedToken) {
+      Inject(resolvedToken)(target, propertyKey);
     }
 
     const existingTools =
       (Reflect.getMetadata(INJECTED_TOOLS_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
     Reflect.defineMetadata(INJECTED_TOOLS_METADATA_KEY, [...existingTools, propertyKey], target);
+
+    if (defaults) {
+      const existing =
+        (Reflect.getMetadata(INJECT_TOOL_DEFAULTS_KEY, target) as
+          | Record<string, Record<string, unknown>>
+          | undefined) ?? {};
+      Reflect.defineMetadata(INJECT_TOOL_DEFAULTS_KEY, { ...existing, [propertyKey as string]: defaults }, target);
+    }
   };
 }
 
@@ -127,18 +165,55 @@ export function InjectDocument(_token?: InjectionToken): PropertyDecorator & Met
   };
 }
 
-export function InjectWorkflow(options?: InjectWorkflowDecoratorOptions): PropertyDecorator & MethodDecorator {
+/**
+ * Injects a workflow and optionally sets config that is validated against `configSchema`.
+ *
+ * Config values are available on the sub-workflow via `this.ctx.config`.
+ * They are NOT merged into args — args and config are separate namespaces.
+ *
+ * Overloads:
+ * - `@InjectWorkflow()` — resolve by type, no config
+ * - `@InjectWorkflow({ provider: 'claude' })` — resolve by type, with config
+ * - `@InjectWorkflow('token')` — resolve by named token, no config
+ * - `@InjectWorkflow('token', { provider: 'claude' })` — resolve by named token, with config
+ */
+export function InjectWorkflow(
+  tokenOrConfig?: InjectionToken | Record<string, unknown>,
+  config?: Record<string, unknown>,
+): PropertyDecorator & MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
-    const token = options?.token;
-    const type = token ?? (Reflect.getMetadata('design:type', target, propertyKey) as InjectionToken | undefined);
+    let token: InjectionToken | undefined;
+    let defaults: Record<string, unknown> | undefined;
 
-    if (type) {
-      Inject(type)(target, propertyKey);
+    if (typeof tokenOrConfig === 'string' || typeof tokenOrConfig === 'symbol') {
+      // @InjectWorkflow('token') or @InjectWorkflow('token', config)
+      token = tokenOrConfig;
+      defaults = config;
+    } else if (typeof tokenOrConfig === 'function') {
+      // @InjectWorkflow(SomeClass)
+      token = tokenOrConfig;
+    } else if (tokenOrConfig !== null && typeof tokenOrConfig === 'object') {
+      // @InjectWorkflow({ provider: 'claude', model: 'opus' })
+      defaults = tokenOrConfig as Record<string, unknown>;
+    }
+
+    const resolvedToken =
+      token ?? (Reflect.getMetadata('design:type', target, propertyKey) as InjectionToken | undefined);
+    if (resolvedToken) {
+      Inject(resolvedToken)(target, propertyKey);
     }
 
     const existingWorkflows =
       (Reflect.getMetadata(INJECTED_WORKFLOWS_METADATA_KEY, target) as (string | symbol)[] | undefined) ?? [];
     Reflect.defineMetadata(INJECTED_WORKFLOWS_METADATA_KEY, [...existingWorkflows, propertyKey], target);
+
+    if (defaults) {
+      const existing =
+        (Reflect.getMetadata(INJECT_WORKFLOW_DEFAULTS_KEY, target) as
+          | Record<string, Record<string, unknown>>
+          | undefined) ?? {};
+      Reflect.defineMetadata(INJECT_WORKFLOW_DEFAULTS_KEY, { ...existing, [propertyKey as string]: defaults }, target);
+    }
   };
 }
 
@@ -203,7 +278,7 @@ export interface TransitionMetadata {
   priority?: number;
   schema?: z.ZodType;
   retry?: NormalizedRetryConfig;
-  /** Timeout in ms — kills the transition and triggers the error/retry flow. */
+  /** Timeout in ms — kills the transition and triggers the error/retry flow. Default: 300_000 (5 min, via DEFAULT_TRANSITION_TIMEOUT env var). Set to 0 for no timeout. */
   timeout?: number;
 }
 
@@ -220,7 +295,7 @@ export interface InitialOptions {
   schema?: z.ZodType;
   /** Retry configuration for error handling. Default: unlimited manual retry. */
   retry?: RetryConfig;
-  /** Timeout in ms — kills the transition and triggers the error/retry flow. */
+  /** Timeout in ms — kills the transition and triggers the error/retry flow. Default: 300_000 (5 min, via DEFAULT_TRANSITION_TIMEOUT env var). Set to 0 for no timeout. */
   timeout?: number;
 }
 
@@ -233,7 +308,7 @@ export interface TransitionOptions {
   schema?: z.ZodType;
   /** Retry configuration for error handling. Default: unlimited manual retry. */
   retry?: RetryConfig;
-  /** Timeout in ms — kills the transition and triggers the error/retry flow. */
+  /** Timeout in ms — kills the transition and triggers the error/retry flow. Default: 300_000 (5 min, via DEFAULT_TRANSITION_TIMEOUT env var). Set to 0 for no timeout. */
   timeout?: number;
 }
 
@@ -245,7 +320,7 @@ export interface FinalOptions {
   schema?: z.ZodType;
   /** Retry configuration for error handling. Default: unlimited manual retry. */
   retry?: RetryConfig;
-  /** Timeout in ms — kills the transition and triggers the error/retry flow. */
+  /** Timeout in ms — kills the transition and triggers the error/retry flow. Default: 300_000 (5 min, via DEFAULT_TRANSITION_TIMEOUT env var). Set to 0 for no timeout. */
   timeout?: number;
 }
 

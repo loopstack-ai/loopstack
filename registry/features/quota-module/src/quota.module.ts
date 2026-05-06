@@ -26,12 +26,8 @@ export class QuotaModule implements OnModuleInit {
 
   onModuleInit() {
     const aiTokenCalculator = new AiGenerateTextQuotaCalculator();
-    this.calculatorRegistry.register('AiGenerateText', aiTokenCalculator);
-    this.calculatorRegistry.register('AiGenerateObject', aiTokenCalculator);
-    this.calculatorRegistry.register('AiGenerateDocument', aiTokenCalculator);
-    this.calculatorRegistry.register('ClaudeGenerateText', aiTokenCalculator);
-    this.calculatorRegistry.register('ClaudeGenerateObject', aiTokenCalculator);
-    this.calculatorRegistry.register('ClaudeGenerateDocument', aiTokenCalculator);
+    this.calculatorRegistry.register('LlmGenerateTextTool', aiTokenCalculator);
+    this.calculatorRegistry.register('LlmGenerateObjectTool', aiTokenCalculator);
   }
 
   static forRoot(options?: QuotaModuleOptions): DynamicModule {

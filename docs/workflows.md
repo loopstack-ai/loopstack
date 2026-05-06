@@ -8,14 +8,15 @@ A simple chat workflow: wait for a user message, call LLM, display the response,
 
 ```typescript
 import { z } from 'zod';
-import { ClaudeGenerateText, ClaudeMessageDocument } from '@loopstack/claude-module';
 import { BaseWorkflow, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
+import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
   uiConfig: __dirname + '/chat.ui.yaml', // UI config
 })
 export class ChatWorkflow extends BaseWorkflow {
-  @InjectTool() claudeGenerateText: ClaudeGenerateText;
+  @InjectTool({ model: 'claude-sonnet-4-6', messagesSearchTag: 'message' })
+  llmGenerateText: LlmGenerateTextTool;
 
   // 1. Entry point
   @Initial({
@@ -31,7 +32,7 @@ export class ChatWorkflow extends BaseWorkflow {
     schema: z.string(),
   })
   async userMessage(payload: string) {
-    await this.repository.save(ClaudeMessageDocument, { role: 'user', content: payload });
+    await this.repository.save(LlmMessageDocument, { role: 'user', content: payload });
   }
 
   // 3. Call LLM and loop back
@@ -40,13 +41,10 @@ export class ChatWorkflow extends BaseWorkflow {
     to: 'waiting_for_user',
   })
   async llmTurn() {
-    const result = await this.claudeGenerateText.call({
-      claude: { model: 'claude-sonnet-4-6' },
-      messagesSearchTag: 'message',
-    });
+    const result = await this.llmGenerateText.call();
 
     // Create the assistant's response
-    await this.repository.save(ClaudeMessageDocument, result.data!);
+    await this.repository.save(LlmMessageDocument, result.data!);
   }
 }
 ```
@@ -193,12 +191,12 @@ State is stored as **plain instance properties** — automatically checkpointed 
 ```typescript
 export class MyWorkflow extends BaseWorkflow {
   counter: number = 0;
-  llmResult?: ClaudeGenerateTextResult;
+  llmResult?: LlmGenerateTextResult;
 
   @Transition({ from: 'ready', to: 'processed' })
   async process() {
     this.counter++;
-    const result = await this.claudeGenerateText.call({ ... });
+    const result = await this.llmGenerateText.call({ ... });
     this.llmResult = result.data;
   }
 }
@@ -208,17 +206,15 @@ No decorator needed. Values persist even when the workflow pauses and resumes. P
 
 ## Injecting Tools
 
-Tools are injected with `@InjectTool()` and called directly in transition methods:
+Tools are injected with `@InjectTool()` and called directly in transition methods. Config fields (provider, model, system, tools, etc.) go in `@InjectTool()`, while call-specific args (`prompt`, `messages`) go in `call()`:
 
 ```typescript
-@InjectTool() claudeGenerateText: ClaudeGenerateText;
+@InjectTool({ model: 'claude-sonnet-4-6' })
+llmGenerateText: LlmGenerateTextTool;
 
 @Transition({ from: 'ready', to: 'done' })
 async process() {
-  const result = await this.claudeGenerateText.call({
-    claude: { model: 'claude-sonnet-4-6' },
-    prompt: 'Write a haiku',
-  });
+  const result = await this.llmGenerateText.call({ prompt: 'Write a haiku' });
 }
 ```
 
@@ -228,27 +224,23 @@ Use `this.repository.save()` to create or update documents. Reference document c
 
 ```typescript
 // Create a document
-await this.repository.save(ClaudeMessageDocument, {
+await this.repository.save(LlmMessageDocument, {
   role: 'user',
   content: 'Hello!',
 });
 
 // Update an existing document by ID
 await this.repository.save(
-  ClaudeMessageDocument,
+  LlmMessageDocument,
   { role: 'assistant', content: 'Updated response' },
   { id: 'response-1' },
 );
 
 // Hidden document (not shown in UI)
-await this.repository.save(
-  ClaudeMessageDocument,
-  { role: 'user', content: 'System prompt' },
-  { meta: { hidden: true } },
-);
+await this.repository.save(LlmMessageDocument, { role: 'user', content: 'System prompt' }, { meta: { hidden: true } });
 
 // Query documents
-const messages = this.repository.findAll(ClaudeMessageDocument);
+const messages = this.repository.findAll(LlmMessageDocument);
 const tagged = this.repository.findByTag('important');
 ```
 
@@ -274,7 +266,7 @@ Add `wait: true` to pause the workflow until externally triggered — by user in
   schema: z.object({ message: z.string() }),
 })
 async userMessage(payload: { message: string }) {
-  await this.repository.save(ClaudeMessageDocument, {
+  await this.repository.save(LlmMessageDocument, {
     role: 'user',
     content: payload.message,
   });
@@ -296,7 +288,7 @@ async executeToolCalls() { ... }
 async respond() { ... }  // Fallback — no guard
 
 hasToolCalls() {
-  return this.llmResult?.stop_reason === 'tool_use';
+  return this.llmResult?.message.stopReason === 'tool_use';
 }
 ```
 

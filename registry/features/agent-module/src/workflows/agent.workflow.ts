@@ -1,99 +1,128 @@
 import { z } from 'zod';
-import {
-  ClaudeGenerateText,
-  ClaudeGenerateTextResult,
-  ClaudeMessageDocument,
-  DelegateToolCalls,
-  DelegateToolCallsResult,
-  UpdateToolResult,
-} from '@loopstack/claude-module';
 import { BaseWorkflow, Final, Guard, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
+import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import {
+  LlmDelegateToolCallsTool,
+  LlmGenerateTextTool,
+  LlmMessageDocument,
+  LlmUpdateToolResultTool,
+} from '@loopstack/llm-provider-module';
 import type { AgentRunResult } from '../types';
 
 /**
  * Generic LLM agent workflow.
  *
  * Runs a standard agent loop: LLM → tool calls → loop until done.
- * Configured entirely via run() args — no subclassing needed.
+ *
+ * - **Args** (per-invocation via `run()`): `system`, `tools`, `userMessage`, `context`
+ * - **Config** (per-injection via `@InjectWorkflow()`): `provider`, `model`, `providerConfig`
  *
  * Tools are resolved from the current workflow first, then from the workspace.
  * Register domain-specific tools via @InjectTool() on your workspace.
- *
- * For custom behavior (user interaction, custom exit logic, setup steps):
- * copy this workflow and modify it directly.
  */
+const AgentArgsSchema = z.object({
+  system: z.string(),
+  tools: z.array(z.string()),
+  userMessage: z.string(),
+  context: z.string().optional(),
+});
+
+const AgentConfigSchema = z.object({
+  provider: z.string().default('claude'),
+  model: z.string().optional(),
+  providerConfig: z.record(z.string(), z.unknown()).optional(),
+});
+
+type AgentArgs = z.infer<typeof AgentArgsSchema>;
+type AgentConfig = z.infer<typeof AgentConfigSchema>;
+
 @Workflow({
   uiConfig: __dirname + '/agent.ui.yaml',
-  schema: z.object({
-    system: z.string(),
-    tools: z.array(z.string()),
-    userMessage: z.string(),
-    context: z.string().optional(),
-    model: z.string().optional(),
-    cache: z.boolean().optional(),
-  }),
+  schema: AgentArgsSchema,
+  configSchema: AgentConfigSchema,
 })
-export class AgentWorkflow extends BaseWorkflow {
-  @InjectTool() claudeGenerateText: ClaudeGenerateText;
-  @InjectTool() delegateToolCalls: DelegateToolCalls;
-  @InjectTool() updateToolResult: UpdateToolResult;
+export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentConfig> {
+  @InjectTool() llmGenerateText: LlmGenerateTextTool;
+  @InjectTool() llmDelegateToolCalls: LlmDelegateToolCallsTool;
+  @InjectTool() llmUpdateToolResult: LlmUpdateToolResultTool;
 
-  llmResult?: ClaudeGenerateTextResult;
-  delegateResult?: DelegateToolCallsResult;
+  llmResult?: LlmGenerateTextResult;
+  llmMeta?: LlmResultMeta;
+  delegateResult?: LlmDelegateResult;
 
   @Initial({ to: 'ready' })
-  async setup(args: { system: string; tools: string[]; userMessage: string; context?: string }) {
+  async setup(args: AgentArgs) {
+    this.assertToolsAvailable(args.tools);
+
     if (args.context) {
       await this.repository.save(
-        ClaudeMessageDocument,
+        LlmMessageDocument,
         { role: 'user', content: args.context },
         { meta: { hidden: true } },
       );
     }
 
-    await this.repository.save(ClaudeMessageDocument, {
-      role: 'user',
-      content: args.userMessage,
-    });
+    await this.repository.save(LlmMessageDocument, { role: 'user', content: args.userMessage });
   }
 
-  @Transition({ from: 'ready', to: 'prompt_executed' })
+  @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
   async llmTurn() {
-    const args = this.ctx.args as { system: string; tools: string[]; model?: string; cache?: boolean };
-    const result: ToolResult<ClaudeGenerateTextResult> = await this.claudeGenerateText.call({
-      system: args.system,
-      claude: {
-        model: args.model ?? 'claude-sonnet-4-6',
-        cache: args.cache ?? true,
+    const args = this.ctx.args as AgentArgs;
+    const config = (this.ctx.config ?? {}) as AgentConfig;
+
+    const result: ToolResult<LlmGenerateTextResult, LlmResultMeta> = await this.llmGenerateText.call(
+      {},
+      {
+        config: {
+          provider: config.provider ?? 'claude',
+          system: args.system,
+          tools: args.tools,
+          model: config.model,
+          providerConfig: config.providerConfig,
+        },
       },
-      messagesSearchTag: 'message',
-      tools: args.tools,
-    });
+    );
     this.llmResult = result.data;
+    this.llmMeta = result.metadata;
   }
 
-  @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
+  @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10, timeout: 120_000 })
   @Guard('hasToolCalls')
   async executeToolCalls() {
-    const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
-      message: this.llmResult!,
+    // Save assistant message immediately (before tools run)
+    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+    });
+
+    const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
+      message: this.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
   }
 
-  @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
+  @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, timeout: 120_000 })
   async toolResultReceived(payload: unknown) {
-    const result = await this.updateToolResult.call({
+    const result = await this.llmUpdateToolResult.call({
       delegateResult: this.delegateResult!,
       completedTool: payload,
     });
-    this.delegateResult = result.data as DelegateToolCallsResult;
+    this.delegateResult = result.data as LlmDelegateResult;
   }
 
-  @Transition({ from: 'awaiting_tools', to: 'ready' })
+  @Transition({ from: 'awaiting_tools', to: 'ready', timeout: 120_000 })
   @Guard('allToolsComplete')
-  async toolsComplete() {}
+  async toolsComplete() {
+    await this.repository.save(LlmMessageDocument, {
+      role: 'user',
+      content: this.delegateResult!.toolResults.map((tr) => ({
+        type: 'tool_result' as const,
+        toolCallId: tr.toolCallId,
+        content: tr.content ?? '',
+        isError: tr.isError ?? false,
+      })),
+    });
+  }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
   async cancelPendingTools() {
@@ -106,12 +135,17 @@ export class AgentWorkflow extends BaseWorkflow {
   @Final({ from: 'prompt_executed' })
   @Guard('isEndTurn')
   async respond(): Promise<AgentRunResult> {
-    await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
+    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+      meta: {
+        response: this.llmResult!.response,
+        provider: this.llmMeta!.provider,
+      },
+    });
     return { response: this.extractTextResponse() };
   }
 
   private hasToolCalls(): boolean {
-    return this.llmResult?.stop_reason === 'tool_use';
+    return this.llmResult?.message.stopReason === 'tool_use';
   }
 
   private allToolsComplete(): boolean {
@@ -119,16 +153,15 @@ export class AgentWorkflow extends BaseWorkflow {
   }
 
   private isEndTurn(): boolean {
-    return this.llmResult?.stop_reason === 'end_turn';
+    return this.llmResult?.message.stopReason === 'end_turn';
   }
 
   private extractTextResponse(): string {
-    const content = this.llmResult?.content;
-    if (!content) return '';
-    if (typeof content === 'string') return content;
-    return (content as { type: string; text?: string }[])
+    const content = this.llmResult?.message.content;
+    if (!content || typeof content === 'string') return (content as string) ?? '';
+    return content
       .filter((block) => block.type === 'text')
-      .map((block) => block.text ?? '')
+      .map((block) => (block as { type: 'text'; text: string }).text)
       .join('\n');
   }
 }

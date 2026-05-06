@@ -20,7 +20,7 @@ export class GitHubGetAuthenticatedUserTool extends BaseTool {
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(_args: GitHubGetAuthenticatedUserArgs): Promise<ToolResult> {
+  async call(_args?: GitHubGetAuthenticatedUserArgs): Promise<ToolResult> {
     const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
 
     if (!accessToken) {

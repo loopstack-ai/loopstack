@@ -11,9 +11,9 @@ The Tool Call Example Workflow shows how to build agentic workflows where the LL
 By using this workflow as a reference, you'll learn how to:
 
 - Create custom tools with the `@Tool` decorator and `BaseTool`
-- Pass tools to the LLM using the `tools` parameter
+- Pass tools to the LLM using the `tools` array in `@InjectTool`
 - Use `@Guard` decorators for conditional transition routing
-- Handle tool call responses with `DelegateToolCalls`
+- Handle tool call responses with `LlmDelegateToolCallsTool`
 - Store workflow state as instance properties
 - Build agentic loops that continue until the LLM has a final answer
 
@@ -58,28 +58,31 @@ Register custom tools and built-in tools using the `@InjectTool()` decorator:
 ```typescript
 @Workflow({ uiConfig: __dirname + '/tool-call.ui.yaml' })
 export class ToolCallWorkflow extends BaseWorkflow {
-  @InjectTool() claudeGenerateText: ClaudeGenerateText;
-  @InjectTool() delegateToolCalls: DelegateToolCalls;
+  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6', tools: ['getWeather'] })
+  llmGenerateText: LlmGenerateTextTool;
+
+  @InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
   @InjectTool() getWeather: GetWeather;
 ```
 
 #### 3. Passing Tools to the LLM
 
-Provide tools to the LLM via the `tools` parameter. The LLM will decide whether to call a tool based on the user's request:
+Provide tools to the LLM via the `tools` array in the `@InjectTool()` decorator. The LLM will decide whether to call a tool based on the user's request:
+
+```typescript
+@InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6', tools: ['getWeather'] })
+llmGenerateText: LlmGenerateTextTool;
+```
 
 ```typescript
 @Transition({ from: 'ready', to: 'prompt_executed' })
 async llmTurn() {
-  const result: ToolResult<ClaudeGenerateTextResult> = await this.claudeGenerateText.call({
-    claude: { model: 'claude-sonnet-4-6' },
-    messagesSearchTag: 'message',
-    tools: ['getWeather'],
-  });
+  const result: ToolResult<LlmGenerateTextResult> = await this.llmGenerateText.call({});
   this.llmResult = result.data;
 }
 ```
 
-The result is stored as an instance property for use in routing and subsequent transitions.
+The `provider`, `model`, `tools`, and other config fields are set via `@InjectTool()` on the class property. The result is stored as an instance property for use in routing and subsequent transitions.
 
 #### 4. Guard-Based Conditional Routing
 
@@ -89,15 +92,14 @@ Use the `@Guard` decorator to conditionally enable transitions. Guards reference
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
 async executeToolCalls() {
-  const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
-    message: this.llmResult!,
-
+  const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
+    message: this.llmResult!.message,
   });
   this.delegateResult = result.data;
 }
 
 hasToolCalls() {
-  return this.llmResult?.stop_reason === 'tool_use';
+  return this.llmResult?.message.stopReason === 'tool_use';
 }
 ```
 
@@ -105,11 +107,11 @@ The `priority: 10` ensures this transition is evaluated before the `@Final` tran
 
 #### 5. Delegating Tool Execution
 
-The `DelegateToolCalls` tool executes the tool calls requested by the LLM and saves the results as documents:
+The `LlmDelegateToolCallsTool` tool executes the tool calls from the LLM response message:
 
 ```typescript
-const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
-  message: this.llmResult!,
+const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
+  message: this.llmResult!.message,
 });
 this.delegateResult = result.data;
 ```
@@ -133,14 +135,16 @@ allToolsComplete() {
 The workflow implements an agentic loop:
 
 1. **LLM Turn** (`ready` -> `prompt_executed`) -- The LLM processes messages and may request tool calls
-2. **Execute Tool Calls** (`prompt_executed` -> `awaiting_tools`) -- If `stop_reason === 'tool_use'`, delegate tool execution
+2. **Execute Tool Calls** (`prompt_executed` -> `awaiting_tools`) -- If `message.stopReason === 'tool_use'`, delegate tool execution
 3. **Tools Complete** (`awaiting_tools` -> `ready`) -- When all tools finish, loop back for another LLM turn
 4. **Final Response** (`prompt_executed` -> end) -- If no tool calls, save the final response
 
 ```typescript
 @Final({ from: 'prompt_executed' })
 async respond() {
-  await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
+  await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+    meta: { response: this.llmResult!.response, provider: 'claude' },
+  });
 }
 ```
 
@@ -151,51 +155,46 @@ This pattern allows the LLM to make multiple tool calls before providing a final
 The complete workflow class:
 
 ```typescript
-import {
-  ClaudeGenerateText,
-  ClaudeGenerateTextResult,
-  ClaudeMessageDocument,
-  DelegateToolCalls,
-  DelegateToolCallsResult,
-} from '@loopstack/claude-module';
 import { BaseWorkflow, Final, Guard, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
+import type { LlmDelegateResult, LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { GetWeather } from './tools/get-weather.tool';
 
-@Workflow({ uiConfig: __dirname + '/tool-call.ui.yaml' })
+@Workflow({
+  uiConfig: __dirname + '/tool-call.ui.yaml',
+})
 export class ToolCallWorkflow extends BaseWorkflow {
-  @InjectTool() claudeGenerateText: ClaudeGenerateText;
-  @InjectTool() delegateToolCalls: DelegateToolCalls;
+  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6', tools: ['getWeather'] })
+  llmGenerateText: LlmGenerateTextTool;
+
+  @InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
   @InjectTool() getWeather: GetWeather;
 
-  llmResult?: ClaudeGenerateTextResult;
-  delegateResult?: DelegateToolCallsResult;
+  llmResult?: LlmGenerateTextResult;
+  delegateResult?: LlmDelegateResult;
 
   @Initial({ to: 'ready' })
   async setup() {
-    await this.repository.save(ClaudeMessageDocument, { role: 'user', content: 'How is the weather in Berlin?' });
+    await this.repository.save(LlmMessageDocument, { role: 'user', content: 'How is the weather in Berlin?' });
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
   async llmTurn() {
-    const result: ToolResult<ClaudeGenerateTextResult> = await this.claudeGenerateText.call({
-      claude: { model: 'claude-sonnet-4-6' },
-      messagesSearchTag: 'message',
-      tools: ['getWeather'],
-    });
+    const result: ToolResult<LlmGenerateTextResult> = await this.llmGenerateText.call({});
     this.llmResult = result.data;
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls() {
-    const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
-      message: this.llmResult!,
+    const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
+      message: this.llmResult!.message,
     });
     this.delegateResult = result.data;
   }
 
   hasToolCalls() {
-    return this.llmResult?.stop_reason === 'tool_use';
+    return this.llmResult?.message.stopReason === 'tool_use';
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
@@ -208,7 +207,9 @@ export class ToolCallWorkflow extends BaseWorkflow {
 
   @Final({ from: 'prompt_executed' })
   async respond() {
-    await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
+    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+      meta: { response: this.llmResult!.response, provider: 'claude' },
+    });
   }
 }
 ```
@@ -218,7 +219,7 @@ export class ToolCallWorkflow extends BaseWorkflow {
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/common` - Core framework functionality, `BaseWorkflow`, `BaseTool`, decorators
-- `@loopstack/claude-module` - Provides `ClaudeGenerateText`, `DelegateToolCalls` tools, `ClaudeMessageDocument`, and result types
+- `@loopstack/llm-provider-module` - Provides `LlmGenerateTextTool`, `LlmDelegateToolCallsTool` tools, `LlmMessageDocument`, and result types
 
 ## About
 

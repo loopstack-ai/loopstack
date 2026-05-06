@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@loopstack/claude-module": "^0.22.5",
+    "@loopstack/llm-provider-module": "^0.1.0",
     "@loopstack/common": "^0.28.0",
     "@loopstack/core": "^0.28.0",
     "@loopstack/google-workspace-module": "^0.3.3",

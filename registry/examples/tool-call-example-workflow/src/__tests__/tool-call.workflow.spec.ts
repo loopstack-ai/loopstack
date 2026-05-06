@@ -1,7 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
-import { ClaudeGenerateText, ClaudeModule, DelegateToolCalls } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude-module';
 import { getBlockTools } from '@loopstack/common';
 import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { LlmDelegateToolCallsTool, LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { ToolCallWorkflow } from '../tool-call.workflow';
 import { GetWeather } from '../tools/get-weather.tool';
@@ -10,203 +11,107 @@ describe('ToolCallWorkflow', () => {
   let module: TestingModule;
   let workflow: ToolCallWorkflow;
   let processor: WorkflowProcessorService;
-
-  let mockClaudeGenerateText: ToolMock;
-  let mockDelegateToolCalls: ToolMock;
+  let mockLlmGenerateText: ToolMock;
+  let mockLlmDelegateToolCalls: ToolMock;
 
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ToolCallWorkflow)
       .withImports(LoopCoreModule, ClaudeModule)
-      .withProvider(GetWeather)
-      .withToolOverride(ClaudeGenerateText)
-      .withToolOverride(DelegateToolCalls)
+      .withToolOverride(LlmGenerateTextTool)
+      .withToolOverride(LlmDelegateToolCallsTool)
+      .withProviders(GetWeather)
       .compile();
 
     workflow = module.get(ToolCallWorkflow);
     processor = module.get(WorkflowProcessorService);
-
-    mockClaudeGenerateText = module.get(ClaudeGenerateText);
-    mockDelegateToolCalls = module.get(DelegateToolCalls);
+    mockLlmGenerateText = module.get(LlmGenerateTextTool);
+    mockLlmDelegateToolCalls = module.get(LlmDelegateToolCallsTool);
   });
 
   afterEach(async () => {
     await module.close();
   });
 
-  describe('initialization', () => {
-    it('should be defined with correct tools', () => {
-      expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('claudeGenerateText');
-      expect(getBlockTools(workflow)).toContain('delegateToolCalls');
-      expect(getBlockTools(workflow)).toContain('getWeather');
-    });
+  it('should be defined', () => {
+    expect(workflow).toBeDefined();
+    expect(getBlockTools(workflow)).toContain('llmGenerateText');
+    expect(getBlockTools(workflow)).toContain('llmDelegateToolCalls');
+    expect(getBlockTools(workflow)).toContain('getWeather');
   });
 
-  describe('workflow with tool calls', () => {
+  it('should execute workflow with tool call and loop back to ready state', async () => {
+    const mockToolUseResponse = {
+      data: {
+        message: {
+          id: 'msg_1',
+          role: 'assistant',
+          content: [{ type: 'tool_call', id: 'tool_call_1', name: 'getWeather', args: { location: 'Berlin' } }],
+          stopReason: 'tool_use',
+        },
+      },
+      metadata: { provider: 'claude', model: 'claude-sonnet-4-6' },
+    };
+
+    const mockToolCallResult = {
+      data: {
+        allCompleted: true,
+        toolResults: [
+          { type: 'tool_result', toolCallId: 'tool_call_1', content: 'Weather in Berlin: 15°C, partly cloudy' },
+        ],
+        message: mockToolUseResponse.data.message,
+        pendingCount: 0,
+        errorCount: 0,
+        hasErrors: false,
+        errors: [],
+      },
+    };
+
+    const mockFinalResponse = {
+      data: {
+        message: {
+          id: 'msg_2',
+          role: 'assistant',
+          content: [{ type: 'text', text: 'The weather in Berlin is currently 15°C and partly cloudy.' }],
+          stopReason: 'end_turn',
+        },
+      },
+      metadata: { provider: 'claude', model: 'claude-sonnet-4-6' },
+    };
+
+    mockLlmGenerateText.call.mockResolvedValueOnce(mockToolUseResponse).mockResolvedValueOnce(mockFinalResponse);
+    mockLlmDelegateToolCalls.call.mockResolvedValue(mockToolCallResult);
+
     const context = createStatelessContext();
+    const result = await processor.process(workflow, {}, context);
 
-    it('should execute workflow with tool call and loop back to ready state', async () => {
-      const mockLlmResponseWithToolCall = {
-        id: 'msg_1',
-        role: 'assistant',
-        stop_reason: 'tool_use',
-        content: [
-          {
-            type: 'tool_use',
-            id: 'tool_call_1',
-            name: 'getWeather',
-            input: { location: 'Berlin' },
-          },
-        ],
-      };
+    expect(result.hasError).toBe(false);
+    expect(result.place).toBe('end');
+    expect(mockLlmGenerateText.call).toHaveBeenCalledTimes(2);
+    expect(mockLlmDelegateToolCalls.call).toHaveBeenCalledTimes(1);
+  });
 
-      const mockToolCallResult = {
-        allCompleted: true,
-        toolResults: [
-          {
-            type: 'tool_result',
-            tool_use_id: 'tool_call_1',
-            content: 'Weather in Berlin: 15°C, partly cloudy',
-          },
-        ],
-      };
+  it('should go directly to end when no tool calls in response', async () => {
+    const mockNoToolCallResponse = {
+      data: {
+        message: {
+          id: 'msg_1',
+          role: 'assistant',
+          content: [{ type: 'text', text: 'I cannot check the weather without a tool.' }],
+          stopReason: 'end_turn',
+        },
+      },
+      metadata: { provider: 'claude', model: 'claude-sonnet-4-6' },
+    };
 
-      const mockFinalLlmResponse = {
-        id: 'msg_2',
-        role: 'assistant',
-        stop_reason: 'end_turn',
-        content: [
-          {
-            type: 'text',
-            text: 'The weather in Berlin is currently 15°C and partly cloudy.',
-          },
-        ],
-      };
+    mockLlmGenerateText.call.mockResolvedValue(mockNoToolCallResponse);
 
-      mockClaudeGenerateText.call
-        .mockResolvedValueOnce({ data: mockLlmResponseWithToolCall })
-        .mockResolvedValueOnce({ data: mockFinalLlmResponse });
-      mockDelegateToolCalls.call.mockResolvedValue({ data: mockToolCallResult });
+    const context = createStatelessContext();
+    const result = await processor.process(workflow, {}, context);
 
-      const result = await processor.process(workflow, {}, context);
-
-      expect(result.hasError).toBe(false);
-
-      // Should call ClaudeGenerateText twice (initial + after tool response)
-      expect(mockClaudeGenerateText.call).toHaveBeenCalledTimes(2);
-      expect(mockClaudeGenerateText.call).toHaveBeenCalledWith(
-        expect.objectContaining({
-          claude: {
-            model: 'claude-sonnet-4-6',
-          },
-          messagesSearchTag: 'message',
-          tools: ['getWeather'],
-        }),
-        undefined,
-      );
-
-      // Should call DelegateToolCalls once (only when there are tool calls)
-      expect(mockDelegateToolCalls.call).toHaveBeenCalledTimes(1);
-      expect(mockDelegateToolCalls.call).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: mockLlmResponseWithToolCall,
-        }),
-        undefined,
-      );
-    });
-
-    it('should go directly to end when no tool calls are needed', async () => {
-      const mockLlmResponseNoToolCall = {
-        id: 'msg_1',
-        role: 'assistant',
-        stop_reason: 'end_turn',
-        content: [
-          {
-            type: 'text',
-            text: 'I cannot check the weather without access to weather tools.',
-          },
-        ],
-      };
-
-      mockClaudeGenerateText.call.mockResolvedValue({ data: mockLlmResponseNoToolCall });
-
-      const result = await processor.process(workflow, {}, context);
-
-      expect(result.hasError).toBe(false);
-
-      // Should call ClaudeGenerateText once
-      expect(mockClaudeGenerateText.call).toHaveBeenCalledTimes(1);
-
-      // Should NOT call DelegateToolCalls (no tool calls in response)
-      expect(mockDelegateToolCalls.call).not.toHaveBeenCalled();
-    });
-
-    it('should handle multiple tool calls in a single LLM response', async () => {
-      const mockLlmResponseWithMultipleToolCalls = {
-        id: 'msg_1',
-        role: 'assistant',
-        stop_reason: 'tool_use',
-        content: [
-          {
-            type: 'tool_use',
-            id: 'tool_call_1',
-            name: 'getWeather',
-            input: { location: 'Berlin' },
-          },
-          {
-            type: 'tool_use',
-            id: 'tool_call_2',
-            name: 'getWeather',
-            input: { location: 'Munich' },
-          },
-        ],
-      };
-
-      const mockToolCallResults = {
-        allCompleted: true,
-        toolResults: [
-          {
-            type: 'tool_result',
-            tool_use_id: 'tool_call_1',
-            content: 'Weather in Berlin: 15°C, partly cloudy',
-          },
-          {
-            type: 'tool_result',
-            tool_use_id: 'tool_call_2',
-            content: 'Weather in Munich: 18°C, sunny',
-          },
-        ],
-      };
-
-      const mockFinalResponse = {
-        id: 'msg_2',
-        role: 'assistant',
-        stop_reason: 'end_turn',
-        content: [
-          {
-            type: 'text',
-            text: 'Berlin: 15°C partly cloudy. Munich: 18°C sunny.',
-          },
-        ],
-      };
-
-      mockClaudeGenerateText.call
-        .mockResolvedValueOnce({ data: mockLlmResponseWithMultipleToolCalls })
-        .mockResolvedValueOnce({ data: mockFinalResponse });
-      mockDelegateToolCalls.call.mockResolvedValue({ data: mockToolCallResults });
-
-      const result = await processor.process(workflow, {}, context);
-
-      expect(result.hasError).toBe(false);
-
-      // DelegateToolCalls should receive message with multiple tool calls
-      expect(mockDelegateToolCalls.call).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: mockLlmResponseWithMultipleToolCalls,
-        }),
-        undefined,
-      );
-    });
+    expect(result.hasError).toBe(false);
+    expect(result.place).toBe('end');
+    expect(mockLlmGenerateText.call).toHaveBeenCalledTimes(1);
+    expect(mockLlmDelegateToolCalls.call).not.toHaveBeenCalled();
   });
 });

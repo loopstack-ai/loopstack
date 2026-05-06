@@ -37,9 +37,9 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
     });
 
     // Count before pause — should be 1, 2, 3
-    const c1 = await this.counterTool.call({});
-    const c2 = await this.counterTool.call({});
-    const c3 = await this.counterTool.call({});
+    const c1 = await this.counterTool.call();
+    const c2 = await this.counterTool.call();
+    const c3 = await this.counterTool.call();
 
     await this.repository.save(MessageDocument, {
       role: 'assistant',
@@ -55,9 +55,9 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
   @Final({ from: 'resumed' })
   async continueCount(): Promise<{ total: number | undefined }> {
     // Count after resume — should continue: 4, 5, 6
-    const c4 = await this.counterTool.call({});
-    const c5 = await this.counterTool.call({});
-    const c6 = await this.counterTool.call({});
+    const c4 = await this.counterTool.call();
+    const c5 = await this.counterTool.call();
+    const c6 = await this.counterTool.call();
 
     await this.repository.save(MessageDocument, {
       role: 'assistant',

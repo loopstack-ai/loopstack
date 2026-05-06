@@ -10,6 +10,8 @@ import {
   INJECTED_DOCUMENTS_METADATA_KEY,
   INJECTED_TOOLS_METADATA_KEY,
   INJECTED_WORKFLOWS_METADATA_KEY,
+  INJECT_TOOL_DEFAULTS_KEY,
+  INJECT_WORKFLOW_DEFAULTS_KEY,
   PASS_THROUGH_METADATA_KEY,
   TRANSITIONS_METADATA_KEY,
   TransitionMetadata,
@@ -95,6 +97,15 @@ export function getBlockArgsSchema(target: object | Constructor): z.ZodType | un
 }
 
 /**
+ * Gets the config schema from the class decorator metadata (e.g., `@Tool({ configSchema })`).
+ */
+export function getBlockConfigSchema(target: object | Constructor): z.ZodType | undefined {
+  const ctor = getConstructor(target);
+  const options = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions | undefined;
+  return options?.configSchema;
+}
+
+/**
  * Gets a workflow instance by name from a block
  */
 export function getBlockWorkflow<T = unknown>(target: object, name: string): T | undefined {
@@ -171,4 +182,70 @@ export function getPassThroughProperties(target: object | Constructor): string[]
   const proto = getPrototype(target);
   const keys = (Reflect.getMetadata(PASS_THROUGH_METADATA_KEY, proto) as (string | symbol)[] | undefined) ?? [];
   return keys.map((key) => String(key));
+}
+
+/**
+ * Gets the @InjectTool(config) defaults for a specific property on a target.
+ * Returns undefined if no defaults were set.
+ */
+export function getInjectToolDefaults(target: object, propertyName: string): Record<string, unknown> | undefined {
+  const proto = getPrototype(target);
+  const allDefaults = Reflect.getMetadata(INJECT_TOOL_DEFAULTS_KEY, proto) as
+    | Record<string, Record<string, unknown>>
+    | undefined;
+  return allDefaults?.[propertyName];
+}
+
+/**
+ * Resolves a tool by name, checking the parent first, then the workspace as fallback.
+ */
+export function resolveBlockTool<T = unknown>(parent: object, name: string, workspace?: object): T | undefined {
+  return getBlockTool<T>(parent, name) ?? (workspace ? getBlockTool<T>(workspace, name) : undefined);
+}
+
+/**
+ * Validates that all named tools are resolvable from the parent or workspace.
+ * Throws with a descriptive error if any tool is missing.
+ *
+ * @param caller — name of the calling class (for error messages)
+ * @param parent — the parent workflow or block instance
+ * @param toolNames — tool property names that must be available
+ * @param workspace — optional workspace fallback
+ */
+export function assertToolsAvailable(caller: string, parent: object, toolNames: string[], workspace?: object): void {
+  for (const name of toolNames) {
+    const tool = resolveBlockTool(parent, name, workspace);
+    if (!tool) {
+      throw new Error(
+        `${caller} requires tool "${name}" but it was not found. ` +
+          `Inject it on your workspace: @InjectTool() ${name}: <ToolClass>`,
+      );
+    }
+  }
+}
+
+/**
+ * Resolves @InjectTool(config) defaults by name, checking the parent first, then the workspace as fallback.
+ */
+export function resolveInjectToolDefaults(
+  parent: object,
+  propertyName: string,
+  workspace?: object,
+): Record<string, unknown> | undefined {
+  return (
+    getInjectToolDefaults(parent, propertyName) ??
+    (workspace ? getInjectToolDefaults(workspace, propertyName) : undefined)
+  );
+}
+
+/**
+ * Gets the @InjectWorkflow(config) defaults for a specific property on a target.
+ * Returns undefined if no defaults were set.
+ */
+export function getInjectWorkflowDefaults(target: object, propertyName: string): Record<string, unknown> | undefined {
+  const proto = getPrototype(target);
+  const allDefaults = Reflect.getMetadata(INJECT_WORKFLOW_DEFAULTS_KEY, proto) as
+    | Record<string, Record<string, unknown>>
+    | undefined;
+  return allDefaults?.[propertyName];
 }

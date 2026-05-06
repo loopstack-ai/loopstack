@@ -3,11 +3,14 @@ import { DiscoveryService } from '@nestjs/core';
 import {
   BaseTool,
   TOOL_INTERCEPTOR_METADATA_KEY,
+  ToolCallOptions,
   ToolExecutionContext,
   ToolInterceptor,
   ToolResult,
   getBlockArgsSchema,
+  getBlockConfigSchema,
   getBlockTools,
+  getInjectToolDefaults,
 } from '@loopstack/common';
 import { ExecutionScope, wrapToolProxy } from '../utils';
 
@@ -65,8 +68,9 @@ export class ToolExecutionService implements OnModuleInit {
    * Framework wrapper around a tool's call(). Called by the tool proxy.
    *
    * Flow:
-   * 1. Validate args (framework guarantee — always runs)
-   * 2. Run interceptor chain (user-configurable)
+   * 1. Validate args against schema (framework guarantee — always runs)
+   * 2. Validate config against configSchema (if present)
+   * 3. Run interceptor chain (user-configurable)
    */
   async executeCall(
     rawTool: object,
@@ -79,10 +83,19 @@ export class ToolExecutionService implements OnModuleInit {
     const ctx = this.executionScope.get();
 
     // 1. Validate args (framework guarantee)
-    const schema = getBlockArgsSchema(baseTool as object);
-    const validArgs = schema ? (schema.parse(args) as Record<string, unknown>) : args;
+    const argsSchema = getBlockArgsSchema(baseTool as object);
+    const validArgs = argsSchema ? (argsSchema.parse(args) as Record<string, unknown>) : args;
 
-    // 2. Build execution context
+    // 2. Validate config (if configSchema is defined)
+    const typedOptions = options as ToolCallOptions | undefined;
+    const configSchema = getBlockConfigSchema(baseTool as object);
+    const validConfig =
+      configSchema && typedOptions?.config
+        ? (configSchema.parse(typedOptions.config) as Record<string, unknown>)
+        : typedOptions?.config;
+    const validOptions = validConfig !== typedOptions?.config ? { ...typedOptions, config: validConfig } : options;
+
+    // 3. Build execution context
     const execContext: ToolExecutionContext = {
       tool: baseTool,
       args: validArgs,
@@ -90,8 +103,8 @@ export class ToolExecutionService implements OnModuleInit {
       metadata: {},
     };
 
-    // 3. Build interceptor chain — each interceptor wraps the next, innermost is the tool call
-    const toolCall = () => originalCallFn.call(proxy, validArgs, options) as Promise<ToolResult>;
+    // 4. Build interceptor chain — each interceptor wraps the next, innermost is the tool call
+    const toolCall = () => originalCallFn.call(proxy, validArgs, validOptions) as Promise<ToolResult>;
 
     const chain = this.interceptors.reduceRight<() => Promise<ToolResult>>(
       (next, interceptor) => () => interceptor.intercept(execContext, next),
@@ -106,21 +119,22 @@ export class ToolExecutionService implements OnModuleInit {
   /**
    * Wraps a tool instance in a proxy. Returns the proxy.
    * Also recursively proxies nested @InjectTool() dependencies.
+   *
+   * @param tool - The raw tool instance
+   * @param toolName - Property name on the owner (used for state namespacing and defaults lookup)
+   * @param owner - The object that declares @InjectTool() (workspace or workflow instance)
    */
-  wireAndProxyTool(tool: object, toolName: string): object {
-    // Already proxied (singleton reused across workflow runs) — return as-is
-    if (this.proxiedTools.has(tool)) {
-      return tool;
-    }
+  wireAndProxyTool(tool: object, toolName: string, owner?: object): object {
+    // Read @InjectTool(config) defaults for this injection site
+    const defaults = owner ? getInjectToolDefaults(owner, toolName) : undefined;
 
-    const proxy = wrapToolProxy(tool, toolName, this.executionScope, this.executeCall.bind(this));
-    this.proxiedTools.add(proxy);
+    const proxy = wrapToolProxy(tool, toolName, this.executionScope, this.executeCall.bind(this), defaults);
 
-    // Recursively wire nested @InjectTool() dependencies
+    // Recursively wire nested @InjectTool() dependencies (no owner — nested tools don't have their own defaults)
     const nestedToolNames = getBlockTools(tool);
     for (const nestedName of nestedToolNames) {
       const nestedTool = (tool as Record<string, unknown>)[nestedName] as object | undefined;
-      if (nestedTool && !this.proxiedTools.has(nestedTool)) {
+      if (nestedTool) {
         const nestedProxy = this.wireAndProxyTool(nestedTool, nestedName);
         (tool as Record<string, unknown>)[nestedName] = nestedProxy;
       }

@@ -4,14 +4,18 @@ import {
   ErrorDocument,
   NormalizedRetryConfig,
   RunContext,
+  ServerTool,
   TransitionMetadata,
   WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkflowInterface,
   WorkflowMetadataInterface,
   getBlockArgsSchema,
+  getBlockConfigSchema,
   getBlockTools,
+  getBlockWorkflows,
   getGuardMetadataMap,
+  getInjectWorkflowDefaults,
   normalizeRetryConfig,
 } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
@@ -72,6 +76,7 @@ export class WorkflowProcessorService implements Processor {
     validArgs: Record<string, unknown> | undefined,
     workflowEntity?: WorkflowEntity,
     latestCheckpoint?: WorkflowCheckpointEntity | null,
+    validConfig?: Record<string, unknown>,
   ): WorkflowExecutionContextManager {
     const initialWorkflowData: WorkflowMetadataInterface = {
       hasError: false,
@@ -112,7 +117,7 @@ export class WorkflowProcessorService implements Processor {
       Record<string, unknown> | undefined,
       Record<string, unknown>,
       WorkflowMetadataInterface
-    >(workflow, context, validArgs, stateManager);
+    >(workflow, context, validArgs, stateManager, validConfig);
   }
 
   async process(
@@ -123,6 +128,12 @@ export class WorkflowProcessorService implements Processor {
     const schema = getBlockArgsSchema(workflow);
     const validArgs = schema ? (schema.parse(args) as Record<string, unknown> | undefined) : args;
 
+    // Validate and parse config from the workflow entity (set by @InjectWorkflow defaults)
+    const configSchema = getBlockConfigSchema(workflow);
+    const rawConfig = context.workflowEntity?.config as Record<string, unknown> | null | undefined;
+    const validConfig =
+      configSchema && rawConfig ? (configSchema.parse(rawConfig) as Record<string, unknown>) : (rawConfig ?? undefined);
+
     const isStateless = !!context.options?.stateless;
 
     let workflowEntity: WorkflowEntity | undefined;
@@ -130,14 +141,14 @@ export class WorkflowProcessorService implements Processor {
     let ctx: WorkflowExecutionContextManager;
 
     if (isStateless) {
-      ctx = this.createCtx(workflow, context, validArgs);
+      ctx = this.createCtx(workflow, context, validArgs, undefined, undefined, validConfig);
       ctx.getManager().setData('status', WorkflowStateEnum.Running);
     } else {
       workflowEntity = context.workflowEntity!;
       context.workflowId = workflowEntity.id;
 
       const latestCheckpoint = await this.workflowStateService.getLatestCheckpoint(workflowEntity.id);
-      ctx = this.createCtx(workflow, context, validArgs, workflowEntity, latestCheckpoint);
+      ctx = this.createCtx(workflow, context, validArgs, workflowEntity, latestCheckpoint, validConfig);
 
       const isInitialRun = workflowEntity.place === 'start';
 
@@ -215,11 +226,12 @@ export class WorkflowProcessorService implements Processor {
     workflowName: string,
     transitionMeta?: TransitionMetadata,
   ): Promise<unknown> {
-    const timeoutMs = transitionMeta?.timeout;
+    const defaultTimeout = parseInt(process.env.DEFAULT_TRANSITION_TIMEOUT ?? '', 10) || 300_000;
+    const timeoutMs = transitionMeta?.timeout ?? defaultTimeout;
 
     const invokeMethod = () => {
       const methodPromise = this.executionScope.run(ctx, () => invokeWorkflowMethod(proxy, methodName, data));
-      return timeoutMs ? Promise.race([methodPromise, rejectAfter(timeoutMs, methodName)]) : methodPromise;
+      return timeoutMs > 0 ? Promise.race([methodPromise, rejectAfter(timeoutMs, methodName)]) : methodPromise;
     };
 
     // Stateless workflows skip transactions
@@ -528,13 +540,15 @@ export class WorkflowProcessorService implements Processor {
 
   /**
    * Wires @FrameworkService() properties on the workflow and wraps injected tools in proxies.
-   * Tool proxies intercept call() for framework logic and state access for isolation.
-   * Also proxies workspace tools so they have the same validation and state isolation.
+   * Tool proxies intercept call() for framework logic, defaults merging, and state isolation.
+   * Also proxies workspace tools and wraps workflow run() with @InjectWorkflow defaults.
    */
   private wireFrameworkServices(workflow: WorkflowInterface, workspace?: object): void {
     this.wireTools(workflow);
+    this.wireWorkflows(workflow);
     if (workspace) {
       this.wireTools(workspace);
+      this.wireWorkflows(workspace);
     }
   }
 
@@ -542,10 +556,33 @@ export class WorkflowProcessorService implements Processor {
     const toolNames = getBlockTools(target);
     for (const name of toolNames) {
       const tool = (target as Record<string, unknown>)[name] as object | undefined;
-      if (tool) {
-        const proxy = this.toolExecutionService.wireAndProxyTool(tool, name);
-        (target as Record<string, unknown>)[name] = proxy;
-      }
+      if (!tool || tool instanceof ServerTool) continue;
+      const proxy = this.toolExecutionService.wireAndProxyTool(tool, name, target);
+      (target as Record<string, unknown>)[name] = proxy;
+    }
+  }
+
+  /**
+   * Wraps injected workflow run() methods with @InjectWorkflow(config) defaults.
+   * Defaults are passed as `_config` on RunOptions and validated against configSchema.
+   */
+  private wireWorkflows(target: object): void {
+    const workflowNames = getBlockWorkflows(target);
+    for (const name of workflowNames) {
+      const workflow = (target as Record<string, unknown>)[name];
+      if (!workflow || typeof workflow !== 'object') continue;
+
+      const defaults = getInjectWorkflowDefaults(target, name);
+      if (!defaults) continue;
+
+      const wf = workflow as { run?: (...args: unknown[]) => unknown };
+      if (typeof wf.run !== 'function') continue;
+
+      const originalRun = wf.run.bind(wf);
+      wf.run = (args: Record<string, unknown>, options?: Record<string, unknown>) => {
+        const runOptions = { ...options, _config: { ...defaults, ...(options?._config as Record<string, unknown>) } };
+        return originalRun(args, runOptions);
+      };
     }
   }
 }

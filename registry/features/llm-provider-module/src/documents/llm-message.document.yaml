@@ -2,4 +2,4 @@ tags:
   - message
 ui:
   widgets:
-    - widget: claude-message
+    - widget: llm-message

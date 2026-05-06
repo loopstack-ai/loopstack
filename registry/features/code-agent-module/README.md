@@ -80,7 +80,7 @@ import { ExploreAgentWorkflow } from '@loopstack/code-agent';
 
 - `@loopstack/common` — core decorators and `BaseTool` / `BaseWorkflow`
 - `@loopstack/core` — `LoopCoreModule`
-- `@loopstack/claude-module` — `ClaudeGenerateText`, `DelegateToolCalls`, `ClaudeMessageDocument`
+- `@loopstack/llm-provider-module` — `LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, `LlmMessageDocument`
 - `@loopstack/remote-client` — `GlobTool`, `GrepTool`, `ReadTool` (executed on the remote workspace)
 
 ## About

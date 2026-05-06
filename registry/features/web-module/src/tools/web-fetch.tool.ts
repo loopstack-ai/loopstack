@@ -15,14 +15,9 @@ export const WebFetchSchema = z
         'Optional instruction applied to the fetched content by a small model. ' +
           'When omitted, the raw Markdown is returned (truncated if very long).',
       ),
-    claude: z
-      .object({
-        model: z.string().optional(),
-        envApiKey: z.string().optional(),
-        maxTokens: z.number().optional(),
-      })
-      .optional()
-      .describe('Model configuration for the summarization step. Only used when `prompt` is provided.'),
+    model: z.string().optional().describe('Model for the summarization step. Only used when `prompt` is provided.'),
+    envApiKey: z.string().optional(),
+    maxTokens: z.number().optional(),
   })
   .strict();
 
@@ -90,9 +85,9 @@ export class WebFetchTool extends BaseTool {
 
     if (args.prompt) {
       const summary = await this.summarizer.summarize(args.url, markdown, args.prompt, {
-        model: args.claude?.model,
-        envApiKey: args.claude?.envApiKey,
-        maxTokens: args.claude?.maxTokens,
+        model: args.model,
+        envApiKey: args.envApiKey,
+        maxTokens: args.maxTokens,
       });
       result = summary.summary;
       truncated = summary.truncated;

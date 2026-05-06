@@ -1,13 +1,5 @@
 import { z } from 'zod';
 import {
-  ClaudeGenerateText,
-  ClaudeGenerateTextResult,
-  ClaudeMessageDocument,
-  DelegateToolCalls,
-  DelegateToolCallsResult,
-  UpdateToolResult,
-} from '@loopstack/claude-module';
-import {
   BaseWorkflow,
   DocumentEntity,
   Final,
@@ -19,26 +11,35 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
+import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import {
+  LlmDelegateToolCallsTool,
+  LlmGenerateTextTool,
+  LlmMessageDocument,
+  LlmUpdateToolResultTool,
+} from '@loopstack/llm-provider-module';
 import { GetSecretKeysTool, RequestSecretsTask, SecretsRequestWorkflow } from '@loopstack/secrets-module';
 
 @Workflow({
   uiConfig: __dirname + '/secrets-agent-example.ui.yaml',
 })
 export class SecretsAgentExampleWorkflow extends BaseWorkflow {
-  @InjectTool() claudeGenerateText: ClaudeGenerateText;
-  @InjectTool() delegateToolCalls: DelegateToolCalls;
-  @InjectTool() updateToolResult: UpdateToolResult;
+  @InjectTool({ provider: 'claude', model: 'claude-haiku-4-5-20251001', tools: ['getSecretKeys', 'requestSecrets'] })
+  llmGenerateText: LlmGenerateTextTool;
+  @InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
+  @InjectTool({ provider: 'claude' }) llmUpdateToolResult: LlmUpdateToolResultTool;
   @InjectTool() requestSecrets: RequestSecretsTask;
   @InjectTool() getSecretKeys: GetSecretKeysTool;
   @InjectWorkflow() secretsRequest: SecretsRequestWorkflow;
 
-  llmResult?: ClaudeGenerateTextResult;
-  delegateResult?: DelegateToolCallsResult;
+  llmResult?: LlmGenerateTextResult;
+  llmMeta?: LlmResultMeta;
+  delegateResult?: LlmDelegateResult;
 
   @Initial({ to: 'ready' })
   async setup() {
     await this.repository.save(
-      ClaudeMessageDocument,
+      LlmMessageDocument,
       {
         role: 'user',
         content: this.render(__dirname + '/templates/systemMessage.md'),
@@ -49,38 +50,38 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
   async llmTurn() {
-    const result: ToolResult<ClaudeGenerateTextResult> = await this.claudeGenerateText.call({
-      system: `You are a helpful assistant that manages workspace secrets.
-Use getSecretKeys to check existing secrets, and requestSecrets to ask the user for new ones.
-
-IMPORTANT: When using requestSecrets, it must be the ONLY tool call in your response.
-Do not combine it with other tool calls.
-
-When all secrets are available, respond with one sentence including a list of the requested secrets.`,
-      claude: { model: 'claude-haiku-4-5-20251001' },
-      messagesSearchTag: 'message',
-      tools: ['getSecretKeys', 'requestSecrets'],
-    });
+    const result: ToolResult<LlmGenerateTextResult, LlmResultMeta> = await this.llmGenerateText.call(
+      {},
+      {
+        config: {
+          system: this.render(__dirname + '/templates/system.md'),
+        },
+      },
+    );
     this.llmResult = result.data;
+    this.llmMeta = result.metadata;
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls() {
-    const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
-      message: this.llmResult!,
+    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+    });
+    const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
+      message: this.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
   }
 
   hasToolCalls(): boolean {
-    return this.llmResult?.stop_reason === 'tool_use';
+    return this.llmResult?.message.stopReason === 'tool_use';
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
   async toolResultReceived(payload: Record<string, unknown>) {
-    const result: ToolResult<DelegateToolCallsResult> = await this.updateToolResult.call({
+    const result: ToolResult<LlmDelegateResult> = await this.llmUpdateToolResult.call({
       delegateResult: this.delegateResult!,
       completedTool: payload,
     });
@@ -89,7 +90,17 @@ When all secrets are available, respond with one sentence including a list of th
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  allToolsCompleteTransition() {}
+  async allToolsCompleteTransition() {
+    await this.repository.save(LlmMessageDocument, {
+      role: 'user',
+      content: this.delegateResult!.toolResults.map((tr) => ({
+        type: 'tool_result' as const,
+        toolCallId: tr.toolCallId,
+        content: tr.content ?? '',
+        isError: tr.isError ?? false,
+      })),
+    });
+  }
 
   allToolsComplete(): boolean {
     return this.delegateResult?.allCompleted ?? false;
@@ -97,7 +108,7 @@ When all secrets are available, respond with one sentence including a list of th
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
   async userMessage(payload: string) {
-    await this.repository.save(ClaudeMessageDocument, {
+    await this.repository.save(LlmMessageDocument, {
       role: 'user',
       content: payload,
     });
@@ -105,6 +116,8 @@ When all secrets are available, respond with one sentence including a list of th
 
   @Final({ from: 'prompt_executed' })
   async respond(): Promise<DocumentEntity> {
-    return this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
+    return this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+    });
   }
 }

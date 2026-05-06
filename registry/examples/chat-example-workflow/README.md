@@ -12,7 +12,7 @@ By using this workflow as a reference, you'll learn how to:
 
 - Set up a system prompt using a Handlebars template file
 - Use `wait: true` to pause the workflow for user input
-- Process user messages through an LLM with `ClaudeGenerateText`
+- Process user messages through an LLM with `LlmGenerateTextTool`
 - Create a message loop for continuous conversation
 - Configure custom UI widgets for user input
 - Save documents with the workflow repository
@@ -35,7 +35,7 @@ The workflow begins with an `@Initial` method that saves a hidden system message
 @Initial({ to: 'waiting_for_user' })
 async setup() {
   await this.repository.save(
-    ClaudeMessageDocument,
+    LlmMessageDocument,
     { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
     { meta: { hidden: true } },
   );
@@ -51,11 +51,11 @@ The `userMessage` transition uses `wait: true` to pause the workflow and wait fo
 ```typescript
 @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
 async userMessage(payload: string) {
-  await this.repository.save(ClaudeMessageDocument, { role: 'user', content: payload });
+  await this.repository.save(LlmMessageDocument, { role: 'user', content: payload });
 }
 ```
 
-When the user sends a message, the payload is saved as a `ClaudeMessageDocument` and the workflow transitions to the `ready` state.
+When the user sends a message, the payload is saved as a `LlmMessageDocument` and the workflow transitions to the `ready` state.
 
 #### 3. LLM Response Generation
 
@@ -64,15 +64,15 @@ When the workflow reaches the `ready` state, it calls the LLM to generate a resp
 ```typescript
 @Transition({ from: 'ready', to: 'waiting_for_user' })
 async llmTurn() {
-  const result = await this.claudeGenerateText.call({
-    claude: { model: 'claude-sonnet-4-6' },
-    messagesSearchTag: 'message',
+  const result = await this.llmGenerateText.call();
+
+  await this.repository.save(LlmMessageDocument, result.data!.message, {
+    meta: { response: result.data!.response, provider: 'claude' },
   });
-  await this.repository.save(ClaudeMessageDocument, result.data!, { id: result.data!.id });
 }
 ```
 
-The `messagesSearchTag: 'message'` parameter retrieves all saved `ClaudeMessageDocument` entries as conversation context. The LLM response is saved and the workflow loops back to `waiting_for_user`.
+The LLM response is saved as a `LlmMessageDocument` and the workflow loops back to `waiting_for_user`.
 
 #### 4. Custom UI Widgets
 
@@ -93,23 +93,24 @@ The `transition: userMessage` connects the widget to the `userMessage` method, a
 
 ### Workflow Class
 
-The complete workflow class uses `@InjectTool()` to access the `ClaudeGenerateText` tool and extends `BaseWorkflow`:
+The complete workflow class uses `@InjectTool()` with provider config to access the `LlmGenerateTextTool` tool and extends `BaseWorkflow`:
 
 ```typescript
 import { z } from 'zod';
-import { ClaudeGenerateText, ClaudeMessageDocument } from '@loopstack/claude-module';
 import { BaseWorkflow, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
+import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
   uiConfig: __dirname + '/chat.ui.yaml',
 })
 export class ChatWorkflow extends BaseWorkflow {
-  @InjectTool() claudeGenerateText: ClaudeGenerateText;
+  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6' })
+  llmGenerateText: LlmGenerateTextTool;
 
   @Initial({ to: 'waiting_for_user' })
   async setup() {
     await this.repository.save(
-      ClaudeMessageDocument,
+      LlmMessageDocument,
       { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
@@ -117,16 +118,16 @@ export class ChatWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
   async userMessage(payload: string) {
-    await this.repository.save(ClaudeMessageDocument, { role: 'user', content: payload });
+    await this.repository.save(LlmMessageDocument, { role: 'user', content: payload });
   }
 
   @Transition({ from: 'ready', to: 'waiting_for_user' })
   async llmTurn() {
-    const result = await this.claudeGenerateText.call({
-      claude: { model: 'claude-sonnet-4-6' },
-      messagesSearchTag: 'message',
+    const result = await this.llmGenerateText.call();
+
+    await this.repository.save(LlmMessageDocument, result.data!.message, {
+      meta: { response: result.data!.response, provider: 'claude' },
     });
-    await this.repository.save(ClaudeMessageDocument, result.data!, { id: result.data!.id });
   }
 }
 ```
@@ -136,7 +137,7 @@ export class ChatWorkflow extends BaseWorkflow {
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/common` - Core framework functionality, `BaseWorkflow`, decorators
-- `@loopstack/claude-module` - Provides `ClaudeGenerateText` tool and `ClaudeMessageDocument`
+- `@loopstack/llm-provider-module` - Provides `LlmGenerateTextTool` tool and `LlmMessageDocument`
 
 ## About
 

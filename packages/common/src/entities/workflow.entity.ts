@@ -63,6 +63,9 @@ export class WorkflowEntity {
   @Column('jsonb', { default: {} })
   args!: any;
 
+  @Column('jsonb', { nullable: true })
+  config!: Record<string, unknown> | null;
+
   @Column('jsonb', { default: {} })
   context!: Record<string, any>;
 

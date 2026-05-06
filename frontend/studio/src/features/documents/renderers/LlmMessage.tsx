@@ -1,6 +1,7 @@
 import { CopyIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
+import type { UIContentBlock, UIMessage } from '@loopstack/contracts/types';
 import {
   Message,
   MessageAction,
@@ -12,52 +13,9 @@ import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-e
 import type { ToolHeaderProps } from '@/components/loopstack-elements/tool.tsx';
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/loopstack-elements/tool.tsx';
 
-// Anthropic native content block types
-interface TextBlock {
-  type: 'text';
-  text: string;
-}
-
-interface ToolUseBlock {
-  type: 'tool_use';
-  id: string;
-  name: string;
-  input: Record<string, unknown>;
-}
-
-interface ThinkingBlock {
-  type: 'thinking';
-  thinking: string;
-}
-
-interface ToolResultBlock {
-  type: 'tool_result';
-  tool_use_id: string;
-  content: string;
-  is_error?: boolean;
-}
-
-type ContentBlock = TextBlock | ToolUseBlock | ThinkingBlock | ToolResultBlock;
-
-interface ClaudeMessageData {
-  id?: string;
-  role: 'user' | 'assistant';
-  content: string | ContentBlock[];
-  toolResults?: ToolResultBlock[];
-  stop_reason?: string;
-}
-
-const ClaudeMessage = ({ document }: { document: DocumentItemInterface; isLastItem: boolean }) => {
-  const message = document.content as ClaudeMessageData;
-  const messageId = message.id ?? document.id;
-
-  // Build a lookup from tool_use_id → tool result for combined documents
-  const toolResultMap = new Map<string, ToolResultBlock>();
-  if (message.toolResults) {
-    for (const result of message.toolResults) {
-      toolResultMap.set(result.tool_use_id, result);
-    }
-  }
+const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem: boolean }) => {
+  const message = document.content as UIMessage;
+  const messageId = (message as any).id ?? document.id;
 
   // String content — simple text message
   if (typeof message.content === 'string') {
@@ -77,8 +35,8 @@ const ClaudeMessage = ({ document }: { document: DocumentItemInterface; isLastIt
     );
   }
 
-  // Array content — iterate over ContentBlocks
-  const blocks = message.content;
+  // Array content — iterate over UIContentBlocks
+  const blocks: UIContentBlock[] = message.content;
 
   return (
     <Fragment>
@@ -104,62 +62,65 @@ const ClaudeMessage = ({ document }: { document: DocumentItemInterface; isLastIt
             return (
               <Reasoning key={`${messageId}-${i}`} className="w-full" isStreaming={false}>
                 <ReasoningTrigger />
-                <ReasoningContent>{block.thinking}</ReasoningContent>
+                <ReasoningContent>{block.text}</ReasoningContent>
               </Reasoning>
             );
 
-          case 'tool_use': {
-            const result = toolResultMap.get(block.id);
-            let parsedOutput: unknown;
-            if (result) {
-              try {
-                parsedOutput = JSON.parse(result.content);
-              } catch {
-                parsedOutput = result.content;
-              }
-            }
-            const toolUseState: ToolHeaderProps['state'] = result
-              ? result.is_error
-                ? 'output-error'
-                : 'output-available'
-              : 'input-available';
-            const toolUseType: ToolHeaderProps['type'] = 'tool-call';
+          case 'tool_call':
             return (
               <Message key={`${messageId}-${i}`} from="assistant">
                 <Tool>
-                  <ToolHeader state={toolUseState} title={block.name} type={toolUseType} />
+                  <ToolHeader state="input-available" title={block.name} type="tool-call" />
                   <ToolContent>
-                    <ToolInput input={block.input} />
-                    {result && <ToolOutput output={parsedOutput} errorText={result.is_error ? result.content : ''} />}
+                    <ToolInput input={block.args} />
                   </ToolContent>
                 </Tool>
               </Message>
             );
-          }
 
           case 'tool_result': {
-            // Standalone tool_result blocks (not part of a combined document)
-            // Skip if this result was already rendered alongside its tool_use block
-            if (toolResultMap.size > 0) return null;
             let parsedOutput: unknown;
             try {
               parsedOutput = JSON.parse(block.content);
             } catch {
               parsedOutput = block.content;
             }
-            const toolResultState: ToolHeaderProps['state'] = block.is_error ? 'output-error' : 'output-available';
-            const toolResultType: ToolHeaderProps['type'] = 'tool-result';
+            const resultState: ToolHeaderProps['state'] = block.isError ? 'output-error' : 'output-available';
             return (
               <Message key={`${messageId}-${i}`} from="assistant">
                 <Tool>
-                  <ToolHeader state={toolResultState} title="Tool Result" type={toolResultType} />
+                  <ToolHeader state={resultState} title="Tool Result" type="tool-call" />
                   <ToolContent>
-                    <ToolOutput output={parsedOutput} errorText={block.is_error ? block.content : ''} />
+                    <ToolOutput output={parsedOutput} errorText={block.isError ? block.content : ''} />
                   </ToolContent>
                 </Tool>
               </Message>
             );
           }
+
+          case 'server_tool_use': {
+            // Find matching server_tool_result in the blocks
+            const serverResult = blocks.find(
+              (b): b is Extract<UIContentBlock, { type: 'server_tool_result' }> =>
+                b.type === 'server_tool_result' && b.toolUseId === block.id,
+            );
+            const serverToolState: ToolHeaderProps['state'] = serverResult ? 'output-available' : 'input-available';
+            return (
+              <Message key={`${messageId}-${i}`} from="assistant">
+                <Tool>
+                  <ToolHeader state={serverToolState} title={block.name} type="tool-call" />
+                  <ToolContent>
+                    <ToolInput input={block.input} />
+                    {serverResult && <ToolOutput output={serverResult.content} errorText="" />}
+                  </ToolContent>
+                </Tool>
+              </Message>
+            );
+          }
+
+          case 'server_tool_result':
+            // Rendered inline with server_tool_use above
+            return null;
 
           default:
             return null;
@@ -169,4 +130,4 @@ const ClaudeMessage = ({ document }: { document: DocumentItemInterface; isLastIt
   );
 };
 
-export default ClaudeMessage;
+export default LlmMessage;

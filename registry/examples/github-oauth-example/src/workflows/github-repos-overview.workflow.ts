@@ -150,7 +150,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<{ owner: string; r
   async fetchUser(args: { owner: string; repo: string }) {
     this.owner = args.owner;
     this.repo = args.repo;
-    const result: ToolResult<GitHubUserResult> = await this.gitHubGetAuthenticatedUser.call({});
+    const result: ToolResult<GitHubUserResult> = await this.gitHubGetAuthenticatedUser.call();
     this.requiresAuthentication = result.data!.error === 'unauthorized';
     this.user = result.data!.user;
   }

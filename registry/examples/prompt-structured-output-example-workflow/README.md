@@ -76,7 +76,7 @@ language!: string;
 async greeting(args: { language: string }) {
   this.language = args.language;
   await this.repository.save(
-    ClaudeMessageDocument,
+    LlmMessageDocument,
     {
       role: 'assistant',
       content: [{ type: 'text', text: `Creating a 'Hello, World!' script in ${this.language}...` }],
@@ -96,7 +96,7 @@ Use `ClaudeGenerateDocument` with a `response.document` to get typed output:
 @Transition({ from: 'ready', to: 'prompt_executed' })
 async prompt() {
   const result = await this.claudeGenerateDocument.call({
-    claude: { model: 'claude-sonnet-4-6' },
+    model: 'claude-sonnet-4-6' },
     response: { document: FileDocument },
     prompt: this.render(__dirname + '/templates/prompt.md', { language: this.language }),
   });
@@ -114,7 +114,7 @@ The `@Final` method updates the status message saved earlier using the same `{ i
 @Final({ from: 'prompt_executed' })
 async respond() {
   await this.repository.save(
-    ClaudeMessageDocument,
+    LlmMessageDocument,
     {
       role: 'assistant',
       content: [{ type: 'text', text: `Successfully generated: ${this.llmResult?.content?.description ?? ''}` }],
@@ -130,7 +130,7 @@ The complete workflow class:
 
 ```typescript
 import { z } from 'zod';
-import { ClaudeGenerateDocument, ClaudeMessageDocument } from '@loopstack/claude-module';
+import { ClaudeGenerateDocument } from '@loopstack/claude-module';
 import { BaseWorkflow, DocumentEntity, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 import { FileDocument, FileDocumentType } from './documents/file-document';
 
@@ -150,7 +150,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   async greeting(args: { language: string }) {
     this.language = args.language;
     await this.repository.save(
-      ClaudeMessageDocument,
+      LlmMessageDocument,
       {
         role: 'assistant',
         content: [{ type: 'text', text: `Creating a 'Hello, World!' script in ${this.language}...` }],
@@ -162,7 +162,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   @Transition({ from: 'ready', to: 'prompt_executed' })
   async prompt() {
     const result = await this.claudeGenerateDocument.call({
-      claude: { model: 'claude-sonnet-4-6' },
+      model: 'claude-sonnet-4-6' },
       response: { document: FileDocument },
       prompt: this.render(__dirname + '/templates/prompt.md', { language: this.language }),
     });
@@ -172,7 +172,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   @Final({ from: 'prompt_executed' })
   async respond() {
     await this.repository.save(
-      ClaudeMessageDocument,
+      LlmMessageDocument,
       {
         role: 'assistant',
         content: [{ type: 'text', text: `Successfully generated: ${this.llmResult?.content?.description ?? ''}` }],
@@ -188,7 +188,8 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/common` - Core framework functionality, `BaseWorkflow`, `DocumentEntity`, decorators
-- `@loopstack/claude-module` - Provides `ClaudeGenerateDocument` tool and `ClaudeMessageDocument`
+- `@loopstack/claude-module` - Provides `ClaudeGenerateDocument` tool
+- `@loopstack/llm-provider-module` - Provides `LlmMessageDocument`
 
 ## About
 

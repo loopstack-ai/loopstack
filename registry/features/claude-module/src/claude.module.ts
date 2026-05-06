@@ -1,42 +1,12 @@
 import { Module } from '@nestjs/common';
 import { LoopCoreModule } from '@loopstack/core';
-import { ClaudeClientService, ClaudeMessagesHelperService, ClaudeToolsHelperService } from './services';
-import {
-  ClaudeGenerateDocument,
-  ClaudeGenerateObject,
-  ClaudeGenerateText,
-  ClaudeWebSearch,
-  DelegateToolCalls,
-  UpdateToolResult,
-} from './tools';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { ClaudeClientService, ClaudeLlmProvider } from './services';
+import { ClaudeWebSearch, ClaudeWebSearchServerTool } from './tools';
 
 @Module({
-  imports: [LoopCoreModule],
-  providers: [
-    // services
-    ClaudeClientService,
-    ClaudeMessagesHelperService,
-    ClaudeToolsHelperService,
-
-    // tools
-    ClaudeGenerateText,
-    ClaudeGenerateObject,
-    ClaudeGenerateDocument,
-    ClaudeWebSearch,
-    DelegateToolCalls,
-    UpdateToolResult,
-  ],
-  exports: [
-    ClaudeClientService,
-    ClaudeMessagesHelperService,
-    ClaudeToolsHelperService,
-
-    ClaudeGenerateText,
-    ClaudeGenerateObject,
-    ClaudeGenerateDocument,
-    ClaudeWebSearch,
-    DelegateToolCalls,
-    UpdateToolResult,
-  ],
+  imports: [LoopCoreModule, LlmProviderModule],
+  providers: [ClaudeClientService, ClaudeLlmProvider, ClaudeWebSearch, ClaudeWebSearchServerTool],
+  exports: [ClaudeClientService, ClaudeLlmProvider, ClaudeWebSearch, ClaudeWebSearchServerTool],
 })
 export class ClaudeModule {}

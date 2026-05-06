@@ -18,11 +18,6 @@ const AgentCallbackSchema = CallbackSchema.extend({
 
 type AgentCallback = z.infer<typeof AgentCallbackSchema>;
 
-const SYSTEM_PROMPT = `You are a helpful assistant with access to a weather lookup tool and a calculator.
-When the user asks about weather, use the weatherLookup tool.
-When the user asks for calculations, use the calculator tool.
-Provide a concise, helpful response summarizing the results.`;
-
 @Workflow({
   uiConfig: __dirname + '/agent-example.ui.yaml',
 })
@@ -33,7 +28,7 @@ export class AgentExampleWorkflow extends BaseWorkflow {
   async start() {
     const result: QueueResult = await this.agent.run(
       {
-        system: SYSTEM_PROMPT,
+        system: this.render(__dirname + '/templates/system.md'),
         tools: ['weatherLookup', 'calculator'],
         userMessage: "What's the weather in Tokyo? Also, what is 42 * 17?",
       },

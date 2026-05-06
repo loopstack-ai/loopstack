@@ -50,12 +50,15 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     const alias = options.alias;
     const workflowInstance = options._workflowInstance as WorkflowInterface | undefined;
 
+    const config = options?._config as Record<string, unknown> | undefined;
+
     const workflowEntity = await this.createWorkflowService.create(
       { id: context.workspaceId },
       {
         alias,
         workspaceId: context.workspaceId,
         args: { ...args },
+        config: config ? { ...config } : null,
         callbackTransition: options?.callback?.transition ?? null,
         callbackMetadata: options?.callback?.metadata ?? null,
       },

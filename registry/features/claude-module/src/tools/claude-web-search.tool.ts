@@ -1,50 +1,31 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { ClaudeClientService } from '../services';
+import { BaseTool, InjectTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
+import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
 import { WebSearchHit, WebSearchResult, WebSearchResultBlock } from '../types';
 
 const MAX_RESULT_SIZE_CHARS = 20_000;
-const DEFAULT_MAX_USES = 8;
-const DEFAULT_TIMEOUT_MS = 120_000;
-const DEFAULT_MAX_TOKENS = 4096;
-const DEFAULT_MODEL = 'claude-sonnet-4-6';
 
 const SOURCES_REMINDER =
   'REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.';
 
-export const ClaudeWebSearchSchema = z
+export const ClaudeWebSearchArgsSchema = z
   .object({
     query: z.string().min(2).describe('The search query to execute'),
-    allowed_domains: z.array(z.string()).optional().describe('Only include search results from these domains'),
-    blocked_domains: z.array(z.string()).optional().describe('Never include search results from these domains'),
-    max_uses: z
-      .number()
-      .int()
-      .positive()
-      .optional()
-      .describe('Maximum number of searches the model may perform (default: 8)'),
-    timeoutMs: z
-      .number()
-      .int()
-      .positive()
-      .optional()
-      .describe('Hard timeout for the API call in milliseconds (default: 120000)'),
-    claude: z
-      .object({
-        model: z.string().optional(),
-        envApiKey: z.string().optional(),
-        maxTokens: z.number().optional(),
-      })
-      .optional(),
   })
-  .strict()
-  .refine((v) => !(v.allowed_domains?.length && v.blocked_domains?.length), {
-    message: 'Cannot specify both allowed_domains and blocked_domains in the same request',
-  });
+  .strict();
 
-type ClaudeWebSearchArgs = z.infer<typeof ClaudeWebSearchSchema>;
+export const ClaudeWebSearchConfigSchema = z.object({
+  model: z.string().optional(),
+  maxTokens: z.number().optional(),
+  envApiKey: z.string().optional(),
+  cache: z.boolean().optional(),
+});
+
+type ClaudeWebSearchArgs = z.infer<typeof ClaudeWebSearchArgsSchema>;
+type ClaudeWebSearchConfig = z.infer<typeof ClaudeWebSearchConfigSchema>;
 
 @Tool({
   uiConfig: {
@@ -53,70 +34,45 @@ type ClaudeWebSearchArgs = z.infer<typeof ClaudeWebSearchSchema>;
       'Returns a list of search hits (title + URL) and any text commentary from the model. ' +
       "Use this to retrieve current information beyond the model's knowledge cutoff.",
   },
-  schema: ClaudeWebSearchSchema,
+  schema: ClaudeWebSearchArgsSchema,
+  configSchema: ClaudeWebSearchConfigSchema,
 })
-export class ClaudeWebSearch extends BaseTool {
+export class ClaudeWebSearch extends BaseTool<ClaudeWebSearchArgs, ClaudeWebSearchConfig> {
   private readonly logger = new Logger(ClaudeWebSearch.name);
+  private readonly tools = ['webSearch'];
 
-  @Inject() private readonly claudeClientService: ClaudeClientService;
+  @InjectTool() private readonly llmGenerateText: LlmGenerateTextTool;
 
-  async call(args: ClaudeWebSearchArgs): Promise<ToolResult<WebSearchResult>> {
-    const client = this.claudeClientService.getClient(args.claude);
-    const model = this.claudeClientService.getModel(args.claude, DEFAULT_MODEL);
+  async call(
+    args: ClaudeWebSearchArgs,
+    options?: ToolCallOptions<ClaudeWebSearchConfig>,
+  ): Promise<ToolResult<WebSearchResult>> {
+    this.assertToolsAvailable(this.tools);
 
-    const timeoutMs = args.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-
+    const config = options?.config;
     const startTime = performance.now();
-    try {
-      const webSearchTool = this.buildWebSearchTool(args);
 
-      const stream = client.messages.stream(
-        {
-          model,
-          max_tokens: args.claude?.maxTokens ?? DEFAULT_MAX_TOKENS,
+    const result: ToolResult<LlmGenerateTextResult> = await this.llmGenerateText.call(
+      { prompt: `Perform a web search for the query: ${args.query}` },
+      {
+        config: {
           system: this.getSystemPrompt(),
-          messages: [{ role: 'user', content: `Perform a web search for the query: ${args.query}` }],
-          tools: [webSearchTool],
-        },
-        { signal: controller.signal, timeout: timeoutMs },
-      );
-
-      const response = await stream.finalMessage();
-      const durationSeconds = (performance.now() - startTime) / 1000;
-
-      const data = this.capResultSize(this.parseResponse(response.content, args.query, durationSeconds));
-
-      return {
-        data,
-        metadata: {
-          usage: {
-            inputTokens: response.usage.input_tokens,
-            outputTokens: response.usage.output_tokens,
-            cacheCreationInputTokens: response.usage.cache_creation_input_tokens ?? 0,
-            cacheReadInputTokens: response.usage.cache_read_input_tokens ?? 0,
+          tools: this.tools,
+          model: config?.model,
+          providerConfig: {
+            ...(config?.maxTokens != null ? { maxTokens: config.maxTokens } : {}),
+            ...(config?.envApiKey ? { envApiKey: config.envApiKey } : {}),
+            ...(config?.cache != null ? { cache: config.cache } : {}),
           },
         },
-      };
-    } catch (error) {
-      const elapsedMs = performance.now() - startTime;
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Web search failed after ${elapsedMs.toFixed(0)}ms: ${message}`);
-      throw error;
-    } finally {
-      clearTimeout(timer);
-    }
-  }
+      },
+    );
 
-  private buildWebSearchTool(args: ClaudeWebSearchArgs): Anthropic.WebSearchTool20260209 {
-    return {
-      type: 'web_search_20260209',
-      name: 'web_search',
-      max_uses: args.max_uses ?? DEFAULT_MAX_USES,
-      ...(args.allowed_domains?.length ? { allowed_domains: args.allowed_domains } : {}),
-      ...(args.blocked_domains?.length ? { blocked_domains: args.blocked_domains } : {}),
-    };
+    const response = result.data!.response as Anthropic.Message;
+    const durationSeconds = (performance.now() - startTime) / 1000;
+    const data = this.capResultSize(this.parseResponse(response.content, args.query, durationSeconds));
+
+    return { data, metadata: result.metadata };
   }
 
   private getSystemPrompt(): string {

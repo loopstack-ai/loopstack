@@ -37,11 +37,13 @@ type ExploreTaskInput = z.infer<typeof ExploreTaskInputSchema>;
 export class ExploreTask extends BaseTool {
   @InjectWorkflow() private agent: AgentWorkflow;
 
+  private readonly tools = ['glob', 'grep', 'read'];
+
   async call(args: ExploreTaskInput, options?: ToolCallOptions): Promise<ToolResult> {
     const result = await this.agent.run(
       {
         system: EXPLORE_SYSTEM_PROMPT,
-        tools: ['glob', 'grep', 'read'],
+        tools: this.tools,
         userMessage: args.instructions,
       },
       { alias: 'exploreAgent', callback: options?.callback },

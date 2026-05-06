@@ -7,13 +7,13 @@ import { useFeatureRegistry } from '@/features/feature-registry';
 import { OAuthPromptRenderer } from '@/features/oauth';
 import AiMessage from './renderers/AiMessage.tsx';
 import ChoicesRenderer from './renderers/ChoicesRenderer.tsx';
-import ClaudeMessage from './renderers/ClaudeMessage.tsx';
 import ConfirmPromptRenderer from './renderers/ConfirmPromptRenderer.tsx';
 import DocumentDebugRenderer from './renderers/DocumentDebugRenderer.tsx';
 import DocumentFormRenderer from './renderers/DocumentFormRenderer.tsx';
 import DocumentMessageRenderer from './renderers/DocumentMessageRenderer.tsx';
 import ErrorMessageRenderer from './renderers/ErrorMessageRenderer.tsx';
 import LinkMessageRenderer from './renderers/LinkMessageRenderer.tsx';
+import LlmMessage from './renderers/LlmMessage.tsx';
 import MarkdownMessageRenderer from './renderers/MarkdownMessageRenderer.tsx';
 import PlainMessageRenderer from './renderers/PlainMessageRenderer.tsx';
 import TextPromptRenderer from './renderers/TextPromptRenderer.tsx';
@@ -35,7 +35,7 @@ type WidgetRenderer = ComponentType<DocumentRendererProps>;
  */
 const coreRendererRegistry = new Map<string, WidgetRenderer>([
   ['ai-message', ({ document, isLastItem }) => <AiMessage document={document} isLastItem={isLastItem} />],
-  ['claude-message', ({ document, isLastItem }) => <ClaudeMessage document={document} isLastItem={isLastItem} />],
+  ['llm-message', ({ document, isLastItem }) => <LlmMessage document={document} isLastItem={isLastItem} />],
   [
     'debug',
     ({ document }) => (

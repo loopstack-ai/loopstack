@@ -55,7 +55,7 @@ setup → ready → llmTurn → prompt_executed
 
 1. **Setup**: saves the `userMessage` as the first conversation message.
 2. **LLM turn**: calls Claude with the `system` prompt and `tools` list.
-3. **Tool execution**: if the LLM requests tool calls, `DelegateToolCalls` executes them. For async tools (sub-workflows), callbacks are handled via `UpdateToolResult`.
+3. **Tool execution**: if the LLM requests tool calls, `LlmDelegateToolCallsTool` executes them. For async tools (sub-workflows), callbacks are handled via `LlmUpdateToolResultTool`.
 4. **Loop**: after tools complete, loops back to the LLM for the next turn.
 5. **Completion**: when the LLM responds without tool calls (`end_turn`), the agent exits and returns the final message text as its result.
 
@@ -77,7 +77,7 @@ Tools are resolved by property name in this order:
 1. **Workflow** — tools declared via `@InjectTool()` on the current workflow
 2. **Workspace** — tools declared via `@InjectTool()` on the workspace
 
-The agent workflow itself only injects `ClaudeGenerateText`, `DelegateToolCalls`, and `UpdateToolResult`. Domain-specific tools (e.g. `glob`, `grep`, `read`) are resolved from the workspace at runtime.
+The agent workflow itself only injects `LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, and `LlmUpdateToolResultTool`. Domain-specific tools (e.g. `glob`, `grep`, `read`) are resolved from the workspace at runtime.
 
 This means you declare tools once on the workspace and they're automatically available to the agent and all other workflows.
 
@@ -98,12 +98,14 @@ Add a `waiting_for_user` state so the agent can pause for user input:
 @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
 @Guard('isEndTurn')
 async respondToUser() {
-  await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
+  await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+    meta: { response: this.llmResult!.response, provider: 'claude' },
+  });
 }
 
 @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
 async userMessage(payload: string) {
-  await this.repository.save(ClaudeMessageDocument, { role: 'user', content: payload });
+  await this.repository.save(LlmMessageDocument, { role: 'user', content: payload });
 }
 ```
 
@@ -136,7 +138,7 @@ async loadContext(args: { instructions: string }) {
 
 @Transition({ from: 'docs_loaded', to: 'ready' })
 async setupPrompt() {
-  await this.repository.save(ClaudeMessageDocument, {
+  await this.repository.save(LlmMessageDocument, {
     role: 'user',
     content: this.render(__dirname + '/templates/context.md', { docs: this.contextDocs }),
   }, { meta: { hidden: true } });
