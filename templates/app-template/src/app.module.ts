@@ -23,7 +23,7 @@ import { loopstackConfig } from './loopstack.config';
       database: process.env.DATABASE_NAME || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'admin',
       autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production',
+      synchronize: true,
       migrationsRun: false,
     }),
     EventEmitterModule.forRoot(),
