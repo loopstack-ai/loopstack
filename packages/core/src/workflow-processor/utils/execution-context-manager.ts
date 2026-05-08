@@ -18,6 +18,7 @@ export class ExecutionContextManager<TInput = any, TState = any, TMetadata = any
     private readonly _context: RunContext,
     private readonly _args: TInput,
     private readonly _stateManager?: StateManager<TState, TMetadata>,
+    private readonly _config?: Record<string, unknown>,
   ) {
     this._wrappedInstance = wrapBlockProxy(instance, this);
   }
@@ -32,6 +33,10 @@ export class ExecutionContextManager<TInput = any, TState = any, TMetadata = any
 
   getArgs(): Readonly<TInput> {
     return Object.freeze({ ...this._args });
+  }
+
+  getConfig(): Readonly<Record<string, unknown> | undefined> {
+    return this._config ? Object.freeze({ ...this._config }) : undefined;
   }
 
   getContext(): RunContext {

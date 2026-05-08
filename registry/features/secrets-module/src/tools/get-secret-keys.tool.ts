@@ -12,7 +12,7 @@ export class GetSecretKeysTool extends BaseTool {
   @Inject() private secretService: SecretService;
   @Inject() private executionScope: ExecutionScope;
 
-  async call(_args: object): Promise<ToolResult> {
+  async call(_args?: object): Promise<ToolResult> {
     const ctx = this.executionScope.get();
     const secrets = await this.secretService.findAllByWorkspace(ctx.getContext().workspaceId);
     return {

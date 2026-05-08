@@ -32,7 +32,7 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'requesting_secrets', to: 'verifying', wait: true })
   async secretsSubmitted() {
-    const result: ToolResult<Array<{ key: string; hasValue: boolean }>> = await this.getSecretKeys.call({});
+    const result: ToolResult<Array<{ key: string; hasValue: boolean }>> = await this.getSecretKeys.call();
     this.secretKeys = result.data;
   }
 

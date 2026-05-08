@@ -95,6 +95,9 @@ import { ExecutionScope, TemplateRenderer } from './utils';
         get args() {
           return scope.get().getArgs();
         },
+        get config() {
+          return scope.get().getConfig();
+        },
         get parent() {
           return scope.get().getInstance();
         },

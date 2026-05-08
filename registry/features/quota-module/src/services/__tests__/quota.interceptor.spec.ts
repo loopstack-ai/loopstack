@@ -59,7 +59,7 @@ describe('QuotaInterceptor', () => {
 
     it('should check both processing time and tool-specific quota', async () => {
       registry.register('AiGenerateText', {
-        quotaType: 'default-token',
+        quotaType: 'llm-cost',
         calculateQuotaUsage: jest.fn(),
       });
       const context = createContext('AiGenerateText');
@@ -67,13 +67,13 @@ describe('QuotaInterceptor', () => {
       await interceptor.intercept(context, noopNext);
 
       expect(quotaClientService.checkQuota).toHaveBeenCalledWith('user-1', 'processing-time-ms');
-      expect(quotaClientService.checkQuota).toHaveBeenCalledWith('user-1', 'default-token');
+      expect(quotaClientService.checkQuota).toHaveBeenCalledWith('user-1', 'llm-cost');
       expect(quotaClientService.checkQuota).toHaveBeenCalledTimes(2);
     });
 
     it('should throw when tool-specific quota is exceeded', async () => {
       registry.register('AiGenerateText', {
-        quotaType: 'default-token',
+        quotaType: 'llm-cost',
         calculateQuotaUsage: jest.fn(),
       });
       quotaClientService.checkQuota
@@ -82,14 +82,14 @@ describe('QuotaInterceptor', () => {
       const context = createContext('AiGenerateText');
 
       await expect(interceptor.intercept(context, noopNext)).rejects.toThrow(
-        'Quota exceeded for "default-token": 1000/1000',
+        'Quota exceeded for "llm-cost": 1000/1000',
       );
       expect(noopNext).not.toHaveBeenCalled();
     });
 
     it('should not throw when all quotas are within limits', async () => {
       registry.register('AiGenerateText', {
-        quotaType: 'default-token',
+        quotaType: 'llm-cost',
         calculateQuotaUsage: jest.fn(),
       });
       quotaClientService.checkQuota.mockResolvedValue({ exceeded: false, used: 500, limit: 1000 });
@@ -118,21 +118,21 @@ describe('QuotaInterceptor', () => {
 
     it('should report tool-specific usage when calculator returns usage', async () => {
       registry.register('AiGenerateText', {
-        quotaType: 'default-token',
-        calculateQuotaUsage: jest.fn().mockReturnValue({ quotaType: 'default-token', actualAmount: 500 }),
+        quotaType: 'llm-cost',
+        calculateQuotaUsage: jest.fn().mockReturnValue({ quotaType: 'llm-cost', actualAmount: 500 }),
       });
       const context = createContext('AiGenerateText', { metadata: { durationMs: 1000 } });
 
       await interceptor.intercept(context, noopNext);
 
       expect(quotaClientService.report).toHaveBeenCalledWith('user-1', 'processing-time-ms', 1000);
-      expect(quotaClientService.report).toHaveBeenCalledWith('user-1', 'default-token', 500);
+      expect(quotaClientService.report).toHaveBeenCalledWith('user-1', 'llm-cost', 500);
       expect(quotaClientService.report).toHaveBeenCalledTimes(2);
     });
 
     it('should not report tool-specific usage when calculator returns null', async () => {
       registry.register('AiGenerateText', {
-        quotaType: 'default-token',
+        quotaType: 'llm-cost',
         calculateQuotaUsage: jest.fn().mockReturnValue(null),
       });
       const context = createContext('AiGenerateText', { metadata: { durationMs: 100 } });

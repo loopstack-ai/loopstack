@@ -1,5 +1,15 @@
 # @loopstack/code-agent-explore-example-workflow
 
+## 0.21.7
+
+### Patch Changes
+
+- Updated dependencies [[`4adc8f9`](https://github.com/loopstack-ai/loopstack/commit/4adc8f9e9b6b0b85787cea4d800cfe1142c421f3), [`4adc8f9`](https://github.com/loopstack-ai/loopstack/commit/4adc8f9e9b6b0b85787cea4d800cfe1142c421f3)]:
+  - @loopstack/common@0.29.0
+  - @loopstack/core@0.29.0
+  - @loopstack/agent@0.3.0
+  - @loopstack/code-agent@0.2.1
+
 ## 0.21.6
 
 ### Patch Changes

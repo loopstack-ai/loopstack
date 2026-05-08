@@ -1,6 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Injectable } from '@nestjs/common';
-import { ClaudeModelConfig } from '../types';
+
+export interface ClaudeClientConfig {
+  model?: string;
+  envApiKey?: string;
+}
 
 @Injectable()
 export class ClaudeClientService {
@@ -15,17 +19,17 @@ export class ClaudeClientService {
     return apiKey;
   }
 
-  getClient(config?: ClaudeModelConfig): Anthropic {
+  getClient(config?: ClaudeClientConfig): Anthropic {
     const apiKey = this.getApiKey(config?.envApiKey);
     return new Anthropic({ apiKey });
   }
 
-  getModel(config?: ClaudeModelConfig, defaultModel?: string): string {
+  getModel(config?: ClaudeClientConfig, defaultModel?: string): string {
     const model = config?.model ?? process.env['CLAUDE_MODEL'] ?? defaultModel;
 
     if (!model) {
       throw new Error(
-        'No model defined. Please provide CLAUDE_MODEL env var or set the claude.model parameter in the tool args.',
+        'No model defined. Please provide CLAUDE_MODEL env var or set the model parameter in the tool args.',
       );
     }
 

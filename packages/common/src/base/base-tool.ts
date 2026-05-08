@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DocumentRepository, FrameworkContext, ToolCallOptions, ToolResult } from '../interfaces';
 import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER } from '../tokens';
+import { assertToolsAvailable } from '../utils/block-metadata.utils';
 import { TemplateRenderFn } from './workflow-templates';
 
 /**
@@ -9,34 +10,23 @@ import { TemplateRenderFn } from './workflow-templates';
  * Tool authors extend this class and implement `call(args, options?)`:
  *
  * ```ts
- * const Schema = z.object({ a: z.number(), b: z.number() }).strict();
- * type Args = z.infer<typeof Schema>;
+ * const ArgsSchema = z.object({ prompt: z.string() }).strict();
+ * const ConfigSchema = z.object({ model: z.string().default('claude-sonnet-4-6') });
+ * type Args = z.infer<typeof ArgsSchema>;
+ * type Config = z.infer<typeof ConfigSchema>;
  *
- * @Tool({ schema: Schema })
- * class MathSumTool extends BaseTool {
- *   async call(args: Args): Promise<ToolResult<number>> {
- *     return { data: args.a + args.b };
+ * @Tool({ schema: ArgsSchema, configSchema: ConfigSchema })
+ * class MyTool extends BaseTool<Args, Config> {
+ *   async call(args: Args, options?: ToolCallOptions<Config>): Promise<ToolResult> {
+ *     const model = options?.config?.model;
+ *     return { data: `Using ${model} for: ${args.prompt}` };
  *   }
  * }
  * ```
  *
- * For async tools that launch sub-workflows, return `pending` in the result
- * and override `complete()` to post-process the sub-workflow result:
- *
- * ```ts
- * class MyAsyncTool extends BaseTool {
- *   @InjectWorkflow() private myWorkflow: MyWorkflow;
- *
- *   async call(args: Args, options?: ToolCallOptions) {
- *     const result = await this.myWorkflow.run(args, { callback: options?.callback });
- *     return { data: { workflowId: result.workflowId }, pending: { workflowId: result.workflowId } };
- *   }
- *
- *   async complete(result: Record<string, unknown>) {
- *     return { data: result.result };
- *   }
- * }
- * ```
+ * - `args` — LLM-provided input, validated against `schema`
+ * - `options.config` — author-provided config from `@InjectTool(config)`, validated against `configSchema`
+ * - `options.callback` — framework-provided callback for async tool delegation
  *
  * Framework services are available on `this`:
  * - `this.repository` — document repository for creating/querying documents
@@ -44,7 +34,7 @@ import { TemplateRenderFn } from './workflow-templates';
  * - `this.render` — Handlebars template renderer
  */
 @Injectable()
-export abstract class BaseTool {
+export abstract class BaseTool<TArgs extends object = object, TConfig extends object = object> {
   /** Framework-provided document repository for creating/querying documents */
   @Inject(DOCUMENT_REPOSITORY) readonly repository!: DocumentRepository;
 
@@ -59,9 +49,9 @@ export abstract class BaseTool {
    * The framework wraps this method at runtime with validation and interceptors.
    *
    * @param args — Validated input (against the `@Tool({ schema })` Zod schema)
-   * @param options — Framework-provided options (e.g. callback for async tool delegation)
+   * @param options — Framework-provided options (callback, config from `@InjectTool`)
    */
-  abstract call(args: object, options?: ToolCallOptions): Promise<ToolResult>;
+  abstract call(args?: TArgs, options?: ToolCallOptions<TConfig>): Promise<ToolResult>;
 
   /**
    * Called when an async sub-workflow completes and the callback fires.
@@ -70,5 +60,15 @@ export abstract class BaseTool {
    */
   complete(result: Record<string, unknown>): Promise<ToolResult> {
     return Promise.resolve({ data: (result as { data?: unknown }).data ?? result });
+  }
+
+  /**
+   * Validates that all required tools are available on the parent workflow or workspace.
+   * Call this before launching a sub-agent to fail fast on misconfiguration.
+   *
+   * @param toolNames — Tool property names that must be injected via `@InjectTool()` on the workspace
+   */
+  protected assertToolsAvailable(toolNames: string[]): void {
+    assertToolsAvailable(this.constructor.name, this.ctx.parent, toolNames, this.ctx.workspace);
   }
 }

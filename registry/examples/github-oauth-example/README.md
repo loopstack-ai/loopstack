@@ -122,49 +122,52 @@ An interactive chat agent that gives Claude access to all 25 GitHub tools. The a
 1. Sets up a hidden system message describing available GitHub capabilities
 2. Waits for user input via a `wait: true` transition
 3. Sends the conversation to Claude with all 25 GitHub tools plus `authenticateGitHub`
-4. If `stop_reason === 'tool_use'`, delegates tool calls via `DelegateToolCalls` and collects results with `UpdateToolResult`
+4. If `message.stopReason === 'tool_use'`, delegates tool calls via `LlmDelegateToolCallsTool` and collects results with `LlmUpdateToolResultTool`
 5. If a tool returns an auth error, the LLM calls `authenticateGitHub` which launches OAuth
 6. Loops back to wait for the next user message
 
 **Agent loop pattern:**
 
 ```typescript
-@Transition({ from: 'ready', to: 'prompt_executed' })
-async llmTurn() {
-  const result: ToolResult<ClaudeGenerateTextResult> = await this.claudeGenerateText.call({
-    system: `You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
+@InjectTool({
+  provider: 'claude',
+  model: 'claude-sonnet-4-6',
+  system: `You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
 and search tools. When a tool returns an unauthorized error, use authenticateGitHub
 to let the user sign in, then retry. Be concise and format results using markdown.`,
-    claude: { model: 'claude-sonnet-4-6' },
-    messagesSearchTag: 'message',
-    tools: [
-      'gitHubListRepos', 'gitHubGetRepo', 'gitHubCreateRepo', 'gitHubListBranches',
-      'gitHubListIssues', 'gitHubGetIssue', 'gitHubCreateIssue', 'gitHubCreateIssueComment',
-      'gitHubListPullRequests', 'gitHubGetPullRequest', 'gitHubCreatePullRequest',
-      'gitHubMergePullRequest', 'gitHubListPrReviews',
-      'gitHubGetFileContent', 'gitHubCreateOrUpdateFile', 'gitHubListDirectory', 'gitHubGetCommit',
-      'gitHubListWorkflowRuns', 'gitHubTriggerWorkflow', 'gitHubGetWorkflowRun',
-      'gitHubSearchCode', 'gitHubSearchRepos', 'gitHubSearchIssues',
-      'gitHubGetAuthenticatedUser', 'gitHubListUserOrgs',
-      'authenticateGitHub',
-    ],
-  });
+  tools: [
+    'gitHubListRepos', 'gitHubGetRepo', 'gitHubCreateRepo', 'gitHubListBranches',
+    'gitHubListIssues', 'gitHubGetIssue', 'gitHubCreateIssue', 'gitHubCreateIssueComment',
+    'gitHubListPullRequests', 'gitHubGetPullRequest', 'gitHubCreatePullRequest',
+    'gitHubMergePullRequest', 'gitHubListPrReviews',
+    'gitHubGetFileContent', 'gitHubCreateOrUpdateFile', 'gitHubListDirectory', 'gitHubGetCommit',
+    'gitHubListWorkflowRuns', 'gitHubTriggerWorkflow', 'gitHubGetWorkflowRun',
+    'gitHubSearchCode', 'gitHubSearchRepos', 'gitHubSearchIssues',
+    'gitHubGetAuthenticatedUser', 'gitHubListUserOrgs',
+    'authenticateGitHub',
+  ],
+})
+llmGenerateText: LlmGenerateTextTool;
+@InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
+
+@Transition({ from: 'ready', to: 'prompt_executed' })
+async llmTurn() {
+  const result: ToolResult<LlmGenerateTextResult> = await this.llmGenerateText.call();
   this.llmResult = result.data;
 }
 
 @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
 @Guard('hasToolCalls')
 async executeToolCalls() {
-  const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
-    message: this.llmResult!,
-
+  const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
+    message: this.llmResult!.message,
     callback: { transition: 'toolResultReceived' },
   });
   this.delegateResult = result.data;
 }
 
 hasToolCalls(): boolean {
-  return this.llmResult?.stop_reason === 'tool_use';
+  return this.llmResult?.message.stopReason === 'tool_use';
 }
 ```
 
@@ -192,7 +195,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 
 - `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@Guard`, `@InjectTool`, `@InjectWorkflow`, `CallbackSchema`, `ToolResult`)
 - `@loopstack/core` - Provides `LinkDocument`, `MarkdownDocument`, and `MessageDocument`
-- `@loopstack/claude-module` - Claude integration (`ClaudeGenerateText`, `ClaudeMessageDocument`, `DelegateToolCalls`, `UpdateToolResult`)
+- `@loopstack/llm-provider-module` - LLM adapter tools (`LlmGenerateTextTool`, `LlmMessageDocument`, `LlmDelegateToolCallsTool`, `LlmUpdateToolResultTool`)
 - `@loopstack/oauth-module` - OAuth infrastructure (`OAuthWorkflow`)
 - `@loopstack/github-module` - All 25 GitHub tools
 

@@ -91,7 +91,7 @@ loopstack/registry/features/agent-module/
 
 ### Problem
 
-`DelegateToolCalls` and `ClaudeToolsHelperService` resolve tools via `getBlockTool(this.ctx.parent, name)` where `this.ctx.parent` is the current workflow instance. If a tool is not declared via `@InjectTool()` on the workflow, resolution fails. The generic `AgentWorkflow` doesn't know which domain tools to inject.
+`LlmDelegateToolCallsTool` and `ClaudeToolsHelperService` resolve tools via `getBlockTool(this.ctx.parent, name)` where `this.ctx.parent` is the current workflow instance. If a tool is not declared via `@InjectTool()` on the workflow, resolution fails. The generic `AgentWorkflow` doesn't know which domain tools to inject.
 
 ### Solution
 

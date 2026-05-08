@@ -40,7 +40,7 @@ export class DocumentDto {
   alias: string;
 
   /**
-   * Contents of the document
+   * Contents of the document.
    */
   @Expose()
   @ApiProperty({

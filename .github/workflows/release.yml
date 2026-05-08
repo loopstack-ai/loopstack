@@ -1,11 +1,16 @@
-# ============================================================================
-# Release Workflow - Stable releases via Changesets
-# ============================================================================
-# This workflow handles:
-# - Creating/updating a "Version Packages" PR when changesets are merged
-# - Publishing to NPM when the version PR is merged
-# - Syncing all package versions automatically
-# ============================================================================
+# =============================================================================
+# Release
+# =============================================================================
+# Triggered by push to `main`, which happens when a PR (develop → main) is
+# merged.
+#
+# Uses changesets/action which handles two modes automatically:
+#   1. Changesets present → creates/updates a "Version Packages" PR
+#   2. Version PR merged (no changesets) → publishes to npm
+#
+# After publishing, fires a repository_dispatch to smoke-testing for
+# post-release validation against the real npm packages.
+# =============================================================================
 
 name: Release
 
@@ -25,8 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       published: ${{ steps.changesets.outputs.published }}
-      studio_published: ${{ contains(steps.changesets.outputs.publishedPackages, '@loopstack/loopstack-studio') }}
-      studio_version: ${{ steps.studio-version.outputs.version }}
+      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
 
     permissions:
       contents: write
@@ -37,7 +41,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Fetch all history for changeset to analyze
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -80,15 +83,22 @@ jobs:
         if: steps.changesets.outputs.published == 'true'
         run: git push origin --delete changeset-release/main || true
 
-      - name: Extract Loopstack Studio Version
-        id: studio-version
-        if: steps.changesets.outputs.published == 'true' && contains(steps.changesets.outputs.publishedPackages, '@loopstack/loopstack-studio')
-        run: |
-          version=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name == "@loopstack/loopstack-studio") | .version')
-          echo "version=$version" >> $GITHUB_OUTPUT
-
       - name: Summary of published packages
         if: steps.changesets.outputs.published == 'true'
         run: |
-          echo "🎉 Published packages:"
+          echo "Published packages:"
           echo '${{ steps.changesets.outputs.publishedPackages }}' | jq '.'
+
+  post-release-hook:
+    name: Post-release hook
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch post-release event
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.SMOKE_TESTING_TOKEN }}
+          repository: loopstack-ai/smoke-testing
+          event-type: loopstack-released
+          client-payload: '{"packages": ${{ needs.release.outputs.publishedPackages }}}'

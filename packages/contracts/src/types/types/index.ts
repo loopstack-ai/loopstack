@@ -6,6 +6,7 @@ export * from './tool-config.type.js';
 export * from './transition-payload.type.js';
 export * from './ui-form.type.js';
 export * from './ui-element.type.js';
+export * from './ui-message.type.js';
 export * from './ui-properties.type.js';
 export * from './workflow.type.js';
 export * from './workflow-transition.type.js';

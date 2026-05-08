@@ -1,7 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
-import { ClaudeGenerateText, ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude-module';
 import { getBlockTools } from '@loopstack/common';
 import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { PromptWorkflow } from '../prompt.workflow';
 
@@ -9,31 +10,35 @@ describe('PromptWorkflow', () => {
   let module: TestingModule;
   let workflow: PromptWorkflow;
   let processor: WorkflowProcessorService;
+  let mockLlmGenerateText: ToolMock;
 
-  let mockClaudeGenerateText: ToolMock;
-
-  const mockLlmResponse = {
-    id: 'msg_1',
-    role: 'assistant',
-    content: [
-      {
-        type: 'text',
-        text: 'Cherry blossoms fall\nPink petals dance in the wind\nSpring whispers goodbye',
+  const mockLlmResult = {
+    data: {
+      message: {
+        id: 'msg_1',
+        role: 'assistant',
+        content: [
+          {
+            type: 'text',
+            text: 'Cherry blossoms fall\nPink petals dance in the wind\nSpring whispers goodbye',
+          },
+        ],
+        stopReason: 'end_turn',
       },
-    ],
+    },
+    metadata: { provider: 'claude', model: 'claude-sonnet-4-6' },
   };
 
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptWorkflow)
       .withImports(LoopCoreModule, ClaudeModule)
-      .withToolOverride(ClaudeGenerateText)
+      .withToolOverride(LlmGenerateTextTool)
       .compile();
 
     workflow = module.get(PromptWorkflow);
     processor = module.get(WorkflowProcessorService);
-
-    mockClaudeGenerateText = module.get(ClaudeGenerateText);
+    mockLlmGenerateText = module.get(LlmGenerateTextTool);
   });
 
   afterEach(async () => {
@@ -43,7 +48,7 @@ describe('PromptWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('claudeGenerateText');
+      expect(getBlockTools(workflow)).toContain('llmGenerateText');
     });
   });
 
@@ -51,47 +56,41 @@ describe('PromptWorkflow', () => {
     const context = createStatelessContext();
 
     it('should execute workflow and generate haiku about a subject', async () => {
-      mockClaudeGenerateText.call.mockResolvedValue({ data: mockLlmResponse });
+      mockLlmGenerateText.call.mockResolvedValue(mockLlmResult);
 
       const result = await processor.process(workflow, { subject: 'spring' }, context);
 
       expect(result.hasError).toBe(false);
 
-      // Verify ClaudeGenerateText was called with correct arguments
-      expect(mockClaudeGenerateText.call).toHaveBeenCalledTimes(1);
-      expect(mockClaudeGenerateText.call).toHaveBeenCalledWith(
+      expect(mockLlmGenerateText.call).toHaveBeenCalledTimes(1);
+      expect(mockLlmGenerateText.call).toHaveBeenCalledWith(
         expect.objectContaining({
-          claude: {
-            model: 'claude-sonnet-4-6',
-          },
-          prompt: expect.stringContaining('Write a haiku about spring'),
+          prompt: expect.stringContaining('spring'),
         }),
-        undefined,
+        { config: { model: 'claude-sonnet-4-6', provider: 'claude' } },
       );
 
-      // Verify LLM response was saved as a document
       expect(result.documents).toHaveLength(1);
       expect(result.documents[0]).toEqual(
         expect.objectContaining({
-          className: 'ClaudeMessageDocument',
+          className: 'LlmMessageDocument',
           content: expect.objectContaining({ role: 'assistant' }),
         }),
       );
     });
 
     it('should use default subject when not provided', async () => {
-      mockClaudeGenerateText.call.mockResolvedValue({ data: mockLlmResponse });
+      mockLlmGenerateText.call.mockResolvedValue(mockLlmResult);
 
       const result = await processor.process(workflow, {}, context);
 
       expect(result.hasError).toBe(false);
 
-      // Verify ClaudeGenerateText was called with default subject "coffee"
-      expect(mockClaudeGenerateText.call).toHaveBeenCalledWith(
+      expect(mockLlmGenerateText.call).toHaveBeenCalledWith(
         expect.objectContaining({
-          prompt: expect.stringContaining('Write a haiku about coffee'),
+          prompt: expect.stringContaining('coffee'),
         }),
-        undefined,
+        { config: { model: 'claude-sonnet-4-6', provider: 'claude' } },
       );
     });
   });

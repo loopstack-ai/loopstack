@@ -48,7 +48,7 @@ export class CommitWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'ready', to: 'done' })
   async commitAll() {
-    await this.gitStatus.call({});
+    await this.gitStatus.call();
     await this.gitAdd.call({ paths: ['.'] });
     await this.gitCommit.call({ message: 'update from workflow' });
   }

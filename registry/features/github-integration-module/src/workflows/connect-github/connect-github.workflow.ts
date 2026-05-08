@@ -76,7 +76,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
 
   @Initial({ to: 'check_auth' })
   async start() {
-    const result: ToolResult<{ error?: string; user?: GitHubUser }> = await this.gitHubGetAuthenticatedUser.call({});
+    const result: ToolResult<{ error?: string; user?: GitHubUser }> = await this.gitHubGetAuthenticatedUser.call();
     this.requiresAuth = result.data!.error === 'unauthorized';
     this.user = result.data!.user;
   }
@@ -121,7 +121,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       { id: `link_${payload.workflowId}` },
     );
 
-    const result: ToolResult<{ user?: GitHubUser }> = await this.gitHubGetAuthenticatedUser.call({});
+    const result: ToolResult<{ user?: GitHubUser }> = await this.gitHubGetAuthenticatedUser.call();
     this.user = result.data!.user;
     this.requiresAuth = false;
   }

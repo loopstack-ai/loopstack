@@ -2,7 +2,7 @@
   "name": "loopstack",
   "displayName": "Loopstack AI Workflow Automation Framework",
   "description": "A monorepo to maintain loopstack core modules, templates and frontend applications",
-  "version": "0.17.0",
+  "version": "0.17.10",
   "author": {
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
@@ -14,7 +14,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint . --cache --cache-location node_modules/.cache/eslint/",
     "prepare": "husky",
-    "test": "turbo run test",
+    "test": "turbo run test --continue",
     "watch": "turbo run watch",
     "changeset:version": "changeset version && npm install --package-lock-only --prefer-offline"
   },

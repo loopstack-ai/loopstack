@@ -30,26 +30,32 @@ export class RegistryCommandService {
     private readonly workflowInstallerService: WorkflowInstallerService,
   ) {}
 
-  async resolveAndInstallPackage(packageArg: string, installMode: InstallMode): Promise<ResolvedPackage> {
+  async resolveAndInstallPackage(
+    packageArg: string,
+    installMode: InstallMode,
+    options?: { skipRegistry?: boolean },
+  ): Promise<ResolvedPackage> {
     const packageName = this.packageService.parsePackageName(packageArg);
 
-    const registryItem = await this.registryService.findItem(packageName);
+    if (!options?.skipRegistry) {
+      const registryItem = await this.registryService.findItem(packageName);
 
-    if (!registryItem) {
-      console.error(`Package '${packageName}' not found in registry`);
-      console.log(`Check available items at: ${this.registryService.getRegistryUrl()}`);
-      process.exit(1);
-    }
+      if (!registryItem) {
+        console.error(`Package '${packageName}' not found in registry`);
+        console.log(`Check available items at: ${this.registryService.getRegistryUrl()}`);
+        process.exit(1);
+      }
 
-    if (installMode === 'add' && !registryItem.allowInstallSources) {
-      console.error(
-        `Package '${packageName}' cannot be installed via 'loopstack add'. ` +
-          `Only example and template packages support copying sources into your project.\n` +
-          `Install it as a dependency instead:\n` +
-          `  npm install ${packageArg}\n` +
-          `  loopstack configure ${packageName}`,
-      );
-      process.exit(1);
+      if (installMode === 'add' && !registryItem.allowInstallSources) {
+        console.error(
+          `Package '${packageName}' cannot be installed via 'loopstack add'. ` +
+            `Only example and template packages support copying sources into your project.\n` +
+            `Install it as a dependency instead:\n` +
+            `  npm install ${packageArg}\n` +
+            `  loopstack configure ${packageName}`,
+        );
+        process.exit(1);
+      }
     }
 
     if (this.packageService.isInstalled(packageName)) {

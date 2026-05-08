@@ -1,6 +1,8 @@
 import { z } from 'zod';
-import { ClaudeGenerateDocument } from '@loopstack/claude-module';
+import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
+import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
+import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
 import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
 
@@ -15,7 +17,8 @@ import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './d
   }),
 })
 export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }> {
-  @InjectTool() claudeGenerateDocument: ClaudeGenerateDocument;
+  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6' })
+  llmGenerateObject: LlmGenerateObjectTool;
 
   meetingNotes?: z.infer<typeof MeetingNotesDocumentSchema>;
   optimizedNotes?: z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
@@ -24,9 +27,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }> {
   async createForm(args: { inputText: string }) {
     await this.repository.save(
       MeetingNotesDocument,
-      {
-        text: `Unstructured Notes:\n\n${args.inputText}`,
-      },
+      { text: `Unstructured Notes:\n\n${args.inputText}` },
       { id: 'input' },
     );
   }
@@ -39,18 +40,20 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }> {
 
   @Transition({ from: 'response_received', to: 'notes_optimized' })
   async optimizeNotes() {
-    await this.claudeGenerateDocument.call({
-      claude: { model: 'claude-sonnet-4-6' },
-      response: {
-        id: 'final',
-        document: OptimizedNotesDocument,
-      },
-      prompt: `Extract all information from the provided meeting notes into the structured document.
-
-<Meeting Notes>
-${this.meetingNotes?.text}
-</Meeting Notes>`,
+    const result = await this.llmGenerateObject.call({
+      outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
+      prompt: this.render(__dirname + '/templates/extract-notes.md', { text: this.meetingNotes?.text }),
     });
+
+    const objectResult = result.data as LlmGenerateObjectResult;
+    await this.repository.save(
+      OptimizedNotesDocument,
+      objectResult.data as z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
+      {
+        id: 'final',
+        validate: 'skip',
+      },
+    );
   }
 
   @Final({ from: 'notes_optimized', wait: true, schema: OptimizedMeetingNotesDocumentSchema })

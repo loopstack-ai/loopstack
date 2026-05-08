@@ -1,12 +1,4 @@
 import {
-  ClaudeGenerateText,
-  ClaudeGenerateTextResult,
-  ClaudeMessageDocument,
-  DelegateToolCalls,
-  DelegateToolCallsResult,
-  UpdateToolResult,
-} from '@loopstack/claude-module';
-import {
   BaseWorkflow,
   Final,
   Guard,
@@ -17,6 +9,13 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
+import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
+import {
+  LlmDelegateToolCallsTool,
+  LlmGenerateTextTool,
+  LlmMessageDocument,
+  LlmUpdateToolResultTool,
+} from '@loopstack/llm-provider-module';
 import { FailingSubWorkflowTool } from './tools/failing-sub-workflow.tool';
 import { RuntimeErrorTool } from './tools/runtime-error.tool';
 import { StrictSchemaTool } from './tools/strict-schema.tool';
@@ -33,15 +32,21 @@ import { StrictSchemaTool } from './tools/strict-schema.tool';
   uiConfig: __dirname + '/delegate-error.ui.yaml',
 })
 export class DelegateErrorWorkflow extends BaseWorkflow {
-  @InjectTool() claudeGenerateText: ClaudeGenerateText;
-  @InjectTool() delegateToolCalls: DelegateToolCalls;
-  @InjectTool() updateToolResult: UpdateToolResult;
+  @InjectTool({
+    provider: 'claude',
+    model: 'claude-sonnet-4-6',
+    tools: ['strictSchema', 'runtimeError', 'failingSubWorkflow'],
+  })
+  llmGenerateText: LlmGenerateTextTool;
+  @InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
+  @InjectTool({ provider: 'claude' }) llmUpdateToolResult: LlmUpdateToolResultTool;
   @InjectTool() strictSchema: StrictSchemaTool;
   @InjectTool() runtimeError: RuntimeErrorTool;
   @InjectTool() failingSubWorkflow: FailingSubWorkflowTool;
 
-  llmResult?: ClaudeGenerateTextResult;
-  delegateResult?: DelegateToolCallsResult;
+  llmResult?: LlmGenerateTextResult;
+  llmMeta?: LlmResultMeta;
+  delegateResult?: LlmDelegateResult;
   turnCount!: number;
 
   @Initial({ to: 'ready' })
@@ -56,7 +61,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
         'The LLM will deliberately trigger errors, then self-correct.',
     });
 
-    await this.repository.save(ClaudeMessageDocument, {
+    await this.repository.save(LlmMessageDocument, {
       role: 'user',
       content:
         'Follow the instructions in your system prompt exactly. ' +
@@ -67,31 +72,27 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
   @Transition({ from: 'ready', to: 'prompt_executed' })
   async llmTurn() {
     this.turnCount++;
-    const result: ToolResult<ClaudeGenerateTextResult> = await this.claudeGenerateText.call({
-      system:
-        'You are a test assistant that follows instructions precisely. ' +
-        'You are fully autonomous — do NOT ask the user for input or confirmation. ' +
-        'Just proceed through each step on your own.\n\n' +
-        'Complete these steps IN ORDER. Do exactly one step per turn:\n\n' +
-        '1. Call the `strictSchema` tool with NO arguments (empty object {}). This will fail — that is expected.\n' +
-        '2. After seeing the validation error, call `strictSchema` correctly with { "name": "World" }.\n' +
-        '3. Call the `runtimeError` tool with { "shouldFail": true }. This will fail — that is expected.\n' +
-        '4. After seeing the runtime error, call `runtimeError` with { "shouldFail": false }.\n' +
-        '5. Call the `failingSubWorkflow` tool with {}. This launches a sub-workflow that will fail — that is expected.\n' +
-        '6. After seeing the sub-workflow error, respond with a brief summary of what happened (do NOT call any tools).\n\n' +
-        'IMPORTANT: Only perform ONE step per turn. Do NOT skip steps. Do NOT wait for user input between steps.',
-      claude: { model: 'claude-sonnet-4-6' },
-      messagesSearchTag: 'message',
-      tools: ['strictSchema', 'runtimeError', 'failingSubWorkflow'],
-    });
+    const result: ToolResult<LlmGenerateTextResult, LlmResultMeta> = await this.llmGenerateText.call(
+      {},
+      {
+        config: {
+          system: this.render(__dirname + '/templates/system.md'),
+        },
+      },
+    );
     this.llmResult = result.data;
+    this.llmMeta = result.metadata;
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
   async executeToolCalls() {
-    const result: ToolResult<DelegateToolCallsResult> = await this.delegateToolCalls.call({
-      message: this.llmResult!,
+    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+    });
+
+    const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
+      message: this.llmResult!.message,
       callback: { transition: 'toolResultReceived' },
     });
     this.delegateResult = result.data;
@@ -99,16 +100,26 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
   async toolResultReceived(payload: unknown) {
-    const result = await this.updateToolResult.call({
+    const result = await this.llmUpdateToolResult.call({
       delegateResult: this.delegateResult!,
       completedTool: payload,
     });
-    this.delegateResult = result.data as DelegateToolCallsResult;
+    this.delegateResult = result.data as LlmDelegateResult;
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async toolsComplete() {}
+  async toolsComplete() {
+    await this.repository.save(LlmMessageDocument, {
+      role: 'user',
+      content: this.delegateResult!.toolResults.map((tr) => ({
+        type: 'tool_result' as const,
+        toolCallId: tr.toolCallId,
+        content: tr.content ?? '',
+        isError: tr.isError ?? false,
+      })),
+    });
+  }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
   async cancelPendingTools() {
@@ -121,11 +132,13 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
   @Final({ from: 'prompt_executed' })
   @Guard('isEndTurn')
   async respond() {
-    await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
+    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+    });
   }
 
   private hasToolCalls(): boolean {
-    return this.llmResult?.stop_reason === 'tool_use';
+    return this.llmResult?.message.stopReason === 'tool_use';
   }
 
   private allToolsComplete(): boolean {
@@ -133,6 +146,6 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
   }
 
   private isEndTurn(): boolean {
-    return this.llmResult?.stop_reason === 'end_turn';
+    return this.llmResult?.message.stopReason === 'end_turn';
   }
 }

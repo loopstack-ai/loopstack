@@ -5,6 +5,7 @@ import { ExecutionScope } from './execution-scope';
 /**
  * Wraps a tool instance in a Proxy that provides:
  * - **call() interception** — routes through ToolExecutionService for validation and interceptors
+ * - **config merging** — @InjectTool(config) defaults are merged with call-time config into options.config
  * - **state isolation** — `this.x` reads/writes go to the workflow's StateManager (namespaced by tool name),
  *   so tool state is per-workflow-instance and checkpointed across wait/resume
  * - **pass-through** for methods, @FrameworkService props (repository), and @InjectTool() nested tools
@@ -22,6 +23,7 @@ export function wrapToolProxy(
     proxy: object,
     options?: Record<string, unknown>,
   ) => Promise<unknown>,
+  defaults?: Record<string, unknown>,
 ): object {
   // Determine pass-through properties at creation time
   const passThroughProps = new Set<string | symbol>();
@@ -55,10 +57,14 @@ export function wrapToolProxy(
 
   return new Proxy(tool, {
     get(target, prop, receiver) {
-      // call() → route through framework (validation, interceptors)
+      // call() → merge @InjectTool config into options.config, route through framework
       if (prop === 'call') {
-        return (args?: Record<string, unknown>, options?: Record<string, unknown>) =>
-          executeCall(target, originalCall, args ?? {}, receiver as object, options);
+        return (args?: Record<string, unknown>, options?: Record<string, unknown>) => {
+          const callConfig = (options as { config?: Record<string, unknown> } | undefined)?.config;
+          const mergedConfig = defaults || callConfig ? { ...defaults, ...callConfig } : undefined;
+          const mergedOptions = mergedConfig ? { ...options, config: mergedConfig } : options;
+          return executeCall(target, originalCall, args ?? {}, receiver as object, mergedOptions);
+        };
       }
 
       // Pass-through: methods, framework services, nested tools, NestJS-injected services

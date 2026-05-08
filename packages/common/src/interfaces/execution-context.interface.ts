@@ -19,6 +19,9 @@ export interface FrameworkContext {
   /** Validated workflow args (from @Input schema) */
   readonly args: Readonly<Record<string, unknown> | undefined>;
 
+  /** Validated workflow config (from @InjectWorkflow defaults, validated against configSchema) */
+  readonly config: Readonly<Record<string, unknown> | undefined>;
+
   /** Parent workflow instance — for dynamic tool/document lookups */
   readonly parent: WorkflowInterface;
 

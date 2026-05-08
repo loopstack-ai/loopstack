@@ -1,6 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
-import { ClaudeGenerateText, ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude-module';
 import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { DelegateErrorWorkflow } from '../delegate-error.workflow';
 import { FailingSubWorkflowTool } from '../tools/failing-sub-workflow.tool';
@@ -11,17 +12,20 @@ import { FailingWorkflow } from '../workflows/failing.workflow';
 /**
  * Helper to create a mock LLM response with a single tool_use block.
  */
-function mockToolUseResponse(toolName: string, input: Record<string, unknown>, toolUseId = 'toolu_test_1') {
+function mockToolUseResponse(toolName: string, args: Record<string, unknown>, toolCallId = 'toolu_test_1') {
   return {
     data: {
-      id: 'msg_test',
-      role: 'assistant',
-      stop_reason: 'tool_use',
-      content: [
-        { type: 'text', text: `Calling ${toolName}...` },
-        { type: 'tool_use', id: toolUseId, name: toolName, input },
-      ],
+      message: {
+        id: 'msg_test',
+        role: 'assistant',
+        content: [
+          { type: 'text', text: `Calling ${toolName}...` },
+          { type: 'tool_call', id: toolCallId, name: toolName, args },
+        ],
+        stopReason: 'tool_use',
+      },
     },
+    metadata: { provider: 'claude', model: 'claude-sonnet-4-6' },
   };
 }
 
@@ -31,11 +35,14 @@ function mockToolUseResponse(toolName: string, input: Record<string, unknown>, t
 function mockEndTurnResponse(text: string) {
   return {
     data: {
-      id: 'msg_final',
-      role: 'assistant',
-      stop_reason: 'end_turn',
-      content: [{ type: 'text', text }],
+      message: {
+        id: 'msg_final',
+        role: 'assistant',
+        content: [{ type: 'text', text }],
+        stopReason: 'end_turn',
+      },
     },
+    metadata: { provider: 'claude', model: 'claude-sonnet-4-6' },
   };
 }
 
@@ -43,20 +50,20 @@ describe('DelegateErrorWorkflow', () => {
   let module: TestingModule;
   let workflow: DelegateErrorWorkflow;
   let processor: WorkflowProcessorService;
-  let mockClaude: ToolMock;
+  let mockLlm: ToolMock;
 
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(DelegateErrorWorkflow)
       .withImports(LoopCoreModule, ClaudeModule)
-      .withToolOverride(ClaudeGenerateText)
+      .withToolOverride(LlmGenerateTextTool)
       // Real tools — we want to test actual validation and runtime errors
       .withProviders(StrictSchemaTool, RuntimeErrorTool, FailingSubWorkflowTool, FailingWorkflow)
       .compile();
 
     workflow = module.get(DelegateErrorWorkflow);
     processor = module.get(WorkflowProcessorService);
-    mockClaude = module.get(ClaudeGenerateText);
+    mockLlm = module.get(LlmGenerateTextTool);
   });
 
   afterEach(async () => {
@@ -68,9 +75,8 @@ describe('DelegateErrorWorkflow', () => {
   });
 
   describe('validation error (bad schema args)', () => {
-    it('should capture validation error as is_error tool result and loop back to ready', async () => {
-      // LLM calls strictSchema with empty args — Zod validation will fail
-      mockClaude.call
+    it('should capture validation error as isError tool result and loop back to ready', async () => {
+      mockLlm.call
         .mockResolvedValueOnce(mockToolUseResponse('strictSchema', {}))
         .mockResolvedValueOnce(mockEndTurnResponse('Done.'));
 
@@ -79,24 +85,20 @@ describe('DelegateErrorWorkflow', () => {
 
       expect(result.hasError).toBe(false);
       expect(result.place).toBe('end');
+      expect(mockLlm.call).toHaveBeenCalledTimes(2);
 
-      // ClaudeGenerateText should have been called twice:
-      // 1st: LLM returns bad tool call → error fed back → loops to ready
-      // 2nd: LLM sees the error and responds with end_turn
-      expect(mockClaude.call).toHaveBeenCalledTimes(2);
-
-      // Should have tool result documents with is_error
-      const toolResultDocs = result.documents.filter((d) =>
-        d.content?.toolResults?.some((tr: { is_error?: boolean }) => tr.is_error),
+      const toolResultDocs = result.documents.filter(
+        (d) =>
+          Array.isArray(d.content?.content) &&
+          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
       expect(toolResultDocs.length).toBeGreaterThan(0);
     });
   });
 
   describe('runtime error (tool throws)', () => {
-    it('should capture runtime error as is_error tool result and loop back to ready', async () => {
-      // LLM calls runtimeError with shouldFail: true — tool will throw
-      mockClaude.call
+    it('should capture runtime error as isError tool result and loop back to ready', async () => {
+      mockLlm.call
         .mockResolvedValueOnce(mockToolUseResponse('runtimeError', { shouldFail: true }))
         .mockResolvedValueOnce(mockEndTurnResponse('Done.'));
 
@@ -105,10 +107,12 @@ describe('DelegateErrorWorkflow', () => {
 
       expect(result.hasError).toBe(false);
       expect(result.place).toBe('end');
-      expect(mockClaude.call).toHaveBeenCalledTimes(2);
+      expect(mockLlm.call).toHaveBeenCalledTimes(2);
 
-      const toolResultDocs = result.documents.filter((d) =>
-        d.content?.toolResults?.some((tr: { is_error?: boolean }) => tr.is_error),
+      const toolResultDocs = result.documents.filter(
+        (d) =>
+          Array.isArray(d.content?.content) &&
+          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
       expect(toolResultDocs.length).toBeGreaterThan(0);
     });
@@ -116,8 +120,7 @@ describe('DelegateErrorWorkflow', () => {
 
   describe('successful tool call', () => {
     it('should process successful tool call without errors', async () => {
-      // LLM calls strictSchema with valid args
-      mockClaude.call
+      mockLlm.call
         .mockResolvedValueOnce(mockToolUseResponse('strictSchema', { name: 'World' }))
         .mockResolvedValueOnce(mockEndTurnResponse('Done.'));
 
@@ -126,19 +129,20 @@ describe('DelegateErrorWorkflow', () => {
 
       expect(result.hasError).toBe(false);
       expect(result.place).toBe('end');
-      expect(mockClaude.call).toHaveBeenCalledTimes(2);
+      expect(mockLlm.call).toHaveBeenCalledTimes(2);
 
-      // No error tool results
-      const errorToolResults = result.documents.filter((d) =>
-        d.content?.toolResults?.some((tr: { is_error?: boolean }) => tr.is_error),
+      const errorToolResults = result.documents.filter(
+        (d) =>
+          Array.isArray(d.content?.content) &&
+          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
       expect(errorToolResults).toHaveLength(0);
     });
   });
 
   describe('error metadata in tool result documents', () => {
-    it('should include validation error message in is_error tool result', async () => {
-      mockClaude.call
+    it('should include validation error message in isError tool result', async () => {
+      mockLlm.call
         .mockResolvedValueOnce(mockToolUseResponse('strictSchema', {}))
         .mockResolvedValueOnce(mockEndTurnResponse('Done.'));
 
@@ -147,19 +151,22 @@ describe('DelegateErrorWorkflow', () => {
 
       expect(result.hasError).toBe(false);
 
-      const toolResultDocs = result.documents.filter((d) =>
-        d.content?.toolResults?.some((tr: { is_error?: boolean }) => tr.is_error),
+      const toolResultDocs = result.documents.filter(
+        (d) =>
+          Array.isArray(d.content?.content) &&
+          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
       expect(toolResultDocs.length).toBeGreaterThan(0);
 
-      const errorResult = toolResultDocs[0].content.toolResults.find((tr: { is_error?: boolean }) => tr.is_error);
+      const errorResult = toolResultDocs[0].content.content.find(
+        (b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError,
+      );
       expect(errorResult.content).toBeDefined();
-      // Zod v4 error message for missing required string field
       expect(errorResult.content).toContain('invalid_type');
     });
 
-    it('should include runtime error message in is_error tool result', async () => {
-      mockClaude.call
+    it('should include runtime error message in isError tool result', async () => {
+      mockLlm.call
         .mockResolvedValueOnce(mockToolUseResponse('runtimeError', { shouldFail: true }))
         .mockResolvedValueOnce(mockEndTurnResponse('Done.'));
 
@@ -168,49 +175,60 @@ describe('DelegateErrorWorkflow', () => {
 
       expect(result.hasError).toBe(false);
 
-      const toolResultDocs = result.documents.filter((d) =>
-        d.content?.toolResults?.some((tr: { is_error?: boolean }) => tr.is_error),
+      const toolResultDocs = result.documents.filter(
+        (d) =>
+          Array.isArray(d.content?.content) &&
+          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
       expect(toolResultDocs.length).toBeGreaterThan(0);
 
-      const errorResult = toolResultDocs[0].content.toolResults.find((tr: { is_error?: boolean }) => tr.is_error);
+      const errorResult = toolResultDocs[0].content.content.find(
+        (b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError,
+      );
       expect(errorResult.content).toContain('external service unavailable');
     });
   });
 
   describe('validation and runtime errors produce identical structure', () => {
-    it('should produce the same is_error tool result shape for both error types', async () => {
-      // Run validation error
-      mockClaude.call.mockResolvedValueOnce(mockToolUseResponse('strictSchema', {}));
+    it('should produce the same isError tool result shape for both error types', async () => {
+      mockLlm.call
+        .mockResolvedValueOnce(mockToolUseResponse('strictSchema', {}))
+        .mockResolvedValueOnce(mockEndTurnResponse('Recovered.'));
       const context1 = createStatelessContext();
       const result1 = await processor.process(workflow, {}, context1);
 
-      const validationErrorDoc = result1.documents.find((d) =>
-        d.content?.toolResults?.some((tr: { is_error?: boolean }) => tr.is_error),
+      const validationErrorDoc = result1.documents.find(
+        (d) =>
+          Array.isArray(d.content?.content) &&
+          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
-      const validationError = validationErrorDoc?.content.toolResults.find((tr: { is_error?: boolean }) => tr.is_error);
+      const validationError = validationErrorDoc?.content.content.find(
+        (b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError,
+      );
 
-      // Run runtime error (fresh module needed for clean state)
-      mockClaude.call.mockResolvedValueOnce(mockToolUseResponse('runtimeError', { shouldFail: true }));
+      mockLlm.call
+        .mockResolvedValueOnce(mockToolUseResponse('runtimeError', { shouldFail: true }))
+        .mockResolvedValueOnce(mockEndTurnResponse('Recovered.'));
       const context2 = createStatelessContext();
       const result2 = await processor.process(workflow, {}, context2);
 
-      const runtimeErrorDoc = result2.documents.find((d) =>
-        d.content?.toolResults?.some((tr: { is_error?: boolean }) => tr.is_error),
+      const runtimeErrorDoc = result2.documents.find(
+        (d) =>
+          Array.isArray(d.content?.content) &&
+          d.content.content.some((b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError),
       );
-      const runtimeError = runtimeErrorDoc?.content.toolResults.find((tr: { is_error?: boolean }) => tr.is_error);
+      const runtimeError = runtimeErrorDoc?.content.content.find(
+        (b: { type?: string; isError?: boolean }) => b.type === 'tool_result' && b.isError,
+      );
 
-      // Both should have the same structure
       expect(validationError).toBeDefined();
       expect(runtimeError).toBeDefined();
-      expect(validationError.type).toBe('tool_result');
-      expect(runtimeError.type).toBe('tool_result');
-      expect(validationError.is_error).toBe(true);
-      expect(runtimeError.is_error).toBe(true);
+      expect(validationError.isError).toBe(true);
+      expect(runtimeError.isError).toBe(true);
       expect(typeof validationError.content).toBe('string');
       expect(typeof runtimeError.content).toBe('string');
-      expect(typeof validationError.tool_use_id).toBe('string');
-      expect(typeof runtimeError.tool_use_id).toBe('string');
+      expect(typeof validationError.toolCallId).toBe('string');
+      expect(typeof runtimeError.toolCallId).toBe('string');
     });
   });
 });

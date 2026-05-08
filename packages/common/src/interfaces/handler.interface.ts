@@ -1,8 +1,8 @@
-export type ToolResult<TData = any> = {
+export type ToolResult<TData = any, TMeta = Record<string, unknown>> = {
   type?: 'text' | 'image' | 'file';
   data?: TData;
   error?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: TMeta;
   /** Signals that this tool launched an async sub-workflow. DelegateToolCalls tracks it as pending. */
   pending?: {
     workflowId: string;
@@ -10,12 +10,14 @@ export type ToolResult<TData = any> = {
 };
 
 /** Options passed as the second argument to `BaseTool.call()`. */
-export interface ToolCallOptions {
+export interface ToolCallOptions<TConfig = object> {
   /** Callback info for async tools — forwarded to sub-workflow `.run()` */
   callback?: {
     transition: string;
     metadata?: Record<string, unknown>;
   };
+  /** Author-provided config from `@InjectTool(config)`. Validated against `configSchema`. */
+  config?: TConfig;
 }
 
 export interface ToolCallEntry {

@@ -11,7 +11,7 @@ Loopstack workflows can call arbitrarily many tools, and some of those tools (es
 By using this module you'll get:
 
 - **`QuotaInterceptor`** — automatically discovered via `@UseToolInterceptor()`; runs on every tool call
-- **`QuotaCalculatorRegistry`** — maps tool names to calculator implementations; ships with `AiGenerateTextQuotaCalculator` registered for `AiGenerateText`, `AiGenerateObject`, `AiGenerateDocument`, `ClaudeGenerateText`, `ClaudeGenerateObject`, `ClaudeGenerateDocument`
+- **`QuotaCalculatorRegistry`** — maps tool names to calculator implementations; ships with `AiGenerateTextQuotaCalculator` registered for `AiGenerateText`, `AiGenerateObject`, `AiGenerateDocument`, `LlmGenerateTextTool`, `ClaudeGenerateObject`, `ClaudeGenerateDocument`
 - **`AiGenerateTextQuotaCalculator`** — computes cost from Claude token usage (input / output tokens)
 - **`ProcessingTimeQuotaCalculator`** — computes cost from wall-clock time
 - **`QuotaClientService`** — increment / read quota counters directly if you need custom logic

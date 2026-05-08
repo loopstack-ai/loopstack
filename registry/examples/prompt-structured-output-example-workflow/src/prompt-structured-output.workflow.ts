@@ -1,7 +1,9 @@
 import { z } from 'zod';
-import { ClaudeGenerateDocument, ClaudeMessageDocument } from '@loopstack/claude-module';
+import { toJSONSchema } from 'zod';
 import { BaseWorkflow, DocumentEntity, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
-import { FileDocument, FileDocumentType } from './documents/file-document';
+import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
+import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
+import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
 
 @Workflow({
   uiConfig: __dirname + '/prompt-structured-output.ui.yaml',
@@ -10,7 +12,8 @@ import { FileDocument, FileDocumentType } from './documents/file-document';
   }),
 })
 export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: string }> {
-  @InjectTool() claudeGenerateDocument: ClaudeGenerateDocument;
+  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6' })
+  llmGenerateObject: LlmGenerateObjectTool;
 
   language!: string;
   llmResult?: DocumentEntity<FileDocumentType>;
@@ -19,15 +22,10 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   async greeting(args: { language: string }) {
     this.language = args.language;
     await this.repository.save(
-      ClaudeMessageDocument,
+      LlmMessageDocument,
       {
         role: 'assistant',
-        content: [
-          {
-            type: 'text',
-            text: `Creating a 'Hello, World!' script in ${this.language}...`,
-          },
-        ],
+        content: [{ type: 'text', text: `Creating a 'Hello, World!' script in ${this.language}...` }],
       },
       { id: 'status' },
     );
@@ -35,26 +33,24 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
   async prompt() {
-    const result = await this.claudeGenerateDocument.call({
-      claude: { model: 'claude-sonnet-4-6' },
-      response: { document: FileDocument },
+    const result = await this.llmGenerateObject.call({
+      outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
       prompt: this.render(__dirname + '/templates/prompt.md', { language: this.language }),
     });
-    this.llmResult = result.data as DocumentEntity<FileDocumentType>;
+
+    const objectResult = result.data as LlmGenerateObjectResult;
+    this.llmResult = await this.repository.save(FileDocument, objectResult.data as FileDocumentType, {
+      validate: 'skip',
+    });
   }
 
   @Final({ from: 'prompt_executed' })
   async respond() {
     await this.repository.save(
-      ClaudeMessageDocument,
+      LlmMessageDocument,
       {
         role: 'assistant',
-        content: [
-          {
-            type: 'text',
-            text: `Successfully generated: ${this.llmResult?.content?.description ?? ''}`,
-          },
-        ],
+        content: [{ type: 'text', text: `Successfully generated: ${this.llmResult?.content?.description ?? ''}` }],
       },
       { id: 'status' },
     );

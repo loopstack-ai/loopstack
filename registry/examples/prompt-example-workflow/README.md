@@ -54,8 +54,7 @@ Use the `prompt` parameter for straightforward LLM calls without conversation hi
 ```typescript
 @Initial({ to: 'prompt_executed' })
 async prompt(args: { subject: string }) {
-  const result = await this.claudeGenerateText.call({
-    claude: { model: 'claude-sonnet-4-6' },
+  const result = await this.llmGenerateText.call({
     prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
   });
   this.llmResult = result.data;
@@ -69,17 +68,19 @@ The `this.render()` method loads a Handlebars template and interpolates the prov
 Tool results are stored as instance properties on the workflow class, making them available in subsequent transitions:
 
 ```typescript
-llmResult?: ClaudeGenerateTextResult;
+llmResult?: LlmGenerateTextResult;
 ```
 
 #### 4. Saving Documents in a Final Transition
 
-The `@Final` decorator marks the last transition. Here the stored LLM result is saved as a `ClaudeMessageDocument`:
+The `@Final` decorator marks the last transition. Here the stored LLM result is saved as a `LlmMessageDocument`:
 
 ```typescript
 @Final({ from: 'prompt_executed' })
 async respond() {
-  await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
+  await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+    meta: { response: this.llmResult!.response, provider: 'claude' },
+  });
 }
 ```
 
@@ -89,8 +90,9 @@ The complete workflow class:
 
 ```typescript
 import { z } from 'zod';
-import { ClaudeGenerateText, ClaudeGenerateTextResult, ClaudeMessageDocument } from '@loopstack/claude-module';
 import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/common';
+import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
   uiConfig: __dirname + '/prompt.ui.yaml',
@@ -99,14 +101,14 @@ import { BaseWorkflow, Final, Initial, InjectTool, Workflow } from '@loopstack/c
   }),
 })
 export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
-  @InjectTool() claudeGenerateText: ClaudeGenerateText;
+  @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6' })
+  llmGenerateText: LlmGenerateTextTool;
 
-  llmResult?: ClaudeGenerateTextResult;
+  llmResult?: LlmGenerateTextResult;
 
   @Initial({ to: 'prompt_executed' })
   async prompt(args: { subject: string }) {
-    const result = await this.claudeGenerateText.call({
-      claude: { model: 'claude-sonnet-4-6' },
+    const result = await this.llmGenerateText.call({
       prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
     });
     this.llmResult = result.data;
@@ -114,7 +116,9 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
 
   @Final({ from: 'prompt_executed' })
   async respond() {
-    await this.repository.save(ClaudeMessageDocument, this.llmResult!, { id: this.llmResult!.id });
+    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
+      meta: { response: this.llmResult!.response, provider: 'claude' },
+    });
   }
 }
 ```
@@ -124,7 +128,7 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
 This workflow uses the following Loopstack modules:
 
 - `@loopstack/common` - Core framework functionality, `BaseWorkflow`, decorators
-- `@loopstack/claude-module` - Provides `ClaudeGenerateText` tool, `ClaudeGenerateTextResult` type, and `ClaudeMessageDocument`
+- `@loopstack/llm-provider-module` - Provides `LlmGenerateTextTool` tool, `LlmGenerateTextResult` type, and `LlmMessageDocument`
 
 ## About
 

@@ -1,7 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
-import { ClaudeGenerateDocument, ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude-module';
 import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
 import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { MeetingNotesDocument } from '../documents/meeting-notes-document';
 import { OptimizedNotesDocument } from '../documents/optimized-notes-document';
@@ -11,8 +12,7 @@ describe('MeetingNotesWorkflow', () => {
   let module: TestingModule;
   let workflow: MeetingNotesWorkflow;
   let processor: WorkflowProcessorService;
-
-  let mockClaudeGenerateDocument: ToolMock;
+  let mockLlmGenerateObject: ToolMock;
 
   beforeEach(async () => {
     module = await createWorkflowTest()
@@ -20,13 +20,12 @@ describe('MeetingNotesWorkflow', () => {
       .withImports(LoopCoreModule, ClaudeModule)
       .withProvider(MeetingNotesDocument)
       .withProvider(OptimizedNotesDocument)
-      .withToolOverride(ClaudeGenerateDocument)
+      .withToolOverride(LlmGenerateObjectTool)
       .compile();
 
     workflow = module.get(MeetingNotesWorkflow);
     processor = module.get(WorkflowProcessorService);
-
-    mockClaudeGenerateDocument = module.get(ClaudeGenerateDocument);
+    mockLlmGenerateObject = module.get(LlmGenerateObjectTool);
   });
 
   afterEach(async () => {
@@ -36,14 +35,13 @@ describe('MeetingNotesWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('claudeGenerateDocument');
+      expect(getBlockTools(workflow)).toContain('llmGenerateObject');
     });
   });
 
   describe('initial step', () => {
     it('should execute initial step and stop at waiting_for_response', async () => {
       const context = createStatelessContext();
-
       const result = await processor.process(workflow, {}, context);
 
       expect(result.hasError).toBe(false);
@@ -63,12 +61,10 @@ describe('MeetingNotesWorkflow', () => {
 
     it('should use custom input text when provided', async () => {
       const context = createStatelessContext();
-
       const result = await processor.process(workflow, { inputText: 'Custom meeting notes here' }, context);
 
       expect(result.hasError).toBe(false);
       expect(result.stop).toBe(true);
-
       expect(result.documents[0]).toEqual(
         expect.objectContaining({
           content: expect.objectContaining({
@@ -83,7 +79,9 @@ describe('MeetingNotesWorkflow', () => {
     it('should process user response and call LLM to optimize notes', async () => {
       const workflowId = '00000000-0000-0000-0000-000000000001';
 
-      mockClaudeGenerateDocument.call.mockResolvedValue({ data: undefined });
+      mockLlmGenerateObject.call.mockResolvedValue({
+        data: { data: {} },
+      });
 
       const context = {
         workflowEntity: {
@@ -106,7 +104,6 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.stop).toBe(true);
       expect(result.place).toBe('notes_optimized');
 
-      // User response should have been saved as document
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
@@ -115,15 +112,13 @@ describe('MeetingNotesWorkflow', () => {
         ]),
       );
 
-      // LLM should have been called to optimize notes
-      expect(mockClaudeGenerateDocument.call).toHaveBeenCalledTimes(1);
-      expect(mockClaudeGenerateDocument.call).toHaveBeenCalledWith(
+      expect(mockLlmGenerateObject.call).toHaveBeenCalledTimes(1);
+      expect(mockLlmGenerateObject.call).toHaveBeenCalledWith(
         expect.objectContaining({
-          claude: { model: 'claude-sonnet-4-6' },
-          response: expect.objectContaining({ id: 'final' }),
+          outputSchema: expect.any(Object),
           prompt: expect.stringContaining('meeting notes'),
         }),
-        undefined,
+        expect.anything(),
       );
     });
   });
@@ -161,7 +156,6 @@ describe('MeetingNotesWorkflow', () => {
       expect(result.stop).toBe(false);
       expect(result.place).toBe('end');
 
-      // Confirmed payload should have been saved as OptimizedNotesDocument
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
@@ -170,8 +164,7 @@ describe('MeetingNotesWorkflow', () => {
         ]),
       );
 
-      // No additional LLM calls during confirmation
-      expect(mockClaudeGenerateDocument.call).not.toHaveBeenCalled();
+      expect(mockLlmGenerateObject.call).not.toHaveBeenCalled();
     });
   });
 });

@@ -150,9 +150,9 @@ async calculate(args: { a: number; b: number }) {
 The counter tool increments on each call, demonstrating that tool state persists within a workflow execution:
 
 ```typescript
-const c1 = await this.counterTool.call({});
-const c2 = await this.counterTool.call({});
-const c3 = await this.counterTool.call({});
+const c1 = await this.counterTool.call();
+const c2 = await this.counterTool.call();
+const c3 = await this.counterTool.call();
 
 await this.repository.save(MessageDocument, {
   role: 'assistant',
@@ -178,9 +178,9 @@ A `@Final` method can return data as the workflow output:
 ```typescript
 @Final({ from: 'resumed' })
 async continueCount(): Promise<{ total: number | undefined }> {
-  const c4 = await this.counterTool.call({});
-  const c5 = await this.counterTool.call({});
-  const c6 = await this.counterTool.call({});
+  const c4 = await this.counterTool.call();
+  const c5 = await this.counterTool.call();
+  const c6 = await this.counterTool.call();
 
   await this.repository.save(MessageDocument, {
     role: 'assistant',
@@ -242,9 +242,9 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
       content: `Alternatively, using workflow method:\n${args.a} + ${args.b} = ${this.sum(args.a, args.b)}`,
     });
 
-    const c1 = await this.counterTool.call({});
-    const c2 = await this.counterTool.call({});
-    const c3 = await this.counterTool.call({});
+    const c1 = await this.counterTool.call();
+    const c2 = await this.counterTool.call();
+    const c3 = await this.counterTool.call();
 
     await this.repository.save(MessageDocument, {
       role: 'assistant',
@@ -257,9 +257,9 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
 
   @Final({ from: 'resumed' })
   async continueCount(): Promise<{ total: number | undefined }> {
-    const c4 = await this.counterTool.call({});
-    const c5 = await this.counterTool.call({});
-    const c6 = await this.counterTool.call({});
+    const c4 = await this.counterTool.call();
+    const c5 = await this.counterTool.call();
+    const c6 = await this.counterTool.call();
 
     await this.repository.save(MessageDocument, {
       role: 'assistant',

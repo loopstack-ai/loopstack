@@ -3,7 +3,7 @@ import { QuotaUsage } from './quota.interface';
 
 export interface ToolQuotaCalculator {
   /**
-   * The quota type this calculator tracks (e.g. 'default-token').
+   * The quota type this calculator tracks (e.g. 'llm-cost').
    */
   quotaType: string;
 

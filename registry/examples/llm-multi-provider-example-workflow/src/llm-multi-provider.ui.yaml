@@ -1,0 +1,9 @@
+title: LLM Multi-Provider
+description: Runs the same prompt through Claude and OpenAI side by side
+
+ui:
+  widgets:
+    - widget: start-form
+      options:
+        title: Multi-Provider LLM
+        subtitle: Compare responses from different LLM providers.

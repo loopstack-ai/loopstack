@@ -1,7 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
-import { ClaudeGenerateText, ClaudeModule } from '@loopstack/claude-module';
+import { ClaudeModule } from '@loopstack/claude-module';
 import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
 import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { ChatWorkflow } from '../chat.workflow';
 
@@ -10,19 +11,19 @@ describe('ChatWorkflow', () => {
   let workflow: ChatWorkflow;
   let processor: WorkflowProcessorService;
 
-  let mockClaudeGenerateText: ToolMock;
+  let mockLlmGenerateTextTool: ToolMock;
 
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ChatWorkflow)
       .withImports(LoopCoreModule, ClaudeModule)
-      .withToolOverride(ClaudeGenerateText)
+      .withToolOverride(LlmGenerateTextTool)
       .compile();
 
     workflow = module.get(ChatWorkflow);
     processor = module.get(WorkflowProcessorService);
 
-    mockClaudeGenerateText = module.get(ClaudeGenerateText);
+    mockLlmGenerateTextTool = module.get(LlmGenerateTextTool);
   });
 
   afterEach(async () => {
@@ -32,7 +33,7 @@ describe('ChatWorkflow', () => {
   describe('initialization', () => {
     it('should be defined with correct tools', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('claudeGenerateText');
+      expect(getBlockTools(workflow)).toContain('llmGenerateText');
     });
   });
 
@@ -51,14 +52,14 @@ describe('ChatWorkflow', () => {
       expect(result.documents).toHaveLength(1);
       expect(result.documents[0]).toEqual(
         expect.objectContaining({
-          className: 'ClaudeMessageDocument',
+          className: 'LlmMessageDocument',
           content: expect.objectContaining({ role: 'user' }),
           meta: expect.objectContaining({ hidden: true }),
         }),
       );
 
       // LLM should not be called yet (waiting for user message)
-      expect(mockClaudeGenerateText.call).not.toHaveBeenCalled();
+      expect(mockLlmGenerateTextTool.call).not.toHaveBeenCalled();
     });
   });
 
@@ -66,11 +67,18 @@ describe('ChatWorkflow', () => {
     it('should process user message and generate LLM response', async () => {
       const workflowId = '00000000-0000-0000-0000-000000000001';
 
-      mockClaudeGenerateText.call.mockResolvedValue({
+      mockLlmGenerateTextTool.call.mockResolvedValue({
         data: {
-          id: 'msg_1',
-          role: 'assistant',
-          content: 'I am doing well, thank you!',
+          message: {
+            id: 'msg_1',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'I am doing well, thank you!' }],
+            stopReason: 'end_turn',
+          },
+        },
+        metadata: {
+          provider: 'claude',
+          model: 'claude-sonnet-4-6',
         },
       });
 
@@ -96,24 +104,21 @@ describe('ChatWorkflow', () => {
       expect(result.place).toBe('waiting_for_user');
 
       // LLM should have been called with correct arguments
-      expect(mockClaudeGenerateText.call).toHaveBeenCalledTimes(1);
-      expect(mockClaudeGenerateText.call).toHaveBeenCalledWith(
-        expect.objectContaining({
-          claude: { model: 'claude-sonnet-4-6' },
-          messagesSearchTag: 'message',
-        }),
-        undefined,
+      expect(mockLlmGenerateTextTool.call).toHaveBeenCalledTimes(1);
+      expect(mockLlmGenerateTextTool.call).toHaveBeenCalledWith(
+        {},
+        { config: { model: 'claude-sonnet-4-6', provider: 'claude' } },
       );
 
       // User message and LLM response should be saved as documents
       expect(result.documents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            className: 'ClaudeMessageDocument',
+            className: 'LlmMessageDocument',
             content: expect.objectContaining({ role: 'user', content: 'Hello, how are you?' }),
           }),
           expect.objectContaining({
-            className: 'ClaudeMessageDocument',
+            className: 'LlmMessageDocument',
             content: expect.objectContaining({ role: 'assistant' }),
           }),
         ]),
