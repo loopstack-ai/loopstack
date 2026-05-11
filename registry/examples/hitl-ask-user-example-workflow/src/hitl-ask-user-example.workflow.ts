@@ -5,6 +5,7 @@ import {
   Final,
   Initial,
   InjectWorkflow,
+  LinkDocument,
   MessageDocument,
   QueueResult,
   Workflow,
@@ -34,6 +35,18 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
       role: 'assistant',
       content: `Asking user a question (sub-workflow ${result.workflowId})...`,
     });
+
+    await this.repository.save(
+      LinkDocument,
+      {
+        status: 'pending',
+        label: 'Waiting for user answer...',
+        workflowId: result.workflowId,
+        embed: true,
+        expanded: true,
+      },
+      { id: `link_${result.workflowId}` },
+    );
   }
 
   @Final({
@@ -42,6 +55,18 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
     schema: AskUserCallbackSchema,
   })
   async answerReceived(payload: AskUserCallback) {
+    await this.repository.save(
+      LinkDocument,
+      {
+        status: 'success',
+        label: 'User answered',
+        workflowId: payload.workflowId,
+        embed: true,
+        expanded: false,
+      },
+      { id: `link_${payload.workflowId}` },
+    );
+
     await this.repository.save(MessageDocument, {
       role: 'assistant',
       content: `Thanks! You answered: ${payload.data.answer}`,
