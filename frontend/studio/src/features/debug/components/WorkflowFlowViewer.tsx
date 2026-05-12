@@ -4,6 +4,7 @@ import {
   Controls,
   type Edge,
   type Node,
+  Panel,
   ReactFlow,
   useEdgesState,
   useNodesState,
@@ -11,7 +12,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Loader2 } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { WorkflowConfigInterface, WorkflowItemInterface } from '@loopstack/contracts/api';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
 import type { StateNodeData } from '../lib/flow-types.ts';
@@ -40,49 +41,46 @@ const WorkflowFlowViewer: React.FC<WorkflowFlowViewerProps> = ({
   workflowConfig,
   direction = 'LR',
 }) => {
-  const { data: parentWorkflow } = useWorkflow(workflowId);
+  const { data: parentWorkflow, isPending: isParentPending, isLoading: isParentLoading } = useWorkflow(workflowId);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<StateNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView } = useReactFlow();
   const hasInitializedRef = useRef(false);
 
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
-  const graphDataRef = useRef<Map<string, { nodes: Node<StateNodeData>[]; edges: Edge[] }>>(new Map());
+  const [showSameStateTransitions, setShowSameStateTransitions] = useState(true);
 
-  const isLoading = Object.values(loadingStates).some((l) => l);
+  const rootWorkflow = parentWorkflow as WorkflowItemInterface | undefined;
+
+  const extraTransitionSources = useMemo(
+    () => workflows.filter((w) => w.id !== workflowId) as unknown[],
+    [workflows, workflowId],
+  );
+
+  const isChildGraphLoading = Object.values(loadingStates).some((l) => l);
+  const isAwaitingParentWorkflow = Boolean(workflowId) && !parentWorkflow && (isParentPending || isParentLoading);
+  const isLoading = isAwaitingParentWorkflow || isChildGraphLoading;
 
   const handleLoadingChange = useCallback((childWorkflowId: string, loading: boolean) => {
-    setLoadingStates((prev) => {
+    setLoadingStates((prev: Record<string, boolean>) => {
       if (prev[childWorkflowId] === loading) return prev;
       return { ...prev, [childWorkflowId]: loading };
     });
   }, []);
 
   const handleGraphReady = useCallback(
-    (childWorkflowId: string, newNodes: Node<StateNodeData>[], newEdges: Edge[]) => {
-      const workflowIndex = workflows.findIndex((w) => w.id === childWorkflowId);
-      const yOffset = workflowIndex * 250;
-
-      const offsetNodes = newNodes.map((n) => ({
-        ...n,
-        position: { ...n.position, y: n.position.y + yOffset },
-      }));
-
-      graphDataRef.current.set(childWorkflowId, { nodes: offsetNodes, edges: newEdges });
-
-      const allNodes: Node<StateNodeData>[] = [];
-      const allEdges: Edge[] = [];
-
-      graphDataRef.current.forEach(({ nodes: n, edges: e }) => {
-        allNodes.push(...n);
-        allEdges.push(...e);
-      });
-
-      setNodes(allNodes);
-      setEdges(allEdges);
+    (_childWorkflowId: string, newNodes: Node<StateNodeData>[], newEdges: Edge[]) => {
+      setNodes(newNodes);
+      setEdges(newEdges);
     },
-    [workflows, setNodes, setEdges],
+    [setNodes, setEdges],
   );
+
+  useLayoutEffect(() => {
+    hasInitializedRef.current = false;
+    setNodes([]);
+    setEdges([]);
+  }, [workflowId, setNodes, setEdges]);
 
   useEffect(() => {
     if (!isLoading && nodes.length > 0 && !hasInitializedRef.current) {
@@ -94,30 +92,27 @@ const WorkflowFlowViewer: React.FC<WorkflowFlowViewerProps> = ({
     }
   }, [isLoading, nodes.length, fitView]);
 
-  if (isLoading && nodes.length === 0) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <div className="h-full w-full">
-      {parentWorkflow &&
-        workflows.map((childWorkflow) => (
-          <WorkflowGraph
-            key={childWorkflow.id}
-            parentWorkflow={parentWorkflow}
-            workflow={childWorkflow}
-            workflowConfig={workflowConfig}
-            onGraphReady={handleGraphReady}
-            onLoadingChange={handleLoadingChange}
-            direction={direction}
-          />
-        ))}
+      {rootWorkflow && (
+        <WorkflowGraph
+          key={workflowId}
+          parentWorkflow={parentWorkflow}
+          workflow={rootWorkflow}
+          workflowConfig={workflowConfig}
+          extraTransitionSources={extraTransitionSources}
+          onGraphReady={handleGraphReady}
+          onLoadingChange={handleLoadingChange}
+          direction={direction}
+          hideSameStateTransitions={!showSameStateTransitions}
+        />
+      )}
 
-      {nodes.length === 0 ? (
+      {isLoading && nodes.length === 0 ? (
+        <div className="flex h-full items-center justify-center">
+          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+        </div>
+      ) : nodes.length === 0 ? (
         <div className="text-muted-foreground flex h-full items-center justify-center">
           <p className="font-medium">No workflow transitions available</p>
         </div>
@@ -135,6 +130,20 @@ const WorkflowFlowViewer: React.FC<WorkflowFlowViewerProps> = ({
           proOptions={{ hideAttribution: true }}
           className="bg-background"
         >
+          <Panel
+            position="top-right"
+            className="m-2 flex max-w-[min(100%,14rem)] flex-col gap-2 rounded-md border border-border/60 bg-card/95 px-2 py-2 text-xs shadow-sm backdrop-blur-sm"
+          >
+            <label className="flex cursor-pointer select-none items-center gap-2 text-muted-foreground">
+              <input
+                type="checkbox"
+                className="accent-primary h-3.5 w-3.5 shrink-0 rounded border-border"
+                checked={showSameStateTransitions}
+                onChange={(e) => setShowSameStateTransitions(e.target.checked)}
+              />
+              <span>Same-state transitions</span>
+            </label>
+          </Panel>
           <Background variant={BackgroundVariant.Cross} gap={24} size={1} className="opacity-[0.15]" />
           <Controls className="bg-card border-border rounded-lg border shadow-md" />
         </ReactFlow>

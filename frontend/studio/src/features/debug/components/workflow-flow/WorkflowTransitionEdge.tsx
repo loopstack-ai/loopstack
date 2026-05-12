@@ -59,7 +59,6 @@ const WorkflowTransitionEdge: React.FC<EdgeProps> = ({
     id: transitionId,
     isExecuted = false,
     isSelfLoop = false,
-    isBackEdge = false,
     forceVisible = false,
     call,
     condition,
@@ -69,22 +68,23 @@ const WorkflowTransitionEdge: React.FC<EdgeProps> = ({
     path: edgePath,
     labelX,
     labelY,
-  } = resolveEdgePath(
-    { sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition },
-    { isSelfLoop, isBackEdge },
-  );
+  } = resolveEdgePath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition }, { isSelfLoop });
 
   const formattedCondition = condition ? formatCondition(condition) : null;
   const tools = call?.map((c) => c.tool).join(', ');
   const hasLabel = transitionId || tools || formattedCondition;
 
+  const edgeStyle: React.CSSProperties = isSelfLoop
+    ? { ...((style ?? {}) as React.CSSProperties), strokeLinecap: 'round', strokeLinejoin: 'round' }
+    : ((style ?? {}) as React.CSSProperties);
+
   if (!hasLabel) {
-    return <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />;
+    return <BaseEdge path={edgePath} markerEnd={markerEnd} style={edgeStyle} />;
   }
 
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={edgeStyle} />
       <EdgeLabelRenderer>
         <div
           style={{

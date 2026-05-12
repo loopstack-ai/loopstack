@@ -10,22 +10,31 @@ interface WorkflowGraphProps {
   parentWorkflow: unknown;
   workflow: WorkflowItemInterface;
   workflowConfig?: WorkflowConfigInterface;
+  extraTransitionSources?: unknown[];
   onGraphReady: (workflowId: string, nodes: Node<StateNodeData>[], edges: Edge[]) => void;
   onLoadingChange: (workflowId: string, isLoading: boolean) => void;
   direction?: 'LR' | 'TB';
+  hideSameStateTransitions?: boolean;
 }
 
 function countTransitions(obj: unknown): number {
   return obj ? getTransitions(obj).length : 0;
 }
 
+function countExtraTransitions(sources: unknown[] | undefined): number {
+  if (!sources?.length) return 0;
+  return sources.reduce((n: number, s: unknown) => n + countTransitions(s), 0);
+}
+
 const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
   parentWorkflow,
   workflow,
   workflowConfig,
+  extraTransitionSources,
   onGraphReady,
   onLoadingChange,
   direction = 'LR',
+  hideSameStateTransitions = false,
 }) => {
   const fetchWorkflow = useWorkflow(workflow.id);
   const workflowData = fetchWorkflow.data;
@@ -47,9 +56,12 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
     const dataKey = JSON.stringify({
       p: countTransitions(parentWorkflow),
       w: countTransitions(workflowData),
+      x: countExtraTransitions(extraTransitionSources),
       c: configTransitions.length,
       checkpoints: checkpoints.length,
       place: workflowData?.place,
+      direction,
+      hideSelf: hideSameStateTransitions,
     });
 
     if (dataKey !== prevDataRef.current) {
@@ -62,10 +74,25 @@ const WorkflowGraph: React.FC<WorkflowGraphProps> = ({
         direction,
         false,
         checkpoints,
+        {
+          hideSameStateTransitions,
+          extraTransitionSources,
+        },
       );
       onGraphReady(workflow.id, nodes, edges);
     }
-  }, [parentWorkflow, workflow, workflowData, checkpoints, workflowConfig, onGraphReady, isLoading]);
+  }, [
+    parentWorkflow,
+    workflow,
+    workflowData,
+    checkpoints,
+    workflowConfig,
+    onGraphReady,
+    isLoading,
+    direction,
+    hideSameStateTransitions,
+    extraTransitionSources,
+  ]);
 
   return null;
 };
