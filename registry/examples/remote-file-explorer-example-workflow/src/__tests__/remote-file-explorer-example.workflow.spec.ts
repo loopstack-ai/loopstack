@@ -30,7 +30,7 @@ describe('RemoteFileExplorerExampleWorkflow', () => {
   });
 
   it('globs files and reads the first match', async () => {
-    mockGlob.call.mockResolvedValue({ data: ['README.md', 'docs/INTRO.md'] });
+    mockGlob.call.mockResolvedValue({ data: { files: ['README.md', 'docs/INTRO.md'] } });
     mockRead.call.mockResolvedValue({ data: { content: '# Hello' } });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
@@ -47,7 +47,7 @@ describe('RemoteFileExplorerExampleWorkflow', () => {
   });
 
   it('handles an empty file list gracefully', async () => {
-    mockGlob.call.mockResolvedValue({ data: [] });
+    mockGlob.call.mockResolvedValue({ data: { files: [] } });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
 
