@@ -1,6 +1,6 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { RoleInterface } from '../interfaces';
-import { User } from './user.entity';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn, Relation } from 'typeorm';
+import { RoleInterface } from '../interfaces/index.js';
+import { User } from './user.entity.js';
 
 @Entity('auth_roles')
 export class Role implements RoleInterface {
@@ -14,5 +14,5 @@ export class Role implements RoleInterface {
   description!: string;
 
   @ManyToMany(() => User, (user) => user.roles)
-  users!: User[];
+  users!: Relation<User[]>;
 }

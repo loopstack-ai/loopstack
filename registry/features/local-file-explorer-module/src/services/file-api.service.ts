@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import * as path from 'path';
+import * as path from 'node:path';
 import { parse } from 'yaml';
 import { getBlockConfig } from '@loopstack/common';
 import { WorkspaceType } from '@loopstack/contracts/types';
 import { BlockDiscoveryService } from '@loopstack/core';
-import type { FileContentDto } from '../dtos/file-content.dto';
-import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto';
-import { FileSystemService } from './file-system.service';
+import type { FileContentDto } from '../dtos/file-content.dto.js';
+import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto.js';
+import { FileSystemService } from './file-system.service.js';
 
 @Injectable()
 export class FileApiService {

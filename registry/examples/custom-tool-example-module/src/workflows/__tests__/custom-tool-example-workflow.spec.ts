@@ -1,10 +1,11 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { CounterTool, MathSumTool } from '../../tools';
-import { CustomToolExampleWorkflow } from '../custom-tool-example.workflow';
+import { CounterTool, MathSumTool } from '../../tools/index.js';
+import { CustomToolExampleWorkflow } from '../custom-tool-example.workflow.js';
 
 describe('CustomToolExampleWorkflow', () => {
   let module: TestingModule;

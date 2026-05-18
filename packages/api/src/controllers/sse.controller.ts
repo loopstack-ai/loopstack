@@ -3,7 +3,7 @@ import { Request } from 'express';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CurrentUser, CurrentUserInterface, RoleName, Roles } from '@loopstack/common';
-import { SseEventService } from '../services/sse-event.service';
+import { SseEventService } from '../services/sse-event.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/sse')

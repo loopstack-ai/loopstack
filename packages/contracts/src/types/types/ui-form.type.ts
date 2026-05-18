@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UiFormActionSchema, UiFormSchema, UiWidgetSchema } from '../../schemas';
+import { UiFormActionSchema, UiFormSchema, UiWidgetSchema } from '../../schemas/index.js';
 
 export type UiWidgetType = z.infer<typeof UiWidgetSchema>;
 export type UiFormActionType = z.infer<typeof UiFormActionSchema>;

@@ -1,1 +1,1 @@
-export * from './openai.types';
+export * from './openai.types.js';

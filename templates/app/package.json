@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "A vanilla NestJS app with Loopstack",
   "private": true,
+  "type": "module",
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",

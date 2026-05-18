@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient } from '../services/remote-client.service';
-import { SandboxEnvironmentService } from '../services/sandbox-environment.service';
+import { RemoteClient } from '../services/remote-client.service.js';
+import { SandboxEnvironmentService } from '../services/sandbox-environment.service.js';
 
 @Tool({
   uiConfig: {

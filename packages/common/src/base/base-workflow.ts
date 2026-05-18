@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { DocumentRepository, FrameworkContext, WorkflowOrchestrator } from '../interfaces';
-import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens';
-import { assertToolsAvailable } from '../utils/block-metadata.utils';
-import { TemplateRenderFn } from './workflow-templates';
+import { DocumentRepository, FrameworkContext, WorkflowOrchestrator } from '../interfaces/index.js';
+import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
+import { assertToolsAvailable } from '../utils/block-metadata.utils.js';
+import { TemplateRenderFn } from './workflow-templates.js';
 
 export interface RunOptions {
   alias?: string;

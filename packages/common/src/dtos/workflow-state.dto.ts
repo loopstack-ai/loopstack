@@ -1,7 +1,7 @@
 import type { HistoryTransition, WorkflowTransitionType } from '@loopstack/contracts/types';
-import { DocumentEntity } from '../entities';
-import { PersistenceState, ToolResultLookup, TransitionResultLookup } from '../interfaces';
-import { WorkflowTransitionDto } from './workflow-transition.dto';
+import { DocumentEntity } from '../entities/index.js';
+import { PersistenceState, ToolResultLookup, TransitionResultLookup } from '../interfaces/index.js';
+import { WorkflowTransitionDto } from './workflow-transition.dto.js';
 
 export type InitWorkflowState = Omit<WorkflowStateDto, 'addDocuments' | 'addDocument' | 'updateDocument'>;
 

@@ -2,8 +2,8 @@ import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { SecretService } from '@loopstack/secrets-module';
-import { RemoteClient } from '../services';
-import { SandboxEnvironmentService } from '../services';
+import { RemoteClient } from '../services/index.js';
+import { SandboxEnvironmentService } from '../services/index.js';
 
 const SyncSecretsInputSchema = z.object({}).strict();
 

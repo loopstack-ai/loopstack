@@ -1,9 +1,9 @@
 import express from 'express';
-import { WORKSPACE_ROOT } from './config';
-import appRouter, { startApp } from './routes/app';
-import execRouter from './routes/exec';
-import filesRouter from './routes/files';
-import gitRouter from './routes/git';
+import { WORKSPACE_ROOT } from './config.js';
+import appRouter, { startApp } from './routes/app.js';
+import execRouter from './routes/exec.js';
+import filesRouter from './routes/files.js';
+import gitRouter from './routes/git.js';
 
 const app = express();
 const AGENT_PORT = Number(process.env.AGENT_PORT) || 3001;

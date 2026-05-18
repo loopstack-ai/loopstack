@@ -3,7 +3,7 @@ import { BaseWorkflow, Initial, InjectTool, Transition, Workflow } from '@loopst
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
-  uiConfig: __dirname + '/chat.ui.yaml',
+  uiConfig: import.meta.dirname + '/chat.ui.yaml',
 })
 export class ChatWorkflow extends BaseWorkflow {
   @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6' })
@@ -13,7 +13,7 @@ export class ChatWorkflow extends BaseWorkflow {
   async setup() {
     await this.repository.save(
       LlmMessageDocument,
-      { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
+      { role: 'user', content: this.render(import.meta.dirname + '/templates/systemMessage.md') },
       { meta: { hidden: true } },
     );
   }

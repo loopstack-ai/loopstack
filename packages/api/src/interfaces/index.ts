@@ -1,2 +1,2 @@
-export * from './auth-config.interface';
-export * from './module-options.interface';
+export * from './auth-config.interface.js';
+export * from './module-options.interface.js';

@@ -1,11 +1,12 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { FileDocument } from '../documents/file-document';
-import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow';
+import { FileDocument } from '../documents/file-document.js';
+import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow.js';
 
 describe('PromptStructuredOutputWorkflow', () => {
   let module: TestingModule;

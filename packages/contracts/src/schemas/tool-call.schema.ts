@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AssignmentConfigSchema, AssignmentSchema } from './assignment.schema';
+import { AssignmentConfigSchema, AssignmentSchema } from './assignment.schema.js';
 
 export const ToolCallConfigSchema = z.object({
   id: z.string().optional(),

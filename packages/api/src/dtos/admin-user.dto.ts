@@ -1,6 +1,6 @@
 import { Expose, Type, plainToInstance } from 'class-transformer';
 import { User, UserTypeEnum } from '@loopstack/common';
-import { AdminRoleDto } from './admin-role.dto';
+import { AdminRoleDto } from './admin-role.dto.js';
 
 export class AdminUserDto {
   @Expose()

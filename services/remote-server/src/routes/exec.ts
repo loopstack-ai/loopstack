@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { Request, Router } from 'express';
 import * as path from 'path';
-import { WORKSPACE_ROOT } from '../config';
+import { WORKSPACE_ROOT } from '../config.js';
 
 const router = Router();
 const EXEC_TIMEOUT_MS = Number(process.env.EXEC_TIMEOUT_MS) || 30_000;

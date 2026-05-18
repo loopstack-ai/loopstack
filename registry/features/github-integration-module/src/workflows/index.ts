@@ -1,1 +1,1 @@
-export { ConnectGitHubWorkflow } from './connect-github/connect-github.workflow';
+export { ConnectGitHubWorkflow } from './connect-github/connect-github.workflow.js';

@@ -1,1 +1,1 @@
-export * from './extract-text.util';
+export * from './extract-text.util.js';

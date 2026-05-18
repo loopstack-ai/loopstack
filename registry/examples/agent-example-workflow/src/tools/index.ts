@@ -1,2 +1,2 @@
-export * from './weather-lookup.tool';
-export * from './calculator.tool';
+export * from './weather-lookup.tool.js';
+export * from './calculator.tool.js';

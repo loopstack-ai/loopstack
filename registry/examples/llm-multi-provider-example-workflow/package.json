@@ -26,7 +26,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
@@ -41,26 +41,6 @@
   "files": [
     "dist"
   ],
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "testTimeout": 10000,
-    "forceExit": true,
-    "maxWorkers": 1
-  },
   "loopstack": {
     "modules": [
       {
@@ -78,5 +58,11 @@
     "installModes": [
       "add"
     ]
+  },
+  "type": "module",
+  "devDependencies": {
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
   }
 }

@@ -1,1 +1,1 @@
-export * from './secret.service';
+export * from './secret.service.js';

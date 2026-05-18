@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TestUiDocumentsWorkflow } from './test-ui-documents.workflow';
+import { TestUiDocumentsWorkflow } from './test-ui-documents.workflow.js';
 
 @Module({
   imports: [],

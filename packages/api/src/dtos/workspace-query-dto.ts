@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsInt, IsOptional, Min, ValidateNested } from 'class-validator';
-import { WorkspaceFilterDto } from './workspace-filter.dto';
-import { WorkspaceSortByDto } from './workspace-sort-by.dto';
+import { WorkspaceFilterDto } from './workspace-filter.dto.js';
+import { WorkspaceSortByDto } from './workspace-sort-by.dto.js';
 
 export class WorkspaceQueryDto {
   @IsOptional()

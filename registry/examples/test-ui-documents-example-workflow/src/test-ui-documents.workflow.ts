@@ -10,7 +10,7 @@ import {
 } from '@loopstack/common';
 
 @Workflow({
-  uiConfig: __dirname + '/test-ui-documents.ui.yaml',
+  uiConfig: import.meta.dirname + '/test-ui-documents.ui.yaml',
 })
 export class TestUiDocumentsWorkflow extends BaseWorkflow {
   @Initial({ to: 'rendered' })

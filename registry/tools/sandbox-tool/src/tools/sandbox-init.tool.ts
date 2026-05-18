@@ -1,7 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { DockerContainerManagerService } from '../services/docker-container-manager.service';
+import { DockerContainerManagerService } from '../services/docker-container-manager.service.js';
 
 const inputSchema = z
   .object({

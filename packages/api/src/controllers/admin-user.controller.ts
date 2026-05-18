@@ -13,15 +13,15 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface, RoleName, Roles } from '@loopstack/common';
-import { AdminUserAssignRolesDto } from '../dtos/admin-user-assign-roles.dto';
-import { AdminUserFilterDto } from '../dtos/admin-user-filter.dto';
-import { AdminUserItemDto } from '../dtos/admin-user-item.dto';
-import { AdminUserSortByDto } from '../dtos/admin-user-sort-by.dto';
-import { AdminUserUpdateStatusDto } from '../dtos/admin-user-update-status.dto';
-import { AdminUserDto } from '../dtos/admin-user.dto';
-import { PaginatedDto } from '../dtos/paginated.dto';
-import { ParseJsonPipe } from '../pipes/parse-json.pipe';
-import { AdminUserApiService } from '../services/admin-user-api.service';
+import { AdminUserAssignRolesDto } from '../dtos/admin-user-assign-roles.dto.js';
+import { AdminUserFilterDto } from '../dtos/admin-user-filter.dto.js';
+import { AdminUserItemDto } from '../dtos/admin-user-item.dto.js';
+import { AdminUserSortByDto } from '../dtos/admin-user-sort-by.dto.js';
+import { AdminUserUpdateStatusDto } from '../dtos/admin-user-update-status.dto.js';
+import { AdminUserDto } from '../dtos/admin-user.dto.js';
+import { PaginatedDto } from '../dtos/paginated.dto.js';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe.js';
+import { AdminUserApiService } from '../services/admin-user-api.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Roles(RoleName.ADMIN)

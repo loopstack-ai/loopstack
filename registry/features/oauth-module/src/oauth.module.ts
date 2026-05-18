@@ -1,8 +1,8 @@
 import { Global, Module } from '@nestjs/common';
-import { OAuthProviderRegistry } from './services/oauth-provider-registry';
-import { OAuthTokenStore } from './services/oauth-token-store';
-import { BuildOAuthUrlTool, ExchangeOAuthTokenTool } from './tools';
-import { OAuthWorkflow } from './workflows';
+import { OAuthProviderRegistry } from './services/oauth-provider-registry.js';
+import { OAuthTokenStore } from './services/oauth-token-store.js';
+import { BuildOAuthUrlTool, ExchangeOAuthTokenTool } from './tools/index.js';
+import { OAuthWorkflow } from './workflows/index.js';
 
 @Global()
 @Module({

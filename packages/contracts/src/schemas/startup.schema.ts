@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TransitionPayloadSchema } from './transition-payload.schema';
+import { TransitionPayloadSchema } from './transition-payload.schema.js';
 
 const RepeatOptionsSchema = z.object({
   every: z.number().nonnegative().optional().describe('Repeat every X milliseconds. Example: 60000 for every minute'),

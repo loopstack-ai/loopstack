@@ -1,11 +1,12 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { OpenAiModule } from '@loopstack/openai-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { LlmMultiProviderWorkflow } from '../llm-multi-provider.workflow';
+import { LlmMultiProviderWorkflow } from '../llm-multi-provider.workflow.js';
 
 const mockLlmResponse = (text: string) => ({
   data: {

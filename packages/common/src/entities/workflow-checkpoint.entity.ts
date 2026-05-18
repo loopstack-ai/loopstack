@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { WorkflowEntity } from './workflow.entity';
+import { WorkflowEntity } from './workflow.entity.js';
 
 @Entity({ name: 'core_workflow_checkpoint' })
 export class WorkflowCheckpointEntity {

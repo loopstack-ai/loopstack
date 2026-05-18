@@ -1,9 +1,10 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentWorkflow } from '@loopstack/agent';
 import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { CodeAgentExampleWorkflow } from '../code-agent-example.workflow';
+import { CodeAgentExampleWorkflow } from '../code-agent-example.workflow.js';
 
 describe('CodeAgentExampleWorkflow', () => {
   let module: TestingModule;
@@ -11,11 +12,11 @@ describe('CodeAgentExampleWorkflow', () => {
   let processor: WorkflowProcessorService;
 
   const mockAgent = {
-    run: jest.fn(),
+    run: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     module = await createWorkflowTest()
       .forWorkflow(CodeAgentExampleWorkflow)

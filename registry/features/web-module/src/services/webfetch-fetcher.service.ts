@@ -7,17 +7,17 @@ import {
   MAX_CACHE_SIZE_BYTES,
   MAX_HTTP_CONTENT_LENGTH,
   MAX_REDIRECTS,
-} from '../constants';
-import { FetchedContent, RedirectInfo } from '../types';
+} from '../constants.js';
+import { FetchedContent, RedirectInfo } from '../types/index.js';
 import {
   ContentTooLargeError,
   EgressBlockedError,
   FetchTimeoutError,
   InvalidUrlError,
   RedirectLimitExceededError,
-} from '../utils/errors';
-import { isBinaryContentType, isPermittedRedirect, validateURL } from '../utils/url.utils';
-import { WebFetchMarkdownService } from './webfetch-markdown.service';
+} from '../utils/errors.js';
+import { isBinaryContentType, isPermittedRedirect, validateURL } from '../utils/url.utils.js';
+import { WebFetchMarkdownService } from './webfetch-markdown.service.js';
 
 type CacheEntry = FetchedContent;
 

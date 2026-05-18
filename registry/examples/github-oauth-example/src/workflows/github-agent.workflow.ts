@@ -44,10 +44,10 @@ import {
   LlmUpdateToolResultTool,
 } from '@loopstack/llm-provider-module';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
-import { AuthenticateGitHubTask } from '../tools/authenticate-github-task.tool';
+import { AuthenticateGitHubTask } from '../tools/authenticate-github-task.tool.js';
 
 @Workflow({
-  uiConfig: __dirname + '/github-agent.ui.yaml',
+  uiConfig: import.meta.dirname + '/github-agent.ui.yaml',
 })
 export class GitHubAgentWorkflow extends BaseWorkflow {
   @InjectTool({
@@ -141,7 +141,7 @@ to let the user sign in, then retry. Be concise and format results using markdow
       LlmMessageDocument,
       {
         role: 'user',
-        content: this.render(__dirname + '/templates/systemMessage.md'),
+        content: this.render(import.meta.dirname + '/templates/systemMessage.md'),
       },
       { meta: { hidden: true } },
     );

@@ -9,18 +9,20 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import * as fs from 'fs';
-import { sortBy } from 'lodash';
-import * as path from 'path';
+import lodash from 'lodash';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { BLOCK_CONFIG_METADATA_KEY, WorkflowInterface } from '@loopstack/common';
 import { BlockOptions } from '@loopstack/common';
 import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
 import { BlockConfigCacheService, BlockDiscoveryService } from '@loopstack/core';
-import { AvailableEnvironmentDto } from '../dtos/available-environment.dto';
-import { WorkflowConfigDto } from '../dtos/workflow-config.dto';
-import { WorkflowSourceDto } from '../dtos/workflow-source.dto';
-import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
-import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from '../tokens';
+import { AvailableEnvironmentDto } from '../dtos/available-environment.dto.js';
+import { WorkflowConfigDto } from '../dtos/workflow-config.dto.js';
+import { WorkflowSourceDto } from '../dtos/workflow-source.dto.js';
+import { WorkspaceConfigDto } from '../dtos/workspace-config.dto.js';
+import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from '../tokens.js';
+
+const { sortBy } = lodash;
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/config')

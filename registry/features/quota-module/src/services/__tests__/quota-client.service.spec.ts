@@ -1,4 +1,5 @@
-import { QuotaClientService } from '../quota-client.service';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { QuotaClientService } from '../quota-client.service.js';
 
 describe('QuotaClientService', () => {
   describe('without Redis (null)', () => {
@@ -20,12 +21,12 @@ describe('QuotaClientService', () => {
 
   describe('with Redis mock', () => {
     let service: QuotaClientService;
-    let redisMock: Record<string, jest.Mock>;
+    let redisMock: Record<string, Mock>;
 
     beforeEach(() => {
       redisMock = {
-        get: jest.fn(),
-        incrby: jest.fn(),
+        get: vi.fn(),
+        incrby: vi.fn(),
       };
       service = new QuotaClientService(redisMock as any);
     });

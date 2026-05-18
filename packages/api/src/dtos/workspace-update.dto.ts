@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsOptional, IsString, MaxLength, ValidateIf, ValidateNested } from 'class-validator';
 import type { WorkspaceUpdateInterface } from '@loopstack/contracts/api';
-import { WorkspaceEnvironmentDto } from './workspace-environment.dto';
+import { WorkspaceEnvironmentDto } from './workspace-environment.dto.js';
 
 export class WorkspaceUpdateDto implements WorkspaceUpdateInterface {
   @ValidateIf((o: { title?: string }) => o.title !== undefined)

@@ -15,17 +15,18 @@ import {
 import { CurrentUser, CurrentUserInterface, getBlockConfig } from '@loopstack/common';
 import { WorkspaceType } from '@loopstack/contracts/types';
 import { BlockDiscoveryService } from '@loopstack/core';
-import { BatchDeleteDto } from '../dtos/batch-delete.dto';
-import { PaginatedDto } from '../dtos/paginated.dto';
-import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
-import { WorkspaceFavouriteDto } from '../dtos/workspace-favourite.dto';
-import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
-import { WorkspaceItemDto } from '../dtos/workspace-item.dto';
-import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
-import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
-import { WorkspaceDto } from '../dtos/workspace.dto';
-import { ParseJsonPipe } from '../pipes/parse-json.pipe';
-import { WorkspaceApiService } from '../services/workspace-api.service';
+import { BatchDeleteDto } from '../dtos/batch-delete.dto.js';
+import { PaginatedDto } from '../dtos/paginated.dto.js';
+import { FeaturesDto } from '../dtos/workspace-config.dto.js';
+import { WorkspaceCreateDto } from '../dtos/workspace-create.dto.js';
+import { WorkspaceFavouriteDto } from '../dtos/workspace-favourite.dto.js';
+import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto.js';
+import { WorkspaceItemDto } from '../dtos/workspace-item.dto.js';
+import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto.js';
+import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto.js';
+import { WorkspaceDto } from '../dtos/workspace.dto.js';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe.js';
+import { WorkspaceApiService } from '../services/workspace-api.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces')

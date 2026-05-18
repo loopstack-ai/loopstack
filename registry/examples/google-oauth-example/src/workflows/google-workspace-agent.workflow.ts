@@ -30,10 +30,10 @@ import {
   LlmUpdateToolResultTool,
 } from '@loopstack/llm-provider-module';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
-import { AuthenticateGoogleTask } from '../tools/authenticate-google-task.tool';
+import { AuthenticateGoogleTask } from '../tools/authenticate-google-task.tool.js';
 
 @Workflow({
-  uiConfig: __dirname + '/google-workspace-agent.ui.yaml',
+  uiConfig: import.meta.dirname + '/google-workspace-agent.ui.yaml',
 })
 export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
   @InjectTool({
@@ -91,7 +91,7 @@ then retry. Be concise and format results using markdown.`,
       LlmMessageDocument,
       {
         role: 'user',
-        content: this.render(__dirname + '/templates/systemMessage.md'),
+        content: this.render(import.meta.dirname + '/templates/systemMessage.md'),
       },
       { meta: { hidden: true } },
     );

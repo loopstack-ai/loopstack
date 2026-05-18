@@ -1,8 +1,8 @@
 import { DynamicModule, Module, OnModuleInit } from '@nestjs/common';
-import Redis from 'ioredis';
-import { AiGenerateTextQuotaCalculator } from './calculators';
-import { QUOTA_CLIENT_SERVICE } from './interfaces';
-import { QUOTA_REDIS, QuotaCalculatorRegistry, QuotaClientService, QuotaInterceptor } from './services';
+import { Redis } from 'ioredis';
+import { AiGenerateTextQuotaCalculator } from './calculators/index.js';
+import { QUOTA_CLIENT_SERVICE } from './interfaces/index.js';
+import { QUOTA_REDIS, QuotaCalculatorRegistry, QuotaClientService, QuotaInterceptor } from './services/index.js';
 
 export interface QuotaModuleOptions {
   enabled: boolean;

@@ -12,16 +12,16 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { BatchDeleteDto } from '../dtos/batch-delete.dto';
-import { PaginatedDto } from '../dtos/paginated.dto';
-import { WorkflowCreateDto } from '../dtos/workflow-create.dto';
-import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
-import { WorkflowItemDto } from '../dtos/workflow-item.dto';
-import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
-import { WorkflowUpdateDto } from '../dtos/workflow-update.dto';
-import { WorkflowDto } from '../dtos/workflow.dto';
-import { ParseJsonPipe } from '../pipes/parse-json.pipe';
-import { WorkflowApiService } from '../services/workflow-api.service';
+import { BatchDeleteDto } from '../dtos/batch-delete.dto.js';
+import { PaginatedDto } from '../dtos/paginated.dto.js';
+import { WorkflowCreateDto } from '../dtos/workflow-create.dto.js';
+import { WorkflowFilterDto } from '../dtos/workflow-filter.dto.js';
+import { WorkflowItemDto } from '../dtos/workflow-item.dto.js';
+import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto.js';
+import { WorkflowUpdateDto } from '../dtos/workflow-update.dto.js';
+import { WorkflowDto } from '../dtos/workflow.dto.js';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe.js';
+import { WorkflowApiService } from '../services/workflow-api.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workflows')

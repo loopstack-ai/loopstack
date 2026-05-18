@@ -2,7 +2,7 @@ import { Controller, Logger, NotFoundException, Param, Post } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
-import { RemoteClient } from '../services/remote-client.service';
+import { RemoteClient } from '../services/remote-client.service.js';
 
 @Controller('api/v1/workspaces')
 export class EnvironmentController {

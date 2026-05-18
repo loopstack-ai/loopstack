@@ -1,6 +1,6 @@
 import { Injectable, SetMetadata } from '@nestjs/common';
-import { RunContext } from '../dtos';
-import { ToolResult } from './handler.interface';
+import { RunContext } from '../dtos/index.js';
+import { ToolResult } from './handler.interface.js';
 
 export interface ToolExecutionContext {
   tool: object;

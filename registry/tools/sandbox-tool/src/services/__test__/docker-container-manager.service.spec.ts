@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PassThrough } from 'stream';
-import { ContainerConfig, DOCKER_CLIENT, DockerContainerManagerService } from '../docker-container-manager.service';
+import { PassThrough } from 'node:stream';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ContainerConfig, DOCKER_CLIENT, DockerContainerManagerService } from '../docker-container-manager.service.js';
 
 describe('DockerContainerManagerService', () => {
   let service: DockerContainerManagerService;
@@ -18,30 +19,30 @@ describe('DockerContainerManagerService', () => {
 
   beforeEach(async () => {
     mockExec = {
-      start: jest.fn(),
-      inspect: jest.fn(),
+      start: vi.fn(),
+      inspect: vi.fn(),
     };
 
     mockContainer = {
       id: 'docker-container-id-123',
-      inspect: jest.fn(),
-      start: jest.fn(),
-      stop: jest.fn(),
-      remove: jest.fn(),
-      exec: jest.fn().mockResolvedValue(mockExec),
+      inspect: vi.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
+      remove: vi.fn(),
+      exec: vi.fn().mockResolvedValue(mockExec),
     };
 
     mockDocker = {
-      listContainers: jest.fn().mockResolvedValue([]),
-      createContainer: jest.fn().mockResolvedValue(mockContainer),
-      getContainer: jest.fn().mockReturnValue(mockContainer),
-      getImage: jest.fn().mockReturnValue({
-        inspect: jest.fn().mockResolvedValue({}),
+      listContainers: vi.fn().mockResolvedValue([]),
+      createContainer: vi.fn().mockResolvedValue(mockContainer),
+      getContainer: vi.fn().mockReturnValue(mockContainer),
+      getImage: vi.fn().mockReturnValue({
+        inspect: vi.fn().mockResolvedValue({}),
       }),
-      pull: jest.fn(),
+      pull: vi.fn(),
       modem: {
-        demuxStream: jest.fn(),
-        followProgress: jest.fn(),
+        demuxStream: vi.fn(),
+        followProgress: vi.fn(),
       },
     };
 
@@ -189,7 +190,7 @@ describe('DockerContainerManagerService', () => {
       service.registerContainer('test-id', testConfig);
       mockContainer.inspect.mockResolvedValue({ State: { Running: true } });
 
-      const imageInspect = jest.fn().mockRejectedValue(new Error('Not found'));
+      const imageInspect = vi.fn().mockRejectedValue(new Error('Not found'));
       mockDocker.getImage.mockReturnValue({ inspect: imageInspect });
 
       // Mock pull to call the callback successfully
@@ -241,7 +242,7 @@ describe('DockerContainerManagerService', () => {
       const mockStream = new PassThrough() as PassThrough & {
         destroy: () => void;
       };
-      mockStream.destroy = jest.fn();
+      mockStream.destroy = vi.fn();
       mockExec.start.mockResolvedValue(mockStream);
       mockExec.inspect.mockResolvedValue({ ExitCode: 0 });
 
@@ -281,7 +282,7 @@ describe('DockerContainerManagerService', () => {
       const mockStream = new PassThrough() as PassThrough & {
         destroy: () => void;
       };
-      mockStream.destroy = jest.fn();
+      mockStream.destroy = vi.fn();
       mockExec.start.mockResolvedValue(mockStream);
       mockExec.inspect.mockResolvedValue({ ExitCode: 0 });
       mockDocker.modem.demuxStream.mockImplementation(() => {});
@@ -308,7 +309,7 @@ describe('DockerContainerManagerService', () => {
       const mockStream = new PassThrough() as PassThrough & {
         destroy: () => void;
       };
-      mockStream.destroy = jest.fn();
+      mockStream.destroy = vi.fn();
       mockExec.start.mockResolvedValue(mockStream);
       mockExec.inspect.mockResolvedValue({ ExitCode: 0 });
       mockDocker.modem.demuxStream.mockImplementation(() => {});
@@ -335,7 +336,7 @@ describe('DockerContainerManagerService', () => {
       const mockStream = new PassThrough() as PassThrough & {
         destroy: () => void;
       };
-      mockStream.destroy = jest.fn();
+      mockStream.destroy = vi.fn();
       mockExec.start.mockResolvedValue(mockStream);
       mockDocker.modem.demuxStream.mockImplementation(
         (_stream: NodeJS.ReadableStream, stdout: PassThrough, _stderr: PassThrough) => {
@@ -362,7 +363,7 @@ describe('DockerContainerManagerService', () => {
       const mockStream = new PassThrough() as PassThrough & {
         destroy: () => void;
       };
-      mockStream.destroy = jest.fn();
+      mockStream.destroy = vi.fn();
       mockExec.start.mockResolvedValue(mockStream);
       mockExec.inspect.mockResolvedValue({ ExitCode: 1 });
 
@@ -391,7 +392,7 @@ describe('DockerContainerManagerService', () => {
       const mockStream = new PassThrough() as PassThrough & {
         destroy: () => void;
       };
-      mockStream.destroy = jest.fn();
+      mockStream.destroy = vi.fn();
       mockExec.start.mockResolvedValue(mockStream);
       mockExec.inspect.mockResolvedValue({ ExitCode: 0 });
 
@@ -432,7 +433,7 @@ describe('DockerContainerManagerService', () => {
       const mockStream = new PassThrough() as PassThrough & {
         destroy: () => void;
       };
-      mockStream.destroy = jest.fn();
+      mockStream.destroy = vi.fn();
       mockExec.start.mockResolvedValue(mockStream);
       mockExec.inspect.mockResolvedValue({ ExitCode: 0 });
       mockDocker.modem.demuxStream.mockImplementation(() => {});
@@ -459,7 +460,7 @@ describe('DockerContainerManagerService', () => {
       const mockStream = new PassThrough() as PassThrough & {
         destroy: () => void;
       };
-      mockStream.destroy = jest.fn();
+      mockStream.destroy = vi.fn();
       mockExec.start.mockResolvedValue(mockStream);
       mockDocker.modem.demuxStream.mockImplementation(() => {});
 
@@ -663,7 +664,7 @@ describe('DockerContainerManagerService', () => {
       service.registerContainer('test-id', testConfig);
       mockContainer.inspect.mockResolvedValue({ State: { Running: true } });
 
-      const imageInspect = jest.fn().mockRejectedValue(new Error('Not found'));
+      const imageInspect = vi.fn().mockRejectedValue(new Error('Not found'));
       mockDocker.getImage.mockReturnValue({ inspect: imageInspect });
 
       // Mock pull to pass an error to the callback
@@ -680,7 +681,7 @@ describe('DockerContainerManagerService', () => {
       service.registerContainer('test-id', testConfig);
       mockContainer.inspect.mockResolvedValue({ State: { Running: true } });
 
-      const imageInspect = jest.fn().mockRejectedValue(new Error('Not found'));
+      const imageInspect = vi.fn().mockRejectedValue(new Error('Not found'));
       mockDocker.getImage.mockReturnValue({ inspect: imageInspect });
 
       // Mock pull to succeed but followProgress to fail
@@ -906,15 +907,15 @@ describe('DockerContainerManagerService', () => {
 
       const existingContainer = {
         id: 'existing-id',
-        inspect: jest.fn().mockResolvedValue({ State: { Running: false } }),
-        start: jest.fn().mockRejectedValue(new Error('Container corrupted')),
-        remove: jest.fn().mockResolvedValue({}),
+        inspect: vi.fn().mockResolvedValue({ State: { Running: false } }),
+        start: vi.fn().mockRejectedValue(new Error('Container corrupted')),
+        remove: vi.fn().mockResolvedValue({}),
       };
 
       const newContainer = {
         id: 'new-container-id',
-        inspect: jest.fn().mockResolvedValue({ State: { Running: true } }),
-        start: jest.fn().mockResolvedValue({}),
+        inspect: vi.fn().mockResolvedValue({ State: { Running: true } }),
+        start: vi.fn().mockResolvedValue({}),
       };
 
       mockDocker.getContainer.mockReturnValueOnce(existingContainer);
@@ -937,15 +938,15 @@ describe('DockerContainerManagerService', () => {
 
       const existingContainer = {
         id: 'existing-id',
-        inspect: jest.fn().mockResolvedValue({ State: { Running: false } }),
-        start: jest.fn().mockRejectedValue(new Error('Container corrupted')),
-        remove: jest.fn().mockRejectedValue(new Error('Remove failed')),
+        inspect: vi.fn().mockResolvedValue({ State: { Running: false } }),
+        start: vi.fn().mockRejectedValue(new Error('Container corrupted')),
+        remove: vi.fn().mockRejectedValue(new Error('Remove failed')),
       };
 
       const newContainer = {
         id: 'new-container-id',
-        inspect: jest.fn().mockResolvedValue({ State: { Running: true } }),
-        start: jest.fn().mockResolvedValue({}),
+        inspect: vi.fn().mockResolvedValue({ State: { Running: true } }),
+        start: vi.fn().mockResolvedValue({}),
       };
 
       mockDocker.getContainer.mockReturnValueOnce(existingContainer);
@@ -977,8 +978,8 @@ describe('DockerContainerManagerService', () => {
       // Set up for new container creation
       const newContainer = {
         id: 'new-container-id',
-        inspect: jest.fn().mockResolvedValue({ State: { Running: true } }),
-        start: jest.fn().mockResolvedValue({}),
+        inspect: vi.fn().mockResolvedValue({ State: { Running: true } }),
+        start: vi.fn().mockResolvedValue({}),
       };
       mockDocker.createContainer.mockResolvedValue(newContainer);
 
@@ -1001,7 +1002,7 @@ describe('DockerContainerManagerService', () => {
       const mockStream = new PassThrough() as PassThrough & {
         destroy: () => void;
       };
-      mockStream.destroy = jest.fn();
+      mockStream.destroy = vi.fn();
       mockExec.start.mockResolvedValue(mockStream);
       mockExec.inspect.mockResolvedValue({ ExitCode: 0 });
       mockDocker.modem.demuxStream.mockImplementation(() => {});
@@ -1026,7 +1027,7 @@ describe('DockerContainerManagerService', () => {
       const mockStream = new PassThrough() as PassThrough & {
         destroy: () => void;
       };
-      mockStream.destroy = jest.fn();
+      mockStream.destroy = vi.fn();
       mockExec.start.mockResolvedValue(mockStream);
       mockExec.inspect.mockResolvedValue({ ExitCode: 0 });
       mockDocker.modem.demuxStream.mockImplementation(() => {});

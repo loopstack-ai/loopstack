@@ -1,2 +1,2 @@
-export * from './claude-web-search.tool';
-export * from './claude-web-search-server.tool';
+export * from './claude-web-search.tool.js';
+export * from './claude-web-search-server.tool.js';

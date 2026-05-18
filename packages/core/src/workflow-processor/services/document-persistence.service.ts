@@ -1,13 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { merge } from 'lodash';
+import lodash from 'lodash';
 import { randomUUID } from 'node:crypto';
 import { Repository } from 'typeorm';
 import { ZodError, toJSONSchema } from 'zod';
 import { DocumentEntity, DocumentSaveOptions, getBlockConfig, getDocumentSchema } from '@loopstack/common';
 import { DocumentConfigType } from '@loopstack/contracts/types';
-import { SchemaValidationError } from '../../common';
-import { ExecutionScope, WorkflowExecutionContextManager } from '../utils';
+import { SchemaValidationError } from '../../common/index.js';
+import { ExecutionScope, WorkflowExecutionContextManager } from '../utils/index.js';
+
+const { merge } = lodash;
 
 @Injectable()
 export class DocumentPersistenceService {

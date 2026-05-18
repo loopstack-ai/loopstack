@@ -2,7 +2,7 @@ import { BaseWorkflow, Final, Initial, InjectTool, MessageDocument, Workflow } f
 import { GlobTool, ReadTool } from '@loopstack/remote-client';
 
 @Workflow({
-  uiConfig: __dirname + '/remote-file-explorer-example.ui.yaml',
+  uiConfig: import.meta.dirname + '/remote-file-explorer-example.ui.yaml',
 })
 export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow {
   @InjectTool() glob: GlobTool;

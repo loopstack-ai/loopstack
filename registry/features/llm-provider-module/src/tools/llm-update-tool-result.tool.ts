@@ -1,8 +1,8 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { LlmDelegateService } from '../services/llm-delegate.service';
-import type { LlmDelegateResult } from '../types';
+import { LlmDelegateService } from '../services/llm-delegate.service.js';
+import type { LlmDelegateResult } from '../types/index.js';
 
 export const LlmUpdateToolResultToolSchema = z.object({
   delegateResult: z.object({

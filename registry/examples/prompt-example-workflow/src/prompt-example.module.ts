@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { PromptWorkflow } from './prompt.workflow';
+import { PromptWorkflow } from './prompt.workflow.js';
 
 @Module({
   imports: [ClaudeModule],

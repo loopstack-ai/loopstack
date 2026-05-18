@@ -3,11 +3,11 @@ import { toJSONSchema } from 'zod';
 import { BaseWorkflow, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
-import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
-import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document';
+import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document.js';
+import { OptimizedMeetingNotesDocumentSchema, OptimizedNotesDocument } from './documents/optimized-notes-document.js';
 
 @Workflow({
-  uiConfig: __dirname + '/meeting-notes.ui.yaml',
+  uiConfig: import.meta.dirname + '/meeting-notes.ui.yaml',
   schema: z.object({
     inputText: z
       .string()
@@ -42,7 +42,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }> {
   async optimizeNotes() {
     const result = await this.llmGenerateObject.call({
       outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
-      prompt: this.render(__dirname + '/templates/extract-notes.md', { text: this.meetingNotes?.text }),
+      prompt: this.render(import.meta.dirname + '/templates/extract-notes.md', { text: this.meetingNotes?.text }),
     });
 
     const objectResult = result.data as LlmGenerateObjectResult;

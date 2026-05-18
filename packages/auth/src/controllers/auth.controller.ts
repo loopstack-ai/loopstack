@@ -1,13 +1,13 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { CurrentUser, CurrentUserInterface, Public, User } from '@loopstack/common';
-import { AuthResponseDto } from '../dtos/auth-response.dto';
-import { HubLoginRequestDto } from '../dtos/hub-login-request.dto';
-import { HubLoginResponseDto } from '../dtos/hub-login-response.dto';
-import { UserResponseDto } from '../dtos/user-response.dto';
-import { WorkerInfoDto } from '../dtos/worker-info.dto';
-import { HubAuthGuard } from '../guards/hub-auth.guard';
-import { AuthService, TokenService } from '../services';
+import { AuthResponseDto } from '../dtos/auth-response.dto.js';
+import { HubLoginRequestDto } from '../dtos/hub-login-request.dto.js';
+import { HubLoginResponseDto } from '../dtos/hub-login-response.dto.js';
+import { UserResponseDto } from '../dtos/user-response.dto.js';
+import { WorkerInfoDto } from '../dtos/worker-info.dto.js';
+import { HubAuthGuard } from '../guards/hub-auth.guard.js';
+import { AuthService, TokenService } from '../services/index.js';
 
 @Controller('api/v1/auth')
 export class AuthController {

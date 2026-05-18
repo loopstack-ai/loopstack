@@ -1,5 +1,6 @@
+import { beforeEach, describe, expect, it } from 'vitest';
 import { RunContext, ToolExecutionContext, ToolResult } from '@loopstack/common';
-import { AiGenerateTextQuotaCalculator } from '../ai-generate-text-quota.calculator';
+import { AiGenerateTextQuotaCalculator } from '../ai-generate-text-quota.calculator.js';
 
 describe('AiGenerateTextQuotaCalculator', () => {
   let calculator: AiGenerateTextQuotaCalculator;

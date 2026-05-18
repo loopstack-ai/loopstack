@@ -1,1 +1,1 @@
-export * from './llm-message.document';
+export * from './llm-message.document.js';

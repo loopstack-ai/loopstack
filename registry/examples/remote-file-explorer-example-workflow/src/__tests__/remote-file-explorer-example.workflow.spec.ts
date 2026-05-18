@@ -1,8 +1,9 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { GlobTool, ReadTool } from '@loopstack/remote-client';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { RemoteFileExplorerExampleWorkflow } from '../remote-file-explorer-example.workflow';
+import { RemoteFileExplorerExampleWorkflow } from '../remote-file-explorer-example.workflow.js';
 
 describe('RemoteFileExplorerExampleWorkflow', () => {
   let module: TestingModule;

@@ -1,7 +1,7 @@
 import { QueryRunner } from 'typeorm';
 import { BlockInterface, RunContext, WorkflowInterface, WorkflowMetadataInterface } from '@loopstack/common';
-import { StateManager } from './state/state-manager';
-import { wrapBlockProxy } from './wrap-block-proxy';
+import { StateManager } from './state/state-manager.js';
+import { wrapBlockProxy } from './wrap-block-proxy.js';
 
 export type WorkflowExecutionContextManager = ExecutionContextManager<
   Record<string, unknown> | undefined,

@@ -1,2 +1,2 @@
-export * from './github-agent.workflow';
-export * from './github-repos-overview.workflow';
+export * from './github-agent.workflow.js';
+export * from './github-repos-overview.workflow.js';

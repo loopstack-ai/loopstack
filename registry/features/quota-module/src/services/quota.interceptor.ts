@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { ToolExecutionContext, ToolInterceptor, ToolResult, UseToolInterceptor } from '@loopstack/common';
-import { ProcessingTimeQuotaCalculator } from '../calculators';
-import { QuotaCalculatorRegistry } from './quota-calculator-registry.service';
-import { QuotaClientService } from './quota-client.service';
+import { ProcessingTimeQuotaCalculator } from '../calculators/index.js';
+import { QuotaCalculatorRegistry } from './quota-calculator-registry.service.js';
+import { QuotaClientService } from './quota-client.service.js';
 
 @UseToolInterceptor({ priority: 50 })
 export class QuotaInterceptor implements ToolInterceptor {

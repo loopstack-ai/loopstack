@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { AssignmentConfigSchema, AssignmentSchema } from './assignment.schema';
-import { TemplateExpression } from './template-expression.schema';
-import { ToolCallConfigSchema, ToolCallSchema } from './tool-call.schema';
+import { AssignmentConfigSchema, AssignmentSchema } from './assignment.schema.js';
+import { TemplateExpression } from './template-expression.schema.js';
+import { ToolCallConfigSchema, ToolCallSchema } from './tool-call.schema.js';
 
 export const WorkflowTransitionConfigSchema = z
   .object({

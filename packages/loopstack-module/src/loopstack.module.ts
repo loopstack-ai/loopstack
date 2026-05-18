@@ -6,7 +6,7 @@ import { LoopstackApiModule } from '@loopstack/api';
 import { AuthConfig } from '@loopstack/auth';
 import { CliModule } from '@loopstack/cli-module';
 import { AppConfig, LoopCoreModule } from '@loopstack/core';
-import { LoopstackModuleOptions } from './interfaces';
+import { LoopstackModuleOptions } from './interfaces/index.js';
 
 @Module({})
 export class LoopstackModule {

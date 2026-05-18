@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BlockSchema } from './block.schema';
-import { EnvironmentConfigSchema } from './environment-config.schema';
+import { BlockSchema } from './block.schema.js';
+import { EnvironmentConfigSchema } from './environment-config.schema.js';
 
 const FeaturesSchema = z.object({
   sidebar: z

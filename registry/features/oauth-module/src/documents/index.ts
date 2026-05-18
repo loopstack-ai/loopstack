@@ -1,1 +1,1 @@
-export * from './oauth-prompt.document';
+export * from './oauth-prompt.document.js';

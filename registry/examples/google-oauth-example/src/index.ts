@@ -1,3 +1,3 @@
-export * from './google-example.module';
-export * from './tools';
-export * from './workflows';
+export * from './google-example.module.js';
+export * from './tools/index.js';
+export * from './workflows/index.js';

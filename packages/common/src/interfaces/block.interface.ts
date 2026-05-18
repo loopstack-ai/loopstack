@@ -1,5 +1,5 @@
-import { DocumentRepository } from './document-repository.interface';
-import { ToolResult } from './handler.interface';
+import { DocumentRepository } from './document-repository.interface.js';
+import { ToolResult } from './handler.interface.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface BlockInterface {}

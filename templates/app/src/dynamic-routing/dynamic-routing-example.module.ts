@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { DynamicRoutingExampleWorkflow } from './dynamic-routing-example.workflow';
+import { DynamicRoutingExampleWorkflow } from './dynamic-routing-example.workflow.js';
 
 @Module({
   providers: [DynamicRoutingExampleWorkflow],

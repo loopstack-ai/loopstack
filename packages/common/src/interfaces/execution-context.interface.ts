@@ -1,6 +1,6 @@
-import { RunContext } from '../dtos';
-import { WorkflowInterface, WorkspaceInterface } from './block.interface';
-import { WorkflowMetadataInterface } from './workflow-metadata.interface';
+import { RunContext } from '../dtos/index.js';
+import { WorkflowInterface, WorkspaceInterface } from './block.interface.js';
+import { WorkflowMetadataInterface } from './workflow-metadata.interface.js';
 
 /**
  * Unified execution context available on both tools and workflows via `this.ctx`.

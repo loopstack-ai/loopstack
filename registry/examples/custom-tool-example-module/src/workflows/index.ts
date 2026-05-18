@@ -1,1 +1,1 @@
-export * from './custom-tool-example.workflow';
+export * from './custom-tool-example.workflow.js';

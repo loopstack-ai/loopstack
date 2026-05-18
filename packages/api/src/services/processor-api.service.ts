@@ -3,8 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { WORKFLOW_ORCHESTRATOR, WorkflowOrchestrator, WorkflowState } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { TaskSchedulerService } from '@loopstack/core';
-import { RunWorkflowPayloadDto } from '../dtos/run-workflow-payload.dto';
-import { WorkflowApiService } from './workflow-api.service';
+import { RunWorkflowPayloadDto } from '../dtos/run-workflow-payload.dto.js';
+import { WorkflowApiService } from './workflow-api.service.js';
 
 @Injectable()
 export class ProcessorApiService {

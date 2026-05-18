@@ -4,7 +4,7 @@ import { GitAddTool, GitCommitTool, GitLogTool, GitStatusTool } from '@loopstack
 const COMMIT_MESSAGE = 'chore: example commit from git-commit-flow workflow';
 
 @Workflow({
-  uiConfig: __dirname + '/git-commit-flow-example.ui.yaml',
+  uiConfig: import.meta.dirname + '/git-commit-flow-example.ui.yaml',
 })
 export class GitCommitFlowExampleWorkflow extends BaseWorkflow {
   @InjectTool() gitStatus: GitStatusTool;

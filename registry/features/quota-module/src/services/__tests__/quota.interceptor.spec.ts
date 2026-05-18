@@ -1,7 +1,8 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RunContext, ToolExecutionContext, ToolResult } from '@loopstack/common';
-import { QuotaCalculatorRegistry } from '../quota-calculator-registry.service';
-import { QuotaClientService } from '../quota-client.service';
-import { QuotaInterceptor } from '../quota.interceptor';
+import { QuotaCalculatorRegistry } from '../quota-calculator-registry.service.js';
+import { QuotaClientService } from '../quota-client.service.js';
+import { QuotaInterceptor } from '../quota.interceptor.js';
 
 class FakeTool {
   constructor(public readonly name: string) {
@@ -21,15 +22,15 @@ function createContext(toolName: string, overrides?: Partial<ToolExecutionContex
 
 describe('QuotaInterceptor', () => {
   let interceptor: QuotaInterceptor;
-  let quotaClientService: jest.Mocked<QuotaClientService>;
+  let quotaClientService: Mocked<QuotaClientService>;
   let registry: QuotaCalculatorRegistry;
 
-  const noopNext = jest.fn().mockResolvedValue({ data: {} } as ToolResult);
+  const noopNext = vi.fn().mockResolvedValue({ data: {} } as ToolResult);
 
   beforeEach(() => {
     quotaClientService = {
-      checkQuota: jest.fn().mockResolvedValue({ exceeded: false, used: 0, limit: -1 }),
-      report: jest.fn().mockResolvedValue(undefined),
+      checkQuota: vi.fn().mockResolvedValue({ exceeded: false, used: 0, limit: -1 }),
+      report: vi.fn().mockResolvedValue(undefined),
     } as any;
 
     registry = new QuotaCalculatorRegistry();
@@ -60,7 +61,7 @@ describe('QuotaInterceptor', () => {
     it('should check both processing time and tool-specific quota', async () => {
       registry.register('AiGenerateText', {
         quotaType: 'llm-cost',
-        calculateQuotaUsage: jest.fn(),
+        calculateQuotaUsage: vi.fn(),
       });
       const context = createContext('AiGenerateText');
 
@@ -74,7 +75,7 @@ describe('QuotaInterceptor', () => {
     it('should throw when tool-specific quota is exceeded', async () => {
       registry.register('AiGenerateText', {
         quotaType: 'llm-cost',
-        calculateQuotaUsage: jest.fn(),
+        calculateQuotaUsage: vi.fn(),
       });
       quotaClientService.checkQuota
         .mockResolvedValueOnce({ exceeded: false, used: 0, limit: -1 }) // processing time OK
@@ -90,7 +91,7 @@ describe('QuotaInterceptor', () => {
     it('should not throw when all quotas are within limits', async () => {
       registry.register('AiGenerateText', {
         quotaType: 'llm-cost',
-        calculateQuotaUsage: jest.fn(),
+        calculateQuotaUsage: vi.fn(),
       });
       quotaClientService.checkQuota.mockResolvedValue({ exceeded: false, used: 500, limit: 1000 });
       const context = createContext('AiGenerateText');
@@ -119,7 +120,7 @@ describe('QuotaInterceptor', () => {
     it('should report tool-specific usage when calculator returns usage', async () => {
       registry.register('AiGenerateText', {
         quotaType: 'llm-cost',
-        calculateQuotaUsage: jest.fn().mockReturnValue({ quotaType: 'llm-cost', actualAmount: 500 }),
+        calculateQuotaUsage: vi.fn().mockReturnValue({ quotaType: 'llm-cost', actualAmount: 500 }),
       });
       const context = createContext('AiGenerateText', { metadata: { durationMs: 1000 } });
 
@@ -133,7 +134,7 @@ describe('QuotaInterceptor', () => {
     it('should not report tool-specific usage when calculator returns null', async () => {
       registry.register('AiGenerateText', {
         quotaType: 'llm-cost',
-        calculateQuotaUsage: jest.fn().mockReturnValue(null),
+        calculateQuotaUsage: vi.fn().mockReturnValue(null),
       });
       const context = createContext('AiGenerateText', { metadata: { durationMs: 100 } });
 

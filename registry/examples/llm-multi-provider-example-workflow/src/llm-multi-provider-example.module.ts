@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { OpenAiModule } from '@loopstack/openai-module';
-import { LlmMultiProviderWorkflow } from './llm-multi-provider.workflow';
+import { LlmMultiProviderWorkflow } from './llm-multi-provider.workflow.js';
 
 @Module({
   imports: [ClaudeModule, OpenAiModule],

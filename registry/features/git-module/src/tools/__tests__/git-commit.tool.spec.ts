@@ -1,22 +1,23 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBlockArgsSchema } from '@loopstack/common';
 import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
 import { createToolTest } from '@loopstack/testing';
-import { GitCommitTool } from '../git-commit.tool';
+import { GitCommitTool } from '../git-commit.tool.js';
 
 describe('GitCommitTool', () => {
   let module: TestingModule;
   let tool: GitCommitTool;
 
   const mockRemoteClient = {
-    gitCommit: jest.fn(),
+    gitCommit: vi.fn(),
   };
   const mockSandbox = {
-    getAgentUrl: jest.fn().mockReturnValue('https://agent.example'),
+    getAgentUrl: vi.fn().mockReturnValue('https://agent.example'),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     module = await createToolTest()
       .forTool(GitCommitTool)

@@ -1,1 +1,1 @@
-export * from './webfetch.types';
+export * from './webfetch.types.js';

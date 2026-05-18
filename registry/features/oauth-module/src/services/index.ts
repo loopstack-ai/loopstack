@@ -1,2 +1,2 @@
-export * from './oauth-provider-registry';
-export * from './oauth-token-store';
+export * from './oauth-provider-registry.js';
+export * from './oauth-token-store.js';

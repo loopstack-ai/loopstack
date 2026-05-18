@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
 import { RemoteClientModule } from '@loopstack/remote-client';
-import { RemoteFileExplorerController } from './controllers';
+import { RemoteFileExplorerController } from './controllers/index.js';
 
 @Module({
   imports: [RemoteClientModule, TypeOrmModule.forFeature([WorkspaceEntity])],

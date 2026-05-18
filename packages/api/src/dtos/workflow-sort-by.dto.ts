@@ -1,7 +1,7 @@
 import { IsEnum, IsIn } from 'class-validator';
 import { WorkflowEntity } from '@loopstack/common';
 import { SortOrder } from '@loopstack/contracts/enums';
-import { getEntityColumns } from '../utils/get-entity-columns.util';
+import { getEntityColumns } from '../utils/get-entity-columns.util.js';
 
 const sortFields = getEntityColumns(WorkflowEntity);
 

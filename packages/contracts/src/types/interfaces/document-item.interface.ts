@@ -1,5 +1,5 @@
-import { JSONSchemaConfigType } from '../types/json-schema-config.type';
-import { UiFormType } from '../types/ui-form.type';
+import { JSONSchemaConfigType } from '../types/json-schema-config.type.js';
+import { UiFormType } from '../types/ui-form.type.js';
 
 export interface DocumentItemInterface {
   id: string;

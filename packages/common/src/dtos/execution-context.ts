@@ -1,5 +1,5 @@
 import { WorkflowTransitionType } from '@loopstack/contracts/types';
-import { WorkflowTransitionDto } from './workflow-transition.dto';
+import { WorkflowTransitionDto } from './workflow-transition.dto.js';
 
 export class ExecutionContext {
   error!: boolean;

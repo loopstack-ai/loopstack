@@ -1,1 +1,1 @@
-export { ExploreTask } from './explore-task.tool';
+export { ExploreTask } from './explore-task.tool.js';

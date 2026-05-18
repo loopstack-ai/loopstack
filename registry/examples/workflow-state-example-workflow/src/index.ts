@@ -1,2 +1,2 @@
-export * from './workflow-state-example.module';
-export * from './workflow-state.workflow';
+export * from './workflow-state-example.module.js';
+export * from './workflow-state.workflow.js';

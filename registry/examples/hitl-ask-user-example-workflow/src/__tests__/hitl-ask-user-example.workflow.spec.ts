@@ -1,9 +1,10 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { AskUserWorkflow } from '@loopstack/hitl';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { HitlAskUserExampleWorkflow } from '../hitl-ask-user-example.workflow';
+import { HitlAskUserExampleWorkflow } from '../hitl-ask-user-example.workflow.js';
 
 describe('HitlAskUserExampleWorkflow', () => {
   let module: TestingModule;
@@ -11,11 +12,11 @@ describe('HitlAskUserExampleWorkflow', () => {
   let processor: WorkflowProcessorService;
 
   const mockAskUser = {
-    run: jest.fn(),
+    run: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     module = await createWorkflowTest()
       .forWorkflow(HitlAskUserExampleWorkflow)

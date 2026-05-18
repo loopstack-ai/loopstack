@@ -1,4 +1,4 @@
-import { UserTypeEnum } from '../enums';
+import { UserTypeEnum } from '../enums/index.js';
 
 export interface CurrentUserInterface {
   userId: string;

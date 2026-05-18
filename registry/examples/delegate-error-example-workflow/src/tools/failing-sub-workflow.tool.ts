@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, InjectWorkflow, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import { FailingWorkflow } from '../workflows/failing.workflow';
+import { FailingWorkflow } from '../workflows/failing.workflow.js';
 
 @Tool({
   uiConfig: {

@@ -1,1 +1,1 @@
-export * from './client-message.service';
+export * from './client-message.service.js';

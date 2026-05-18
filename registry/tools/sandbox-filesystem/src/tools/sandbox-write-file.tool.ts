@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import * as path from 'path';
+import * as path from 'node:path';
 import { z } from 'zod';
 import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';

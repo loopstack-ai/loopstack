@@ -1,1 +1,1 @@
-export { EnvironmentController } from './environment.controller';
+export { EnvironmentController } from './environment.controller.js';

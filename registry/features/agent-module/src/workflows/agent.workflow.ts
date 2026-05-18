@@ -7,7 +7,7 @@ import {
   LlmMessageDocument,
   LlmUpdateToolResultTool,
 } from '@loopstack/llm-provider-module';
-import type { AgentRunResult } from '../types';
+import type { AgentRunResult } from '../types/index.js';
 
 /**
  * Generic LLM agent workflow.
@@ -37,7 +37,7 @@ type AgentArgs = z.infer<typeof AgentArgsSchema>;
 type AgentConfig = z.infer<typeof AgentConfigSchema>;
 
 @Workflow({
-  uiConfig: __dirname + '/agent.ui.yaml',
+  uiConfig: import.meta.dirname + '/agent.ui.yaml',
   schema: AgentArgsSchema,
   configSchema: AgentConfigSchema,
 })

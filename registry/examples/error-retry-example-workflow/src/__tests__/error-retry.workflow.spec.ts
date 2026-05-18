@@ -1,11 +1,12 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { ErrorRetryWorkflow } from '../error-retry.workflow';
-import { SlowTool } from '../tools/slow.tool';
-import { Step1Tool } from '../tools/step1.tool';
-import { Step2Tool } from '../tools/step2.tool';
+import { ErrorRetryWorkflow } from '../error-retry.workflow.js';
+import { SlowTool } from '../tools/slow.tool.js';
+import { Step1Tool } from '../tools/step1.tool.js';
+import { Step2Tool } from '../tools/step2.tool.js';
 
 describe('ErrorRetryWorkflow', () => {
   let module: TestingModule;

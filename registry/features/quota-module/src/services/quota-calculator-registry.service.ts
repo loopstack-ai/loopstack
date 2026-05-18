@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ToolQuotaCalculator } from '../interfaces/tool-quota-calculator.interface';
+import { ToolQuotaCalculator } from '../interfaces/tool-quota-calculator.interface.js';
 
 @Injectable()
 export class QuotaCalculatorRegistry {

@@ -4,7 +4,7 @@ import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provid
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
-  uiConfig: __dirname + '/prompt.ui.yaml',
+  uiConfig: import.meta.dirname + '/prompt.ui.yaml',
   schema: z.object({
     subject: z.string().default('coffee'),
   }),
@@ -19,7 +19,7 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }> {
   @Initial({ to: 'prompt_executed' })
   async prompt(args: { subject: string }) {
     const result = await this.llmGenerateText.call({
-      prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
+      prompt: this.render(import.meta.dirname + '/templates/prompt.md', { subject: args.subject }),
     });
     this.llmResult = result.data;
     this.llmMeta = result.metadata;

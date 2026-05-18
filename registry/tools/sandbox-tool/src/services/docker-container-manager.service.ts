@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy, Optional } from '@nestjs/common';
 import Docker from 'dockerode';
-import * as path from 'path';
-import { PassThrough } from 'stream';
+import * as path from 'node:path';
+import { PassThrough } from 'node:stream';
 
 export const DOCKER_CLIENT = Symbol('DOCKER_CLIENT');
 

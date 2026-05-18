@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { parse } from 'yaml';
 import { BlockConfigType, type ConfigSourceInterface } from '@loopstack/contracts/types';
-import { BlockOptions } from '../decorators';
+import { BlockOptions } from '../decorators/index.js';
 
 export function buildConfig(options: BlockOptions, type?: string): BlockConfigType {
   let baseConfig: Partial<BlockConfigType> = {};

@@ -5,7 +5,7 @@ import {
   SseConnectionInfo,
   SystemHealth,
   SystemStats,
-} from '../services/admin-system-api.service';
+} from '../services/admin-system-api.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Roles(RoleName.ADMIN)

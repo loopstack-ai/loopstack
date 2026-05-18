@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
-import { ConfirmUserDocument } from '../../documents/confirm-user-document';
+import { ConfirmUserDocument } from '../../documents/confirm-user-document.js';
 
 @Workflow({
-  uiConfig: __dirname + '/confirm-user.ui.yaml',
+  uiConfig: import.meta.dirname + '/confirm-user.ui.yaml',
   schema: z.object({
     markdown: z.string(),
   }),

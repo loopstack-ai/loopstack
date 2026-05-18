@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { AsyncLocalStorage } from 'async_hooks';
-import { WorkflowExecutionContextManager } from './execution-context-manager';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { WorkflowExecutionContextManager } from './execution-context-manager.js';
 
 /**
  * Holds the current ExecutionContextManager for the duration of a transition.

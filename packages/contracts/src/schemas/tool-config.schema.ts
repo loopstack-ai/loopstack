@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BlockSchema } from './block.schema';
-import { UiFormSchema } from './ui-form.schema';
+import { BlockSchema } from './block.schema.js';
+import { UiFormSchema } from './ui-form.schema.js';
 
 export const ToolConfigSchema = BlockSchema.extend({
   type: z.literal('tool').default('tool'),

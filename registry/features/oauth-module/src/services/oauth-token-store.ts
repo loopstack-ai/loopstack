@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import Redis from 'ioredis';
-import type { OAuthTokenSet } from '../contracts';
-import { OAuthProviderRegistry } from './oauth-provider-registry';
+import { Redis } from 'ioredis';
+import type { OAuthTokenSet } from '../contracts/index.js';
+import { OAuthProviderRegistry } from './oauth-provider-registry.js';
 
 export interface StoredTokens {
   accessToken: string;

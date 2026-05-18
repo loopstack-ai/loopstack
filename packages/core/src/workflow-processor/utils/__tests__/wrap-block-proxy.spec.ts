@@ -1,8 +1,9 @@
 import { Inject } from '@nestjs/common';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DOCUMENT_REPOSITORY, InjectTool, TEMPLATE_RENDERER, Workflow } from '@loopstack/common';
 import { RunContext } from '@loopstack/common';
-import { ExecutionContextManager } from '../execution-context-manager';
-import { StateManager } from '../state/state-manager';
+import { ExecutionContextManager } from '../execution-context-manager.js';
+import { StateManager } from '../state/state-manager.js';
 
 // Mock tool with _run
 class MockTool {
@@ -55,7 +56,7 @@ describe('wrapBlockProxy', () => {
     workflow = new TestWorkflow();
     workflow.mockTool = new MockTool();
     workflow.render = () => 'rendered';
-    workflow.repository = { save: jest.fn(), findAll: jest.fn() };
+    workflow.repository = { save: vi.fn(), findAll: vi.fn() };
   });
 
   describe('automatic state persistence', () => {

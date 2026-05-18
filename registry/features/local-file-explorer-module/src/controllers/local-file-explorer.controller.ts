@@ -1,9 +1,9 @@
 import { Controller, Get, NotFoundException, Param, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 import { WorkspaceService } from '@loopstack/core';
-import type { FileContentDto } from '../dtos/file-content.dto';
-import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto';
-import { FileApiService } from '../services/file-api.service';
+import type { FileContentDto } from '../dtos/file-content.dto.js';
+import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto.js';
+import { FileApiService } from '../services/file-api.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces/:workspaceId/files')

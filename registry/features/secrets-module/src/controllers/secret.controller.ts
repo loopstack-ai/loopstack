@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 import { WorkspaceService } from '@loopstack/core';
-import { SecretService } from '../services';
+import { SecretService } from '../services/index.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces/:workspaceId/secrets')

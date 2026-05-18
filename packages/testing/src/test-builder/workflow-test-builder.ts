@@ -1,10 +1,11 @@
 import { DynamicModule, ForwardReference, Provider, Type } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
+import { type Mock, vi } from 'vitest';
 import { RunContext, User, WorkflowEntity, WorkflowState } from '@loopstack/common';
-import { WorkflowService } from '@loopstack/core';
-import { mockCoreModuleProviders } from './core-module-mock';
-import { createTestingModule } from './create-testing-module';
-import { createToolMock } from './tool-test-builder';
+import { LoopCoreModule, WorkflowService } from '@loopstack/core';
+import { mockCoreModuleProviders } from './core-module-mock.js';
+import { createTestingModule } from './create-testing-module.js';
+import { createToolMock } from './tool-test-builder.js';
 
 type ModuleImport = Type | DynamicModule | Promise<DynamicModule> | ForwardReference;
 
@@ -37,9 +38,9 @@ export const DEFAULT_WORKFLOW_ENTITY: Partial<WorkflowEntity> = {
  * Mock for WorkflowService
  */
 export interface WorkflowServiceMock {
-  save: jest.Mock;
-  create: jest.Mock;
-  findOneByQuery: jest.Mock;
+  save: Mock;
+  create: Mock;
+  findOneByQuery: Mock;
 }
 
 /**
@@ -47,8 +48,8 @@ export interface WorkflowServiceMock {
  */
 export function createWorkflowServiceMock(mockEntity = {}): WorkflowServiceMock {
   return {
-    save: jest.fn(),
-    create: jest.fn().mockImplementation((input) =>
+    save: vi.fn(),
+    create: vi.fn().mockImplementation((input) =>
       Promise.resolve({
         ...DEFAULT_WORKFLOW_ENTITY,
         ...input,
@@ -56,7 +57,7 @@ export function createWorkflowServiceMock(mockEntity = {}): WorkflowServiceMock 
         ...mockEntity,
       }),
     ),
-    findOneByQuery: jest.fn().mockResolvedValue(undefined),
+    findOneByQuery: vi.fn().mockResolvedValue(undefined),
   };
 }
 
@@ -178,11 +179,11 @@ export class WorkflowTestBuilder<TWorkflow = unknown> {
    */
   async compile(): Promise<TestingModule> {
     let builder = createTestingModule({
-      imports: this.imports,
+      imports: [LoopCoreModule.forTesting(), ...this.imports],
       providers: this.providers,
     });
 
-    // Apply core overrides
+    // Apply core overrides (TypeORM repos + BullMQ queue)
     builder = mockCoreModuleProviders(builder);
 
     // Apply WorkflowService override

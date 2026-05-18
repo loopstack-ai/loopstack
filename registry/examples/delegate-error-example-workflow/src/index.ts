@@ -1,2 +1,2 @@
-export * from './delegate-error-example.module';
-export * from './delegate-error.workflow';
+export * from './delegate-error-example.module.js';
+export * from './delegate-error.workflow.js';

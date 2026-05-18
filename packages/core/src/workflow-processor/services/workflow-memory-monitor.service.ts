@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DocumentEntity, WorkflowEntity } from '@loopstack/common';
-import { WorkflowExecutionContextManager } from '../utils/execution-context-manager';
+import { WorkflowExecutionContextManager } from '../utils/execution-context-manager.js';
 
 export interface MemorySnapshot {
   heapUsedMB: number;

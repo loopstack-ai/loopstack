@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
-import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
+import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper.js';
 import { BLOCK_TYPE_METADATA_KEY, WorkflowInterface, WorkspaceInterface, getBlockWorkflow } from '@loopstack/common';
 
 @Injectable()

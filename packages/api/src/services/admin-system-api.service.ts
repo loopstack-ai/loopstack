@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { User, WorkflowEntity, WorkflowState, WorkspaceEntity } from '@loopstack/common';
-import { SseEventService } from './sse-event.service';
+import { SseEventService } from './sse-event.service.js';
 
 export interface SystemHealth {
   status: 'healthy' | 'unhealthy';

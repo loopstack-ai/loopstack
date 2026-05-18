@@ -1,2 +1,2 @@
-export * from './loopstack.module';
-export * from './interfaces';
+export * from './loopstack.module.js';
+export * from './interfaces/index.js';

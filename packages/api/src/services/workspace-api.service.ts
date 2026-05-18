@@ -3,11 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { WorkspaceEntity, WorkspaceEnvironmentEntity } from '@loopstack/common';
-import { WorkspaceCreateDto } from '../dtos/workspace-create.dto';
-import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto';
-import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto';
-import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto';
-import { getEntityColumns } from '../utils/get-entity-columns.util';
+import { WorkspaceCreateDto } from '../dtos/workspace-create.dto.js';
+import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto.js';
+import { WorkspaceSortByDto } from '../dtos/workspace-sort-by.dto.js';
+import { WorkspaceUpdateDto } from '../dtos/workspace-update.dto.js';
+import { getEntityColumns } from '../utils/get-entity-columns.util.js';
 
 @Injectable()
 export class WorkspaceApiService {

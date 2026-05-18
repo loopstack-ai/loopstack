@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BlockConfigType } from '@loopstack/contracts/dist/types';
+import { BlockConfigType } from '@loopstack/contracts/types';
 import {
   BLOCK_CONFIG_METADATA_KEY,
   BLOCK_TYPE_METADATA_KEY,
@@ -15,7 +15,7 @@ import {
   PASS_THROUGH_METADATA_KEY,
   TRANSITIONS_METADATA_KEY,
   TransitionMetadata,
-} from '../decorators';
+} from '../decorators/index.js';
 import { buildConfig } from './block-config.builder.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type

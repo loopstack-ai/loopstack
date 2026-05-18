@@ -1,15 +1,15 @@
 import { z } from 'zod';
 import { BaseWorkflow, Final, Guard, Initial, Transition, Workflow } from '@loopstack/common';
-import { AskUserConfirmDocument } from '../../documents/ask-user-confirm-document';
-import { AskUserDocument } from '../../documents/ask-user-document';
-import { AskUserOptionsDocument } from '../../documents/ask-user-options-document';
+import { AskUserConfirmDocument } from '../../documents/ask-user-confirm-document.js';
+import { AskUserDocument } from '../../documents/ask-user-document.js';
+import { AskUserOptionsDocument } from '../../documents/ask-user-options-document.js';
 
 const AskUserAnswerSchema = z.object({
   answer: z.string(),
 });
 
 @Workflow({
-  uiConfig: __dirname + '/ask-user.ui.yaml',
+  uiConfig: import.meta.dirname + '/ask-user.ui.yaml',
   schema: z.object({
     question: z.string(),
     mode: z.enum(['text', 'options', 'confirm']).optional(),

@@ -16,14 +16,17 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
     "build": "nest build",
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
@@ -33,22 +36,14 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/dockerode": "^4.0.1"
+    "@types/dockerode": "^4.0.1",
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
   },
   "files": [
     "dist"
   ],
-  "jest": {
-    "testEnvironment": "node",
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "testTimeout": 10000,
-    "forceExit": true,
-    "maxWorkers": 1
-  },
   "loopstack": {
     "modules": [
       {
@@ -59,5 +54,6 @@
     "installModes": [
       "install"
     ]
-  }
+  },
+  "type": "module"
 }

@@ -7,7 +7,7 @@ import {
   LlmMessageDocument,
   LlmUpdateToolResultTool,
 } from '@loopstack/llm-provider-module';
-import { AgentFinishTool } from '../tools/agent-finish.tool';
+import { AgentFinishTool } from '../tools/agent-finish.tool.js';
 
 /**
  * Interactive LLM agent workflow with user chat.
@@ -45,7 +45,7 @@ type ChatAgentArgs = z.infer<typeof ChatAgentArgsSchema>;
 type ChatAgentConfig = z.infer<typeof ChatAgentConfigSchema>;
 
 @Workflow({
-  uiConfig: __dirname + '/chat-agent.ui.yaml',
+  uiConfig: import.meta.dirname + '/chat-agent.ui.yaml',
   schema: ChatAgentArgsSchema,
   configSchema: ChatAgentConfigSchema,
 })

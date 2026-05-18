@@ -1,4 +1,4 @@
-import { DynamicModule, Global, Module } from '@nestjs/common';
+import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DiscoveryModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -14,10 +14,11 @@ import {
   WorkspaceEntity,
   WorkspaceEnvironmentEntity,
 } from '@loopstack/common';
-import { ClientMessageService } from './common/services/client-message.service';
-import { WorkflowCheckpointService, WorkflowService, WorkspaceService } from './persistence/services';
-import type { RedisOptions } from './scheduler/interfaces/redis-options.interface';
-import { TaskQueueModule } from './scheduler/task-queue.module';
+import { ClientMessageService } from './common/services/client-message.service.js';
+import { WorkflowCheckpointService, WorkflowService, WorkspaceService } from './persistence/services/index.js';
+import type { RedisOptions } from './scheduler/interfaces/redis-options.interface.js';
+import { TaskSchedulerService } from './scheduler/services/task-scheduler.service.js';
+import { TaskQueueModule } from './scheduler/task-queue.module.js';
 import {
   BlockConfigCacheService,
   BlockDiscoveryService,
@@ -34,8 +35,8 @@ import {
   WorkflowOrchestrationService,
   WorkflowProcessorService,
   WorkflowStateService,
-} from './workflow-processor/services';
-import { ExecutionScope, TemplateRenderer } from './workflow-processor/utils';
+} from './workflow-processor/services/index.js';
+import { ExecutionScope, TemplateRenderer } from './workflow-processor/utils/index.js';
 
 export interface LoopCoreModuleOptions {
   connection?: string;
@@ -150,6 +151,17 @@ const EXPORTS = [
   TEMPLATE_RENDERER,
 ];
 
+const MOCK_TASK_SCHEDULER: Provider = {
+  provide: TaskSchedulerService,
+  useValue: {
+    addTask: async () => null,
+    removeTasksByWorkflowId: async () => 0,
+    clearAllTasks: async () => undefined,
+  },
+};
+
+const TESTING_EXPORTS = EXPORTS.filter((e) => e !== TaskQueueModule);
+
 @Global()
 @Module({})
 export class LoopCoreModule {
@@ -166,6 +178,16 @@ export class LoopCoreModule {
       ],
       providers: PROVIDERS,
       exports: EXPORTS,
+    };
+  }
+
+  static forTesting(): DynamicModule {
+    return {
+      module: LoopCoreModule,
+      global: true,
+      imports: [TypeOrmModule.forFeature(ENTITIES), ConfigModule, EventEmitterModule.forRoot(), DiscoveryModule],
+      providers: [...PROVIDERS, MOCK_TASK_SCHEDULER],
+      exports: [...TESTING_EXPORTS, TaskSchedulerService],
     };
   }
 }

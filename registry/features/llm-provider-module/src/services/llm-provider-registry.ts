@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { LlmProviderInterface } from '../contracts';
+import type { LlmProviderInterface } from '../contracts/index.js';
 
 @Injectable()
 export class LlmProviderRegistry {

@@ -32,7 +32,10 @@ export class GitController {
   }
 
   @Get('status')
-  async getStatus(@Param('workspaceId') workspaceId: string, @CurrentUser() user: CurrentUserInterface) {
+  async getStatus(
+    @Param('workspaceId') workspaceId: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<unknown> {
     const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
     return this.remoteAgentClient.gitStatus(agentUrl);
   }
@@ -42,20 +45,26 @@ export class GitController {
     @Param('workspaceId') workspaceId: string,
     @Query('limit') limit: string | undefined,
     @CurrentUser() user: CurrentUserInterface,
-  ) {
+  ): Promise<unknown> {
     const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
     return this.remoteAgentClient.gitLog(agentUrl, parsedLimit);
   }
 
   @Get('remote')
-  async getRemote(@Param('workspaceId') workspaceId: string, @CurrentUser() user: CurrentUserInterface) {
+  async getRemote(
+    @Param('workspaceId') workspaceId: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<unknown> {
     const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
     return this.remoteAgentClient.gitRemote(agentUrl);
   }
 
   @Get('branches')
-  async getBranches(@Param('workspaceId') workspaceId: string, @CurrentUser() user: CurrentUserInterface) {
+  async getBranches(
+    @Param('workspaceId') workspaceId: string,
+    @CurrentUser() user: CurrentUserInterface,
+  ): Promise<unknown> {
     const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
     return this.remoteAgentClient.gitBranches(agentUrl);
   }

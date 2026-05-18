@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseWorkflow, Final, Initial, InjectTool, ToolResult, Workflow } from '@loopstack/common';
-import { OAuthPromptDocument } from '../documents';
-import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools';
+import { OAuthPromptDocument } from '../documents/index.js';
+import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools/index.js';
 
 @Injectable()
 @Workflow({
-  uiConfig: __dirname + '/oauth.ui.yaml',
+  uiConfig: import.meta.dirname + '/oauth.ui.yaml',
   schema: z
     .object({
       provider: z.string(),

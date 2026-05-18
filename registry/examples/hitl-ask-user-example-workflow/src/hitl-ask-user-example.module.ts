@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HitlModule } from '@loopstack/hitl';
-import { HitlAskUserExampleWorkflow } from './hitl-ask-user-example.workflow';
+import { HitlAskUserExampleWorkflow } from './hitl-ask-user-example.workflow.js';
 
 @Module({
   imports: [HitlModule],

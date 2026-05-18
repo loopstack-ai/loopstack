@@ -1,2 +1,2 @@
-export * from './meeting-notes-example.module';
-export * from './meeting-notes.workflow';
+export * from './meeting-notes-example.module.js';
+export * from './meeting-notes.workflow.js';

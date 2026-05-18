@@ -1,9 +1,9 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { LlmDelegateService } from '../services/llm-delegate.service';
-import { LlmNormalizedMessageSchema } from '../types';
-import type { LlmContentBlock, LlmDelegateResult, LlmNormalizedMessage } from '../types';
+import { LlmDelegateService } from '../services/llm-delegate.service.js';
+import { LlmNormalizedMessageSchema } from '../types/index.js';
+import type { LlmContentBlock, LlmDelegateResult, LlmNormalizedMessage } from '../types/index.js';
 
 export const LlmDelegateToolCallsToolSchema = z.object({
   message: LlmNormalizedMessageSchema,

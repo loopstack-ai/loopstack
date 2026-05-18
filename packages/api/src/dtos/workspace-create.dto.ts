@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import type { WorkspaceCreateInterface } from '@loopstack/contracts/api';
-import { WorkspaceEnvironmentDto } from './workspace-environment.dto';
+import { WorkspaceEnvironmentDto } from './workspace-environment.dto.js';
 
 export class WorkspaceCreateDto implements WorkspaceCreateInterface {
   @IsOptional()

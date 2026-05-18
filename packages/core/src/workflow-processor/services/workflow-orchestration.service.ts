@@ -10,10 +10,10 @@ import {
   WorkflowState,
 } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
-import { WorkflowService } from '../../persistence/services/workflow.service';
-import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service';
-import { ExecutionScope } from '../utils';
-import { CreateWorkflowService } from './create-workflow.service';
+import { WorkflowService } from '../../persistence/services/workflow.service.js';
+import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
+import { ExecutionScope } from '../utils/index.js';
+import { CreateWorkflowService } from './create-workflow.service.js';
 
 /**
  * Handles sub-workflow orchestration for the TypeScript-first workflow model.

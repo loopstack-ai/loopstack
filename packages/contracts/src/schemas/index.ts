@@ -1,7 +1,7 @@
 export * from './document.schema.js';
 export * from './json-schema.schema.js';
 export * from './main.schema.js';
-export * from './tool-config.schema';
+export * from './tool-config.schema.js';
 export * from './workflow-transition.schema.js';
 export * from './workflow.schema.js';
 export * from './workspace.schema.js';
@@ -12,4 +12,4 @@ export * from './ui-form-element.schema.js';
 export * from './ui-properties-schema.js';
 export * from './startup.schema.js';
 export * from './transition-payload.schema.js';
-export * from './assignment.schema';
+export * from './assignment.schema.js';

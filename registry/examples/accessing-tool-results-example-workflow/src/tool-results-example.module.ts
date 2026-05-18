@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { WorkflowToolResultsWorkflow } from './workflow-tool-results.workflow';
+import { WorkflowToolResultsWorkflow } from './workflow-tool-results.workflow.js';
 
 @Module({
   providers: [WorkflowToolResultsWorkflow],

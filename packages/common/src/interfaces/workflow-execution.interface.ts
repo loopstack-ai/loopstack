@@ -1,5 +1,5 @@
-import { RunContext } from '../dtos';
-import { WorkflowEntity } from '../entities';
+import { RunContext } from '../dtos/index.js';
+import { WorkflowEntity } from '../entities/index.js';
 
 export interface WorkflowExecution {
   readonly context: RunContext;

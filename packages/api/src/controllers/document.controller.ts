@@ -1,12 +1,12 @@
 import { Controller, Get, Param, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { DocumentFilterDto } from '../dtos/document-filter.dto';
-import { DocumentItemDto } from '../dtos/document-item.dto';
-import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
-import { DocumentDto } from '../dtos/document.dto';
-import { PaginatedDto } from '../dtos/paginated.dto';
-import { ParseJsonPipe } from '../pipes/parse-json.pipe';
-import { DocumentApiService } from '../services/document-api.service';
+import { DocumentFilterDto } from '../dtos/document-filter.dto.js';
+import { DocumentItemDto } from '../dtos/document-item.dto.js';
+import { DocumentSortByDto } from '../dtos/document-sort-by.dto.js';
+import { DocumentDto } from '../dtos/document.dto.js';
+import { PaginatedDto } from '../dtos/paginated.dto.js';
+import { ParseJsonPipe } from '../pipes/parse-json.pipe.js';
+import { DocumentApiService } from '../services/document-api.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/documents')

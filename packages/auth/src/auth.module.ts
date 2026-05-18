@@ -6,13 +6,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import cookieParser from 'cookie-parser';
 import type { StringValue } from 'ms';
 import { Role, User } from '@loopstack/common';
-import { AssignRoleCommand } from './commands/assign-role.command';
-import { AuthController } from './controllers';
-import { JwtAuthGuard, RolesGuard } from './guards';
-import { UserRepository } from './repositories';
-import { AuthService, TokenService } from './services';
-import { ConfigValidationService } from './services/config-validation.service';
-import { HubStrategy, JwtStrategy } from './strategies';
+import { AssignRoleCommand } from './commands/assign-role.command.js';
+import { AuthController } from './controllers/index.js';
+import { JwtAuthGuard, RolesGuard } from './guards/index.js';
+import { UserRepository } from './repositories/index.js';
+import { ConfigValidationService } from './services/config-validation.service.js';
+import { AuthService, TokenService } from './services/index.js';
+import { HubStrategy, JwtStrategy } from './strategies/index.js';
 
 @Module({})
 export class AuthModule implements NestModule {

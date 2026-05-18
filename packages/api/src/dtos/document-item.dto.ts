@@ -1,8 +1,8 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { DocumentEntity } from '@loopstack/common';
 import type { DocumentItemInterface, JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
-import { DocumentContentDto } from './document-content.dto';
-import { DocumentMetaDto } from './document-meta.dto';
+import { DocumentContentDto } from './document-content.dto.js';
+import { DocumentMetaDto } from './document-meta.dto.js';
 
 /**
  * Data Transfer Object for Document Item entities

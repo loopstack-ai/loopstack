@@ -1,6 +1,6 @@
 import { Controller, Get, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { DashboardService, DashboardStats } from '../services/dashboard.service';
+import { DashboardService, DashboardStats } from '../services/dashboard.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/dashboard')

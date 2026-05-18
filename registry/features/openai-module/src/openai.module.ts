@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { LlmProviderModule } from '@loopstack/llm-provider-module';
-import { OpenAiClientService, OpenAiLlmProvider } from './services';
+import { OpenAiClientService, OpenAiLlmProvider } from './services/index.js';
 
 @Module({
   imports: [LlmProviderModule],

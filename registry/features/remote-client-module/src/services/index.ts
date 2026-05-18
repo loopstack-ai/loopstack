@@ -6,5 +6,5 @@ export {
   GlobResponse,
   GrepMatch,
   GrepResponse,
-} from './remote-client.service';
-export { SandboxEnvironmentService } from './sandbox-environment.service';
+} from './remote-client.service.js';
+export { SandboxEnvironmentService } from './sandbox-environment.service.js';

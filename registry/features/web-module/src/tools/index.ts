@@ -1,1 +1,1 @@
-export * from './web-fetch.tool';
+export * from './web-fetch.tool.js';

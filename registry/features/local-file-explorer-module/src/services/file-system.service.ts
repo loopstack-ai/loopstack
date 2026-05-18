@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs/promises';
-import * as path from 'path';
-import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto';
+import * as path from 'node:path';
+import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto.js';
 
 @Injectable()
 export class FileSystemService {

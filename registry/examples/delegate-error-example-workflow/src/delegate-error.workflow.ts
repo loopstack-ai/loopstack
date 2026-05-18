@@ -16,9 +16,9 @@ import {
   LlmMessageDocument,
   LlmUpdateToolResultTool,
 } from '@loopstack/llm-provider-module';
-import { FailingSubWorkflowTool } from './tools/failing-sub-workflow.tool';
-import { RuntimeErrorTool } from './tools/runtime-error.tool';
-import { StrictSchemaTool } from './tools/strict-schema.tool';
+import { FailingSubWorkflowTool } from './tools/failing-sub-workflow.tool.js';
+import { RuntimeErrorTool } from './tools/runtime-error.tool.js';
+import { StrictSchemaTool } from './tools/strict-schema.tool.js';
 
 /**
  * Demonstrates how tool errors (validation, runtime, and failed sub-workflows)
@@ -29,7 +29,7 @@ import { StrictSchemaTool } from './tools/strict-schema.tool';
  * and that the LLM agent loop handles them correctly.
  */
 @Workflow({
-  uiConfig: __dirname + '/delegate-error.ui.yaml',
+  uiConfig: import.meta.dirname + '/delegate-error.ui.yaml',
 })
 export class DelegateErrorWorkflow extends BaseWorkflow {
   @InjectTool({
@@ -76,7 +76,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
       {},
       {
         config: {
-          system: this.render(__dirname + '/templates/system.md'),
+          system: this.render(import.meta.dirname + '/templates/system.md'),
         },
       },
     );

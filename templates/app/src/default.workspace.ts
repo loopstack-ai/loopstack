@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectWorkflow, Workspace } from '@loopstack/common';
-import { DynamicRoutingExampleWorkflow } from './dynamic-routing/dynamic-routing-example.workflow';
-import { RunSubWorkflowExampleParentWorkflow } from './run-sub-workflow-example/run-sub-workflow-example-parent.workflow';
+import { DynamicRoutingExampleWorkflow } from './dynamic-routing/dynamic-routing-example.workflow.js';
+import { RunSubWorkflowExampleParentWorkflow } from './run-sub-workflow-example/run-sub-workflow-example-parent.workflow.js';
 
 @Injectable()
 @Workspace({

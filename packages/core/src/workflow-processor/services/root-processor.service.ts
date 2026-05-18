@@ -12,10 +12,10 @@ import {
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { RunPayload } from '@loopstack/contracts/schemas';
 import type { ScheduledTask } from '@loopstack/contracts/types';
-import { WorkflowService } from '../../persistence/services/workflow.service';
-import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service';
-import { BlockDiscoveryService } from './block-discovery.service';
-import { BlockProcessor } from './block-processor.service';
+import { WorkflowService } from '../../persistence/services/workflow.service.js';
+import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
+import { BlockDiscoveryService } from './block-discovery.service.js';
+import { BlockProcessor } from './block-processor.service.js';
 
 @Injectable()
 export class RootProcessorService {

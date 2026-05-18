@@ -1,4 +1,4 @@
-import { ToolResult } from './handler.interface';
+import { ToolResult } from './handler.interface.js';
 
 export type StepResultLookup = Record<string, any>;
 

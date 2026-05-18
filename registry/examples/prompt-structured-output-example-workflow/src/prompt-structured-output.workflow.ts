@@ -3,10 +3,10 @@ import { toJSONSchema } from 'zod';
 import { BaseWorkflow, DocumentEntity, Final, Initial, InjectTool, Transition, Workflow } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
-import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
+import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document.js';
 
 @Workflow({
-  uiConfig: __dirname + '/prompt-structured-output.ui.yaml',
+  uiConfig: import.meta.dirname + '/prompt-structured-output.ui.yaml',
   schema: z.object({
     language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
   }),
@@ -35,7 +35,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   async prompt() {
     const result = await this.llmGenerateObject.call({
       outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
-      prompt: this.render(__dirname + '/templates/prompt.md', { language: this.language }),
+      prompt: this.render(import.meta.dirname + '/templates/prompt.md', { language: this.language }),
     });
 
     const objectResult = result.data as LlmGenerateObjectResult;

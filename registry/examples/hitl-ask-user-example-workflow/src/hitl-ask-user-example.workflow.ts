@@ -18,7 +18,7 @@ const AskUserCallbackSchema = CallbackSchema.extend({
 type AskUserCallback = z.infer<typeof AskUserCallbackSchema>;
 
 @Workflow({
-  uiConfig: __dirname + '/hitl-ask-user-example.ui.yaml',
+  uiConfig: import.meta.dirname + '/hitl-ask-user-example.ui.yaml',
 })
 export class HitlAskUserExampleWorkflow extends BaseWorkflow {
   @InjectWorkflow() private askUser: AskUserWorkflow;

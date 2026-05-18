@@ -1,13 +1,14 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { DelegateErrorWorkflow } from '../delegate-error.workflow';
-import { FailingSubWorkflowTool } from '../tools/failing-sub-workflow.tool';
-import { RuntimeErrorTool } from '../tools/runtime-error.tool';
-import { StrictSchemaTool } from '../tools/strict-schema.tool';
-import { FailingWorkflow } from '../workflows/failing.workflow';
+import { DelegateErrorWorkflow } from '../delegate-error.workflow.js';
+import { FailingSubWorkflowTool } from '../tools/failing-sub-workflow.tool.js';
+import { RuntimeErrorTool } from '../tools/runtime-error.tool.js';
+import { StrictSchemaTool } from '../tools/strict-schema.tool.js';
+import { FailingWorkflow } from '../workflows/failing.workflow.js';
 
 /**
  * Helper to create a mock LLM response with a single tool_use block.

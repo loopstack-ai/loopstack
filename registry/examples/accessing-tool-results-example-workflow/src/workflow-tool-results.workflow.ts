@@ -1,7 +1,7 @@
 import { BaseWorkflow, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
 
 @Workflow({
-  uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
+  uiConfig: import.meta.dirname + '/workflow-tool-results.ui.yaml',
 })
 export class WorkflowToolResultsWorkflow extends BaseWorkflow {
   storedMessage?: string;

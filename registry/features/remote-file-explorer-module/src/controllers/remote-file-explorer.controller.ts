@@ -36,7 +36,7 @@ export class RemoteFileExplorerController {
     @Param('workspaceId') workspaceId: string,
     @Query('path') basePath: string | undefined,
     @CurrentUser() user: CurrentUserInterface,
-  ) {
+  ): Promise<unknown> {
     const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
     return this.remoteAgentClient.getFileTree(agentUrl, basePath ?? './src');
   }

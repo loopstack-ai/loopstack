@@ -1,14 +1,14 @@
 import { BullModule } from '@nestjs/bullmq';
 import { DynamicModule, Module } from '@nestjs/common';
-import { RedisOptions } from './interfaces/redis-options.interface';
-import { RunService } from './services/run.service';
-import { TaskProcessorService } from './services/task-processor.service';
-import { CleanupWorkflowTaskProcessorService } from './services/task-processor/cleanup-workflow-task-processor.service';
-import { CreateRunWorkflowTaskProcessorService } from './services/task-processor/create-run-workflow-task-processor.service';
-import { CreateWorkspaceTaskProcessorService } from './services/task-processor/create-workspace-task-processor.service';
-import { RunWorkflowTaskProcessorService } from './services/task-processor/run-workflow-task-processor.service';
-import { TaskSchedulerService } from './services/task-scheduler.service';
-import { WorkspaceLockService } from './services/workspace-lock.service';
+import { RedisOptions } from './interfaces/redis-options.interface.js';
+import { RunService } from './services/run.service.js';
+import { TaskProcessorService } from './services/task-processor.service.js';
+import { CleanupWorkflowTaskProcessorService } from './services/task-processor/cleanup-workflow-task-processor.service.js';
+import { CreateRunWorkflowTaskProcessorService } from './services/task-processor/create-run-workflow-task-processor.service.js';
+import { CreateWorkspaceTaskProcessorService } from './services/task-processor/create-workspace-task-processor.service.js';
+import { RunWorkflowTaskProcessorService } from './services/task-processor/run-workflow-task-processor.service.js';
+import { TaskSchedulerService } from './services/task-scheduler.service.js';
+import { WorkspaceLockService } from './services/workspace-lock.service.js';
 
 const PROVIDERS = [
   TaskSchedulerService,

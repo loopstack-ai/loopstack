@@ -6,7 +6,7 @@ import { JWTVerifyGetKey, createRemoteJWKSet, jwtVerify } from 'jose';
 import { Strategy } from 'passport-custom';
 import { UserTypeEnum } from '@loopstack/common';
 import { User } from '@loopstack/common';
-import { UserRepository } from '../repositories';
+import { UserRepository } from '../repositories/index.js';
 
 @Injectable()
 export class HubStrategy extends PassportStrategy(Strategy, 'hub') {

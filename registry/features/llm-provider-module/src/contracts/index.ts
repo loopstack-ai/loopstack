@@ -1,2 +1,2 @@
-export * from './llm-context';
-export * from './llm-provider.interface';
+export * from './llm-context.js';
+export * from './llm-provider.interface.js';

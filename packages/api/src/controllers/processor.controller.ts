@@ -1,8 +1,8 @@
 import { Body, Controller, Param, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { CallbackWorkflowPayloadDto } from '../dtos/callback-workflow-payload.dto';
-import { RunWorkflowPayloadDto } from '../dtos/run-workflow-payload.dto';
-import { ProcessorApiService } from '../services/processor-api.service';
+import { CallbackWorkflowPayloadDto } from '../dtos/callback-workflow-payload.dto.js';
+import { RunWorkflowPayloadDto } from '../dtos/run-workflow-payload.dto.js';
+import { ProcessorApiService } from '../services/processor-api.service.js';
 
 /**
  * Controller handling workflow processor operations

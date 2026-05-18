@@ -1,5 +1,5 @@
 import { Expose, Type } from 'class-transformer';
-import { WorkflowDto } from './workflow.dto';
+import { WorkflowDto } from './workflow.dto.js';
 
 export class DashboardStatsDto {
   @Expose()

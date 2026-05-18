@@ -1,3 +1,3 @@
-export * from './webfetch-fetcher.service';
-export * from './webfetch-markdown.service';
-export * from './webfetch-summarizer.service';
+export * from './webfetch-fetcher.service.js';
+export * from './webfetch-markdown.service.js';
+export * from './webfetch-summarizer.service.js';

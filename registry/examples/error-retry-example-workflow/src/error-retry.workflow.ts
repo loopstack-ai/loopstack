@@ -1,7 +1,7 @@
 import { BaseWorkflow, Final, Initial, InjectTool, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import { SlowTool } from './tools/slow.tool';
-import { Step1Tool } from './tools/step1.tool';
-import { Step2Tool } from './tools/step2.tool';
+import { SlowTool } from './tools/slow.tool.js';
+import { Step1Tool } from './tools/step1.tool.js';
+import { Step2Tool } from './tools/step2.tool.js';
 
 /**
  * Demonstrates all retry/error modes in sequence:
@@ -13,7 +13,7 @@ import { Step2Tool } from './tools/step2.tool';
  * Step 5: Hybrid (auto-retry + custom place) — always fails, auto-retries once, then error_hybrid.
  */
 @Workflow({
-  uiConfig: __dirname + '/error-retry.ui.yaml',
+  uiConfig: import.meta.dirname + '/error-retry.ui.yaml',
 })
 export class ErrorRetryWorkflow extends BaseWorkflow {
   @InjectTool() step1Tool: Step1Tool;

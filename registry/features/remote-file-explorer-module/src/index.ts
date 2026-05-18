@@ -1,2 +1,2 @@
-export * from './remote-file-explorer.module';
-export * from './controllers';
+export * from './remote-file-explorer.module.js';
+export * from './controllers/index.js';

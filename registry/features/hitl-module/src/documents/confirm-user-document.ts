@@ -10,7 +10,7 @@ export const ConfirmUserDocumentSchema = z
 export type ConfirmUserDocumentType = z.infer<typeof ConfirmUserDocumentSchema>;
 
 @Document({
-  uiConfig: __dirname + '/confirm-user-document.yaml',
+  uiConfig: import.meta.dirname + '/confirm-user-document.yaml',
   schema: ConfirmUserDocumentSchema,
 })
 export class ConfirmUserDocument {

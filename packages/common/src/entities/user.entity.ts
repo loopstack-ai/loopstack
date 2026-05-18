@@ -1,6 +1,15 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
-import { UserTypeEnum } from '../enums/user-type.enum';
-import { Role } from './role.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryColumn,
+  Relation,
+  UpdateDateColumn,
+} from 'typeorm';
+import { UserTypeEnum } from '../enums/user-type.enum.js';
+import { Role } from './role.entity.js';
 
 @Entity('auth_users')
 export class User {
@@ -22,7 +31,7 @@ export class User {
     joinColumn: { name: 'user_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
   })
-  roles!: Role[];
+  roles!: Relation<Role[]>;
 
   @CreateDateColumn()
   createdAt!: Date;

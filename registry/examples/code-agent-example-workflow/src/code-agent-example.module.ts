@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CodeAgentModule } from '@loopstack/code-agent';
-import { CodeAgentExampleWorkflow } from './code-agent-example.workflow';
+import { CodeAgentExampleWorkflow } from './code-agent-example.workflow.js';
 
 @Module({
   imports: [CodeAgentModule],

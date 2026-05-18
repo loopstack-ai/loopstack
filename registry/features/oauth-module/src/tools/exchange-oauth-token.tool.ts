@@ -1,8 +1,8 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { OAuthProviderRegistry } from '../services';
-import { OAuthTokenStore } from '../services';
+import { OAuthProviderRegistry } from '../services/index.js';
+import { OAuthTokenStore } from '../services/index.js';
 
 const ExchangeOAuthTokenSchema = z
   .object({

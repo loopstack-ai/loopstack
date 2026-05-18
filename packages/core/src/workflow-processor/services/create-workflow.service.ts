@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { FindOptionsWhere } from 'typeorm';
 import { WorkflowEntity, WorkflowInterface, WorkspaceEntity, getBlockArgsSchema } from '@loopstack/common';
-import { WorkflowService, WorkspaceService } from '../../persistence';
-import { BlockDiscoveryService } from './block-discovery.service';
+import { WorkflowService, WorkspaceService } from '../../persistence/index.js';
+import { BlockDiscoveryService } from './block-discovery.service.js';
 
 @Injectable()
 export class CreateWorkflowService {

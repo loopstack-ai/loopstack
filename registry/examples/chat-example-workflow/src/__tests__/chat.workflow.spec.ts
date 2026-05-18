@@ -1,10 +1,11 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { ChatWorkflow } from '../chat.workflow';
+import { ChatWorkflow } from '../chat.workflow.js';
 
 describe('ChatWorkflow', () => {
   let module: TestingModule;

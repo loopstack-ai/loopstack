@@ -1,6 +1,6 @@
 import { Expose, Type, plainToInstance } from 'class-transformer';
 import { WorkspaceEntity } from '@loopstack/common';
-import { WorkspaceEnvironmentDto } from './workspace-environment.dto';
+import { WorkspaceEnvironmentDto } from './workspace-environment.dto.js';
 
 /**
  * Data Transfer Object for Workspace Item

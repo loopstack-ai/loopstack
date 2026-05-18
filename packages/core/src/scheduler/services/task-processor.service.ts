@@ -2,8 +2,8 @@ import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { Job } from 'bullmq';
 import type { ScheduledTask } from '@loopstack/contracts/types';
-import { RunWorkflowTaskProcessorService } from './task-processor/run-workflow-task-processor.service';
-import { WorkspaceLockService } from './workspace-lock.service';
+import { RunWorkflowTaskProcessorService } from './task-processor/run-workflow-task-processor.service.js';
+import { WorkspaceLockService } from './workspace-lock.service.js';
 
 @Processor('task-queue', {
   concurrency: 10,

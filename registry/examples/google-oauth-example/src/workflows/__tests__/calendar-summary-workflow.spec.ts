@@ -1,4 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
@@ -17,11 +18,11 @@ import {
 } from '@loopstack/google-workspace-module';
 import { OAuthModule, OAuthWorkflow } from '@loopstack/oauth-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { GoogleCalendarFetchEventsTool } from '../../tools';
-import { CalendarSummaryWorkflow } from '../calendar-summary.workflow';
+import { GoogleCalendarFetchEventsTool } from '../../tools/index.js';
+import { CalendarSummaryWorkflow } from '../calendar-summary.workflow.js';
 
 const mockOAuthWorkflow = {
-  run: jest.fn(),
+  run: vi.fn(),
 };
 
 function buildCalendarSummaryTest() {
@@ -51,7 +52,7 @@ describe('CalendarSummaryWorkflow', () => {
   let mockGoogleCalendarFetchEventsTool: ToolMock;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     module = await buildCalendarSummaryTest().compile();
 
@@ -210,7 +211,7 @@ describe('CalendarSummaryWorkflow with existing entity', () => {
     const workflowId = '00000000-0000-0000-0000-000000000001';
     const args = { calendarId: 'primary' };
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     module = await buildCalendarSummaryTest().compile();
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RunContext, WorkflowMetadataInterface, getBlockType } from '@loopstack/common';
-import { ProcessorFactory } from './processor.factory';
+import { ProcessorFactory } from './processor.factory.js';
 
 @Injectable()
 export class BlockProcessor {

@@ -11,7 +11,7 @@ import {
 import { GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/secrets-module';
 
 @Workflow({
-  uiConfig: __dirname + '/secrets-example.ui.yaml',
+  uiConfig: import.meta.dirname + '/secrets-example.ui.yaml',
 })
 export class SecretsExampleWorkflow extends BaseWorkflow {
   @InjectTool() private requestSecrets: RequestSecretsTool;
@@ -39,7 +39,7 @@ export class SecretsExampleWorkflow extends BaseWorkflow {
   @Final({ from: 'verifying' })
   async showResult() {
     await this.repository.save(MarkdownDocument, {
-      markdown: this.render(__dirname + '/templates/secretsVerified.md', { secretKeys: this.secretKeys }),
+      markdown: this.render(import.meta.dirname + '/templates/secretsVerified.md', { secretKeys: this.secretKeys }),
     });
   }
 }

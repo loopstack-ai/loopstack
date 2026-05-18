@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsInt, IsOptional, Min, ValidateNested } from 'class-validator';
-import { DocumentFilterDto } from './document-filter.dto';
-import { DocumentSortByDto } from './document-sort-by.dto';
+import { DocumentFilterDto } from './document-filter.dto.js';
+import { DocumentSortByDto } from './document-sort-by.dto.js';
 
 export class DocumentQueryDto {
   @IsOptional()

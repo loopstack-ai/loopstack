@@ -1,1 +1,1 @@
-export * from './secret.controller';
+export * from './secret.controller.js';

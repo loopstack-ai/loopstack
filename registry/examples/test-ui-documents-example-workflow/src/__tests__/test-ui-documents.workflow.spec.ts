@@ -1,7 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { TestUiDocumentsWorkflow } from '../test-ui-documents.workflow';
+import { TestUiDocumentsWorkflow } from '../test-ui-documents.workflow.js';
 
 describe('TestUiDocumentsWorkflow', () => {
   let module: TestingModule;

@@ -1,3 +1,3 @@
-export * from './run-sub-workflow-example-parent.workflow';
-export * from './run-sub-workflow-example-sub.workflow';
-export * from './run-sub-workflow-example.module';
+export * from './run-sub-workflow-example-parent.workflow.js';
+export * from './run-sub-workflow-example-sub.workflow.js';
+export * from './run-sub-workflow-example.module.js';

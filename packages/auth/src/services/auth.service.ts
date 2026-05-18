@@ -2,11 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
 import { JwtPayloadInterface, User } from '@loopstack/common';
-import { AuthResponseDto } from '../dtos/auth-response.dto';
-import { UserResponseDto } from '../dtos/user-response.dto';
-import { WorkerInfoDto } from '../dtos/worker-info.dto';
-import { UserRepository } from '../repositories';
-import { TokenService } from './token.service';
+import { AuthResponseDto } from '../dtos/auth-response.dto.js';
+import { UserResponseDto } from '../dtos/user-response.dto.js';
+import { WorkerInfoDto } from '../dtos/worker-info.dto.js';
+import { UserRepository } from '../repositories/index.js';
+import { TokenService } from './token.service.js';
 
 @Injectable()
 export class AuthService {

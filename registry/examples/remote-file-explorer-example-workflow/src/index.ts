@@ -1,2 +1,2 @@
-export * from './remote-file-explorer-example.workflow';
-export * from './remote-file-explorer-example.module';
+export * from './remote-file-explorer-example.workflow.js';
+export * from './remote-file-explorer-example.module.js';

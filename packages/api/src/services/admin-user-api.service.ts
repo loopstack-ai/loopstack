@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Role, User } from '@loopstack/common';
-import { AdminUserFilterDto } from '../dtos/admin-user-filter.dto';
-import { AdminUserSortByDto } from '../dtos/admin-user-sort-by.dto';
+import { AdminUserFilterDto } from '../dtos/admin-user-filter.dto.js';
+import { AdminUserSortByDto } from '../dtos/admin-user-sort-by.dto.js';
 
 @Injectable()
 export class AdminUserApiService {

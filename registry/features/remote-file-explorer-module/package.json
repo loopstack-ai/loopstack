@@ -17,7 +17,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
     "build": "nest build",
@@ -66,5 +69,6 @@
     "installModes": [
       "install"
     ]
-  }
+  },
+  "type": "module"
 }

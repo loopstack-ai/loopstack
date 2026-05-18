@@ -1,4 +1,4 @@
-import { UserTypeEnum } from '../enums/user-type.enum';
+import { UserTypeEnum } from '../enums/user-type.enum.js';
 
 export interface JwtPayloadInterface {
   sub: string;

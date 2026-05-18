@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { MathService } from '../services/math.service';
+import { MathService } from '../services/math.service.js';
 
 const MathSumSchema = z
   .object({

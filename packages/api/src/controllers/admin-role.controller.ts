@@ -11,11 +11,11 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { RoleName, Roles } from '@loopstack/common';
-import { AdminRoleCreateDto } from '../dtos/admin-role-create.dto';
-import { AdminRoleItemDto } from '../dtos/admin-role-item.dto';
-import { AdminRoleUpdateDto } from '../dtos/admin-role-update.dto';
-import { AdminRoleDto } from '../dtos/admin-role.dto';
-import { AdminRoleApiService } from '../services/admin-role-api.service';
+import { AdminRoleCreateDto } from '../dtos/admin-role-create.dto.js';
+import { AdminRoleItemDto } from '../dtos/admin-role-item.dto.js';
+import { AdminRoleUpdateDto } from '../dtos/admin-role-update.dto.js';
+import { AdminRoleDto } from '../dtos/admin-role.dto.js';
+import { AdminRoleApiService } from '../services/admin-role-api.service.js';
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Roles(RoleName.ADMIN)

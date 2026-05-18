@@ -1,7 +1,7 @@
 import { IsEnum, IsIn } from 'class-validator';
 import { DocumentEntity } from '@loopstack/common';
-import { SortOrder } from '../enums/sort-order.enum';
-import { getEntityColumns } from '../utils/get-entity-columns.util';
+import { SortOrder } from '../enums/sort-order.enum.js';
+import { getEntityColumns } from '../utils/get-entity-columns.util.js';
 
 const sortFields = getEntityColumns(DocumentEntity);
 
