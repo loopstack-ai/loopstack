@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { WorkspaceService } from '../../persistence';
-import { CreateWorkflowService } from '../../workflow-processor';
+import { CreateWorkflowService } from '../../workflow-processor/services/create-workflow.service';
 import { TaskSchedulerService } from './task-scheduler.service';
 
 @Injectable()

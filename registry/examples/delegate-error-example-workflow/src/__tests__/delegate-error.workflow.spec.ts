@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { DelegateErrorWorkflow } from '../delegate-error.workflow';
@@ -55,7 +55,7 @@ describe('DelegateErrorWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(DelegateErrorWorkflow)
-      .withImports(LoopCoreModule, ClaudeModule)
+      .withImports(ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       // Real tools — we want to test actual validation and runtime errors
       .withProviders(StrictSchemaTool, RuntimeErrorTool, FailingSubWorkflowTool, FailingWorkflow)

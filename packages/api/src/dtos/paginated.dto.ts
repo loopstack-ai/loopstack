@@ -1,21 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { ClassConstructor, plainToInstance } from 'class-transformer';
 import type { PaginatedInterface } from '@loopstack/contracts/api';
 
 export class PaginatedDto<T> implements PaginatedInterface<T> {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object' },
-  })
   data: T[];
 
-  @ApiProperty()
   total: number;
 
-  @ApiProperty()
   page: number;
 
-  @ApiProperty()
   limit: number;
 
   static create<T>(classInstance: ClassConstructor<T>, data: PaginatedDto<any>) {

@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
 import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import {
   GitHubCreateIssueCommentTool,
   GitHubCreateIssueTool,
@@ -70,7 +70,7 @@ function buildWorkflowTest() {
   return applyAllGitHubToolMocks(
     createWorkflowTest()
       .forWorkflow(GitHubReposOverviewWorkflow)
-      .withImports(LoopCoreModule, OAuthModule)
+      .withImports(OAuthModule)
       .withMock(OAuthWorkflow, mockOAuthWorkflow),
   );
 }

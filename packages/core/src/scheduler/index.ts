@@ -1,2 +1,3 @@
+export * from './interfaces/redis-options.interface';
 export * from './services';
-export * from './scheduler.module';
+export * from './task-queue.module';

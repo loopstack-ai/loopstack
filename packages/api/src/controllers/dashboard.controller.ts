@@ -1,10 +1,7 @@
 import { Controller, Get, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
-import { DashboardStatsDto } from '../dtos/dashboard.dto';
 import { DashboardService, DashboardStats } from '../services/dashboard.service';
 
-@ApiTags('api/v1/dashboard')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/dashboard')
 export class DashboardController {
@@ -15,14 +12,6 @@ export class DashboardController {
    * as well as recent errors and runs.
    * */
   @Get()
-  @ApiOperation({
-    summary: 'Get dashboard statistics',
-    description: 'Retrieves aggregated statistics for all automations across all workspaces',
-  })
-  @ApiOkResponse({
-    description: 'Dashboard statistics retrieved successfully',
-    type: DashboardStatsDto,
-  })
   async getDashboardStats(@CurrentUser() user: CurrentUserInterface): Promise<DashboardStats> {
     return this.dashboardService.getDashboardStats(user.userId);
   }

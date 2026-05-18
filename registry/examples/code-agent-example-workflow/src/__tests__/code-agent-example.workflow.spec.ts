@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { AgentWorkflow } from '@loopstack/agent';
 import { RunContext, WorkflowEntity } from '@loopstack/common';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { CodeAgentExampleWorkflow } from '../code-agent-example.workflow';
 
@@ -19,7 +19,6 @@ describe('CodeAgentExampleWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(CodeAgentExampleWorkflow)
-      .withImports(LoopCoreModule)
       .withMock(AgentWorkflow, mockAgent)
       .compile();
 

@@ -1,0 +1,57 @@
+{
+  "name": "@loopstack/loopstack-module",
+  "displayName": "Loopstack Module",
+  "description": "All-in-one NestJS module for bootstrapping a Loopstack application",
+  "version": "0.29.0",
+  "license": "MIT",
+  "author": {
+    "name": "Jakob Klippel",
+    "url": "https://www.linkedin.com/in/jakob-klippel/"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "nest build",
+    "compile": "tsc --noEmit",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "test": "jest --passWithNoTests",
+    "watch": "nest build --watch"
+  },
+  "dependencies": {
+    "@loopstack/api": "^0.29.0",
+    "@loopstack/auth": "^0.29.0",
+    "@loopstack/cli-module": "^0.29.0",
+    "@loopstack/common": "^0.29.0",
+    "@loopstack/contracts": "^0.29.0",
+    "@loopstack/core": "^0.29.0",
+    "@nestjs/common": "^11.1.19",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.19",
+    "@nestjs/event-emitter": "^3.0.1",
+    "@nestjs/typeorm": "^11.0.1",
+    "pg": "^8.20.0",
+    "typeorm": "^0.3.28"
+  },
+  "devDependencies": {},
+  "files": [
+    "dist"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}

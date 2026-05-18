@@ -1,8 +1,9 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { DynamicModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import cookieParser from 'cookie-parser';
 import type { StringValue } from 'ms';
 import { Role, User } from '@loopstack/common';
 import { AssignRoleCommand } from './commands/assign-role.command';
@@ -14,12 +15,12 @@ import { ConfigValidationService } from './services/config-validation.service';
 import { HubStrategy, JwtStrategy } from './strategies';
 
 @Module({})
-export class AuthModule {
-  static forRoot(): DynamicModule {
-    return this.forRootAsync();
+export class AuthModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(cookieParser()).forRoutes('*');
   }
 
-  static forRootAsync(): DynamicModule {
+  static forRoot(connection?: string): DynamicModule {
     return {
       module: AuthModule,
       imports: [
@@ -33,7 +34,7 @@ export class AuthModule {
           }),
           inject: [ConfigService],
         }),
-        TypeOrmModule.forFeature([User, Role]),
+        TypeOrmModule.forFeature([User, Role], connection),
       ],
       controllers: [AuthController],
       providers: [

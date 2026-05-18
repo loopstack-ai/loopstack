@@ -34,7 +34,6 @@
     "@nestjs/microservices": "^11.1.19",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.19",
-    "@nestjs/swagger": "^11.2.7",
     "axios": "^1.15.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
@@ -48,6 +47,7 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
     "@types/passport-jwt": "^4.0.1"
   },
   "files": [

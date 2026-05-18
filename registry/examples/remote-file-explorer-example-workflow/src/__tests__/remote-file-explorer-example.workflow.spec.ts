@@ -1,5 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { GlobTool, ReadTool } from '@loopstack/remote-client';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { RemoteFileExplorerExampleWorkflow } from '../remote-file-explorer-example.workflow';
@@ -14,7 +14,6 @@ describe('RemoteFileExplorerExampleWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(RemoteFileExplorerExampleWorkflow)
-      .withImports(LoopCoreModule)
       .withToolMock(GlobTool)
       .withToolMock(ReadTool)
       .compile();

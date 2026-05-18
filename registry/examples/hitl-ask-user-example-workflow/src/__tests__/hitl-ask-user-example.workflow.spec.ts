@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { RunContext, WorkflowEntity } from '@loopstack/common';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { AskUserWorkflow } from '@loopstack/hitl';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { HitlAskUserExampleWorkflow } from '../hitl-ask-user-example.workflow';
@@ -19,7 +19,6 @@ describe('HitlAskUserExampleWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(HitlAskUserExampleWorkflow)
-      .withImports(LoopCoreModule)
       .withMock(AskUserWorkflow, mockAskUser)
       .compile();
 

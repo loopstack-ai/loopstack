@@ -1,49 +1,171 @@
-import { Module } from '@nestjs/common';
+import { DynamicModule, Global, Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { DiscoveryModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
+  DOCUMENT_REPOSITORY,
   DocumentEntity,
-  ErrorDocument,
-  LinkDocument,
-  MarkdownDocument,
-  MessageDocument,
-  PlainDocument,
+  FRAMEWORK_CONTEXT,
+  TEMPLATE_RENDERER,
+  WORKFLOW_ORCHESTRATOR,
+  WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
   WorkspaceEnvironmentEntity,
 } from '@loopstack/common';
-import { CommonModule } from './common';
-import { SchedulerModule } from './scheduler';
-import { WorkflowProcessorModule } from './workflow-processor';
+import { ClientMessageService } from './common/services/client-message.service';
+import { WorkflowCheckpointService, WorkflowService, WorkspaceService } from './persistence/services';
+import type { RedisOptions } from './scheduler/interfaces/redis-options.interface';
+import { TaskQueueModule } from './scheduler/task-queue.module';
+import {
+  BlockConfigCacheService,
+  BlockDiscoveryService,
+  BlockProcessor,
+  CreateWorkflowService,
+  DocumentPersistenceService,
+  DocumentRepositoryService,
+  ProcessorFactory,
+  RootProcessorService,
+  ToolExecutionService,
+  ToolLoggingInterceptor,
+  TransitionResolverService,
+  WorkflowMemoryMonitorService,
+  WorkflowOrchestrationService,
+  WorkflowProcessorService,
+  WorkflowStateService,
+} from './workflow-processor/services';
+import { ExecutionScope, TemplateRenderer } from './workflow-processor/utils';
 
-@Module({
-  imports: [
-    TypeOrmModule.forFeature([WorkflowEntity, DocumentEntity, WorkspaceEntity, WorkspaceEnvironmentEntity]),
-    EventEmitterModule.forRoot({
-      global: true,
+export interface LoopCoreModuleOptions {
+  connection?: string;
+  redis?: RedisOptions;
+}
+
+const ENTITIES = [
+  WorkflowEntity,
+  DocumentEntity,
+  WorkspaceEntity,
+  WorkspaceEnvironmentEntity,
+  WorkflowCheckpointEntity,
+];
+
+const PROVIDERS = [
+  // Common
+  ClientMessageService,
+
+  // Persistence
+  WorkflowService,
+  WorkspaceService,
+  WorkflowCheckpointService,
+
+  // Workflow engine
+  RootProcessorService,
+  BlockProcessor,
+  ProcessorFactory,
+  WorkflowProcessorService,
+  BlockDiscoveryService,
+  BlockConfigCacheService,
+  WorkflowStateService,
+  WorkflowMemoryMonitorService,
+  CreateWorkflowService,
+  ExecutionScope,
+  ToolExecutionService,
+  DocumentPersistenceService,
+  DocumentRepositoryService,
+  WorkflowOrchestrationService,
+  TransitionResolverService,
+  ToolLoggingInterceptor,
+
+  // Framework injection tokens (consumed by BaseTool / BaseWorkflow via @Inject)
+  {
+    provide: DOCUMENT_REPOSITORY,
+    useExisting: DocumentRepositoryService,
+  },
+  {
+    provide: WORKFLOW_ORCHESTRATOR,
+    useExisting: WorkflowOrchestrationService,
+  },
+  {
+    provide: TEMPLATE_RENDERER,
+    useFactory: () => new TemplateRenderer().render,
+  },
+  {
+    provide: FRAMEWORK_CONTEXT,
+    useFactory: (scope: ExecutionScope) => ({
+      get context() {
+        return scope.get().getContext();
+      },
+      get runtime() {
+        return scope.get().getData();
+      },
+      get args() {
+        return scope.get().getArgs();
+      },
+      get config() {
+        return scope.get().getConfig();
+      },
+      get parent() {
+        return scope.get().getInstance();
+      },
+      get workspace() {
+        return scope.get().getContext().workspaceInstance;
+      },
     }),
-    CommonModule,
-    WorkflowProcessorModule,
-    SchedulerModule,
-  ],
-  providers: [
-    // Documents
-    ErrorDocument,
-    LinkDocument,
-    MarkdownDocument,
-    MessageDocument,
-    PlainDocument,
-  ],
-  exports: [
-    CommonModule,
-    WorkflowProcessorModule,
-    SchedulerModule,
+    inject: [ExecutionScope],
+  },
+];
 
-    ErrorDocument,
-    LinkDocument,
-    MarkdownDocument,
-    MessageDocument,
-    PlainDocument,
-  ],
-})
-export class LoopCoreModule {}
+const EXPORTS = [
+  // Common
+  ClientMessageService,
+
+  // Persistence
+  WorkflowService,
+  WorkspaceService,
+  WorkflowCheckpointService,
+
+  // Scheduler (re-exported from TaskQueueModule)
+  TaskQueueModule,
+
+  // Workflow engine
+  RootProcessorService,
+  CreateWorkflowService,
+  BlockProcessor,
+  WorkflowProcessorService,
+  BlockDiscoveryService,
+  BlockConfigCacheService,
+  WorkflowMemoryMonitorService,
+  ExecutionScope,
+  ToolExecutionService,
+  DocumentPersistenceService,
+  DocumentRepositoryService,
+  WorkflowOrchestrationService,
+  TransitionResolverService,
+
+  // Framework injection tokens
+  DOCUMENT_REPOSITORY,
+  FRAMEWORK_CONTEXT,
+  WORKFLOW_ORCHESTRATOR,
+  TEMPLATE_RENDERER,
+];
+
+@Global()
+@Module({})
+export class LoopCoreModule {
+  static forRoot(options: LoopCoreModuleOptions = {}): DynamicModule {
+    return {
+      module: LoopCoreModule,
+      global: true,
+      imports: [
+        TypeOrmModule.forFeature(ENTITIES, options.connection),
+        ConfigModule,
+        EventEmitterModule.forRoot(),
+        DiscoveryModule,
+        TaskQueueModule.forRoot(options.redis),
+      ],
+      providers: PROVIDERS,
+      exports: EXPORTS,
+    };
+  }
+}

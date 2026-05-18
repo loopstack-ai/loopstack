@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { RunWorkflowTask } from '@loopstack/contracts/types';
 import { WorkflowService, WorkspaceService } from '../../../persistence';
-import { RootProcessorService, WorkflowMemoryMonitorService } from '../../../workflow-processor';
+import { RootProcessorService } from '../../../workflow-processor/services/root-processor.service';
+import { WorkflowMemoryMonitorService } from '../../../workflow-processor/services/workflow-memory-monitor.service';
 
 @Injectable()
 export class RunWorkflowTaskProcessorService {

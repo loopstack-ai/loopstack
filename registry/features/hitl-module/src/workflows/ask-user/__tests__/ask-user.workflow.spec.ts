@@ -1,5 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { AskUserWorkflow } from '../ask-user.workflow';
 
@@ -9,7 +9,7 @@ describe('AskUserWorkflow', () => {
   let processor: WorkflowProcessorService;
 
   beforeEach(async () => {
-    module = await createWorkflowTest().forWorkflow(AskUserWorkflow).withImports(LoopCoreModule).compile();
+    module = await createWorkflowTest().forWorkflow(AskUserWorkflow).compile();
 
     workflow = module.get(AskUserWorkflow);
     processor = module.get(WorkflowProcessorService);

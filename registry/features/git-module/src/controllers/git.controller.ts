@@ -1,11 +1,9 @@
 import { Controller, Delete, Get, NotFoundException, Param, Query, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
 import { RemoteClient } from '@loopstack/remote-client';
 
-@ApiTags('api/v1/workspaces/:workspaceId/git')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces/:workspaceId/git')
 export class GitController {

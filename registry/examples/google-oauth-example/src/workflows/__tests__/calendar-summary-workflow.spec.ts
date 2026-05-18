@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
 import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import {
   GmailGetMessageTool,
   GmailReplyToMessageTool,
@@ -27,7 +27,7 @@ const mockOAuthWorkflow = {
 function buildCalendarSummaryTest() {
   return createWorkflowTest()
     .forWorkflow(CalendarSummaryWorkflow)
-    .withImports(LoopCoreModule, OAuthModule)
+    .withImports(OAuthModule)
     .withToolMock(GoogleCalendarFetchEventsTool)
     .withToolMock(GoogleCalendarListCalendarsTool)
     .withToolMock(GoogleCalendarFetchEventsModuleTool)

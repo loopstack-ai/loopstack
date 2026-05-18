@@ -1,5 +1,4 @@
 import { Global, Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { LlmDelegateService } from './services/llm-delegate.service';
 import { LlmProviderRegistry } from './services/llm-provider-registry';
 import { LlmToolsHelperService } from './services/llm-tools-helper.service';
@@ -10,7 +9,6 @@ import { LlmUpdateToolResultTool } from './tools/llm-update-tool-result.tool';
 
 @Global()
 @Module({
-  imports: [LoopCoreModule],
   providers: [
     LlmProviderRegistry,
     LlmToolsHelperService,

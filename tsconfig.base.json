@@ -29,6 +29,7 @@
       "@loopstack/auth": ["./packages/auth/src"],
       "@loopstack/api": ["./packages/api/src"],
       "@loopstack/cli-module": ["./packages/cli/src"],
+      "@loopstack/loopstack-module": ["./packages/loopstack-module/src"],
       "@loopstack/testing": ["./packages/testing/src"],
       "@loopstack/ai-module": ["./registry/features/ai-module/src"],
       "@loopstack/claude-module": ["./registry/features/claude-module/src"],

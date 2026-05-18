@@ -19,18 +19,14 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@loopstack/api": "^0.29.0",
-    "@loopstack/cli-module": "^0.29.0",
     "@loopstack/common": "^0.29.0",
     "@loopstack/core": "^0.29.0",
+    "@loopstack/loopstack-module": "^0.29.0",
     "@nestjs/common": "^11.1.19",
-    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.19",
-    "@nestjs/typeorm": "^11.0.1",
     "nest-commander": "^3.20.1",
     "pg": "^8.20.0",
     "rxjs": "^7.8.2",
-    "typeorm": "^0.3.28",
     "zod": "^4.3.6"
   },
   "devDependencies": {

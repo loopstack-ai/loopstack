@@ -33,7 +33,6 @@
     "@loopstack/core": "^0.29.0",
     "@nestjs/common": "^11.1.19",
     "@nestjs/config": "^4.0.4",
-    "@nestjs/swagger": "^11.2.7",
     "@nestjs/typeorm": "^11.0.1",
     "typeorm": "^0.3.28",
     "yaml": "^2.8.3"

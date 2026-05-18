@@ -6,4 +6,3 @@ export * from './scheduler';
 export * from './workflow-processor';
 
 export * from './loop-core.module';
-export * from './loop-core.module-definition';

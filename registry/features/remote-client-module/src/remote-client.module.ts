@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { SecretsModule } from '@loopstack/secrets-module';
 import { EnvironmentController } from './controllers';
 import { RemoteClient } from './services/remote-client.service';
@@ -20,7 +19,7 @@ import {
 } from './tools';
 
 @Module({
-  imports: [LoopCoreModule, SecretsModule, TypeOrmModule.forFeature([WorkspaceEntity])],
+  imports: [SecretsModule, TypeOrmModule.forFeature([WorkspaceEntity])],
   controllers: [EnvironmentController],
   providers: [
     RemoteClient,

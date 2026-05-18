@@ -10,12 +10,10 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 import { WorkspaceService } from '@loopstack/core';
 import { SecretService } from '../services';
 
-@ApiTags('api/v1/workspaces/:workspaceId/secrets')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces/:workspaceId/secrets')
 export class SecretController {

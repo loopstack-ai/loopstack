@@ -67,7 +67,7 @@ export function createWorkflowServiceMock(mockEntity = {}): WorkflowServiceMock 
  * ```typescript
  * const module = await createWorkflowTest()
  *   .forWorkflow(CustomToolExampleWorkflow)
- *   .withImports(LoopCoreModule, CoreToolsModule)
+ *   .withImports(LoopCoreModule.forRoot(), CoreToolsModule)
  *   .withToolMock(MathSumTool)
  *   .compile();
  *

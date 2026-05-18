@@ -1,4 +1,3 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ArrayNotEmpty, IsArray, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
 import type { WorkflowUpdateInterface } from '@loopstack/contracts/api';
@@ -15,10 +14,6 @@ export class WorkflowUpdateDto implements WorkflowUpdateInterface {
   @IsString()
   @IsOptional()
   @MaxLength(200, { message: 'Workflow title must not exceed 200 characters' })
-  @ApiPropertyOptional({
-    description: 'Human-readable title for the workflow',
-    example: 'My Updated Workflow',
-  })
   title?: string;
 
   /**
@@ -31,11 +26,5 @@ export class WorkflowUpdateDto implements WorkflowUpdateInterface {
   @IsString({ each: true, message: 'Each label must be a string' })
   @IsOptional()
   @Type(() => String)
-  @ApiPropertyOptional({
-    description: 'Array of labels/tags associated with the workflow',
-    type: 'array',
-    items: { type: 'string' },
-    example: ['frontend', 'customer-facing', 'high-priority'],
-  })
   labels?: string[];
 }

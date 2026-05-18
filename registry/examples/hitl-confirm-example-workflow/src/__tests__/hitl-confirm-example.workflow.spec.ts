@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { RunContext, WorkflowEntity } from '@loopstack/common';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { HitlConfirmExampleWorkflow } from '../hitl-confirm-example.workflow';
@@ -19,7 +19,6 @@ describe('HitlConfirmExampleWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(HitlConfirmExampleWorkflow)
-      .withImports(LoopCoreModule)
       .withMock(ConfirmUserWorkflow, mockConfirmUser)
       .compile();
 

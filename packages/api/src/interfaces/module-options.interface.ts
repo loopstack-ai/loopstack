@@ -1,15 +1,12 @@
-import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { OpenAPIObject } from '@nestjs/swagger/dist/interfaces';
+import type { CorsOptions } from 'cors';
 import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
 
 export interface ModuleOptionsInterface {
-  swagger?: {
-    enabled?: boolean;
-    config?: Omit<OpenAPIObject, 'paths'>;
-  };
-  cors?: {
-    enabled?: boolean;
-    options?: CorsOptions;
-  };
   availableEnvironments?: AvailableEnvironmentInterface[];
+  connection?: string;
+  /**
+   * CORS configuration. Defaults to `{ origin: true, credentials: true }`.
+   * Set to `false` to disable CORS entirely.
+   */
+  cors?: CorsOptions | false;
 }

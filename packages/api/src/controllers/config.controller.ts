@@ -8,14 +8,6 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import {
-  ApiExtraModels,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import * as fs from 'fs';
 import { sortBy } from 'lodash';
@@ -27,28 +19,9 @@ import { BlockConfigCacheService, BlockDiscoveryService } from '@loopstack/core'
 import { AvailableEnvironmentDto } from '../dtos/available-environment.dto';
 import { WorkflowConfigDto } from '../dtos/workflow-config.dto';
 import { WorkflowSourceDto } from '../dtos/workflow-source.dto';
-import {
-  EnvironmentConfigDto,
-  FeaturesDto,
-  VolumeDto,
-  WorkspaceActionDto,
-  WorkspaceConfigDto,
-  WorkspaceUiDto,
-} from '../dtos/workspace-config.dto';
+import { WorkspaceConfigDto } from '../dtos/workspace-config.dto';
 import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from '../tokens';
 
-@ApiTags('api/v1/config')
-@ApiExtraModels(
-  WorkspaceConfigDto,
-  WorkflowConfigDto,
-  WorkflowSourceDto,
-  VolumeDto,
-  FeaturesDto,
-  EnvironmentConfigDto,
-  AvailableEnvironmentDto,
-  WorkspaceActionDto,
-  WorkspaceUiDto,
-)
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/config')
 export class ConfigController {
@@ -61,9 +34,6 @@ export class ConfigController {
   ) {}
 
   @Get('workspaces')
-  @ApiOperation({ summary: 'Get all models available for this workspace' })
-  @ApiOkResponse({ type: WorkspaceConfigDto, isArray: true })
-  @ApiUnauthorizedResponse()
   getWorkspaceTypes(): WorkspaceConfigDto[] {
     const resolvedConfigs = this.blockConfigCacheService.getAllWorkspaceConfigs().map((cached) => ({
       className: cached.className,
@@ -79,9 +49,6 @@ export class ConfigController {
   }
 
   @Get('environments')
-  @ApiOperation({ summary: 'Get available environments configured for this backend' })
-  @ApiOkResponse({ type: AvailableEnvironmentDto, isArray: true })
-  @ApiUnauthorizedResponse()
   getAvailableEnvironments(): AvailableEnvironmentDto[] {
     return plainToInstance(AvailableEnvironmentDto, this.availableEnvironments, {
       excludeExtraneousValues: true,
@@ -98,16 +65,6 @@ export class ConfigController {
   }
 
   @Get('workflows/:alias')
-  @ApiOperation({
-    summary: 'Get the full config of a workflow by its alias (class name)',
-  })
-  @ApiParam({
-    name: 'alias',
-    type: String,
-    description: 'The alias (class name) of the workflow',
-  })
-  @ApiOkResponse({ type: WorkflowConfigDto })
-  @ApiUnauthorizedResponse()
   getWorkflowConfig(@Param('alias') alias: string): WorkflowConfigDto {
     const cached = this.blockConfigCacheService.getWorkflowConfig(alias);
     if (!cached) {
@@ -133,16 +90,6 @@ export class ConfigController {
   }
 
   @Get('workflows/:alias/source')
-  @ApiOperation({
-    summary: 'Get the source config of a workflow by its alias (class name)',
-  })
-  @ApiParam({
-    name: 'alias',
-    type: String,
-    description: 'The alias (class name) of the workflow',
-  })
-  @ApiOkResponse({ type: WorkflowSourceDto })
-  @ApiUnauthorizedResponse()
   getWorkflowSource(@Param('alias') alias: string): WorkflowSourceDto {
     const workflow = this.resolveWorkflowByAlias(alias);
 
@@ -185,21 +132,6 @@ export class ConfigController {
   }
 
   @Get('workspaces/:workspaceBlockName/workflows/:workflowName')
-  @ApiOperation({
-    summary: 'Get the full config of a specific workflow by name',
-  })
-  @ApiParam({
-    name: 'workspaceBlockName',
-    type: String,
-    description: 'The config key of the workspace type',
-  })
-  @ApiParam({
-    name: 'workflowName',
-    type: String,
-    description: 'The name of the workflow to retrieve',
-  })
-  @ApiOkResponse({ type: WorkflowConfigDto })
-  @ApiUnauthorizedResponse()
   getWorkflowConfigByName(
     @Param('workspaceBlockName') _workspaceBlockName: string,
     @Param('workflowName') workflowName: string,
@@ -208,21 +140,6 @@ export class ConfigController {
   }
 
   @Get('workspaces/:workspaceBlockName/workflows/:workflowName/source')
-  @ApiOperation({
-    summary: 'Get the source config of a specific workflow by name',
-  })
-  @ApiParam({
-    name: 'workspaceBlockName',
-    type: String,
-    description: 'The config key of the workspace type',
-  })
-  @ApiParam({
-    name: 'workflowName',
-    type: String,
-    description: 'The name of the workflow to retrieve',
-  })
-  @ApiOkResponse({ type: WorkflowSourceDto })
-  @ApiUnauthorizedResponse()
   getWorkflowSourceByName(
     @Param('workspaceBlockName') _workspaceBlockName: string,
     @Param('workflowName') workflowName: string,
@@ -231,16 +148,6 @@ export class ConfigController {
   }
 
   @Get('workspaces/:workspaceBlockName/workflows')
-  @ApiOperation({
-    summary: 'Get all workflow types available for this workspace',
-  })
-  @ApiParam({
-    name: 'workspaceBlockName',
-    type: String,
-    description: 'The config key of the workspace type',
-  })
-  @ApiOkResponse({ type: WorkflowConfigDto, isArray: true })
-  @ApiUnauthorizedResponse()
   getWorkflowTypesByWorkspace(@Param('workspaceBlockName') workspaceBlockName: string): WorkflowConfigDto[] {
     const cachedWorkspace = this.blockConfigCacheService.getWorkspaceConfig(workspaceBlockName);
     if (!cachedWorkspace) {

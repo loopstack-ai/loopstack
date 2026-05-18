@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { ChatWorkflow } from '../chat.workflow';
@@ -16,7 +16,7 @@ describe('ChatWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ChatWorkflow)
-      .withImports(LoopCoreModule, ClaudeModule)
+      .withImports(ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       .compile();
 

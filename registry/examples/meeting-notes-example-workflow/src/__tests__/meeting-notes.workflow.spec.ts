@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { MeetingNotesDocument } from '../documents/meeting-notes-document';
@@ -17,7 +17,7 @@ describe('MeetingNotesWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(MeetingNotesWorkflow)
-      .withImports(LoopCoreModule, ClaudeModule)
+      .withImports(ClaudeModule)
       .withProvider(MeetingNotesDocument)
       .withProvider(OptimizedNotesDocument)
       .withToolOverride(LlmGenerateObjectTool)

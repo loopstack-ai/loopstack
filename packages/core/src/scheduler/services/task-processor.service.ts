@@ -1,6 +1,5 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
+import { Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { Job } from 'bullmq';
 import type { ScheduledTask } from '@loopstack/contracts/types';
 import { RunWorkflowTaskProcessorService } from './task-processor/run-workflow-task-processor.service';
@@ -8,9 +7,9 @@ import { WorkspaceLockService } from './workspace-lock.service';
 
 @Processor('task-queue', {
   concurrency: 10,
-  autorun: false, // Start after tasks are initialized
+  autorun: false,
 })
-export class TaskProcessorService extends WorkerHost {
+export class TaskProcessorService extends WorkerHost implements OnApplicationBootstrap {
   private readonly logger = new Logger(TaskProcessorService.name);
 
   constructor(
@@ -20,15 +19,11 @@ export class TaskProcessorService extends WorkerHost {
     super();
   }
 
-  @OnEvent('tasks.initialized')
-  async handleStartWorker() {
-    try {
-      this.logger.debug('Starting worker');
-      await this.worker.run();
-    } catch (error) {
-      this.logger.error('Failed to start worker:', error);
-      throw error;
-    }
+  onApplicationBootstrap() {
+    this.logger.debug('Starting worker');
+    this.worker.run().catch((error) => {
+      this.logger.error('Worker failed to start:', error);
+    });
   }
 
   async process(job: Job<ScheduledTask>) {
@@ -66,7 +61,9 @@ export class TaskProcessorService extends WorkerHost {
 
   @OnWorkerEvent('failed')
   onFailed(job: Job | undefined, err: Error) {
-    this.logger.error(`Job ${job?.id} failed with error: ${err.message}`);
+    const attempts = job?.attemptsMade ?? '?';
+    const maxAttempts = job?.opts?.attempts ?? '?';
+    this.logger.error(`Job ${job?.id} failed permanently after ${attempts}/${maxAttempts} attempts: ${err.message}`);
   }
 
   @OnWorkerEvent('active')
