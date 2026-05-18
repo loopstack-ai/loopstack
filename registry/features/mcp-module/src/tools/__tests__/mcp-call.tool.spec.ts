@@ -1,6 +1,6 @@
 import { McpToolConfig, McpToolConfigSchema } from '../../config/mcp-tool-config.schema';
 import type { McpClientService } from '../../services/mcp-client.service';
-import { McpCallTool } from '../mcp-call.tool';
+import { McpCallTool, McpCallToolArgsSchema } from '../mcp-call.tool';
 
 function makeTool(mcp: Partial<McpClientService>): McpCallTool {
   const tool = new McpCallTool();
@@ -54,19 +54,16 @@ describe('McpCallTool', () => {
     expect(result).toEqual({ data: { kind: 'callToolResult', content: [{ x: 1 }] } });
   });
 
-  it('defaults arguments to {} when omitted', async () => {
+  it('defaults arguments to {} via the schema when omitted', async () => {
     const callTool = jest.fn().mockResolvedValue({ kind: 'callToolResult' });
     const tool = makeTool({ callTool });
 
-    await tool.call(
-      {
-        serverUrl: 'https://mcp.linear.app/sse',
-        toolName: 'noop',
-        arguments: undefined as unknown as Record<string, unknown>,
-        transport: 'streamableHttp',
-      },
-      { config: cfg(['mcp.linear.app']) },
-    );
+    const parsed = McpCallToolArgsSchema.parse({
+      serverUrl: 'https://mcp.linear.app/sse',
+      toolName: 'noop',
+    });
+
+    await tool.call(parsed, { config: cfg(['mcp.linear.app']) });
 
     expect(callTool).toHaveBeenCalledWith(expect.any(String), expect.any(Object), 'noop', {}, expect.any(Object));
   });

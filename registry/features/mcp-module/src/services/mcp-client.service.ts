@@ -2,6 +2,8 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { McpToolConfig } from '../config/mcp-tool-config.schema';
 import { McpAuthError, McpProtocolError, McpTimeoutError, McpTransportError, McpUrlSecurityError } from '../errors';
 import type { McpTransportKind } from '../types';
@@ -17,18 +19,32 @@ import {
   NoopMcpMetrics,
 } from './metrics-port';
 
-const CLIENT_INFO = { name: 'loopstack-mcp-module', version: '0.1.0' };
+const { version: PKG_VERSION } = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf8')) as {
+  version: string;
+};
+
+const CLIENT_INFO = { name: 'loopstack-mcp-module', version: PKG_VERSION };
 const DEFAULT_TIMEOUT_MS = 60_000;
 const OUTER_TIMEOUT_BUFFER_MS = 15_000;
+const OUTER_TIMEOUT_MULTIPLIER = 2;
 
 export type { McpTransportKind };
 
 export interface McpClientCallOptions {
   timeoutMs?: number;
-  /** Test-only: bypasses the public-IP DNS check. */
   skipDnsResolution?: boolean;
   transport?: McpTransportKind;
 }
+
+export type McpCallToolResult =
+  | { kind: 'legacyToolResult'; toolResult: unknown; meta?: unknown }
+  | {
+      kind: 'callToolResult';
+      content: unknown;
+      structuredContent?: unknown;
+      isError?: unknown;
+      meta?: unknown;
+    };
 
 @Injectable()
 export class McpClientService {
@@ -78,7 +94,7 @@ export class McpClientService {
     toolName: string,
     toolArgs: Record<string, unknown>,
     options: McpClientCallOptions = {},
-  ): Promise<Record<string, unknown>> {
+  ): Promise<McpCallToolResult> {
     const startedAt = Date.now();
     const { client, transport, transportKind, host } = await this.connect(rawUrl, config, options);
     try {
@@ -136,7 +152,12 @@ export class McpClientService {
    *   4. hostHeaderEnv[hostname]
    */
   mergeHeaders(config: McpToolConfig, url: URL): Record<string, string> {
-    const out: Record<string, string> = { ...(config.defaultHeaders ?? {}) };
+    const out: Record<string, string> = {};
+    if (config.defaultHeaders) {
+      for (const [header, value] of Object.entries(config.defaultHeaders)) {
+        out[header.toLowerCase()] = value;
+      }
+    }
 
     if (config.headerEnv) {
       this.applyEnvMap(out, config.headerEnv);
@@ -157,7 +178,7 @@ export class McpClientService {
   private applyEnvMap(into: Record<string, string>, map: Record<string, string>): void {
     for (const [header, envKey] of Object.entries(map)) {
       const v = this.env.get(envKey);
-      if (v !== undefined) into[header] = v;
+      if (v !== undefined) into[header.toLowerCase()] = v;
     }
   }
 
@@ -194,11 +215,12 @@ export class McpClientService {
     const transportKind = options.transport ?? 'streamableHttp';
     const headers = this.mergeHeaders(config, url);
     const headerNames = Object.keys(headers);
-    this.logger.log(`mcp.connect host=${url.hostname} transport=${transportKind} headers=[${headerNames.join(',')}]`);
+    this.logger.debug(`mcp.connect host=${url.hostname} transport=${transportKind} headers=[${headerNames.join(',')}]`);
 
     const client = new Client(CLIENT_INFO, {});
     const controller = new AbortController();
-    const outerMs = (options.timeoutMs ?? DEFAULT_TIMEOUT_MS * 2) + OUTER_TIMEOUT_BUFFER_MS;
+    const innerTimeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const outerMs = innerTimeoutMs * OUTER_TIMEOUT_MULTIPLIER + OUTER_TIMEOUT_BUFFER_MS;
     const abortTimer = setTimeout(() => controller.abort(), outerMs);
 
     let transport: McpTransportLike | undefined;
@@ -254,22 +276,21 @@ export class McpClientService {
     if (e instanceof McpTransportError) return e;
 
     const msg = asMessage(e);
-    const lower = msg.toLowerCase();
 
-    if (
-      lower.includes('401') ||
-      lower.includes('403') ||
-      lower.includes('unauthorized') ||
-      lower.includes('forbidden')
-    ) {
-      return new McpAuthError(`MCP authentication failed: ${msg}`);
-    }
-    if (lower.includes('aborted') || lower.includes('timed out') || lower.includes('timeout')) {
+    if (e instanceof Error && (e.name === 'AbortError' || e.name === 'TimeoutError')) {
       return new McpTimeoutError(`MCP request timed out: ${msg}`);
     }
-    if (lower.includes('json') || lower.includes('parse') || lower.includes('jsonrpc') || lower.includes('protocol')) {
+
+    const status = httpStatusFrom(e);
+    if (status === 401 || status === 403) {
+      return new McpAuthError(`MCP authentication failed: ${msg}`);
+    }
+
+    const jsonRpcCode = jsonRpcCodeFrom(e);
+    if (jsonRpcCode === -32700 || jsonRpcCode === -32600) {
       return new McpProtocolError(`MCP protocol error: ${msg}`);
     }
+
     return new McpTransportError(`MCP transport error: ${msg}`);
   }
 
@@ -299,6 +320,25 @@ export class McpClientService {
 
 function asMessage(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
+}
+
+function httpStatusFrom(e: unknown): number | undefined {
+  if (!e || typeof e !== 'object') return undefined;
+  const obj = e as Record<string, unknown>;
+  const direct = obj.status ?? obj.statusCode;
+  if (typeof direct === 'number' && Number.isInteger(direct)) return direct;
+  const response = obj.response;
+  if (response && typeof response === 'object') {
+    const nested = (response as Record<string, unknown>).status;
+    if (typeof nested === 'number' && Number.isInteger(nested)) return nested;
+  }
+  return undefined;
+}
+
+function jsonRpcCodeFrom(e: unknown): number | undefined {
+  if (!e || typeof e !== 'object') return undefined;
+  const code = (e as Record<string, unknown>).code;
+  return typeof code === 'number' && Number.isInteger(code) ? code : undefined;
 }
 
 function outcomeFor(e: Error): McpCallOutcome {

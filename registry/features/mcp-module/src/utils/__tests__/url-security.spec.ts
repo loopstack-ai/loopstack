@@ -35,6 +35,18 @@ describe('hostMatchesAllowlist', () => {
     expect(hostMatchesAllowlist('notexample.com', ['*.example.com'])).toBe(false);
     expect(hostMatchesAllowlist('example.com.evil.com', ['*.example.com'])).toBe(false);
   });
+
+  it('matches IDN hosts against unicode allowlist entries via punycode', () => {
+    // URL.hostname returns punycode; allowlist entry given as unicode should still match.
+    const unicodePattern = 'läuft.app';
+    const punycodeHost = new URL('https://läuft.app/sse').hostname;
+    expect(hostMatchesAllowlist(punycodeHost, [unicodePattern])).toBe(true);
+  });
+
+  it('matches IDN hosts under a unicode wildcard pattern', () => {
+    const punycodeHost = new URL('https://api.läuft.app/sse').hostname;
+    expect(hostMatchesAllowlist(punycodeHost, ['*.läuft.app'])).toBe(true);
+  });
 });
 
 describe('assertIpIsPublic', () => {
@@ -55,8 +67,34 @@ describe('assertIpIsPublic', () => {
     expect(() => assertIpIsPublic(ip)).not.toThrow();
   });
 
-  it.each(['::1', 'fe80::1', 'fc00::1', 'fd12:3456:789a::1', '::ffff:127.0.0.1'])('rejects private IPv6 %s', (ip) => {
+  it.each(['::1', '::', 'fe80::1', 'fc00::1', 'fd12:3456:789a::1', '::ffff:127.0.0.1', 'ff02::1', '64:ff9b::1.2.3.4'])(
+    'rejects private IPv6 %s',
+    (ip) => {
+      expect(() => assertIpIsPublic(ip)).toThrow(McpUrlSecurityError);
+    },
+  );
+
+  it.each([
+    // 6to4 wrapping private IPv4
+    ['2002:c0a8:0101::', '192.168.1.1'],
+    ['2002:0a00:0001::', '10.0.0.1'],
+    ['2002:7f00:0001::', '127.0.0.1'],
+    ['2002:a9fe:0101::', '169.254.1.1'],
+  ])('rejects 6to4 %s wrapping private %s', (ip) => {
     expect(() => assertIpIsPublic(ip)).toThrow(McpUrlSecurityError);
+  });
+
+  it.each([
+    // Fully-expanded IPv4-mapped IPv6, dotted-quad tail
+    '0:0:0:0:0:ffff:127.0.0.1',
+    // Fully-expanded IPv4-mapped IPv6, hex tail
+    '0:0:0:0:0:ffff:7f00:0001',
+  ])('rejects fully-expanded IPv4-mapped IPv6 %s', (ip) => {
+    expect(() => assertIpIsPublic(ip)).toThrow(McpUrlSecurityError);
+  });
+
+  it.each(['2001:4860:4860::8888', '2606:4700:4700::1111', '2002:0808:0808::'])('accepts public IPv6 %s', (ip) => {
+    expect(() => assertIpIsPublic(ip)).not.toThrow();
   });
 
   it('rejects invalid IPs', () => {

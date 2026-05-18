@@ -59,6 +59,8 @@ Three knobs, in increasing specificity:
 | `headerEnv`      | `header → env-var` mapping applied to _every_ host. Value is read from `process.env` at call time.                      |
 | `hostHeaderEnv`  | `host → { header → env-var }`. Use the hostname or `'*'` (applied to all). Host-specific entries override the wildcard. |
 
+Precedence (later wins): `defaultHeaders` → `headerEnv` → `hostHeaderEnv['*']` → `hostHeaderEnv[hostname]`. `hostHeaderEnv['*']` outranks `headerEnv` because it lives in the same map as the host-specific entries — keeping all host-scoped knobs together in `hostHeaderEnv` is the intended override layer. Keys are matched case-insensitively (HTTP semantics).
+
 Header _names_ are logged on connect (e.g. `headers=[Authorization]`); values
 never are. If a referenced env var is unset or empty, the header is silently
 omitted — so missing `LINEAR_MCP_TOKEN` means no `Authorization` header, not a

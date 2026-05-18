@@ -1,15 +1,25 @@
 import * as dns from 'node:dns/promises';
 import * as net from 'node:net';
+import { domainToASCII } from 'node:url';
 import { McpUrlSecurityError } from '../errors';
 
-export { McpUrlSecurityError };
+function toAscii(host: string): string {
+  const ascii = domainToASCII(host);
+  return (ascii || host).toLowerCase();
+}
+
+function normalizePattern(pattern: string): string {
+  const p = pattern.toLowerCase();
+  if (p.startsWith('*.')) return `*.${toAscii(p.slice(2))}`;
+  return toAscii(p);
+}
 
 /** Returns true if hostname is allowed by `allowedHosts` (exact or `*.suffix`). */
 export function hostMatchesAllowlist(hostname: string, allowedHosts: string[]): boolean {
-  const host = hostname.toLowerCase();
+  const host = toAscii(hostname);
 
   for (const pattern of allowedHosts) {
-    const p = pattern.toLowerCase();
+    const p = normalizePattern(pattern);
     if (p.startsWith('*.')) {
       const root = p.slice(2);
       if (host === root) return true;
@@ -42,19 +52,90 @@ function isPrivateIpv4(ip: string): boolean {
   return false;
 }
 
+/**
+ * Expands an IPv6 address into its 8 16-bit groups. Handles `::` compression and the
+ * dotted-quad tail used by IPv4-mapped / IPv4-compatible addresses (e.g. `::ffff:1.2.3.4`).
+ * Returns `undefined` on parse failure.
+ */
+function expandIpv6ToGroups(ip: string): number[] | undefined {
+  let s = ip.toLowerCase().split('%')[0] ?? '';
+
+  const dotted = s.match(/^(.*:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (dotted) {
+    const v4 = dotted[2].split('.').map(Number);
+    if (v4.some((n) => Number.isNaN(n) || n < 0 || n > 255)) return undefined;
+    const hi = (v4[0] << 8) | v4[1];
+    const lo = (v4[2] << 8) | v4[3];
+    s = `${dotted[1]}${hi.toString(16)}:${lo.toString(16)}`;
+  }
+
+  const halves = s.split('::');
+  if (halves.length > 2) return undefined;
+
+  const head = halves[0] ? halves[0].split(':') : [];
+  let parts: string[];
+  if (halves.length === 2) {
+    const tail = halves[1] ? halves[1].split(':') : [];
+    const missing = 8 - head.length - tail.length;
+    if (missing < 0) return undefined;
+    parts = [...head, ...Array<string>(missing).fill('0'), ...tail];
+  } else {
+    parts = head;
+  }
+
+  if (parts.length !== 8) return undefined;
+
+  const groups: number[] = [];
+  for (const p of parts) {
+    if (!/^[0-9a-f]{1,4}$/.test(p)) return undefined;
+    groups.push(parseInt(p, 16));
+  }
+  return groups;
+}
+
+function groupsToIpv4(hi: number, lo: number): string {
+  return `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`;
+}
+
+/**
+ * If the IPv6 address embeds an IPv4 address — 6to4 (`2002::/16`) or IPv4-mapped
+ * (`::ffff:0:0/96`, both shorthand and fully expanded) — returns the embedded IPv4
+ * in dotted-quad form. Used to block SSRF via v6-encoded private ranges.
+ */
+function embeddedIpv4(groups: number[]): string | undefined {
+  if (groups[0] === 0x2002) {
+    return groupsToIpv4(groups[1], groups[2]);
+  }
+  if (
+    groups[0] === 0 &&
+    groups[1] === 0 &&
+    groups[2] === 0 &&
+    groups[3] === 0 &&
+    groups[4] === 0 &&
+    groups[5] === 0xffff
+  ) {
+    return groupsToIpv4(groups[6], groups[7]);
+  }
+  return undefined;
+}
+
 function isPrivateIpv6(ip: string): boolean {
   const n = ip.toLowerCase();
 
   if (n === '::1') return true;
+  if (n === '::') return true;
   if (n.startsWith('fe80:')) return true;
+  if (n.startsWith('64:ff9b:')) return true;
 
   const first = n.split(':')[0] ?? '';
 
   if (first.startsWith('fc') || first.startsWith('fd')) return true;
+  if (first.startsWith('ff')) return true;
 
-  if (n.includes('::ffff:')) {
-    const v4 = n.split('::ffff:')[1];
-    if (v4 && net.isIPv4(v4)) return isPrivateIpv4(v4);
+  const groups = expandIpv6ToGroups(n);
+  if (groups) {
+    const v4 = embeddedIpv4(groups);
+    if (v4 !== undefined && isPrivateIpv4(v4)) return true;
   }
 
   return false;

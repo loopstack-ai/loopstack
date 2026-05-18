@@ -24,7 +24,7 @@ export class McpCallTool extends McpToolBase<McpCallToolArgs> {
   async call(args: McpCallToolArgs, options?: ToolCallOptions<McpToolConfig>): Promise<ToolResult> {
     const cfg = this.requireConfig(options?.config);
 
-    const result = await this.mcp.callTool(args.serverUrl, cfg, args.toolName, args.arguments ?? {}, {
+    const result = await this.mcp.callTool(args.serverUrl, cfg, args.toolName, args.arguments, {
       timeoutMs: args.timeoutMs,
       transport: args.transport,
     });
