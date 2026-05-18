@@ -73,38 +73,69 @@ your env var must contain the `Bearer ` prefix:
 LINEAR_MCP_TOKEN="Bearer lin_oauth_..."
 ```
 
-## Using the tools in a workflow
+## Registering the tools (workspace vs workflow)
+
+Import `McpModule` in your Nest module so the tool classes are available. Then
+register **instances** with `@InjectTool()` — where you put that decorator
+depends on how you run the LLM loop.
+
+| How you run the agent                                                                                                                              | Where to `@InjectTool` MCP tools                                                                                                                                             |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`ChatAgentWorkflow` / `AgentWorkflow` as a sub-workflow** (`this.agent.run({ tools: [...] })`)                                                   | **Workspace** — the child agent resolves tools from the executing workflow first, then the workspace. Tools on the parent workflow are not visible while the sub-agent runs. |
+| **Inline agent loop in one workflow** (your transitions call `this.llmGenerateText.call()` / `this.llmDelegateToolCalls.call()` on the same class) | **That workflow** — same pattern as other registry agents (e.g. Google Workspace).                                                                                           |
+
+See [@loopstack/agent — Tool Resolution]() for the full resolution order.
+
+### With `ChatAgentWorkflow` (register on the workspace)
+
+This is the pattern used by `@loopstack/mcp-linear-example-workflow` and the app
+template: declare MCP tools once on the workspace, then pass their property names
+to `agent.run()`.
 
 ```ts
+import { Injectable } from '@nestjs/common';
 import { ChatAgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, InjectTool, InjectWorkflow, Workflow } from '@loopstack/common';
+import { InjectTool, InjectWorkflow, Workspace } from '@loopstack/common';
 import { McpCallTool, McpListToolsTool } from '@loopstack/mcp-module';
+import { MyMcpWorkflow } from './my-mcp.workflow';
 
-@Workflow({
-  /* ... */
-})
-export class MyMcpAgent extends BaseWorkflow<Args> {
-  @InjectWorkflow({ model: 'claude-sonnet-4-6' }) private agent: ChatAgentWorkflow;
+const mcpToolConfig = {
+  allowedHosts: ['mcp.linear.app', 'mcp.github.com'],
+  hostHeaderEnv: {
+    'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' },
+    'mcp.github.com': { Authorization: 'GITHUB_MCP_TOKEN' },
+  },
+} as const;
 
-  @InjectTool({
-    allowedHosts: ['mcp.linear.app', 'mcp.github.com'],
-    hostHeaderEnv: {
-      'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' },
-      'mcp.github.com': { Authorization: 'GITHUB_MCP_TOKEN' },
-    },
-  })
-  private mcpListTools: McpListToolsTool;
+@Injectable()
+@Workspace({ uiConfig: { title: 'My Workspace' } })
+export class MyWorkspace {
+  @InjectWorkflow() mcpAgent: MyMcpWorkflow;
 
-  @InjectTool({
-    allowedHosts: ['mcp.linear.app', 'mcp.github.com'],
-    hostHeaderEnv: {
-      'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' },
-      'mcp.github.com': { Authorization: 'GITHUB_MCP_TOKEN' },
-    },
-  })
-  private mcpCallTool: McpCallTool;
+  @InjectTool(mcpToolConfig)
+  mcpListTools: McpListToolsTool;
+
+  @InjectTool(mcpToolConfig)
+  mcpCallTool: McpCallTool;
 }
 ```
+
+```ts
+// my-mcp.workflow.ts — parent only starts the sub-agent
+@InjectWorkflow({ model: 'claude-sonnet-4-6' }) private agent: ChatAgentWorkflow;
+
+await this.agent.run({
+  system: '...',
+  tools: ['mcpListTools', 'mcpCallTool'],
+  userMessage: '...',
+});
+```
+
+### Inline agent loop (register on the workflow)
+
+If your workflow owns the LLM turns and tool delegation (no `ChatAgentWorkflow`
+sub-workflow), inject MCP tools on that same workflow class alongside
+`LlmGenerateTextTool` and `LlmDelegateToolCallsTool`.
 
 The agent picks `serverUrl` per call, so it can hop between any of the
 allowlisted hosts within the same chat.
