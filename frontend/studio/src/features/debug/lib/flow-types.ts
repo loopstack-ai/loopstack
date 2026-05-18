@@ -2,8 +2,13 @@ import type { Position } from '@xyflow/react';
 
 export type FlowDirection = 'LR' | 'TB';
 
-export const NODE_WIDTH = 130;
-export const NODE_HEIGHT = 70;
+export interface BuildWorkflowGraphOptions {
+  hideSameStateTransitions?: boolean;
+  extraTransitionSources?: unknown[];
+}
+
+export const NODE_WIDTH = 208;
+export const NODE_HEIGHT = 104;
 
 export interface ResolvedTransition {
   id: string;
@@ -31,7 +36,6 @@ export interface TransitionEdgeData extends Record<string, unknown> {
   to: string;
   isExecuted: boolean;
   isSelfLoop: boolean;
-  isBackEdge: boolean;
   forceVisible: boolean;
   condition?: string;
   trigger?: string;

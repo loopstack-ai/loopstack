@@ -13,7 +13,7 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow {
   @Initial({ to: 'listed' })
   async listFiles() {
     const result = await this.glob.call({ pattern: '**/*.md' });
-    const files = (result.data as string[]) ?? [];
+    const files = (result.data as { files?: string[] })?.files ?? [];
     this.firstMatch = files[0];
 
     await this.repository.save(MessageDocument, {
