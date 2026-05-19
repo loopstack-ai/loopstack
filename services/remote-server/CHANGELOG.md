@@ -1,5 +1,11 @@
 # @loopstack/remote-agent
 
+## 0.25.0
+
+### Minor Changes
+
+- [#147](https://github.com/loopstack-ai/loopstack/pull/147) [`1d069d2`](https://github.com/loopstack-ai/loopstack/commit/1d069d2bd819e8eb9f427ab486a34defc12d971b) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Nodenext ts options
+
 ## 0.24.0
 
 ### Minor Changes
