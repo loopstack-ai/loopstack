@@ -1,4 +1,5 @@
-import { StateManager } from '../state/state-manager';
+import { describe, expect, it } from 'vitest';
+import { StateManager } from '../state/state-manager.js';
 
 describe('StateManager - Data Isolation', () => {
   describe('getData returns copies', () => {

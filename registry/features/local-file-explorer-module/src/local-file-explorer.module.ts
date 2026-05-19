@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
-import { LocalFileExplorerController } from './controllers';
-import { FileApiService, FileSystemService } from './services';
+import { LocalFileExplorerController } from './controllers/index.js';
+import { FileApiService, FileSystemService } from './services/index.js';
 
 @Module({
-  imports: [LoopCoreModule],
   controllers: [LocalFileExplorerController],
   providers: [FileSystemService, FileApiService],
   exports: [FileApiService, FileSystemService],

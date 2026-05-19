@@ -11,7 +11,7 @@ import {
   resolveInjectToolDefaults,
 } from '@loopstack/common';
 import type { WorkflowType } from '@loopstack/contracts/types';
-import type { LlmResolvedTool } from '../types';
+import type { LlmResolvedTool } from '../types/index.js';
 
 /**
  * Resolves tool definitions in a provider-agnostic format.

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import { ConfirmUserWorkflow } from '../workflows/confirm-user/confirm-user.workflow';
+import { ConfirmUserWorkflow } from '../workflows/confirm-user/confirm-user.workflow.js';
 
 const AskForApprovalInputSchema = z
   .object({

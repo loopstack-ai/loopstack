@@ -2,7 +2,7 @@ import { Inject } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { OAuthProviderRegistry } from '../services';
+import { OAuthProviderRegistry } from '../services/index.js';
 
 const BuildOAuthUrlSchema = z
   .object({

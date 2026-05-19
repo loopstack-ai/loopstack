@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
-import Redis from 'ioredis';
-import { QuotaCheckResult, QuotaClientServiceInterface } from '../interfaces';
+import { Redis } from 'ioredis';
+import { QuotaCheckResult, QuotaClientServiceInterface } from '../interfaces/index.js';
 
 export const QUOTA_REDIS = 'QUOTA_REDIS';
 

@@ -1,2 +1,2 @@
-export * from './code-agent.module';
-export * from './tools';
+export * from './code-agent.module.js';
+export * from './tools/index.js';

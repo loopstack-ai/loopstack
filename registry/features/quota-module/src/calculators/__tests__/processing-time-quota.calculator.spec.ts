@@ -1,5 +1,6 @@
+import { beforeEach, describe, expect, it } from 'vitest';
 import { RunContext, ToolExecutionContext, ToolResult } from '@loopstack/common';
-import { ProcessingTimeQuotaCalculator } from '../processing-time-quota.calculator';
+import { ProcessingTimeQuotaCalculator } from '../processing-time-quota.calculator.js';
 
 describe('ProcessingTimeQuotaCalculator', () => {
   let calculator: ProcessingTimeQuotaCalculator;

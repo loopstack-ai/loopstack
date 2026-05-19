@@ -1,4 +1,4 @@
-import { DocumentEntity } from '../entities/document.entity';
+import { DocumentEntity } from '../entities/document.entity.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export type DocumentClass<T = any> = Function & { new (...args: any[]): T; prototype: T };

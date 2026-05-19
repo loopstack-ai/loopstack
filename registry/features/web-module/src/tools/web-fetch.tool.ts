@@ -1,9 +1,9 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { MAX_MARKDOWN_LENGTH, MAX_RESULT_SIZE_CHARS } from '../constants';
-import { WebFetchFetcherService, WebFetchSummarizerService } from '../services';
-import { WebFetchResult } from '../types';
+import { MAX_MARKDOWN_LENGTH, MAX_RESULT_SIZE_CHARS } from '../constants.js';
+import { WebFetchFetcherService, WebFetchSummarizerService } from '../services/index.js';
+import { WebFetchResult } from '../types/index.js';
 
 export const WebFetchSchema = z
   .object({

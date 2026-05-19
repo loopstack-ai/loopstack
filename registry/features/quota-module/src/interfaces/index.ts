@@ -1,3 +1,3 @@
-export * from './quota-client.interface';
-export * from './quota.interface';
-export * from './tool-quota-calculator.interface';
+export * from './quota-client.interface.js';
+export * from './quota.interface.js';
+export * from './tool-quota-calculator.interface.js';

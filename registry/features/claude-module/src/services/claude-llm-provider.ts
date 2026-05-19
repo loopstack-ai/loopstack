@@ -13,9 +13,9 @@ import type {
   LlmUsage,
 } from '@loopstack/llm-provider-module';
 import { LlmNormalizedMessageSchema, LlmProviderRegistry, LlmToolsHelperService } from '@loopstack/llm-provider-module';
-import type { ClaudeProviderConfig } from '../types';
-import { applyCacheBreakpoints } from '../utils/cache.utils';
-import { ClaudeClientService } from './claude-client.service';
+import type { ClaudeProviderConfig } from '../types/index.js';
+import { applyCacheBreakpoints } from '../utils/cache.utils.js';
+import { ClaudeClientService } from './claude-client.service.js';
 
 @Injectable()
 export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderConfig>, OnModuleInit {

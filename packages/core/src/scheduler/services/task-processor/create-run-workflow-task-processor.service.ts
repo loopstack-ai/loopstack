@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CreateWorkflowService, RootProcessorService } from '../../../workflow-processor';
+import { CreateWorkflowService } from '../../../workflow-processor/services/create-workflow.service.js';
+import { RootProcessorService } from '../../../workflow-processor/services/root-processor.service.js';
 
 @Injectable()
 export class CreateRunWorkflowTaskProcessorService {

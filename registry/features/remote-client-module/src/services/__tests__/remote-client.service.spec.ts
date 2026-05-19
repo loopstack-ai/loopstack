@@ -1,4 +1,5 @@
-import { RemoteClient } from '../remote-client.service';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { RemoteClient } from '../remote-client.service.js';
 
 const CONNECTION_URL = 'https://fly-instance.fly.dev';
 
@@ -8,7 +9,7 @@ describe('RemoteClient', () => {
 
   beforeEach(() => {
     client = new RemoteClient();
-    fetchMock = jest.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 200 }));
+    fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 200 }));
   });
 
   afterEach(() => {

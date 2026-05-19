@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DocumentRepository, FrameworkContext, ToolCallOptions, ToolResult } from '../interfaces';
-import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER } from '../tokens';
-import { assertToolsAvailable } from '../utils/block-metadata.utils';
-import { TemplateRenderFn } from './workflow-templates';
+import { DocumentRepository, FrameworkContext, ToolCallOptions, ToolResult } from '../interfaces/index.js';
+import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER } from '../tokens.js';
+import { assertToolsAvailable } from '../utils/block-metadata.utils.js';
+import { TemplateRenderFn } from './workflow-templates.js';
 
 /**
  * Abstract base class for tools in the TypeScript-first workflow model.

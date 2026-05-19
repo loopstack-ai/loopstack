@@ -1,4 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
+import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
@@ -10,14 +11,14 @@ describe('GoogleCalendarFetchEventsTool', () => {
   let tool: GoogleCalendarFetchEventsTool;
 
   const mockTokenStore = {
-    getValidAccessToken: jest.fn(),
-    storeTokens: jest.fn(),
-    storeFromTokenSet: jest.fn(),
-    getTokens: jest.fn(),
+    getValidAccessToken: vi.fn(),
+    storeTokens: vi.fn(),
+    storeFromTokenSet: vi.fn(),
+    getTokens: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     module = await createToolTest()
       .forTool(GoogleCalendarFetchEventsTool)
@@ -139,7 +140,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
         ],
       };
 
-      jest.spyOn(global, 'fetch').mockResolvedValue({
+      vi.spyOn(global, 'fetch').mockResolvedValue({
         ok: true,
         status: 200,
         json: () => Promise.resolve(mockEvents),
@@ -165,7 +166,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
     it('should return 401 error when API returns unauthorized', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue('expired-token');
 
-      jest.spyOn(global, 'fetch').mockResolvedValue({
+      vi.spyOn(global, 'fetch').mockResolvedValue({
         ok: false,
         status: 401,
         statusText: 'Unauthorized',
@@ -182,7 +183,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
     it('should return 401 error when API returns 403', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue('valid-token');
 
-      jest.spyOn(global, 'fetch').mockResolvedValue({
+      vi.spyOn(global, 'fetch').mockResolvedValue({
         ok: false,
         status: 403,
         statusText: 'Forbidden',
@@ -199,7 +200,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
     it('should return api_error for other HTTP errors', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue('valid-token');
 
-      jest.spyOn(global, 'fetch').mockResolvedValue({
+      vi.spyOn(global, 'fetch').mockResolvedValue({
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
@@ -217,7 +218,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
     it('should encode calendarId in the URL', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue('valid-token');
 
-      jest.spyOn(global, 'fetch').mockResolvedValue({
+      vi.spyOn(global, 'fetch').mockResolvedValue({
         ok: true,
         status: 200,
         json: () => Promise.resolve({ items: [] }),
@@ -234,7 +235,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
     it('should pass query parameters correctly', async () => {
       mockTokenStore.getValidAccessToken.mockResolvedValue('valid-token');
 
-      jest.spyOn(global, 'fetch').mockResolvedValue({
+      vi.spyOn(global, 'fetch').mockResolvedValue({
         ok: true,
         status: 200,
         json: () => Promise.resolve({ items: [] }),
@@ -242,7 +243,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
 
       await tool.call(args);
 
-      const fetchUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+      const fetchUrl = (global.fetch as Mock).mock.calls[0][0] as string;
       const url = new URL(fetchUrl);
       expect(url.searchParams.get('timeMin')).toBe('2025-01-01T00:00:00Z');
       expect(url.searchParams.get('timeMax')).toBe('2025-01-07T23:59:59Z');
@@ -251,7 +252,7 @@ describe('GoogleCalendarFetchEventsTool', () => {
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
   });
 });

@@ -25,7 +25,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
@@ -38,43 +38,9 @@
     "dist",
     "src"
   ],
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "maxWorkers": 1,
-    "testTimeout": 10000,
-    "forceExit": true
-  },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/test-ui-documents-example.module.ts",
-        "className": "TestUiDocumentsExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/test-ui-documents.workflow.ts",
-        "className": "TestUiDocumentsWorkflow",
-        "propertyName": "testUiDocuments"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
+  "devDependencies": {
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
   }
 }

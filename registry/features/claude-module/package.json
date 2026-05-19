@@ -19,7 +19,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
     "build": "nest build",
@@ -30,7 +33,7 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.88.0",
+    "@anthropic-ai/sdk": "^0.96.0",
     "@loopstack/common": "^0.29.0",
     "@loopstack/core": "^0.29.0",
     "@loopstack/llm-provider-module": "^0.2.0",
@@ -60,15 +63,5 @@
     "testEnvironment": "node",
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/claude.module.ts",
-        "className": "ClaudeModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  }
+  "type": "module"
 }

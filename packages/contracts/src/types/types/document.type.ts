@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DocumentConfigSchema, DocumentMessageSchema, DocumentSchema, MimeTypeSchema } from '../../schemas';
+import { DocumentConfigSchema, DocumentMessageSchema, DocumentSchema, MimeTypeSchema } from '../../schemas/index.js';
 
 export type MimeType = z.infer<typeof MimeTypeSchema>;
 export type DocumentConfigType = z.infer<typeof DocumentConfigSchema>;

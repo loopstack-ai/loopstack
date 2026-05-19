@@ -19,7 +19,7 @@ import type {
   WorkflowType,
   WorkspaceType,
 } from '@loopstack/contracts/types';
-import { BlockDiscoveryService } from './block-discovery.service';
+import { BlockDiscoveryService } from './block-discovery.service.js';
 
 export interface CachedWorkflowConfig {
   alias: string;

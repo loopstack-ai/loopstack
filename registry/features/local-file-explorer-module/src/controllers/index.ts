@@ -1,1 +1,1 @@
-export * from './local-file-explorer.controller';
+export * from './local-file-explorer.controller.js';

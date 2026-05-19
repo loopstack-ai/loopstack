@@ -6,9 +6,10 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   UpdateDateColumn,
 } from 'typeorm';
-import { WorkspaceEntity } from './workspace.entity';
+import { WorkspaceEntity } from './workspace.entity.js';
 
 @Entity({ name: 'core_workspace_environment' })
 @Index(['workspaceId', 'slotId'], { unique: true })
@@ -47,7 +48,7 @@ export class WorkspaceEnvironmentEntity {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'workspace_id' })
-  workspace!: WorkspaceEntity;
+  workspace!: Relation<WorkspaceEntity>;
 
   @Column({ name: 'workspace_id' })
   workspaceId!: string;

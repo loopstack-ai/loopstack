@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TemplateExpression } from './template-expression.schema';
+import { TemplateExpression } from './template-expression.schema.js';
 
 export const AssignmentSchema = z.record(
   z.string(),

@@ -7,13 +7,14 @@ import {
   ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   UpdateDateColumn,
 } from 'typeorm';
 import { z } from 'zod';
 import type { JSONSchemaConfigType } from '@loopstack/contracts/types';
-import { StableJsonTransformer } from '../utils';
-import { User } from './user.entity';
-import { WorkflowEntity } from './workflow.entity';
+import { StableJsonTransformer } from '../utils/index.js';
+import { User } from './user.entity.js';
+import { WorkflowEntity } from './workflow.entity.js';
 
 @Entity({ name: 'core_document' })
 export class DocumentEntity<T = any> {
@@ -91,7 +92,7 @@ export class DocumentEntity<T = any> {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'workflow_id' })
-  workflow!: WorkflowEntity;
+  workflow!: Relation<WorkflowEntity>;
 
   @Column('varchar', { name: 'labels', array: true, nullable: false })
   labels!: string[];
@@ -102,11 +103,11 @@ export class DocumentEntity<T = any> {
   @ManyToMany(() => WorkflowEntity, (state) => state.dependencies, {
     onDelete: 'CASCADE',
   })
-  dependentStates!: WorkflowEntity[];
+  dependentStates!: Relation<WorkflowEntity[]>;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by' })
-  creator!: User;
+  creator!: Relation<User>;
 
   @Column({ name: 'created_by', type: 'uuid' })
   @Index()

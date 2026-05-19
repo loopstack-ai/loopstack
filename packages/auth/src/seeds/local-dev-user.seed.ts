@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@loopstack/common';
-import { UserRepository } from '../repositories';
+import { UserRepository } from '../repositories/index.js';
 
 @Injectable()
 export class LocalDevUserSeeder implements OnModuleInit {
@@ -13,8 +13,8 @@ export class LocalDevUserSeeder implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const isLocalMode = this.configService.get<boolean>('app.isLocalMode');
-    if (!isLocalMode) return;
+    const enableAuth = this.configService.get<boolean>('app.enableAuth');
+    if (enableAuth) return;
 
     // Check if local dev user exists
     const existingUser = await this.userRepository.findById(this.LOCAL_DEV_USER_ID);

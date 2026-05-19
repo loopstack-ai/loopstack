@@ -1,2 +1,2 @@
-export * from './build-oauth-url.tool';
-export * from './exchange-oauth-token.tool';
+export * from './build-oauth-url.tool.js';
+export * from './exchange-oauth-token.tool.js';

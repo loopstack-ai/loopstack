@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document } from '../decorators/block.decorator';
+import { Document } from '../decorators/block.decorator.js';
 
 export const PlainDocumentSchema = z
   .object({
@@ -9,7 +9,7 @@ export const PlainDocumentSchema = z
 
 @Document({
   schema: PlainDocumentSchema,
-  uiConfig: __dirname + '/plain-document.yaml',
+  uiConfig: import.meta.dirname + '/plain-document.yaml',
 })
 export class PlainDocument {
   text: string;

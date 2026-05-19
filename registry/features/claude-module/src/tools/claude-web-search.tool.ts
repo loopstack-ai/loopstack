@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { BaseTool, InjectTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import type { LlmGenerateTextResult } from '@loopstack/llm-provider-module';
-import { WebSearchHit, WebSearchResult, WebSearchResultBlock } from '../types';
+import { WebSearchHit, WebSearchResult, WebSearchResultBlock } from '../types/index.js';
 
 const MAX_RESULT_SIZE_CHARS = 20_000;
 

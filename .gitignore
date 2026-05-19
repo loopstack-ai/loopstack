@@ -55,6 +55,11 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
+# Sandbox (local dev apps, not committed)
+/sandbox/*
+!/sandbox/.gitkeep
+!/sandbox/hello-world
+
 __backup__
 .claude
 .turbo

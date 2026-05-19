@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document } from '../decorators/block.decorator';
+import { Document } from '../decorators/block.decorator.js';
 
 export const MessageDocumentSchema = z
   .object({
@@ -10,7 +10,7 @@ export const MessageDocumentSchema = z
 
 @Document({
   schema: MessageDocumentSchema,
-  uiConfig: __dirname + '/message-document.yaml',
+  uiConfig: import.meta.dirname + '/message-document.yaml',
 })
 export class MessageDocument {
   role: string;

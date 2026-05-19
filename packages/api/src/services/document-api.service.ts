@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, IsNull, Repository } from 'typeorm';
 import { DocumentEntity } from '@loopstack/common';
-import { DocumentFilterDto } from '../dtos/document-filter.dto';
-import { DocumentSortByDto } from '../dtos/document-sort-by.dto';
+import { DocumentFilterDto } from '../dtos/document-filter.dto.js';
+import { DocumentSortByDto } from '../dtos/document-sort-by.dto.js';
 
 @Injectable()
 export class DocumentApiService {

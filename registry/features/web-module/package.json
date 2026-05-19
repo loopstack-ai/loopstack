@@ -20,7 +20,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
     "build": "nest build",
@@ -64,15 +67,5 @@
     "testEnvironment": "node",
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/web.module.ts",
-        "className": "WebModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  }
+  "type": "module"
 }

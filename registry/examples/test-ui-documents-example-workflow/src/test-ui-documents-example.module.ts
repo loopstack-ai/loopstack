@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { TestUiDocumentsWorkflow } from './test-ui-documents.workflow';
 
 @Module({
-  imports: [LoopCoreModule],
+  imports: [],
   providers: [TestUiDocumentsWorkflow],
   exports: [TestUiDocumentsWorkflow],
 })

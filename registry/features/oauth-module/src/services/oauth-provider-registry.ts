@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { OAuthProviderInterface } from '../contracts';
+import type { OAuthProviderInterface } from '../contracts/index.js';
 
 @Injectable()
 export class OAuthProviderRegistry {

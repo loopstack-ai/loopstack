@@ -1,5 +1,5 @@
 import { Expose, plainToInstance } from 'class-transformer';
-import { WorkspaceEnvironmentEntity } from '../entities';
+import { WorkspaceEnvironmentEntity } from '../entities/index.js';
 
 export class WorkspaceEnvironmentContextDto {
   @Expose()

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Document } from '@loopstack/common';
-import type { LlmContentBlock, LlmStopReason } from '../types';
-import { LlmNormalizedMessageSchema } from '../types';
+import type { LlmContentBlock, LlmStopReason } from '../types/index.js';
+import { LlmNormalizedMessageSchema } from '../types/index.js';
 
 // ---------------------------------------------------------------------------
 // Document content schema
@@ -17,7 +17,7 @@ export type LlmMessageDocumentContentType = z.infer<typeof LlmMessageDocumentCon
 
 @Document({
   schema: LlmMessageDocumentContentSchema,
-  uiConfig: __dirname + '/llm-message.document.yaml',
+  uiConfig: import.meta.dirname + '/llm-message.document.yaml',
 })
 export class LlmMessageDocument {
   id?: string;

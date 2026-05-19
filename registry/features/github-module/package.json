@@ -18,7 +18,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
     "build": "nest build",
@@ -54,26 +57,5 @@
     "testEnvironment": "node",
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/github.module.ts",
-        "className": "GitHubModule"
-      },
-      {
-        "package": "@loopstack/oauth-module",
-        "className": "OAuthModule"
-      }
-    ],
-    "workflows": [
-      {
-        "package": "@loopstack/oauth-module",
-        "className": "OAuthWorkflow",
-        "propertyName": "oAuth"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  }
+  "type": "module"
 }

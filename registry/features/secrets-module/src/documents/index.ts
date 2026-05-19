@@ -1,1 +1,1 @@
-export * from './secret-request-document';
+export * from './secret-request-document.js';

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document } from '../decorators/block.decorator';
+import { Document } from '../decorators/block.decorator.js';
 
 export const LinkDocumentSchema = z
   .object({
@@ -15,7 +15,7 @@ export type LinkDocumentContent = z.infer<typeof LinkDocumentSchema>;
 
 @Document({
   schema: LinkDocumentSchema,
-  uiConfig: __dirname + '/link-document.yaml',
+  uiConfig: import.meta.dirname + '/link-document.yaml',
 })
 export class LinkDocument {
   status?: 'pending' | 'success' | 'failure';

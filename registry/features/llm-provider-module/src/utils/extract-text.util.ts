@@ -1,4 +1,4 @@
-import type { LlmContentBlock, LlmGenerateTextResult } from '../types';
+import type { LlmContentBlock, LlmGenerateTextResult } from '../types/index.js';
 
 export function extractText(result: LlmGenerateTextResult): string {
   const content = result.message.content;

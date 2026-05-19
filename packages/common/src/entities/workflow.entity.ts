@@ -9,13 +9,14 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
   UpdateDateColumn,
 } from 'typeorm';
 import type { WorkflowTransitionType } from '@loopstack/contracts/types';
-import { WorkflowState } from '../enums';
-import { DocumentEntity } from './document.entity';
-import { User } from './user.entity';
-import { WorkspaceEntity } from './workspace.entity';
+import { WorkflowState } from '../enums/index.js';
+import { DocumentEntity } from './document.entity.js';
+import { User } from './user.entity.js';
+import { WorkspaceEntity } from './workspace.entity.js';
 
 @Entity({ name: 'core_workflow' })
 export class WorkflowEntity {
@@ -108,7 +109,7 @@ export class WorkflowEntity {
       referencedColumnName: 'id',
     },
   })
-  dependencies!: DocumentEntity[];
+  dependencies!: Relation<DocumentEntity[]>;
 
   @Column('jsonb', { name: 'hash_record', nullable: true })
   hashRecord!: Record<string, string | null> | null;
@@ -116,20 +117,20 @@ export class WorkflowEntity {
   @OneToMany(() => DocumentEntity, (document: DocumentEntity) => document.workflow, {
     onDelete: 'CASCADE',
   })
-  documents!: DocumentEntity[];
+  documents!: Relation<DocumentEntity[]>;
 
   @ManyToOne(() => WorkspaceEntity, (workspace) => workspace.workflows, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'workspace_id' })
-  workspace!: WorkspaceEntity;
+  workspace!: Relation<WorkspaceEntity>;
 
   @Column({ name: 'workspace_id' })
   workspaceId!: string;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by' })
-  creator!: User;
+  creator!: Relation<User>;
 
   @Column({ name: 'created_by', type: 'uuid' })
   @Index()
@@ -140,11 +141,11 @@ export class WorkflowEntity {
     nullable: true,
   })
   @JoinColumn({ name: 'parent_id' })
-  parent!: WorkflowEntity | null;
+  parent!: Relation<WorkflowEntity> | null;
 
   @Column({ name: 'parent_id', type: 'uuid', nullable: true })
   parentId!: string | null;
 
   @OneToMany(() => WorkflowEntity, (workflow) => workflow.parent)
-  children!: WorkflowEntity[];
+  children!: Relation<WorkflowEntity[]>;
 }

@@ -1,4 +1,4 @@
-import { RoleInterface } from './role.interface';
+import { RoleInterface } from './role.interface.js';
 
 export interface UserInterface {
   id: string;

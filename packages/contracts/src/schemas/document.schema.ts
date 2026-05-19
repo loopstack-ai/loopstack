@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { BlockSchema } from './block.schema';
-import { TemplateExpression } from './template-expression.schema';
-import { UiFormSchema } from './ui-form.schema';
+import { BlockSchema } from './block.schema.js';
+import { TemplateExpression } from './template-expression.schema.js';
+import { UiFormSchema } from './ui-form.schema.js';
 
 export const MimeTypeSchema = z.enum([
   'text/plain',

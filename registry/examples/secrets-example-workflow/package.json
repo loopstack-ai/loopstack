@@ -59,24 +59,5 @@
     "maxWorkers": 1,
     "testTimeout": 10000,
     "forceExit": true
-  },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/secrets-example.module.ts",
-        "className": "SecretsExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/secrets-example.workflow.ts",
-        "className": "SecretsExampleWorkflow",
-        "propertyName": "secretsExample"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
   }
 }

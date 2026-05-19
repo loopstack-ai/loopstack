@@ -1,1 +1,1 @@
-export * from './oauth.workflow';
+export * from './oauth.workflow.js';

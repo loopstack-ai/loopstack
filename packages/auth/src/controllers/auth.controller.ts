@@ -1,24 +1,14 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
-import {
-  ApiBody,
-  ApiExtraModels,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
-import { ApiResponse as SwaggerApiResponse } from '@nestjs/swagger/dist/decorators/api-response.decorator';
 import { Request, Response } from 'express';
 import { CurrentUser, CurrentUserInterface, Public, User } from '@loopstack/common';
-import { AuthResponseDto } from '../dtos/auth-response.dto';
-import { HubLoginRequestDto } from '../dtos/hub-login-request.dto';
-import { HubLoginResponseDto } from '../dtos/hub-login-response.dto';
-import { UserResponseDto } from '../dtos/user-response.dto';
-import { WorkerInfoDto } from '../dtos/worker-info.dto';
-import { HubAuthGuard } from '../guards/hub-auth.guard';
-import { AuthService, TokenService } from '../services';
+import { AuthResponseDto } from '../dtos/auth-response.dto.js';
+import { HubLoginRequestDto } from '../dtos/hub-login-request.dto.js';
+import { HubLoginResponseDto } from '../dtos/hub-login-response.dto.js';
+import { UserResponseDto } from '../dtos/user-response.dto.js';
+import { WorkerInfoDto } from '../dtos/worker-info.dto.js';
+import { HubAuthGuard } from '../guards/hub-auth.guard.js';
+import { AuthService, TokenService } from '../services/index.js';
 
-@ApiTags('api/v1/auth')
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(
@@ -68,8 +58,6 @@ export class AuthController {
 
   @Public()
   @Get('worker/health')
-  @SwaggerApiResponse({ type: WorkerInfoDto })
-  @ApiExtraModels(WorkerInfoDto)
   getInfo(): WorkerInfoDto {
     return this.authService.getWorkerHealthInfo();
   }
@@ -78,12 +66,6 @@ export class AuthController {
   @Post('oauth/hub')
   @HttpCode(HttpStatus.OK)
   @UseGuards(HubAuthGuard)
-  @ApiOperation({ summary: 'Login via Hub' })
-  @ApiBody({ type: HubLoginRequestDto })
-  @ApiExtraModels(HubLoginRequestDto)
-  @SwaggerApiResponse({ type: HubLoginResponseDto })
-  @ApiOkResponse()
-  @ApiUnauthorizedResponse()
   async hubLogin(
     @Body() _hubLoginRequestDto: HubLoginRequestDto,
     @Req() req: Request & { user: User },

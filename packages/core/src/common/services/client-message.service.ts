@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkflowEntity } from '@loopstack/common';
 import { ClientMessageInterface } from '@loopstack/contracts/types';
-import { ClientMessageDto } from '../dtos/client-message.dto';
+import { ClientMessageDto } from '../dtos/client-message.dto.js';
 
 @Injectable()
 export class ClientMessageService {

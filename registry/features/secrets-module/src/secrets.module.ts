@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LoopCoreModule } from '@loopstack/core';
-import { SecretController } from './controllers';
-import { SecretRequestDocument } from './documents';
-import { SecretEntity } from './entities';
-import { SecretService } from './services';
-import { GetSecretKeysTool, RequestSecretsTask, RequestSecretsTool, SecretsRequestWorkflow } from './tools';
+import { SecretController } from './controllers/index.js';
+import { SecretRequestDocument } from './documents/index.js';
+import { SecretEntity } from './entities/index.js';
+import { SecretService } from './services/index.js';
+import { GetSecretKeysTool, RequestSecretsTask, RequestSecretsTool, SecretsRequestWorkflow } from './tools/index.js';
 
 @Module({
-  imports: [LoopCoreModule, TypeOrmModule.forFeature([SecretEntity])],
+  imports: [TypeOrmModule.forFeature([SecretEntity])],
   controllers: [SecretController],
   providers: [
     SecretService,

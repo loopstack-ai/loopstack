@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { BlockSchema } from './block.schema';
-import { UiFormSchema } from './ui-form.schema';
-import { WorkflowTransitionConfigSchema } from './workflow-transition.schema';
+import { BlockSchema } from './block.schema.js';
+import { UiFormSchema } from './ui-form.schema.js';
+import { WorkflowTransitionConfigSchema } from './workflow-transition.schema.js';
 
 export const NamespacePropsSchema = z.object({
   label: z.string(),

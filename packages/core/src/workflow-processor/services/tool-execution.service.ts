@@ -12,7 +12,7 @@ import {
   getBlockTools,
   getInjectToolDefaults,
 } from '@loopstack/common';
-import { ExecutionScope, wrapToolProxy } from '../utils';
+import { ExecutionScope, wrapToolProxy } from '../utils/index.js';
 
 /**
  * Executes tools by wrapping them in proxies that add framework logic.

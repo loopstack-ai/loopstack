@@ -1,20 +1,9 @@
-import { formatDistanceToNow } from 'date-fns';
 import { ChevronDown, Loader2, Play } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import type { WorkflowItemInterface } from '@loopstack/contracts/api';
 import { Button } from '@/components/ui/button.tsx';
-import { NewRunDialog } from '@/features/workbench';
+import { NewRunDialog, RecentRunItem } from '@/features/workbench';
 import { useFilterWorkflows } from '@/hooks/useWorkflows.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
-
-const STATUS_DOT_COLORS: Record<string, string> = {
-  completed: 'bg-green-500',
-  running: 'bg-blue-500',
-  failed: 'bg-red-500',
-  paused: 'bg-yellow-500',
-  canceled: 'bg-orange-500',
-  pending: 'bg-muted-foreground',
-};
 
 export default function StudioLandingPage() {
   const { router } = useStudio();
@@ -93,23 +82,5 @@ export default function StudioLandingPage() {
 
       <NewRunDialog open={newRunDialogOpen} onOpenChange={setNewRunDialogOpen} onSuccess={handleNewRunSuccess} />
     </div>
-  );
-}
-
-function RecentRunItem({ workflow, onClick }: { workflow: WorkflowItemInterface; onClick: () => void }) {
-  const dotColor = STATUS_DOT_COLORS[workflow.status] ?? 'bg-muted-foreground';
-
-  return (
-    <button className="hover:bg-accent w-full rounded-md px-2 py-2.5 text-left transition-colors" onClick={onClick}>
-      <div className="flex items-center gap-2">
-        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotColor}`} />
-        <span className="truncate text-sm font-medium">
-          Run #{workflow.run} &middot; {workflow.alias}
-        </span>
-      </div>
-      <p className="text-muted-foreground mt-0.5 pl-3.5 text-xs">
-        {workflow.status} &middot; {formatDistanceToNow(new Date(workflow.createdAt), { addSuffix: true })}
-      </p>
-    </button>
   );
 }

@@ -2,11 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
 import { JwtPayloadInterface, User } from '@loopstack/common';
-import { AuthResponseDto } from '../dtos/auth-response.dto';
-import { UserResponseDto } from '../dtos/user-response.dto';
-import { WorkerInfoDto } from '../dtos/worker-info.dto';
-import { UserRepository } from '../repositories';
-import { TokenService } from './token.service';
+import { AuthResponseDto } from '../dtos/auth-response.dto.js';
+import { UserResponseDto } from '../dtos/user-response.dto.js';
+import { WorkerInfoDto } from '../dtos/worker-info.dto.js';
+import { UserRepository } from '../repositories/index.js';
+import { TokenService } from './token.service.js';
 
 @Injectable()
 export class AuthService {
@@ -78,12 +78,12 @@ export class AuthService {
   }
 
   getWorkerHealthInfo(): WorkerInfoDto {
-    const isLocalMode = this.configService.get<boolean>('app.isLocalMode');
+    const enableAuth = this.configService.get<boolean>('app.enableAuth');
     return plainToInstance(
       WorkerInfoDto,
       {
-        clientId: isLocalMode ? 'local' : this.configService.get<string>('auth.clientId'),
-        isConfigured: isLocalMode || !!this.configService.get<string>('auth.hub.jwksUri'),
+        clientId: enableAuth ? this.configService.get<string>('auth.clientId') : 'local',
+        isConfigured: !enableAuth || !!this.configService.get<string>('auth.hub.jwksUri'),
         timestamp: new Date(),
       },
       {

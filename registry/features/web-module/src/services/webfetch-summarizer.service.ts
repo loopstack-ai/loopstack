@@ -1,8 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClaudeClientService } from '@loopstack/claude-module';
-import { MAX_MARKDOWN_LENGTH } from '../constants';
-import { isPreapprovedUrl } from '../utils/preapproved-hosts';
-import { makeSecondaryModelPrompt } from '../utils/secondary-model-prompt';
+import { MAX_MARKDOWN_LENGTH } from '../constants.js';
+import { isPreapprovedUrl } from '../utils/preapproved-hosts.js';
+import { makeSecondaryModelPrompt } from '../utils/secondary-model-prompt.js';
 
 export interface SummarizeOptions {
   model?: string;

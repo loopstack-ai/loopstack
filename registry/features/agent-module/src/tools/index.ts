@@ -1,1 +1,1 @@
-export { AgentFinishTool } from './agent-finish.tool';
+export { AgentFinishTool } from './agent-finish.tool.js';

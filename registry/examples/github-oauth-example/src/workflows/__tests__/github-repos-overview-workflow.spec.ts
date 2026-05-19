@@ -1,7 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import {
   GitHubCreateIssueCommentTool,
   GitHubCreateIssueTool,
@@ -34,7 +35,7 @@ import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack
 import { GitHubReposOverviewWorkflow } from '../github-repos-overview.workflow';
 
 const mockOAuthWorkflow = {
-  run: jest.fn(),
+  run: vi.fn(),
 };
 
 function applyAllGitHubToolMocks(builder: ReturnType<typeof createWorkflowTest>) {
@@ -70,7 +71,7 @@ function buildWorkflowTest() {
   return applyAllGitHubToolMocks(
     createWorkflowTest()
       .forWorkflow(GitHubReposOverviewWorkflow)
-      .withImports(LoopCoreModule, OAuthModule)
+      .withImports(OAuthModule)
       .withMock(OAuthWorkflow, mockOAuthWorkflow),
   );
 }
@@ -91,7 +92,7 @@ describe('GitHubReposOverviewWorkflow', () => {
   let mockSearchCode: ToolMock;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     module = await buildWorkflowTest().compile();
 
@@ -482,7 +483,7 @@ describe('GitHubReposOverviewWorkflow with existing entity', () => {
     const workflowId = '00000000-0000-0000-0000-000000000001';
     const args = { owner: 'octocat', repo: 'Hello-World' };
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     module = await buildWorkflowTest().compile();
 

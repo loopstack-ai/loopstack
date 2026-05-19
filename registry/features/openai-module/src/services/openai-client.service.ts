@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
-import type { OpenAiModelConfig } from '../types';
+import type { OpenAiModelConfig } from '../types/index.js';
 
 @Injectable()
 export class OpenAiClientService {

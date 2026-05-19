@@ -33,32 +33,70 @@ A complete TypeScript framework built on NestJS + React. Combine agentic loops a
 
 - Node.js 18.0+
 - Docker
-- Git
+- NestJS CLI (`npm install -g @nestjs/cli`)
 
-### Install
-
-```shell
-npx create-loopstack-app my-project
-```
-
-### Run
+### 1. Start Infrastructure
 
 ```shell
-cd my-project
-npm run start
+curl -fOL https://loopstack.ai/docker-compose.yml
+docker compose up -d
 ```
 
-Your application is now running at: http://localhost:5173
+This starts PostgreSQL, Redis, and Loopstack Studio.
+
+### 2. Create Your App
+
+```shell
+nest new my-app
+cd my-app
+npm install @loopstack/loopstack-module
+```
+
+### 3. Configure
+
+Add `LoopstackModule` to your `app.module.ts`:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { LoopstackModule } from '@loopstack/loopstack-module';
+
+@Module({
+  imports: [LoopstackModule.forRoot()],
+})
+export class AppModule {}
+```
+
+Add YAML asset bundling to `nest-cli.json`:
+
+```json
+{
+  "compilerOptions": {
+    "assets": ["**/*.yaml"]
+  }
+}
+```
+
+### 4. Run
+
+```shell
+npm run start:dev
+```
+
+Your backend runs at http://localhost:3000 and Studio is available at http://localhost:5173.
+
+### 5. Verify Your Setup
+
+Follow the [Hello World Workflow](https://loopstack.ai/docs/getting-started/hello-world) guide to create a simple workflow and see it running in Studio.
 
 ## Community Registry
 
-Ready-made templates, tools, and integrations. Install with a single command:
+Ready-made tools, integrations, and example workflows. Install via npm:
 
 ```shell
-loopstack add <package-name>
+npm install @loopstack/<package-name>
 ```
 
-Browse available packages at [loopstack.ai/registry](https://loopstack.ai/registry).
+Then import the module in your NestJS app. Browse available packages at [loopstack.ai/registry](https://loopstack.ai/registry).
 
 ## Useful Links
 

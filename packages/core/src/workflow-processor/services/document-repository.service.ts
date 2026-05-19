@@ -8,8 +8,8 @@ import {
   getBlockTypeFromMetadata,
   getDocumentSchema,
 } from '@loopstack/common';
-import { ExecutionScope } from '../utils';
-import { DocumentPersistenceService } from './document-persistence.service';
+import { ExecutionScope } from '../utils/index.js';
+import { DocumentPersistenceService } from './document-persistence.service.js';
 
 /**
  * Implements the DocumentRepository interface for workflow and tool authors.

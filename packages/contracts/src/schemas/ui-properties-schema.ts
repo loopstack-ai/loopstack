@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UiElementSchema } from './ui-form-element.schema';
+import { UiElementSchema } from './ui-form-element.schema.js';
 
 export const UiPropertiesSchema: z.ZodType<any> = z.lazy(() =>
   UiElementSchema.extend({

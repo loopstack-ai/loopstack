@@ -13,7 +13,7 @@ export const AskUserOptionsDocumentSchema = z
 export type AskUserOptionsDocumentType = z.infer<typeof AskUserOptionsDocumentSchema>;
 
 @Document({
-  uiConfig: __dirname + '/ask-user-options-document.yaml',
+  uiConfig: import.meta.dirname + '/ask-user-options-document.yaml',
   schema: AskUserOptionsDocumentSchema,
 })
 export class AskUserOptionsDocument {

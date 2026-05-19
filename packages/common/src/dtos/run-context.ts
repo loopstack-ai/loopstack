@@ -1,7 +1,7 @@
 import { RunPayload } from '@loopstack/contracts/schemas';
-import type { WorkflowEntity } from '../entities';
-import type { WorkspaceInterface } from '../interfaces';
-import { WorkspaceEnvironmentContextDto } from './workspace-environment-context.dto';
+import type { WorkflowEntity } from '../entities/index.js';
+import type { WorkspaceInterface } from '../interfaces/index.js';
+import { WorkspaceEnvironmentContextDto } from './workspace-environment-context.dto.js';
 
 export class RunContext {
   root!: string;

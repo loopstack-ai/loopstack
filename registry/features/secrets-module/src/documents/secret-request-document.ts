@@ -16,7 +16,7 @@ export const SecretRequestDocumentSchema = z
 
 @Document({
   schema: SecretRequestDocumentSchema,
-  uiConfig: __dirname + '/secret-request-document.yaml',
+  uiConfig: import.meta.dirname + '/secret-request-document.yaml',
 })
 export class SecretRequestDocument {
   variables?: { key: string; value?: string }[];

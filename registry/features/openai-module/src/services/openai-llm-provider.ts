@@ -13,8 +13,8 @@ import type {
   LlmUsage,
 } from '@loopstack/llm-provider-module';
 import { LlmNormalizedMessageSchema, LlmProviderRegistry, LlmToolsHelperService } from '@loopstack/llm-provider-module';
-import type { OpenAiProviderConfig } from '../types';
-import { OpenAiClientService } from './openai-client.service';
+import type { OpenAiProviderConfig } from '../types/index.js';
+import { OpenAiClientService } from './openai-client.service.js';
 
 @Injectable()
 export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderConfig>, OnModuleInit {

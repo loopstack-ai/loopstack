@@ -28,7 +28,7 @@
       "@loopstack/core": ["./packages/core/src"],
       "@loopstack/auth": ["./packages/auth/src"],
       "@loopstack/api": ["./packages/api/src"],
-      "@loopstack/cli-module": ["./packages/cli/src"],
+      "@loopstack/loopstack-module": ["./packages/loopstack-module/src"],
       "@loopstack/testing": ["./packages/testing/src"],
       "@loopstack/ai-module": ["./registry/features/ai-module/src"],
       "@loopstack/claude-module": ["./registry/features/claude-module/src"],
@@ -43,7 +43,7 @@
       "@loopstack/remote-client": ["./registry/features/remote-client-module/src"],
       "@loopstack/remote-file-explorer-module": ["./registry/features/remote-file-explorer-module/src"],
       "@loopstack/secrets-module": ["./registry/features/secrets-module/src"],
-      "@loopstack/web-module": ["./registry/features/web-module/src"],
+      "@loopstack/mcp-module": ["./registry/features/mcp-module/src"],
       "@loopstack/sandbox-filesystem": ["./registry/tools/sandbox-filesystem/src"],
       "@loopstack/sandbox-tool": ["./registry/tools/sandbox-tool/src"],
       "@loopstack/accessing-tool-results-example-workflow": [

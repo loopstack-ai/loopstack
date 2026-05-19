@@ -1,11 +1,9 @@
 import { Controller, Get, NotFoundException, Param, Query, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentUser, CurrentUserInterface, WorkspaceEntity } from '@loopstack/common';
 import { RemoteClient } from '@loopstack/remote-client';
 
-@ApiTags('api/v1/workspaces/:workspaceId/files')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces/:workspaceId/files')
 export class RemoteFileExplorerController {
@@ -38,7 +36,7 @@ export class RemoteFileExplorerController {
     @Param('workspaceId') workspaceId: string,
     @Query('path') basePath: string | undefined,
     @CurrentUser() user: CurrentUserInterface,
-  ) {
+  ): Promise<unknown> {
     const agentUrl = await this.getAgentUrl(workspaceId, user.userId);
     return this.remoteAgentClient.getFileTree(agentUrl, basePath ?? './src');
   }

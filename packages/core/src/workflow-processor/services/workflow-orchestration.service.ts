@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
   CallbackOptions,
@@ -10,10 +10,10 @@ import {
   WorkflowState,
 } from '@loopstack/common';
 import type { ScheduledTask } from '@loopstack/contracts/types';
-import { WorkflowService } from '../../persistence';
-import { TaskSchedulerService } from '../../scheduler';
-import { ExecutionScope } from '../utils';
-import { CreateWorkflowService } from './create-workflow.service';
+import { WorkflowService } from '../../persistence/services/workflow.service.js';
+import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
+import { ExecutionScope } from '../utils/index.js';
+import { CreateWorkflowService } from './create-workflow.service.js';
 
 /**
  * Handles sub-workflow orchestration for the TypeScript-first workflow model.
@@ -30,7 +30,6 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
   constructor(
     private readonly executionScope: ExecutionScope,
     private readonly createWorkflowService: CreateWorkflowService,
-    @Inject(forwardRef(() => TaskSchedulerService))
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly workflowService: WorkflowService,
   ) {}

@@ -1,6 +1,7 @@
+import { beforeEach, describe, expect, it } from 'vitest';
 import { ToolExecutionContext, ToolResult } from '@loopstack/common';
-import { ToolQuotaCalculator } from '../../interfaces/tool-quota-calculator.interface';
-import { QuotaCalculatorRegistry } from '../quota-calculator-registry.service';
+import { ToolQuotaCalculator } from '../../interfaces/tool-quota-calculator.interface.js';
+import { QuotaCalculatorRegistry } from '../quota-calculator-registry.service.js';
 
 class MockCalculator implements ToolQuotaCalculator {
   quotaType = 'test-type';

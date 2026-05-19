@@ -1,5 +1,5 @@
 import { ToolExecutionContext, ToolResult } from '@loopstack/common';
-import { QuotaUsage } from './quota.interface';
+import { QuotaUsage } from './quota.interface.js';
 
 export interface ToolQuotaCalculator {
   /**

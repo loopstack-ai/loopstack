@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AgentModule } from '@loopstack/agent';
-import { LoopCoreModule } from '@loopstack/core';
 import { RemoteClientModule } from '@loopstack/remote-client';
-import { ExploreTask } from './tools/explore-task.tool';
+import { ExploreTask } from './tools/explore-task.tool.js';
 
 @Module({
-  imports: [LoopCoreModule, AgentModule, RemoteClientModule],
+  imports: [AgentModule, RemoteClientModule],
   providers: [ExploreTask],
   exports: [ExploreTask, AgentModule, RemoteClientModule],
 })

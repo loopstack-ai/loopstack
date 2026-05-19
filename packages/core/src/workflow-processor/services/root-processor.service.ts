@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
   RunContext,
@@ -12,10 +12,10 @@ import {
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { RunPayload } from '@loopstack/contracts/schemas';
 import type { ScheduledTask } from '@loopstack/contracts/types';
-import { WorkflowService } from '../../persistence';
-import { TaskSchedulerService } from '../../scheduler';
-import { BlockDiscoveryService } from './block-discovery.service';
-import { BlockProcessor } from './block-processor.service';
+import { WorkflowService } from '../../persistence/services/workflow.service.js';
+import { TaskSchedulerService } from '../../scheduler/services/task-scheduler.service.js';
+import { BlockDiscoveryService } from './block-discovery.service.js';
+import { BlockProcessor } from './block-processor.service.js';
 
 @Injectable()
 export class RootProcessorService {
@@ -26,7 +26,6 @@ export class RootProcessorService {
     private readonly blockProcessor: BlockProcessor,
     private readonly blockDiscoveryService: BlockDiscoveryService,
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
-    @Inject(forwardRef(() => TaskSchedulerService))
     private readonly taskSchedulerService: TaskSchedulerService,
   ) {}
 

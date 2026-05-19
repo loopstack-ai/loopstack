@@ -1,2 +1,2 @@
-export * from './file-system.service';
-export * from './file-api.service';
+export * from './file-system.service.js';
+export * from './file-api.service.js';

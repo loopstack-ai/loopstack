@@ -7,11 +7,12 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './user.entity';
-import { WorkflowEntity } from './workflow.entity';
-import { WorkspaceEnvironmentEntity } from './workspace-environment.entity';
+import { User } from './user.entity.js';
+import { WorkflowEntity } from './workflow.entity.js';
+import { WorkspaceEnvironmentEntity } from './workspace-environment.entity.js';
 
 @Entity({ name: 'core_workspace' })
 export class WorkspaceEntity {
@@ -38,17 +39,17 @@ export class WorkspaceEntity {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  workflows!: WorkflowEntity[];
+  workflows!: Relation<WorkflowEntity[]>;
 
   @OneToMany(() => WorkspaceEnvironmentEntity, (env) => env.workspace, {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  environments!: WorkspaceEnvironmentEntity[];
+  environments!: Relation<WorkspaceEnvironmentEntity[]>;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by' })
-  creator!: User;
+  creator!: Relation<User>;
 
   @Column({ name: 'created_by', type: 'uuid' })
   @Index()

@@ -1,2 +1,2 @@
-export * from './claude-client.service';
-export * from './claude-llm-provider';
+export * from './claude-client.service.js';
+export * from './claude-llm-provider.js';

@@ -1,7 +1,7 @@
 import { WorkflowState } from '@loopstack/contracts/enums';
 import { WorkflowTransitionType } from '@loopstack/contracts/types';
 import { HistoryTransition } from '@loopstack/contracts/types';
-import { DocumentEntity } from '../entities';
+import { DocumentEntity } from '../entities/index.js';
 
 export interface WorkflowMetadataInterface {
   hasError: boolean;

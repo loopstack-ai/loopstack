@@ -26,7 +26,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
@@ -40,46 +40,9 @@
     "dist",
     "src"
   ],
-  "jest": {
-    "testEnvironment": "node",
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "testTimeout": 10000,
-    "forceExit": true,
-    "maxWorkers": 1
-  },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/agent-example.module.ts",
-        "className": "AgentExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/agent-example.workflow.ts",
-        "className": "AgentExampleWorkflow",
-        "propertyName": "agentExample"
-      }
-    ],
-    "tools": [
-      {
-        "path": "src/tools/calculator.tool.ts",
-        "className": "CalculatorTool",
-        "propertyName": "calculator"
-      },
-      {
-        "path": "src/tools/weather-lookup.tool.ts",
-        "className": "WeatherLookupTool",
-        "propertyName": "weatherLookup"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
+  "devDependencies": {
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
   }
 }

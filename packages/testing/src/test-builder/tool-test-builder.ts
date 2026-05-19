@@ -1,6 +1,7 @@
 import { Provider, Type } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { merge } from 'lodash';
+import lodash from 'lodash';
+import { type Mock, vi } from 'vitest';
 import {
   BLOCK_CONFIG_METADATA_KEY,
   BaseTool,
@@ -10,11 +11,13 @@ import {
   WorkflowExecution,
 } from '@loopstack/common';
 
+const { merge } = lodash;
+
 /**
  * Mock for Tool classes - provides standard jest mock functions
  */
 export interface ToolMock {
-  call: jest.Mock;
+  call: Mock;
 }
 
 /**
@@ -22,7 +25,7 @@ export interface ToolMock {
  */
 export function createToolMock(): ToolMock {
   return {
-    call: jest.fn().mockResolvedValue({ data: undefined }),
+    call: vi.fn().mockResolvedValue({ data: undefined }),
   };
 }
 
@@ -149,10 +152,10 @@ export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
         {
           provide: DOCUMENT_REPOSITORY,
           useValue: {
-            create: jest.fn(),
-            save: jest.fn().mockResolvedValue({}),
-            findAll: jest.fn().mockReturnValue([]),
-            findByTag: jest.fn().mockReturnValue([]),
+            create: vi.fn(),
+            save: vi.fn().mockResolvedValue({}),
+            findAll: vi.fn().mockReturnValue([]),
+            findByTag: vi.fn().mockReturnValue([]),
           },
         },
         {
@@ -166,7 +169,7 @@ export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
         },
         {
           provide: TEMPLATE_RENDERER,
-          useValue: jest.fn((template: string) => template),
+          useValue: vi.fn((template: string) => template),
         },
         ...this.providers,
       ],

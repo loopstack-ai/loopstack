@@ -1,4 +1,4 @@
-import { MAX_URL_LENGTH } from '../constants';
+import { MAX_URL_LENGTH } from '../constants.js';
 
 export function validateURL(url: string): { ok: true; parsed: URL } | { ok: false; reason: string } {
   if (url.length > MAX_URL_LENGTH) {

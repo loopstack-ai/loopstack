@@ -1,3 +1,2 @@
-export * from './services';
-export * from './workflow-processor.module';
-export * from './utils';
+export * from './services/index.js';
+export * from './utils/index.js';

@@ -42,7 +42,7 @@ interface GitHubRepo {
 }
 
 @Workflow({
-  uiConfig: __dirname + '/connect-github.ui.yaml',
+  uiConfig: import.meta.dirname + '/connect-github.ui.yaml',
   schema: z.object({}).strict(),
 })
 export class ConnectGitHubWorkflow extends BaseWorkflow {

@@ -1,2 +1,2 @@
-export * from './file-explorer-node.dto';
-export * from './file-content.dto';
+export * from './file-explorer-node.dto.js';
+export * from './file-content.dto.js';

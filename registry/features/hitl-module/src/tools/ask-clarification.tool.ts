@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import { AskUserWorkflow } from '../workflows/ask-user/ask-user.workflow';
+import { AskUserWorkflow } from '../workflows/ask-user/ask-user.workflow.js';
 
 const AskClarificationInputSchema = z
   .object({

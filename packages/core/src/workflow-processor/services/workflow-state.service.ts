@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
 import { PersistenceState, WorkflowCheckpointEntity, WorkflowEntity } from '@loopstack/common';
-import { WorkflowCheckpointService, WorkflowService } from '../../persistence';
-import { WorkflowExecutionContextManager } from '../utils/execution-context-manager';
+import { WorkflowCheckpointService, WorkflowService } from '../../persistence/index.js';
+import { WorkflowExecutionContextManager } from '../utils/execution-context-manager.js';
 
 @Injectable()
 export class WorkflowStateService {

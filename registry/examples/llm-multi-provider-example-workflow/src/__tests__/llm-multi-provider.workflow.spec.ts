@@ -1,7 +1,8 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { getBlockTools } from '@loopstack/common';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { OpenAiModule } from '@loopstack/openai-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
@@ -26,7 +27,7 @@ describe('LlmMultiProviderWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(LlmMultiProviderWorkflow)
-      .withImports(LoopCoreModule, ClaudeModule, OpenAiModule)
+      .withImports(ClaudeModule, OpenAiModule)
       .withToolOverride(LlmGenerateTextTool)
       .compile();
 

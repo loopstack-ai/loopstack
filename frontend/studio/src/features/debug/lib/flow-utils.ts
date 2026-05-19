@@ -2,12 +2,16 @@ import Dagre from '@dagrejs/dagre';
 import { type Edge, MarkerType, type Node, Position } from '@xyflow/react';
 import type { WorkflowInterface, WorkflowTransitionType } from '@loopstack/contracts/types';
 import type { WorkflowCheckpoint } from '@/api/workflows.ts';
-import type { FlowDirection, ResolvedTransition, StateNodeData, TransitionEdgeData } from './flow-types.ts';
+import type {
+  BuildWorkflowGraphOptions,
+  FlowDirection,
+  ResolvedTransition,
+  StateNodeData,
+  TransitionEdgeData,
+} from './flow-types.ts';
+import { NODE_HEIGHT, NODE_WIDTH } from './flow-types.ts';
 
-export type { StateNodeData } from './flow-types.ts';
-
-const NODE_WIDTH = 130;
-const NODE_HEIGHT = 70;
+export type { BuildWorkflowGraphOptions, StateNodeData } from './flow-types.ts';
 
 const CONDITION_OPERATORS: Record<string, string> = {
   gt: '>',
@@ -27,7 +31,7 @@ export function getLayoutedElements(
   direction: FlowDirection = 'LR',
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: direction, nodesep: 100, ranksep: 200 });
+  g.setGraph({ rankdir: direction, nodesep: 120, ranksep: 240 });
 
   for (const node of nodes) {
     g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
@@ -117,8 +121,14 @@ export function buildWorkflowGraph(
   direction: FlowDirection,
   forceVisible = false,
   checkpoints: CheckpointEntry[] = [],
+  options?: BuildWorkflowGraphOptions,
 ): { nodes: Node<StateNodeData>[]; edges: Edge[] } {
-  const transitions = collectTransitions(parentWorkflow, workflowData, configTransitions);
+  const transitions = collectTransitions(
+    parentWorkflow,
+    workflowData,
+    configTransitions,
+    options?.extraTransitionSources,
+  );
 
   const states = collectStates(transitions, checkpoints);
   const executedMap = buildExecutedMap(checkpoints);
@@ -126,7 +136,6 @@ export function buildWorkflowGraph(
   const allTransitions = resolveTransitions(transitions, checkpoints);
   const endStates = findEndStates(states, allTransitions);
   const visitedStates = findVisitedStates(checkpoints);
-  const stateRanks = computeStateRanks(allTransitions);
 
   const nodes = buildNodes(states, {
     workflowId,
@@ -141,21 +150,30 @@ export function buildWorkflowGraph(
   const edges = buildEdges(allTransitions, {
     workflowId,
     executedMap,
-    stateRanks,
     forceVisible,
+    hideSameStateTransitions: options?.hideSameStateTransitions ?? false,
+    direction,
   });
 
-  return nodes.length > 1 ? getLayoutedElements(nodes, edges, direction) : { nodes, edges };
+  if (nodes.length <= 1) {
+    return { nodes, edges };
+  }
+
+  return getLayoutedElements(nodes, edges, direction);
 }
 
 function collectTransitions(
   parentWorkflow: unknown,
   workflowData: WorkflowInterface | undefined,
   configTransitions: WorkflowTransitionType[],
+  extraSources: unknown[] | undefined,
 ): WorkflowTransitionType[] {
   const all = [...configTransitions];
   if (parentWorkflow) all.push(...getTransitions(parentWorkflow));
   if (workflowData) all.push(...getTransitions(workflowData));
+  for (const src of extraSources ?? []) {
+    all.push(...getTransitions(src));
+  }
 
   const seen = new Set<string>();
   return all.filter((t) => {
@@ -253,32 +271,6 @@ function findVisitedStates(checkpoints: CheckpointEntry[]): Set<string> {
   return visited;
 }
 
-function computeStateRanks(transitions: ResolvedTransition[]): Map<string, number> {
-  const adjacency = new Map<string, string[]>();
-  for (const t of transitions) {
-    if (t.from === t.to) continue;
-    const neighbors = adjacency.get(t.from) ?? [];
-    neighbors.push(t.to);
-    adjacency.set(t.from, neighbors);
-  }
-
-  const ranks = new Map<string, number>([['start', 0]]);
-  const queue = ['start'];
-
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    const rank = ranks.get(current)!;
-    for (const neighbor of adjacency.get(current) ?? []) {
-      if (!ranks.has(neighbor)) {
-        ranks.set(neighbor, rank + 1);
-        queue.push(neighbor);
-      }
-    }
-  }
-
-  return ranks;
-}
-
 interface NodeBuildContext {
   workflowId: string;
   currentPlace: string | undefined;
@@ -310,8 +302,26 @@ function buildNodes(states: Set<string>, ctx: NodeBuildContext): Node<StateNodeD
 interface EdgeBuildContext {
   workflowId: string;
   executedMap: Map<string, number>;
-  stateRanks: Map<string, number>;
   forceVisible: boolean;
+  hideSameStateTransitions: boolean;
+  direction: FlowDirection;
+}
+
+function edgeHandleProps(
+  direction: FlowDirection,
+  isSelfLoop: boolean,
+): {
+  sourceHandle?: string;
+  targetHandle?: string;
+} {
+  if (direction === 'TB') {
+    return isSelfLoop
+      ? { sourceHandle: 'tb-s-self', targetHandle: 'tb-t-self' }
+      : { sourceHandle: 'tb-s', targetHandle: 'tb-t' };
+  }
+  return isSelfLoop
+    ? { sourceHandle: 'lr-r-self', targetHandle: 'lr-l-self' }
+    : { sourceHandle: 'lr-r', targetHandle: 'lr-l' };
 }
 
 function buildEdges(transitions: ResolvedTransition[], ctx: EdgeBuildContext): Edge[] {
@@ -324,12 +334,11 @@ function buildEdges(transitions: ResolvedTransition[], ctx: EdgeBuildContext): E
     if (seen.has(key)) continue;
     seen.add(key);
 
+    const isSelfLoop = t.from === t.to;
+    if (ctx.hideSameStateTransitions && isSelfLoop) continue;
+
     const isExecuted = ctx.executedMap.has(key);
     const isAutomatic = t.trigger === 'onEntry';
-    const isSelfLoop = t.from === t.to;
-    const fromRank = ctx.stateRanks.get(t.from) ?? 0;
-    const toRank = ctx.stateRanks.get(t.to) ?? 0;
-    const isBackEdge = !isSelfLoop && toRank <= fromRank;
 
     const color = isExecuted ? 'var(--primary)' : 'var(--muted-foreground)';
 
@@ -337,24 +346,31 @@ function buildEdges(transitions: ResolvedTransition[], ctx: EdgeBuildContext): E
       ...t,
       isExecuted,
       isSelfLoop,
-      isBackEdge,
       forceVisible: ctx.forceVisible,
     };
+
+    const baseOpacity = isExecuted || ctx.forceVisible ? 1 : 0.38;
+    const baseStrokeWidth = isExecuted ? 2.5 : 1.5;
 
     edges.push({
       id: `edge-${ctx.workflowId}-${index++}`,
       source: `${ctx.workflowId}-${t.from}`,
       target: `${ctx.workflowId}-${t.to}`,
-      ...(isBackEdge && { sourceHandle: 'bottom-source', targetHandle: 'bottom-target' }),
+      ...edgeHandleProps(ctx.direction, isSelfLoop),
       type: 'workflowTransition',
       animated: false,
       style: {
-        strokeWidth: isExecuted ? 2.5 : 1.5,
+        strokeWidth: baseStrokeWidth,
         stroke: color,
         strokeDasharray: isAutomatic ? '4,4' : !isExecuted ? '5,5' : undefined,
-        opacity: isExecuted || ctx.forceVisible ? 1 : 0.3,
+        opacity: baseOpacity,
       },
-      markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        width: isSelfLoop ? 12 : 18,
+        height: isSelfLoop ? 12 : 18,
+        color,
+      },
       data,
     });
   }

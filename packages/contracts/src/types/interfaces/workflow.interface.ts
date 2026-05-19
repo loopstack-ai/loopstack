@@ -1,5 +1,5 @@
-import { WorkflowState } from '../../enums';
-import { WorkflowTransitionType } from '../types/workflow-transition.type';
+import { WorkflowState } from '../../enums/index.js';
+import { WorkflowTransitionType } from '../types/workflow-transition.type.js';
 
 export interface WorkflowInterface {
   id: string;

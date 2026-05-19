@@ -1,6 +1,6 @@
-import { PROPERTY_DEPS_METADATA } from '@nestjs/common/constants';
+import { PROPERTY_DEPS_METADATA } from '@nestjs/common/constants.js';
 import { BaseTool, getBlockTools, getPassThroughProperties } from '@loopstack/common';
-import { ExecutionScope } from './execution-scope';
+import { ExecutionScope } from './execution-scope.js';
 
 /**
  * Wraps a tool instance in a Proxy that provides:

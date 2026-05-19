@@ -1,4 +1,4 @@
-import { PROPERTY_DEPS_METADATA } from '@nestjs/common/constants';
+import { PROPERTY_DEPS_METADATA } from '@nestjs/common/constants.js';
 import {
   BlockInterface,
   WorkflowInterface,
@@ -6,7 +6,7 @@ import {
   getBlockWorkflows,
   getPassThroughProperties,
 } from '@loopstack/common';
-import { ExecutionContextManager } from './execution-context-manager';
+import { ExecutionContextManager } from './execution-context-manager.js';
 
 /**
  * Wraps a workflow instance in a Proxy that intercepts property access

@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { GitAddTool, GitCommitTool, GitLogTool, GitStatusTool } from '@loopstack/git-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { GitCommitFlowExampleWorkflow } from '../git-commit-flow-example.workflow';
@@ -17,7 +18,6 @@ describe('GitCommitFlowExampleWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(GitCommitFlowExampleWorkflow)
-      .withImports(LoopCoreModule)
       .withToolMock(GitStatusTool)
       .withToolMock(GitAddTool)
       .withToolMock(GitCommitTool)

@@ -1,9 +1,8 @@
 import 'reflect-metadata';
 
-export * from './common';
-export * from './persistence';
-export * from './scheduler';
-export * from './workflow-processor';
+export * from './common/index.js';
+export * from './persistence/index.js';
+export * from './scheduler/index.js';
+export * from './workflow-processor/index.js';
 
-export * from './loop-core.module';
-export * from './loop-core.module-definition';
+export * from './loop-core.module.js';

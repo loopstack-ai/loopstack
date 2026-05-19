@@ -1,1 +1,1 @@
-export * from './git.controller';
+export * from './git.controller.js';

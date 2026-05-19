@@ -26,7 +26,7 @@
     "compile": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run",
     "watch": "nest build --watch"
   },
   "dependencies": {
@@ -41,51 +41,9 @@
     "dist",
     "src"
   ],
-  "jest": {
-    "testEnvironment": "node",
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "testTimeout": 10000,
-    "forceExit": true,
-    "maxWorkers": 1
-  },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/code-agent-example.module.ts",
-        "className": "CodeAgentExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/code-agent-example.workflow.ts",
-        "className": "CodeAgentExampleWorkflow",
-        "propertyName": "codeAgentExample"
-      }
-    ],
-    "tools": [
-      {
-        "package": "@loopstack/remote-client",
-        "className": "GlobTool",
-        "propertyName": "glob"
-      },
-      {
-        "package": "@loopstack/remote-client",
-        "className": "GrepTool",
-        "propertyName": "grep"
-      },
-      {
-        "package": "@loopstack/remote-client",
-        "className": "ReadTool",
-        "propertyName": "read"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
+  "devDependencies": {
+    "vitest": "^4.1.6",
+    "@swc/core": "^1.15.33",
+    "unplugin-swc": "^1.5.9"
   }
 }

@@ -1,9 +1,9 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import type { LlmContext } from '../contracts';
-import { LlmProviderRegistry } from '../services/llm-provider-registry';
-import type { LlmGenerateObjectResult, LlmMessage, LlmResultMeta } from '../types';
+import type { LlmContext } from '../contracts/index.js';
+import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
+import type { LlmGenerateObjectResult, LlmMessage, LlmResultMeta } from '../types/index.js';
 
 export const LlmGenerateObjectArgsSchema = z.object({
   prompt: z.string().optional(),

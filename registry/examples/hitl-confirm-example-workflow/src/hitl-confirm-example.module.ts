@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { HitlModule } from '@loopstack/hitl';
 import { HitlConfirmExampleWorkflow } from './hitl-confirm-example.workflow';
 
 @Module({
-  imports: [LoopCoreModule, HitlModule],
+  imports: [HitlModule],
   providers: [HitlConfirmExampleWorkflow],
   exports: [HitlConfirmExampleWorkflow],
 })

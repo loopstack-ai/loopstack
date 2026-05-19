@@ -1,23 +1,24 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBlockArgsSchema } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { RemoteClient } from '../../services/remote-client.service';
-import { SandboxEnvironmentService } from '../../services/sandbox-environment.service';
-import { BashTool } from '../bash.tool';
+import { RemoteClient } from '../../services/remote-client.service.js';
+import { SandboxEnvironmentService } from '../../services/sandbox-environment.service.js';
+import { BashTool } from '../bash.tool.js';
 
 describe('BashTool', () => {
   let module: TestingModule;
   let tool: BashTool;
 
   const mockRemoteClient = {
-    executeCommand: jest.fn(),
+    executeCommand: vi.fn(),
   };
   const mockSandbox = {
-    getAgentUrl: jest.fn().mockReturnValue('https://agent.example'),
+    getAgentUrl: vi.fn().mockReturnValue('https://agent.example'),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     module = await createToolTest()
       .forTool(BashTool)

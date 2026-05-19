@@ -1,4 +1,5 @@
-import { WorkspaceLockService } from '../workspace-lock.service';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { WorkspaceLockService } from '../workspace-lock.service.js';
 
 describe('WorkspaceLockService', () => {
   let service: WorkspaceLockService;

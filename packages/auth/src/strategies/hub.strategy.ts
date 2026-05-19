@@ -6,7 +6,7 @@ import { JWTVerifyGetKey, createRemoteJWKSet, jwtVerify } from 'jose';
 import { Strategy } from 'passport-custom';
 import { UserTypeEnum } from '@loopstack/common';
 import { User } from '@loopstack/common';
-import { UserRepository } from '../repositories';
+import { UserRepository } from '../repositories/index.js';
 
 @Injectable()
 export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
@@ -87,8 +87,8 @@ export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
 
   async validate(req: Request): Promise<User> {
     try {
-      const isLocalDevMode = this.configService.get<boolean>('app.isLocalMode');
-      if (isLocalDevMode) {
+      const enableAuth = this.configService.get<boolean>('app.enableAuth');
+      if (!enableAuth) {
         return this.validateLocalUser();
       }
 

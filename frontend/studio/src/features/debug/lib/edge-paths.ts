@@ -1,77 +1,78 @@
 import { Position, getSmoothStepPath } from '@xyflow/react';
+import { NODE_HEIGHT, NODE_WIDTH } from './flow-types.ts';
 import type { EdgePathInput, EdgePathResult } from './flow-types.ts';
 
-const SELF_LOOP_OFFSET = 75;
-const SELF_LOOP_EXTEND = 20;
-const SELF_LOOP_NODE_W = 130;
-const SELF_LOOP_NODE_H = 70;
+const CLEAR = 22;
+const HALF_W = NODE_WIDTH / 2;
+const HALF_H = NODE_HEIGHT / 2;
 
-export function selfLoopPath(sourceX: number, sourceY: number, sourcePosition: Position): EdgePathResult {
-  const isVertical = sourcePosition === Position.Bottom || sourcePosition === Position.Top;
+export function selfLoopPath(input: EdgePathInput): EdgePathResult {
+  const { sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition } = input;
 
-  if (isVertical) {
-    const tx = sourceX;
-    const ty = sourceY - SELF_LOOP_NODE_H;
-    return {
-      path: `M ${sourceX} ${sourceY} C ${sourceX + SELF_LOOP_OFFSET} ${sourceY + SELF_LOOP_EXTEND}, ${tx + SELF_LOOP_OFFSET} ${ty - SELF_LOOP_EXTEND}, ${tx} ${ty}`,
-      labelX: sourceX + SELF_LOOP_OFFSET + 8,
-      labelY: (sourceY + ty) / 2,
-    };
+  if (sourcePosition === Position.Bottom && targetPosition === Position.Top) {
+    return tbSelfLoopRight(sourceX, sourceY, targetX, targetY);
   }
 
-  const tx = sourceX - SELF_LOOP_NODE_W;
-  const ty = sourceY;
-  return {
-    path: `M ${sourceX} ${sourceY} C ${sourceX + SELF_LOOP_EXTEND} ${sourceY + SELF_LOOP_OFFSET}, ${tx - SELF_LOOP_EXTEND} ${ty + SELF_LOOP_OFFSET}, ${tx} ${ty}`,
-    labelX: (sourceX + tx) / 2,
-    labelY: sourceY + SELF_LOOP_OFFSET + 8,
-  };
-}
-
-const BACK_EDGE_MIN_OFFSET = 60;
-
-export function backEdgePath(
-  sourceX: number,
-  sourceY: number,
-  targetX: number,
-  targetY: number,
-  sourcePosition: Position,
-): EdgePathResult {
-  const isBottom = sourcePosition === Position.Bottom;
-
-  if (isBottom) {
-    const dx = Math.abs(sourceX - targetX);
-    const offset = Math.max(dx * 0.3, BACK_EDGE_MIN_OFFSET);
-    return {
-      path: `M ${sourceX} ${sourceY} C ${sourceX} ${sourceY + offset}, ${targetX} ${targetY + offset}, ${targetX} ${targetY}`,
-      labelX: (sourceX + targetX) / 2,
-      labelY: Math.max(sourceY, targetY) + offset + 10,
-    };
+  if (sourcePosition === Position.Right && targetPosition === Position.Left) {
+    return lrSelfLoopBelow(sourceX, sourceY, targetX, targetY);
   }
 
-  const dy = Math.abs(sourceY - targetY);
-  const offset = Math.max(dy * 0.3, BACK_EDGE_MIN_OFFSET);
-  return {
-    path: `M ${sourceX} ${sourceY} C ${sourceX + offset} ${sourceY}, ${targetX + offset} ${targetY}, ${targetX} ${targetY}`,
-    labelX: Math.max(sourceX, targetX) + offset + 10,
-    labelY: (sourceY + targetY) / 2,
-  };
-}
-
-export function forwardEdgePath(input: EdgePathInput): EdgePathResult {
-  const [path, labelX, labelY] = getSmoothStepPath(input);
+  const [path, labelX, labelY] = getSmoothStepPath({
+    ...input,
+    borderRadius: 14,
+  });
   return { path, labelX, labelY };
 }
 
-export function resolveEdgePath(
-  input: EdgePathInput,
-  flags: { isSelfLoop?: boolean; isBackEdge?: boolean },
-): EdgePathResult {
+function tbSelfLoopRight(sx: number, sy: number, tx: number, ty: number): EdgePathResult {
+  const pad = 16;
+  const cx = (sx + tx) / 2;
+  const xR = cx + HALF_W + CLEAR;
+  const yLeave = sy + pad;
+  const yHigh = ty - Math.max(pad, 28);
+  const path = [
+    `M ${sx} ${sy}`,
+    `L ${sx} ${yLeave}`,
+    `L ${xR} ${yLeave}`,
+    `L ${xR} ${yHigh}`,
+    `L ${tx} ${yHigh}`,
+    `L ${tx} ${ty}`,
+  ].join(' ');
+  const labelX = xR + 14;
+  const labelY = (yLeave + yHigh) / 2;
+  return { path, labelX, labelY };
+}
+
+function lrSelfLoopBelow(sx: number, sy: number, tx: number, ty: number): EdgePathResult {
+  const pad = 16;
+  const cy = (sy + ty) / 2;
+  const yB = cy + HALF_H + CLEAR;
+  const xLeave = sx + pad;
+  const xApproach = tx - pad;
+  const path = [
+    `M ${sx} ${sy}`,
+    `L ${xLeave} ${sy}`,
+    `L ${xLeave} ${yB}`,
+    `L ${xApproach} ${yB}`,
+    `L ${xApproach} ${ty}`,
+    `L ${tx} ${ty}`,
+  ].join(' ');
+  const labelX = (xLeave + xApproach) / 2;
+  const labelY = yB + 18;
+  return { path, labelX, labelY };
+}
+
+export function forwardEdgePath(input: EdgePathInput): EdgePathResult {
+  const [path, labelX, labelY] = getSmoothStepPath({
+    ...input,
+    borderRadius: 14,
+  });
+  return { path, labelX, labelY };
+}
+
+export function resolveEdgePath(input: EdgePathInput, flags: { isSelfLoop?: boolean }): EdgePathResult {
   if (flags.isSelfLoop) {
-    return selfLoopPath(input.sourceX, input.sourceY, input.sourcePosition);
-  }
-  if (flags.isBackEdge) {
-    return backEdgePath(input.sourceX, input.sourceY, input.targetX, input.targetY, input.sourcePosition);
+    return selfLoopPath(input);
   }
   return forwardEdgePath(input);
 }

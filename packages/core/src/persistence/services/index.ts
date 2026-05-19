@@ -1,3 +1,3 @@
-export * from './workflow.service';
-export * from './workspace.service';
-export * from './workflow-checkpoint.service';
+export * from './workflow.service.js';
+export * from './workspace.service.js';
+export * from './workflow-checkpoint.service.js';

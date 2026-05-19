@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Document } from '../decorators/block.decorator';
+import { Document } from '../decorators/block.decorator.js';
 
 export const MarkdownDocumentSchema = z
   .object({
@@ -9,7 +9,7 @@ export const MarkdownDocumentSchema = z
 
 @Document({
   schema: MarkdownDocumentSchema,
-  uiConfig: __dirname + '/markdown-document.yaml',
+  uiConfig: import.meta.dirname + '/markdown-document.yaml',
 })
 export class MarkdownDocument {
   markdown: string;

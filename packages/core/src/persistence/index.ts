@@ -1,2 +1,1 @@
-export * from './persistence.module';
-export * from './services';
+export * from './services/index.js';

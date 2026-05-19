@@ -1,6 +1,6 @@
 import { ToolExecutionContext, ToolResult } from '@loopstack/common';
-import { QuotaUsage } from '../interfaces/quota.interface';
-import { ToolQuotaCalculator } from '../interfaces/tool-quota-calculator.interface';
+import { QuotaUsage } from '../interfaces/quota.interface.js';
+import { ToolQuotaCalculator } from '../interfaces/tool-quota-calculator.interface.js';
 
 export class ProcessingTimeQuotaCalculator implements ToolQuotaCalculator {
   quotaType = 'processing-time-ms';

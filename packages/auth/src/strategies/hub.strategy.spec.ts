@@ -3,25 +3,26 @@ import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { SignJWT, generateKeyPair } from 'jose';
 import { createRemoteJWKSet } from 'jose';
+import { type Mock, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { UserTypeEnum } from '@loopstack/common';
 import { User } from '@loopstack/common';
-import { HubStrategy } from './hub.strategy';
+import { HubStrategy } from './hub.strategy.js';
 
 // Mock createRemoteJWKSet — we'll replace the JWKS lookup with a local key
-jest.mock('jose', () => {
-  const actual = jest.requireActual('jose');
+vi.mock('jose', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('jose')>();
   return {
     ...actual,
-    createRemoteJWKSet: jest.fn(),
+    createRemoteJWKSet: vi.fn(),
   };
 });
 
 describe('HubStrategy', () => {
   let strategy: HubStrategy;
-  let configGet: jest.Mock;
-  let findById: jest.Mock;
-  let findLocalUser: jest.Mock;
-  let createUser: jest.Mock;
+  let configGet: Mock;
+  let findById: Mock;
+  let findLocalUser: Mock;
+  let createUser: Mock;
 
   // RSA key pair generated once for all tests
   let privateKey: CryptoKey;
@@ -34,10 +35,10 @@ describe('HubStrategy', () => {
   }, 15_000);
 
   beforeEach(() => {
-    configGet = jest.fn();
-    findById = jest.fn();
-    findLocalUser = jest.fn();
-    createUser = jest.fn();
+    configGet = vi.fn();
+    findById = vi.fn();
+    findLocalUser = vi.fn();
+    createUser = vi.fn();
 
     const configService = { get: configGet } as unknown as ConfigService;
     const userRepository = {
@@ -50,8 +51,8 @@ describe('HubStrategy', () => {
     strategy = new HubStrategy(configService, userRepository as any);
 
     // Mock createRemoteJWKSet to return a function that uses our local public key
-    (createRemoteJWKSet as jest.Mock).mockClear();
-    (createRemoteJWKSet as jest.Mock).mockReturnValue(async () => new Promise((resolve) => resolve(publicKey)));
+    (createRemoteJWKSet as Mock).mockClear();
+    (createRemoteJWKSet as Mock).mockReturnValue(async () => new Promise((resolve) => resolve(publicKey)));
   });
 
   function mockRequest(body: Record<string, unknown>): Request {
@@ -84,7 +85,7 @@ describe('HubStrategy', () => {
   function setupCloudConfig() {
     configGet.mockImplementation((key: string) => {
       const config: Record<string, any> = {
-        'app.isLocalMode': false,
+        'app.enableAuth': true,
         'auth.hub.jwksUri': 'https://hub.loopstack.ai/.well-known/jwks.json',
         'auth.hub.issuer': 'https://hub.loopstack.ai',
         'auth.clientId': 'worker-456',
@@ -95,7 +96,7 @@ describe('HubStrategy', () => {
 
   function setupLocalConfig() {
     configGet.mockImplementation((key: string) => {
-      if (key === 'app.isLocalMode') return true;
+      if (key === 'app.enableAuth') return false;
       return undefined;
     });
   }
@@ -216,7 +217,7 @@ describe('HubStrategy', () => {
     it('should throw when JWKS URI is not configured', async () => {
       configGet.mockImplementation((key: string) => {
         const config: Record<string, any> = {
-          'app.isLocalMode': false,
+          'app.enableAuth': true,
           'auth.hub.jwksUri': undefined,
           'auth.hub.issuer': 'https://hub.loopstack.ai',
           'auth.clientId': 'worker-456',

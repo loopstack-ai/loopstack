@@ -5,6 +5,7 @@ import {
   Final,
   Initial,
   InjectWorkflow,
+  LinkDocument,
   MessageDocument,
   QueueResult,
   Workflow,
@@ -43,6 +44,18 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
       role: 'assistant',
       content: `Requesting confirmation (sub-workflow ${result.workflowId})...`,
     });
+
+    await this.repository.save(
+      LinkDocument,
+      {
+        status: 'pending',
+        label: 'Waiting for user confirmation...',
+        workflowId: result.workflowId,
+        embed: true,
+        expanded: true,
+      },
+      { id: `link_${result.workflowId}` },
+    );
   }
 
   @Final({
@@ -51,6 +64,18 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
     schema: ConfirmCallbackSchema,
   })
   async decisionReceived(payload: ConfirmCallback) {
+    await this.repository.save(
+      LinkDocument,
+      {
+        status: 'success',
+        label: payload.data.confirmed ? 'User confirmed' : 'User denied',
+        workflowId: payload.workflowId,
+        embed: true,
+        expanded: false,
+      },
+      { id: `link_${payload.workflowId}` },
+    );
+
     const content = payload.data.confirmed ? 'User confirmed — proceeding with deploy.' : 'User denied — aborting.';
 
     await this.repository.save(MessageDocument, {

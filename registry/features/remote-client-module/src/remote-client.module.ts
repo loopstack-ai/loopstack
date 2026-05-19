@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { SecretsModule } from '@loopstack/secrets-module';
-import { EnvironmentController } from './controllers';
-import { RemoteClient } from './services/remote-client.service';
-import { SandboxEnvironmentService } from './services/sandbox-environment.service';
+import { EnvironmentController } from './controllers/index.js';
+import { RemoteClient } from './services/remote-client.service.js';
+import { SandboxEnvironmentService } from './services/sandbox-environment.service.js';
 import {
   BashTool,
   EditTool,
@@ -17,10 +16,10 @@ import {
   ResetWorkspaceTool,
   SyncSecretsTool,
   WriteTool,
-} from './tools';
+} from './tools/index.js';
 
 @Module({
-  imports: [LoopCoreModule, SecretsModule, TypeOrmModule.forFeature([WorkspaceEntity])],
+  imports: [SecretsModule, TypeOrmModule.forFeature([WorkspaceEntity])],
   controllers: [EnvironmentController],
   providers: [
     RemoteClient,

@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
-import { SecretRequestDocument } from '../documents';
+import { SecretRequestDocument } from '../documents/index.js';
 
 @Injectable()
 @Workflow({
-  uiConfig: __dirname + '/secrets-request.ui.yaml',
+  uiConfig: import.meta.dirname + '/secrets-request.ui.yaml',
   schema: z.object({
     variables: z.array(
       z.object({

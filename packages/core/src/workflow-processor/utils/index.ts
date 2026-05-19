@@ -1,6 +1,6 @@
-export * from './execution-context-manager';
-export * from './execution-scope';
+export * from './execution-context-manager.js';
+export * from './execution-scope.js';
 
-export * from './workflow-templates';
-export * from './wrap-block-proxy';
-export * from './wrap-tool-proxy';
+export * from './workflow-templates.js';
+export * from './wrap-block-proxy.js';
+export * from './wrap-tool-proxy.js';

@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { LoopCoreModule } from '@loopstack/core';
-import { WebFetchFetcherService, WebFetchMarkdownService, WebFetchSummarizerService } from './services';
-import { WebFetchTool } from './tools';
+import { WebFetchFetcherService, WebFetchMarkdownService, WebFetchSummarizerService } from './services/index.js';
+import { WebFetchTool } from './tools/index.js';
 
 @Module({
-  imports: [LoopCoreModule, ClaudeModule],
+  imports: [ClaudeModule],
   providers: [WebFetchMarkdownService, WebFetchFetcherService, WebFetchSummarizerService, WebFetchTool],
   exports: [WebFetchTool],
 })

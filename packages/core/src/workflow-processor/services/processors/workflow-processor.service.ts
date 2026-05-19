@@ -20,14 +20,14 @@ import {
 } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
-import { ConfigTraceError, Processor } from '../../../common';
-import { ExecutionContextManager, ExecutionScope, WorkflowExecutionContextManager } from '../../utils';
-import { CheckpointState, StateManager } from '../../utils/state/state-manager';
-import { DocumentPersistenceService } from '../document-persistence.service';
-import { ToolExecutionService } from '../tool-execution.service';
-import { TransitionResolverService } from '../transition-resolver.service';
-import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service';
-import { WorkflowStateService } from '../workflow-state.service';
+import { ConfigTraceError, Processor } from '../../../common/index.js';
+import { ExecutionContextManager, ExecutionScope, WorkflowExecutionContextManager } from '../../utils/index.js';
+import { CheckpointState, StateManager } from '../../utils/state/state-manager.js';
+import { DocumentPersistenceService } from '../document-persistence.service.js';
+import { ToolExecutionService } from '../tool-execution.service.js';
+import { TransitionResolverService } from '../transition-resolver.service.js';
+import { WorkflowMemoryMonitorService } from '../workflow-memory-monitor.service.js';
+import { WorkflowStateService } from '../workflow-state.service.js';
 
 /** Invoke a named method on a workflow proxy, optionally passing data as the first argument */
 function invokeWorkflowMethod(proxy: WorkflowInterface, methodName: string, data?: unknown): Promise<unknown> {

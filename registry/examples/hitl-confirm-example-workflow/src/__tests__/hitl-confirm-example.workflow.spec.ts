@@ -1,6 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RunContext, WorkflowEntity } from '@loopstack/common';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { HitlConfirmExampleWorkflow } from '../hitl-confirm-example.workflow';
@@ -11,15 +12,14 @@ describe('HitlConfirmExampleWorkflow', () => {
   let processor: WorkflowProcessorService;
 
   const mockConfirmUser = {
-    run: jest.fn(),
+    run: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     module = await createWorkflowTest()
       .forWorkflow(HitlConfirmExampleWorkflow)
-      .withImports(LoopCoreModule)
       .withMock(ConfirmUserWorkflow, mockConfirmUser)
       .compile();
 

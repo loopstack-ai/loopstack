@@ -1,22 +1,23 @@
 import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { SecretEntity } from '../../entities';
-import { SecretService } from '../secret.service';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { SecretEntity } from '../../entities/index.js';
+import { SecretService } from '../secret.service.js';
 
 type SecretRepositoryMock = {
-  find: jest.Mock;
-  findOne: jest.Mock;
-  create: jest.Mock;
-  save: jest.Mock;
-  remove: jest.Mock;
+  find: Mock;
+  findOne: Mock;
+  create: Mock;
+  save: Mock;
+  remove: Mock;
 };
 
 const createRepositoryMock = (): SecretRepositoryMock => ({
-  find: jest.fn(),
-  findOne: jest.fn(),
-  create: jest.fn(),
-  save: jest.fn(),
-  remove: jest.fn(),
+  find: vi.fn(),
+  findOne: vi.fn(),
+  create: vi.fn(),
+  save: vi.fn(),
+  remove: vi.fn(),
 });
 
 describe('SecretService', () => {

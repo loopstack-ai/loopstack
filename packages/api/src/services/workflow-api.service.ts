@@ -4,11 +4,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { WorkflowCheckpointEntity, WorkflowEntity, WorkflowState } from '@loopstack/common';
 import { CreateWorkflowService, WorkflowCheckpointService } from '@loopstack/core';
-import { WorkflowCreateDto } from '../dtos/workflow-create.dto';
-import { WorkflowFilterDto } from '../dtos/workflow-filter.dto';
-import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto';
-import { WorkflowUpdateDto } from '../dtos/workflow-update.dto';
-import { getEntityColumns } from '../utils/get-entity-columns.util';
+import { WorkflowCreateDto } from '../dtos/workflow-create.dto.js';
+import { WorkflowFilterDto } from '../dtos/workflow-filter.dto.js';
+import { WorkflowSortByDto } from '../dtos/workflow-sort-by.dto.js';
+import { WorkflowUpdateDto } from '../dtos/workflow-update.dto.js';
+import { getEntityColumns } from '../utils/get-entity-columns.util.js';
 
 @Injectable()
 export class WorkflowApiService {

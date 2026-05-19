@@ -1,4 +1,5 @@
 import { TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBlockArgsSchema } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
 import { MathService } from '../../services/math.service';
@@ -48,11 +49,11 @@ describe('MathSumTool', () => {
 
   describe('with mocked MathService', () => {
     const mockMathService = {
-      sum: jest.fn(),
+      sum: vi.fn(),
     };
 
     beforeEach(async () => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
       module = await createToolTest().forTool(MathSumTool).withMock(MathService, mockMathService).compile();
 

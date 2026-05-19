@@ -1,5 +1,5 @@
-import { QueueResult, RunOptions } from '../base';
-import type { WorkflowEntity } from '../entities';
+import { QueueResult, RunOptions } from '../base/index.js';
+import type { WorkflowEntity } from '../entities/index.js';
 
 export interface CallbackOptions {
   transition: string;

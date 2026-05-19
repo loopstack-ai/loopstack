@@ -8,8 +8,15 @@
     "name": "Jakob Klippel",
     "url": "https://www.linkedin.com/in/jakob-klippel/"
   },
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "nest build",
     "compile": "tsc --noEmit",
@@ -26,7 +33,7 @@
     "@nestjs/core": "^11.1.19",
     "@nestjs/testing": "^11.1.19",
     "@nestjs/typeorm": "^11.0.1",
-    "jest": "^30.3.0",
+    "vitest": "^4.1.6",
     "lodash": "^4.18.1"
   },
   "files": [

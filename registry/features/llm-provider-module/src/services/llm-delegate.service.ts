@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BaseTool, ToolCallOptions, ToolResult, WorkflowInterface, resolveBlockTool } from '@loopstack/common';
-import type { LlmDelegateResult, LlmToolCall, LlmToolErrorEntry, LlmToolResultEntry } from '../types';
+import type { LlmDelegateResult, LlmToolCall, LlmToolErrorEntry, LlmToolResultEntry } from '../types/index.js';
 
 /**
  * Shared tool execution logic for LLM tool calling.

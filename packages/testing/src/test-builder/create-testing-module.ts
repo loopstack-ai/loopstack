@@ -1,8 +1,7 @@
 import { DynamicModule, ForwardReference, Provider, Type } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModuleBuilder } from '@nestjs/testing';
-import { LoopCoreModule } from '@loopstack/core';
-import { MockDataSourceModule } from './core-module-mock';
+import { MockDataSourceModule } from './core-module-mock.js';
 
 type ModuleImport = Type | DynamicModule | Promise<DynamicModule> | ForwardReference;
 
@@ -13,7 +12,6 @@ export function createTestingModule(options: { imports: ModuleImport[]; provider
         isGlobal: true,
       }),
       MockDataSourceModule,
-      LoopCoreModule,
       ...options.imports,
     ],
     providers: [...options.providers],

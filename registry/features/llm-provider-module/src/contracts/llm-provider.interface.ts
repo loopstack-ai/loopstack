@@ -5,8 +5,8 @@ import type {
   LlmGenerateTextResult,
   LlmNormalizedMessage,
   LlmUsage,
-} from '../types';
-import type { LlmContext } from './llm-context';
+} from '../types/index.js';
+import type { LlmContext } from './llm-context.js';
 
 /**
  * Contract for LLM provider implementations.

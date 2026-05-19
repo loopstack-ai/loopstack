@@ -1,17 +1,17 @@
 import { Module } from '@nestjs/common';
 import { OAuthModule } from '@loopstack/oauth-module';
-import { GoogleWorkspaceOAuthProvider } from './google-workspace-oauth.provider';
-import { GoogleCalendarCreateEventTool } from './tools/calendar/google-calendar-create-event.tool';
-import { GoogleCalendarFetchEventsTool } from './tools/calendar/google-calendar-fetch-events.tool';
-import { GoogleCalendarListCalendarsTool } from './tools/calendar/google-calendar-list-calendars.tool';
-import { GoogleDriveDownloadFileTool } from './tools/drive/google-drive-download-file.tool';
-import { GoogleDriveGetFileMetadataTool } from './tools/drive/google-drive-get-file-metadata.tool';
-import { GoogleDriveListFilesTool } from './tools/drive/google-drive-list-files.tool';
-import { GoogleDriveUploadFileTool } from './tools/drive/google-drive-upload-file.tool';
-import { GmailGetMessageTool } from './tools/gmail/gmail-get-message.tool';
-import { GmailReplyToMessageTool } from './tools/gmail/gmail-reply-to-message.tool';
-import { GmailSearchMessagesTool } from './tools/gmail/gmail-search-messages.tool';
-import { GmailSendMessageTool } from './tools/gmail/gmail-send-message.tool';
+import { GoogleWorkspaceOAuthProvider } from './google-workspace-oauth.provider.js';
+import { GoogleCalendarCreateEventTool } from './tools/calendar/google-calendar-create-event.tool.js';
+import { GoogleCalendarFetchEventsTool } from './tools/calendar/google-calendar-fetch-events.tool.js';
+import { GoogleCalendarListCalendarsTool } from './tools/calendar/google-calendar-list-calendars.tool.js';
+import { GoogleDriveDownloadFileTool } from './tools/drive/google-drive-download-file.tool.js';
+import { GoogleDriveGetFileMetadataTool } from './tools/drive/google-drive-get-file-metadata.tool.js';
+import { GoogleDriveListFilesTool } from './tools/drive/google-drive-list-files.tool.js';
+import { GoogleDriveUploadFileTool } from './tools/drive/google-drive-upload-file.tool.js';
+import { GmailGetMessageTool } from './tools/gmail/gmail-get-message.tool.js';
+import { GmailReplyToMessageTool } from './tools/gmail/gmail-reply-to-message.tool.js';
+import { GmailSearchMessagesTool } from './tools/gmail/gmail-search-messages.tool.js';
+import { GmailSendMessageTool } from './tools/gmail/gmail-send-message.tool.js';
 
 const tools = [
   GoogleCalendarListCalendarsTool,

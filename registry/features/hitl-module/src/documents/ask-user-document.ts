@@ -11,7 +11,7 @@ export const AskUserDocumentSchema = z
 export type AskUserDocumentType = z.infer<typeof AskUserDocumentSchema>;
 
 @Document({
-  uiConfig: __dirname + '/ask-user-document.yaml',
+  uiConfig: import.meta.dirname + '/ask-user-document.yaml',
   schema: AskUserDocumentSchema,
 })
 export class AskUserDocument {

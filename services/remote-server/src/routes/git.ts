@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as tls from 'tls';
-import { WORKSPACE_ROOT } from '../config';
+import { WORKSPACE_ROOT } from '../config.js';
 
 const router = Router();
 const GIT_TIMEOUT_MS = 30_000;

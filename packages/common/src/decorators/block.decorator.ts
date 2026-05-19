@@ -70,9 +70,7 @@ export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
   return (target) => {
     Injectable()(target);
     Reflect.defineMetadata(BLOCK_TYPE_METADATA_KEY, type, target);
-    if (options) {
-      Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, options, target);
-    }
+    Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, options ?? {}, target);
   };
 }
 

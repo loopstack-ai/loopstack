@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
-import { LoopCoreModule, WorkflowProcessorService } from '@loopstack/core';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { TestUiDocumentsWorkflow } from '../test-ui-documents.workflow';
 
@@ -9,7 +10,7 @@ describe('TestUiDocumentsWorkflow', () => {
   let processor: WorkflowProcessorService;
 
   beforeEach(async () => {
-    module = await createWorkflowTest().forWorkflow(TestUiDocumentsWorkflow).withImports(LoopCoreModule).compile();
+    module = await createWorkflowTest().forWorkflow(TestUiDocumentsWorkflow).compile();
 
     workflow = module.get(TestUiDocumentsWorkflow);
     processor = module.get(WorkflowProcessorService);

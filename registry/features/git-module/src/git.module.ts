@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkspaceEntity } from '@loopstack/common';
-import { LoopCoreModule } from '@loopstack/core';
 import { RemoteClientModule } from '@loopstack/remote-client';
-import { GitController } from './controllers';
+import { GitController } from './controllers/index.js';
 import {
   GitAddTool,
   GitBranchTool,
@@ -21,7 +20,7 @@ import {
   GitWorktreeListTool,
   GitWorktreePruneTool,
   GitWorktreeRemoveTool,
-} from './tools';
+} from './tools/index.js';
 
 const tools = [
   GitStatusTool,
@@ -43,7 +42,7 @@ const tools = [
 ];
 
 @Module({
-  imports: [LoopCoreModule, RemoteClientModule, TypeOrmModule.forFeature([WorkspaceEntity])],
+  imports: [RemoteClientModule, TypeOrmModule.forFeature([WorkspaceEntity])],
   controllers: [GitController],
   providers: [...tools],
   exports: [...tools],
