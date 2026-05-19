@@ -9,7 +9,7 @@
     "workflow",
     "remote-agent"
   ],
-  "version": "0.21.7",
+  "version": "0.22.0",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -30,9 +30,9 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.29.0",
-    "@loopstack/core": "^0.29.0",
-    "@loopstack/git-module": "^0.1.3",
+    "@loopstack/common": "^0.30.0",
+    "@loopstack/core": "^0.30.0",
+    "@loopstack/git-module": "^0.2.0",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
