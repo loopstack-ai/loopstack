@@ -1,5 +1,11 @@
 # @loopstack/core
 
+## 0.30.1
+
+### Patch Changes
+
+- [#150](https://github.com/loopstack-ai/loopstack/pull/150) [`4a2d886`](https://github.com/loopstack-ai/loopstack/commit/4a2d88689697be28d42d803a287b7a1780fceb65) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Fix Handlebars ESM import to resolve `Handlebars.compile is not a function` error
+
 ## 0.30.0
 
 ### Minor Changes
