@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { type Mocked, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RunContext, ToolExecutionContext, ToolResult } from '@loopstack/common';
 import { QuotaCalculatorRegistry } from '../quota-calculator-registry.service.js';
 import { QuotaClientService } from '../quota-client.service.js';
