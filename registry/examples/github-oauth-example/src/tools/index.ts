@@ -1,1 +1,1 @@
-export * from './authenticate-github-task.tool.js';
+export * from './authenticate-github-task.tool';

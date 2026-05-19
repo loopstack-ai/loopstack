@@ -63,16 +63,5 @@
     "testEnvironment": "node",
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/claude.module.ts",
-        "className": "ClaudeModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module"
 }

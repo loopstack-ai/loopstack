@@ -37,26 +37,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/error-retry-example.module.ts",
-        "className": "ErrorRetryExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/error-retry.workflow.ts",
-        "className": "ErrorRetryWorkflow",
-        "propertyName": "errorRetry"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

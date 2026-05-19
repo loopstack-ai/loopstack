@@ -18,8 +18,8 @@ import {
 } from '@loopstack/google-workspace-module';
 import { OAuthModule, OAuthWorkflow } from '@loopstack/oauth-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { GoogleCalendarFetchEventsTool } from '../../tools/index.js';
-import { CalendarSummaryWorkflow } from '../calendar-summary.workflow.js';
+import { GoogleCalendarFetchEventsTool } from '../../tools';
+import { CalendarSummaryWorkflow } from '../calendar-summary.workflow';
 
 const mockOAuthWorkflow = {
   run: vi.fn(),

@@ -40,17 +40,6 @@
   "files": [
     "dist"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/hitl.module.ts",
-        "className": "HitlModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",

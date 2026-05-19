@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { BaseWorkflow, Final, Guard, Initial, MessageDocument, Transition, Workflow } from '@loopstack/common';
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/dynamic-routing-example.ui.yaml',
+  uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',
   schema: z
     .object({
       value: z.number().default(150),

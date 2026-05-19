@@ -38,26 +38,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/test-ui-documents-example.module.ts",
-        "className": "TestUiDocumentsExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/test-ui-documents.workflow.ts",
-        "className": "TestUiDocumentsWorkflow",
-        "propertyName": "testUiDocuments"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

@@ -1,2 +1,2 @@
-export * from './calendar-summary.workflow.js';
-export * from './google-workspace-agent.workflow.js';
+export * from './calendar-summary.workflow';
+export * from './google-workspace-agent.workflow';

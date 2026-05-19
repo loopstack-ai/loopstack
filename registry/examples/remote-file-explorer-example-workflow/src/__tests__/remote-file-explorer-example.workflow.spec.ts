@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { GlobTool, ReadTool } from '@loopstack/remote-client';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { RemoteFileExplorerExampleWorkflow } from '../remote-file-explorer-example.workflow.js';
+import { RemoteFileExplorerExampleWorkflow } from '../remote-file-explorer-example.workflow';
 
 describe('RemoteFileExplorerExampleWorkflow', () => {
   let module: TestingModule;

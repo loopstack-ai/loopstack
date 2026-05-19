@@ -40,26 +40,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/hitl-ask-user-example.module.ts",
-        "className": "HitlAskUserExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/hitl-ask-user-example.workflow.ts",
-        "className": "HitlAskUserExampleWorkflow",
-        "propertyName": "hitlAskUserExample"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

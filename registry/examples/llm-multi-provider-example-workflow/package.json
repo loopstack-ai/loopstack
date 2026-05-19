@@ -41,25 +41,6 @@
   "files": [
     "dist"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/llm-multi-provider-example.module.ts",
-        "className": "LlmMultiProviderExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/llm-multi-provider.workflow.ts",
-        "className": "LlmMultiProviderWorkflow",
-        "propertyName": "llmMultiProvider"
-      }
-    ],
-    "installModes": [
-      "add"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

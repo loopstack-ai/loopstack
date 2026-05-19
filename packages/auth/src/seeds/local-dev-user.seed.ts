@@ -13,8 +13,8 @@ export class LocalDevUserSeeder implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const isLocalMode = this.configService.get<boolean>('app.isLocalMode');
-    if (!isLocalMode) return;
+    const enableAuth = this.configService.get<boolean>('app.enableAuth');
+    if (enableAuth) return;
 
     // Check if local dev user exists
     const existingUser = await this.userRepository.findById(this.LOCAL_DEV_USER_ID);

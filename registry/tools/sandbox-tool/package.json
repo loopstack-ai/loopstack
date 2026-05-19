@@ -44,16 +44,5 @@
   "files": [
     "dist"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/sandbox-tool.module.ts",
-        "className": "SandboxToolModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module"
 }

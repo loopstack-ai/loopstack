@@ -38,26 +38,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/custom-tool.module.ts",
-        "className": "CustomToolModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/workflows/custom-tool-example.workflow.ts",
-        "className": "CustomToolExampleWorkflow",
-        "propertyName": "customToolExample"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

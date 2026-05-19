@@ -42,31 +42,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/github-example.module.ts",
-        "className": "GitHubExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/workflows/github-repos-overview.workflow.ts",
-        "className": "GitHubReposOverviewWorkflow",
-        "propertyName": "gitHubReposOverview"
-      },
-      {
-        "path": "src/workflows/github-agent.workflow.ts",
-        "className": "GitHubAgentWorkflow",
-        "propertyName": "gitHubAgent"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

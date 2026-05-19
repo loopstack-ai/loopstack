@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { GoogleWorkspaceModule } from '@loopstack/google-workspace-module';
-import { AuthenticateGoogleTask, GoogleCalendarFetchEventsTool } from './tools/index.js';
-import { CalendarSummaryWorkflow, GoogleWorkspaceAgentWorkflow } from './workflows/index.js';
+import { AuthenticateGoogleTask, GoogleCalendarFetchEventsTool } from './tools';
+import { CalendarSummaryWorkflow, GoogleWorkspaceAgentWorkflow } from './workflows';
 
 @Module({
   imports: [ClaudeModule, GoogleWorkspaceModule],

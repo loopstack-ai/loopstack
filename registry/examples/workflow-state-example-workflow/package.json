@@ -38,26 +38,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/workflow-state-example.module.ts",
-        "className": "WorkflowStateExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/workflow-state.workflow.ts",
-        "className": "WorkflowStateWorkflow",
-        "propertyName": "workflowState"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

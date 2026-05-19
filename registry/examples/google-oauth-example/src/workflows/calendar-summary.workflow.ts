@@ -14,7 +14,7 @@ import {
   Workflow,
 } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
-import { GoogleCalendarFetchEventsTool } from '../tools/index.js';
+import { GoogleCalendarFetchEventsTool } from '../tools';
 
 interface CalendarFetchResult {
   error?: string;
@@ -22,7 +22,7 @@ interface CalendarFetchResult {
 }
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/calendar-summary.ui.yaml',
+  uiConfig: __dirname + '/calendar-summary.ui.yaml',
   schema: z
     .object({
       calendarId: z.string().default('primary'),
@@ -100,7 +100,7 @@ export class CalendarSummaryWorkflow extends BaseWorkflow {
   @Final({ from: 'calendar_fetched' })
   async displayResults() {
     await this.repository.save(MarkdownDocument, {
-      markdown: this.render(import.meta.dirname + '/templates/calendarSummary.md', { events: this.events }),
+      markdown: this.render(__dirname + '/templates/calendarSummary.md', { events: this.events }),
     });
   }
 

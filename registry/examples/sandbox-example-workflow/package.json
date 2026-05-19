@@ -53,25 +53,5 @@
     "testTimeout": 10000,
     "forceExit": true,
     "maxWorkers": 1
-  },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/sandbox-example.module.ts",
-        "className": "SandboxExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/sandbox-example.workflow.ts",
-        "className": "SandboxExampleWorkflow",
-        "propertyName": "sandboxExample"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module"
+  }
 }

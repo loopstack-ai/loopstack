@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { RunSubWorkflowExampleParentWorkflow } from './run-sub-workflow-example-parent.workflow.js';
-import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow.js';
+import { RunSubWorkflowExampleParentWorkflow } from './run-sub-workflow-example-parent.workflow';
+import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
 
 @Module({
   imports: [],

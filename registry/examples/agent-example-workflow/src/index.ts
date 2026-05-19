@@ -1,3 +1,3 @@
-export * from './agent-example.module.js';
-export * from './agent-example.workflow.js';
-export * from './tools/index.js';
+export * from './agent-example.module';
+export * from './agent-example.workflow';
+export * from './tools';

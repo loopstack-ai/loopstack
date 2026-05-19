@@ -42,24 +42,6 @@
   "files": [
     "dist"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/secrets.module.ts",
-        "className": "SecretsModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/tools/secrets-request.workflow.ts",
-        "className": "SecretsRequestWorkflow",
-        "propertyName": "secretsRequest"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "devDependencies": {
     "@swc/core": "^1.15.33",
     "unplugin-swc": "^1.5.9",

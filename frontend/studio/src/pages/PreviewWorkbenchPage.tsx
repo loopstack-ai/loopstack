@@ -11,6 +11,7 @@ import LoadingCentered from '@/components/feedback/LoadingCentered';
 import { Button } from '@/components/ui/button.tsx';
 import { WorkflowFlowViewer } from '@/features/debug';
 import { NewRunDialog, WorkflowHistoryList, WorkflowItem } from '@/features/workbench';
+import config from '../config.ts';
 import { useFilterWorkflows, useWorkflow, useWorkflowConfigByName } from '../hooks/useWorkflows.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
 
@@ -340,7 +341,7 @@ function LogLine({ line, index }: { line: string; index: number }) {
 }
 
 function EmbedLogsContent() {
-  const base = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8000';
+  const base = config.environment.url;
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const logsQuery = useQuery({

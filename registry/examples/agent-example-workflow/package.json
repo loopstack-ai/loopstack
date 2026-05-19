@@ -40,38 +40,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/agent-example.module.ts",
-        "className": "AgentExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/agent-example.workflow.ts",
-        "className": "AgentExampleWorkflow",
-        "propertyName": "agentExample"
-      }
-    ],
-    "tools": [
-      {
-        "path": "src/tools/calculator.tool.ts",
-        "className": "CalculatorTool",
-        "propertyName": "calculator"
-      },
-      {
-        "path": "src/tools/weather-lookup.tool.ts",
-        "className": "WeatherLookupTool",
-        "propertyName": "weatherLookup"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

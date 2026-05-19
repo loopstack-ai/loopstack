@@ -89,6 +89,47 @@ jobs:
           echo "Published packages:"
           echo '${{ steps.changesets.outputs.publishedPackages }}' | jq '.'
 
+  studio-docker:
+    name: Publish Studio Docker image
+    needs: release
+    if: needs.release.outputs.published == 'true' && contains(needs.release.outputs.publishedPackages, '@loopstack/loopstack-studio')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract Studio version
+        id: version
+        run: |
+          VERSION=$(echo '${{ needs.release.outputs.publishedPackages }}' | jq -r '.[] | select(.name == "@loopstack/loopstack-studio") | .version')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend/studio
+          push: true
+          tags: |
+            ghcr.io/loopstack-ai/studio:${{ steps.version.outputs.version }}
+            ghcr.io/loopstack-ai/studio:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   post-release-hook:
     name: Post-release hook
     needs: release

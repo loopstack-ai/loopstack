@@ -28,7 +28,7 @@ We're about to deploy **v1.2.3** to production.
 Proceed?`;
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/hitl-confirm-example.ui.yaml',
+  uiConfig: __dirname + '/hitl-confirm-example.ui.yaml',
 })
 export class HitlConfirmExampleWorkflow extends BaseWorkflow {
   @InjectWorkflow() private confirmUser: ConfirmUserWorkflow;

@@ -67,16 +67,5 @@
     "testEnvironment": "node",
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/web.module.ts",
-        "className": "WebModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module"
 }

@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { BaseTool } from '@loopstack/common';
-import type { McpToolConfig } from '../config/mcp-tool-config.schema';
-import { McpClientService } from '../services/mcp-client.service';
+import type { McpToolConfig } from '../config/mcp-tool-config.schema.js';
+import { McpClientService } from '../services/mcp-client.service.js';
 
 /**
  * Concrete subclasses must repeat the `@Tool({ schema, configSchema })` decorator —

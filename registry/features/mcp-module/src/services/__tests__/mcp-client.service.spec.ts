@@ -1,8 +1,15 @@
-import { McpToolConfig, McpToolConfigSchema } from '../../config/mcp-tool-config.schema';
-import { McpAuthError, McpProtocolError, McpTimeoutError, McpTransportError, McpUrlSecurityError } from '../../errors';
-import type { EnvReader } from '../env-reader';
-import { McpClientService } from '../mcp-client.service';
-import type { McpMetricsPort } from '../metrics-port';
+import { describe, expect, it, vi } from 'vitest';
+import { McpToolConfig, McpToolConfigSchema } from '../../config/mcp-tool-config.schema.js';
+import {
+  McpAuthError,
+  McpProtocolError,
+  McpTimeoutError,
+  McpTransportError,
+  McpUrlSecurityError,
+} from '../../errors.js';
+import type { EnvReader } from '../env-reader.js';
+import { McpClientService } from '../mcp-client.service.js';
+import type { McpMetricsPort } from '../metrics-port.js';
 
 function makeService(envMap: Record<string, string | undefined>): McpClientService {
   const env: EnvReader = {
@@ -11,7 +18,7 @@ function makeService(envMap: Record<string, string | undefined>): McpClientServi
       return v === undefined || v === '' ? undefined : v;
     },
   };
-  const metrics: McpMetricsPort = { recordConnect: jest.fn(), recordCall: jest.fn() };
+  const metrics: McpMetricsPort = { recordConnect: vi.fn(), recordCall: vi.fn() };
   return new McpClientService(env, metrics);
 }
 

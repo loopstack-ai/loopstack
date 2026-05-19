@@ -60,16 +60,5 @@
     "testEnvironment": "node",
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/openai.module.ts",
-        "className": "OpenAiModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module"
 }

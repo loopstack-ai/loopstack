@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 import { createToolTest } from '@loopstack/testing';
-import { GoogleCalendarFetchEventsTool } from '../google-calendar-fetch-events.tool.js';
+import { GoogleCalendarFetchEventsTool } from '../google-calendar-fetch-events.tool';
 
 describe('GoogleCalendarFetchEventsTool', () => {
   let module: TestingModule;

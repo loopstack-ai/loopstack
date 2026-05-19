@@ -82,7 +82,7 @@ interface SandboxDestroyResult {
 }
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/sandbox-example.ui.yaml',
+  uiConfig: __dirname + '/sandbox-example.ui.yaml',
   schema: z.object({
     outputDir: z.string().default(process.cwd() + '/out'),
   }),

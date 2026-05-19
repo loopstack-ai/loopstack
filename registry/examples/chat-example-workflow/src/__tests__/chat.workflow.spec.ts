@@ -5,7 +5,7 @@ import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { ChatWorkflow } from '../chat.workflow.js';
+import { ChatWorkflow } from '../chat.workflow';
 
 describe('ChatWorkflow', () => {
   let module: TestingModule;

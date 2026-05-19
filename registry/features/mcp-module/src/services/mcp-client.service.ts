@@ -4,12 +4,12 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { McpToolConfig } from '../config/mcp-tool-config.schema';
-import { McpAuthError, McpProtocolError, McpTimeoutError, McpTransportError, McpUrlSecurityError } from '../errors';
-import type { McpTransportKind } from '../types';
-import { assertMcpUrlSafe } from '../utils/url-security';
-import { EnvReader, MCP_ENV_READER, ProcessEnvReader } from './env-reader';
-import type { McpClientLike, McpTransportLike } from './mcp-sdk.types';
+import type { McpToolConfig } from '../config/mcp-tool-config.schema.js';
+import { McpAuthError, McpProtocolError, McpTimeoutError, McpTransportError, McpUrlSecurityError } from '../errors.js';
+import type { McpTransportKind } from '../types.js';
+import { assertMcpUrlSafe } from '../utils/url-security.js';
+import { EnvReader, MCP_ENV_READER, ProcessEnvReader } from './env-reader.js';
+import type { McpClientLike, McpTransportLike } from './mcp-sdk.types.js';
 import {
   MCP_METRICS,
   McpCallOutcome,
@@ -17,9 +17,11 @@ import {
   McpConnectSample,
   McpMetricsPort,
   NoopMcpMetrics,
-} from './metrics-port';
+} from './metrics-port.js';
 
-const { version: PKG_VERSION } = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf8')) as {
+const { version: PKG_VERSION } = JSON.parse(
+  readFileSync(join(import.meta.dirname, '..', '..', 'package.json'), 'utf8'),
+) as {
   version: string;
 };
 

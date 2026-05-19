@@ -5,8 +5,8 @@ import { getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmDelegateToolCallsTool, LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { ToolCallWorkflow } from '../tool-call.workflow.js';
-import { GetWeather } from '../tools/get-weather.tool.js';
+import { ToolCallWorkflow } from '../tool-call.workflow';
+import { GetWeather } from '../tools/get-weather.tool';
 
 describe('ToolCallWorkflow', () => {
   let module: TestingModule;

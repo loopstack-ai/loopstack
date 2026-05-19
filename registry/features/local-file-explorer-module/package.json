@@ -61,16 +61,5 @@
     "testEnvironment": "node",
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/local-file-explorer.module.ts",
-        "className": "LocalFileExplorerModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module"
 }

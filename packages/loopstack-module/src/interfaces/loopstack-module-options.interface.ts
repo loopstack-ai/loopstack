@@ -40,7 +40,7 @@ export interface LoopstackModuleOptions {
   database?: LoopstackDatabaseOptions;
   auth?: LoopstackAuthOptions;
   redis?: LoopstackRedisOptions;
-  localMode?: boolean;
+  enableAuth?: boolean;
   availableEnvironments?: AvailableEnvironmentInterface[];
   /**
    * CORS configuration. Defaults to `{ origin: true, credentials: true }`.

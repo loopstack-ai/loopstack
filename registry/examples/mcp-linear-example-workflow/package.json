@@ -51,24 +51,5 @@
     "testTimeout": 10000,
     "forceExit": true,
     "maxWorkers": 1
-  },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/mcp-linear-example.module.ts",
-        "className": "McpLinearExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/mcp-linear-example.workflow.ts",
-        "className": "McpLinearExampleWorkflow",
-        "propertyName": "mcpLinearExample"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
   }
 }

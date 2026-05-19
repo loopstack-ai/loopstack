@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
-import { McpToolConfigSchema } from '../config/mcp-tool-config.schema';
-import type { McpToolConfig } from '../config/mcp-tool-config.schema';
-import { McpConnectionArgsSchema } from './mcp-connection-args.schema';
-import { McpToolBase } from './mcp-tool-base';
+import { McpToolConfigSchema } from '../config/mcp-tool-config.schema.js';
+import type { McpToolConfig } from '../config/mcp-tool-config.schema.js';
+import { McpConnectionArgsSchema } from './mcp-connection-args.schema.js';
+import { McpToolBase } from './mcp-tool-base.js';
 
 export const McpCallToolArgsSchema = McpConnectionArgsSchema.extend({
   toolName: z.string().min(1).describe('Name of the remote MCP tool to invoke.'),

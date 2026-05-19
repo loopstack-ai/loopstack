@@ -1,2 +1,2 @@
-export * from './prompt-example.module.js';
-export * from './prompt.workflow.js';
+export * from './prompt-example.module';
+export * from './prompt.workflow';

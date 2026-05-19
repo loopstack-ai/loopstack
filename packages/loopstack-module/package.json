@@ -28,7 +28,6 @@
   "dependencies": {
     "@loopstack/api": "^0.29.0",
     "@loopstack/auth": "^0.29.0",
-    "@loopstack/cli-module": "^0.29.0",
     "@loopstack/common": "^0.29.0",
     "@loopstack/contracts": "^0.29.0",
     "@loopstack/core": "^0.29.0",

@@ -4,7 +4,7 @@ import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { AskUserWorkflow } from '@loopstack/hitl';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { HitlAskUserExampleWorkflow } from '../hitl-ask-user-example.workflow.js';
+import { HitlAskUserExampleWorkflow } from '../hitl-ask-user-example.workflow';
 
 describe('HitlAskUserExampleWorkflow', () => {
   let module: TestingModule;

@@ -32,9 +32,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     const { user }: { user: CurrentUserInterface } = context.switchToHttp().getRequest();
 
-    // in local mode, only the local user type is allowed
-    const isLocalDevMode = this.configService.get<boolean>('app.isLocalMode');
-    if (isLocalDevMode) {
+    // when auth is disabled, only the local user type is allowed
+    const enableAuth = this.configService.get<boolean>('app.enableAuth');
+    if (!enableAuth) {
       return user.type === UserTypeEnum.Local;
     }
 

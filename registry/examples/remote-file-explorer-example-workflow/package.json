@@ -40,26 +40,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/remote-file-explorer-example.module.ts",
-        "className": "RemoteFileExplorerExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/remote-file-explorer-example.workflow.ts",
-        "className": "RemoteFileExplorerExampleWorkflow",
-        "propertyName": "remoteFileExplorerExample"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

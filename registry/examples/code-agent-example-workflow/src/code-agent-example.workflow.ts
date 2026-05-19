@@ -22,7 +22,7 @@ const EXPLORE_INSTRUCTIONS = `Find the entry-point module of this project and li
 top-level providers it registers. Return a short bulleted summary.`;
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/code-agent-example.ui.yaml',
+  uiConfig: __dirname + '/code-agent-example.ui.yaml',
 })
 export class CodeAgentExampleWorkflow extends BaseWorkflow {
   @InjectWorkflow() private agent: AgentWorkflow;

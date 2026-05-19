@@ -45,31 +45,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/google-example.module.ts",
-        "className": "GoogleExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/workflows/calendar-summary.workflow.ts",
-        "className": "CalendarSummaryWorkflow",
-        "propertyName": "calendarSummary"
-      },
-      {
-        "path": "src/workflows/google-workspace-agent.workflow.ts",
-        "className": "GoogleWorkspaceAgentWorkflow",
-        "propertyName": "googleWorkspaceAgent"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

@@ -6,7 +6,7 @@ import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { OpenAiModule } from '@loopstack/openai-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { LlmMultiProviderWorkflow } from '../llm-multi-provider.workflow.js';
+import { LlmMultiProviderWorkflow } from '../llm-multi-provider.workflow';
 
 const mockLlmResponse = (text: string) => ({
   data: {

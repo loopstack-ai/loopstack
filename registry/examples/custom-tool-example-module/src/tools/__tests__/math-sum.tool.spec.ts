@@ -2,8 +2,8 @@ import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBlockArgsSchema } from '@loopstack/common';
 import { createToolTest } from '@loopstack/testing';
-import { MathService } from '../../services/math.service.js';
-import { MathSumTool } from '../math-sum.tool.js';
+import { MathService } from '../../services/math.service';
+import { MathSumTool } from '../math-sum.tool';
 
 describe('MathSumTool', () => {
   let module: TestingModule;

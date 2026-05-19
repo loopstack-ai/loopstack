@@ -85,7 +85,7 @@ describe('HubStrategy', () => {
   function setupCloudConfig() {
     configGet.mockImplementation((key: string) => {
       const config: Record<string, any> = {
-        'app.isLocalMode': false,
+        'app.enableAuth': true,
         'auth.hub.jwksUri': 'https://hub.loopstack.ai/.well-known/jwks.json',
         'auth.hub.issuer': 'https://hub.loopstack.ai',
         'auth.clientId': 'worker-456',
@@ -96,7 +96,7 @@ describe('HubStrategy', () => {
 
   function setupLocalConfig() {
     configGet.mockImplementation((key: string) => {
-      if (key === 'app.isLocalMode') return true;
+      if (key === 'app.enableAuth') return false;
       return undefined;
     });
   }
@@ -217,7 +217,7 @@ describe('HubStrategy', () => {
     it('should throw when JWKS URI is not configured', async () => {
       configGet.mockImplementation((key: string) => {
         const config: Record<string, any> = {
-          'app.isLocalMode': false,
+          'app.enableAuth': true,
           'auth.hub.jwksUri': undefined,
           'auth.hub.issuer': 'https://hub.loopstack.ai',
           'auth.clientId': 'worker-456',

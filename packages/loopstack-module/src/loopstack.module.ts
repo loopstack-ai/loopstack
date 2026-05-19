@@ -4,7 +4,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoopstackApiModule } from '@loopstack/api';
 import { AuthConfig } from '@loopstack/auth';
-import { CliModule } from '@loopstack/cli-module';
 import { AppConfig, LoopCoreModule } from '@loopstack/core';
 import { LoopstackModuleOptions } from './interfaces/index.js';
 
@@ -44,7 +43,7 @@ export class LoopstackModule {
     // EventEmitter
     imports.push(EventEmitterModule.forRoot());
 
-    // Core + API + CLI — thread connection name through all modules
+    // Core + API — thread connection name through all modules
     imports.push(LoopCoreModule.forRoot({ connection, redis: options.redis }));
 
     imports.push(
@@ -55,12 +54,10 @@ export class LoopstackModule {
       }),
     );
 
-    imports.push(CliModule);
-
     return {
       module: LoopstackModule,
       imports,
-      exports: [LoopstackApiModule, LoopCoreModule, CliModule],
+      exports: [LoopstackApiModule, LoopCoreModule],
     };
   }
 }
@@ -68,7 +65,7 @@ export class LoopstackModule {
 function buildAppConfig(options: LoopstackModuleOptions) {
   return registerAs<AppConfig>('app', () => ({
     nodeEnv: process.env.NODE_ENV ?? 'development',
-    isLocalMode: options.localMode ?? process.env.ENABLE_LOCAL_MODE === 'true',
+    enableAuth: options.enableAuth ?? process.env.LOOPSTACK_AUTH === 'true',
   }));
 }
 

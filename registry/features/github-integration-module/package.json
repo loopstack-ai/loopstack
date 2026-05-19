@@ -63,16 +63,5 @@
     "testEnvironment": "node",
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/github-integration.module.ts",
-        "className": "GitHubIntegrationModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module"
 }

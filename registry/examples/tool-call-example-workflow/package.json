@@ -41,26 +41,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/tool-calling-example.module.ts",
-        "className": "ToolCallingExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/tool-call.workflow.ts",
-        "className": "ToolCallWorkflow",
-        "propertyName": "toolCall"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

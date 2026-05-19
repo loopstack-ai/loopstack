@@ -13,7 +13,9 @@ WORKDIR /app
 RUN npm install -g serve
 
 COPY --from=build /app/dist ./dist
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x entrypoint.sh
 
 EXPOSE 3000
 
-CMD ["serve", "-s", "dist", "-l", "3000"]
+ENTRYPOINT ["./entrypoint.sh"]

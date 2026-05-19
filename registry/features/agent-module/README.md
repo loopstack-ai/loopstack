@@ -5,7 +5,7 @@ A generic, reusable LLM agent workflow for Loopstack. Runs a standard agent loop
 ## Installation
 
 ```bash
-loopstack add @loopstack/agent
+npm install @loopstack/agent
 ```
 
 ## Quick Start

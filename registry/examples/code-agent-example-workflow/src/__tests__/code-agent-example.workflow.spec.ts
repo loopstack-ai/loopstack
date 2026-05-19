@@ -4,7 +4,7 @@ import { AgentWorkflow } from '@loopstack/agent';
 import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { CodeAgentExampleWorkflow } from '../code-agent-example.workflow.js';
+import { CodeAgentExampleWorkflow } from '../code-agent-example.workflow';
 
 describe('CodeAgentExampleWorkflow', () => {
   let module: TestingModule;

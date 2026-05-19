@@ -78,12 +78,12 @@ export class AuthService {
   }
 
   getWorkerHealthInfo(): WorkerInfoDto {
-    const isLocalMode = this.configService.get<boolean>('app.isLocalMode');
+    const enableAuth = this.configService.get<boolean>('app.enableAuth');
     return plainToInstance(
       WorkerInfoDto,
       {
-        clientId: isLocalMode ? 'local' : this.configService.get<string>('auth.clientId'),
-        isConfigured: isLocalMode || !!this.configService.get<string>('auth.hub.jwksUri'),
+        clientId: enableAuth ? this.configService.get<string>('auth.clientId') : 'local',
+        isConfigured: !enableAuth || !!this.configService.get<string>('auth.hub.jwksUri'),
         timestamp: new Date(),
       },
       {

@@ -4,7 +4,7 @@ import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { HitlConfirmExampleWorkflow } from '../hitl-confirm-example.workflow.js';
+import { HitlConfirmExampleWorkflow } from '../hitl-confirm-example.workflow';
 
 describe('HitlConfirmExampleWorkflow', () => {
   let module: TestingModule;

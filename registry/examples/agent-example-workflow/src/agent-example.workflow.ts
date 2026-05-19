@@ -19,7 +19,7 @@ const AgentCallbackSchema = CallbackSchema.extend({
 type AgentCallback = z.infer<typeof AgentCallbackSchema>;
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/agent-example.ui.yaml',
+  uiConfig: __dirname + '/agent-example.ui.yaml',
 })
 export class AgentExampleWorkflow extends BaseWorkflow {
   @InjectWorkflow() private agent: AgentWorkflow;
@@ -28,7 +28,7 @@ export class AgentExampleWorkflow extends BaseWorkflow {
   async start() {
     const result: QueueResult = await this.agent.run(
       {
-        system: this.render(import.meta.dirname + '/templates/system.md'),
+        system: this.render(__dirname + '/templates/system.md'),
         tools: ['weatherLookup', 'calculator'],
         userMessage: "What's the weather in Tokyo? Also, what is 42 * 17?",
       },

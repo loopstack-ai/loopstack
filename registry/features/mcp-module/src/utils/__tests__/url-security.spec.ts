@@ -1,12 +1,13 @@
 import * as dns from 'node:dns/promises';
-import { McpUrlSecurityError } from '../../errors';
-import { assertIpIsPublic, assertMcpUrlSafe, hostMatchesAllowlist } from '../url-security';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { McpUrlSecurityError } from '../../errors.js';
+import { assertIpIsPublic, assertMcpUrlSafe, hostMatchesAllowlist } from '../url-security.js';
 
-jest.mock('node:dns/promises', () => ({
-  lookup: jest.fn(),
+vi.mock('node:dns/promises', () => ({
+  lookup: vi.fn(),
 }));
 
-const mockedLookup = dns.lookup as unknown as jest.Mock;
+const mockedLookup = dns.lookup as unknown as Mock;
 
 beforeEach(() => {
   mockedLookup.mockReset();

@@ -40,26 +40,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/run-sub-workflow-example.module.ts",
-        "className": "RunSubWorkflowExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/run-sub-workflow-example-parent.workflow.ts",
-        "className": "RunSubWorkflowExampleParentWorkflow",
-        "propertyName": "runSubWorkflowExampleParent"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RemoteClientModule } from '@loopstack/remote-client';
 import { RemoteFileExplorerModule } from '@loopstack/remote-file-explorer-module';
-import { RemoteFileExplorerExampleWorkflow } from './remote-file-explorer-example.workflow.js';
+import { RemoteFileExplorerExampleWorkflow } from './remote-file-explorer-example.workflow';
 
 @Module({
   imports: [RemoteClientModule, RemoteFileExplorerModule],

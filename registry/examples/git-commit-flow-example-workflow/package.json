@@ -40,26 +40,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/git-commit-flow-example.module.ts",
-        "className": "GitCommitFlowExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/git-commit-flow-example.workflow.ts",
-        "className": "GitCommitFlowExampleWorkflow",
-        "propertyName": "gitCommitFlowExample"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

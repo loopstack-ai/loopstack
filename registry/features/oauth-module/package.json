@@ -57,23 +57,5 @@
     "testEnvironment": "node",
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/oauth.module.ts",
-        "className": "OAuthModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/workflows/oauth.workflow.ts",
-        "className": "OAuthWorkflow",
-        "propertyName": "oAuth"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module"
 }

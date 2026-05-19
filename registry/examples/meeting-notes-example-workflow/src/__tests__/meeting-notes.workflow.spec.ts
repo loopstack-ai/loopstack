@@ -5,9 +5,9 @@ import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { MeetingNotesDocument } from '../documents/meeting-notes-document.js';
-import { OptimizedNotesDocument } from '../documents/optimized-notes-document.js';
-import { MeetingNotesWorkflow } from '../meeting-notes.workflow.js';
+import { MeetingNotesDocument } from '../documents/meeting-notes-document';
+import { OptimizedNotesDocument } from '../documents/optimized-notes-document';
+import { MeetingNotesWorkflow } from '../meeting-notes.workflow';
 
 describe('MeetingNotesWorkflow', () => {
   let module: TestingModule;

@@ -40,26 +40,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/tool-results-example.module.ts",
-        "className": "ToolResultsExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/workflow-tool-results.workflow.ts",
-        "className": "WorkflowToolResultsWorkflow",
-        "propertyName": "workflowToolResults"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

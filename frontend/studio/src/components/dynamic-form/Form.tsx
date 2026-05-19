@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FormProvider } from 'react-hook-form';
 import FormBody from './FormBody';
 import { FormElementHeader } from './FormElementHeader';
@@ -57,21 +57,15 @@ const Form: React.FC<DynamicFormProps> = ({
   const typedUi = ui as FormUi | undefined;
   const typedSchema = schema as SchemaProperties;
 
-  // Apply schema defaults to form on mount
+  // Apply schema defaults to form once when schema first becomes available
+  const defaultsAppliedRef = useRef(false);
   useEffect(() => {
+    if (defaultsAppliedRef.current) return;
+
     const defaults = extractSchemaDefaults(typedSchema);
-
     if (defaults) {
-      const currentValues = form.getValues();
-      const mergedValues: Record<string, unknown> = { ...defaults };
-
-      for (const [key, value] of Object.entries(currentValues)) {
-        if (value !== undefined && value !== '' && value !== null) {
-          mergedValues[key] = value;
-        }
-      }
-
-      form.reset(mergedValues);
+      defaultsAppliedRef.current = true;
+      form.reset(defaults);
     }
   }, [schema]);
 

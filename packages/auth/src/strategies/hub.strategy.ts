@@ -87,8 +87,8 @@ export class HubStrategy extends PassportStrategy(Strategy, 'hub') {
 
   async validate(req: Request): Promise<User> {
     try {
-      const isLocalDevMode = this.configService.get<boolean>('app.isLocalMode');
-      if (isLocalDevMode) {
+      const enableAuth = this.configService.get<boolean>('app.enableAuth');
+      if (!enableAuth) {
         return this.validateLocalUser();
       }
 

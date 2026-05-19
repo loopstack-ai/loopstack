@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { BaseWorkflow, Final, Initial, InjectTool, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import { MathSumTool } from '../tools/index.js';
-import { CounterTool } from '../tools/index.js';
+import { MathSumTool } from '../tools';
+import { CounterTool } from '../tools';
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/custom-tool-example.ui.yaml',
+  uiConfig: __dirname + '/custom-tool-example.ui.yaml',
   schema: z
     .object({
       a: z.number().default(1),

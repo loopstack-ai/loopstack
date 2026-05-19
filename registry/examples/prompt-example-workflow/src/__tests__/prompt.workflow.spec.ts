@@ -5,7 +5,7 @@ import { getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { PromptWorkflow } from '../prompt.workflow.js';
+import { PromptWorkflow } from '../prompt.workflow';
 
 describe('PromptWorkflow', () => {
   let module: TestingModule;

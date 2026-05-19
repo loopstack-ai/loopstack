@@ -41,26 +41,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/meeting-notes-example.module.ts",
-        "className": "MeetingNotesExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/meeting-notes.workflow.ts",
-        "className": "MeetingNotesWorkflow",
-        "propertyName": "meetingNotes"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

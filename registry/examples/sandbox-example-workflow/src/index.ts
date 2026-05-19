@@ -1,2 +1,2 @@
-export * from './sandbox-example.module.js';
-export * from './sandbox-example.workflow.js';
+export * from './sandbox-example.module';
+export * from './sandbox-example.workflow';

@@ -32,7 +32,7 @@ import {
 } from '@loopstack/github-module';
 import { OAuthModule, OAuthWorkflow } from '@loopstack/oauth-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { GitHubReposOverviewWorkflow } from '../github-repos-overview.workflow.js';
+import { GitHubReposOverviewWorkflow } from '../github-repos-overview.workflow';
 
 const mockOAuthWorkflow = {
   run: vi.fn(),

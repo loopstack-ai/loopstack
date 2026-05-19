@@ -1,4 +1,4 @@
-import type { McpTransportKind } from '../types';
+import type { McpTransportKind } from '../types.js';
 
 export type McpCallOutcome = 'success' | 'auth' | 'timeout' | 'protocol' | 'transport' | 'security';
 

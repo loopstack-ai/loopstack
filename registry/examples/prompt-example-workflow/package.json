@@ -40,26 +40,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/prompt-example.module.ts",
-        "className": "PromptExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/prompt.workflow.ts",
-        "className": "PromptWorkflow",
-        "propertyName": "prompt"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

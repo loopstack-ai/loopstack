@@ -15,7 +15,7 @@ import { LlmGenerateTextTool, LlmMessageDocument, extractText } from '@loopstack
  * - The same tool class (LlmGenerateTextTool) works with any registered provider
  */
 @Workflow({
-  uiConfig: import.meta.dirname + '/llm-multi-provider.ui.yaml',
+  uiConfig: __dirname + '/llm-multi-provider.ui.yaml',
   schema: z.object({
     prompt: z.string().default('What is the meaning of life? Answer in one sentence.'),
   }),

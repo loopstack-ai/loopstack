@@ -52,24 +52,5 @@
     "forceExit": true,
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/agent.module.ts",
-        "className": "AgentModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/workflows/agent.workflow.ts",
-        "className": "AgentWorkflow",
-        "propertyName": "agent"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
   "type": "module"
 }

@@ -41,43 +41,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/code-agent-example.module.ts",
-        "className": "CodeAgentExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/code-agent-example.workflow.ts",
-        "className": "CodeAgentExampleWorkflow",
-        "propertyName": "codeAgentExample"
-      }
-    ],
-    "tools": [
-      {
-        "package": "@loopstack/remote-client",
-        "className": "GlobTool",
-        "propertyName": "glob"
-      },
-      {
-        "package": "@loopstack/remote-client",
-        "className": "GrepTool",
-        "propertyName": "grep"
-      },
-      {
-        "package": "@loopstack/remote-client",
-        "className": "ReadTool",
-        "propertyName": "read"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

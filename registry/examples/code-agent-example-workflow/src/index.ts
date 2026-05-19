@@ -1,2 +1,2 @@
-export * from './code-agent-example.workflow.js';
-export * from './code-agent-example.module.js';
+export * from './code-agent-example.workflow';
+export * from './code-agent-example.module';

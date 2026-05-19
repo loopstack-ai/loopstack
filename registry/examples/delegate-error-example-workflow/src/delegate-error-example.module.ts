@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { DelegateErrorWorkflow } from './delegate-error.workflow.js';
-import { FailingSubWorkflowTool } from './tools/failing-sub-workflow.tool.js';
-import { RuntimeErrorTool } from './tools/runtime-error.tool.js';
-import { StrictSchemaTool } from './tools/strict-schema.tool.js';
-import { FailingWorkflow } from './workflows/failing.workflow.js';
+import { DelegateErrorWorkflow } from './delegate-error.workflow';
+import { FailingSubWorkflowTool } from './tools/failing-sub-workflow.tool';
+import { RuntimeErrorTool } from './tools/runtime-error.tool';
+import { StrictSchemaTool } from './tools/strict-schema.tool';
+import { FailingWorkflow } from './workflows/failing.workflow';
 
 @Module({
   imports: [ClaudeModule],

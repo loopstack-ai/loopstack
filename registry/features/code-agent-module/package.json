@@ -60,33 +60,5 @@
     "testEnvironment": "node",
     "maxWorkers": 1
   },
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/code-agent.module.ts",
-        "className": "CodeAgentModule"
-      }
-    ],
-    "tools": [
-      {
-        "package": "@loopstack/remote-client",
-        "className": "GlobTool",
-        "propertyName": "glob"
-      },
-      {
-        "package": "@loopstack/remote-client",
-        "className": "GrepTool",
-        "propertyName": "grep"
-      },
-      {
-        "package": "@loopstack/remote-client",
-        "className": "ReadTool",
-        "propertyName": "read"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module"
 }

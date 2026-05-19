@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RunContext, WorkflowEntity, getBlockConfig } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { RunSubWorkflowExampleParentWorkflow } from '../run-sub-workflow-example-parent.workflow.js';
-import { RunSubWorkflowExampleSubWorkflow } from '../run-sub-workflow-example-sub.workflow.js';
+import { RunSubWorkflowExampleParentWorkflow } from '../run-sub-workflow-example-parent.workflow';
+import { RunSubWorkflowExampleSubWorkflow } from '../run-sub-workflow-example-sub.workflow';
 
 describe('RunSubWorkflowExampleParentWorkflow', () => {
   let module: TestingModule;

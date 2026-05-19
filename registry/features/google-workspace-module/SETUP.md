@@ -1,19 +1,6 @@
 # Setup
 
-There are two ways to add this module to your Loopstack project. Both install it as an npm dependency — feature modules do not ship their sources, so `loopstack add` is not supported.
-
-## Option 1: `loopstack install` (recommended)
-
-```bash
-loopstack install @loopstack/google-workspace-module
-```
-
-This installs the package as an npm dependency and automatically registers the module.
-
-- The module is imported directly from `node_modules`
-- The CLI handles module registration for you (imports, module setup)
-
-## Option 2: Manual `npm install`
+## Install
 
 ```bash
 npm install --save @loopstack/google-workspace-module

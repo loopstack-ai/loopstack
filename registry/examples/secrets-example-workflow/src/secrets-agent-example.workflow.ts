@@ -21,7 +21,7 @@ import {
 import { GetSecretKeysTool, RequestSecretsTask, SecretsRequestWorkflow } from '@loopstack/secrets-module';
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/secrets-agent-example.ui.yaml',
+  uiConfig: __dirname + '/secrets-agent-example.ui.yaml',
 })
 export class SecretsAgentExampleWorkflow extends BaseWorkflow {
   @InjectTool({ provider: 'claude', model: 'claude-haiku-4-5-20251001', tools: ['getSecretKeys', 'requestSecrets'] })
@@ -42,7 +42,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
       LlmMessageDocument,
       {
         role: 'user',
-        content: this.render(import.meta.dirname + '/templates/systemMessage.md'),
+        content: this.render(__dirname + '/templates/systemMessage.md'),
       },
       { meta: { hidden: true } },
     );
@@ -54,7 +54,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow {
       {},
       {
         config: {
-          system: this.render(import.meta.dirname + '/templates/system.md'),
+          system: this.render(__dirname + '/templates/system.md'),
         },
       },
     );

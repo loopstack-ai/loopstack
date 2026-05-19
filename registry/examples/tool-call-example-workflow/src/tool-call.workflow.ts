@@ -1,10 +1,10 @@
 import { BaseWorkflow, Final, Guard, Initial, InjectTool, ToolResult, Transition, Workflow } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
-import { GetWeather } from './tools/get-weather.tool.js';
+import { GetWeather } from './tools/get-weather.tool';
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/tool-call.ui.yaml',
+  uiConfig: __dirname + '/tool-call.ui.yaml',
 })
 export class ToolCallWorkflow extends BaseWorkflow {
   @InjectTool({ provider: 'claude', model: 'claude-sonnet-4-6', tools: ['getWeather'] })

@@ -43,26 +43,6 @@
     "dist",
     "src"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/prompt-structured-output-example.module.ts",
-        "className": "PromptStructuredOutputExampleModule"
-      }
-    ],
-    "workflows": [
-      {
-        "path": "src/prompt-structured-output.workflow.ts",
-        "className": "PromptStructuredOutputWorkflow",
-        "propertyName": "promptStructuredOutput"
-      }
-    ],
-    "installModes": [
-      "add",
-      "install"
-    ]
-  },
-  "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",
     "@swc/core": "^1.15.33",

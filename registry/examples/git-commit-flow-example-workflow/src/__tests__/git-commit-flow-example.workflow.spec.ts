@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { GitAddTool, GitCommitTool, GitLogTool, GitStatusTool } from '@loopstack/git-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { GitCommitFlowExampleWorkflow } from '../git-commit-flow-example.workflow.js';
+import { GitCommitFlowExampleWorkflow } from '../git-commit-flow-example.workflow';
 
 describe('GitCommitFlowExampleWorkflow', () => {
   let module: TestingModule;

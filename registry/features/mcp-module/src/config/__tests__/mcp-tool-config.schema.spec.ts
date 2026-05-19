@@ -1,4 +1,5 @@
-import { McpToolConfigSchema } from '../mcp-tool-config.schema';
+import { describe, expect, it } from 'vitest';
+import { McpToolConfigSchema } from '../mcp-tool-config.schema.js';
 
 describe('McpToolConfigSchema', () => {
   it('requires at least one allowed host', () => {

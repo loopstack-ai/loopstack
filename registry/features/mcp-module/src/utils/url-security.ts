@@ -1,7 +1,7 @@
 import * as dns from 'node:dns/promises';
 import * as net from 'node:net';
 import { domainToASCII } from 'node:url';
-import { McpUrlSecurityError } from '../errors';
+import { McpUrlSecurityError } from '../errors.js';
 
 function toAscii(host: string): string {
   const ascii = domainToASCII(host);

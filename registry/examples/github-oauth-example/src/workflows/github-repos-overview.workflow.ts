@@ -88,7 +88,7 @@ interface GitHubSearchCodeResult {
 }
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/github-repos-overview.ui.yaml',
+  uiConfig: __dirname + '/github-repos-overview.ui.yaml',
   schema: z
     .object({
       owner: z.string().default('octocat'),
@@ -281,7 +281,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<{ owner: string; r
   @Final({ from: 'search_done' })
   async displayResults() {
     await this.repository.save(MarkdownDocument, {
-      markdown: this.render(import.meta.dirname + '/templates/repoOverview.md', {
+      markdown: this.render(__dirname + '/templates/repoOverview.md', {
         user: this.user,
         orgs: this.orgs,
         repo: this.repoDetails,

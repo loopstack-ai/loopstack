@@ -11,7 +11,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow.js';
+import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
 
 const SubWorkflowCallbackSchema = CallbackSchema.extend({
   data: z.object({ message: z.string() }),
@@ -20,7 +20,7 @@ const SubWorkflowCallbackSchema = CallbackSchema.extend({
 type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/run-sub-workflow-example-parent.ui.yaml',
+  uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml',
 })
 export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   @InjectWorkflow() private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;

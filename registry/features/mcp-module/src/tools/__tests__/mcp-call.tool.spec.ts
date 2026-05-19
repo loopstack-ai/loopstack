@@ -1,6 +1,7 @@
-import { McpToolConfig, McpToolConfigSchema } from '../../config/mcp-tool-config.schema';
-import type { McpClientService } from '../../services/mcp-client.service';
-import { McpCallTool, McpCallToolArgsSchema } from '../mcp-call.tool';
+import { describe, expect, it, vi } from 'vitest';
+import { McpToolConfig, McpToolConfigSchema } from '../../config/mcp-tool-config.schema.js';
+import type { McpClientService } from '../../services/mcp-client.service.js';
+import { McpCallTool, McpCallToolArgsSchema } from '../mcp-call.tool.js';
 
 function makeTool(mcp: Partial<McpClientService>): McpCallTool {
   const tool = new McpCallTool();
@@ -14,7 +15,7 @@ function cfg(allowedHosts: string[]): McpToolConfig {
 
 describe('McpCallTool', () => {
   it('throws when config is missing allowedHosts', async () => {
-    const tool = makeTool({ callTool: jest.fn() });
+    const tool = makeTool({ callTool: vi.fn() });
     await expect(
       tool.call(
         {
@@ -30,7 +31,7 @@ describe('McpCallTool', () => {
   });
 
   it('forwards args to McpClientService.callTool and returns the data', async () => {
-    const callTool = jest.fn().mockResolvedValue({ kind: 'callToolResult', content: [{ x: 1 }] });
+    const callTool = vi.fn().mockResolvedValue({ kind: 'callToolResult', content: [{ x: 1 }] });
     const tool = makeTool({ callTool });
 
     const result = await tool.call(
@@ -55,7 +56,7 @@ describe('McpCallTool', () => {
   });
 
   it('defaults arguments to {} via the schema when omitted', async () => {
-    const callTool = jest.fn().mockResolvedValue({ kind: 'callToolResult' });
+    const callTool = vi.fn().mockResolvedValue({ kind: 'callToolResult' });
     const tool = makeTool({ callTool });
 
     const parsed = McpCallToolArgsSchema.parse({

@@ -1,2 +1,2 @@
-export * from './chat-example.module.js';
-export * from './chat.workflow.js';
+export * from './chat-example.module';
+export * from './chat.workflow';

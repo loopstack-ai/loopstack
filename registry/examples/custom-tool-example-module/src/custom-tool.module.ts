@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { MathService } from './services/math.service.js';
-import { MathSumTool } from './tools/index.js';
-import { CounterTool } from './tools/index.js';
-import { CustomToolExampleWorkflow } from './workflows/index.js';
+import { MathService } from './services/math.service';
+import { MathSumTool } from './tools';
+import { CounterTool } from './tools';
+import { CustomToolExampleWorkflow } from './workflows';
 
 @Module({
   providers: [CustomToolExampleWorkflow, MathSumTool, CounterTool, MathService],

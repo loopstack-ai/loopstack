@@ -45,16 +45,5 @@
   "files": [
     "dist"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/quota.module.ts",
-        "className": "QuotaModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module"
 }

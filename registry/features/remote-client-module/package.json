@@ -43,17 +43,6 @@
   "files": [
     "dist"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/remote-client.module.ts",
-        "className": "RemoteClientModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",

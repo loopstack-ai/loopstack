@@ -43,17 +43,6 @@
   "files": [
     "dist"
   ],
-  "loopstack": {
-    "modules": [
-      {
-        "path": "src/git.module.ts",
-        "className": "GitModule"
-      }
-    ],
-    "installModes": [
-      "install"
-    ]
-  },
   "type": "module",
   "devDependencies": {
     "vitest": "^4.1.6",

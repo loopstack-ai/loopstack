@@ -1,2 +1,2 @@
-export * from './counter.tool.js';
-export * from './math-sum.tool.js';
+export * from './counter.tool';
+export * from './math-sum.tool';

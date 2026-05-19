@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ErrorRetryWorkflow } from './error-retry.workflow.js';
-import { SlowTool } from './tools/slow.tool.js';
-import { Step1Tool } from './tools/step1.tool.js';
-import { Step2Tool } from './tools/step2.tool.js';
+import { ErrorRetryWorkflow } from './error-retry.workflow';
+import { SlowTool } from './tools/slow.tool';
+import { Step1Tool } from './tools/step1.tool';
+import { Step2Tool } from './tools/step2.tool';
 
 @Module({
   imports: [],

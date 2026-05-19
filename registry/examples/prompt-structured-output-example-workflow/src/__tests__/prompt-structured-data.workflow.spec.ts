@@ -5,8 +5,8 @@ import { getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
-import { FileDocument } from '../documents/file-document.js';
-import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow.js';
+import { FileDocument } from '../documents/file-document';
+import { PromptStructuredOutputWorkflow } from '../prompt-structured-output.workflow';
 
 describe('PromptStructuredOutputWorkflow', () => {
   let module: TestingModule;
