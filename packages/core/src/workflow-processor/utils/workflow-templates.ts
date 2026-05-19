@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import * as Handlebars from 'handlebars';
+import Handlebars from 'handlebars';
 import { TemplateRenderFn } from '@loopstack/common';
 
 /**
