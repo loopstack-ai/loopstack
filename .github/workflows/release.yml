@@ -143,3 +143,27 @@ jobs:
           repository: loopstack-ai/smoke-testing
           event-type: loopstack-released
           client-payload: '{"packages": ${{ needs.release.outputs.publishedPackages }}}'
+
+  sync-develop:
+    name: Sync develop with main
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Reset develop to main
+        run: |
+          AHEAD=$(git rev-list --count origin/main..origin/develop)
+          if [ "$AHEAD" -eq 0 ]; then
+            echo "develop has no extra commits — resetting to main"
+            git push origin origin/main:refs/heads/develop --force
+          else
+            echo "::warning::develop is $AHEAD commit(s) ahead of main — skipping reset to avoid losing work. Merge main into develop manually."
+          fi

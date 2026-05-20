@@ -13,7 +13,19 @@ RUN npm run build
 WORKDIR /workspace-setup
 COPY workspace-root/ ./
 RUN mkdir -p packages
-RUN npx --yes create-loopstack-app@latest app --template=app-template --tag=main
+RUN npm install -g @nestjs/cli
+RUN nest new app --skip-git --skip-install --package-manager npm
+WORKDIR /workspace-setup/app
+RUN npm install @loopstack/loopstack-module
+
+# Apply fixtures over scaffolded files
+COPY fixtures/backend/ /tmp/fixtures/backend/
+RUN cp /tmp/fixtures/backend/nest-cli.json ./nest-cli.json && \
+    cp /tmp/fixtures/backend/src/app.module.ts ./src/app.module.ts && \
+    cp /tmp/fixtures/backend/src/main.ts ./src/main.ts && \
+    rm -rf /tmp/fixtures
+
+WORKDIR /workspace-setup
 RUN npm install
 RUN npm run build
 
