@@ -1,5 +1,11 @@
 # @loopstack/remote-agent
 
+## 0.25.1
+
+### Patch Changes
+
+- [#153](https://github.com/loopstack-ai/loopstack/pull/153) [`3108c9c`](https://github.com/loopstack-ai/loopstack/commit/3108c9c8c90de51ee049b3c91627cc7b386387bf) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Replace create-loopstack-app scaffolding with NestJS CLI + fixture overlay in Dockerfile
+
 ## 0.25.0
 
 ### Minor Changes
