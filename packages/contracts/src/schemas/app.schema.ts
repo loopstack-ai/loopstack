@@ -43,20 +43,20 @@ const FeaturesSchema = z.object({
     .optional(),
 });
 
-const WorkspaceActionSchema = z.object({
+const AppActionSchema = z.object({
   widget: z.string(),
   options: z.record(z.string(), z.any()).optional(),
 });
 
-const WorkspaceUiSchema = z.object({
-  widgets: z.array(WorkspaceActionSchema).optional(),
+const AppUiSchema = z.object({
+  widgets: z.array(AppActionSchema).optional(),
 });
 
-export const WorkspaceSchema = BlockSchema.extend({
-  type: z.literal('workspace').default('workspace'),
+export const AppSchema = BlockSchema.extend({
+  type: z.literal('app').default('app'),
   title: z.string().optional(),
   description: z.string().optional(),
   features: FeaturesSchema.optional(),
   environments: z.array(EnvironmentConfigSchema).optional(),
-  ui: WorkspaceUiSchema.optional(),
+  ui: AppUiSchema.optional(),
 });

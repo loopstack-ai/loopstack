@@ -13,11 +13,11 @@ import {
 } from '@loopstack/common';
 import { JSONSchemaDefinition } from '@loopstack/contracts/schemas';
 import type {
+  AppType,
   DocumentConfigType,
   ToolConfigType,
   WorkflowTransitionType,
   WorkflowType,
-  WorkspaceType,
 } from '@loopstack/contracts/types';
 import { BlockDiscoveryService } from './block-discovery.service.js';
 
@@ -39,14 +39,14 @@ export interface CachedDocumentConfig {
   schema: z.ZodType | undefined;
 }
 
-export interface CachedWorkspaceConfig {
+export interface CachedAppConfig {
   className: string;
-  config: WorkspaceType;
+  config: AppType;
   workflowNames: string[];
-  resolvedUi: ResolvedWorkspaceUi | undefined;
+  resolvedUi: ResolvedAppUi | undefined;
 }
 
-export interface ResolvedWorkspaceUi {
+export interface ResolvedAppUi {
   widgets: Record<string, unknown>[];
 }
 
@@ -62,7 +62,7 @@ export class BlockConfigCacheService implements OnModuleInit {
   private readonly logger = new Logger(BlockConfigCacheService.name);
 
   private readonly workflowConfigs = new Map<string, CachedWorkflowConfig>();
-  private readonly workspaceConfigs = new Map<string, CachedWorkspaceConfig>();
+  private readonly appConfigs = new Map<string, CachedAppConfig>();
   private readonly toolConfigs = new Map<Constructor, CachedToolConfig>();
   private readonly documentConfigs = new Map<Constructor, CachedDocumentConfig>();
 
@@ -70,11 +70,11 @@ export class BlockConfigCacheService implements OnModuleInit {
 
   onModuleInit() {
     this.cacheWorkflows();
-    this.cacheWorkspaces();
+    this.cacheApps();
     this.cacheTools();
 
     this.logger.log(
-      `Cached config for ${this.workspaceConfigs.size} workspaces, ${this.workflowConfigs.size} workflows, ${this.toolConfigs.size} tools`,
+      `Cached config for ${this.appConfigs.size} apps, ${this.workflowConfigs.size} workflows, ${this.toolConfigs.size} tools`,
     );
   }
 
@@ -86,12 +86,12 @@ export class BlockConfigCacheService implements OnModuleInit {
     return [...this.workflowConfigs.values()];
   }
 
-  getWorkspaceConfig(name: string): CachedWorkspaceConfig | undefined {
-    return this.workspaceConfigs.get(name);
+  getAppConfig(name: string): CachedAppConfig | undefined {
+    return this.appConfigs.get(name);
   }
 
-  getAllWorkspaceConfigs(): CachedWorkspaceConfig[] {
-    return [...this.workspaceConfigs.values()];
+  getAllAppConfigs(): CachedAppConfig[] {
+    return [...this.appConfigs.values()];
   }
 
   getToolConfig(target: object): CachedToolConfig | undefined {
@@ -115,10 +115,10 @@ export class BlockConfigCacheService implements OnModuleInit {
   }
 
   private cacheWorkflows() {
-    for (const workspace of this.blockDiscoveryService.getWorkspaces()) {
-      const workflowNames = getBlockWorkflows(workspace);
+    for (const app of this.blockDiscoveryService.getApps()) {
+      const workflowNames = getBlockWorkflows(app);
       for (const name of workflowNames) {
-        const instance = (workspace as Record<string, unknown>)[name] as WorkflowInterface | undefined;
+        const instance = (app as Record<string, unknown>)[name] as WorkflowInterface | undefined;
         if (instance) {
           this.cacheWorkflow(name, instance);
         }
@@ -154,15 +154,15 @@ export class BlockConfigCacheService implements OnModuleInit {
     });
   }
 
-  private cacheWorkspaces() {
-    for (const workspace of this.blockDiscoveryService.getWorkspaces()) {
-      const className = workspace.constructor.name;
-      const config = getBlockConfig<WorkspaceType>(workspace);
+  private cacheApps() {
+    for (const app of this.blockDiscoveryService.getApps()) {
+      const className = app.constructor.name;
+      const config = getBlockConfig<AppType>(app);
       if (!config) continue;
 
-      const workflowNames = getBlockWorkflows(workspace);
+      const workflowNames = getBlockWorkflows(app);
 
-      let resolvedUi: ResolvedWorkspaceUi | undefined;
+      let resolvedUi: ResolvedAppUi | undefined;
       const uiWidgets = (config.ui as Record<string, unknown> | undefined)?.widgets as
         | Record<string, unknown>[]
         | undefined;
@@ -173,7 +173,7 @@ export class BlockConfigCacheService implements OnModuleInit {
           const workflowName = options?.workflow as string | undefined;
           if (!workflowName) return widget;
 
-          const workflow = getBlockWorkflow<WorkflowInterface>(workspace, workflowName);
+          const workflow = getBlockWorkflow<WorkflowInterface>(app, workflowName);
           if (!workflow) return widget;
 
           const cached = this.workflowConfigs.get(workflowName);
@@ -190,7 +190,7 @@ export class BlockConfigCacheService implements OnModuleInit {
         resolvedUi = { widgets: resolvedWidgets };
       }
 
-      this.workspaceConfigs.set(className, {
+      this.appConfigs.set(className, {
         className,
         config,
         workflowNames,
@@ -228,10 +228,10 @@ export class BlockConfigCacheService implements OnModuleInit {
       cacheToolsRecursive(workflow);
     }
 
-    for (const workspace of this.blockDiscoveryService.getWorkspaces()) {
-      const workflowNames = getBlockWorkflows(workspace);
+    for (const app of this.blockDiscoveryService.getApps()) {
+      const workflowNames = getBlockWorkflows(app);
       for (const name of workflowNames) {
-        const instance = (workspace as Record<string, unknown>)[name] as object | undefined;
+        const instance = (app as Record<string, unknown>)[name] as object | undefined;
         if (instance) {
           cacheToolsRecursive(instance);
         }

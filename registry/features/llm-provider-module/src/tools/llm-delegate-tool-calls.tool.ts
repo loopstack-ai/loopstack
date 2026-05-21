@@ -30,8 +30,8 @@ export class LlmDelegateToolCallsTool extends BaseTool {
     const toolCalls = this.extractToolCalls(message);
     const result = await this.delegateService.delegateToolCalls(
       toolCalls,
-      this.ctx.parent,
-      this.ctx.workspace,
+      this.ctx.workflow,
+      this.ctx.app,
       args.callback,
     );
 

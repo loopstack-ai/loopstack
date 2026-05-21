@@ -50,7 +50,7 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
     }
     openAiMessages.push(...messages);
 
-    const resolvedTools = args.tools ? this.toolsHelper.getTools(args.tools, ctx.parent, ctx.workspace) : undefined;
+    const resolvedTools = args.tools ? this.toolsHelper.getTools(args.tools, ctx.workflow, ctx.workspace) : undefined;
 
     const tools = resolvedTools
       ? resolvedTools

@@ -26,7 +26,7 @@ export class GitPullTool extends BaseTool {
   @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
 
   async call(args: GitPullArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.context);
+    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
     const result = await this.remoteAgentClient.gitPull(agentUrl, {
       remote: args.remote,
       branch: args.branch,

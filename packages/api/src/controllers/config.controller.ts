@@ -19,7 +19,7 @@ import { BlockConfigCacheService, BlockDiscoveryService } from '@loopstack/core'
 import { AvailableEnvironmentDto } from '../dtos/available-environment.dto.js';
 import { WorkflowConfigDto } from '../dtos/workflow-config.dto.js';
 import { WorkflowSourceDto } from '../dtos/workflow-source.dto.js';
-import { WorkspaceConfigDto } from '../dtos/workspace-config.dto.js';
+import { AppConfigDto } from '../dtos/workspace-config.dto.js';
 import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from '../tokens.js';
 
 const { sortBy } = lodash;
@@ -36,16 +36,16 @@ export class ConfigController {
   ) {}
 
   @Get('workspaces')
-  getWorkspaceTypes(): WorkspaceConfigDto[] {
-    const resolvedConfigs = this.blockConfigCacheService.getAllWorkspaceConfigs().map((cached) => ({
+  getAppTypes(): AppConfigDto[] {
+    const resolvedConfigs = this.blockConfigCacheService.getAllAppConfigs().map((cached) => ({
       className: cached.className,
       title: cached.config.title ?? cached.className,
       features: cached.config.features,
       environments: cached.config.environments,
-      ui: cached.resolvedUi as unknown as WorkspaceConfigDto['ui'],
+      ui: cached.resolvedUi as unknown as AppConfigDto['ui'],
     }));
 
-    return plainToInstance(WorkspaceConfigDto, resolvedConfigs, {
+    return plainToInstance(AppConfigDto, resolvedConfigs, {
       excludeExtraneousValues: true,
     });
   }
@@ -150,13 +150,13 @@ export class ConfigController {
   }
 
   @Get('workspaces/:workspaceBlockName/workflows')
-  getWorkflowTypesByWorkspace(@Param('workspaceBlockName') workspaceBlockName: string): WorkflowConfigDto[] {
-    const cachedWorkspace = this.blockConfigCacheService.getWorkspaceConfig(workspaceBlockName);
-    if (!cachedWorkspace) {
-      throw new BadRequestException(`Config for workspace with name ${workspaceBlockName} not found.`);
+  getWorkflowTypesByApp(@Param('workspaceBlockName') appBlockName: string): WorkflowConfigDto[] {
+    const cachedApp = this.blockConfigCacheService.getAppConfig(appBlockName);
+    if (!cachedApp) {
+      throw new BadRequestException(`App config with name ${appBlockName} not found.`);
     }
 
-    const filtered = cachedWorkspace.workflowNames.map((name) => {
+    const filtered = cachedApp.workflowNames.map((name) => {
       const cached = this.blockConfigCacheService.getWorkflowConfig(name);
       if (!cached) {
         throw new Error(`Block ${name} is missing @BlockConfig decorator`);

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { RunContext, ToolExecutionContext, ToolResult } from '@loopstack/common';
+import { ToolExecutionContext, ToolResult } from '@loopstack/common';
 import { ProcessingTimeQuotaCalculator } from '../processing-time-quota.calculator.js';
 
 describe('ProcessingTimeQuotaCalculator', () => {
@@ -18,7 +18,8 @@ describe('ProcessingTimeQuotaCalculator', () => {
     const context: ToolExecutionContext = {
       tool: {},
       args: undefined,
-      runContext: { userId: 'user-1' } as RunContext,
+      app: { userId: 'user-1', workspaceId: 'ws-1', environments: [] } as any,
+      run: { root: '', labels: [], payload: {}, options: { stateless: false } } as any,
       metadata: { durationMs: 1500 },
     };
 
@@ -32,7 +33,8 @@ describe('ProcessingTimeQuotaCalculator', () => {
     const context: ToolExecutionContext = {
       tool: {},
       args: undefined,
-      runContext: { userId: 'user-1' } as RunContext,
+      app: { userId: 'user-1', workspaceId: 'ws-1', environments: [] } as any,
+      run: { root: '', labels: [], payload: {}, options: { stateless: false } } as any,
       metadata: {},
     };
 
@@ -43,7 +45,8 @@ describe('ProcessingTimeQuotaCalculator', () => {
     const context: ToolExecutionContext = {
       tool: {},
       args: undefined,
-      runContext: { userId: 'user-1' } as RunContext,
+      app: { userId: 'user-1', workspaceId: 'ws-1', environments: [] } as any,
+      run: { root: '', labels: [], payload: {}, options: { stateless: false } } as any,
       metadata: { durationMs: 0 },
     };
 

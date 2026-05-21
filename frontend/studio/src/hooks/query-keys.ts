@@ -19,12 +19,12 @@ export function getHealthCacheKey(envKey: string) {
 }
 
 // --- Config ---
-export function getWorkspaceTypesCacheKey(envKey: string) {
-  return ['workspace-types', envKey];
+export function getAppTypesCacheKey(envKey: string) {
+  return ['app-types', envKey];
 }
 
-export function getWorkflowTypesCacheKey(envKey: string, workspaceBlockName: string) {
-  return ['workflowTypes', envKey, workspaceBlockName];
+export function getWorkflowTypesCacheKey(envKey: string, appBlockName: string) {
+  return ['workflowTypes', envKey, appBlockName];
 }
 
 export function getAvailableEnvironmentsCacheKey(envKey: string) {

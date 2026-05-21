@@ -34,7 +34,7 @@ export class GmailGetMessageTool extends BaseTool {
   private tokenStore: OAuthTokenStore;
 
   async call(args: GmailGetMessageArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -52,7 +52,7 @@ export class GmailGetMessageTool extends BaseTool {
     );
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Gmail API returned ${response.status} for user ${this.ctx.context.userId}`);
+      this.logger.warn(`Gmail API returned ${response.status} for user ${this.ctx.app.userId}`);
       return {
         data: {
           error: 'unauthorized',

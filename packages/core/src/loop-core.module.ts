@@ -94,23 +94,17 @@ const PROVIDERS = [
   {
     provide: FRAMEWORK_CONTEXT,
     useFactory: (scope: ExecutionScope) => ({
-      get context() {
-        return scope.get().getContext();
+      get app() {
+        return scope.get().getAppProxy();
+      },
+      get run() {
+        return scope.get().getRunContext();
       },
       get runtime() {
         return scope.get().getData();
       },
-      get args() {
-        return scope.get().getArgs();
-      },
-      get config() {
-        return scope.get().getConfig();
-      },
-      get parent() {
+      get workflow() {
         return scope.get().getInstance();
-      },
-      get workspace() {
-        return scope.get().getContext().workspaceInstance;
       },
     }),
     inject: [ExecutionScope],

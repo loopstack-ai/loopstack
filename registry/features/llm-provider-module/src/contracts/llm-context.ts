@@ -11,8 +11,8 @@ import type { DocumentEntity, WorkflowInterface } from '@loopstack/common';
 export interface LlmContext {
   /** Runtime documents for the current workflow execution (used for message history). */
   documents: DocumentEntity[];
-  /** The parent workflow instance (used for tool resolution via getBlockTool). */
-  parent: WorkflowInterface;
+  /** The workflow instance (used for tool resolution via getBlockTool). */
+  workflow: WorkflowInterface;
   /** The workspace instance (fallback for tool resolution). */
   workspace?: object;
 }

@@ -24,7 +24,7 @@ export class GitConfigUserTool extends BaseTool {
   @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
 
   async call(args: GitConfigUserArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.context);
+    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
     const result = await this.remoteAgentClient.gitConfigUser(agentUrl, args.name, args.email);
     return { data: result };
   }

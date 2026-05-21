@@ -13,7 +13,7 @@ export default function DebugWorkflowDetailsPage() {
   const { workflowId } = useParams();
   const { router } = useStudio();
 
-  const [workspaceBlockName, workflowBlockName] = useMemo(() => {
+  const [appBlockName, workflowBlockName] = useMemo(() => {
     if (!workflowId) return ['', ''];
     const parts = workflowId.split('::');
     if (parts.length === 2) return parts;
@@ -73,7 +73,7 @@ export default function DebugWorkflowDetailsPage() {
         </div>
       ) : (
         <div>
-          Workflow Type not found (Workspace: {workspaceBlockName}, Workflow: {workflowBlockName})
+          Workflow Type not found (Workspace: {appBlockName}, Workflow: {workflowBlockName})
         </div>
       )}
     </MainLayout>

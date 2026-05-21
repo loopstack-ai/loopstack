@@ -208,7 +208,7 @@ export class MyApiTool extends BaseTool {
   @Inject() private tokenStore: OAuthTokenStore;
 
   async call(args: z.infer<typeof inputSchema>): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.workspace.userId, 'github');
 
     if (!accessToken) {
       return { data: { error: 'unauthorized' } };

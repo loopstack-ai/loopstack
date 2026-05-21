@@ -1,21 +1,21 @@
 import type { AxiosInstance } from 'axios';
 import type {
+  AppConfigInterface,
   AvailableEnvironmentInterface,
   WorkflowConfigInterface,
   WorkflowSourceInterface,
-  WorkspaceConfigInterface,
 } from '@loopstack/contracts/api';
 
 export function createConfigApi(http: AxiosInstance) {
   return {
-    getWorkspaceTypes: (): Promise<WorkspaceConfigInterface[]> =>
-      http.get<WorkspaceConfigInterface[]>('/api/v1/config/workspaces').then((res) => res.data),
+    getAppTypes: (): Promise<AppConfigInterface[]> =>
+      http.get<AppConfigInterface[]>('/api/v1/config/workspaces').then((res) => res.data),
 
-    getWorkflowTypesByWorkspace: (params: { workspaceBlockName: string }): Promise<WorkflowConfigInterface[]> =>
+    getWorkflowTypesByApp: (params: { appBlockName: string }): Promise<WorkflowConfigInterface[]> =>
       http
         .get<
           WorkflowConfigInterface[]
-        >(`/api/v1/config/workspaces/${encodeURIComponent(params.workspaceBlockName)}/workflows`)
+        >(`/api/v1/config/workspaces/${encodeURIComponent(params.appBlockName)}/workflows`)
         .then((res) => res.data),
 
     getWorkflowConfig: (params: { alias: string }): Promise<WorkflowConfigInterface> =>

@@ -31,8 +31,8 @@ export class LlmUpdateToolResultTool extends BaseTool {
     const result = await this.delegateService.updateToolResult(
       args.delegateResult as LlmDelegateResult,
       args.completedTool,
-      this.ctx.parent,
-      this.ctx.workspace,
+      this.ctx.workflow,
+      this.ctx.app,
     );
 
     return { data: result };

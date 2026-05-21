@@ -13,7 +13,7 @@ export class ResetWorkspaceTool extends BaseTool {
   @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
 
   async call(_args: Record<string, never>): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.context);
+    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
     const result = await this.remoteAgentClient.resetWorkspace(agentUrl);
     return { data: result };
   }

@@ -1,5 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 import type {
+  AppConfigInterface,
   EnvironmentConfigInterface,
   FeaturesInterface,
   FileExplorerFeatureInterface,
@@ -7,7 +8,6 @@ import type {
   SidebarFeatureInterface,
   VolumeInterface,
   WorkspaceActionInterface,
-  WorkspaceConfigInterface,
   WorkspaceUiInterface,
 } from '@loopstack/contracts/api';
 
@@ -98,9 +98,9 @@ export class WorkspaceUiDto implements WorkspaceUiInterface {
   widgets?: WorkspaceActionDto[];
 }
 
-export class WorkspaceConfigDto implements WorkspaceConfigInterface {
+export class AppConfigDto implements AppConfigInterface {
   /**
-   * Config Key of the workspace
+   * Config Key of the app
    */
   @Expose()
   className: string;

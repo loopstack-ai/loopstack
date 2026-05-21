@@ -28,7 +28,7 @@ export class GitPushTool extends BaseTool {
   @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
 
   async call(args: GitPushArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.context);
+    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
     const result = await this.remoteAgentClient.gitPush(agentUrl, {
       remote: args.remote,
       branch: args.branch,

@@ -67,8 +67,8 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentConfig> {
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
   async llmTurn() {
-    const args = this.ctx.args as AgentArgs;
-    const config = (this.ctx.config ?? {}) as AgentConfig;
+    const args = this.ctx.run.args as AgentArgs;
+    const config = (this.ctx.run.config ?? {}) as AgentConfig;
 
     const result: ToolResult<LlmGenerateTextResult, LlmResultMeta> = await this.llmGenerateText.call(
       {},
@@ -126,7 +126,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentConfig> {
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
   async cancelPendingTools() {
-    const workflowId = this.ctx.context.workflowId;
+    const workflowId = this.ctx.run.workflowId;
     if (workflowId) {
       await this.orchestrator.cancelChildren(workflowId);
     }

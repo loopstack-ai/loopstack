@@ -30,7 +30,7 @@ import { TemplateRenderFn } from './workflow-templates.js';
  *
  * Framework services are available on `this`:
  * - `this.repository` — document repository for creating/querying documents
- * - `this.ctx` — execution context (context, runtime, args, parent)
+ * - `this.ctx` — execution context (workspace, workflow, runtime, args, parent)
  * - `this.render` — Handlebars template renderer
  */
 @Injectable()
@@ -63,12 +63,12 @@ export abstract class BaseTool<TArgs extends object = object, TConfig extends ob
   }
 
   /**
-   * Validates that all required tools are available on the parent workflow or workspace.
+   * Validates that all required tools are available on the parent workflow or app.
    * Call this before launching a sub-agent to fail fast on misconfiguration.
    *
-   * @param toolNames — Tool property names that must be injected via `@InjectTool()` on the workspace
+   * @param toolNames — Tool property names that must be injected via `@InjectTool()` on the app
    */
   protected assertToolsAvailable(toolNames: string[]): void {
-    assertToolsAvailable(this.constructor.name, this.ctx.parent, toolNames, this.ctx.workspace);
+    assertToolsAvailable(this.constructor.name, this.ctx.workflow, toolNames, this.ctx.app);
   }
 }

@@ -1,5 +1,5 @@
 import { type Mocked, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RunContext, ToolExecutionContext, ToolResult } from '@loopstack/common';
+import { ToolExecutionContext, ToolResult } from '@loopstack/common';
 import { QuotaCalculatorRegistry } from '../quota-calculator-registry.service.js';
 import { QuotaClientService } from '../quota-client.service.js';
 import { QuotaInterceptor } from '../quota.interceptor.js';
@@ -14,7 +14,8 @@ function createContext(toolName: string, overrides?: Partial<ToolExecutionContex
   return {
     tool: new FakeTool(toolName),
     args: undefined,
-    runContext: { userId: 'user-1' } as RunContext,
+    app: { userId: 'user-1', workspaceId: 'ws-1', environments: [] } as any,
+    run: { root: '', labels: [], payload: {}, options: { stateless: false } } as any,
     metadata: {},
     ...overrides,
   };

@@ -13,7 +13,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { CurrentUser, CurrentUserInterface, getBlockConfig } from '@loopstack/common';
-import { WorkspaceType } from '@loopstack/contracts/types';
+import { AppType } from '@loopstack/contracts/types';
 import { BlockDiscoveryService } from '@loopstack/core';
 import { BatchDeleteDto } from '../dtos/batch-delete.dto.js';
 import { PaginatedDto } from '../dtos/paginated.dto.js';
@@ -71,9 +71,9 @@ export class WorkspaceController {
     let features: FeaturesDto | undefined;
 
     if (workspace.className) {
-      const workspaceBlock = this.blockDiscoveryService.getWorkspace(workspace.className);
-      if (workspaceBlock) {
-        const config = getBlockConfig<WorkspaceType>(workspaceBlock) as WorkspaceType;
+      const appBlock = this.blockDiscoveryService.getApp(workspace.className);
+      if (appBlock) {
+        const config = getBlockConfig<AppType>(appBlock) as AppType;
         if (config) {
           features = config.features;
         }

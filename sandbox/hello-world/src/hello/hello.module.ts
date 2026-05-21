@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { HelloWorkflow } from './hello.workflow';
-import { HelloWorkspace } from './hello.workspace';
+import { HelloApp } from './hello.app';
 
 @Module({
-  providers: [HelloWorkflow, HelloWorkspace],
+  providers: [HelloWorkflow, HelloApp],
 })
 export class HelloModule {}

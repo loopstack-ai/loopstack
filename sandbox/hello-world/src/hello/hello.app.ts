@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { InjectWorkflow, Workspace } from '@loopstack/common';
+import { App, InjectWorkflow } from '@loopstack/common';
 import { HelloWorkflow } from './hello.workflow';
 
 @Injectable()
-@Workspace({
+@App({
   uiConfig: {
     title: 'Hello World',
   },
 })
-export class HelloWorkspace {
+export class HelloApp {
   @InjectWorkflow() hello: HelloWorkflow;
 }

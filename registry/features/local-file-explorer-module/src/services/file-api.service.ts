@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import * as path from 'node:path';
 import { parse } from 'yaml';
 import { getBlockConfig } from '@loopstack/common';
-import { WorkspaceType } from '@loopstack/contracts/types';
+import { AppType } from '@loopstack/contracts/types';
 import { BlockDiscoveryService } from '@loopstack/core';
 import type { FileContentDto } from '../dtos/file-content.dto.js';
 import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto.js';
@@ -94,15 +94,15 @@ export class FileApiService {
   }
 
   private validateFileExplorerEnabled(workspaceClassName: string): void {
-    const workspace = this.blockDiscoveryService.getWorkspace(workspaceClassName);
-    if (!workspace) {
-      throw new NotFoundException(`Workspace with block name ${workspaceClassName} not found`);
+    const app = this.blockDiscoveryService.getApp(workspaceClassName);
+    if (!app) {
+      throw new NotFoundException(`App with block name ${workspaceClassName} not found`);
     }
 
-    const config = getBlockConfig<WorkspaceType>(workspace) as WorkspaceType;
+    const config = getBlockConfig<AppType>(app) as AppType;
     if (!config?.features?.fileExplorer?.enabled) {
       throw new BadRequestException(
-        `File explorer is not enabled for workspace ${workspaceClassName}. Please enable it in the workspace config.`,
+        `File explorer is not enabled for app ${workspaceClassName}. Please enable it in the app config.`,
       );
     }
   }

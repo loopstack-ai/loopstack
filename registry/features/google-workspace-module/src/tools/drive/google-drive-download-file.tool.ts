@@ -32,7 +32,7 @@ export class GoogleDriveDownloadFileTool extends BaseTool {
   private tokenStore: OAuthTokenStore;
 
   async call(args: GoogleDriveDownloadFileArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
 
     if (!accessToken) {
       return {

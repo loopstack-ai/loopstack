@@ -28,7 +28,7 @@ export class ReadTool extends BaseTool {
   @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
 
   async call(args: ReadArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.context);
+    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
     const result = await this.remoteAgentClient.readFile(agentUrl, args.file_path, args.offset, args.limit);
     return { data: { content: result.content, path: args.file_path } };
   }

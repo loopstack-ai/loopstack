@@ -7,7 +7,7 @@ import type { Column, OriginalRowAction } from '../../components/lists/ListView.
 import { Badge } from '../../components/ui/badge.tsx';
 import { Dialog, DialogContent } from '../../components/ui/dialog.tsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip.tsx';
-import { useWorkspaceConfig } from '../../hooks/useConfig.ts';
+import { useAppConfig } from '../../hooks/useConfig.ts';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import {
   useBatchDeleteWorkspaces,
@@ -44,7 +44,7 @@ const Workspaces = () => {
     }
   }, [searchParams]);
 
-  const fetchWorkspaceTypes = useWorkspaceConfig();
+  const fetchAppTypes = useAppConfig();
 
   const fetchWorkspaces = useFilterWorkspaces(debouncedSearchTerm, filters, orderBy, order, page, rowsPerPage);
 
@@ -84,8 +84,8 @@ const Workspaces = () => {
   return (
     <>
       <ItemListView
-        loading={fetchWorkspaceTypes.isPending || fetchWorkspaces.isPending}
-        error={fetchWorkspaces.error ?? fetchWorkspaceTypes.error ?? null}
+        loading={fetchAppTypes.isPending || fetchWorkspaces.isPending}
+        error={fetchWorkspaces.error ?? fetchAppTypes.error ?? null}
         items={fetchWorkspaces.data?.data ?? []}
         totalItems={fetchWorkspaces.data?.total ?? 0}
         setPage={setPage}
@@ -207,14 +207,14 @@ const Workspaces = () => {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
-          <CreateWorkspace types={fetchWorkspaceTypes.data ?? []} onSuccess={handleClose} />
+          <CreateWorkspace types={fetchAppTypes.data ?? []} onSuccess={handleClose} />
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!openEdit} onOpenChange={(open) => !open && handleEditClose()}>
         <DialogContent className="max-w-2xl">
           {openEdit && (
-            <EditWorkspace types={fetchWorkspaceTypes.data ?? []} workspace={openEdit} onSuccess={handleEditClose} />
+            <EditWorkspace types={fetchAppTypes.data ?? []} workspace={openEdit} onSuccess={handleEditClose} />
           )}
         </DialogContent>
       </Dialog>

@@ -99,7 +99,8 @@ export class ToolExecutionService implements OnModuleInit {
     const execContext: ToolExecutionContext = {
       tool: baseTool,
       args: validArgs,
-      runContext: ctx.getContext(),
+      app: ctx.getAppProxy(),
+      run: ctx.getRunContext(),
       metadata: {},
     };
 

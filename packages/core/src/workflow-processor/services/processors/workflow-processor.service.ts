@@ -167,8 +167,8 @@ export class WorkflowProcessorService implements Processor {
       ctx.getManager().setData('status', WorkflowStateEnum.Running);
     }
 
-    // Wire @FrameworkService properties on workflow and workspace tools
-    this.wireFrameworkServices(workflow, context.workspaceInstance);
+    // Wire @FrameworkService properties on workflow and app tools
+    this.wireFrameworkServices(workflow, context.appInstance);
 
     this.logger.debug(`Process state machine for workflow ${workflow.constructor.name}`);
     this.memoryMonitor.logWorkflowStart(workflow.constructor.name);
@@ -541,14 +541,14 @@ export class WorkflowProcessorService implements Processor {
   /**
    * Wires @FrameworkService() properties on the workflow and wraps injected tools in proxies.
    * Tool proxies intercept call() for framework logic, defaults merging, and state isolation.
-   * Also proxies workspace tools and wraps workflow run() with @InjectWorkflow defaults.
+   * Also proxies app tools and wraps workflow run() with @InjectWorkflow defaults.
    */
-  private wireFrameworkServices(workflow: WorkflowInterface, workspace?: object): void {
+  private wireFrameworkServices(workflow: WorkflowInterface, app?: object): void {
     this.wireTools(workflow);
     this.wireWorkflows(workflow);
-    if (workspace) {
-      this.wireTools(workspace);
-      this.wireWorkflows(workspace);
+    if (app) {
+      this.wireTools(app);
+      this.wireWorkflows(app);
     }
   }
 

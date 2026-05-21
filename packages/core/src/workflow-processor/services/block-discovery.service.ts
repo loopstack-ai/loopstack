@@ -1,11 +1,11 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper.js';
-import { BLOCK_TYPE_METADATA_KEY, WorkflowInterface, WorkspaceInterface, getBlockWorkflow } from '@loopstack/common';
+import { AppInterface, BLOCK_TYPE_METADATA_KEY, WorkflowInterface, getBlockWorkflow } from '@loopstack/common';
 
 @Injectable()
 export class BlockDiscoveryService implements OnModuleInit {
-  private workspaces: InstanceWrapper<WorkspaceInterface>[] = [];
+  private apps: InstanceWrapper<AppInterface>[] = [];
   private workflows: InstanceWrapper<WorkflowInterface>[] = [];
 
   constructor(private readonly discovery: DiscoveryService) {}
@@ -13,11 +13,11 @@ export class BlockDiscoveryService implements OnModuleInit {
   onModuleInit() {
     const providers = this.discovery.getProviders();
 
-    this.workspaces = providers.filter((wrapper) => {
+    this.apps = providers.filter((wrapper) => {
       const metatype = wrapper.metatype;
       if (!metatype) return false;
-      return Reflect.getMetadata(BLOCK_TYPE_METADATA_KEY, metatype) === 'workspace';
-    }) as InstanceWrapper<WorkspaceInterface>[];
+      return Reflect.getMetadata(BLOCK_TYPE_METADATA_KEY, metatype) === 'app';
+    }) as InstanceWrapper<AppInterface>[];
 
     this.workflows = providers.filter((wrapper) => {
       const metatype = wrapper.metatype;
@@ -26,12 +26,12 @@ export class BlockDiscoveryService implements OnModuleInit {
     }) as InstanceWrapper<WorkflowInterface>[];
   }
 
-  getWorkspaces(): WorkspaceInterface[] {
-    return this.workspaces.map((wrapper) => wrapper.instance);
+  getApps(): AppInterface[] {
+    return this.apps.map((wrapper) => wrapper.instance);
   }
 
-  getWorkspace(name: string): WorkspaceInterface | undefined {
-    const wrapper = this.workspaces.find((w) => w.name === name);
+  getApp(name: string): AppInterface | undefined {
+    const wrapper = this.apps.find((w) => w.name === name);
     return wrapper?.instance;
   }
 
@@ -42,9 +42,9 @@ export class BlockDiscoveryService implements OnModuleInit {
       return wrapper.instance;
     }
 
-    // Fallback: search by property name across all workspaces and workflows
-    for (const ws of this.workspaces) {
-      const workflow = getBlockWorkflow<WorkflowInterface>(ws.instance, name);
+    // Fallback: search by property name across all apps and workflows
+    for (const app of this.apps) {
+      const workflow = getBlockWorkflow<WorkflowInterface>(app.instance, name);
       if (workflow) {
         return workflow;
       }

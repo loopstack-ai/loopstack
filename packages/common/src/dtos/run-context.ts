@@ -1,6 +1,6 @@
 import { RunPayload } from '@loopstack/contracts/schemas';
 import type { WorkflowEntity } from '../entities/index.js';
-import type { WorkspaceInterface } from '../interfaces/index.js';
+import type { AppInterface } from '../interfaces/index.js';
 import { WorkspaceEnvironmentContextDto } from './workspace-environment-context.dto.js';
 
 export class RunContext {
@@ -14,8 +14,8 @@ export class RunContext {
   workspaceEnvironments?: WorkspaceEnvironmentContextDto[];
   /** The root workflow entity — available for stateful workflow execution */
   workflowEntity?: WorkflowEntity;
-  /** The workspace NestJS singleton instance — provides workspace-level tools and workflows */
-  workspaceInstance?: WorkspaceInterface;
+  /** The app NestJS singleton instance — provides app-level tools and workflows */
+  appInstance?: AppInterface;
   options: {
     stateless: boolean;
   };

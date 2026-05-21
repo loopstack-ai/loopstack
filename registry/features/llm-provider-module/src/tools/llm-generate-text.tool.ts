@@ -52,8 +52,8 @@ export class LlmGenerateTextTool extends BaseTool<LlmGenerateTextArgs, LlmGenera
     const provider = this.registry.get(config?.provider ?? 'claude');
     const ctx: LlmContext = {
       documents: this.ctx.runtime.documents,
-      parent: this.ctx.parent,
-      workspace: this.ctx.workspace,
+      workflow: this.ctx.workflow,
+      workspace: this.ctx.app,
     };
 
     const providerArgs = {

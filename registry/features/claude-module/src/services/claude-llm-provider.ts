@@ -45,7 +45,7 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
 
     const messages = this.resolveMessages(args, ctx.documents);
 
-    const resolvedTools = args.tools ? this.toolsHelper.getTools(args.tools, ctx.parent, ctx.workspace) : undefined;
+    const resolvedTools = args.tools ? this.toolsHelper.getTools(args.tools, ctx.workflow, ctx.workspace) : undefined;
 
     const tools = resolvedTools
       ? (resolvedTools.map((t) =>

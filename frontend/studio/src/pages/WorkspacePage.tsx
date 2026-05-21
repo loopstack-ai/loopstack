@@ -6,7 +6,7 @@ import MainLayout from '../components/layout/MainLayout.tsx';
 import { WorkbenchSidebarShell } from '../features/workbench/components/WorkbenchSidebarShell.tsx';
 import { WorkbenchLayoutProvider } from '../features/workbench/providers/WorkbenchLayoutProvider.tsx';
 import WorkspaceHomePage from '../features/workspaces/components/WorkspaceHomePage.tsx';
-import { useWorkspaceConfig } from '../hooks/useConfig.ts';
+import { useAppConfig } from '../hooks/useConfig.ts';
 import { useDefaultEnvironmentPreviewUrl } from '../hooks/useEnvironmentPreviewUrl.ts';
 import { useWorkspace } from '../hooks/useWorkspaces.ts';
 import { useStudio } from '../providers/StudioProvider.tsx';
@@ -15,14 +15,14 @@ const WorkspacePage = () => {
   const { router } = useStudio();
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const fetchWorkspace = useWorkspace(workspaceId);
-  const fetchWorkspaceConfigs = useWorkspaceConfig();
+  const fetchAppConfigs = useAppConfig();
   const getEnvironmentPreviewUrl = useDefaultEnvironmentPreviewUrl();
 
   const workspace = fetchWorkspace.data;
 
   const startFormAction: WorkspaceActionInterface | undefined = (() => {
-    if (!workspace || !fetchWorkspaceConfigs.data) return undefined;
-    const config = fetchWorkspaceConfigs.data.find((c) => c.className === workspace.className);
+    if (!workspace || !fetchAppConfigs.data) return undefined;
+    const config = fetchAppConfigs.data.find((c) => c.className === workspace.className);
     return config?.ui?.widgets?.find((a) => a.widget === 'start-form');
   })();
 
@@ -31,7 +31,7 @@ const WorkspacePage = () => {
     { label: workspace?.title ?? '', current: true },
   ];
 
-  const isLoading = fetchWorkspace.isLoading || fetchWorkspaceConfigs.isLoading;
+  const isLoading = fetchWorkspace.isLoading || fetchAppConfigs.isLoading;
 
   const workspaceConfig: Pick<WorkspaceInterface, 'volumes' | 'features'> | undefined = workspace
     ? { volumes: workspace.volumes, features: workspace.features }
@@ -49,7 +49,7 @@ const WorkspacePage = () => {
           <>
             {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : ''}
             <ErrorSnackbar error={fetchWorkspace.error} />
-            <ErrorSnackbar error={fetchWorkspaceConfigs.error} />
+            <ErrorSnackbar error={fetchAppConfigs.error} />
 
             {workspace && startFormAction ? (
               <WorkspaceHomePage workspace={workspace} action={startFormAction} />

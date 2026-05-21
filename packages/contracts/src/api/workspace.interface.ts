@@ -87,7 +87,7 @@ export interface WorkspaceUiInterface {
   widgets?: WorkspaceActionInterface[];
 }
 
-export interface WorkspaceConfigInterface {
+export interface AppConfigInterface {
   className: string;
   title?: string;
   volumes?: Record<string, VolumeInterface>;

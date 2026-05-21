@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { RunContext, ToolExecutionContext, ToolResult } from '@loopstack/common';
+import { ToolExecutionContext, ToolResult } from '@loopstack/common';
 import { AiGenerateTextQuotaCalculator } from '../ai-generate-text-quota.calculator.js';
 
 describe('AiGenerateTextQuotaCalculator', () => {
@@ -7,7 +7,8 @@ describe('AiGenerateTextQuotaCalculator', () => {
   const context: ToolExecutionContext = {
     tool: {},
     args: undefined,
-    runContext: { userId: 'user-1' } as RunContext,
+    app: { userId: 'user-1', workspaceId: 'ws-1', environments: [] } as any,
+    run: { root: '', labels: [], payload: {}, options: { stateless: false } } as any,
     metadata: {},
   };
 

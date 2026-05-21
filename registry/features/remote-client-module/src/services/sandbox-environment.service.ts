@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { RunContext } from '@loopstack/common';
+import type { BaseApp } from '@loopstack/common';
 
 @Injectable()
 export class SandboxEnvironmentService {
-  getAgentUrl(context: RunContext): string {
-    const env =
-      context.workspaceEnvironments?.find((e) => e.slotId === 'sandbox') ?? context.workspaceEnvironments?.[0];
+  getAgentUrl(app: BaseApp): string {
+    const env = app.environments?.find((e) => e.slotId === 'sandbox') ?? app.environments?.[0];
     if (!env?.agentUrl) {
-      throw new Error('No environment with agent URL found in context');
+      throw new Error('No environment with agent URL found in app context');
     }
-    return env.agentUrl; //'http://localhost:3031'
+    return env.agentUrl;
   }
 }

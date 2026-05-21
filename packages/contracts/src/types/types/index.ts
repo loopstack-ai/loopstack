@@ -10,7 +10,7 @@ export * from './ui-message.type.js';
 export * from './ui-properties.type.js';
 export * from './workflow.type.js';
 export * from './workflow-transition.type.js';
-export * from './workspace.type.js';
+export * from './app.type.js';
 export * from './json-schema-config.type.js';
 export * from './main.type.js';
 export * from './workflow-state.type.js';

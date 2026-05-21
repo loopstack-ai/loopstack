@@ -12,4 +12,4 @@ export interface WorkflowInterface extends BlockInterface {
   readonly repository?: DocumentRepository;
 }
 
-export type WorkspaceInterface = BlockInterface;
+export type AppInterface = BlockInterface;

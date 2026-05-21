@@ -10,7 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreateWorkspace as DefaultCreateWorkspace } from '@/features/workspaces';
-import { useWorkflowConfig, useWorkspaceConfig } from '@/hooks/useConfig.ts';
+import { useAppConfig, useWorkflowConfig } from '@/hooks/useConfig.ts';
 import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 import { useCreateWorkflow } from '@/hooks/useWorkflows.ts';
 import { useFilterWorkspaces } from '@/hooks/useWorkspaces.ts';
@@ -43,7 +43,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
 
   const { CreateWorkspace: CreateWorkspaceOverride } = useComponentOverrides();
   const CreateWorkspace = CreateWorkspaceOverride ?? DefaultCreateWorkspace;
-  const fetchWorkspaceTypes = useWorkspaceConfig();
+  const fetchAppTypes = useAppConfig();
 
   const fetchWorkspaces = useFilterWorkspaces(undefined, {}, 'title', 'ASC', 0, 100);
   const workspaces = fetchWorkspaces.data?.data ?? [];
@@ -188,7 +188,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
           {showCreateWorkspace ? (
             <div className="pt-2">
               <CreateWorkspace
-                types={fetchWorkspaceTypes.data ?? []}
+                types={fetchAppTypes.data ?? []}
                 onSuccess={() => {
                   setShowCreateWorkspace(false);
                 }}

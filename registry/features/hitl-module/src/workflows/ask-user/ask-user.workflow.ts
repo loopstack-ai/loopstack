@@ -24,7 +24,7 @@ export class AskUserWorkflow extends BaseWorkflow {
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isOptionsMode')
   async showQuestionOptions() {
-    const { question, options, allowCustomAnswer } = this.ctx.args as {
+    const { question, options, allowCustomAnswer } = this.ctx.run.args as {
       question: string;
       options?: string[];
       allowCustomAnswer?: boolean;
@@ -39,19 +39,19 @@ export class AskUserWorkflow extends BaseWorkflow {
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isConfirmMode')
   async showQuestionConfirm() {
-    const { question } = this.ctx.args as { question: string };
+    const { question } = this.ctx.run.args as { question: string };
     await this.repository.save(AskUserConfirmDocument, { question }, { id: 'question' });
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user' })
   async showQuestionText() {
-    const { question } = this.ctx.args as { question: string };
+    const { question } = this.ctx.run.args as { question: string };
     await this.repository.save(AskUserDocument, { question }, { id: 'question' });
   }
 
   @Final({ from: 'waiting_for_user', wait: true, schema: AskUserAnswerSchema })
   async userAnswered(payload: { answer: string }): Promise<{ answer: string }> {
-    const { question, mode, options, allowCustomAnswer } = this.ctx.args as {
+    const { question, mode, options, allowCustomAnswer } = this.ctx.run.args as {
       question: string;
       mode?: string;
       options?: string[];
@@ -74,13 +74,13 @@ export class AskUserWorkflow extends BaseWorkflow {
   }
 
   private isOptionsMode(): boolean {
-    const args = this.ctx.args as { mode?: string; options?: string[] };
+    const args = this.ctx.run.args as { mode?: string; options?: string[] };
     return (
       args?.mode === 'options' || (args?.mode === undefined && Array.isArray(args?.options) && args.options.length > 0)
     );
   }
 
   private isConfirmMode(): boolean {
-    return (this.ctx.args as { mode?: string })?.mode === 'confirm';
+    return (this.ctx.run.args as { mode?: string })?.mode === 'confirm';
   }
 }

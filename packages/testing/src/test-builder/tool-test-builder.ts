@@ -161,10 +161,10 @@ export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
         {
           provide: FRAMEWORK_CONTEXT,
           useValue: {
-            context: {},
+            app: { userId: 'test-user', workspaceId: 'test-workspace', environments: [] },
+            run: { args: {}, config: undefined, root: '', labels: [], payload: {}, options: { stateless: true } },
             runtime: {},
-            args: {},
-            parent: null,
+            workflow: null,
           },
         },
         {
