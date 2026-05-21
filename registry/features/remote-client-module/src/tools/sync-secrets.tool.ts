@@ -24,7 +24,7 @@ export class SyncSecretsTool extends BaseTool {
   @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
 
   async call(_args: SyncSecretsInput): Promise<ToolResult> {
-    const secrets = await this.secretService.findAllByWorkspace(this.ctx.context.workspaceId);
+    const secrets = await this.secretService.findAllByWorkspace(this.ctx.app.workspaceId);
 
     if (secrets.length === 0) {
       return {
@@ -32,7 +32,7 @@ export class SyncSecretsTool extends BaseTool {
       };
     }
 
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.context);
+    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
     const variables = secrets.map((s) => ({ key: s.key, value: s.value }));
 
     const result = await this.remoteAgentClient.setEnvVars(agentUrl, variables);

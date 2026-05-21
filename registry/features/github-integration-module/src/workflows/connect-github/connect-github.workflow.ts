@@ -63,7 +63,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
   @Inject() private clientMessageService: ClientMessageService;
 
   private async getGitHubToken(): Promise<string | undefined> {
-    return (await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github')) ?? undefined;
+    return (await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github')) ?? undefined;
   }
 
   requiresAuth?: boolean;
@@ -440,11 +440,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow {
       markdown: `### Repository Connected\n\nYour workspace is now connected to [${repo.fullName}](${repo.htmlUrl}).\n\nAll future commits can be pushed to this repository using the git tools in your workflows.`,
     });
 
-    this.clientMessageService.dispatchWorkspaceEvent(
-      'git.updated',
-      this.ctx.context.workspaceId,
-      this.ctx.context.userId,
-    );
+    this.clientMessageService.dispatchWorkspaceEvent('git.updated', this.ctx.app.workspaceId, this.ctx.app.userId);
 
     return { repo: repo.fullName, url: repo.htmlUrl };
   }

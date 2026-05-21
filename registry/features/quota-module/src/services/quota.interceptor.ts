@@ -15,7 +15,7 @@ export class QuotaInterceptor implements ToolInterceptor {
   ) {}
 
   async intercept(context: ToolExecutionContext, next: () => Promise<ToolResult>): Promise<ToolResult> {
-    const userId = context.runContext.userId;
+    const userId = context.app.userId;
     const toolClassName = context.tool.constructor.name;
 
     // Check quotas before execution

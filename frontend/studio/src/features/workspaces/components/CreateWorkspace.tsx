@@ -3,7 +3,7 @@ import { Loader2, Star } from 'lucide-react';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
-  WorkspaceConfigInterface,
+  AppConfigInterface,
   WorkspaceEnvironmentInterface,
   WorkspaceItemInterface,
 } from '@loopstack/contracts/api';
@@ -19,7 +19,7 @@ import type { EnvironmentOption } from './EnvironmentSlotSelector.tsx';
 import { EnvironmentSlotSelector } from './EnvironmentSlotSelector.tsx';
 
 export interface CreateWorkspaceProps {
-  types: WorkspaceConfigInterface[];
+  types: AppConfigInterface[];
   workspace?: WorkspaceItemInterface;
   onSuccess: () => void;
 }
@@ -206,7 +206,7 @@ const CreateWorkspace = ({ types, workspace, onSuccess }: CreateWorkspaceProps) 
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {types.map((item: WorkspaceConfigInterface) => (
+                  {types.map((item: AppConfigInterface) => (
                     <SelectItem key={item.className} value={item.className}>
                       {item.title ?? item.className}
                     </SelectItem>

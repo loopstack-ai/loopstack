@@ -197,45 +197,42 @@ export function getInjectToolDefaults(target: object, propertyName: string): Rec
 }
 
 /**
- * Resolves a tool by name, checking the parent first, then the workspace as fallback.
+ * Resolves a tool by name, checking the parent first, then the app as fallback.
  */
-export function resolveBlockTool<T = unknown>(parent: object, name: string, workspace?: object): T | undefined {
-  return getBlockTool<T>(parent, name) ?? (workspace ? getBlockTool<T>(workspace, name) : undefined);
+export function resolveBlockTool<T = unknown>(parent: object, name: string, app?: object): T | undefined {
+  return getBlockTool<T>(parent, name) ?? (app ? getBlockTool<T>(app, name) : undefined);
 }
 
 /**
- * Validates that all named tools are resolvable from the parent or workspace.
+ * Validates that all named tools are resolvable from the parent or app.
  * Throws with a descriptive error if any tool is missing.
  *
  * @param caller — name of the calling class (for error messages)
  * @param parent — the parent workflow or block instance
  * @param toolNames — tool property names that must be available
- * @param workspace — optional workspace fallback
+ * @param app — optional app fallback
  */
-export function assertToolsAvailable(caller: string, parent: object, toolNames: string[], workspace?: object): void {
+export function assertToolsAvailable(caller: string, parent: object, toolNames: string[], app?: object): void {
   for (const name of toolNames) {
-    const tool = resolveBlockTool(parent, name, workspace);
+    const tool = resolveBlockTool(parent, name, app);
     if (!tool) {
       throw new Error(
         `${caller} requires tool "${name}" but it was not found. ` +
-          `Inject it on your workspace: @InjectTool() ${name}: <ToolClass>`,
+          `Inject it on your app: @InjectTool() ${name}: <ToolClass>`,
       );
     }
   }
 }
 
 /**
- * Resolves @InjectTool(config) defaults by name, checking the parent first, then the workspace as fallback.
+ * Resolves @InjectTool(config) defaults by name, checking the parent first, then the app as fallback.
  */
 export function resolveInjectToolDefaults(
   parent: object,
   propertyName: string,
-  workspace?: object,
+  app?: object,
 ): Record<string, unknown> | undefined {
-  return (
-    getInjectToolDefaults(parent, propertyName) ??
-    (workspace ? getInjectToolDefaults(workspace, propertyName) : undefined)
-  );
+  return getInjectToolDefaults(parent, propertyName) ?? (app ? getInjectToolDefaults(app, propertyName) : undefined);
 }
 
 /**

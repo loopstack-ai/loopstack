@@ -17,3 +17,4 @@ export * from './workflow-state.interface.js';
 export * from './document-repository.interface.js';
 export * from './execution-context.interface.js';
 export * from './workflow-orchestrator.interface.js';
+export * from './workflow-runner.interface.js';

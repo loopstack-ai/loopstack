@@ -1,11 +1,11 @@
 import { Inject, Injectable, InjectionToken } from '@nestjs/common';
 import { z } from 'zod';
 import type {
+  AppType,
   BlockConfigType,
   DocumentConfigType,
   ToolConfigType,
   WorkflowType,
-  WorkspaceType,
 } from '@loopstack/contracts/types';
 
 export const BLOCK_CONFIG_METADATA_KEY = Symbol('blockConfig');
@@ -20,7 +20,7 @@ export const INJECT_TOOL_DEFAULTS_KEY = Symbol('injectToolDefaults');
 export const INJECT_WORKFLOW_DEFAULTS_KEY = Symbol('injectWorkflowDefaults');
 
 // Block Type Class Decorators
-export type BlockType = 'workflow' | 'tool' | 'document' | 'workspace';
+export type BlockType = 'workflow' | 'tool' | 'document' | 'app';
 
 /** Base block options — used by the internal `Block()` decorator */
 export interface BlockOptions {
@@ -60,10 +60,10 @@ export interface DocumentOptions {
   schema?: z.ZodType;
 }
 
-/** Options for @Workspace() decorator */
-export interface WorkspaceOptions {
+/** Options for @App() decorator */
+export interface AppOptions {
   /** Inline config object or path to a YAML file containing UI config */
-  uiConfig?: string | Partial<WorkspaceType>;
+  uiConfig?: string | Partial<AppType>;
 }
 
 export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
@@ -97,8 +97,8 @@ export function Document(options?: DocumentOptions): ClassDecorator {
   };
 }
 
-export function Workspace(options?: WorkspaceOptions): ClassDecorator {
-  return Block('workspace', options as BlockOptions);
+export function App(options?: AppOptions): ClassDecorator {
+  return Block('app', options as BlockOptions);
 }
 
 export function getBlockType(target: object): BlockType | undefined {
@@ -166,7 +166,7 @@ export function InjectDocument(_token?: InjectionToken): PropertyDecorator & Met
 /**
  * Injects a workflow and optionally sets config that is validated against `configSchema`.
  *
- * Config values are available on the sub-workflow via `this.ctx.config`.
+ * Config values are available on the sub-workflow via `this.ctx.run.config`.
  * They are NOT merged into args — args and config are separate namespaces.
  *
  * Overloads:

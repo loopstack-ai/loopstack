@@ -6,45 +6,45 @@ import type { DataTableColumn } from '@/components/data-table/data-table';
 import MainLayout from '@/components/layout/MainLayout';
 import { Badge } from '@/components/ui/badge';
 import { useApiClient } from '@/hooks/useApi';
-import { useWorkspaceConfig } from '@/hooks/useConfig';
+import { useAppConfig } from '@/hooks/useConfig';
 import { useStudio } from '@/providers/StudioProvider';
 
 interface WorkflowTypeRow extends WorkflowConfigInterface {
   id: string;
-  workspaceBlockName: string;
+  appBlockName: string;
 }
 
 export default function DebugWorkflowsPage() {
   const { router } = useStudio();
   const { envKey, api } = useApiClient();
-  const { data: workspaceTypes, isLoading: isLoadingWorkspaces } = useWorkspaceConfig();
+  const { data: appTypes, isLoading: isLoadingApps } = useAppConfig();
 
   const workflowQueries = useQueries({
-    queries: (workspaceTypes ?? []).map((wt) => ({
+    queries: (appTypes ?? []).map((wt) => ({
       queryKey: ['workflowTypes', wt.className, envKey],
       queryFn: async () => {
-        const types = await api.config.getWorkflowTypesByWorkspace({
-          workspaceBlockName: wt.className,
+        const types = await api.config.getWorkflowTypesByApp({
+          appBlockName: wt.className,
         });
-        return { workspaceBlockName: wt.className, types };
+        return { appBlockName: wt.className, types };
       },
-      enabled: !!workspaceTypes?.length,
+      enabled: !!appTypes?.length,
     })),
   });
 
   const isLoadingWorkflows = workflowQueries.some((q) => q.isLoading);
-  const isLoading = isLoadingWorkspaces || isLoadingWorkflows;
+  const isLoading = isLoadingApps || isLoadingWorkflows;
 
   const data: WorkflowTypeRow[] = useMemo(() => {
     if (isLoading || !workflowQueries) return [];
 
     return workflowQueries.flatMap((q) => {
       if (!q.data) return [];
-      const { workspaceBlockName, types } = q.data;
+      const { appBlockName, types } = q.data;
       return (types ?? []).map((wt) => ({
         ...wt,
-        id: `${workspaceBlockName}::${wt.alias}`,
-        workspaceBlockName,
+        id: `${appBlockName}::${wt.alias}`,
+        appBlockName,
       }));
     });
   }, [workflowQueries, isLoading]);
@@ -65,12 +65,12 @@ export default function DebugWorkflowsPage() {
           item.alias?.toLowerCase().includes(lowerTerm) ||
           item.title?.toLowerCase().includes(lowerTerm) ||
           item.description?.toLowerCase().includes(lowerTerm) ||
-          item.workspaceBlockName.toLowerCase().includes(lowerTerm),
+          item.appBlockName.toLowerCase().includes(lowerTerm),
       );
     }
 
     result = [...result].sort((a, b) => {
-      const key = sortBy as keyof Pick<WorkflowTypeRow, 'alias' | 'title' | 'description' | 'workspaceBlockName'>;
+      const key = sortBy as keyof Pick<WorkflowTypeRow, 'alias' | 'title' | 'description' | 'appBlockName'>;
       const valA = (a[key] || '').toLowerCase();
       const valB = (b[key] || '').toLowerCase();
 
@@ -102,8 +102,8 @@ export default function DebugWorkflowsPage() {
       format: (value, row) => <span>{String(value || row.alias || 'N/A')}</span>,
     },
     {
-      id: 'workspaceBlockName',
-      label: 'Workspace Type',
+      id: 'appBlockName',
+      label: 'App Type',
       sortable: true,
       format: (value) => <Badge variant="outline">{String(value)}</Badge>,
     },

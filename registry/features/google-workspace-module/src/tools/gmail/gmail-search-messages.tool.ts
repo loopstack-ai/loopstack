@@ -28,7 +28,7 @@ export class GmailSearchMessagesTool extends BaseTool {
   private tokenStore: OAuthTokenStore;
 
   async call(args: GmailSearchMessagesArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'google');
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -56,7 +56,7 @@ export class GmailSearchMessagesTool extends BaseTool {
 
     if (listResponse.status === 401 || listResponse.status === 403) {
       const body = await listResponse.text();
-      this.logger.warn(`Gmail API returned ${listResponse.status} for user ${this.ctx.context.userId}: ${body}`);
+      this.logger.warn(`Gmail API returned ${listResponse.status} for user ${this.ctx.app.userId}: ${body}`);
       return {
         data: {
           error: 'unauthorized',

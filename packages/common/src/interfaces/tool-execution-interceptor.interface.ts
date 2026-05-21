@@ -1,11 +1,15 @@
 import { Injectable, SetMetadata } from '@nestjs/common';
-import { RunContext } from '../dtos/index.js';
+import type { BaseApp } from '../base/index.js';
+import type { WorkflowRunContext } from './execution-context.interface.js';
 import { ToolResult } from './handler.interface.js';
 
 export interface ToolExecutionContext {
   tool: object;
   args: Record<string, unknown> | undefined;
-  runContext: RunContext;
+  /** Proxied app instance — provides userId, workspaceId, environments, and app composition */
+  app: BaseApp;
+  /** Per-run execution context */
+  run: WorkflowRunContext;
   /** Mutable metadata — interceptors can attach data here for downstream interceptors */
   metadata: Record<string, unknown>;
 }

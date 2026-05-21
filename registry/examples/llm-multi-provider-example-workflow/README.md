@@ -94,7 +94,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }> {
 
   @Transition({ from: 'claude_done', to: 'openai_done' })
   async askOpenAi() {
-    const args = this.ctx.args as { prompt: string };
+    const args = this.ctx.run.args as { prompt: string };
 
     const result = await this.openaiLlm.call({
       prompt: args.prompt,

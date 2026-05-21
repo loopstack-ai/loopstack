@@ -75,8 +75,8 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentConf
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
   async llmTurn() {
-    const args = this.ctx.args as ChatAgentArgs;
-    const config = (this.ctx.config ?? {}) as ChatAgentConfig;
+    const args = this.ctx.run.args as ChatAgentArgs;
+    const config = (this.ctx.run.config ?? {}) as ChatAgentConfig;
 
     const tools = config.taskMode ? [...args.tools, 'agentFinish'] : args.tools;
 
@@ -144,7 +144,7 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentConf
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
   async cancelPendingTools() {
-    const workflowId = this.ctx.context.workflowId;
+    const workflowId = this.ctx.run.workflowId;
     if (workflowId) {
       await this.orchestrator.cancelChildren(workflowId);
     }

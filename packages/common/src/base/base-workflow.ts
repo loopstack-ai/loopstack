@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { DocumentRepository, FrameworkContext, WorkflowOrchestrator } from '../interfaces/index.js';
 import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
 import { assertToolsAvailable } from '../utils/block-metadata.utils.js';
+import type { BaseApp } from './base-app.js';
 import { TemplateRenderFn } from './workflow-templates.js';
 
 export interface RunOptions {
@@ -31,10 +32,11 @@ export const CallbackSchema = z.object({
  * Generic parameters:
  * - `TArgs` — per-invocation input, passed to `run()` and validated against `schema`
  * - `TConfig` — per-injection configuration from `@InjectWorkflow()`, validated against `configSchema`
+ * - `TApp` — the app type, for typed access to `this.ctx.app`
  *
  * Framework services are available on `this`:
  * - `this.repository` — document repository for creating/querying documents
- * - `this.ctx` — execution context (context, runtime, args, config, parent)
+ * - `this.ctx` — execution context (app, workflow, runtime, args, config, parent)
  * - `this.orchestrator` — workflow orchestrator for queuing sub-workflows
  *
  * Sub-workflows are launched via `this.subWorkflow.run(args, options)`.
@@ -44,12 +46,16 @@ export const CallbackSchema = z.object({
  * - Auto `@Transition` methods receive no argument
  */
 @Injectable()
-export abstract class BaseWorkflow<TArgs = Record<string, unknown>, _TConfig = Record<string, unknown>> {
+export abstract class BaseWorkflow<
+  TArgs = Record<string, unknown>,
+  _TConfig = Record<string, unknown>,
+  TApp extends BaseApp = BaseApp,
+> {
   /** Framework-provided document repository for creating/querying documents */
   @Inject(DOCUMENT_REPOSITORY) readonly repository!: DocumentRepository;
 
   /** Execution context — wired by the framework at runtime */
-  @Inject(FRAMEWORK_CONTEXT) readonly ctx!: FrameworkContext;
+  @Inject(FRAMEWORK_CONTEXT) readonly ctx!: FrameworkContext<TApp>;
 
   /** Workflow orchestrator — wired by the framework at runtime */
   @Inject(WORKFLOW_ORCHESTRATOR) readonly orchestrator!: WorkflowOrchestrator;
@@ -58,11 +64,11 @@ export abstract class BaseWorkflow<TArgs = Record<string, unknown>, _TConfig = R
   @Inject(TEMPLATE_RENDERER) readonly render!: TemplateRenderFn;
 
   /**
-   * Validates that all required tools are available on the parent workflow or workspace.
+   * Validates that all required tools are available on this workflow or app.
    * Call this in `@Initial` methods to fail fast on misconfiguration.
    */
   protected assertToolsAvailable(toolNames: string[]): void {
-    assertToolsAvailable(this.constructor.name, this.ctx.parent, toolNames, this.ctx.workspace);
+    assertToolsAvailable(this.constructor.name, this, toolNames, this.ctx.app);
   }
 
   /** Launches this workflow as a sub-workflow via the orchestrator. */

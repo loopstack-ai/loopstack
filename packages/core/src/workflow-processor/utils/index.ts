@@ -4,3 +4,4 @@ export * from './execution-scope.js';
 export * from './workflow-templates.js';
 export * from './wrap-block-proxy.js';
 export * from './wrap-tool-proxy.js';
+export * from './wrap-app-proxy.js';

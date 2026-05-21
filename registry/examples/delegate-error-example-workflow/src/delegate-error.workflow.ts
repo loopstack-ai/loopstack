@@ -123,7 +123,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
   async cancelPendingTools() {
-    const workflowId = this.ctx.context.workflowId;
+    const workflowId = this.ctx.run.workflowId;
     if (workflowId) {
       await this.orchestrator.cancelChildren(workflowId);
     }

@@ -16,7 +16,7 @@ export class BlockProcessor {
     if (!blockType) {
       throw new Error(
         `Block ${block.constructor.name} does not have a block type decorator. ` +
-          `Use @Workflow(), @Tool(), @Document(), or @Workspace().`,
+          `Use @Workflow(), @Tool(), @Document(), or @App().`,
       );
     }
 

@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
-  CallbackOptions,
   QueueResult,
+  ResumeOptions,
   RunOptions,
   WorkflowEntity,
   WorkflowInterface,
@@ -86,14 +86,14 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     };
   }
 
-  async callback(workflowId: string, payload: Record<string, unknown>, options: CallbackOptions): Promise<void> {
+  async resume(workflowId: string, payload: Record<string, unknown>, options: ResumeOptions): Promise<void> {
     const workflow = await this.workflowService.findById(workflowId);
 
     if (!workflow) {
-      throw new Error(`Workflow with id ${workflowId} not found for callback.`);
+      throw new Error(`Workflow with id ${workflowId} not found for resume.`);
     }
 
-    this.logger.log(`Scheduling callback for workflow ${workflowId}, transition=${options.transition}`);
+    this.logger.log(`Scheduling resume for workflow ${workflowId}, transition=${options.transition}`);
 
     await this.taskSchedulerService.addTask({
       id: 'callback_execution-' + randomUUID(),
@@ -168,7 +168,7 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     );
 
     try {
-      await this.callback(
+      await this.resume(
         workflowEntity.parentId,
         {
           workflowId: workflowEntity.id,

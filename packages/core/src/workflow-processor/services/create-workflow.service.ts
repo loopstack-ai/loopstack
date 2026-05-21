@@ -38,9 +38,9 @@ export class CreateWorkflowService {
       throw new Error('Workspace not found.');
     }
 
-    const workspaceInstance = this.blockDiscoveryService.getWorkspace(workspace.className);
-    if (!workspaceInstance) {
-      throw new BadRequestException(`Config for workspace with name ${workspace.className} not found.`);
+    const appInstance = this.blockDiscoveryService.getApp(workspace.className);
+    if (!appInstance) {
+      throw new BadRequestException(`App config for workspace with name ${workspace.className} not found.`);
     }
 
     let parentWorkflow: WorkflowEntity | null = null;
@@ -49,7 +49,7 @@ export class CreateWorkflowService {
     }
 
     // Sub-workflows pass the instance directly via BaseWorkflow.run().
-    // Root workflows (from UI) are resolved by alias from the workspace.
+    // Root workflows (from UI) are resolved by alias from the app.
     const workflow = workflowInstance ?? this.blockDiscoveryService.getWorkflowByName(data.alias);
     if (!workflow) {
       throw new Error(`Workflow ${data.alias} not found. Ensure it is registered as a provider in the module.`);

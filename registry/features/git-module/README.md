@@ -59,7 +59,7 @@ Each tool's input schema is a Zod object — inspect any tool file under `src/to
 
 ### Routing tools at a specific workspace
 
-Tools resolve the remote agent URL from the current workflow context (`this.ctx.context`). The corresponding `WorkspaceEntity` is what ties a workflow run to a specific git repository on a specific agent.
+Tools resolve the remote agent URL from the workspace context (`this.ctx.workspace`). The corresponding `WorkspaceEntity` is what ties a workflow run to a specific git repository on a specific agent.
 
 ### REST endpoints
 

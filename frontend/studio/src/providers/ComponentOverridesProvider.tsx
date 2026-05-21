@@ -1,10 +1,10 @@
 import { createContext, useContext } from 'react';
 import type { ComponentType, ReactNode } from 'react';
-import type { WorkspaceConfigInterface, WorkspaceItemInterface } from '@loopstack/contracts/api';
+import type { AppConfigInterface, WorkspaceItemInterface } from '@loopstack/contracts/api';
 import type { CreateWorkspaceProps } from '../features/workspaces/components/CreateWorkspace.tsx';
 
 export interface EditWorkspaceProps {
-  types: WorkspaceConfigInterface[];
+  types: AppConfigInterface[];
   workspace: WorkspaceItemInterface;
   onSuccess: () => void;
 }

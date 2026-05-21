@@ -21,7 +21,7 @@ export class GitHubGetAuthenticatedUserTool extends BaseTool {
   private tokenStore: OAuthTokenStore;
 
   async call(_args?: GitHubGetAuthenticatedUserArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.context.userId, 'github');
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -41,7 +41,7 @@ export class GitHubGetAuthenticatedUserTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.context.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
       return {
         data: {
           error: '401',

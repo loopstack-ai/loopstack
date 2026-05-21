@@ -25,7 +25,7 @@ export class WriteTool extends BaseTool {
   @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
 
   async call(args: WriteArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.context);
+    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
     await this.remoteAgentClient.writeFile(agentUrl, args.file_path, args.content);
     return { data: { success: true, path: args.file_path } };
   }

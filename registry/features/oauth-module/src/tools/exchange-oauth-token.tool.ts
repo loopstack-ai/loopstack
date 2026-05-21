@@ -39,7 +39,7 @@ export class ExchangeOAuthTokenTool extends BaseTool {
     const provider = this.providerRegistry.get(args.provider);
     const tokenSet = await provider.exchangeCode(args.code);
 
-    await this.tokenStore.storeFromTokenSet(this.ctx.context.userId, args.provider, tokenSet);
+    await this.tokenStore.storeFromTokenSet(this.ctx.app.userId, args.provider, tokenSet);
 
     return {
       data: {
