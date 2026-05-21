@@ -1,5 +1,15 @@
 # @loopstack/sandbox-example-workflow
 
+## 0.6.1
+
+### Patch Changes
+
+- Updated dependencies [[`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1)]:
+  - @loopstack/common@0.31.0
+  - @loopstack/core@0.31.0
+  - @loopstack/sandbox-filesystem@0.6.1
+  - @loopstack/sandbox-tool@0.6.1
+
 ## 0.6.0
 
 ### Minor Changes

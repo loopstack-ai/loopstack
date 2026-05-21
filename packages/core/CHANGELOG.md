@@ -1,5 +1,16 @@
 # @loopstack/core
 
+## 0.31.0
+
+### Minor Changes
+
+- [#156](https://github.com/loopstack-ai/loopstack/pull/156) [`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Rename Workspace to App, restructure FrameworkContext (this.ctx), and add WorkflowRunner service
+
+### Patch Changes
+
+- Updated dependencies [[`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1)]:
+  - @loopstack/common@0.31.0
+
 ## 0.30.1
 
 ### Patch Changes

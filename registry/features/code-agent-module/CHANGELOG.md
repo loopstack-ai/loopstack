@@ -1,5 +1,15 @@
 # @loopstack/code-agent
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [[`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1), [`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1)]:
+  - @loopstack/common@0.31.0
+  - @loopstack/core@0.31.0
+  - @loopstack/agent@0.4.1
+  - @loopstack/remote-client@0.24.1
+
 ## 0.3.0
 
 ### Minor Changes

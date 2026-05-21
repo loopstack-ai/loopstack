@@ -1,5 +1,15 @@
 # @loopstack/github-module
 
+## 0.3.1
+
+### Patch Changes
+
+- [#156](https://github.com/loopstack-ai/loopstack/pull/156) [`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Adapt to new FrameworkContext shape (ctx.run, ctx.app, ctx.workflow)
+
+- Updated dependencies [[`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1), [`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1)]:
+  - @loopstack/common@0.31.0
+  - @loopstack/oauth-module@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes

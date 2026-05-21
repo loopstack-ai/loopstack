@@ -1,5 +1,15 @@
 # @loopstack/delegate-error-example-workflow
 
+## 0.22.1
+
+### Patch Changes
+
+- Updated dependencies [[`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1), [`95af173`](https://github.com/loopstack-ai/loopstack/commit/95af17340d4939896352c38a450398f2024e66a1)]:
+  - @loopstack/common@0.31.0
+  - @loopstack/core@0.31.0
+  - @loopstack/claude-module@0.24.1
+  - @loopstack/llm-provider-module@0.3.1
+
 ## 0.22.0
 
 ### Minor Changes
