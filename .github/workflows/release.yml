@@ -125,8 +125,8 @@ jobs:
           context: frontend/studio
           push: true
           tags: |
-            ghcr.io/loopstack-ai/studio:${{ steps.version.outputs.version }}
-            ghcr.io/loopstack-ai/studio:latest
+            ghcr.io/loopstack-ai/loopstack:studio-${{ steps.version.outputs.version }}
+            ghcr.io/loopstack-ai/loopstack:studio-latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
