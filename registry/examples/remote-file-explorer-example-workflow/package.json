@@ -8,7 +8,7 @@
     "file-explorer",
     "workflow"
   ],
-  "version": "0.22.0",
+  "version": "0.22.1",
   "license": "MIT",
   "author": {
     "name": "Jakob Klippel",
@@ -29,10 +29,10 @@
     "watch": "nest build --watch"
   },
   "dependencies": {
-    "@loopstack/common": "^0.30.0",
-    "@loopstack/core": "^0.30.0",
-    "@loopstack/remote-client": "^0.24.0",
-    "@loopstack/remote-file-explorer-module": "^0.23.0",
+    "@loopstack/common": "^0.31.0",
+    "@loopstack/core": "^0.31.0",
+    "@loopstack/remote-client": "^0.24.1",
+    "@loopstack/remote-file-explorer-module": "^0.23.1",
     "@nestjs/common": "^11.1.19",
     "zod": "^4.3.6"
   },
