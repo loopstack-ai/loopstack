@@ -1,37 +1,41 @@
-# Loopstack AI
+# Loopstack
 
 [//]: # '[![Version](https://img.shields.io/badge/version-alpha-orange)](https://github.com/loopstack-ai/loopstack/releases)'
 
 [![Discord](https://img.shields.io/badge/discord-join%20community-7289da)](https://discord.gg/svAHrkxKZg)
 
-**The AI Workflow Framework for TypeScript.**
+**The AI Framework for TypeScript.**
 
-A complete TypeScript framework built on NestJS + React. Combine agentic loops and deterministic workflows in one state machine powered system, integrate anywhere, with built-in user interface, pause for human input, and resume from where you left off.
+Loopstack is a TypeScript workflow framework for building stateful automations, AI agents, and interactive workflows — directly in your NestJS backend.
+
+## What You Can Build
+
+- **AI Agents** — Agent harnesses with tool calling, context management, and message history
+- **AI Workflows** — Stateful automations that chain tools, transform data, and route dynamically
+- **Orchestration Systems** — Compose complex systems by spawning nested agents and workflows
+- **Secure Execution** — Run code and access files in isolated sandboxed environments
+- **HITL Systems** — Pause workflows for human review, input, or confirmation
+
+...built directly into your NestJS backends.
+
+## How It Works
+
+- **Workflows** — TypeScript classes that define a state machine with transitions, guards, and routing
+- **Tools** — Reusable logic units called directly in your workflows or exposed to LLMs for agent tool calling
+- **Documents** — Structured data objects displayed in the Loopstack Studio UI
 
 ## Key Benefits
 
 - **Agentic Meets Deterministic** — Drop an LLM call into any point in a deterministic workflow, or nest agents inside structured pipelines. One system, not two bolted together.
-- **State Machine Workflows** — Explicit states and transitions with formal guarantees about valid paths, making workflows easy to reason about, debug, and visualize.
-- **Persistent State** — Every step is checkpointed to the database. If a process fails, resume from the last successful state.
 - **Built-in Human Interaction** — Approvals, forms, confirmations, and clarifications ship as framework primitives. Pause for human input for hours or days and resume cleanly.
-- **Full-Stack on NestJS + React** — Dependency injection, modules, guards, and a massive ecosystem out of the box. The React frontend ships end-user applications, not just backend pipelines.
-- **Full Traceability** — Every state transition, tool call, and LLM decision is recorded. Replay any execution step by step and pinpoint exactly where things went wrong.
-- **Ready-Made Registry** — Install production-grade tools and workflow templates with a single command. AI providers, OAuth flows, sandboxed code execution, and more.
-- **Nested Sub-Workflows** — Break complex processes into composable sub-workflows that run independently and report back, each with its own state, tools, and lifecycle.
-- **Framework, Not a Platform** — Extend it like any NestJS app. No vendor lock-in, no external execution engine.
-
-## Composable Building Blocks
-
-- **Workflows** — TypeScript state machines with explicit states and transitions. Mix agentic LLM calls with deterministic steps in the same flow. Pause for human input, and state is checkpointed after every step.
-- **Tools** — Reusable units of logic with Zod-validated inputs. Inject them into workflows for deterministic steps, or expose them to LLMs so agents can decide when to call them.
-- **Documents** — Typed data objects that bridge your workflow and the UI. Define a Zod schema and they render automatically as forms, messages, or structured output in Loopstack Studio.
-- **UI Configuration** — YAML files configure the user-facing interface — forms, buttons, chat inputs, and interactive widgets. Widgets appear and disappear based on the current workflow state. No frontend code needed.
+- **Responsible AI** — Every state transition, tool call, and LLM decision is recorded. State is checkpointed so failures resume cleanly. Explicit state machines make workflows auditable and easy to reason about.
+- **Framework, Not a Platform** — Extend it like any NestJS app — add your own modules, providers, and entities. No vendor lock-in, no external execution engine.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18.0+
+- Node.js 22.0+
 - Docker
 - NestJS CLI (`npm install -g @nestjs/cli`)
 
