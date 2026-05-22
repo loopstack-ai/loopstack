@@ -1,5 +1,11 @@
 # @loopstack/loopstack-studio
 
+## 0.29.2
+
+### Patch Changes
+
+- [#158](https://github.com/loopstack-ai/loopstack/pull/158) [`62a0892`](https://github.com/loopstack-ai/loopstack/commit/62a0892356895a6bc48e14914b7f42d2d3a2a194) Thanks [@jakobklippel](https://github.com/jakobklippel)! - bump image build
+
 ## 0.29.1
 
 ### Patch Changes
