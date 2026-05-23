@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, RefreshCw, ScrollText } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
+import config from '../../../config';
 
 interface LogsResponse {
   stdout: string;
@@ -38,7 +39,7 @@ function LogLine({ line, index }: { line: string; index: number }) {
 }
 
 export function EmbedLogsContent() {
-  const base = (import.meta.env.VITE_API_URL as string) ?? 'http://localhost:8000';
+  const base = config.environment.url;
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const logsQuery = useQuery({
