@@ -1,5 +1,11 @@
 # @loopstack/loopstack-module
 
+## 0.30.2
+
+### Patch Changes
+
+- [#165](https://github.com/loopstack-ai/loopstack/pull/165) [`2b3d4ac`](https://github.com/loopstack-ai/loopstack/commit/2b3d4acd91ec6f262a05686d8dd8a31ce3caaef1) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Bundle docker-compose files with the npm package for simplified infrastructure setup
+
 ## 0.30.1
 
 ### Patch Changes
