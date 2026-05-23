@@ -41,7 +41,9 @@
   },
   "devDependencies": {},
   "files": [
-    "dist"
+    "dist",
+    "docker-compose.yml",
+    "docker-compose.infra.yml"
   ],
   "jest": {
     "moduleFileExtensions": [
