@@ -1,5 +1,11 @@
 # @loopstack/loopstack-studio
 
+## 0.29.4
+
+### Patch Changes
+
+- [#163](https://github.com/loopstack-ai/loopstack/pull/163) [`779e40f`](https://github.com/loopstack-ai/loopstack/commit/779e40f4e50c19d244dfbae2132d98cceebdb860) Thanks [@jakobklippel](https://github.com/jakobklippel)! - Add build version and commit SHA tracking to Docker image
+
 ## 0.29.3
 
 ### Patch Changes
