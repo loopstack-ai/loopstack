@@ -19,6 +19,10 @@ const config = {
     name: 'Local Environment',
     url: apiUrl,
   } as Environment,
+  build: {
+    version: (import.meta.env.VITE_APP_VERSION as string | undefined) ?? 'dev',
+    commitSha: (import.meta.env.VITE_COMMIT_SHA as string | undefined) ?? 'dev',
+  },
 };
 
 export default config;
