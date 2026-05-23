@@ -39,22 +39,23 @@ Loopstack is a TypeScript workflow framework for building stateful automations, 
 - Docker
 - NestJS CLI (`npm install -g @nestjs/cli`)
 
-### 1. Start Infrastructure
-
-```shell
-curl -fOL https://loopstack.ai/docker-compose.yml
-docker compose up -d
-```
-
-This starts PostgreSQL, Redis, and Loopstack Studio.
-
-### 2. Create Your App
+### 1. Create Your App
 
 ```shell
 nest new my-app
 cd my-app
 npm install @loopstack/loopstack-module
 ```
+
+### 2. Start Infrastructure
+
+The `@loopstack/loopstack-module` package ships with Docker Compose files — no extra downloads needed.
+
+```shell
+docker compose -f node_modules/@loopstack/loopstack-module/docker-compose.yml up -d
+```
+
+This starts PostgreSQL, Redis, and Loopstack Studio.
 
 ### 3. Configure
 

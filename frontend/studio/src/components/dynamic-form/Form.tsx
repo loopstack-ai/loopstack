@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { FormProvider } from 'react-hook-form';
 import FormBody from './FormBody';
 import { FormElementHeader } from './FormElementHeader';
@@ -11,40 +11,6 @@ interface FormUi {
   };
 }
 
-/**
- * Extract default values from a JSON schema recursively.
- * Handles object-level defaults, property-level defaults, and nested objects.
- */
-function extractSchemaDefaults(schema: SchemaProperties): Record<string, unknown> | undefined {
-  // If the schema itself has a top-level default, use it
-  if (schema.default !== undefined) {
-    return schema.default as Record<string, unknown>;
-  }
-
-  // For object schemas, recurse into properties
-  if (schema.properties) {
-    const defaults: Record<string, unknown> = {};
-    let hasDefault = false;
-
-    for (const [key, propSchema] of Object.entries(schema.properties)) {
-      if (propSchema.default !== undefined) {
-        defaults[key] = propSchema.default;
-        hasDefault = true;
-      } else if (propSchema.type === 'object' && propSchema.properties) {
-        const nested = extractSchemaDefaults(propSchema);
-        if (nested !== undefined) {
-          defaults[key] = nested;
-          hasDefault = true;
-        }
-      }
-    }
-
-    return hasDefault ? defaults : undefined;
-  }
-
-  return undefined;
-}
-
 const Form: React.FC<DynamicFormProps> = ({
   form,
   schema,
@@ -55,19 +21,6 @@ const Form: React.FC<DynamicFormProps> = ({
   actions,
 }: DynamicFormProps) => {
   const typedUi = ui as FormUi | undefined;
-  const typedSchema = schema as SchemaProperties;
-
-  // Apply schema defaults to form once when schema first becomes available
-  const defaultsAppliedRef = useRef(false);
-  useEffect(() => {
-    if (defaultsAppliedRef.current) return;
-
-    const defaults = extractSchemaDefaults(typedSchema);
-    if (defaults) {
-      defaultsAppliedRef.current = true;
-      form.reset(defaults);
-    }
-  }, [schema]);
 
   return (
     <FormProvider {...form}>
