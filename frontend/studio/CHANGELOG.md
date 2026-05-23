@@ -1,5 +1,11 @@
 # @loopstack/loopstack-studio
 
+## 0.29.3
+
+### Patch Changes
+
+- [#161](https://github.com/loopstack-ai/loopstack/pull/161) [`f0e65bd`](https://github.com/loopstack-ai/loopstack/commit/f0e65bd0a35e9ee4eb75a3d031ee96c7eba5c9be) Thanks [@jakobklippel](https://github.com/jakobklippel)! - fix(studio): docker compose always pull studio image
+
 ## 0.29.2
 
 ### Patch Changes
