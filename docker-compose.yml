@@ -19,7 +19,8 @@ services:
       - redis_data:/data
 
   studio:
-    image: ghcr.io/loopstack-ai/studio:latest
+    image: ghcr.io/loopstack-ai/loopstack-studio:latest
+    pull_policy: always
     ports:
       - '5173:3000'
     environment:
