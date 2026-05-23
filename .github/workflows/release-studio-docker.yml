@@ -80,6 +80,9 @@ jobs:
           push: true
           tags: ${{ steps.meta-stable.outputs.tags }}
           labels: ${{ steps.meta-stable.outputs.labels }}
+          build-args: |
+            COMMIT_SHA=${{ github.sha }}
+            VERSION=${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
