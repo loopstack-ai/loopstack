@@ -30,7 +30,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
   });
 
   const { listRef, scrollTo, canScrollDown, scrollToBottom } = useWorkflowListState();
-  const fetchWorkflowConfig = useWorkflowConfigByName(workflow.className ?? undefined);
+  const fetchWorkflowConfig = useWorkflowConfigByName(workflow.alias ?? workflow.className ?? undefined);
   const fetchChildWorkflows = useChildWorkflows(workflow.id);
   const childWorkflows = fetchChildWorkflows.data ?? [];
 
@@ -98,19 +98,13 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
                   <DialogTitle>Graph</DialogTitle>
                 </DialogHeader>
                 <div className="flex-1 overflow-hidden">
-                  {childWorkflows.length > 0 ? (
-                    <ReactFlowProvider>
-                      <WorkflowFlowViewer
-                        workflowId={workflow.id}
-                        workflows={childWorkflows}
-                        workflowConfig={fetchWorkflowConfig.data}
-                      />
-                    </ReactFlowProvider>
-                  ) : (
-                    <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
-                      No workflows found
-                    </div>
-                  )}
+                  <ReactFlowProvider>
+                    <WorkflowFlowViewer
+                      workflowId={workflow.id}
+                      workflows={childWorkflows}
+                      workflowConfig={fetchWorkflowConfig.data}
+                    />
+                  </ReactFlowProvider>
                 </div>
               </DialogContent>
             </Dialog>

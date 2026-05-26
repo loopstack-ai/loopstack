@@ -20,7 +20,9 @@ const WorkflowDebugPage: React.FC = () => {
   const fetchWorkspace = useWorkspace(workspaceId);
   const fetchChildWorkflows = useChildWorkflows(workflowId);
   const childWorkflows = useMemo(() => fetchChildWorkflows.data ?? [], [fetchChildWorkflows.data]);
-  const fetchWorkflowConfig = useWorkflowConfigByName(fetchWorkflow.data?.className ?? undefined);
+  const fetchWorkflowConfig = useWorkflowConfigByName(
+    fetchWorkflow.data?.alias ?? fetchWorkflow.data?.className ?? undefined,
+  );
 
   const breadcrumbData = useMemo(
     () => [
@@ -64,19 +66,13 @@ const WorkflowDebugPage: React.FC = () => {
         />
 
         <div className="bg-card border-border flex-1 overflow-hidden rounded-2xl border shadow-sm">
-          {childWorkflows.length > 0 ? (
-            <ReactFlowProvider>
-              <WorkflowFlowViewer
-                workflowId={workflowId}
-                workflows={childWorkflows}
-                workflowConfig={fetchWorkflowConfig.data}
-              />
-            </ReactFlowProvider>
-          ) : (
-            <div className="text-muted-foreground flex h-full items-center justify-center">
-              <p className="font-medium">No child workflows found for this workflow</p>
-            </div>
-          )}
+          <ReactFlowProvider>
+            <WorkflowFlowViewer
+              workflowId={workflowId}
+              workflows={childWorkflows}
+              workflowConfig={fetchWorkflowConfig.data}
+            />
+          </ReactFlowProvider>
         </div>
       </div>
     </MainLayout>

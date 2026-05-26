@@ -36,7 +36,9 @@ export function PreviewWorkbench({ workflowId, onNewRunSuccess }: PreviewWorkben
   const [newRunDialogOpen, setNewRunDialogOpen] = useState(false);
 
   const fetchWorkflow = useWorkflow(workflowId);
-  const fetchWorkflowConfig = useWorkflowConfigByName(fetchWorkflow.data?.className ?? undefined);
+  const fetchWorkflowConfig = useWorkflowConfigByName(
+    fetchWorkflow.data?.alias ?? fetchWorkflow.data?.className ?? undefined,
+  );
 
   const { containerRef } = useEmbedBridge({
     workflowId,
