@@ -7,6 +7,7 @@ export class ClientMessageDto implements ClientMessageInterface {
   workflowId?: string;
   workspaceId?: string;
   type!: string;
+  [key: string]: unknown;
 
   constructor(payload: ClientMessageInterface) {
     Object.assign(this, payload);

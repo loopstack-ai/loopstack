@@ -67,7 +67,7 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
           )
       : undefined;
 
-    const response = await client.chat.completions.create({
+    const request = {
       model,
       messages: openAiMessages,
       max_tokens: pc?.maxTokens ?? 4096,
@@ -76,7 +76,12 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
       ...(pc?.stopSequences?.length ? { stop: pc.stopSequences } : {}),
       ...(pc?.frequencyPenalty != null ? { frequency_penalty: pc.frequencyPenalty } : {}),
       ...(pc?.presencePenalty != null ? { presence_penalty: pc.presencePenalty } : {}),
-    });
+    };
+
+    const response =
+      args.onStream && args.streamMessageId
+        ? await this.streamChatCompletion(client, request, args.streamMessageId, args.onStream)
+        : await client.chat.completions.create(request);
 
     const choice = response.choices[0];
     if (!choice) {
@@ -264,5 +269,95 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
       content: content.length > 0 ? content : '',
       stopReason: choice.finish_reason ? stopReasonMap[choice.finish_reason] : 'end_turn',
     });
+  }
+
+  private async streamChatCompletion(
+    client: OpenAI,
+    request: OpenAI.ChatCompletionCreateParamsNonStreaming,
+    messageId: string,
+    onStream: NonNullable<LlmGenerateTextArgs<OpenAiProviderConfig>['onStream']>,
+  ): Promise<OpenAI.ChatCompletion> {
+    const stream = await client.chat.completions.create({
+      ...request,
+      stream: true,
+      stream_options: { include_usage: true },
+    });
+
+    let id = '';
+    let created = Math.floor(Date.now() / 1000);
+    let finishReason: OpenAI.ChatCompletion.Choice['finish_reason'] = 'stop';
+    let content = '';
+    let refusal = '';
+    let usage: OpenAI.Completions.CompletionUsage | undefined;
+    const toolCalls = new Map<
+      number,
+      {
+        id: string;
+        type: 'function';
+        function: { name: string; arguments: string };
+      }
+    >();
+
+    for await (const chunk of stream) {
+      id = id || chunk.id;
+      created = chunk.created ?? created;
+      usage = chunk.usage ?? usage;
+
+      const choice = chunk.choices[0];
+      if (!choice) continue;
+
+      if (choice.finish_reason) {
+        finishReason = choice.finish_reason;
+      }
+
+      const delta = choice.delta;
+      if (delta.content) {
+        content += delta.content;
+        await onStream({ type: 'text_delta', messageId, delta: delta.content });
+      }
+      if (delta.refusal) {
+        refusal += delta.refusal;
+        await onStream({ type: 'text_delta', messageId, delta: delta.refusal });
+      }
+
+      for (const toolCallDelta of delta.tool_calls ?? []) {
+        const index = toolCallDelta.index;
+        const existing = toolCalls.get(index) ?? {
+          id: toolCallDelta.id ?? '',
+          type: 'function' as const,
+          function: { name: '', arguments: '' },
+        };
+        existing.id = toolCallDelta.id ?? existing.id;
+        existing.function.name = toolCallDelta.function?.name ?? existing.function.name;
+        existing.function.arguments += toolCallDelta.function?.arguments ?? '';
+        toolCalls.set(index, existing);
+      }
+    }
+
+    const message: OpenAI.ChatCompletionMessage = {
+      role: 'assistant',
+      content: content || null,
+      refusal: refusal || null,
+      ...(toolCalls.size ? { tool_calls: [...toolCalls.values()] } : {}),
+    };
+
+    for (const toolCall of toolCalls.values()) {
+      let parsedArgs: Record<string, unknown>;
+      try {
+        parsedArgs = JSON.parse(toolCall.function.arguments) as Record<string, unknown>;
+      } catch {
+        parsedArgs = {};
+      }
+      await onStream({ type: 'tool_call', messageId, id: toolCall.id, name: toolCall.function.name, args: parsedArgs });
+    }
+
+    return {
+      id,
+      object: 'chat.completion',
+      created,
+      model: request.model,
+      choices: [{ index: 0, message, finish_reason: finishReason, logprobs: null }],
+      ...(usage ? { usage } : {}),
+    } as OpenAI.ChatCompletion;
   }
 }

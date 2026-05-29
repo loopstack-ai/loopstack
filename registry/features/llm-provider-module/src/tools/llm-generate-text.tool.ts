@@ -1,9 +1,11 @@
 import { Inject } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { ClientMessageService } from '@loopstack/core';
 import type { LlmContext } from '../contracts/index.js';
 import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
-import type { LlmGenerateTextResult, LlmMessage, LlmResultMeta } from '../types/index.js';
+import type { LlmGenerateTextResult, LlmMessage, LlmResultMeta, LlmStreamEvent } from '../types/index.js';
 
 export const LlmGenerateTextArgsSchema = z.object({
   prompt: z.string().optional(),
@@ -43,6 +45,7 @@ export const LlmGenerateTextToolSchema = LlmGenerateTextArgsSchema;
 })
 export class LlmGenerateTextTool extends BaseTool<LlmGenerateTextArgs, LlmGenerateTextConfig> {
   @Inject() private readonly registry: LlmProviderRegistry;
+  @Inject() private readonly clientMessageService: ClientMessageService;
 
   async call(
     args?: LlmGenerateTextArgs,
@@ -56,6 +59,8 @@ export class LlmGenerateTextTool extends BaseTool<LlmGenerateTextArgs, LlmGenera
       workspace: this.ctx.app,
     };
 
+    const streamMessageId = this.canStreamToClient() ? randomUUID() : undefined;
+
     const providerArgs = {
       system: config?.system,
       messages: args?.messages as LlmMessage[] | undefined,
@@ -64,11 +69,34 @@ export class LlmGenerateTextTool extends BaseTool<LlmGenerateTextArgs, LlmGenera
       tools: config?.tools,
       model: config?.model,
       providerConfig: config?.providerConfig,
+      streamMessageId,
+      onStream: streamMessageId ? (event: LlmStreamEvent) => this.dispatchStreamEvent(event) : undefined,
     };
 
-    const result = await provider.generateText(providerArgs, ctx);
+    if (streamMessageId) {
+      this.dispatchStreamEvent({ type: 'start', messageId: streamMessageId });
+    }
+
+    let result: LlmGenerateTextResult;
+    try {
+      result = await provider.generateText(providerArgs, ctx);
+    } catch (error) {
+      if (streamMessageId) {
+        this.dispatchStreamEvent({
+          type: 'error',
+          messageId: streamMessageId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+      throw error;
+    }
 
     const usage = provider.extractUsage(result.response);
+
+    if (streamMessageId) {
+      result.message.id = streamMessageId;
+      this.dispatchStreamEvent({ type: 'done', messageId: streamMessageId, message: result.message });
+    }
 
     return {
       data: result,
@@ -78,5 +106,24 @@ export class LlmGenerateTextTool extends BaseTool<LlmGenerateTextArgs, LlmGenera
         ...(usage && { usage }),
       },
     };
+  }
+
+  private canStreamToClient(): boolean {
+    return !!(this.ctx.run.workflowId && this.ctx.app.userId && this.clientMessageService.clientId);
+  }
+
+  private dispatchStreamEvent(event: LlmStreamEvent): void {
+    const workflowId = this.ctx.run.workflowId;
+    const userId = this.ctx.app.userId;
+    if (!workflowId || !userId) return;
+
+    this.clientMessageService.dispatch({
+      ...event,
+      eventType: event.type,
+      type: `llm.response.${event.type}`,
+      userId,
+      workerId: this.clientMessageService.clientId,
+      workflowId,
+    });
   }
 }

@@ -77,6 +77,14 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
       ...(pc?.stopSequences?.length ? { stop_sequences: pc.stopSequences } : {}),
     });
 
+    if (args.onStream && args.streamMessageId) {
+      stream.on('text', (delta) => {
+        if (delta) {
+          void args.onStream?.({ type: 'text_delta', messageId: args.streamMessageId!, delta });
+        }
+      });
+    }
+
     const response = await stream.finalMessage();
 
     return {

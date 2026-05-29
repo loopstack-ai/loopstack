@@ -5,4 +5,5 @@ export interface ClientMessageInterface {
   id?: string;
   workflowId?: string;
   workspaceId?: string;
+  [key: string]: unknown;
 }
