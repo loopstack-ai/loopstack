@@ -12,25 +12,36 @@ import {
 import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-elements/reasoning.tsx';
 import type { ToolHeaderProps } from '@/components/loopstack-elements/tool.tsx';
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from '@/components/loopstack-elements/tool.tsx';
+import { FadeInBlock } from '@/components/motion/FadeIn';
+import { StreamingText } from '@/components/motion/StreamingText';
+
+const CopyActions = ({ text }: { text: string }) => (
+  <FadeInBlock>
+    <MessageActions>
+      <MessageAction onClick={() => void navigator.clipboard.writeText(text)} label="Copy">
+        <CopyIcon className="size-3" />
+      </MessageAction>
+    </MessageActions>
+  </FadeInBlock>
+);
 
 const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem: boolean }) => {
   const message = document.content as UIMessage;
   const messageId = (message as any).id ?? document.id;
+  const isStreaming = !!(document.meta as { streaming?: boolean } | undefined)?.streaming;
 
   // String content — simple text message
   if (typeof message.content === 'string') {
     return (
       <Message from={message.role}>
         <MessageContent>
-          <MessageResponse>{message.content}</MessageResponse>
+          {isStreaming ? (
+            <StreamingText text={message.content} />
+          ) : (
+            <MessageResponse>{message.content}</MessageResponse>
+          )}
         </MessageContent>
-        {message.role === 'assistant' && (
-          <MessageActions>
-            <MessageAction onClick={() => void navigator.clipboard.writeText(message.content as string)} label="Copy">
-              <CopyIcon className="size-3" />
-            </MessageAction>
-          </MessageActions>
-        )}
+        {message.role === 'assistant' && !isStreaming && <CopyActions text={message.content as string} />}
       </Message>
     );
   }
@@ -46,21 +57,15 @@ const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem:
             return (
               <Message key={`${messageId}-${i}`} from={message.role}>
                 <MessageContent>
-                  <MessageResponse>{block.text}</MessageResponse>
+                  {isStreaming ? <StreamingText text={block.text} /> : <MessageResponse>{block.text}</MessageResponse>}
                 </MessageContent>
-                {message.role === 'assistant' && (
-                  <MessageActions>
-                    <MessageAction onClick={() => void navigator.clipboard.writeText(block.text)} label="Copy">
-                      <CopyIcon className="size-3" />
-                    </MessageAction>
-                  </MessageActions>
-                )}
+                {message.role === 'assistant' && !isStreaming && <CopyActions text={block.text} />}
               </Message>
             );
 
           case 'thinking':
             return (
-              <Reasoning key={`${messageId}-${i}`} className="w-full" isStreaming={false}>
+              <Reasoning key={`${messageId}-${i}`} className="w-full" isStreaming={isStreaming}>
                 <ReasoningTrigger />
                 <ReasoningContent>{block.text}</ReasoningContent>
               </Reasoning>
@@ -68,14 +73,16 @@ const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem:
 
           case 'tool_call':
             return (
-              <Message key={`${messageId}-${i}`} from="assistant">
-                <Tool>
-                  <ToolHeader state="input-available" title={block.name} type="tool-call" />
-                  <ToolContent>
-                    <ToolInput input={block.args} />
-                  </ToolContent>
-                </Tool>
-              </Message>
+              <FadeInBlock key={`${messageId}-${i}`}>
+                <Message from="assistant">
+                  <Tool>
+                    <ToolHeader state="input-available" title={block.name} type="tool-call" />
+                    <ToolContent>
+                      <ToolInput input={block.args} />
+                    </ToolContent>
+                  </Tool>
+                </Message>
+              </FadeInBlock>
             );
 
           case 'tool_result': {
@@ -87,14 +94,16 @@ const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem:
             }
             const resultState: ToolHeaderProps['state'] = block.isError ? 'output-error' : 'output-available';
             return (
-              <Message key={`${messageId}-${i}`} from="assistant">
-                <Tool>
-                  <ToolHeader state={resultState} title="Tool Result" type="tool-call" />
-                  <ToolContent>
-                    <ToolOutput output={parsedOutput} errorText={block.isError ? block.content : ''} />
-                  </ToolContent>
-                </Tool>
-              </Message>
+              <FadeInBlock key={`${messageId}-${i}`}>
+                <Message from="assistant">
+                  <Tool>
+                    <ToolHeader state={resultState} title="Tool Result" type="tool-call" />
+                    <ToolContent>
+                      <ToolOutput output={parsedOutput} errorText={block.isError ? block.content : ''} />
+                    </ToolContent>
+                  </Tool>
+                </Message>
+              </FadeInBlock>
             );
           }
 
@@ -106,15 +115,17 @@ const LlmMessage = ({ document }: { document: DocumentItemInterface; isLastItem:
             );
             const serverToolState: ToolHeaderProps['state'] = serverResult ? 'output-available' : 'input-available';
             return (
-              <Message key={`${messageId}-${i}`} from="assistant">
-                <Tool>
-                  <ToolHeader state={serverToolState} title={block.name} type="tool-call" />
-                  <ToolContent>
-                    <ToolInput input={block.input} />
-                    {serverResult && <ToolOutput output={serverResult.content} errorText="" />}
-                  </ToolContent>
-                </Tool>
-              </Message>
+              <FadeInBlock key={`${messageId}-${i}`}>
+                <Message from="assistant">
+                  <Tool>
+                    <ToolHeader state={serverToolState} title={block.name} type="tool-call" />
+                    <ToolContent>
+                      <ToolInput input={block.input} />
+                      {serverResult && <ToolOutput output={serverResult.content} errorText="" />}
+                    </ToolContent>
+                  </Tool>
+                </Message>
+              </FadeInBlock>
             );
           }
 

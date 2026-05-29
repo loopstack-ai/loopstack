@@ -2,6 +2,7 @@ import { omit } from 'lodash';
 import React from 'react';
 import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
+import { FadeIn } from '@/components/motion/FadeIn';
 import type { WorkbenchSettingsInterface } from '@/features/workbench';
 import DocumentRenderer from '../DocumentRenderer.tsx';
 import DocumentMetadataPills from './DocumentMetadataPills.tsx';
@@ -22,7 +23,7 @@ const DocumentItem: React.FC<{
   const meta = document.meta as DocumentMeta | undefined;
 
   return (
-    <>
+    <FadeIn>
       <DocumentRenderer
         document={document}
         workflow={workflow}
@@ -43,7 +44,7 @@ const DocumentItem: React.FC<{
       ) : (
         <></>
       )}
-    </>
+    </FadeIn>
   );
 };
 

@@ -4,16 +4,27 @@ import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopsta
 import { useFilterDocuments } from '@/hooks/useDocuments.ts';
 import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
+import { useLlmStreamingDocuments } from './useLlmStreamingDocuments.ts';
 
 interface UseWorkflowDataOptions {
   workflowId: string;
   showFullMessageHistory: boolean;
 }
 
+function getLlmMessageId(item: DocumentItemInterface): string | undefined {
+  const content = item.content as { id?: unknown } | undefined;
+  return item.alias === 'LlmMessageDocument' && typeof content?.id === 'string' ? content.id : undefined;
+}
+
+function isStreamReadyForFinal(item: DocumentItemInterface): boolean {
+  return !!(item.meta as { streamReadyForFinal?: boolean } | undefined)?.streamReadyForFinal;
+}
+
 export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkflowDataOptions) {
   const fetchWorkflow = useWorkflow(workflowId);
   const fetchDocuments = useFilterDocuments(workflowId);
   const runWorkflow = useRunWorkflow();
+  const streamingDocuments = useLlmStreamingDocuments(workflowId, fetchWorkflow.data?.place);
 
   const filterDocuments = useCallback(
     (item: DocumentItemInterface) => {
@@ -35,11 +46,30 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
 
   const documents: DocumentItemInterface[] = useMemo(() => {
     if (!fetchDocuments.data) {
-      return [];
+      return streamingDocuments;
     }
 
-    return fetchDocuments.data.filter(filterDocuments);
-  }, [fetchDocuments.data, filterDocuments]);
+    const filteredFetchedDocuments = fetchDocuments.data.filter(filterDocuments);
+    const streamingByMessageId = new Map(
+      streamingDocuments
+        .map((item) => [getLlmMessageId(item), item] as const)
+        .filter((entry): entry is [string, DocumentItemInterface] => !!entry[0]),
+    );
+
+    const fetchedDocuments = filteredFetchedDocuments.filter((item) => {
+      const messageId = getLlmMessageId(item);
+      const streamingDocument = messageId ? streamingByMessageId.get(messageId) : undefined;
+      return !streamingDocument || isStreamReadyForFinal(streamingDocument);
+    });
+
+    const fetchedMessageIds = new Set(fetchedDocuments.map(getLlmMessageId).filter((id): id is string => !!id));
+    const activeStreamingDocuments = streamingDocuments.filter((item) => {
+      const messageId = getLlmMessageId(item);
+      return !messageId || !fetchedMessageIds.has(messageId);
+    });
+
+    return [...fetchedDocuments, ...activeStreamingDocuments];
+  }, [fetchDocuments.data, filterDocuments, streamingDocuments]);
 
   const handleRun = useCallback(
     (transition: string, data: Record<string, unknown> | string | undefined) => {
