@@ -50,7 +50,7 @@ describe('AgentExampleWorkflow', () => {
     expect(mockOrchestrator.queue).toHaveBeenCalledWith(
       expect.objectContaining({
         system: expect.any(String),
-        tools: ['weatherLookup', 'calculator'],
+        tools: ['weather_lookup', 'calculator'],
         userMessage: expect.any(String),
       }),
       expect.objectContaining({ workflowName: AgentWorkflow.name, callback: { transition: 'agentComplete' } }),

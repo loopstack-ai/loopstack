@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool, LlmProviderModule } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { ChatWorkflow } from '../chat.workflow';
 
@@ -17,7 +17,7 @@ describe('ChatWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(ChatWorkflow)
-      .withImports(ClaudeModule)
+      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       .compile();
 

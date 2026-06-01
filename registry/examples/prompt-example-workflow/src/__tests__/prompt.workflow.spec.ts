@@ -2,7 +2,7 @@ import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
 import { WorkflowProcessorService } from '@loopstack/core';
-import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
+import { LlmGenerateTextTool, LlmProviderModule } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { PromptWorkflow } from '../prompt.workflow';
 
@@ -32,7 +32,7 @@ describe('PromptWorkflow', () => {
   beforeEach(async () => {
     module = await createWorkflowTest()
       .forWorkflow(PromptWorkflow)
-      .withImports(ClaudeModule)
+      .withImports(LlmProviderModule.forRoot({}), ClaudeModule)
       .withToolOverride(LlmGenerateTextTool)
       .compile();
 
