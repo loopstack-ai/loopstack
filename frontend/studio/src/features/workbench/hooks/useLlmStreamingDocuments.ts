@@ -50,8 +50,8 @@ function createStreamingDocument(
 
   return {
     id: `streaming-${state.messageId}`,
-    name: 'LlmMessageDocument',
-    alias: 'LlmMessageDocument',
+    name: 'llm_message',
+    alias: 'llm_message',
     content: {
       id: state.messageId,
       role: 'assistant',

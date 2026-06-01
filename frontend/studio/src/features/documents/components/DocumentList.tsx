@@ -9,7 +9,7 @@ import DocumentItem from './DocumentItem.tsx';
 
 function getDocumentKey(item: DocumentItemInterface): string {
   const content = item.content as { id?: unknown } | undefined;
-  if (item.alias === 'LlmMessageDocument' && typeof content?.id === 'string') {
+  if (item.alias === 'llm_message' && typeof content?.id === 'string') {
     return `llm-message-${content.id}`;
   }
   return item.id;

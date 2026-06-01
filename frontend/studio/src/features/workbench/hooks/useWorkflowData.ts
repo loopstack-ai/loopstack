@@ -13,7 +13,7 @@ interface UseWorkflowDataOptions {
 
 function getLlmMessageId(item: DocumentItemInterface): string | undefined {
   const content = item.content as { id?: unknown } | undefined;
-  return item.alias === 'LlmMessageDocument' && typeof content?.id === 'string' ? content.id : undefined;
+  return item.alias === 'llm_message' && typeof content?.id === 'string' ? content.id : undefined;
 }
 
 function isStreamReadyForFinal(item: DocumentItemInterface): boolean {
