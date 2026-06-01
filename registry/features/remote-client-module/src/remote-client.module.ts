@@ -49,6 +49,7 @@ const TOOLS = [
 export class RemoteClientModule {
   static forRoot(options?: RemoteClientModuleOptions): DynamicModule {
     return {
+      global: true,
       module: RemoteClientModule,
       imports: [DiscoveryModule, SecretsModule, TypeOrmModule.forFeature([WorkspaceEntity, WorkspaceEnvironmentEntity])],
       controllers: [EnvironmentController],

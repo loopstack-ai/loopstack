@@ -6,8 +6,6 @@ export interface RunOptions {
   callback?: { transition: string; metadata?: Record<string, unknown> };
   /** @internal — set automatically by `run()`. The resolved workflow instance. */
   _workflowInstance?: object;
-  /** @internal — set by the framework from workflow config. Validated against configSchema. */
-  _config?: Record<string, unknown>;
 }
 
 export interface QueueResult {

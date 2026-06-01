@@ -60,7 +60,7 @@ export class AuthenticateGitHubTask extends BaseTool<
   ): Promise<ToolResult<AuthenticateGitHubTaskResult>> {
     const result = await this.orchestrator.queue(
       { provider: 'github', scopes: args.scopes },
-      { workflowName: OAuthWorkflow.name, callback: args.callback },
+      { workflowName: OAuthWorkflow.name, callback: options?.callback ?? args.callback },
     );
 
     await this.documentStore.save(
@@ -77,6 +77,7 @@ export class AuthenticateGitHubTask extends BaseTool<
 
     return {
       data: { ...result, mode: 'async' },
+      pending: { workflowId: result.workflowId },
     };
   }
 

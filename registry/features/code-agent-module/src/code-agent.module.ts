@@ -1,7 +1,6 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { AgentModule } from '@loopstack/agent';
 import type { LlmModuleConfig } from '@loopstack/llm-provider-module';
-import { RemoteClientModule } from '@loopstack/remote-client';
 import { ExploreTask } from './tools/explore-task.tool.js';
 
 const PROVIDERS = [ExploreTask];
@@ -10,17 +9,17 @@ const PROVIDERS = [ExploreTask];
 class CodeAgentRootModule {}
 
 @Module({
-  imports: [AgentModule, RemoteClientModule.forRoot()],
+  imports: [AgentModule],
   providers: PROVIDERS,
-  exports: [...PROVIDERS, AgentModule, RemoteClientModule],
+  exports: [...PROVIDERS, AgentModule],
 })
 export class CodeAgentModule {
   static forFeature(config: { llm: LlmModuleConfig }): DynamicModule {
     return {
       module: CodeAgentRootModule,
-      imports: [AgentModule.forFeature(config), RemoteClientModule.forRoot()],
+      imports: [AgentModule.forFeature(config)],
       providers: PROVIDERS,
-      exports: [...PROVIDERS, AgentModule, RemoteClientModule],
+      exports: [...PROVIDERS, AgentModule],
     };
   }
 }

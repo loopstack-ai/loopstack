@@ -1,6 +1,5 @@
 import { type DynamicModule, Module } from '@nestjs/common';
 import { registerFeature } from '@loopstack/common';
-import { RemoteClientModule } from '@loopstack/remote-client';
 import { GitController } from './controllers/index.js';
 import {
   GitAddTool,
@@ -41,7 +40,6 @@ const tools = [
 ];
 
 @Module({
-  imports: [RemoteClientModule.forRoot()],
   controllers: [GitController],
   providers: [...tools],
   exports: [...tools],

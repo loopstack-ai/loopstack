@@ -19,6 +19,7 @@ import { MeetingNotesExampleModule } from '@loopstack/meeting-notes-example-work
 import { ModuleConfigExampleModule } from '@loopstack/module-config-example';
 import { PromptExampleModule } from '@loopstack/prompt-example-workflow';
 import { PromptStructuredOutputExampleModule } from '@loopstack/prompt-structured-output-example-workflow';
+import { RemoteClientModule } from '@loopstack/remote-client';
 import { RemoteFileExplorerExampleModule } from '@loopstack/remote-file-explorer-example-workflow';
 import { RunSubWorkflowExampleModule } from '@loopstack/run-sub-workflow-example';
 import { SandboxExampleModule } from '@loopstack/sandbox-example-workflow';
@@ -31,6 +32,9 @@ import { SmokeTestsController } from './smoke-tests.controller';
 @StudioApp({ title: 'Smoke Tests' })
 @Module({
   imports: [
+    // Environment slot declaration
+    RemoteClientModule.forFeature({ slots: [{ id: 'sandbox', type: 'sandbox', title: 'Sandbox' }] }),
+
     // Basic workflows (no external deps)
     ToolResultsExampleModule,
     CustomToolModule,

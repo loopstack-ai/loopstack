@@ -57,3 +57,4 @@ export const McpToolConfigSchema = z
   });
 
 export type McpToolConfig = z.infer<typeof McpToolConfigSchema>;
+export type McpToolConfigInput = z.input<typeof McpToolConfigSchema>;

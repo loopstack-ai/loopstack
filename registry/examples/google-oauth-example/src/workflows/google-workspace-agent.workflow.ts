@@ -40,6 +40,7 @@ interface GoogleWorkspaceAgentState {
 }
 
 @Workflow({
+  name: 'google_workspace_agent',
   uiConfig: __dirname + '/google-workspace-agent.ui.yaml',
 })
 export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow<Record<string, unknown>, GoogleWorkspaceAgentState> {
@@ -111,18 +112,18 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow<Record<string, un
 When a tool returns an unauthorized error, use authenticateGoogle to let the user sign in,
 then retry. Be concise and format results using markdown.`,
           tools: [
-            'googleCalendarListCalendars',
-            'googleCalendarFetchEvents',
-            'googleCalendarCreateEvent',
-            'gmailSearchMessages',
-            'gmailGetMessage',
-            'gmailSendMessage',
-            'gmailReplyToMessage',
-            'googleDriveListFiles',
-            'googleDriveGetFileMetadata',
-            'googleDriveDownloadFile',
-            'googleDriveUploadFile',
-            'authenticateGoogle',
+            'google_calendar_list_calendars',
+            'google_calendar_fetch_events',
+            'google_calendar_create_event',
+            'gmail_search_messages',
+            'gmail_get_message',
+            'gmail_send_message',
+            'gmail_reply_to_message',
+            'google_drive_list_files',
+            'google_drive_get_file_metadata',
+            'google_drive_download_file',
+            'google_drive_upload_file',
+            'authenticate_google',
           ],
         },
       },

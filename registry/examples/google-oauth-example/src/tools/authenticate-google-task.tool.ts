@@ -62,7 +62,7 @@ export class AuthenticateGoogleTask extends BaseTool<
   ): Promise<ToolResult<AuthenticateGoogleTaskResult>> {
     const result = await this.orchestrator.queue(
       { provider: 'google', scopes: args.scopes },
-      { workflowName: OAuthWorkflow.name, callback: args.callback },
+      { workflowName: OAuthWorkflow.name, callback: options?.callback ?? args.callback },
     );
 
     await this.documentStore.save(
@@ -79,6 +79,7 @@ export class AuthenticateGoogleTask extends BaseTool<
 
     return {
       data: { ...result, mode: 'async' },
+      pending: { workflowId: result.workflowId },
     };
   }
 

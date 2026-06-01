@@ -53,19 +53,10 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs,
     const result = await this.orchestrator.queue(
       {
         system: systemPrompt,
-        tools: ['mcpListTools', 'mcpCallTool'],
+        tools: ['mcp_list_tools', 'mcp_call'],
         userMessage: args.initialMessage,
       },
-      {
-        workflowName: ChatAgentWorkflow.name,
-        _config: {
-          model: 'claude-sonnet-4-6',
-          allowedHosts: ['mcp.linear.app'],
-          hostHeaderEnv: {
-            'mcp.linear.app': { Authorization: 'LINEAR_MCP_TOKEN' },
-          },
-        },
-      },
+      { workflowName: ChatAgentWorkflow.name },
     );
 
     await this.documentStore.save(LinkDocument, {
