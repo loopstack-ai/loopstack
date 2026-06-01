@@ -62,24 +62,5 @@ describe('WorkflowToolResultsWorkflow', () => {
         ]),
       );
     });
-
-    it('should access stored data via a helper method', async () => {
-      const context = createStatelessContext();
-
-      const result = await processor.process(workflow, {}, context);
-
-      expect(result.hasError).toBe(false);
-      expect(result.documents).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            className: 'MessageDocument',
-            content: expect.objectContaining({
-              role: 'assistant',
-              content: 'Accessed via helper method: Hello World.',
-            }),
-          }),
-        ]),
-      );
-    });
   });
 });

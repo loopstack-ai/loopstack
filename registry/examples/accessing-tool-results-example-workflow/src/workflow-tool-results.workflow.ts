@@ -33,15 +33,6 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unk
       role: 'assistant',
       content: `Accessed from previous transition: ${state.storedMessage}`,
     });
-
-    await this.documentStore.save(MessageDocument, {
-      role: 'assistant',
-      content: `Accessed via helper method: ${this.theMessage(state)}`,
-    });
     return {};
-  }
-
-  private theMessage(state: ToolResultsState): string {
-    return state.storedMessage!;
   }
 }
