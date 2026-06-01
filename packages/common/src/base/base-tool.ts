@@ -1,74 +1,87 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DocumentRepository, FrameworkContext, ToolCallOptions, ToolResult } from '../interfaces/index.js';
-import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER } from '../tokens.js';
-import { assertToolsAvailable } from '../utils/block-metadata.utils.js';
-import { TemplateRenderFn } from './workflow-templates.js';
+import type { ToolCallOptions, ToolResult } from '../interfaces/handler.interface.js';
+import type { LoopstackContext } from '../interfaces/loopstack-context.interface.js';
+import type { ToolPipeline } from '../interfaces/tool-pipeline.interface.js';
+import { EXECUTION_SCOPE, TOOL_PIPELINE } from '../tokens.js';
 
 /**
- * Abstract base class for tools in the TypeScript-first workflow model.
+ * Execution scope interface — matches the object returned by ExecutionScope.get().
+ * Defined here to avoid cross-package dependency on core.
+ */
+interface ScopeAccessor {
+  get(): LoopstackContext & Record<string, unknown>;
+  getOptional(): (LoopstackContext & Record<string, unknown>) | undefined;
+  getOrLoad<T>(key: symbol, loader: () => Promise<T>): Promise<T>;
+}
+
+/**
+ * Abstract base class for tools.
  *
- * Tool authors extend this class and implement `call(args, options?)`:
+ * Tool authors extend this class and implement `handle(args, options?)`.
+ * Consumers call `tool.call(args, options?)` — the base class routes through
+ * `ToolPipelineService` which handles validation, config merging, and interceptors.
  *
  * ```ts
- * const ArgsSchema = z.object({ prompt: z.string() }).strict();
- * const ConfigSchema = z.object({ model: z.string().default('claude-sonnet-4-6') });
- * type Args = z.infer<typeof ArgsSchema>;
- * type Config = z.infer<typeof ConfigSchema>;
- *
  * @Tool({ schema: ArgsSchema, configSchema: ConfigSchema })
- * class MyTool extends BaseTool<Args, Config> {
- *   async call(args: Args, options?: ToolCallOptions<Config>): Promise<ToolResult> {
- *     const model = options?.config?.model;
- *     return { data: `Using ${model} for: ${args.prompt}` };
+ * class MyTool extends BaseTool<Args, Config, MyResult> {
+ *   protected async handle(args: Args, options?: ToolCallOptions<Config>): Promise<ToolResult<MyResult>> {
+ *     return { data: { value: args.prompt } };
  *   }
  * }
  * ```
  *
- * - `args` — LLM-provided input, validated against `schema`
- * - `options.config` — author-provided config from `@InjectTool(config)`, validated against `configSchema`
- * - `options.callback` — framework-provided callback for async tool delegation
- *
- * Framework services are available on `this`:
- * - `this.repository` — document repository for creating/querying documents
- * - `this.ctx` — execution context (workspace, workflow, runtime, args, parent)
- * - `this.render` — Handlebars template renderer
+ * Generic parameters:
+ * - `TArgs` — input args, validated against `@Tool({ schema })`
+ * - `TConfig` — config, validated against `@Tool({ configSchema })`
+ * - `TResult` — typed return data in `ToolResult<TResult>`
+ * - `TMeta` — typed metadata in `ToolResult<TResult, TMeta>` (defaults to `Record<string, unknown>`)
  */
 @Injectable()
-export abstract class BaseTool<TArgs extends object = object, TConfig extends object = object> {
-  /** Framework-provided document repository for creating/querying documents */
-  @Inject(DOCUMENT_REPOSITORY) readonly repository!: DocumentRepository;
+export abstract class BaseTool<
+  TArgs extends object = object,
+  TConfig extends object = object,
+  TResult = unknown,
+  TMeta = Record<string, unknown>,
+> {
+  /** @internal — injected by the framework. Routes call() through validation + interceptors. */
+  @Inject(TOOL_PIPELINE) private readonly __pipeline!: ToolPipeline;
 
-  /** Execution context — wired by the framework at runtime */
-  @Inject(FRAMEWORK_CONTEXT) readonly ctx!: FrameworkContext;
+  /** @internal — injected by the framework. Provides access to execution context. */
+  @Inject(EXECUTION_SCOPE) private readonly __scope!: ScopeAccessor;
 
-  /** Renders a Handlebars template file. Usage: `this.render(__dirname + '/templates/foo.md', { key: 'value' })` */
-  @Inject(TEMPLATE_RENDERER) readonly render!: TemplateRenderFn;
+  /**
+   * Read-only execution context for the current workflow run.
+   * Available inside `handle()` — throws if called outside a transition.
+   *
+   * Provides: `userId`, `workspaceId`, `workflowId`, `run.args`, `run.config`.
+   */
+  protected get ctx(): LoopstackContext & Record<string, unknown> {
+    return this.__scope.get();
+  }
+
+  /**
+   * Public entry point — what consumers call.
+   * Routes through ToolPipelineService for validation, config merge, and interceptors.
+   */
+  async call(args?: TArgs, options?: ToolCallOptions<TConfig>): Promise<ToolResult<TResult, TMeta>> {
+    return this.__pipeline.execute(this, args, options);
+  }
 
   /**
    * Implement this method with your tool logic.
-   * The framework wraps this method at runtime with validation and interceptors.
+   * Called by the pipeline after validation and interceptors.
    *
    * @param args — Validated input (against the `@Tool({ schema })` Zod schema)
-   * @param options — Framework-provided options (callback, config from `@InjectTool`)
+   * @param options — Options including validated config and optional tools/callback
    */
-  abstract call(args?: TArgs, options?: ToolCallOptions<TConfig>): Promise<ToolResult>;
+  protected abstract handle(args: TArgs, options?: ToolCallOptions<TConfig>): Promise<ToolResult<TResult, TMeta>>;
 
   /**
    * Called when an async sub-workflow completes and the callback fires.
    * Override to post-process the result (e.g. update link documents, transform data).
    * The default implementation passes through the sub-workflow result.
    */
-  complete(result: Record<string, unknown>): Promise<ToolResult> {
-    return Promise.resolve({ data: (result as { data?: unknown }).data ?? result });
-  }
-
-  /**
-   * Validates that all required tools are available on the parent workflow or app.
-   * Call this before launching a sub-agent to fail fast on misconfiguration.
-   *
-   * @param toolNames — Tool property names that must be injected via `@InjectTool()` on the app
-   */
-  protected assertToolsAvailable(toolNames: string[]): void {
-    assertToolsAvailable(this.constructor.name, this.ctx.workflow, toolNames, this.ctx.app);
+  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+    return { data: (result as { data?: unknown }).data ?? result };
   }
 }

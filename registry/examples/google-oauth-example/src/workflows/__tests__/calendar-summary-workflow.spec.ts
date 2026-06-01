@@ -1,7 +1,13 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
+import {
+  RunContext,
+  WORKFLOW_ORCHESTRATOR,
+  WorkflowEntity,
+  getBlockArgsSchema,
+  getBlockConfig,
+} from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import {
   GmailGetMessageTool,
@@ -21,8 +27,10 @@ import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack
 import { GoogleCalendarFetchEventsTool } from '../../tools';
 import { CalendarSummaryWorkflow } from '../calendar-summary.workflow';
 
-const mockOAuthWorkflow = {
-  run: vi.fn(),
+const mockOrchestrator = {
+  queue: vi.fn().mockResolvedValue({ workflowId: 'sub-1' }),
+  complete: vi.fn(),
+  cancelChildren: vi.fn(),
 };
 
 function buildCalendarSummaryTest() {
@@ -41,7 +49,7 @@ function buildCalendarSummaryTest() {
     .withToolMock(GoogleDriveGetFileMetadataTool)
     .withToolMock(GoogleDriveDownloadFileTool)
     .withToolMock(GoogleDriveUploadFileTool)
-    .withMock(OAuthWorkflow, mockOAuthWorkflow);
+    .withOverride(WORKFLOW_ORCHESTRATOR, mockOrchestrator);
 }
 
 describe('CalendarSummaryWorkflow', () => {
@@ -82,10 +90,8 @@ describe('CalendarSummaryWorkflow', () => {
       expect(getBlockConfig(workflow)).toBeDefined();
     });
 
-    it('should have custom tool available', () => {
-      const tools = getBlockTools(workflow);
-      expect(tools).toBeDefined();
-      expect(tools).toContain('googleCalendarFetchEvents');
+    it('should have custom tool available via constructor injection', () => {
+      expect(mockGoogleCalendarFetchEventsTool).toBeDefined();
     });
   });
 
@@ -145,10 +151,6 @@ describe('CalendarSummaryWorkflow', () => {
         },
       });
 
-      mockOAuthWorkflow.run.mockResolvedValue({
-        workflowId: 'test-workflow-id',
-      });
-
       const result = await processor.process(workflow, {}, context);
 
       expect(result).toBeDefined();
@@ -157,11 +159,11 @@ describe('CalendarSummaryWorkflow', () => {
       expect(result.place).toBe('awaiting_auth');
 
       expect(mockGoogleCalendarFetchEventsTool.call).toHaveBeenCalledTimes(1);
-      expect(mockOAuthWorkflow.run).toHaveBeenCalledTimes(1);
-      expect(mockOAuthWorkflow.run).toHaveBeenCalledWith(
+      expect(mockOrchestrator.queue).toHaveBeenCalledTimes(1);
+      expect(mockOrchestrator.queue).toHaveBeenCalledWith(
         { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
         expect.objectContaining({
-          alias: 'oAuth',
+          workflowName: 'OAuthWorkflow',
           callback: { transition: 'authCompleted' },
         }),
       );
@@ -192,7 +194,6 @@ describe('CalendarSummaryWorkflow', () => {
         expect.objectContaining({
           calendarId: 'work@group.calendar.google.com',
         }),
-        undefined,
       );
     });
   });

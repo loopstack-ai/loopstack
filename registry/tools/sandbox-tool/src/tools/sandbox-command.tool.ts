@@ -17,18 +17,19 @@ const inputSchema = z
 type SandboxCommandArgs = z.infer<typeof inputSchema>;
 
 @Tool({
+  name: 'sandbox_command',
   uiConfig: {
     description: 'Execute a command in the sandbox environment',
   },
   schema: inputSchema,
 })
-export class SandboxCommand extends BaseTool {
+export class SandboxCommand extends BaseTool<SandboxCommandArgs, object, CommandExecutionResult> {
   private readonly logger = new Logger(SandboxCommand.name);
 
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  async call(args: SandboxCommandArgs): Promise<ToolResult<CommandExecutionResult>> {
+  protected async handle(args: SandboxCommandArgs): Promise<ToolResult<CommandExecutionResult>> {
     const argsStr = args.args?.length ? ` ${args.args.join(' ')}` : '';
     this.logger.debug(
       `Executing command: ${args.executable}${argsStr} in container ${args.containerId} (workDir: ${args.workingDirectory})`,

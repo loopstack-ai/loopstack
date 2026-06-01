@@ -1,8 +1,7 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
-import { SandboxEnvironmentService } from '../services/sandbox-environment.service.js';
 
 export type EditArgs = {
   file_path: string;
@@ -11,7 +10,14 @@ export type EditArgs = {
   replace_all?: boolean;
 };
 
+export type EditResult = {
+  success: boolean;
+  path: string;
+  replacements: number;
+};
+
 @Tool({
+  name: 'edit',
   schema: z
     .object({
       file_path: z.string().describe('The file path to edit'),
@@ -25,13 +31,17 @@ export type EditArgs = {
       'Performs exact string replacement in a file on a remote instance. Replaces old_string with new_string. Fails if old_string is not unique unless replace_all is true.',
   },
 })
-export class EditTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class EditTool extends BaseTool<EditArgs, object, EditResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: EditArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.editFile(
+  protected async handle(args: EditArgs): Promise<ToolResult<EditResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.editFile(
       agentUrl,
       args.file_path,
       args.old_string,

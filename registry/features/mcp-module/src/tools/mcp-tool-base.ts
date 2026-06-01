@@ -12,7 +12,7 @@ export abstract class McpToolBase<TArgs extends object> extends BaseTool<TArgs, 
 
   protected requireConfig(config: McpToolConfig | undefined): McpToolConfig {
     if (!config?.allowedHosts?.length) {
-      throw new Error(`${this.constructor.name} requires @InjectTool({ allowedHosts: [...] }) configuration.`);
+      throw new Error(`${this.constructor.name} requires config with allowedHosts: [...] (via options.config).`);
     }
     return config;
   }

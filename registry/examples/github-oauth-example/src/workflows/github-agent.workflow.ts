@@ -1,14 +1,15 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
+  DOCUMENT_STORE,
   Guard,
   Initial,
-  InjectTool,
-  InjectWorkflow,
-  ToolResult,
+  TEMPLATE_RENDERER,
   Transition,
   Workflow,
 } from '@loopstack/common';
+import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
 import {
   GitHubCreateIssueCommentTool,
   GitHubCreateIssueTool,
@@ -46,98 +47,63 @@ import {
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { AuthenticateGitHubTask } from '../tools/authenticate-github-task.tool';
 
-@Workflow({
-  uiConfig: __dirname + '/github-agent.ui.yaml',
-})
-export class GitHubAgentWorkflow extends BaseWorkflow {
-  @InjectTool({
-    provider: 'claude',
-    model: 'claude-sonnet-4-6',
-    system: `You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
-and search tools. When a tool returns an unauthorized error, use authenticateGitHub
-to let the user sign in, then retry. Be concise and format results using markdown.`,
-    tools: [
-      'gitHubListRepos',
-      'gitHubGetRepo',
-      'gitHubCreateRepo',
-      'gitHubListBranches',
-      'gitHubListIssues',
-      'gitHubGetIssue',
-      'gitHubCreateIssue',
-      'gitHubCreateIssueComment',
-      'gitHubListPullRequests',
-      'gitHubGetPullRequest',
-      'gitHubCreatePullRequest',
-      'gitHubMergePullRequest',
-      'gitHubListPrReviews',
-      'gitHubGetFileContent',
-      'gitHubCreateOrUpdateFile',
-      'gitHubListDirectory',
-      'gitHubGetCommit',
-      'gitHubListWorkflowRuns',
-      'gitHubTriggerWorkflow',
-      'gitHubGetWorkflowRun',
-      'gitHubSearchCode',
-      'gitHubSearchRepos',
-      'gitHubSearchIssues',
-      'gitHubGetAuthenticatedUser',
-      'gitHubListUserOrgs',
-      'authenticateGitHub',
-    ],
-  })
-  llmGenerateText: LlmGenerateTextTool;
-  @InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
-  @InjectTool({ provider: 'claude' }) llmUpdateToolResult: LlmUpdateToolResultTool;
-  @InjectTool() authenticateGitHub: AuthenticateGitHubTask;
-
-  // GitHub Repos tools
-  @InjectTool() gitHubListRepos: GitHubListReposTool;
-  @InjectTool() gitHubGetRepo: GitHubGetRepoTool;
-  @InjectTool() gitHubCreateRepo: GitHubCreateRepoTool;
-  @InjectTool() gitHubListBranches: GitHubListBranchesTool;
-
-  // GitHub Issues tools
-  @InjectTool() gitHubListIssues: GitHubListIssuesTool;
-  @InjectTool() gitHubGetIssue: GitHubGetIssueTool;
-  @InjectTool() gitHubCreateIssue: GitHubCreateIssueTool;
-  @InjectTool() gitHubCreateIssueComment: GitHubCreateIssueCommentTool;
-
-  // GitHub Pull Requests tools
-  @InjectTool() gitHubListPullRequests: GitHubListPullRequestsTool;
-  @InjectTool() gitHubGetPullRequest: GitHubGetPullRequestTool;
-  @InjectTool() gitHubCreatePullRequest: GitHubCreatePullRequestTool;
-  @InjectTool() gitHubMergePullRequest: GitHubMergePullRequestTool;
-  @InjectTool() gitHubListPrReviews: GitHubListPrReviewsTool;
-
-  // GitHub Content / Git Ops tools
-  @InjectTool() gitHubGetFileContent: GitHubGetFileContentTool;
-  @InjectTool() gitHubCreateOrUpdateFile: GitHubCreateOrUpdateFileTool;
-  @InjectTool() gitHubListDirectory: GitHubListDirectoryTool;
-  @InjectTool() gitHubGetCommit: GitHubGetCommitTool;
-
-  // GitHub Actions tools
-  @InjectTool() gitHubListWorkflowRuns: GitHubListWorkflowRunsTool;
-  @InjectTool() gitHubTriggerWorkflow: GitHubTriggerWorkflowTool;
-  @InjectTool() gitHubGetWorkflowRun: GitHubGetWorkflowRunTool;
-
-  // GitHub Search tools
-  @InjectTool() gitHubSearchCode: GitHubSearchCodeTool;
-  @InjectTool() gitHubSearchRepos: GitHubSearchReposTool;
-  @InjectTool() gitHubSearchIssues: GitHubSearchIssuesTool;
-
-  // GitHub Users & Orgs tools
-  @InjectTool() gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool;
-  @InjectTool() gitHubListUserOrgs: GitHubListUserOrgsTool;
-
-  @InjectWorkflow() oAuth: OAuthWorkflow;
-
+interface GitHubAgentState {
   llmResult?: LlmGenerateTextResult;
   llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
+}
+
+@Workflow({
+  uiConfig: __dirname + '/github-agent.ui.yaml',
+})
+export class GitHubAgentWorkflow extends BaseWorkflow<Record<string, unknown>, GitHubAgentState> {
+  constructor(
+    private readonly llmGenerateText: LlmGenerateTextTool,
+    private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+    private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
+    private readonly authenticateGitHub: AuthenticateGitHubTask,
+    // GitHub Repos tools
+    private readonly gitHubListRepos: GitHubListReposTool,
+    private readonly gitHubGetRepo: GitHubGetRepoTool,
+    private readonly gitHubCreateRepo: GitHubCreateRepoTool,
+    private readonly gitHubListBranches: GitHubListBranchesTool,
+    // GitHub Issues tools
+    private readonly gitHubListIssues: GitHubListIssuesTool,
+    private readonly gitHubGetIssue: GitHubGetIssueTool,
+    private readonly gitHubCreateIssue: GitHubCreateIssueTool,
+    private readonly gitHubCreateIssueComment: GitHubCreateIssueCommentTool,
+    // GitHub Pull Requests tools
+    private readonly gitHubListPullRequests: GitHubListPullRequestsTool,
+    private readonly gitHubGetPullRequest: GitHubGetPullRequestTool,
+    private readonly gitHubCreatePullRequest: GitHubCreatePullRequestTool,
+    private readonly gitHubMergePullRequest: GitHubMergePullRequestTool,
+    private readonly gitHubListPrReviews: GitHubListPrReviewsTool,
+    // GitHub Content / Git Ops tools
+    private readonly gitHubGetFileContent: GitHubGetFileContentTool,
+    private readonly gitHubCreateOrUpdateFile: GitHubCreateOrUpdateFileTool,
+    private readonly gitHubListDirectory: GitHubListDirectoryTool,
+    private readonly gitHubGetCommit: GitHubGetCommitTool,
+    // GitHub Actions tools
+    private readonly gitHubListWorkflowRuns: GitHubListWorkflowRunsTool,
+    private readonly gitHubTriggerWorkflow: GitHubTriggerWorkflowTool,
+    private readonly gitHubGetWorkflowRun: GitHubGetWorkflowRunTool,
+    // GitHub Search tools
+    private readonly gitHubSearchCode: GitHubSearchCodeTool,
+    private readonly gitHubSearchRepos: GitHubSearchReposTool,
+    private readonly gitHubSearchIssues: GitHubSearchIssuesTool,
+    // GitHub Users & Orgs tools
+    private readonly gitHubGetAuthenticatedUser: GitHubGetAuthenticatedUserTool,
+    private readonly gitHubListUserOrgs: GitHubListUserOrgsTool,
+    private readonly oAuth: OAuthWorkflow,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
+  ) {
+    super();
+  }
 
   @Initial({ to: 'waiting_for_user' })
-  async setup() {
-    await this.repository.save(
+  async setup(ctx: WorkflowContext, args: Record<string, unknown>, state: GitHubAgentState): Promise<GitHubAgentState> {
+    await this.documentStore.save(
       LlmMessageDocument,
       {
         role: 'user',
@@ -145,71 +111,123 @@ to let the user sign in, then retry. Be concise and format results using markdow
       },
       { meta: { hidden: true } },
     );
+    return state;
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(payload: string) {
-    await this.repository.save(LlmMessageDocument, {
+  async userMessage(ctx: WorkflowContext, state: GitHubAgentState, payload: string): Promise<GitHubAgentState> {
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: payload,
     });
+    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn() {
-    const result: ToolResult<LlmGenerateTextResult, LlmResultMeta> = await this.llmGenerateText.call();
-    this.llmResult = result.data;
-    this.llmMeta = result.metadata;
+  async llmTurn(ctx: WorkflowContext, state: GitHubAgentState): Promise<GitHubAgentState> {
+    const result = await this.llmGenerateText.call(
+      {},
+      {
+        config: {
+          provider: 'claude',
+          model: 'claude-sonnet-4-6',
+          system: `You are a helpful GitHub assistant with access to repository, issue, PR, code, actions,
+and search tools. When a tool returns an unauthorized error, use authenticateGitHub
+to let the user sign in, then retry. Be concise and format results using markdown.`,
+          tools: [
+            'gitHubListRepos',
+            'gitHubGetRepo',
+            'gitHubCreateRepo',
+            'gitHubListBranches',
+            'gitHubListIssues',
+            'gitHubGetIssue',
+            'gitHubCreateIssue',
+            'gitHubCreateIssueComment',
+            'gitHubListPullRequests',
+            'gitHubGetPullRequest',
+            'gitHubCreatePullRequest',
+            'gitHubMergePullRequest',
+            'gitHubListPrReviews',
+            'gitHubGetFileContent',
+            'gitHubCreateOrUpdateFile',
+            'gitHubListDirectory',
+            'gitHubGetCommit',
+            'gitHubListWorkflowRuns',
+            'gitHubTriggerWorkflow',
+            'gitHubGetWorkflowRun',
+            'gitHubSearchCode',
+            'gitHubSearchRepos',
+            'gitHubSearchIssues',
+            'gitHubGetAuthenticatedUser',
+            'gitHubListUserOrgs',
+            'authenticateGitHub',
+          ],
+        },
+      },
+    );
+    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls() {
-    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
-      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+  async executeToolCalls(ctx: WorkflowContext, state: GitHubAgentState): Promise<GitHubAgentState> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
-    const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
-      message: this.llmResult!.message,
-      callback: { transition: 'toolResultReceived' },
-    });
-    this.delegateResult = result.data;
+    const result = await this.llmDelegateToolCalls.call(
+      {
+        message: state.llmResult!.message,
+        callback: { transition: 'toolResultReceived' },
+      },
+      { config: { provider: 'claude' } },
+    );
+    return { ...state, delegateResult: result.data };
   }
 
-  hasToolCalls(): boolean {
-    return this.llmResult?.message.stopReason === 'tool_use';
+  hasToolCalls(state: GitHubAgentState): boolean {
+    return state.llmResult?.message.stopReason === 'tool_use';
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(payload: Record<string, unknown>) {
-    const result: ToolResult<LlmDelegateResult> = await this.llmUpdateToolResult.call({
-      delegateResult: this.delegateResult!,
-      completedTool: payload,
-    });
-    this.delegateResult = result.data;
+  async toolResultReceived(
+    ctx: WorkflowContext,
+    state: GitHubAgentState,
+    payload: Record<string, unknown>,
+  ): Promise<GitHubAgentState> {
+    const result = await this.llmUpdateToolResult.call(
+      {
+        delegateResult: state.delegateResult!,
+        completedTool: payload,
+      },
+      { config: { provider: 'claude' } },
+    );
+    return { ...state, delegateResult: result.data };
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async allToolsCompleteTransition() {
-    await this.repository.save(LlmMessageDocument, {
+  async allToolsCompleteTransition(ctx: WorkflowContext, state: GitHubAgentState): Promise<GitHubAgentState> {
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: this.delegateResult!.toolResults.map((tr) => ({
+      content: state.delegateResult!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',
         isError: tr.isError ?? false,
       })),
     });
+    return state;
   }
 
-  allToolsComplete(): boolean {
-    return this.delegateResult?.allCompleted ?? false;
+  allToolsComplete(state: GitHubAgentState): boolean {
+    return state.delegateResult?.allCompleted ?? false;
   }
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  async respond() {
-    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
-      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+  async respond(ctx: WorkflowContext, state: GitHubAgentState): Promise<GitHubAgentState> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
+    return state;
   }
 }

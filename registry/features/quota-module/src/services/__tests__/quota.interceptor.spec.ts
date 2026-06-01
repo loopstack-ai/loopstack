@@ -14,8 +14,12 @@ function createContext(toolName: string, overrides?: Partial<ToolExecutionContex
   return {
     tool: new FakeTool(toolName),
     args: undefined,
-    app: { userId: 'user-1', workspaceId: 'ws-1', environments: [] } as any,
-    run: { root: '', labels: [], payload: {}, options: { stateless: false } } as any,
+    loopstackContext: {
+      userId: 'user-1',
+      workspaceId: 'ws-1',
+      workflowId: '',
+      run: { args: undefined, config: undefined },
+    },
     metadata: {},
     ...overrides,
   };

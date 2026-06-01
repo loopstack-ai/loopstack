@@ -19,16 +19,17 @@ export interface BuildOAuthUrlResult {
 }
 
 @Tool({
+  name: 'build_oauth_url',
   uiConfig: {
     description: 'Builds an OAuth 2.0 authorization URL for the given provider with CSRF state parameter.',
   },
   schema: BuildOAuthUrlSchema,
 })
-export class BuildOAuthUrlTool extends BaseTool {
+export class BuildOAuthUrlTool extends BaseTool<BuildOAuthUrlArgs, object, BuildOAuthUrlResult> {
   @Inject()
   private providerRegistry: OAuthProviderRegistry;
 
-  call(args: BuildOAuthUrlArgs): Promise<ToolResult> {
+  protected async handle(args: BuildOAuthUrlArgs): Promise<ToolResult> {
     const provider = this.providerRegistry.get(args.provider);
     const state = randomBytes(32).toString('hex');
     const scopes = args.scopes?.length ? args.scopes : provider.defaultScopes;

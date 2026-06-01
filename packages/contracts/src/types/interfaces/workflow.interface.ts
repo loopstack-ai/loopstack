@@ -3,7 +3,7 @@ import { WorkflowTransitionType } from '../types/workflow-transition.type.js';
 
 export interface WorkflowInterface {
   id: string;
-  alias: string;
+  workflowName: string;
   className: string | null;
   title: string;
   run: number;

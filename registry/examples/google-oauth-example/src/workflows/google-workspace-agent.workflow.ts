@@ -1,14 +1,15 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
+  DOCUMENT_STORE,
   Guard,
   Initial,
-  InjectTool,
-  InjectWorkflow,
-  ToolResult,
+  TEMPLATE_RENDERER,
   Transition,
   Workflow,
 } from '@loopstack/common';
+import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
 import {
   GmailGetMessageTool,
   GmailReplyToMessageTool,
@@ -32,62 +33,49 @@ import {
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { AuthenticateGoogleTask } from '../tools/authenticate-google-task.tool';
 
-@Workflow({
-  uiConfig: __dirname + '/google-workspace-agent.ui.yaml',
-})
-export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow {
-  @InjectTool({
-    provider: 'claude',
-    model: 'claude-sonnet-4-6',
-    system: `You are a helpful Google Workspace assistant with access to Calendar, Gmail, and Drive tools.
-When a tool returns an unauthorized error, use authenticateGoogle to let the user sign in,
-then retry. Be concise and format results using markdown.`,
-    tools: [
-      'googleCalendarListCalendars',
-      'googleCalendarFetchEvents',
-      'googleCalendarCreateEvent',
-      'gmailSearchMessages',
-      'gmailGetMessage',
-      'gmailSendMessage',
-      'gmailReplyToMessage',
-      'googleDriveListFiles',
-      'googleDriveGetFileMetadata',
-      'googleDriveDownloadFile',
-      'googleDriveUploadFile',
-      'authenticateGoogle',
-    ],
-  })
-  llmGenerateText: LlmGenerateTextTool;
-  @InjectTool({ provider: 'claude' }) llmDelegateToolCalls: LlmDelegateToolCallsTool;
-  @InjectTool({ provider: 'claude' }) llmUpdateToolResult: LlmUpdateToolResultTool;
-  @InjectTool() authenticateGoogle: AuthenticateGoogleTask;
-
-  // Google Calendar tools
-  @InjectTool() googleCalendarListCalendars: GoogleCalendarListCalendarsTool;
-  @InjectTool() googleCalendarFetchEvents: GoogleCalendarFetchEventsTool;
-  @InjectTool() googleCalendarCreateEvent: GoogleCalendarCreateEventTool;
-
-  // Gmail tools
-  @InjectTool() gmailSearchMessages: GmailSearchMessagesTool;
-  @InjectTool() gmailGetMessage: GmailGetMessageTool;
-  @InjectTool() gmailSendMessage: GmailSendMessageTool;
-  @InjectTool() gmailReplyToMessage: GmailReplyToMessageTool;
-
-  // Google Drive tools
-  @InjectTool() googleDriveListFiles: GoogleDriveListFilesTool;
-  @InjectTool() googleDriveGetFileMetadata: GoogleDriveGetFileMetadataTool;
-  @InjectTool() googleDriveDownloadFile: GoogleDriveDownloadFileTool;
-  @InjectTool() googleDriveUploadFile: GoogleDriveUploadFileTool;
-
-  @InjectWorkflow() oAuth: OAuthWorkflow;
-
+interface GoogleWorkspaceAgentState {
   llmResult?: LlmGenerateTextResult;
   llmMeta?: LlmResultMeta;
   delegateResult?: LlmDelegateResult;
+}
+
+@Workflow({
+  uiConfig: __dirname + '/google-workspace-agent.ui.yaml',
+})
+export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow<Record<string, unknown>, GoogleWorkspaceAgentState> {
+  constructor(
+    private readonly llmGenerateText: LlmGenerateTextTool,
+    private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
+    private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
+    private readonly authenticateGoogle: AuthenticateGoogleTask,
+    // Google Calendar tools
+    private readonly googleCalendarListCalendars: GoogleCalendarListCalendarsTool,
+    private readonly googleCalendarFetchEvents: GoogleCalendarFetchEventsTool,
+    private readonly googleCalendarCreateEvent: GoogleCalendarCreateEventTool,
+    // Gmail tools
+    private readonly gmailSearchMessages: GmailSearchMessagesTool,
+    private readonly gmailGetMessage: GmailGetMessageTool,
+    private readonly gmailSendMessage: GmailSendMessageTool,
+    private readonly gmailReplyToMessage: GmailReplyToMessageTool,
+    // Google Drive tools
+    private readonly googleDriveListFiles: GoogleDriveListFilesTool,
+    private readonly googleDriveGetFileMetadata: GoogleDriveGetFileMetadataTool,
+    private readonly googleDriveDownloadFile: GoogleDriveDownloadFileTool,
+    private readonly googleDriveUploadFile: GoogleDriveUploadFileTool,
+    private readonly oAuth: OAuthWorkflow,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+    @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
+  ) {
+    super();
+  }
 
   @Initial({ to: 'waiting_for_user' })
-  async setup() {
-    await this.repository.save(
+  async setup(
+    ctx: WorkflowContext,
+    args: Record<string, unknown>,
+    state: GoogleWorkspaceAgentState,
+  ): Promise<GoogleWorkspaceAgentState> {
+    await this.documentStore.save(
       LlmMessageDocument,
       {
         role: 'user',
@@ -95,71 +83,116 @@ then retry. Be concise and format results using markdown.`,
       },
       { meta: { hidden: true } },
     );
+    return state;
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(payload: string) {
-    await this.repository.save(LlmMessageDocument, {
+  async userMessage(
+    ctx: WorkflowContext,
+    state: GoogleWorkspaceAgentState,
+    payload: string,
+  ): Promise<GoogleWorkspaceAgentState> {
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: payload,
     });
+    return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn() {
-    const result: ToolResult<LlmGenerateTextResult, LlmResultMeta> = await this.llmGenerateText.call();
-    this.llmResult = result.data;
-    this.llmMeta = result.metadata;
+  async llmTurn(ctx: WorkflowContext, state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+    const result = await this.llmGenerateText.call(
+      {},
+      {
+        config: {
+          provider: 'claude',
+          model: 'claude-sonnet-4-6',
+          system: `You are a helpful Google Workspace assistant with access to Calendar, Gmail, and Drive tools.
+When a tool returns an unauthorized error, use authenticateGoogle to let the user sign in,
+then retry. Be concise and format results using markdown.`,
+          tools: [
+            'googleCalendarListCalendars',
+            'googleCalendarFetchEvents',
+            'googleCalendarCreateEvent',
+            'gmailSearchMessages',
+            'gmailGetMessage',
+            'gmailSendMessage',
+            'gmailReplyToMessage',
+            'googleDriveListFiles',
+            'googleDriveGetFileMetadata',
+            'googleDriveDownloadFile',
+            'googleDriveUploadFile',
+            'authenticateGoogle',
+          ],
+        },
+      },
+    );
+    return { ...state, llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
   }
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls() {
-    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
-      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+  async executeToolCalls(ctx: WorkflowContext, state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
-    const result: ToolResult<LlmDelegateResult> = await this.llmDelegateToolCalls.call({
-      message: this.llmResult!.message,
-      callback: { transition: 'toolResultReceived' },
-    });
-    this.delegateResult = result.data;
+    const result = await this.llmDelegateToolCalls.call(
+      {
+        message: state.llmResult!.message,
+        callback: { transition: 'toolResultReceived' },
+      },
+      { config: { provider: 'claude' } },
+    );
+    return { ...state, delegateResult: result.data };
   }
 
-  hasToolCalls(): boolean {
-    return this.llmResult?.message.stopReason === 'tool_use';
+  hasToolCalls(state: GoogleWorkspaceAgentState): boolean {
+    return state.llmResult?.message.stopReason === 'tool_use';
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(payload: Record<string, unknown>) {
-    const result: ToolResult<LlmDelegateResult> = await this.llmUpdateToolResult.call({
-      delegateResult: this.delegateResult!,
-      completedTool: payload,
-    });
-    this.delegateResult = result.data;
+  async toolResultReceived(
+    ctx: WorkflowContext,
+    state: GoogleWorkspaceAgentState,
+    payload: Record<string, unknown>,
+  ): Promise<GoogleWorkspaceAgentState> {
+    const result = await this.llmUpdateToolResult.call(
+      {
+        delegateResult: state.delegateResult!,
+        completedTool: payload,
+      },
+      { config: { provider: 'claude' } },
+    );
+    return { ...state, delegateResult: result.data };
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async allToolsCompleteTransition() {
-    await this.repository.save(LlmMessageDocument, {
+  async allToolsCompleteTransition(
+    ctx: WorkflowContext,
+    state: GoogleWorkspaceAgentState,
+  ): Promise<GoogleWorkspaceAgentState> {
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
-      content: this.delegateResult!.toolResults.map((tr) => ({
+      content: state.delegateResult!.toolResults.map((tr) => ({
         type: 'tool_result' as const,
         toolCallId: tr.toolCallId,
         content: tr.content ?? '',
         isError: tr.isError ?? false,
       })),
     });
+    return state;
   }
 
-  allToolsComplete(): boolean {
-    return this.delegateResult?.allCompleted ?? false;
+  allToolsComplete(state: GoogleWorkspaceAgentState): boolean {
+    return state.delegateResult?.allCompleted ?? false;
   }
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  async respond() {
-    await this.repository.save(LlmMessageDocument, this.llmResult!.message, {
-      meta: { response: this.llmResult!.response, provider: this.llmMeta!.provider },
+  async respond(ctx: WorkflowContext, state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+    await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
+      meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
+    return state;
   }
 }

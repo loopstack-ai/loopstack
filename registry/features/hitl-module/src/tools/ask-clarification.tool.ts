@@ -1,5 +1,16 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import {
+  BaseTool,
+  DOCUMENT_STORE,
+  LinkDocument,
+  Tool,
+  ToolCallOptions,
+  ToolResult,
+  WORKFLOW_ORCHESTRATOR,
+  WorkflowOrchestrator,
+} from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import { AskUserWorkflow } from '../workflows/ask-user/ask-user.workflow.js';
 
 const AskClarificationInputSchema = z
@@ -31,7 +42,10 @@ const AskClarificationInputSchema = z
 
 type AskClarificationInput = z.infer<typeof AskClarificationInputSchema>;
 
+export type AskClarificationResult = { workflowId: string } | string | Record<string, unknown>;
+
 @Tool({
+  name: 'ask_clarification',
   uiConfig: {
     description:
       'Ask the user a clarification question and wait for their answer. ' +
@@ -40,23 +54,31 @@ type AskClarificationInput = z.infer<typeof AskClarificationInputSchema>;
   },
   schema: AskClarificationInputSchema,
 })
-export class AskClarificationTool extends BaseTool {
-  @InjectWorkflow() private askUser: AskUserWorkflow;
+export class AskClarificationTool extends BaseTool<AskClarificationInput, object, AskClarificationResult> {
+  constructor(
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+  ) {
+    super();
+  }
 
-  async call(args: AskClarificationInput, options?: ToolCallOptions): Promise<ToolResult> {
-    const result = await this.askUser.run(
+  protected async handle(
+    args: AskClarificationInput,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<AskClarificationResult>> {
+    const result = await this.orchestrator.queue(
       {
         question: args.question,
         mode: args.mode,
         options: args.options,
         allowCustomAnswer: args.allowCustomAnswer,
       },
-      { alias: 'askUser', callback: options?.callback },
+      { workflowName: AskUserWorkflow.name, callback: options?.callback },
     );
 
     const workflowId = result.workflowId;
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       { status: 'pending', label: 'Waiting for user answer...', workflowId, embed: true, expanded: true },
       { id: `ask_clarification_link_${workflowId}` },
@@ -68,10 +90,10 @@ export class AskClarificationTool extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult<AskClarificationResult>> {
     const data = result as { workflowId?: string; data?: { answer?: string } };
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       { status: 'success', label: 'User answered', workflowId: data.workflowId!, embed: true, expanded: false },
       { id: `ask_clarification_link_${data.workflowId}` },

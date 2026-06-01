@@ -13,21 +13,35 @@ const inputSchema = z
 
 export type GitHubListPrReviewsArgs = z.infer<typeof inputSchema>;
 
+export type GitHubListPrReviewsResult =
+  | {
+      reviews: Array<{
+        id: number;
+        user: string;
+        body: string;
+        state: string;
+        submittedAt: string;
+        htmlUrl: string;
+      }>;
+    }
+  | { error: string; message: string };
+
 @Tool({
+  name: 'github_list_pr_reviews',
   uiConfig: {
     description:
       'Lists reviews on a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GitHubListPrReviewsTool extends BaseTool {
+export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, object, GitHubListPrReviewsResult> {
   private readonly logger = new Logger(GitHubListPrReviewsTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubListPrReviewsArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(args: GitHubListPrReviewsArgs): Promise<ToolResult<GitHubListPrReviewsResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -48,7 +62,7 @@ export class GitHubListPrReviewsTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: '401',

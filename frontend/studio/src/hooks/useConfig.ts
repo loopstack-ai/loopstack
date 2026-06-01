@@ -1,26 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAppTypesCacheKey, getAvailableEnvironmentsCacheKey, getWorkflowTypesCacheKey } from './query-keys';
+import { getAvailableEnvironmentsCacheKey, getStudioAppsCacheKey } from './query-keys';
 import { useApiClient } from './useApi';
 
-export function useAppConfig() {
+export function useAppsConfig() {
   const { envKey, api } = useApiClient();
 
   return useQuery({
-    queryKey: getAppTypesCacheKey(envKey),
-    queryFn: () => api.config.getAppTypes(),
-  });
-}
-
-export function useWorkflowConfig(appBlockName: string | undefined) {
-  const { envKey, api } = useApiClient();
-
-  return useQuery({
-    queryKey: getWorkflowTypesCacheKey(envKey, appBlockName!),
-    queryFn: () =>
-      api.config.getWorkflowTypesByApp({
-        appBlockName: appBlockName!,
-      }),
-    enabled: !!appBlockName,
+    queryKey: getStudioAppsCacheKey(envKey),
+    queryFn: () => api.config.getApps(),
   });
 }
 

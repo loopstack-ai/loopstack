@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 
+export type CalculatorResult = string;
+
 @Tool({
+  name: 'calculator',
   uiConfig: {
     description: 'Perform a basic arithmetic calculation. Supports add, subtract, multiply, divide.',
   },
@@ -11,8 +14,8 @@ import { BaseTool, Tool, ToolResult } from '@loopstack/common';
     b: z.number().describe('Second operand.'),
   }),
 })
-export class CalculatorTool extends BaseTool {
-  call(args: { operation: string; a: number; b: number }): Promise<ToolResult> {
+export class CalculatorTool extends BaseTool<{ operation: string; a: number; b: number }, object, CalculatorResult> {
+  protected async handle(args: { operation: string; a: number; b: number }): Promise<ToolResult<CalculatorResult>> {
     let result: number;
 
     switch (args.operation) {
@@ -27,16 +30,16 @@ export class CalculatorTool extends BaseTool {
         break;
       case 'divide':
         if (args.b === 0) {
-          return Promise.resolve({ data: 'Error: Division by zero', error: 'Cannot divide by zero' });
+          return { data: 'Error: Division by zero', error: 'Cannot divide by zero' };
         }
         result = args.a / args.b;
         break;
       default:
-        return Promise.resolve({ data: `Unknown operation: ${args.operation}`, error: 'Unsupported operation' });
+        return { data: `Unknown operation: ${args.operation}`, error: 'Unsupported operation' };
     }
 
-    return Promise.resolve({
+    return {
       data: `${args.a} ${args.operation} ${args.b} = ${result}`,
-    });
+    };
   }
 }

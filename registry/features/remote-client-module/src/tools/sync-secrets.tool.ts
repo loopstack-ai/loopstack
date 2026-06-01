@@ -1,15 +1,17 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { SecretService } from '@loopstack/secrets-module';
+import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/index.js';
-import { SandboxEnvironmentService } from '../services/index.js';
 
 const SyncSecretsInputSchema = z.object({}).strict();
 
 type SyncSecretsInput = z.infer<typeof SyncSecretsInputSchema>;
 
+export type SyncSecretsResult = { success: true; count: 0; message: string } | { success: boolean; count: number };
+
 @Tool({
+  name: 'sync_secrets',
   schema: SyncSecretsInputSchema,
   uiConfig: {
     description:
@@ -18,13 +20,17 @@ type SyncSecretsInput = z.infer<typeof SyncSecretsInputSchema>;
       'Returns the count of synced secrets.',
   },
 })
-export class SyncSecretsTool extends BaseTool {
-  @Inject() private secretService: SecretService;
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class SyncSecretsTool extends BaseTool<SyncSecretsInput, object, SyncSecretsResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+    private readonly secretService: SecretService,
+  ) {
+    super();
+  }
 
-  async call(_args: SyncSecretsInput): Promise<ToolResult> {
-    const secrets = await this.secretService.findAllByWorkspace(this.ctx.app.workspaceId);
+  protected async handle(_args: SyncSecretsInput): Promise<ToolResult<SyncSecretsResult>> {
+    const secrets = await this.secretService.findAllByWorkspace(this.ctx.workspaceId);
 
     if (secrets.length === 0) {
       return {
@@ -32,10 +38,10 @@ export class SyncSecretsTool extends BaseTool {
       };
     }
 
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
+    const agentUrl = await this.env.getAgentUrl();
     const variables = secrets.map((s) => ({ key: s.key, value: s.value }));
 
-    const result = await this.remoteAgentClient.setEnvVars(agentUrl, variables);
+    const result = await this.remote.setEnvVars(agentUrl, variables);
 
     return {
       data: {

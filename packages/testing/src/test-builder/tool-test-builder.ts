@@ -1,17 +1,14 @@
 import { Provider, Type } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import lodash from 'lodash';
 import { type Mock, vi } from 'vitest';
 import {
   BLOCK_CONFIG_METADATA_KEY,
   BaseTool,
-  DOCUMENT_REPOSITORY,
-  FRAMEWORK_CONTEXT,
+  DOCUMENT_STORE,
+  EXECUTION_SCOPE,
   TEMPLATE_RENDERER,
-  WorkflowExecution,
+  TOOL_PIPELINE,
 } from '@loopstack/common';
-
-const { merge } = lodash;
 
 /**
  * Mock for Tool classes - provides standard jest mock functions
@@ -30,40 +27,6 @@ export function createToolMock(): ToolMock {
 }
 
 /**
- * Creates a mock WorkflowExecution context for tool testing
- */
-export function createExecutionContext(overrides?: Partial<WorkflowExecution>): WorkflowExecution {
-  // const state = new Map<string, any>();
-  // const metadata = new Map<string, any>([['documents', []]]);
-
-  return merge(
-    {
-      // state: {
-      //   get: (key: string) => state.get(key),
-      //   getAll: () => Object.fromEntries(state),
-      //   update: (data: any) => Object.entries(data).forEach(([k, v]) => state.set(k, v)),
-      //   getMetadata: (key: string) => metadata.get(key),
-      //   getAllMetadata: () => Object.fromEntries(metadata),
-      //   setMetadata: (key: string, value: any) => metadata.set(key, value),
-      //   updateMetadata: (data: any) => Object.entries(data).forEach(([k, v]) => metadata.set(k, v)),
-      // },
-      runtime: {
-        hasError: false,
-        stop: false,
-        availableTransitions: [],
-        transition: {
-          id: 'test-transition',
-          from: 'start',
-          to: 'end',
-        },
-        persistenceState: { documentsUpdated: false },
-      },
-    },
-    overrides,
-  ) as WorkflowExecution;
-}
-
-/**
  * Builder for creating tool test modules
  *
  * @example
@@ -74,7 +37,7 @@ export function createExecutionContext(overrides?: Partial<WorkflowExecution>): 
  *   .compile();
  *
  * const tool = module.get(MathSumTool);
- * const result = await tool.run({ a: 1, b: 2 });
+ * const result = await tool.call({ a: 1, b: 2 });
  * ```
  */
 export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
@@ -150,26 +113,46 @@ export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
     let builder = Test.createTestingModule({
       providers: [
         {
-          provide: DOCUMENT_REPOSITORY,
+          provide: TEMPLATE_RENDERER,
+          useValue: vi.fn((template: string) => template),
+        },
+        {
+          provide: DOCUMENT_STORE,
           useValue: {
             create: vi.fn(),
-            save: vi.fn().mockResolvedValue({}),
+            save: vi.fn().mockResolvedValue({ id: 'doc-1' }),
             findAll: vi.fn().mockReturnValue([]),
+            findAllDocuments: vi.fn().mockReturnValue([]),
             findByTag: vi.fn().mockReturnValue([]),
           },
         },
         {
-          provide: FRAMEWORK_CONTEXT,
+          provide: EXECUTION_SCOPE,
           useValue: {
-            app: { userId: 'test-user', workspaceId: 'test-workspace', environments: [] },
-            run: { args: {}, config: undefined, root: '', labels: [], payload: {}, options: { stateless: true } },
-            runtime: {},
-            workflow: null,
+            get: vi.fn().mockReturnValue({
+              userId: 'test-user',
+              workspaceId: 'test-workspace',
+              workflowId: 'test-workflow',
+
+              run: { args: undefined, config: undefined },
+            }),
+            getOptional: vi.fn().mockReturnValue({
+              userId: 'test-user',
+              workspaceId: 'test-workspace',
+              workflowId: 'test-workflow',
+
+              run: { args: undefined, config: undefined },
+            }),
+            getOrLoad: vi.fn().mockImplementation((_key: symbol, loader: () => Promise<unknown>) => loader()),
           },
         },
         {
-          provide: TEMPLATE_RENDERER,
-          useValue: vi.fn((template: string) => template),
+          provide: TOOL_PIPELINE,
+          useValue: {
+            execute: vi.fn().mockImplementation((tool: any, args: any, options: any) => {
+              return tool.handle(args ?? {}, options);
+            }),
+          },
         },
         ...this.providers,
       ],

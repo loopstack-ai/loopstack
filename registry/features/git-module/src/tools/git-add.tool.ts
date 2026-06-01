@@ -1,13 +1,15 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitAddArgs = {
   files: string[];
 };
 
+export type GitAddResult = { success: boolean };
+
 @Tool({
+  name: 'git_add',
   schema: z
     .object({
       files: z.array(z.string()).describe('File paths to stage. Use ["."] to stage all changes.'),
@@ -17,13 +19,17 @@ export type GitAddArgs = {
     description: 'Stages files for the next git commit.',
   },
 })
-export class GitAddTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitAddTool extends BaseTool<GitAddArgs, object, GitAddResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: GitAddArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitAdd(agentUrl, args.files);
+  protected async handle(args: GitAddArgs): Promise<ToolResult<GitAddResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitAdd(agentUrl, args.files);
     return { data: result };
   }
 }

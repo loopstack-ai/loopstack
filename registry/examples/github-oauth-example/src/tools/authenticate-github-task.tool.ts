@@ -1,6 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolResult } from '@loopstack/common';
+import {
+  BaseTool,
+  DOCUMENT_STORE,
+  LinkDocument,
+  Tool,
+  ToolCallOptions,
+  ToolResult,
+  WORKFLOW_ORCHESTRATOR,
+  WorkflowOrchestrator,
+} from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 const AuthenticateGitHubTaskInputSchema = z
@@ -17,8 +27,10 @@ const AuthenticateGitHubTaskInputSchema = z
 
 type AuthenticateGitHubTaskInput = z.infer<typeof AuthenticateGitHubTaskInputSchema>;
 
-@Injectable()
+export type AuthenticateGitHubTaskResult = { workflowId: string; mode: string; [key: string]: unknown } | string;
+
 @Tool({
+  name: 'authenticate_github',
   uiConfig: {
     description:
       'Launches GitHub OAuth authentication. Shows the user a sign-in prompt to authorize access to GitHub. ' +
@@ -28,18 +40,30 @@ type AuthenticateGitHubTaskInput = z.infer<typeof AuthenticateGitHubTaskInputSch
   },
   schema: AuthenticateGitHubTaskInputSchema,
 })
-export class AuthenticateGitHubTask extends BaseTool {
+export class AuthenticateGitHubTask extends BaseTool<
+  AuthenticateGitHubTaskInput,
+  object,
+  AuthenticateGitHubTaskResult
+> {
   private readonly logger = new Logger(AuthenticateGitHubTask.name);
 
-  @InjectWorkflow() private oAuth: OAuthWorkflow;
+  constructor(
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+  ) {
+    super();
+  }
 
-  async call(args: AuthenticateGitHubTaskInput): Promise<ToolResult> {
-    const result = await this.oAuth.run(
+  protected async handle(
+    args: AuthenticateGitHubTaskInput,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<AuthenticateGitHubTaskResult>> {
+    const result = await this.orchestrator.queue(
       { provider: 'github', scopes: args.scopes },
-      { alias: 'oAuth', callback: args.callback },
+      { workflowName: OAuthWorkflow.name, callback: args.callback },
     );
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'pending',
@@ -56,10 +80,10 @@ export class AuthenticateGitHubTask extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult<AuthenticateGitHubTaskResult>> {
     const data = result as { workflowId?: string };
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'success',

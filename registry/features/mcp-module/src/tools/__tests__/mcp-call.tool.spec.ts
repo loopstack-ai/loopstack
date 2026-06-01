@@ -17,7 +17,7 @@ describe('McpCallTool', () => {
   it('throws when config is missing allowedHosts', async () => {
     const tool = makeTool({ callTool: vi.fn() });
     await expect(
-      tool.call(
+      (tool as any).handle(
         {
           serverUrl: 'https://mcp.linear.app/sse',
           toolName: 'createIssue',
@@ -27,14 +27,14 @@ describe('McpCallTool', () => {
         // Schema would reject this, but we feed the tool directly to test the guard.
         { config: { allowedHosts: [] } as unknown as McpToolConfig },
       ),
-    ).rejects.toThrow(/requires @InjectTool/);
+    ).rejects.toThrow(/requires config with allowedHosts/);
   });
 
   it('forwards args to McpClientService.callTool and returns the data', async () => {
     const callTool = vi.fn().mockResolvedValue({ kind: 'callToolResult', content: [{ x: 1 }] });
     const tool = makeTool({ callTool });
 
-    const result = await tool.call(
+    const result = await (tool as any).handle(
       {
         serverUrl: 'https://mcp.linear.app/sse',
         toolName: 'createIssue',
@@ -64,7 +64,7 @@ describe('McpCallTool', () => {
       toolName: 'noop',
     });
 
-    await tool.call(parsed, { config: cfg(['mcp.linear.app']) });
+    await (tool as any).handle(parsed, { config: cfg(['mcp.linear.app']) });
 
     expect(callTool).toHaveBeenCalledWith(expect.any(String), expect.any(Object), 'noop', {}, expect.any(Object));
   });

@@ -1,35 +1,77 @@
 import { Injectable } from '@nestjs/common';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { WorkflowExecutionContextManager } from './execution-context-manager.js';
+import type { QueryRunner } from 'typeorm';
+import type { DocumentEntity } from '@loopstack/common';
+import type { HistoryTransition } from '@loopstack/contracts/types';
 
 /**
- * Holds the current ExecutionContextManager for the duration of a transition.
+ * Data held in async-local-storage during a workflow transition.
  *
- * When workflow code calls `this.tool.run(args)`, the base class needs access
- * to the current execution context (for interceptors, document management, etc.)
- * without passing it as a parameter. The processor sets the scope before calling
- * a transition method; anything called inside — tools, documents, sub-workflows —
- * can read it via `executionScope.get()`.
+ * Read-only context fields are set once per `process()` call.
+ * Mutable fields (queryRunner, documents, transition) are updated
+ * by the processor before each transition execution.
+ */
+export interface ExecutionScopeData {
+  // Read-only context
+  userId: string;
+  workspaceId: string;
+  workflowId: string;
+  labels: string[];
+  args: Readonly<Record<string, unknown> | undefined>;
+  config: Readonly<Record<string, unknown> | undefined>;
+  options: { stateless: boolean };
+
+  // Per-execution cache for scope-aware services (nestjs-cls pattern)
+  cache: Map<symbol, Promise<unknown>>;
+
+  // Mutable per-transition
+  queryRunner: QueryRunner | null;
+  documents: DocumentEntity[];
+  persistenceState: { documentsUpdated: boolean };
+  transition?: HistoryTransition;
+}
+
+/**
+ * Holds the current execution scope data for the duration of a transition.
+ *
+ * When workflow code calls `tool.call(args)`, the tool pipeline and document
+ * services need access to the current execution context without it being passed
+ * as a parameter. The processor sets the scope before calling a transition method;
+ * anything called inside — tools, documents, sub-workflows — can read it via
+ * `executionScope.get()`.
  */
 @Injectable()
 export class ExecutionScope {
-  private storage = new AsyncLocalStorage<WorkflowExecutionContextManager>();
+  private storage = new AsyncLocalStorage<ExecutionScopeData>();
 
-  run<T>(ctx: WorkflowExecutionContextManager, fn: () => Promise<T>): Promise<T>;
-  run<T>(ctx: WorkflowExecutionContextManager, fn: () => T): T;
-  run<T>(ctx: WorkflowExecutionContextManager, fn: () => T | Promise<T>): T | Promise<T> {
-    return this.storage.run(ctx, fn);
+  run<T>(data: ExecutionScopeData, fn: () => Promise<T>): Promise<T>;
+  run<T>(data: ExecutionScopeData, fn: () => T): T;
+  run<T>(data: ExecutionScopeData, fn: () => T | Promise<T>): T | Promise<T> {
+    return this.storage.run(data, fn);
   }
 
-  get(): WorkflowExecutionContextManager {
-    const ctx = this.storage.getStore();
-    if (!ctx) {
+  get(): ExecutionScopeData {
+    const data = this.storage.getStore();
+    if (!data) {
       throw new Error('No active execution scope. Are you calling outside a transition?');
     }
-    return ctx;
+    return data;
   }
 
-  getOptional(): WorkflowExecutionContextManager | undefined {
+  getOptional(): ExecutionScopeData | undefined {
     return this.storage.getStore();
+  }
+
+  /**
+   * Get a cached value from the per-execution cache, or load it once.
+   * The loader is called at most once per execution — subsequent calls return the same Promise.
+   */
+  getOrLoad<T>(key: symbol, loader: () => Promise<T>): Promise<T> {
+    const store = this.storage.getStore();
+    if (!store) throw new Error('No active execution scope. Are you calling outside a transition?');
+    if (store.cache.has(key)) return store.cache.get(key) as Promise<T>;
+    const promise = loader();
+    store.cache.set(key, promise);
+    return promise;
   }
 }

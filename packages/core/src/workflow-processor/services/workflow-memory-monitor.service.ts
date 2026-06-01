@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DocumentEntity, WorkflowEntity } from '@loopstack/common';
-import { WorkflowExecutionContextManager } from '../utils/execution-context-manager.js';
 
 export interface MemorySnapshot {
   heapUsedMB: number;
@@ -33,13 +32,10 @@ export class WorkflowMemoryMonitorService {
     };
   }
 
-  collectMetrics(ctx: WorkflowExecutionContextManager): WorkflowMemoryMetrics {
+  collectMetrics(documents: DocumentEntity[], version: number): WorkflowMemoryMetrics {
     const memory = this.getMemorySnapshot();
-
-    const documents: DocumentEntity[] = ctx.getManager().getData('documents') ?? [];
     const documentCount = documents.length;
     const invalidatedDocumentCount = documents.filter((d) => d.isInvalidated).length;
-    const version = ctx.getManager().getVersion();
 
     return {
       memory,
@@ -49,9 +45,9 @@ export class WorkflowMemoryMonitorService {
     };
   }
 
-  logTransition(workflowName: string, transitionId: string, ctx: WorkflowExecutionContextManager): void {
-    const metrics = this.collectMetrics(ctx);
-    const { memory, documentCount, invalidatedDocumentCount, version } = metrics;
+  logTransition(workflowName: string, transitionId: string, documents: DocumentEntity[], version: number): void {
+    const metrics = this.collectMetrics(documents, version);
+    const { memory, documentCount, invalidatedDocumentCount } = metrics;
 
     this.logger.debug(
       `[${workflowName}] transition="${transitionId}" | ` +
@@ -89,14 +85,14 @@ export class WorkflowMemoryMonitorService {
     const documentCount = entity.documents?.length ?? 0;
 
     this.logger.log(
-      `[${label}] entity=${entity.alias} id=${entity.id} | ` +
+      `[${label}] entity=${entity.workflowName} id=${entity.id} | ` +
         `heap=${memory.heapUsedMB}/${memory.heapTotalMB}MB | ` +
         `docs=${documentCount}`,
     );
 
     if (documentCount > DOCUMENT_WARN_THRESHOLD) {
       this.logger.warn(
-        `[${label}] entity=${entity.alias} has ${documentCount} documents (threshold: ${DOCUMENT_WARN_THRESHOLD})`,
+        `[${label}] entity=${entity.workflowName} has ${documentCount} documents (threshold: ${DOCUMENT_WARN_THRESHOLD})`,
       );
     }
   }
@@ -108,9 +104,9 @@ export class WorkflowMemoryMonitorService {
     );
   }
 
-  logWorkflowEnd(workflowName: string, ctx: WorkflowExecutionContextManager): void {
-    const metrics = this.collectMetrics(ctx);
-    const { memory, documentCount, invalidatedDocumentCount, version } = metrics;
+  logWorkflowEnd(workflowName: string, documents: DocumentEntity[], version: number): void {
+    const metrics = this.collectMetrics(documents, version);
+    const { memory, documentCount, invalidatedDocumentCount } = metrics;
 
     this.logger.log(
       `[${workflowName}] END | ` +

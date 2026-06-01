@@ -1,17 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { DocumentRepository, FrameworkContext, WorkflowOrchestrator } from '../interfaces/index.js';
-import { DOCUMENT_REPOSITORY, FRAMEWORK_CONTEXT, TEMPLATE_RENDERER, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
-import { assertToolsAvailable } from '../utils/block-metadata.utils.js';
-import type { BaseApp } from './base-app.js';
-import { TemplateRenderFn } from './workflow-templates.js';
 
 export interface RunOptions {
-  alias?: string;
+  workflowName?: string;
   callback?: { transition: string; metadata?: Record<string, unknown> };
   /** @internal — set automatically by `run()`. The resolved workflow instance. */
   _workflowInstance?: object;
-  /** @internal — set by the framework from @InjectWorkflow defaults. Validated against configSchema. */
+  /** @internal — set by the framework from workflow config. Validated against configSchema. */
   _config?: Record<string, unknown>;
 }
 
@@ -27,55 +22,24 @@ export const CallbackSchema = z.object({
 });
 
 /**
- * Abstract base class for workflows in the TypeScript-first workflow model.
+ * Abstract base class for workflows.
  *
  * Generic parameters:
- * - `TArgs` — per-invocation input, passed to `run()` and validated against `schema`
- * - `TConfig` — per-injection configuration from `@InjectWorkflow()`, validated against `configSchema`
- * - `TApp` — the app type, for typed access to `this.ctx.app`
+ * - `TArgs` — per-invocation input, validated against `@Workflow({ schema })`
+ * - `TState` — explicit state object passed into and returned from transitions
  *
- * Framework services are available on `this`:
- * - `this.repository` — document repository for creating/querying documents
- * - `this.ctx` — execution context (app, workflow, runtime, args, config, parent)
- * - `this.orchestrator` — workflow orchestrator for queuing sub-workflows
+ * Workflows are singletons. State flows explicitly through parameters:
+ * - `@Initial` methods receive `(ctx, args, state)` and return `Promise<TState>`
+ * - `@Transition` methods receive `(ctx, state)` or `(ctx, state, payload)` and return `Promise<TState>`
+ * - `@Final` methods receive `(ctx, state)` and return `Promise<unknown>` (the workflow result)
  *
- * Sub-workflows are launched via `this.subWorkflow.run(args, options)`.
- * Transition methods receive typed data as their first argument:
- * - `@Initial` methods receive the validated workflow args (TArgs)
- * - `@Transition({ wait: true })` methods receive the callback payload
- * - Auto `@Transition` methods receive no argument
+ * Services are injected via constructor on the concrete class:
+ * ```ts
+ * constructor(
+ *   private llm: LlmGenerateTextTool,
+ *   private documentStore: DocumentStore,
+ * ) { super(); }
+ * ```
  */
 @Injectable()
-export abstract class BaseWorkflow<
-  TArgs = Record<string, unknown>,
-  _TConfig = Record<string, unknown>,
-  TApp extends BaseApp = BaseApp,
-> {
-  /** Framework-provided document repository for creating/querying documents */
-  @Inject(DOCUMENT_REPOSITORY) readonly repository!: DocumentRepository;
-
-  /** Execution context — wired by the framework at runtime */
-  @Inject(FRAMEWORK_CONTEXT) readonly ctx!: FrameworkContext<TApp>;
-
-  /** Workflow orchestrator — wired by the framework at runtime */
-  @Inject(WORKFLOW_ORCHESTRATOR) readonly orchestrator!: WorkflowOrchestrator;
-
-  /** Renders a Handlebars template file. Usage: `this.render(__dirname + '/templates/foo.md', { key: 'value' })` */
-  @Inject(TEMPLATE_RENDERER) readonly render!: TemplateRenderFn;
-
-  /**
-   * Validates that all required tools are available on this workflow or app.
-   * Call this in `@Initial` methods to fail fast on misconfiguration.
-   */
-  protected assertToolsAvailable(toolNames: string[]): void {
-    assertToolsAvailable(this.constructor.name, this, toolNames, this.ctx.app);
-  }
-
-  /** Launches this workflow as a sub-workflow via the orchestrator. */
-  run(args: TArgs, options?: RunOptions): Promise<QueueResult> {
-    return this.orchestrator.queue(args as Record<string, unknown>, {
-      ...options,
-      _workflowInstance: this,
-    });
-  }
-}
+export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TState = Record<string, unknown>> {}

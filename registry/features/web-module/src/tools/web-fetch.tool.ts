@@ -24,6 +24,7 @@ export const WebFetchSchema = z
 type WebFetchArgs = z.infer<typeof WebFetchSchema>;
 
 @Tool({
+  name: 'web_fetch',
   uiConfig: {
     description:
       'Fetches content from a URL, converts HTML to Markdown, and optionally summarizes it with a small Claude model against a user-provided prompt. ' +
@@ -31,11 +32,11 @@ type WebFetchArgs = z.infer<typeof WebFetchSchema>;
   },
   schema: WebFetchSchema,
 })
-export class WebFetchTool extends BaseTool {
+export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult> {
   @Inject() private readonly fetcher: WebFetchFetcherService;
   @Inject() private readonly summarizer: WebFetchSummarizerService;
 
-  async call(args: WebFetchArgs): Promise<ToolResult<WebFetchResult>> {
+  protected async handle(args: WebFetchArgs): Promise<ToolResult<WebFetchResult>> {
     const start = performance.now();
     const outcome = await this.fetcher.fetch(args.url);
 

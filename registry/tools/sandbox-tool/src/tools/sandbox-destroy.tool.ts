@@ -21,18 +21,19 @@ interface SandboxDestroyResult {
 }
 
 @Tool({
+  name: 'sandbox_destroy',
   uiConfig: {
     description: 'Stop and destroy a sandbox container',
   },
   schema: inputSchema,
 })
-export class SandboxDestroy extends BaseTool {
+export class SandboxDestroy extends BaseTool<SandboxDestroyArgs, object, SandboxDestroyResult> {
   private readonly logger = new Logger(SandboxDestroy.name);
 
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  async call(args: SandboxDestroyArgs): Promise<ToolResult<SandboxDestroyResult>> {
+  protected async handle(args: SandboxDestroyArgs): Promise<ToolResult<SandboxDestroyResult>> {
     const { containerId, removeContainer } = args;
 
     this.logger.debug(`Destroying sandbox ${containerId} (removeContainer: ${removeContainer})`);

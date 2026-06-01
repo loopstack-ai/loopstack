@@ -30,7 +30,6 @@
   },
   "dependencies": {
     "@loopstack/common": "^0.31.0",
-    "@loopstack/core": "^0.31.0",
     "@loopstack/remote-client": "^0.24.1",
     "@loopstack/remote-file-explorer-module": "^0.23.1",
     "@nestjs/common": "^11.1.19",

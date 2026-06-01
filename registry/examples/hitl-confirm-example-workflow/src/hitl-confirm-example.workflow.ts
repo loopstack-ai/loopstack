@@ -1,15 +1,19 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
+  DOCUMENT_STORE,
   Final,
   Initial,
-  InjectWorkflow,
   LinkDocument,
   MessageDocument,
   QueueResult,
+  WORKFLOW_ORCHESTRATOR,
   Workflow,
+  WorkflowOrchestrator,
 } from '@loopstack/common';
+import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 
 const ConfirmCallbackSchema = CallbackSchema.extend({
@@ -27,25 +31,36 @@ We're about to deploy **v1.2.3** to production.
 
 Proceed?`;
 
+interface HitlConfirmState {}
+
 @Workflow({
   uiConfig: __dirname + '/hitl-confirm-example.ui.yaml',
 })
-export class HitlConfirmExampleWorkflow extends BaseWorkflow {
-  @InjectWorkflow() private confirmUser: ConfirmUserWorkflow;
+export class HitlConfirmExampleWorkflow extends BaseWorkflow<Record<string, unknown>, HitlConfirmState> {
+  constructor(
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+  ) {
+    super();
+  }
 
   @Initial({ to: 'waiting_for_confirmation' })
-  async askForConfirmation() {
-    const result: QueueResult = await this.confirmUser.run(
+  async askForConfirmation(
+    ctx: WorkflowContext,
+    args: Record<string, unknown>,
+    state: HitlConfirmState,
+  ): Promise<HitlConfirmState> {
+    const result: QueueResult = await this.orchestrator.queue(
       { markdown: MARKDOWN_SUMMARY },
-      { alias: 'confirmUser', callback: { transition: 'decisionReceived' } },
+      { workflowName: ConfirmUserWorkflow.name, callback: { transition: 'decisionReceived' } },
     );
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Requesting confirmation (sub-workflow ${result.workflowId})...`,
     });
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'pending',
@@ -56,6 +71,7 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
       },
       { id: `link_${result.workflowId}` },
     );
+    return state;
   }
 
   @Final({
@@ -63,8 +79,8 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
     wait: true,
     schema: ConfirmCallbackSchema,
   })
-  async decisionReceived(payload: ConfirmCallback) {
-    await this.repository.save(
+  async decisionReceived(ctx: WorkflowContext, state: HitlConfirmState, payload: ConfirmCallback): Promise<unknown> {
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'success',
@@ -78,9 +94,10 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
 
     const content = payload.data.confirmed ? 'User confirmed — proceeding with deploy.' : 'User denied — aborting.';
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content,
     });
+    return {};
   }
 }

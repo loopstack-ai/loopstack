@@ -1,21 +1,30 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
+
+export type GitBranchResult = {
+  current: string;
+  branches: { name: string; isCurrent: boolean }[];
+};
 
 @Tool({
+  name: 'git_branch',
   schema: z.object({}).strict(),
   uiConfig: {
     description: 'Lists all local git branches and indicates the current branch.',
   },
 })
-export class GitBranchTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitBranchTool extends BaseTool<object, object, GitBranchResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitBranches(agentUrl);
+  protected async handle(): Promise<ToolResult<GitBranchResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitBranches(agentUrl);
     return { data: result };
   }
 }

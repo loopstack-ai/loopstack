@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 
+export type GetWeatherResult = string;
+
 @Tool({
+  name: 'get_weather',
   uiConfig: {
     description: 'Retrieve weather information.',
   },
@@ -9,11 +12,8 @@ import { BaseTool, Tool, ToolResult } from '@loopstack/common';
     location: z.string(),
   }),
 })
-export class GetWeather extends BaseTool {
-  async call(_args: unknown): Promise<ToolResult> {
-    // Wait for 3 seconds for testing
-    // await new Promise(resolve => setTimeout(resolve, 3000));
-
+export class GetWeather extends BaseTool<{ location: string }, object, GetWeatherResult> {
+  protected async handle(_args: unknown): Promise<ToolResult<GetWeatherResult>> {
     return Promise.resolve({
       type: 'text',
       data: 'Mostly sunny, 14C, rain in the afternoon.',

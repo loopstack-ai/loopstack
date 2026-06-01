@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentWorkflow } from '@loopstack/agent';
-import { RunContext, WorkflowEntity } from '@loopstack/common';
+import { RunContext, WORKFLOW_ORCHESTRATOR, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { AgentExampleWorkflow } from '../agent-example.workflow';
@@ -13,8 +13,12 @@ describe('AgentExampleWorkflow', () => {
   let workflow: AgentExampleWorkflow;
   let processor: WorkflowProcessorService;
 
-  const mockAgent = {
-    run: vi.fn(),
+  const mockOrchestrator = {
+    queue: vi.fn(),
+    complete: vi.fn(),
+    resume: vi.fn(),
+    cancel: vi.fn(),
+    cancelChildren: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -23,7 +27,7 @@ describe('AgentExampleWorkflow', () => {
     module = await createWorkflowTest()
       .forWorkflow(AgentExampleWorkflow)
       .withProviders(CalculatorTool, WeatherLookupTool)
-      .withMock(AgentWorkflow, mockAgent)
+      .withOverride(WORKFLOW_ORCHESTRATOR, mockOrchestrator)
       .compile();
 
     workflow = module.get(AgentExampleWorkflow);
@@ -35,7 +39,7 @@ describe('AgentExampleWorkflow', () => {
   });
 
   it('launches AgentWorkflow and stops at running', async () => {
-    mockAgent.run.mockResolvedValue({ workflowId: 'agent-sub-id' });
+    mockOrchestrator.queue.mockResolvedValue({ workflowId: 'agent-sub-id' });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
 
@@ -43,13 +47,13 @@ describe('AgentExampleWorkflow', () => {
     expect(result.stop).toBe(true);
     expect(result.place).toBe('running');
 
-    expect(mockAgent.run).toHaveBeenCalledWith(
+    expect(mockOrchestrator.queue).toHaveBeenCalledWith(
       expect.objectContaining({
         system: expect.any(String),
         tools: ['weatherLookup', 'calculator'],
         userMessage: expect.any(String),
       }),
-      expect.objectContaining({ alias: 'agent', callback: { transition: 'agentComplete' } }),
+      expect.objectContaining({ workflowName: AgentWorkflow.name, callback: { transition: 'agentComplete' } }),
     );
 
     expect(result.documents).toEqual(

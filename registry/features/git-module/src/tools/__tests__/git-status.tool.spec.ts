@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 import { createToolTest } from '@loopstack/testing';
 import { GitStatusTool } from '../git-status.tool.js';
 
@@ -11,8 +11,8 @@ describe('GitStatusTool', () => {
   const mockRemoteClient = {
     gitStatus: vi.fn(),
   };
-  const mockSandbox = {
-    getAgentUrl: vi.fn().mockReturnValue('https://agent.example'),
+  const mockEnv = {
+    getAgentUrl: vi.fn().mockResolvedValue('https://agent.example'),
   };
 
   beforeEach(async () => {
@@ -21,7 +21,7 @@ describe('GitStatusTool', () => {
     module = await createToolTest()
       .forTool(GitStatusTool)
       .withMock(RemoteClient, mockRemoteClient)
-      .withMock(SandboxEnvironmentService, mockSandbox)
+      .withMock(EnvironmentService, mockEnv)
       .compile();
 
     tool = module.get(GitStatusTool);

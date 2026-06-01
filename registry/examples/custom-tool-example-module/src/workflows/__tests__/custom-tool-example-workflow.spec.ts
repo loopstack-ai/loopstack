@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { getBlockArgsSchema, getBlockConfig, getBlockTools } from '@loopstack/common';
+import { getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { CounterTool, MathSumTool } from '../../tools';
@@ -49,12 +49,9 @@ describe('CustomToolExampleWorkflow', () => {
       expect(getBlockConfig(workflow)).toBeDefined();
     });
 
-    it('should have all tools available via workflow.tools', () => {
-      expect(getBlockTools(workflow)).toBeDefined();
-      expect(Array.isArray(getBlockTools(workflow))).toBe(true);
-      expect(getBlockTools(workflow)).toContain('counterTool');
-      expect(getBlockTools(workflow)).toContain('mathTool');
-      expect(getBlockTools(workflow)).toHaveLength(2);
+    it('should have tools available via constructor injection', () => {
+      expect(mockMathSumTool).toBeDefined();
+      expect(mockCounterTool).toBeDefined();
     });
   });
 
@@ -105,7 +102,7 @@ describe('CustomToolExampleWorkflow', () => {
       expect(result.place).toBe('waiting_for_user');
 
       // Tool calls
-      expect(mockMathSumTool.call).toHaveBeenCalledWith({ a: 10, b: 20 }, undefined);
+      expect(mockMathSumTool.call).toHaveBeenCalledWith({ a: 10, b: 20 });
       expect(mockCounterTool.call).toHaveBeenCalledTimes(3);
 
       // Verify MessageDocument was created with calculation result

@@ -56,7 +56,7 @@ export interface LlmGenerateTextArgs<TProviderConfig = Record<string, unknown>> 
   messages?: LlmMessage[];
   prompt?: string;
   messagesSearchTag?: string;
-  tools?: string[];
+  tools?: LlmResolvedTool[];
   model?: string;
   /** Provider-specific config (e.g. maxTokens, temperature, cache). Opaque to the framework. */
   providerConfig?: TProviderConfig;

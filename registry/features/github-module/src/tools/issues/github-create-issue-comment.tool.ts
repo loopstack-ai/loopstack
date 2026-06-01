@@ -14,21 +14,37 @@ const inputSchema = z
 
 export type GitHubCreateIssueCommentArgs = z.infer<typeof inputSchema>;
 
+export type GitHubCreateIssueCommentResult =
+  | {
+      comment: {
+        id: number;
+        htmlUrl: string;
+        createdAt: string;
+        user: string;
+      };
+    }
+  | { error: string; message: string };
+
 @Tool({
+  name: 'github_create_issue_comment',
   uiConfig: {
     description:
       'Creates a comment on a GitHub issue or pull request. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GitHubCreateIssueCommentTool extends BaseTool {
+export class GitHubCreateIssueCommentTool extends BaseTool<
+  GitHubCreateIssueCommentArgs,
+  object,
+  GitHubCreateIssueCommentResult
+> {
   private readonly logger = new Logger(GitHubCreateIssueCommentTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubCreateIssueCommentArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(args: GitHubCreateIssueCommentArgs): Promise<ToolResult<GitHubCreateIssueCommentResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -52,7 +68,7 @@ export class GitHubCreateIssueCommentTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: '401',

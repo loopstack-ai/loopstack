@@ -13,15 +13,16 @@ export const McpCallToolArgsSchema = McpConnectionArgsSchema.extend({
 export type McpCallToolArgs = z.infer<typeof McpCallToolArgsSchema>;
 
 @Tool({
+  name: 'mcp_call',
   uiConfig: {
     description:
-      'Calls a tool on a remote MCP server over HTTPS (Streamable HTTP or legacy SSE). Requires `allowedHosts` and optional `headerEnv`/`hostHeaderEnv` via `@InjectTool`.',
+      'Calls a tool on a remote MCP server over HTTPS (Streamable HTTP or legacy SSE). Requires `allowedHosts` and optional `headerEnv`/`hostHeaderEnv` via tool config.',
   },
   schema: McpCallToolArgsSchema,
   configSchema: McpToolConfigSchema,
 })
 export class McpCallTool extends McpToolBase<McpCallToolArgs> {
-  async call(args: McpCallToolArgs, options?: ToolCallOptions<McpToolConfig>): Promise<ToolResult> {
+  protected async handle(args: McpCallToolArgs, options?: ToolCallOptions<McpToolConfig>): Promise<ToolResult> {
     const cfg = this.requireConfig(options?.config);
 
     const result = await this.mcp.callTool(args.serverUrl, cfg, args.toolName, args.arguments, {

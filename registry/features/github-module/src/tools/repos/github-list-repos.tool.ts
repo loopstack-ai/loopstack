@@ -14,21 +14,39 @@ const inputSchema = z
 
 export type GitHubListReposArgs = z.input<typeof inputSchema>;
 
+export type GitHubListReposResult = {
+  repos?: Array<{
+    id: number;
+    fullName: string;
+    name: string;
+    owner: string;
+    private: boolean;
+    htmlUrl: string;
+    description: string | null;
+    language: string | null;
+    defaultBranch: string;
+    updatedAt: string;
+  }>;
+  error?: string;
+  message?: string;
+};
+
 @Tool({
+  name: 'github_list_repos',
   uiConfig: {
     description:
       'Lists repositories for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GitHubListReposTool extends BaseTool {
+export class GitHubListReposTool extends BaseTool<GitHubListReposArgs, object, GitHubListReposResult> {
   private readonly logger = new Logger(GitHubListReposTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubListReposArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(args: GitHubListReposArgs): Promise<ToolResult<GitHubListReposResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -55,7 +73,7 @@ export class GitHubListReposTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: '401',

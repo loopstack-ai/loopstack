@@ -1,13 +1,14 @@
 import { Star } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { WorkspaceItemInterface } from '@loopstack/contracts/api';
+import type { StudioEnvironmentSlot } from '../../api/types.ts';
 import ItemListView from '../../components/lists/ListView.tsx';
 import type { Column, OriginalRowAction } from '../../components/lists/ListView.tsx';
 import { Badge } from '../../components/ui/badge.tsx';
 import { Dialog, DialogContent } from '../../components/ui/dialog.tsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../components/ui/tooltip.tsx';
-import { useAppConfig } from '../../hooks/useConfig.ts';
+import { useAppsConfig } from '../../hooks/useConfig.ts';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import {
   useBatchDeleteWorkspaces,
@@ -44,7 +45,16 @@ const Workspaces = () => {
     }
   }, [searchParams]);
 
-  const fetchAppTypes = useAppConfig();
+  const fetchAppsConfig = useAppsConfig();
+  const appTypes = useMemo(
+    () =>
+      (fetchAppsConfig.data ?? []).map((a) => ({
+        appName: a.appName,
+        title: a.title,
+        environments: (a.extensions?.['environments'] as StudioEnvironmentSlot[]) ?? [],
+      })),
+    [fetchAppsConfig.data],
+  );
 
   const fetchWorkspaces = useFilterWorkspaces(debouncedSearchTerm, filters, orderBy, order, page, rowsPerPage);
 
@@ -84,8 +94,8 @@ const Workspaces = () => {
   return (
     <>
       <ItemListView
-        loading={fetchAppTypes.isPending || fetchWorkspaces.isPending}
-        error={fetchWorkspaces.error ?? fetchAppTypes.error ?? null}
+        loading={fetchAppsConfig.isPending || fetchWorkspaces.isPending}
+        error={fetchWorkspaces.error ?? fetchAppsConfig.error ?? null}
         items={fetchWorkspaces.data?.data ?? []}
         totalItems={fetchWorkspaces.data?.total ?? 0}
         setPage={setPage}
@@ -120,7 +130,7 @@ const Workspaces = () => {
                       <Badge
                         variant="outline"
                         className="hover:bg-primary/10 cursor-pointer"
-                        onClick={() => setFilters((curr) => ({ ...curr, className: value }))}
+                        onClick={() => setFilters((curr) => ({ ...curr, appName: value }))}
                       >
                         {value.length > 25 ? value.slice(0, 25) + '...' : value}
                       </Badge>
@@ -207,15 +217,13 @@ const Workspaces = () => {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
-          <CreateWorkspace types={fetchAppTypes.data ?? []} onSuccess={handleClose} />
+          <CreateWorkspace types={appTypes} onSuccess={handleClose} />
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!openEdit} onOpenChange={(open) => !open && handleEditClose()}>
         <DialogContent className="max-w-2xl">
-          {openEdit && (
-            <EditWorkspace types={fetchAppTypes.data ?? []} workspace={openEdit} onSuccess={handleEditClose} />
-          )}
+          {openEdit && <EditWorkspace types={appTypes} workspace={openEdit} onSuccess={handleEditClose} />}
         </DialogContent>
       </Dialog>
     </>

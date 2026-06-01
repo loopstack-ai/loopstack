@@ -1,8 +1,7 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
-import { SandboxEnvironmentService } from '../services/sandbox-environment.service.js';
 
 export type ReadArgs = {
   file_path: string;
@@ -10,7 +9,13 @@ export type ReadArgs = {
   limit?: number;
 };
 
+export type ReadResult = {
+  content: string;
+  path: string;
+};
+
 @Tool({
+  name: 'read',
   schema: z
     .object({
       file_path: z.string().describe('The file path to read'),
@@ -23,13 +28,17 @@ export type ReadArgs = {
       'Reads a file from a remote instance. Returns file content. Supports offset and limit for reading specific line ranges.',
   },
 })
-export class ReadTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class ReadTool extends BaseTool<ReadArgs, object, ReadResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: ReadArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.readFile(agentUrl, args.file_path, args.offset, args.limit);
+  protected async handle(args: ReadArgs): Promise<ToolResult<ReadResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.readFile(agentUrl, args.file_path, args.offset, args.limit);
     return { data: { content: result.content, path: args.file_path } };
   }
 }

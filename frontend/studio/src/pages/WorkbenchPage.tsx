@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
@@ -13,11 +12,9 @@ import { useStudio } from '../providers/StudioProvider.tsx';
 export default function WorkbenchPage({
   getPreviewUrl,
   getEnvironmentPreviewUrl,
-  environments,
 }: {
   getPreviewUrl?: (workflowId: string) => string;
   getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, workflowId?: string) => string;
-  environments?: WorkspaceEnvironmentInterface[];
 } = {}) {
   const { router } = useStudio();
   const params = useParams<{ workflowId: string }>();
@@ -26,11 +23,6 @@ export default function WorkbenchPage({
   const fetchWorkflow = useWorkflow(workflowId);
   const workspaceId = fetchWorkflow.data?.workspaceId;
   const fetchWorkspace = useWorkspace(workspaceId);
-
-  const resolvedEnvironments = useMemo(
-    () => environments ?? fetchWorkspace.data?.environments,
-    [environments, fetchWorkspace.data?.environments],
-  );
 
   const defaultGetEnvironmentPreviewUrl = useDefaultEnvironmentPreviewUrl();
   const resolvedGetEnvironmentPreviewUrl = getEnvironmentPreviewUrl ?? defaultGetEnvironmentPreviewUrl;
@@ -57,7 +49,6 @@ export default function WorkbenchPage({
               breadcrumbData={breadcrumbData}
               getPreviewUrl={getPreviewUrl}
               getEnvironmentPreviewUrl={resolvedGetEnvironmentPreviewUrl}
-              environments={resolvedEnvironments}
             />
           ) : !fetchWorkflow.isLoading && !fetchWorkflow.error ? (
             <p className="text-muted-foreground py-8 text-center text-sm">Workflow not found.</p>

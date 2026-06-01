@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RunContext, WorkflowEntity, getBlockConfig } from '@loopstack/common';
+import { RunContext, WORKFLOW_ORCHESTRATOR, WorkflowEntity, getBlockConfig } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { RunSubWorkflowExampleParentWorkflow } from '../run-sub-workflow-example-parent.workflow';
@@ -11,8 +11,12 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
   let workflow: RunSubWorkflowExampleParentWorkflow;
   let processor: WorkflowProcessorService;
 
-  const mockSubWorkflow = {
-    run: vi.fn(),
+  const mockOrchestrator = {
+    queue: vi.fn(),
+    complete: vi.fn(),
+    resume: vi.fn(),
+    cancel: vi.fn(),
+    cancelChildren: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -20,7 +24,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(RunSubWorkflowExampleParentWorkflow)
-      .withMock(RunSubWorkflowExampleSubWorkflow, mockSubWorkflow)
+      .withOverride(WORKFLOW_ORCHESTRATOR, mockOrchestrator)
       .compile();
 
     workflow = module.get(RunSubWorkflowExampleParentWorkflow);
@@ -47,7 +51,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
     it('should execute run_workflow transition and stop at sub_workflow_started', async () => {
       const context = createStatelessContext();
 
-      mockSubWorkflow.run.mockResolvedValue({
+      mockOrchestrator.queue.mockResolvedValue({
         workflowId: 'test-workflow-id',
       });
 
@@ -58,11 +62,11 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       expect(result.stop).toBe(true);
       expect(result.place).toBe('sub_workflow_started');
 
-      expect(mockSubWorkflow.run).toHaveBeenCalledTimes(1);
-      expect(mockSubWorkflow.run).toHaveBeenCalledWith(
+      expect(mockOrchestrator.queue).toHaveBeenCalledTimes(1);
+      expect(mockOrchestrator.queue).toHaveBeenCalledWith(
         {},
         expect.objectContaining({
-          alias: 'runSubWorkflowExampleSub',
+          workflowName: RunSubWorkflowExampleSubWorkflow.name,
           callback: { transition: 'subWorkflowCallback' },
         }),
       );
@@ -84,7 +88,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
     it('should execute sub_workflow_callback when resumed from sub_workflow_started', async () => {
       const workflowId = '00000000-0000-0000-0000-000000000001';
 
-      mockSubWorkflow.run.mockResolvedValue({
+      mockOrchestrator.queue.mockResolvedValue({
         workflowId: 'test-workflow-id-2',
       });
 
@@ -124,11 +128,11 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
       );
 
       // runWorkflow2 fires automatically and calls sub workflow again
-      expect(mockSubWorkflow.run).toHaveBeenCalledTimes(1);
-      expect(mockSubWorkflow.run).toHaveBeenCalledWith(
+      expect(mockOrchestrator.queue).toHaveBeenCalledTimes(1);
+      expect(mockOrchestrator.queue).toHaveBeenCalledWith(
         {},
         expect.objectContaining({
-          alias: 'runSubWorkflowExampleSub',
+          workflowName: RunSubWorkflowExampleSubWorkflow.name,
           callback: { transition: 'subWorkflow2Callback' },
         }),
       );

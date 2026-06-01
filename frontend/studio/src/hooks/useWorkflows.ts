@@ -150,26 +150,26 @@ export function useChildWorkflows(parentId: string | undefined, enabled: boolean
 /**
  * Fetch workflow config by block name (class name).
  */
-export function useWorkflowConfigByName(alias: string | undefined) {
+export function useWorkflowConfigByName(workflowName: string | undefined) {
   const { envKey, api } = useApiClient();
 
   return useQuery<WorkflowConfigInterface>({
-    queryKey: getWorkflowConfigCacheKey(envKey, alias!),
-    queryFn: () => api.config.getWorkflowConfig({ alias: alias! }),
-    enabled: !!alias,
+    queryKey: getWorkflowConfigCacheKey(envKey, workflowName!),
+    queryFn: () => api.config.getWorkflowConfig({ workflowName: workflowName! }),
+    enabled: !!workflowName,
   });
 }
 
 /**
- * Fetch workflow source by block name (class name).
+ * Fetch workflow source by workflow name (class name).
  */
-export function useWorkflowSource(alias: string | undefined) {
+export function useWorkflowSource(workflowName: string | undefined) {
   const { envKey, api } = useApiClient();
 
   return useQuery<WorkflowSourceInterface>({
-    queryKey: getWorkflowSourceCacheKey(envKey, alias!),
-    queryFn: () => api.config.getWorkflowSource({ alias: alias! }),
-    enabled: !!alias,
+    queryKey: getWorkflowSourceCacheKey(envKey, workflowName!),
+    queryFn: () => api.config.getWorkflowSource({ workflowName: workflowName! }),
+    enabled: !!workflowName,
   });
 }
 

@@ -23,9 +23,9 @@ export class WorkflowEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', name: 'alias' })
+  @Column({ type: 'varchar', name: 'workflow_name' })
   @Index()
-  alias!: string;
+  workflowName!: string;
 
   @Column({ type: 'varchar', name: 'class_name', nullable: true })
   className!: string | null;

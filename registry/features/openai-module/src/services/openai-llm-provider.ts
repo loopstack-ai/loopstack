@@ -12,7 +12,7 @@ import type {
   LlmStopReason,
   LlmUsage,
 } from '@loopstack/llm-provider-module';
-import { LlmNormalizedMessageSchema, LlmProviderRegistry, LlmToolsHelperService } from '@loopstack/llm-provider-module';
+import { LlmNormalizedMessageSchema, LlmProviderRegistry } from '@loopstack/llm-provider-module';
 import type { OpenAiProviderConfig } from '../types/index.js';
 import { OpenAiClientService } from './openai-client.service.js';
 
@@ -24,7 +24,6 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
   constructor(
     private readonly registry: LlmProviderRegistry,
     private readonly clientService: OpenAiClientService,
-    private readonly toolsHelper: LlmToolsHelperService,
   ) {}
 
   onModuleInit(): void {
@@ -50,7 +49,7 @@ export class OpenAiLlmProvider implements LlmProviderInterface<OpenAiProviderCon
     }
     openAiMessages.push(...messages);
 
-    const resolvedTools = args.tools ? this.toolsHelper.getTools(args.tools, ctx.workflow, ctx.workspace) : undefined;
+    const resolvedTools = args.tools ?? undefined;
 
     const tools = resolvedTools
       ? resolvedTools

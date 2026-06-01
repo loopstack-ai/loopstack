@@ -7,7 +7,7 @@ import { RemoteClientModule } from '@loopstack/remote-client';
 import { ConnectGitHubWorkflow } from './workflows/connect-github/connect-github.workflow.js';
 
 @Module({
-  imports: [GitModule, GitHubModule, HitlModule, OAuthModule, RemoteClientModule],
+  imports: [GitModule, GitHubModule, HitlModule, OAuthModule, RemoteClientModule.forRoot()],
   providers: [ConnectGitHubWorkflow],
   exports: [ConnectGitHubWorkflow],
 })

@@ -12,7 +12,7 @@ import type {
   LlmStopReason,
   LlmUsage,
 } from '@loopstack/llm-provider-module';
-import { LlmNormalizedMessageSchema, LlmProviderRegistry, LlmToolsHelperService } from '@loopstack/llm-provider-module';
+import { LlmNormalizedMessageSchema, LlmProviderRegistry } from '@loopstack/llm-provider-module';
 import type { ClaudeProviderConfig } from '../types/index.js';
 import { applyCacheBreakpoints } from '../utils/cache.utils.js';
 import { ClaudeClientService } from './claude-client.service.js';
@@ -25,7 +25,6 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
   constructor(
     private readonly registry: LlmProviderRegistry,
     private readonly clientService: ClaudeClientService,
-    private readonly toolsHelper: LlmToolsHelperService,
   ) {}
 
   onModuleInit(): void {
@@ -45,7 +44,7 @@ export class ClaudeLlmProvider implements LlmProviderInterface<ClaudeProviderCon
 
     const messages = this.resolveMessages(args, ctx.documents);
 
-    const resolvedTools = args.tools ? this.toolsHelper.getTools(args.tools, ctx.workflow, ctx.workspace) : undefined;
+    const resolvedTools = args.tools ?? undefined;
 
     const tools = resolvedTools
       ? (resolvedTools.map((t) =>

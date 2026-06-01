@@ -17,21 +17,39 @@ const inputSchema = z
 
 export type GitHubCreatePullRequestArgs = z.input<typeof inputSchema>;
 
+export type GitHubCreatePullRequestResult =
+  | {
+      pullRequest: {
+        id: number;
+        number: number;
+        title: string;
+        htmlUrl: string;
+        state: string;
+        draft: boolean;
+      };
+    }
+  | { error: string; message: string };
+
 @Tool({
+  name: 'github_create_pull_request',
   uiConfig: {
     description:
       'Creates a new pull request in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GitHubCreatePullRequestTool extends BaseTool {
+export class GitHubCreatePullRequestTool extends BaseTool<
+  GitHubCreatePullRequestArgs,
+  object,
+  GitHubCreatePullRequestResult
+> {
   private readonly logger = new Logger(GitHubCreatePullRequestTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubCreatePullRequestArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(args: GitHubCreatePullRequestArgs): Promise<ToolResult<GitHubCreatePullRequestResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -64,7 +82,7 @@ export class GitHubCreatePullRequestTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: '401',

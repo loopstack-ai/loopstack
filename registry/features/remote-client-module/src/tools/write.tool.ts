@@ -1,15 +1,20 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
-import { SandboxEnvironmentService } from '../services/sandbox-environment.service.js';
 
 export type WriteArgs = {
   file_path: string;
   content: string;
 };
 
+export type WriteResult = {
+  success: boolean;
+  path: string;
+};
+
 @Tool({
+  name: 'write',
   schema: z
     .object({
       file_path: z.string().describe('The file path to write'),
@@ -20,13 +25,17 @@ export type WriteArgs = {
     description: 'Writes a file to a remote instance. Creates parent directories if needed. Overwrites existing files.',
   },
 })
-export class WriteTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class WriteTool extends BaseTool<WriteArgs, object, WriteResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: WriteArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    await this.remoteAgentClient.writeFile(agentUrl, args.file_path, args.content);
+  protected async handle(args: WriteArgs): Promise<ToolResult<WriteResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    await this.remote.writeFile(agentUrl, args.file_path, args.content);
     return { data: { success: true, path: args.file_path } };
   }
 }

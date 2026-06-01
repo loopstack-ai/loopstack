@@ -1,6 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolResult } from '@loopstack/common';
+import {
+  BaseTool,
+  DOCUMENT_STORE,
+  LinkDocument,
+  Tool,
+  ToolCallOptions,
+  ToolResult,
+  WORKFLOW_ORCHESTRATOR,
+  WorkflowOrchestrator,
+} from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 const AuthenticateGoogleTaskInputSchema = z
@@ -19,8 +29,10 @@ const AuthenticateGoogleTaskInputSchema = z
 
 type AuthenticateGoogleTaskInput = z.infer<typeof AuthenticateGoogleTaskInputSchema>;
 
-@Injectable()
+export type AuthenticateGoogleTaskResult = { workflowId: string; mode: string; [key: string]: unknown } | string;
+
 @Tool({
+  name: 'authenticate_google',
   uiConfig: {
     description:
       'Launches Google OAuth authentication. Shows the user a sign-in prompt to authorize access to Google services. ' +
@@ -30,18 +42,30 @@ type AuthenticateGoogleTaskInput = z.infer<typeof AuthenticateGoogleTaskInputSch
   },
   schema: AuthenticateGoogleTaskInputSchema,
 })
-export class AuthenticateGoogleTask extends BaseTool {
+export class AuthenticateGoogleTask extends BaseTool<
+  AuthenticateGoogleTaskInput,
+  object,
+  AuthenticateGoogleTaskResult
+> {
   private readonly logger = new Logger(AuthenticateGoogleTask.name);
 
-  @InjectWorkflow() private oAuth: OAuthWorkflow;
+  constructor(
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+  ) {
+    super();
+  }
 
-  async call(args: AuthenticateGoogleTaskInput): Promise<ToolResult> {
-    const result = await this.oAuth.run(
+  protected async handle(
+    args: AuthenticateGoogleTaskInput,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<AuthenticateGoogleTaskResult>> {
+    const result = await this.orchestrator.queue(
       { provider: 'google', scopes: args.scopes },
-      { alias: 'oAuth', callback: args.callback },
+      { workflowName: OAuthWorkflow.name, callback: args.callback },
     );
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'pending',
@@ -58,10 +82,10 @@ export class AuthenticateGoogleTask extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult<AuthenticateGoogleTaskResult>> {
     const data = result as { workflowId?: string };
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'success',

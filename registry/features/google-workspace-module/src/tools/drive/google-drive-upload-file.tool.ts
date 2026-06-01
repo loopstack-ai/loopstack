@@ -15,21 +15,31 @@ const inputSchema = z
 
 export type GoogleDriveUploadFileArgs = z.infer<typeof inputSchema>;
 
+export type GoogleDriveUploadFileResult =
+  | { id: string; name: string; mimeType: string; webViewLink?: string }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
 @Tool({
+  name: 'google_drive_upload_file',
   uiConfig: {
     description:
       'Uploads a new file to Google Drive using multipart upload. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GoogleDriveUploadFileTool extends BaseTool {
+export class GoogleDriveUploadFileTool extends BaseTool<
+  GoogleDriveUploadFileArgs,
+  object,
+  GoogleDriveUploadFileResult
+> {
   private readonly logger = new Logger(GoogleDriveUploadFileTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GoogleDriveUploadFileArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
+  protected async handle(args: GoogleDriveUploadFileArgs): Promise<ToolResult<GoogleDriveUploadFileResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -69,7 +79,7 @@ export class GoogleDriveUploadFileTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Drive API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`Google Drive API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: 'unauthorized',

@@ -1,7 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
@@ -47,9 +46,8 @@ describe('PromptWorkflow', () => {
   });
 
   describe('initialization', () => {
-    it('should be defined with correct tools', () => {
+    it('should be defined', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('llmGenerateText');
     });
   });
 

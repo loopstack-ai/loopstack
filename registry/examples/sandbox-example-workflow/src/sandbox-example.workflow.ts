@@ -1,14 +1,16 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
+  DOCUMENT_STORE,
   Final,
   Initial,
-  InjectTool,
   MessageDocument,
   ToolResult,
   Transition,
   Workflow,
 } from '@loopstack/common';
+import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
@@ -81,32 +83,42 @@ interface SandboxDestroyResult {
   removed: boolean;
 }
 
+interface SandboxExampleState {
+  containerId?: string;
+  fileContent?: string;
+  fileList?: FileEntry[];
+}
+
 @Workflow({
   uiConfig: __dirname + '/sandbox-example.ui.yaml',
   schema: z.object({
     outputDir: z.string().default(process.cwd() + '/out'),
   }),
 })
-export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> {
-  containerId?: string;
-  fileContent?: string;
-  fileList?: FileEntry[];
-
-  // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
-  @InjectTool() sandboxInit: SandboxInit;
-  @InjectTool() sandboxDestroy: SandboxDestroy;
-
-  // Filesystem tools (from @loopstack/sandbox-filesystem)
-  @InjectTool() sandboxWriteFile: SandboxWriteFile;
-  @InjectTool() sandboxReadFile: SandboxReadFile;
-  @InjectTool() sandboxListDirectory: SandboxListDirectory;
-  @InjectTool() sandboxCreateDirectory: SandboxCreateDirectory;
-  @InjectTool() sandboxDelete: SandboxDelete;
-  @InjectTool() sandboxExists: SandboxExists;
-  @InjectTool() sandboxFileInfo: SandboxFileInfo;
+export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, SandboxExampleState> {
+  constructor(
+    // Sandbox lifecycle tools (from @loopstack/sandbox-tool)
+    private readonly sandboxInit: SandboxInit,
+    private readonly sandboxDestroy: SandboxDestroy,
+    // Filesystem tools (from @loopstack/sandbox-filesystem)
+    private readonly sandboxWriteFile: SandboxWriteFile,
+    private readonly sandboxReadFile: SandboxReadFile,
+    private readonly sandboxListDirectory: SandboxListDirectory,
+    private readonly sandboxCreateDirectory: SandboxCreateDirectory,
+    private readonly sandboxDelete: SandboxDelete,
+    private readonly sandboxExists: SandboxExists,
+    private readonly sandboxFileInfo: SandboxFileInfo,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+  ) {
+    super();
+  }
 
   @Initial({ to: 'sandbox_ready' })
-  async initSandbox(args: { outputDir: string }) {
+  async initSandbox(
+    ctx: WorkflowContext,
+    args: { outputDir: string },
+    state: SandboxExampleState,
+  ): Promise<SandboxExampleState> {
     const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
@@ -115,128 +127,131 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
       rootPath: 'workspace',
     });
 
-    this.containerId = initResult.data!.containerId;
-
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
     });
+    return { ...state, containerId: initResult.data!.containerId };
   }
 
   @Transition({ from: 'sandbox_ready', to: 'dir_created' })
-  async createDir() {
+  async createDir(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
     const mkdirResult: ToolResult<SandboxCreateDirectoryResult> = await this.sandboxCreateDirectory.call({
-      containerId: this.containerId!,
+      containerId: state.containerId!,
       path: '/workspace',
       recursive: true,
     });
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Directory created: ${mkdirResult.data!.path} (created: ${mkdirResult.data!.created})`,
     });
+    return state;
   }
 
   @Transition({ from: 'dir_created', to: 'file_written' })
-  async writeFile() {
+  async writeFile(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
     const writeResult: ToolResult<SandboxWriteFileResult> = await this.sandboxWriteFile.call({
-      containerId: this.containerId!,
+      containerId: state.containerId!,
       path: '/workspace/result.txt',
       content: 'Hello from sandbox!',
       encoding: 'utf8',
       createParentDirs: true,
     });
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
     });
+    return state;
   }
 
   @Transition({ from: 'file_written', to: 'file_read' })
-  async readFile() {
+  async readFile(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
     const readResult: ToolResult<SandboxReadFileResult> = await this.sandboxReadFile.call({
-      containerId: this.containerId!,
+      containerId: state.containerId!,
       path: '/workspace/result.txt',
       encoding: 'utf8',
     });
 
-    this.fileContent = readResult.data!.content;
-
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
     });
+    return { ...state, fileContent: readResult.data!.content };
   }
 
   @Transition({ from: 'file_read', to: 'dir_listed' })
-  async listDir() {
+  async listDir(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
     const listResult: ToolResult<SandboxListDirectoryResult> = await this.sandboxListDirectory.call({
-      containerId: this.containerId!,
+      containerId: state.containerId!,
       path: '/workspace',
       recursive: false,
     });
 
-    this.fileList = listResult.data!.entries;
-
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
     });
+    return { ...state, fileList: listResult.data!.entries };
   }
 
   @Transition({ from: 'dir_listed', to: 'existence_checked' })
-  async checkExists() {
+  async checkExists(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
     const existsResult: ToolResult<SandboxExistsResult> = await this.sandboxExists.call({
-      containerId: this.containerId!,
+      containerId: state.containerId!,
       path: '/workspace/result.txt',
     });
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `File existence check: ${existsResult.data!.path} exists=${existsResult.data!.exists}, type=${existsResult.data!.type}`,
     });
+    return state;
   }
 
   @Transition({ from: 'existence_checked', to: 'info_retrieved' })
-  async getInfo() {
+  async getInfo(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
     const infoResult: ToolResult<SandboxFileInfoResult> = await this.sandboxFileInfo.call({
-      containerId: this.containerId!,
+      containerId: state.containerId!,
       path: '/workspace/result.txt',
     });
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `File info for ${infoResult.data!.name}: type=${infoResult.data!.type}, size=${infoResult.data!.size} bytes, permissions=${infoResult.data!.permissions}, owner=${infoResult.data!.owner}`,
     });
+    return state;
   }
 
   @Transition({ from: 'info_retrieved', to: 'file_deleted' })
-  async deleteFile() {
+  async deleteFile(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
     const deleteResult: ToolResult<SandboxDeleteResult> = await this.sandboxDelete.call({
-      containerId: this.containerId!,
+      containerId: state.containerId!,
       path: '/workspace/result.txt',
       recursive: false,
       force: true,
     });
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `File deleted: ${deleteResult.data!.path} (deleted: ${deleteResult.data!.deleted})`,
     });
+    return state;
   }
 
   @Final({ from: 'file_deleted' })
-  async destroySandbox() {
+  async destroySandbox(ctx: WorkflowContext, state: SandboxExampleState): Promise<unknown> {
     const destroyResult: ToolResult<SandboxDestroyResult> = await this.sandboxDestroy.call({
-      containerId: this.containerId!,
+      containerId: state.containerId!,
       removeContainer: true,
     });
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
     });
+    return {};
   }
 
   private formatEntries(entries: FileEntry[]): string {

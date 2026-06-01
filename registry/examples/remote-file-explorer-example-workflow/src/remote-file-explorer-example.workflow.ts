@@ -1,46 +1,60 @@
-import { BaseWorkflow, Final, Initial, InjectTool, MessageDocument, Workflow } from '@loopstack/common';
+import { Inject } from '@nestjs/common';
+import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
+import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 import { GlobTool, ReadTool } from '@loopstack/remote-client';
+
+interface RemoteFileExplorerState {
+  firstMatch?: string;
+}
 
 @Workflow({
   uiConfig: __dirname + '/remote-file-explorer-example.ui.yaml',
 })
-export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow {
-  @InjectTool() glob: GlobTool;
-  @InjectTool() read: ReadTool;
-
-  firstMatch?: string;
+export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow<Record<string, unknown>, RemoteFileExplorerState> {
+  constructor(
+    private readonly glob: GlobTool,
+    private readonly read: ReadTool,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+  ) {
+    super();
+  }
 
   @Initial({ to: 'listed' })
-  async listFiles() {
+  async listFiles(
+    ctx: WorkflowContext,
+    args: Record<string, unknown>,
+    state: RemoteFileExplorerState,
+  ): Promise<RemoteFileExplorerState> {
     const result = await this.glob.call({ pattern: '**/*.md' });
     const files = (result.data as { files?: string[] })?.files ?? [];
-    this.firstMatch = files[0];
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Found ${files.length} markdown files:\n${files
         .slice(0, 20)
         .map((f) => `- ${f}`)
         .join('\n')}`,
     });
+    return { ...state, firstMatch: files[0] };
   }
 
   @Final({ from: 'listed' })
-  async readFirst() {
-    if (!this.firstMatch) {
-      await this.repository.save(MessageDocument, {
+  async readFirst(ctx: WorkflowContext, state: RemoteFileExplorerState): Promise<unknown> {
+    if (!state.firstMatch) {
+      await this.documentStore.save(MessageDocument, {
         role: 'assistant',
         content: 'No markdown files to read.',
       });
-      return;
+      return {};
     }
 
-    const result = await this.read.call({ file_path: this.firstMatch });
+    const result = await this.read.call({ file_path: state.firstMatch });
     const content = (result.data as { content?: string })?.content ?? '';
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `# ${this.firstMatch}\n\n${content.slice(0, 500)}`,
+      content: `# ${state.firstMatch}\n\n${content.slice(0, 500)}`,
     });
+    return {};
   }
 }

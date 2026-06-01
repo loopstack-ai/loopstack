@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -19,17 +19,20 @@ interface SandboxCreateDirectoryResult {
 }
 
 @Tool({
+  name: 'sandbox_create_directory',
   uiConfig: {
     description: 'Create a directory in a sandbox container',
   },
   schema: inputSchema,
 })
-export class SandboxCreateDirectory extends BaseTool {
+export class SandboxCreateDirectory extends BaseTool<SandboxCreateDirectoryArgs, object, SandboxCreateDirectoryResult> {
   private readonly logger = new Logger(SandboxCreateDirectory.name);
 
-  @InjectTool() private sandboxCommand: SandboxCommand;
+  constructor(private readonly sandboxCommand: SandboxCommand) {
+    super();
+  }
 
-  async call(args: SandboxCreateDirectoryArgs): Promise<ToolResult<SandboxCreateDirectoryResult>> {
+  protected async handle(args: SandboxCreateDirectoryArgs): Promise<ToolResult<SandboxCreateDirectoryResult>> {
     const { containerId, path: dirPath, recursive } = args;
 
     this.logger.debug(`Creating directory ${dirPath} in container ${containerId} (recursive: ${recursive})`);

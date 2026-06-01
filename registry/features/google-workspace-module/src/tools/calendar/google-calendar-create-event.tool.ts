@@ -23,21 +23,39 @@ const inputSchema = z
 
 export type GoogleCalendarCreateEventArgs = z.infer<typeof inputSchema>;
 
+export type GoogleCalendarCreateEventResult =
+  | {
+      event: {
+        id: string;
+        summary: string;
+        start: string | undefined;
+        end: string | undefined;
+        htmlLink: string;
+      };
+    }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
 @Tool({
+  name: 'google_calendar_create_event',
   uiConfig: {
     description:
       'Creates a new event on Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GoogleCalendarCreateEventTool extends BaseTool {
+export class GoogleCalendarCreateEventTool extends BaseTool<
+  GoogleCalendarCreateEventArgs,
+  object,
+  GoogleCalendarCreateEventResult
+> {
   private readonly logger = new Logger(GoogleCalendarCreateEventTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GoogleCalendarCreateEventArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
+  protected async handle(args: GoogleCalendarCreateEventArgs): Promise<ToolResult<GoogleCalendarCreateEventResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -72,7 +90,7 @@ export class GoogleCalendarCreateEventTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: 'unauthorized',

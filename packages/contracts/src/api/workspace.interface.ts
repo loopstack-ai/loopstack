@@ -1,40 +1,5 @@
 import { SortByInterface } from './common.interface.js';
 
-export interface VolumeInterface {
-  path: string;
-  permissions: ('read' | 'write')[];
-}
-
-export interface SidebarFeatureInterface {
-  enabled?: boolean;
-}
-
-export interface FileExplorerFeatureInterface {
-  enabled?: boolean;
-  environments?: string[];
-  options?: Record<string, unknown>;
-}
-
-export interface FlyInstanceFeatureInterface {
-  enabled?: boolean;
-}
-
-export interface GitFeatureInterface {
-  enabled?: boolean;
-  environments?: string[];
-}
-
-export interface FeaturesInterface {
-  sidebar?: SidebarFeatureInterface;
-  workflowHistory?: SidebarFeatureInterface;
-  workflowNavigation?: SidebarFeatureInterface;
-  debugWorkflow?: SidebarFeatureInterface;
-  fileExplorer?: FileExplorerFeatureInterface;
-  flyInstance?: FlyInstanceFeatureInterface;
-  previewPanel?: SidebarFeatureInterface;
-  git?: GitFeatureInterface;
-}
-
 export interface EnvironmentConfigInterface {
   id: string;
   title?: string;
@@ -44,38 +9,32 @@ export interface EnvironmentConfigInterface {
 
 export interface WorkspaceInterface {
   id: string;
-  className: string;
+  appName: string;
   title: string;
   isLocked: boolean;
   isFavourite: boolean;
   createdAt: string;
   updatedAt: string;
-  volumes?: Record<string, VolumeInterface>;
-  features?: FeaturesInterface;
-  environments?: WorkspaceEnvironmentInterface[];
 }
 
 export interface WorkspaceItemInterface {
   id: string;
-  className: string;
+  appName: string;
   title: string;
   isFavourite: boolean;
   createdAt: string;
   updatedAt: string;
-  environments?: WorkspaceEnvironmentInterface[];
 }
 
 export interface WorkspaceCreateInterface {
   title?: string;
-  className: string;
+  appName: string;
   isFavourite?: boolean;
-  environments?: WorkspaceEnvironmentInterface[];
 }
 
 export interface WorkspaceUpdateInterface {
   title?: string;
   isFavourite?: boolean;
-  environments?: WorkspaceEnvironmentInterface[];
 }
 
 export interface WorkspaceActionInterface {
@@ -88,11 +47,11 @@ export interface WorkspaceUiInterface {
 }
 
 export interface AppConfigInterface {
-  className: string;
-  title?: string;
-  volumes?: Record<string, VolumeInterface>;
-  features?: FeaturesInterface;
+  appName: string;
+  title: string;
+  description?: string;
   environments?: EnvironmentConfigInterface[];
+  extensions?: Record<string, unknown[]>;
   ui?: WorkspaceUiInterface;
 }
 

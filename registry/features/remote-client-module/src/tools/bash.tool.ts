@@ -1,15 +1,21 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
-import { SandboxEnvironmentService } from '../services/sandbox-environment.service.js';
 
 export type BashArgs = {
   command: string;
   timeout?: number;
 };
 
+export type BashResult = {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+};
+
 @Tool({
+  name: 'bash',
   schema: z
     .object({
       command: z.string().describe('The shell command to execute'),
@@ -20,13 +26,17 @@ export type BashArgs = {
     description: 'Executes a shell command on a remote instance. Returns stdout, stderr, and exit code.',
   },
 })
-export class BashTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class BashTool extends BaseTool<BashArgs, object, BashResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: BashArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.executeCommand(agentUrl, args.command, undefined, args.timeout);
+  protected async handle(args: BashArgs): Promise<ToolResult<BashResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.executeCommand(agentUrl, args.command, undefined, args.timeout);
     return {
       data: {
         stdout: result.stdout,

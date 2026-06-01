@@ -1,27 +1,40 @@
-import { BaseWorkflow, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
+import { Inject } from '@nestjs/common';
+import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
+import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+
+interface WorkflowStateState {
+  message?: string;
+}
 
 @Workflow({
   uiConfig: __dirname + '/workflow-state.ui.yaml',
 })
-export class WorkflowStateWorkflow extends BaseWorkflow {
-  message?: string;
+export class WorkflowStateWorkflow extends BaseWorkflow<Record<string, unknown>, WorkflowStateState> {
+  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
+    super();
+  }
 
   @Initial({ to: 'data_created' })
-  createSomeData() {
-    this.message = 'Hello :)';
+  async createSomeData(
+    ctx: WorkflowContext,
+    args: Record<string, unknown>,
+    state: WorkflowStateState,
+  ): Promise<WorkflowStateState> {
+    return { ...state, message: 'Hello :)' };
   }
 
   @Final({ from: 'data_created' })
-  async showResults() {
-    await this.repository.save(MessageDocument, {
+  async showResults(ctx: WorkflowContext, state: WorkflowStateState): Promise<unknown> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Data from state: ${this.message}`,
+      content: `Data from state: ${state.message}`,
     });
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Use workflow helper method: ${this.messageInUpperCase(this.message!)}`,
+      content: `Use workflow helper method: ${this.messageInUpperCase(state.message!)}`,
     });
+    return {};
   }
 
   private messageInUpperCase(message: string): string {

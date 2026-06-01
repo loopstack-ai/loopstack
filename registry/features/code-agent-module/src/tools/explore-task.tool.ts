@@ -1,6 +1,17 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import {
+  BaseTool,
+  DOCUMENT_STORE,
+  LinkDocument,
+  Tool,
+  ToolCallOptions,
+  ToolResult,
+  WORKFLOW_ORCHESTRATOR,
+  WorkflowOrchestrator,
+} from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 
 const EXPLORE_SYSTEM_PROMPT = `You are a codebase exploration agent. Your job is to search and read
 source code to answer the user's question thoroughly.
@@ -23,7 +34,10 @@ const ExploreTaskInputSchema = z
 
 type ExploreTaskInput = z.infer<typeof ExploreTaskInputSchema>;
 
+export type ExploreTaskResult = { workflowId: string } | string | Record<string, unknown>;
+
 @Tool({
+  name: 'explore_task',
   uiConfig: {
     description:
       'Launch a sub-agent to explore and analyze the codebase. ' +
@@ -34,24 +48,29 @@ type ExploreTaskInput = z.infer<typeof ExploreTaskInputSchema>;
   },
   schema: ExploreTaskInputSchema,
 })
-export class ExploreTask extends BaseTool {
-  @InjectWorkflow() private agent: AgentWorkflow;
+export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskResult> {
+  constructor(
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+  ) {
+    super();
+  }
 
   private readonly tools = ['glob', 'grep', 'read'];
 
-  async call(args: ExploreTaskInput, options?: ToolCallOptions): Promise<ToolResult> {
-    const result = await this.agent.run(
+  protected async handle(args: ExploreTaskInput, options?: ToolCallOptions): Promise<ToolResult<ExploreTaskResult>> {
+    const result = await this.orchestrator.queue(
       {
         system: EXPLORE_SYSTEM_PROMPT,
         tools: this.tools,
         userMessage: args.instructions,
       },
-      { alias: 'exploreAgent', callback: options?.callback },
+      { workflowName: AgentWorkflow.name, callback: options?.callback },
     );
 
     const workflowId = result.workflowId;
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       { status: 'pending', label: 'Exploring...', workflowId, embed: true, expanded: true },
       { id: 'explore_link' },
@@ -63,10 +82,10 @@ export class ExploreTask extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult<ExploreTaskResult>> {
     const data = result as { workflowId?: string; data?: { response?: string } };
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       { status: 'success', label: 'Exploring complete', workflowId: data.workflowId! },
       { id: 'explore_link' },

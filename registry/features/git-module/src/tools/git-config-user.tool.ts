@@ -1,14 +1,16 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitConfigUserArgs = {
   name: string;
   email: string;
 };
 
+export type GitConfigUserResult = { success: boolean };
+
 @Tool({
+  name: 'git_config_user',
   schema: z
     .object({
       name: z.string().describe('Git user name (user.name)'),
@@ -19,13 +21,17 @@ export type GitConfigUserArgs = {
     description: 'Configures git user.name and user.email for the workspace repository.',
   },
 })
-export class GitConfigUserTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitConfigUserTool extends BaseTool<GitConfigUserArgs, object, GitConfigUserResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: GitConfigUserArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitConfigUser(agentUrl, args.name, args.email);
+  protected async handle(args: GitConfigUserArgs): Promise<ToolResult<GitConfigUserResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitConfigUser(agentUrl, args.name, args.email);
     return { data: result };
   }
 }

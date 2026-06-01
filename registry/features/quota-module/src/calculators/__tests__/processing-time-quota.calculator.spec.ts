@@ -18,8 +18,12 @@ describe('ProcessingTimeQuotaCalculator', () => {
     const context: ToolExecutionContext = {
       tool: {},
       args: undefined,
-      app: { userId: 'user-1', workspaceId: 'ws-1', environments: [] } as any,
-      run: { root: '', labels: [], payload: {}, options: { stateless: false } } as any,
+      loopstackContext: {
+        userId: 'user-1',
+        workspaceId: 'ws-1',
+        workflowId: '',
+        run: { args: undefined, config: undefined },
+      },
       metadata: { durationMs: 1500 },
     };
 
@@ -33,8 +37,12 @@ describe('ProcessingTimeQuotaCalculator', () => {
     const context: ToolExecutionContext = {
       tool: {},
       args: undefined,
-      app: { userId: 'user-1', workspaceId: 'ws-1', environments: [] } as any,
-      run: { root: '', labels: [], payload: {}, options: { stateless: false } } as any,
+      loopstackContext: {
+        userId: 'user-1',
+        workspaceId: 'ws-1',
+        workflowId: '',
+        run: { args: undefined, config: undefined },
+      },
       metadata: {},
     };
 
@@ -45,8 +53,12 @@ describe('ProcessingTimeQuotaCalculator', () => {
     const context: ToolExecutionContext = {
       tool: {},
       args: undefined,
-      app: { userId: 'user-1', workspaceId: 'ws-1', environments: [] } as any,
-      run: { root: '', labels: [], payload: {}, options: { stateless: false } } as any,
+      loopstackContext: {
+        userId: 'user-1',
+        workspaceId: 'ws-1',
+        workflowId: '',
+        run: { args: undefined, config: undefined },
+      },
       metadata: { durationMs: 0 },
     };
 

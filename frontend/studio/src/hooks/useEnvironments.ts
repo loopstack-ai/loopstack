@@ -1,5 +1,29 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
 import { useApiClient } from './useApi.ts';
+
+export function useWorkspaceEnvironments(workspaceId?: string) {
+  const { api } = useApiClient();
+
+  return useQuery({
+    queryKey: ['workspace-environments', workspaceId],
+    queryFn: () => api.environments.getByWorkspace(workspaceId!),
+    enabled: !!workspaceId,
+  });
+}
+
+export function useReplaceEnvironments() {
+  const { api } = useApiClient();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { workspaceId: string; environments: WorkspaceEnvironmentInterface[] }) =>
+      api.environments.replaceEnvironments(params.workspaceId, params.environments),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['workspace-environments', variables.workspaceId] });
+    },
+  });
+}
 
 export function useResetEnvironment() {
   const { api } = useApiClient();

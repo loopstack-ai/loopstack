@@ -13,7 +13,10 @@ const RequestSecretsInputSchema = z
 
 type RequestSecretsInput = z.infer<typeof RequestSecretsInputSchema>;
 
+export type RequestSecretsResult = { variables: { key: string }[] };
+
 @Tool({
+  name: 'request_secrets',
   uiConfig: {
     description:
       'Requests secret values from the user. Shows a secure input form where the user can enter API keys and other secrets. ' +
@@ -23,8 +26,8 @@ type RequestSecretsInput = z.infer<typeof RequestSecretsInputSchema>;
   },
   schema: RequestSecretsInputSchema,
 })
-export class RequestSecretsTool extends BaseTool {
-  call(args: RequestSecretsInput): Promise<ToolResult> {
+export class RequestSecretsTool extends BaseTool<RequestSecretsInput, object, RequestSecretsResult> {
+  protected async handle(args: RequestSecretsInput): Promise<ToolResult<RequestSecretsResult>> {
     return Promise.resolve({
       data: { variables: args.variables },
     });

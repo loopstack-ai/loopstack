@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { QueryRunner } from 'typeorm';
-import { PersistenceState, WorkflowCheckpointEntity, WorkflowEntity } from '@loopstack/common';
+import {
+  PersistenceState,
+  WorkflowCheckpointEntity,
+  WorkflowEntity,
+  WorkflowMetadataInterface,
+} from '@loopstack/common';
 import { WorkflowCheckpointService, WorkflowService } from '../../persistence/index.js';
-import { WorkflowExecutionContextManager } from '../utils/execution-context-manager.js';
 
 @Injectable()
 export class WorkflowStateService {
@@ -19,40 +23,42 @@ export class WorkflowStateService {
     return this.workflowService.save(entity, persistenceState, queryRunner);
   }
 
+  /**
+   * Save workflow execution state from explicit state and metadata.
+   */
   async saveExecutionState(
     workflowEntity: WorkflowEntity,
-    ctx: WorkflowExecutionContextManager,
+    state: Record<string, unknown>,
+    meta: WorkflowMetadataInterface & { version: number },
     queryRunner?: QueryRunner,
   ) {
-    workflowEntity.status = ctx.getManager().getData('status');
-    workflowEntity.place = ctx.getManager().getData('place');
-    workflowEntity.availableTransitions = ctx.getManager().getData('availableTransitions') || null;
-    workflowEntity.hasError = ctx.getManager().getData('hasError');
-    workflowEntity.errorMessage = ctx.getManager().getData('errorMessage') || null;
-    workflowEntity.retryCount = ctx.getManager().getData('retryCount') ?? 0;
-    workflowEntity.retryTransitionId = ctx.getManager().getData('retryTransitionId') ?? null;
-    workflowEntity.result = ctx.getManager().getData('result') as Record<string, unknown>;
+    workflowEntity.status = meta.status;
+    workflowEntity.place = meta.place;
+    workflowEntity.availableTransitions = meta.availableTransitions || null;
+    workflowEntity.hasError = meta.hasError;
+    workflowEntity.errorMessage = meta.errorMessage || null;
+    workflowEntity.retryCount = meta.retryCount ?? 0;
+    workflowEntity.retryTransitionId = meta.retryTransitionId ?? null;
+    workflowEntity.result = meta.result as Record<string, unknown>;
 
-    await this.saveWorkflowState(workflowEntity, ctx.getManager().getData('persistenceState'), queryRunner);
+    await this.saveWorkflowState(workflowEntity, meta.persistenceState, queryRunner);
 
     // Create a checkpoint row with the current state snapshot.
-    // Documents already have DB-assigned IDs from immediate persistence.
-    const transition = ctx.getManager().getData('transition');
-    const documents: { id?: string; isInvalidated?: boolean }[] = ctx.getManager().getData('documents') ?? [];
+    const transition = meta.transition;
+    const documents: { id?: string; isInvalidated?: boolean }[] = meta.documents ?? [];
     const documentIds = documents.filter((d) => d.id).map((d) => d.id!);
     const invalidatedDocumentIds = documents.filter((d) => d.id && d.isInvalidated).map((d) => d.id!);
 
     await this.workflowCheckpointService.createCheckpoint(
       {
         workflowId: workflowEntity.id,
-        place: ctx.getManager().getData('place'),
+        place: meta.place,
         transitionId: transition?.id ?? null,
         transitionFrom: transition?.from ?? null,
-        state: ctx.getManager().getAll() as Record<string, unknown>,
-        tools: (ctx.getManager().getData('tools') as Record<string, unknown>) ?? {},
+        state,
         documentIds,
         invalidatedDocumentIds,
-        version: ctx.getManager().getVersion(),
+        version: meta.version,
       },
       queryRunner,
     );

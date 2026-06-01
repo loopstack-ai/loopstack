@@ -13,7 +13,7 @@ export class WorkflowDto {
    * Config Key of the workflow
    */
   @Expose()
-  alias: string;
+  workflowName: string;
 
   @Expose()
   className: string | null;

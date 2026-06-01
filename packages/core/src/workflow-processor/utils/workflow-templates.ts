@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { TemplateRenderFn } from '@loopstack/common';
@@ -5,9 +6,9 @@ import { TemplateRenderFn } from '@loopstack/common';
 /**
  * Compiles and caches Handlebars templates from file paths.
  *
- * Provides a `render` function that can be wired onto workflows and tools
- * via NestJS DI (TEMPLATE_RENDERER token).
+ * Can be injected directly as a class or via TEMPLATE_RENDERER token (function).
  */
+@Injectable()
 export class TemplateRenderer {
   private readonly compiled = new Map<string, HandlebarsTemplateDelegate>();
 

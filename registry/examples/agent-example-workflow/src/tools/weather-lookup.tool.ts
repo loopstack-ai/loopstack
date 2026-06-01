@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 
+export type WeatherLookupResult = string;
+
 @Tool({
+  name: 'weather_lookup',
   uiConfig: {
     description: 'Look up the current weather for a given city. Returns a simulated forecast.',
   },
@@ -9,8 +12,8 @@ import { BaseTool, Tool, ToolResult } from '@loopstack/common';
     city: z.string().describe('The city name to look up weather for.'),
   }),
 })
-export class WeatherLookupTool extends BaseTool {
-  call(args: { city: string }): Promise<ToolResult> {
+export class WeatherLookupTool extends BaseTool<{ city: string }, object, WeatherLookupResult> {
+  protected async handle(args: { city: string }): Promise<ToolResult<WeatherLookupResult>> {
     // Simulated weather data for demonstration purposes
     const forecasts: Record<string, string> = {
       london: '14°C, cloudy with light rain',

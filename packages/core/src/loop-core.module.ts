@@ -4,15 +4,17 @@ import { DiscoveryModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
-  DOCUMENT_REPOSITORY,
+  DOCUMENT_STORE,
   DocumentEntity,
-  FRAMEWORK_CONTEXT,
+  EXECUTION_SCOPE,
+  FEATURE_REGISTRY,
   TEMPLATE_RENDERER,
+  TOOL_PIPELINE,
+  TOOL_REGISTRY,
   WORKFLOW_ORCHESTRATOR,
   WorkflowCheckpointEntity,
   WorkflowEntity,
   WorkspaceEntity,
-  WorkspaceEnvironmentEntity,
 } from '@loopstack/common';
 import { ClientMessageService } from './common/services/client-message.service.js';
 import { WorkflowCheckpointService, WorkflowService, WorkspaceService } from './persistence/services/index.js';
@@ -20,21 +22,23 @@ import type { RedisOptions } from './scheduler/interfaces/redis-options.interfac
 import { TaskSchedulerService } from './scheduler/services/task-scheduler.service.js';
 import { TaskQueueModule } from './scheduler/task-queue.module.js';
 import {
-  BlockConfigCacheService,
-  BlockDiscoveryService,
   BlockProcessor,
   CreateWorkflowService,
   DocumentPersistenceService,
-  DocumentRepositoryService,
+  DocumentStore,
+  FeatureRegistryService,
   ProcessorFactory,
   RootProcessorService,
-  ToolExecutionService,
+  StudioDiscoveryService,
   ToolLoggingInterceptor,
+  ToolPipelineService,
   TransitionResolverService,
   WorkflowMemoryMonitorService,
   WorkflowOrchestrationService,
   WorkflowProcessorService,
+  WorkflowRegistryService,
   WorkflowStateService,
+  ToolRegistryService,
 } from './workflow-processor/services/index.js';
 import { ExecutionScope, TemplateRenderer } from './workflow-processor/utils/index.js';
 
@@ -43,13 +47,7 @@ export interface LoopCoreModuleOptions {
   redis?: RedisOptions;
 }
 
-const ENTITIES = [
-  WorkflowEntity,
-  DocumentEntity,
-  WorkspaceEntity,
-  WorkspaceEnvironmentEntity,
-  WorkflowCheckpointEntity,
-];
+const ENTITIES = [WorkflowEntity, DocumentEntity, WorkspaceEntity, WorkflowCheckpointEntity];
 
 const PROVIDERS = [
   // Common
@@ -65,23 +63,34 @@ const PROVIDERS = [
   BlockProcessor,
   ProcessorFactory,
   WorkflowProcessorService,
-  BlockDiscoveryService,
-  BlockConfigCacheService,
   WorkflowStateService,
   WorkflowMemoryMonitorService,
   CreateWorkflowService,
   ExecutionScope,
-  ToolExecutionService,
   DocumentPersistenceService,
-  DocumentRepositoryService,
+  DocumentStore,
   WorkflowOrchestrationService,
   TransitionResolverService,
   ToolLoggingInterceptor,
+  ToolPipelineService,
+  TemplateRenderer,
+  WorkflowRegistryService,
+  StudioDiscoveryService,
+  FeatureRegistryService,
+  ToolRegistryService,
 
   // Framework injection tokens (consumed by BaseTool / BaseWorkflow via @Inject)
   {
-    provide: DOCUMENT_REPOSITORY,
-    useExisting: DocumentRepositoryService,
+    provide: TOOL_PIPELINE,
+    useExisting: ToolPipelineService,
+  },
+  {
+    provide: DOCUMENT_STORE,
+    useExisting: DocumentStore,
+  },
+  {
+    provide: EXECUTION_SCOPE,
+    useExisting: ExecutionScope,
   },
   {
     provide: WORKFLOW_ORCHESTRATOR,
@@ -89,25 +98,16 @@ const PROVIDERS = [
   },
   {
     provide: TEMPLATE_RENDERER,
-    useFactory: () => new TemplateRenderer().render,
+    useFactory: (renderer: TemplateRenderer) => renderer.render,
+    inject: [TemplateRenderer],
   },
   {
-    provide: FRAMEWORK_CONTEXT,
-    useFactory: (scope: ExecutionScope) => ({
-      get app() {
-        return scope.get().getAppProxy();
-      },
-      get run() {
-        return scope.get().getRunContext();
-      },
-      get runtime() {
-        return scope.get().getData();
-      },
-      get workflow() {
-        return scope.get().getInstance();
-      },
-    }),
-    inject: [ExecutionScope],
+    provide: FEATURE_REGISTRY,
+    useExisting: FeatureRegistryService,
+  },
+  {
+    provide: TOOL_REGISTRY,
+    useExisting: ToolRegistryService,
   },
 ];
 
@@ -128,21 +128,27 @@ const EXPORTS = [
   CreateWorkflowService,
   BlockProcessor,
   WorkflowProcessorService,
-  BlockDiscoveryService,
-  BlockConfigCacheService,
   WorkflowMemoryMonitorService,
   ExecutionScope,
-  ToolExecutionService,
   DocumentPersistenceService,
-  DocumentRepositoryService,
+  DocumentStore,
   WorkflowOrchestrationService,
   TransitionResolverService,
+  ToolPipelineService,
+  TemplateRenderer,
+  WorkflowRegistryService,
+  StudioDiscoveryService,
+  FeatureRegistryService,
+  ToolRegistryService,
 
   // Framework injection tokens
-  DOCUMENT_REPOSITORY,
-  FRAMEWORK_CONTEXT,
   WORKFLOW_ORCHESTRATOR,
   TEMPLATE_RENDERER,
+  TOOL_PIPELINE,
+  EXECUTION_SCOPE,
+  DOCUMENT_STORE,
+  FEATURE_REGISTRY,
+  TOOL_REGISTRY,
 ];
 
 const MOCK_TASK_SCHEDULER: Provider = {

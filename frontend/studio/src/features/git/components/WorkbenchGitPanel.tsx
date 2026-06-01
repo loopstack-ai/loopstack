@@ -32,7 +32,7 @@ export function WorkbenchGitPanel({ workspaceId }: WorkbenchGitPanelProps) {
     createWorkflow.mutate(
       {
         workflowCreateDto: {
-          alias: 'connectGitHub',
+          workflowName: 'connectGitHub',
           title: null,
           workspaceId,
           transition: null,

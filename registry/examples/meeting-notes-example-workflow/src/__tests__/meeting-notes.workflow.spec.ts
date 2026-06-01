@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { RunContext, WorkflowEntity, getBlockTools } from '@loopstack/common';
+import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
@@ -34,9 +34,8 @@ describe('MeetingNotesWorkflow', () => {
   });
 
   describe('initialization', () => {
-    it('should be defined with correct tools', () => {
+    it('should be defined', () => {
       expect(workflow).toBeDefined();
-      expect(getBlockTools(workflow)).toContain('llmGenerateObject');
     });
   });
 

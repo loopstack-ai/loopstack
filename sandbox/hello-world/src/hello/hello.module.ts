@@ -1,8 +1,23 @@
 import { Module } from '@nestjs/common';
+import { StudioApp } from '@loopstack/common';
+import { AgentModule } from '@loopstack/agent';
+import { ClaudeModule } from '@loopstack/claude-module';
+import { LlmProviderModule } from '@loopstack/llm-provider-module';
+import { AgentTestWorkflow } from './agent-test.workflow';
+import { HelloController } from './hello.controller';
 import { HelloWorkflow } from './hello.workflow';
-import { HelloApp } from './hello.app';
+import { PromptWorkflow } from './prompt.workflow';
 
+@StudioApp({
+  title: 'Hello World',
+})
 @Module({
-  providers: [HelloWorkflow, HelloApp],
+  imports: [
+    ClaudeModule,
+    AgentModule.forFeature({ llm: { model: 'claude-opus-4-6' } }),
+    LlmProviderModule.forFeature({ model: 'claude-sonnet-4-5' }),
+  ],
+  controllers: [HelloController],
+  providers: [HelloWorkflow, PromptWorkflow, AgentTestWorkflow],
 })
 export class HelloModule {}

@@ -8,8 +8,8 @@ import { Injectable } from '@nestjs/common';
  * at API call time and the provider handles execution. The framework passes the
  * validated config from {@link toServerToolConfig} directly to the provider.
  *
- * Use the standard `@Tool()` decorator for metadata and `@InjectTool()` for injection.
- * Configuration from `@InjectTool({ maxUses: 5 })` is validated against the
+ * Use the standard `@Tool()` decorator for metadata and constructor injection.
+ * Configuration from `options.config` is validated against the
  * `configSchema` and passed as the `config` argument to {@link toServerToolConfig}.
  *
  * ```ts
@@ -35,7 +35,7 @@ export abstract class ServerTool<TConfig extends object = object> {
    * Called by LlmToolsHelperService when building tool definitions for the LLM.
    * The returned object is passed as-is to the provider's API call.
    *
-   * @param config — Validated config from `@InjectTool(config)`, validated against `configSchema`.
+   * @param config — Validated config from `options.config`, validated against `configSchema`.
    */
   abstract toServerToolConfig(config?: TConfig): unknown;
 }

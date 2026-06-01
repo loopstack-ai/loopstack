@@ -1,9 +1,6 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import * as path from 'node:path';
 import { parse } from 'yaml';
-import { getBlockConfig } from '@loopstack/common';
-import { AppType } from '@loopstack/contracts/types';
-import { BlockDiscoveryService } from '@loopstack/core';
 import type { FileContentDto } from '../dtos/file-content.dto.js';
 import type { FileExplorerNodeDto } from '../dtos/file-explorer-node.dto.js';
 import { FileSystemService } from './file-system.service.js';
@@ -12,17 +9,12 @@ import { FileSystemService } from './file-system.service.js';
 export class FileApiService {
   private readonly logger = new Logger(FileApiService.name);
 
-  constructor(
-    private fileSystemService: FileSystemService,
-    private blockDiscoveryService: BlockDiscoveryService,
-  ) {}
+  constructor(private fileSystemService: FileSystemService) {}
 
   /**
    * Get file tree for a workspace.
    */
-  async getFileTree(workspaceClassName: string): Promise<FileExplorerNodeDto[]> {
-    this.validateFileExplorerEnabled(workspaceClassName);
-
+  async getFileTree(_workspaceClassName: string): Promise<FileExplorerNodeDto[]> {
     const rootPath = this.fileSystemService.getWorkspaceRootPath();
     const exists = await this.fileSystemService.exists(rootPath);
     if (!exists) {
@@ -36,9 +28,7 @@ export class FileApiService {
   /**
    * Get file content for a specific file in a workspace.
    */
-  async getFileContent(workspaceClassName: string, filePath: string): Promise<FileContentDto> {
-    this.validateFileExplorerEnabled(workspaceClassName);
-
+  async getFileContent(_workspaceClassName: string, filePath: string): Promise<FileContentDto> {
     const rootPath = this.fileSystemService.getWorkspaceRootPath();
     const fullFilePath = path.join(rootPath, filePath);
 
@@ -91,19 +81,5 @@ export class FileApiService {
     }
 
     return result;
-  }
-
-  private validateFileExplorerEnabled(workspaceClassName: string): void {
-    const app = this.blockDiscoveryService.getApp(workspaceClassName);
-    if (!app) {
-      throw new NotFoundException(`App with block name ${workspaceClassName} not found`);
-    }
-
-    const config = getBlockConfig<AppType>(app) as AppType;
-    if (!config?.features?.fileExplorer?.enabled) {
-      throw new BadRequestException(
-        `File explorer is not enabled for app ${workspaceClassName}. Please enable it in the app config.`,
-      );
-    }
   }
 }

@@ -1,8 +1,6 @@
 import type { CorsOptions } from 'cors';
-import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
 
 export interface ModuleOptionsInterface {
-  availableEnvironments?: AvailableEnvironmentInterface[];
   connection?: string;
   /**
    * CORS configuration. Defaults to `{ origin: true, credentials: true }`.

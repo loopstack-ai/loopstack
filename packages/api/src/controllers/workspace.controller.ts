@@ -12,12 +12,9 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { CurrentUser, CurrentUserInterface, getBlockConfig } from '@loopstack/common';
-import { AppType } from '@loopstack/contracts/types';
-import { BlockDiscoveryService } from '@loopstack/core';
+import { CurrentUser, CurrentUserInterface } from '@loopstack/common';
 import { BatchDeleteDto } from '../dtos/batch-delete.dto.js';
 import { PaginatedDto } from '../dtos/paginated.dto.js';
-import { FeaturesDto } from '../dtos/workspace-config.dto.js';
 import { WorkspaceCreateDto } from '../dtos/workspace-create.dto.js';
 import { WorkspaceFavouriteDto } from '../dtos/workspace-favourite.dto.js';
 import { WorkspaceFilterDto } from '../dtos/workspace-filter.dto.js';
@@ -31,10 +28,7 @@ import { WorkspaceApiService } from '../services/workspace-api.service.js';
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/workspaces')
 export class WorkspaceController {
-  constructor(
-    private readonly workspaceService: WorkspaceApiService,
-    private readonly blockDiscoveryService: BlockDiscoveryService,
-  ) {}
+  constructor(private readonly workspaceService: WorkspaceApiService) {}
 
   /**
    * Retrieves all workspaces for the authenticated user with optional filters, sorting, and pagination.
@@ -67,22 +61,7 @@ export class WorkspaceController {
   @Get(':id')
   async getWorkspaceById(@Param('id') id: string, @CurrentUser() user: CurrentUserInterface): Promise<WorkspaceDto> {
     const workspace = await this.workspaceService.findOneById(id, user.userId);
-
-    let features: FeaturesDto | undefined;
-
-    if (workspace.className) {
-      const appBlock = this.blockDiscoveryService.getApp(workspace.className);
-      if (appBlock) {
-        const config = getBlockConfig<AppType>(appBlock) as AppType;
-        if (config) {
-          features = config.features;
-        }
-      }
-    }
-
-    const workspaceDto = WorkspaceDto.create(workspace);
-    workspaceDto.features = features;
-    return workspaceDto;
+    return WorkspaceDto.create(workspace);
   }
 
   /**

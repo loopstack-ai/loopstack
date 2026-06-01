@@ -12,7 +12,7 @@ export class WorkflowService {
     private clientMessageService: ClientMessageService,
   ) {}
 
-  getWorkflow(id: string, userId: string, relations: string[] = ['workspace', 'workspace.environments']) {
+  getWorkflow(id: string, userId: string, relations: string[] = ['workspace']) {
     const where: FindOptionsWhere<WorkflowEntity> = {
       id,
       createdBy: userId,
@@ -64,12 +64,12 @@ export class WorkflowService {
   private createFindQuery(
     parentWorkflowId?: string,
     options?: {
-      alias?: string;
+      workflowName?: string;
       className?: string;
       labels?: string[];
     },
   ): SelectQueryBuilder<WorkflowEntity> {
-    const { alias, className, labels } = options || {};
+    const { workflowName, className, labels } = options || {};
 
     const queryBuilder = this.workflowRepository.createQueryBuilder('workflow');
 
@@ -79,8 +79,8 @@ export class WorkflowService {
 
     queryBuilder.leftJoinAndSelect('workflow.documents', 'document');
 
-    if (alias) {
-      queryBuilder.andWhere('workflow.alias = :alias', { alias });
+    if (workflowName) {
+      queryBuilder.andWhere('workflow.workflowName = :workflowName', { workflowName });
     }
 
     if (className) {
@@ -104,7 +104,7 @@ export class WorkflowService {
   async findOneByQuery(
     parentWorkflowId?: string,
     options?: {
-      alias?: string;
+      workflowName?: string;
       className?: string;
       labels?: string[];
     },

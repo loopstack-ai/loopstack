@@ -15,21 +15,41 @@ const inputSchema = z
 
 export type GoogleCalendarFetchEventsArgs = z.infer<typeof inputSchema>;
 
+export type GoogleCalendarFetchEventsResult = {
+  events?: Array<{
+    id: string;
+    summary?: string;
+    description?: string;
+    start: string | undefined;
+    end: string | undefined;
+    location?: string;
+    attendees?: Array<{ email: string; responseStatus?: string }>;
+    htmlLink?: string;
+  }>;
+  error?: string;
+  message?: string;
+};
+
 @Tool({
+  name: 'google_calendar_fetch_events',
   uiConfig: {
     description:
       'Fetches events from a Google Calendar within a time range. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GoogleCalendarFetchEventsTool extends BaseTool {
+export class GoogleCalendarFetchEventsTool extends BaseTool<
+  GoogleCalendarFetchEventsArgs,
+  object,
+  GoogleCalendarFetchEventsResult
+> {
   private readonly logger = new Logger(GoogleCalendarFetchEventsTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GoogleCalendarFetchEventsArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
+  protected async handle(args: GoogleCalendarFetchEventsArgs): Promise<ToolResult<GoogleCalendarFetchEventsResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -61,7 +81,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: 'unauthorized',

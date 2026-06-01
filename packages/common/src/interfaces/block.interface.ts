@@ -1,4 +1,3 @@
-import { DocumentRepository } from './document-repository.interface.js';
 import { ToolResult } from './handler.interface.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -8,8 +7,5 @@ export interface ToolInterface<TArgs extends object = any> extends BlockInterfac
   call(args: TArgs): Promise<ToolResult>;
 }
 
-export interface WorkflowInterface extends BlockInterface {
-  readonly repository?: DocumentRepository;
-}
-
-export type AppInterface = BlockInterface;
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface WorkflowInterface extends BlockInterface {}

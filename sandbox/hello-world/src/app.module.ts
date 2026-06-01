@@ -3,9 +3,10 @@ import { LoopstackModule } from '@loopstack/loopstack-module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HelloModule } from './hello/hello.module';
+import { ModuleConfigAppModule } from './module-config/module-config-app.module';
 
 @Module({
-  imports: [LoopstackModule.forRoot(), HelloModule],
+  imports: [LoopstackModule.forRoot(), HelloModule, ModuleConfigAppModule],
   controllers: [AppController],
   providers: [AppService],
 })

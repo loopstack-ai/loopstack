@@ -21,7 +21,6 @@ export class RunWorkflowTaskProcessorService {
 
       const workflow = await this.workflowService.getWorkflow(task.workflowId, task.user, [
         'workspace',
-        'workspace.environments',
         'parent',
         'parent.workspace',
         'documents',
@@ -31,13 +30,13 @@ export class RunWorkflowTaskProcessorService {
         throw new Error(`Workflow with id ${task.workflowId} not found.`);
       }
 
-      this.memoryMonitor.logHeap(`task:${task.type}:after-workflow-load:${workflow.alias}`);
+      this.memoryMonitor.logHeap(`task:${task.type}:after-workflow-load:${workflow.workflowName}`);
       this.logger.debug(`Workflow for schedule task created with id ${workflow.id}`);
 
       await this.rootProcessorService.runWorkflow(workflow, task.payload);
     } else {
-      if (!task.alias || !task.workspaceId) {
-        throw new Error('Stateless execution requires alias and workspaceId in payload.');
+      if (!task.workflowName || !task.workspaceId) {
+        throw new Error('Stateless execution requires workflowName and workspaceId in payload.');
       }
 
       const workspace = await this.workspaceService.getWorkspace(
@@ -51,14 +50,13 @@ export class RunWorkflowTaskProcessorService {
         throw new Error(`Workspace with id ${task.workspaceId} not found.`);
       }
 
-      this.logger.debug(`Running stateless workflow for block ${task.alias}`);
+      this.logger.debug(`Running stateless workflow: ${task.workflowName}`);
 
       await this.rootProcessorService.runStateless(
         {
           workspaceId: task.workspaceId,
-          workspaceName: workspace.className,
           correlationId: task.correlationId,
-          alias: task.alias,
+          workflowName: task.workflowName,
           userId: task.user,
           args: task.args,
         },

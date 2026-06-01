@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 
+export type RuntimeErrorToolResult = string;
+
 @Tool({
+  name: 'runtime_error',
   uiConfig: {
     description:
       'Perform an action that may fail at runtime. ' +
@@ -11,8 +14,8 @@ import { BaseTool, Tool, ToolResult } from '@loopstack/common';
     shouldFail: z.boolean().describe('Whether the tool should simulate a runtime failure.'),
   }),
 })
-export class RuntimeErrorTool extends BaseTool {
-  call(args: { shouldFail: boolean }): Promise<ToolResult> {
+export class RuntimeErrorTool extends BaseTool<{ shouldFail: boolean }, object, RuntimeErrorToolResult> {
+  protected async handle(args: { shouldFail: boolean }): Promise<ToolResult<RuntimeErrorToolResult>> {
     if (args.shouldFail) {
       throw new Error('Simulated runtime error: external service unavailable.');
     }

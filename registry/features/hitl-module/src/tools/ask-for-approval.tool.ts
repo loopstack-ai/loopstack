@@ -1,5 +1,16 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import {
+  BaseTool,
+  DOCUMENT_STORE,
+  LinkDocument,
+  Tool,
+  ToolCallOptions,
+  ToolResult,
+  WORKFLOW_ORCHESTRATOR,
+  WorkflowOrchestrator,
+} from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '../workflows/confirm-user/confirm-user.workflow.js';
 
 const AskForApprovalInputSchema = z
@@ -10,7 +21,10 @@ const AskForApprovalInputSchema = z
 
 type AskForApprovalInput = z.infer<typeof AskForApprovalInputSchema>;
 
+export type AskForApprovalResult = { workflowId: string } | { concept: string | undefined } | { denied: true };
+
 @Tool({
+  name: 'ask_for_approval',
   uiConfig: {
     description:
       'Present the final concept to the user for approval. The concept is shown as formatted markdown ' +
@@ -19,18 +33,26 @@ type AskForApprovalInput = z.infer<typeof AskForApprovalInputSchema>;
   },
   schema: AskForApprovalInputSchema,
 })
-export class AskForApprovalTool extends BaseTool {
-  @InjectWorkflow() private confirmUser: ConfirmUserWorkflow;
+export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, AskForApprovalResult> {
+  constructor(
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+  ) {
+    super();
+  }
 
-  async call(args: AskForApprovalInput, options?: ToolCallOptions): Promise<ToolResult> {
-    const result = await this.confirmUser.run(
+  protected async handle(
+    args: AskForApprovalInput,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<AskForApprovalResult>> {
+    const result = await this.orchestrator.queue(
       { markdown: args.concept },
-      { alias: 'confirmUser', callback: options?.callback },
+      { workflowName: ConfirmUserWorkflow.name, callback: options?.callback },
     );
 
     const workflowId = result.workflowId;
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       { status: 'pending', label: 'Waiting for approval...', workflowId, embed: true, expanded: true },
       { id: `ask_for_approval_link_${workflowId}` },
@@ -42,11 +64,11 @@ export class AskForApprovalTool extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult<AskForApprovalResult>> {
     const data = result as { workflowId?: string; data?: { confirmed: boolean; markdown?: string } };
     const approved = data.data?.confirmed ?? false;
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: approved ? 'success' : 'failure',

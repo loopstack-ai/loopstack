@@ -50,7 +50,7 @@ const WorkflowList: React.FC<WorkbenchMainContainerProps> = ({ workflow }) => {
       <div className="mb-10" ref={listRef}>
         <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 backdrop-blur">
           <div className="flex w-full items-center gap-2 rounded-md p-2 px-3 text-left text-sm font-medium">
-            <span className="flex-1 truncate text-sm">{fetchWorkflowConfig.data?.title ?? workflow.alias}</span>
+            <span className="flex-1 truncate text-sm">{fetchWorkflowConfig.data?.title ?? workflow.workflowName}</span>
             <WorkflowButtons workflow={workflow} workflowId={workflow.id} />
 
             <Dialog>

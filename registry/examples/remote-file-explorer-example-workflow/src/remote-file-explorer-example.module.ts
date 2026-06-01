@@ -4,7 +4,7 @@ import { RemoteFileExplorerModule } from '@loopstack/remote-file-explorer-module
 import { RemoteFileExplorerExampleWorkflow } from './remote-file-explorer-example.workflow';
 
 @Module({
-  imports: [RemoteClientModule, RemoteFileExplorerModule],
+  imports: [RemoteClientModule.forRoot(), RemoteFileExplorerModule],
   providers: [RemoteFileExplorerExampleWorkflow],
   exports: [RemoteFileExplorerExampleWorkflow],
 })

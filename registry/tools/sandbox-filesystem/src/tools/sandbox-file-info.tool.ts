@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -26,17 +26,20 @@ interface SandboxFileInfoResult {
 }
 
 @Tool({
+  name: 'sandbox_file_info',
   uiConfig: {
     description: 'Get detailed information about a file or directory in a sandbox container',
   },
   schema: inputSchema,
 })
-export class SandboxFileInfo extends BaseTool {
+export class SandboxFileInfo extends BaseTool<SandboxFileInfoArgs, object, SandboxFileInfoResult> {
   private readonly logger = new Logger(SandboxFileInfo.name);
 
-  @InjectTool() private sandboxCommand: SandboxCommand;
+  constructor(private readonly sandboxCommand: SandboxCommand) {
+    super();
+  }
 
-  async call(args: SandboxFileInfoArgs): Promise<ToolResult<SandboxFileInfoResult>> {
+  protected async handle(args: SandboxFileInfoArgs): Promise<ToolResult<SandboxFileInfoResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Getting file info for ${targetPath} in container ${containerId}`);

@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentWorkflow } from '@loopstack/agent';
-import { RunContext, WorkflowEntity } from '@loopstack/common';
+import { RunContext, WORKFLOW_ORCHESTRATOR, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { CodeAgentExampleWorkflow } from '../code-agent-example.workflow';
@@ -11,8 +11,12 @@ describe('CodeAgentExampleWorkflow', () => {
   let workflow: CodeAgentExampleWorkflow;
   let processor: WorkflowProcessorService;
 
-  const mockAgent = {
-    run: vi.fn(),
+  const mockOrchestrator = {
+    queue: vi.fn(),
+    complete: vi.fn(),
+    resume: vi.fn(),
+    cancel: vi.fn(),
+    cancelChildren: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -20,7 +24,7 @@ describe('CodeAgentExampleWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(CodeAgentExampleWorkflow)
-      .withMock(AgentWorkflow, mockAgent)
+      .withOverride(WORKFLOW_ORCHESTRATOR, mockOrchestrator)
       .compile();
 
     workflow = module.get(CodeAgentExampleWorkflow);
@@ -32,7 +36,7 @@ describe('CodeAgentExampleWorkflow', () => {
   });
 
   it('launches AgentWorkflow and stops at exploring', async () => {
-    mockAgent.run.mockResolvedValue({ workflowId: 'sub-id' });
+    mockOrchestrator.queue.mockResolvedValue({ workflowId: 'sub-id' });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
 
@@ -40,13 +44,13 @@ describe('CodeAgentExampleWorkflow', () => {
     expect(result.stop).toBe(true);
     expect(result.place).toBe('exploring');
 
-    expect(mockAgent.run).toHaveBeenCalledWith(
+    expect(mockOrchestrator.queue).toHaveBeenCalledWith(
       expect.objectContaining({
         system: expect.any(String),
         tools: ['glob', 'grep', 'read'],
         userMessage: expect.any(String),
       }),
-      expect.objectContaining({ alias: 'agent', callback: { transition: 'exploreComplete' } }),
+      expect.objectContaining({ workflowName: AgentWorkflow.name, callback: { transition: 'exploreComplete' } }),
     );
 
     expect(result.documents).toEqual(

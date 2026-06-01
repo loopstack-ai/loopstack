@@ -1,6 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RunContext, WorkflowEntity } from '@loopstack/common';
+import { RunContext, WORKFLOW_ORCHESTRATOR, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { AskUserWorkflow } from '@loopstack/hitl';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
@@ -11,8 +11,12 @@ describe('HitlAskUserExampleWorkflow', () => {
   let workflow: HitlAskUserExampleWorkflow;
   let processor: WorkflowProcessorService;
 
-  const mockAskUser = {
-    run: vi.fn(),
+  const mockOrchestrator = {
+    queue: vi.fn(),
+    complete: vi.fn(),
+    resume: vi.fn(),
+    cancel: vi.fn(),
+    cancelChildren: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -20,7 +24,7 @@ describe('HitlAskUserExampleWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(HitlAskUserExampleWorkflow)
-      .withMock(AskUserWorkflow, mockAskUser)
+      .withOverride(WORKFLOW_ORCHESTRATOR, mockOrchestrator)
       .compile();
 
     workflow = module.get(HitlAskUserExampleWorkflow);
@@ -36,7 +40,7 @@ describe('HitlAskUserExampleWorkflow', () => {
   });
 
   it('launches AskUserWorkflow and stops at waiting_for_answer', async () => {
-    mockAskUser.run.mockResolvedValue({ workflowId: 'sub-id' });
+    mockOrchestrator.queue.mockResolvedValue({ workflowId: 'sub-id' });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
 
@@ -44,9 +48,9 @@ describe('HitlAskUserExampleWorkflow', () => {
     expect(result.stop).toBe(true);
     expect(result.place).toBe('waiting_for_answer');
 
-    expect(mockAskUser.run).toHaveBeenCalledWith(
+    expect(mockOrchestrator.queue).toHaveBeenCalledWith(
       { question: 'What is your name?' },
-      expect.objectContaining({ alias: 'askUser', callback: { transition: 'answerReceived' } }),
+      expect.objectContaining({ workflowName: AskUserWorkflow.name, callback: { transition: 'answerReceived' } }),
     );
   });
 

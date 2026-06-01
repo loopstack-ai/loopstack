@@ -9,91 +9,92 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import lodash from 'lodash';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { BLOCK_CONFIG_METADATA_KEY, WorkflowInterface } from '@loopstack/common';
-import { BlockOptions } from '@loopstack/common';
+import { toJSONSchema } from 'zod';
+import {
+  BLOCK_CONFIG_METADATA_KEY,
+  BlockOptions,
+  ENVIRONMENT_CONFIG,
+  WorkflowInterface,
+  buildWorkflowTransitions,
+  getBlockArgsSchema,
+  getBlockConfig,
+} from '@loopstack/common';
 import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
-import { BlockConfigCacheService, BlockDiscoveryService } from '@loopstack/core';
+import { JSONSchemaDefinition } from '@loopstack/contracts/schemas';
+import type { WorkflowType } from '@loopstack/contracts/types';
+import { StudioDiscoveryService, WorkflowRegistryService } from '@loopstack/core';
+import type { StudioAppConfig } from '@loopstack/core';
 import { AvailableEnvironmentDto } from '../dtos/available-environment.dto.js';
 import { WorkflowConfigDto } from '../dtos/workflow-config.dto.js';
 import { WorkflowSourceDto } from '../dtos/workflow-source.dto.js';
-import { AppConfigDto } from '../dtos/workspace-config.dto.js';
-import { LOOPSTACK_AVAILABLE_ENVIRONMENTS } from '../tokens.js';
 
-const { sortBy } = lodash;
+interface EnvironmentConfig {
+  readonly available: AvailableEnvironmentInterface[];
+}
 
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
 @Controller('api/v1/config')
 export class ConfigController {
   constructor(
-    private readonly blockDiscoveryService: BlockDiscoveryService,
-    private readonly blockConfigCacheService: BlockConfigCacheService,
+    private readonly studioDiscoveryService: StudioDiscoveryService,
+    private readonly workflowRegistryService: WorkflowRegistryService,
     @Optional()
-    @Inject(LOOPSTACK_AVAILABLE_ENVIRONMENTS)
-    private readonly availableEnvironments: AvailableEnvironmentInterface[] = [],
+    @Inject(ENVIRONMENT_CONFIG)
+    private readonly envConfig?: EnvironmentConfig,
   ) {}
 
-  @Get('workspaces')
-  getAppTypes(): AppConfigDto[] {
-    const resolvedConfigs = this.blockConfigCacheService.getAllAppConfigs().map((cached) => ({
-      className: cached.className,
-      title: cached.config.title ?? cached.className,
-      features: cached.config.features,
-      environments: cached.config.environments,
-      ui: cached.resolvedUi as unknown as AppConfigDto['ui'],
-    }));
-
-    return plainToInstance(AppConfigDto, resolvedConfigs, {
-      excludeExtraneousValues: true,
-    });
+  @Get('apps')
+  getApps(): StudioAppConfig[] {
+    return this.studioDiscoveryService.getApps();
   }
 
   @Get('environments')
   getAvailableEnvironments(): AvailableEnvironmentDto[] {
-    return plainToInstance(AvailableEnvironmentDto, this.availableEnvironments, {
+    return plainToInstance(AvailableEnvironmentDto, this.envConfig?.available ?? [], {
       excludeExtraneousValues: true,
     });
   }
 
-  private resolveWorkflowByAlias(alias: string): WorkflowInterface {
-    const workflow = this.blockDiscoveryService.getWorkflowByName(alias);
-    if (workflow) {
-      return workflow;
+  private resolveWorkflow(workflowName: string): WorkflowInterface {
+    try {
+      return this.workflowRegistryService.getByName(workflowName);
+    } catch {
+      throw new BadRequestException(`Workflow "${workflowName}" not found.`);
     }
-
-    throw new BadRequestException(`Workflow with alias ${alias} not found.`);
   }
 
-  @Get('workflows/:alias')
-  getWorkflowConfig(@Param('alias') alias: string): WorkflowConfigDto {
-    const cached = this.blockConfigCacheService.getWorkflowConfig(alias);
-    if (!cached) {
-      const workflow = this.resolveWorkflowByAlias(alias);
-      const byClassName = this.blockConfigCacheService.getWorkflowConfig(workflow.constructor.name);
-      if (!byClassName) {
-        throw new Error(`Block ${workflow.constructor.name} is missing @BlockConfig decorator`);
-      }
-      return plainToInstance(
-        WorkflowConfigDto,
-        { ...byClassName.config, transitions: byClassName.transitions },
-        { excludeExtraneousValues: true },
-      );
+  private buildWorkflowConfig(workflow: WorkflowInterface): WorkflowConfigDto {
+    const config = getBlockConfig<WorkflowType>(workflow);
+    if (!config) {
+      throw new Error(`Block ${workflow.constructor.name} is missing @Workflow decorator`);
     }
+
+    const transitions = buildWorkflowTransitions(workflow);
+    const argsSchema = getBlockArgsSchema(workflow);
+    const argsJsonSchema = argsSchema ? (toJSONSchema(argsSchema) as JSONSchemaDefinition) : undefined;
 
     return plainToInstance(
       WorkflowConfigDto,
-      { ...cached.config, transitions: cached.transitions },
       {
-        excludeExtraneousValues: true,
+        ...config,
+        transitions: transitions.length > 0 ? transitions : (config.transitions ?? []),
+        schema: argsJsonSchema,
       },
+      { excludeExtraneousValues: true },
     );
   }
 
-  @Get('workflows/:alias/source')
-  getWorkflowSource(@Param('alias') alias: string): WorkflowSourceDto {
-    const workflow = this.resolveWorkflowByAlias(alias);
+  @Get('workflows/:workflowName')
+  getWorkflowConfig(@Param('workflowName') workflowName: string): WorkflowConfigDto {
+    const workflow = this.resolveWorkflow(workflowName);
+    return this.buildWorkflowConfig(workflow);
+  }
+
+  @Get('workflows/:workflowName/source')
+  getWorkflowSource(@Param('workflowName') workflowName: string): WorkflowSourceDto {
+    const workflow = this.resolveWorkflow(workflowName);
 
     const ctor = workflow.constructor;
     const metadata = Reflect.getMetadata(BLOCK_CONFIG_METADATA_KEY, ctor) as BlockOptions;
@@ -127,54 +128,9 @@ export class ConfigController {
     }
 
     return {
-      name: alias,
+      name: workflowName,
       filePath,
       raw,
     };
-  }
-
-  @Get('workspaces/:workspaceBlockName/workflows/:workflowName')
-  getWorkflowConfigByName(
-    @Param('workspaceBlockName') _workspaceBlockName: string,
-    @Param('workflowName') workflowName: string,
-  ): WorkflowConfigDto {
-    return this.getWorkflowConfig(workflowName);
-  }
-
-  @Get('workspaces/:workspaceBlockName/workflows/:workflowName/source')
-  getWorkflowSourceByName(
-    @Param('workspaceBlockName') _workspaceBlockName: string,
-    @Param('workflowName') workflowName: string,
-  ): WorkflowSourceDto {
-    return this.getWorkflowSource(workflowName);
-  }
-
-  @Get('workspaces/:workspaceBlockName/workflows')
-  getWorkflowTypesByApp(@Param('workspaceBlockName') appBlockName: string): WorkflowConfigDto[] {
-    const cachedApp = this.blockConfigCacheService.getAppConfig(appBlockName);
-    if (!cachedApp) {
-      throw new BadRequestException(`App config with name ${appBlockName} not found.`);
-    }
-
-    const filtered = cachedApp.workflowNames.map((name) => {
-      const cached = this.blockConfigCacheService.getWorkflowConfig(name);
-      if (!cached) {
-        throw new Error(`Block ${name} is missing @BlockConfig decorator`);
-      }
-
-      return {
-        alias: name,
-        title: cached.config.title,
-        description: cached.config.description,
-        schema: cached.argsJsonSchema,
-        ui: cached.config.ui,
-      } satisfies WorkflowConfigDto;
-    });
-
-    const sorted = sortBy(filtered, 'title');
-
-    return plainToInstance(WorkflowConfigDto, sorted, {
-      excludeExtraneousValues: true,
-    });
   }
 }

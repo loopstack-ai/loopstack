@@ -23,7 +23,7 @@ export class WorkflowCreateDto implements WorkflowCreateInterface {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100, { message: 'Workflow name must not exceed 100 characters' })
-  alias: string;
+  workflowName: string;
 
   /**
    * Human-readable title for the workflow

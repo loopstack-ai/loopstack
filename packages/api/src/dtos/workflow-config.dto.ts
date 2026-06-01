@@ -4,7 +4,7 @@ import type { JSONSchemaConfigType, UiFormType, WorkflowTransitionType } from '@
 
 export class WorkflowConfigDto implements WorkflowConfigInterface {
   @Expose()
-  alias: string;
+  workflowName: string;
 
   @Expose()
   title?: string;

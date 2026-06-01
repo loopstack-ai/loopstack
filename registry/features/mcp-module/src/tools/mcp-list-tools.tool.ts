@@ -10,15 +10,16 @@ export const McpListToolsArgsSchema = McpConnectionArgsSchema;
 export type McpListToolsArgs = z.infer<typeof McpListToolsArgsSchema>;
 
 @Tool({
+  name: 'mcp_list_tools',
   uiConfig: {
     description:
-      'Lists tool definitions exposed by a remote MCP server (Streamable HTTP or legacy SSE). Requires `allowedHosts` (and optional auth headers) via `@InjectTool`.',
+      'Lists tool definitions exposed by a remote MCP server (Streamable HTTP or legacy SSE). Requires `allowedHosts` (and optional auth headers) via tool config.',
   },
   schema: McpListToolsArgsSchema,
   configSchema: McpToolConfigSchema,
 })
 export class McpListToolsTool extends McpToolBase<McpListToolsArgs> {
-  async call(args: McpListToolsArgs, options?: ToolCallOptions<McpToolConfig>): Promise<ToolResult> {
+  protected async handle(args: McpListToolsArgs, options?: ToolCallOptions<McpToolConfig>): Promise<ToolResult> {
     const cfg = this.requireConfig(options?.config);
 
     const result = await this.mcp.listTools(args.serverUrl, cfg, {

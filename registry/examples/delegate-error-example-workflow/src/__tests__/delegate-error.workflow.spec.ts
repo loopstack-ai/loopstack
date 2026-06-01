@@ -78,7 +78,7 @@ describe('DelegateErrorWorkflow', () => {
   describe('validation error (bad schema args)', () => {
     it('should capture validation error as isError tool result and loop back to ready', async () => {
       mockLlm.call
-        .mockResolvedValueOnce(mockToolUseResponse('strictSchema', {}))
+        .mockResolvedValueOnce(mockToolUseResponse('StrictSchemaTool', {}))
         .mockResolvedValueOnce(mockEndTurnResponse('Done.'));
 
       const context = createStatelessContext();
@@ -100,7 +100,7 @@ describe('DelegateErrorWorkflow', () => {
   describe('runtime error (tool throws)', () => {
     it('should capture runtime error as isError tool result and loop back to ready', async () => {
       mockLlm.call
-        .mockResolvedValueOnce(mockToolUseResponse('runtimeError', { shouldFail: true }))
+        .mockResolvedValueOnce(mockToolUseResponse('RuntimeErrorTool', { shouldFail: true }))
         .mockResolvedValueOnce(mockEndTurnResponse('Done.'));
 
       const context = createStatelessContext();
@@ -122,7 +122,7 @@ describe('DelegateErrorWorkflow', () => {
   describe('successful tool call', () => {
     it('should process successful tool call without errors', async () => {
       mockLlm.call
-        .mockResolvedValueOnce(mockToolUseResponse('strictSchema', { name: 'World' }))
+        .mockResolvedValueOnce(mockToolUseResponse('StrictSchemaTool', { name: 'World' }))
         .mockResolvedValueOnce(mockEndTurnResponse('Done.'));
 
       const context = createStatelessContext();
@@ -144,7 +144,7 @@ describe('DelegateErrorWorkflow', () => {
   describe('error metadata in tool result documents', () => {
     it('should include validation error message in isError tool result', async () => {
       mockLlm.call
-        .mockResolvedValueOnce(mockToolUseResponse('strictSchema', {}))
+        .mockResolvedValueOnce(mockToolUseResponse('StrictSchemaTool', {}))
         .mockResolvedValueOnce(mockEndTurnResponse('Done.'));
 
       const context = createStatelessContext();
@@ -168,7 +168,7 @@ describe('DelegateErrorWorkflow', () => {
 
     it('should include runtime error message in isError tool result', async () => {
       mockLlm.call
-        .mockResolvedValueOnce(mockToolUseResponse('runtimeError', { shouldFail: true }))
+        .mockResolvedValueOnce(mockToolUseResponse('RuntimeErrorTool', { shouldFail: true }))
         .mockResolvedValueOnce(mockEndTurnResponse('Done.'));
 
       const context = createStatelessContext();
@@ -193,7 +193,7 @@ describe('DelegateErrorWorkflow', () => {
   describe('validation and runtime errors produce identical structure', () => {
     it('should produce the same isError tool result shape for both error types', async () => {
       mockLlm.call
-        .mockResolvedValueOnce(mockToolUseResponse('strictSchema', {}))
+        .mockResolvedValueOnce(mockToolUseResponse('StrictSchemaTool', {}))
         .mockResolvedValueOnce(mockEndTurnResponse('Recovered.'));
       const context1 = createStatelessContext();
       const result1 = await processor.process(workflow, {}, context1);
@@ -208,7 +208,7 @@ describe('DelegateErrorWorkflow', () => {
       );
 
       mockLlm.call
-        .mockResolvedValueOnce(mockToolUseResponse('runtimeError', { shouldFail: true }))
+        .mockResolvedValueOnce(mockToolUseResponse('RuntimeErrorTool', { shouldFail: true }))
         .mockResolvedValueOnce(mockEndTurnResponse('Recovered.'));
       const context2 = createStatelessContext();
       const result2 = await processor.process(workflow, {}, context2);

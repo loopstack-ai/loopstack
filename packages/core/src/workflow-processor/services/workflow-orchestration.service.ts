@@ -35,47 +35,46 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
   ) {}
 
   async queue(args?: Record<string, unknown>, options?: RunOptions): Promise<QueueResult> {
-    const ctx = this.executionScope.get();
-    const context = ctx.getContext();
+    const scope = this.executionScope.get();
 
-    if (!options?.alias) {
-      throw new Error('RunOptions.alias is required to queue a sub-workflow.');
+    if (!options?.workflowName) {
+      throw new Error('RunOptions.workflowName is required to queue a sub-workflow.');
     }
 
-    if (context.options?.stateless) {
+    if (scope.options?.stateless) {
       throw new Error('Sub-workflow launching requires stateful workflow execution.');
     }
 
-    const alias = options.alias;
+    const workflowName = options.workflowName;
     const workflowInstance = options._workflowInstance as WorkflowInterface | undefined;
 
     const config = options?._config as Record<string, unknown> | undefined;
 
     const workflowEntity = await this.createWorkflowService.create(
-      { id: context.workspaceId },
+      { id: scope.workspaceId },
       {
-        alias,
-        workspaceId: context.workspaceId,
+        workflowName,
+        workspaceId: scope.workspaceId,
         args: { ...args },
         config: config ? { ...config } : null,
         callbackTransition: options?.callback?.transition ?? null,
         callbackMetadata: options?.callback?.metadata ?? null,
       },
-      context.userId,
-      context.workflowId,
+      scope.userId,
+      scope.workflowId,
       workflowInstance,
     );
 
     await this.taskSchedulerService.addTask({
       id: 'sub_workflow_execution-' + randomUUID(),
-      workspaceId: context.workspaceId,
+      workspaceId: scope.workspaceId,
       task: {
         name: 'sub_workflow_execution',
         type: 'run_workflow',
-        user: context.userId,
-        workspaceId: context.workspaceId,
+        user: scope.userId,
+        workspaceId: scope.workspaceId,
         workflowId: workflowEntity.id,
-        alias,
+        workflowName,
         args: { ...args },
         payload: {},
       },

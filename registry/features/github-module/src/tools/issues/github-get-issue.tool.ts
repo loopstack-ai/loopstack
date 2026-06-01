@@ -13,21 +13,43 @@ const inputSchema = z
 
 export type GitHubGetIssueArgs = z.infer<typeof inputSchema>;
 
+export type GitHubGetIssueResult =
+  | {
+      issue: {
+        id: number;
+        number: number;
+        title: string;
+        body: string | null;
+        state: string;
+        user: string;
+        labels: string[];
+        assignees: string[];
+        milestone: string | null;
+        createdAt: string;
+        updatedAt: string;
+        closedAt: string | null;
+        htmlUrl: string;
+        comments: number;
+      };
+    }
+  | { error: string; message: string };
+
 @Tool({
+  name: 'github_get_issue',
   uiConfig: {
     description:
       'Gets detailed information about a specific GitHub issue. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GitHubGetIssueTool extends BaseTool {
+export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, GitHubGetIssueResult> {
   private readonly logger = new Logger(GitHubGetIssueTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubGetIssueArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(args: GitHubGetIssueArgs): Promise<ToolResult<GitHubGetIssueResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -48,7 +70,7 @@ export class GitHubGetIssueTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: '401',

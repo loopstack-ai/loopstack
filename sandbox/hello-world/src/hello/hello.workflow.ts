@@ -7,6 +7,12 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
+import type { WorkflowContext } from '@loopstack/common';
+import { DocumentStore } from '@loopstack/core';
+
+interface HelloState {
+  name?: string;
+}
 
 @Workflow({
   uiConfig: __dirname + '/hello.ui.yaml',
@@ -14,25 +20,31 @@ import {
     name: z.string().default('World'),
   }),
 })
-export class HelloWorkflow extends BaseWorkflow<{ name: string }> {
-  private name: string;
+export class HelloWorkflow extends BaseWorkflow<{ name: string }, HelloState> {
+  constructor(private readonly documentStore: DocumentStore) {
+    super();
+  }
 
   @Initial({ to: 'ready' })
-  async start(args: { name: string }) {
-    this.name = args.name;
-    return Promise.resolve();
+  async start(
+    ctx: WorkflowContext,
+    args: { name: string },
+    state: HelloState,
+  ): Promise<HelloState> {
+    return { name: args.name };
   }
 
   @Transition({ from: 'ready', to: 'done' })
-  async greet() {
-    await this.repository.save(MessageDocument, {
+  async greet(ctx: WorkflowContext, state: HelloState): Promise<HelloState> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Hello, ${this.name}!`,
+      content: `Hello, ${state.name}!`,
     });
+    return state;
   }
 
   @Final({ from: 'done' })
-  async finish() {
-    return Promise.resolve(console.log('Workflow finished'));
+  async finish(ctx: WorkflowContext, state: HelloState): Promise<unknown> {
+    return {};
   }
 }

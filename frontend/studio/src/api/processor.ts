@@ -1,5 +1,6 @@
 import type { AxiosInstance } from 'axios';
 import type { RunWorkflowPayloadInterface } from '@loopstack/contracts/api';
+import type { WorkflowPayload, WorkflowRunResult } from './types';
 
 export function createProcessorApi(http: AxiosInstance) {
   return {
@@ -15,5 +16,8 @@ export function createProcessorApi(http: AxiosInstance) {
           params.force !== undefined ? { params: { force: params.force } } : undefined,
         )
         .then((res) => res.data),
+
+    executeController: (params: { path: string; payload: WorkflowPayload }): Promise<WorkflowRunResult> =>
+      http.post<WorkflowRunResult>(params.path, params.payload).then((res) => res.data),
   };
 }

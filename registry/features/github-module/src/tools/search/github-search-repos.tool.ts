@@ -14,21 +14,38 @@ const inputSchema = z
 
 export type GitHubSearchReposArgs = z.input<typeof inputSchema>;
 
+export type GitHubSearchReposResult =
+  | {
+      totalCount: number;
+      results: Array<{
+        id: number;
+        fullName: string;
+        description: string | null;
+        htmlUrl: string;
+        language: string | null;
+        stars: number;
+        forks: number;
+        updatedAt: string;
+      }>;
+    }
+  | { error: string; message: string };
+
 @Tool({
+  name: 'github_search_repos',
   uiConfig: {
     description:
       'Searches for repositories on GitHub using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GitHubSearchReposTool extends BaseTool {
+export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, object, GitHubSearchReposResult> {
   private readonly logger = new Logger(GitHubSearchReposTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubSearchReposArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(args: GitHubSearchReposArgs): Promise<ToolResult<GitHubSearchReposResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -56,7 +73,7 @@ export class GitHubSearchReposTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: '401',

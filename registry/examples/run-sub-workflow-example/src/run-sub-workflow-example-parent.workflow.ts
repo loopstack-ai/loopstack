@@ -1,16 +1,20 @@
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
+  DOCUMENT_STORE,
   Final,
   Initial,
-  InjectWorkflow,
   LinkDocument,
   MessageDocument,
   QueueResult,
   Transition,
+  WORKFLOW_ORCHESTRATOR,
   Workflow,
+  WorkflowOrchestrator,
 } from '@loopstack/common';
+import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
 
 const SubWorkflowCallbackSchema = CallbackSchema.extend({
@@ -19,20 +23,34 @@ const SubWorkflowCallbackSchema = CallbackSchema.extend({
 
 type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
 
+interface SubWorkflowParentState {}
+
 @Workflow({
   uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml',
 })
-export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
-  @InjectWorkflow() private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
+export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow<Record<string, unknown>, SubWorkflowParentState> {
+  constructor(
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+  ) {
+    super();
+  }
 
   @Initial({ to: 'sub_workflow_started' })
-  async runWorkflow() {
-    const result: QueueResult = await this.runSubWorkflowExampleSub.run(
+  async runWorkflow(
+    ctx: WorkflowContext,
+    args: Record<string, unknown>,
+    state: SubWorkflowParentState,
+  ): Promise<SubWorkflowParentState> {
+    const result: QueueResult = await this.orchestrator.queue(
       {},
-      { alias: 'runSubWorkflowExampleSub', callback: { transition: 'subWorkflowCallback' } },
+      {
+        workflowName: RunSubWorkflowExampleSubWorkflow.name,
+        callback: { transition: 'subWorkflowCallback' },
+      },
     );
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         label: 'Executing Sub-Workflow...',
@@ -40,6 +58,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       },
       { id: `link_${result.workflowId}` },
     );
+    return state;
   }
 
   @Transition({
@@ -48,8 +67,12 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     wait: true,
     schema: SubWorkflowCallbackSchema,
   })
-  async subWorkflowCallback(payload: SubWorkflowCallback) {
-    await this.repository.save(
+  async subWorkflowCallback(
+    ctx: WorkflowContext,
+    state: SubWorkflowParentState,
+    payload: SubWorkflowCallback,
+  ): Promise<SubWorkflowParentState> {
+    await this.documentStore.save(
       LinkDocument,
       {
         label: 'Sub-Workflow',
@@ -59,20 +82,24 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       { id: `link_${payload.workflowId}` },
     );
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `A message from sub workflow 1: ${payload.data.message}`,
     });
+    return state;
   }
 
   @Transition({ from: 'sub_workflow_ended', to: 'sub_workflow2_started' })
-  async runWorkflow2() {
-    const result: QueueResult = await this.runSubWorkflowExampleSub.run(
+  async runWorkflow2(ctx: WorkflowContext, state: SubWorkflowParentState): Promise<SubWorkflowParentState> {
+    const result: QueueResult = await this.orchestrator.queue(
       {},
-      { alias: 'runSubWorkflowExampleSub', callback: { transition: 'subWorkflow2Callback' } },
+      {
+        workflowName: RunSubWorkflowExampleSubWorkflow.name,
+        callback: { transition: 'subWorkflow2Callback' },
+      },
     );
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         label: 'Executing Sub-Workflow 2...',
@@ -80,6 +107,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       },
       { id: `link_${result.workflowId}` },
     );
+    return state;
   }
 
   @Final({
@@ -87,8 +115,12 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     wait: true,
     schema: SubWorkflowCallbackSchema,
   })
-  async subWorkflow2Callback(payload: SubWorkflowCallback) {
-    await this.repository.save(
+  async subWorkflow2Callback(
+    ctx: WorkflowContext,
+    state: SubWorkflowParentState,
+    payload: SubWorkflowCallback,
+  ): Promise<unknown> {
+    await this.documentStore.save(
       LinkDocument,
       {
         label: 'Sub-Workflow 2',
@@ -98,9 +130,10 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
       { id: `link_${payload.workflowId}` },
     );
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `A message from sub workflow 2: ${payload.data.message}`,
     });
+    return {};
   }
 }

@@ -59,7 +59,7 @@ const Runs = ({ defaultFilters = {} }: RunsProps) => {
   const aliasFilterOptions: FilterOption[] = useMemo(() => {
     const names = new Set<string>();
     for (const p of fetchWorkflows.data?.data ?? []) {
-      if (p.alias) names.add(p.alias);
+      if (p.workflowName) names.add(p.workflowName);
     }
     return Array.from(names).sort();
   }, [fetchWorkflows.data]);

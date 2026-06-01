@@ -1,9 +1,6 @@
 import { type ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
-import type {
-  WorkflowFullInterface,
-  WorkspaceEnvironmentInterface,
-  WorkspaceInterface,
-} from '@loopstack/contracts/api';
+import type { WorkflowFullInterface, WorkspaceEnvironmentInterface } from '@loopstack/contracts/api';
+import { useWorkspaceEnvironments } from '@/hooks/useEnvironments';
 import { useOptionalStudioPreferences } from '@/providers/StudioPreferencesProvider';
 
 export type PanelId = 'runs' | 'preview' | 'files' | 'environment' | (string & {});
@@ -13,7 +10,6 @@ export interface WorkbenchLayoutContextType {
   workspaceId: string;
   workflow?: WorkflowFullInterface;
   previewPanelEnabled: boolean;
-  workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
   getPreviewUrl?: (workflowId: string) => string;
   getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, workflowId?: string) => string;
@@ -42,24 +38,21 @@ export interface WorkbenchLayoutProviderProps {
   children: ReactNode;
   workspaceId: string;
   workflow?: WorkflowFullInterface;
-  workspaceConfig?: Pick<WorkspaceInterface, 'volumes' | 'features'>;
 
   getPreviewUrl?: (workflowId: string) => string;
   getEnvironmentPreviewUrl?: (env: WorkspaceEnvironmentInterface, workflowId?: string) => string;
-  environments?: WorkspaceEnvironmentInterface[];
 }
 
 export function WorkbenchLayoutProvider({
   children,
   workspaceId,
   workflow,
-  workspaceConfig,
 
   getPreviewUrl,
   getEnvironmentPreviewUrl,
-  environments,
 }: WorkbenchLayoutProviderProps) {
   const studioPrefs = useOptionalStudioPreferences();
+  const { data: environments } = useWorkspaceEnvironments(workspaceId);
 
   // Panel state — backed by StudioPreferencesProvider when available, otherwise local state
   const [localActivePanel, setLocalActivePanel] = useState<PanelId | null>(null);
@@ -71,10 +64,10 @@ export function WorkbenchLayoutProvider({
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string>('');
 
-  const featureEnabled = workspaceConfig?.features?.previewPanel?.enabled ?? false;
+  // Preview panel enabled when workspace has at least one connectable environment
   const hasConnectableEnvs =
     environments === undefined || environments.some((e) => !!e.connectionUrl && (!!e.workerId || e.local));
-  const previewPanelEnabled = featureEnabled && hasConnectableEnvs;
+  const previewPanelEnabled = hasConnectableEnvs;
   const defaultPanelSize: Record<string, PanelSize> = {
     runs: 'medium',
     preview: 'medium',
@@ -134,8 +127,6 @@ export function WorkbenchLayoutProvider({
       workflow,
       previewPanelEnabled,
 
-      workspaceConfig,
-
       getPreviewUrl,
       getEnvironmentPreviewUrl,
       environments,
@@ -157,8 +148,6 @@ export function WorkbenchLayoutProvider({
       workspaceId,
       workflow,
       previewPanelEnabled,
-
-      workspaceConfig,
 
       getPreviewUrl,
       getEnvironmentPreviewUrl,

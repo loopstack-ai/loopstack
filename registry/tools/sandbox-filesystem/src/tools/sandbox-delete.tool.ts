@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectTool, Tool, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolResult } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -20,17 +20,20 @@ interface SandboxDeleteResult {
 }
 
 @Tool({
+  name: 'sandbox_delete',
   uiConfig: {
     description: 'Delete a file or directory in a sandbox container',
   },
   schema: inputSchema,
 })
-export class SandboxDelete extends BaseTool {
+export class SandboxDelete extends BaseTool<SandboxDeleteArgs, object, SandboxDeleteResult> {
   private readonly logger = new Logger(SandboxDelete.name);
 
-  @InjectTool() private sandboxCommand: SandboxCommand;
+  constructor(private readonly sandboxCommand: SandboxCommand) {
+    super();
+  }
 
-  async call(args: SandboxDeleteArgs): Promise<ToolResult<SandboxDeleteResult>> {
+  protected async handle(args: SandboxDeleteArgs): Promise<ToolResult<SandboxDeleteResult>> {
     const { containerId, path: targetPath, recursive, force } = args;
 
     this.logger.debug(`Deleting ${targetPath} in container ${containerId} (recursive: ${recursive}, force: ${force})`);

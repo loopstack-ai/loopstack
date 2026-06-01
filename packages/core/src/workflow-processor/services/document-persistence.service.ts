@@ -7,7 +7,7 @@ import { ZodError, toJSONSchema } from 'zod';
 import { DocumentEntity, DocumentSaveOptions, getBlockConfig, getDocumentSchema } from '@loopstack/common';
 import { DocumentConfigType } from '@loopstack/contracts/types';
 import { SchemaValidationError } from '../../common/index.js';
-import { ExecutionScope, WorkflowExecutionContextManager } from '../utils/index.js';
+import { ExecutionScope, ExecutionScopeData } from '../utils/index.js';
 
 const { merge } = lodash;
 
@@ -24,7 +24,7 @@ export class DocumentPersistenceService {
   /**
    * Creates, persists, and caches a document entity.
    *
-   * When a queryRunner is available on the execution context (stateful workflows),
+   * When a queryRunner is available on the execution scope (stateful workflows),
    * the document is written to the DB immediately within the transition's transaction.
    * For stateless workflows (no queryRunner), the document is only added to the
    * in-memory cache.
@@ -35,10 +35,8 @@ export class DocumentPersistenceService {
     content: unknown,
     options?: DocumentSaveOptions,
   ): Promise<DocumentEntity> {
-    const ctx = this.executionScope.get();
-    const runContext = ctx.getContext();
-    const metadata = ctx.getData();
-    const transition = metadata.transition!;
+    const scope = this.executionScope.get();
+    const transition = scope.transition!;
 
     // Read config and schema from the document class
     const config = getBlockConfig<DocumentConfigType>(documentClass);
@@ -67,18 +65,17 @@ export class DocumentPersistenceService {
       tags: (config?.tags as string[]) ?? [],
       transition: transition.id,
       place: transition.to,
-      labels: runContext.labels,
-      workflowId: runContext.workflowId!,
-      workspaceId: runContext.workspaceId,
-      createdBy: runContext.userId,
+      labels: scope.labels,
+      workflowId: scope.workflowId,
+      workspaceId: scope.workspaceId,
+      createdBy: scope.userId,
     });
 
     // Set index and update in-memory cache first (handles invalidation of previous versions)
-    await this.addToCache(ctx, entity);
+    await this.addToCache(scope, entity);
 
     // Persist to DB with correct index via scoped transaction when available
-    const queryRunner = ctx.getQueryRunner();
-    const saved = queryRunner ? await queryRunner.manager.save(DocumentEntity, entity) : entity;
+    const saved = scope.queryRunner ? await scope.queryRunner.manager.save(DocumentEntity, entity) : entity;
 
     return saved;
   }
@@ -87,12 +84,9 @@ export class DocumentPersistenceService {
    * Updates the in-memory document cache. Handles invalidation of previous
    * versions (by messageId) and index inheritance. Persists invalidation
    * changes to DB when a queryRunner is available.
-   *
-   * Shared by both direct document creation and tool side-effect processing.
    */
-  async addToCache(ctx: WorkflowExecutionContextManager, document: DocumentEntity): Promise<void> {
-    const documents = ctx.getManager().getData('documents');
-    const queryRunner = ctx.getQueryRunner();
+  async addToCache(scope: ExecutionScopeData, document: DocumentEntity): Promise<void> {
+    const { documents, queryRunner } = scope;
 
     const existingIndex = document.messageId ? documents.findIndex((d) => d.messageId === document.messageId) : -1;
 
@@ -140,8 +134,7 @@ export class DocumentPersistenceService {
       documents.push(document);
     }
 
-    ctx.getManager().setData('documents', documents);
-    ctx.getManager().setData('persistenceState', { documentsUpdated: true });
+    scope.persistenceState = { documentsUpdated: true };
   }
 
   private validateContent(

@@ -12,21 +12,46 @@ const inputSchema = z
 
 export type GitHubGetRepoArgs = z.infer<typeof inputSchema>;
 
+export type GitHubGetRepoResult = {
+  repo?: {
+    id: number;
+    fullName: string;
+    name: string;
+    owner: string;
+    ownerAvatar: string;
+    private: boolean;
+    htmlUrl: string;
+    description: string | null;
+    language: string | null;
+    defaultBranch: string;
+    stars: number;
+    forks: number;
+    openIssues: number;
+    createdAt: string;
+    updatedAt: string;
+    topics: string[];
+    license: string | null;
+  };
+  error?: string;
+  message?: string;
+};
+
 @Tool({
+  name: 'github_get_repo',
   uiConfig: {
     description:
       'Gets detailed information about a specific GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GitHubGetRepoTool extends BaseTool {
+export class GitHubGetRepoTool extends BaseTool<GitHubGetRepoArgs, object, GitHubGetRepoResult> {
   private readonly logger = new Logger(GitHubGetRepoTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubGetRepoArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(args: GitHubGetRepoArgs): Promise<ToolResult<GitHubGetRepoResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -49,7 +74,7 @@ export class GitHubGetRepoTool extends BaseTool {
     );
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: '401',

@@ -1,8 +1,7 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
-import { SandboxEnvironmentService } from '../services/sandbox-environment.service.js';
 
 export type GrepArgs = {
   pattern: string;
@@ -12,7 +11,12 @@ export type GrepArgs = {
   case_insensitive?: boolean;
 };
 
+export type GrepResult = {
+  matches: { file: string; line: number; content: string }[];
+};
+
 @Tool({
+  name: 'grep',
   schema: z
     .object({
       pattern: z.string().describe('Regex pattern to search for in file contents'),
@@ -27,13 +31,17 @@ export type GrepArgs = {
       'Searches file contents by regex pattern on a remote instance. Returns matching lines with file paths and line numbers.',
   },
 })
-export class GrepTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GrepTool extends BaseTool<GrepArgs, object, GrepResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: GrepArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.grep(agentUrl, args.pattern, args.path, {
+  protected async handle(args: GrepArgs): Promise<ToolResult<GrepResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.grep(agentUrl, args.pattern, args.path, {
       glob: args.glob,
       type: args.type,
       caseInsensitive: args.case_insensitive,

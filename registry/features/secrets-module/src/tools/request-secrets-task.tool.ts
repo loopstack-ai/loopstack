@@ -1,6 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, InjectWorkflow, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import {
+  BaseTool,
+  DOCUMENT_STORE,
+  LinkDocument,
+  Tool,
+  ToolCallOptions,
+  ToolResult,
+  WORKFLOW_ORCHESTRATOR,
+  WorkflowOrchestrator,
+} from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import { SecretsRequestWorkflow } from './secrets-request.workflow.js';
 
 const RequestSecretsTaskInputSchema = z
@@ -15,8 +25,10 @@ const RequestSecretsTaskInputSchema = z
 
 type RequestSecretsTaskInput = z.infer<typeof RequestSecretsTaskInputSchema>;
 
-@Injectable()
+export type RequestSecretsTaskResult = { workflowId: string } | string;
+
 @Tool({
+  name: 'request_secrets_task',
   uiConfig: {
     description:
       'Requests secret values from the user. Shows a secure input form where the user can enter API keys and other secrets. ' +
@@ -26,21 +38,29 @@ type RequestSecretsTaskInput = z.infer<typeof RequestSecretsTaskInputSchema>;
   },
   schema: RequestSecretsTaskInputSchema,
 })
-export class RequestSecretsTask extends BaseTool {
+export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object, RequestSecretsTaskResult> {
   private readonly logger = new Logger(RequestSecretsTask.name);
 
-  @InjectWorkflow() private secretsRequest: SecretsRequestWorkflow;
+  constructor(
+    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
+  ) {
+    super();
+  }
 
-  async call(args: RequestSecretsTaskInput, options?: ToolCallOptions): Promise<ToolResult> {
-    const result = await this.secretsRequest.run(
+  protected async handle(
+    args: RequestSecretsTaskInput,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<RequestSecretsTaskResult>> {
+    const result = await this.orchestrator.queue(
       { variables: args.variables },
       {
-        alias: 'secretsRequest',
+        workflowName: SecretsRequestWorkflow.name,
         callback: options?.callback,
       },
     );
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'pending',
@@ -58,10 +78,10 @@ export class RequestSecretsTask extends BaseTool {
     };
   }
 
-  async complete(result: Record<string, unknown>): Promise<ToolResult> {
+  async complete(result: Record<string, unknown>): Promise<ToolResult<RequestSecretsTaskResult>> {
     const data = result as { workflowId?: string };
 
-    await this.repository.save(
+    await this.documentStore.save(
       LinkDocument,
       {
         status: 'success',

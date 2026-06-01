@@ -11,21 +11,43 @@ const inputSchema = z
 
 export type GoogleDriveGetFileMetadataArgs = z.infer<typeof inputSchema>;
 
+export type GoogleDriveGetFileMetadataResult =
+  | {
+      id: string;
+      name: string;
+      mimeType: string;
+      size?: string;
+      modifiedTime: string;
+      createdTime: string;
+      owners?: Array<{ displayName: string; email: string }>;
+      webViewLink?: string;
+      parents?: string[];
+      description?: string;
+      shared?: boolean;
+    }
+  | { error: 'unauthorized'; message: string }
+  | { error: 'api_error'; message: string };
+
 @Tool({
+  name: 'google_drive_get_file_metadata',
   uiConfig: {
     description:
       'Gets detailed metadata for a single Google Drive file. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GoogleDriveGetFileMetadataTool extends BaseTool {
+export class GoogleDriveGetFileMetadataTool extends BaseTool<
+  GoogleDriveGetFileMetadataArgs,
+  object,
+  GoogleDriveGetFileMetadataResult
+> {
   private readonly logger = new Logger(GoogleDriveGetFileMetadataTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GoogleDriveGetFileMetadataArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'google');
+  protected async handle(args: GoogleDriveGetFileMetadataArgs): Promise<ToolResult<GoogleDriveGetFileMetadataResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -43,7 +65,7 @@ export class GoogleDriveGetFileMetadataTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Drive API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`Google Drive API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: 'unauthorized',

@@ -1,7 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
-import { RemoteClient, SandboxEnvironmentService } from '@loopstack/remote-client';
+import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitPullArgs = {
   remote?: string;
@@ -9,7 +8,13 @@ export type GitPullArgs = {
   token?: string;
 };
 
+export type GitPullResult = {
+  success: boolean;
+  output?: string;
+};
+
 @Tool({
+  name: 'git_pull',
   schema: z
     .object({
       remote: z.string().optional().describe('Remote name (defaults to origin)'),
@@ -21,13 +26,17 @@ export type GitPullArgs = {
     description: 'Pulls changes from a remote repository.',
   },
 })
-export class GitPullTool extends BaseTool {
-  @Inject() private remoteAgentClient: RemoteClient;
-  @Inject() private sandboxEnvironmentService: SandboxEnvironmentService;
+export class GitPullTool extends BaseTool<GitPullArgs, object, GitPullResult> {
+  constructor(
+    private readonly env: EnvironmentService,
+    private readonly remote: RemoteClient,
+  ) {
+    super();
+  }
 
-  async call(args: GitPullArgs): Promise<ToolResult> {
-    const agentUrl = this.sandboxEnvironmentService.getAgentUrl(this.ctx.app);
-    const result = await this.remoteAgentClient.gitPull(agentUrl, {
+  protected async handle(args: GitPullArgs): Promise<ToolResult<GitPullResult>> {
+    const agentUrl = await this.env.getAgentUrl();
+    const result = await this.remote.gitPull(agentUrl, {
       remote: args.remote,
       branch: args.branch,
       token: args.token,

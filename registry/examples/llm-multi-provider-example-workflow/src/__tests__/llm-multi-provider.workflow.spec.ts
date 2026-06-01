@@ -1,7 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ClaudeModule } from '@loopstack/claude-module';
-import { getBlockTools } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { LlmGenerateTextTool } from '@loopstack/llm-provider-module';
 import { OpenAiModule } from '@loopstack/openai-module';
@@ -40,10 +39,8 @@ describe('LlmMultiProviderWorkflow', () => {
     await module.close();
   });
 
-  it('should be defined with two LLM tool injections', () => {
+  it('should be defined', () => {
     expect(workflow).toBeDefined();
-    expect(getBlockTools(workflow)).toContain('claudeLlm');
-    expect(getBlockTools(workflow)).toContain('openaiLlm');
   });
 
   it('should execute both providers and save response documents', async () => {

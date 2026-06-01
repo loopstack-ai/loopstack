@@ -12,7 +12,6 @@ import {
 } from 'typeorm';
 import { User } from './user.entity.js';
 import { WorkflowEntity } from './workflow.entity.js';
-import { WorkspaceEnvironmentEntity } from './workspace-environment.entity.js';
 
 @Entity({ name: 'core_workspace' })
 export class WorkspaceEntity {
@@ -22,9 +21,9 @@ export class WorkspaceEntity {
   @Column({ type: 'varchar', nullable: true })
   title!: string;
 
-  @Column({ type: 'varchar', name: 'class_name' })
+  @Column({ type: 'varchar', name: 'app_name' })
   @Index()
-  className!: string;
+  appName!: string;
 
   @Column({ name: 'is_favourite', default: false })
   isFavourite!: boolean;
@@ -40,12 +39,6 @@ export class WorkspaceEntity {
     onDelete: 'CASCADE',
   })
   workflows!: Relation<WorkflowEntity[]>;
-
-  @OneToMany(() => WorkspaceEnvironmentEntity, (env) => env.workspace, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
-  environments!: Relation<WorkspaceEnvironmentEntity[]>;
 
   @ManyToOne(() => User, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'created_by' })

@@ -1,35 +1,47 @@
-import { BaseWorkflow, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
+import { Inject } from '@nestjs/common';
+import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
+import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+
+interface ToolResultsState {
+  storedMessage?: string;
+}
 
 @Workflow({
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
-export class WorkflowToolResultsWorkflow extends BaseWorkflow {
-  storedMessage?: string;
+export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unknown>, ToolResultsState> {
+  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
+    super();
+  }
 
   @Initial({ to: 'data_created' })
-  async createSomeData() {
-    this.storedMessage = 'Hello World.';
-
-    await this.repository.save(MessageDocument, {
+  async createSomeData(
+    ctx: WorkflowContext,
+    args: Record<string, unknown>,
+    state: ToolResultsState,
+  ): Promise<ToolResultsState> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Stored in initial transition: ${this.storedMessage}`,
+      content: `Stored in initial transition: Hello World.`,
     });
+    return { ...state, storedMessage: 'Hello World.' };
   }
 
   @Final({ from: 'data_created' })
-  async accessData() {
-    await this.repository.save(MessageDocument, {
+  async accessData(ctx: WorkflowContext, state: ToolResultsState): Promise<unknown> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Accessed from previous transition: ${this.storedMessage}`,
+      content: `Accessed from previous transition: ${state.storedMessage}`,
     });
 
-    await this.repository.save(MessageDocument, {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Accessed via helper method: ${this.theMessage()}`,
+      content: `Accessed via helper method: ${this.theMessage(state)}`,
     });
+    return {};
   }
 
-  private theMessage(): string {
-    return this.storedMessage!;
+  private theMessage(state: ToolResultsState): string {
+    return state.storedMessage!;
   }
 }

@@ -13,21 +13,43 @@ const inputSchema = z
 
 export type GitHubGetWorkflowRunArgs = z.infer<typeof inputSchema>;
 
+export type GitHubGetWorkflowRunResult =
+  | {
+      run: {
+        id: number;
+        name: string;
+        status: string;
+        conclusion: string | null;
+        headBranch: string;
+        headSha: string;
+        event: string;
+        workflowId: number;
+        runNumber: number;
+        runAttempt: number;
+        createdAt: string;
+        updatedAt: string;
+        runStartedAt: string;
+        htmlUrl: string;
+      };
+    }
+  | { error: string; message: string };
+
 @Tool({
+  name: 'github_get_workflow_run',
   uiConfig: {
     description:
       'Gets detailed information about a specific GitHub Actions workflow run. Returns { error: "unauthorized" } if no valid token is available.',
   },
   schema: inputSchema,
 })
-export class GitHubGetWorkflowRunTool extends BaseTool {
+export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs, object, GitHubGetWorkflowRunResult> {
   private readonly logger = new Logger(GitHubGetWorkflowRunTool.name);
 
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  async call(args: GitHubGetWorkflowRunArgs): Promise<ToolResult> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.app.userId, 'github');
+  protected async handle(args: GitHubGetWorkflowRunArgs): Promise<ToolResult<GitHubGetWorkflowRunResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -48,7 +70,7 @@ export class GitHubGetWorkflowRunTool extends BaseTool {
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.app.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.userId}`);
       return {
         data: {
           error: '401',

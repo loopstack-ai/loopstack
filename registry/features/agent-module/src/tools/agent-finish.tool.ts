@@ -9,7 +9,10 @@ const AgentFinishInputSchema = z
 
 type AgentFinishInput = z.infer<typeof AgentFinishInputSchema>;
 
+export type AgentFinishResult = { __agentFinish: true; result: unknown };
+
 @Tool({
+  name: 'agent_finish',
   uiConfig: {
     description:
       'Call this tool when you have completed the task and are ready to return the final result. ' +
@@ -18,8 +21,8 @@ type AgentFinishInput = z.infer<typeof AgentFinishInputSchema>;
   },
   schema: AgentFinishInputSchema,
 })
-export class AgentFinishTool extends BaseTool {
-  async call(args: AgentFinishInput): Promise<ToolResult> {
+export class AgentFinishTool extends BaseTool<AgentFinishInput, object, AgentFinishResult> {
+  protected async handle(args: AgentFinishInput): Promise<ToolResult<AgentFinishResult>> {
     return Promise.resolve({ data: { __agentFinish: true, result: args.result ?? null } });
   }
 }
