@@ -29,8 +29,8 @@ type McpLinearExampleArgs = z.infer<typeof McpLinearExampleArgsSchema>;
 interface McpLinearState {}
 
 @Workflow({
-  title: 'MCP Linear',
-  uiConfig: __dirname + '/mcp-linear-example.ui.yaml',
+  title: 'MCP Linear Example',
+  description: 'Chat with an agent connected to Linear\'s hosted MCP server.',
   schema: McpLinearExampleArgsSchema,
 })
 export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs, McpLinearState> {

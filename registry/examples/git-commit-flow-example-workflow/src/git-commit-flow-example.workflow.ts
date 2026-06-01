@@ -8,8 +8,7 @@ const COMMIT_MESSAGE = 'chore: example commit from git-commit-flow workflow';
 interface GitCommitFlowState {}
 
 @Workflow({
-  title: 'Git Commit Flow',
-  uiConfig: __dirname + '/git-commit-flow-example.ui.yaml',
+  title: 'Git Commit Flow Example',
 })
 export class GitCommitFlowExampleWorkflow extends BaseWorkflow<Record<string, unknown>, GitCommitFlowState> {
   constructor(

@@ -17,8 +17,8 @@ interface SecretsExampleState {
 }
 
 @Workflow({
-  title: 'Secrets',
-  uiConfig: __dirname + '/secrets-example.ui.yaml',
+  title: 'Secrets Update Example',
+  description: 'A simple workflow that requests secrets from the user and then verifies they were stored.',
 })
 export class SecretsExampleWorkflow extends BaseWorkflow<Record<string, unknown>, SecretsExampleState> {
   constructor(

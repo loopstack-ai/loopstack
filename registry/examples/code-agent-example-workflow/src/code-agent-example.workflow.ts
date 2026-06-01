@@ -28,8 +28,7 @@ top-level providers it registers. Return a short bulleted summary.`;
 interface CodeAgentState {}
 
 @Workflow({
-  title: 'Code Agent',
-  uiConfig: __dirname + '/code-agent-example.ui.yaml',
+  title: 'Code Agent Explore Example',
 })
 export class CodeAgentExampleWorkflow extends BaseWorkflow<Record<string, unknown>, CodeAgentState> {
   constructor(

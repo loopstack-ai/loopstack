@@ -26,8 +26,7 @@ type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
 interface SubWorkflowParentState {}
 
 @Workflow({
-  title: 'Sub-Workflow Parent',
-  uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml',
+  title: 'Run Sub Workflow Example',
 })
 export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow<Record<string, unknown>, SubWorkflowParentState> {
   constructor(

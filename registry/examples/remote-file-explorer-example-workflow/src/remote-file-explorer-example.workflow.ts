@@ -8,8 +8,7 @@ interface RemoteFileExplorerState {
 }
 
 @Workflow({
-  title: 'Remote File Explorer',
-  uiConfig: __dirname + '/remote-file-explorer-example.ui.yaml',
+  title: 'Remote File Explorer Example',
 })
 export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow<Record<string, unknown>, RemoteFileExplorerState> {
   constructor(

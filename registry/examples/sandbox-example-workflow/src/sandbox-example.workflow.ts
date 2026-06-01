@@ -90,8 +90,9 @@ interface SandboxExampleState {
 }
 
 @Workflow({
-  title: 'Sandbox',
-  uiConfig: __dirname + '/sandbox-example.ui.yaml',
+  title: 'Sandbox Filesystem Example',
+  description:
+    'This workflow demonstrates how to use sandbox containers for isolated filesystem operations. It initializes a Docker container, performs file operations, and cleans up the sandbox.',
   schema: z.object({
     outputDir: z.string().default(process.cwd() + '/out'),
   }),

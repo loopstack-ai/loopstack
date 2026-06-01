@@ -8,7 +8,6 @@ interface WorkflowStateState {
 
 @Workflow({
   title: 'Workflow State',
-  uiConfig: __dirname + '/workflow-state.ui.yaml',
 })
 export class WorkflowStateWorkflow extends BaseWorkflow<Record<string, unknown>, WorkflowStateState> {
   constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {

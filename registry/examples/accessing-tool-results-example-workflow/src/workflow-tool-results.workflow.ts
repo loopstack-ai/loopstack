@@ -7,8 +7,7 @@ interface ToolResultsState {
 }
 
 @Workflow({
-  title: 'Accessing Tool Results',
-  uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
+  title: 'Workflow Tool Result',
 })
 export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unknown>, ToolResultsState> {
   constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {

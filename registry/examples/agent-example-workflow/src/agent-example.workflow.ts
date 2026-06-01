@@ -23,13 +23,11 @@ const AgentCallbackSchema = CallbackSchema.extend({
 
 type AgentCallback = z.infer<typeof AgentCallbackSchema>;
 
-interface AgentExampleState {}
-
 @Workflow({
   title: 'Agent Example',
-  uiConfig: __dirname + '/agent-example.ui.yaml',
+  description: 'Launches a generic agent sub-workflow with weather and calculator tools.',
 })
-export class AgentExampleWorkflow extends BaseWorkflow<Record<string, unknown>, AgentExampleState> {
+export class AgentExampleWorkflow extends BaseWorkflow {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
@@ -42,8 +40,8 @@ export class AgentExampleWorkflow extends BaseWorkflow<Record<string, unknown>, 
   async start(
     ctx: WorkflowContext,
     args: Record<string, unknown>,
-    state: AgentExampleState,
-  ): Promise<AgentExampleState> {
+    state: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
       {
         system: this.render(__dirname + '/templates/system.md'),
@@ -66,7 +64,7 @@ export class AgentExampleWorkflow extends BaseWorkflow<Record<string, unknown>, 
     wait: true,
     schema: AgentCallbackSchema,
   })
-  async agentComplete(ctx: WorkflowContext, state: AgentExampleState, payload: AgentCallback): Promise<unknown> {
+  async agentComplete(ctx: WorkflowContext, state: Record<string, unknown>, payload: AgentCallback): Promise<unknown> {
     await this.documentStore.save(
       LinkDocument,
       { label: 'Agent complete', status: 'success', workflowId: payload.workflowId },

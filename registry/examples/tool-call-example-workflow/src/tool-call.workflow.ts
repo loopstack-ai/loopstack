@@ -12,8 +12,8 @@ interface ToolCallState {
 }
 
 @Workflow({
-  title: 'Tool Call',
-  uiConfig: __dirname + '/tool-call.ui.yaml',
+  title: 'LLM Tool Calling Example (Berlin Weather)',
+  description: 'An example workflow that demonstrates how to use an LLM to call external tools and handle their responses.',
 })
 export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, ToolCallState> {
   constructor(
