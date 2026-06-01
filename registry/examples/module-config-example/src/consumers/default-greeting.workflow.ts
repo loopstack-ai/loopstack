@@ -1,13 +1,13 @@
+import { Inject } from '@nestjs/common';
 import { BaseWorkflow, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
 import type { DocumentStore, WorkflowContext } from '@loopstack/common';
-import { Inject } from '@nestjs/common';
 import { DOCUMENT_STORE } from '@loopstack/common';
 import { GreeterTool } from '../greeter/index.js';
 
 /**
  * Scenario 1: No forFeature — uses forRoot global defaults.
  */
-@Workflow({ name: 'default_greeting' })
+@Workflow({ name: 'default_greeting', title: 'Default Greeting' })
 export class DefaultGreetingWorkflow extends BaseWorkflow {
   constructor(
     private readonly greeter: GreeterTool,

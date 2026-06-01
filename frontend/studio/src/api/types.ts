@@ -24,6 +24,13 @@ export interface StudioFeatureRegistration {
   config: Record<string, unknown>;
 }
 
+export interface StudioWorkflowConfig {
+  workflowName: string;
+  title?: string;
+  description?: string;
+  schema?: Record<string, unknown>;
+}
+
 export interface StudioAppConfig {
   appName: string;
   title: string;
@@ -31,22 +38,7 @@ export interface StudioAppConfig {
   ui?: StudioUiConfig;
   features: StudioFeatureRegistration[];
   extensions?: Record<string, unknown[]>;
-  controllers: StudioControllerConfig[];
-}
-
-export interface StudioControllerConfig {
-  title?: string;
-  description?: string;
-  endpoints: StudioEndpointConfig[];
-}
-
-export interface StudioEndpointConfig {
-  path: string;
-  method: string;
-  title: string;
-  description?: string;
-  workflowName: string;
-  schema?: Record<string, unknown>;
+  workflows: StudioWorkflowConfig[];
 }
 
 export interface WorkflowPayload<TArgs = Record<string, unknown>> {
@@ -57,6 +49,12 @@ export interface WorkflowPayload<TArgs = Record<string, unknown>> {
     id: string;
     payload?: Record<string, unknown>;
   };
+}
+
+export interface StartWorkflowPayload {
+  workflowName: string;
+  workspaceId: string;
+  args?: Record<string, unknown>;
 }
 
 export interface WorkflowRunResult {

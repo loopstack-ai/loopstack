@@ -22,6 +22,7 @@ interface MeetingNotesState {
 }
 
 @Workflow({
+  title: 'Meeting Notes',
   uiConfig: __dirname + '/meeting-notes.ui.yaml',
   schema: z.object({
     inputText: z

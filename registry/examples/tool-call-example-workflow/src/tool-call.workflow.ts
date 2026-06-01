@@ -12,6 +12,7 @@ interface ToolCallState {
 }
 
 @Workflow({
+  title: 'Tool Call',
   uiConfig: __dirname + '/tool-call.ui.yaml',
 })
 export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, ToolCallState> {

@@ -15,6 +15,7 @@ import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 interface TestUiDocumentsState {}
 
 @Workflow({
+  title: 'UI Documents Test',
   uiConfig: __dirname + '/test-ui-documents.ui.yaml',
 })
 export class TestUiDocumentsWorkflow extends BaseWorkflow<Record<string, unknown>, TestUiDocumentsState> {

@@ -14,6 +14,10 @@ export type BlockType = 'workflow' | 'tool' | 'document';
 export interface BlockOptions {
   /** Explicit name for this block (used as tool identifier in LLM wire format). Falls back to class name if omitted. */
   name?: string;
+  /** Human-readable display title (shown in Studio UI). */
+  title?: string;
+  /** Human-readable description (shown in Studio UI). */
+  description?: string;
   /** Inline config object or path to a YAML file containing UI config */
   uiConfig?: string | Partial<BlockConfigType>;
   /** Zod schema for input/content validation */
@@ -38,6 +42,10 @@ export interface ToolOptions {
 export interface WorkflowOptions {
   /** Explicit snake_case name for this workflow (e.g. 'agent_example'). Falls back to auto-derived name from class. */
   name?: string;
+  /** Human-readable display title (shown in Studio UI). */
+  title?: string;
+  /** Human-readable description (shown in Studio UI). */
+  description?: string;
   /** Inline config object or path to a YAML file containing UI config */
   uiConfig?: string | Partial<WorkflowType>;
   /** Zod schema for input validation */

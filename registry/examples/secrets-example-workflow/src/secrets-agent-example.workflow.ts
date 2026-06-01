@@ -28,6 +28,7 @@ interface SecretsAgentState {
 }
 
 @Workflow({
+  title: 'Secrets Agent',
   uiConfig: __dirname + '/secrets-agent-example.ui.yaml',
 })
 export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unknown>, SecretsAgentState> {

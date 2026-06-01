@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { RunWorkflowPayloadInterface } from '@loopstack/contracts/api';
-import type { WorkflowPayload } from '@/api/types';
+import type { StartWorkflowPayload } from '@/api/types';
 import { getWorkflowsCacheKey } from './query-keys.ts';
 import { useApiClient } from './useApi.ts';
 
@@ -17,12 +17,12 @@ export function useRunWorkflow() {
   });
 }
 
-export function useExecuteController() {
+export function useStartWorkflow() {
   const { envKey, api } = useApiClient();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (params: { path: string; payload: WorkflowPayload }) => api.processor.executeController(params),
+    mutationFn: (params: { payload: StartWorkflowPayload }) => api.processor.startWorkflow(params),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: getWorkflowsCacheKey(envKey) });
     },

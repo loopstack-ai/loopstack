@@ -32,13 +32,13 @@ import {
   StudioDiscoveryService,
   ToolLoggingInterceptor,
   ToolPipelineService,
+  ToolRegistryService,
   TransitionResolverService,
   WorkflowMemoryMonitorService,
   WorkflowOrchestrationService,
   WorkflowProcessorService,
   WorkflowRegistryService,
   WorkflowStateService,
-  ToolRegistryService,
 } from './workflow-processor/services/index.js';
 import { ExecutionScope, TemplateRenderer } from './workflow-processor/utils/index.js';
 

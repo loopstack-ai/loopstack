@@ -54,6 +54,7 @@ interface GitHubAgentState {
 }
 
 @Workflow({
+  title: 'GitHub Agent',
   name: 'github_agent',
   uiConfig: __dirname + '/github-agent.ui.yaml',
 })

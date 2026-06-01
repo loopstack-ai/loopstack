@@ -1,9 +1,23 @@
 import { Module } from '@nestjs/common';
 import { StudioApp } from '@loopstack/common';
-import { ModuleConfigExampleModule } from '@loopstack/module-config-example';
+import {
+  DefaultGreetingWorkflow,
+  FrenchGreetingWorkflow,
+  GermanGreetingWorkflow,
+  ModuleConfigExampleModule,
+  NestedGreetingWorkflow,
+} from '@loopstack/module-config-example';
 import { ModuleConfigController } from './module-config.controller';
 
-@StudioApp({ title: 'Module Config Example' })
+@StudioApp({
+  title: 'Module Config Example',
+  workflows: [
+    DefaultGreetingWorkflow,
+    GermanGreetingWorkflow,
+    FrenchGreetingWorkflow,
+    NestedGreetingWorkflow,
+  ],
+})
 @Module({
   imports: [ModuleConfigExampleModule],
   controllers: [ModuleConfigController],

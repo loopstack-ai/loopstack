@@ -40,6 +40,7 @@ interface GoogleWorkspaceAgentState {
 }
 
 @Workflow({
+  title: 'Google Workspace Agent',
   name: 'google_workspace_agent',
   uiConfig: __dirname + '/google-workspace-agent.ui.yaml',
 })

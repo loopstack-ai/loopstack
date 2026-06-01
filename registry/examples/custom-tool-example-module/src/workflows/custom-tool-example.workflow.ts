@@ -10,6 +10,7 @@ interface CustomToolExampleState {
 }
 
 @Workflow({
+  title: 'Custom Tool',
   uiConfig: __dirname + '/custom-tool-example.ui.yaml',
   schema: z
     .object({

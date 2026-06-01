@@ -5,6 +5,7 @@ import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 interface SubWorkflowState {}
 
 @Workflow({
+  title: 'Sub-Workflow Child',
   uiConfig: __dirname + '/run-sub-workflow-example-sub.ui.yaml',
 })
 export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow<Record<string, unknown>, SubWorkflowState> {

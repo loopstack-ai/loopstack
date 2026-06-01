@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { GreeterModule } from './greeter/index.js';
 import { DefaultGreetingModule } from './consumers/default-greeting.module.js';
 import { FrenchGreetingModule } from './consumers/french-greeting.module.js';
 import { GermanGreetingModule } from './consumers/german-greeting.module.js';
 import { NestedGreetingModule } from './consumers/nested-greeting.module.js';
+import { GreeterModule } from './greeter/index.js';
 
 /**
  * Module Config Example — demonstrates 4 configuration scenarios:

@@ -90,6 +90,7 @@ interface SandboxExampleState {
 }
 
 @Workflow({
+  title: 'Sandbox',
   uiConfig: __dirname + '/sandbox-example.ui.yaml',
   schema: z.object({
     outputDir: z.string().default(process.cwd() + '/out'),

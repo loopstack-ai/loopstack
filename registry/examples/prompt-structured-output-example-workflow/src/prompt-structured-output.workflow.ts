@@ -22,6 +22,7 @@ interface PromptStructuredOutputState {
 }
 
 @Workflow({
+  title: 'Structured Output',
   uiConfig: __dirname + '/prompt-structured-output.ui.yaml',
   schema: z.object({
     language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),

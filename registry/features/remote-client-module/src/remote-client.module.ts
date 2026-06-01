@@ -51,7 +51,11 @@ export class RemoteClientModule {
     return {
       global: true,
       module: RemoteClientModule,
-      imports: [DiscoveryModule, SecretsModule, TypeOrmModule.forFeature([WorkspaceEntity, WorkspaceEnvironmentEntity])],
+      imports: [
+        DiscoveryModule,
+        SecretsModule,
+        TypeOrmModule.forFeature([WorkspaceEntity, WorkspaceEnvironmentEntity]),
+      ],
       controllers: [EnvironmentController],
       providers: [
         RemoteClient,

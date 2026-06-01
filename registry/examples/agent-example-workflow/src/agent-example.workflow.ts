@@ -26,6 +26,7 @@ type AgentCallback = z.infer<typeof AgentCallbackSchema>;
 interface AgentExampleState {}
 
 @Workflow({
+  title: 'Agent Example',
   uiConfig: __dirname + '/agent-example.ui.yaml',
 })
 export class AgentExampleWorkflow extends BaseWorkflow<Record<string, unknown>, AgentExampleState> {

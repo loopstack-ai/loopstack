@@ -40,6 +40,7 @@ interface DelegateErrorState {
  * and that the LLM agent loop handles them correctly.
  */
 @Workflow({
+  title: 'Delegate Error',
   uiConfig: __dirname + '/delegate-error.ui.yaml',
 })
 export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>, DelegateErrorState> {
@@ -108,12 +109,10 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
 
-    const result = await this.llmDelegateToolCalls.call(
-      {
-        message: state.llmResult!.message,
-        callback: { transition: 'toolResultReceived' },
-      },
-    );
+    const result = await this.llmDelegateToolCalls.call({
+      message: state.llmResult!.message,
+      callback: { transition: 'toolResultReceived' },
+    });
     return { ...state, delegateResult: result.data };
   }
 

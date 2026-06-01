@@ -18,6 +18,7 @@ interface ModelTestState {
 
 @Workflow({
   name: 'model_test',
+  title: 'Model Test',
   schema: z.object({
     subject: z.string().default('NestJS'),
   }),

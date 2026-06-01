@@ -29,6 +29,7 @@ type McpLinearExampleArgs = z.infer<typeof McpLinearExampleArgsSchema>;
 interface McpLinearState {}
 
 @Workflow({
+  title: 'MCP Linear',
   uiConfig: __dirname + '/mcp-linear-example.ui.yaml',
   schema: McpLinearExampleArgsSchema,
 })

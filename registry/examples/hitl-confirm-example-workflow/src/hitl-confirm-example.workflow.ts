@@ -34,6 +34,7 @@ Proceed?`;
 interface HitlConfirmState {}
 
 @Workflow({
+  title: 'HITL Confirm',
   uiConfig: __dirname + '/hitl-confirm-example.ui.yaml',
 })
 export class HitlConfirmExampleWorkflow extends BaseWorkflow<Record<string, unknown>, HitlConfirmState> {

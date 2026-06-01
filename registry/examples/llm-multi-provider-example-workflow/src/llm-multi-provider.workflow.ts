@@ -20,6 +20,7 @@ interface LlmMultiProviderState {
 }
 
 @Workflow({
+  title: 'LLM Multi Provider',
   uiConfig: __dirname + '/llm-multi-provider.ui.yaml',
   schema: z.object({
     prompt: z.string().default('What is the meaning of life? Answer in one sentence.'),

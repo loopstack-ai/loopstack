@@ -7,7 +7,7 @@ interface FailingState {}
  * A minimal sub-workflow that always fails on its initial transition.
  * Used to verify that failed sub-workflow callbacks propagate errors to the parent.
  */
-@Workflow({})
+@Workflow({ title: 'Failing Workflow' })
 export class FailingWorkflow extends BaseWorkflow<Record<string, unknown>, FailingState> {
   @Initial({ to: 'done' })
   async start(ctx: WorkflowContext, args: Record<string, unknown>, state: FailingState): Promise<FailingState> {

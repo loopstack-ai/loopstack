@@ -25,6 +25,7 @@ type AskUserCallback = z.infer<typeof AskUserCallbackSchema>;
 interface HitlAskUserState {}
 
 @Workflow({
+  title: 'HITL Ask User',
   uiConfig: __dirname + '/hitl-ask-user-example.ui.yaml',
 })
 export class HitlAskUserExampleWorkflow extends BaseWorkflow<Record<string, unknown>, HitlAskUserState> {

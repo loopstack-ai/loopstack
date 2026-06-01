@@ -1,6 +1,6 @@
+import { Inject } from '@nestjs/common';
 import { BaseWorkflow, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
 import type { DocumentStore, WorkflowContext } from '@loopstack/common';
-import { Inject } from '@nestjs/common';
 import { DOCUMENT_STORE } from '@loopstack/common';
 import { GreeterTool } from '../greeter/index.js';
 
@@ -8,7 +8,7 @@ import { GreeterTool } from '../greeter/index.js';
  * Scenario 3: forFeature override with French config.
  * Runs alongside GermanGreetingWorkflow to prove per-module isolation.
  */
-@Workflow({ name: 'french_greeting' })
+@Workflow({ name: 'french_greeting', title: 'French Greeting' })
 export class FrenchGreetingWorkflow extends BaseWorkflow {
   constructor(
     private readonly greeter: GreeterTool,

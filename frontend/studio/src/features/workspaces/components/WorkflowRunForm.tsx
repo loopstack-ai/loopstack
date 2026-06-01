@@ -2,12 +2,12 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { WorkspaceInterface } from '@loopstack/contracts/api';
 import type { WorkflowConfigInterface } from '@loopstack/contracts/types';
-import type { StudioEndpointConfig } from '@/api/types';
+import type { StudioWorkflowConfig } from '@/api/types';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import ArgumentsView from '@/features/workspaces/components/workflow-form/ArgumentsView.tsx';
 import SelectionView from '@/features/workspaces/components/workflow-form/SelectionView.tsx';
 import { useAppsConfig } from '@/hooks/useConfig.ts';
-import { useExecuteController } from '@/hooks/useProcessor.ts';
+import { useStartWorkflow } from '@/hooks/useProcessor.ts';
 import { useStudio } from '@/providers/StudioProvider.tsx';
 
 interface WorkflowFormProps {
@@ -21,7 +21,7 @@ type Step = 'selection' | 'arguments';
 const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
   const { router } = useStudio();
   const fetchAppsConfig = useAppsConfig();
-  const executeController = useExecuteController();
+  const startWorkflow = useStartWorkflow();
 
   const [currentStep, setCurrentStep] = useState<Step>('selection');
   const [formData, setFormData] = useState({
@@ -35,31 +35,31 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
     workflowName: '',
   });
 
-  // Find controller endpoints for this workspace's module
+  // Find workflows for this workspace's app
   const studioApp = useMemo(() => {
     if (!fetchAppsConfig.data) return undefined;
     return fetchAppsConfig.data.find((a) => a.appName === workspace.appName);
   }, [fetchAppsConfig.data, workspace.appName]);
 
-  const controllerEndpoints: StudioEndpointConfig[] = useMemo(() => {
+  const appWorkflows: StudioWorkflowConfig[] = useMemo(() => {
     if (!studioApp) return [];
-    return studioApp.controllers.flatMap((c) => c.endpoints);
+    return studioApp.workflows;
   }, [studioApp]);
 
-  // Map endpoints to WorkflowConfigInterface for SelectionView compatibility
+  // Map workflows to WorkflowConfigInterface for SelectionView compatibility
   const workflowTypes: WorkflowConfigInterface[] = useMemo(() => {
-    return controllerEndpoints.map((ep) => ({
-      workflowName: ep.workflowName,
-      title: ep.title,
-      description: ep.description,
-      schema: ep.schema,
+    return appWorkflows.map((wf) => ({
+      workflowName: wf.workflowName,
+      title: wf.title,
+      description: wf.description,
+      schema: wf.schema,
     }));
-  }, [controllerEndpoints]);
+  }, [appWorkflows]);
 
-  const selectedEndpoint: StudioEndpointConfig | undefined = useMemo(() => {
+  const selectedWorkflow: StudioWorkflowConfig | undefined = useMemo(() => {
     if (!formData.workflowName) return undefined;
-    return controllerEndpoints.find((e) => e.workflowName === formData.workflowName);
-  }, [formData.workflowName, controllerEndpoints]);
+    return appWorkflows.find((wf) => wf.workflowName === formData.workflowName);
+  }, [formData.workflowName, appWorkflows]);
 
   const selectedWorkflowConfig: WorkflowConfigInterface | undefined = useMemo(() => {
     if (!formData.workflowName || !workflowTypes.length) return undefined;
@@ -67,9 +67,9 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
   }, [formData.workflowName, workflowTypes]);
 
   const hasArguments = !!selectedWorkflowConfig?.schema;
-  const isLoading = executeController.isPending;
+  const isLoading = startWorkflow.isPending;
 
-  // Auto-select first endpoint
+  // Auto-select first workflow
   useEffect(() => {
     if (!formData.workflowName && workflowTypes[0]?.workflowName) {
       setFormData((prev) => ({ ...prev, workflowName: workflowTypes[0].workflowName }));
@@ -83,12 +83,15 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
   };
 
   const runWorkflow = (_transition?: string, data?: Record<string, any>) => {
-    if (!selectedEndpoint) return;
+    if (!selectedWorkflow) return;
 
-    executeController.mutate(
+    startWorkflow.mutate(
       {
-        path: selectedEndpoint.path,
-        payload: { workspaceId: workspace.id, args: data ?? {} },
+        payload: {
+          workflowName: selectedWorkflow.workflowName,
+          workspaceId: workspace.id,
+          args: data ?? {},
+        },
       },
       {
         onSuccess: (result) => void router.navigateToWorkflow(result.workflowId),
@@ -133,7 +136,7 @@ const WorkflowForm = ({ title, workspace }: WorkflowFormProps) => {
 
   return (
     <div className="relative">
-      <ErrorSnackbar error={executeController.error} />
+      <ErrorSnackbar error={startWorkflow.error} />
 
       <div className="relative overflow-hidden">
         <div

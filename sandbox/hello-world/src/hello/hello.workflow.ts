@@ -15,6 +15,8 @@ interface HelloState {
 }
 
 @Workflow({
+  title: 'Greeting',
+  description: 'A simple greeting workflow.',
   uiConfig: __dirname + '/hello.ui.yaml',
   schema: z.object({
     name: z.string().default('World'),

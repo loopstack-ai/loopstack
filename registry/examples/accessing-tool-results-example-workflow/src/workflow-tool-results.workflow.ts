@@ -7,6 +7,7 @@ interface ToolResultsState {
 }
 
 @Workflow({
+  title: 'Accessing Tool Results',
   uiConfig: __dirname + '/workflow-tool-results.ui.yaml',
 })
 export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unknown>, ToolResultsState> {

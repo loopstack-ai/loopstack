@@ -2,7 +2,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, CheckIcon, ChevronDown, Loader2, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import type { StudioEndpointConfig, StudioEnvironmentSlot } from '@/api/types';
+import type { StudioEnvironmentSlot, StudioWorkflowConfig } from '@/api/types';
 import Form from '@/components/dynamic-form/Form.tsx';
 import ErrorSnackbar from '@/components/feedback/ErrorSnackbar';
 import { Button } from '@/components/ui/button.tsx';
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog.tsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreateWorkspace as DefaultCreateWorkspace } from '@/features/workspaces';
 import { useAppsConfig } from '@/hooks/useConfig.ts';
-import { useExecuteController } from '@/hooks/useProcessor.ts';
+import { useStartWorkflow } from '@/hooks/useProcessor.ts';
 import { useFilterWorkspaces } from '@/hooks/useWorkspaces.ts';
 import { useComponentOverrides } from '@/providers/ComponentOverridesProvider.tsx';
 
@@ -55,10 +55,10 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
     return fetchAppsConfig.data.find((a) => a.appName === selectedWorkspace.appName);
   }, [selectedWorkspace, fetchAppsConfig.data]);
 
-  // Controller endpoints scoped to this workspace's module
-  const controllerEndpoints: StudioEndpointConfig[] = useMemo(() => {
+  // Workflows scoped to this workspace's app
+  const appWorkflows: StudioWorkflowConfig[] = useMemo(() => {
     if (!studioApp) return [];
-    return studioApp.controllers.flatMap((c) => c.endpoints);
+    return studioApp.workflows;
   }, [studioApp]);
 
   // Build app types for CreateWorkspace from apps config
@@ -71,31 +71,31 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
     }));
   }, [fetchAppsConfig.data]);
 
-  const executeController = useExecuteController();
-  const isLoading = executeController.isPending;
+  const startWorkflow = useStartWorkflow();
+  const isLoading = startWorkflow.isPending;
 
   const form = useForm<Record<string, any>>({
     defaultValues: {},
     mode: 'onChange',
   });
 
-  // Selected endpoint config
-  const selectedEndpoint: StudioEndpointConfig | undefined = useMemo(() => {
+  // Selected workflow config
+  const selectedWorkflow: StudioWorkflowConfig | undefined = useMemo(() => {
     if (!selectedWorkflowName) return undefined;
-    return controllerEndpoints.find((e) => e.workflowName === selectedWorkflowName);
-  }, [selectedWorkflowName, controllerEndpoints]);
+    return appWorkflows.find((wf) => wf.workflowName === selectedWorkflowName);
+  }, [selectedWorkflowName, appWorkflows]);
 
-  const selectedSchema = selectedEndpoint?.schema;
+  const selectedSchema = selectedWorkflow?.schema;
   const hasArguments = !!selectedSchema;
 
-  // Workflow options from controller endpoints
+  // Workflow options
   const workflowOptions = useMemo(() => {
-    return controllerEndpoints.map((ep) => ({
-      key: ep.workflowName,
-      title: ep.title,
-      description: ep.description,
+    return appWorkflows.map((wf) => ({
+      key: wf.workflowName,
+      title: wf.title ?? wf.workflowName,
+      description: wf.description,
     }));
-  }, [controllerEndpoints]);
+  }, [appWorkflows]);
 
   // Auto-select first workspace
   useEffect(() => {
@@ -119,7 +119,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
       setSelectedWorkspaceId('');
       setSelectedWorkflowName('');
       form.reset({});
-      executeController.reset();
+      startWorkflow.reset();
     }
   }, [open]);
 
@@ -144,12 +144,15 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
 
   const handleRunNow = () => {
     const run = (args?: Record<string, any>) => {
-      if (!selectedWorkspaceId || !selectedEndpoint) return;
+      if (!selectedWorkspaceId || !selectedWorkflow) return;
 
-      executeController.mutate(
+      startWorkflow.mutate(
         {
-          path: selectedEndpoint.path,
-          payload: { workspaceId: selectedWorkspaceId, args: args ?? {} },
+          payload: {
+            workflowName: selectedWorkflow.workflowName,
+            workspaceId: selectedWorkspaceId,
+            args: args ?? {},
+          },
         },
         { onSuccess: (result) => onSuccess(result.workflowId) },
       );
@@ -175,7 +178,7 @@ function NewRunDialogContent({ open, onSuccess }: { open: boolean; onSuccess: (w
 
   return (
     <div className="mt-2 overflow-y-auto">
-      <ErrorSnackbar error={executeController.error} />
+      <ErrorSnackbar error={startWorkflow.error} />
 
       <div className="space-y-2">
         {/* Workspace Section */}

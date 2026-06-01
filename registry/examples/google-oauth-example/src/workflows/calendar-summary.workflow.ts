@@ -25,6 +25,7 @@ interface CalendarSummaryState {
 }
 
 @Workflow({
+  title: 'Calendar Summary',
   name: 'google_calendar_summary',
   uiConfig: __dirname + '/calendar-summary.ui.yaml',
   schema: z

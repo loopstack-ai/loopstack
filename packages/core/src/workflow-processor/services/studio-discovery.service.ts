@@ -1,25 +1,25 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
-import type { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper.js';
 import type { Module } from '@nestjs/core/injector/module.js';
 import { ModulesContainer } from '@nestjs/core/injector/modules-container.js';
-import { toJSONSchema, type z } from 'zod';
+import { toJSONSchema } from 'zod';
 import {
   FEATURE_REGISTRATION_KEY,
   STUDIO_APP_EXTENSION_KEY,
   STUDIO_APP_KEY,
-  STUDIO_CONTROLLER_KEY,
-  STUDIO_ENDPOINT_KEY,
+  deriveWorkflowIdentifier,
+  getBlockArgsSchema,
+  getBlockOptions,
 } from '@loopstack/common';
-import type {
-  FeatureRegistration,
-  StudioAppExtension,
-  StudioAppMetadata,
-  StudioControllerOptions,
-  StudioEndpointMeta,
-  StudioUiConfig,
-} from '@loopstack/common';
+import type { FeatureRegistration, StudioAppExtension, StudioAppMetadata, StudioUiConfig } from '@loopstack/common';
 import type { JSONSchemaDefinition } from '@loopstack/contracts/schemas';
+
+export interface StudioWorkflowConfig {
+  workflowName: string;
+  title?: string;
+  description?: string;
+  schema?: JSONSchemaDefinition;
+}
 
 export interface StudioAppConfig {
   appName: string;
@@ -28,28 +28,16 @@ export interface StudioAppConfig {
   ui?: StudioUiConfig;
   features: FeatureRegistration[];
   extensions: Record<string, unknown[]>;
-  controllers: StudioControllerConfig[];
-}
-
-export interface StudioControllerConfig {
-  title?: string;
-  description?: string;
-  endpoints: StudioEndpointConfig[];
-}
-
-export interface StudioEndpointConfig {
-  path: string;
-  method: string;
-  title: string;
-  description?: string;
-  workflowName: string;
-  schema?: JSONSchemaDefinition;
+  workflows: StudioWorkflowConfig[];
 }
 
 @Injectable()
 export class StudioDiscoveryService implements OnApplicationBootstrap {
   private readonly logger = new Logger(StudioDiscoveryService.name);
   private apps: StudioAppConfig[] = [];
+
+  /** Maps workflow class name → appName for reverse lookup. */
+  private workflowToApp = new Map<string, string>();
 
   constructor(
     private readonly discovery: DiscoveryService,
@@ -62,9 +50,13 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
 
     for (const { nestModule, metadata } of appModules) {
       const reachableModules = this.collectReachableModules(nestModule);
-      const controllers = this.discoverControllers(reachableModules);
       const features = this.discoverFeatures(reachableModules);
       const extensions = this.discoverExtensions(reachableModules);
+      const workflows = this.discoverWorkflows(metadata);
+
+      for (const wf of workflows) {
+        this.workflowToApp.set(wf.workflowName, metadata.app);
+      }
 
       this.apps.push({
         appName: metadata.app,
@@ -73,7 +65,7 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
         ui: metadata.ui,
         features,
         extensions,
-        controllers,
+        workflows,
       });
     }
 
@@ -92,6 +84,14 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
 
   getAppNames(): string[] {
     return this.apps.map((a) => a.appName);
+  }
+
+  /**
+   * Returns the app name that declares the given workflow class name,
+   * or undefined if the workflow is not declared in any @StudioApp.
+   */
+  getAppNameForWorkflow(workflowClassName: string): string | undefined {
+    return this.workflowToApp.get(workflowClassName);
   }
 
   // ── Module Discovery ────────────────────────────────────────────────
@@ -150,89 +150,23 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
     }
   }
 
-  // ── Controller & Endpoint Discovery ─────────────────────────────────
+  // ── Workflow Discovery ─────────────────────────────────────────────
 
-  private discoverControllers(modules: Module[]): StudioControllerConfig[] {
-    const result: StudioControllerConfig[] = [];
+  private discoverWorkflows(metadata: StudioAppMetadata): StudioWorkflowConfig[] {
+    if (!metadata.workflows?.length) return [];
 
-    for (const nestModule of modules) {
-      for (const wrapper of nestModule.controllers.values()) {
-        if (!wrapper.metatype || !wrapper.instance) continue;
+    return metadata.workflows.map((workflowClass) => {
+      const options = getBlockOptions(workflowClass);
+      const argsSchema = getBlockArgsSchema(workflowClass);
+      const jsonSchema = argsSchema ? (toJSONSchema(argsSchema) as JSONSchemaDefinition) : undefined;
 
-        const controllerMeta = Reflect.getMetadata(STUDIO_CONTROLLER_KEY, wrapper.metatype) as
-          | StudioControllerOptions
-          | undefined;
-        if (!controllerMeta) continue;
-
-        const endpoints = this.discoverEndpoints(wrapper);
-
-        result.push({
-          title: controllerMeta.title,
-          description: controllerMeta.description,
-          endpoints,
-        });
-      }
-    }
-
-    return result;
-  }
-
-  private discoverEndpoints(wrapper: InstanceWrapper): StudioEndpointConfig[] {
-    const prototype = wrapper.metatype!.prototype as Record<string, unknown>;
-    const controllerPath = (Reflect.getMetadata('path', wrapper.metatype!) as string) ?? '';
-    const methodNames = Object.getOwnPropertyNames(prototype).filter(
-      (name) => name !== 'constructor' && typeof prototype[name] === 'function',
-    );
-
-    const endpoints: StudioEndpointConfig[] = [];
-
-    for (const methodName of methodNames) {
-      const endpointMeta = Reflect.getMetadata(STUDIO_ENDPOINT_KEY, prototype, methodName) as
-        | StudioEndpointMeta
-        | undefined;
-      if (!endpointMeta) continue;
-
-      const methodPath = (Reflect.getMetadata('path', prototype[methodName] as object) as string) ?? '';
-      const httpMethod = (Reflect.getMetadata('method', prototype[methodName] as object) as number) ?? 0;
-
-      const httpMethodNames = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD', 'ALL'];
-      const methodString = httpMethodNames[httpMethod] ?? 'POST';
-
-      const pathSegments = [controllerPath, methodPath].filter(Boolean);
-      const fullPath = '/' + pathSegments.join('/');
-
-      if (endpointMeta.kind === 'multi') {
-        for (const wf of endpointMeta.workflows) {
-          const jsonSchema = wf.schema ? (toJSONSchema(wf.schema) as JSONSchemaDefinition) : undefined;
-          // Replace :workflowName param placeholder with the actual workflow identifier
-          const resolvedPath = fullPath.replace(':workflowName', wf.identifier);
-
-          endpoints.push({
-            path: resolvedPath,
-            method: methodString,
-            title: wf.identifier,
-            description: endpointMeta.description,
-            workflowName: wf.workflowClass.name,
-            schema: jsonSchema,
-          });
-        }
-      } else {
-        const jsonSchema = endpointMeta.schema
-          ? (toJSONSchema(endpointMeta.schema) as JSONSchemaDefinition)
-          : undefined;
-
-        endpoints.push({
-          path: fullPath,
-          method: methodString,
-          title: endpointMeta.title,
-          description: endpointMeta.description,
-          workflowName: endpointMeta.workflowClass.name,
-          schema: jsonSchema,
-        });
-      }
-    }
-
-    return endpoints;
+      return {
+        workflowName: workflowClass.name,
+        title: options?.title ?? deriveWorkflowIdentifier(workflowClass.name),
+        description: options?.description,
+        schema: jsonSchema,
+      };
+    });
   }
 
   // ── Feature Discovery ───────────────────────────────────────────────

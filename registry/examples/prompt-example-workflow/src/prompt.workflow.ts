@@ -11,6 +11,7 @@ interface PromptState {
 }
 
 @Workflow({
+  title: 'Prompt',
   uiConfig: __dirname + '/prompt.ui.yaml',
   schema: z.object({
     subject: z.string().default('coffee'),

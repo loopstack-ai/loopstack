@@ -5,9 +5,8 @@ import type { McpToolConfigInput } from './config/mcp-tool-config.schema.js';
 import { MCP_ENV_READER, ProcessEnvReader } from './services/env-reader.js';
 import { McpClientService } from './services/index.js';
 import { MCP_METRICS, NoopMcpMetrics } from './services/metrics-port.js';
-import { McpCallTool, McpListToolsTool } from './tools/index.js';
-
 import { MCP_DEFAULT_CONFIG } from './tokens.js';
+import { McpCallTool, McpListToolsTool } from './tools/index.js';
 
 @Module({})
 export class McpModule {

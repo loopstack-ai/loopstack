@@ -19,10 +19,7 @@ export class LlmDelegateService {
    * Execute tool calls from an LLM response.
    * Resolves tool names to instances via ToolRegistry.
    */
-  async delegateToolCalls(
-    toolCalls: LlmToolCall[],
-    callback?: { transition: string },
-  ): Promise<LlmDelegateResult> {
+  async delegateToolCalls(toolCalls: LlmToolCall[], callback?: { transition: string }): Promise<LlmDelegateResult> {
     if (toolCalls.length === 0) {
       return { allCompleted: true, toolResults: [], pendingCount: 0, errorCount: 0, hasErrors: false, errors: [] };
     }
@@ -135,7 +132,10 @@ export class LlmDelegateService {
   /**
    * Handle async tool completion — resolve tool from registry and call complete().
    */
-  private async handleToolCompletion(toolName: string, completedToolRecord: Record<string, unknown>): Promise<ToolResult> {
+  private async handleToolCompletion(
+    toolName: string,
+    completedToolRecord: Record<string, unknown>,
+  ): Promise<ToolResult> {
     const tool = this.toolRegistry.get(toolName);
 
     const callbackStatus = completedToolRecord.status as string | undefined;

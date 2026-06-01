@@ -22,15 +22,13 @@ export default function DebugWorkflowsPage() {
     if (!appsConfig) return [];
 
     return appsConfig.flatMap((app) =>
-      app.controllers.flatMap((ctrl) =>
-        ctrl.endpoints.map((ep) => ({
-          id: `${app.appName}::${ep.workflowName}`,
-          workflowName: ep.workflowName,
-          title: ep.title,
-          description: ep.description,
-          appBlockName: app.appName,
-        })),
-      ),
+      app.workflows.map((wf) => ({
+        id: `${app.appName}::${wf.workflowName}`,
+        workflowName: wf.workflowName,
+        title: wf.title,
+        description: wf.description,
+        appBlockName: app.appName,
+      })),
     );
   }, [appsConfig]);
 

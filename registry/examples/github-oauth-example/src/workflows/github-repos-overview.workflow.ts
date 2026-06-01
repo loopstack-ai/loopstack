@@ -67,6 +67,7 @@ interface GitHubReposOverviewState {
 }
 
 @Workflow({
+  title: 'GitHub Repos Overview',
   name: 'github_repos_overview',
   uiConfig: __dirname + '/github-repos-overview.ui.yaml',
   schema: z

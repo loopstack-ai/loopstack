@@ -5,7 +5,10 @@ import { LlmProviderModule } from '@loopstack/llm-provider-module';
 import { ModelTestController } from './model-test.controller';
 import { ModelTestWorkflow } from './model-test.workflow';
 
-@StudioApp({ title: 'Model Test' })
+@StudioApp({
+  title: 'Model Test',
+  workflows: [ModelTestWorkflow],
+})
 @Module({
   imports: [
     ClaudeModule,
