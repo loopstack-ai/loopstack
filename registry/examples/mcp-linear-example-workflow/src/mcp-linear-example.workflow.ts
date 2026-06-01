@@ -26,14 +26,12 @@ const McpLinearExampleArgsSchema = z.object({
 
 type McpLinearExampleArgs = z.infer<typeof McpLinearExampleArgsSchema>;
 
-interface McpLinearState {}
-
 @Workflow({
   title: 'MCP Linear Example',
   description: "Chat with an agent connected to Linear's hosted MCP server.",
   schema: McpLinearExampleArgsSchema,
 })
-export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs, McpLinearState> {
+export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs> {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     private readonly mcpListTools: McpListToolsTool,
@@ -44,7 +42,11 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs,
   }
 
   @Initial({ to: 'chatting' })
-  async startChat(ctx: WorkflowContext, args: McpLinearExampleArgs, state: McpLinearState): Promise<McpLinearState> {
+  async startChat(
+    ctx: WorkflowContext,
+    args: McpLinearExampleArgs,
+    state: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     const systemPrompt = [
       `You are a Linear assistant connected via MCP at ${LINEAR_MCP_URL} (transport: streamableHttp).`,
       'Use `mcpListTools` to discover the available Linear tools, then `mcpCallTool` to invoke them.',

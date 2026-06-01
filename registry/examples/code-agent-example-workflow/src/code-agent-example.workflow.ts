@@ -25,12 +25,10 @@ type ExploreCallback = z.infer<typeof ExploreCallbackSchema>;
 const EXPLORE_INSTRUCTIONS = `Find the entry-point module of this project and list the
 top-level providers it registers. Return a short bulleted summary.`;
 
-interface CodeAgentState {}
-
 @Workflow({
   title: 'Code Agent Explore Example',
 })
-export class CodeAgentExampleWorkflow extends BaseWorkflow<Record<string, unknown>, CodeAgentState> {
+export class CodeAgentExampleWorkflow extends BaseWorkflow {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
@@ -42,8 +40,8 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow<Record<string, unknow
   async startExploration(
     ctx: WorkflowContext,
     args: Record<string, unknown>,
-    state: CodeAgentState,
-  ): Promise<CodeAgentState> {
+    state: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
       {
         system: 'You are a codebase exploration agent. Search and read source code to answer the question thoroughly.',
@@ -66,7 +64,11 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow<Record<string, unknow
     wait: true,
     schema: ExploreCallbackSchema,
   })
-  async exploreComplete(ctx: WorkflowContext, state: CodeAgentState, payload: ExploreCallback): Promise<unknown> {
+  async exploreComplete(
+    ctx: WorkflowContext,
+    state: Record<string, unknown>,
+    payload: ExploreCallback,
+  ): Promise<unknown> {
     await this.documentStore.save(
       LinkDocument,
       { label: 'Exploration complete', status: 'success', workflowId: payload.workflowId },

@@ -31,12 +31,10 @@ We're about to deploy **v1.2.3** to production.
 
 Proceed?`;
 
-interface HitlConfirmState {}
-
 @Workflow({
   title: 'HITL Confirm Example',
 })
-export class HitlConfirmExampleWorkflow extends BaseWorkflow<Record<string, unknown>, HitlConfirmState> {
+export class HitlConfirmExampleWorkflow extends BaseWorkflow {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
@@ -48,8 +46,8 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow<Record<string, unkn
   async askForConfirmation(
     ctx: WorkflowContext,
     args: Record<string, unknown>,
-    state: HitlConfirmState,
-  ): Promise<HitlConfirmState> {
+    state: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
       { markdown: MARKDOWN_SUMMARY },
       { workflowName: ConfirmUserWorkflow.name, callback: { transition: 'decisionReceived' } },
@@ -79,7 +77,11 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow<Record<string, unkn
     wait: true,
     schema: ConfirmCallbackSchema,
   })
-  async decisionReceived(ctx: WorkflowContext, state: HitlConfirmState, payload: ConfirmCallback): Promise<unknown> {
+  async decisionReceived(
+    ctx: WorkflowContext,
+    state: Record<string, unknown>,
+    payload: ConfirmCallback,
+  ): Promise<unknown> {
     await this.documentStore.save(
       LinkDocument,
       {

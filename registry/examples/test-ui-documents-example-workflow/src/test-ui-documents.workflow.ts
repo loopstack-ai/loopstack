@@ -12,13 +12,11 @@ import {
 } from '@loopstack/common';
 import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 
-interface TestUiDocumentsState {}
-
 @Workflow({
   title: 'Core Ui Documents',
   description: 'Test the displaying of core ui documents',
 })
-export class TestUiDocumentsWorkflow extends BaseWorkflow<Record<string, unknown>, TestUiDocumentsState> {
+export class TestUiDocumentsWorkflow extends BaseWorkflow {
   constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
     super();
   }
@@ -27,8 +25,8 @@ export class TestUiDocumentsWorkflow extends BaseWorkflow<Record<string, unknown
   async renderAll(
     ctx: WorkflowContext,
     args: Record<string, unknown>,
-    state: TestUiDocumentsState,
-  ): Promise<TestUiDocumentsState> {
+    state: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     // Message
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -53,7 +51,7 @@ export class TestUiDocumentsWorkflow extends BaseWorkflow<Record<string, unknown
   }
 
   @Final({ from: 'rendered' })
-  async done(ctx: WorkflowContext, state: TestUiDocumentsState): Promise<unknown> {
+  async done(ctx: WorkflowContext, state: Record<string, unknown>): Promise<unknown> {
     return {};
   }
 }

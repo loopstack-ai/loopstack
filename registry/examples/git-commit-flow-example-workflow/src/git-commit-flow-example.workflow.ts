@@ -5,12 +5,10 @@ import { GitAddTool, GitCommitTool, GitLogTool, GitStatusTool } from '@loopstack
 
 const COMMIT_MESSAGE = 'chore: example commit from git-commit-flow workflow';
 
-interface GitCommitFlowState {}
-
 @Workflow({
   title: 'Git Commit Flow Example',
 })
-export class GitCommitFlowExampleWorkflow extends BaseWorkflow<Record<string, unknown>, GitCommitFlowState> {
+export class GitCommitFlowExampleWorkflow extends BaseWorkflow {
   constructor(
     private readonly gitStatus: GitStatusTool,
     private readonly gitAdd: GitAddTool,
@@ -25,8 +23,8 @@ export class GitCommitFlowExampleWorkflow extends BaseWorkflow<Record<string, un
   async checkStatus(
     ctx: WorkflowContext,
     args: Record<string, unknown>,
-    state: GitCommitFlowState,
-  ): Promise<GitCommitFlowState> {
+    state: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     const status = await this.gitStatus.call();
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -36,19 +34,19 @@ export class GitCommitFlowExampleWorkflow extends BaseWorkflow<Record<string, un
   }
 
   @Transition({ from: 'status_checked', to: 'staged' })
-  async stageAll(ctx: WorkflowContext, state: GitCommitFlowState): Promise<GitCommitFlowState> {
+  async stageAll(ctx: WorkflowContext, state: Record<string, unknown>): Promise<Record<string, unknown>> {
     await this.gitAdd.call({ files: ['.'] });
     return state;
   }
 
   @Transition({ from: 'staged', to: 'committed' })
-  async commit(ctx: WorkflowContext, state: GitCommitFlowState): Promise<GitCommitFlowState> {
+  async commit(ctx: WorkflowContext, state: Record<string, unknown>): Promise<Record<string, unknown>> {
     await this.gitCommit.call({ message: COMMIT_MESSAGE });
     return state;
   }
 
   @Final({ from: 'committed' })
-  async readBack(ctx: WorkflowContext, state: GitCommitFlowState): Promise<unknown> {
+  async readBack(ctx: WorkflowContext, state: Record<string, unknown>): Promise<unknown> {
     const log = await this.gitLog.call({ limit: 1 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',

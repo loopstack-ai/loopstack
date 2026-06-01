@@ -2,12 +2,10 @@ import { Inject } from '@nestjs/common';
 import { BaseWorkflow, DOCUMENT_STORE, Initial, MessageDocument, Workflow } from '@loopstack/common';
 import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 
-interface SubWorkflowState {}
-
 @Workflow({
   title: 'Sub Workflow',
 })
-export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow<Record<string, unknown>, SubWorkflowState> {
+export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
   constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
     super();
   }
@@ -16,7 +14,7 @@ export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow<Record<string
   async message(
     ctx: WorkflowContext,
     args: Record<string, unknown>,
-    state: SubWorkflowState,
+    state: Record<string, unknown>,
   ): Promise<{ message: string }> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',

@@ -22,12 +22,10 @@ const AskUserCallbackSchema = CallbackSchema.extend({
 
 type AskUserCallback = z.infer<typeof AskUserCallbackSchema>;
 
-interface HitlAskUserState {}
-
 @Workflow({
   title: 'HITL Ask User Example',
 })
-export class HitlAskUserExampleWorkflow extends BaseWorkflow<Record<string, unknown>, HitlAskUserState> {
+export class HitlAskUserExampleWorkflow extends BaseWorkflow {
   constructor(
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
@@ -39,8 +37,8 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow<Record<string, unkn
   async askQuestion(
     ctx: WorkflowContext,
     args: Record<string, unknown>,
-    state: HitlAskUserState,
-  ): Promise<HitlAskUserState> {
+    state: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
       { question: 'What is your name?' },
       { workflowName: AskUserWorkflow.name, callback: { transition: 'answerReceived' } },
@@ -70,7 +68,11 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow<Record<string, unkn
     wait: true,
     schema: AskUserCallbackSchema,
   })
-  async answerReceived(ctx: WorkflowContext, state: HitlAskUserState, payload: AskUserCallback): Promise<unknown> {
+  async answerReceived(
+    ctx: WorkflowContext,
+    state: Record<string, unknown>,
+    payload: AskUserCallback,
+  ): Promise<unknown> {
     await this.documentStore.save(
       LinkDocument,
       {
