@@ -11,6 +11,7 @@ The Dynamic Routing Example Workflow shows how to create branching logic in work
 By using this workflow as a reference, you'll learn how to:
 
 - Define a workflow schema with `z.object()` for typed input arguments
+- Store input in typed workflow state for use in guards
 - Use `@Guard('methodName')` to conditionally gate transitions
 - Control transition evaluation order with the `priority` option
 - Build multi-level branching structures with fallback routes
@@ -23,11 +24,27 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 ## How It Works
 
-### Workflow Class
+### Module Setup
 
-The workflow extends `BaseWorkflow<TArgs>` with a typed argument object. The schema is defined in the `@Workflow` decorator using Zod:
+Register the workflow as a NestJS provider:
 
 ```typescript
+@Module({
+  providers: [DynamicRoutingExampleWorkflow],
+  exports: [DynamicRoutingExampleWorkflow],
+})
+export class DynamicRoutingExampleModule {}
+```
+
+### Workflow State
+
+State is defined as a TypeScript interface and passed to each transition method. Return updated state from transitions to persist values for guards and later steps:
+
+```typescript
+interface DynamicRoutingState {
+  value: number;
+}
+
 @Workflow({
   uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',
   schema: z
@@ -36,8 +53,10 @@ The workflow extends `BaseWorkflow<TArgs>` with a typed argument object. The sch
     })
     .strict(),
 })
-export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }> {
-  value!: number;
+export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }, DynamicRoutingState> {
+  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
+    super();
+  }
 }
 ```
 
@@ -45,51 +64,63 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
 
 #### 1. Receiving Input Arguments
 
-The `@Initial` transition receives the validated input as a method argument. Store it as an instance property for use in guards and later transitions:
+The `@Initial` transition receives validated input as `args`. Store the value in workflow state for guards and routing:
 
 ```typescript
 @Initial({ to: 'prepared' })
-async createMockData(args: { value: number }) {
-  this.value = args.value;
-  await this.repository.save(MessageDocument, {
+async createMockData(
+  ctx: WorkflowContext,
+  args: { value: number },
+  state: DynamicRoutingState,
+): Promise<DynamicRoutingState> {
+  await this.documentStore.save(MessageDocument, {
     role: 'assistant',
-    content: `Analysing value = ${this.value}`,
+    content: `Analysing value = ${args.value}`,
   });
+  return { ...state, value: args.value };
 }
 ```
 
 #### 2. Guard Methods
 
-A guard is a method that returns a boolean. It determines whether a transition should be taken. Reference it by name in the `@Guard` decorator:
+A guard is a method that returns a boolean. It receives workflow state as its first argument. Reference it by name in the `@Guard` decorator:
 
 ```typescript
 @Transition({ from: 'prepared', to: 'placeA', priority: 10 })
 @Guard('isAbove100')
-routeToPlaceA() {}
+async routeToPlaceA(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+  return state;
+}
 
-isAbove100() {
-  return this.value > 100;
+isAbove100(state: DynamicRoutingState): boolean {
+  return state.value > 100;
 }
 ```
 
-When the workflow reaches the `prepared` state, it evaluates guards on all transitions from that state. If `isAbove100()` returns `true`, the workflow moves to `placeA`.
+When the workflow reaches the `prepared` state, it evaluates guards on all auto-transitions from that state (highest priority first). If `isAbove100(state)` returns `true`, the workflow moves to `placeA`.
+
+Routing transitions like `routeToPlaceA` only pass state through. The guard makes the decision; the transition method moves the state machine to the next place.
 
 #### 3. Transition Priority
 
 When multiple transitions share the same `from` state, `priority` controls evaluation order (higher priority is evaluated first). The first transition whose guard passes (or that has no guard) is taken:
 
 ```typescript
-// Evaluated first (priority: 10) -- taken if value > 100
+// Evaluated first (priority: 10). Taken if value > 100.
 @Transition({ from: 'prepared', to: 'placeA', priority: 10 })
 @Guard('isAbove100')
-routeToPlaceA() {}
+async routeToPlaceA(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+  return state;
+}
 
-// Evaluated second (no priority = default) -- fallback route
+// Evaluated last (no priority). Fallback when value <= 100.
 @Transition({ from: 'prepared', to: 'placeB' })
-routeToPlaceB() {}
+async routeToPlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+  return state;
+}
 ```
 
-A transition without a `@Guard` always matches, acting as a fallback.
+A transition without a `@Guard` always matches once reached, acting as a fallback.
 
 #### 4. Multi-Level Branching
 
@@ -98,14 +129,18 @@ Chain conditional transitions to create decision trees. After reaching `placeA`,
 ```typescript
 @Transition({ from: 'placeA', to: 'placeC', priority: 10 })
 @Guard('isAbove200')
-routeToPlaceC() {}
+async routeToPlaceC(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+  return state;
+}
 
-isAbove200() {
-  return this.value > 200;
+isAbove200(state: DynamicRoutingState): boolean {
+  return state.value > 200;
 }
 
 @Transition({ from: 'placeA', to: 'placeD' })
-routeToPlaceD() {}
+async routeToPlaceD(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+  return state;
+}
 ```
 
 #### 5. Complete Routing Flow
@@ -116,12 +151,39 @@ The workflow routes through different states based on the input value:
 - **100 < value <= 200** -> placeA -> placeD -> "Value is less or equal 200, but greater than 100"
 - **value > 200** -> placeA -> placeC -> "Value is greater than 200"
 
+Terminal `@Final` transitions save the result message:
+
+```typescript
+@Final({ from: 'placeB' })
+async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+  await this.documentStore.save(MessageDocument, {
+    role: 'assistant',
+    content: 'Value is less or equal 100',
+  });
+  return {};
+}
+```
+
 ### Complete Workflow
 
 ```typescript
+import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, Final, Guard, Initial, Transition, Workflow } from '@loopstack/common';
-import { MessageDocument } from '@loopstack/common';
+import {
+  BaseWorkflow,
+  DOCUMENT_STORE,
+  Final,
+  Guard,
+  Initial,
+  MessageDocument,
+  Transition,
+  Workflow,
+} from '@loopstack/common';
+import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+
+interface DynamicRoutingState {
+  value: number;
+}
 
 @Workflow({
   uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',
@@ -131,62 +193,79 @@ import { MessageDocument } from '@loopstack/common';
     })
     .strict(),
 })
-export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }> {
-  value!: number;
+export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }, DynamicRoutingState> {
+  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
+    super();
+  }
 
   @Initial({ to: 'prepared' })
-  async createMockData(args: { value: number }) {
-    this.value = args.value;
-    await this.repository.save(MessageDocument, {
+  async createMockData(
+    ctx: WorkflowContext,
+    args: { value: number },
+    state: DynamicRoutingState,
+  ): Promise<DynamicRoutingState> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
-      content: `Analysing value = ${this.value}`,
+      content: `Analysing value = ${args.value}`,
     });
+    return { ...state, value: args.value };
   }
 
   @Transition({ from: 'prepared', to: 'placeA', priority: 10 })
   @Guard('isAbove100')
-  routeToPlaceA() {}
+  async routeToPlaceA(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+    return state;
+  }
 
-  isAbove100() {
-    return this.value > 100;
+  isAbove100(state: DynamicRoutingState): boolean {
+    return state.value > 100;
   }
 
   @Transition({ from: 'prepared', to: 'placeB' })
-  routeToPlaceB() {}
+  async routeToPlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+    return state;
+  }
 
   @Transition({ from: 'placeA', to: 'placeC', priority: 10 })
   @Guard('isAbove200')
-  routeToPlaceC() {}
+  async routeToPlaceC(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+    return state;
+  }
 
-  isAbove200() {
-    return this.value > 200;
+  isAbove200(state: DynamicRoutingState): boolean {
+    return state.value > 200;
   }
 
   @Transition({ from: 'placeA', to: 'placeD' })
-  routeToPlaceD() {}
+  async routeToPlaceD(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+    return state;
+  }
 
   @Final({ from: 'placeB' })
-  async showMessagePlaceB() {
-    await this.repository.save(MessageDocument, {
+  async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is less or equal 100',
     });
+    return {};
   }
 
   @Final({ from: 'placeC' })
-  async showMessagePlaceC() {
-    await this.repository.save(MessageDocument, {
+  async showMessagePlaceC(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is greater than 200',
     });
+    return {};
   }
 
   @Final({ from: 'placeD' })
-  async showMessagePlaceD() {
-    await this.repository.save(MessageDocument, {
+  async showMessagePlaceD(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+    await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is less or equal 200, but greater than 100',
     });
+    return {};
   }
 }
 ```
@@ -195,8 +274,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/common` - Base classes, decorators, and guards
-- `@loopstack/common` - Provides `MessageDocument` for chat messages
+- `@loopstack/common`: Base classes, decorators, guards, `DocumentStore`, and `MessageDocument`
 
 ## About
 
