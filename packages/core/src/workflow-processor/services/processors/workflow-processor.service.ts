@@ -9,7 +9,6 @@ import {
   WorkflowInterface,
   WorkflowMetadataInterface,
   getBlockArgsSchema,
-  getBlockConfigSchema,
   getGuardMetadataMap,
   normalizeRetryConfig,
 } from '@loopstack/common';
@@ -69,11 +68,6 @@ export class WorkflowProcessorService implements Processor {
   ): Promise<WorkflowMetadataInterface> {
     const schema = getBlockArgsSchema(workflow);
     const validArgs = schema ? (schema.parse(args) as Record<string, unknown> | undefined) : args;
-
-    const configSchema = getBlockConfigSchema(workflow);
-    const rawConfig = context.workflowEntity?.config as Record<string, unknown> | null | undefined;
-    const validConfig =
-      configSchema && rawConfig ? (configSchema.parse(rawConfig) as Record<string, unknown>) : (rawConfig ?? undefined);
 
     const isStateless = !!context.options?.stateless;
 
@@ -147,7 +141,6 @@ export class WorkflowProcessorService implements Processor {
       workflowId: context.workflowId ?? '',
       labels: context.labels ?? [],
       args: validArgs ? Object.freeze({ ...validArgs }) : undefined,
-      config: validConfig ? Object.freeze({ ...validConfig }) : undefined,
       options: context.options,
       cache: new Map(),
       queryRunner: null,
@@ -165,7 +158,6 @@ export class WorkflowProcessorService implements Processor {
         meta,
         workflow,
         validArgs,
-        validConfig,
         pendingTransition,
         workflowEntity,
         state,
@@ -215,7 +207,6 @@ export class WorkflowProcessorService implements Processor {
       workflowId: scopeData.workflowId,
       input: {
         args: scopeData.args,
-        config: scopeData.config,
       },
       execution: {
         place: meta.place,
@@ -449,7 +440,6 @@ export class WorkflowProcessorService implements Processor {
     meta: ProcessorMetadata,
     workflow: WorkflowInterface,
     validArgs: Record<string, unknown> | undefined,
-    validConfig: Record<string, unknown> | undefined,
     pendingTransition: TransitionPayloadInterface | undefined,
     workflowEntity: WorkflowEntity | undefined,
     state: Record<string, unknown>,

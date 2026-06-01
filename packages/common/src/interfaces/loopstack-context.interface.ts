@@ -8,5 +8,5 @@ export interface LoopstackContext {
   userId: string;
   workspaceId: string;
   workflowId: string;
-  run: { args: unknown; config: unknown };
+  run: { args: unknown };
 }

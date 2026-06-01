@@ -134,14 +134,14 @@ export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
               workspaceId: 'test-workspace',
               workflowId: 'test-workflow',
 
-              run: { args: undefined, config: undefined },
+              run: { args: undefined },
             }),
             getOptional: vi.fn().mockReturnValue({
               userId: 'test-user',
               workspaceId: 'test-workspace',
               workflowId: 'test-workflow',
 
-              run: { args: undefined, config: undefined },
+              run: { args: undefined },
             }),
             getOrLoad: vi.fn().mockImplementation((_key: symbol, loader: () => Promise<unknown>) => loader()),
           },

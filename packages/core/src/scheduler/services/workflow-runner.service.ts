@@ -21,7 +21,6 @@ import type { ScheduledTask } from '@loopstack/contracts/types';
 import { WorkflowService, WorkspaceService } from '../../persistence/index.js';
 import { CreateWorkflowService } from '../../workflow-processor/services/create-workflow.service.js';
 import { RootProcessorService } from '../../workflow-processor/services/root-processor.service.js';
-import { WorkflowRegistryService } from '../../workflow-processor/services/workflow-registry.service.js';
 import { TaskSchedulerService } from './task-scheduler.service.js';
 
 @Injectable()
@@ -35,7 +34,6 @@ export class WorkflowRunner {
     private readonly workflowService: WorkflowService,
     private readonly taskSchedulerService: TaskSchedulerService,
     private readonly rootProcessorService: RootProcessorService,
-    private readonly workflowRegistryService: WorkflowRegistryService,
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
   ) {}
 
@@ -62,14 +60,10 @@ export class WorkflowRunner {
     // Start new workflow
     const workerId = this.configService.getOrThrow<string>('auth.clientId');
     const workspace = await this.findOrCreateWorkspace(options.appName, options.userId, payload.workspaceId);
-    const workflowInstance = this.workflowRegistryService.get(workflowClass);
-
     const workflowEntity = await this.createWorkflowService.create(
       { id: workspace.id },
       { workflowName: workflowClass.name, args: payload.args as unknown },
       options.userId,
-      undefined,
-      workflowInstance,
     );
 
     await this.taskSchedulerService.addTask({

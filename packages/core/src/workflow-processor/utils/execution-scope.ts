@@ -18,7 +18,6 @@ export interface ExecutionScopeData {
   workflowId: string;
   labels: string[];
   args: Readonly<Record<string, unknown> | undefined>;
-  config: Readonly<Record<string, unknown> | undefined>;
   options: { stateless: boolean };
 
   // Per-execution cache for scope-aware services (nestjs-cls pattern)

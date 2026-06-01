@@ -40,14 +40,7 @@ const AgentArgsSchema = z.object({
   context: z.string().optional(),
 });
 
-const AgentConfigSchema = z.object({
-  provider: z.string().default('claude'),
-  model: z.string().optional(),
-  providerConfig: z.record(z.string(), z.unknown()).optional(),
-});
-
 type AgentArgs = z.infer<typeof AgentArgsSchema>;
-type AgentConfig = z.infer<typeof AgentConfigSchema>;
 
 interface AgentState {
   system: string;
@@ -62,7 +55,6 @@ interface AgentState {
 @Workflow({
   uiConfig: import.meta.dirname + '/agent.ui.yaml',
   schema: AgentArgsSchema,
-  configSchema: AgentConfigSchema,
 })
 export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
   constructor(
@@ -91,18 +83,14 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
-  async llmTurn(ctx: WorkflowContext, state: AgentState): Promise<AgentState> {
-    const config = (ctx.input.config ?? {}) as AgentConfig;
-
+  async llmTurn(_ctx: WorkflowContext, state: AgentState): Promise<AgentState> {
     const result = await this.llmGenerateText.call(
       {},
       {
         config: {
-          provider: config.provider ?? 'claude',
+          provider: 'claude',
           system: state.system,
           tools: state.tools,
-          model: config.model,
-          providerConfig: config.providerConfig,
         },
       },
     );

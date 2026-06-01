@@ -88,9 +88,9 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
           userId: scope.userId,
           workspaceId: scope.workspaceId,
           workflowId: scope.workflowId,
-          run: { args: scope.args, config: scope.config },
+          run: { args: scope.args },
         }
-      : { userId: '', workspaceId: '', workflowId: '', run: { args: undefined, config: undefined } };
+      : { userId: '', workspaceId: '', workflowId: '', run: { args: undefined } };
 
     const execContext: ToolExecutionContext = {
       tool,

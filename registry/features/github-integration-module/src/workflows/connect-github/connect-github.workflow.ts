@@ -90,7 +90,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   async launchOAuth(_ctx: WorkflowContext, state: ConnectGitHubState): Promise<ConnectGitHubState> {
     const result = await this.orchestrator.queue(
       { provider: 'github', scopes: ['repo', 'user'] },
-      { workflowName: 'OAuthWorkflow', _workflowInstance: this.oAuth, callback: { transition: 'authCompleted' } },
+      { workflowName: 'OAuthWorkflow', callback: { transition: 'authCompleted' } },
     );
 
     await this.documentStore.save(
@@ -143,7 +143,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
         mode: 'options',
         options: ['Create new repository', 'Connect existing repository'],
       },
-      { workflowName: 'AskUserWorkflow', _workflowInstance: this.askUser, callback: { transition: 'choiceReceived' } },
+      { workflowName: 'AskUserWorkflow', callback: { transition: 'choiceReceived' } },
     );
 
     await this.documentStore.save(
@@ -179,7 +179,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
       const askResult = await this.orchestrator.queue(
         { question: 'Select a repository to connect:', mode: 'options', options: repoNames },
-        { workflowName: 'AskUserWorkflow', _workflowInstance: this.askUser, callback: { transition: 'repoSelected' } },
+        { workflowName: 'AskUserWorkflow', callback: { transition: 'repoSelected' } },
       );
 
       await this.documentStore.save(
@@ -190,7 +190,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
     } else {
       const askResult = await this.orchestrator.queue(
         { question: 'Enter a name for your new repository:' },
-        { workflowName: 'AskUserWorkflow', _workflowInstance: this.askUser, callback: { transition: 'createRepo' } },
+        { workflowName: 'AskUserWorkflow', callback: { transition: 'createRepo' } },
       );
 
       await this.documentStore.save(
@@ -305,7 +305,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
       },
       {
         workflowName: 'AskUserWorkflow',
-        _workflowInstance: this.askUser,
+
         callback: { transition: 'uncommittedChangesHandled' },
       },
     );
@@ -428,7 +428,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
       { question, mode: 'options', options },
       {
         workflowName: 'AskUserWorkflow',
-        _workflowInstance: this.askUser,
+
         callback: { transition: 'syncStrategyChosen' },
       },
     );

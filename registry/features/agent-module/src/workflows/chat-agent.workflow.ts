@@ -47,15 +47,7 @@ const ChatAgentArgsSchema = z.object({
   context: z.string().optional(),
 });
 
-const ChatAgentConfigSchema = z.object({
-  provider: z.string().default('claude'),
-  model: z.string().optional(),
-  providerConfig: z.record(z.string(), z.unknown()).optional(),
-  taskMode: z.boolean().optional(),
-});
-
 type ChatAgentArgs = z.infer<typeof ChatAgentArgsSchema>;
-type ChatAgentConfig = z.infer<typeof ChatAgentConfigSchema>;
 
 interface ChatAgentState {
   system: string;
@@ -71,7 +63,6 @@ interface ChatAgentState {
 @Workflow({
   uiConfig: import.meta.dirname + '/chat-agent.ui.yaml',
   schema: ChatAgentArgsSchema,
-  configSchema: ChatAgentConfigSchema,
 })
 export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentState> {
   constructor(
@@ -101,20 +92,14 @@ export class ChatAgentWorkflow extends BaseWorkflow<ChatAgentArgs, ChatAgentStat
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
-  async llmTurn(ctx: WorkflowContext, state: ChatAgentState): Promise<ChatAgentState> {
-    const config = (ctx.input.config ?? {}) as ChatAgentConfig;
-
-    const tools = config.taskMode ? [...state.tools, 'agentFinish'] : state.tools;
-
+  async llmTurn(_ctx: WorkflowContext, state: ChatAgentState): Promise<ChatAgentState> {
     const result = await this.llmGenerateText.call(
       {},
       {
         config: {
-          provider: config.provider ?? 'claude',
+          provider: 'claude',
           system: state.system,
-          tools,
-          model: config.model,
-          providerConfig: config.providerConfig,
+          tools: state.tools,
         },
       },
     );

@@ -4,8 +4,6 @@ import { z } from 'zod';
 export interface RunOptions {
   workflowName?: string;
   callback?: { transition: string; metadata?: Record<string, unknown> };
-  /** @internal — set automatically by `run()`. The resolved workflow instance. */
-  _workflowInstance?: object;
 }
 
 export interface QueueResult {

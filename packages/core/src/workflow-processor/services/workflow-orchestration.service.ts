@@ -5,7 +5,6 @@ import {
   ResumeOptions,
   RunOptions,
   WorkflowEntity,
-  WorkflowInterface,
   WorkflowOrchestrator,
   WorkflowState,
 } from '@loopstack/common';
@@ -46,7 +45,6 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
     }
 
     const workflowName = options.workflowName;
-    const workflowInstance = options._workflowInstance as WorkflowInterface | undefined;
 
     const workflowEntity = await this.createWorkflowService.create(
       { id: scope.workspaceId },
@@ -54,13 +52,11 @@ export class WorkflowOrchestrationService implements WorkflowOrchestrator {
         workflowName,
         workspaceId: scope.workspaceId,
         args: { ...args },
-        config: null,
         callbackTransition: options?.callback?.transition ?? null,
         callbackMetadata: options?.callback?.metadata ?? null,
       },
       scope.userId,
       scope.workflowId,
-      workflowInstance,
     );
 
     await this.taskSchedulerService.addTask({

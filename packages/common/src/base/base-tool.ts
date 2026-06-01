@@ -53,7 +53,7 @@ export abstract class BaseTool<
    * Read-only execution context for the current workflow run.
    * Available inside `handle()` — throws if called outside a transition.
    *
-   * Provides: `userId`, `workspaceId`, `workflowId`, `run.args`, `run.config`.
+   * Provides: `userId`, `workspaceId`, `workflowId`, `run.args`.
    */
   protected get ctx(): LoopstackContext & Record<string, unknown> {
     return this.__scope.get();

@@ -27,7 +27,6 @@ export class CreateWorkflowService {
     data: Partial<WorkflowEntity>,
     user: string,
     parentWorkflowId?: string,
-    workflowInstance?: WorkflowInterface,
   ): Promise<WorkflowEntity> {
     if (!data.workflowName) {
       throw new Error('alias is required to create a workflow.');
@@ -43,7 +42,7 @@ export class CreateWorkflowService {
       parentWorkflow = await this.workflowService.getWorkflow(parentWorkflowId, user, []);
     }
 
-    const workflow = workflowInstance ?? this.workflowRegistryService.getByName(data.workflowName);
+    const workflow = this.workflowRegistryService.getByName(data.workflowName);
 
     const validData = this.validateWorkflowArgs(workflow, data);
     validData.className = workflow.constructor.name;

@@ -8,6 +8,6 @@ export interface WorkflowContext {
   userId: string;
   workspaceId: string;
   workflowId: string;
-  input: { args: unknown; config: unknown };
+  input: { args: unknown };
   execution: { place: string; retryCount: number };
 }
