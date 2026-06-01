@@ -7,13 +7,20 @@ import type { DocumentType } from '@loopstack/contracts/types';
 import type { WorkbenchSettingsInterface } from '@/features/workbench';
 import DocumentItem from './DocumentItem.tsx';
 
+function getDocumentKey(item: DocumentItemInterface): string {
+  const content = item.content as { id?: unknown } | undefined;
+  if (item.alias === 'LlmMessageDocument' && typeof content?.id === 'string') {
+    return `llm-message-${content.id}`;
+  }
+  return item.id;
+}
+
 const DocumentList: React.FC<{
   workflow: WorkflowFullInterface;
   childWorkflow: WorkflowFullInterface;
   documents: DocumentItemInterface[];
   scrollTo: (workflowId: string) => void;
   settings: WorkbenchSettingsInterface;
-  isLoading: boolean;
 }> = ({ workflow, childWorkflow, documents, scrollTo, settings }) => {
   const { workflowId: paramsWorkflowId, clickId } = useParams();
 
@@ -36,22 +43,13 @@ const DocumentList: React.FC<{
         const isDocumentActive =
           item.place === childWorkflow.place || !!document.meta?.enableAtPlaces?.includes(childWorkflow.place);
 
-        console.log({
-          isDocumentActive,
-          isWorkflowActive,
-          status: childWorkflow.status,
-          place: childWorkflow.place,
-          documentPlace: item.place,
-          availableTransitions: childWorkflow.availableTransitions,
-        });
-
         const isActive = isWorkflowActive && isDocumentActive;
 
         const isLastItem = documentIndex === documents.length - 1;
 
         return (
           <DocumentItem
-            key={item.id}
+            key={getDocumentKey(item)}
             document={item}
             workflow={childWorkflow}
             parentWorkflow={workflow}

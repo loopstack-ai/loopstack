@@ -60,6 +60,10 @@ export interface LlmGenerateTextArgs<TProviderConfig = Record<string, unknown>> 
   model?: string;
   /** Provider-specific config (e.g. maxTokens, temperature, cache). Opaque to the framework. */
   providerConfig?: TProviderConfig;
+  /** Stable ID used to correlate live stream events for one assistant response. */
+  streamMessageId?: string;
+  /** Optional live stream sink. Providers should still return the complete final response. */
+  onStream?: LlmStreamHandler;
 }
 
 export interface LlmUsage {
@@ -84,6 +88,16 @@ export interface LlmGenerateTextResult {
   /** Unmodified native API response (Anthropic.Message, OpenAI.ChatCompletion, etc.). */
   response: unknown;
 }
+
+export type LlmStreamEvent =
+  | { type: 'start'; messageId: string }
+  | { type: 'text_delta'; messageId: string; delta: string }
+  | { type: 'thinking_delta'; messageId: string; delta: string }
+  | { type: 'tool_call'; messageId: string; id: string; name: string; args: Record<string, unknown> }
+  | { type: 'done'; messageId: string; message: LlmNormalizedMessage }
+  | { type: 'error'; messageId: string; error: string };
+
+export type LlmStreamHandler = (event: LlmStreamEvent) => void | Promise<void>;
 
 // ---------------------------------------------------------------------------
 // Generate object (structured output)

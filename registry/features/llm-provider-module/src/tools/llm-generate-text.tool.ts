@@ -1,13 +1,21 @@
 import { Inject } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { BaseTool, DOCUMENT_STORE, TOOL_REGISTRY, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { DocumentStore, ToolRegistry } from '@loopstack/common';
+import { ClientMessageService } from '@loopstack/core';
 import type { LlmContext } from '../contracts/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
 import type { LlmModuleConfig } from '../llm-provider.constants.js';
 import { LlmProviderRegistry } from '../services/llm-provider-registry.js';
 import { LlmToolsHelperService } from '../services/llm-tools-helper.service.js';
-import type { LlmGenerateTextResult, LlmMessage, LlmResolvedTool, LlmResultMeta } from '../types/index.js';
+import type {
+  LlmGenerateTextResult,
+  LlmMessage,
+  LlmResolvedTool,
+  LlmResultMeta,
+  LlmStreamEvent,
+} from '../types/index.js';
 
 export const LlmGenerateTextArgsSchema = z.object({
   prompt: z.string().optional(),
@@ -57,6 +65,7 @@ export class LlmGenerateTextTool extends BaseTool<
   @Inject() private readonly toolsHelper: LlmToolsHelperService;
   @Inject(TOOL_REGISTRY) private readonly toolRegistry: ToolRegistry;
   @Inject(LLM_MODULE_CONFIG) private readonly moduleConfig: LlmModuleConfig;
+  @Inject() private readonly clientMessageService: ClientMessageService;
 
   protected async handle(
     args: LlmGenerateTextArgs,
@@ -74,6 +83,8 @@ export class LlmGenerateTextTool extends BaseTool<
     const toolDefinitions: LlmResolvedTool[] | undefined =
       toolInstances.length > 0 ? this.toolsHelper.getToolDefinitions(toolInstances) : undefined;
 
+    const streamMessageId = this.canStreamToClient() ? randomUUID() : undefined;
+
     const providerArgs = {
       system: config?.system,
       messages: args?.messages as LlmMessage[] | undefined,
@@ -82,13 +93,34 @@ export class LlmGenerateTextTool extends BaseTool<
       tools: toolDefinitions,
       model: config?.model ?? this.moduleConfig.model,
       providerConfig: config?.providerConfig,
+      streamMessageId,
+      onStream: streamMessageId ? (event: LlmStreamEvent) => this.dispatchStreamEvent(event) : undefined,
     };
 
-    console.log('[LlmGenerateTextTool] Resolved model:', providerArgs.model);
+    if (streamMessageId) {
+      this.dispatchStreamEvent({ type: 'start', messageId: streamMessageId });
+    }
 
-    const result = await provider.generateText(providerArgs, ctx);
+    let result: LlmGenerateTextResult;
+    try {
+      result = await provider.generateText(providerArgs, ctx);
+    } catch (error) {
+      if (streamMessageId) {
+        this.dispatchStreamEvent({
+          type: 'error',
+          messageId: streamMessageId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+      throw error;
+    }
 
     const usage = provider.extractUsage(result.response);
+
+    if (streamMessageId) {
+      result.message.id = streamMessageId;
+      this.dispatchStreamEvent({ type: 'done', messageId: streamMessageId, message: result.message });
+    }
 
     return {
       data: result,
@@ -98,5 +130,24 @@ export class LlmGenerateTextTool extends BaseTool<
         ...(usage && { usage }),
       },
     };
+  }
+
+  private canStreamToClient(): boolean {
+    return !!(this.ctx.workflowId && this.ctx.userId && this.clientMessageService.clientId);
+  }
+
+  private dispatchStreamEvent(event: LlmStreamEvent): void {
+    const workflowId = this.ctx.workflowId;
+    const userId = this.ctx.userId;
+    if (!workflowId || !userId) return;
+
+    this.clientMessageService.dispatch({
+      ...event,
+      eventType: event.type,
+      type: `llm.response.${event.type}`,
+      userId,
+      workerId: this.clientMessageService.clientId,
+      workflowId,
+    });
   }
 }
