@@ -25,12 +25,10 @@ export type AskForApprovalResult = { workflowId: string } | { concept: string | 
 
 @Tool({
   name: 'ask_for_approval',
-  uiConfig: {
-    description:
-      'Present the final concept to the user for approval. The concept is shown as formatted markdown ' +
-      'with a confirm button. Call this when the user indicates the concept is complete. ' +
-      'IMPORTANT: This must be the only tool call in your response.',
-  },
+  description:
+    'Present the final concept to the user for approval. The concept is shown as formatted markdown ' +
+    'with a confirm button. Call this when the user indicates the concept is complete. ' +
+    'IMPORTANT: This must be the only tool call in your response.',
   schema: AskForApprovalInputSchema,
 })
 export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, AskForApprovalResult> {

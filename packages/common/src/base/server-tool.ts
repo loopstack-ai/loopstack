@@ -19,7 +19,7 @@ import { Injectable } from '@nestjs/common';
  * });
  * type Config = z.infer<typeof ConfigSchema>;
  *
- * @Tool({ configSchema: ConfigSchema, uiConfig: { description: '...' } })
+ * @Tool({ description: '...', configSchema: ConfigSchema })
  * export class MyServerTool extends ServerTool<Config> {
  *   toServerToolConfig(config?: Config) {
  *     return { type: 'web_search_20260209', name: 'web_search', max_uses: config?.maxUses ?? 8 };

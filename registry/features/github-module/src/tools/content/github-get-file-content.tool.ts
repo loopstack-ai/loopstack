@@ -30,10 +30,8 @@ export type GitHubGetFileContentResult =
 
 @Tool({
   name: 'github_get_file_content',
-  uiConfig: {
-    description:
-      'Gets the content of a file from a GitHub repository. Decodes base64-encoded content from the API. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Gets the content of a file from a GitHub repository. Decodes base64-encoded content from the API. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubGetFileContentTool extends BaseTool<GitHubGetFileContentArgs, object, GitHubGetFileContentResult> {

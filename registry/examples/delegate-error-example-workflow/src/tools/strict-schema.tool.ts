@@ -5,9 +5,7 @@ export type StrictSchemaToolResult = string;
 
 @Tool({
   name: 'strict_schema',
-  uiConfig: {
-    description: 'Greet a person by name. Requires a name argument. ' + 'Returns a greeting message.',
-  },
+  description: 'Greet a person by name. Requires a name argument. ' + 'Returns a greeting message.',
   schema: z
     .object({
       name: z.string().describe('The name of the person to greet.'),

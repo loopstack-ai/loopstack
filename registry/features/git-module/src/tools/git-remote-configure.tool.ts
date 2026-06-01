@@ -10,14 +10,12 @@ export type GitRemoteConfigureResult = { success: boolean };
 
 @Tool({
   name: 'git_remote_configure',
+  description: 'Configures a git remote. Adds the remote if not present, or updates its URL.',
   schema: z
     .object({
       url: z.string().describe('Remote repository URL (HTTPS)'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Configures a git remote. Adds the remote if not present, or updates its URL.',
-  },
 })
 export class GitRemoteConfigureTool extends BaseTool<GitRemoteConfigureArgs, object, GitRemoteConfigureResult> {
   constructor(

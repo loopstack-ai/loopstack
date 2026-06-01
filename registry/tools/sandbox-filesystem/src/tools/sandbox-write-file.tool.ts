@@ -23,9 +23,7 @@ interface SandboxWriteFileResult {
 
 @Tool({
   name: 'sandbox_write_file',
-  uiConfig: {
-    description: 'Write content to a file in a sandbox container',
-  },
+  description: 'Write content to a file in a sandbox container',
   schema: inputSchema,
 })
 export class SandboxWriteFile extends BaseTool<SandboxWriteFileArgs, object, SandboxWriteFileResult> {

@@ -18,9 +18,7 @@ type SandboxCommandArgs = z.infer<typeof inputSchema>;
 
 @Tool({
   name: 'sandbox_command',
-  uiConfig: {
-    description: 'Execute a command in the sandbox environment',
-  },
+  description: 'Execute a command in the sandbox environment',
   schema: inputSchema,
 })
 export class SandboxCommand extends BaseTool<SandboxCommandArgs, object, CommandExecutionResult> {

@@ -13,12 +13,10 @@ export type AgentFinishResult = { __agentFinish: true; result: unknown };
 
 @Tool({
   name: 'agent_finish',
-  uiConfig: {
-    description:
-      'Call this tool when you have completed the task and are ready to return the final result. ' +
-      'Pass the result as a structured object or string. ' +
-      'IMPORTANT: This must be the only tool call in your response.',
-  },
+  description:
+    'Call this tool when you have completed the task and are ready to return the final result. ' +
+    'Pass the result as a structured object or string. ' +
+    'IMPORTANT: This must be the only tool call in your response.',
   schema: AgentFinishInputSchema,
 })
 export class AgentFinishTool extends BaseTool<AgentFinishInput, object, AgentFinishResult> {

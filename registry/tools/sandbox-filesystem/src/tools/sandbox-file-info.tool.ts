@@ -27,9 +27,7 @@ interface SandboxFileInfoResult {
 
 @Tool({
   name: 'sandbox_file_info',
-  uiConfig: {
-    description: 'Get detailed information about a file or directory in a sandbox container',
-  },
+  description: 'Get detailed information about a file or directory in a sandbox container',
   schema: inputSchema,
 })
 export class SandboxFileInfo extends BaseTool<SandboxFileInfoArgs, object, SandboxFileInfoResult> {

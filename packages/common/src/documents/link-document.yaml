@@ -1,3 +1,1 @@
-ui:
-  widgets:
-    - widget: link
+widget: link

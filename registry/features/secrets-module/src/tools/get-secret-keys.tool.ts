@@ -6,9 +6,7 @@ export type GetSecretKeysResult = { key: string; hasValue: boolean }[];
 
 @Tool({
   name: 'get_secret_keys',
-  uiConfig: {
-    description: 'Returns the list of secret keys for the current workspace. Does not return secret values.',
-  },
+  description: 'Returns the list of secret keys for the current workspace. Does not return secret values.',
 })
 export class GetSecretKeysTool extends BaseTool<object, object, GetSecretKeysResult> {
   @Inject() private secretService: SecretService;

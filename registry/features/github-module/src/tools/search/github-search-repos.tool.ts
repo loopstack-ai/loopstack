@@ -32,10 +32,8 @@ export type GitHubSearchReposResult =
 
 @Tool({
   name: 'github_search_repos',
-  uiConfig: {
-    description:
-      'Searches for repositories on GitHub using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Searches for repositories on GitHub using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubSearchReposTool extends BaseTool<GitHubSearchReposArgs, object, GitHubSearchReposResult> {

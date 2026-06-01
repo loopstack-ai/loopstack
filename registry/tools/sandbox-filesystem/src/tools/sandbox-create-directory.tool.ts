@@ -20,9 +20,7 @@ interface SandboxCreateDirectoryResult {
 
 @Tool({
   name: 'sandbox_create_directory',
-  uiConfig: {
-    description: 'Create a directory in a sandbox container',
-  },
+  description: 'Create a directory in a sandbox container',
   schema: inputSchema,
 })
 export class SandboxCreateDirectory extends BaseTool<SandboxCreateDirectoryArgs, object, SandboxCreateDirectoryResult> {

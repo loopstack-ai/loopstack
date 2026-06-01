@@ -10,14 +10,12 @@ export type GitCommitResult = { hash: string; message: string };
 
 @Tool({
   name: 'git_commit',
+  description: 'Creates a git commit with the currently staged changes.',
   schema: z
     .object({
       message: z.string().describe('The commit message'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Creates a git commit with the currently staged changes.',
-  },
 })
 export class GitCommitTool extends BaseTool<GitCommitArgs, object, GitCommitResult> {
   constructor(

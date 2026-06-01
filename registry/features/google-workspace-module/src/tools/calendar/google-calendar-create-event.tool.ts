@@ -38,10 +38,8 @@ export type GoogleCalendarCreateEventResult =
 
 @Tool({
   name: 'google_calendar_create_event',
-  uiConfig: {
-    description:
-      'Creates a new event on Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Creates a new event on Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GoogleCalendarCreateEventTool extends BaseTool<

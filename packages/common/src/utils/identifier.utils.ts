@@ -63,3 +63,23 @@ export function deriveWorkflowIdentifier(className: string): string {
 
   return identifier;
 }
+
+/**
+ * Derives a snake_case document identifier from a class name.
+ * Strips the 'Document' suffix if present.
+ *
+ * Examples:
+ *   'AskUserDocument'    → 'ask_user'
+ *   'LlmMessageDocument' → 'llm_message'
+ *   'PlainDocument'      → 'plain'
+ *   'ErrorDocument'      → 'error'
+ */
+export function deriveDocumentIdentifier(className: string): string {
+  let identifier = toSnakeCase(className);
+
+  if (identifier.endsWith('_document')) {
+    identifier = identifier.slice(0, -'_document'.length);
+  }
+
+  return identifier;
+}

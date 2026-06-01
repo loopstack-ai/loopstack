@@ -37,10 +37,8 @@ export type GitHubListIssuesResult = {
 
 @Tool({
   name: 'github_list_issues',
-  uiConfig: {
-    description:
-      'Lists issues for a GitHub repository. Note: the GitHub API returns both issues and pull requests; pull requests have a pull_request key. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Lists issues for a GitHub repository. Note: the GitHub API returns both issues and pull requests; pull requests have a pull_request key. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubListIssuesTool extends BaseTool<GitHubListIssuesArgs, object, GitHubListIssuesResult> {

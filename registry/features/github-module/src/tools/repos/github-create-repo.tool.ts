@@ -29,10 +29,8 @@ export type GitHubCreateRepoResult = {
 
 @Tool({
   name: 'github_create_repo',
-  uiConfig: {
-    description:
-      'Creates a new GitHub repository for the authenticated user. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Creates a new GitHub repository for the authenticated user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, object, GitHubCreateRepoResult> {

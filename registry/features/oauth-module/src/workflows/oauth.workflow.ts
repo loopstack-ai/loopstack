@@ -19,7 +19,9 @@ interface OAuthState {
 }
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/oauth.ui.yaml',
+  title: 'OAuth',
+  description:
+    'Authenticate with an OAuth 2.0 provider.\nCan be run standalone to pre-authenticate, or invoked from\nother workflows when authentication is required.',
   schema: z
     .object({
       provider: z.string(),

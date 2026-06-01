@@ -9,9 +9,7 @@ export type RebuildAppResult = {
 
 @Tool({
   name: 'rebuild_app',
-  uiConfig: {
-    description: 'Rebuilds and restarts the app on a remote instance.',
-  },
+  description: 'Rebuilds and restarts the app on a remote instance.',
 })
 export class RebuildAppTool extends BaseTool<Record<string, never>, object, RebuildAppResult> {
   constructor(

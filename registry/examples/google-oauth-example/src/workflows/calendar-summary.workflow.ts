@@ -25,9 +25,10 @@ interface CalendarSummaryState {
 }
 
 @Workflow({
-  title: 'Calendar Summary',
+  title: 'Google Calendar Summary',
+  description:
+    'Fetches upcoming events from Google Calendar and displays a summary.\nIf not authenticated, launches the OAuth workflow as a sub-workflow\nand retries automatically after authentication completes.',
   name: 'google_calendar_summary',
-  uiConfig: __dirname + '/calendar-summary.ui.yaml',
   schema: z
     .object({
       calendarId: z.string().default('primary'),

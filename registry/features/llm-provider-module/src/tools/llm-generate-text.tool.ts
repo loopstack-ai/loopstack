@@ -46,11 +46,9 @@ export const LlmGenerateTextToolSchema = LlmGenerateTextArgsSchema;
 
 @Tool({
   name: 'llm_generate_text',
-  uiConfig: {
-    description:
-      'Generates text using the configured LLM provider. ' +
-      'Configure provider, model, system prompt, and tools via options.config.',
-  },
+  description:
+    'Generates text using the configured LLM provider. ' +
+    'Configure provider, model, system prompt, and tools via options.config.',
   schema: LlmGenerateTextArgsSchema,
   configSchema: LlmGenerateTextConfigSchema,
 })

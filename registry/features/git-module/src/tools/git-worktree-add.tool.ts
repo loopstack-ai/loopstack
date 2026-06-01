@@ -24,11 +24,9 @@ export type GitWorktreeAddResult = {
 
 @Tool({
   name: 'git_worktree_add',
+  description:
+    'Creates a new git worktree at the given path. Optionally checks out an existing branch or creates a new one with "newBranch: true".',
   schema: GitWorktreeAddSchema,
-  uiConfig: {
-    description:
-      'Creates a new git worktree at the given path. Optionally checks out an existing branch or creates a new one with "newBranch: true".',
-  },
 })
 export class GitWorktreeAddTool extends BaseTool<GitWorktreeAddArgs, object, GitWorktreeAddResult> {
   constructor(

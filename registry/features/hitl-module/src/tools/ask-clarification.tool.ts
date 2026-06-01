@@ -46,12 +46,10 @@ export type AskClarificationResult = { workflowId: string } | string | Record<st
 
 @Tool({
   name: 'ask_clarification',
-  uiConfig: {
-    description:
-      'Ask the user a clarification question and wait for their answer. ' +
-      'Use this when you need more information from the user before you can proceed. ' +
-      'IMPORTANT: This must be the only tool call in your response.',
-  },
+  description:
+    'Ask the user a clarification question and wait for their answer. ' +
+    'Use this when you need more information from the user before you can proceed. ' +
+    'IMPORTANT: This must be the only tool call in your response.',
   schema: AskClarificationInputSchema,
 })
 export class AskClarificationTool extends BaseTool<AskClarificationInput, object, AskClarificationResult> {

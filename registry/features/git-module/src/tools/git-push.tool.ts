@@ -16,6 +16,7 @@ export type GitPushResult = {
 
 @Tool({
   name: 'git_push',
+  description: 'Pushes commits to a remote repository.',
   schema: z
     .object({
       remote: z.string().optional().describe('Remote name (defaults to origin)'),
@@ -24,9 +25,6 @@ export type GitPushResult = {
       token: z.string().optional().describe('Access token for authentication'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Pushes commits to a remote repository.',
-  },
 })
 export class GitPushTool extends BaseTool<GitPushArgs, object, GitPushResult> {
   constructor(

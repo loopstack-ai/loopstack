@@ -20,9 +20,7 @@ interface SandboxReadFileResult {
 
 @Tool({
   name: 'sandbox_read_file',
-  uiConfig: {
-    description: 'Read file contents from a sandbox container',
-  },
+  description: 'Read file contents from a sandbox container',
   schema: inputSchema,
 })
 export class SandboxReadFile extends BaseTool<SandboxReadFileArgs, object, SandboxReadFileResult> {

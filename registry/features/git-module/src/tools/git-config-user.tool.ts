@@ -11,15 +11,13 @@ export type GitConfigUserResult = { success: boolean };
 
 @Tool({
   name: 'git_config_user',
+  description: 'Configures git user.name and user.email for the workspace repository.',
   schema: z
     .object({
       name: z.string().describe('Git user name (user.name)'),
       email: z.string().describe('Git user email (user.email)'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Configures git user.name and user.email for the workspace repository.',
-  },
 })
 export class GitConfigUserTool extends BaseTool<GitConfigUserArgs, object, GitConfigUserResult> {
   constructor(

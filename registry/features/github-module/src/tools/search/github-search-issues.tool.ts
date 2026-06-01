@@ -35,10 +35,8 @@ export type GitHubSearchIssuesResult =
 
 @Tool({
   name: 'github_search_issues',
-  uiConfig: {
-    description:
-      'Searches for issues and pull requests across GitHub using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Searches for issues and pull requests across GitHub using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubSearchIssuesTool extends BaseTool<GitHubSearchIssuesArgs, object, GitHubSearchIssuesResult> {

@@ -5,9 +5,7 @@ export type GetWeatherResult = string;
 
 @Tool({
   name: 'get_weather',
-  uiConfig: {
-    description: 'Retrieve weather information.',
-  },
+  description: 'Retrieve weather information.',
   schema: z.object({
     location: z.string(),
   }),

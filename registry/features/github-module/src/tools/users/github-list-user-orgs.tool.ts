@@ -24,10 +24,8 @@ export type GitHubListUserOrgsResult = {
 
 @Tool({
   name: 'github_list_user_orgs',
-  uiConfig: {
-    description:
-      'Lists organizations for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Lists organizations for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubListUserOrgsTool extends BaseTool<GitHubListUserOrgsArgs, object, GitHubListUserOrgsResult> {

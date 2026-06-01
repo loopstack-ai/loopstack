@@ -1,6 +1,7 @@
 import type { AxiosInstance } from 'axios';
 import type {
   AvailableEnvironmentInterface,
+  ToolConfigInterface,
   WorkflowConfigInterface,
   WorkflowSourceInterface,
 } from '@loopstack/contracts/api';
@@ -19,6 +20,14 @@ export function createConfigApi(http: AxiosInstance) {
     getWorkflowSource: (params: { workflowName: string }): Promise<WorkflowSourceInterface> =>
       http
         .get<WorkflowSourceInterface>(`/api/v1/config/workflows/${encodeURIComponent(params.workflowName)}/source`)
+        .then((res) => res.data),
+
+    getToolConfigs: (): Promise<ToolConfigInterface[]> =>
+      http.get<ToolConfigInterface[]>('/api/v1/config/tools').then((res) => res.data),
+
+    getToolConfig: (params: { toolName: string }): Promise<ToolConfigInterface> =>
+      http
+        .get<ToolConfigInterface>(`/api/v1/config/tools/${encodeURIComponent(params.toolName)}`)
         .then((res) => res.data),
 
     getAvailableEnvironments: (): Promise<AvailableEnvironmentInterface[]> =>

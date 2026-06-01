@@ -21,8 +21,10 @@ interface ErrorRetryState {
  * Step 5: Hybrid (auto-retry + custom place) — always fails, auto-retries once, then error_hybrid.
  */
 @Workflow({
-  title: 'Error Retry',
-  uiConfig: __dirname + '/error-retry.ui.yaml',
+  title: 'Error Retry Example',
+  description:
+    'Demonstrates all five retry/error modes:\n1. Auto-retry with exponential backoff\n2. Manual retry via Retry button\n3. Custom error place with recovery transition\n4. Timeout with manual retry\n5. Hybrid (auto-retry + custom error place)',
+  widget: __dirname + '/error-retry.ui.yaml',
 })
 export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, ErrorRetryState> {
   constructor(

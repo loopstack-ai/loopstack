@@ -19,10 +19,6 @@ interface PromptState {
 @Workflow({
   title: 'Simple Prompt',
   description: 'Generate a haiku about a given subject using an LLM.',
-  uiConfig: {
-    title: 'Simple Prompt',
-    description: 'Generate a haiku about a given subject using an LLM.',
-  },
   schema: z.object({
     subject: z.string().default('coffee'),
   }),

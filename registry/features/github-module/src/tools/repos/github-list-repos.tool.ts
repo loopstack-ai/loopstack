@@ -33,10 +33,8 @@ export type GitHubListReposResult = {
 
 @Tool({
   name: 'github_list_repos',
-  uiConfig: {
-    description:
-      'Lists repositories for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Lists repositories for the authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubListReposTool extends BaseTool<GitHubListReposArgs, object, GitHubListReposResult> {

@@ -9,10 +9,8 @@ export type GitWorktreePruneResult = {
 
 @Tool({
   name: 'git_worktree_prune',
+  description: 'Prunes worktree administrative files for worktrees whose directories no longer exist.',
   schema: z.object({}).strict(),
-  uiConfig: {
-    description: 'Prunes worktree administrative files for worktrees whose directories no longer exist.',
-  },
 })
 export class GitWorktreePruneTool extends BaseTool<object, object, GitWorktreePruneResult> {
   constructor(

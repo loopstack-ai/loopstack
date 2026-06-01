@@ -18,9 +18,7 @@ type LlmDelegateToolCallsToolArgs = z.infer<typeof LlmDelegateToolCallsToolSchem
 
 @Tool({
   name: 'llm_delegate_tool_calls',
-  uiConfig: {
-    description: 'Delegates tool calls from an LLM response. Resolves tools via ToolRegistry.',
-  },
+  description: 'Delegates tool calls from an LLM response. Resolves tools via ToolRegistry.',
   schema: LlmDelegateToolCallsToolSchema,
 })
 export class LlmDelegateToolCallsTool extends BaseTool<LlmDelegateToolCallsToolArgs, object, LlmDelegateResult> {

@@ -27,10 +27,8 @@ export type GitHubGetAuthenticatedUserResult = {
 
 @Tool({
   name: 'github_get_authenticated_user',
-  uiConfig: {
-    description:
-      'Gets the profile of the currently authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Gets the profile of the currently authenticated GitHub user. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubGetAuthenticatedUserTool extends BaseTool<

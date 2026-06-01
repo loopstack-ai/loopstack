@@ -18,11 +18,9 @@ export type GitWorktreeListResult = {
 
 @Tool({
   name: 'git_worktree_list',
+  description:
+    'Lists all git worktrees attached to the repository. Each entry includes path, HEAD commit, branch, and flags (bare, detached, locked, prunable).',
   schema: z.object({}).strict(),
-  uiConfig: {
-    description:
-      'Lists all git worktrees attached to the repository. Each entry includes path, HEAD commit, branch, and flags (bare, detached, locked, prunable).',
-  },
 })
 export class GitWorktreeListTool extends BaseTool<object, object, GitWorktreeListResult> {
   constructor(

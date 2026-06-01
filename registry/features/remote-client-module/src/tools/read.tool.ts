@@ -16,6 +16,8 @@ export type ReadResult = {
 
 @Tool({
   name: 'read',
+  description:
+    'Reads a file from a remote instance. Returns file content. Supports offset and limit for reading specific line ranges.',
   schema: z
     .object({
       file_path: z.string().describe('The file path to read'),
@@ -23,10 +25,6 @@ export type ReadResult = {
       limit: z.number().optional().describe('Number of lines to read'),
     })
     .strict(),
-  uiConfig: {
-    description:
-      'Reads a file from a remote instance. Returns file content. Supports offset and limit for reading specific line ranges.',
-  },
 })
 export class ReadTool extends BaseTool<ReadArgs, object, ReadResult> {
   constructor(

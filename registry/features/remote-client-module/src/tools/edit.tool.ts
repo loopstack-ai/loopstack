@@ -18,6 +18,8 @@ export type EditResult = {
 
 @Tool({
   name: 'edit',
+  description:
+    'Performs exact string replacement in a file on a remote instance. Replaces old_string with new_string. Fails if old_string is not unique unless replace_all is true.',
   schema: z
     .object({
       file_path: z.string().describe('The file path to edit'),
@@ -26,10 +28,6 @@ export type EditResult = {
       replace_all: z.boolean().optional().describe('Replace all occurrences (default: false)'),
     })
     .strict(),
-  uiConfig: {
-    description:
-      'Performs exact string replacement in a file on a remote instance. Replaces old_string with new_string. Fails if old_string is not unique unless replace_all is true.',
-  },
 })
 export class EditTool extends BaseTool<EditArgs, object, EditResult> {
   constructor(

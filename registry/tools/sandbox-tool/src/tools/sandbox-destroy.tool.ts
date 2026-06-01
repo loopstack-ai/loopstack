@@ -22,9 +22,7 @@ interface SandboxDestroyResult {
 
 @Tool({
   name: 'sandbox_destroy',
-  uiConfig: {
-    description: 'Stop and destroy a sandbox container',
-  },
+  description: 'Stop and destroy a sandbox container',
   schema: inputSchema,
 })
 export class SandboxDestroy extends BaseTool<SandboxDestroyArgs, object, SandboxDestroyResult> {

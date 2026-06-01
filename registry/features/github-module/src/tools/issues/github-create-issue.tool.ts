@@ -30,10 +30,8 @@ export type GitHubCreateIssueResult =
 
 @Tool({
   name: 'github_create_issue',
-  uiConfig: {
-    description:
-      'Creates a new issue in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Creates a new issue in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubCreateIssueTool extends BaseTool<GitHubCreateIssueArgs, object, GitHubCreateIssueResult> {

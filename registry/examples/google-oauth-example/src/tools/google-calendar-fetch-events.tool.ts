@@ -32,10 +32,7 @@ interface GoogleCalendarListResponse {
 
 @Tool({
   name: 'google_calendar_fetch_events',
-  uiConfig: {
-    description:
-      'Fetches events from Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description: 'Fetches events from Google Calendar. Returns { error: "unauthorized" } if no valid token is available.',
   schema: GoogleCalendarFetchEventsSchema,
 })
 export class GoogleCalendarFetchEventsTool extends BaseTool<

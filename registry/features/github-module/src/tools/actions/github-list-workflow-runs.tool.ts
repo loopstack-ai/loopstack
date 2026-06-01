@@ -53,10 +53,8 @@ export type GitHubListWorkflowRunsResult = {
 
 @Tool({
   name: 'github_list_workflow_runs',
-  uiConfig: {
-    description:
-      'Lists workflow runs for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Lists workflow runs for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubListWorkflowRunsTool extends BaseTool<

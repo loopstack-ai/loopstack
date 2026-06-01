@@ -20,9 +20,7 @@ export interface BuildOAuthUrlResult {
 
 @Tool({
   name: 'build_oauth_url',
-  uiConfig: {
-    description: 'Builds an OAuth 2.0 authorization URL for the given provider with CSRF state parameter.',
-  },
+  description: 'Builds an OAuth 2.0 authorization URL for the given provider with CSRF state parameter.',
   schema: BuildOAuthUrlSchema,
 })
 export class BuildOAuthUrlTool extends BaseTool<BuildOAuthUrlArgs, object, BuildOAuthUrlResult> {

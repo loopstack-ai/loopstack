@@ -18,7 +18,8 @@ interface DynamicRoutingState {
 
 @Workflow({
   title: 'Dynamic Routing',
-  uiConfig: __dirname + '/dynamic-routing-example.ui.yaml',
+  description:
+    'This workflow demonstrates dynamic routing based on the value of a variable.\nIt uses guards and priority to determine the next transition based on conditions.',
   schema: z
     .object({
       value: z.number().default(150),

@@ -67,9 +67,10 @@ interface GitHubReposOverviewState {
 }
 
 @Workflow({
-  title: 'GitHub Repos Overview',
+  title: 'GitHub Repository Overview',
+  description:
+    'Comprehensive GitHub example that exercises every GitHub tool.\nFetches user info, repository details, issues, pull requests, branches,\ndirectory contents, workflow runs, and search results for a given repository.\nIf not authenticated, launches the OAuth sub-workflow and retries.',
   name: 'github_repos_overview',
-  uiConfig: __dirname + '/github-repos-overview.ui.yaml',
   schema: z
     .object({
       owner: z.string().default('octocat'),

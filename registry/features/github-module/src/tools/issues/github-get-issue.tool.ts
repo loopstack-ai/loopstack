@@ -36,10 +36,8 @@ export type GitHubGetIssueResult =
 
 @Tool({
   name: 'github_get_issue',
-  uiConfig: {
-    description:
-      'Gets detailed information about a specific GitHub issue. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Gets detailed information about a specific GitHub issue. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubGetIssueTool extends BaseTool<GitHubGetIssueArgs, object, GitHubGetIssueResult> {

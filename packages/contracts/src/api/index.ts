@@ -9,5 +9,6 @@ export * from './workflow.interface.js';
 
 // Re-export existing interfaces for convenience
 export type { DocumentItemInterface } from '../types/interfaces/document-item.interface.js';
+export type { ToolConfigInterface } from '../types/interfaces/tool-config.interface.js';
 export type { WorkflowConfigInterface } from '../types/interfaces/workflow-config.interface.js';
 export type { WorkflowInterface } from '../types/interfaces/workflow.interface.js';

@@ -12,13 +12,11 @@ export type SyncSecretsResult = { success: true; count: 0; message: string } | {
 
 @Tool({
   name: 'sync_secrets',
+  description:
+    'Syncs all workspace secrets to the remote environment as .env variables and restarts the app. ' +
+    'Call this before or during app restart to ensure secrets (API keys, config values) are available. ' +
+    'Returns the count of synced secrets.',
   schema: SyncSecretsInputSchema,
-  uiConfig: {
-    description:
-      'Syncs all workspace secrets to the remote environment as .env variables and restarts the app. ' +
-      'Call this before or during app restart to ensure secrets (API keys, config values) are available. ' +
-      'Returns the count of synced secrets.',
-  },
 })
 export class SyncSecretsTool extends BaseTool<SyncSecretsInput, object, SyncSecretsResult> {
   constructor(

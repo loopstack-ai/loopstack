@@ -17,6 +17,8 @@ export type GrepResult = {
 
 @Tool({
   name: 'grep',
+  description:
+    'Searches file contents by regex pattern on a remote instance. Returns matching lines with file paths and line numbers.',
   schema: z
     .object({
       pattern: z.string().describe('Regex pattern to search for in file contents'),
@@ -26,10 +28,6 @@ export type GrepResult = {
       case_insensitive: z.boolean().optional().describe('Case-insensitive search'),
     })
     .strict(),
-  uiConfig: {
-    description:
-      'Searches file contents by regex pattern on a remote instance. Returns matching lines with file paths and line numbers.',
-  },
 })
 export class GrepTool extends BaseTool<GrepArgs, object, GrepResult> {
   constructor(

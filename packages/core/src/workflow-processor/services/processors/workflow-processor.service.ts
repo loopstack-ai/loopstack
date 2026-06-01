@@ -373,6 +373,7 @@ export class WorkflowProcessorService implements Processor {
       await this.executionScope.run(scopeData, async () => {
         await this.documentPersistenceService.create(
           'ErrorDocument',
+          'error',
           ErrorDocument,
           { error: error.message },
           { id: `error_${Date.now()}` },

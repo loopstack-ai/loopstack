@@ -37,10 +37,8 @@ export type GitHubListPullRequestsResult = {
 
 @Tool({
   name: 'github_list_pull_requests',
-  uiConfig: {
-    description:
-      'Lists pull requests for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Lists pull requests for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubListPullRequestsTool extends BaseTool<

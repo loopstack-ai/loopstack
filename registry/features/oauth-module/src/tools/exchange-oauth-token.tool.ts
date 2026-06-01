@@ -24,10 +24,8 @@ export type ExchangeOAuthTokenResult = {
 
 @Tool({
   name: 'exchange_oauth_token',
-  uiConfig: {
-    description:
-      'Exchanges an OAuth 2.0 authorization code for access and refresh tokens, and stores them globally for the user.',
-  },
+  description:
+    'Exchanges an OAuth 2.0 authorization code for access and refresh tokens, and stores them globally for the user.',
   schema: ExchangeOAuthTokenSchema,
 })
 export class ExchangeOAuthTokenTool extends BaseTool<ExchangeOAuthTokenArgs, object, ExchangeOAuthTokenResult> {

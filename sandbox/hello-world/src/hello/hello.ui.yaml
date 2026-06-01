@@ -1,9 +1,0 @@
-title: Hello World
-description: A simple workflow that greets you by name.
-
-ui:
-  form:
-    properties:
-      name:
-        title: 'What is your name?'
-        default: 'World'

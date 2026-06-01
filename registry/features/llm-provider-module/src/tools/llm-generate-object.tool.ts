@@ -37,11 +37,9 @@ export const LlmGenerateObjectToolSchema = LlmGenerateObjectArgsSchema;
 
 @Tool({
   name: 'llm_generate_object',
-  uiConfig: {
-    description:
-      'Generates a structured object conforming to a JSON Schema using the configured LLM provider. ' +
-      'Configure provider, model, and system prompt via options.config.',
-  },
+  description:
+    'Generates a structured object conforming to a JSON Schema using the configured LLM provider. ' +
+    'Configure provider, model, and system prompt via options.config.',
   schema: LlmGenerateObjectArgsSchema,
   configSchema: LlmGenerateObjectConfigSchema,
 })

@@ -4,9 +4,7 @@ export type Step2ToolResult = string;
 
 @Tool({
   name: 'step2',
-  uiConfig: {
-    description: 'A tool that fails when shouldFail is true.',
-  },
+  description: 'A tool that fails when shouldFail is true.',
 })
 export class Step2Tool extends BaseTool<{ shouldFail: boolean }, object, Step2ToolResult> {
   protected async handle(args: { shouldFail: boolean }): Promise<ToolResult<Step2ToolResult>> {

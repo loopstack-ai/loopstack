@@ -17,14 +17,12 @@ export type GitDiffResult = {
 
 @Tool({
   name: 'git_diff',
+  description: 'Shows changed files in the workspace. Returns file paths and their change status.',
   schema: z
     .object({
       staged: z.boolean().optional().describe('Show staged changes instead of unstaged'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Shows changed files in the workspace. Returns file paths and their change status.',
-  },
 })
 export class GitDiffTool extends BaseTool<GitDiffArgs, object, GitDiffResult> {
   constructor(

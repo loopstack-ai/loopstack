@@ -9,10 +9,8 @@ export type GitBranchResult = {
 
 @Tool({
   name: 'git_branch',
+  description: 'Lists all local git branches and indicates the current branch.',
   schema: z.object({}).strict(),
-  uiConfig: {
-    description: 'Lists all local git branches and indicates the current branch.',
-  },
 })
 export class GitBranchTool extends BaseTool<object, object, GitBranchResult> {
   constructor(

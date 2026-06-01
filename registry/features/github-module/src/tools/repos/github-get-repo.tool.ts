@@ -38,10 +38,8 @@ export type GitHubGetRepoResult = {
 
 @Tool({
   name: 'github_get_repo',
-  uiConfig: {
-    description:
-      'Gets detailed information about a specific GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Gets detailed information about a specific GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubGetRepoTool extends BaseTool<GitHubGetRepoArgs, object, GitHubGetRepoResult> {

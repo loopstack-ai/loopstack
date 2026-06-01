@@ -23,9 +23,7 @@ export type GmailSendMessageResult =
 
 @Tool({
   name: 'gmail_send_message',
-  uiConfig: {
-    description: 'Sends a new email via Gmail. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description: 'Sends a new email via Gmail. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GmailSendMessageTool extends BaseTool<GmailSendMessageArgs, object, GmailSendMessageResult> {

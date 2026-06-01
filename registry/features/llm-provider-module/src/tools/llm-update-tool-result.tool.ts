@@ -20,9 +20,7 @@ type LlmUpdateToolResultToolArgs = z.infer<typeof LlmUpdateToolResultToolSchema>
 
 @Tool({
   name: 'llm_update_tool_result',
-  uiConfig: {
-    description: 'Handles async tool completion callbacks and updates the delegate result.',
-  },
+  description: 'Handles async tool completion callbacks and updates the delegate result.',
   schema: LlmUpdateToolResultToolSchema,
 })
 export class LlmUpdateToolResultTool extends BaseTool<LlmUpdateToolResultToolArgs, object, LlmDelegateResult> {

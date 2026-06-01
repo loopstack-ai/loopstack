@@ -15,9 +15,7 @@ export type MathSumToolResult = number;
 
 @Tool({
   name: 'math_sum',
-  uiConfig: {
-    description: 'Math tool calculating the sum of two arguments by using an injected service.',
-  },
+  description: 'Math tool calculating the sum of two arguments by using an injected service.',
   schema: MathSumSchema,
 })
 export class MathSumTool extends BaseTool<MathSumArgs, object, MathSumToolResult> {

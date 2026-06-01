@@ -1,6 +1,3 @@
-type: document
-ui:
-  widgets:
-    - widget: text-prompt
-      options:
-        transition: userAnswered
+widget: text-prompt
+options:
+  transition: userAnswered

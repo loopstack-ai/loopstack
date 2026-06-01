@@ -31,6 +31,7 @@ export class DocumentPersistenceService {
    */
   async create(
     className: string,
+    alias: string,
     documentClass: object,
     content: unknown,
     options?: DocumentSaveOptions,
@@ -55,7 +56,7 @@ export class DocumentPersistenceService {
 
     const entity = this.documentRepository.create({
       messageId,
-      alias: className,
+      alias,
       className,
       content: validatedContent,
       meta: Object.keys(mergedMeta).length > 0 ? mergedMeta : null,

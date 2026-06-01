@@ -22,9 +22,7 @@ interface SandboxInitResult {
 
 @Tool({
   name: 'sandbox_init',
-  uiConfig: {
-    description: 'Initialize a new sandbox container',
-  },
+  description: 'Initialize a new sandbox container',
   schema: inputSchema,
 })
 export class SandboxInit extends BaseTool<SandboxInitArgs, object, SandboxInitResult> {

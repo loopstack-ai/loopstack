@@ -1,6 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import type { BlockConfigType, DocumentConfigType, ToolConfigType, WorkflowType } from '@loopstack/contracts/types';
+import type {
+  BlockConfigType,
+  DocumentConfigType,
+  ToolConfigType,
+  UiWidgetType,
+  WorkflowType,
+} from '@loopstack/contracts/types';
+
+/** A widget reference: either a YAML file path or an inline widget object. */
+export type WidgetRef = string | UiWidgetType;
 
 export const BLOCK_CONFIG_METADATA_KEY = Symbol('blockConfig');
 export const BLOCK_TYPE_METADATA_KEY = Symbol('blockType');
@@ -18,20 +27,24 @@ export interface BlockOptions {
   title?: string;
   /** Human-readable description (shown in Studio UI). */
   description?: string;
-  /** Inline config object or path to a YAML file containing UI config */
-  uiConfig?: string | Partial<BlockConfigType>;
+  /** Widget definition(s): YAML file path(s) or inline widget object(s). */
+  widget?: WidgetRef | WidgetRef[];
   /** Zod schema for input/content validation */
   schema?: z.ZodType;
   /** Zod schema for config validation (provided via options.config) */
   configSchema?: z.ZodType;
+  /** Document-specific: inline config or YAML path for tags/meta/content. */
+  uiConfig?: string | Partial<BlockConfigType>;
 }
 
 /** Options for @Tool() decorator */
 export interface ToolOptions {
   /** Explicit name for this tool (used as identifier in LLM wire format, e.g. 'git_status'). Falls back to class name if omitted. */
   name?: string;
-  /** Inline config object or path to a YAML file containing UI config */
-  uiConfig?: string | Partial<ToolConfigType>;
+  /** Human-readable description (shown to LLM for tool-use). */
+  description?: string;
+  /** Widget definition(s) for custom tool call/result rendering in Studio. */
+  widget?: WidgetRef | WidgetRef[];
   /** Zod schema for input validation */
   schema?: z.ZodType;
   /** Zod schema for tool config validation (provided via options.config) */
@@ -46,8 +59,8 @@ export interface WorkflowOptions {
   title?: string;
   /** Human-readable description (shown in Studio UI). */
   description?: string;
-  /** Inline config object or path to a YAML file containing UI config */
-  uiConfig?: string | Partial<WorkflowType>;
+  /** Widget definition(s): YAML file path(s) or inline widget object(s). */
+  widget?: WidgetRef | WidgetRef[];
   /** Zod schema for input validation */
   schema?: z.ZodType;
   /** Zod schema for workflow config validation (provided via options.config) */
@@ -58,10 +71,18 @@ export interface WorkflowOptions {
 
 /** Options for @Document() decorator */
 export interface DocumentOptions {
-  /** Inline config object or path to a YAML file containing UI config */
-  uiConfig?: string | Partial<DocumentConfigType>;
+  /** Explicit snake_case name (e.g. 'ask_user'). Falls back to auto-derived from class name. */
+  name?: string;
+  /** Human-readable display title (shown in Studio UI). */
+  title?: string;
+  /** Human-readable description (shown in Studio UI). */
+  description?: string;
+  /** Widget definition(s): YAML file path(s) or inline widget object(s). */
+  widget?: WidgetRef | WidgetRef[];
   /** Zod schema for content validation */
   schema?: z.ZodType;
+  /** Document-specific config: tags, meta, content. */
+  uiConfig?: string | Partial<DocumentConfigType>;
 }
 
 export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {

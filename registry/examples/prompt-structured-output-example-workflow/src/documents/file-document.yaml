@@ -1,19 +1,16 @@
-type: document
-ui:
-  widgets:
-    - widget: form
-      options:
-        order:
-          - filename
-          - description
-          - code
-        properties:
-          filename:
-            title: File Name
-            readonly: true
-          description:
-            title: Description
-            readonly: true
-          code:
-            title: Code
-            widget: code-view
+widget: form
+options:
+  order:
+    - filename
+    - description
+    - code
+  properties:
+    filename:
+      title: File Name
+      readonly: true
+    description:
+      title: Description
+      readonly: true
+    code:
+      title: Code
+      widget: code-view

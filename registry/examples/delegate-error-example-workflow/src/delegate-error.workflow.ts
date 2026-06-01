@@ -40,8 +40,10 @@ interface DelegateErrorState {
  * and that the LLM agent loop handles them correctly.
  */
 @Workflow({
-  title: 'Delegate Error',
-  uiConfig: __dirname + '/delegate-error.ui.yaml',
+  title: 'Delegate Error Handling Example',
+  description:
+    'Demonstrates how tool errors (validation, runtime, and failed sub-workflows)\nare handled by DelegateToolCalls and fed back to the LLM for self-correction.\n\nThe workflow instructs the LLM to:\n1. Call strictSchema with wrong args (triggers Zod validation error)\n2. Observe the error and retry with correct args\n3. Call runtimeError with shouldFail: true (triggers runtime error)\n4. Observe the error and retry with shouldFail: false\n5. Call failingSubWorkflow (launches a sub-workflow that fails)\n6. Observe the sub-workflow error and summarize',
+  widget: __dirname + '/delegate-error.ui.yaml',
 })
 export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>, DelegateErrorState> {
   constructor(

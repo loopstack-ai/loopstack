@@ -22,10 +22,8 @@ export type GoogleDriveUploadFileResult =
 
 @Tool({
   name: 'google_drive_upload_file',
-  uiConfig: {
-    description:
-      'Uploads a new file to Google Drive using multipart upload. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Uploads a new file to Google Drive using multipart upload. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GoogleDriveUploadFileTool extends BaseTool<

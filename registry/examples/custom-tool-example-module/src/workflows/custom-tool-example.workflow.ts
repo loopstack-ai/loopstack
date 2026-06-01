@@ -11,7 +11,9 @@ interface CustomToolExampleState {
 
 @Workflow({
   title: 'Custom Tool',
-  uiConfig: __dirname + '/custom-tool-example.ui.yaml',
+  description:
+    'This workflow demonstrates the usage of custom tools, including both stateless and stateful tools.\nIt performs a simple addition operation using a custom MathSumTool and showcases the behavior of\nstateless and stateful counter tools. It also tests that tool state persists across checkpoints.',
+  widget: __dirname + '/custom-tool-example.ui.yaml',
   schema: z
     .object({
       a: z.number().default(1),

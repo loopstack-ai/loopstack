@@ -1,3 +1,1 @@
-ui:
-  widgets:
-    - widget: markdown
+widget: markdown

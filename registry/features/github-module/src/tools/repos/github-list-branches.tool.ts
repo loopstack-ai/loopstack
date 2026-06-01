@@ -25,10 +25,8 @@ export type GitHubListBranchesResult = {
 
 @Tool({
   name: 'github_list_branches',
-  uiConfig: {
-    description:
-      'Lists branches for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Lists branches for a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubListBranchesTool extends BaseTool<GitHubListBranchesArgs, object, GitHubListBranchesResult> {

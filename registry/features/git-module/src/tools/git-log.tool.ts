@@ -20,14 +20,12 @@ export type GitLogResult = {
 
 @Tool({
   name: 'git_log',
+  description: 'Shows the git commit log for the workspace repository.',
   schema: z
     .object({
       limit: z.number().optional().default(20).describe('Maximum number of log entries to return'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Shows the git commit log for the workspace repository.',
-  },
 })
 export class GitLogTool extends BaseTool<GitLogArgs, object, GitLogResult> {
   constructor(

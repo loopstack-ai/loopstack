@@ -53,7 +53,9 @@ interface AgentState {
 }
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/agent.ui.yaml',
+  title: 'Agent',
+  description: 'A generic LLM agent loop with tool calling, error handling, and cancel support.',
+  widget: import.meta.dirname + '/agent.ui.yaml',
   schema: AgentArgsSchema,
 })
 export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {

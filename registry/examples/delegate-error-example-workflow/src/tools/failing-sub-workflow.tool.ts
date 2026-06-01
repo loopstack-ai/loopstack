@@ -14,11 +14,9 @@ export type FailingSubWorkflowToolResult = { workflowId: string };
 
 @Tool({
   name: 'failing_sub_workflow',
-  uiConfig: {
-    description:
-      'Launch an async sub-workflow that always fails. ' +
-      'Used to test that failed sub-workflow errors propagate back to the parent.',
-  },
+  description:
+    'Launch an async sub-workflow that always fails. ' +
+    'Used to test that failed sub-workflow errors propagate back to the parent.',
   schema: z.object({}),
 })
 export class FailingSubWorkflowTool extends BaseTool<object, object, FailingSubWorkflowToolResult> {

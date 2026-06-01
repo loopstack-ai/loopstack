@@ -16,15 +16,13 @@ export type BashResult = {
 
 @Tool({
   name: 'bash',
+  description: 'Executes a shell command on a remote instance. Returns stdout, stderr, and exit code.',
   schema: z
     .object({
       command: z.string().describe('The shell command to execute'),
       timeout: z.number().optional().describe('Timeout in milliseconds'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Executes a shell command on a remote instance. Returns stdout, stderr, and exit code.',
-  },
 })
 export class BashTool extends BaseTool<BashArgs, object, BashResult> {
   constructor(

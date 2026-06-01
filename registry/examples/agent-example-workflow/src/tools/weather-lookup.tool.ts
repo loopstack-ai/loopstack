@@ -5,9 +5,7 @@ export type WeatherLookupResult = string;
 
 @Tool({
   name: 'weather_lookup',
-  uiConfig: {
-    description: 'Look up the current weather for a given city. Returns a simulated forecast.',
-  },
+  description: 'Look up the current weather for a given city. Returns a simulated forecast.',
   schema: z.object({
     city: z.string().describe('The city name to look up weather for.'),
   }),

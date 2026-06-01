@@ -20,13 +20,15 @@ import {
   buildWorkflowTransitions,
   getBlockArgsSchema,
   getBlockConfig,
+  getBlockName,
 } from '@loopstack/common';
 import type { AvailableEnvironmentInterface } from '@loopstack/contracts/api';
 import { JSONSchemaDefinition } from '@loopstack/contracts/schemas';
-import type { WorkflowType } from '@loopstack/contracts/types';
-import { StudioDiscoveryService, WorkflowRegistryService } from '@loopstack/core';
+import type { ToolConfigType, WorkflowType } from '@loopstack/contracts/types';
+import { StudioDiscoveryService, ToolRegistryService, WorkflowRegistryService } from '@loopstack/core';
 import type { StudioAppConfig } from '@loopstack/core';
 import { AvailableEnvironmentDto } from '../dtos/available-environment.dto.js';
+import { ToolConfigDto } from '../dtos/tool-config.dto.js';
 import { WorkflowConfigDto } from '../dtos/workflow-config.dto.js';
 import { WorkflowSourceDto } from '../dtos/workflow-source.dto.js';
 
@@ -40,6 +42,7 @@ export class ConfigController {
   constructor(
     private readonly studioDiscoveryService: StudioDiscoveryService,
     private readonly workflowRegistryService: WorkflowRegistryService,
+    private readonly toolRegistryService: ToolRegistryService,
     @Optional()
     @Inject(ENVIRONMENT_CONFIG)
     private readonly envConfig?: EnvironmentConfig,
@@ -86,6 +89,36 @@ export class ConfigController {
     );
   }
 
+  @Get('tools')
+  getToolConfigs(): ToolConfigDto[] {
+    return this.toolRegistryService.getAll().map((tool) => this.buildToolConfig(tool));
+  }
+
+  @Get('tools/:toolName')
+  getToolConfig(@Param('toolName') toolName: string): ToolConfigDto {
+    try {
+      const tool = this.toolRegistryService.get(toolName);
+      return this.buildToolConfig(tool);
+    } catch {
+      throw new BadRequestException(`Tool "${toolName}" not found.`);
+    }
+  }
+
+  private buildToolConfig(tool: object): ToolConfigDto {
+    const config = getBlockConfig<ToolConfigType>(tool);
+    const name = getBlockName(tool);
+
+    return plainToInstance(
+      ToolConfigDto,
+      {
+        name,
+        description: config?.description,
+        ui: config?.ui,
+      },
+      { excludeExtraneousValues: true },
+    );
+  }
+
   @Get('workflows/:workflowName')
   getWorkflowConfig(@Param('workflowName') workflowName: string): WorkflowConfigDto {
     const workflow = this.resolveWorkflow(workflowName);
@@ -102,8 +135,16 @@ export class ConfigController {
     let raw: string | null = null;
     let filePath: string | null = null;
 
-    if (metadata && typeof metadata.uiConfig === 'string') {
-      const yamlPath = metadata.uiConfig;
+    const widgetPath = metadata?.widget
+      ? typeof metadata.widget === 'string'
+        ? metadata.widget
+        : Array.isArray(metadata.widget)
+          ? (metadata.widget.find((w): w is string => typeof w === 'string') ?? null)
+          : null
+      : null;
+
+    if (widgetPath) {
+      const yamlPath = widgetPath;
       const jsPath = yamlPath.replace(/\.ya?ml$/, '.js');
       const mapPath = jsPath + '.map';
 

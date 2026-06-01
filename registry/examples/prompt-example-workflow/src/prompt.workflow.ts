@@ -11,8 +11,9 @@ interface PromptState {
 }
 
 @Workflow({
-  title: 'Prompt',
-  uiConfig: __dirname + '/prompt.ui.yaml',
+  title: 'Simple Prompt Example (Write a haiku)',
+  description:
+    'An example workflow that demonstrates how to use a prompt to generate a haiku about a given subject using an LLM.',
   schema: z.object({
     subject: z.string().default('coffee'),
   }),

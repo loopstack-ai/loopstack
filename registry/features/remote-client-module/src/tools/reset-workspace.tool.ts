@@ -9,9 +9,7 @@ export type ResetWorkspaceResult = {
 
 @Tool({
   name: 'reset_workspace',
-  uiConfig: {
-    description: 'Resets the workspace to its initial state, clearing all changes, temp files, database, and Redis.',
-  },
+  description: 'Resets the workspace to its initial state, clearing all changes, temp files, database, and Redis.',
 })
 export class ResetWorkspaceTool extends BaseTool<Record<string, never>, object, ResetWorkspaceResult> {
   constructor(

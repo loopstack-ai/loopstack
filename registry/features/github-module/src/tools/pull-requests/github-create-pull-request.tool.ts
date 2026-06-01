@@ -32,10 +32,8 @@ export type GitHubCreatePullRequestResult =
 
 @Tool({
   name: 'github_create_pull_request',
-  uiConfig: {
-    description:
-      'Creates a new pull request in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Creates a new pull request in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubCreatePullRequestTool extends BaseTool<

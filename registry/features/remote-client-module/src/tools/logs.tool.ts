@@ -15,6 +15,8 @@ export type LogsResult = {
 
 @Tool({
   name: 'logs',
+  description:
+    'Retrieves application logs from the remote instance. Returns stdout and/or stderr output from the running NestJS application.',
   schema: z
     .object({
       lines: z.number().optional().describe('Number of recent log lines to return (default 100, max 5000)'),
@@ -24,10 +26,6 @@ export type LogsResult = {
         .describe('Which logs to retrieve: "out" for stdout, "error" for stderr, "all" for both (default "all")'),
     })
     .strict(),
-  uiConfig: {
-    description:
-      'Retrieves application logs from the remote instance. Returns stdout and/or stderr output from the running NestJS application.',
-  },
 })
 export class LogsTool extends BaseTool<LogsArgs, object, LogsResult> {
   constructor(

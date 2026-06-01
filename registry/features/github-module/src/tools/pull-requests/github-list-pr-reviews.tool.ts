@@ -28,10 +28,8 @@ export type GitHubListPrReviewsResult =
 
 @Tool({
   name: 'github_list_pr_reviews',
-  uiConfig: {
-    description:
-      'Lists reviews on a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Lists reviews on a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubListPrReviewsTool extends BaseTool<GitHubListPrReviewsArgs, object, GitHubListPrReviewsResult> {

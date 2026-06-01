@@ -22,8 +22,8 @@ interface MeetingNotesState {
 }
 
 @Workflow({
-  title: 'Meeting Notes',
-  uiConfig: __dirname + '/meeting-notes.ui.yaml',
+  title: 'Human-in-the-loop Demo (Meeting Notes Optimizer)',
+  description: 'A demo workflow to demonstrate how to use AI to structure meeting notes.',
   schema: z.object({
     inputText: z
       .string()

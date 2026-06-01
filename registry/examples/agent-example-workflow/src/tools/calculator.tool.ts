@@ -5,9 +5,7 @@ export type CalculatorResult = string;
 
 @Tool({
   name: 'calculator',
-  uiConfig: {
-    description: 'Perform a basic arithmetic calculation. Supports add, subtract, multiply, divide.',
-  },
+  description: 'Perform a basic arithmetic calculation. Supports add, subtract, multiply, divide.',
   schema: z.object({
     operation: z.enum(['add', 'subtract', 'multiply', 'divide']).describe('The arithmetic operation.'),
     a: z.number().describe('First operand.'),

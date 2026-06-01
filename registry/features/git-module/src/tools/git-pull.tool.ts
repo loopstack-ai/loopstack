@@ -15,6 +15,7 @@ export type GitPullResult = {
 
 @Tool({
   name: 'git_pull',
+  description: 'Pulls changes from a remote repository.',
   schema: z
     .object({
       remote: z.string().optional().describe('Remote name (defaults to origin)'),
@@ -22,9 +23,6 @@ export type GitPullResult = {
       token: z.string().optional().describe('Access token for authentication'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Pulls changes from a remote repository.',
-  },
 })
 export class GitPullTool extends BaseTool<GitPullArgs, object, GitPullResult> {
   constructor(

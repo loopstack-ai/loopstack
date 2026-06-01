@@ -38,14 +38,12 @@ export type ExploreTaskResult = { workflowId: string } | string | Record<string,
 
 @Tool({
   name: 'explore_task',
-  uiConfig: {
-    description:
-      'Launch a sub-agent to explore and analyze the codebase. ' +
-      'The agent will use glob, grep, and read tools to search for files and code patterns, ' +
-      'then return a synthesized summary. Use this when you need to understand existing code ' +
-      'patterns, find specific implementations, or gather context before making changes. ' +
-      'IMPORTANT: This must be the only tool call in your response.',
-  },
+  description:
+    'Launch a sub-agent to explore and analyze the codebase. ' +
+    'The agent will use glob, grep, and read tools to search for files and code patterns, ' +
+    'then return a synthesized summary. Use this when you need to understand existing code ' +
+    'patterns, find specific implementations, or gather context before making changes. ' +
+    'IMPORTANT: This must be the only tool call in your response.',
   schema: ExploreTaskInputSchema,
 })
 export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskResult> {

@@ -32,10 +32,8 @@ export type GoogleCalendarFetchEventsResult = {
 
 @Tool({
   name: 'google_calendar_fetch_events',
-  uiConfig: {
-    description:
-      'Fetches events from a Google Calendar within a time range. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Fetches events from a Google Calendar within a time range. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GoogleCalendarFetchEventsTool extends BaseTool<

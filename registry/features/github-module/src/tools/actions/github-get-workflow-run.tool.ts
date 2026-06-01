@@ -36,10 +36,8 @@ export type GitHubGetWorkflowRunResult =
 
 @Tool({
   name: 'github_get_workflow_run',
-  uiConfig: {
-    description:
-      'Gets detailed information about a specific GitHub Actions workflow run. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Gets detailed information about a specific GitHub Actions workflow run. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubGetWorkflowRunTool extends BaseTool<GitHubGetWorkflowRunArgs, object, GitHubGetWorkflowRunResult> {

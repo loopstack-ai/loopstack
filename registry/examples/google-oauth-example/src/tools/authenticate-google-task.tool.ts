@@ -33,13 +33,11 @@ export type AuthenticateGoogleTaskResult = { workflowId: string; mode: string; [
 
 @Tool({
   name: 'authenticate_google',
-  uiConfig: {
-    description:
-      'Launches Google OAuth authentication. Shows the user a sign-in prompt to authorize access to Google services. ' +
-      'Use this when a Google tool returns an "unauthorized" error. ' +
-      'Pass the required OAuth scopes for the Google APIs you need access to. ' +
-      'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
-  },
+  description:
+    'Launches Google OAuth authentication. Shows the user a sign-in prompt to authorize access to Google services. ' +
+    'Use this when a Google tool returns an "unauthorized" error. ' +
+    'Pass the required OAuth scopes for the Google APIs you need access to. ' +
+    'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: AuthenticateGoogleTaskInputSchema,
 })
 export class AuthenticateGoogleTask extends BaseTool<

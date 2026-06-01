@@ -12,11 +12,9 @@ export type GitStatusResult = {
 
 @Tool({
   name: 'git_status',
+  description:
+    'Gets the git status of the workspace. Returns current branch, staged, modified, untracked, and deleted files.',
   schema: z.object({}).strict(),
-  uiConfig: {
-    description:
-      'Gets the git status of the workspace. Returns current branch, staged, modified, untracked, and deleted files.',
-  },
 })
 export class GitStatusTool extends BaseTool<object, object, GitStatusResult> {
   constructor(

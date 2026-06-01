@@ -24,10 +24,8 @@ export type GitHubTriggerWorkflowResult =
 
 @Tool({
   name: 'github_trigger_workflow',
-  uiConfig: {
-    description:
-      'Triggers a GitHub Actions workflow dispatch event. Returns 204 No Content on success. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Triggers a GitHub Actions workflow dispatch event. Returns 204 No Content on success. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubTriggerWorkflowTool extends BaseTool<

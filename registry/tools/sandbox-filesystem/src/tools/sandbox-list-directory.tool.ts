@@ -27,9 +27,7 @@ interface SandboxListDirectoryResult {
 
 @Tool({
   name: 'sandbox_list_directory',
-  uiConfig: {
-    description: 'List files and directories in a sandbox container',
-  },
+  description: 'List files and directories in a sandbox container',
   schema: inputSchema,
 })
 export class SandboxListDirectory extends BaseTool<SandboxListDirectoryArgs, object, SandboxListDirectoryResult> {

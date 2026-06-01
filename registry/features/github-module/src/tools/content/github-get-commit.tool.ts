@@ -43,10 +43,8 @@ export type GitHubGetCommitResult =
 
 @Tool({
   name: 'github_get_commit',
-  uiConfig: {
-    description:
-      'Gets detailed information about a specific commit in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Gets detailed information about a specific commit in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubGetCommitTool extends BaseTool<GitHubGetCommitArgs, object, GitHubGetCommitResult> {

@@ -55,8 +55,10 @@ interface GitHubAgentState {
 
 @Workflow({
   title: 'GitHub Agent',
+  description:
+    'An interactive chat agent with access to GitHub.\nAsk it to manage repositories, issues, pull requests, browse code, check CI/CD status,\nsearch across GitHub, and more. Handles OAuth authentication automatically when needed —\nthe agent detects unauthorized errors and launches authentication on its own.',
   name: 'github_agent',
-  uiConfig: __dirname + '/github-agent.ui.yaml',
+  widget: __dirname + '/github-agent.ui.yaml',
 })
 export class GitHubAgentWorkflow extends BaseWorkflow<Record<string, unknown>, GitHubAgentState> {
   constructor(

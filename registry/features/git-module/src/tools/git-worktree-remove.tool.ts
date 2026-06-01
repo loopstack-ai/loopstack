@@ -18,10 +18,8 @@ export type GitWorktreeRemoveResult = { success: boolean };
 
 @Tool({
   name: 'git_worktree_remove',
+  description: 'Removes a git worktree at the given path. Use force=true to remove dirty or locked worktrees.',
   schema: GitWorktreeRemoveSchema,
-  uiConfig: {
-    description: 'Removes a git worktree at the given path. Use force=true to remove dirty or locked worktrees.',
-  },
 })
 export class GitWorktreeRemoveTool extends BaseTool<GitWorktreeRemoveArgs, object, GitWorktreeRemoveResult> {
   constructor(

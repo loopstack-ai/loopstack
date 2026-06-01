@@ -4,9 +4,7 @@ export type Step1ToolResult = string;
 
 @Tool({
   name: 'step1',
-  uiConfig: {
-    description: 'A tool that always succeeds.',
-  },
+  description: 'A tool that always succeeds.',
 })
 export class Step1Tool extends BaseTool<object, object, Step1ToolResult> {
   protected async handle(): Promise<ToolResult<Step1ToolResult>> {

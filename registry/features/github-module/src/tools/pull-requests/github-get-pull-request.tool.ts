@@ -43,10 +43,8 @@ export type GitHubGetPullRequestResult =
 
 @Tool({
   name: 'github_get_pull_request',
-  uiConfig: {
-    description:
-      'Gets detailed information about a specific GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Gets detailed information about a specific GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubGetPullRequestTool extends BaseTool<GitHubGetPullRequestArgs, object, GitHubGetPullRequestResult> {

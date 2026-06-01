@@ -39,10 +39,8 @@ interface GmailMessagePart {
 
 @Tool({
   name: 'gmail_get_message',
-  uiConfig: {
-    description:
-      'Gets the full content of a single Gmail message, including body text and attachment metadata. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Gets the full content of a single Gmail message, including body text and attachment metadata. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GmailGetMessageTool extends BaseTool<GmailGetMessageArgs, object, GmailGetMessageResult> {

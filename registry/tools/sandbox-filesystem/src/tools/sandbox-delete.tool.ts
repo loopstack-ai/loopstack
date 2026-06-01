@@ -21,9 +21,7 @@ interface SandboxDeleteResult {
 
 @Tool({
   name: 'sandbox_delete',
-  uiConfig: {
-    description: 'Delete a file or directory in a sandbox container',
-  },
+  description: 'Delete a file or directory in a sandbox container',
   schema: inputSchema,
 })
 export class SandboxDelete extends BaseTool<SandboxDeleteArgs, object, SandboxDeleteResult> {

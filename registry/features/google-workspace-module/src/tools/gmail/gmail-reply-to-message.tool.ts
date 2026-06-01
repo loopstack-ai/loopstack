@@ -22,10 +22,8 @@ export type GmailReplyToMessageResult =
 
 @Tool({
   name: 'gmail_reply_to_message',
-  uiConfig: {
-    description:
-      'Replies to an existing Gmail message in-thread. Fetches the original message to set proper headers. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Replies to an existing Gmail message in-thread. Fetches the original message to set proper headers. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GmailReplyToMessageTool extends BaseTool<GmailReplyToMessageArgs, object, GmailReplyToMessageResult> {

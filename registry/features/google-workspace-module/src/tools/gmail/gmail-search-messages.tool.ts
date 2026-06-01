@@ -32,10 +32,8 @@ export type GmailSearchMessagesResult =
 
 @Tool({
   name: 'gmail_search_messages',
-  uiConfig: {
-    description:
-      'Searches Gmail messages using Gmail query syntax. Returns message summaries with headers and snippets. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Searches Gmail messages using Gmail query syntax. Returns message summaries with headers and snippets. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GmailSearchMessagesTool extends BaseTool<GmailSearchMessagesArgs, object, GmailSearchMessagesResult> {

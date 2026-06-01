@@ -20,9 +20,7 @@ interface SandboxExistsResult {
 
 @Tool({
   name: 'sandbox_exists',
-  uiConfig: {
-    description: 'Check if a file or directory exists in a sandbox container',
-  },
+  description: 'Check if a file or directory exists in a sandbox container',
   schema: inputSchema,
 })
 export class SandboxExists extends BaseTool<SandboxExistsArgs, object, SandboxExistsResult> {

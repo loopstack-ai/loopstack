@@ -4,9 +4,7 @@ export type CounterToolResult = number;
 
 @Tool({
   name: 'counter',
-  uiConfig: {
-    description: 'Counter tool.',
-  },
+  description: 'Counter tool.',
 })
 export class CounterTool extends BaseTool<object, object, CounterToolResult> {
   count: number = 0;

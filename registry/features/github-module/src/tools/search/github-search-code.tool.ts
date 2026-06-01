@@ -28,10 +28,8 @@ export type GitHubSearchCodeResult = {
 
 @Tool({
   name: 'github_search_code',
-  uiConfig: {
-    description:
-      'Searches for code across GitHub repositories using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Searches for code across GitHub repositories using the GitHub search syntax. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubSearchCodeTool extends BaseTool<GitHubSearchCodeArgs, object, GitHubSearchCodeResult> {

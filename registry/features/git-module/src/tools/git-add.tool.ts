@@ -10,14 +10,12 @@ export type GitAddResult = { success: boolean };
 
 @Tool({
   name: 'git_add',
+  description: 'Stages files for the next git commit.',
   schema: z
     .object({
       files: z.array(z.string()).describe('File paths to stage. Use ["."] to stage all changes.'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Stages files for the next git commit.',
-  },
 })
 export class GitAddTool extends BaseTool<GitAddArgs, object, GitAddResult> {
   constructor(

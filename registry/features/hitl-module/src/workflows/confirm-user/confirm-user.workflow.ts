@@ -10,7 +10,9 @@ interface ConfirmUserState {
 }
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/confirm-user.ui.yaml',
+  title: 'Confirm User',
+  description:
+    'Generic sub-workflow that presents markdown content to the user and waits for confirmation.\nUsed by async tool calls (e.g. askForApproval) to get explicit user confirmation.',
   schema: z.object({
     markdown: z.string(),
   }),

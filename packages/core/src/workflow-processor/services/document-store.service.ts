@@ -4,6 +4,8 @@ import {
   DocumentClass,
   DocumentEntity,
   DocumentSaveOptions,
+  deriveDocumentIdentifier,
+  getBlockName,
   getBlockTypeFromMetadata,
   getDocumentSchema,
 } from '@loopstack/common';
@@ -52,13 +54,15 @@ export class DocumentStore {
       const documentClass = classOrInstance;
       const data = dataOrOptions as T;
       const options = maybeOptions;
-      return this.documentPersistenceService.create(documentClass.name, documentClass, data, options);
+      const alias = resolveDocumentAlias(documentClass);
+      return this.documentPersistenceService.create(documentClass.name, alias, documentClass, data, options);
     } else {
       const instance = classOrInstance;
       const options = dataOrOptions as DocumentSaveOptions | undefined;
       const documentClass = instance.constructor;
       const data = Object.assign({}, instance) as Record<string, unknown>;
-      return this.documentPersistenceService.create(documentClass.name, documentClass, data, options);
+      const alias = resolveDocumentAlias(documentClass);
+      return this.documentPersistenceService.create(documentClass.name, alias, documentClass, data, options);
     }
   }
 
@@ -97,4 +101,18 @@ export class DocumentStore {
   static isDocumentClass(value: unknown): boolean {
     return typeof value === 'function' && getBlockTypeFromMetadata(value as object) === 'document';
   }
+}
+
+/**
+ * Resolves the snake_case alias for a document class.
+ * Uses explicit `name` from @Document({ name }) if set, otherwise derives from class name.
+ */
+function resolveDocumentAlias(documentClass: object): string {
+  const explicitName = getBlockName(documentClass);
+  const className = (documentClass as { name: string }).name;
+  // getBlockName returns className when no explicit name is set — in that case, derive snake_case
+  if (explicitName === className) {
+    return deriveDocumentIdentifier(className);
+  }
+  return explicitName;
 }

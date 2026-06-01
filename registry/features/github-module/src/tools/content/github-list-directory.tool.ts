@@ -29,10 +29,8 @@ export type GitHubListDirectoryResult = {
 
 @Tool({
   name: 'github_list_directory',
-  uiConfig: {
-    description:
-      'Lists the contents of a directory in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Lists the contents of a directory in a GitHub repository. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubListDirectoryTool extends BaseTool<GitHubListDirectoryArgs, object, GitHubListDirectoryResult> {

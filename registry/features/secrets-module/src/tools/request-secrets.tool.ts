@@ -17,13 +17,11 @@ export type RequestSecretsResult = { variables: { key: string }[] };
 
 @Tool({
   name: 'request_secrets',
-  uiConfig: {
-    description:
-      'Requests secret values from the user. Shows a secure input form where the user can enter API keys and other secrets. ' +
-      'Values are stored securely and never exposed to the workflow or LLM. ' +
-      'Returns only the key names after the user has provided the values. ' +
-      'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
-  },
+  description:
+    'Requests secret values from the user. Shows a secure input form where the user can enter API keys and other secrets. ' +
+    'Values are stored securely and never exposed to the workflow or LLM. ' +
+    'Returns only the key names after the user has provided the values. ' +
+    'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: RequestSecretsInputSchema,
 })
 export class RequestSecretsTool extends BaseTool<RequestSecretsInput, object, RequestSecretsResult> {

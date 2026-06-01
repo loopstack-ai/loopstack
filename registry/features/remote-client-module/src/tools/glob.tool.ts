@@ -14,16 +14,14 @@ export type GlobResult = {
 
 @Tool({
   name: 'glob',
+  description:
+    'Finds files by glob pattern on a remote instance. Supports patterns like "**/*.ts", "src/**/*.{js,ts}". Returns relative file paths.',
   schema: z
     .object({
       pattern: z.string().describe('Glob pattern to match files (e.g. "**/*.ts")'),
       path: z.string().optional().describe('Directory to search in, relative to workspace root'),
     })
     .strict(),
-  uiConfig: {
-    description:
-      'Finds files by glob pattern on a remote instance. Supports patterns like "**/*.ts", "src/**/*.{js,ts}". Returns relative file paths.',
-  },
 })
 export class GlobTool extends BaseTool<GlobArgs, object, GlobResult> {
   constructor(

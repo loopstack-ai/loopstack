@@ -22,8 +22,9 @@ interface PromptStructuredOutputState {
 }
 
 @Workflow({
-  title: 'Structured Output',
-  uiConfig: __dirname + '/prompt-structured-output.ui.yaml',
+  title: 'Structured Output Example (Hello World Script)',
+  description:
+    'An example workflow that demonstrates how to generate a structured output in Loopstack on the example of creating a "Hello, World!" script in a specified programming language.',
   schema: z.object({
     language: z.enum(['python', 'javascript', 'java', 'cpp', 'ruby', 'go', 'php']).default('python'),
   }),

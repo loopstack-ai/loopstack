@@ -30,7 +30,7 @@ interface McpLinearState {}
 
 @Workflow({
   title: 'MCP Linear Example',
-  description: 'Chat with an agent connected to Linear\'s hosted MCP server.',
+  description: "Chat with an agent connected to Linear's hosted MCP server.",
   schema: McpLinearExampleArgsSchema,
 })
 export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs, McpLinearState> {

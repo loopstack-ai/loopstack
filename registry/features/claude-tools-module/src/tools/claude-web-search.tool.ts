@@ -29,12 +29,10 @@ type ClaudeWebSearchConfig = z.infer<typeof ClaudeWebSearchConfigSchema>;
 
 @Tool({
   name: 'claude_web_search',
-  uiConfig: {
-    description:
-      'Search the web using the Anthropic Claude API built-in web_search server tool. ' +
-      'Returns a list of search hits (title + URL) and any text commentary from the model. ' +
-      "Use this to retrieve current information beyond the model's knowledge cutoff.",
-  },
+  description:
+    'Search the web using the Anthropic Claude API built-in web_search server tool. ' +
+    'Returns a list of search hits (title + URL) and any text commentary from the model. ' +
+    "Use this to retrieve current information beyond the model's knowledge cutoff.",
   schema: ClaudeWebSearchArgsSchema,
   configSchema: ClaudeWebSearchConfigSchema,
 })

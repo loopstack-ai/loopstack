@@ -28,8 +28,10 @@ interface SecretsAgentState {
 }
 
 @Workflow({
-  title: 'Secrets Agent',
-  uiConfig: __dirname + '/secrets-agent-example.ui.yaml',
+  title: 'Secrets Agent Example',
+  description:
+    'An agent workflow where the LLM autonomously manages secrets by calling\ngetSecretKeys and requestSecrets tools. The user can send follow-up messages.',
+  widget: __dirname + '/secrets-agent-example.ui.yaml',
 })
 export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unknown>, SecretsAgentState> {
   constructor(

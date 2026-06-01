@@ -15,15 +15,13 @@ export type WriteResult = {
 
 @Tool({
   name: 'write',
+  description: 'Writes a file to a remote instance. Creates parent directories if needed. Overwrites existing files.',
   schema: z
     .object({
       file_path: z.string().describe('The file path to write'),
       content: z.string().describe('The content to write to the file'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Writes a file to a remote instance. Creates parent directories if needed. Overwrites existing files.',
-  },
 })
 export class WriteTool extends BaseTool<WriteArgs, object, WriteResult> {
   constructor(

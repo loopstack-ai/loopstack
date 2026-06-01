@@ -5,11 +5,9 @@ export type RuntimeErrorToolResult = string;
 
 @Tool({
   name: 'runtime_error',
-  uiConfig: {
-    description:
-      'Perform an action that may fail at runtime. ' +
-      'Pass shouldFail: true to simulate a runtime error, or false to succeed.',
-  },
+  description:
+    'Perform an action that may fail at runtime. ' +
+    'Pass shouldFail: true to simulate a runtime error, or false to succeed.',
   schema: z.object({
     shouldFail: z.boolean().describe('Whether the tool should simulate a runtime failure.'),
   }),

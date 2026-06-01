@@ -31,13 +31,11 @@ export type AuthenticateGitHubTaskResult = { workflowId: string; mode: string; [
 
 @Tool({
   name: 'authenticate_github',
-  uiConfig: {
-    description:
-      'Launches GitHub OAuth authentication. Shows the user a sign-in prompt to authorize access to GitHub. ' +
-      'Use this when a GitHub tool returns an "unauthorized" error. ' +
-      'Pass the required OAuth scopes for the GitHub APIs you need access to. ' +
-      'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
-  },
+  description:
+    'Launches GitHub OAuth authentication. Shows the user a sign-in prompt to authorize access to GitHub. ' +
+    'Use this when a GitHub tool returns an "unauthorized" error. ' +
+    'Pass the required OAuth scopes for the GitHub APIs you need access to. ' +
+    'IMPORTANT: When using this tool, it must be the ONLY tool call in your response. Do not combine it with other tool calls.',
   schema: AuthenticateGitHubTaskInputSchema,
 })
 export class AuthenticateGitHubTask extends BaseTool<

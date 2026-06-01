@@ -11,12 +11,10 @@ type ClaudeWebSearchServerToolConfig = z.infer<typeof ClaudeWebSearchServerToolC
 
 @Tool({
   name: 'claude_web_search_server',
-  uiConfig: {
-    description:
-      "Search the web using Claude's built-in server-side web search tool. " +
-      'Provides real-time information retrieval during agent conversations. ' +
-      'Configure via options.config ({ maxUses, allowedDomains, blockedDomains }).',
-  },
+  description:
+    "Search the web using Claude's built-in server-side web search tool. " +
+    'Provides real-time information retrieval during agent conversations. ' +
+    'Configure via options.config ({ maxUses, allowedDomains, blockedDomains }).',
   configSchema: ClaudeWebSearchServerToolConfigSchema,
 })
 export class ClaudeWebSearchServerTool extends ServerTool<ClaudeWebSearchServerToolConfig> {

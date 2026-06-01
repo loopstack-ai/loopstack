@@ -39,7 +39,9 @@ interface ConnectGitHubState {
 }
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/connect-github.ui.yaml',
+  title: 'Connect to GitHub',
+  description:
+    'Connects your workspace to a GitHub repository.\nAuthenticates with GitHub, lets you create or link a repo, and configures git push access.',
   schema: z.object({}).strict(),
 })
 export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, ConnectGitHubState> {

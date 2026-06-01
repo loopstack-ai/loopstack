@@ -27,10 +27,8 @@ export type GitHubCreateIssueCommentResult =
 
 @Tool({
   name: 'github_create_issue_comment',
-  uiConfig: {
-    description:
-      'Creates a comment on a GitHub issue or pull request. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Creates a comment on a GitHub issue or pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubCreateIssueCommentTool extends BaseTool<

@@ -23,7 +23,9 @@ const AskUserAnswerSchema = z.object({
 interface AskUserState extends AskUserArgs {}
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/ask-user.ui.yaml',
+  title: 'Ask User',
+  description:
+    'Generic sub-workflow that presents a question to the user and waits for their answer.\nUsed by async tool calls (e.g. askClarification) to interrupt an agent loop for user input.\nSupports three modes: text (default), options (pick from a list), and confirm (yes/no).',
   schema: AskUserArgsSchema,
 })
 export class AskUserWorkflow extends BaseWorkflow<AskUserArgs, AskUserState> {

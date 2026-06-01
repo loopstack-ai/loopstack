@@ -11,10 +11,8 @@ export type McpListToolsArgs = z.infer<typeof McpListToolsArgsSchema>;
 
 @Tool({
   name: 'mcp_list_tools',
-  uiConfig: {
-    description:
-      'Lists tool definitions exposed by a remote MCP server (Streamable HTTP or legacy SSE). Requires `allowedHosts` (and optional auth headers) via tool config.',
-  },
+  description:
+    'Lists tool definitions exposed by a remote MCP server (Streamable HTTP or legacy SSE). Requires `allowedHosts` (and optional auth headers) via tool config.',
   schema: McpListToolsArgsSchema,
   configSchema: McpToolConfigSchema,
 })

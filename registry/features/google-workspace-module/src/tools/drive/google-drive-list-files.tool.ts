@@ -34,10 +34,8 @@ export type GoogleDriveListFilesResult =
 
 @Tool({
   name: 'google_drive_list_files',
-  uiConfig: {
-    description:
-      'Lists and searches files in Google Drive. Supports Drive query syntax and folder browsing. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Lists and searches files in Google Drive. Supports Drive query syntax and folder browsing. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs, object, GoogleDriveListFilesResult> {

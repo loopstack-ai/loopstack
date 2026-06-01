@@ -28,9 +28,7 @@ export type GitHubMergePullRequestResult =
 
 @Tool({
   name: 'github_merge_pull_request',
-  uiConfig: {
-    description: 'Merges a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description: 'Merges a GitHub pull request. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GitHubMergePullRequestTool extends BaseTool<

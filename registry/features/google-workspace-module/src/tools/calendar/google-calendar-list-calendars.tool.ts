@@ -26,10 +26,8 @@ export type GoogleCalendarListCalendarsResult =
 
 @Tool({
   name: 'google_calendar_list_calendars',
-  uiConfig: {
-    description:
-      'Lists all calendars the authenticated user has access to. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Lists all calendars the authenticated user has access to. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GoogleCalendarListCalendarsTool extends BaseTool<

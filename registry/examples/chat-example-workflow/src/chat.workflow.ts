@@ -7,8 +7,10 @@ import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider
 interface ChatState {}
 
 @Workflow({
-  title: 'Chat',
-  uiConfig: __dirname + '/chat.ui.yaml',
+  title: 'LLM Chat Example (Assistant Bob)',
+  description:
+    'An example workflow that demonstrates how to create a simple chat interface. Messages are processed by an LLM to generate responses.',
+  widget: __dirname + '/chat.ui.yaml',
 })
 export class ChatWorkflow extends BaseWorkflow<Record<string, unknown>, ChatState> {
   constructor(

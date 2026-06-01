@@ -14,10 +14,8 @@ export type McpCallToolArgs = z.infer<typeof McpCallToolArgsSchema>;
 
 @Tool({
   name: 'mcp_call',
-  uiConfig: {
-    description:
-      'Calls a tool on a remote MCP server over HTTPS (Streamable HTTP or legacy SSE). Requires `allowedHosts` and optional `headerEnv`/`hostHeaderEnv` via tool config.',
-  },
+  description:
+    'Calls a tool on a remote MCP server over HTTPS (Streamable HTTP or legacy SSE). Requires `allowedHosts` and optional `headerEnv`/`hostHeaderEnv` via tool config.',
   schema: McpCallToolArgsSchema,
   configSchema: McpToolConfigSchema,
 })

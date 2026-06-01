@@ -14,15 +14,13 @@ export type GitFetchResult = {
 
 @Tool({
   name: 'git_fetch',
+  description: 'Fetches refs and objects from a remote repository without merging.',
   schema: z
     .object({
       remote: z.string().optional().describe('Remote name (defaults to origin)'),
       token: z.string().optional().describe('Access token for authentication'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Fetches refs and objects from a remote repository without merging.',
-  },
 })
 export class GitFetchTool extends BaseTool<GitFetchArgs, object, GitFetchResult> {
   constructor(

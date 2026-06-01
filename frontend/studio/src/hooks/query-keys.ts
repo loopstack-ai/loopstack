@@ -53,6 +53,14 @@ export function getChildWorkflowsCacheKey(envKey: string, parentId: string) {
   return ['childWorkflows', envKey, parentId];
 }
 
+export function getToolConfigsCacheKey(envKey: string) {
+  return ['toolConfigs', envKey];
+}
+
+export function getToolConfigCacheKey(envKey: string, toolName: string) {
+  return ['toolConfig', envKey, toolName];
+}
+
 export function getWorkflowConfigCacheKey(envKey: string, alias: string) {
   return ['workflowConfig', envKey, alias];
 }

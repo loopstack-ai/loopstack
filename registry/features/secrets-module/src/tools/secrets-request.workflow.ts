@@ -14,7 +14,9 @@ interface SecretsRequestState {
 }
 
 @Workflow({
-  uiConfig: import.meta.dirname + '/secrets-request.ui.yaml',
+  title: 'Secrets Request',
+  description:
+    'Sub-workflow that presents a secrets request form to the user\nand waits for submission. Completes when the user submits the form.',
   schema: z.object({
     variables: z.array(
       z.object({

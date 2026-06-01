@@ -30,10 +30,8 @@ export type GoogleDriveGetFileMetadataResult =
 
 @Tool({
   name: 'google_drive_get_file_metadata',
-  uiConfig: {
-    description:
-      'Gets detailed metadata for a single Google Drive file. Returns { error: "unauthorized" } if no valid token is available.',
-  },
+  description:
+    'Gets detailed metadata for a single Google Drive file. Returns { error: "unauthorized" } if no valid token is available.',
   schema: inputSchema,
 })
 export class GoogleDriveGetFileMetadataTool extends BaseTool<

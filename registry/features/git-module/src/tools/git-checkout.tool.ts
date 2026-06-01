@@ -11,15 +11,13 @@ export type GitCheckoutResult = { branch: string };
 
 @Tool({
   name: 'git_checkout',
+  description: 'Switches to a different git branch, optionally creating it.',
   schema: z
     .object({
       branch: z.string().describe('Branch name to switch to'),
       create: z.boolean().optional().describe('Create the branch if it does not exist'),
     })
     .strict(),
-  uiConfig: {
-    description: 'Switches to a different git branch, optionally creating it.',
-  },
 })
 export class GitCheckoutTool extends BaseTool<GitCheckoutArgs, object, GitCheckoutResult> {
   constructor(
