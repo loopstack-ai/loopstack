@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, TEMPLATE_RENDERER, Workflow } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
 import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
@@ -27,8 +27,9 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptStat
     super();
   }
 
-  @Initial({ to: 'prompt_executed' })
-  async prompt(ctx: WorkflowContext, args: { subject: string }, state: PromptState): Promise<PromptState> {
+  @Transition({ to: 'prompt_executed' })
+  async prompt(state: PromptState, ctx: WorkflowContext): Promise<PromptState> {
+    const args = ctx.input.args as { subject: string };
     const result = await this.llmGenerateText.call(
       {
         prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),
@@ -38,8 +39,8 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptStat
     return { llmResult: result.data, llmMeta: result.metadata as LlmResultMeta | undefined };
   }
 
-  @Final({ from: 'prompt_executed' })
-  async respond(ctx: WorkflowContext, state: PromptState): Promise<unknown> {
+  @Transition({ from: 'prompt_executed', to: 'end' })
+  async respond(state: PromptState): Promise<unknown> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });

@@ -1,15 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  DOCUMENT_STORE,
-  Guard,
-  Initial,
-  TEMPLATE_RENDERER,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, Guard, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
+import type { DocumentStore, TemplateRenderFn } from '@loopstack/common';
 import {
   GmailGetMessageTool,
   GmailReplyToMessageTool,
@@ -73,12 +65,8 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow<Record<string, un
     super();
   }
 
-  @Initial({ to: 'waiting_for_user' })
-  async setup(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: GoogleWorkspaceAgentState,
-  ): Promise<GoogleWorkspaceAgentState> {
+  @Transition({ to: 'waiting_for_user' })
+  async setup(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
     await this.documentStore.save(
       LlmMessageDocument,
       {
@@ -91,11 +79,7 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow<Record<string, un
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(
-    ctx: WorkflowContext,
-    state: GoogleWorkspaceAgentState,
-    payload: string,
-  ): Promise<GoogleWorkspaceAgentState> {
+  async userMessage(state: GoogleWorkspaceAgentState, payload: string): Promise<GoogleWorkspaceAgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: payload,
@@ -104,7 +88,7 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow<Record<string, un
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(ctx: WorkflowContext, state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+  async llmTurn(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -136,7 +120,7 @@ then retry. Be concise and format results using markdown.`,
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(ctx: WorkflowContext, state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+  async executeToolCalls(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
@@ -156,7 +140,6 @@ then retry. Be concise and format results using markdown.`,
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
   async toolResultReceived(
-    ctx: WorkflowContext,
     state: GoogleWorkspaceAgentState,
     payload: Record<string, unknown>,
   ): Promise<GoogleWorkspaceAgentState> {
@@ -172,10 +155,7 @@ then retry. Be concise and format results using markdown.`,
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async allToolsCompleteTransition(
-    ctx: WorkflowContext,
-    state: GoogleWorkspaceAgentState,
-  ): Promise<GoogleWorkspaceAgentState> {
+  async allToolsCompleteTransition(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: state.delegateResult!.toolResults.map((tr) => ({
@@ -193,7 +173,7 @@ then retry. Be concise and format results using markdown.`,
   }
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  async respond(ctx: WorkflowContext, state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
+  async respond(state: GoogleWorkspaceAgentState): Promise<GoogleWorkspaceAgentState> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });

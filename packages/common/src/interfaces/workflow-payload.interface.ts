@@ -5,6 +5,8 @@ export interface WorkflowPayload<TArgs = unknown> {
   workflowId?: string;
   args?: TArgs;
   transition?: TransitionPayload;
+  /** Optional labels for categorizing/filtering workflow runs (e.g. ['session:abc-123']) */
+  labels?: string[];
 }
 
 export interface TransitionPayload {

@@ -4,9 +4,7 @@ import {
   BaseWorkflow,
   CallbackSchema,
   DOCUMENT_STORE,
-  Final,
   Guard,
-  Initial,
   LinkDocument,
   MarkdownDocument,
   TEMPLATE_RENDERER,
@@ -47,12 +45,9 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
 
   // --- Fetch events from Google Calendar ---
 
-  @Initial({ to: 'calendar_fetched' })
-  async fetchEvents(
-    ctx: WorkflowContext,
-    args: { calendarId: string },
-    state: CalendarSummaryState,
-  ): Promise<CalendarSummaryState> {
+  @Transition({ to: 'calendar_fetched' })
+  async fetchEvents(state: CalendarSummaryState, ctx: WorkflowContext): Promise<CalendarSummaryState> {
+    const args = ctx.input.args as { calendarId: string };
     const result = await this.googleCalendarFetchEvents.call({
       calendarId: args.calendarId,
       timeMin: this.now(),
@@ -68,7 +63,7 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
   // If unauthorized -> launch OAuth as sub-workflow
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async authRequired(ctx: WorkflowContext, state: CalendarSummaryState): Promise<CalendarSummaryState> {
+  async authRequired(state: CalendarSummaryState): Promise<CalendarSummaryState> {
     const result = await this.orchestrator.queue(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
       { workflowName: OAuthWorkflow.name, callback: { transition: 'authCompleted' } },
@@ -98,11 +93,7 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
     wait: true,
     schema: CallbackSchema,
   })
-  async authCompleted(
-    ctx: WorkflowContext,
-    state: CalendarSummaryState,
-    payload: { workflowId: string },
-  ): Promise<CalendarSummaryState> {
+  async authCompleted(state: CalendarSummaryState, payload: { workflowId: string }): Promise<CalendarSummaryState> {
     await this.documentStore.save(
       LinkDocument,
       {
@@ -118,8 +109,8 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
   }
 
   // Success -> display summary
-  @Final({ from: 'calendar_fetched' })
-  async displayResults(ctx: WorkflowContext, state: CalendarSummaryState): Promise<unknown> {
+  @Transition({ from: 'calendar_fetched', to: 'end' })
+  async displayResults(state: CalendarSummaryState): Promise<unknown> {
     await this.documentStore.save(MarkdownDocument, {
       markdown: this.render(__dirname + '/templates/calendarSummary.md', { events: state.events }),
     });

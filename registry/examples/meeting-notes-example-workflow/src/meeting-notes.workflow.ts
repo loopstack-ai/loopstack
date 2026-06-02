@@ -1,15 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
-import {
-  BaseWorkflow,
-  DOCUMENT_STORE,
-  Final,
-  Initial,
-  TEMPLATE_RENDERER,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
@@ -41,12 +33,9 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, Me
     super();
   }
 
-  @Initial({ to: 'waiting_for_response' })
-  async createForm(
-    ctx: WorkflowContext,
-    args: { inputText: string },
-    state: MeetingNotesState,
-  ): Promise<MeetingNotesState> {
+  @Transition({ to: 'waiting_for_response' })
+  async createForm(state: MeetingNotesState, ctx: WorkflowContext): Promise<MeetingNotesState> {
+    const args = ctx.input.args as { inputText: string };
     await this.documentStore.save(
       MeetingNotesDocument,
       { text: `Unstructured Notes:\n\n${args.inputText}` },
@@ -57,7 +46,6 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, Me
 
   @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
   async userResponse(
-    ctx: WorkflowContext,
     state: MeetingNotesState,
     payload: z.infer<typeof MeetingNotesDocumentSchema>,
   ): Promise<MeetingNotesState> {
@@ -66,7 +54,7 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, Me
   }
 
   @Transition({ from: 'response_received', to: 'notes_optimized' })
-  async optimizeNotes(ctx: WorkflowContext, state: MeetingNotesState): Promise<MeetingNotesState> {
+  async optimizeNotes(state: MeetingNotesState): Promise<MeetingNotesState> {
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: toJSONSchema(OptimizedMeetingNotesDocumentSchema) as Record<string, unknown>,
@@ -89,9 +77,8 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, Me
     return state;
   }
 
-  @Final({ from: 'notes_optimized', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
+  @Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
   async confirm(
-    ctx: WorkflowContext,
     state: MeetingNotesState,
     payload: z.infer<typeof OptimizedMeetingNotesDocumentSchema>,
   ): Promise<unknown> {

@@ -5,17 +5,16 @@ import {
   BaseWorkflow,
   CallbackSchema,
   DOCUMENT_STORE,
-  Final,
-  Initial,
   LinkDocument,
   MessageDocument,
   QueueResult,
   TEMPLATE_RENDERER,
+  Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, TemplateRenderFn } from '@loopstack/common';
 
 const AgentCallbackSchema = CallbackSchema.extend({
   data: z.object({ response: z.string() }),
@@ -36,12 +35,8 @@ export class AgentExampleWorkflow extends BaseWorkflow {
     super();
   }
 
-  @Initial({ to: 'running' })
-  async start(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
+  @Transition({ to: 'running' })
+  async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
       {
         system: this.render(__dirname + '/templates/system.md'),
@@ -59,12 +54,13 @@ export class AgentExampleWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Final({
+  @Transition({
     from: 'running',
+    to: 'end',
     wait: true,
     schema: AgentCallbackSchema,
   })
-  async agentComplete(ctx: WorkflowContext, state: Record<string, unknown>, payload: AgentCallback): Promise<unknown> {
+  async agentComplete(state: Record<string, unknown>, payload: AgentCallback): Promise<unknown> {
     await this.documentStore.save(
       LinkDocument,
       { label: 'Agent complete', status: 'success', workflowId: payload.workflowId },

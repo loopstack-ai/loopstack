@@ -5,19 +5,14 @@ import {
   BaseWorkflow,
   CallbackSchema,
   DOCUMENT_STORE,
-  Final,
-  Initial,
   LinkDocument,
   MessageDocument,
   QueueResult,
+  Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
 } from '@loopstack/common';
-import type {
-  DocumentStore,
-  WorkflowContext,
-  WorkflowOrchestrator,
-} from '@loopstack/common';
+import type { DocumentStore, WorkflowOrchestrator } from '@loopstack/common';
 
 const AgentCallbackSchema = CallbackSchema.extend({
   data: z.object({ response: z.string() }),
@@ -38,10 +33,8 @@ export class AgentTestWorkflow extends BaseWorkflow<
     super();
   }
 
-  @Initial({ to: 'running' })
+  @Transition({ to: 'running' })
   async start(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
     state: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
@@ -70,9 +63,13 @@ export class AgentTestWorkflow extends BaseWorkflow<
     return state;
   }
 
-  @Final({ from: 'running', wait: true, schema: AgentCallbackSchema })
+  @Transition({
+    from: 'running',
+    to: 'end',
+    wait: true,
+    schema: AgentCallbackSchema,
+  })
   async agentComplete(
-    ctx: WorkflowContext,
     state: Record<string, unknown>,
     payload: AgentCallback,
   ): Promise<unknown> {

@@ -4,14 +4,12 @@ import {
   BaseWorkflow,
   DOCUMENT_STORE,
   DocumentEntity,
-  Final,
   Guard,
-  Initial,
   TEMPLATE_RENDERER,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, TemplateRenderFn } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -47,12 +45,8 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unk
     super();
   }
 
-  @Initial({ to: 'ready' })
-  async setup(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: SecretsAgentState,
-  ): Promise<SecretsAgentState> {
+  @Transition({ to: 'ready' })
+  async setup(state: SecretsAgentState): Promise<SecretsAgentState> {
     await this.documentStore.save(
       LlmMessageDocument,
       {
@@ -65,7 +59,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unk
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(ctx: WorkflowContext, state: SecretsAgentState): Promise<SecretsAgentState> {
+  async llmTurn(state: SecretsAgentState): Promise<SecretsAgentState> {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -82,7 +76,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unk
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(ctx: WorkflowContext, state: SecretsAgentState): Promise<SecretsAgentState> {
+  async executeToolCalls(state: SecretsAgentState): Promise<SecretsAgentState> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
@@ -101,11 +95,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unk
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(
-    ctx: WorkflowContext,
-    state: SecretsAgentState,
-    payload: Record<string, unknown>,
-  ): Promise<SecretsAgentState> {
+  async toolResultReceived(state: SecretsAgentState, payload: Record<string, unknown>): Promise<SecretsAgentState> {
     const result = await this.llmUpdateToolResult.call(
       {
         delegateResult: state.delegateResult!,
@@ -118,7 +108,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unk
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async allToolsCompleteTransition(ctx: WorkflowContext, state: SecretsAgentState): Promise<SecretsAgentState> {
+  async allToolsCompleteTransition(state: SecretsAgentState): Promise<SecretsAgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: state.delegateResult!.toolResults.map((tr) => ({
@@ -136,7 +126,7 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unk
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(ctx: WorkflowContext, state: SecretsAgentState, payload: string): Promise<SecretsAgentState> {
+  async userMessage(state: SecretsAgentState, payload: string): Promise<SecretsAgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: payload,
@@ -144,8 +134,8 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unk
     return state;
   }
 
-  @Final({ from: 'prompt_executed' })
-  async respond(ctx: WorkflowContext, state: SecretsAgentState): Promise<DocumentEntity> {
+  @Transition({ from: 'prompt_executed', to: 'end' })
+  async respond(state: SecretsAgentState): Promise<DocumentEntity> {
     return this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });

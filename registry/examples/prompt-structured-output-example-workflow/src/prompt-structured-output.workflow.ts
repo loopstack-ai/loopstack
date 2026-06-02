@@ -5,8 +5,6 @@ import {
   BaseWorkflow,
   DOCUMENT_STORE,
   DocumentEntity,
-  Final,
-  Initial,
   TEMPLATE_RENDERER,
   Transition,
   Workflow,
@@ -38,12 +36,9 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
     super();
   }
 
-  @Initial({ to: 'ready' })
-  async greeting(
-    ctx: WorkflowContext,
-    args: { language: string },
-    state: PromptStructuredOutputState,
-  ): Promise<PromptStructuredOutputState> {
+  @Transition({ to: 'ready' })
+  async greeting(state: PromptStructuredOutputState, ctx: WorkflowContext): Promise<PromptStructuredOutputState> {
+    const args = ctx.input.args as { language: string };
     await this.documentStore.save(
       LlmMessageDocument,
       {
@@ -56,7 +51,7 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async prompt(ctx: WorkflowContext, state: PromptStructuredOutputState): Promise<PromptStructuredOutputState> {
+  async prompt(state: PromptStructuredOutputState): Promise<PromptStructuredOutputState> {
     const result = await this.llmGenerateObject.call(
       {
         outputSchema: toJSONSchema(FileDocumentSchema) as Record<string, unknown>,
@@ -72,8 +67,8 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
     return { ...state, llmResult };
   }
 
-  @Final({ from: 'prompt_executed' })
-  async respond(ctx: WorkflowContext, state: PromptStructuredOutputState): Promise<unknown> {
+  @Transition({ from: 'prompt_executed', to: 'end' })
+  async respond(state: PromptStructuredOutputState): Promise<unknown> {
     await this.documentStore.save(
       LlmMessageDocument,
       {

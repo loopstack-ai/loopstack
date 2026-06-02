@@ -14,7 +14,7 @@ class CodeAgentRootModule {}
   exports: [...PROVIDERS, AgentModule],
 })
 export class CodeAgentModule {
-  static forFeature(config: { llm: LlmModuleConfig }): DynamicModule {
+  static forFeature(config?: { llm?: LlmModuleConfig }): DynamicModule {
     return {
       module: CodeAgentRootModule,
       imports: [AgentModule.forFeature(config)],

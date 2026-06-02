@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import type { WorkflowContext } from '@loopstack/common';
-import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, Workflow } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { SecretRequestDocument } from '../documents/index.js';
 
@@ -30,12 +30,9 @@ export class SecretsRequestWorkflow extends BaseWorkflow<SecretsRequestArgs, Sec
     super();
   }
 
-  @Initial({ to: 'requesting_secrets' })
-  async showForm(
-    _ctx: WorkflowContext,
-    args: SecretsRequestArgs,
-    state: SecretsRequestState,
-  ): Promise<SecretsRequestState> {
+  @Transition({ to: 'requesting_secrets' })
+  async showForm(state: SecretsRequestState, ctx: WorkflowContext): Promise<SecretsRequestState> {
+    const args = ctx.input.args as SecretsRequestArgs;
     await this.documentStore.save(SecretRequestDocument, {
       variables: args.variables,
     });
@@ -43,8 +40,8 @@ export class SecretsRequestWorkflow extends BaseWorkflow<SecretsRequestArgs, Sec
     return { ...state, variables: args.variables };
   }
 
-  @Final({ from: 'requesting_secrets', wait: true })
-  async secretsSubmitted(_ctx: WorkflowContext, _state: SecretsRequestState): Promise<{ success: boolean }> {
+  @Transition({ from: 'requesting_secrets', to: 'end', wait: true })
+  async secretsSubmitted(_state: SecretsRequestState): Promise<{ success: boolean }> {
     return Promise.resolve({ success: true });
   }
 }

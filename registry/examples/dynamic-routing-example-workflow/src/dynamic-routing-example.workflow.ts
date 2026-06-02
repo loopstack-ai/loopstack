@@ -1,15 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  DOCUMENT_STORE,
-  Final,
-  Guard,
-  Initial,
-  MessageDocument,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, Guard, MessageDocument, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 
 interface DynamicRoutingState {
@@ -33,12 +24,9 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
 
   // --- Initial transition ---
 
-  @Initial({ to: 'prepared' })
-  async createMockData(
-    ctx: WorkflowContext,
-    args: { value: number },
-    state: DynamicRoutingState,
-  ): Promise<DynamicRoutingState> {
+  @Transition({ to: 'prepared' })
+  async createMockData(state: DynamicRoutingState, ctx: WorkflowContext): Promise<DynamicRoutingState> {
+    const args = ctx.input.args as { value: number };
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Analysing value = ${args.value}`,
@@ -50,7 +38,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
 
   @Transition({ from: 'prepared', to: 'placeA', priority: 10 })
   @Guard('isAbove100')
-  async routeToPlaceA(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+  async routeToPlaceA(state: DynamicRoutingState): Promise<DynamicRoutingState> {
     return state;
   }
 
@@ -59,7 +47,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   }
 
   @Transition({ from: 'prepared', to: 'placeB' })
-  async routeToPlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+  async routeToPlaceB(state: DynamicRoutingState): Promise<DynamicRoutingState> {
     return state;
   } // no priority -> evaluated last, acts as fallback
 
@@ -67,7 +55,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
 
   @Transition({ from: 'placeA', to: 'placeC', priority: 10 })
   @Guard('isAbove200')
-  async routeToPlaceC(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+  async routeToPlaceC(state: DynamicRoutingState): Promise<DynamicRoutingState> {
     return state;
   }
 
@@ -76,14 +64,14 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   }
 
   @Transition({ from: 'placeA', to: 'placeD' })
-  async routeToPlaceD(ctx: WorkflowContext, state: DynamicRoutingState): Promise<DynamicRoutingState> {
+  async routeToPlaceD(state: DynamicRoutingState): Promise<DynamicRoutingState> {
     return state;
   } // no priority -> evaluated last, acts as fallback
 
   // --- Terminal transitions ---
 
-  @Final({ from: 'placeB' })
-  async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+  @Transition({ from: 'placeB', to: 'end' })
+  async showMessagePlaceB(state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is less or equal 100',
@@ -91,8 +79,8 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
     return {};
   }
 
-  @Final({ from: 'placeC' })
-  async showMessagePlaceC(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+  @Transition({ from: 'placeC', to: 'end' })
+  async showMessagePlaceC(state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is greater than 200',
@@ -100,8 +88,8 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
     return {};
   }
 
-  @Final({ from: 'placeD' })
-  async showMessagePlaceD(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
+  @Transition({ from: 'placeD', to: 'end' })
+  async showMessagePlaceD(state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is less or equal 200, but greater than 100',

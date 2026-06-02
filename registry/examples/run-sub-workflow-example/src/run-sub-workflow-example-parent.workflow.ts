@@ -4,8 +4,6 @@ import {
   BaseWorkflow,
   CallbackSchema,
   DOCUMENT_STORE,
-  Final,
-  Initial,
   LinkDocument,
   MessageDocument,
   QueueResult,
@@ -14,7 +12,7 @@ import {
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
 
 const SubWorkflowCallbackSchema = CallbackSchema.extend({
@@ -34,12 +32,8 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     super();
   }
 
-  @Initial({ to: 'sub_workflow_started' })
-  async runWorkflow(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
+  @Transition({ to: 'sub_workflow_started' })
+  async runWorkflow(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
       {},
       {
@@ -66,7 +60,6 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     schema: SubWorkflowCallbackSchema,
   })
   async subWorkflowCallback(
-    ctx: WorkflowContext,
     state: Record<string, unknown>,
     payload: SubWorkflowCallback,
   ): Promise<Record<string, unknown>> {
@@ -88,7 +81,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'sub_workflow_ended', to: 'sub_workflow2_started' })
-  async runWorkflow2(ctx: WorkflowContext, state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async runWorkflow2(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
       {},
       {
@@ -108,16 +101,13 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Final({
+  @Transition({
     from: 'sub_workflow2_started',
+    to: 'end',
     wait: true,
     schema: SubWorkflowCallbackSchema,
   })
-  async subWorkflow2Callback(
-    ctx: WorkflowContext,
-    state: Record<string, unknown>,
-    payload: SubWorkflowCallback,
-  ): Promise<unknown> {
+  async subWorkflow2Callback(state: Record<string, unknown>, payload: SubWorkflowCallback): Promise<unknown> {
     await this.documentStore.save(
       LinkDocument,
       {

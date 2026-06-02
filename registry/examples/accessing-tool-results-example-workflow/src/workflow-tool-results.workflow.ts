@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
-import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 
 interface ToolResultsState {
   storedMessage?: string;
@@ -14,12 +14,8 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unk
     super();
   }
 
-  @Initial({ to: 'data_created' })
-  async createSomeData(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: ToolResultsState,
-  ): Promise<ToolResultsState> {
+  @Transition({ to: 'data_created' })
+  async createSomeData(state: ToolResultsState): Promise<ToolResultsState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Stored in initial transition: Hello World.`,
@@ -27,8 +23,8 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unk
     return { ...state, storedMessage: 'Hello World.' };
   }
 
-  @Final({ from: 'data_created' })
-  async accessData(ctx: WorkflowContext, state: ToolResultsState): Promise<unknown> {
+  @Transition({ from: 'data_created', to: 'end' })
+  async accessData(state: ToolResultsState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Accessed from previous transition: ${state.storedMessage}`,

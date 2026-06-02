@@ -16,7 +16,7 @@ class AgentExampleRootModule {}
   exports: PROVIDERS,
 })
 export class AgentExampleModule {
-  static forFeature(config: { llm: LlmModuleConfig }): DynamicModule {
+  static forFeature(config?: { llm?: LlmModuleConfig }): DynamicModule {
     return {
       module: AgentExampleRootModule,
       imports: [AgentModule.forFeature(config)],

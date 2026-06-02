@@ -153,15 +153,7 @@ export class WorkflowProcessorService implements Processor {
     this.memoryMonitor.logWorkflowStart(workflow.constructor.name);
 
     try {
-      state = await this.processStateMachine(
-        scopeData,
-        meta,
-        workflow,
-        validArgs,
-        pendingTransition,
-        workflowEntity,
-        state,
-      );
+      state = await this.processStateMachine(scopeData, meta, workflow, pendingTransition, workflowEntity, state);
     } catch (e) {
       const error = e instanceof Error ? e : new Error(String(e));
       this.logger.error(new ConfigTraceError(error, workflow));
@@ -216,19 +208,16 @@ export class WorkflowProcessorService implements Processor {
   }
 
   /**
-   * Invoke a transition method with the (ctx, state, data?) calling convention.
+   * Invoke a transition method with the (state, ...rest, ctx) calling convention.
    *
-   * - @Initial: method(ctx, args, state) → Promise<TState>
-   * - @Transition (auto): method(ctx, state) → Promise<TState>
-   * - @Transition (wait): method(ctx, state, payload) → Promise<TState>
-   * - @Final: method(ctx, state) → Promise<unknown>
+   * - Auto transitions (including initial and final): method(state, ctx) → Promise<TState>
+   * - Wait transitions: method(state, payload, ctx) → Promise<TState>
    */
   private invokeTransition(
     workflow: WorkflowInterface,
     methodName: string,
     workflowCtx: WorkflowContext,
     state: Record<string, unknown>,
-    isInitial: boolean,
     data?: unknown,
   ): Promise<unknown> {
     const method = (workflow as Record<string, unknown>)[methodName];
@@ -236,15 +225,12 @@ export class WorkflowProcessorService implements Processor {
       throw new Error(`Method '${methodName}' not found on workflow ${workflow.constructor.name}`);
     }
 
-    if (isInitial) {
-      // @Initial: (ctx, args, state)
-      return (method as (...args: unknown[]) => Promise<unknown>).call(workflow, workflowCtx, data, state);
-    } else if (data !== undefined) {
-      // @Transition(wait): (ctx, state, payload)
-      return (method as (...args: unknown[]) => Promise<unknown>).call(workflow, workflowCtx, state, data);
+    if (data !== undefined) {
+      // Wait transition: (state, payload, ctx)
+      return (method as (...args: unknown[]) => Promise<unknown>).call(workflow, state, data, workflowCtx);
     } else {
-      // @Transition(auto) or @Final: (ctx, state)
-      return (method as (...args: unknown[]) => Promise<unknown>).call(workflow, workflowCtx, state);
+      // Auto transition (initial, normal, final): (state, ctx)
+      return (method as (...args: unknown[]) => Promise<unknown>).call(workflow, state, workflowCtx);
     }
   }
 
@@ -272,7 +258,6 @@ export class WorkflowProcessorService implements Processor {
     workflow: WorkflowInterface,
     methodName: string,
     to: string,
-    isInitial: boolean,
     data: unknown,
     state: Record<string, unknown>,
     workflowEntity: WorkflowEntity | undefined,
@@ -285,7 +270,7 @@ export class WorkflowProcessorService implements Processor {
 
     const invokeMethod = () => {
       const methodPromise = this.executionScope.run(scopeData, () =>
-        this.invokeTransition(workflow, methodName, workflowCtx, state, isInitial, data),
+        this.invokeTransition(workflow, methodName, workflowCtx, state, data),
       );
       return timeoutMs > 0 ? Promise.race([methodPromise, rejectAfter(timeoutMs, methodName)]) : methodPromise;
     };
@@ -440,7 +425,6 @@ export class WorkflowProcessorService implements Processor {
     scopeData: ExecutionScopeData,
     meta: ProcessorMetadata,
     workflow: WorkflowInterface,
-    validArgs: Record<string, unknown> | undefined,
     pendingTransition: TransitionPayloadInterface | undefined,
     workflowEntity: WorkflowEntity | undefined,
     state: Record<string, unknown>,
@@ -492,7 +476,6 @@ export class WorkflowProcessorService implements Processor {
             workflow,
             waitTransition.methodName,
             waitTransition.to,
-            false,
             waitData,
             state,
             workflowEntity,
@@ -552,10 +535,6 @@ export class WorkflowProcessorService implements Processor {
         await this.workflowStateService.saveExecutionState(workflowEntity, state, meta);
       }
 
-      // @Initial transitions pass args; auto transitions pass nothing
-      const isInitial = next.from === 'start';
-      const autoData = isInitial ? validArgs : undefined;
-
       try {
         const result = await this.executeTransition(
           scopeData,
@@ -563,8 +542,7 @@ export class WorkflowProcessorService implements Processor {
           workflow,
           next.methodName,
           next.to,
-          isInitial,
-          autoData,
+          undefined,
           state,
           workflowEntity,
           workflowName,

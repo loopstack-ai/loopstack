@@ -35,7 +35,7 @@ import { PromptWorkflow } from './prompt.workflow';
 @Module({
   imports: [
     ClaudeModule,
-    AgentModule.forFeature({ llm: { model: 'claude-opus-4-6' } }),
+    AgentModule,
     LlmProviderModule.forFeature({ model: 'claude-sonnet-4-5' }),
   ],
   controllers: [HelloController],

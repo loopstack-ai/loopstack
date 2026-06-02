@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseWorkflow, Final, Initial, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import type { WorkflowContext } from '@loopstack/common';
 import { DocumentStore } from '@loopstack/core';
 import type {
@@ -34,12 +34,9 @@ export class PromptWorkflow extends BaseWorkflow<
     super();
   }
 
-  @Initial({ to: 'prompt_executed' })
-  async prompt(
-    ctx: WorkflowContext,
-    args: { subject: string },
-    state: PromptState,
-  ): Promise<PromptState> {
+  @Transition({ to: 'prompt_executed' })
+  async prompt(state: PromptState, ctx: WorkflowContext): Promise<PromptState> {
+    const args = ctx.input.args as { subject: string };
     const result = await this.llmGenerateText.call({
       prompt: `Write a haiku about ${args.subject}`,
     });
@@ -49,8 +46,8 @@ export class PromptWorkflow extends BaseWorkflow<
     };
   }
 
-  @Final({ from: 'prompt_executed' })
-  async respond(ctx: WorkflowContext, state: PromptState): Promise<unknown> {
+  @Transition({ from: 'prompt_executed', to: 'end' })
+  async respond(state: PromptState): Promise<unknown> {
     await this.documentStore.save(
       LlmMessageDocument,
       state.llmResult!.message,

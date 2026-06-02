@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, DOCUMENT_STORE, Initial, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
+import type { DocumentStore, TemplateRenderFn } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
 @Workflow({
@@ -19,12 +19,8 @@ export class ChatWorkflow extends BaseWorkflow {
     super();
   }
 
-  @Initial({ to: 'waiting_for_user' })
-  async setup(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
+  @Transition({ to: 'waiting_for_user' })
+  async setup(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     await this.documentStore.save(
       LlmMessageDocument,
       { role: 'user', content: this.render(__dirname + '/templates/systemMessage.md') },
@@ -34,17 +30,13 @@ export class ChatWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(
-    ctx: WorkflowContext,
-    state: Record<string, unknown>,
-    payload: string,
-  ): Promise<Record<string, unknown>> {
+  async userMessage(state: Record<string, unknown>, payload: string): Promise<Record<string, unknown>> {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', content: payload });
     return state;
   }
 
   @Transition({ from: 'ready', to: 'waiting_for_user' })
-  async llmTurn(ctx: WorkflowContext, state: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async llmTurn(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     const result = await this.llmGenerateText.call({}, { config: { provider: 'claude', model: 'claude-sonnet-4-6' } });
 
     await this.documentStore.save(LlmMessageDocument, result.data!.message, {

@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import type { WorkflowContext } from '@loopstack/common';
-import { BaseWorkflow, DOCUMENT_STORE, Final, Guard, Initial, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, Guard, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { AskUserConfirmDocument } from '../../documents/ask-user-confirm-document.js';
 import { AskUserDocument } from '../../documents/ask-user-document.js';
@@ -33,14 +33,15 @@ export class AskUserWorkflow extends BaseWorkflow<AskUserArgs, AskUserState> {
     super();
   }
 
-  @Initial({ to: 'show_question' })
-  async start(_ctx: WorkflowContext, args: AskUserArgs, state: AskUserState): Promise<AskUserState> {
+  @Transition({ to: 'show_question' })
+  async start(state: AskUserState, ctx: WorkflowContext): Promise<AskUserState> {
+    const args = ctx.input.args as AskUserArgs;
     return { ...state, ...args };
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isOptionsMode')
-  async showQuestionOptions(_ctx: WorkflowContext, state: AskUserState): Promise<AskUserState> {
+  async showQuestionOptions(state: AskUserState): Promise<AskUserState> {
     await this.documentStore.save(
       AskUserOptionsDocument,
       { question: state.question, options: state.options ?? [], allowCustomAnswer: state.allowCustomAnswer },
@@ -51,23 +52,19 @@ export class AskUserWorkflow extends BaseWorkflow<AskUserArgs, AskUserState> {
 
   @Transition({ from: 'show_question', to: 'waiting_for_user', priority: 10 })
   @Guard('isConfirmMode')
-  async showQuestionConfirm(_ctx: WorkflowContext, state: AskUserState): Promise<AskUserState> {
+  async showQuestionConfirm(state: AskUserState): Promise<AskUserState> {
     await this.documentStore.save(AskUserConfirmDocument, { question: state.question }, { id: 'question' });
     return state;
   }
 
   @Transition({ from: 'show_question', to: 'waiting_for_user' })
-  async showQuestionText(_ctx: WorkflowContext, state: AskUserState): Promise<AskUserState> {
+  async showQuestionText(state: AskUserState): Promise<AskUserState> {
     await this.documentStore.save(AskUserDocument, { question: state.question }, { id: 'question' });
     return state;
   }
 
-  @Final({ from: 'waiting_for_user', wait: true, schema: AskUserAnswerSchema })
-  async userAnswered(
-    _ctx: WorkflowContext,
-    state: AskUserState,
-    payload: { answer: string },
-  ): Promise<{ answer: string }> {
+  @Transition({ from: 'waiting_for_user', to: 'end', wait: true, schema: AskUserAnswerSchema })
+  async userAnswered(state: AskUserState, payload: { answer: string }): Promise<{ answer: string }> {
     if (state.mode === 'options') {
       await this.documentStore.save(
         AskUserOptionsDocument,

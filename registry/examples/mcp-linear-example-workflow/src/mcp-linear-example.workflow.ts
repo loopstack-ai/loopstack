@@ -4,9 +4,9 @@ import { ChatAgentWorkflow } from '@loopstack/agent';
 import {
   BaseWorkflow,
   DOCUMENT_STORE,
-  Initial,
   LinkDocument,
   MessageDocument,
+  Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
   WorkflowOrchestrator,
@@ -41,12 +41,9 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs>
     super();
   }
 
-  @Initial({ to: 'chatting' })
-  async startChat(
-    ctx: WorkflowContext,
-    args: McpLinearExampleArgs,
-    state: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
+  @Transition({ to: 'chatting' })
+  async startChat(state: Record<string, unknown>, ctx: WorkflowContext): Promise<Record<string, unknown>> {
+    const args = ctx.input.args as McpLinearExampleArgs;
     const systemPrompt = [
       `You are a Linear assistant connected via MCP at ${LINEAR_MCP_URL} (transport: streamableHttp).`,
       'Use `mcpListTools` to discover the available Linear tools, then `mcpCallTool` to invoke them.',

@@ -2,17 +2,14 @@ import { Inject } from '@nestjs/common';
 import {
   BaseWorkflow,
   DOCUMENT_STORE,
-  Final,
   Guard,
-  Initial,
   MessageDocument,
   TEMPLATE_RENDERER,
   Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
-import type { WorkflowOrchestrator } from '@loopstack/common';
+import type { DocumentStore, TemplateRenderFn, WorkflowContext, WorkflowOrchestrator } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -60,12 +57,8 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
     super();
   }
 
-  @Initial({ to: 'ready' })
-  async setup(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: DelegateErrorState,
-  ): Promise<DelegateErrorState> {
+  @Transition({ to: 'ready' })
+  async setup(state: DelegateErrorState): Promise<DelegateErrorState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content:
@@ -84,7 +77,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(ctx: WorkflowContext, state: DelegateErrorState): Promise<DelegateErrorState> {
+  async llmTurn(state: DelegateErrorState): Promise<DelegateErrorState> {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -106,7 +99,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(ctx: WorkflowContext, state: DelegateErrorState): Promise<DelegateErrorState> {
+  async executeToolCalls(state: DelegateErrorState): Promise<DelegateErrorState> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
@@ -119,11 +112,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true })
-  async toolResultReceived(
-    ctx: WorkflowContext,
-    state: DelegateErrorState,
-    payload: unknown,
-  ): Promise<DelegateErrorState> {
+  async toolResultReceived(state: DelegateErrorState, payload: unknown): Promise<DelegateErrorState> {
     const result = await this.llmUpdateToolResult.call(
       {
         delegateResult: state.delegateResult!,
@@ -136,7 +125,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async toolsComplete(ctx: WorkflowContext, state: DelegateErrorState): Promise<DelegateErrorState> {
+  async toolsComplete(state: DelegateErrorState): Promise<DelegateErrorState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: state.delegateResult!.toolResults.map((tr) => ({
@@ -150,14 +139,14 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(ctx: WorkflowContext, state: DelegateErrorState): Promise<DelegateErrorState> {
+  async cancelPendingTools(state: DelegateErrorState, ctx: WorkflowContext): Promise<DelegateErrorState> {
     await this.orchestrator.cancelChildren(ctx.workflowId);
     return state;
   }
 
-  @Final({ from: 'prompt_executed' })
+  @Transition({ from: 'prompt_executed', to: 'end' })
   @Guard('isEndTurn')
-  async respond(ctx: WorkflowContext, state: DelegateErrorState): Promise<unknown> {
+  async respond(state: DelegateErrorState): Promise<unknown> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });

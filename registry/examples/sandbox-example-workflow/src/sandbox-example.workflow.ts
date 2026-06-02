@@ -1,15 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  DOCUMENT_STORE,
-  Final,
-  Initial,
-  MessageDocument,
-  ToolResult,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, ToolResult, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 import {
   SandboxCreateDirectory,
@@ -115,12 +106,9 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
     super();
   }
 
-  @Initial({ to: 'sandbox_ready' })
-  async initSandbox(
-    ctx: WorkflowContext,
-    args: { outputDir: string },
-    state: SandboxExampleState,
-  ): Promise<SandboxExampleState> {
+  @Transition({ to: 'sandbox_ready' })
+  async initSandbox(state: SandboxExampleState, ctx: WorkflowContext): Promise<SandboxExampleState> {
+    const args = ctx.input.args as { outputDir: string };
     const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',
@@ -137,7 +125,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
   }
 
   @Transition({ from: 'sandbox_ready', to: 'dir_created' })
-  async createDir(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
+  async createDir(state: SandboxExampleState): Promise<SandboxExampleState> {
     const mkdirResult: ToolResult<SandboxCreateDirectoryResult> = await this.sandboxCreateDirectory.call({
       containerId: state.containerId!,
       path: '/workspace',
@@ -152,7 +140,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
   }
 
   @Transition({ from: 'dir_created', to: 'file_written' })
-  async writeFile(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
+  async writeFile(state: SandboxExampleState): Promise<SandboxExampleState> {
     const writeResult: ToolResult<SandboxWriteFileResult> = await this.sandboxWriteFile.call({
       containerId: state.containerId!,
       path: '/workspace/result.txt',
@@ -169,7 +157,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
   }
 
   @Transition({ from: 'file_written', to: 'file_read' })
-  async readFile(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
+  async readFile(state: SandboxExampleState): Promise<SandboxExampleState> {
     const readResult: ToolResult<SandboxReadFileResult> = await this.sandboxReadFile.call({
       containerId: state.containerId!,
       path: '/workspace/result.txt',
@@ -184,7 +172,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
   }
 
   @Transition({ from: 'file_read', to: 'dir_listed' })
-  async listDir(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
+  async listDir(state: SandboxExampleState): Promise<SandboxExampleState> {
     const listResult: ToolResult<SandboxListDirectoryResult> = await this.sandboxListDirectory.call({
       containerId: state.containerId!,
       path: '/workspace',
@@ -199,7 +187,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
   }
 
   @Transition({ from: 'dir_listed', to: 'existence_checked' })
-  async checkExists(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
+  async checkExists(state: SandboxExampleState): Promise<SandboxExampleState> {
     const existsResult: ToolResult<SandboxExistsResult> = await this.sandboxExists.call({
       containerId: state.containerId!,
       path: '/workspace/result.txt',
@@ -213,7 +201,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
   }
 
   @Transition({ from: 'existence_checked', to: 'info_retrieved' })
-  async getInfo(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
+  async getInfo(state: SandboxExampleState): Promise<SandboxExampleState> {
     const infoResult: ToolResult<SandboxFileInfoResult> = await this.sandboxFileInfo.call({
       containerId: state.containerId!,
       path: '/workspace/result.txt',
@@ -227,7 +215,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
   }
 
   @Transition({ from: 'info_retrieved', to: 'file_deleted' })
-  async deleteFile(ctx: WorkflowContext, state: SandboxExampleState): Promise<SandboxExampleState> {
+  async deleteFile(state: SandboxExampleState): Promise<SandboxExampleState> {
     const deleteResult: ToolResult<SandboxDeleteResult> = await this.sandboxDelete.call({
       containerId: state.containerId!,
       path: '/workspace/result.txt',
@@ -242,8 +230,8 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
     return state;
   }
 
-  @Final({ from: 'file_deleted' })
-  async destroySandbox(ctx: WorkflowContext, state: SandboxExampleState): Promise<unknown> {
+  @Transition({ from: 'file_deleted', to: 'end' })
+  async destroySandbox(state: SandboxExampleState): Promise<unknown> {
     const destroyResult: ToolResult<SandboxDestroyResult> = await this.sandboxDestroy.call({
       containerId: state.containerId!,
       removeContainer: true,

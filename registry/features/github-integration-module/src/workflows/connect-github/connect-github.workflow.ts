@@ -6,9 +6,7 @@ import {
   BaseWorkflow,
   CallbackSchema,
   DOCUMENT_STORE,
-  Final,
   Guard,
-  Initial,
   LinkDocument,
   MarkdownDocument,
   Transition,
@@ -71,12 +69,8 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   // ── Step 1: Check if already authenticated ──────────────────────────
 
-  @Initial({ to: 'check_auth' })
-  async start(
-    _ctx: WorkflowContext,
-    _args: Record<string, never>,
-    state: ConnectGitHubState,
-  ): Promise<ConnectGitHubState> {
+  @Transition({ to: 'check_auth' })
+  async start(state: ConnectGitHubState): Promise<ConnectGitHubState> {
     const result = await this.gitHubGetAuthenticatedUser.call();
     return {
       ...state,
@@ -89,7 +83,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   @Transition({ from: 'check_auth', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
-  async launchOAuth(_ctx: WorkflowContext, state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async launchOAuth(state: ConnectGitHubState): Promise<ConnectGitHubState> {
     const result = await this.orchestrator.queue(
       { provider: 'github', scopes: ['repo', 'user'] },
       { workflowName: 'OAuthWorkflow', callback: { transition: 'authCompleted' } },
@@ -114,11 +108,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   }
 
   @Transition({ from: 'awaiting_auth', to: 'check_auth', wait: true, schema: CallbackSchema })
-  async authCompleted(
-    _ctx: WorkflowContext,
-    state: ConnectGitHubState,
-    payload: { workflowId: string },
-  ): Promise<ConnectGitHubState> {
+  async authCompleted(state: ConnectGitHubState, payload: { workflowId: string }): Promise<ConnectGitHubState> {
     await this.documentStore.save(
       LinkDocument,
       {
@@ -138,7 +128,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // ── Step 2b: Ask create or link ─────────────────────────────────────
 
   @Transition({ from: 'check_auth', to: 'awaiting_choice' })
-  async askCreateOrLink(_ctx: WorkflowContext, state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async askCreateOrLink(state: ConnectGitHubState): Promise<ConnectGitHubState> {
     const result = await this.orchestrator.queue(
       {
         question: 'Would you like to create a new GitHub repository or connect an existing one?',
@@ -158,11 +148,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   }
 
   @Transition({ from: 'awaiting_choice', to: 'route_choice', wait: true, schema: CallbackSchema })
-  async choiceReceived(
-    _ctx: WorkflowContext,
-    state: ConnectGitHubState,
-    payload: { data: { answer: string } },
-  ): Promise<ConnectGitHubState> {
+  async choiceReceived(state: ConnectGitHubState, payload: { data: { answer: string } }): Promise<ConnectGitHubState> {
     await this.documentStore.save(
       LinkDocument,
       { label: 'Create or connect repository', status: 'success', embed: true, expanded: false },
@@ -208,11 +194,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // ── Step 3a: Create new repo ────────────────────────────────────────
 
   @Transition({ from: 'route_choice', to: 'configure_remote', wait: true, schema: CallbackSchema })
-  async createRepo(
-    _ctx: WorkflowContext,
-    state: ConnectGitHubState,
-    payload: { data: { answer: string } },
-  ): Promise<ConnectGitHubState> {
+  async createRepo(state: ConnectGitHubState, payload: { data: { answer: string } }): Promise<ConnectGitHubState> {
     await this.documentStore.save(
       LinkDocument,
       { label: 'Repository name', status: 'success', embed: true, expanded: false },
@@ -232,11 +214,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // ── Step 3b: Link existing repo ─────────────────────────────────────
 
   @Transition({ from: 'route_choice', to: 'configure_remote', wait: true, schema: CallbackSchema })
-  async repoSelected(
-    _ctx: WorkflowContext,
-    state: ConnectGitHubState,
-    payload: { data: { answer: string } },
-  ): Promise<ConnectGitHubState> {
+  async repoSelected(state: ConnectGitHubState, payload: { data: { answer: string } }): Promise<ConnectGitHubState> {
     await this.documentStore.save(
       LinkDocument,
       { label: 'Select repository', status: 'success', embed: true, expanded: false },
@@ -262,7 +240,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // ── Step 4a: Check for uncommitted changes ───────────────────────────
 
   @Transition({ from: 'configure_remote', to: 'check_uncommitted' })
-  async checkForUncommittedChanges(_ctx: WorkflowContext, state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async checkForUncommittedChanges(state: ConnectGitHubState): Promise<ConnectGitHubState> {
     const user = state.user;
 
     // Configure git user identity early
@@ -287,7 +265,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // Clean workspace — skip straight to remote setup
   @Transition({ from: 'check_uncommitted', to: 'setup_remote' })
   @Guard('isCleanWorkspace')
-  async skipCommitCheck(_ctx: WorkflowContext, state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async skipCommitCheck(state: ConnectGitHubState): Promise<ConnectGitHubState> {
     return state;
   }
 
@@ -297,7 +275,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   // Uncommitted changes — ask user
   @Transition({ from: 'check_uncommitted', to: 'awaiting_commit_confirm' })
-  async askCommitChanges(_ctx: WorkflowContext, state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async askCommitChanges(state: ConnectGitHubState): Promise<ConnectGitHubState> {
     const confirmResult = await this.orchestrator.queue(
       {
         question:
@@ -323,7 +301,6 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   @Transition({ from: 'awaiting_commit_confirm', to: 'setup_remote', wait: true, schema: CallbackSchema })
   async uncommittedChangesHandled(
-    _ctx: WorkflowContext,
     state: ConnectGitHubState,
     payload: { data: { answer: string } },
   ): Promise<ConnectGitHubState> {
@@ -346,7 +323,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // ── Step 4b: Configure remote and check for divergence ──────────────
 
   @Transition({ from: 'setup_remote', to: 'check_divergence' })
-  async setupRemote(ctx: WorkflowContext, state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async setupRemote(state: ConnectGitHubState, ctx: WorkflowContext): Promise<ConnectGitHubState> {
     // If cancelled during commit confirmation, skip to done
     if (!state.repo) {
       return { ...state, divergenceState: 'none' };
@@ -391,7 +368,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   @Transition({ from: 'check_divergence', to: 'done' })
   @Guard('canPushDirectly')
-  async pushDirectly(ctx: WorkflowContext, state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async pushDirectly(state: ConnectGitHubState, ctx: WorkflowContext): Promise<ConnectGitHubState> {
     if (state.divergenceState === 'none') {
       // Already in sync — nothing to push
       return state;
@@ -411,7 +388,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // ── Step 5b: Divergence detected — ask user how to resolve ──────────
 
   @Transition({ from: 'check_divergence', to: 'awaiting_sync_choice' })
-  async askSyncStrategy(_ctx: WorkflowContext, state: ConnectGitHubState): Promise<ConnectGitHubState> {
+  async askSyncStrategy(state: ConnectGitHubState): Promise<ConnectGitHubState> {
     const isRemoteAhead = state.divergenceState === 'remote_ahead';
     const question = isRemoteAhead
       ? 'The remote repository has newer commits than your workspace. How would you like to proceed?'
@@ -446,9 +423,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   @Transition({ from: 'awaiting_sync_choice', to: 'done', wait: true, schema: CallbackSchema })
   async syncStrategyChosen(
-    ctx: WorkflowContext,
     state: ConnectGitHubState,
     payload: { data: { answer: string } },
+    ctx: WorkflowContext,
   ): Promise<ConnectGitHubState> {
     await this.documentStore.save(
       LinkDocument,
@@ -479,8 +456,8 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   // ── Final: Show result ──────────────────────────────────────────────
 
-  @Final({ from: 'done' })
-  async showSuccess(ctx: WorkflowContext, state: ConnectGitHubState): Promise<unknown> {
+  @Transition({ from: 'done', to: 'end' })
+  async showSuccess(state: ConnectGitHubState, ctx: WorkflowContext): Promise<unknown> {
     if (!state.repo) {
       await this.documentStore.save(MarkdownDocument, {
         markdown: '### Cancelled\n\nThe remote connection was removed. No changes were made.',

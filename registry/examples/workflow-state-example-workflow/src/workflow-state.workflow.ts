@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
-import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 
 interface WorkflowStateState {
   message?: string;
@@ -14,17 +14,13 @@ export class WorkflowStateWorkflow extends BaseWorkflow<Record<string, unknown>,
     super();
   }
 
-  @Initial({ to: 'data_created' })
-  async createSomeData(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: WorkflowStateState,
-  ): Promise<WorkflowStateState> {
+  @Transition({ to: 'data_created' })
+  async createSomeData(state: WorkflowStateState): Promise<WorkflowStateState> {
     return { ...state, message: 'Hello :)' };
   }
 
-  @Final({ from: 'data_created' })
-  async showResults(ctx: WorkflowContext, state: WorkflowStateState): Promise<unknown> {
+  @Transition({ from: 'data_created', to: 'end' })
+  async showResults(state: WorkflowStateState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Data from state: ${state.message}`,

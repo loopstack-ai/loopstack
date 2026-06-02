@@ -4,9 +4,7 @@ import type { WorkflowContext } from '@loopstack/common';
 import {
   BaseWorkflow,
   DOCUMENT_STORE,
-  Final,
   Guard,
-  Initial,
   Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
@@ -31,7 +29,6 @@ import type { AgentRunResult } from '../types/index.js';
  * - **Config** (per-injection via `@InjectWorkflow()`): `provider`, `model`, `providerConfig`
  *
  * Tools are resolved from the current workflow first, then from the workspace.
- * Register domain-specific tools via @InjectTool() on your workspace.
  */
 const AgentArgsSchema = z.object({
   system: z.string(),
@@ -69,8 +66,9 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
     super();
   }
 
-  @Initial({ to: 'ready' })
-  async setup(_ctx: WorkflowContext, args: AgentArgs, state: AgentState): Promise<AgentState> {
+  @Transition({ to: 'ready' })
+  async setup(state: AgentState, ctx: WorkflowContext): Promise<AgentState> {
+    const args = ctx.input.args as AgentArgs;
     if (args.context) {
       await this.documentStore.save(
         LlmMessageDocument,
@@ -85,7 +83,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed', timeout: 120_000 })
-  async llmTurn(_ctx: WorkflowContext, state: AgentState): Promise<AgentState> {
+  async llmTurn(state: AgentState): Promise<AgentState> {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -102,7 +100,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10, timeout: 120_000 })
   @Guard('hasToolCalls')
-  async executeToolCalls(_ctx: WorkflowContext, state: AgentState): Promise<AgentState> {
+  async executeToolCalls(state: AgentState): Promise<AgentState> {
     // Save assistant message immediately (before tools run)
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
@@ -117,7 +115,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, timeout: 120_000 })
-  async toolResultReceived(_ctx: WorkflowContext, state: AgentState, payload: unknown): Promise<AgentState> {
+  async toolResultReceived(state: AgentState, payload: unknown): Promise<AgentState> {
     const result = await this.llmUpdateToolResult.call({
       delegateResult: state.delegateResult!,
       completedTool: payload,
@@ -128,7 +126,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
 
   @Transition({ from: 'awaiting_tools', to: 'ready', timeout: 120_000 })
   @Guard('allToolsComplete')
-  async toolsComplete(_ctx: WorkflowContext, state: AgentState): Promise<AgentState> {
+  async toolsComplete(state: AgentState): Promise<AgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: state.delegateResult!.toolResults.map((tr) => ({
@@ -143,16 +141,16 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(ctx: WorkflowContext, state: AgentState): Promise<AgentState> {
+  async cancelPendingTools(state: AgentState, ctx: WorkflowContext): Promise<AgentState> {
     if (ctx.workflowId) {
       await this.orchestrator.cancelChildren(ctx.workflowId);
     }
     return state;
   }
 
-  @Final({ from: 'prompt_executed' })
+  @Transition({ from: 'prompt_executed', to: 'end' })
   @Guard('isEndTurn')
-  async respond(_ctx: WorkflowContext, state: AgentState): Promise<AgentRunResult> {
+  async respond(state: AgentState): Promise<AgentRunResult> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: {
         response: state.llmResult!.response,

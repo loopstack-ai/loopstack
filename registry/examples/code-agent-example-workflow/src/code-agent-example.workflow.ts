@@ -5,16 +5,15 @@ import {
   BaseWorkflow,
   CallbackSchema,
   DOCUMENT_STORE,
-  Final,
-  Initial,
   LinkDocument,
   MessageDocument,
   QueueResult,
+  Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 
 const ExploreCallbackSchema = CallbackSchema.extend({
   data: z.object({ response: z.string() }),
@@ -36,12 +35,8 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
     super();
   }
 
-  @Initial({ to: 'exploring' })
-  async startExploration(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
+  @Transition({ to: 'exploring' })
+  async startExploration(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
       {
         system: 'You are a codebase exploration agent. Search and read source code to answer the question thoroughly.',
@@ -59,16 +54,13 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Final({
+  @Transition({
     from: 'exploring',
+    to: 'end',
     wait: true,
     schema: ExploreCallbackSchema,
   })
-  async exploreComplete(
-    ctx: WorkflowContext,
-    state: Record<string, unknown>,
-    payload: ExploreCallback,
-  ): Promise<unknown> {
+  async exploreComplete(state: Record<string, unknown>, payload: ExploreCallback): Promise<unknown> {
     await this.documentStore.save(
       LinkDocument,
       { label: 'Exploration complete', status: 'success', workflowId: payload.workflowId },

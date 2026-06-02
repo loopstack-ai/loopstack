@@ -1,15 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  DOCUMENT_STORE,
-  Guard,
-  Initial,
-  TEMPLATE_RENDERER,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, Guard, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
+import type { DocumentStore, TemplateRenderFn } from '@loopstack/common';
 import {
   GitHubCreateIssueCommentTool,
   GitHubCreateIssueTool,
@@ -105,8 +97,8 @@ export class GitHubAgentWorkflow extends BaseWorkflow<Record<string, unknown>, G
     super();
   }
 
-  @Initial({ to: 'waiting_for_user' })
-  async setup(ctx: WorkflowContext, args: Record<string, unknown>, state: GitHubAgentState): Promise<GitHubAgentState> {
+  @Transition({ to: 'waiting_for_user' })
+  async setup(state: GitHubAgentState): Promise<GitHubAgentState> {
     await this.documentStore.save(
       LlmMessageDocument,
       {
@@ -119,7 +111,7 @@ export class GitHubAgentWorkflow extends BaseWorkflow<Record<string, unknown>, G
   }
 
   @Transition({ from: 'waiting_for_user', to: 'ready', wait: true, schema: z.string() })
-  async userMessage(ctx: WorkflowContext, state: GitHubAgentState, payload: string): Promise<GitHubAgentState> {
+  async userMessage(state: GitHubAgentState, payload: string): Promise<GitHubAgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: payload,
@@ -128,7 +120,7 @@ export class GitHubAgentWorkflow extends BaseWorkflow<Record<string, unknown>, G
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(ctx: WorkflowContext, state: GitHubAgentState): Promise<GitHubAgentState> {
+  async llmTurn(state: GitHubAgentState): Promise<GitHubAgentState> {
     const result = await this.llmGenerateText.call(
       {},
       {
@@ -174,7 +166,7 @@ to let the user sign in, then retry. Be concise and format results using markdow
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(ctx: WorkflowContext, state: GitHubAgentState): Promise<GitHubAgentState> {
+  async executeToolCalls(state: GitHubAgentState): Promise<GitHubAgentState> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
@@ -193,11 +185,7 @@ to let the user sign in, then retry. Be concise and format results using markdow
   }
 
   @Transition({ from: 'awaiting_tools', to: 'awaiting_tools', wait: true, schema: z.record(z.string(), z.unknown()) })
-  async toolResultReceived(
-    ctx: WorkflowContext,
-    state: GitHubAgentState,
-    payload: Record<string, unknown>,
-  ): Promise<GitHubAgentState> {
+  async toolResultReceived(state: GitHubAgentState, payload: Record<string, unknown>): Promise<GitHubAgentState> {
     const result = await this.llmUpdateToolResult.call(
       {
         delegateResult: state.delegateResult!,
@@ -210,7 +198,7 @@ to let the user sign in, then retry. Be concise and format results using markdow
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async allToolsCompleteTransition(ctx: WorkflowContext, state: GitHubAgentState): Promise<GitHubAgentState> {
+  async allToolsCompleteTransition(state: GitHubAgentState): Promise<GitHubAgentState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: state.delegateResult!.toolResults.map((tr) => ({
@@ -228,7 +216,7 @@ to let the user sign in, then retry. Be concise and format results using markdow
   }
 
   @Transition({ from: 'prompt_executed', to: 'waiting_for_user' })
-  async respond(ctx: WorkflowContext, state: GitHubAgentState): Promise<GitHubAgentState> {
+  async respond(state: GitHubAgentState): Promise<GitHubAgentState> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });

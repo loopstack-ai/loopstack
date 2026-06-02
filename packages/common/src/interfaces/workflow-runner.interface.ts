@@ -12,6 +12,8 @@ export interface WorkflowRunnerOptions {
   appName: string;
   /** Workspace entity ID. If omitted, find-or-create by appName + userId */
   workspaceId?: string;
+  /** Optional labels for categorizing/filtering workflow runs (e.g. ['session:abc-123']) */
+  labels?: string[];
 }
 
 /** Options for synchronous workflow execution via WorkflowRunner */

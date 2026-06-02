@@ -43,7 +43,7 @@ export class WorkflowRunner {
   async execute<TArgs>(
     workflowClass: Type<BaseWorkflow<TArgs>>,
     payload: WorkflowPayload<TArgs>,
-    options: { userId: string; appName: string },
+    options: { userId: string; appName: string; labels?: string[] },
   ): Promise<WorkflowRunResult> {
     // Continue existing workflow (optionally applying a waiting transition)
     if (payload.workflowId) {
@@ -59,10 +59,11 @@ export class WorkflowRunner {
 
     // Start new workflow
     const workerId = this.configService.getOrThrow<string>('auth.clientId');
+    const labels = payload.labels ?? options.labels;
     const workspace = await this.findOrCreateWorkspace(options.appName, options.userId, payload.workspaceId);
     const workflowEntity = await this.createWorkflowService.create(
       { id: workspace.id },
-      { workflowName: workflowClass.name, args: payload.args as unknown },
+      { workflowName: workflowClass.name, args: payload.args as unknown, labels },
       options.userId,
     );
 
@@ -100,7 +101,7 @@ export class WorkflowRunner {
 
     const workflowEntity = await this.createWorkflowService.create(
       { id: workspace.id },
-      { workflowName: workflow.name, args: args as unknown },
+      { workflowName: workflow.name, args: args as unknown, labels: options.labels },
       options.userId,
     );
 
@@ -158,7 +159,7 @@ export class WorkflowRunner {
 
     const workflowEntity = await this.createWorkflowService.create(
       { id: workspace.id },
-      { workflowName: workflow.name, args: args as unknown },
+      { workflowName: workflow.name, args: args as unknown, labels: options.labels },
       options.userId,
     );
 

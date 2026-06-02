@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
-import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import { GlobTool, ReadTool } from '@loopstack/remote-client';
 
 interface RemoteFileExplorerState {
@@ -19,12 +19,8 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow<Record<strin
     super();
   }
 
-  @Initial({ to: 'listed' })
-  async listFiles(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: RemoteFileExplorerState,
-  ): Promise<RemoteFileExplorerState> {
+  @Transition({ to: 'listed' })
+  async listFiles(state: RemoteFileExplorerState): Promise<RemoteFileExplorerState> {
     const result = await this.glob.call({ pattern: '**/*.md' });
     const files = (result.data as { files?: string[] })?.files ?? [];
 
@@ -38,8 +34,8 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow<Record<strin
     return { ...state, firstMatch: files[0] };
   }
 
-  @Final({ from: 'listed' })
-  async readFirst(ctx: WorkflowContext, state: RemoteFileExplorerState): Promise<unknown> {
+  @Transition({ from: 'listed', to: 'end' })
+  async readFirst(state: RemoteFileExplorerState): Promise<unknown> {
     if (!state.firstMatch) {
       await this.documentStore.save(MessageDocument, {
         role: 'assistant',

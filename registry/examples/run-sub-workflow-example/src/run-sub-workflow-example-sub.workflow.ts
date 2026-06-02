@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
-import { BaseWorkflow, DOCUMENT_STORE, Initial, MessageDocument, Workflow } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 
 @Workflow({
   title: 'Sub Workflow',
@@ -10,12 +10,8 @@ export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
     super();
   }
 
-  @Initial({ to: 'end' })
-  async message(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: Record<string, unknown>,
-  ): Promise<{ message: string }> {
+  @Transition({ to: 'end' })
+  async message(state: Record<string, unknown>): Promise<{ message: string }> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Sub workflow completed.',

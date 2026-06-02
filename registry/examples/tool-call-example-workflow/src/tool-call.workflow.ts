@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
-import { BaseWorkflow, DOCUMENT_STORE, Final, Guard, Initial, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, Guard, Transition, Workflow } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmDelegateToolCallsTool, LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { GetWeather } from './tools/get-weather.tool';
@@ -26,14 +26,14 @@ export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, Tool
     super();
   }
 
-  @Initial({ to: 'ready' })
-  async setup(ctx: WorkflowContext, args: Record<string, unknown>, state: ToolCallState): Promise<ToolCallState> {
+  @Transition({ to: 'ready' })
+  async setup(state: ToolCallState): Promise<ToolCallState> {
     await this.documentStore.save(LlmMessageDocument, { role: 'user', content: 'How is the weather in Berlin?' });
     return state;
   }
 
   @Transition({ from: 'ready', to: 'prompt_executed' })
-  async llmTurn(ctx: WorkflowContext, state: ToolCallState): Promise<ToolCallState> {
+  async llmTurn(state: ToolCallState): Promise<ToolCallState> {
     const result = await this.llmGenerateText.call(
       {},
       { config: { provider: 'claude', model: 'claude-sonnet-4-6', tools: ['get_weather'] } },
@@ -43,7 +43,7 @@ export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, Tool
 
   @Transition({ from: 'prompt_executed', to: 'awaiting_tools', priority: 10 })
   @Guard('hasToolCalls')
-  async executeToolCalls(ctx: WorkflowContext, state: ToolCallState): Promise<ToolCallState> {
+  async executeToolCalls(state: ToolCallState): Promise<ToolCallState> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });
@@ -60,7 +60,7 @@ export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, Tool
 
   @Transition({ from: 'awaiting_tools', to: 'ready' })
   @Guard('allToolsComplete')
-  async toolsComplete(ctx: WorkflowContext, state: ToolCallState): Promise<ToolCallState> {
+  async toolsComplete(state: ToolCallState): Promise<ToolCallState> {
     await this.documentStore.save(LlmMessageDocument, {
       role: 'user',
       content: state.delegateResult!.toolResults.map((tr) => ({
@@ -77,8 +77,8 @@ export class ToolCallWorkflow extends BaseWorkflow<Record<string, unknown>, Tool
     return state.delegateResult?.allCompleted ?? false;
   }
 
-  @Final({ from: 'prompt_executed' })
-  async respond(ctx: WorkflowContext, state: ToolCallState): Promise<unknown> {
+  @Transition({ from: 'prompt_executed', to: 'end' })
+  async respond(state: ToolCallState): Promise<unknown> {
     await this.documentStore.save(LlmMessageDocument, state.llmResult!.message, {
       meta: { response: state.llmResult!.response, provider: state.llmMeta!.provider },
     });

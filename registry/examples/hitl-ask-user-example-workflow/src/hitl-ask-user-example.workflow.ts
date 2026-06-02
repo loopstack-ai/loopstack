@@ -4,16 +4,15 @@ import {
   BaseWorkflow,
   CallbackSchema,
   DOCUMENT_STORE,
-  Final,
-  Initial,
   LinkDocument,
   MessageDocument,
   QueueResult,
+  Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 
 const AskUserCallbackSchema = CallbackSchema.extend({
@@ -33,12 +32,8 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
     super();
   }
 
-  @Initial({ to: 'waiting_for_answer' })
-  async askQuestion(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
+  @Transition({ to: 'waiting_for_answer' })
+  async askQuestion(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
       { question: 'What is your name?' },
       { workflowName: AskUserWorkflow.name, callback: { transition: 'answerReceived' } },
@@ -63,16 +58,13 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Final({
+  @Transition({
     from: 'waiting_for_answer',
+    to: 'end',
     wait: true,
     schema: AskUserCallbackSchema,
   })
-  async answerReceived(
-    ctx: WorkflowContext,
-    state: Record<string, unknown>,
-    payload: AskUserCallback,
-  ): Promise<unknown> {
+  async answerReceived(state: Record<string, unknown>, payload: AskUserCallback): Promise<unknown> {
     await this.documentStore.save(
       LinkDocument,
       {

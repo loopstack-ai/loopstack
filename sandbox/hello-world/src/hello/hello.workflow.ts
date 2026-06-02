@@ -1,8 +1,6 @@
 import { z } from 'zod';
 import {
   BaseWorkflow,
-  Final,
-  Initial,
   MessageDocument,
   Transition,
   Workflow,
@@ -26,17 +24,14 @@ export class HelloWorkflow extends BaseWorkflow<{ name: string }, HelloState> {
     super();
   }
 
-  @Initial({ to: 'ready' })
-  async start(
-    ctx: WorkflowContext,
-    args: { name: string },
-    state: HelloState,
-  ): Promise<HelloState> {
+  @Transition({ to: 'ready' })
+  async start(state: HelloState, ctx: WorkflowContext): Promise<HelloState> {
+    const args = ctx.input.args as { name: string };
     return { name: args.name };
   }
 
   @Transition({ from: 'ready', to: 'done' })
-  async greet(ctx: WorkflowContext, state: HelloState): Promise<HelloState> {
+  async greet(state: HelloState): Promise<HelloState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Hello, ${state.name}!`,
@@ -44,8 +39,8 @@ export class HelloWorkflow extends BaseWorkflow<{ name: string }, HelloState> {
     return state;
   }
 
-  @Final({ from: 'done' })
-  async finish(ctx: WorkflowContext, state: HelloState): Promise<unknown> {
+  @Transition({ from: 'done', to: 'end' })
+  async finish(state: HelloState): Promise<unknown> {
     return {};
   }
 }

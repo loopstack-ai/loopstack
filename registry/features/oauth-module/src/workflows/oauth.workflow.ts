@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import type { WorkflowContext } from '@loopstack/common';
-import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, ToolResult, Workflow } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, ToolResult, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents/index.js';
 import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools/index.js';
@@ -38,8 +38,9 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
     super();
   }
 
-  @Initial({ to: 'awaiting_auth' })
-  async initiateOAuth(_ctx: WorkflowContext, args: OAuthArgs, state: OAuthState): Promise<OAuthState> {
+  @Transition({ to: 'awaiting_auth' })
+  async initiateOAuth(state: OAuthState, ctx: WorkflowContext): Promise<OAuthState> {
+    const args = ctx.input.args as OAuthArgs;
     const result: ToolResult<BuildOAuthUrlResult> = await this.buildOAuthUrl.call({
       provider: args.provider,
       scopes: args.scopes,
@@ -62,13 +63,13 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
     return { ...state, provider: args.provider, scopes: args.scopes, oauthState, authUrl };
   }
 
-  @Final({
+  @Transition({
     from: 'awaiting_auth',
+    to: 'end',
     wait: true,
     schema: z.object({ code: z.string(), state: z.string() }),
   })
   async exchangeToken(
-    _ctx: WorkflowContext,
     state: OAuthState,
     payload: { code: string; state: string },
   ): Promise<{ authenticated: boolean }> {

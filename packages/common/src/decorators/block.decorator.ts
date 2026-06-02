@@ -190,36 +190,14 @@ export interface GuardMetadata {
   guardMethodName: string;
 }
 
-export interface InitialOptions {
-  to: string;
-  wait?: boolean;
-  priority?: number;
-  /** Zod schema to validate the transition payload (for wait transitions) or args (for @Initial) */
-  schema?: z.ZodType;
-  /** Retry configuration for error handling. Default: unlimited manual retry. */
-  retry?: RetryConfig;
-  /** Timeout in ms — kills the transition and triggers the error/retry flow. Default: 300_000 (5 min, via DEFAULT_TRANSITION_TIMEOUT env var). Set to 0 for no timeout. */
-  timeout?: number;
-}
-
 export interface TransitionOptions {
-  from: string;
+  /** Source state. Defaults to 'start' (initial transition) when omitted. */
+  from?: string;
+  /** Target state. Use 'end' for final transitions. */
   to: string;
   wait?: boolean;
   priority?: number;
-  /** Zod schema to validate the transition payload */
-  schema?: z.ZodType;
-  /** Retry configuration for error handling. Default: unlimited manual retry. */
-  retry?: RetryConfig;
-  /** Timeout in ms — kills the transition and triggers the error/retry flow. Default: 300_000 (5 min, via DEFAULT_TRANSITION_TIMEOUT env var). Set to 0 for no timeout. */
-  timeout?: number;
-}
-
-export interface FinalOptions {
-  from: string;
-  wait?: boolean;
-  priority?: number;
-  /** Zod schema to validate the transition payload */
+  /** Zod schema to validate the transition payload (for wait transitions) or args (for initial transitions) */
   schema?: z.ZodType;
   /** Retry configuration for error handling. Default: unlimited manual retry. */
   retry?: RetryConfig;
@@ -232,42 +210,12 @@ function addTransitionMetadata(target: object, metadata: TransitionMetadata): vo
   Reflect.defineMetadata(TRANSITIONS_METADATA_KEY, [...existing, metadata], target.constructor);
 }
 
-export function Initial(options: InitialOptions): MethodDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    addTransitionMetadata(target, {
-      methodName: String(propertyKey),
-      from: 'start',
-      to: options.to,
-      wait: options.wait,
-      priority: options.priority,
-      schema: options.schema,
-      retry: normalizeRetryConfig(options.retry),
-      timeout: options.timeout,
-    });
-  };
-}
-
 export function Transition(options: TransitionOptions): MethodDecorator {
   return (target: object, propertyKey: string | symbol) => {
     addTransitionMetadata(target, {
       methodName: String(propertyKey),
-      from: options.from,
+      from: options.from ?? 'start',
       to: options.to,
-      wait: options.wait,
-      priority: options.priority,
-      schema: options.schema,
-      retry: normalizeRetryConfig(options.retry),
-      timeout: options.timeout,
-    });
-  };
-}
-
-export function Final(options: FinalOptions): MethodDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    addTransitionMetadata(target, {
-      methodName: String(propertyKey),
-      from: options.from,
-      to: 'end',
       wait: options.wait,
       priority: options.priority,
       schema: options.schema,

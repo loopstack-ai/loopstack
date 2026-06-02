@@ -42,7 +42,7 @@ export class ProcessorApiService {
       // and pass the constructor. The registry stores instances, but execute()
       // resolves the instance internally — we just need the class.
       this.getWorkflowClass(workflowClassName),
-      { workspaceId: payload.workspaceId, args: payload.args },
+      { workspaceId: payload.workspaceId, args: payload.args, labels: payload.labels },
       { userId, appName },
     );
   }

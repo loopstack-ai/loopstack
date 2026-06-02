@@ -4,16 +4,15 @@ import {
   BaseWorkflow,
   CallbackSchema,
   DOCUMENT_STORE,
-  Final,
-  Initial,
   LinkDocument,
   MessageDocument,
   QueueResult,
+  Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 
 const ConfirmCallbackSchema = CallbackSchema.extend({
@@ -42,12 +41,8 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
     super();
   }
 
-  @Initial({ to: 'waiting_for_confirmation' })
-  async askForConfirmation(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
+  @Transition({ to: 'waiting_for_confirmation' })
+  async askForConfirmation(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     const result: QueueResult = await this.orchestrator.queue(
       { markdown: MARKDOWN_SUMMARY },
       { workflowName: ConfirmUserWorkflow.name, callback: { transition: 'decisionReceived' } },
@@ -72,16 +67,13 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Final({
+  @Transition({
     from: 'waiting_for_confirmation',
+    to: 'end',
     wait: true,
     schema: ConfirmCallbackSchema,
   })
-  async decisionReceived(
-    ctx: WorkflowContext,
-    state: Record<string, unknown>,
-    payload: ConfirmCallback,
-  ): Promise<unknown> {
+  async decisionReceived(state: Record<string, unknown>, payload: ConfirmCallback): Promise<unknown> {
     await this.documentStore.save(
       LinkDocument,
       {

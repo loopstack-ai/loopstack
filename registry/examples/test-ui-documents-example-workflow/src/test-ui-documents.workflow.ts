@@ -3,14 +3,13 @@ import {
   BaseWorkflow,
   DOCUMENT_STORE,
   ErrorDocument,
-  Final,
-  Initial,
   MarkdownDocument,
   MessageDocument,
   PlainDocument,
+  Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 
 @Workflow({
   title: 'Core Ui Documents',
@@ -21,12 +20,8 @@ export class TestUiDocumentsWorkflow extends BaseWorkflow {
     super();
   }
 
-  @Initial({ to: 'rendered' })
-  async renderAll(
-    ctx: WorkflowContext,
-    args: Record<string, unknown>,
-    state: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
+  @Transition({ to: 'rendered' })
+  async renderAll(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     // Message
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -50,8 +45,8 @@ export class TestUiDocumentsWorkflow extends BaseWorkflow {
     return state;
   }
 
-  @Final({ from: 'rendered' })
-  async done(ctx: WorkflowContext, state: Record<string, unknown>): Promise<unknown> {
+  @Transition({ from: 'rendered', to: 'end' })
+  async done(state: Record<string, unknown>): Promise<unknown> {
     return {};
   }
 }

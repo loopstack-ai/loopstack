@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, DOCUMENT_STORE, Final, Initial, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore, WorkflowContext } from '@loopstack/common';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
@@ -30,12 +30,9 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
     super();
   }
 
-  @Initial({ to: 'waiting_for_user' })
-  async calculate(
-    ctx: WorkflowContext,
-    args: { a: number; b: number },
-    state: CustomToolExampleState,
-  ): Promise<CustomToolExampleState> {
+  @Transition({ to: 'waiting_for_user' })
+  async calculate(state: CustomToolExampleState, ctx: WorkflowContext): Promise<CustomToolExampleState> {
+    const args = ctx.input.args as { a: number; b: number };
     // Use a custom tool
     const calcResult = await this.mathTool.call({ a: args.a, b: args.b });
     const total = calcResult.data as number;
@@ -65,13 +62,13 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
   }
 
   @Transition({ from: 'waiting_for_user', to: 'resumed', wait: true })
-  async userContinue(ctx: WorkflowContext, state: CustomToolExampleState): Promise<CustomToolExampleState> {
+  async userContinue(state: CustomToolExampleState): Promise<CustomToolExampleState> {
     // User pressed Next — counter state should persist from checkpoint
     return state;
   }
 
-  @Final({ from: 'resumed' })
-  async continueCount(ctx: WorkflowContext, state: CustomToolExampleState): Promise<{ total: number | undefined }> {
+  @Transition({ from: 'resumed', to: 'end' })
+  async continueCount(state: CustomToolExampleState): Promise<{ total: number | undefined }> {
     // Count after resume — should continue: 4, 5, 6
     const c4 = await this.counterTool.call();
     const c5 = await this.counterTool.call();

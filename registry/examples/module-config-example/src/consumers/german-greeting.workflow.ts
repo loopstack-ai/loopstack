@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
-import { BaseWorkflow, Final, Initial, MessageDocument, Workflow } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 import { DOCUMENT_STORE } from '@loopstack/common';
 import { GreeterTool } from '../greeter/index.js';
 
@@ -16,8 +16,8 @@ export class GermanGreetingWorkflow extends BaseWorkflow {
     super();
   }
 
-  @Initial({ to: 'done' })
-  async greet(ctx: WorkflowContext): Promise<unknown> {
+  @Transition({ to: 'done' })
+  async greet(state: Record<string, unknown>): Promise<unknown> {
     const result = await this.greeter.call({ name: 'Welt' });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -26,8 +26,8 @@ export class GermanGreetingWorkflow extends BaseWorkflow {
     return {};
   }
 
-  @Final({ from: 'done' })
-  async finish(): Promise<unknown> {
+  @Transition({ from: 'done', to: 'end' })
+  async finish(state: Record<string, unknown>): Promise<unknown> {
     return {};
   }
 }
