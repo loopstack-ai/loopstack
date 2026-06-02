@@ -1,4 +1,4 @@
-# @loopstack/code-agent-explore-example-workflow
+# @loopstack/code-agent-example-workflow
 
 Demonstrates how to launch the `ExploreAgentWorkflow` from [`@loopstack/code-agent`](../../features/code-agent-module) as a sub-workflow to explore a remote workspace and surface a synthesized summary.
 
@@ -11,7 +11,7 @@ Demonstrates how to launch the `ExploreAgentWorkflow` from [`@loopstack/code-age
 ## Installation
 
 ```sh
-loopstack add @loopstack/code-agent-explore-example-workflow
+npm install @loopstack/code-agent-example-workflow
 ```
 
 `@loopstack/code-agent` transitively requires `@loopstack/claude-module` and `@loopstack/remote-client` — make sure both are configured (Anthropic API key + sandbox environment) before running.
@@ -25,8 +25,8 @@ loopstack add @loopstack/code-agent-explore-example-workflow
 
 ## Public API
 
-- `CodeAgentExploreExampleModule`
-- `CodeAgentExploreExampleWorkflow`
+- `CodeAgentExampleModule`
+- `CodeAgentExampleWorkflow`
 
 ## Dependencies
 

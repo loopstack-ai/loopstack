@@ -13,10 +13,10 @@ Demonstrates how to connect a Loopstack chat agent to [Linear's hosted MCP serve
 ## Installation
 
 ```sh
-loopstack add @loopstack/mcp-linear-example-workflow
+npm install @loopstack/mcp-linear-example-workflow
 ```
 
-This installs `@loopstack/mcp-module` and `@loopstack/agent` automatically.
+The package depends on `@loopstack/mcp-module` and `@loopstack/agent`.
 
 ## Environment
 
