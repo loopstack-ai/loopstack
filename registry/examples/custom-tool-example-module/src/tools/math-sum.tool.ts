@@ -24,7 +24,7 @@ export class MathSumTool extends BaseTool<MathSumArgs, object, MathSumToolResult
     super();
   }
 
-  protected async handle(args: MathSumArgs, ctx: LoopstackContext): Promise<ToolResult<MathSumToolResult>> {
+  protected async handle(args: MathSumArgs, _ctx: LoopstackContext): Promise<ToolResult<MathSumToolResult>> {
     const sum = this.mathService.sum(args.a, args.b);
     return Promise.resolve({ data: sum });
   }

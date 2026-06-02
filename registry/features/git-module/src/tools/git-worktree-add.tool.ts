@@ -37,7 +37,7 @@ export class GitWorktreeAddTool extends BaseTool<GitWorktreeAddArgs, object, Git
     super();
   }
 
-  protected async handle(args: GitWorktreeAddArgs, ctx: LoopstackContext): Promise<ToolResult<GitWorktreeAddResult>> {
+  protected async handle(args: GitWorktreeAddArgs, _ctx: LoopstackContext): Promise<ToolResult<GitWorktreeAddResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitWorktreeAdd(agentUrl, args);
     return { data: result };

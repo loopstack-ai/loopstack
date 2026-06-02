@@ -24,7 +24,7 @@ export interface GreetResult {
 export class GreeterTool extends BaseTool<GreeterArgs, object, GreetResult> {
   @Inject(GREETER_CONFIG) private readonly config: GreeterConfig;
 
-  protected async handle(args: GreeterArgs, ctx: LoopstackContext): Promise<ToolResult<GreetResult>> {
+  protected async handle(args: GreeterArgs, _ctx: LoopstackContext): Promise<ToolResult<GreetResult>> {
     const language = this.config.language ?? 'en';
     const greeting = this.config.greeting ?? 'Hello';
 

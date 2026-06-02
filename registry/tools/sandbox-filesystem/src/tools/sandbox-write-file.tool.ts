@@ -36,7 +36,7 @@ export class SandboxWriteFile extends BaseTool<SandboxWriteFileArgs, object, San
 
   protected async handle(
     args: SandboxWriteFileArgs,
-    ctx: LoopstackContext,
+    _ctx: LoopstackContext,
   ): Promise<ToolResult<SandboxWriteFileResult>> {
     const { containerId, path: filePath, content, encoding, createParentDirs } = args;
 

@@ -79,7 +79,7 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }, L
   }
 
   @Transition({ from: 'openai_done', to: 'end' })
-  async done(state: LlmMultiProviderState): Promise<unknown> {
+  async done(_state: LlmMultiProviderState): Promise<unknown> {
     return {};
   }
 }

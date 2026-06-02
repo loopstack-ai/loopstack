@@ -40,7 +40,7 @@ export class SandboxListDirectory extends BaseTool<SandboxListDirectoryArgs, obj
 
   protected async handle(
     args: SandboxListDirectoryArgs,
-    ctx: LoopstackContext,
+    _ctx: LoopstackContext,
   ): Promise<ToolResult<SandboxListDirectoryResult>> {
     const { containerId, path: dirPath, recursive } = args;
 

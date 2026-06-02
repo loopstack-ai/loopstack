@@ -20,7 +20,7 @@ const AskUserAnswerSchema = z.object({
   answer: z.string(),
 });
 
-interface AskUserState extends AskUserArgs {}
+type AskUserState = AskUserArgs;
 
 @Workflow({
   title: 'Ask User',

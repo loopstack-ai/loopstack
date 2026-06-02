@@ -28,7 +28,7 @@ export class GitConfigUserTool extends BaseTool<GitConfigUserArgs, object, GitCo
     super();
   }
 
-  protected async handle(args: GitConfigUserArgs, ctx: LoopstackContext): Promise<ToolResult<GitConfigUserResult>> {
+  protected async handle(args: GitConfigUserArgs, _ctx: LoopstackContext): Promise<ToolResult<GitConfigUserResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitConfigUser(agentUrl, args.name, args.email);
     return { data: result };

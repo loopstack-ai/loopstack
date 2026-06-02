@@ -46,7 +46,7 @@ export class TestUiDocumentsWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'rendered', to: 'end' })
-  async done(state: Record<string, unknown>): Promise<unknown> {
+  async done(_state: Record<string, unknown>): Promise<unknown> {
     return {};
   }
 }

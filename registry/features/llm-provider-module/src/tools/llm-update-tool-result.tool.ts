@@ -29,7 +29,7 @@ export class LlmUpdateToolResultTool extends BaseTool<LlmUpdateToolResultToolArg
 
   protected async handle(
     args: LlmUpdateToolResultToolArgs,
-    ctx: LoopstackContext,
+    _ctx: LoopstackContext,
   ): Promise<ToolResult<LlmDelegateResult>> {
     const result = await this.delegateService.updateToolResult(
       args.delegateResult as LlmDelegateResult,

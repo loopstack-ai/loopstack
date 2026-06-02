@@ -11,7 +11,7 @@ export class RunSubWorkflowExampleSubWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'end' })
-  async message(state: Record<string, unknown>): Promise<{ message: string }> {
+  async message(_state: Record<string, unknown>): Promise<{ message: string }> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Sub workflow completed.',

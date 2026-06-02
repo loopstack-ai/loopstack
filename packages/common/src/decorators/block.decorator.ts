@@ -1,12 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import type {
-  BlockConfigType,
-  DocumentConfigType,
-  ToolConfigType,
-  UiWidgetType,
-  WorkflowType,
-} from '@loopstack/contracts/types';
+import type { BlockConfigType, DocumentConfigType, UiWidgetType } from '@loopstack/contracts/types';
 
 /** A widget reference: either a YAML file path or an inline widget object. */
 export type WidgetRef = string | UiWidgetType;

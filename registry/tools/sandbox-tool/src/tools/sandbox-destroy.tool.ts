@@ -32,7 +32,7 @@ export class SandboxDestroy extends BaseTool<SandboxDestroyArgs, object, Sandbox
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  protected async handle(args: SandboxDestroyArgs, ctx: LoopstackContext): Promise<ToolResult<SandboxDestroyResult>> {
+  protected async handle(args: SandboxDestroyArgs, _ctx: LoopstackContext): Promise<ToolResult<SandboxDestroyResult>> {
     const { containerId, removeContainer } = args;
 
     this.logger.debug(`Destroying sandbox ${containerId} (removeContainer: ${removeContainer})`);

@@ -28,7 +28,7 @@ export class GitCheckoutTool extends BaseTool<GitCheckoutArgs, object, GitChecko
     super();
   }
 
-  protected async handle(args: GitCheckoutArgs, ctx: LoopstackContext): Promise<ToolResult<GitCheckoutResult>> {
+  protected async handle(args: GitCheckoutArgs, _ctx: LoopstackContext): Promise<ToolResult<GitCheckoutResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitCheckout(agentUrl, args.branch, args.create);
     return { data: result };

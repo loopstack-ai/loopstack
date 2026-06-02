@@ -71,7 +71,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   // --- Terminal transitions ---
 
   @Transition({ from: 'placeB', to: 'end' })
-  async showMessagePlaceB(state: DynamicRoutingState): Promise<unknown> {
+  async showMessagePlaceB(_state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is less or equal 100',
@@ -80,7 +80,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   }
 
   @Transition({ from: 'placeC', to: 'end' })
-  async showMessagePlaceC(state: DynamicRoutingState): Promise<unknown> {
+  async showMessagePlaceC(_state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is greater than 200',
@@ -89,7 +89,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   }
 
   @Transition({ from: 'placeD', to: 'end' })
-  async showMessagePlaceD(state: DynamicRoutingState): Promise<unknown> {
+  async showMessagePlaceD(_state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'Value is less or equal 200, but greater than 100',

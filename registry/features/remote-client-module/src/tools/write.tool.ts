@@ -32,7 +32,7 @@ export class WriteTool extends BaseTool<WriteArgs, object, WriteResult> {
     super();
   }
 
-  protected async handle(args: WriteArgs, ctx: LoopstackContext): Promise<ToolResult<WriteResult>> {
+  protected async handle(args: WriteArgs, _ctx: LoopstackContext): Promise<ToolResult<WriteResult>> {
     const agentUrl = await this.env.getAgentUrl();
     await this.remote.writeFile(agentUrl, args.file_path, args.content);
     return { data: { success: true, path: args.file_path } };

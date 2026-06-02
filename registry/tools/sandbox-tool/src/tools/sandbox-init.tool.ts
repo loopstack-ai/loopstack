@@ -32,7 +32,7 @@ export class SandboxInit extends BaseTool<SandboxInitArgs, object, SandboxInitRe
   @Inject()
   private readonly containerManager: DockerContainerManagerService;
 
-  protected async handle(args: SandboxInitArgs, ctx: LoopstackContext): Promise<ToolResult<SandboxInitResult>> {
+  protected async handle(args: SandboxInitArgs, _ctx: LoopstackContext): Promise<ToolResult<SandboxInitResult>> {
     const { containerId, imageName, containerName, projectOutPath, rootPath } = args;
 
     this.logger.debug(

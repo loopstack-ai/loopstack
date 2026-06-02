@@ -17,7 +17,7 @@ export class GermanGreetingWorkflow extends BaseWorkflow {
   }
 
   @Transition({ to: 'done' })
-  async greet(state: Record<string, unknown>): Promise<unknown> {
+  async greet(_state: Record<string, unknown>): Promise<unknown> {
     const result = await this.greeter.call({ name: 'Welt' });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -27,7 +27,7 @@ export class GermanGreetingWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'done', to: 'end' })
-  async finish(state: Record<string, unknown>): Promise<unknown> {
+  async finish(_state: Record<string, unknown>): Promise<unknown> {
     return {};
   }
 }

@@ -31,7 +31,10 @@ export class SandboxReadFile extends BaseTool<SandboxReadFileArgs, object, Sandb
     super();
   }
 
-  protected async handle(args: SandboxReadFileArgs, ctx: LoopstackContext): Promise<ToolResult<SandboxReadFileResult>> {
+  protected async handle(
+    args: SandboxReadFileArgs,
+    _ctx: LoopstackContext,
+  ): Promise<ToolResult<SandboxReadFileResult>> {
     const { containerId, path, encoding } = args;
 
     this.logger.debug(`Reading file ${path} from container ${containerId} (encoding: ${encoding})`);

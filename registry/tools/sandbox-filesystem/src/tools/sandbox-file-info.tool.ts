@@ -38,7 +38,10 @@ export class SandboxFileInfo extends BaseTool<SandboxFileInfoArgs, object, Sandb
     super();
   }
 
-  protected async handle(args: SandboxFileInfoArgs, ctx: LoopstackContext): Promise<ToolResult<SandboxFileInfoResult>> {
+  protected async handle(
+    args: SandboxFileInfoArgs,
+    _ctx: LoopstackContext,
+  ): Promise<ToolResult<SandboxFileInfoResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Getting file info for ${targetPath} in container ${containerId}`);

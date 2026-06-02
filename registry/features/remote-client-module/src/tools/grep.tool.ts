@@ -38,7 +38,7 @@ export class GrepTool extends BaseTool<GrepArgs, object, GrepResult> {
     super();
   }
 
-  protected async handle(args: GrepArgs, ctx: LoopstackContext): Promise<ToolResult<GrepResult>> {
+  protected async handle(args: GrepArgs, _ctx: LoopstackContext): Promise<ToolResult<GrepResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.grep(agentUrl, args.pattern, args.path, {
       glob: args.glob,

@@ -35,7 +35,7 @@ export class WebFetchTool extends BaseTool<WebFetchArgs, object, WebFetchResult>
   @Inject() private readonly fetcher: WebFetchFetcherService;
   @Inject() private readonly summarizer: WebFetchSummarizerService;
 
-  protected async handle(args: WebFetchArgs, ctx: LoopstackContext): Promise<ToolResult<WebFetchResult>> {
+  protected async handle(args: WebFetchArgs, _ctx: LoopstackContext): Promise<ToolResult<WebFetchResult>> {
     const start = performance.now();
     const outcome = await this.fetcher.fetch(args.url);
 

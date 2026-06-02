@@ -31,7 +31,7 @@ export class SandboxExists extends BaseTool<SandboxExistsArgs, object, SandboxEx
     super();
   }
 
-  protected async handle(args: SandboxExistsArgs, ctx: LoopstackContext): Promise<ToolResult<SandboxExistsResult>> {
+  protected async handle(args: SandboxExistsArgs, _ctx: LoopstackContext): Promise<ToolResult<SandboxExistsResult>> {
     const { containerId, path: targetPath } = args;
 
     this.logger.debug(`Checking existence of ${targetPath} in container ${containerId}`);

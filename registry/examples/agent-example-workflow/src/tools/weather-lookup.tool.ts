@@ -12,7 +12,7 @@ export type WeatherLookupResult = string;
   }),
 })
 export class WeatherLookupTool extends BaseTool<{ city: string }, object, WeatherLookupResult> {
-  protected async handle(args: { city: string }, ctx: LoopstackContext): Promise<ToolResult<WeatherLookupResult>> {
+  protected async handle(args: { city: string }, _ctx: LoopstackContext): Promise<ToolResult<WeatherLookupResult>> {
     // Simulated weather data for demonstration purposes
     const forecasts: Record<string, string> = {
       london: '14°C, cloudy with light rain',

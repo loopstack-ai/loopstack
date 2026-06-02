@@ -16,7 +16,7 @@ export type CalculatorResult = string;
 export class CalculatorTool extends BaseTool<{ operation: string; a: number; b: number }, object, CalculatorResult> {
   protected async handle(
     args: { operation: string; a: number; b: number },
-    ctx: LoopstackContext,
+    _ctx: LoopstackContext,
   ): Promise<ToolResult<CalculatorResult>> {
     let result: number;
 

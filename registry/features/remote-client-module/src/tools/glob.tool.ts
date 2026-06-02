@@ -32,7 +32,7 @@ export class GlobTool extends BaseTool<GlobArgs, object, GlobResult> {
     super();
   }
 
-  protected async handle(args: GlobArgs, ctx: LoopstackContext): Promise<ToolResult<GlobResult>> {
+  protected async handle(args: GlobArgs, _ctx: LoopstackContext): Promise<ToolResult<GlobResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.glob(agentUrl, args.pattern, args.path);
     return { data: result };

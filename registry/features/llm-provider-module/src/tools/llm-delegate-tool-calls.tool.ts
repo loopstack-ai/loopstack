@@ -27,7 +27,7 @@ export class LlmDelegateToolCallsTool extends BaseTool<LlmDelegateToolCallsToolA
 
   protected async handle(
     args: LlmDelegateToolCallsToolArgs,
-    ctx: LoopstackContext,
+    _ctx: LoopstackContext,
   ): Promise<ToolResult<LlmDelegateResult>> {
     const message = args.message as LlmNormalizedMessage;
     const toolCalls = this.extractToolCalls(message);

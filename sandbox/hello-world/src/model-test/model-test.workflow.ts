@@ -46,7 +46,7 @@ export class ModelTestWorkflow extends BaseWorkflow<
     });
     return {
       llmResult: result.data,
-      llmMeta: result.metadata as LlmResultMeta | undefined,
+      llmMeta: result.metadata,
     };
   }
 

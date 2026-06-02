@@ -28,7 +28,7 @@ export class BuildOAuthUrlTool extends BaseTool<BuildOAuthUrlArgs, object, Build
   @Inject()
   private providerRegistry: OAuthProviderRegistry;
 
-  protected async handle(args: BuildOAuthUrlArgs, ctx: LoopstackContext): Promise<ToolResult> {
+  protected async handle(args: BuildOAuthUrlArgs, _ctx: LoopstackContext): Promise<ToolResult> {
     const provider = this.providerRegistry.get(args.provider);
     const state = randomBytes(32).toString('hex');
     const scopes = args.scopes?.length ? args.scopes : provider.defaultScopes;

@@ -38,7 +38,7 @@ export class EditTool extends BaseTool<EditArgs, object, EditResult> {
     super();
   }
 
-  protected async handle(args: EditArgs, ctx: LoopstackContext): Promise<ToolResult<EditResult>> {
+  protected async handle(args: EditArgs, _ctx: LoopstackContext): Promise<ToolResult<EditResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.editFile(
       agentUrl,

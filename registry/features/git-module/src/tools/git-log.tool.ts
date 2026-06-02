@@ -36,7 +36,7 @@ export class GitLogTool extends BaseTool<GitLogArgs, object, GitLogResult> {
     super();
   }
 
-  protected async handle(args: GitLogArgs, ctx: LoopstackContext): Promise<ToolResult<GitLogResult>> {
+  protected async handle(args: GitLogArgs, _ctx: LoopstackContext): Promise<ToolResult<GitLogResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitLog(agentUrl, args.limit);
     return { data: result };

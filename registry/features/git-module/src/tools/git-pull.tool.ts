@@ -33,7 +33,7 @@ export class GitPullTool extends BaseTool<GitPullArgs, object, GitPullResult> {
     super();
   }
 
-  protected async handle(args: GitPullArgs, ctx: LoopstackContext): Promise<ToolResult<GitPullResult>> {
+  protected async handle(args: GitPullArgs, _ctx: LoopstackContext): Promise<ToolResult<GitPullResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitPull(agentUrl, {
       remote: args.remote,

@@ -33,7 +33,7 @@ export class BashTool extends BaseTool<BashArgs, object, BashResult> {
     super();
   }
 
-  protected async handle(args: BashArgs, ctx: LoopstackContext): Promise<ToolResult<BashResult>> {
+  protected async handle(args: BashArgs, _ctx: LoopstackContext): Promise<ToolResult<BashResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.executeCommand(agentUrl, args.command, undefined, args.timeout);
     return {

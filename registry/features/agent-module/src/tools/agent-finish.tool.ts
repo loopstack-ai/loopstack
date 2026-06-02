@@ -21,7 +21,7 @@ export type AgentFinishResult = { __agentFinish: true; result: unknown };
   schema: AgentFinishInputSchema,
 })
 export class AgentFinishTool extends BaseTool<AgentFinishInput, object, AgentFinishResult> {
-  protected async handle(args: AgentFinishInput, ctx: LoopstackContext): Promise<ToolResult<AgentFinishResult>> {
+  protected async handle(args: AgentFinishInput, _ctx: LoopstackContext): Promise<ToolResult<AgentFinishResult>> {
     return Promise.resolve({ data: { __agentFinish: true, result: args.result ?? null } });
   }
 }

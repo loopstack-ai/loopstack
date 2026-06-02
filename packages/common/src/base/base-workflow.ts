@@ -47,7 +47,7 @@ export const CallbackSchema = z.object({
  * ```
  */
 @Injectable()
-export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TState = Record<string, unknown>> {
+export abstract class BaseWorkflow<TArgs = Record<string, unknown>, _TState = Record<string, unknown>> {
   /** @internal — injected by the framework. Routes run() through the orchestrator. */
   @Inject(WORKFLOW_ORCHESTRATOR) private readonly __orchestrator!: WorkflowOrchestrator;
 

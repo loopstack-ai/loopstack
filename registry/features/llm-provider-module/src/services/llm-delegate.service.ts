@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { BaseTool, TOOL_REGISTRY, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { TOOL_REGISTRY, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { ToolRegistry } from '@loopstack/common';
 import type { LlmDelegateResult, LlmToolCall, LlmToolErrorEntry, LlmToolResultEntry } from '../types/index.js';
 

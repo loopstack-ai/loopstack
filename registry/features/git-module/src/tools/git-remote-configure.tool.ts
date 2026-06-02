@@ -28,7 +28,7 @@ export class GitRemoteConfigureTool extends BaseTool<GitRemoteConfigureArgs, obj
 
   protected async handle(
     args: GitRemoteConfigureArgs,
-    ctx: LoopstackContext,
+    _ctx: LoopstackContext,
   ): Promise<ToolResult<GitRemoteConfigureResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitConfigureRemote(agentUrl, args.url);

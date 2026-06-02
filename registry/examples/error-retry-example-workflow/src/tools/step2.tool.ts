@@ -8,7 +8,7 @@ export type Step2ToolResult = string;
   description: 'A tool that fails when shouldFail is true.',
 })
 export class Step2Tool extends BaseTool<{ shouldFail: boolean }, object, Step2ToolResult> {
-  protected async handle(args: { shouldFail: boolean }, ctx: LoopstackContext): Promise<ToolResult<Step2ToolResult>> {
+  protected async handle(args: { shouldFail: boolean }, _ctx: LoopstackContext): Promise<ToolResult<Step2ToolResult>> {
     if (args.shouldFail) {
       throw new Error('Simulated external service error');
     }

@@ -25,7 +25,7 @@ export class HelloWorkflow extends BaseWorkflow<{ name: string }, HelloState> {
   }
 
   @Transition({ to: 'ready' })
-  async start(state: HelloState, ctx: LoopstackContext): Promise<HelloState> {
+  start(state: HelloState, ctx: LoopstackContext): HelloState {
     const args = ctx.args as { name: string };
     return { name: args.name };
   }
@@ -40,7 +40,7 @@ export class HelloWorkflow extends BaseWorkflow<{ name: string }, HelloState> {
   }
 
   @Transition({ from: 'done', to: 'end' })
-  async finish(state: HelloState): Promise<unknown> {
+  finish(): unknown {
     return {};
   }
 }

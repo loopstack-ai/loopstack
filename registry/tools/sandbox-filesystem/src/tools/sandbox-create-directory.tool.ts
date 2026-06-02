@@ -33,7 +33,7 @@ export class SandboxCreateDirectory extends BaseTool<SandboxCreateDirectoryArgs,
 
   protected async handle(
     args: SandboxCreateDirectoryArgs,
-    ctx: LoopstackContext,
+    _ctx: LoopstackContext,
   ): Promise<ToolResult<SandboxCreateDirectoryResult>> {
     const { containerId, path: dirPath, recursive } = args;
 

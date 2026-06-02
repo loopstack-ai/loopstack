@@ -42,7 +42,7 @@ export class GitCommitFlowExampleWorkflow extends BaseWorkflow {
   }
 
   @Transition({ from: 'committed', to: 'end' })
-  async readBack(state: Record<string, unknown>): Promise<unknown> {
+  async readBack(_state: Record<string, unknown>): Promise<unknown> {
     const log = await this.gitLog.call({ limit: 1 });
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',

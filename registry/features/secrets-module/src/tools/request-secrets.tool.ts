@@ -26,7 +26,7 @@ export type RequestSecretsResult = { variables: { key: string }[] };
   schema: RequestSecretsInputSchema,
 })
 export class RequestSecretsTool extends BaseTool<RequestSecretsInput, object, RequestSecretsResult> {
-  protected async handle(args: RequestSecretsInput, ctx: LoopstackContext): Promise<ToolResult<RequestSecretsResult>> {
+  protected async handle(args: RequestSecretsInput, _ctx: LoopstackContext): Promise<ToolResult<RequestSecretsResult>> {
     return Promise.resolve({
       data: { variables: args.variables },
     });

@@ -32,7 +32,7 @@ export class GitWorktreeRemoveTool extends BaseTool<GitWorktreeRemoveArgs, objec
 
   protected async handle(
     args: GitWorktreeRemoveArgs,
-    ctx: LoopstackContext,
+    _ctx: LoopstackContext,
   ): Promise<ToolResult<GitWorktreeRemoveResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitWorktreeRemove(agentUrl, args);

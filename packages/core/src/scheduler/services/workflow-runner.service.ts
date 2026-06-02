@@ -58,7 +58,7 @@ export class WorkflowRunner {
     }
 
     // Start new workflow
-    const workerId = this.configService.getOrThrow<string>('auth.clientId');
+    const _workerId = this.configService.getOrThrow<string>('auth.clientId');
     const labels = payload.labels ?? options.labels;
     const workspace = await this.findOrCreateWorkspace(options.appName, options.userId, payload.workspaceId);
     const workflowEntity = await this.createWorkflowService.create(

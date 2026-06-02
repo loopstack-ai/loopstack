@@ -26,7 +26,7 @@ export class GitCommitTool extends BaseTool<GitCommitArgs, object, GitCommitResu
     super();
   }
 
-  protected async handle(args: GitCommitArgs, ctx: LoopstackContext): Promise<ToolResult<GitCommitResult>> {
+  protected async handle(args: GitCommitArgs, _ctx: LoopstackContext): Promise<ToolResult<GitCommitResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitCommit(agentUrl, args.message);
     return { data: result };

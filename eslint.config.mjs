@@ -12,6 +12,7 @@ export default tseslint.config(
       '.changeset',
       '.turbo',
       'node_modules',
+      'templates',
       '**/.turbo/**',
       '**/dist/**',
       '**/node_modules/**',

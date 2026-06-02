@@ -32,7 +32,7 @@ export class SandboxDelete extends BaseTool<SandboxDeleteArgs, object, SandboxDe
     super();
   }
 
-  protected async handle(args: SandboxDeleteArgs, ctx: LoopstackContext): Promise<ToolResult<SandboxDeleteResult>> {
+  protected async handle(args: SandboxDeleteArgs, _ctx: LoopstackContext): Promise<ToolResult<SandboxDeleteResult>> {
     const { containerId, path: targetPath, recursive, force } = args;
 
     this.logger.debug(`Deleting ${targetPath} in container ${containerId} (recursive: ${recursive}, force: ${force})`);

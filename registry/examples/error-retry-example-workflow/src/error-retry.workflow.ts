@@ -37,7 +37,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
   }
 
   @Transition({ to: 'step1_done' })
-  async setup(state: ErrorRetryState): Promise<ErrorRetryState> {
+  async setup(_state: ErrorRetryState): Promise<ErrorRetryState> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: '# Error Retry Example\n\nThis workflow tests five retry/error modes in sequence.',
@@ -175,7 +175,7 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
   }
 
   @Transition({ from: 'done', to: 'end' })
-  async showResult(state: ErrorRetryState): Promise<unknown> {
+  async showResult(_state: ErrorRetryState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: 'All five retry modes completed successfully!',
