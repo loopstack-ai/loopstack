@@ -11,7 +11,7 @@ export const MessageDocumentSchema = z
 @Document({
   schema: MessageDocumentSchema,
   widget: import.meta.dirname + '/message-document.yaml',
-  uiConfig: import.meta.dirname + '/message-document.yaml',
+  tags: ['message'],
 })
 export class MessageDocument {
   role: string;

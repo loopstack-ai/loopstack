@@ -1,15 +1,12 @@
-import { JSONSchemaConfigType } from '../types/json-schema-config.type.js';
-import { UiFormType } from '../types/ui-form.type.js';
+import type { DynamicDocumentMeta } from '../types/document.type.js';
 
 export interface DocumentItemInterface {
   id: string;
   name: string;
   alias: string;
   content: any;
-  schema: JSONSchemaConfigType;
   validationError: any;
-  ui: UiFormType;
-  meta: any;
+  meta: DynamicDocumentMeta | null;
   isInvalidated: boolean;
   isPendingRemoval: boolean;
   version: number;

@@ -1,22 +1,10 @@
 import fs from 'node:fs';
-import path from 'node:path';
 import { parse } from 'yaml';
-import type { BlockConfigType, ConfigSourceInterface, UiWidgetType } from '@loopstack/contracts/types';
+import type { BlockConfigType, UiWidgetType } from '@loopstack/contracts/types';
 import type { BlockOptions, WidgetRef } from '../decorators/index.js';
 
 export function buildConfig(options: BlockOptions, type?: string): BlockConfigType {
-  let baseConfig: Partial<BlockConfigType> = {};
-
-  // Load document-specific uiConfig (tags, meta, content) — only used by @Document
-  if (typeof options.uiConfig === 'string') {
-    const configSource = loadConfigFile(options.uiConfig);
-    if (!configSource) {
-      throw new Error(`Could not load config source ${options.uiConfig}`);
-    }
-    Object.assign(baseConfig, configSource.config);
-  } else if (options.uiConfig) {
-    baseConfig = { ...options.uiConfig };
-  }
+  const baseConfig: Partial<BlockConfigType> = {};
 
   // Title and description always come from decorator options
   if (options.title) {
@@ -73,17 +61,4 @@ function loadWidgetFile(filePath: string): UiWidgetType[] {
     return parsed.widgets as UiWidgetType[];
   }
   return [parsed as UiWidgetType];
-}
-
-function loadConfigFile(filePath: string): ConfigSourceInterface | null {
-  const raw = fs.readFileSync(filePath, 'utf8');
-
-  const config = parse(raw) as Partial<BlockConfigType>;
-
-  return {
-    path: filePath,
-    relativePath: path.basename(filePath),
-    raw,
-    config,
-  };
 }

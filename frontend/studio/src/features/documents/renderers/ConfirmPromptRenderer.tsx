@@ -5,6 +5,7 @@ import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import MarkdownContent from '@/components/dynamic-form/MarkdownContent.tsx';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import { useDocumentTransition } from './useDocumentTransition.ts';
 
 interface ConfirmPromptContent {
@@ -26,7 +27,9 @@ const ConfirmPromptRenderer: React.FC<ConfirmPromptRendererProps> = ({
   isActive,
 }) => {
   const content = document.content as ConfirmPromptContent;
-  const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, document.ui);
+  const documentConfigs = useDocumentConfigs();
+  const docConfig = documentConfigs.get(document.alias);
+  const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, docConfig);
 
   const hasAnswer = !!content.answer;
   const disabled = !isActive || !canSubmit || hasAnswer;

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/contracts/types';
 import CompletionMessagePaper from '@/components/messages/CompletionMessagePaper.tsx';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 import { useOAuthPopup } from './useOAuthPopup.ts';
 import type { OAuthPopupResult } from './useOAuthPopup.ts';
@@ -24,14 +25,11 @@ interface OAuthPromptRendererProps {
 const OAuthPromptRenderer: React.FC<OAuthPromptRendererProps> = ({ parentWorkflow, workflow, document, isActive }) => {
   const content = document.content as OAuthPromptContent;
 
-  // Resolve transition from ui.widgets[0].options.transition or legacy ui.actions
-  const uiTyped = document.ui as Record<string, unknown> | undefined;
-  const widgets = uiTyped?.widgets as { options?: { transition?: string } }[] | undefined;
-  const transitionId =
-    widgets?.[0]?.options?.transition ??
-    (uiTyped?.actions as { options?: { transition?: string } }[] | undefined)
-      ?.map((a) => a.options?.transition)
-      .find((t) => !!t);
+  // Resolve transition from document config ui.widgets[0].options.transition
+  const documentConfigs = useDocumentConfigs();
+  const docConfig = documentConfigs.get(document.alias);
+  const widgets = docConfig?.ui?.widgets as { options?: { transition?: string } }[] | undefined;
+  const transitionId = widgets?.[0]?.options?.transition;
 
   const runWorkflow = useRunWorkflow();
   const { result, open, reset } = useOAuthPopup();

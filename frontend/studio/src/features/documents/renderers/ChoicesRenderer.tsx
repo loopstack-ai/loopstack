@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button.tsx';
 import { Label } from '@/components/ui/label.tsx';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group.tsx';
 import { Textarea } from '@/components/ui/textarea.tsx';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import { useDocumentTransition } from './useDocumentTransition.ts';
 
 interface ChoicesContent {
@@ -26,7 +27,9 @@ interface ChoicesRendererProps {
 
 const ChoicesRenderer: React.FC<ChoicesRendererProps> = ({ parentWorkflow, workflow, document, isActive }) => {
   const content = document.content as ChoicesContent;
-  const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, document.ui);
+  const documentConfigs = useDocumentConfigs();
+  const docConfig = documentConfigs.get(document.alias);
+  const { submit, canSubmit, isLoading } = useDocumentTransition(parentWorkflow, workflow, docConfig);
 
   const [selected, setSelected] = useState<string>(content.answer ?? '');
   const [customText, setCustomText] = useState('');

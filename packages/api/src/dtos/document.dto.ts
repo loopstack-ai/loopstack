@@ -1,8 +1,7 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { DocumentEntity } from '@loopstack/common';
-import type { JSONSchemaConfigType, UiFormType } from '@loopstack/contracts/types';
+import type { DynamicDocumentMeta } from '@loopstack/contracts/types';
 import { DocumentContentDto } from './document-content.dto.js';
-import { DocumentMetaDto } from './document-meta.dto.js';
 
 /**
  * Data Transfer Object for Document entities
@@ -33,19 +32,10 @@ export class DocumentDto {
   content: DocumentContentDto | null;
 
   @Expose()
-  schema: JSONSchemaConfigType;
-
-  @Expose()
   validationError: any;
 
   @Expose()
-  ui: UiFormType;
-
-  /**
-   * Document metadata
-   */
-  @Expose()
-  meta: DocumentMetaDto | null;
+  meta: DynamicDocumentMeta | null;
 
   /**
    * Indicates if the document is invalidated

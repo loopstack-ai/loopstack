@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { WorkflowState } from '@loopstack/contracts/enums';
 import type { DocumentItemInterface, TransitionPayloadInterface } from '@loopstack/contracts/types';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import { useFilterDocuments } from '@/hooks/useDocuments.ts';
 import { useRunWorkflow } from '@/hooks/useProcessor.ts';
 import { useWorkflow } from '@/hooks/useWorkflows.ts';
@@ -25,13 +26,14 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
   const fetchDocuments = useFilterDocuments(workflowId);
   const runWorkflow = useRunWorkflow();
   const streamingDocuments = useLlmStreamingDocuments(workflowId, fetchWorkflow.data?.place);
+  const documentConfigs = useDocumentConfigs();
 
   const filterDocuments = useCallback(
     (item: DocumentItemInterface) => {
-      const meta = item.meta as { hidden?: boolean; hideAtPlaces?: string[] } | undefined;
-      const ui = item.ui as { hidden?: boolean } | undefined;
+      const docConfig = documentConfigs.get(item.alias);
+      const staticMeta = docConfig?.meta;
 
-      let hidden = meta?.hidden || ui?.hidden || !!meta?.hideAtPlaces?.includes(fetchWorkflow.data?.place ?? '');
+      let hidden = staticMeta?.hidden || !!staticMeta?.hideAtPlaces?.includes(fetchWorkflow.data?.place ?? '');
 
       const isInternalMessage = false; //['tool'].includes(document.content.role);
 
@@ -41,7 +43,7 @@ export function useWorkflowData({ workflowId, showFullMessageHistory }: UseWorkf
 
       return !hidden;
     },
-    [fetchWorkflow.data, showFullMessageHistory],
+    [fetchWorkflow.data, showFullMessageHistory, documentConfigs],
   );
 
   const documents: DocumentItemInterface[] = useMemo(() => {

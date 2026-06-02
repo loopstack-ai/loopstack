@@ -17,7 +17,7 @@ function formatPillLabel(key: string): string {
 }
 
 interface DocumentDebugPayload {
-  data: Omit<DocumentItemInterface, 'content'>;
+  data: Omit<DocumentItemInterface, 'content'> & Record<string, unknown>;
   content: unknown;
   workflowContext: WorkflowDebugContext;
 }

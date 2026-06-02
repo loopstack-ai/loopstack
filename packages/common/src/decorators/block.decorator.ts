@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import type { BlockConfigType, DocumentConfigType, UiWidgetType } from '@loopstack/contracts/types';
+import type { StaticDocumentMeta, UiWidgetType } from '@loopstack/contracts/types';
 
 /** A widget reference: either a YAML file path or an inline widget object. */
 export type WidgetRef = string | UiWidgetType;
@@ -27,8 +27,10 @@ export interface BlockOptions {
   schema?: z.ZodType;
   /** Zod schema for config validation (provided via options.config) */
   configSchema?: z.ZodType;
-  /** Document-specific: inline config or YAML path for tags/meta/content. */
-  uiConfig?: string | Partial<BlockConfigType>;
+  /** Default tags assigned to every instance of this document. */
+  tags?: string[];
+  /** Static document meta — served via config endpoint, not persisted per instance. */
+  meta?: StaticDocumentMeta;
 }
 
 /** Options for @Tool() decorator */
@@ -75,8 +77,10 @@ export interface DocumentOptions {
   widget?: WidgetRef | WidgetRef[];
   /** Zod schema for content validation */
   schema?: z.ZodType;
-  /** Document-specific config: tags, meta, content. */
-  uiConfig?: string | Partial<DocumentConfigType>;
+  /** Default tags assigned to every instance of this document. */
+  tags?: string[];
+  /** Static document meta — served via config endpoint, not persisted per instance. */
+  meta?: StaticDocumentMeta;
 }
 
 export function Block(type: BlockType, options?: BlockOptions): ClassDecorator {
@@ -107,6 +111,7 @@ export function Document(options?: DocumentOptions): ClassDecorator {
     if (options) {
       Reflect.defineMetadata(BLOCK_CONFIG_METADATA_KEY, options as BlockOptions, target);
     }
+    globalDocumentRegistry.add(target);
   };
 }
 

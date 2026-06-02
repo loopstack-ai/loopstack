@@ -7,17 +7,32 @@ import {
   FEATURE_REGISTRATION_KEY,
   STUDIO_APP_EXTENSION_KEY,
   STUDIO_APP_KEY,
+  deriveDocumentIdentifier,
   deriveWorkflowIdentifier,
   getBlockArgsSchema,
+  getBlockConfig,
   getBlockOptions,
+  getRegisteredDocuments,
 } from '@loopstack/common';
 import type { FeatureRegistration, StudioAppExtension, StudioAppMetadata, StudioUiConfig } from '@loopstack/common';
 import type { JSONSchemaDefinition } from '@loopstack/contracts/schemas';
+import type { StaticDocumentMeta, UiFormType } from '@loopstack/contracts/types';
 
 export interface StudioWorkflowConfig {
   workflowName: string;
   title?: string;
   description?: string;
+  schema?: JSONSchemaDefinition;
+}
+
+export interface StudioDocumentConfig {
+  alias: string;
+  className: string;
+  title?: string;
+  description?: string;
+  ui?: UiFormType;
+  tags?: string[];
+  meta?: StaticDocumentMeta;
   schema?: JSONSchemaDefinition;
 }
 
@@ -29,6 +44,7 @@ export interface StudioAppConfig {
   features: FeatureRegistration[];
   extensions: Record<string, unknown[]>;
   workflows: StudioWorkflowConfig[];
+  documents: StudioDocumentConfig[];
 }
 
 @Injectable()
@@ -47,6 +63,7 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
   onApplicationBootstrap(): void {
     const appModules = this.findAppModules();
     this.validateNoNestedStudioApps(appModules);
+    const documents = this.discoverDocuments();
 
     for (const { nestModule, metadata } of appModules) {
       const reachableModules = this.collectReachableModules(nestModule);
@@ -66,6 +83,7 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
         features,
         extensions,
         workflows,
+        documents,
       });
     }
 
@@ -167,6 +185,39 @@ export class StudioDiscoveryService implements OnApplicationBootstrap {
         schema: jsonSchema,
       };
     });
+  }
+
+  // ── Document Discovery ────────────────────────────────────────────
+
+  private discoverDocuments(): StudioDocumentConfig[] {
+    const registered = getRegisteredDocuments();
+    const documents: StudioDocumentConfig[] = [];
+
+    for (const documentClass of registered) {
+      const options = getBlockOptions(documentClass as object);
+      const config = getBlockConfig(documentClass as object);
+      const contentSchema = getBlockArgsSchema(documentClass as object);
+      const jsonSchema = contentSchema ? (toJSONSchema(contentSchema) as JSONSchemaDefinition) : undefined;
+
+      const className = documentClass.name;
+      const alias = options?.name ?? deriveDocumentIdentifier(className);
+
+      documents.push({
+        alias,
+        className,
+        title: options?.title,
+        description: options?.description,
+        ui: config?.ui as UiFormType | undefined,
+        tags: options?.tags,
+        meta: options?.meta as StaticDocumentMeta | undefined,
+        schema: jsonSchema,
+      });
+    }
+
+    this.logger.log(
+      `Discovered ${documents.length} document type(s): ${documents.map((d) => d.alias).join(', ') || 'none'}`,
+    );
+    return documents;
   }
 
   // ── Feature Discovery ───────────────────────────────────────────────

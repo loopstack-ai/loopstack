@@ -38,13 +38,6 @@ export interface ApiResponseInfo {
   };
 }
 
-export function resolveDocumentWidget(ui: unknown): string {
-  const typed = ui as { widgets?: { widget?: string }[]; form?: { widget?: string } } | undefined;
-  if (typed?.widgets?.[0]?.widget) return typed.widgets[0].widget;
-  if (typed?.form?.widget) return typed.form.widget;
-  return 'form';
-}
-
 export function summarizeDocumentContent(content: unknown): ContentSummary {
   if (content == null) return { kind: 'null' };
   if (typeof content === 'string') {

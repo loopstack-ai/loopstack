@@ -5,6 +5,7 @@ import { CodeBlock } from '@/components/ai-elements/code-block.tsx';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import {
   type ApiResponseInfo,
   type ContentSummary,
@@ -13,17 +14,11 @@ import {
   formatDurationMs,
   formatNumber,
   formatRelativeTime,
-  resolveDocumentWidget,
   summarizeDocumentContent,
 } from './document-debug-utils.ts';
 
-type DocumentMeta = {
-  hidden?: boolean;
-  mimeType?: string;
+type DynMeta = {
   invalidate?: boolean;
-  level?: 'debug' | 'info' | 'warning' | 'error';
-  enableAtPlaces?: string[];
-  hideAtPlaces?: string[];
   provider?: string;
   response?: unknown;
   streaming?: boolean;
@@ -175,22 +170,25 @@ const LlmMetadataSection = ({
 );
 
 const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workflowContext }) => {
+  const documentConfigs = useDocumentConfigs();
   if (!data) return null;
 
-  const meta = (data.meta ?? {}) as DocumentMeta;
-  const widget = resolveDocumentWidget(data.ui);
+  const docConfig = documentConfigs.get(data.alias);
+  const staticMeta = docConfig?.meta;
+  const dynMeta = (data.meta ?? {}) as DynMeta;
+  const widget = docConfig?.ui?.widgets?.[0]?.widget ?? 'form';
   const contentSummary = summarizeDocumentContent(content);
-  const apiInfo = extractApiResponseInfo(meta.response);
+  const apiInfo = extractApiResponseInfo(dynMeta.response);
   const hasValidationError = !!data.validationError;
-  const hasSchema = data.schema && Object.keys(data.schema).length > 0;
-  const hasUiConfig = data.ui && Object.keys(data.ui).length > 0;
-  const hasLlmMeta = !!(meta.provider || meta.response || apiInfo.model || apiInfo.usage);
+  const hasSchema = docConfig?.schema && Object.keys(docConfig.schema).length > 0;
+  const hasUiConfig = docConfig?.ui && Object.keys(docConfig.ui).length > 0;
+  const hasLlmMeta = !!(dynMeta.provider || dynMeta.response || apiInfo.model || apiInfo.usage);
   const hasContentSummary = contentSummary.kind !== 'null';
   const createdAt = new Date(data.createdAt);
   const updatedAt = new Date(data.updatedAt);
   const editDurationMs = updatedAt.getTime() - createdAt.getTime();
 
-  const configMetaEntries = Object.entries(meta).filter(
+  const dynMetaEntries = Object.entries(dynMeta).filter(
     ([key, value]) =>
       !['data', 'response', 'provider', 'streaming'].includes(key) &&
       value !== undefined &&
@@ -212,7 +210,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
             Active
           </Badge>
         )}
-        {meta.streaming && (
+        {dynMeta.streaming && (
           <Badge variant="secondary" className="text-xs">
             Streaming
           </Badge>
@@ -233,17 +231,17 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
             Validation error
           </Badge>
         )}
-        {meta.level && (
+        {staticMeta?.level && (
           <Badge variant="outline" className="text-xs capitalize">
-            {meta.level}
+            {staticMeta.level}
           </Badge>
         )}
-        {meta.hidden && (
+        {staticMeta?.hidden && (
           <Badge variant="outline" className="text-xs">
             Hidden
           </Badge>
         )}
-        {meta.invalidate && (
+        {dynMeta.invalidate && (
           <Badge variant="outline" className="text-xs">
             Invalidates on update
           </Badge>
@@ -270,7 +268,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
               <DetailRow label="Version">
                 v{data.version} · index {data.index}
               </DetailRow>
-              {meta.mimeType && <DetailRow label="MIME">{meta.mimeType}</DetailRow>}
+              {staticMeta?.mimeType && <DetailRow label="MIME">{staticMeta.mimeType}</DetailRow>}
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -359,7 +357,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
               </span>
             </AccordionTrigger>
             <AccordionContent>
-              <LlmMetadataSection provider={meta.provider} apiInfo={apiInfo} rawResponse={meta.response} />
+              <LlmMetadataSection provider={dynMeta.provider} apiInfo={apiInfo} rawResponse={dynMeta.response} />
             </AccordionContent>
           </AccordionItem>
         )}
@@ -392,7 +390,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
                 <div>
                   <p className="text-muted-foreground mb-1.5 text-xs font-medium uppercase tracking-wide">UI</p>
                   <CodeBlock
-                    code={JSON.stringify(data.ui, null, 2)}
+                    code={JSON.stringify(docConfig?.ui, null, 2)}
                     language="json"
                     className="max-h-48 min-w-0 max-w-full"
                   />
@@ -402,7 +400,7 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
                 <div>
                   <p className="text-muted-foreground mb-1.5 text-xs font-medium uppercase tracking-wide">Schema</p>
                   <CodeBlock
-                    code={JSON.stringify(data.schema, null, 2)}
+                    code={JSON.stringify(docConfig?.schema, null, 2)}
                     language="json"
                     className="max-h-48 min-w-0 max-w-full"
                   />
@@ -412,31 +410,26 @@ const DocumentDetails: React.FC<DocumentDetailsProps> = ({ data, content, workfl
           </AccordionItem>
         )}
 
-        {configMetaEntries.length > 0 && (
+        {(staticMeta || dynMetaEntries.length > 0) && (
           <AccordionItem value="meta">
             <AccordionTrigger className="py-3 text-sm font-semibold">Document meta</AccordionTrigger>
             <AccordionContent>
               <div className="space-y-2 pb-1">
-                {meta.enableAtPlaces && (
+                {staticMeta?.enableAtPlaces && (
                   <DetailRow label="Show at">
-                    <BadgeList items={meta.enableAtPlaces} emptyLabel="—" />
+                    <BadgeList items={staticMeta.enableAtPlaces} emptyLabel="—" />
                   </DetailRow>
                 )}
-                {meta.hideAtPlaces && (
+                {staticMeta?.hideAtPlaces && (
                   <DetailRow label="Hide at">
-                    <BadgeList items={meta.hideAtPlaces} emptyLabel="—" />
+                    <BadgeList items={staticMeta.hideAtPlaces} emptyLabel="—" />
                   </DetailRow>
                 )}
-                {configMetaEntries
-                  .filter(
-                    ([key]) =>
-                      !['mimeType', 'level', 'hidden', 'enableAtPlaces', 'hideAtPlaces', 'invalidate'].includes(key),
-                  )
-                  .map(([key, value]) => (
-                    <DetailRow key={key} label={key}>
-                      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                    </DetailRow>
-                  ))}
+                {dynMetaEntries.map(([key, value]) => (
+                  <DetailRow key={key} label={key}>
+                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                  </DetailRow>
+                ))}
               </div>
             </AccordionContent>
           </AccordionItem>

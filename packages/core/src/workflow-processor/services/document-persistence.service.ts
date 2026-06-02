@@ -1,15 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import lodash from 'lodash';
 import { randomUUID } from 'node:crypto';
 import { Repository } from 'typeorm';
-import { ZodError, toJSONSchema } from 'zod';
-import { DocumentEntity, DocumentSaveOptions, getBlockConfig, getDocumentSchema } from '@loopstack/common';
-import { DocumentConfigType } from '@loopstack/contracts/types';
+import { ZodError } from 'zod';
+import { DocumentEntity, DocumentSaveOptions, getBlockOptions, getDocumentSchema } from '@loopstack/common';
 import { SchemaValidationError } from '../../common/index.js';
 import { ExecutionScope, ExecutionScopeData } from '../utils/index.js';
-
-const { merge } = lodash;
 
 @Injectable()
 export class DocumentPersistenceService {
@@ -39,13 +35,15 @@ export class DocumentPersistenceService {
     const scope = this.executionScope.get();
     const transition = scope.transition!;
 
-    // Read config and schema from the document class
-    const config = getBlockConfig<DocumentConfigType>(documentClass);
+    // Read options and schema from the document class decorator
+    const blockOptions = getBlockOptions(documentClass);
     const contentSchema = getDocumentSchema(documentClass);
-    const jsonSchema = contentSchema ? toJSONSchema(contentSchema) : undefined;
 
-    // Merge document config defaults with caller-provided values
-    const mergedMeta = merge({}, config?.meta ?? {}, options?.meta ?? {});
+    // Only persist dynamic meta from save options (no static meta merging)
+    const dynamicMeta = options?.meta ?? null;
+
+    // Default tags from decorator
+    const defaultTags = blockOptions?.tags ?? [];
 
     // Validate content against document schema
     const validateMode = options?.validate ?? 'strict';
@@ -59,11 +57,9 @@ export class DocumentPersistenceService {
       alias,
       className,
       content: validatedContent,
-      meta: Object.keys(mergedMeta).length > 0 ? mergedMeta : null,
+      meta: dynamicMeta && Object.keys(dynamicMeta).length > 0 ? dynamicMeta : null,
       error: error ?? null,
-      schema: jsonSchema as Record<string, unknown> | undefined,
-      ui: config?.ui ?? null,
-      tags: (config?.tags as string[]) ?? [],
+      tags: defaultTags,
       transition: transition.id,
       place: transition.to,
       labels: scope.labels,

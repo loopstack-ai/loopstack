@@ -11,8 +11,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { z } from 'zod';
-import type { JSONSchemaConfigType } from '@loopstack/contracts/types';
-import { StableJsonTransformer } from '../utils/index.js';
 import { User } from './user.entity.js';
 import { WorkflowEntity } from './workflow.entity.js';
 
@@ -39,24 +37,8 @@ export class DocumentEntity<T = any> {
   @Column('jsonb', { nullable: true })
   content!: T | null;
 
-  @Column({
-    type: 'jsonb',
-    transformer: new StableJsonTransformer(),
-    name: 'schema',
-    nullable: true,
-  })
-  schema!: JSONSchemaConfigType | null;
-
   @Column('jsonb', { nullable: true, name: 'validation_error' })
   error!: z.ZodError | null;
-
-  @Column({
-    type: 'jsonb',
-    transformer: new StableJsonTransformer(),
-    name: 'ui',
-    nullable: true,
-  })
-  ui!: any;
 
   @Column('varchar', { name: 'tags', array: true, nullable: true })
   tags!: string[];

@@ -4,26 +4,26 @@ import type { WorkflowFullInterface } from '@loopstack/contracts/api';
 import type { DocumentItemInterface } from '@loopstack/contracts/types';
 import { FadeIn } from '@/components/motion/FadeIn';
 import type { WorkbenchSettingsInterface } from '@/features/workbench';
+import { useDocumentConfigs } from '@/hooks/useConfig';
 import DocumentRenderer from '../DocumentRenderer.tsx';
 import type { WorkflowDebugContext } from '../document-details/document-debug-utils.ts';
 import DocumentMetadataPills from './DocumentMetadataPills.tsx';
 
-interface DocumentMeta {
-  data?: Record<string, unknown>;
-  enableAtPlaces?: string[];
-  [key: string]: unknown;
-}
+const DocumentItem: React.FC<{
+  document: DocumentItemInterface;
+  workflow: WorkflowFullInterface;
+  parentWorkflow: WorkflowFullInterface;
+  isActive: boolean;
+  isLastItem: boolean;
+  settings: WorkbenchSettingsInterface;
+}> = ({ document, workflow, parentWorkflow, isActive, isLastItem, settings }) => {
+  const documentConfigs = useDocumentConfigs();
+  const docConfig = documentConfigs.get(document.alias);
+  const staticMeta = docConfig?.meta;
+  const dynamicMeta = document.meta as { data?: Record<string, unknown> } | null;
+  const isDocumentActive = document.place === workflow.place || !!staticMeta?.enableAtPlaces?.includes(workflow.place);
 
-function buildWorkflowContext(
-  document: DocumentItemInterface,
-  workflow: WorkflowFullInterface,
-  parentWorkflow: WorkflowFullInterface,
-  isActive: boolean,
-): WorkflowDebugContext {
-  const meta = document.meta as DocumentMeta | undefined;
-  const isDocumentActive = document.place === workflow.place || !!meta?.enableAtPlaces?.includes(workflow.place);
-
-  return {
+  const workflowContext: WorkflowDebugContext = {
     workflowId: workflow.id,
     workflowName: workflow.workflowName,
     className: workflow.className,
@@ -36,17 +36,6 @@ function buildWorkflowContext(
       ? { parentWorkflowId: parentWorkflow.id, parentTitle: parentWorkflow.title }
       : {}),
   };
-}
-
-const DocumentItem: React.FC<{
-  document: DocumentItemInterface;
-  workflow: WorkflowFullInterface;
-  parentWorkflow: WorkflowFullInterface;
-  isActive: boolean;
-  isLastItem: boolean;
-  settings: WorkbenchSettingsInterface;
-}> = ({ document, workflow, parentWorkflow, isActive, isLastItem, settings }) => {
-  const meta = document.meta as DocumentMeta | undefined;
 
   return (
     <FadeIn>
@@ -60,14 +49,11 @@ const DocumentItem: React.FC<{
       {settings.enableDebugMode ? (
         <DocumentMetadataPills
           metaData={{
-            ...(meta?.data ?? {}),
+            ...(dynamicMeta?.data ?? {}),
             document: {
-              data: {
-                ...omit(document, ['content']),
-                meta: omit(meta ?? {}, ['data']),
-              },
+              data: Object.assign({}, omit(document, ['content']), { meta: document.meta, staticMeta }),
               content: document.content,
-              workflowContext: buildWorkflowContext(document, workflow, parentWorkflow, isActive),
+              workflowContext,
             },
           }}
         />

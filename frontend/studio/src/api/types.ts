@@ -31,6 +31,25 @@ export interface StudioWorkflowConfig {
   schema?: Record<string, unknown>;
 }
 
+export interface StaticDocumentMeta {
+  hidden?: boolean;
+  mimeType?: string;
+  level?: 'debug' | 'info' | 'warning' | 'error';
+  enableAtPlaces?: string[];
+  hideAtPlaces?: string[];
+}
+
+export interface StudioDocumentConfig {
+  alias: string;
+  className: string;
+  title?: string;
+  description?: string;
+  ui?: { widgets?: StudioWidgetConfig[] };
+  tags?: string[];
+  meta?: StaticDocumentMeta;
+  schema?: Record<string, unknown>;
+}
+
 export interface StudioAppConfig {
   appName: string;
   title: string;
@@ -39,6 +58,7 @@ export interface StudioAppConfig {
   features: StudioFeatureRegistration[];
   extensions?: Record<string, unknown[]>;
   workflows: StudioWorkflowConfig[];
+  documents: StudioDocumentConfig[];
 }
 
 export interface WorkflowPayload<TArgs = Record<string, unknown>> {
