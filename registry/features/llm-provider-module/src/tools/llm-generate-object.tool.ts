@@ -1,6 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, DOCUMENT_STORE, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import type { LlmContext } from '../contracts/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
@@ -55,11 +56,12 @@ export class LlmGenerateObjectTool extends BaseTool<
 
   protected async handle(
     args: LlmGenerateObjectArgs,
+    ctx: LoopstackContext,
     options?: ToolCallOptions<LlmGenerateObjectConfig>,
   ): Promise<ToolResult<LlmGenerateObjectResult, LlmResultMeta>> {
     const config = options?.config;
     const provider = this.registry.get(config?.provider ?? this.moduleConfig.provider ?? 'claude');
-    const ctx: LlmContext = { documents: this.documentStore.findAllDocuments() };
+    const llmCtx: LlmContext = { documents: this.documentStore.findAllDocuments() };
 
     const providerArgs = {
       system: config?.system,
@@ -71,7 +73,7 @@ export class LlmGenerateObjectTool extends BaseTool<
       outputSchema: args.outputSchema,
     };
 
-    const result = await provider.generateObject(providerArgs, ctx);
+    const result = await provider.generateObject(providerArgs, llmCtx);
 
     const usage = provider.extractUsage(result.response);
 

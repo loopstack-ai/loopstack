@@ -2,7 +2,7 @@ import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
 import { BaseWorkflow, DOCUMENT_STORE, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext, TemplateRenderFn } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
@@ -34,8 +34,8 @@ export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, Me
   }
 
   @Transition({ to: 'waiting_for_response' })
-  async createForm(state: MeetingNotesState, ctx: WorkflowContext): Promise<MeetingNotesState> {
-    const args = ctx.input.args as { inputText: string };
+  async createForm(state: MeetingNotesState, ctx: LoopstackContext): Promise<MeetingNotesState> {
+    const args = ctx.args as { inputText: string };
     await this.documentStore.save(
       MeetingNotesDocument,
       { text: `Unstructured Notes:\n\n${args.inputText}` },

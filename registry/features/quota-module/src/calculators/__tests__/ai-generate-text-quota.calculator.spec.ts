@@ -11,7 +11,7 @@ describe('AiGenerateTextQuotaCalculator', () => {
       userId: 'user-1',
       workspaceId: 'ws-1',
       workflowId: '',
-      run: { args: undefined },
+      args: undefined,
     },
     metadata: {},
   };

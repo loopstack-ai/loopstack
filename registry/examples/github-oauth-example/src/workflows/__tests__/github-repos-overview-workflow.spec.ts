@@ -1,13 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import {
-  RunContext,
-  WORKFLOW_ORCHESTRATOR,
-  WorkflowEntity,
-  getBlockArgsSchema,
-  getBlockConfig,
-} from '@loopstack/common';
+import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import {
   GitHubCreateIssueCommentTool,
@@ -40,10 +34,8 @@ import { OAuthModule, OAuthWorkflow } from '@loopstack/oauth-module';
 import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { GitHubReposOverviewWorkflow } from '../github-repos-overview.workflow';
 
-const mockOrchestrator = {
-  queue: vi.fn().mockResolvedValue({ workflowId: 'sub-1' }),
-  complete: vi.fn(),
-  cancelChildren: vi.fn(),
+const mockOAuthWorkflow = {
+  run: vi.fn().mockResolvedValue({ workflowId: 'sub-1' }),
 };
 
 function applyAllGitHubToolMocks(builder: ReturnType<typeof createWorkflowTest>) {
@@ -80,7 +72,7 @@ function buildWorkflowTest() {
     createWorkflowTest()
       .forWorkflow(GitHubReposOverviewWorkflow)
       .withImports(OAuthModule)
-      .withOverride(WORKFLOW_ORCHESTRATOR, mockOrchestrator),
+      .withOverride(OAuthWorkflow, mockOAuthWorkflow),
   );
 }
 
@@ -443,13 +435,10 @@ describe('GitHubReposOverviewWorkflow', () => {
       expect(result.place).toBe('awaiting_auth');
 
       expect(mockGetAuthenticatedUser.call).toHaveBeenCalledTimes(1);
-      expect(mockOrchestrator.queue).toHaveBeenCalledTimes(1);
-      expect(mockOrchestrator.queue).toHaveBeenCalledWith(
+      expect(mockOAuthWorkflow.run).toHaveBeenCalledTimes(1);
+      expect(mockOAuthWorkflow.run).toHaveBeenCalledWith(
         { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-        expect.objectContaining({
-          workflowName: 'OAuthWorkflow',
-          callback: { transition: 'authCompleted' },
-        }),
+        { callback: { transition: 'authCompleted' } },
       );
 
       // Subsequent tools should NOT be called

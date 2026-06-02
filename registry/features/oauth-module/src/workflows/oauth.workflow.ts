@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { WorkflowContext } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { BaseWorkflow, DOCUMENT_STORE, ToolResult, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents/index.js';
@@ -39,8 +39,8 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
   }
 
   @Transition({ to: 'awaiting_auth' })
-  async initiateOAuth(state: OAuthState, ctx: WorkflowContext): Promise<OAuthState> {
-    const args = ctx.input.args as OAuthArgs;
+  async initiateOAuth(state: OAuthState, ctx: LoopstackContext): Promise<OAuthState> {
+    const args = ctx.args as OAuthArgs;
     const result: ToolResult<BuildOAuthUrlResult> = await this.buildOAuthUrl.call({
       provider: args.provider,
       scopes: args.scopes,

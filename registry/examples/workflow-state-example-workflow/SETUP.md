@@ -21,13 +21,13 @@ import { WorkflowStateExampleModule } from '@loopstack/workflow-state-example-wo
 export class DefaultModule {}
 ```
 
-2. Inject the `WorkflowStateWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the `WorkflowStateWorkflow` workflow into your workspace class via the constructor:
 
 ```typescript
 import { WorkflowStateWorkflow } from '@loopstack/workflow-state-example-workflow';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() workflowState: WorkflowStateWorkflow;
+  constructor(public readonly workflowState: WorkflowStateWorkflow) {}
 }
 ```
 

@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseWorkflow, DOCUMENT_STORE, Guard, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext } from '@loopstack/common';
 
 interface DynamicRoutingState {
   value: number;
@@ -25,8 +25,8 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
   // --- Initial transition ---
 
   @Transition({ to: 'prepared' })
-  async createMockData(state: DynamicRoutingState, ctx: WorkflowContext): Promise<DynamicRoutingState> {
-    const args = ctx.input.args as { value: number };
+  async createMockData(state: DynamicRoutingState, ctx: LoopstackContext): Promise<DynamicRoutingState> {
+    const args = ctx.args as { value: number };
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
       content: `Analysing value = ${args.value}`,

@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, ToolResult, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext } from '@loopstack/common';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
@@ -107,8 +107,8 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
   }
 
   @Transition({ to: 'sandbox_ready' })
-  async initSandbox(state: SandboxExampleState, ctx: WorkflowContext): Promise<SandboxExampleState> {
-    const args = ctx.input.args as { outputDir: string };
+  async initSandbox(state: SandboxExampleState, ctx: LoopstackContext): Promise<SandboxExampleState> {
+    const args = ctx.args as { outputDir: string };
     const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
       containerId: 'my-sandbox',
       imageName: 'node:18',

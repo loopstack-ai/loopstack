@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
+import type { WorkflowOrchestrator } from '../interfaces/workflow-orchestrator.interface.js';
+import { WORKFLOW_ORCHESTRATOR } from '../tokens.js';
 
 export interface RunOptions {
+  /** @internal Used by BaseWorkflow.run() to pass the class name to the orchestrator. Not needed when calling run() directly. */
   workflowName?: string;
   callback?: { transition: string; metadata?: Record<string, unknown> };
 }
@@ -28,16 +31,36 @@ export const CallbackSchema = z.object({
  * - All transitions receive `(state, ctx)` and return `Promise<TState>`
  * - Wait transitions receive `(state, payload, ctx)` and return `Promise<TState>`
  * - `ctx` is optional (trailing param can be omitted)
- * - Args are available via `ctx.input.args`
+ * - Args are available via `ctx.args`
  * - Use `from: 'start'` (or omit `from`) for initial, `to: 'end'` for final
  *
- * Services are injected via constructor on the concrete class:
+ * Launch sub-workflows via `run()`:
  * ```ts
  * constructor(
- *   private llm: LlmGenerateTextTool,
- *   private documentStore: DocumentStore,
+ *   private agentWorkflow: AgentWorkflow,
  * ) { super(); }
+ *
+ * await this.agentWorkflow.run(
+ *   { system: '...', userMessage: '...' },
+ *   { callback: { transition: 'onComplete' } },
+ * );
  * ```
  */
 @Injectable()
-export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TState = Record<string, unknown>> {}
+export abstract class BaseWorkflow<TArgs = Record<string, unknown>, TState = Record<string, unknown>> {
+  /** @internal — injected by the framework. Routes run() through the orchestrator. */
+  @Inject(WORKFLOW_ORCHESTRATOR) private readonly __orchestrator!: WorkflowOrchestrator;
+
+  /**
+   * Launch this workflow as a sub-workflow.
+   *
+   * @param args — Input args, validated against `@Workflow({ schema })`
+   * @param options — Optional callback to resume the parent workflow when this one completes
+   */
+  async run(args?: TArgs, options?: RunOptions): Promise<QueueResult> {
+    return this.__orchestrator.queue(args as Record<string, unknown>, {
+      workflowName: this.constructor.name,
+      ...options,
+    });
+  }
+}

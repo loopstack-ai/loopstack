@@ -8,9 +8,7 @@ import {
   MessageDocument,
   QueueResult,
   Transition,
-  WORKFLOW_ORCHESTRATOR,
   Workflow,
-  WorkflowOrchestrator,
 } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
@@ -26,7 +24,7 @@ type AskUserCallback = z.infer<typeof AskUserCallbackSchema>;
 })
 export class HitlAskUserExampleWorkflow extends BaseWorkflow {
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly askUserWorkflow: AskUserWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
@@ -34,9 +32,9 @@ export class HitlAskUserExampleWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'waiting_for_answer' })
   async askQuestion(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.orchestrator.queue(
+    const result: QueueResult = await this.askUserWorkflow.run(
       { question: 'What is your name?' },
-      { workflowName: AskUserWorkflow.name, callback: { transition: 'answerReceived' } },
+      { callback: { transition: 'answerReceived' } },
     );
 
     await this.documentStore.save(MessageDocument, {

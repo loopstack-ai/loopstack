@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { WorkflowContext } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { BaseWorkflow, DOCUMENT_STORE, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { ConfirmUserDocument } from '../../documents/confirm-user-document.js';
@@ -23,8 +23,8 @@ export class ConfirmUserWorkflow extends BaseWorkflow<{ markdown: string }, Conf
   }
 
   @Transition({ to: 'waiting_for_confirmation' })
-  async showContent(state: ConfirmUserState, ctx: WorkflowContext): Promise<ConfirmUserState> {
-    const args = ctx.input.args as { markdown: string };
+  async showContent(state: ConfirmUserState, ctx: LoopstackContext): Promise<ConfirmUserState> {
+    const args = ctx.args as { markdown: string };
     await this.documentStore.save(ConfirmUserDocument, { markdown: args.markdown }, { id: 'content' });
     return { ...state, markdown: args.markdown };
   }

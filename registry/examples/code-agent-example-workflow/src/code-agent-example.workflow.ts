@@ -9,9 +9,7 @@ import {
   MessageDocument,
   QueueResult,
   Transition,
-  WORKFLOW_ORCHESTRATOR,
   Workflow,
-  WorkflowOrchestrator,
 } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 
@@ -29,7 +27,7 @@ top-level providers it registers. Return a short bulleted summary.`;
 })
 export class CodeAgentExampleWorkflow extends BaseWorkflow {
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly agentWorkflow: AgentWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
@@ -37,13 +35,13 @@ export class CodeAgentExampleWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'exploring' })
   async startExploration(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.orchestrator.queue(
+    const result: QueueResult = await this.agentWorkflow.run(
       {
         system: 'You are a codebase exploration agent. Search and read source code to answer the question thoroughly.',
         tools: ['glob', 'grep', 'read'],
         userMessage: EXPLORE_INSTRUCTIONS,
       },
-      { workflowName: AgentWorkflow.name, callback: { transition: 'exploreComplete' } },
+      { callback: { transition: 'exploreComplete' } },
     );
 
     await this.documentStore.save(

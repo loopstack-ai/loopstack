@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
 
@@ -37,7 +38,7 @@ export class GrepTool extends BaseTool<GrepArgs, object, GrepResult> {
     super();
   }
 
-  protected async handle(args: GrepArgs): Promise<ToolResult<GrepResult>> {
+  protected async handle(args: GrepArgs, ctx: LoopstackContext): Promise<ToolResult<GrepResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.grep(agentUrl, args.pattern, args.path, {
       glob: args.glob,

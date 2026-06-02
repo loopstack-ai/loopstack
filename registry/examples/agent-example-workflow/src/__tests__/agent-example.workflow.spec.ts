@@ -1,25 +1,21 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentWorkflow } from '@loopstack/agent';
-import { RunContext, WORKFLOW_ORCHESTRATOR, WorkflowEntity } from '@loopstack/common';
+import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { AgentExampleWorkflow } from '../agent-example.workflow';
 import { CalculatorTool } from '../tools/calculator.tool';
 import { WeatherLookupTool } from '../tools/weather-lookup.tool';
 
+const mockAgentWorkflow = {
+  run: vi.fn(),
+};
+
 describe('AgentExampleWorkflow', () => {
   let module: TestingModule;
   let workflow: AgentExampleWorkflow;
   let processor: WorkflowProcessorService;
-
-  const mockOrchestrator = {
-    queue: vi.fn(),
-    complete: vi.fn(),
-    resume: vi.fn(),
-    cancel: vi.fn(),
-    cancelChildren: vi.fn(),
-  };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -27,7 +23,7 @@ describe('AgentExampleWorkflow', () => {
     module = await createWorkflowTest()
       .forWorkflow(AgentExampleWorkflow)
       .withProviders(CalculatorTool, WeatherLookupTool)
-      .withOverride(WORKFLOW_ORCHESTRATOR, mockOrchestrator)
+      .withOverride(AgentWorkflow, mockAgentWorkflow)
       .compile();
 
     workflow = module.get(AgentExampleWorkflow);
@@ -39,7 +35,7 @@ describe('AgentExampleWorkflow', () => {
   });
 
   it('launches AgentWorkflow and stops at running', async () => {
-    mockOrchestrator.queue.mockResolvedValue({ workflowId: 'agent-sub-id' });
+    mockAgentWorkflow.run.mockResolvedValue({ workflowId: 'agent-sub-id' });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
 
@@ -47,13 +43,13 @@ describe('AgentExampleWorkflow', () => {
     expect(result.stop).toBe(true);
     expect(result.place).toBe('running');
 
-    expect(mockOrchestrator.queue).toHaveBeenCalledWith(
+    expect(mockAgentWorkflow.run).toHaveBeenCalledWith(
       expect.objectContaining({
         system: expect.any(String),
         tools: ['weather_lookup', 'calculator'],
         userMessage: expect.any(String),
       }),
-      expect.objectContaining({ workflowName: AgentWorkflow.name, callback: { transition: 'agentComplete' } }),
+      { callback: { transition: 'agentComplete' } },
     );
 
     expect(result.documents).toEqual(

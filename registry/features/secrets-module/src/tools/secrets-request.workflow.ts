@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { WorkflowContext } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { BaseWorkflow, DOCUMENT_STORE, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { SecretRequestDocument } from '../documents/index.js';
@@ -31,8 +31,8 @@ export class SecretsRequestWorkflow extends BaseWorkflow<SecretsRequestArgs, Sec
   }
 
   @Transition({ to: 'requesting_secrets' })
-  async showForm(state: SecretsRequestState, ctx: WorkflowContext): Promise<SecretsRequestState> {
-    const args = ctx.input.args as SecretsRequestArgs;
+  async showForm(state: SecretsRequestState, ctx: LoopstackContext): Promise<SecretsRequestState> {
+    const args = ctx.args as SecretsRequestArgs;
     await this.documentStore.save(SecretRequestDocument, {
       variables: args.variables,
     });

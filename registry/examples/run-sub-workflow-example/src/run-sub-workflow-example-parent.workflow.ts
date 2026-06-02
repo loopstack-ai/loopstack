@@ -8,9 +8,7 @@ import {
   MessageDocument,
   QueueResult,
   Transition,
-  WORKFLOW_ORCHESTRATOR,
   Workflow,
-  WorkflowOrchestrator,
 } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
@@ -26,7 +24,7 @@ type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
 })
 export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly subWorkflow: RunSubWorkflowExampleSubWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
@@ -34,13 +32,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'sub_workflow_started' })
   async runWorkflow(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.orchestrator.queue(
-      {},
-      {
-        workflowName: RunSubWorkflowExampleSubWorkflow.name,
-        callback: { transition: 'subWorkflowCallback' },
-      },
-    );
+    const result: QueueResult = await this.subWorkflow.run({}, { callback: { transition: 'subWorkflowCallback' } });
 
     await this.documentStore.save(
       LinkDocument,
@@ -82,13 +74,7 @@ export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
 
   @Transition({ from: 'sub_workflow_ended', to: 'sub_workflow2_started' })
   async runWorkflow2(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.orchestrator.queue(
-      {},
-      {
-        workflowName: RunSubWorkflowExampleSubWorkflow.name,
-        callback: { transition: 'subWorkflow2Callback' },
-      },
-    );
+    const result: QueueResult = await this.subWorkflow.run({}, { callback: { transition: 'subWorkflow2Callback' } });
 
     await this.documentStore.save(
       LinkDocument,

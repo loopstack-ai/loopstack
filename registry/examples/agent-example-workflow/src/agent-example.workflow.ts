@@ -10,9 +10,7 @@ import {
   QueueResult,
   TEMPLATE_RENDERER,
   Transition,
-  WORKFLOW_ORCHESTRATOR,
   Workflow,
-  WorkflowOrchestrator,
 } from '@loopstack/common';
 import type { DocumentStore, TemplateRenderFn } from '@loopstack/common';
 
@@ -28,7 +26,7 @@ type AgentCallback = z.infer<typeof AgentCallbackSchema>;
 })
 export class AgentExampleWorkflow extends BaseWorkflow {
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly agentWorkflow: AgentWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
@@ -37,13 +35,13 @@ export class AgentExampleWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'running' })
   async start(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.orchestrator.queue(
+    const result: QueueResult = await this.agentWorkflow.run(
       {
         system: this.render(__dirname + '/templates/system.md'),
         tools: ['weather_lookup', 'calculator'],
         userMessage: "What's the weather in Tokyo? Also, what is 42 * 17?",
       },
-      { workflowName: AgentWorkflow.name, callback: { transition: 'agentComplete' } },
+      { callback: { transition: 'agentComplete' } },
     );
 
     await this.documentStore.save(

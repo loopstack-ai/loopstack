@@ -44,9 +44,13 @@ import { BashTool, EditTool, ReadTool } from '@loopstack/remote-client';
 
 @Workflow({ uiConfig: __dirname + '/my.ui.yaml' })
 export class MyWorkflow extends BaseWorkflow {
-  @InjectTool() read: ReadTool;
-  @InjectTool() edit: EditTool;
-  @InjectTool() bash: BashTool;
+  constructor(
+    private readonly read: ReadTool,
+    private readonly edit: EditTool,
+    private readonly bash: BashTool,
+  ) {
+    super();
+  }
 
   @Transition({ from: 'ready', to: 'done' })
   async rewritePackageJson() {

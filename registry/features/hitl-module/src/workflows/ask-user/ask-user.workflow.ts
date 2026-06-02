@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { WorkflowContext } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { BaseWorkflow, DOCUMENT_STORE, Guard, Transition, Workflow } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { AskUserConfirmDocument } from '../../documents/ask-user-confirm-document.js';
@@ -34,8 +34,8 @@ export class AskUserWorkflow extends BaseWorkflow<AskUserArgs, AskUserState> {
   }
 
   @Transition({ to: 'show_question' })
-  async start(state: AskUserState, ctx: WorkflowContext): Promise<AskUserState> {
-    const args = ctx.input.args as AskUserArgs;
+  async start(state: AskUserState, ctx: LoopstackContext): Promise<AskUserState> {
+    const args = ctx.args as AskUserArgs;
     return { ...state, ...args };
   }
 

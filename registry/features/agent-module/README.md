@@ -13,17 +13,18 @@ npm install @loopstack/agent
 Register tools on your workspace so they're available to all workflows:
 
 ```typescript
-import { Workspace, InjectTool, InjectWorkflow } from '@loopstack/common';
+import { Workspace } from '@loopstack/common';
 import { GlobTool, GrepTool, ReadTool } from '@loopstack/remote-client';
 import { AgentWorkflow } from '@loopstack/agent';
 
 @Workspace({ ... })
 export class MyWorkspace {
-  @InjectWorkflow() agent: AgentWorkflow;
-
-  @InjectTool() glob: GlobTool;
-  @InjectTool() grep: GrepTool;
-  @InjectTool() read: ReadTool;
+  constructor(
+    public readonly agent: AgentWorkflow,
+    public readonly glob: GlobTool,
+    public readonly grep: GrepTool,
+    public readonly read: ReadTool,
+  ) {}
 }
 ```
 
@@ -74,8 +75,8 @@ setup → ready → llmTurn → prompt_executed
 
 Tools are resolved by property name in this order:
 
-1. **Workflow** — tools declared via `@InjectTool()` on the current workflow
-2. **Workspace** — tools declared via `@InjectTool()` on the workspace
+1. **Workflow** — tools declared via constructor injection on the current workflow
+2. **Workspace** — tools declared via constructor injection on the workspace
 
 The agent workflow itself only injects `LlmGenerateTextTool`, `LlmDelegateToolCallsTool`, and `LlmUpdateToolResultTool`. Domain-specific tools (e.g. `glob`, `grep`, `read`) are resolved from the workspace at runtime.
 

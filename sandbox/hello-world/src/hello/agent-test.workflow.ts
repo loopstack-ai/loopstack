@@ -9,10 +9,9 @@ import {
   MessageDocument,
   QueueResult,
   Transition,
-  WORKFLOW_ORCHESTRATOR,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore, WorkflowOrchestrator } from '@loopstack/common';
+import type { DocumentStore } from '@loopstack/common';
 
 const AgentCallbackSchema = CallbackSchema.extend({
   data: z.object({ response: z.string() }),
@@ -26,8 +25,7 @@ export class AgentTestWorkflow extends BaseWorkflow<
   Record<string, unknown>
 > {
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR)
-    private readonly orchestrator: WorkflowOrchestrator,
+    private readonly agentWorkflow: AgentWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
@@ -37,17 +35,14 @@ export class AgentTestWorkflow extends BaseWorkflow<
   async start(
     state: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.orchestrator.queue(
+    const result: QueueResult = await this.agentWorkflow.run(
       {
         system:
           'You are a helpful assistant. Always start your response with your exact model identifier.',
         tools: [],
         userMessage: 'What model are you?',
       },
-      {
-        workflowName: AgentWorkflow.name,
-        callback: { transition: 'agentComplete' },
-      },
+      { callback: { transition: 'agentComplete' } },
     );
 
     await this.documentStore.save(

@@ -1,4 +1,5 @@
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/remote-client.service.js';
 
@@ -19,7 +20,7 @@ export class RebuildAppTool extends BaseTool<Record<string, never>, object, Rebu
     super();
   }
 
-  protected async handle(_args: Record<string, never>): Promise<ToolResult<RebuildAppResult>> {
+  protected async handle(_args: Record<string, never>, _ctx: LoopstackContext): Promise<ToolResult<RebuildAppResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.rebuildApp(agentUrl);
     return { data: result };

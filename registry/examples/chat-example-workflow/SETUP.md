@@ -21,13 +21,13 @@ import { ChatExampleModule } from '@loopstack/chat-example-workflow';
 export class DefaultModule {}
 ```
 
-2. Inject the `ChatWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the `ChatWorkflow` workflow into your workspace class via the constructor:
 
 ```typescript
 import { ChatWorkflow } from '@loopstack/chat-example-workflow';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() chat: ChatWorkflow;
+  constructor(public readonly chat: ChatWorkflow) {}
 }
 ```
 

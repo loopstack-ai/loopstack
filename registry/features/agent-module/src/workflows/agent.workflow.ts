@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { WorkflowContext } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import {
   BaseWorkflow,
   DOCUMENT_STORE,
@@ -67,8 +67,8 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
   }
 
   @Transition({ to: 'ready' })
-  async setup(state: AgentState, ctx: WorkflowContext): Promise<AgentState> {
-    const args = ctx.input.args as AgentArgs;
+  async setup(state: AgentState, ctx: LoopstackContext): Promise<AgentState> {
+    const args = ctx.args as AgentArgs;
     if (args.context) {
       await this.documentStore.save(
         LlmMessageDocument,
@@ -141,7 +141,7 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(state: AgentState, ctx: WorkflowContext): Promise<AgentState> {
+  async cancelPendingTools(state: AgentState, ctx: LoopstackContext): Promise<AgentState> {
     if (ctx.workflowId) {
       await this.orchestrator.cancelChildren(ctx.workflowId);
     }

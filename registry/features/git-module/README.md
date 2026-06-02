@@ -10,7 +10,7 @@ The Git module wraps a workspace's git repository with a consistent set of Loops
 
 By using this module you'll get:
 
-- **12 git tools** usable from any workflow via `@InjectTool()`: `GitStatusTool`, `GitAddTool`, `GitCommitTool`, `GitPushTool`, `GitPullTool`, `GitLogTool`, `GitDiffTool`, `GitFetchTool`, `GitCheckoutTool`, `GitBranchTool`, `GitRemoteConfigureTool`, `GitConfigUserTool`
+- **12 git tools** usable from any workflow via constructor injection: `GitStatusTool`, `GitAddTool`, `GitCommitTool`, `GitPushTool`, `GitPullTool`, `GitLogTool`, `GitDiffTool`, `GitFetchTool`, `GitCheckoutTool`, `GitBranchTool`, `GitRemoteConfigureTool`, `GitConfigUserTool`
 - **`GitController`** — REST endpoints for calling the same operations from a UI
 
 ## Installation
@@ -37,14 +37,18 @@ export class AppModule {}
 ### Using a git tool from a workflow
 
 ```ts
-import { BaseWorkflow, InjectTool, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { GitAddTool, GitCommitTool, GitStatusTool } from '@loopstack/git-module';
 
-@Workflow({ uiConfig: __dirname + '/commit.ui.yaml' })
+@Workflow({ widget: __dirname + '/commit.ui.yaml' })
 export class CommitWorkflow extends BaseWorkflow {
-  @InjectTool() gitStatus: GitStatusTool;
-  @InjectTool() gitAdd: GitAddTool;
-  @InjectTool() gitCommit: GitCommitTool;
+  constructor(
+    private readonly gitStatus: GitStatusTool,
+    private readonly gitAdd: GitAddTool,
+    private readonly gitCommit: GitCommitTool,
+  ) {
+    super();
+  }
 
   @Transition({ from: 'ready', to: 'done' })
   async commitAll() {
@@ -59,7 +63,7 @@ Each tool's input schema is a Zod object — inspect any tool file under `src/to
 
 ### Routing tools at a specific workspace
 
-Tools resolve the remote agent URL from the workspace context (`this.ctx.workspace`). The corresponding `WorkspaceEntity` is what ties a workflow run to a specific git repository on a specific agent.
+Tools resolve the remote agent URL from the execution context. The corresponding `WorkspaceEntity` is what ties a workflow run to a specific git repository on a specific agent.
 
 ### REST endpoints
 

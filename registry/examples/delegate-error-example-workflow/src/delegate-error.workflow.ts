@@ -9,7 +9,7 @@ import {
   WORKFLOW_ORCHESTRATOR,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext, WorkflowOrchestrator } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext, TemplateRenderFn, WorkflowOrchestrator } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -139,7 +139,7 @@ export class DelegateErrorWorkflow extends BaseWorkflow<Record<string, unknown>,
   }
 
   @Transition({ from: 'awaiting_tools', to: 'ready', wait: true })
-  async cancelPendingTools(state: DelegateErrorState, ctx: WorkflowContext): Promise<DelegateErrorState> {
+  async cancelPendingTools(state: DelegateErrorState, ctx: LoopstackContext): Promise<DelegateErrorState> {
     await this.orchestrator.cancelChildren(ctx.workflowId);
     return state;
   }

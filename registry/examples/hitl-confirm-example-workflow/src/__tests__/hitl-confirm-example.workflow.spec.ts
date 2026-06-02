@@ -1,30 +1,26 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RunContext, WORKFLOW_ORCHESTRATOR, WorkflowEntity } from '@loopstack/common';
+import { RunContext, WorkflowEntity } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 import { createStatelessContext, createWorkflowTest } from '@loopstack/testing';
 import { HitlConfirmExampleWorkflow } from '../hitl-confirm-example.workflow';
+
+const mockConfirmUserWorkflow = {
+  run: vi.fn(),
+};
 
 describe('HitlConfirmExampleWorkflow', () => {
   let module: TestingModule;
   let workflow: HitlConfirmExampleWorkflow;
   let processor: WorkflowProcessorService;
 
-  const mockOrchestrator = {
-    queue: vi.fn(),
-    complete: vi.fn(),
-    resume: vi.fn(),
-    cancel: vi.fn(),
-    cancelChildren: vi.fn(),
-  };
-
   beforeEach(async () => {
     vi.clearAllMocks();
 
     module = await createWorkflowTest()
       .forWorkflow(HitlConfirmExampleWorkflow)
-      .withOverride(WORKFLOW_ORCHESTRATOR, mockOrchestrator)
+      .withOverride(ConfirmUserWorkflow, mockConfirmUserWorkflow)
       .compile();
 
     workflow = module.get(HitlConfirmExampleWorkflow);
@@ -36,7 +32,7 @@ describe('HitlConfirmExampleWorkflow', () => {
   });
 
   it('launches ConfirmUserWorkflow and stops at waiting_for_confirmation', async () => {
-    mockOrchestrator.queue.mockResolvedValue({ workflowId: 'sub-id' });
+    mockConfirmUserWorkflow.run.mockResolvedValue({ workflowId: 'sub-id' });
 
     const result = await processor.process(workflow, {}, createStatelessContext());
 
@@ -44,9 +40,9 @@ describe('HitlConfirmExampleWorkflow', () => {
     expect(result.stop).toBe(true);
     expect(result.place).toBe('waiting_for_confirmation');
 
-    expect(mockOrchestrator.queue).toHaveBeenCalledWith(
+    expect(mockConfirmUserWorkflow.run).toHaveBeenCalledWith(
       expect.objectContaining({ markdown: expect.stringContaining('Ready to deploy') }),
-      expect.objectContaining({ workflowName: ConfirmUserWorkflow.name, callback: { transition: 'decisionReceived' } }),
+      { callback: { transition: 'decisionReceived' } },
     );
   });
 

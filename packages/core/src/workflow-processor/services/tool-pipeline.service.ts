@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import {
   BaseTool,
+  type LoopstackContext,
   TOOL_INTERCEPTOR_METADATA_KEY,
   ToolCallOptions,
   ToolExecutionContext,
@@ -88,9 +89,9 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
           userId: scope.userId,
           workspaceId: scope.workspaceId,
           workflowId: scope.workflowId,
-          run: { args: scope.args },
+          args: scope.args,
         }
-      : { userId: '', workspaceId: '', workflowId: '', run: { args: undefined } };
+      : { userId: '', workspaceId: '', workflowId: '', args: undefined };
 
     const execContext: ToolExecutionContext = {
       tool,
@@ -102,8 +103,10 @@ export class ToolPipelineService implements ToolPipeline, OnModuleInit {
     // 4. Build interceptor chain — each interceptor wraps the next, innermost is the tool call
     const toolCall = () =>
       (
-        tool as unknown as { handle(a: TArgs, o?: ToolCallOptions<TConfig>): Promise<ToolResult<TResult, TMeta>> }
-      ).handle(validArgs, validOptions);
+        tool as unknown as {
+          handle(a: TArgs, c: LoopstackContext, o?: ToolCallOptions<TConfig>): Promise<ToolResult<TResult, TMeta>>;
+        }
+      ).handle(validArgs, loopstackContext, validOptions);
 
     const chain = this.interceptors.reduceRight<() => Promise<ToolResult<TResult, TMeta>>>(
       (next, interceptor) => () =>

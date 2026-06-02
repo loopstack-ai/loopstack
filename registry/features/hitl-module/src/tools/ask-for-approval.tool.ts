@@ -1,15 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseTool,
-  DOCUMENT_STORE,
-  LinkDocument,
-  Tool,
-  ToolCallOptions,
-  ToolResult,
-  WORKFLOW_ORCHESTRATOR,
-  WorkflowOrchestrator,
-} from '@loopstack/common';
+import { BaseTool, DOCUMENT_STORE, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '../workflows/confirm-user/confirm-user.workflow.js';
 
@@ -33,7 +25,7 @@ export type AskForApprovalResult = { workflowId: string } | { concept: string | 
 })
 export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, AskForApprovalResult> {
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly confirmUserWorkflow: ConfirmUserWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
@@ -41,12 +33,10 @@ export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, As
 
   protected async handle(
     args: AskForApprovalInput,
+    ctx: LoopstackContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult<AskForApprovalResult>> {
-    const result = await this.orchestrator.queue(
-      { markdown: args.concept },
-      { workflowName: ConfirmUserWorkflow.name, callback: options?.callback },
-    );
+    const result = await this.confirmUserWorkflow.run({ markdown: args.concept }, { callback: options?.callback });
 
     const workflowId = result.workflowId;
 

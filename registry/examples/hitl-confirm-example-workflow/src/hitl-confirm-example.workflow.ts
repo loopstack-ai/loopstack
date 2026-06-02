@@ -8,9 +8,7 @@ import {
   MessageDocument,
   QueueResult,
   Transition,
-  WORKFLOW_ORCHESTRATOR,
   Workflow,
-  WorkflowOrchestrator,
 } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
@@ -35,7 +33,7 @@ Proceed?`;
 })
 export class HitlConfirmExampleWorkflow extends BaseWorkflow {
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly confirmUserWorkflow: ConfirmUserWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
@@ -43,9 +41,9 @@ export class HitlConfirmExampleWorkflow extends BaseWorkflow {
 
   @Transition({ to: 'waiting_for_confirmation' })
   async askForConfirmation(state: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const result: QueueResult = await this.orchestrator.queue(
+    const result: QueueResult = await this.confirmUserWorkflow.run(
       { markdown: MARKDOWN_SUMMARY },
-      { workflowName: ConfirmUserWorkflow.name, callback: { transition: 'decisionReceived' } },
+      { callback: { transition: 'decisionReceived' } },
     );
 
     await this.documentStore.save(MessageDocument, {

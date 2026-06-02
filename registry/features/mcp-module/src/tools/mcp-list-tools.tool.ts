@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { McpToolConfigSchema } from '../config/mcp-tool-config.schema.js';
 import type { McpToolConfig } from '../config/mcp-tool-config.schema.js';
 import { McpConnectionArgsSchema } from './mcp-connection-args.schema.js';
@@ -17,7 +18,11 @@ export type McpListToolsArgs = z.infer<typeof McpListToolsArgsSchema>;
   configSchema: McpToolConfigSchema,
 })
 export class McpListToolsTool extends McpToolBase<McpListToolsArgs> {
-  protected async handle(args: McpListToolsArgs, options?: ToolCallOptions<McpToolConfig>): Promise<ToolResult> {
+  protected async handle(
+    args: McpListToolsArgs,
+    ctx: LoopstackContext,
+    options?: ToolCallOptions<McpToolConfig>,
+  ): Promise<ToolResult> {
     const cfg = this.requireConfig(options?.config);
 
     const result = await this.mcp.listTools(args.serverUrl, cfg, {

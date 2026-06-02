@@ -9,11 +9,9 @@ import {
   MarkdownDocument,
   TEMPLATE_RENDERER,
   Transition,
-  WORKFLOW_ORCHESTRATOR,
   Workflow,
-  WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext, TemplateRenderFn } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 
@@ -36,7 +34,7 @@ interface CalendarSummaryState {
 export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }, CalendarSummaryState> {
   constructor(
     private readonly googleCalendarFetchEvents: GoogleCalendarFetchEventsTool,
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly oAuthWorkflow: OAuthWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
@@ -46,8 +44,8 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
   // --- Fetch events from Google Calendar ---
 
   @Transition({ to: 'calendar_fetched' })
-  async fetchEvents(state: CalendarSummaryState, ctx: WorkflowContext): Promise<CalendarSummaryState> {
-    const args = ctx.input.args as { calendarId: string };
+  async fetchEvents(state: CalendarSummaryState, ctx: LoopstackContext): Promise<CalendarSummaryState> {
+    const args = ctx.args as { calendarId: string };
     const result = await this.googleCalendarFetchEvents.call({
       calendarId: args.calendarId,
       timeMin: this.now(),
@@ -64,9 +62,9 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
   @Transition({ from: 'calendar_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async authRequired(state: CalendarSummaryState): Promise<CalendarSummaryState> {
-    const result = await this.orchestrator.queue(
+    const result = await this.oAuthWorkflow.run(
       { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-      { workflowName: OAuthWorkflow.name, callback: { transition: 'authCompleted' } },
+      { callback: { transition: 'authCompleted' } },
     );
 
     await this.documentStore.save(

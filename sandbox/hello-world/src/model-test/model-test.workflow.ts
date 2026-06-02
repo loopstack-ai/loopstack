@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
-import type { WorkflowContext } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { DocumentStore } from '@loopstack/core';
 import type {
   LlmGenerateTextResult,
@@ -37,9 +37,9 @@ export class ModelTestWorkflow extends BaseWorkflow<
   @Transition({ to: 'done' })
   async prompt(
     state: ModelTestState,
-    ctx: WorkflowContext,
+    ctx: LoopstackContext,
   ): Promise<ModelTestState> {
-    const args = ctx.input.args as { subject: string };
+    const args = ctx.args as { subject: string };
     // No model override here — relies entirely on the module's forFeature config
     const result = await this.llmGenerateText.call({
       prompt: `In one sentence, what is ${args.subject}?`,

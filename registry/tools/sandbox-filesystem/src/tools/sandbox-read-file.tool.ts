@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -30,7 +31,7 @@ export class SandboxReadFile extends BaseTool<SandboxReadFileArgs, object, Sandb
     super();
   }
 
-  protected async handle(args: SandboxReadFileArgs): Promise<ToolResult<SandboxReadFileResult>> {
+  protected async handle(args: SandboxReadFileArgs, ctx: LoopstackContext): Promise<ToolResult<SandboxReadFileResult>> {
     const { containerId, path, encoding } = args;
 
     this.logger.debug(`Reading file ${path} from container ${containerId} (encoding: ${encoding})`);

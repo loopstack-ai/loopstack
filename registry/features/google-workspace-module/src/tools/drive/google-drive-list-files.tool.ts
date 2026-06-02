@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -44,8 +45,11 @@ export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs,
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GoogleDriveListFilesArgs): Promise<ToolResult<GoogleDriveListFilesResult>> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'google');
+  protected async handle(
+    args: GoogleDriveListFilesArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GoogleDriveListFilesResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -74,7 +78,7 @@ export class GoogleDriveListFilesTool extends BaseTool<GoogleDriveListFilesArgs,
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Drive API returned ${response.status} for user ${this.ctx.userId}`);
+      this.logger.warn(`Google Drive API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: 'unauthorized',

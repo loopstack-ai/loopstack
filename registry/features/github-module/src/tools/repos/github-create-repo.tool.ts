@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -39,8 +40,11 @@ export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, object,
   @Inject()
   private tokenStore: OAuthTokenStore;
 
-  protected async handle(args: GitHubCreateRepoArgs): Promise<ToolResult<GitHubCreateRepoResult>> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'github');
+  protected async handle(
+    args: GitHubCreateRepoArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GitHubCreateRepoResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'github');
 
     if (!accessToken) {
       return {
@@ -71,7 +75,7 @@ export class GitHubCreateRepoTool extends BaseTool<GitHubCreateRepoArgs, object,
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`GitHub API returned ${response.status} for user ${this.ctx.userId}`);
+      this.logger.warn(`GitHub API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

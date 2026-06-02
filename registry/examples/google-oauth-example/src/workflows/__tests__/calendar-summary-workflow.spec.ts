@@ -1,13 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import {
-  RunContext,
-  WORKFLOW_ORCHESTRATOR,
-  WorkflowEntity,
-  getBlockArgsSchema,
-  getBlockConfig,
-} from '@loopstack/common';
+import { RunContext, WorkflowEntity, getBlockArgsSchema, getBlockConfig } from '@loopstack/common';
 import { WorkflowProcessorService } from '@loopstack/core';
 import {
   GmailGetMessageTool,
@@ -27,10 +21,8 @@ import { ToolMock, createStatelessContext, createWorkflowTest } from '@loopstack
 import { GoogleCalendarFetchEventsTool } from '../../tools';
 import { CalendarSummaryWorkflow } from '../calendar-summary.workflow';
 
-const mockOrchestrator = {
-  queue: vi.fn().mockResolvedValue({ workflowId: 'sub-1' }),
-  complete: vi.fn(),
-  cancelChildren: vi.fn(),
+const mockOAuthWorkflow = {
+  run: vi.fn().mockResolvedValue({ workflowId: 'sub-1' }),
 };
 
 function buildCalendarSummaryTest() {
@@ -49,7 +41,7 @@ function buildCalendarSummaryTest() {
     .withToolMock(GoogleDriveGetFileMetadataTool)
     .withToolMock(GoogleDriveDownloadFileTool)
     .withToolMock(GoogleDriveUploadFileTool)
-    .withOverride(WORKFLOW_ORCHESTRATOR, mockOrchestrator);
+    .withOverride(OAuthWorkflow, mockOAuthWorkflow);
 }
 
 describe('CalendarSummaryWorkflow', () => {
@@ -159,13 +151,10 @@ describe('CalendarSummaryWorkflow', () => {
       expect(result.place).toBe('awaiting_auth');
 
       expect(mockGoogleCalendarFetchEventsTool.call).toHaveBeenCalledTimes(1);
-      expect(mockOrchestrator.queue).toHaveBeenCalledTimes(1);
-      expect(mockOrchestrator.queue).toHaveBeenCalledWith(
+      expect(mockOAuthWorkflow.run).toHaveBeenCalledTimes(1);
+      expect(mockOAuthWorkflow.run).toHaveBeenCalledWith(
         { provider: 'google', scopes: ['https://www.googleapis.com/auth/calendar.readonly'] },
-        expect.objectContaining({
-          workflowName: 'OAuthWorkflow',
-          callback: { transition: 'authCompleted' },
-        }),
+        { callback: { transition: 'authCompleted' } },
       );
 
       // Link document should have been created for auth flow

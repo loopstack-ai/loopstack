@@ -9,7 +9,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext, TemplateRenderFn } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 import { FileDocument, FileDocumentSchema, FileDocumentType } from './documents/file-document';
@@ -37,8 +37,8 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   }
 
   @Transition({ to: 'ready' })
-  async greeting(state: PromptStructuredOutputState, ctx: WorkflowContext): Promise<PromptStructuredOutputState> {
-    const args = ctx.input.args as { language: string };
+  async greeting(state: PromptStructuredOutputState, ctx: LoopstackContext): Promise<PromptStructuredOutputState> {
+    const args = ctx.args as { language: string };
     await this.documentStore.save(
       LlmMessageDocument,
       {

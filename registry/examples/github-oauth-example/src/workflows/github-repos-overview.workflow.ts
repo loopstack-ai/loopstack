@@ -9,11 +9,9 @@ import {
   MarkdownDocument,
   TEMPLATE_RENDERER,
   Transition,
-  WORKFLOW_ORCHESTRATOR,
   Workflow,
-  WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext, TemplateRenderFn } from '@loopstack/common';
 import {
   GitHubGetAuthenticatedUserTool,
   GitHubGetRepoTool,
@@ -90,7 +88,7 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<
     private readonly gitHubListDirectory: GitHubListDirectoryTool,
     private readonly gitHubListWorkflowRuns: GitHubListWorkflowRunsTool,
     private readonly gitHubSearchCode: GitHubSearchCodeTool,
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly oAuthWorkflow: OAuthWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
@@ -100,8 +98,8 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<
   // --- Step 1: Fetch authenticated user ---
 
   @Transition({ to: 'user_fetched' })
-  async fetchUser(state: GitHubReposOverviewState, ctx: WorkflowContext): Promise<GitHubReposOverviewState> {
-    const args = ctx.input.args as { owner: string; repo: string };
+  async fetchUser(state: GitHubReposOverviewState, ctx: LoopstackContext): Promise<GitHubReposOverviewState> {
+    const args = ctx.args as { owner: string; repo: string };
     const result = await this.gitHubGetAuthenticatedUser.call();
     return {
       ...state,
@@ -116,9 +114,9 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<
   @Transition({ from: 'user_fetched', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async authRequired(state: GitHubReposOverviewState): Promise<GitHubReposOverviewState> {
-    const result = await this.orchestrator.queue(
+    const result = await this.oAuthWorkflow.run(
       { provider: 'github', scopes: ['repo', 'read:org', 'workflow'] },
-      { workflowName: 'OAuthWorkflow', callback: { transition: 'authCompleted' } },
+      { callback: { transition: 'authCompleted' } },
     );
 
     await this.documentStore.save(

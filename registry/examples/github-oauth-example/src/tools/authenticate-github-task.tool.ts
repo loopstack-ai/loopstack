@@ -1,15 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseTool,
-  DOCUMENT_STORE,
-  LinkDocument,
-  Tool,
-  ToolCallOptions,
-  ToolResult,
-  WORKFLOW_ORCHESTRATOR,
-  WorkflowOrchestrator,
-} from '@loopstack/common';
+import { BaseTool, DOCUMENT_STORE, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
@@ -46,7 +38,7 @@ export class AuthenticateGitHubTask extends BaseTool<
   private readonly logger = new Logger(AuthenticateGitHubTask.name);
 
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly oAuthWorkflow: OAuthWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
@@ -54,11 +46,12 @@ export class AuthenticateGitHubTask extends BaseTool<
 
   protected async handle(
     args: AuthenticateGitHubTaskInput,
+    ctx: LoopstackContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult<AuthenticateGitHubTaskResult>> {
-    const result = await this.orchestrator.queue(
+    const result = await this.oAuthWorkflow.run(
       { provider: 'github', scopes: args.scopes },
-      { workflowName: OAuthWorkflow.name, callback: options?.callback ?? args.callback },
+      { callback: options?.callback ?? args.callback },
     );
 
     await this.documentStore.save(

@@ -12,7 +12,7 @@ import {
   getGuardMetadataMap,
   normalizeRetryConfig,
 } from '@loopstack/common';
-import type { WorkflowContext } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { WorkflowState, WorkflowState as WorkflowStateEnum } from '@loopstack/contracts/enums';
 import { TransitionPayloadInterface } from '@loopstack/contracts/types';
 import { ConfigTraceError, Processor } from '../../../common/index.js';
@@ -192,14 +192,12 @@ export class WorkflowProcessorService implements Processor {
   /**
    * Build a WorkflowContext from the scope data.
    */
-  private buildWorkflowContext(scopeData: ExecutionScopeData, meta: ProcessorMetadata): WorkflowContext {
+  private buildWorkflowContext(scopeData: ExecutionScopeData, meta: ProcessorMetadata): LoopstackContext {
     return {
       userId: scopeData.userId,
       workspaceId: scopeData.workspaceId,
       workflowId: scopeData.workflowId,
-      input: {
-        args: scopeData.args,
-      },
+      args: scopeData.args,
       execution: {
         place: meta.place,
         retryCount: meta.retryCount ?? 0,
@@ -216,7 +214,7 @@ export class WorkflowProcessorService implements Processor {
   private invokeTransition(
     workflow: WorkflowInterface,
     methodName: string,
-    workflowCtx: WorkflowContext,
+    workflowCtx: LoopstackContext,
     state: Record<string, unknown>,
     data?: unknown,
   ): Promise<unknown> {

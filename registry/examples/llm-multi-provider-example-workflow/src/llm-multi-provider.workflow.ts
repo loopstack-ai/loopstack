@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseWorkflow, DOCUMENT_STORE, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument, extractText } from '@loopstack/llm-provider-module';
 
 /**
@@ -36,8 +36,8 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }, L
   }
 
   @Transition({ to: 'claude_done' })
-  async askClaude(state: LlmMultiProviderState, ctx: WorkflowContext): Promise<LlmMultiProviderState> {
-    const args = ctx.input.args as { prompt: string };
+  async askClaude(state: LlmMultiProviderState, ctx: LoopstackContext): Promise<LlmMultiProviderState> {
+    const args = ctx.args as { prompt: string };
     await this.documentStore.save(LlmMessageDocument, { role: 'user', content: args.prompt });
 
     const result = await this.llmGenerateText.call(

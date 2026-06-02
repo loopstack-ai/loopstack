@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { SandboxCommand } from '@loopstack/sandbox-tool';
 
 const inputSchema = z
@@ -31,7 +32,7 @@ export class SandboxDelete extends BaseTool<SandboxDeleteArgs, object, SandboxDe
     super();
   }
 
-  protected async handle(args: SandboxDeleteArgs): Promise<ToolResult<SandboxDeleteResult>> {
+  protected async handle(args: SandboxDeleteArgs, ctx: LoopstackContext): Promise<ToolResult<SandboxDeleteResult>> {
     const { containerId, path: targetPath, recursive, force } = args;
 
     this.logger.debug(`Deleting ${targetPath} in container ${containerId} (recursive: ${recursive}, force: ${force})`);

@@ -18,7 +18,7 @@ function createContext(toolName: string, overrides?: Partial<ToolExecutionContex
       userId: 'user-1',
       workspaceId: 'ws-1',
       workflowId: '',
-      run: { args: undefined },
+      args: undefined,
     },
     metadata: {},
     ...overrides,

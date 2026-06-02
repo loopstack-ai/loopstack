@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseWorkflow, DOCUMENT_STORE, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext, TemplateRenderFn } from '@loopstack/common';
 import type { LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import { LlmGenerateTextTool, LlmMessageDocument } from '@loopstack/llm-provider-module';
 
@@ -28,8 +28,8 @@ export class PromptWorkflow extends BaseWorkflow<{ subject: string }, PromptStat
   }
 
   @Transition({ to: 'prompt_executed' })
-  async prompt(state: PromptState, ctx: WorkflowContext): Promise<PromptState> {
-    const args = ctx.input.args as { subject: string };
+  async prompt(state: PromptState, ctx: LoopstackContext): Promise<PromptState> {
+    const args = ctx.args as { subject: string };
     const result = await this.llmGenerateText.call(
       {
         prompt: this.render(__dirname + '/templates/prompt.md', { subject: args.subject }),

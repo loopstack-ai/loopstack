@@ -1,15 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseTool,
-  DOCUMENT_STORE,
-  LinkDocument,
-  Tool,
-  ToolCallOptions,
-  ToolResult,
-  WORKFLOW_ORCHESTRATOR,
-  WorkflowOrchestrator,
-} from '@loopstack/common';
+import { BaseTool, DOCUMENT_STORE, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { SecretsRequestWorkflow } from './secrets-request.workflow.js';
 
@@ -40,7 +32,7 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
   private readonly logger = new Logger(RequestSecretsTask.name);
 
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly secretsRequestWorkflow: SecretsRequestWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
@@ -48,14 +40,12 @@ export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object
 
   protected async handle(
     args: RequestSecretsTaskInput,
+    ctx: LoopstackContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult<RequestSecretsTaskResult>> {
-    const result = await this.orchestrator.queue(
+    const result = await this.secretsRequestWorkflow.run(
       { variables: args.variables },
-      {
-        workflowName: SecretsRequestWorkflow.name,
-        callback: options?.callback,
-      },
+      { callback: options?.callback },
     );
 
     await this.documentStore.save(

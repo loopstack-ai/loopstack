@@ -1,12 +1,16 @@
 /**
- * Read-only per-job framework context.
+ * Unified per-job framework context.
  *
- * Set once by the processor at job start, read by ToolPipelineService,
- * interceptors, and tools (via `this.ctx` on BaseTool).
+ * Used by both tools (passed as `ctx` parameter to `handle()`) and workflows
+ * (passed as the trailing parameter to transition methods).
+ *
+ * - `args` — validated workflow input args (frozen at job start)
+ * - `execution` — present in workflow transitions, absent in tools
  */
 export interface LoopstackContext {
   userId: string;
   workspaceId: string;
   workflowId: string;
-  run: { args: unknown };
+  args: unknown;
+  execution?: { place: string; retryCount: number };
 }

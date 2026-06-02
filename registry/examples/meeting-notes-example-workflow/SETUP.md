@@ -21,13 +21,13 @@ import { MeetingNotesExampleModule } from '@loopstack/meeting-notes-example-work
 export class DefaultModule {}
 ```
 
-2. Inject the `MeetingNotesWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the `MeetingNotesWorkflow` workflow into your workspace class via the constructor:
 
 ```typescript
 import { MeetingNotesWorkflow } from '@loopstack/meeting-notes-example-workflow';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() meetingNotes: MeetingNotesWorkflow;
+  constructor(public readonly meetingNotes: MeetingNotesWorkflow) {}
 }
 ```
 

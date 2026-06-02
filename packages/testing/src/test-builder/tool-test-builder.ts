@@ -134,14 +134,14 @@ export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
               workspaceId: 'test-workspace',
               workflowId: 'test-workflow',
 
-              run: { args: undefined },
+              args: undefined,
             }),
             getOptional: vi.fn().mockReturnValue({
               userId: 'test-user',
               workspaceId: 'test-workspace',
               workflowId: 'test-workflow',
 
-              run: { args: undefined },
+              args: undefined,
             }),
             getOrLoad: vi.fn().mockImplementation((_key: symbol, loader: () => Promise<unknown>) => loader()),
           },
@@ -150,7 +150,13 @@ export class ToolTestBuilder<TTool extends BaseTool = BaseTool> {
           provide: TOOL_PIPELINE,
           useValue: {
             execute: vi.fn().mockImplementation((tool: any, args: any, options: any) => {
-              return tool.handle(args ?? {}, options);
+              const ctx = {
+                userId: 'test-user',
+                workspaceId: 'test-workspace',
+                workflowId: 'test-workflow',
+                args: undefined,
+              };
+              return tool.handle(args ?? {}, ctx, options);
             }),
           },
         },

@@ -5,7 +5,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { WorkflowContext } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { DocumentStore } from '@loopstack/core';
 
 interface HelloState {
@@ -25,8 +25,8 @@ export class HelloWorkflow extends BaseWorkflow<{ name: string }, HelloState> {
   }
 
   @Transition({ to: 'ready' })
-  async start(state: HelloState, ctx: WorkflowContext): Promise<HelloState> {
-    const args = ctx.input.args as { name: string };
+  async start(state: HelloState, ctx: LoopstackContext): Promise<HelloState> {
+    const args = ctx.args as { name: string };
     return { name: args.name };
   }
 

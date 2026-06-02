@@ -22,7 +22,7 @@ describe('ProcessingTimeQuotaCalculator', () => {
         userId: 'user-1',
         workspaceId: 'ws-1',
         workflowId: '',
-        run: { args: undefined },
+        args: undefined,
       },
       metadata: { durationMs: 1500 },
     };
@@ -41,7 +41,7 @@ describe('ProcessingTimeQuotaCalculator', () => {
         userId: 'user-1',
         workspaceId: 'ws-1',
         workflowId: '',
-        run: { args: undefined },
+        args: undefined,
       },
       metadata: {},
     };
@@ -57,7 +57,7 @@ describe('ProcessingTimeQuotaCalculator', () => {
         userId: 'user-1',
         workspaceId: 'ws-1',
         workflowId: '',
-        run: { args: undefined },
+        args: undefined,
       },
       metadata: { durationMs: 0 },
     };

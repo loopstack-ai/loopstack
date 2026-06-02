@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const inputSchema = z
@@ -42,8 +43,9 @@ export class GoogleCalendarListCalendarsTool extends BaseTool<
 
   protected async handle(
     args: GoogleCalendarListCalendarsArgs,
+    ctx: LoopstackContext,
   ): Promise<ToolResult<GoogleCalendarListCalendarsResult>> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'google');
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -65,7 +67,7 @@ export class GoogleCalendarListCalendarsTool extends BaseTool<
     });
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.userId}`);
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: 'unauthorized',

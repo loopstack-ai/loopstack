@@ -1,4 +1,5 @@
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 
 export type Step2ToolResult = string;
 
@@ -7,7 +8,7 @@ export type Step2ToolResult = string;
   description: 'A tool that fails when shouldFail is true.',
 })
 export class Step2Tool extends BaseTool<{ shouldFail: boolean }, object, Step2ToolResult> {
-  protected async handle(args: { shouldFail: boolean }): Promise<ToolResult<Step2ToolResult>> {
+  protected async handle(args: { shouldFail: boolean }, ctx: LoopstackContext): Promise<ToolResult<Step2ToolResult>> {
     if (args.shouldFail) {
       throw new Error('Simulated external service error');
     }

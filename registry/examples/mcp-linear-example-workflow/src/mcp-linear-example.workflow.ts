@@ -1,17 +1,8 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { ChatAgentWorkflow } from '@loopstack/agent';
-import {
-  BaseWorkflow,
-  DOCUMENT_STORE,
-  LinkDocument,
-  MessageDocument,
-  Transition,
-  WORKFLOW_ORCHESTRATOR,
-  Workflow,
-  WorkflowOrchestrator,
-} from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import { BaseWorkflow, DOCUMENT_STORE, LinkDocument, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext } from '@loopstack/common';
 import { McpCallTool, McpListToolsTool } from '@loopstack/mcp-module';
 
 const LINEAR_MCP_URL = 'https://mcp.linear.app/mcp';
@@ -33,7 +24,7 @@ type McpLinearExampleArgs = z.infer<typeof McpLinearExampleArgsSchema>;
 })
 export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs> {
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly chatAgentWorkflow: ChatAgentWorkflow,
     private readonly mcpListTools: McpListToolsTool,
     private readonly mcpCallTool: McpCallTool,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
@@ -42,22 +33,19 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs>
   }
 
   @Transition({ to: 'chatting' })
-  async startChat(state: Record<string, unknown>, ctx: WorkflowContext): Promise<Record<string, unknown>> {
-    const args = ctx.input.args as McpLinearExampleArgs;
+  async startChat(state: Record<string, unknown>, ctx: LoopstackContext): Promise<Record<string, unknown>> {
+    const args = ctx.args as McpLinearExampleArgs;
     const systemPrompt = [
       `You are a Linear assistant connected via MCP at ${LINEAR_MCP_URL} (transport: streamableHttp).`,
       'Use `mcpListTools` to discover the available Linear tools, then `mcpCallTool` to invoke them.',
       `Always pass serverUrl="${LINEAR_MCP_URL}" and transport="streamableHttp".`,
     ].join('\n');
 
-    const result = await this.orchestrator.queue(
-      {
-        system: systemPrompt,
-        tools: ['mcp_list_tools', 'mcp_call'],
-        userMessage: args.initialMessage,
-      },
-      { workflowName: ChatAgentWorkflow.name },
-    );
+    const result = await this.chatAgentWorkflow.run({
+      system: systemPrompt,
+      tools: ['mcp_list_tools', 'mcp_call'],
+      userMessage: args.initialMessage,
+    });
 
     await this.documentStore.save(LinkDocument, {
       workflowId: result.workflowId,

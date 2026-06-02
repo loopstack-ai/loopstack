@@ -35,15 +35,17 @@ export class AppModule {}
 
 ### Asking a text question as a sub-workflow
 
-Use `@InjectWorkflow()` to launch `AskUserWorkflow` from a parent workflow. The call resolves with the user's answer once they respond in the UI:
+Inject `AskUserWorkflow` via the constructor and launch it from a parent workflow. The call resolves with the user's answer once they respond in the UI:
 
 ```ts
-import { BaseWorkflow, InjectWorkflow, Transition, Workflow } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 
-@Workflow({ uiConfig: __dirname + '/my.ui.yaml' })
+@Workflow({ widget: __dirname + '/my.ui.yaml' })
 export class MyWorkflow extends BaseWorkflow {
-  @InjectWorkflow() askUser: AskUserWorkflow;
+  constructor(private readonly askUser: AskUserWorkflow) {
+    super();
+  }
 
   @Transition({ from: 'ready', to: 'done' })
   async collectName() {

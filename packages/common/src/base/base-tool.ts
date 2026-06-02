@@ -2,29 +2,19 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { ToolCallOptions, ToolResult } from '../interfaces/handler.interface.js';
 import type { LoopstackContext } from '../interfaces/loopstack-context.interface.js';
 import type { ToolPipeline } from '../interfaces/tool-pipeline.interface.js';
-import { EXECUTION_SCOPE, TOOL_PIPELINE } from '../tokens.js';
-
-/**
- * Execution scope interface — matches the object returned by ExecutionScope.get().
- * Defined here to avoid cross-package dependency on core.
- */
-interface ScopeAccessor {
-  get(): LoopstackContext & Record<string, unknown>;
-  getOptional(): (LoopstackContext & Record<string, unknown>) | undefined;
-  getOrLoad<T>(key: symbol, loader: () => Promise<T>): Promise<T>;
-}
+import { TOOL_PIPELINE } from '../tokens.js';
 
 /**
  * Abstract base class for tools.
  *
- * Tool authors extend this class and implement `handle(args, options?)`.
+ * Tool authors extend this class and implement `handle(args, ctx, options?)`.
  * Consumers call `tool.call(args, options?)` — the base class routes through
  * `ToolPipelineService` which handles validation, config merging, and interceptors.
  *
  * ```ts
  * @Tool({ schema: ArgsSchema, configSchema: ConfigSchema })
  * class MyTool extends BaseTool<Args, Config, MyResult> {
- *   protected async handle(args: Args, options?: ToolCallOptions<Config>): Promise<ToolResult<MyResult>> {
+ *   protected async handle(args: Args, ctx: LoopstackContext, options?: ToolCallOptions<Config>): Promise<ToolResult<MyResult>> {
  *     return { data: { value: args.prompt } };
  *   }
  * }
@@ -46,19 +36,6 @@ export abstract class BaseTool<
   /** @internal — injected by the framework. Routes call() through validation + interceptors. */
   @Inject(TOOL_PIPELINE) private readonly __pipeline!: ToolPipeline;
 
-  /** @internal — injected by the framework. Provides access to execution context. */
-  @Inject(EXECUTION_SCOPE) private readonly __scope!: ScopeAccessor;
-
-  /**
-   * Read-only execution context for the current workflow run.
-   * Available inside `handle()` — throws if called outside a transition.
-   *
-   * Provides: `userId`, `workspaceId`, `workflowId`, `run.args`.
-   */
-  protected get ctx(): LoopstackContext & Record<string, unknown> {
-    return this.__scope.get();
-  }
-
   /**
    * Public entry point — what consumers call.
    * Routes through ToolPipelineService for validation, config merge, and interceptors.
@@ -72,9 +49,14 @@ export abstract class BaseTool<
    * Called by the pipeline after validation and interceptors.
    *
    * @param args — Validated input (against the `@Tool({ schema })` Zod schema)
+   * @param ctx — Read-only execution context: userId, workspaceId, workflowId, args
    * @param options — Options including validated config and optional tools/callback
    */
-  protected abstract handle(args: TArgs, options?: ToolCallOptions<TConfig>): Promise<ToolResult<TResult, TMeta>>;
+  protected abstract handle(
+    args: TArgs,
+    ctx: LoopstackContext,
+    options?: ToolCallOptions<TConfig>,
+  ): Promise<ToolResult<TResult, TMeta>>;
 
   /**
    * Called when an async sub-workflow completes and the callback fires.

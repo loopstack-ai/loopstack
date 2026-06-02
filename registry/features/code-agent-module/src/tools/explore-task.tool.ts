@@ -1,16 +1,8 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
-import {
-  BaseTool,
-  DOCUMENT_STORE,
-  LinkDocument,
-  Tool,
-  ToolCallOptions,
-  ToolResult,
-  WORKFLOW_ORCHESTRATOR,
-  WorkflowOrchestrator,
-} from '@loopstack/common';
+import { BaseTool, DOCUMENT_STORE, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 
 const EXPLORE_SYSTEM_PROMPT = `You are a codebase exploration agent. Your job is to search and read
@@ -48,7 +40,7 @@ export type ExploreTaskResult = { workflowId: string } | string | Record<string,
 })
 export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskResult> {
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly agentWorkflow: AgentWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
@@ -56,14 +48,18 @@ export class ExploreTask extends BaseTool<ExploreTaskInput, object, ExploreTaskR
 
   private readonly tools = ['glob', 'grep', 'read'];
 
-  protected async handle(args: ExploreTaskInput, options?: ToolCallOptions): Promise<ToolResult<ExploreTaskResult>> {
-    const result = await this.orchestrator.queue(
+  protected async handle(
+    args: ExploreTaskInput,
+    ctx: LoopstackContext,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<ExploreTaskResult>> {
+    const result = await this.agentWorkflow.run(
       {
         system: EXPLORE_SYSTEM_PROMPT,
         tools: this.tools,
         userMessage: args.instructions,
       },
-      { workflowName: AgentWorkflow.name, callback: options?.callback },
+      { callback: options?.callback },
     );
 
     const workflowId = result.workflowId;

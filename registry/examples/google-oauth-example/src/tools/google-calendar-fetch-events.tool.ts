@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { OAuthTokenStore } from '@loopstack/oauth-module';
 
 const GoogleCalendarFetchEventsSchema = z
@@ -46,8 +47,11 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
     super();
   }
 
-  protected async handle(args: GoogleCalendarFetchEventsArgs): Promise<ToolResult<GoogleCalendarFetchEventsResult>> {
-    const accessToken = await this.tokenStore.getValidAccessToken(this.ctx.userId, 'google');
+  protected async handle(
+    args: GoogleCalendarFetchEventsArgs,
+    ctx: LoopstackContext,
+  ): Promise<ToolResult<GoogleCalendarFetchEventsResult>> {
+    const accessToken = await this.tokenStore.getValidAccessToken(ctx.userId, 'google');
 
     if (!accessToken) {
       return {
@@ -74,7 +78,7 @@ export class GoogleCalendarFetchEventsTool extends BaseTool<
     );
 
     if (response.status === 401 || response.status === 403) {
-      this.logger.warn(`Google Calendar API returned ${response.status} for user ${this.ctx.userId}`);
+      this.logger.warn(`Google Calendar API returned ${response.status} for user ${ctx.userId}`);
       return {
         data: {
           error: '401',

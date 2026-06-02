@@ -10,7 +10,7 @@ The Run Sub Workflow Example shows how to build workflows that spawn and manage 
 
 By using this example as a reference, you'll learn how to:
 
-- Use `@InjectWorkflow()` and `.run()` to start child workflows asynchronously
+- Use `constructor injection of` and `.run()` to start child workflows asynchronously
 - Set up callback transitions to handle sub-workflow completion
 - Define callback schemas with `CallbackSchema.extend()` to type callback payloads
 - Return structured data from sub-workflows via the return value of `@Initial` methods
@@ -30,12 +30,12 @@ See [SETUP.md](./SETUP.md) for installation and setup instructions.
 
 #### Parent Workflow
 
-The parent workflow uses `@InjectWorkflow()` to inject the sub-workflow class and calls `.run()` to start it:
+The parent workflow uses `constructor injection of` to inject the sub-workflow class and calls `.run()` to start it:
 
 ```typescript
 @Workflow({ uiConfig: __dirname + '/run-sub-workflow-example-parent.ui.yaml' })
 export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
-  @InjectWorkflow() private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
+  constructor injection of private runSubWorkflowExampleSub: RunSubWorkflowExampleSubWorkflow;
 }
 ```
 

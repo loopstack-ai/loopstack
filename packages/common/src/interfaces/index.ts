@@ -18,6 +18,5 @@ export * from './workflow-orchestrator.interface.js';
 export * from './workflow-runner.interface.js';
 export * from './loopstack-context.interface.js';
 export * from './tool-pipeline.interface.js';
-export * from './workflow-context.interface.js';
 export * from './workflow-payload.interface.js';
 export * from './tool-registry.interface.js';

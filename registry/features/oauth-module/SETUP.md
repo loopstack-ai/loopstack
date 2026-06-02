@@ -30,7 +30,7 @@ import { OAuthWorkflow } from '@loopstack/oauth-module';
   workflows: [],
 })
 export class DefaultWorkspace {
-  @InjectWorkflow() oAuth: OAuthWorkflow;
+  constructor(public readonly oAuth: OAuthWorkflow) {}
 }
 ```
 

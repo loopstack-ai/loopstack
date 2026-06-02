@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { EnvironmentService, RemoteClient } from '@loopstack/remote-client';
 
 export type GitPullArgs = {
@@ -32,7 +33,7 @@ export class GitPullTool extends BaseTool<GitPullArgs, object, GitPullResult> {
     super();
   }
 
-  protected async handle(args: GitPullArgs): Promise<ToolResult<GitPullResult>> {
+  protected async handle(args: GitPullArgs, ctx: LoopstackContext): Promise<ToolResult<GitPullResult>> {
     const agentUrl = await this.env.getAgentUrl();
     const result = await this.remote.gitPull(agentUrl, {
       remote: args.remote,

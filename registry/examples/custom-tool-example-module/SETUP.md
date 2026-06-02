@@ -21,13 +21,13 @@ import { CustomToolModule } from '@loopstack/custom-tool-example-module';
 export class DefaultModule {}
 ```
 
-2. Inject the `CustomToolExampleWorkflow` workflow into your workspace class using the `@InjectWorkflow()` decorator:
+2. Inject the `CustomToolExampleWorkflow` workflow into your workspace class via the constructor:
 
 ```typescript
 import { CustomToolExampleWorkflow } from '@loopstack/custom-tool-example-module';
 
 export class DefaultWorkspace {
-  @InjectWorkflow() customToolExample: CustomToolExampleWorkflow;
+  constructor(public readonly customToolExample: CustomToolExampleWorkflow) {}
 }
 ```
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BaseTool, Tool, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { SecretService } from '@loopstack/secrets-module';
 import { EnvironmentService } from '../services/environment.service.js';
 import { RemoteClient } from '../services/index.js';
@@ -27,8 +28,8 @@ export class SyncSecretsTool extends BaseTool<SyncSecretsInput, object, SyncSecr
     super();
   }
 
-  protected async handle(_args: SyncSecretsInput): Promise<ToolResult<SyncSecretsResult>> {
-    const secrets = await this.secretService.findAllByWorkspace(this.ctx.workspaceId);
+  protected async handle(_args: SyncSecretsInput, ctx: LoopstackContext): Promise<ToolResult<SyncSecretsResult>> {
+    const secrets = await this.secretService.findAllByWorkspace(ctx.workspaceId);
 
     if (secrets.length === 0) {
       return {

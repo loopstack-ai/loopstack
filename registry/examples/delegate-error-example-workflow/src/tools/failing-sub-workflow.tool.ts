@@ -1,13 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseTool,
-  Tool,
-  ToolCallOptions,
-  ToolResult,
-  WORKFLOW_ORCHESTRATOR,
-  WorkflowOrchestrator,
-} from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { FailingWorkflow } from '../workflows/failing.workflow';
 
 export type FailingSubWorkflowToolResult = { workflowId: string };
@@ -20,15 +13,16 @@ export type FailingSubWorkflowToolResult = { workflowId: string };
   schema: z.object({}),
 })
 export class FailingSubWorkflowTool extends BaseTool<object, object, FailingSubWorkflowToolResult> {
-  constructor(@Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator) {
+  constructor(private readonly failingWorkflow: FailingWorkflow) {
     super();
   }
 
-  protected async handle(_args: object, options?: ToolCallOptions): Promise<ToolResult<FailingSubWorkflowToolResult>> {
-    const result = await this.orchestrator.queue(
-      {},
-      { workflowName: FailingWorkflow.name, callback: options?.callback },
-    );
+  protected async handle(
+    _args: object,
+    _ctx: LoopstackContext,
+    options?: ToolCallOptions,
+  ): Promise<ToolResult<FailingSubWorkflowToolResult>> {
+    const result = await this.failingWorkflow.run({}, { callback: options?.callback });
 
     return {
       data: { workflowId: result.workflowId },

@@ -1,15 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseTool,
-  DOCUMENT_STORE,
-  LinkDocument,
-  Tool,
-  ToolCallOptions,
-  ToolResult,
-  WORKFLOW_ORCHESTRATOR,
-  WorkflowOrchestrator,
-} from '@loopstack/common';
+import { BaseTool, DOCUMENT_STORE, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import { AskUserWorkflow } from '../workflows/ask-user/ask-user.workflow.js';
 
@@ -54,7 +46,7 @@ export type AskClarificationResult = { workflowId: string } | string | Record<st
 })
 export class AskClarificationTool extends BaseTool<AskClarificationInput, object, AskClarificationResult> {
   constructor(
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
+    private readonly askUserWorkflow: AskUserWorkflow,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
@@ -62,16 +54,17 @@ export class AskClarificationTool extends BaseTool<AskClarificationInput, object
 
   protected async handle(
     args: AskClarificationInput,
+    ctx: LoopstackContext,
     options?: ToolCallOptions,
   ): Promise<ToolResult<AskClarificationResult>> {
-    const result = await this.orchestrator.queue(
+    const result = await this.askUserWorkflow.run(
       {
         question: args.question,
         mode: args.mode,
         options: args.options,
         allowCustomAnswer: args.allowCustomAnswer,
       },
-      { workflowName: AskUserWorkflow.name, callback: options?.callback },
+      { callback: options?.callback },
     );
 
     const workflowId = result.workflowId;

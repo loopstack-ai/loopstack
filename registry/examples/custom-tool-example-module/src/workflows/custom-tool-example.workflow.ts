@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, WorkflowContext } from '@loopstack/common';
+import type { DocumentStore, LoopstackContext } from '@loopstack/common';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 
@@ -31,8 +31,8 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
   }
 
   @Transition({ to: 'waiting_for_user' })
-  async calculate(state: CustomToolExampleState, ctx: WorkflowContext): Promise<CustomToolExampleState> {
-    const args = ctx.input.args as { a: number; b: number };
+  async calculate(state: CustomToolExampleState, ctx: LoopstackContext): Promise<CustomToolExampleState> {
+    const args = ctx.args as { a: number; b: number };
     // Use a custom tool
     const calcResult = await this.mathTool.call({ a: args.a, b: args.b });
     const total = calcResult.data as number;

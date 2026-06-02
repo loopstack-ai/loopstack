@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import type { WorkflowContext } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import type { DocumentStore } from '@loopstack/common';
 import {
   BaseWorkflow,
@@ -10,9 +10,7 @@ import {
   LinkDocument,
   MarkdownDocument,
   Transition,
-  WORKFLOW_ORCHESTRATOR,
   Workflow,
-  WorkflowOrchestrator,
 } from '@loopstack/common';
 import { ClientMessageService } from '@loopstack/core';
 import {
@@ -58,12 +56,11 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
     private readonly tokenStore: OAuthTokenStore,
     private readonly clientMessageService: ClientMessageService,
     @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-    @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
   ) {
     super();
   }
 
-  private async getGitHubToken(ctx: WorkflowContext): Promise<string | undefined> {
+  private async getGitHubToken(ctx: LoopstackContext): Promise<string | undefined> {
     return (await this.tokenStore.getValidAccessToken(ctx.userId, 'github')) ?? undefined;
   }
 
@@ -84,9 +81,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   @Transition({ from: 'check_auth', to: 'awaiting_auth', priority: 10 })
   @Guard('needsAuth')
   async launchOAuth(state: ConnectGitHubState): Promise<ConnectGitHubState> {
-    const result = await this.orchestrator.queue(
+    const result = await this.oAuth.run(
       { provider: 'github', scopes: ['repo', 'user'] },
-      { workflowName: 'OAuthWorkflow', callback: { transition: 'authCompleted' } },
+      { callback: { transition: 'authCompleted' } },
     );
 
     await this.documentStore.save(
@@ -129,13 +126,13 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   @Transition({ from: 'check_auth', to: 'awaiting_choice' })
   async askCreateOrLink(state: ConnectGitHubState): Promise<ConnectGitHubState> {
-    const result = await this.orchestrator.queue(
+    const result = await this.askUser.run(
       {
         question: 'Would you like to create a new GitHub repository or connect an existing one?',
         mode: 'options',
         options: ['Create new repository', 'Connect existing repository'],
       },
-      { workflowName: 'AskUserWorkflow', callback: { transition: 'choiceReceived' } },
+      { callback: { transition: 'choiceReceived' } },
     );
 
     await this.documentStore.save(
@@ -165,9 +162,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
       const repos = listResult.data!.repos ?? [];
       const repoNames = repos.map((r) => r.fullName);
 
-      const askResult = await this.orchestrator.queue(
+      const askResult = await this.askUser.run(
         { question: 'Select a repository to connect:', mode: 'options', options: repoNames },
-        { workflowName: 'AskUserWorkflow', callback: { transition: 'repoSelected' } },
+        { callback: { transition: 'repoSelected' } },
       );
 
       await this.documentStore.save(
@@ -176,9 +173,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
         { id: `link_repo_select` },
       );
     } else {
-      const askResult = await this.orchestrator.queue(
+      const askResult = await this.askUser.run(
         { question: 'Enter a name for your new repository:' },
-        { workflowName: 'AskUserWorkflow', callback: { transition: 'createRepo' } },
+        { callback: { transition: 'createRepo' } },
       );
 
       await this.documentStore.save(
@@ -276,18 +273,14 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // Uncommitted changes — ask user
   @Transition({ from: 'check_uncommitted', to: 'awaiting_commit_confirm' })
   async askCommitChanges(state: ConnectGitHubState): Promise<ConnectGitHubState> {
-    const confirmResult = await this.orchestrator.queue(
+    const confirmResult = await this.askUser.run(
       {
         question:
           'There are uncommitted changes in your workspace. They need to be committed before connecting to a remote repository. Would you like to commit them now?',
         mode: 'options',
         options: ['Commit changes and continue', 'Cancel'],
       },
-      {
-        workflowName: 'AskUserWorkflow',
-
-        callback: { transition: 'uncommittedChangesHandled' },
-      },
+      { callback: { transition: 'uncommittedChangesHandled' } },
     );
 
     await this.documentStore.save(
@@ -323,7 +316,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // ── Step 4b: Configure remote and check for divergence ──────────────
 
   @Transition({ from: 'setup_remote', to: 'check_divergence' })
-  async setupRemote(state: ConnectGitHubState, ctx: WorkflowContext): Promise<ConnectGitHubState> {
+  async setupRemote(state: ConnectGitHubState, ctx: LoopstackContext): Promise<ConnectGitHubState> {
     // If cancelled during commit confirmation, skip to done
     if (!state.repo) {
       return { ...state, divergenceState: 'none' };
@@ -368,7 +361,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
 
   @Transition({ from: 'check_divergence', to: 'done' })
   @Guard('canPushDirectly')
-  async pushDirectly(state: ConnectGitHubState, ctx: WorkflowContext): Promise<ConnectGitHubState> {
+  async pushDirectly(state: ConnectGitHubState, ctx: LoopstackContext): Promise<ConnectGitHubState> {
     if (state.divergenceState === 'none') {
       // Already in sync — nothing to push
       return state;
@@ -403,13 +396,9 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
           'Cancel (disconnect remote)',
         ];
 
-    const result = await this.orchestrator.queue(
+    const result = await this.askUser.run(
       { question, mode: 'options', options },
-      {
-        workflowName: 'AskUserWorkflow',
-
-        callback: { transition: 'syncStrategyChosen' },
-      },
+      { callback: { transition: 'syncStrategyChosen' } },
     );
 
     await this.documentStore.save(
@@ -425,7 +414,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   async syncStrategyChosen(
     state: ConnectGitHubState,
     payload: { data: { answer: string } },
-    ctx: WorkflowContext,
+    ctx: LoopstackContext,
   ): Promise<ConnectGitHubState> {
     await this.documentStore.save(
       LinkDocument,
@@ -457,7 +446,7 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
   // ── Final: Show result ──────────────────────────────────────────────
 
   @Transition({ from: 'done', to: 'end' })
-  async showSuccess(state: ConnectGitHubState, ctx: WorkflowContext): Promise<unknown> {
+  async showSuccess(state: ConnectGitHubState, ctx: LoopstackContext): Promise<unknown> {
     if (!state.repo) {
       await this.documentStore.save(MarkdownDocument, {
         markdown: '### Cancelled\n\nThe remote connection was removed. No changes were made.',
