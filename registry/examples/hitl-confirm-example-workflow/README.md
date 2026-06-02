@@ -11,10 +11,10 @@ Demonstrates how to ask the user for a yes/no confirmation from inside a workflo
 ## Installation
 
 ```sh
-loopstack add @loopstack/hitl-confirm-example-workflow
+npm install @loopstack/hitl-confirm-example-workflow
 ```
 
-This installs `@loopstack/hitl` as a dependency automatically.
+The package depends on `@loopstack/hitl`.
 
 ## How It Works
 

@@ -20,7 +20,9 @@ const McpLinearExampleArgsSchema = z.object({
   initialMessage: z
     .string()
     .optional()
-    .default('Hi! I can help you with Linear via MCP — what would you like to do?')
+    .default(
+      'List the available Linear MCP tools, then fetch my active issues and summarize the top 5 by priority with assignee and status.',
+    )
     .describe('Initial message shown to the agent.'),
 });
 
