@@ -49,7 +49,7 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unk
 In the initial transition, save a message document and return updated state:
 
 ```typescript
-@Initial({ to: 'data_created' })
+@Transition({ to: 'data_created' })
 async createSomeData(
   ctx: WorkflowContext,
   args: Record<string, unknown>,
@@ -70,7 +70,7 @@ The returned state is persisted automatically and available in later transitions
 In a subsequent transition, read values from the `state` parameter:
 
 ```typescript
-@Final({ from: 'data_created' })
+@Transition({ from: 'data_created', to: 'end' })
 async accessData(ctx: WorkflowContext, state: ToolResultsState): Promise<unknown> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
@@ -99,7 +99,7 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unk
     super();
   }
 
-  @Initial({ to: 'data_created' })
+  @Transition({ to: 'data_created' })
   async createSomeData(
     ctx: WorkflowContext,
     args: Record<string, unknown>,
@@ -112,7 +112,7 @@ export class WorkflowToolResultsWorkflow extends BaseWorkflow<Record<string, unk
     return { ...state, storedMessage: 'Hello World.' };
   }
 
-  @Final({ from: 'data_created' })
+  @Transition({ from: 'data_created', to: 'end' })
   async accessData(ctx: WorkflowContext, state: ToolResultsState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',

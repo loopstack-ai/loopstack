@@ -66,7 +66,7 @@ Use `wait: true` with a `schema` to pause the workflow and wait for user interac
 ```typescript
 @Transition({ from: 'waiting_for_response', to: 'response_received', wait: true, schema: MeetingNotesDocumentSchema })
 async userResponse(payload: z.infer<typeof MeetingNotesDocumentSchema>) {
-  const result = await this.repository.save(MeetingNotesDocument, payload, { id: 'input' });
+  const result = await this.documentStore.save(MeetingNotesDocument, payload, { id: 'input' });
   this.meetingNotes = result.content as z.infer<typeof MeetingNotesDocumentSchema>;
 }
 ```
@@ -179,12 +179,12 @@ async optimizeNotes() {
 
 #### 7. Final Confirmation with Wait
 
-Use `@Final` with `wait: true` to create a review step before the workflow ends:
+Use terminal `@Transition` with `wait: true` to create a review step before the workflow ends:
 
 ```typescript
-@Final({ from: 'notes_optimized', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
+@Transition({ from: 'notes_optimized', to: 'end', wait: true, schema: OptimizedMeetingNotesDocumentSchema })
 async confirm(payload: z.infer<typeof OptimizedMeetingNotesDocumentSchema>) {
-  const result = await this.repository.save(OptimizedNotesDocument, payload, { id: 'final' });
+  const result = await this.documentStore.save(OptimizedNotesDocument, payload, { id: 'final' });
   this.optimizedNotes = result.content as z.infer<typeof OptimizedMeetingNotesDocumentSchema>;
 }
 ```
@@ -193,7 +193,7 @@ async confirm(payload: z.infer<typeof OptimizedMeetingNotesDocumentSchema>) {
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@InjectTool`, `Document`)
+- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Transition`, `@Transition`, terminal `@Transition`, `@InjectTool`, `Document`)
 - `@loopstack/claude-module` - Provides `ClaudeGenerateDocument` tool for AI-powered document generation
 
 ## About

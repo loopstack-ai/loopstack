@@ -30,5 +30,5 @@ npm install @loopstack/git-commit-flow-example-workflow
 
 ## Dependencies
 
-- `@loopstack/common`, `@loopstack/core`
+- `@loopstack/common`
 - `@loopstack/git-module`

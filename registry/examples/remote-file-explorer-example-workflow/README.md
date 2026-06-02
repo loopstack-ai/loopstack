@@ -30,6 +30,6 @@ npm install @loopstack/remote-file-explorer-example-workflow
 
 ## Dependencies
 
-- `@loopstack/common`, `@loopstack/core`
+- `@loopstack/common`
 - `@loopstack/remote-client`
 - `@loopstack/remote-file-explorer-module`

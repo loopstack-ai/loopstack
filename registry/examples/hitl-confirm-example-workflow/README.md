@@ -30,5 +30,5 @@ The package depends on `@loopstack/hitl`.
 
 ## Dependencies
 
-- `@loopstack/common`, `@loopstack/core`
+- `@loopstack/common`
 - `@loopstack/hitl`

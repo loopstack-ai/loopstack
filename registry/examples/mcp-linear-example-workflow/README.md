@@ -4,7 +4,7 @@ Demonstrates how to connect a Loopstack chat agent to [Linear's hosted MCP serve
 
 ## By using this example you'll get...
 
-- A parent workflow that launches `ChatAgentWorkflow` with `mcpListTools` and `mcpCallTool`
+- A parent workflow that launches `ChatAgentWorkflow` with `mcp_list_tools` and `mcp_call`
 - A reference `@InjectTool` config with `allowedHosts` and `hostHeaderEnv` (on the workflow class for documentation)
 - A safe, minimal pattern for talking to a hosted MCP server with OAuth-style auth
 
@@ -32,7 +32,7 @@ LINEAR_MCP_TOKEN="Bearer lin_oauth_..."
 
 1. Import `McpModule` and register `McpListToolsTool` / `McpCallTool` on your workspace with `mcp.linear.app` in `allowedHosts` (copy the config from `mcp-linear-example.workflow.ts`).
 2. `hostHeaderEnv` maps `Authorization` → `LINEAR_MCP_TOKEN` for the Linear host. The value is read at call time, never logged.
-3. `McpLinearExampleWorkflow` starts `ChatAgentWorkflow` with `tools: ['mcpListTools', 'mcpCallTool']`.
+3. `McpLinearExampleWorkflow` starts `ChatAgentWorkflow` with `tools: ['mcp_list_tools', 'mcp_call']`.
 4. The chat agent calls Linear's MCP at `https://mcp.linear.app/mcp` over Streamable HTTP.
 
 ## Public API
@@ -42,6 +42,6 @@ LINEAR_MCP_TOKEN="Bearer lin_oauth_..."
 
 ## Dependencies
 
-- `@loopstack/common`, `@loopstack/core`
+- `@loopstack/common`
 - `@loopstack/agent`
 - `@loopstack/mcp-module`

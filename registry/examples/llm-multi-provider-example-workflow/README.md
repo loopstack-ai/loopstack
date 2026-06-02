@@ -78,15 +78,15 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }> {
   })
   openaiLlm: LlmGenerateTextTool;
 
-  @Initial({ to: 'claude_done' })
+  @Transition({ to: 'claude_done' })
   async askClaude(args: { prompt: string }) {
-    await this.repository.save(LlmMessageDocument, { role: 'user', content: args.prompt });
+    await this.documentStore.save(LlmMessageDocument, { role: 'user', content: args.prompt });
 
     const result = await this.claudeLlm.call({
       prompt: args.prompt,
     });
 
-    await this.repository.save(LlmMessageDocument, {
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
       content: `**Claude:** ${this.extractText(result.data!)}`,
     });
@@ -100,13 +100,13 @@ export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }> {
       prompt: args.prompt,
     });
 
-    await this.repository.save(LlmMessageDocument, {
+    await this.documentStore.save(LlmMessageDocument, {
       role: 'assistant',
       content: `**OpenAI:** ${this.extractText(result.data!)}`,
     });
   }
 
-  @Final({ from: 'openai_done' })
+  @Transition({ from: 'openai_done', to: 'end' })
   async done(): Promise<void> {}
 
   private extractText(result: LlmGenerateTextResult): string {

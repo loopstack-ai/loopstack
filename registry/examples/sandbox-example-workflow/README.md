@@ -65,7 +65,7 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }> 
 Initialize a Docker container before performing filesystem operations. The container ID is saved to a class property for use in subsequent transitions:
 
 ```typescript
-@Initial({ to: 'sandbox_ready' })
+@Transition({ to: 'sandbox_ready' })
 async initSandbox(args: { outputDir: string }) {
   const initResult: ToolResult<SandboxInitResult> = await this.sandboxInit.call({
     containerId: 'my-sandbox',
@@ -77,7 +77,7 @@ async initSandbox(args: { outputDir: string }) {
 
   this.containerId = initResult.data!.containerId;
 
-  await this.repository.save(MessageDocument, {
+  await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     content: `Sandbox initialized successfully. Container ID: ${initResult.data!.containerId}, Docker ID: ${initResult.data!.dockerId}`,
   });
@@ -87,14 +87,14 @@ async initSandbox(args: { outputDir: string }) {
 Always destroy the sandbox when finished:
 
 ```typescript
-@Final({ from: 'file_deleted' })
+@Transition({ from: 'file_deleted', to: 'end' })
 async destroySandbox() {
   const destroyResult: ToolResult<SandboxDestroyResult> = await this.sandboxDestroy.call({
     containerId: this.containerId!,
     removeContainer: true,
   });
 
-  await this.repository.save(MessageDocument, {
+  await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     content: `Sandbox destroyed. Container ${destroyResult.data!.containerId} removed=${destroyResult.data!.removed}`,
   });
@@ -116,7 +116,7 @@ async writeFile() {
     createParentDirs: true,
   });
 
-  await this.repository.save(MessageDocument, {
+  await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     content: `File written: ${writeResult.data!.path} (${writeResult.data!.bytesWritten} bytes)`,
   });
@@ -132,7 +132,7 @@ async readFile() {
 
   this.fileContent = readResult.data!.content;
 
-  await this.repository.save(MessageDocument, {
+  await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     content: `File read successfully. Content: "${readResult.data!.content}" (encoding: ${readResult.data!.encoding})`,
   });
@@ -148,7 +148,7 @@ async listDir() {
 
   this.fileList = listResult.data!.entries;
 
-  await this.repository.save(MessageDocument, {
+  await this.documentStore.save(MessageDocument, {
     role: 'assistant',
     content: `Directory listing for ${listResult.data!.path}: ${this.formatEntries(listResult.data!.entries)}`,
   });
@@ -173,10 +173,9 @@ This example workflow demonstrates the following sequence:
 
 This workflow uses the following Loopstack modules:
 
-- `@loopstack/common` - Core framework decorators (`BaseWorkflow`, `@Workflow`, `@Initial`, `@Transition`, `@Final`, `@InjectTool`, `ToolResult`)
+- `@loopstack/common` - Core workflow/runtime APIs (`BaseWorkflow`, `@Workflow`, `@Transition`, `@InjectTool`, `ToolResult`, `MessageDocument`)
 - `@loopstack/sandbox-tool` - Provides `SandboxInit` and `SandboxDestroy` tools for container lifecycle
 - `@loopstack/sandbox-filesystem` - Provides filesystem tools (`SandboxWriteFile`, `SandboxReadFile`, `SandboxListDirectory`, `SandboxCreateDirectory`, `SandboxDelete`, `SandboxExists`, `SandboxFileInfo`)
-- `@loopstack/core` - Provides `MessageDocument` for chat output
 
 ## About
 

@@ -151,7 +151,7 @@ Tools registered in the same NestJS module are injected via the constructor. Cal
 Call tools inside transition methods and store results in workflow state:
 
 ```typescript
-@Initial({ to: 'waiting_for_user' })
+@Transition({ to: 'waiting_for_user' })
 async calculate(
   ctx: WorkflowContext,
   args: { a: number; b: number },
@@ -206,10 +206,10 @@ The workflow pauses at `waiting_for_user` until the user triggers the `userConti
 
 #### 4. Workflow Output
 
-A `@Final` method can return data as the workflow output:
+A terminal `@Transition` method can return data as the workflow output:
 
 ```typescript
-@Final({ from: 'resumed' })
+@Transition({ from: 'resumed', to: 'end' })
 async continueCount(ctx: WorkflowContext, state: CustomToolExampleState): Promise<{ total: number | undefined }> {
   const c4 = await this.counterTool.call();
   const c5 = await this.counterTool.call();
@@ -269,7 +269,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
     super();
   }
 
-  @Initial({ to: 'waiting_for_user' })
+  @Transition({ to: 'waiting_for_user' })
   async calculate(
     ctx: WorkflowContext,
     args: { a: number; b: number },
@@ -304,7 +304,7 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
     return state;
   }
 
-  @Final({ from: 'resumed' })
+  @Transition({ from: 'resumed', to: 'end' })
   async continueCount(ctx: WorkflowContext, state: CustomToolExampleState): Promise<{ total: number | undefined }> {
     const c4 = await this.counterTool.call();
     const c5 = await this.counterTool.call();

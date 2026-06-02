@@ -40,7 +40,7 @@ This example depends on `@loopstack/secrets-module` and `@loopstack/claude-modul
 
 ## Dependencies
 
-- `@loopstack/common`, `@loopstack/core`
+- `@loopstack/common`
 - `@loopstack/secrets-module`
 - `@loopstack/llm-provider-module`
 - `@loopstack/claude-module`

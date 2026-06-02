@@ -64,10 +64,10 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
 
 #### 1. Receiving Input Arguments
 
-The `@Initial` transition receives validated input as `args`. Store the value in workflow state for guards and routing:
+The first `@Transition` receives validated input as `args`. Store the value in workflow state for guards and routing:
 
 ```typescript
-@Initial({ to: 'prepared' })
+@Transition({ to: 'prepared' })
 async createMockData(
   ctx: WorkflowContext,
   args: { value: number },
@@ -151,10 +151,10 @@ The workflow routes through different states based on the input value:
 - **100 < value <= 200** -> placeA -> placeD -> "Value is less or equal 200, but greater than 100"
 - **value > 200** -> placeA -> placeC -> "Value is greater than 200"
 
-Terminal `@Final` transitions save the result message:
+Terminal terminal `@Transition`s save the result message:
 
 ```typescript
-@Final({ from: 'placeB' })
+@Transition({ from: 'placeB', to: 'end' })
 async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
   await this.documentStore.save(MessageDocument, {
     role: 'assistant',
@@ -198,7 +198,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
     super();
   }
 
-  @Initial({ to: 'prepared' })
+  @Transition({ to: 'prepared' })
   async createMockData(
     ctx: WorkflowContext,
     args: { value: number },
@@ -241,7 +241,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
     return state;
   }
 
-  @Final({ from: 'placeB' })
+  @Transition({ from: 'placeB', to: 'end' })
   async showMessagePlaceB(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -250,7 +250,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
     return {};
   }
 
-  @Final({ from: 'placeC' })
+  @Transition({ from: 'placeC', to: 'end' })
   async showMessagePlaceC(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',
@@ -259,7 +259,7 @@ export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number 
     return {};
   }
 
-  @Final({ from: 'placeD' })
+  @Transition({ from: 'placeD', to: 'end' })
   async showMessagePlaceD(ctx: WorkflowContext, state: DynamicRoutingState): Promise<unknown> {
     await this.documentStore.save(MessageDocument, {
       role: 'assistant',

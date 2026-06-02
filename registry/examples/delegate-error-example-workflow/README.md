@@ -31,6 +31,6 @@ This example uses `@loopstack/claude-module` through `@loopstack/llm-provider-mo
 
 ## Dependencies
 
-- `@loopstack/common`, `@loopstack/core`
+- `@loopstack/common`
 - `@loopstack/llm-provider-module`
 - `@loopstack/claude-module`

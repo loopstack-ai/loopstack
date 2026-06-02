@@ -67,15 +67,15 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
 
 #### 3. Storing Arguments as Instance State
 
-The `@Initial` method receives the validated arguments and stores them as instance properties for use in later transitions:
+The start `@Transition` method receives the validated arguments and stores them as instance properties for use in later transitions:
 
 ```typescript
 language!: string;
 
-@Initial({ to: 'ready' })
+@Transition({ to: 'ready' })
 async greeting(args: { language: string }) {
   this.language = args.language;
-  await this.repository.save(
+  await this.documentStore.save(
     LlmMessageDocument,
     {
       role: 'assistant',
@@ -108,12 +108,12 @@ The LLM response is automatically parsed and validated against the `FileDocument
 
 #### 5. Updating a Document by ID
 
-The `@Final` method updates the status message saved earlier using the same `{ id: 'status' }`:
+The terminal `@Transition` method updates the status message saved earlier using the same `{ id: 'status' }`:
 
 ```typescript
-@Final({ from: 'prompt_executed' })
+@Transition({ from: 'prompt_executed', to: 'end' })
 async respond() {
-  await this.repository.save(
+  await this.documentStore.save(
     LlmMessageDocument,
     {
       role: 'assistant',
@@ -146,10 +146,10 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
   language!: string;
   llmResult?: DocumentEntity<FileDocumentType>;
 
-  @Initial({ to: 'ready' })
+  @Transition({ to: 'ready' })
   async greeting(args: { language: string }) {
     this.language = args.language;
-    await this.repository.save(
+    await this.documentStore.save(
       LlmMessageDocument,
       {
         role: 'assistant',
@@ -169,9 +169,9 @@ export class PromptStructuredOutputWorkflow extends BaseWorkflow<{ language: str
     this.llmResult = result.data as DocumentEntity<FileDocumentType>;
   }
 
-  @Final({ from: 'prompt_executed' })
+  @Transition({ from: 'prompt_executed', to: 'end' })
   async respond() {
-    await this.repository.save(
+    await this.documentStore.save(
       LlmMessageDocument,
       {
         role: 'assistant',

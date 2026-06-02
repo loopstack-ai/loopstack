@@ -32,5 +32,5 @@ npm install @loopstack/agent-example-workflow
 
 ## Dependencies
 
-- `@loopstack/common`, `@loopstack/core`
+- `@loopstack/common`
 - `@loopstack/agent`
