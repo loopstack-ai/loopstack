@@ -1,6 +1,4 @@
-import { Inject } from '@nestjs/common';
-import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
 import { GitAddTool, GitCommitTool, GitLogTool, GitStatusTool } from '@loopstack/git-module';
 
 const COMMIT_MESSAGE = 'chore: example commit from git-commit-flow workflow';
@@ -14,7 +12,6 @@ export class GitCommitFlowExampleWorkflow extends BaseWorkflow {
     private readonly gitAdd: GitAddTool,
     private readonly gitCommit: GitCommitTool,
     private readonly gitLog: GitLogTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
   }

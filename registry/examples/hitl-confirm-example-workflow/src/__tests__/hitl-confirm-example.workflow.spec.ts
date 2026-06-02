@@ -20,7 +20,7 @@ describe('HitlConfirmExampleWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(HitlConfirmExampleWorkflow)
-      .withOverride(ConfirmUserWorkflow, mockConfirmUserWorkflow)
+      .withMock(ConfirmUserWorkflow, mockConfirmUserWorkflow)
       .compile();
 
     workflow = module.get(HitlConfirmExampleWorkflow);

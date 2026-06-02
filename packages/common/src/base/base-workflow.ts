@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { z } from 'zod';
+import type { DocumentStore } from '../interfaces/document-store.interface.js';
 import type { WorkflowOrchestrator } from '../interfaces/workflow-orchestrator.interface.js';
-import { WORKFLOW_ORCHESTRATOR } from '../tokens.js';
+import { DOCUMENT_STORE, WORKFLOW_ORCHESTRATOR } from '../tokens.js';
 
 export interface RunOptions {
   /** @internal Used by BaseWorkflow.run() to pass the class name to the orchestrator. Not needed when calling run() directly. */
@@ -50,6 +51,9 @@ export const CallbackSchema = z.object({
 export abstract class BaseWorkflow<TArgs = Record<string, unknown>, _TState = Record<string, unknown>> {
   /** @internal — injected by the framework. Routes run() through the orchestrator. */
   @Inject(WORKFLOW_ORCHESTRATOR) private readonly __orchestrator!: WorkflowOrchestrator;
+
+  /** Document store for saving and retrieving workflow documents. */
+  @Inject(DOCUMENT_STORE) protected readonly documentStore!: DocumentStore;
 
   /**
    * Launch this workflow as a sub-workflow.

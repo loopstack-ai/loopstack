@@ -4,7 +4,6 @@ import { AgentWorkflow } from '@loopstack/agent';
 import {
   BaseWorkflow,
   CallbackSchema,
-  DOCUMENT_STORE,
   LinkDocument,
   MessageDocument,
   QueueResult,
@@ -12,7 +11,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn } from '@loopstack/common';
+import type { TemplateRenderFn } from '@loopstack/common';
 
 const AgentCallbackSchema = CallbackSchema.extend({
   data: z.object({ response: z.string() }),
@@ -27,7 +26,6 @@ type AgentCallback = z.infer<typeof AgentCallbackSchema>;
 export class AgentExampleWorkflow extends BaseWorkflow {
   constructor(
     private readonly agentWorkflow: AgentWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();

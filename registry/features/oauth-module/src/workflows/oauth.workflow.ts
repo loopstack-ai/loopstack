@@ -1,8 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import type { LoopstackContext } from '@loopstack/common';
-import { BaseWorkflow, DOCUMENT_STORE, ToolResult, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
+import { BaseWorkflow, ToolResult, Transition, Workflow } from '@loopstack/common';
 import { OAuthPromptDocument } from '../documents/index.js';
 import { BuildOAuthUrlResult, BuildOAuthUrlTool, ExchangeOAuthTokenTool } from '../tools/index.js';
 
@@ -33,7 +31,6 @@ export class OAuthWorkflow extends BaseWorkflow<OAuthArgs, OAuthState> {
   constructor(
     private readonly buildOAuthUrl: BuildOAuthUrlTool,
     private readonly exchangeOAuthToken: ExchangeOAuthTokenTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
   }

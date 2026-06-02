@@ -1,8 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, DOCUMENT_STORE, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { LoopstackContext } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 import type { LlmContext } from '../contracts/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
 import type { LlmModuleConfig } from '../llm-provider.constants.js';
@@ -51,7 +50,6 @@ export class LlmGenerateObjectTool extends BaseTool<
   LlmResultMeta
 > {
   @Inject() private readonly registry: LlmProviderRegistry;
-  @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore;
   @Inject(LLM_MODULE_CONFIG) private readonly moduleConfig: LlmModuleConfig;
 
   protected async handle(

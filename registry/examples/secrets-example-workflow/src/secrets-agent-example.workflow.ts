@@ -1,15 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import {
-  BaseWorkflow,
-  DOCUMENT_STORE,
-  DocumentEntity,
-  Guard,
-  TEMPLATE_RENDERER,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, DocumentEntity, Guard, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
+import type { TemplateRenderFn } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -39,7 +31,6 @@ export class SecretsAgentExampleWorkflow extends BaseWorkflow<Record<string, unk
     private readonly requestSecrets: RequestSecretsTask,
     private readonly getSecretKeys: GetSecretKeysTool,
     private readonly secretsRequest: SecretsRequestWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();

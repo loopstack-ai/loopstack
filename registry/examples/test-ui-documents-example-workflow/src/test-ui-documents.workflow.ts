@@ -1,7 +1,5 @@
-import { Inject } from '@nestjs/common';
 import {
   BaseWorkflow,
-  DOCUMENT_STORE,
   ErrorDocument,
   MarkdownDocument,
   MessageDocument,
@@ -9,17 +7,12 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 
 @Workflow({
   title: 'Core Ui Documents',
   description: 'Test the displaying of core ui documents',
 })
 export class TestUiDocumentsWorkflow extends BaseWorkflow {
-  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
-    super();
-  }
-
   @Transition({ to: 'rendered' })
   async renderAll(state: Record<string, unknown>): Promise<Record<string, unknown>> {
     // Message

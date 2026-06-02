@@ -1,7 +1,4 @@
-import { Inject } from '@nestjs/common';
 import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
-import { DOCUMENT_STORE } from '@loopstack/common';
 import { GreeterTool } from '../greeter/index.js';
 
 /**
@@ -9,10 +6,7 @@ import { GreeterTool } from '../greeter/index.js';
  */
 @Workflow({ name: 'german_greeting', title: 'German Greeting' })
 export class GermanGreetingWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly greeter: GreeterTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-  ) {
+  constructor(private readonly greeter: GreeterTool) {
     super();
   }
 

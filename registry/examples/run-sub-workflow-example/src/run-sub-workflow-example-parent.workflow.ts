@@ -1,16 +1,13 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
-  DOCUMENT_STORE,
   LinkDocument,
   MessageDocument,
   QueueResult,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 import { RunSubWorkflowExampleSubWorkflow } from './run-sub-workflow-example-sub.workflow';
 
 const SubWorkflowCallbackSchema = CallbackSchema.extend({
@@ -23,10 +20,7 @@ type SubWorkflowCallback = z.infer<typeof SubWorkflowCallbackSchema>;
   title: 'Run Sub Workflow Example',
 })
 export class RunSubWorkflowExampleParentWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly subWorkflow: RunSubWorkflowExampleSubWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-  ) {
+  constructor(private readonly subWorkflow: RunSubWorkflowExampleSubWorkflow) {
     super();
   }
 

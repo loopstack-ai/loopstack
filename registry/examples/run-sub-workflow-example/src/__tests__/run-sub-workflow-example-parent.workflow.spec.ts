@@ -20,7 +20,7 @@ describe('RunSubWorkflowExampleParentWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(RunSubWorkflowExampleParentWorkflow)
-      .withOverride(RunSubWorkflowExampleSubWorkflow, mockSubWorkflow)
+      .withMock(RunSubWorkflowExampleSubWorkflow, mockSubWorkflow)
       .compile();
 
     workflow = module.get(RunSubWorkflowExampleParentWorkflow);

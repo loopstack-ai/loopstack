@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, DOCUMENT_STORE, Guard, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, Guard, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
+import type { TemplateRenderFn } from '@loopstack/common';
 import {
   GmailGetMessageTool,
   GmailReplyToMessageTool,
@@ -59,7 +59,6 @@ export class GoogleWorkspaceAgentWorkflow extends BaseWorkflow<Record<string, un
     private readonly googleDriveDownloadFile: GoogleDriveDownloadFileTool,
     private readonly googleDriveUploadFile: GoogleDriveUploadFileTool,
     private readonly oAuth: OAuthWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();

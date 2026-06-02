@@ -1,8 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, DOCUMENT_STORE, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { LoopstackContext } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '../workflows/confirm-user/confirm-user.workflow.js';
 
 const AskForApprovalInputSchema = z
@@ -24,10 +22,7 @@ export type AskForApprovalResult = { workflowId: string } | { concept: string | 
   schema: AskForApprovalInputSchema,
 })
 export class AskForApprovalTool extends BaseTool<AskForApprovalInput, object, AskForApprovalResult> {
-  constructor(
-    private readonly confirmUserWorkflow: ConfirmUserWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-  ) {
+  constructor(private readonly confirmUserWorkflow: ConfirmUserWorkflow) {
     super();
   }
 

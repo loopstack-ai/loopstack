@@ -1,8 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import type { LoopstackContext } from '@loopstack/common';
-import { BaseWorkflow, DOCUMENT_STORE, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { ConfirmUserDocument } from '../../documents/confirm-user-document.js';
 
 interface ConfirmUserState {
@@ -18,10 +16,6 @@ interface ConfirmUserState {
   }),
 })
 export class ConfirmUserWorkflow extends BaseWorkflow<{ markdown: string }, ConfirmUserState> {
-  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
-    super();
-  }
-
   @Transition({ to: 'waiting_for_confirmation' })
   async showContent(state: ConfirmUserState, ctx: LoopstackContext): Promise<ConfirmUserState> {
     const args = ctx.args as { markdown: string };

@@ -1,8 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, DOCUMENT_STORE, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { LoopstackContext } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 import { AskUserWorkflow } from '../workflows/ask-user/ask-user.workflow.js';
 
 const AskClarificationInputSchema = z
@@ -45,10 +43,7 @@ export type AskClarificationResult = { workflowId: string } | string | Record<st
   schema: AskClarificationInputSchema,
 })
 export class AskClarificationTool extends BaseTool<AskClarificationInput, object, AskClarificationResult> {
-  constructor(
-    private readonly askUserWorkflow: AskUserWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-  ) {
+  constructor(private readonly askUserWorkflow: AskUserWorkflow) {
     super();
   }
 

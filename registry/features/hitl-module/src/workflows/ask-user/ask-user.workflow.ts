@@ -1,8 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import type { LoopstackContext } from '@loopstack/common';
-import { BaseWorkflow, DOCUMENT_STORE, Guard, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
+import { BaseWorkflow, Guard, Transition, Workflow } from '@loopstack/common';
 import { AskUserConfirmDocument } from '../../documents/ask-user-confirm-document.js';
 import { AskUserDocument } from '../../documents/ask-user-document.js';
 import { AskUserOptionsDocument } from '../../documents/ask-user-options-document.js';
@@ -29,10 +27,6 @@ type AskUserState = AskUserArgs;
   schema: AskUserArgsSchema,
 })
 export class AskUserWorkflow extends BaseWorkflow<AskUserArgs, AskUserState> {
-  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
-    super();
-  }
-
   @Transition({ to: 'show_question' })
   async start(state: AskUserState, ctx: LoopstackContext): Promise<AskUserState> {
     const args = ctx.args as AskUserArgs;

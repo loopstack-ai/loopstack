@@ -1,7 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, LoopstackContext } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { MathSumTool } from '../tools';
 import { CounterTool } from '../tools';
 
@@ -25,7 +24,6 @@ export class CustomToolExampleWorkflow extends BaseWorkflow<{ a: number; b: numb
   constructor(
     private readonly counterTool: CounterTool,
     private readonly mathTool: MathSumTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
   }

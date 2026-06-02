@@ -1,6 +1,4 @@
-import { Inject } from '@nestjs/common';
-import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
 
 interface WorkflowStateState {
   message?: string;
@@ -10,10 +8,6 @@ interface WorkflowStateState {
   title: 'Workflow State',
 })
 export class WorkflowStateWorkflow extends BaseWorkflow<Record<string, unknown>, WorkflowStateState> {
-  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
-    super();
-  }
-
   @Transition({ to: 'data_created' })
   async createSomeData(state: WorkflowStateState): Promise<WorkflowStateState> {
     return { ...state, message: 'Hello :)' };

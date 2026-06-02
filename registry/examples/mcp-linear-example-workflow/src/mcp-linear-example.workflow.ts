@@ -1,8 +1,7 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { ChatAgentWorkflow } from '@loopstack/agent';
-import { BaseWorkflow, DOCUMENT_STORE, LinkDocument, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, LoopstackContext } from '@loopstack/common';
+import { BaseWorkflow, LinkDocument, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { McpCallTool, McpListToolsTool } from '@loopstack/mcp-module';
 
 const LINEAR_MCP_URL = 'https://mcp.linear.app/mcp';
@@ -29,7 +28,6 @@ export class McpLinearExampleWorkflow extends BaseWorkflow<McpLinearExampleArgs>
     private readonly chatAgentWorkflow: ChatAgentWorkflow,
     private readonly mcpListTools: McpListToolsTool,
     private readonly mcpCallTool: McpCallTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
   }

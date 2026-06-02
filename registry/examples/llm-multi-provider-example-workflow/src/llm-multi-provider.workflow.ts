@@ -1,7 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, DOCUMENT_STORE, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, LoopstackContext } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { LlmGenerateTextTool, LlmMessageDocument, extractText } from '@loopstack/llm-provider-module';
 
 /**
@@ -28,10 +27,7 @@ interface LlmMultiProviderState {
   }),
 })
 export class LlmMultiProviderWorkflow extends BaseWorkflow<{ prompt: string }, LlmMultiProviderState> {
-  constructor(
-    private readonly llmGenerateText: LlmGenerateTextTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-  ) {
+  constructor(private readonly llmGenerateText: LlmGenerateTextTool) {
     super();
   }
 

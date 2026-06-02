@@ -1,16 +1,13 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
-  DOCUMENT_STORE,
   LinkDocument,
   MessageDocument,
   QueueResult,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 import { ConfirmUserWorkflow } from '@loopstack/hitl';
 
 const ConfirmCallbackSchema = CallbackSchema.extend({
@@ -32,10 +29,7 @@ Proceed?`;
   title: 'HITL Confirm Example',
 })
 export class HitlConfirmExampleWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly confirmUserWorkflow: ConfirmUserWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-  ) {
+  constructor(private readonly confirmUserWorkflow: ConfirmUserWorkflow) {
     super();
   }
 

@@ -20,7 +20,7 @@ describe('CodeAgentExampleWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(CodeAgentExampleWorkflow)
-      .withOverride(AgentWorkflow, mockAgentWorkflow)
+      .withMock(AgentWorkflow, mockAgentWorkflow)
       .compile();
 
     workflow = module.get(CodeAgentExampleWorkflow);

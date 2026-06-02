@@ -1,17 +1,14 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { AgentWorkflow } from '@loopstack/agent';
 import {
   BaseWorkflow,
   CallbackSchema,
-  DOCUMENT_STORE,
   LinkDocument,
   MessageDocument,
   QueueResult,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 
 const ExploreCallbackSchema = CallbackSchema.extend({
   data: z.object({ response: z.string() }),
@@ -26,10 +23,7 @@ top-level providers it registers. Return a short bulleted summary.`;
   title: 'Code Agent Explore Example',
 })
 export class CodeAgentExampleWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly agentWorkflow: AgentWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-  ) {
+  constructor(private readonly agentWorkflow: AgentWorkflow) {
     super();
   }
 

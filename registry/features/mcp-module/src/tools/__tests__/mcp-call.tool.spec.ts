@@ -24,6 +24,7 @@ describe('McpCallTool', () => {
           arguments: {},
           transport: 'streamableHttp',
         },
+        {},
         // Schema would reject this, but we feed the tool directly to test the guard.
         { config: { allowedHosts: [] } as unknown as McpToolConfig },
       ),
@@ -42,6 +43,7 @@ describe('McpCallTool', () => {
         transport: 'sse',
         timeoutMs: 5000,
       },
+      {},
       { config: cfg(['mcp.linear.app']) },
     );
 
@@ -64,7 +66,7 @@ describe('McpCallTool', () => {
       toolName: 'noop',
     });
 
-    await (tool as any).handle(parsed, { config: cfg(['mcp.linear.app']) });
+    await (tool as any).handle(parsed, {}, { config: cfg(['mcp.linear.app']) });
 
     expect(callTool).toHaveBeenCalledWith(expect.any(String), expect.any(Object), 'noop', {}, expect.any(Object));
   });

@@ -1,6 +1,5 @@
-import { Inject } from '@nestjs/common';
-import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, LoopstackContext } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import { SlowTool } from './tools/slow.tool';
 import { Step1Tool } from './tools/step1.tool';
 import { Step2Tool } from './tools/step2.tool';
@@ -31,7 +30,6 @@ export class ErrorRetryWorkflow extends BaseWorkflow<Record<string, unknown>, Er
     private readonly step1Tool: Step1Tool,
     private readonly step2Tool: Step2Tool,
     private readonly slowTool: SlowTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
   }

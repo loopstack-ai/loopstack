@@ -1,7 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, DOCUMENT_STORE, Guard, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, LoopstackContext } from '@loopstack/common';
+import { BaseWorkflow, Guard, MessageDocument, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 
 interface DynamicRoutingState {
   value: number;
@@ -18,10 +17,6 @@ interface DynamicRoutingState {
     .strict(),
 })
 export class DynamicRoutingExampleWorkflow extends BaseWorkflow<{ value: number }, DynamicRoutingState> {
-  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
-    super();
-  }
-
   // --- Initial transition ---
 
   @Transition({ to: 'prepared' })

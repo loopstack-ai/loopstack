@@ -85,9 +85,7 @@ const DocumentFormRenderer: React.FC<DocumentFormRendererProps> = ({
 
   const form = useForm<Record<string, unknown>>({
     defaultValues:
-      schema?.type === 'object'
-        ? (document.content as Record<string, unknown>)
-        : { raw: document.content as unknown },
+      schema?.type === 'object' ? (document.content as Record<string, unknown>) : { raw: document.content as unknown },
     mode: 'onChange',
   });
 

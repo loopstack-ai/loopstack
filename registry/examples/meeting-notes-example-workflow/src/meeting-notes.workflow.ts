@@ -1,8 +1,8 @@
 import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import { toJSONSchema } from 'zod';
-import { BaseWorkflow, DOCUMENT_STORE, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
 import type { LlmGenerateObjectResult } from '@loopstack/llm-provider-module';
 import { LlmGenerateObjectTool } from '@loopstack/llm-provider-module';
 import { MeetingNotesDocument, MeetingNotesDocumentSchema } from './documents/meeting-notes-document';
@@ -27,7 +27,6 @@ interface MeetingNotesState {
 export class MeetingNotesWorkflow extends BaseWorkflow<{ inputText: string }, MeetingNotesState> {
   constructor(
     private readonly llmGenerateObject: LlmGenerateObjectTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();

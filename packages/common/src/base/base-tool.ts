@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
+import type { DocumentStore } from '../interfaces/document-store.interface.js';
 import type { ToolCallOptions, ToolResult } from '../interfaces/handler.interface.js';
 import type { LoopstackContext } from '../interfaces/loopstack-context.interface.js';
 import type { ToolPipeline } from '../interfaces/tool-pipeline.interface.js';
-import { TOOL_PIPELINE } from '../tokens.js';
+import { DOCUMENT_STORE, TOOL_PIPELINE } from '../tokens.js';
 
 /**
  * Abstract base class for tools.
@@ -35,6 +36,9 @@ export abstract class BaseTool<
 > {
   /** @internal — injected by the framework. Routes call() through validation + interceptors. */
   @Inject(TOOL_PIPELINE) private readonly __pipeline!: ToolPipeline;
+
+  /** Document store for saving and retrieving documents. */
+  @Inject(DOCUMENT_STORE) protected readonly documentStore!: DocumentStore;
 
   /**
    * Public entry point — what consumers call.

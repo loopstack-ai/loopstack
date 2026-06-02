@@ -19,6 +19,7 @@ describe('McpListToolsTool', () => {
     await expect(
       (tool as any).handle(
         { serverUrl: 'https://mcp.linear.app/sse', transport: 'streamableHttp' },
+        {},
         { config: { allowedHosts: [] } as unknown as McpToolConfig },
       ),
     ).rejects.toThrow(/requires config with allowedHosts/);
@@ -30,6 +31,7 @@ describe('McpListToolsTool', () => {
 
     const result = await (tool as any).handle(
       { serverUrl: 'https://mcp.linear.app/sse', transport: 'sse', timeoutMs: 1234 },
+      {},
       { config: cfg(['mcp.linear.app']) },
     );
 

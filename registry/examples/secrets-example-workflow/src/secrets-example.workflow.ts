@@ -1,13 +1,6 @@
 import { Inject } from '@nestjs/common';
-import {
-  BaseWorkflow,
-  DOCUMENT_STORE,
-  MarkdownDocument,
-  TEMPLATE_RENDERER,
-  Transition,
-  Workflow,
-} from '@loopstack/common';
-import type { DocumentStore, TemplateRenderFn } from '@loopstack/common';
+import { BaseWorkflow, MarkdownDocument, TEMPLATE_RENDERER, Transition, Workflow } from '@loopstack/common';
+import type { TemplateRenderFn } from '@loopstack/common';
 import { GetSecretKeysTool, RequestSecretsTool, SecretRequestDocument } from '@loopstack/secrets-module';
 
 interface SecretsExampleState {
@@ -22,7 +15,6 @@ export class SecretsExampleWorkflow extends BaseWorkflow<Record<string, unknown>
   constructor(
     private readonly requestSecrets: RequestSecretsTool,
     private readonly getSecretKeys: GetSecretKeysTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();

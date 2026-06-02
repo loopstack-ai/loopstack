@@ -1,8 +1,7 @@
-import { Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, DOCUMENT_STORE, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { LoopstackContext } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 import { SecretsRequestWorkflow } from './secrets-request.workflow.js';
 
 const RequestSecretsTaskInputSchema = z
@@ -31,10 +30,7 @@ export type RequestSecretsTaskResult = { workflowId: string } | string;
 export class RequestSecretsTask extends BaseTool<RequestSecretsTaskInput, object, RequestSecretsTaskResult> {
   private readonly logger = new Logger(RequestSecretsTask.name);
 
-  constructor(
-    private readonly secretsRequestWorkflow: SecretsRequestWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-  ) {
+  constructor(private readonly secretsRequestWorkflow: SecretsRequestWorkflow) {
     super();
   }
 

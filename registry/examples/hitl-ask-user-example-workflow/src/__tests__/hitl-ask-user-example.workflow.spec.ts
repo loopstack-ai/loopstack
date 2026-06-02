@@ -20,7 +20,7 @@ describe('HitlAskUserExampleWorkflow', () => {
 
     module = await createWorkflowTest()
       .forWorkflow(HitlAskUserExampleWorkflow)
-      .withOverride(AskUserWorkflow, mockAskUserWorkflow)
+      .withMock(AskUserWorkflow, mockAskUserWorkflow)
       .compile();
 
     workflow = module.get(HitlAskUserExampleWorkflow);

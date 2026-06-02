@@ -1,11 +1,8 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import type { LoopstackContext } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 import {
   BaseWorkflow,
   CallbackSchema,
-  DOCUMENT_STORE,
   Guard,
   LinkDocument,
   MarkdownDocument,
@@ -55,7 +52,6 @@ export class ConnectGitHubWorkflow extends BaseWorkflow<Record<string, never>, C
     private readonly askUser: AskUserWorkflow,
     private readonly tokenStore: OAuthTokenStore,
     private readonly clientMessageService: ClientMessageService,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
   }

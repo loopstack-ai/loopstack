@@ -3,7 +3,6 @@ import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
-  DOCUMENT_STORE,
   Guard,
   LinkDocument,
   MarkdownDocument,
@@ -11,7 +10,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore, LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 import { GoogleCalendarFetchEventsTool } from '../tools';
 
@@ -35,7 +34,6 @@ export class CalendarSummaryWorkflow extends BaseWorkflow<{ calendarId: string }
   constructor(
     private readonly googleCalendarFetchEvents: GoogleCalendarFetchEventsTool,
     private readonly oAuthWorkflow: OAuthWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();

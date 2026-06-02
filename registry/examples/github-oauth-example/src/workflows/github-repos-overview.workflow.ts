@@ -3,7 +3,6 @@ import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
-  DOCUMENT_STORE,
   Guard,
   LinkDocument,
   MarkdownDocument,
@@ -11,7 +10,7 @@ import {
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore, LoopstackContext, TemplateRenderFn } from '@loopstack/common';
+import type { LoopstackContext, TemplateRenderFn } from '@loopstack/common';
 import {
   GitHubGetAuthenticatedUserTool,
   GitHubGetRepoTool,
@@ -89,7 +88,6 @@ export class GitHubReposOverviewWorkflow extends BaseWorkflow<
     private readonly gitHubListWorkflowRuns: GitHubListWorkflowRunsTool,
     private readonly gitHubSearchCode: GitHubSearchCodeTool,
     private readonly oAuthWorkflow: OAuthWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(TEMPLATE_RENDERER) private readonly render: TemplateRenderFn,
   ) {
     super();

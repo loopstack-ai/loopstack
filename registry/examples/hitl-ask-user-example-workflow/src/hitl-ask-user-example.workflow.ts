@@ -1,16 +1,13 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import {
   BaseWorkflow,
   CallbackSchema,
-  DOCUMENT_STORE,
   LinkDocument,
   MessageDocument,
   QueueResult,
   Transition,
   Workflow,
 } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 import { AskUserWorkflow } from '@loopstack/hitl';
 
 const AskUserCallbackSchema = CallbackSchema.extend({
@@ -23,10 +20,7 @@ type AskUserCallback = z.infer<typeof AskUserCallbackSchema>;
   title: 'HITL Ask User Example',
 })
 export class HitlAskUserExampleWorkflow extends BaseWorkflow {
-  constructor(
-    private readonly askUserWorkflow: AskUserWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-  ) {
+  constructor(private readonly askUserWorkflow: AskUserWorkflow) {
     super();
   }
 

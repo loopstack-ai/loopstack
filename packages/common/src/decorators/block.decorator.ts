@@ -10,6 +10,16 @@ export const BLOCK_TYPE_METADATA_KEY = Symbol('blockType');
 export const TRANSITIONS_METADATA_KEY = Symbol('transitions');
 export const GUARDS_METADATA_KEY = Symbol('guards');
 
+/** Global registry of all @Document()-decorated classes (populated at decorator time). */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export const globalDocumentRegistry = new Set<Function>();
+
+/** Returns all classes that have been decorated with @Document(). */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export function getRegisteredDocuments(): Set<Function> {
+  return globalDocumentRegistry;
+}
+
 // Block Type Class Decorators
 export type BlockType = 'workflow' | 'tool' | 'document';
 

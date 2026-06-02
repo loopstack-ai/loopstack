@@ -23,7 +23,7 @@ describe('AgentExampleWorkflow', () => {
     module = await createWorkflowTest()
       .forWorkflow(AgentExampleWorkflow)
       .withProviders(CalculatorTool, WeatherLookupTool)
-      .withOverride(AgentWorkflow, mockAgentWorkflow)
+      .withMock(AgentWorkflow, mockAgentWorkflow)
       .compile();
 
     workflow = module.get(AgentExampleWorkflow);

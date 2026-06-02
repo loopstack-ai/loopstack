@@ -4,8 +4,7 @@ import type { DocumentClass, DocumentSaveOptions } from './document-repository.i
 /**
  * Document store for workflow and tool authors.
  *
- * Inject via token: `@Inject(DOCUMENT_STORE) private documentStore: DocumentStore`
- * Or via direct class import from `@loopstack/core` (adds core dependency).
+ * Available as `this.documentStore` on BaseWorkflow and BaseTool (no manual injection needed).
  */
 export interface DocumentStore {
   create<T extends object>(documentClass: DocumentClass<T>, data: T): T;

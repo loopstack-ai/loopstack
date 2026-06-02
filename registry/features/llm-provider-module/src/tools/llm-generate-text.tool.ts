@@ -1,9 +1,9 @@
 import { Inject } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { BaseTool, DOCUMENT_STORE, TOOL_REGISTRY, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, TOOL_REGISTRY, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { LoopstackContext } from '@loopstack/common';
-import type { DocumentStore, ToolRegistry } from '@loopstack/common';
+import type { ToolRegistry } from '@loopstack/common';
 import { ClientMessageService } from '@loopstack/core';
 import type { LlmContext } from '../contracts/index.js';
 import { LLM_MODULE_CONFIG } from '../llm-provider.constants.js';
@@ -60,7 +60,6 @@ export class LlmGenerateTextTool extends BaseTool<
   LlmResultMeta
 > {
   @Inject() private readonly registry: LlmProviderRegistry;
-  @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore;
   @Inject() private readonly toolsHelper: LlmToolsHelperService;
   @Inject(TOOL_REGISTRY) private readonly toolRegistry: ToolRegistry;
   @Inject(LLM_MODULE_CONFIG) private readonly moduleConfig: LlmModuleConfig;

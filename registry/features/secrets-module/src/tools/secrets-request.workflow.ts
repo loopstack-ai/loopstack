@@ -1,8 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
 import type { LoopstackContext } from '@loopstack/common';
-import { BaseWorkflow, DOCUMENT_STORE, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
+import { BaseWorkflow, Transition, Workflow } from '@loopstack/common';
 import { SecretRequestDocument } from '../documents/index.js';
 
 interface SecretsRequestArgs {
@@ -26,10 +24,6 @@ interface SecretsRequestState {
   }),
 })
 export class SecretsRequestWorkflow extends BaseWorkflow<SecretsRequestArgs, SecretsRequestState> {
-  constructor(@Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore) {
-    super();
-  }
-
   @Transition({ to: 'requesting_secrets' })
   async showForm(state: SecretsRequestState, ctx: LoopstackContext): Promise<SecretsRequestState> {
     const args = ctx.args as SecretsRequestArgs;

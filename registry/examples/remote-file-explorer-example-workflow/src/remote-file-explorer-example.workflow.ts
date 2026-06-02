@@ -1,6 +1,4 @@
-import { Inject } from '@nestjs/common';
-import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, Transition, Workflow } from '@loopstack/common';
 import { GlobTool, ReadTool } from '@loopstack/remote-client';
 
 interface RemoteFileExplorerState {
@@ -14,7 +12,6 @@ export class RemoteFileExplorerExampleWorkflow extends BaseWorkflow<Record<strin
   constructor(
     private readonly glob: GlobTool,
     private readonly read: ReadTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
   }

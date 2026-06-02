@@ -1,7 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseWorkflow, DOCUMENT_STORE, MessageDocument, ToolResult, Transition, Workflow } from '@loopstack/common';
-import type { DocumentStore, LoopstackContext } from '@loopstack/common';
+import { BaseWorkflow, MessageDocument, ToolResult, Transition, Workflow } from '@loopstack/common';
+import type { LoopstackContext } from '@loopstack/common';
 import {
   SandboxCreateDirectory,
   SandboxDelete,
@@ -101,7 +100,6 @@ export class SandboxExampleWorkflow extends BaseWorkflow<{ outputDir: string }, 
     private readonly sandboxDelete: SandboxDelete,
     private readonly sandboxExists: SandboxExists,
     private readonly sandboxFileInfo: SandboxFileInfo,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
   ) {
     super();
   }

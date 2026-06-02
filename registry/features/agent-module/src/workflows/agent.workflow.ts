@@ -3,14 +3,12 @@ import { z } from 'zod';
 import type { LoopstackContext } from '@loopstack/common';
 import {
   BaseWorkflow,
-  DOCUMENT_STORE,
   Guard,
   Transition,
   WORKFLOW_ORCHESTRATOR,
   Workflow,
   WorkflowOrchestrator,
 } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 import type { LlmDelegateResult, LlmGenerateTextResult, LlmResultMeta } from '@loopstack/llm-provider-module';
 import {
   LlmDelegateToolCallsTool,
@@ -60,7 +58,6 @@ export class AgentWorkflow extends BaseWorkflow<AgentArgs, AgentState> {
     private readonly llmGenerateText: LlmGenerateTextTool,
     private readonly llmDelegateToolCalls: LlmDelegateToolCallsTool,
     private readonly llmUpdateToolResult: LlmUpdateToolResultTool,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
     @Inject(WORKFLOW_ORCHESTRATOR) private readonly orchestrator: WorkflowOrchestrator,
   ) {
     super();

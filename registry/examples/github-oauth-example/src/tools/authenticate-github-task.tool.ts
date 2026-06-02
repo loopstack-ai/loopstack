@@ -1,8 +1,7 @@
-import { Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { BaseTool, DOCUMENT_STORE, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
+import { BaseTool, LinkDocument, Tool, ToolCallOptions, ToolResult } from '@loopstack/common';
 import type { LoopstackContext } from '@loopstack/common';
-import type { DocumentStore } from '@loopstack/common';
 import { OAuthWorkflow } from '@loopstack/oauth-module';
 
 const AuthenticateGitHubTaskInputSchema = z
@@ -37,10 +36,7 @@ export class AuthenticateGitHubTask extends BaseTool<
 > {
   private readonly logger = new Logger(AuthenticateGitHubTask.name);
 
-  constructor(
-    private readonly oAuthWorkflow: OAuthWorkflow,
-    @Inject(DOCUMENT_STORE) private readonly documentStore: DocumentStore,
-  ) {
+  constructor(private readonly oAuthWorkflow: OAuthWorkflow) {
     super();
   }
 

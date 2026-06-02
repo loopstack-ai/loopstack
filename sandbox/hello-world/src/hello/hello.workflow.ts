@@ -6,7 +6,6 @@ import {
   Workflow,
 } from '@loopstack/common';
 import type { LoopstackContext } from '@loopstack/common';
-import { DocumentStore } from '@loopstack/core';
 
 interface HelloState {
   name?: string;
@@ -20,10 +19,6 @@ interface HelloState {
   }),
 })
 export class HelloWorkflow extends BaseWorkflow<{ name: string }, HelloState> {
-  constructor(private readonly documentStore: DocumentStore) {
-    super();
-  }
-
   @Transition({ to: 'ready' })
   start(state: HelloState, ctx: LoopstackContext): HelloState {
     const args = ctx.args as { name: string };
